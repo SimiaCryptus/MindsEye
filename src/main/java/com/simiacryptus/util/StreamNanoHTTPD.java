@@ -40,16 +40,16 @@ import java.util.function.Function;
  */
 public class StreamNanoHTTPD extends NanoHTTPD {
   /**
-   * The Data reciever.
-   */
-  public final TeeOutputStream dataReciever;
-  /**
    * The Custom handlers.
    */
   public final Map<String, Function<IHTTPSession, Response>> customHandlers = new HashMap<>();
-  private final String mimeType;
-  private final URI gatewayUri;
+  /**
+   * The Data reciever.
+   */
+  public final TeeOutputStream dataReciever;
   private final File file;
+  private final URI gatewayUri;
+  private final String mimeType;
   private final ExecutorService pool = Executors.newCachedThreadPool();
   
   
@@ -61,47 +61,24 @@ public class StreamNanoHTTPD extends NanoHTTPD {
    * @param file     the file
    * @throws IOException the io exception
    */
-  public StreamNanoHTTPD(int port, String mimeType, File file) throws IOException {
+  public StreamNanoHTTPD(final int port, final String mimeType, final File file) throws IOException {
     super(port);
     this.file = file;
     this.mimeType = mimeType;
     try {
-      this.gatewayUri = new URI(String.format("http://localhost:%s/%s", port, file.getName()));
-    } catch (URISyntaxException e) {
+      gatewayUri = new URI(String.format("http://localhost:%s/%s", port, file.getName()));
+    } catch (final URISyntaxException e) {
       throw new RuntimeException(e);
     }
-    this.dataReciever = new TeeOutputStream(new FileOutputStream(file), true) {
+    dataReciever = new TeeOutputStream(new FileOutputStream(file), true) {
       @Override
       public void close() throws IOException {
         try {
           Thread.sleep(100);
           StreamNanoHTTPD.this.stop();
-        } catch (Exception e) {
+        } catch (final Exception e) {
           e.printStackTrace();
         }
-      }
-    };
-  }
-  
-  /**
-   * Sync handler function.
-   *
-   * @param pool     the pool
-   * @param mimeType the mime type
-   * @param logic    the logic
-   * @param async    the async
-   * @return the function
-   */
-  public static Function<IHTTPSession, Response> syncHandler(ExecutorService pool, String mimeType, Consumer<OutputStream> logic, boolean async) {
-    return session -> {
-      try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-        logic.accept(out);
-        out.flush();
-        byte[] bytes = out.toByteArray();
-        return NanoHTTPD.newFixedLengthResponse(Response.Status.OK, mimeType, new ByteArrayInputStream(bytes), bytes.length);
-      } catch (IOException e) {
-        e.printStackTrace();
-        throw new RuntimeException(e);
       }
     };
   }
@@ -115,10 +92,10 @@ public class StreamNanoHTTPD extends NanoHTTPD {
    * @param async    the async
    * @return the function
    */
-  public static Function<IHTTPSession, Response> asyncHandler(ExecutorService pool, String mimeType, Consumer<OutputStream> logic, boolean async) {
+  public static Function<IHTTPSession, Response> asyncHandler(final ExecutorService pool, final String mimeType, final Consumer<OutputStream> logic, final boolean async) {
     return session -> {
-      PipedInputStream snk = new PipedInputStream();
-      Semaphore onComplete = new Semaphore(0);
+      final PipedInputStream snk = new PipedInputStream();
+      final Semaphore onComplete = new Semaphore(0);
       pool.submit(() -> {
         try (OutputStream out = new BufferedOutputStream(new AsyncOutputStream(new PipedOutputStream(snk)))) {
           try {
@@ -126,7 +103,7 @@ public class StreamNanoHTTPD extends NanoHTTPD {
           } finally {
             onComplete.release();
           }
-        } catch (IOException e) {
+        } catch (final IOException e) {
           e.printStackTrace();
           throw new RuntimeException(e);
         }
@@ -134,7 +111,7 @@ public class StreamNanoHTTPD extends NanoHTTPD {
       if (!async) {
         try {
           onComplete.acquire();
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
           throw new RuntimeException(e);
         }
       }
@@ -151,20 +128,31 @@ public class StreamNanoHTTPD extends NanoHTTPD {
    * @return the output stream
    * @throws IOException the io exception
    */
-  public static OutputStream create(int port, File path, String mimeType) throws IOException {
+  public static OutputStream create(final int port, final File path, final String mimeType) throws IOException {
     return new StreamNanoHTTPD(port, mimeType, path).init().dataReciever;
   }
   
   /**
-   * Add sync handler.
+   * Sync handler function.
    *
-   * @param path     the path
+   * @param pool     the pool
    * @param mimeType the mime type
    * @param logic    the logic
    * @param async    the async
+   * @return the function
    */
-  public void addSyncHandler(String path, String mimeType, Consumer<OutputStream> logic, boolean async) {
-    addSessionHandler(path, syncHandler(pool, mimeType, logic, async));
+  public static Function<IHTTPSession, Response> syncHandler(final ExecutorService pool, final String mimeType, final Consumer<OutputStream> logic, final boolean async) {
+    return session -> {
+      try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+        logic.accept(out);
+        out.flush();
+        final byte[] bytes = out.toByteArray();
+        return NanoHTTPD.newFixedLengthResponse(Response.Status.OK, mimeType, new ByteArrayInputStream(bytes), bytes.length);
+      } catch (final IOException e) {
+        e.printStackTrace();
+        throw new RuntimeException(e);
+      }
+    };
   }
   
   /**
@@ -175,8 +163,8 @@ public class StreamNanoHTTPD extends NanoHTTPD {
    * @param logic    the logic
    * @param async    the async
    */
-  public void addAsyncHandler(String path, String mimeType, Consumer<OutputStream> logic, boolean async) {
-    addSessionHandler(path, asyncHandler(pool, mimeType, logic, async));
+  public void addAsyncHandler(final String path, final String mimeType, final Consumer<OutputStream> logic, final boolean async) {
+    addSessionHandler(path, StreamNanoHTTPD.asyncHandler(pool, mimeType, logic, async));
   }
   
   /**
@@ -186,8 +174,20 @@ public class StreamNanoHTTPD extends NanoHTTPD {
    * @param value the value
    * @return the function
    */
-  public Function<IHTTPSession, Response> addSessionHandler(String path, Function<IHTTPSession, Response> value) {
+  public Function<IHTTPSession, Response> addSessionHandler(final String path, final Function<IHTTPSession, Response> value) {
     return customHandlers.put(path, value);
+  }
+  
+  /**
+   * Add sync handler.
+   *
+   * @param path     the path
+   * @param mimeType the mime type
+   * @param logic    the logic
+   * @param async    the async
+   */
+  public void addSyncHandler(final String path, final String mimeType, final Consumer<OutputStream> logic, final boolean async) {
+    addSessionHandler(path, StreamNanoHTTPD.syncHandler(pool, mimeType, logic, async));
   }
   
   /**
@@ -202,7 +202,7 @@ public class StreamNanoHTTPD extends NanoHTTPD {
       try {
         Thread.sleep(100);
         Desktop.getDesktop().browse(gatewayUri);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         e.printStackTrace();
       }
     }).start();
@@ -210,27 +210,29 @@ public class StreamNanoHTTPD extends NanoHTTPD {
   }
   
   @Override
-  public Response serve(IHTTPSession session) {
+  public Response serve(final IHTTPSession session) {
     String requestPath = session.getUri();
-    while (requestPath.startsWith("/")) requestPath = requestPath.substring(1);
+    while (requestPath.startsWith("/")) {
+      requestPath = requestPath.substring(1);
+    }
     if (requestPath.equals(file.getName())) {
       try {
-        Response response = NanoHTTPD.newChunkedResponse(Response.Status.OK, mimeType, new BufferedInputStream(dataReciever.newInputStream()));
+        final Response response = NanoHTTPD.newChunkedResponse(Response.Status.OK, mimeType, new BufferedInputStream(dataReciever.newInputStream()));
         response.setGzipEncoding(false);
         return response;
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new RuntimeException(e);
       }
     }
     else {
-      File file = new File(this.file.getParent(), requestPath);
+      final File file = new File(this.file.getParent(), requestPath);
       if (customHandlers.containsKey(requestPath)) {
         return customHandlers.get(requestPath).apply(session);
       }
       else if (file.exists()) {
         try {
           return NanoHTTPD.newFixedLengthResponse(Response.Status.OK, null, new FileInputStream(file), file.length());
-        } catch (FileNotFoundException e) {
+        } catch (final FileNotFoundException e) {
           throw new RuntimeException(e);
         }
       }
@@ -241,7 +243,7 @@ public class StreamNanoHTTPD extends NanoHTTPD {
   }
   
   @Override
-  protected boolean useGzipWhenAccepted(Response r) {
+  protected boolean useGzipWhenAccepted(final Response r) {
     return false;
   }
 }

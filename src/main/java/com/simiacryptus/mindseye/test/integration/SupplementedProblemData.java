@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.test.integration;
 
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.test.integration.ImageProblemData;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.LabeledObject;
 
@@ -37,17 +36,27 @@ import java.util.stream.Stream;
  */
 public class SupplementedProblemData implements ImageProblemData {
   
+  private final int expansion = 10;
   private final ImageProblemData inner;
   private final Random random = new Random();
-  private final int expansion = 10;
   
   /**
    * Instantiates a new Supplemented data.
    *
    * @param inner the inner
    */
-  public SupplementedProblemData(ImageProblemData inner) {
+  public SupplementedProblemData(final ImageProblemData inner) {
     this.inner = inner;
+  }
+  
+  /**
+   * Add noise tensor.
+   *
+   * @param tensor the tensor
+   * @return the tensor
+   */
+  protected static Tensor addNoise(final Tensor tensor) {
+    return tensor.mapParallel((v) -> Math.random() < 0.9 ? v : v + Math.random() * 100);
   }
   
   /**
@@ -57,13 +66,13 @@ public class SupplementedProblemData implements ImageProblemData {
    * @param expanded the expanded
    * @param size     the size
    */
-  public static void printSample(NotebookOutput log, Tensor[][] expanded, int size) {
-    ArrayList<Tensor[]> list = new ArrayList<>(Arrays.asList(expanded));
+  public static void printSample(final NotebookOutput log, final Tensor[][] expanded, final int size) {
+    final ArrayList<Tensor[]> list = new ArrayList<>(Arrays.asList(expanded));
     Collections.shuffle(list);
     log.p("Expanded Training Data Sample: " + list.stream().limit(size).map(x -> {
       try {
         return log.image(x[0].toGrayImage(), "");
-      } catch (IOException e) {
+      } catch (final IOException e) {
         e.printStackTrace();
         return "";
       }
@@ -78,12 +87,12 @@ public class SupplementedProblemData implements ImageProblemData {
    * @param tensor the tensor
    * @return the tensor
    */
-  protected static Tensor translate(int dx, int dy, Tensor tensor) {
-    int sx = tensor.getDimensions()[0];
-    int sy = tensor.getDimensions()[1];
+  protected static Tensor translate(final int dx, final int dy, final Tensor tensor) {
+    final int sx = tensor.getDimensions()[0];
+    final int sy = tensor.getDimensions()[1];
     return new Tensor(tensor.coordStream().mapToDouble(c -> {
-      int x = c.getCoords()[0] + dx;
-      int y = c.getCoords()[1] + dy;
+      final int x = c.getCoords()[0] + dx;
+      final int y = c.getCoords()[1] + dy;
       if (x < 0 || x >= sx) {
         return 0.0;
       }
@@ -96,29 +105,19 @@ public class SupplementedProblemData implements ImageProblemData {
     }).toArray(), tensor.getDimensions());
   }
   
-  /**
-   * Add noise tensor.
-   *
-   * @param tensor the tensor
-   * @return the tensor
-   */
-  protected static Tensor addNoise(Tensor tensor) {
-    return tensor.mapParallel((v) -> Math.random() < 0.9 ? v : (v + Math.random() * 100));
+  @Override
+  public Stream<LabeledObject<Tensor>> trainingData() throws IOException {
+    return inner.trainingData().flatMap(labeledObject -> {
+      return IntStream.range(0, expansion).mapToObj(i -> {
+        final int dx = random.nextInt(10) - 5;
+        final int dy = random.nextInt(10) - 5;
+        return SupplementedProblemData.addNoise(SupplementedProblemData.translate(dx, dy, labeledObject.data));
+      }).map(t -> new LabeledObject<>(t, labeledObject.label));
+    });
   }
   
   @Override
   public Stream<LabeledObject<Tensor>> validationData() throws IOException {
     return inner.validationData();
-  }
-  
-  @Override
-  public Stream<LabeledObject<Tensor>> trainingData() throws IOException {
-    return inner.trainingData().flatMap(labeledObject -> {
-      return IntStream.range(0, expansion).mapToObj(i -> {
-        int dx = random.nextInt(10) - 5;
-        int dy = random.nextInt(10) - 5;
-        return addNoise(translate(dx, dy, labeledObject.data));
-      }).map(t -> new LabeledObject<>(t, labeledObject.label));
-    });
   }
 }

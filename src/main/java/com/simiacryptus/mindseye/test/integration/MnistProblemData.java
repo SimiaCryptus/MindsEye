@@ -32,14 +32,14 @@ import java.util.stream.Stream;
 public class MnistProblemData implements ImageProblemData {
   
   @Override
-  public Stream<LabeledObject<Tensor>> validationData() throws IOException {
-    return MNIST.validationDataStream();
-  }
-  
-  @Override
   public Stream<LabeledObject<Tensor>> trainingData() throws IOException {
     System.out.println(String.format("Loaded %d items", MNIST.trainingDataStream().count()));
     return MNIST.trainingDataStream();
+  }
+  
+  @Override
+  public Stream<LabeledObject<Tensor>> validationData() throws IOException {
+    return MNIST.validationDataStream();
   }
   
 }

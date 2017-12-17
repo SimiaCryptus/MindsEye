@@ -31,19 +31,11 @@ import java.util.List;
 /**
  * The type Img concat layer.
  */
+@SuppressWarnings("serial")
 public class ImgConcatLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ImgConcatLayer.class);
-  
-  /**
-   * Instantiates a new Img concat layer.
-   *
-   * @param id the id
-   */
-  protected ImgConcatLayer(JsonObject id) {
-    super(id);
-  }
   
   /**
    * Instantiates a new Img concat layer.
@@ -52,37 +44,42 @@ public class ImgConcatLayer extends NNLayer {
   }
   
   /**
+   * Instantiates a new Img concat layer.
+   *
+   * @param id the id
+   */
+  protected ImgConcatLayer(final JsonObject id) {
+    super(id);
+  }
+  
+  /**
    * From json img concat layer.
    *
    * @param json the json
    * @return the img concat layer
    */
-  public static ImgConcatLayer fromJson(JsonObject json) {
+  public static ImgConcatLayer fromJson(final JsonObject json) {
     return new ImgConcatLayer(json);
   }
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     
     assert Arrays.stream(inObj).allMatch(x -> x.getData().get(0).getDimensions().length == 3) : "This component is for use mapCoords 3d image tensors only";
-    int numBatches = inObj[0].getData().length();
+    final int numBatches = inObj[0].getData().length();
     assert Arrays.stream(inObj).allMatch(x -> x.getData().length() == numBatches) : "All inputs must use same batch size";
-    int[] outputDims = Arrays.copyOf(inObj[0].getData().get(0).getDimensions(), 3);
+    final int[] outputDims = Arrays.copyOf(inObj[0].getData().get(0).getDimensions(), 3);
     outputDims[2] = Arrays.stream(inObj).mapToInt(x -> x.getData().get(0).getDimensions()[2]).sum();
     assert Arrays.stream(inObj).allMatch(x -> x.getData().get(0).getDimensions()[0] == outputDims[0]) : "Inputs must be same size";
     assert Arrays.stream(inObj).allMatch(x -> x.getData().get(0).getDimensions()[1] == outputDims[1]) : "Inputs must be same size";
-    
-    List<Tensor> outputTensors = new ArrayList<>();
+  
+    final List<Tensor> outputTensors = new ArrayList<>();
     for (int b = 0; b < numBatches; b++) {
-      Tensor outputTensor = new Tensor(outputDims);
+      final Tensor outputTensor = new Tensor(outputDims);
       int pos = 0;
-      double[] outputTensorData = outputTensor.getData();
+      final double[] outputTensorData = outputTensor.getData();
       for (int i = 0; i < inObj.length; i++) {
-        double[] data = inObj[i].getData().get(b).getData();
+        final double[] data = inObj[i].getData().get(b).getData();
         System.arraycopy(data, 0, outputTensorData, pos, data.length);
         pos += data.length;
       }
@@ -90,24 +87,24 @@ public class ImgConcatLayer extends NNLayer {
     }
     return new NNResult(outputTensors.toArray(new Tensor[]{})) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
-        assert (numBatches == data.length());
-        
-        List<Tensor[]> splitBatches = new ArrayList<>();
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+        assert numBatches == data.length();
+  
+        final List<Tensor[]> splitBatches = new ArrayList<>();
         for (int b = 0; b < numBatches; b++) {
-          Tensor tensor = data.get(b);
-          Tensor[] outputTensors = new Tensor[inObj.length];
+          final Tensor tensor = data.get(b);
+          final Tensor[] outputTensors = new Tensor[inObj.length];
           int pos = 0;
           for (int i = 0; i < inObj.length; i++) {
-            Tensor dest = new Tensor(inObj[i].getData().get(0).getDimensions());
+            final Tensor dest = new Tensor(inObj[i].getData().get(0).getDimensions());
             System.arraycopy(tensor.getData(), pos, dest.getData(), 0, dest.size());
             pos += dest.size();
             outputTensors[i] = dest;
           }
           splitBatches.add(outputTensors);
         }
-        
-        Tensor[][] splitData = new Tensor[inObj.length][];
+  
+        final Tensor[][] splitData = new Tensor[inObj.length][];
         for (int i = 0; i < splitData.length; i++) {
           splitData[i] = new Tensor[numBatches];
         }
@@ -132,6 +129,11 @@ public class ImgConcatLayer extends NNLayer {
       }
       
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

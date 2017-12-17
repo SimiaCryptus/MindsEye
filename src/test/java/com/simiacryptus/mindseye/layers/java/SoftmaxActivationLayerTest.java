@@ -28,12 +28,12 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 public class SoftmaxActivationLayerTest extends LayerTestBase {
   
   @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new SoftmaxActivationLayer();
+  public int[][] getInputDims() {
+    return new int[][]{{4}};
   }
   
   @Override
-  public int[][] getInputDims() {
-    return new int[][]{{4}};
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new SoftmaxActivationLayer();
   }
 }

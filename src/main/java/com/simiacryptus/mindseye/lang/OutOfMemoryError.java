@@ -24,38 +24,8 @@ package com.simiacryptus.mindseye.lang;
  * In the case of a GPU OOM exception, we will likely have an interesting GpuError.
  * For a java OOM, we will wrap it anyway so we have a consolidated exception class.
  */
+@SuppressWarnings("serial")
 public class OutOfMemoryError extends RuntimeException {
-  
-  /**
-   * Instantiates a new Out of memory error.
-   *
-   * @param message the message
-   * @param cause   the cause
-   */
-  public OutOfMemoryError(String message, Throwable cause) {
-    super(message, cause);
-  }
-  
-  /**
-   * Instantiates a new Out of memory error.
-   *
-   * @param cause the cause
-   */
-  public OutOfMemoryError(Throwable cause) {
-    super(cause);
-  }
-  
-  /**
-   * Instantiates a new Out of memory error.
-   *
-   * @param message            the message
-   * @param cause              the cause
-   * @param enableSuppression  the enable suppression
-   * @param writableStackTrace the writable stack trace
-   */
-  public OutOfMemoryError(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-    super(message, cause, enableSuppression, writableStackTrace);
-  }
   
   /**
    * Instantiates a new Out of memory error.
@@ -68,7 +38,38 @@ public class OutOfMemoryError extends RuntimeException {
    *
    * @param message the message
    */
-  public OutOfMemoryError(String message) {
+  public OutOfMemoryError(final String message) {
     super(message);
+  }
+  
+  /**
+   * Instantiates a new Out of memory error.
+   *
+   * @param message the message
+   * @param cause   the cause
+   */
+  public OutOfMemoryError(final String message, final Throwable cause) {
+    super(message, cause);
+  }
+  
+  /**
+   * Instantiates a new Out of memory error.
+   *
+   * @param message            the message
+   * @param cause              the cause
+   * @param enableSuppression  the enable suppression
+   * @param writableStackTrace the writable stack trace
+   */
+  public OutOfMemoryError(final String message, final Throwable cause, final boolean enableSuppression, final boolean writableStackTrace) {
+    super(message, cause, enableSuppression, writableStackTrace);
+  }
+  
+  /**
+   * Instantiates a new Out of memory error.
+   *
+   * @param cause the cause
+   */
+  public OutOfMemoryError(final Throwable cause) {
+    super(cause);
   }
 }

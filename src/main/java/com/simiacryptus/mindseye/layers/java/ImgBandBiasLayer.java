@@ -34,6 +34,7 @@ import java.util.function.IntToDoubleFunction;
 /**
  * The type Img band bias layer.
  */
+@SuppressWarnings("serial")
 public class ImgBandBiasLayer extends NNLayer {
   
   @SuppressWarnings("unused")
@@ -42,22 +43,11 @@ public class ImgBandBiasLayer extends NNLayer {
   
   /**
    * Instantiates a new Img band bias layer.
-   *
-   * @param json the json
-   */
-  protected ImgBandBiasLayer(JsonObject json) {
-    super(json);
-    this.bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
-  }
-  
-  /**
-   * Instantiates a new Img band bias layer.
    */
   protected ImgBandBiasLayer() {
     super();
-    this.bias = null;
+    bias = null;
   }
-  
   
   /**
    * Instantiates a new Img band bias layer.
@@ -66,7 +56,18 @@ public class ImgBandBiasLayer extends NNLayer {
    */
   public ImgBandBiasLayer(final int bands) {
     super();
-    this.bias = new double[bands];
+    bias = new double[bands];
+  }
+  
+  
+  /**
+   * Instantiates a new Img band bias layer.
+   *
+   * @param json the json
+   */
+  protected ImgBandBiasLayer(final JsonObject json) {
+    super(json);
+    bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
   }
   
   /**
@@ -75,14 +76,8 @@ public class ImgBandBiasLayer extends NNLayer {
    * @param json the json
    * @return the img band bias layer
    */
-  public static ImgBandBiasLayer fromJson(JsonObject json) {
+  public static ImgBandBiasLayer fromJson(final JsonObject json) {
     return new ImgBandBiasLayer(json);
-  }
-  
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("bias", JsonUtil.getJson(getBias()));
-    return json;
   }
   
   /**
@@ -93,12 +88,12 @@ public class ImgBandBiasLayer extends NNLayer {
    */
   public double[] add(final double[] input) {
     assert Arrays.stream(input).allMatch(v -> Double.isFinite(v));
-    assert (null != input);
-    double[] bias = this.getBias();
-    assert (null != bias);
+    assert null != input;
+    final double[] bias = getBias();
+    assert null != bias;
     if (input.length % bias.length != 0) throw new IllegalArgumentException();
     final double[] array = new double[input.length];
-    int size = input.length / bias.length;
+    final int size = input.length / bias.length;
     for (int i = 0; i < array.length; i++) {
       array[i] = input[i] + bias[i / size];
     }
@@ -113,12 +108,12 @@ public class ImgBandBiasLayer extends NNLayer {
    * @return the img band bias layer
    */
   public ImgBandBiasLayer addWeights(final DoubleSupplier f) {
-    Util.add(f, this.getBias());
+    Util.add(f, getBias());
     return this;
   }
   
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     return eval(inObj[0]);
   }
   
@@ -128,10 +123,10 @@ public class ImgBandBiasLayer extends NNLayer {
    * @param input the input
    * @return the nn result
    */
-  public NNResult eval(NNResult input) {
+  public NNResult eval(final NNResult input) {
     final double[] bias = getBias();
     assert input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    Tensor[] outputA = input.getData().stream().parallel()
+    final Tensor[] outputA = input.getData().stream().parallel()
       .map(r -> {
         if (r.getDimensions().length != 3) {
           throw new IllegalArgumentException(Arrays.toString(r.getDimensions()));
@@ -149,14 +144,16 @@ public class ImgBandBiasLayer extends NNLayer {
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         if (!isFrozen()) {
-          Delta<NNLayer> deltaBuffer = buffer.get(ImgBandBiasLayer.this, bias);
+          final Delta<NNLayer> deltaBuffer = buffer.get(ImgBandBiasLayer.this, bias);
           data.stream().parallel().forEach(d -> {
             final double[] array = RecycleBin.DOUBLES.obtain(bias.length);
-            double[] signal = d.getData();
-            int size = signal.length / bias.length;
+            final double[] signal = d.getData();
+            final int size = signal.length / bias.length;
             for (int i = 0; i < signal.length; i++) {
               array[i / size] += signal[i];
-              if (!Double.isFinite(array[i / size])) array[i / size] = 0.0;
+              if (!Double.isFinite(array[i / size])) {
+                array[i / size] = 0.0;
+              }
             }
             assert Arrays.stream(array).allMatch(v -> Double.isFinite(v));
             deltaBuffer.addInPlace(array);
@@ -176,13 +173,32 @@ public class ImgBandBiasLayer extends NNLayer {
   }
   
   /**
+   * Get bias double [ ].
+   *
+   * @return the double [ ]
+   */
+  public double[] getBias() {
+    if (!Arrays.stream(bias).allMatch(v -> Double.isFinite(v))) {
+      throw new IllegalStateException(Arrays.toString(bias));
+    }
+    return bias;
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    json.add("bias", JsonUtil.getJson(getBias()));
+    return json;
+  }
+  
+  /**
    * Set nn layer.
    *
    * @param ds the ds
    * @return the nn layer
    */
   public NNLayer set(final double[] ds) {
-    double[] bias = this.getBias();
+    final double[] bias = getBias();
     for (int i = 0; i < ds.length; i++) {
       bias[i] = ds[i];
     }
@@ -197,7 +213,7 @@ public class ImgBandBiasLayer extends NNLayer {
    * @return the weights
    */
   public ImgBandBiasLayer setWeights(final IntToDoubleFunction f) {
-    double[] bias = this.getBias();
+    final double[] bias = getBias();
     for (int i = 0; i < bias.length; i++) {
       bias[i] = f.applyAsDouble(i);
     }
@@ -207,18 +223,6 @@ public class ImgBandBiasLayer extends NNLayer {
   
   @Override
   public List<double[]> state() {
-    return Arrays.asList(this.getBias());
-  }
-  
-  /**
-   * Get bias double [ ].
-   *
-   * @return the double [ ]
-   */
-  public double[] getBias() {
-    if (!Arrays.stream(bias).allMatch(v -> Double.isFinite(v))) {
-      throw new IllegalStateException(Arrays.toString(bias));
-    }
-    return bias;
+    return Arrays.asList(getBias());
   }
 }

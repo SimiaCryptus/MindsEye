@@ -52,6 +52,27 @@ public abstract class DataLoader<T> {
   }
   
   /**
+   * Read.
+   *
+   * @param queue the queue
+   */
+  protected abstract void read(List<T> queue);
+  
+  /**
+   * Stop.
+   */
+  public void stop() {
+    if (thread != null) {
+      thread.interrupt();
+    }
+    try {
+      thread.join();
+    } catch (final InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+  }
+  
+  /**
    * Stream stream.
    *
    * @return the stream
@@ -66,26 +87,7 @@ public abstract class DataLoader<T> {
         }
       }
     }
-    Iterator<T> iterator = new AsyncListIterator<>(queue, thread);
+    final Iterator<T> iterator = new AsyncListIterator<>(queue, thread);
     return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.DISTINCT), false).filter(x -> x != null);
-  }
-  
-  /**
-   * Read.
-   *
-   * @param queue the queue
-   */
-  protected abstract void read(List<T> queue);
-  
-  /**
-   * Stop.
-   */
-  public void stop() {
-    if (thread != null) thread.interrupt();
-    try {
-      thread.join();
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    }
   }
 }

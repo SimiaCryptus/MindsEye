@@ -30,33 +30,18 @@ import java.util.stream.Stream;
  */
 public interface TensorList {
   /**
-   * Get tensor.
+   * Accum.
    *
-   * @param i the
-   * @return the tensor
+   * @param right the right
    */
-  Tensor get(int i);
-  
-  /**
-   * Length int.
-   *
-   * @return the int
-   */
-  int length();
-  
-  /**
-   * Stream stream.
-   *
-   * @return the stream
-   */
-  Stream<Tensor> stream();
-  
-  /**
-   * Get dimensions int [ ].
-   *
-   * @return the int [ ]
-   */
-  int[] getDimensions();
+  default void accum(final TensorList right) {
+    if (right.length() == 0) return;
+    if (length() == 0) throw new IllegalArgumentException();
+    assert length() == right.length();
+    IntStream.range(0, length()).forEach(i -> {
+      get(i).accumulate(right.get(i));
+    });
+  }
   
   /**
    * Add tensor list.
@@ -64,27 +49,13 @@ public interface TensorList {
    * @param right the right
    * @return the tensor list
    */
-  default TensorList add(TensorList right) {
-    assert (length() == right.length());
+  default TensorList add(final TensorList right) {
+    assert length() == right.length();
     return new TensorArray(
       IntStream.range(0, length()).mapToObj(i -> {
         return get(i).add(right.get(i));
       }).toArray(i -> new Tensor[i])
     );
-  }
-  
-  /**
-   * Accum.
-   *
-   * @param right the right
-   */
-  default void accum(TensorList right) {
-    if (right.length() == 0) return;
-    if (this.length() == 0) throw new IllegalArgumentException();
-    assert (length() == right.length());
-    IntStream.range(0, length()).forEach(i -> {
-      get(i).accum(right.get(i));
-    });
   }
   
   /**
@@ -98,5 +69,37 @@ public interface TensorList {
     );
   }
   
+  /**
+   * Get tensor.
+   *
+   * @param i the
+   * @return the tensor
+   */
+  Tensor get(int i);
+  
+  /**
+   * Get dimensions int [ ].
+   *
+   * @return the int [ ]
+   */
+  int[] getDimensions();
+  
+  /**
+   * Length int.
+   *
+   * @return the int
+   */
+  int length();
+  
+  /**
+   * Recycle.
+   */
   void recycle();
+  
+  /**
+   * Stream stream.
+   *
+   * @return the stream
+   */
+  Stream<Tensor> stream();
 }

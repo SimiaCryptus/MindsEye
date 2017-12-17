@@ -32,18 +32,47 @@ public class StaticResourcePool<T> {
   
   private final List<T> all;
   private final java.util.concurrent.LinkedBlockingQueue<T> pool = new java.util.concurrent.LinkedBlockingQueue<>();
-  private final int maxItems;
   
   /**
    * Instantiates a new Static resource pool.
    *
    * @param items the items
    */
-  public StaticResourcePool(List<T> items) {
+  public StaticResourcePool(final List<T> items) {
     super();
-    this.maxItems = items.size();
     this.all = items;
     pool.addAll(getAll());
+  }
+  
+  /**
+   * With u.
+   *
+   * @param f the f
+   * @return the u
+   */
+  public void apply(final Consumer<T> f) {
+    T poll = this.pool.poll();
+    if (null == poll) {
+      try {
+        poll = this.pool.take();
+      } catch (final InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    try {
+      f.accept(poll);
+    } finally {
+      this.pool.add(poll);
+    }
+  }
+  
+  /**
+   * Gets all.
+   *
+   * @return the all
+   */
+  public List<T> getAll() {
+    return all;
   }
   
   /**
@@ -70,42 +99,11 @@ public class StaticResourcePool<T> {
   }
   
   /**
-   * With u.
-   *
-   * @param f the f
-   * @return the u
-   */
-  public void apply(final Consumer<T> f) {
-    T poll = this.pool.poll();
-    if (null == poll) {
-      try {
-        poll = this.pool.take();
-      } catch (final InterruptedException e) {
-        throw new RuntimeException(e);
-      }
-    }
-    try {
-      f.accept(poll);
-    } finally {
-      this.pool.add(poll);
-    }
-  }
-  
-  /**
    * Size int.
    *
    * @return the int
    */
   public int size() {
     return getAll().size();
-  }
-  
-  /**
-   * Gets all.
-   *
-   * @return the all
-   */
-  public List<T> getAll() {
-    return all;
   }
 }

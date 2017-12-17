@@ -47,7 +47,7 @@ public abstract class OptimizerComparison {
   public static OptimizationStrategy quadratic_quasi_newton = (log, trainingSubject, validationSubject, monitor) -> {
     log.p("Optimized via the Quadratic Quasi-Newton method:");
     return log.code(() -> {
-      ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
+      final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMonitor(monitor);
       trainer.getRegimen().get(0)
         .setOrientation(new com.simiacryptus.mindseye.opt.orient.QQN())
@@ -57,11 +57,9 @@ public abstract class OptimizerComparison {
       return trainer;
     });
   };
-  
-  
+  private final ImageProblemData data;
   private final FwdNetworkFactory fwdFactory;
   private final RevNetworkFactory revFactory;
-  private final ImageProblemData data;
   private int timeoutMinutes = 15;
   
   /**
@@ -71,7 +69,7 @@ public abstract class OptimizerComparison {
    * @param revFactory the rev factory
    * @param data       the data
    */
-  public OptimizerComparison(FwdNetworkFactory fwdFactory, RevNetworkFactory revFactory, ImageProblemData data) {
+  public OptimizerComparison(final FwdNetworkFactory fwdFactory, final RevNetworkFactory revFactory, final ImageProblemData data) {
     this.fwdFactory = fwdFactory;
     this.revFactory = revFactory;
     this.data = data;
@@ -86,27 +84,12 @@ public abstract class OptimizerComparison {
   @Category(TestCategories.Report.class)
   public void classification() throws IOException {
     try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
-      if (null != TestUtil.originalOut) log.addCopy(TestUtil.originalOut);
+      if (null != TestUtil.originalOut) {
+        log.addCopy(TestUtil.originalOut);
+      }
       compare(log, opt -> {
         return new ClassifyProblem(fwdFactory, opt, data, 10)
           .setTimeoutMinutes(timeoutMinutes).run(log).getHistory();
-      });
-    }
-  }
-  
-  /**
-   * Encoding comparison.
-   *
-   * @throws IOException the io exception
-   */
-  @Test
-  @Category(TestCategories.Report.class)
-  public void encoding() throws IOException {
-    try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
-      if (null != TestUtil.originalOut) log.addCopy(TestUtil.originalOut);
-      compare(log, opt -> {
-        return new EncodingProblem(revFactory, opt, data, 10)
-          .setTimeoutMinutes(timeoutMinutes).setTrainingSize(5000).run(log).getHistory();
       });
     }
   }
@@ -118,6 +101,25 @@ public abstract class OptimizerComparison {
    * @param test the test
    */
   public abstract void compare(NotebookOutput log, Function<OptimizationStrategy, List<StepRecord>> test);
+  
+  /**
+   * Encoding comparison.
+   *
+   * @throws IOException the io exception
+   */
+  @Test
+  @Category(TestCategories.Report.class)
+  public void encoding() throws IOException {
+    try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
+      if (null != TestUtil.originalOut) {
+        log.addCopy(TestUtil.originalOut);
+      }
+      compare(log, opt -> {
+        return new EncodingProblem(revFactory, opt, data, 10)
+          .setTimeoutMinutes(timeoutMinutes).setTrainingSize(5000).run(log).getHistory();
+      });
+    }
+  }
   
   /**
    * Gets timeout minutes.
@@ -134,7 +136,7 @@ public abstract class OptimizerComparison {
    * @param timeoutMinutes the timeout minutes
    * @return the timeout minutes
    */
-  public OptimizerComparison setTimeoutMinutes(int timeoutMinutes) {
+  public OptimizerComparison setTimeoutMinutes(final int timeoutMinutes) {
     this.timeoutMinutes = timeoutMinutes;
     return this;
   }
@@ -143,21 +145,21 @@ public abstract class OptimizerComparison {
    * The type Compare qqn.
    */
   public static class CompareQQN extends OptimizerComparison {
-  
+
     /**
      * Instantiates a new Compare qqn.
      */
     public CompareQQN() {
       super(MnistTests.fwd_conv_1, MnistTests.rev_conv_1, new MnistProblemData());
     }
-    
+
     @Override
-    public void compare(NotebookOutput log, Function<OptimizationStrategy, List<StepRecord>> test) {
+    public void compare(final NotebookOutput log, final Function<OptimizationStrategy, List<StepRecord>> test) {
       log.h1("QQN-LBFGS Comparison");
       log.h2("L-BFGS");
-      ProblemRun lbfgs = new ProblemRun("LBFGS", Color.BLUE, test.apply(TextbookOptimizers.limited_memory_bfgs), ProblemRun.PlotType.Scatter);
+      final ProblemRun lbfgs = new ProblemRun("LBFGS", Color.BLUE, test.apply(TextbookOptimizers.limited_memory_bfgs), ProblemRun.PlotType.Scatter);
       log.h2("QQN");
-      ProblemRun qqn = new ProblemRun("QQN", Color.GREEN, test.apply(quadratic_quasi_newton), ProblemRun.PlotType.Scatter);
+      final ProblemRun qqn = new ProblemRun("QQN", Color.GREEN, test.apply(OptimizerComparison.quadratic_quasi_newton), ProblemRun.PlotType.Scatter);
       log.h2("Comparison");
       log.code(() -> {
         return TestUtil.compare("Convergence Plot", lbfgs, qqn);
@@ -166,34 +168,34 @@ public abstract class OptimizerComparison {
         return TestUtil.compareTime("Convergence Plot", lbfgs, qqn);
       });
     }
-    
+
   }
   
   /**
    * The type Compare textbook.
    */
   public static class CompareTextbook extends OptimizerComparison {
-  
+
     /**
      * Instantiates a new Compare textbook.
      */
     public CompareTextbook() {
       super(MnistTests.fwd_linear_1, MnistTests.rev_linear_1, new MnistProblemData());
     }
-    
+
     @Override
-    public void compare(NotebookOutput log, Function<OptimizationStrategy, List<StepRecord>> test) {
+    public void compare(final NotebookOutput log, final Function<OptimizationStrategy, List<StepRecord>> test) {
       log.h1("Textbook Optimizer Comparison");
       log.h2("GD");
-      ProblemRun gd = new ProblemRun("GD", Color.BLACK, test.apply(TextbookOptimizers.simple_gradient_descent), ProblemRun.PlotType.Scatter);
+      final ProblemRun gd = new ProblemRun("GD", Color.BLACK, test.apply(TextbookOptimizers.simple_gradient_descent), ProblemRun.PlotType.Scatter);
       log.h2("SGD");
-      ProblemRun sgd = new ProblemRun("SGD", Color.GREEN, test.apply(TextbookOptimizers.stochastic_gradient_descent), ProblemRun.PlotType.Scatter);
+      final ProblemRun sgd = new ProblemRun("SGD", Color.GREEN, test.apply(TextbookOptimizers.stochastic_gradient_descent), ProblemRun.PlotType.Scatter);
       log.h2("CGD");
-      ProblemRun cgd = new ProblemRun("CjGD", Color.BLUE, test.apply(TextbookOptimizers.conjugate_gradient_descent), ProblemRun.PlotType.Scatter);
+      final ProblemRun cgd = new ProblemRun("CjGD", Color.BLUE, test.apply(TextbookOptimizers.conjugate_gradient_descent), ProblemRun.PlotType.Scatter);
       log.h2("L-BFGS");
-      ProblemRun lbfgs = new ProblemRun("L-BFGS", Color.MAGENTA, test.apply(TextbookOptimizers.limited_memory_bfgs), ProblemRun.PlotType.Scatter);
+      final ProblemRun lbfgs = new ProblemRun("L-BFGS", Color.MAGENTA, test.apply(TextbookOptimizers.limited_memory_bfgs), ProblemRun.PlotType.Scatter);
       log.h2("OWL-QN");
-      ProblemRun owlqn = new ProblemRun("OWL-QN", Color.ORANGE, test.apply(TextbookOptimizers.orthantwise_quasi_newton), ProblemRun.PlotType.Scatter);
+      final ProblemRun owlqn = new ProblemRun("OWL-QN", Color.ORANGE, test.apply(TextbookOptimizers.orthantwise_quasi_newton), ProblemRun.PlotType.Scatter);
       log.h2("Comparison");
       log.code(() -> {
         return TestUtil.compare("Convergence Plot", gd, sgd, cgd, lbfgs, owlqn);
@@ -202,6 +204,6 @@ public abstract class OptimizerComparison {
         return TestUtil.compareTime("Convergence Plot", gd, sgd, cgd, lbfgs, owlqn);
       });
     }
-    
+  
   }
 }

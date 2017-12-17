@@ -26,10 +26,9 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
+import com.simiacryptus.util.ArrayUtil;
 
 import java.util.HashMap;
-
-import static com.simiacryptus.util.ArrayUtil.multiply;
 
 /**
  * This wrapping strategy alters the (Simple)LineCursor returned by the inner strategy
@@ -48,26 +47,8 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy<Si
    *
    * @param inner the inner
    */
-  public LayerReweightingStrategy(OrientationStrategy<SimpleLineSearchCursor> inner) {
+  public LayerReweightingStrategy(final OrientationStrategy<SimpleLineSearchCursor> inner) {
     this.inner = inner;
-  }
-  
-  @Override
-  public SimpleLineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
-    SimpleLineSearchCursor orient = inner.orient(subject, measurement, monitor);
-    DeltaSet<NNLayer> direction = orient.direction;
-    direction.getMap().forEach((layer, buffer) -> {
-      if (null == buffer.getDelta()) return;
-      Double weight = getRegionPolicy(layer);
-      if (null != weight && 0 < weight) {
-        DoubleBuffer deltaBuffer = direction.get(layer, buffer.target);
-        double[] adjusted = multiply(deltaBuffer.getDelta(), weight);
-        for (int i = 0; i < adjusted.length; i++) {
-          deltaBuffer.getDelta()[i] = adjusted[i];
-        }
-      }
-    });
-    return orient;
   }
   
   /**
@@ -78,11 +59,29 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy<Si
    */
   public abstract Double getRegionPolicy(NNLayer layer);
   
+  @Override
+  public SimpleLineSearchCursor orient(final Trainable subject, final PointSample measurement, final TrainingMonitor monitor) {
+    final SimpleLineSearchCursor orient = inner.orient(subject, measurement, monitor);
+    final DeltaSet<NNLayer> direction = orient.direction;
+    direction.getMap().forEach((layer, buffer) -> {
+      if (null == buffer.getDelta()) return;
+      final Double weight = getRegionPolicy(layer);
+      if (null != weight && 0 < weight) {
+        final DoubleBuffer<NNLayer> deltaBuffer = direction.get(layer, buffer.target);
+        final double[] adjusted = ArrayUtil.multiply(deltaBuffer.getDelta(), weight);
+        for (int i = 0; i < adjusted.length; i++) {
+          deltaBuffer.getDelta()[i] = adjusted[i];
+        }
+      }
+    });
+    return orient;
+  }
+  
   /**
    * The type Hash map layer reweighting strategy.
    */
   public static class HashMapLayerReweightingStrategy extends LayerReweightingStrategy {
-    
+
     private final HashMap<NNLayer, Double> map = new HashMap<>();
   
     /**
@@ -90,13 +89,8 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy<Si
      *
      * @param inner the inner
      */
-    public HashMapLayerReweightingStrategy(OrientationStrategy inner) {
+    public HashMapLayerReweightingStrategy(final OrientationStrategy<SimpleLineSearchCursor> inner) {
       super(inner);
-    }
-    
-    @Override
-    public Double getRegionPolicy(NNLayer layer) {
-      return getMap().get(layer);
     }
   
     /**
@@ -107,7 +101,12 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy<Si
     public HashMap<NNLayer, Double> getMap() {
       return map;
     }
-    
+  
+    @Override
+    public Double getRegionPolicy(final NNLayer layer) {
+      return getMap().get(layer);
+    }
+
     @Override
     public void reset() {
       inner.reset();

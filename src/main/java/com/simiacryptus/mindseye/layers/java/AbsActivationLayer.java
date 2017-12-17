@@ -24,16 +24,8 @@ import com.google.gson.JsonObject;
 /**
  * The type Abs activation layer.
  */
+@SuppressWarnings("serial")
 public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivationLayer> {
-  
-  /**
-   * Instantiates a new Abs activation layer.
-   *
-   * @param id the id
-   */
-  protected AbsActivationLayer(JsonObject id) {
-    super(id);
-  }
   
   /**
    * Instantiates a new Abs activation layer.
@@ -42,17 +34,22 @@ public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivatio
   }
   
   /**
+   * Instantiates a new Abs activation layer.
+   *
+   * @param id the id
+   */
+  protected AbsActivationLayer(final JsonObject id) {
+    super(id);
+  }
+  
+  /**
    * From json abs activation layer.
    *
    * @param json the json
    * @return the abs activation layer
    */
-  public static AbsActivationLayer fromJson(JsonObject json) {
+  public static AbsActivationLayer fromJson(final JsonObject json) {
     return new AbsActivationLayer(json);
-  }
-  
-  public JsonObject getJson() {
-    return super.getJsonStub();
   }
   
   @Override
@@ -64,6 +61,11 @@ public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivatio
     assert minDeriv <= Math.abs(d);
     results[0] = f;
     results[1] = d;
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
 }

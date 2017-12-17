@@ -32,17 +32,17 @@ public class SysOutInterceptor extends PrintStream {
   /**
    * The constant INSTANCE.
    */
-  public static final SysOutInterceptor INSTANCE = init();
-  private final ThreadLocal<PrintStream> threadHandler = new ThreadLocal<PrintStream>() {
-    @Override
-    protected PrintStream initialValue() {
-      return getInner();
-    }
-  };
+  public static final SysOutInterceptor INSTANCE = SysOutInterceptor.init();
   private final ThreadLocal<Boolean> isMonitoring = new ThreadLocal<Boolean>() {
     @Override
     protected Boolean initialValue() {
       return false;
+    }
+  };
+  private final ThreadLocal<PrintStream> threadHandler = new ThreadLocal<PrintStream>() {
+    @Override
+    protected PrintStream initialValue() {
+      return getInner();
     }
   };
   
@@ -51,8 +51,41 @@ public class SysOutInterceptor extends PrintStream {
    *
    * @param out the out
    */
-  private SysOutInterceptor(PrintStream out) {
+  private SysOutInterceptor(final PrintStream out) {
     super(out);
+  }
+  
+  private static SysOutInterceptor init() {
+    if (!(System.out instanceof SysOutInterceptor)) {
+      final SysOutInterceptor out = new SysOutInterceptor(System.out);
+      System.setOut(out);
+      return out;
+    }
+    return (SysOutInterceptor) System.out;
+  }
+  
+  /**
+   * With output logged result.
+   *
+   * @param fn the fn
+   * @return the logged result
+   */
+  public static LoggedResult<Void> withOutput(final Runnable fn) {
+    try {
+      final ByteArrayOutputStream buff = new ByteArrayOutputStream();
+      try (PrintStream ps = new PrintStream(buff)) {
+        if (SysOutInterceptor.INSTANCE.isMonitoring.get()) throw new IllegalStateException();
+        SysOutInterceptor.INSTANCE.threadHandler.set(ps);
+        SysOutInterceptor.INSTANCE.isMonitoring.set(true);
+        fn.run();
+        return new LoggedResult<>(null, buff.toString());
+      }
+    } catch (final Exception e) {
+      throw new RuntimeException(e);
+    } finally {
+      SysOutInterceptor.INSTANCE.threadHandler.remove();
+      SysOutInterceptor.INSTANCE.isMonitoring.remove();
+    }
   }
   
   /**
@@ -62,75 +95,22 @@ public class SysOutInterceptor extends PrintStream {
    * @param fn  the fn
    * @return the logged result
    */
-  public static <T> LoggedResult<T> withOutput(UncheckedSupplier<T> fn) {
+  public static <T> LoggedResult<T> withOutput(final UncheckedSupplier<T> fn) {
     //init();
-    PrintStream prev = INSTANCE.threadHandler.get();
+    final PrintStream prev = SysOutInterceptor.INSTANCE.threadHandler.get();
     try {
-      ByteArrayOutputStream buff = new ByteArrayOutputStream();
+      final ByteArrayOutputStream buff = new ByteArrayOutputStream();
       try (PrintStream ps = new PrintStream(buff)) {
-        INSTANCE.threadHandler.set(ps);
-        T result = fn.get();
+        SysOutInterceptor.INSTANCE.threadHandler.set(ps);
+        final T result = fn.get();
         ps.close();
-        return new LoggedResult<T>(result, buff.toString());
+        return new LoggedResult<>(result, buff.toString());
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new RuntimeException(e);
     } finally {
-      INSTANCE.threadHandler.set(prev);
+      SysOutInterceptor.INSTANCE.threadHandler.set(prev);
     }
-  }
-  
-  /**
-   * With output logged result.
-   *
-   * @param fn the fn
-   * @return the logged result
-   */
-  public static LoggedResult<Void> withOutput(Runnable fn) {
-    try {
-      ByteArrayOutputStream buff = new ByteArrayOutputStream();
-      try (PrintStream ps = new PrintStream(buff)) {
-        if (INSTANCE.isMonitoring.get()) throw new IllegalStateException();
-        INSTANCE.threadHandler.set(ps);
-        INSTANCE.isMonitoring.set(true);
-        fn.run();
-        return new LoggedResult<Void>(null, buff.toString());
-      }
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    } finally {
-      INSTANCE.threadHandler.remove();
-      INSTANCE.isMonitoring.remove();
-    }
-  }
-  
-  private static SysOutInterceptor init() {
-    if (!(System.out instanceof SysOutInterceptor)) {
-      SysOutInterceptor out = new SysOutInterceptor(System.out);
-      System.setOut(out);
-      return out;
-    }
-    return (SysOutInterceptor) System.out;
-  }
-  
-  /**
-   * Gets inner.
-   *
-   * @return the inner
-   */
-  public PrintStream getInner() {
-    return (PrintStream) out;
-  }
-  
-  @Override
-  public void print(String s) {
-    currentHandler().print(s);
-  }
-  
-  @Override
-  public void println(String x) {
-    PrintStream currentHandler = currentHandler();
-    currentHandler.println(x);
   }
   
   /**
@@ -143,11 +123,31 @@ public class SysOutInterceptor extends PrintStream {
   }
   
   /**
+   * Gets inner.
+   *
+   * @return the inner
+   */
+  public PrintStream getInner() {
+    return (PrintStream) out;
+  }
+  
+  @Override
+  public void print(final String s) {
+    currentHandler().print(s);
+  }
+  
+  @Override
+  public void println(final String x) {
+    final PrintStream currentHandler = currentHandler();
+    currentHandler.println(x);
+  }
+  
+  /**
    * Sets current handler.
    *
    * @param out the out
    */
-  public void setCurrentHandler(PrintStream out) {
+  public void setCurrentHandler(final PrintStream out) {
     threadHandler.set(out);
   }
   
@@ -158,21 +158,21 @@ public class SysOutInterceptor extends PrintStream {
    */
   public static class LoggedResult<T> {
     /**
-     * The Obj.
-     */
-    public final T obj;
-    /**
      * The Log.
      */
     public final String log;
-  
+    /**
+     * The Obj.
+     */
+    public final T obj;
+
     /**
      * Instantiates a new Logged result.
      *
      * @param obj the obj
      * @param log the log
      */
-    public LoggedResult(T obj, String log) {
+    public LoggedResult(final T obj, final String log) {
       this.obj = obj;
       this.log = log;
     }

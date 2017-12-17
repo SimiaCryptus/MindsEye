@@ -36,8 +36,18 @@ public class IntArray {
    *
    * @param data the data
    */
-  public IntArray(int[] data) {
+  public IntArray(final int[] data) {
     this.data = data;
+  }
+  
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+  
+    final IntArray intArray = (IntArray) o;
+
+    return Arrays.equals(data, intArray.data);
   }
   
   /**
@@ -46,18 +56,8 @@ public class IntArray {
    * @param i the
    * @return the int
    */
-  public int get(int i) {
+  public int get(final int i) {
     return data[i];
-  }
-  
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    
-    IntArray intArray = (IntArray) o;
-
-    return Arrays.equals(data, intArray.data);
   }
   
   @Override

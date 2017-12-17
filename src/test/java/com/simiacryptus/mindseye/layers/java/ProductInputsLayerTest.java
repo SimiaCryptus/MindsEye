@@ -29,39 +29,13 @@ import com.simiacryptus.mindseye.test.unit.TrainingTester;
  */
 public abstract class ProductInputsLayerTest extends LayerTestBase {
   @Override
-  public NNLayer getLayer(int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize) {
     return new ProductInputsLayer();
   }
   
   @Override
-  public ComponentTest getTrainingTester() {
+  public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
     return new TrainingTester().setRandomizationMode(TrainingTester.RandomizationMode.Random);
-  }
-  
-  /**
-   * The type Nn test.
-   */
-  public static class NNTest extends ProductInputsLayerTest {
-    
-    @Override
-    public int[][] getInputDims() {
-      return new int[][]{
-        {3}, {3}
-      };
-    }
-  }
-  
-  /**
-   * The type Nnn test.
-   */
-  public static class NNNTest extends ProductInputsLayerTest {
-    
-    @Override
-    public int[][] getInputDims() {
-      return new int[][]{
-        {3}, {3}, {3}
-      };
-    }
   }
   
   /**
@@ -72,6 +46,32 @@ public abstract class ProductInputsLayerTest extends LayerTestBase {
     public int[][] getInputDims() {
       return new int[][]{
         {3}, {1}
+      };
+    }
+  }
+  
+  /**
+   * The type Nnn test.
+   */
+  public static class NNNTest extends ProductInputsLayerTest {
+
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {3}, {3}, {3}
+      };
+    }
+  }
+  
+  /**
+   * The type Nn test.
+   */
+  public static class NNTest extends ProductInputsLayerTest {
+
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {3}, {3}
       };
     }
   }

@@ -28,19 +28,11 @@ import org.slf4j.LoggerFactory;
 /**
  * The type Mean sq loss layer.
  */
+@SuppressWarnings("serial")
 public class MeanSqLossLayer extends PipelineNetwork {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MeanSqLossLayer.class);
-  
-  /**
-   * Instantiates a new Mean sq loss layer.
-   *
-   * @param id the id
-   */
-  protected MeanSqLossLayer(JsonObject id) {
-    super(id);
-  }
   
   /**
    * Instantiates a new Mean sq loss layer.
@@ -54,15 +46,25 @@ public class MeanSqLossLayer extends PipelineNetwork {
   }
   
   /**
+   * Instantiates a new Mean sq loss layer.
+   *
+   * @param id the id
+   */
+  protected MeanSqLossLayer(final JsonObject id) {
+    super(id);
+  }
+  
+  /**
    * From json mean sq loss layer.
    *
    * @param json the json
    * @return the mean sq loss layer
    */
-  public static MeanSqLossLayer fromJson(JsonObject json) {
+  public static MeanSqLossLayer fromJson(final JsonObject json) {
     return new MeanSqLossLayer(json);
   }
   
+  @Override
   public JsonObject getJson() {
     return super.getJson();
   }

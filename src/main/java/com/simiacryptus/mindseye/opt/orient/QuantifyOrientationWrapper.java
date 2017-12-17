@@ -42,24 +42,40 @@ public class QuantifyOrientationWrapper implements OrientationStrategy<LineSearc
    *
    * @param inner the inner
    */
-  public QuantifyOrientationWrapper(OrientationStrategy<? extends LineSearchCursor> inner) {
+  public QuantifyOrientationWrapper(final OrientationStrategy<? extends LineSearchCursor> inner) {
     this.inner = inner;
   }
   
+  /**
+   * Gets id.
+   *
+   * @param x the x
+   * @return the id
+   */
+  public String getId(final DoubleBuffer<NNLayer> x) {
+    final String name = x.layer.getName();
+    final String className = x.layer.getClass().getSimpleName();
+    return name.contains(className) ? className : name;
+//    if(x.layer instanceof PlaceholderLayer) {
+//      return "Input";
+//    }
+//    return x.layer.toString();
+  }
+  
   @Override
-  public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
-    LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
+  public LineSearchCursor orient(final Trainable subject, final PointSample measurement, final TrainingMonitor monitor) {
+    final LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
     if (cursor instanceof SimpleLineSearchCursor) {
-      DeltaSet<NNLayer> direction = ((SimpleLineSearchCursor) cursor).direction;
-      StateSet<NNLayer> weights = ((SimpleLineSearchCursor) cursor).origin.weights;
-      Map<String, String> dataMap = weights.stream()
+      final DeltaSet<NNLayer> direction = ((SimpleLineSearchCursor) cursor).direction;
+      final StateSet<NNLayer> weights = ((SimpleLineSearchCursor) cursor).origin.weights;
+      final Map<String, String> dataMap = weights.stream()
         .collect(Collectors.groupingBy(x -> getId(x), Collectors.toList())).entrySet().stream()
         .collect(Collectors.toMap(x -> x.getKey(), list -> {
-          List<Double> doubleList = list.getValue().stream().map(weightDelta -> {
-            DoubleBuffer<NNLayer> dirDelta = direction.getMap().get(weightDelta.layer);
-            double denominator = weightDelta.deltaStatistics().rms();
-            double numerator = null == dirDelta ? 0 : dirDelta.deltaStatistics().rms();
-            return (numerator / (0 == denominator ? 1 : denominator));
+          final List<Double> doubleList = list.getValue().stream().map(weightDelta -> {
+            final DoubleBuffer<NNLayer> dirDelta = direction.getMap().get(weightDelta.layer);
+            final double denominator = weightDelta.deltaStatistics().rms();
+            final double numerator = null == dirDelta ? 0 : dirDelta.deltaStatistics().rms();
+            return numerator / (0 == denominator ? 1 : denominator);
           }).collect(Collectors.toList());
           if (1 == doubleList.size()) return Double.toString(doubleList.get(0));
           return new DoubleStatistics().accept(doubleList.stream().mapToDouble(x -> x).toArray()).toString();
@@ -70,22 +86,6 @@ public class QuantifyOrientationWrapper implements OrientationStrategy<LineSearc
       monitor.log(String.format("Non-simple cursor: %s", cursor));
     }
     return cursor;
-  }
-  
-  /**
-   * Gets id.
-   *
-   * @param x the x
-   * @return the id
-   */
-  public String getId(DoubleBuffer<NNLayer> x) {
-    String name = x.layer.getName();
-    String className = x.layer.getClass().getSimpleName();
-    return name.contains(className) ? className : name;
-//    if(x.layer instanceof PlaceholderLayer) {
-//      return "Input";
-//    }
-//    return x.layer.toString();
   }
   
   @Override

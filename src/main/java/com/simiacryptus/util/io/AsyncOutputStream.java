@@ -36,17 +36,16 @@ public class AsyncOutputStream extends FilterOutputStream {
    *
    * @param stream the stream
    */
-  public AsyncOutputStream(OutputStream stream) {
+  public AsyncOutputStream(final OutputStream stream) {
     super(stream);
   }
   
   @Override
-  public synchronized void write(byte[] b, int off, int len) throws IOException {
-    byte[] _b = Arrays.copyOfRange(b, off, Math.min(b.length, off + len));
+  public synchronized void close() throws IOException {
     queue.submit(() -> {
       try {
-        out.write(_b);
-      } catch (IOException e) {
+        out.close();
+      } catch (final IOException e) {
         throw new RuntimeException(e);
       }
     });
@@ -57,29 +56,30 @@ public class AsyncOutputStream extends FilterOutputStream {
     queue.submit(() -> {
       try {
         out.flush();
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new RuntimeException(e);
       }
     });
   }
   
   @Override
-  public synchronized void close() throws IOException {
+  public synchronized void write(final byte[] b, final int off, final int len) throws IOException {
+    final byte[] _b = Arrays.copyOfRange(b, off, Math.min(b.length, off + len));
     queue.submit(() -> {
       try {
-        out.close();
-      } catch (IOException e) {
+        out.write(_b);
+      } catch (final IOException e) {
         throw new RuntimeException(e);
       }
     });
   }
   
   @Override
-  public synchronized void write(int b) throws IOException {
+  public synchronized void write(final int b) throws IOException {
     queue.submit(() -> {
       try {
         out.write(b);
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new RuntimeException(e);
       }
     });

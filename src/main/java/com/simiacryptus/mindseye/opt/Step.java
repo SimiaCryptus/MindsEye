@@ -26,6 +26,10 @@ import com.simiacryptus.mindseye.lang.PointSample;
  */
 public class Step {
   /**
+   * The Iteration.
+   */
+  public final long iteration;
+  /**
    * The Point.
    */
   public final PointSample point;
@@ -33,10 +37,6 @@ public class Step {
    * The Time.
    */
   public final long time = System.currentTimeMillis();
-  /**
-   * The Iteration.
-   */
-  public final long iteration;
   
   /**
    * Instantiates a new Step.
@@ -44,7 +44,7 @@ public class Step {
    * @param point     the point
    * @param iteration the iteration
    */
-  Step(PointSample point, long iteration) {
+  Step(final PointSample point, final long iteration) {
     this.point = point;
     this.iteration = iteration;
   }

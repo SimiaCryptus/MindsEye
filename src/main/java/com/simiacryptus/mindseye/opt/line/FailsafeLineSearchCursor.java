@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
@@ -38,23 +39,10 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
    * @param previousPoint the previous point
    * @param monitor       the monitor
    */
-  public FailsafeLineSearchCursor(LineSearchCursor direction, PointSample previousPoint, TrainingMonitor monitor) {
+  public FailsafeLineSearchCursor(final LineSearchCursor direction, final PointSample previousPoint, final TrainingMonitor monitor) {
     this.direction = direction;
-    this.best = previousPoint.copyFull();
+    best = previousPoint.copyFull();
     this.monitor = monitor;
-  }
-  
-  @Override
-  public String getDirectionType() {
-    return direction.getDirectionType();
-  }
-  
-  
-  @Override
-  public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
-    LineSearchPoint step = direction.step(alpha, monitor);
-    accumulate(step.point);
-    return step;
   }
   
   /**
@@ -62,15 +50,31 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
    *
    * @param step the runStep
    */
-  public void accumulate(PointSample step) {
-    if (null == this.best || this.best.getMean() > step.getMean()) {
-      monitor.log(String.format("New Minimum: %s > %s", this.best.getMean(), step.getMean()));
-      this.best = step.copyFull();
+  public void accumulate(final PointSample step) {
+    if (null == best || best.getMean() > step.getMean()) {
+      monitor.log(String.format("New Minimum: %s > %s", best.getMean(), step.getMean()));
+      best = step.copyFull();
     }
   }
   
+  
+  /**
+   * Gets best.
+   *
+   * @param monitor the monitor
+   * @return the best
+   */
+  public PointSample getBest(final TrainingMonitor monitor) {
+    return best;
+  }
+  
   @Override
-  public DeltaSet position(double alpha) {
+  public String getDirectionType() {
+    return direction.getDirectionType();
+  }
+  
+  @Override
+  public DeltaSet<NNLayer> position(final double alpha) {
     return direction.position(alpha);
   }
   
@@ -79,14 +83,11 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
     direction.reset();
   }
   
-  /**
-   * Gets best.
-   *
-   * @param monitor the monitor
-   * @return the best
-   */
-  public PointSample getBest(TrainingMonitor monitor) {
-    return best;
+  @Override
+  public LineSearchPoint step(final double alpha, final TrainingMonitor monitor) {
+    final LineSearchPoint step = direction.step(alpha, monitor);
+    accumulate(step.point);
+    return step;
   }
   
 }

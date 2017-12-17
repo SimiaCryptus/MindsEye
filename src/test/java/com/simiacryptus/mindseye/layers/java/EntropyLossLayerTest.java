@@ -31,8 +31,8 @@ import com.simiacryptus.util.Util;
 public class EntropyLossLayerTest extends LayerTestBase {
   
   @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new EntropyLossLayer();
+  public SingleDerivativeTester getDerivativeTester() {
+    return new SingleDerivativeTester(1e-4, 1e-8);
   }
   
   @Override
@@ -43,8 +43,8 @@ public class EntropyLossLayerTest extends LayerTestBase {
   }
   
   @Override
-  public SingleDerivativeTester getDerivativeTester() {
-    return new SingleDerivativeTester(1e-4, 1e-8);
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new EntropyLossLayer();
   }
   
   @Override
@@ -56,28 +56,28 @@ public class EntropyLossLayerTest extends LayerTestBase {
    * The type Probability test.
    */
   public class ProbabilityTest extends LayerTestBase {
-    
+
     @Override
-    public NNLayer getLayer(int[][] inputSize) {
-      PipelineNetwork network = new PipelineNetwork(2);
-      network.add(new EntropyLossLayer(),
-        network.add(new SoftmaxActivationLayer(), network.getInput(0)),
-        network.add(new SoftmaxActivationLayer(), network.getInput(1)));
-      return network;
+    public SingleDerivativeTester getDerivativeTester() {
+      return new SingleDerivativeTester(1e-4, 1e-8);
     }
-    
+  
     @Override
     public int[][] getInputDims() {
       return new int[][]{
         {4}, {4}
       };
     }
-    
+  
     @Override
-    public SingleDerivativeTester getDerivativeTester() {
-      return new SingleDerivativeTester(1e-4, 1e-8);
+    public NNLayer getLayer(final int[][] inputSize) {
+      final PipelineNetwork network = new PipelineNetwork(2);
+      network.add(new EntropyLossLayer(),
+        network.add(new SoftmaxActivationLayer(), network.getInput(0)),
+        network.add(new SoftmaxActivationLayer(), network.getInput(1)));
+      return network;
     }
-    
+  
     @Override
     public double random() {
       return Util.R.get().nextDouble();

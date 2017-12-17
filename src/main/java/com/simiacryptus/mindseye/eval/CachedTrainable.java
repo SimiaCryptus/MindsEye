@@ -34,57 +34,20 @@ import java.util.List;
 public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
   
   private final List<PointSample> history = new ArrayList<>();
-  private boolean verbose = true;
   private int historySize = 3;
+  private boolean verbose = true;
   
   /**
    * Instantiates a new Cached trainable.
    *
    * @param inner the inner
    */
-  public CachedTrainable(T inner) {
+  public CachedTrainable(final T inner) {
     super(inner);
   }
   
   @Override
   public CachedTrainable<? extends Trainable> cached() {
-    return this;
-  }
-  
-  @Override
-  public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
-    for (PointSample result : history) {
-      if (!result.weights.isDifferent()) {
-        if (isVerbose()) {
-          System.out.println(String.format("Returning cached value; %s buffers unchanged since %s => %s",
-            result.weights.getMap().size(), result.rate, result.getMean()));
-        }
-        return result.copyFull();
-      }
-    }
-    PointSample result = super.measure(isStatic, monitor);
-    history.add(result.copyFull());
-    while (getHistorySize() < history.size()) history.remove(0);
-    return result;
-  }
-  
-  /**
-   * Is verbose boolean.
-   *
-   * @return the boolean
-   */
-  public boolean isVerbose() {
-    return verbose;
-  }
-  
-  /**
-   * Sets verbose.
-   *
-   * @param verbose the verbose
-   * @return the verbose
-   */
-  public CachedTrainable setVerbose(boolean verbose) {
-    this.verbose = verbose;
     return this;
   }
   
@@ -103,13 +66,52 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
    * @param historySize the history size
    * @return the history size
    */
-  public CachedTrainable setHistorySize(int historySize) {
+  public CachedTrainable<T> setHistorySize(final int historySize) {
     this.historySize = historySize;
     return this;
   }
   
+  /**
+   * Is verbose boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isVerbose() {
+    return verbose;
+  }
+  
+  /**
+   * Sets verbose.
+   *
+   * @param verbose the verbose
+   * @return the verbose
+   */
+  public CachedTrainable<T> setVerbose(final boolean verbose) {
+    this.verbose = verbose;
+    return this;
+  }
+  
   @Override
-  public boolean reseed(long seed) {
+  public PointSample measure(final boolean isStatic, final TrainingMonitor monitor) {
+    for (final PointSample result : history) {
+      if (!result.weights.isDifferent()) {
+        if (isVerbose()) {
+          System.out.println(String.format("Returning cached value; %s buffers unchanged since %s => %s",
+            result.weights.getMap().size(), result.rate, result.getMean()));
+        }
+        return result.copyFull();
+      }
+    }
+    final PointSample result = super.measure(isStatic, monitor);
+    history.add(result.copyFull());
+    while (getHistorySize() < history.size()) {
+      history.remove(0);
+    }
+    return result;
+  }
+  
+  @Override
+  public boolean reseed(final long seed) {
     history.clear();
     return super.reseed(seed);
   }

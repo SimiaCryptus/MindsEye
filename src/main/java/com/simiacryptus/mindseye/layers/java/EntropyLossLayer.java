@@ -31,19 +31,11 @@ import java.util.stream.IntStream;
 /**
  * The type Entropy loss layer.
  */
+@SuppressWarnings("serial")
 public class EntropyLossLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(EntropyLossLayer.class);
-  
-  /**
-   * Instantiates a new Entropy loss layer.
-   *
-   * @param id the id
-   */
-  protected EntropyLossLayer(JsonObject id) {
-    super(id);
-  }
   
   /**
    * Instantiates a new Entropy loss layer.
@@ -52,33 +44,38 @@ public class EntropyLossLayer extends NNLayer {
   }
   
   /**
+   * Instantiates a new Entropy loss layer.
+   *
+   * @param id the id
+   */
+  protected EntropyLossLayer(final JsonObject id) {
+    super(id);
+  }
+  
+  /**
    * From json entropy loss layer.
    *
    * @param json the json
    * @return the entropy loss layer
    */
-  public static EntropyLossLayer fromJson(JsonObject json) {
+  public static EntropyLossLayer fromJson(final JsonObject json) {
     return new EntropyLossLayer(json);
   }
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    double zero_tol = 1e-12;
-    Tensor gradient[] = new Tensor[inObj[0].getData().length()];
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final double zero_tol = 1e-12;
+    final Tensor gradient[] = new Tensor[inObj[0].getData().length()];
     final double max_prob = 1.;
-    Tensor[] output = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
+    final Tensor[] output = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
       final Tensor l = inObj[0].getData().get(dataIndex);
       final Tensor r = inObj[1].getData().get(dataIndex);
-      assert (l.dim() == r.dim()) : l.dim() + " != " + r.dim();
+      assert l.dim() == r.dim() : l.dim() + " != " + r.dim();
       final Tensor gradientTensor = new Tensor(l.getDimensions());
       final double[] gradientData = gradientTensor.getData();
       double total = 0;
-      double[] ld = l.getData();
-      double[] rd = r.getData();
+      final double[] ld = l.getData();
+      final double[] rd = r.getData();
       for (int i = 0; i < l.dim(); i++) {
         final double lv = Math.max(Math.min(ld[i], max_prob), zero_tol);
         final double rv = rd[i];
@@ -90,14 +87,14 @@ public class EntropyLossLayer extends NNLayer {
           gradientData[i] = 0;
         }
       }
-      assert (total >= 0);
+      assert total >= 0;
       gradient[dataIndex] = gradientTensor;
-      Tensor outValue = new Tensor(new double[]{total}, 1);
+      final Tensor outValue = new Tensor(new double[]{total}, 1);
       return outValue;
     }).toArray(i -> new Tensor[i]);
     return new NNResult(output) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (inObj[1].isAlive()) {
           inObj[1].accumulate(buffer, new TensorArray(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
             final Tensor l = inObj[0].getData().get(dataIndex);
@@ -126,6 +123,11 @@ public class EntropyLossLayer extends NNLayer {
       }
       
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

@@ -29,8 +29,8 @@ import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
  */
 public class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
   
-  private final int radius;
   private final int bands;
+  private final int radius;
   /**
    * The Layer.
    */
@@ -50,32 +50,11 @@ public class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
    * @param bands     the bands
    * @param precision the precision
    */
-  protected SimpleConvolutionLayerTest(int radius, int bands, Precision precision) {
+  protected SimpleConvolutionLayerTest(final int radius, final int bands, final Precision precision) {
     this.radius = radius;
     this.bands = bands;
     layer = new SimpleConvolutionLayer(radius, radius, bands * bands).setPrecision(precision);
-    layer.kernel.fill(() -> random());
-  }
-  
-  @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return layer;
-  }
-  
-  @Override
-  public NNLayer getReferenceLayer() {
-    ConvolutionLayer convolutionLayer = new ConvolutionLayer(radius, radius, bands, bands, true);
-    Tensor tensor = new Tensor(layer.kernel.getDimensions());
-    tensor.fillByCoord(c -> {
-      int band = c.getCoords()[2];
-      int bandX = band % bands;
-      int bandY = (band - bandX) / bands;
-      assert band == bandX + bandY * bands;
-      int bandT = bandY + bandX * bands;
-      return layer.kernel.get(c.getCoords()[0], c.getCoords()[1], bandT);
-    });
-    convolutionLayer.kernel.set(tensor);
-    return convolutionLayer;
+    layer.kernel.set(() -> random());
   }
   
   @Override
@@ -86,34 +65,31 @@ public class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return layer;
+  }
+  
+  @Override
   public int[][] getPerfDims() {
     return new int[][]{
       {100, 100, bands}
     };
   }
   
-  /**
-   * The type Multi band.
-   */
-  public static class MultiBand extends SimpleConvolutionLayerTest {
-    /**
-     * Instantiates a new Multi band.
-     */
-    public MultiBand() {
-      super(1, 3, Precision.Double);
-    }
-  }
-  
-  /**
-   * The type Matrix.
-   */
-  public static class Matrix extends SimpleConvolutionLayerTest {
-    /**
-     * Instantiates a new Matrix.
-     */
-    public Matrix() {
-      super(3, 1, Precision.Double);
-    }
+  @Override
+  public NNLayer getReferenceLayer() {
+    final ConvolutionLayer convolutionLayer = new ConvolutionLayer(radius, radius, bands, bands, true);
+    final Tensor tensor = new Tensor(layer.kernel.getDimensions());
+    tensor.setByCoord(c -> {
+      final int band = c.getCoords()[2];
+      final int bandX = band % bands;
+      final int bandY = (band - bandX) / bands;
+      assert band == bandX + bandY * bands;
+      final int bandT = bandY + bandX * bands;
+      return layer.kernel.get(c.getCoords()[0], c.getCoords()[1], bandT);
+    });
+    convolutionLayer.kernel.set(tensor);
+    return convolutionLayer;
   }
   
   /**
@@ -138,12 +114,36 @@ public class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
     public Image_Float() {
       super(3, 3, Precision.Float);
     }
-    
+
     @Override
     public SingleDerivativeTester getDerivativeTester() {
       return new SingleDerivativeTester(1e-2, 1e-3);
     }
-    
+  
+  }
+  
+  /**
+   * The type Matrix.
+   */
+  public static class Matrix extends SimpleConvolutionLayerTest {
+    /**
+     * Instantiates a new Matrix.
+     */
+    public Matrix() {
+      super(3, 1, Precision.Double);
+    }
+  }
+  
+  /**
+   * The type Multi band.
+   */
+  public static class MultiBand extends SimpleConvolutionLayerTest {
+    /**
+     * Instantiates a new Multi band.
+     */
+    public MultiBand() {
+      super(1, 3, Precision.Double);
+    }
   }
   
 }

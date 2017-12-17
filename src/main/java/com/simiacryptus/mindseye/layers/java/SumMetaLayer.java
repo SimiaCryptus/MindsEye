@@ -43,19 +43,19 @@ public class SumMetaLayer extends NNLayer {
   
   /**
    * Instantiates a new Sum meta layer.
-   *
-   * @param json the id
    */
-  protected SumMetaLayer(JsonObject json) {
-    super(json);
-    lastResult = Tensor.fromJson(json.get("lastResult"));
-    minBatches = json.get("minBatches").getAsInt();
+  public SumMetaLayer() {
   }
   
   /**
    * Instantiates a new Sum meta layer.
+   *
+   * @param json the id
    */
-  public SumMetaLayer() {
+  protected SumMetaLayer(final JsonObject json) {
+    super(json);
+    lastResult = Tensor.fromJson(json.get("lastResult"));
+    minBatches = json.get("minBatches").getAsInt();
   }
   
   /**
@@ -64,21 +64,14 @@ public class SumMetaLayer extends NNLayer {
    * @param json the json
    * @return the sum meta layer
    */
-  public static SumMetaLayer fromJson(JsonObject json) {
+  public static SumMetaLayer fromJson(final JsonObject json) {
     return new SumMetaLayer(json);
   }
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    if (null != lastResult) json.add("lastResult", lastResult.toJson());
-    json.addProperty("minBatches", minBatches);
-    return json;
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    NNResult input = inObj[0];
-    int itemCnt = input.getData().length();
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final NNResult input = inObj[0];
+    final int itemCnt = input.getData().length();
     if (null == lastResult || minBatches < itemCnt) {
       final ToDoubleFunction<Coordinate> f = (c) ->
         IntStream.range(0, itemCnt)
@@ -88,10 +81,10 @@ public class SumMetaLayer extends NNLayer {
     }
     return new NNResult(lastResult) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (input.isAlive()) {
-          Tensor delta = data.get(0);
-          Tensor feedback[] = new Tensor[itemCnt];
+          final Tensor delta = data.get(0);
+          final Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
           final ToDoubleFunction<Coordinate> f = (inputCoord) -> {
             for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
@@ -113,8 +106,13 @@ public class SumMetaLayer extends NNLayer {
   }
   
   @Override
-  public List<double[]> state() {
-    return Arrays.asList();
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    if (null != lastResult) {
+      json.add("lastResult", lastResult.toJson());
+    }
+    json.addProperty("minBatches", minBatches);
+    return json;
   }
   
   /**
@@ -132,8 +130,13 @@ public class SumMetaLayer extends NNLayer {
    * @param minBatches the min batches
    * @return the min batches
    */
-  public SumMetaLayer setMinBatches(int minBatches) {
+  public SumMetaLayer setMinBatches(final int minBatches) {
     this.minBatches = minBatches;
     return this;
+  }
+  
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList();
   }
 }

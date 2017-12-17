@@ -27,10 +27,6 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   
   /**
-   * The Radius.
-   */
-  final int radius;
-  /**
    * The Input bands.
    */
   final int inputBands;
@@ -38,6 +34,10 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
    * The Output bands.
    */
   final int outputBands;
+  /**
+   * The Radius.
+   */
+  final int radius;
   /**
    * The Convolution layer.
    */
@@ -51,24 +51,12 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
    * @param outputBands the output bands
    * @param precision   the precision
    */
-  protected ConvolutionLayerTest(int radius, int inputBands, int outputBands, Precision precision) {
+  protected ConvolutionLayerTest(final int radius, final int inputBands, final int outputBands, final Precision precision) {
     this.radius = radius;
     this.inputBands = inputBands;
     this.outputBands = outputBands;
     convolutionLayer = new ConvolutionLayer(radius, radius, inputBands, outputBands).setPrecision(precision);
-    convolutionLayer.kernel.fill(() -> random());
-  }
-  
-  @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return convolutionLayer;
-  }
-  
-  @Override
-  public NNLayer getReferenceLayer() {
-    com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer referenceLayer = new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(radius, radius, inputBands, outputBands, true);
-    referenceLayer.kernel.set(convolutionLayer.kernel);
-    return referenceLayer;
+    convolutionLayer.kernel.set(() -> random());
   }
   
   @Override
@@ -79,10 +67,36 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return convolutionLayer;
+  }
+  
+  @Override
   public int[][] getPerfDims() {
     return new int[][]{
       {100, 100, inputBands}
     };
+  }
+  
+  @Override
+  public NNLayer getReferenceLayer() {
+    final com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer referenceLayer = new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(radius, radius, inputBands, outputBands, true);
+    referenceLayer.kernel.set(convolutionLayer.kernel);
+    return referenceLayer;
+  }
+  
+  /**
+   * The type Asymmetric test.
+   */
+  public static class AsymmetricTest extends ConvolutionLayerTest {
+    
+    /**
+     * Instantiates a new Asymmetric test.
+     */
+    public AsymmetricTest() {
+      super(3, 3, 6, Precision.Double);
+    }
+    
   }
   
   /**
@@ -110,33 +124,6 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Asymmetric test.
-   */
-  public static class AsymmetricTest extends ConvolutionLayerTest {
-  
-    /**
-     * Instantiates a new Asymmetric test.
-     */
-    public AsymmetricTest() {
-      super(3, 3, 6, Precision.Double);
-    }
-    
-  }
-  
-  /**
-   * The type Irregular test float.
-   */
-  public static class IrregularTest_Float extends ConvolutionLayerTest {
-  
-    /**
-     * Instantiates a new Irregular test float.
-     */
-    public IrregularTest_Float() {
-      super(3, 7, 5, Precision.Float);
-    }
-  }
-  
-  /**
    * The type Irregular test.
    */
   public static class IrregularTest extends ConvolutionLayerTest {
@@ -146,6 +133,19 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
      */
     public IrregularTest() {
       super(3, 7, 5, Precision.Double);
+    }
+  }
+  
+  /**
+   * The type Irregular test float.
+   */
+  public static class IrregularTest_Float extends ConvolutionLayerTest {
+    
+    /**
+     * Instantiates a new Irregular test float.
+     */
+    public IrregularTest_Float() {
+      super(3, 7, 5, Precision.Float);
     }
   }
   

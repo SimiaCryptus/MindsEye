@@ -28,6 +28,7 @@ import java.util.UUID;
 /**
  * A node providing access to given inputs for NNLayer evaluation.
  */
+@SuppressWarnings("serial")
 final class InputNode extends LazyResult {
   private final DAGNetwork dagNetwork;
   
@@ -36,7 +37,7 @@ final class InputNode extends LazyResult {
    *
    * @param dagNetwork the dag network
    */
-  InputNode(DAGNetwork dagNetwork) {
+  InputNode(final DAGNetwork dagNetwork) {
     this(dagNetwork, null);
   }
   
@@ -46,24 +47,9 @@ final class InputNode extends LazyResult {
    * @param dagNetwork the dag network
    * @param key        the key
    */
-  public InputNode(DAGNetwork dagNetwork, final UUID key) {
+  public InputNode(final DAGNetwork dagNetwork, final UUID key) {
     super(key);
     this.dagNetwork = dagNetwork;
-  }
-  
-  @Override
-  protected NNResult eval(final GraphEvaluationContext t, NNExecutionContext nncontext) {
-    return t.cache.get(this.id);
-  }
-  
-  @Override
-  public NNLayer getLayer() {
-    return null;
-  }
-  
-  @Override
-  public void setLayer(NNLayer layer) {
-    throw new IllegalStateException();
   }
   
   /**
@@ -72,7 +58,22 @@ final class InputNode extends LazyResult {
    * @param nextHead the next head
    * @return the dag node
    */
-  public DAGNode add(NNLayer nextHead) {
+  public DAGNode add(final NNLayer nextHead) {
     return dagNetwork.add(nextHead, InputNode.this);
+  }
+  
+  @Override
+  protected NNResult eval(final GraphEvaluationContext t, final NNExecutionContext nncontext) {
+    return t.cache.get(id);
+  }
+  
+  @Override
+  public <T extends NNLayer> T getLayer() {
+    return null;
+  }
+  
+  @Override
+  public void setLayer(final NNLayer layer) {
+    throw new IllegalStateException();
   }
 }

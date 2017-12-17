@@ -28,14 +28,14 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 public class MeanSqLossLayerTest extends LayerTestBase {
   
   @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new MeanSqLossLayer();
-  }
-  
-  @Override
   public int[][] getInputDims() {
     return new int[][]{
       {2, 3, 1}, {2, 3, 1}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new MeanSqLossLayer();
   }
 }

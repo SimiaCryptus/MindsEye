@@ -56,7 +56,7 @@ public class LabeledObject<T> {
    * @return the labeled object
    */
   public <U> LabeledObject<U> map(final Function<T, U> f) {
-    return new LabeledObject<U>(f.apply(this.data), this.label);
+    return new LabeledObject<>(f.apply(this.data), this.label);
   }
   
   @Override

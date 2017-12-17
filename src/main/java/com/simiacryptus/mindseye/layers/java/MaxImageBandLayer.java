@@ -34,20 +34,11 @@ import java.util.stream.IntStream;
 /**
  * The type Max image band layer.
  */
+@SuppressWarnings("serial")
 public class MaxImageBandLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MaxImageBandLayer.class);
-  
-  /**
-   * Instantiates a new Max image band layer.
-   *
-   * @param id         the id
-   * @param kernelDims the kernel dims
-   */
-  protected MaxImageBandLayer(JsonObject id, int... kernelDims) {
-    super(id);
-  }
   
   /**
    * Instantiates a new Max image band layer.
@@ -57,39 +48,44 @@ public class MaxImageBandLayer extends NNLayer {
   }
   
   /**
+   * Instantiates a new Max image band layer.
+   *
+   * @param id         the id
+   * @param kernelDims the kernel dims
+   */
+  protected MaxImageBandLayer(final JsonObject id, final int... kernelDims) {
+    super(id);
+  }
+  
+  /**
    * From json max image band layer.
    *
    * @param json the json
    * @return the max image band layer
    */
-  public static MaxImageBandLayer fromJson(JsonObject json) {
+  public static MaxImageBandLayer fromJson(final JsonObject json) {
     return new MaxImageBandLayer(json,
       JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    return json;
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    
-    assert (1 == inObj.length);
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  
+    assert 1 == inObj.length;
     final NNResult in = inObj[0];
-    int itemCnt = in.getData().length();
+    in.getData().length();
     final int[] inputDims = in.getData().get(0).getDimensions();
-    assert (3 == inputDims.length);
-    
-    Coordinate[][] maxCoords = in.getData().stream().map(data -> {
+    assert 3 == inputDims.length;
+  
+    final Coordinate[][] maxCoords = in.getData().stream().map(data -> {
       return IntStream.range(0, inputDims[2]).mapToObj(band -> {
         return data.coordStream().filter(e -> e.getCoords()[2] == band).max(Comparator.comparing(c -> data.get(c))).get();
       }).toArray(i -> new Coordinate[i]);
     }).toArray(i -> new Coordinate[i][]);
-    
-    Tensor[] results = IntStream.range(0, in.getData().length()).mapToObj(dataIndex -> {
-      DoubleStream doubleStream = IntStream.range(0, inputDims[2]).mapToDouble(band -> {
-        int[] maxCoord = maxCoords[dataIndex][band].getCoords();
+  
+    final Tensor[] results = IntStream.range(0, in.getData().length()).mapToObj(dataIndex -> {
+      final DoubleStream doubleStream = IntStream.range(0, inputDims[2]).mapToDouble(band -> {
+        final int[] maxCoord = maxCoords[dataIndex][band].getCoords();
         return in.getData().get(dataIndex).get(maxCoord[0], maxCoord[1], band);
       });
       return new Tensor(1, 1, inputDims[2]).set(Tensor.getDoubles(doubleStream, inputDims[2]));
@@ -97,12 +93,12 @@ public class MaxImageBandLayer extends NNLayer {
     
     return new NNResult(results) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (in.isAlive()) {
           final Tensor[] data1 = IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
-            Tensor passback = new Tensor(in.getData().get(dataIndex).getDimensions());
+            final Tensor passback = new Tensor(in.getData().get(dataIndex).getDimensions());
             IntStream.range(0, inputDims[2]).forEach(b -> {
-              int[] maxCoord = maxCoords[dataIndex][b].getCoords();
+              final int[] maxCoord = maxCoords[dataIndex][b].getCoords();
               passback.set(new int[]{maxCoord[0], maxCoord[1], b}, data.get(dataIndex).get(0, 0, b));
             });
             return passback;
@@ -116,6 +112,12 @@ public class MaxImageBandLayer extends NNLayer {
         return in.isAlive();
       }
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    return json;
   }
   
   @Override
@@ -159,18 +161,18 @@ public class MaxImageBandLayer extends NNLayer {
         return false;
       }
       final MaxImageBandLayer.CalcRegionsParameter other = (MaxImageBandLayer.CalcRegionsParameter) obj;
-      if (!Arrays.equals(this.inputDims, other.inputDims)) {
+      if (!Arrays.equals(inputDims, other.inputDims)) {
         return false;
       }
-      return Arrays.equals(this.kernelDims, other.kernelDims);
+      return Arrays.equals(kernelDims, other.kernelDims);
     }
     
     @Override
     public int hashCode() {
       final int prime = 31;
       int result = 1;
-      result = prime * result + Arrays.hashCode(this.inputDims);
-      result = prime * result + Arrays.hashCode(this.kernelDims);
+      result = prime * result + Arrays.hashCode(inputDims);
+      result = prime * result + Arrays.hashCode(kernelDims);
       return result;
     }
     

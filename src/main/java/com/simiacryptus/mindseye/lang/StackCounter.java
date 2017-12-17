@@ -46,7 +46,7 @@ public class StackCounter {
    * @param fn    the fn
    * @return the string
    */
-  public static String toString(StackCounter left, StackCounter right, BiFunction<DoubleStatistics, DoubleStatistics, Number> fn) {
+  public static String toString(final StackCounter left, final StackCounter right, final BiFunction<DoubleStatistics, DoubleStatistics, Number> fn) {
     Comparator<StackFrame> comparing = Comparator.comparing(key -> {
       return -fn.apply(left.stats.get(key), right.stats.get(key)).doubleValue();
     });
@@ -66,11 +66,21 @@ public class StackCounter {
    *
    * @param length the length
    */
-  public void increment(int length) {
-    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-    for (StackTraceElement frame : stackTrace) {
+  public void increment(final int length) {
+    final StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+    for (final StackTraceElement frame : stackTrace) {
       stats.computeIfAbsent(new StackFrame(frame), f -> new DoubleStatistics()).accept(length);
     }
+  }
+  
+  /**
+   * Summary stat number.
+   *
+   * @param value the value
+   * @return the number
+   */
+  protected Number summaryStat(final DoubleStatistics value) {
+    return (int) value.getSum();
   }
   
   @Override
@@ -84,7 +94,7 @@ public class StackCounter {
    * @param fn the fn
    * @return the string
    */
-  public String toString(Function<DoubleStatistics, Number> fn) {
+  public String toString(final Function<DoubleStatistics, Number> fn) {
     Comparator<Map.Entry<StackFrame, DoubleStatistics>> comparing = Comparator.comparing(e -> -fn.apply(e.getValue()).doubleValue());
     comparing = comparing.thenComparing(Comparator.comparing(e -> e.getKey().toString()));
     return stats.entrySet().stream()
@@ -100,18 +110,8 @@ public class StackCounter {
    * @param fn    the fn
    * @return the string
    */
-  public String toString(StackCounter other, BiFunction<DoubleStatistics, DoubleStatistics, Number> fn) {
-    return toString(this, other, fn);
-  }
-  
-  /**
-   * Summary stat number.
-   *
-   * @param value the value
-   * @return the number
-   */
-  protected Number summaryStat(DoubleStatistics value) {
-    return (int) value.getSum();
+  public String toString(final StackCounter other, final BiFunction<DoubleStatistics, DoubleStatistics, Number> fn) {
+    return StackCounter.toString(this, other, fn);
   }
   
   /**
@@ -123,10 +123,6 @@ public class StackCounter {
      */
     public final String declaringClass;
     /**
-     * The Method name.
-     */
-    public final String methodName;
-    /**
      * The File name.
      */
     public final String fileName;
@@ -134,16 +130,20 @@ public class StackCounter {
      * The Line number.
      */
     public final int lineNumber;
-  
+    /**
+     * The Method name.
+     */
+    public final String methodName;
+
     /**
      * Instantiates a new Stack frame.
      *
      * @param frame the frame
      */
-    public StackFrame(StackTraceElement frame) {
+    public StackFrame(final StackTraceElement frame) {
       this(frame.getClassName(), frame.getMethodName(), frame.getFileName(), frame.getLineNumber());
     }
-  
+
     /**
      * Instantiates a new Stack frame.
      *
@@ -152,7 +152,7 @@ public class StackCounter {
      * @param fileName       the file name
      * @param lineNumber     the line number
      */
-    public StackFrame(String declaringClass, String methodName, String fileName, int lineNumber) {
+    public StackFrame(final String declaringClass, final String methodName, final String fileName, final int lineNumber) {
       this.declaringClass = declaringClass;
       this.methodName = methodName;
       this.fileName = fileName;
@@ -160,16 +160,11 @@ public class StackCounter {
     }
     
     @Override
-    public String toString() {
-      return String.format("%s.%s(%s:%s)", declaringClass, methodName, fileName, lineNumber);
-    }
-    
-    @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
       if (this == o) return true;
       if (!(o instanceof StackFrame)) return false;
-      
-      StackFrame that = (StackFrame) o;
+  
+      final StackFrame that = (StackFrame) o;
       
       if (lineNumber != that.lineNumber) return false;
       if (declaringClass != null ? !declaringClass.equals(that.declaringClass) : that.declaringClass != null) {
@@ -186,6 +181,11 @@ public class StackCounter {
       result = 31 * result + (fileName != null ? fileName.hashCode() : 0);
       result = 31 * result + lineNumber;
       return result;
+    }
+  
+    @Override
+    public String toString() {
+      return String.format("%s.%s(%s:%s)", declaringClass, methodName, fileName, lineNumber);
     }
   }
 }

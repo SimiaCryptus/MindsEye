@@ -45,7 +45,7 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
    * @param log        the log
    * @param inputBands the input bands
    */
-  public FindPCAFeatures(NotebookOutput log, int inputBands) {
+  public FindPCAFeatures(final NotebookOutput log, final int inputBands) {
     super(log, inputBands);
   }
   
@@ -55,9 +55,9 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
    * @param stream the stream
    * @return covariance covariance
    */
-  public static RealMatrix getCovariance(Supplier<Stream<double[]>> stream) {
-    int dimension = stream.get().findAny().get().length;
-    List<DoubleStatistics> statList = IntStream.range(0, dimension * dimension)
+  public static RealMatrix getCovariance(final Supplier<Stream<double[]>> stream) {
+    final int dimension = stream.get().findAny().get().length;
+    final List<DoubleStatistics> statList = IntStream.range(0, dimension * dimension)
       .mapToObj(i -> new DoubleStatistics()).collect(Collectors.toList());
     stream.get().forEach(array -> {
       for (int i = 0; i < dimension; i++) {
@@ -67,15 +67,58 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
       }
       RecycleBin.DOUBLES.recycle(array);
     });
-    RealMatrix covariance = new BlockRealMatrix(dimension, dimension);
+    final RealMatrix covariance = new BlockRealMatrix(dimension, dimension);
     for (int i = 0; i < dimension; i++) {
       for (int j = 0; j <= i; j++) {
-        double v = statList.get(i * dimension + j).getAverage();
+        final double v = statList.get(i * dimension + j).getAverage();
         covariance.setEntry(i, j, v);
         covariance.setEntry(j, i, v);
       }
     }
     return covariance;
+  }
+  
+  /**
+   * Find band bias double [ ].
+   *
+   * @return the double [ ]
+   */
+  protected double[] findBandBias() {
+    final int outputBands = getFeatures().findAny().get()[1].getDimensions()[2];
+    return IntStream.range(0, outputBands).parallel().mapToDouble(b -> {
+      return getFeatures().mapToDouble(tensor -> {
+        return tensor[1].coordStream().mapToDouble((c) -> c.getCoords()[2] == b ? tensor[1].get(c) : Double.NaN).filter(Double::isFinite).average().getAsDouble();
+      }).average().getAsDouble();
+    }).toArray();
+  }
+  
+  /**
+   * Find feature space tensor [ ].
+   *
+   * @param log            the log
+   * @param featureVectors the feature vectors
+   * @param components     the components
+   * @return the tensor [ ]
+   */
+  protected Tensor[] findFeatureSpace(final NotebookOutput log, final Supplier<Stream<Tensor[]>> featureVectors, final int components) {
+    return log.code(() -> {
+      final int column = 1;
+      final Tensor[] prototype = featureVectors.get().findAny().get();
+      final int[] dimensions = prototype[column].getDimensions();
+      final EigenDecomposition decomposition = new EigenDecomposition(FindPCAFeatures.getCovariance(() -> featureVectors.get().map(x -> x[column].getData())));
+      final int[] orderedVectors = IntStream.range(0, components).mapToObj(x -> x)
+        .sorted(Comparator.comparing(x -> -decomposition.getRealEigenvalue(x))).mapToInt(x -> x).toArray();
+      return IntStream.range(0, orderedVectors.length)
+        .mapToObj(i -> {
+          final Tensor src = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), dimensions).copy();
+            return src
+              .scaleInPlace(1.0 / src.rms())
+              .scale(decomposition.getRealEigenvalue(orderedVectors[i]) / decomposition.getRealEigenvalue(orderedVectors[inputBands - 1]))
+              .scaleInPlace(Math.sqrt(6. / (components + prototype[column].dim() + 1)))
+              ;
+          }
+        ).toArray(i -> new Tensor[i]);
+    });
   }
   
   /**
@@ -90,49 +133,6 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
       return new Tensor[]{tensor[0], tensor[1].mapCoords((c) -> tensor[1].get(c) - averages[c.getCoords()[2]])};
     }), inputBands);
     return this;
-  }
-  
-  /**
-   * Find band bias double [ ].
-   *
-   * @return the double [ ]
-   */
-  protected double[] findBandBias() {
-    int outputBands = getFeatures().findAny().get()[1].getDimensions()[2];
-    return IntStream.range(0, outputBands).parallel().mapToDouble(b -> {
-      return getFeatures().mapToDouble(tensor -> {
-        return (tensor[1].coordStream().mapToDouble((c) -> c.getCoords()[2] == b ? tensor[1].get(c) : Double.NaN)).filter(Double::isFinite).average().getAsDouble();
-      }).average().getAsDouble();
-    }).toArray();
-  }
-  
-  /**
-   * Find feature space tensor [ ].
-   *
-   * @param log            the log
-   * @param featureVectors the feature vectors
-   * @param components     the components
-   * @return the tensor [ ]
-   */
-  protected Tensor[] findFeatureSpace(NotebookOutput log, Supplier<Stream<Tensor[]>> featureVectors, int components) {
-    return log.code(() -> {
-      int column = 1;
-      Tensor[] prototype = featureVectors.get().findAny().get();
-      int[] dimensions = prototype[column].getDimensions();
-      EigenDecomposition decomposition = new EigenDecomposition(getCovariance(() -> featureVectors.get().map(x -> x[column].getData())));
-      int[] orderedVectors = IntStream.range(0, components).mapToObj(x -> x)
-        .sorted(Comparator.comparing(x -> -decomposition.getRealEigenvalue(x))).mapToInt(x -> x).toArray();
-      return IntStream.range(0, orderedVectors.length)
-        .mapToObj(i -> {
-            Tensor src = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), dimensions).copy();
-            return src
-              .scaleInPlace(1.0 / src.rms())
-              .scale((decomposition.getRealEigenvalue(orderedVectors[i]) / decomposition.getRealEigenvalue(orderedVectors[inputBands - 1])))
-              .scaleInPlace(Math.sqrt(6. / (components + prototype[column].dim() + 1)))
-              ;
-          }
-        ).toArray(i -> new Tensor[i]);
-    });
   }
   
 }

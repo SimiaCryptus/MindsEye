@@ -30,18 +30,18 @@ import java.util.stream.Stream;
  */
 public interface ImageProblemData {
   /**
-   * Validation data stream.
-   *
-   * @return the stream
-   * @throws IOException the io exception
-   */
-  Stream<LabeledObject<Tensor>> validationData() throws IOException;
-  
-  /**
    * Training data stream.
    *
    * @return the stream
    * @throws IOException the io exception
    */
   Stream<LabeledObject<Tensor>> trainingData() throws IOException;
+  
+  /**
+   * Validation data stream.
+   *
+   * @return the stream
+   * @throws IOException the io exception
+   */
+  Stream<LabeledObject<Tensor>> validationData() throws IOException;
 }

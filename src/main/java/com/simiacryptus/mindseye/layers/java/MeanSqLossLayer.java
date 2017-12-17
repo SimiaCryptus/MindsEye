@@ -32,19 +32,11 @@ import java.util.stream.Stream;
 /**
  * The type Mean sq loss layer.
  */
+@SuppressWarnings("serial")
 public class MeanSqLossLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MeanSqLossLayer.class);
-  
-  /**
-   * Instantiates a new Mean sq loss layer.
-   *
-   * @param id the id
-   */
-  protected MeanSqLossLayer(JsonObject id) {
-    super(id);
-  }
   
   /**
    * Instantiates a new Mean sq loss layer.
@@ -53,29 +45,34 @@ public class MeanSqLossLayer extends NNLayer {
   }
   
   /**
+   * Instantiates a new Mean sq loss layer.
+   *
+   * @param id the id
+   */
+  protected MeanSqLossLayer(final JsonObject id) {
+    super(id);
+  }
+  
+  /**
    * From json mean sq loss layer.
    *
    * @param json the json
    * @return the mean sq loss layer
    */
-  public static MeanSqLossLayer fromJson(JsonObject json) {
+  public static MeanSqLossLayer fromJson(final JsonObject json) {
     return new MeanSqLossLayer(json);
   }
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     if (2 != inObj.length) throw new IllegalArgumentException();
-    int leftLength = inObj[0].getData().length();
-    int rightLength = inObj[1].getData().length();
+    final int leftLength = inObj[0].getData().length();
+    final int rightLength = inObj[1].getData().length();
     if (leftLength != rightLength && leftLength != 1 && rightLength != 1) {
       throw new IllegalArgumentException(leftLength + " != " + rightLength);
     }
-    Tensor diffs[] = new Tensor[leftLength];
-    Tensor[] outputA = IntStream.range(0, leftLength).parallel().mapToObj(dataIndex -> {
+    final Tensor diffs[] = new Tensor[leftLength];
+    final Tensor[] outputA = IntStream.range(0, leftLength).parallel().mapToObj(dataIndex -> {
       final Tensor a = inObj[0].getData().get(1 == leftLength ? 0 : dataIndex);
       final Tensor b = inObj[1].getData().get(1 == rightLength ? 0 : dataIndex);
       if (a.dim() != b.dim()) {
@@ -87,7 +84,7 @@ public class MeanSqLossLayer extends NNLayer {
     }).toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (inObj[0].isAlive() || inObj[1].isAlive()) {
           if (inObj[0].isAlive()) {
             Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
@@ -96,7 +93,7 @@ public class MeanSqLossLayer extends NNLayer {
             if (1 == leftLength) {
               tensorStream = Stream.of(tensorStream.reduce((a, b) -> a.add(b)).get());
             }
-            TensorArray array = new TensorArray(tensorStream.toArray(i -> new Tensor[i]));
+            final TensorArray array = new TensorArray(tensorStream.toArray(i -> new Tensor[i]));
             inObj[0].accumulate(buffer, array);
             array.recycle();
           }
@@ -107,7 +104,7 @@ public class MeanSqLossLayer extends NNLayer {
             if (1 == rightLength) {
               tensorStream = Stream.of(tensorStream.reduce((a, b) -> a.add(b)).get());
             }
-            TensorArray array = new TensorArray(tensorStream.map(x -> x.scale(-1)).toArray(i -> new Tensor[i]));
+            final TensorArray array = new TensorArray(tensorStream.map(x -> x.scale(-1)).toArray(i -> new Tensor[i]));
             inObj[1].accumulate(buffer, array);
             array.recycle();
           }
@@ -120,6 +117,11 @@ public class MeanSqLossLayer extends NNLayer {
       }
       
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

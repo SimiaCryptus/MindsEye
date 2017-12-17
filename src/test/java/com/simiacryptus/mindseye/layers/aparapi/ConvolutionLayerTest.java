@@ -28,15 +28,15 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 public class ConvolutionLayerTest extends LayerTestBase {
   
   @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new ConvolutionLayer(3, 3, 2, 2, true).setWeights(this::random);
-  }
-  
-  @Override
   public int[][] getInputDims() {
     return new int[][]{
       {3, 3, 2}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new ConvolutionLayer(3, 3, 2, 2, true).setWeights(this::random);
   }
   
   @Override
@@ -47,15 +47,29 @@ public class ConvolutionLayerTest extends LayerTestBase {
   }
   
   /**
+   * The type Downsize test.
+   */
+  public static class DownsizeTest extends ConvolutionLayerTest {
+
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {3, 3, 7}
+      };
+    }
+
+    @Override
+    public NNLayer getLayer(final int[][] inputSize) {
+      return new ConvolutionLayer(3, 3, 7, 3, false).setWeights(this::random);
+    }
+  
+  }
+  
+  /**
    * The type Upsize test.
    */
   public static class UpsizeTest extends ConvolutionLayerTest {
-    
-    @Override
-    public NNLayer getLayer(int[][] inputSize) {
-      return new ConvolutionLayer(3, 3, 2, 3, false).setWeights(this::random);
-    }
-    
+
     @Override
     public int[][] getInputDims() {
       return new int[][]{
@@ -63,24 +77,10 @@ public class ConvolutionLayerTest extends LayerTestBase {
       };
     }
     
-  }
-  
-  /**
-   * The type Downsize test.
-   */
-  public static class DownsizeTest extends ConvolutionLayerTest {
-    
     @Override
-    public NNLayer getLayer(int[][] inputSize) {
-      return new ConvolutionLayer(3, 3, 7, 3, false).setWeights(this::random);
+    public NNLayer getLayer(final int[][] inputSize) {
+      return new ConvolutionLayer(3, 3, 2, 3, false).setWeights(this::random);
     }
-    
-    @Override
-    public int[][] getInputDims() {
-      return new int[][]{
-        {3, 3, 7}
-      };
-    }
-    
+
   }
 }

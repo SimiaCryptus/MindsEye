@@ -35,21 +35,21 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
   /**
    * Instantiates a new Array trainable.
    *
-   * @param trainingData the training data
-   * @param network      the network
+   * @param network   the network
+   * @param batchSize the batch size
    */
-  public ArrayTrainable(Tensor[][] trainingData, NNLayer network) {
-    this(trainingData, network, trainingData.length);
+  public ArrayTrainable(final NNLayer network, final int batchSize) {
+    this(null, network, batchSize);
   }
   
   /**
    * Instantiates a new Array trainable.
    *
-   * @param network   the network
-   * @param batchSize the batch size
+   * @param trainingData the training data
+   * @param network      the network
    */
-  public ArrayTrainable(NNLayer network, int batchSize) {
-    this(null, network, batchSize);
+  public ArrayTrainable(final Tensor[][] trainingData, final NNLayer network) {
+    this(trainingData, network, trainingData.length);
   }
   
   /**
@@ -59,15 +59,9 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
    * @param network      the network
    * @param batchSize    the batch size
    */
-  public ArrayTrainable(Tensor[][] trainingData, NNLayer network, int batchSize) {
+  public ArrayTrainable(final Tensor[][] trainingData, final NNLayer network, final int batchSize) {
     super(network, batchSize);
     this.trainingData = trainingData;
-  }
-  
-  @Override
-  public Trainable setData(List<Tensor[]> tensors) {
-    trainingData = tensors.toArray(new Tensor[][]{});
-    return this;
   }
   
   @Override
@@ -75,12 +69,18 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
     return trainingData;
   }
   
+  @Override
+  public Trainable setData(final List<Tensor[]> tensors) {
+    trainingData = tensors.toArray(new Tensor[][]{});
+    return this;
+  }
+  
   /**
    * Sets training data.
    *
    * @param trainingData the training data
    */
-  public void setTrainingData(Tensor[][] trainingData) {
+  public void setTrainingData(final Tensor[][] trainingData) {
     this.trainingData = trainingData;
   }
 }

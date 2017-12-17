@@ -29,16 +29,8 @@ import java.util.stream.IntStream;
 /**
  * The type Product inputs layer.
  */
+@SuppressWarnings("serial")
 public class ProductInputsLayer extends NNLayer {
-  
-  /**
-   * Instantiates a new Product inputs layer.
-   *
-   * @param id the id
-   */
-  protected ProductInputsLayer(JsonObject id) {
-    super(id);
-  }
   
   /**
    * Instantiates a new Product inputs layer.
@@ -47,52 +39,57 @@ public class ProductInputsLayer extends NNLayer {
   }
   
   /**
+   * Instantiates a new Product inputs layer.
+   *
+   * @param id the id
+   */
+  protected ProductInputsLayer(final JsonObject id) {
+    super(id);
+  }
+  
+  /**
    * From json product inputs layer.
    *
    * @param json the json
    * @return the product inputs layer
    */
-  public static ProductInputsLayer fromJson(JsonObject json) {
+  public static ProductInputsLayer fromJson(final JsonObject json) {
     return new ProductInputsLayer(json);
   }
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     assert inObj.length > 1;
     for (int i = 1; i < inObj.length; i++) {
-      int dim0 = Tensor.dim(inObj[0].getData().get(0).getDimensions());
-      int dimI = Tensor.dim(inObj[i].getData().get(0).getDimensions());
+      final int dim0 = Tensor.dim(inObj[0].getData().get(0).getDimensions());
+      final int dimI = Tensor.dim(inObj[i].getData().get(0).getDimensions());
       if (dim0 != 1 && dimI != 1 && dim0 != dimI) {
         throw new IllegalArgumentException(Arrays.toString(inObj[0].getData().get(0).getDimensions()) + " != " + Arrays.toString(inObj[i].getData().get(0).getDimensions()));
       }
     }
-    TensorList result = Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
+    final TensorList result = Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
       return new TensorArray(IntStream.range(0, Math.max(l.length(), r.length())).parallel()
         .mapToObj(i1 -> {
-          Tensor left = l.get(1 == l.length() ? 0 : i1);
-          Tensor right = r.get(1 == r.length() ? 0 : i1);
+          final Tensor left = l.get(1 == l.length() ? 0 : i1);
+          final Tensor right = r.get(1 == r.length() ? 0 : i1);
           return Tensor.product(left, right);
         }).toArray(i -> new Tensor[i]));
     }).get();
     return new NNResult(result) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList delta) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
         assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         for (final NNResult input : inObj) {
           if (input.isAlive()) {
             TensorList passback = Arrays.stream(inObj).parallel().map(x -> x == input ? delta : x.getData()).reduce((l, r) -> {
               return new TensorArray(IntStream.range(0, Math.max(l.length(), r.length())).parallel()
                 .mapToObj(j -> {
-                  Tensor left = l.get(1 == l.length() ? 0 : j);
-                  Tensor right = r.get(1 == r.length() ? 0 : j);
+                  final Tensor left = l.get(1 == l.length() ? 0 : j);
+                  final Tensor right = r.get(1 == r.length() ? 0 : j);
                   return Tensor.product(left, right);
                 }).toArray(j -> new Tensor[j]));
             }).get();
-            TensorList inputData = input.getData();
+            final TensorList inputData = input.getData();
             if (1 == inputData.length() && 1 < passback.length()) {
               passback = new TensorArray(passback.stream().reduce((a, b) -> a.add(b)).get());
             }
@@ -115,6 +112,11 @@ public class ProductInputsLayer extends NNLayer {
       }
       
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

@@ -28,31 +28,6 @@ package com.simiacryptus.mindseye.opt.region;
 public class LinearSumConstraint implements TrustRegion {
   private boolean permitDecrease = true;
   
-  @Override
-  public double[] project(double[] weights, double[] point) {
-    double deltaSum = 0;
-    for (int i = 0; i < point.length; i++) {
-      deltaSum += (point[i] - weights[i]) * sign(point[i]);
-    }
-    if (deltaSum <= 0 && permitDecrease) return point;
-    deltaSum /= point.length;
-    double[] returnValue = new double[point.length];
-    for (int i = 0; i < point.length; i++) {
-      returnValue[i] = point[i] - deltaSum * sign(point[i]);
-    }
-    return returnValue;
-  }
-  
-  /**
-   * Sign int.
-   *
-   * @param weight the weight
-   * @return the int
-   */
-  public int sign(double weight) {
-    return (weight > 0) ? 1 : -1;
-  }
-  
   /**
    * Is permit decrease boolean.
    *
@@ -68,8 +43,33 @@ public class LinearSumConstraint implements TrustRegion {
    * @param permitDecrease the permit decrease
    * @return the permit decrease
    */
-  public LinearSumConstraint setPermitDecrease(boolean permitDecrease) {
+  public LinearSumConstraint setPermitDecrease(final boolean permitDecrease) {
     this.permitDecrease = permitDecrease;
     return this;
+  }
+  
+  @Override
+  public double[] project(final double[] weights, final double[] point) {
+    double deltaSum = 0;
+    for (int i = 0; i < point.length; i++) {
+      deltaSum += (point[i] - weights[i]) * sign(point[i]);
+    }
+    if (deltaSum <= 0 && permitDecrease) return point;
+    deltaSum /= point.length;
+    final double[] returnValue = new double[point.length];
+    for (int i = 0; i < point.length; i++) {
+      returnValue[i] = point[i] - deltaSum * sign(point[i]);
+    }
+    return returnValue;
+  }
+  
+  /**
+   * Sign int.
+   *
+   * @param weight the weight
+   * @return the int
+   */
+  public int sign(final double weight) {
+    return weight > 0 ? 1 : -1;
   }
 }

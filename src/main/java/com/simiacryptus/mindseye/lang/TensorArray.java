@@ -33,23 +33,13 @@ public class TensorArray implements TensorList {
    *
    * @param data the data
    */
-  public TensorArray(Tensor... data) {
+  public TensorArray(final Tensor... data) {
     this.data = data;
   }
   
   @Override
-  public Tensor get(int i) {
+  public Tensor get(final int i) {
     return data[i];
-  }
-  
-  @Override
-  public int length() {
-    return data.length;
-  }
-  
-  @Override
-  public Stream<Tensor> stream() {
-    return Arrays.stream(data);
   }
   
   @Override
@@ -58,11 +48,23 @@ public class TensorArray implements TensorList {
   }
   
   @Override
+  public int length() {
+    return data.length;
+  }
+  
+  @Override
   public void recycle() {
     try {
-      for (Tensor d : data) d.finalize();
-    } catch (Throwable e) {
+      for (final Tensor d : data) {
+        d.finalize();
+      }
+    } catch (final Throwable e) {
       throw new RuntimeException(e);
     }
+  }
+  
+  @Override
+  public Stream<Tensor> stream() {
+    return Arrays.stream(data);
   }
 }

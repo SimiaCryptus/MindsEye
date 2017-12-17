@@ -40,29 +40,29 @@ public class SignReducerLayer extends DAGNetwork {
   
   /**
    * Instantiates a new Sign reducer layer.
-   *
-   * @param json the json
-   */
-  protected SignReducerLayer(JsonObject json) {
-    super(json);
-    head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
-  }
-  
-  /**
-   * Instantiates a new Sign reducer layer.
    */
   public SignReducerLayer() {
     super(1);
-    DAGNode avgInput = add(new AvgReducerLayer(), getInput(0));
-    DAGNode stdDevInput = add(new NthPowerActivationLayer().setPower(0.5),
+    final DAGNode avgInput = add(new AvgReducerLayer(), getInput(0));
+    final DAGNode stdDevInput = add(new NthPowerActivationLayer().setPower(0.5),
       add(new SumInputsLayer(),
         add(new AvgReducerLayer(), add(new SqActivationLayer(), getInput(0))),
         add(new LinearActivationLayer().setScale(-1), add(new SqActivationLayer(), avgInput))
       ));
-    this.head = add(new SigmoidActivationLayer().setBalanced(false),
+    head = add(new SigmoidActivationLayer().setBalanced(false),
       add(new ProductInputsLayer(),
         avgInput,
         add(new NthPowerActivationLayer().setPower(-1), stdDevInput)));
+  }
+  
+  /**
+   * Instantiates a new Sign reducer layer.
+   *
+   * @param json the json
+   */
+  protected SignReducerLayer(final JsonObject json) {
+    super(json);
+    head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
   }
   
   /**
@@ -71,7 +71,7 @@ public class SignReducerLayer extends DAGNetwork {
    * @param inner the inner
    * @return the nn layer
    */
-  public static NNLayer fromJson(JsonObject inner) {
+  public static NNLayer fromJson(final JsonObject inner) {
     return new SignReducerLayer(inner);
   }
   

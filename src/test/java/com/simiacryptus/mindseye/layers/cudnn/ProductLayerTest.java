@@ -37,13 +37,8 @@ public abstract class ProductLayerTest extends CudnnLayerTestBase {
    *
    * @param precision the precision
    */
-  public ProductLayerTest(Precision precision) {
+  public ProductLayerTest(final Precision precision) {
     this.precision = precision;
-  }
-  
-  @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new ProductLayer().setPrecision(precision);
   }
   
   @Override
@@ -51,6 +46,11 @@ public abstract class ProductLayerTest extends CudnnLayerTestBase {
     return new int[][]{
       {2, 2, 1}, {2, 2, 1}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new ProductLayer().setPrecision(precision);
   }
   
   /**

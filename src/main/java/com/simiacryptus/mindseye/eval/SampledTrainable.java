@@ -24,6 +24,9 @@ package com.simiacryptus.mindseye.eval;
  * result in faster but less representative evaluations.
  */
 public interface SampledTrainable extends Trainable {
+  @Override
+  SampledCachedTrainable<? extends SampledTrainable> cached();
+  
   /**
    * Gets training size.
    *
@@ -38,6 +41,4 @@ public interface SampledTrainable extends Trainable {
    * @return the training size
    */
   SampledTrainable setTrainingSize(int trainingSize);
-  
-  SampledCachedTrainable<? extends SampledTrainable> cached();
 }

@@ -36,15 +36,6 @@ public class StdDevMetaLayer extends PipelineNetwork {
   
   /**
    * Instantiates a new Std dev meta layer.
-   *
-   * @param json the json
-   */
-  protected StdDevMetaLayer(JsonObject json) {
-    super(json);
-  }
-  
-  /**
-   * Instantiates a new Std dev meta layer.
    */
   public StdDevMetaLayer() {
     this(1);
@@ -55,12 +46,12 @@ public class StdDevMetaLayer extends PipelineNetwork {
    *
    * @param minBatchCount the min batch count
    */
-  public StdDevMetaLayer(int minBatchCount) {
+  public StdDevMetaLayer(final int minBatchCount) {
     super(1);
     add(new AvgMetaLayer().setMinBatchCount(minBatchCount));
     add(new AvgReducerLayer());
     add(new SqActivationLayer());
-    DAGNode a = add(new LinearActivationLayer().setScale(-1).freeze());
+    final DAGNode a = add(new LinearActivationLayer().setScale(-1).freeze());
     add(new SqActivationLayer(), getInput(0));
     add(new AvgMetaLayer().setMinBatchCount(minBatchCount));
     add(new AvgReducerLayer());
@@ -69,12 +60,21 @@ public class StdDevMetaLayer extends PipelineNetwork {
   }
   
   /**
+   * Instantiates a new Std dev meta layer.
+   *
+   * @param json the json
+   */
+  protected StdDevMetaLayer(final JsonObject json) {
+    super(json);
+  }
+  
+  /**
    * From json std dev meta layer.
    *
    * @param json the json
    * @return the std dev meta layer
    */
-  public static StdDevMetaLayer fromJson(JsonObject json) {
+  public static StdDevMetaLayer fromJson(final JsonObject json) {
     return new StdDevMetaLayer(json);
   }
   

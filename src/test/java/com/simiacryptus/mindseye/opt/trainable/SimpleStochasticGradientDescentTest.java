@@ -39,14 +39,14 @@ import java.util.concurrent.TimeUnit;
 public class SimpleStochasticGradientDescentTest extends MnistTestBase {
   
   @Override
-  public void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor) {
+  public void train(final NotebookOutput log, final NNLayer network, final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.p("Training a model involves a few different components. First, our model is combined mapCoords a loss function. " +
       "Then we take that model and combine it mapCoords our training data to define a trainable object. " +
       "Finally, we use a simple iterative scheme to refine the weights of our model. " +
       "The final output is the last output value of the loss function when evaluating the last batch.");
     log.code(() -> {
-      SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-      Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 10000);
+      final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
+      final Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 10000);
       return new IterativeTrainer(trainable)
         .setMonitor(monitor)
         .setOrientation(new GradientDescent())

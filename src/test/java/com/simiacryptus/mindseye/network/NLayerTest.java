@@ -21,9 +21,9 @@ package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.unit.JsonTest;
+import com.simiacryptus.mindseye.test.unit.StandardLayerTests;
 import com.simiacryptus.mindseye.test.unit.TrainingTester;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
@@ -44,6 +44,101 @@ import java.util.stream.Stream;
 public abstract class NLayerTest {
   
   /**
+   * The Dim list.
+   */
+  final List<int[]> dimList;
+  
+  
+  /**
+   * Instantiates a new N layer test.
+   *
+   * @param dimList the dim list
+   */
+  public NLayerTest(final int[]... dimList) {
+    this.dimList = Arrays.asList(dimList);
+  }
+  
+  /**
+   * Add layer.
+   *
+   * @param network the network
+   * @param in      the in
+   * @param out     the dims
+   */
+  public abstract void addLayer(PipelineNetwork network, int[] in, int[] out);
+  
+  /**
+   * Build network nn layer.
+   *
+   * @param dimList the dim list
+   * @return the nn layer
+   */
+  public NNLayer buildNetwork(final int[]... dimList) {
+    final PipelineNetwork network = new PipelineNetwork(1);
+    int[] last = null;
+    for (final int[] dims : dimList) {
+      if (null != last) {
+        addLayer(network, last, dims);
+      }
+      last = dims;
+    }
+    return network;
+  }
+  
+  /**
+   * Concat int [ ] [ ].
+   *
+   * @param a the a
+   * @param b the b
+   * @return the int [ ] [ ]
+   */
+  public int[][] concat(final int[] a, final List<int[]> b) {
+    return Stream.concat(Stream.of(a), b.stream()).toArray(i -> new int[i][]);
+  }
+  
+  /**
+   * Get input dims int [ ] [ ].
+   *
+   * @return the int [ ] [ ]
+   */
+  public abstract int[] getInputDims();
+  
+  /**
+   * Graphviz.
+   *
+   * @param log   the log
+   * @param layer the layer
+   */
+  public void graphviz(final NotebookOutput log, final NNLayer layer) {
+    if (layer instanceof DAGNetwork) {
+      log.p("This is a network with the following layout:");
+      log.code(() -> {
+        return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
+          .height(400).width(600).render(Format.PNG).toImage();
+      });
+    }
+  }
+  
+  /**
+   * Random double.
+   *
+   * @return the double
+   */
+  public double random() {
+    return Math.round(1000.0 * (Util.R.get().nextDouble() - 0.5)) / 250.0;
+  }
+  
+  /**
+   * Random tensor [ ].
+   *
+   * @param inputDims the input dims
+   * @return the tensor [ ]
+   */
+  public Tensor[] randomize(final int[][] inputDims) {
+    return Arrays.stream(inputDims).map(dim -> new Tensor(dim).set(this::random)).toArray(i -> new Tensor[i]);
+  }
+  
+  /**
    * Test.
    *
    * @throws Throwable the throwable
@@ -55,20 +150,21 @@ public abstract class NLayerTest {
     }
   }
   
-  
   /**
    * Test.
    *
    * @param log the log
    */
-  public void test(NotebookOutput log) {
-    if (null != LayerTestBase.originalOut) log.addCopy(LayerTestBase.originalOut);
+  public void test(final NotebookOutput log) {
+    if (null != StandardLayerTests.originalOut) {
+      log.addCopy(StandardLayerTests.originalOut);
+    }
     log.h1("%s", getClass().getSimpleName());
-    int[] inputDims = getInputDims();
-    ArrayList<int[]> workingSpec = new ArrayList<>();
-    for(int[] l : this.dimList) {
+    final int[] inputDims = getInputDims();
+    final ArrayList<int[]> workingSpec = new ArrayList<>();
+    for (final int[] l : dimList) {
       workingSpec.add(l);
-      NNLayer layer = buildNetwork(concat(inputDims, workingSpec));
+      final NNLayer layer = buildNetwork(concat(inputDims, workingSpec));
       graphviz(log, layer);
       test(log, layer, inputDims);
     }
@@ -82,104 +178,11 @@ public abstract class NLayerTest {
    * @param inputDims the input dims
    * @return the double
    */
-  public TrainingTester.ComponentResult test(NotebookOutput log, NNLayer layer, int[]... inputDims) {
-    NNLayer component = layer.copy();
-    Tensor[] randomize = randomize(inputDims);
+  public TrainingTester.ComponentResult test(final NotebookOutput log, final NNLayer layer, final int[]... inputDims) {
+    final NNLayer component = layer.copy();
+    final Tensor[] randomize = randomize(inputDims);
     new JsonTest().test(log, component, randomize);
     return new TrainingTester().test(log, component, randomize);
   }
-  
-  /**
-   * Graphviz.
-   *
-   * @param log   the log
-   * @param layer the layer
-   */
-  public void graphviz(NotebookOutput log, NNLayer layer) {
-    if (layer instanceof DAGNetwork) {
-      log.p("This is a network with the following layout:");
-      log.code(() -> {
-        return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
-          .height(400).width(600).render(Format.PNG).toImage();
-      });
-    }
-  }
-  
-  /**
-   * Concat int [ ] [ ].
-   *
-   * @param a the a
-   * @param b the b
-   * @return the int [ ] [ ]
-   */
-  public int[][] concat(int[] a, List<int[]> b) {
-    return Stream.concat(Stream.of(a), b.stream()).toArray(i -> new int[i][]);
-  }
-  
-  /**
-   * Random tensor [ ].
-   *
-   * @param inputDims the input dims
-   * @return the tensor [ ]
-   */
-  public Tensor[] randomize(int[][] inputDims) {
-    return Arrays.stream(inputDims).map(dim -> new Tensor(dim).fill(this::random)).toArray(i -> new Tensor[i]);
-  }
-  
-  /**
-   * Get input dims int [ ] [ ].
-   *
-   * @return the int [ ] [ ]
-   */
-  public abstract int[] getInputDims();
-  
-  /**
-   * Random double.
-   *
-   * @return the double
-   */
-  public double random() {
-    return Math.round(1000.0 * (Util.R.get().nextDouble() - 0.5)) / 250.0;
-  }
-  
-  
-  /**
-   * The Dim list.
-   */
-  final List<int[]> dimList;
-  
-  /**
-   * Instantiates a new N layer test.
-   *
-   * @param dimList the dim list
-   */
-  public NLayerTest(int[]... dimList) {
-    this.dimList = Arrays.asList(dimList);
-  }
-  
-  /**
-   * Build network nn layer.
-   *
-   * @param dimList the dim list
-   * @return the nn layer
-   */
-  public NNLayer buildNetwork(int[]... dimList) {
-    PipelineNetwork network = new PipelineNetwork(1);
-    int[] last = null;
-    for (int[] dims : dimList) {
-      if(null != last) addLayer(network, last, dims);
-      last = dims;
-    }
-    return network;
-  }
-  
-  /**
-   * Add layer.
-   *
-   * @param network the network
-   * @param in      the in
-   * @param out     the dims
-   */
-  public abstract void addLayer(PipelineNetwork network, int[] in, int[] out);
   
 }

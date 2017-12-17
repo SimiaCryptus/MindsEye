@@ -64,7 +64,7 @@ public class Util {
     
     @Override
     protected Random initialValue() {
-      return new Random(this.r.nextLong());
+      return new Random(r.nextLong());
     }
   };
   private static final java.util.concurrent.atomic.AtomicInteger idcounter = new java.util.concurrent.atomic.AtomicInteger(0);
@@ -93,11 +93,92 @@ public class Util {
    * @throws IOException the io exception
    */
   public static Stream<byte[]> binaryStream(final String path, final String name, final int skip, final int recordSize) throws IOException {
-    File file = new File(path, name);
-    byte[] fileData = org.apache.commons.io.IOUtils.toByteArray(new BufferedInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(file)))));
+    final File file = new File(path, name);
+    final byte[] fileData = org.apache.commons.io.IOUtils.toByteArray(new BufferedInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(file)))));
     final DataInputStream in = new DataInputStream(new ByteArrayInputStream(fileData));
     in.skip(skip);
     return Util.toIterator(new BinaryChunkIterator(in, recordSize));
+  }
+  
+  /**
+   * Cache function.
+   *
+   * @param <F>   the type parameter
+   * @param <T>   the type parameter
+   * @param inner the inner
+   * @return the function
+   */
+  public static <F, T> Function<F, T> cache(final Function<F, T> inner) {
+    final LoadingCache<F, T> cache = CacheBuilder.newBuilder().build(new CacheLoader<F, T>() {
+      @Override
+      public T load(final F key) throws Exception {
+        return inner.apply(key);
+      }
+    });
+    return cache::apply;
+  }
+  
+  /**
+   * Cache input stream.
+   *
+   * @param url  the url
+   * @param file the file
+   * @return the input stream
+   * @throws IOException              the io exception
+   * @throws NoSuchAlgorithmException the no such algorithm exception
+   * @throws KeyStoreException        the key store exception
+   * @throws KeyManagementException   the key management exception
+   */
+  public static InputStream cache(final String url, final String file) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    if (new File(file).exists()) {
+      return new FileInputStream(file);
+    }
+    else {
+      final TrustManager[] trustManagers = {
+        new X509TrustManager() {
+          @Override
+          public void checkClientTrusted(
+            final X509Certificate[] certs, final String authType) {
+          }
+          
+          @Override
+          public void checkServerTrusted(
+            final X509Certificate[] certs, final String authType) {
+          }
+          
+          @Override
+          public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0];
+          }
+        }
+      };
+      final SSLContext ctx = SSLContext.getInstance("TLS");
+      ctx.init(null, trustManagers, null);
+      final SSLSocketFactory sslFactory = ctx.getSocketFactory();
+      final URLConnection urlConnection = new URL(url).openConnection();
+      if (urlConnection instanceof HttpsURLConnection) {
+        final HttpsURLConnection conn = (HttpsURLConnection) urlConnection;
+        conn.setSSLSocketFactory(sslFactory);
+        conn.setRequestMethod("GET");
+      }
+      final InputStream inputStream = urlConnection.getInputStream();
+      final FileOutputStream cache = new FileOutputStream(file);
+      return new TeeInputStream(inputStream, cache);
+    }
+  }
+  
+  /**
+   * Cache input stream.
+   *
+   * @param url the url
+   * @return the input stream
+   * @throws IOException              the io exception
+   * @throws NoSuchAlgorithmException the no such algorithm exception
+   * @throws KeyStoreException        the key store exception
+   * @throws KeyManagementException   the key management exception
+   */
+  public static InputStream cache(final URI url) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    return Util.cache(url.toString(), new File(url.getPath()).getName());
   }
   
   /**
@@ -107,6 +188,80 @@ public class Util {
    */
   public static String[] currentStack() {
     return Stream.of(Thread.currentThread().getStackTrace()).map(Object::toString).toArray(i -> new String[i]);
+  }
+  
+  /**
+   * Cvt temporal unit.
+   *
+   * @param units the units
+   * @return the temporal unit
+   */
+  public static TemporalUnit cvt(final TimeUnit units) {
+    switch (units) {
+      case DAYS:
+        return ChronoUnit.DAYS;
+      case HOURS:
+        return ChronoUnit.HOURS;
+      case MINUTES:
+        return ChronoUnit.MINUTES;
+      case SECONDS:
+        return ChronoUnit.SECONDS;
+      case NANOSECONDS:
+        return ChronoUnit.NANOS;
+      case MICROSECONDS:
+        return ChronoUnit.MICROS;
+      case MILLISECONDS:
+        return ChronoUnit.MILLIS;
+      default:
+        throw new IllegalArgumentException(units.toString());
+    }
+  }
+  
+  /**
+   * Gets last.
+   *
+   * @param <T>    the type parameter
+   * @param stream the stream
+   * @return the last
+   */
+  public static <T> T getLast(final Stream<T> stream) {
+    final List<T> collect = stream.collect(Collectors.toList());
+    final T last = collect.get(collect.size() - 1);
+    return last;
+  }
+  
+  /**
+   * Layout.
+   *
+   * @param c the c
+   */
+  public static void layout(final Component c) {
+    c.doLayout();
+    if (c instanceof Container) {
+      Arrays.stream(((Container) c).getComponents()).forEach(Util::layout);
+    }
+  }
+  
+  /**
+   * Mk string string.
+   *
+   * @param separator the separator
+   * @param strs      the strs
+   * @return the string
+   */
+  public static String mkString(final String separator, final String... strs) {
+    return Arrays.asList(strs).stream().collect(Collectors.joining(separator));
+  }
+  
+  /**
+   * Path to string.
+   *
+   * @param from the from
+   * @param to   the to
+   * @return the string
+   */
+  public static String pathTo(final File from, final File to) {
+    return from.toPath().relativize(to.toPath()).toString().replaceAll("\\\\", "/");
   }
   
   /**
@@ -139,7 +294,7 @@ public class Util {
   public static void report(final Stream<String> fragments) throws IOException {
     final File outDir = new File("reports");
     outDir.mkdirs();
-    final StackTraceElement caller = getLast(Arrays.stream(Thread.currentThread().getStackTrace())//
+    final StackTraceElement caller = Util.getLast(Arrays.stream(Thread.currentThread().getStackTrace())//
       .filter(x -> x.getClassName().contains("simiacryptus")));
     final File report = new File(outDir, caller.getClassName() + "_" + caller.getLineNumber() + ".html");
     final PrintStream out = new PrintStream(new FileOutputStream(report));
@@ -148,19 +303,6 @@ public class Util {
     out.println("</body></html>");
     out.close();
     Desktop.getDesktop().browse(report.toURI());
-  }
-  
-  /**
-   * Gets last.
-   *
-   * @param <T>    the type parameter
-   * @param stream the stream
-   * @return the last
-   */
-  public static <T> T getLast(Stream<T> stream) {
-    List<T> collect = stream.collect(Collectors.toList());
-    T last = collect.get(collect.size() - 1);
-    return last;
   }
   
   /**
@@ -174,6 +316,45 @@ public class Util {
   }
   
   /**
+   * Resize buffered image.
+   *
+   * @param image the image
+   * @return the buffered image
+   */
+  public static BufferedImage resize(final BufferedImage image) {
+    if (null == image) return image;
+    final int width = Math.min(image.getWidth(), 800);
+    if (width == image.getWidth()) return image;
+    final int height = image.getHeight() * width / image.getWidth();
+    final BufferedImage rerender = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    final Graphics gfx = rerender.getGraphics();
+    final RenderingHints hints = new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+    ((Graphics2D) gfx).setRenderingHints(hints);
+    gfx.drawImage(image, 0, 0, rerender.getWidth(), rerender.getHeight(), null);
+    return rerender;
+  }
+  
+  /**
+   * To image buffered image.
+   *
+   * @param component the component
+   * @return the buffered image
+   */
+  public static BufferedImage toImage(final Component component) {
+    try {
+      Util.layout(component);
+      final BufferedImage img = new BufferedImage(component.getWidth(), component.getHeight(), BufferedImage.TYPE_INT_ARGB_PRE);
+      final Graphics2D g = img.createGraphics();
+      g.setColor(component.getForeground());
+      g.setFont(component.getFont());
+      component.print(g);
+      return img;
+    } catch (final Exception e) {
+      return null;
+    }
+  }
+  
+  /**
    * To inline image string.
    *
    * @param img the img
@@ -181,7 +362,7 @@ public class Util {
    * @return the string
    */
   public static String toInlineImage(final BufferedImage img, final String alt) {
-    return Util.toInlineImage(new LabeledObject<BufferedImage>(img, alt));
+    return Util.toInlineImage(new LabeledObject<>(img, alt));
   }
   
   /**
@@ -255,190 +436,11 @@ public class Util {
    * @return the uuid
    */
   public static UUID uuid() {
-    String index = Integer.toHexString(idcounter.incrementAndGet());
+    String index = Integer.toHexString(Util.idcounter.incrementAndGet());
     while (index.length() < 8) {
       index = "0" + index;
     }
-    final String tempId = jvmId.substring(0, jvmId.length() - index.length()) + index;
+    final String tempId = Util.jvmId.substring(0, Util.jvmId.length() - index.length()) + index;
     return UUID.fromString(tempId);
-  }
-  
-  /**
-   * Cvt temporal unit.
-   *
-   * @param units the units
-   * @return the temporal unit
-   */
-  public static TemporalUnit cvt(TimeUnit units) {
-    switch (units) {
-      case DAYS:
-        return ChronoUnit.DAYS;
-      case HOURS:
-        return ChronoUnit.HOURS;
-      case MINUTES:
-        return ChronoUnit.MINUTES;
-      case SECONDS:
-        return ChronoUnit.SECONDS;
-      case NANOSECONDS:
-        return ChronoUnit.NANOS;
-      case MICROSECONDS:
-        return ChronoUnit.MICROS;
-      case MILLISECONDS:
-        return ChronoUnit.MILLIS;
-      default:
-        throw new IllegalArgumentException(units.toString());
-    }
-  }
-  
-  /**
-   * Resize buffered image.
-   *
-   * @param image the image
-   * @return the buffered image
-   */
-  public static BufferedImage resize(BufferedImage image) {
-    if (null == image) return image;
-    int width = Math.min(image.getWidth(), 800);
-    if (width == image.getWidth()) return image;
-    int height = image.getHeight() * width / image.getWidth();
-    BufferedImage rerender = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-    Graphics gfx = rerender.getGraphics();
-    RenderingHints hints = new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-    ((Graphics2D) gfx).setRenderingHints(hints);
-    gfx.drawImage(image, 0, 0, rerender.getWidth(), rerender.getHeight(), null);
-    return rerender;
-  }
-  
-  /**
-   * Path to string.
-   *
-   * @param from the from
-   * @param to   the to
-   * @return the string
-   */
-  public static String pathTo(File from, File to) {
-    return from.toPath().relativize(to.toPath()).toString().replaceAll("\\\\", "/");
-  }
-  
-  /**
-   * Mk string string.
-   *
-   * @param separator the separator
-   * @param strs      the strs
-   * @return the string
-   */
-  public static String mkString(String separator, String... strs) {
-    return Arrays.asList(strs).stream().collect(Collectors.joining(separator));
-  }
-  
-  /**
-   * Layout.
-   *
-   * @param c the c
-   */
-  public static void layout(Component c) {
-    c.doLayout();
-    if (c instanceof Container) {
-      Arrays.stream(((Container) c).getComponents()).forEach(Util::layout);
-    }
-  }
-  
-  /**
-   * To image buffered image.
-   *
-   * @param component the component
-   * @return the buffered image
-   */
-  public static BufferedImage toImage(Component component) {
-    try {
-      layout(component);
-      BufferedImage img = new BufferedImage(component.getWidth(), component.getHeight(), BufferedImage.TYPE_INT_ARGB_PRE);
-      Graphics2D g = img.createGraphics();
-      g.setColor(component.getForeground());
-      g.setFont(component.getFont());
-      component.print(g);
-      return img;
-    } catch (Exception e) {
-      return null;
-    }
-  }
-  
-  /**
-   * Cache input stream.
-   *
-   * @param url the url
-   * @return the input stream
-   * @throws IOException              the io exception
-   * @throws NoSuchAlgorithmException the no such algorithm exception
-   * @throws KeyStoreException        the key store exception
-   * @throws KeyManagementException   the key management exception
-   */
-  public static InputStream cache(URI url) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-    return cache(url.toString(), new File(url.getPath()).getName());
-  }
-  
-  /**
-   * Cache input stream.
-   *
-   * @param url  the url
-   * @param file the file
-   * @return the input stream
-   * @throws IOException              the io exception
-   * @throws NoSuchAlgorithmException the no such algorithm exception
-   * @throws KeyStoreException        the key store exception
-   * @throws KeyManagementException   the key management exception
-   */
-  public static InputStream cache(String url, String file) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-    if (new File(file).exists()) {
-      return new FileInputStream(file);
-    }
-    else {
-      TrustManager[] trustManagers = {
-        new X509TrustManager() {
-          public X509Certificate[] getAcceptedIssuers() {
-            return new X509Certificate[0];
-          }
-          
-          public void checkClientTrusted(
-            X509Certificate[] certs, String authType) {
-          }
-          
-          public void checkServerTrusted(
-            X509Certificate[] certs, String authType) {
-          }
-        }
-      };
-      SSLContext ctx = SSLContext.getInstance("TLS");
-      ctx.init(null, trustManagers, null);
-      SSLSocketFactory sslFactory = ctx.getSocketFactory();
-      URLConnection urlConnection = new URL(url).openConnection();
-      if (urlConnection instanceof HttpsURLConnection) {
-        HttpsURLConnection conn = (HttpsURLConnection) urlConnection;
-        conn.setSSLSocketFactory(sslFactory);
-        conn.setRequestMethod("GET");
-      }
-      InputStream inputStream = urlConnection.getInputStream();
-      FileOutputStream cache = new FileOutputStream(file);
-      return new TeeInputStream(inputStream, cache);
-    }
-  }
-  
-  /**
-   * Cache function.
-   *
-   * @param <F>   the type parameter
-   * @param <T>   the type parameter
-   * @param inner the inner
-   * @return the function
-   */
-  @SuppressWarnings("deprecation")
-  public static <F, T> Function<F, T> cache(final Function<F, T> inner) {
-    final LoadingCache<F, T> cache = CacheBuilder.newBuilder().build(new CacheLoader<F, T>() {
-      @Override
-      public T load(final F key) throws Exception {
-        return inner.apply(key);
-      }
-    });
-    return cache::apply;
   }
 }

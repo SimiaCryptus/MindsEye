@@ -36,11 +36,12 @@ public abstract class DeepLinear extends NLayerTest {
    *
    * @param dimList the dim list
    */
-  public DeepLinear(int[]... dimList) {
+  public DeepLinear(final int[]... dimList) {
     super(dimList);
   }
   
-  public void addLayer(PipelineNetwork network, int[] in, int[] dims) {
+  @Override
+  public void addLayer(final PipelineNetwork network, final int[] in, final int[] dims) {
     network.add(new FullyConnectedLayer(in, dims).setWeights(this::random));
     network.add(new BiasLayer(dims));
     network.add(getActivation());
@@ -56,13 +57,31 @@ public abstract class DeepLinear extends NLayerTest {
   }
   
   @Override
+  public int[] getInputDims() {
+    return new int[]{5, 5, 3};
+  }
+  
+  @Override
   public double random() {
     return 0.1 * Math.round(1000.0 * (Util.R.get().nextDouble() - 0.5)) / 500.0;
   }
   
-  @Override
-  public int[] getInputDims() {
-    return new int[]{5, 5, 3};
+  /**
+   * The type Four layer.
+   */
+  public static class NarrowingPipeline extends DeepLinear {
+    /**
+     * Instantiates a new Four layer.
+     */
+    public NarrowingPipeline() {
+      super(
+        new int[]{4, 4, 2},
+        new int[]{3, 3, 1},
+        new int[]{2, 2, 1},
+        new int[]{2, 2, 1}
+      );
+    }
+    
   }
   
   /**
@@ -81,6 +100,7 @@ public abstract class DeepLinear extends NLayerTest {
       );
     }
   
+    @Override
     public NNLayer getActivation() {
       return new SigmoidActivationLayer();
     }
@@ -102,25 +122,7 @@ public abstract class DeepLinear extends NLayerTest {
         new int[]{10}
       );
     }
-    
-  }
   
-  /**
-   * The type Four layer.
-   */
-  public static class NarrowingPipeline extends DeepLinear {
-    /**
-     * Instantiates a new Four layer.
-     */
-    public NarrowingPipeline() {
-      super(
-        new int[]{4,4,2},
-        new int[]{3,3,1},
-        new int[]{2,2,1},
-        new int[]{2,2,1}
-      );
-    }
-    
   }
   
 }

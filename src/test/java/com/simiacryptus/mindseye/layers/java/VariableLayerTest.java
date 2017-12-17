@@ -28,14 +28,14 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 public class VariableLayerTest extends LayerTestBase {
   
   @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new VariableLayer(new MonitoringSynapse());
-  }
-  
-  @Override
   public int[][] getInputDims() {
     return new int[][]{
       {3}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new VariableLayer(new MonitoringSynapse());
   }
 }

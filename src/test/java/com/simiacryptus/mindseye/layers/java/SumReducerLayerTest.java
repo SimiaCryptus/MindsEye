@@ -28,15 +28,15 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 public class SumReducerLayerTest extends LayerTestBase {
   
   @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new SumReducerLayer();
-  }
-  
-  @Override
   public int[][] getInputDims() {
     return new int[][]{
       {3}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new SumReducerLayer();
   }
   
   @Override

@@ -34,7 +34,6 @@ public class Tuple2<A, B> {
    * The 2.
    */
   public final B _2;
-  private B second;
   
   /**
    * Instantiates a new Tuple 2.
@@ -42,7 +41,7 @@ public class Tuple2<A, B> {
    * @param a the a
    * @param b the b
    */
-  public Tuple2(A a, B b) {
+  public Tuple2(final A a, final B b) {
     _1 = a;
     _2 = b;
   }

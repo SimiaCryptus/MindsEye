@@ -28,14 +28,14 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 public class FullyConnectedLayerTest extends LayerTestBase {
   
   @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new FullyConnectedLayer(new int[]{3}, new int[]{3});
-  }
-  
-  @Override
   public int[][] getInputDims() {
     return new int[][]{
       {3}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new FullyConnectedLayer(new int[]{3}, new int[]{3});
   }
 }

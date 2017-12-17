@@ -26,17 +26,17 @@ package com.simiacryptus.util.lang;
  */
 public abstract class ResourcePool<T> {
   
-  private final ThreadLocal<T> currentValue = new ThreadLocal<>();
   private final java.util.HashSet<T> all;
-  private final java.util.concurrent.LinkedBlockingQueue<T> pool = new java.util.concurrent.LinkedBlockingQueue<>();
+  private final ThreadLocal<T> currentValue = new ThreadLocal<>();
   private final int maxItems;
+  private final java.util.concurrent.LinkedBlockingQueue<T> pool = new java.util.concurrent.LinkedBlockingQueue<>();
   
   /**
    * Instantiates a new Resource pool.
    *
    * @param maxItems the max items
    */
-  public ResourcePool(int maxItems) {
+  public ResourcePool(final int maxItems) {
     super();
     this.maxItems = maxItems;
     this.all = new java.util.HashSet<>(this.maxItems);
@@ -48,28 +48,6 @@ public abstract class ResourcePool<T> {
    * @return the t
    */
   public abstract T create();
-  
-  /**
-   * With.
-   *
-   * @param f the f
-   */
-  public void with(final java.util.function.Consumer<T> f) {
-    T prior = currentValue.get();
-    if (null != prior) {
-      f.accept(prior);
-    }
-    else {
-      T poll = get();
-      try {
-        currentValue.set(poll);
-        f.accept(poll);
-      } finally {
-        this.pool.add(poll);
-        currentValue.remove();
-      }
-    }
-  }
   
   /**
    * Get t.
@@ -103,5 +81,27 @@ public abstract class ResourcePool<T> {
    */
   public int size() {
     return all.size();
+  }
+  
+  /**
+   * With.
+   *
+   * @param f the f
+   */
+  public void with(final java.util.function.Consumer<T> f) {
+    final T prior = currentValue.get();
+    if (null != prior) {
+      f.accept(prior);
+    }
+    else {
+      final T poll = get();
+      try {
+        currentValue.set(poll);
+        f.accept(poll);
+      } finally {
+        this.pool.add(poll);
+        currentValue.remove();
+      }
+    }
   }
 }

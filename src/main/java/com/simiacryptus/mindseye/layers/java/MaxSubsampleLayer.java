@@ -37,6 +37,7 @@ import java.util.stream.IntStream;
 /**
  * The type Max subsample layer.
  */
+@SuppressWarnings("serial")
 public class MaxSubsampleLayer extends NNLayer {
   
   private static final Function<MaxSubsampleLayer.CalcRegionsParameter, List<Tuple2<Integer, int[]>>> calcRegionsCache = Util.cache(MaxSubsampleLayer::calcRegions);
@@ -44,17 +45,6 @@ public class MaxSubsampleLayer extends NNLayer {
   private static final Logger log = LoggerFactory.getLogger(MaxSubsampleLayer.class);
   private int[] kernelDims;
   
-  
-  /**
-   * Instantiates a new Max subsample layer.
-   *
-   * @param id         the id
-   * @param kernelDims the kernel dims
-   */
-  protected MaxSubsampleLayer(JsonObject id, int... kernelDims) {
-    super(id);
-    this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
-  }
   
   /**
    * Instantiates a new Max subsample layer.
@@ -74,14 +64,14 @@ public class MaxSubsampleLayer extends NNLayer {
   }
   
   /**
-   * From json max subsample layer.
+   * Instantiates a new Max subsample layer.
    *
-   * @param json the json
-   * @return the max subsample layer
+   * @param id         the id
+   * @param kernelDims the kernel dims
    */
-  public static MaxSubsampleLayer fromJson(JsonObject json) {
-    return new MaxSubsampleLayer(json,
-      JsonUtil.getIntArray(json.getAsJsonArray("inner")));
+  protected MaxSubsampleLayer(final JsonObject id, final int... kernelDims) {
+    super(id);
+    this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }
   
   private static List<Tuple2<Integer, int[]>> calcRegions(final MaxSubsampleLayer.CalcRegionsParameter p) {
@@ -96,10 +86,10 @@ public class MaxSubsampleLayer extends NNLayer {
       final int[] inCoords = new Tensor(p.kernelDims).coordStream().mapToInt(kernelCoord -> {
         final int[] result = new int[o.getCoords().length];
         for (int index = 0; index < o.getCoords().length; index++) {
-          int outputCoordinate = o.getCoords()[index];
-          int kernelSize = p.kernelDims[index];
-          int baseCoordinate = Math.min(outputCoordinate * kernelSize, p.inputDims[index] - kernelSize);
-          int kernelCoordinate = kernelCoord.getCoords()[index];
+          final int outputCoordinate = o.getCoords()[index];
+          final int kernelSize = p.kernelDims[index];
+          final int baseCoordinate = Math.min(outputCoordinate * kernelSize, p.inputDims[index] - kernelSize);
+          final int kernelCoordinate = kernelCoord.getCoords()[index];
           result[index] = baseCoordinate + kernelCoordinate;
         }
         return input.index(result);
@@ -108,41 +98,46 @@ public class MaxSubsampleLayer extends NNLayer {
     }).collect(Collectors.toList());
   }
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("inner", JsonUtil.getJson(kernelDims));
-    return json;
+  /**
+   * From json max subsample layer.
+   *
+   * @param json the json
+   * @return the max subsample layer
+   */
+  public static MaxSubsampleLayer fromJson(final JsonObject json) {
+    return new MaxSubsampleLayer(json,
+      JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
   
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     
     final NNResult in = inObj[0];
-    int itemCnt = in.getData().length();
+    in.getData().length();
     
     final int[] inputDims = in.getData().get(0).getDimensions();
-    final List<Tuple2<Integer, int[]>> regions = calcRegionsCache.apply(new MaxSubsampleLayer.CalcRegionsParameter(inputDims, this.kernelDims));
-    Tensor[] outputA = IntStream.range(0, in.getData().length()).mapToObj(dataIndex -> {
+    final List<Tuple2<Integer, int[]>> regions = MaxSubsampleLayer.calcRegionsCache.apply(new MaxSubsampleLayer.CalcRegionsParameter(inputDims, kernelDims));
+    final Tensor[] outputA = IntStream.range(0, in.getData().length()).mapToObj(dataIndex -> {
       final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
-        return (int) Math.ceil(inputDims[i] * 1.0 / this.kernelDims[i]);
+        return (int) Math.ceil(inputDims[i] * 1.0 / kernelDims[i]);
       }).toArray();
       final Tensor output = new Tensor(newDims);
       return output;
     }).toArray(i -> new Tensor[i]);
-    int sum = Arrays.stream(outputA).mapToInt(x -> x.dim()).sum();
-    @SuppressWarnings("unchecked") final int[][] gradientMapA = new int[in.getData().length()][];
+    Arrays.stream(outputA).mapToInt(x -> x.dim()).sum();
+    final int[][] gradientMapA = new int[in.getData().length()][];
     IntStream.range(0, in.getData().length()).forEach(dataIndex -> {
       final Tensor input = in.getData().get(dataIndex);
       final Tensor output = outputA[dataIndex];
       final IntToDoubleFunction keyExtractor = inputCoords -> input.get(inputCoords);
-      int[] gradientMap = new int[input.dim()];
+      final int[] gradientMap = new int[input.dim()];
       regions.parallelStream().forEach(tuple -> {
         final Integer from = tuple.getFirst();
-        int[] toList = tuple.getSecond();
+        final int[] toList = tuple.getSecond();
         int toMax = -1;
         double bestValue = Double.NEGATIVE_INFINITY;
-        for (int c : toList) {
-          double value = keyExtractor.applyAsDouble(c);
+        for (final int c : toList) {
+          final double value = keyExtractor.applyAsDouble(c);
           if (-1 == toMax || bestValue < value) {
             bestValue = value;
             toMax = c;
@@ -155,12 +150,12 @@ public class MaxSubsampleLayer extends NNLayer {
     });
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (in.isAlive()) {
-          Tensor[] passbackA = IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
+          final Tensor[] passbackA = IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
             final Tensor backSignal = new Tensor(inputDims);
-            int[] ints = gradientMapA[dataIndex];
-            Tensor datum = data.get(dataIndex);
+            final int[] ints = gradientMapA[dataIndex];
+            final Tensor datum = data.get(dataIndex);
             for (int i = 0; i < datum.dim(); i++) {
               backSignal.add(ints[i], datum.get(i));
             }
@@ -175,6 +170,13 @@ public class MaxSubsampleLayer extends NNLayer {
         return in.isAlive();
       }
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    json.add("inner", JsonUtil.getJson(kernelDims));
+    return json;
   }
   
   @Override
@@ -218,18 +220,18 @@ public class MaxSubsampleLayer extends NNLayer {
         return false;
       }
       final MaxSubsampleLayer.CalcRegionsParameter other = (MaxSubsampleLayer.CalcRegionsParameter) obj;
-      if (!Arrays.equals(this.inputDims, other.inputDims)) {
+      if (!Arrays.equals(inputDims, other.inputDims)) {
         return false;
       }
-      return Arrays.equals(this.kernelDims, other.kernelDims);
+      return Arrays.equals(kernelDims, other.kernelDims);
     }
     
     @Override
     public int hashCode() {
       final int prime = 31;
       int result = 1;
-      result = prime * result + Arrays.hashCode(this.inputDims);
-      result = prime * result + Arrays.hashCode(this.kernelDims);
+      result = prime * result + Arrays.hashCode(inputDims);
+      result = prime * result + Arrays.hashCode(kernelDims);
       return result;
     }
     

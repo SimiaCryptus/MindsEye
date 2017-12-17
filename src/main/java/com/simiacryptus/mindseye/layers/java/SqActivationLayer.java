@@ -24,16 +24,8 @@ import com.google.gson.JsonObject;
 /**
  * The type Sq activation layer.
  */
+@SuppressWarnings("serial")
 public final class SqActivationLayer extends SimpleActivationLayer<SqActivationLayer> {
-  
-  /**
-   * Instantiates a new Sq activation layer.
-   *
-   * @param id the id
-   */
-  protected SqActivationLayer(JsonObject id) {
-    super(id);
-  }
   
   /**
    * Instantiates a new Sq activation layer.
@@ -42,17 +34,22 @@ public final class SqActivationLayer extends SimpleActivationLayer<SqActivationL
   }
   
   /**
+   * Instantiates a new Sq activation layer.
+   *
+   * @param id the id
+   */
+  protected SqActivationLayer(final JsonObject id) {
+    super(id);
+  }
+  
+  /**
    * From json sq activation layer.
    *
    * @param json the json
    * @return the sq activation layer
    */
-  public static SqActivationLayer fromJson(JsonObject json) {
+  public static SqActivationLayer fromJson(final JsonObject json) {
     return new SqActivationLayer(json);
-  }
-  
-  public JsonObject getJson() {
-    return super.getJsonStub();
   }
   
   @Override
@@ -64,6 +61,11 @@ public final class SqActivationLayer extends SimpleActivationLayer<SqActivationL
     assert minDeriv <= Math.abs(d);
     results[0] = f;
     results[1] = d;
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
 }

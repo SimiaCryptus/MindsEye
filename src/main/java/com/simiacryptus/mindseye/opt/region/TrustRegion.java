@@ -39,7 +39,7 @@ public interface TrustRegion {
    * @return the double [ ]
    */
   @Deprecated
-  default double[] project(double[] state, double[] point) {
+  default double[] project(final double[] state, final double[] point) {
     throw new NotImplementedException();
   }
   
@@ -50,7 +50,7 @@ public interface TrustRegion {
    * @param point   the point
    * @return the double [ ]
    */
-  default double[] project(double[][] history, double[] point) {
+  default double[] project(final double[][] history, final double[] point) {
     return project(history[0], point);
   }
 }

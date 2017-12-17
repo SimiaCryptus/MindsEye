@@ -38,29 +38,37 @@ import java.util.concurrent.atomic.AtomicLong;
 @SuppressWarnings("serial")
 public final class MonitoringWrapperLayer extends WrapperLayer implements MonitoredItem {
   
-  private final boolean verbose = false;
-  private final PercentileStatistics forwardPerformance = new PercentileStatistics();
   private final PercentileStatistics backwardPerformance = new PercentileStatistics();
   private final ScalarStatistics backwardSignal = new PercentileStatistics();
+  private final PercentileStatistics forwardPerformance = new PercentileStatistics();
   private final ScalarStatistics forwardSignal = new PercentileStatistics();
+  private final boolean verbose = false;
+  private boolean recordSignalMetrics = true;
   private int totalBatches = 0;
   private int totalItems = 0;
-  private boolean recordSignalMetrics = true;
   
   /**
    * Instantiates a new Monitoring wrapper layer.
    *
    * @param json the json
    */
-  protected MonitoringWrapperLayer(JsonObject json) {
+  protected MonitoringWrapperLayer(final JsonObject json) {
     super(json);
-    if (json.has("forwardPerf")) this.forwardPerformance.readJson(json.getAsJsonObject("forwardPerf"));
-    if (json.has("backwardPerf")) this.backwardPerformance.readJson(json.getAsJsonObject("backwardPerf"));
-    if (json.has("backpropStatistics")) this.backwardSignal.readJson(json.getAsJsonObject("backpropStatistics"));
-    if (json.has("outputStatistics")) this.forwardSignal.readJson(json.getAsJsonObject("outputStatistics"));
-    this.recordSignalMetrics = json.get("recordSignalMetrics").getAsBoolean();
-    this.totalBatches = json.get("totalBatches").getAsInt();
-    this.totalItems = json.get("totalItems").getAsInt();
+    if (json.has("forwardPerf")) {
+      forwardPerformance.readJson(json.getAsJsonObject("forwardPerf"));
+    }
+    if (json.has("backwardPerf")) {
+      backwardPerformance.readJson(json.getAsJsonObject("backwardPerf"));
+    }
+    if (json.has("backpropStatistics")) {
+      backwardSignal.readJson(json.getAsJsonObject("backpropStatistics"));
+    }
+    if (json.has("outputStatistics")) {
+      forwardSignal.readJson(json.getAsJsonObject("outputStatistics"));
+    }
+    recordSignalMetrics = json.get("recordSignalMetrics").getAsBoolean();
+    totalBatches = json.get("totalBatches").getAsInt();
+    totalItems = json.get("totalItems").getAsInt();
   }
   
   /**
@@ -78,103 +86,8 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
    * @param json the json
    * @return the monitoring wrapper layer
    */
-  public static MonitoringWrapperLayer fromJson(JsonObject json) {
+  public static MonitoringWrapperLayer fromJson(final JsonObject json) {
     return new MonitoringWrapperLayer(json);
-  }
-  
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    //json.fn("forwardPerf",forwardPerf.getJson());
-    //json.fn("backwardPerf",backwardPerf.getJson());
-    json.add("inner", getInner().getJson());
-    json.addProperty("totalBatches", totalBatches);
-    json.addProperty("totalItems", totalItems);
-    json.addProperty("recordSignalMetrics", recordSignalMetrics);
-    return json;
-  }
-  
-  public Map<String, Object> getMetrics() {
-    HashMap<String, Object> map = new HashMap<>();
-    map.put("class", inner.getClass().getName());
-    map.put("totalBatches", totalBatches);
-    map.put("totalItems", totalItems);
-    map.put("outputStatistics", forwardSignal.getMetrics());
-    map.put("backpropStatistics", backwardSignal.getMetrics());
-    if (verbose) {
-      map.put("forwardPerformance", forwardPerformance.getMetrics());
-      map.put("backwardPerformance", backwardPerformance.getMetrics());
-    }
-    double batchesPerItem = totalBatches * 1.0 / totalItems;
-    map.put("avgMsPerItem", 1000 * batchesPerItem * forwardPerformance.getMean());
-    map.put("medianMsPerItem", 1000 * batchesPerItem * forwardPerformance.getPercentile(0.5));
-    double backpropMean = backwardPerformance.getMean();
-    double backpropMedian = backwardPerformance.getPercentile(0.5);
-    map.put("avgMsPerItem_Backward", 1000 * batchesPerItem * backpropMean);
-    map.put("medianMsPerItem_Backward", 1000 * batchesPerItem * backpropMedian);
-    List<double[]> state = state();
-    ScalarStatistics statistics = new PercentileStatistics();
-    for (double[] s : state) {
-      for (double v : s) {
-        statistics.add(v);
-      }
-    }
-    if (statistics.getCount() > 0) {
-      HashMap<String, Object> weightStats = new HashMap<>();
-      weightStats.put("buffers", state.size());
-      weightStats.putAll(statistics.getMetrics());
-      map.put("weights", weightStats);
-    }
-    return map;
-  }
-  
-  @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    AtomicLong passback = new AtomicLong(0);
-    NNResult[] wrappedInput = Arrays.stream(inObj).map(result -> new NNResult(result.getData()) {
-      @Override
-      public void accumulate(DeltaSet buffer, TensorList data) {
-        long start = System.nanoTime();
-        result.accumulate(buffer, data);
-        long elapsed = System.nanoTime() - start;
-        passback.addAndGet(elapsed);
-      }
-      
-      @Override
-      public boolean isAlive() {
-        return result.isAlive();
-      }
-    }).toArray(i -> new NNResult[i]);
-    long start = System.nanoTime();
-    final NNResult output = this.getInner().eval(nncontext, wrappedInput);
-    forwardPerformance.add(((System.nanoTime() - start) / 1000000000.0));
-    totalBatches++;
-    int items = Arrays.stream(inObj).mapToInt(x -> x.getData().length()).max().orElse(1);
-    totalItems += items;
-    if (recordSignalMetrics) {
-      forwardSignal.clear();
-      output.getData().stream().parallel().forEach(t -> {
-        forwardSignal.add(t.getData());
-      });
-    }
-    return new NNResult(output.getData()) {
-      @Override
-      public void accumulate(DeltaSet buffer, TensorList data) {
-        if (recordSignalMetrics) {
-          backwardSignal.clear();
-          data.stream().parallel().forEach(t -> {
-            backwardSignal.add(t.getData());
-          });
-        }
-        long start = System.nanoTime();
-        output.accumulate(buffer, data);
-        backwardPerformance.add(((System.nanoTime() - start) - passback.getAndSet(0)) / (items * 1e9));
-      }
-      
-      @Override
-      public boolean isAlive() {
-        return output.isAlive();
-      }
-    };
   }
   
   /**
@@ -183,7 +96,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
    * @param obj the obj
    * @return the monitoring wrapper layer
    */
-  public MonitoringWrapperLayer addTo(MonitoredObject obj) {
+  public MonitoringWrapperLayer addTo(final MonitoredObject obj) {
     return addTo(obj, getInner().getName());
   }
   
@@ -194,50 +107,60 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
    * @param name the name
    * @return the monitoring wrapper layer
    */
-  public MonitoringWrapperLayer addTo(MonitoredObject obj, String name) {
+  public MonitoringWrapperLayer addTo(final MonitoredObject obj, final String name) {
     setName(name);
     obj.addObj(getName(), this);
     return this;
   }
   
   @Override
-  public String getName() {
-    return getInner().getName();
-  }
-  
-  @Override
-  public NNLayer setName(String name) {
-    if (null != getInner()) getInner().setName(name);
-    return this;
-  }
-  
-  /**
-   * Record signal metrics boolean.
-   *
-   * @return the boolean
-   */
-  public boolean recordSignalMetrics() {
-    return recordSignalMetrics;
-  }
-  
-  /**
-   * Should record signal metrics monitoring wrapper layer.
-   *
-   * @param recordSignalMetrics the record signal metrics
-   * @return the monitoring wrapper layer
-   */
-  public MonitoringWrapperLayer shouldRecordSignalMetrics(boolean recordSignalMetrics) {
-    this.recordSignalMetrics = recordSignalMetrics;
-    return this;
-  }
-  
-  /**
-   * Gets forward performance.
-   *
-   * @return the forward performance
-   */
-  public PercentileStatistics getForwardPerformance() {
-    return forwardPerformance;
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final AtomicLong passback = new AtomicLong(0);
+    final NNResult[] wrappedInput = Arrays.stream(inObj).map(result -> new NNResult(result.getData()) {
+      @Override
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+        final long start = System.nanoTime();
+        result.accumulate(buffer, data);
+        final long elapsed = System.nanoTime() - start;
+        passback.addAndGet(elapsed);
+      }
+      
+      @Override
+      public boolean isAlive() {
+        return result.isAlive();
+      }
+    }).toArray(i -> new NNResult[i]);
+    final long start = System.nanoTime();
+    final NNResult output = getInner().eval(nncontext, wrappedInput);
+    forwardPerformance.add((System.nanoTime() - start) / 1000000000.0);
+    totalBatches++;
+    final int items = Arrays.stream(inObj).mapToInt(x -> x.getData().length()).max().orElse(1);
+    totalItems += items;
+    if (recordSignalMetrics) {
+      forwardSignal.clear();
+      output.getData().stream().parallel().forEach(t -> {
+        forwardSignal.add(t.getData());
+      });
+    }
+    return new NNResult(output.getData()) {
+      @Override
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+        if (recordSignalMetrics) {
+          backwardSignal.clear();
+          data.stream().parallel().forEach(t -> {
+            backwardSignal.add(t.getData());
+          });
+        }
+        final long start = System.nanoTime();
+        output.accumulate(buffer, data);
+        backwardPerformance.add((System.nanoTime() - start - passback.getAndSet(0)) / (items * 1e9));
+      }
+      
+      @Override
+      public boolean isAlive() {
+        return output.isAlive();
+      }
+    };
   }
   
   /**
@@ -259,11 +182,100 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   }
   
   /**
+   * Gets forward performance.
+   *
+   * @return the forward performance
+   */
+  public PercentileStatistics getForwardPerformance() {
+    return forwardPerformance;
+  }
+  
+  /**
    * Gets forward signal.
    *
    * @return the forward signal
    */
   public ScalarStatistics getForwardSignal() {
     return forwardSignal;
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    //json.fn("forwardPerf",forwardPerf.getJson());
+    //json.fn("backwardPerf",backwardPerf.getJson());
+    json.add("inner", getInner().getJson());
+    json.addProperty("totalBatches", totalBatches);
+    json.addProperty("totalItems", totalItems);
+    json.addProperty("recordSignalMetrics", recordSignalMetrics);
+    return json;
+  }
+  
+  @Override
+  public Map<String, Object> getMetrics() {
+    final HashMap<String, Object> map = new HashMap<>();
+    map.put("class", inner.getClass().getName());
+    map.put("totalBatches", totalBatches);
+    map.put("totalItems", totalItems);
+    map.put("outputStatistics", forwardSignal.getMetrics());
+    map.put("backpropStatistics", backwardSignal.getMetrics());
+    if (verbose) {
+      map.put("forwardPerformance", forwardPerformance.getMetrics());
+      map.put("backwardPerformance", backwardPerformance.getMetrics());
+    }
+    final double batchesPerItem = totalBatches * 1.0 / totalItems;
+    map.put("avgMsPerItem", 1000 * batchesPerItem * forwardPerformance.getMean());
+    map.put("medianMsPerItem", 1000 * batchesPerItem * forwardPerformance.getPercentile(0.5));
+    final double backpropMean = backwardPerformance.getMean();
+    final double backpropMedian = backwardPerformance.getPercentile(0.5);
+    map.put("avgMsPerItem_Backward", 1000 * batchesPerItem * backpropMean);
+    map.put("medianMsPerItem_Backward", 1000 * batchesPerItem * backpropMedian);
+    final List<double[]> state = state();
+    final ScalarStatistics statistics = new PercentileStatistics();
+    for (final double[] s : state) {
+      for (final double v : s) {
+        statistics.add(v);
+      }
+    }
+    if (statistics.getCount() > 0) {
+      final HashMap<String, Object> weightStats = new HashMap<>();
+      weightStats.put("buffers", state.size());
+      weightStats.putAll(statistics.getMetrics());
+      map.put("weights", weightStats);
+    }
+    return map;
+  }
+  
+  @Override
+  public String getName() {
+    return getInner().getName();
+  }
+  
+  /**
+   * Record signal metrics boolean.
+   *
+   * @return the boolean
+   */
+  public boolean recordSignalMetrics() {
+    return recordSignalMetrics;
+  }
+  
+  @Override
+  public NNLayer setName(final String name) {
+    if (null != getInner()) {
+      getInner().setName(name);
+    }
+    return this;
+  }
+  
+  /**
+   * Should record signal metrics monitoring wrapper layer.
+   *
+   * @param recordSignalMetrics the record signal metrics
+   * @return the monitoring wrapper layer
+   */
+  public MonitoringWrapperLayer shouldRecordSignalMetrics(final boolean recordSignalMetrics) {
+    this.recordSignalMetrics = recordSignalMetrics;
+    return this;
   }
 }

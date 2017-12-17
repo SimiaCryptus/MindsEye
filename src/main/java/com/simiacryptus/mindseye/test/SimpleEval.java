@@ -30,8 +30,8 @@ import java.util.stream.IntStream;
  * The type Simple eval.
  */
 public class SimpleEval implements Callable<SimpleEval> {
-  private final NNLayer layer;
   private final Tensor[] input;
+  private final NNLayer layer;
   private Tensor[] derivative;
   private Tensor output;
   
@@ -41,7 +41,7 @@ public class SimpleEval implements Callable<SimpleEval> {
    * @param layer the layer
    * @param input the input
    */
-  public SimpleEval(NNLayer layer, Tensor... input) {
+  public SimpleEval(final NNLayer layer, final Tensor... input) {
     this.layer = layer;
     this.input = input;
   }
@@ -53,8 +53,33 @@ public class SimpleEval implements Callable<SimpleEval> {
    * @param tensor the tensor
    * @return the simple eval
    */
-  public static SimpleEval run(NNLayer layer, Tensor... tensor) {
+  public static SimpleEval run(final NNLayer layer, final Tensor... tensor) {
     return new SimpleEval(layer, tensor).call();
+  }
+  
+  @Override
+  public SimpleEval call() {
+    derivative = Arrays.stream(input).map(input -> new Tensor(input.getDimensions())).toArray(i -> new Tensor[i]);
+    final NNResult[] inputR = IntStream.range(0, input.length).mapToObj(i -> {
+      return new NNResult(input[i]) {
+        @Override
+        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+          data.stream().forEach(t -> derivative[i].accumulate(t));
+        }
+        
+        @Override
+        public boolean isAlive() {
+          return true;
+        }
+      };
+    }).toArray(i -> new NNResult[i]);
+    final NNResult result = GpuController.call(cudaExeCtx -> {
+      final NNResult eval = layer.eval(cudaExeCtx, inputR);
+      eval.accumulate(new DeltaSet<NNLayer>(), getFeedback(eval.getData()));
+      return eval;
+    });
+    output = result.getData().get(0);
+    return this;
   }
   
   /**
@@ -67,46 +92,21 @@ public class SimpleEval implements Callable<SimpleEval> {
   }
   
   /**
+   * Gets feedback.
+   *
+   * @param data the data
+   * @return the feedback
+   */
+  public TensorArray getFeedback(final TensorList data) {
+    return new TensorArray(data.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i]));
+  }
+  
+  /**
    * Gets output.
    *
    * @return the output
    */
   public Tensor getOutput() {
     return output;
-  }
-  
-  @Override
-  public SimpleEval call() {
-    derivative = Arrays.stream(input).map(input -> new Tensor(input.getDimensions())).toArray(i -> new Tensor[i]);
-    NNResult[] inputR = IntStream.range(0, input.length).mapToObj(i -> {
-      return new NNResult(input[i]) {
-        @Override
-        public void accumulate(DeltaSet buffer, TensorList data) {
-          data.stream().forEach(t -> derivative[i].accum(t));
-        }
-        
-        @Override
-        public boolean isAlive() {
-          return true;
-        }
-      };
-    }).toArray(i -> new NNResult[i]);
-    NNResult result = GpuController.call(cudaExeCtx -> {
-      NNResult eval = layer.eval(cudaExeCtx, inputR);
-      eval.accumulate(new DeltaSet(), getFeedback(eval.getData()));
-      return eval;
-    });
-    output = result.getData().get(0);
-    return this;
-  }
-  
-  /**
-   * Gets feedback.
-   *
-   * @param data the data
-   * @return the feedback
-   */
-  public TensorArray getFeedback(TensorList data) {
-    return new TensorArray(data.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i]));
   }
 }

@@ -29,6 +29,7 @@ import java.util.UUID;
  * A base class for a network node providing cached lazy evaluation;
  * It gaurantees a node is only evaluated once, and only if and when needed.
  */
+@SuppressWarnings("serial")
 abstract class LazyResult implements DAGNode {
   
   /**
@@ -54,11 +55,6 @@ abstract class LazyResult implements DAGNode {
     this.id = id;
   }
   
-  @Override
-  public final UUID getId() {
-    return id;
-  }
-  
   /**
    * Eval nn result.
    *
@@ -69,14 +65,19 @@ abstract class LazyResult implements DAGNode {
   protected abstract NNResult eval(GraphEvaluationContext t, NNExecutionContext nncontext);
   
   @Override
-  public synchronized CountingNNResult get(NNExecutionContext nncontext, final GraphEvaluationContext t) {
-    return t.cache.computeIfAbsent(this.id, k -> {
+  public synchronized CountingNNResult get(final NNExecutionContext nncontext, final GraphEvaluationContext t) {
+    return t.cache.computeIfAbsent(id, k -> {
       try {
         return new CountingNNResult(eval(t, nncontext));
-      } catch (Throwable e) {
+      } catch (final Throwable e) {
         throw new ComponentException("Error evaluating layer " + getLayer(), e);
       }
     }).increment();
+  }
+  
+  @Override
+  public final UUID getId() {
+    return id;
   }
   
 }

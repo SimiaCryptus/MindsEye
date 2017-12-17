@@ -36,7 +36,7 @@ public class HyperbolicActivationLayerTest extends ActivationLayerTestBase {
   
   @Override
   protected HashMap<Tensor[], Tensor> getReferenceIO() {
-    HashMap<Tensor[], Tensor> map = super.getReferenceIO();
+    final HashMap<Tensor[], Tensor> map = super.getReferenceIO();
     map.put(new Tensor[]{new Tensor(0.0)}, new Tensor(0.0));
     return map;
   }

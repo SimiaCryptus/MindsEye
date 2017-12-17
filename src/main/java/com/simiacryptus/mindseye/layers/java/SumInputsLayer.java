@@ -29,16 +29,8 @@ import java.util.stream.IntStream;
 /**
  * The type Sum inputs layer.
  */
+@SuppressWarnings("serial")
 public class SumInputsLayer extends NNLayer {
-  
-  /**
-   * Instantiates a new Sum inputs layer.
-   *
-   * @param id the id
-   */
-  protected SumInputsLayer(JsonObject id) {
-    super(id);
-  }
   
   /**
    * Instantiates a new Sum inputs layer.
@@ -47,29 +39,34 @@ public class SumInputsLayer extends NNLayer {
   }
   
   /**
+   * Instantiates a new Sum inputs layer.
+   *
+   * @param id the id
+   */
+  protected SumInputsLayer(final JsonObject id) {
+    super(id);
+  }
+  
+  /**
    * From json sum inputs layer.
    *
    * @param json the json
    * @return the sum inputs layer
    */
-  public static SumInputsLayer fromJson(JsonObject json) {
+  public static SumInputsLayer fromJson(final JsonObject json) {
     return new SumInputsLayer(json);
   }
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    TensorList data = Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final TensorList data = Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
       assert l.length() == r.length() || 1 == l.length() || 1 == r.length();
       return new TensorArray(IntStream.range(0, l.length()).parallel()
         .mapToObj(i -> {
-          Tensor left = l.get(1 == l.length() ? 0 : i);
-          Tensor right = r.get(1 == r.length() ? 0 : i);
+          final Tensor left = l.get(1 == l.length() ? 0 : i);
+          final Tensor right = r.get(1 == r.length() ? 0 : i);
           if (right.dim() == 1) {
-            return left.mapParallel(v -> v + (right.get(0)));
+            return left.mapParallel(v -> v + right.get(0));
           }
           else {
             return left.reduceParallel(right, (v1, v2) -> v1 + v2);
@@ -79,7 +76,7 @@ public class SumInputsLayer extends NNLayer {
     }).get();
     return new NNResult(data) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         for (final NNResult input : inObj) {
           if (input.isAlive()) {
@@ -105,6 +102,11 @@ public class SumInputsLayer extends NNLayer {
       }
       
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

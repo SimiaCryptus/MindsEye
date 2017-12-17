@@ -29,16 +29,8 @@ import java.util.stream.IntStream;
 /**
  * The type Cross product layer.
  */
+@SuppressWarnings("serial")
 public class CrossProductLayer extends NNLayer {
-  
-  /**
-   * Instantiates a new Cross product layer.
-   *
-   * @param id the id
-   */
-  protected CrossProductLayer(JsonObject id) {
-    super(id);
-  }
   
   /**
    * Instantiates a new Cross product layer.
@@ -47,12 +39,21 @@ public class CrossProductLayer extends NNLayer {
   }
   
   /**
+   * Instantiates a new Cross product layer.
+   *
+   * @param id the id
+   */
+  protected CrossProductLayer(final JsonObject id) {
+    super(id);
+  }
+  
+  /**
    * From json cross product layer.
    *
    * @param json the json
    * @return the cross product layer
    */
-  public static CrossProductLayer fromJson(JsonObject json) {
+  public static CrossProductLayer fromJson(final JsonObject json) {
     return new CrossProductLayer(json);
   }
   
@@ -64,47 +65,43 @@ public class CrossProductLayer extends NNLayer {
    * @param max the max
    * @return the int
    */
-  public static int index(int x, int y, int max) {
-    return (max * (max - 1) / 2) - (max - x) * ((max - x) - 1) / 2 + y - x - 1;
-  }
-  
-  public JsonObject getJson() {
-    return super.getJsonStub();
+  public static int index(final int x, final int y, final int max) {
+    return max * (max - 1) / 2 - (max - x) * (max - x - 1) / 2 + y - x - 1;
   }
   
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    assert (1 == inObj.length);
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    assert 1 == inObj.length;
     return new NNResult(inObj[0].getData().stream().parallel().map(tensor -> {
-      int inputDim = tensor.dim();
-      int outputDim = (inputDim * inputDim - inputDim) / 2;
-      Tensor result = new Tensor(outputDim);
-      double[] inputData = tensor.getData();
-      double[] resultData = result.getData();
+      final int inputDim = tensor.dim();
+      final int outputDim = (inputDim * inputDim - inputDim) / 2;
+      final Tensor result = new Tensor(outputDim);
+      final double[] inputData = tensor.getData();
+      final double[] resultData = result.getData();
       IntStream.range(0, inputDim).forEach(x -> {
         IntStream.range(x + 1, inputDim).forEach(y -> {
-          resultData[index(x, y, inputDim)] = inputData[x] * inputData[y];
+          resultData[CrossProductLayer.index(x, y, inputDim)] = inputData[x] * inputData[y];
         });
       });
       return result;
     }).toArray(i -> new Tensor[i])) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         final NNResult input = inObj[0];
         if (input.isAlive()) {
-          assert (inObj[0].getData().length() == data.length());
+          assert inObj[0].getData().length() == data.length();
           final Tensor[] data1 = IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(batchIndex -> {
-            Tensor tensor = data.get(batchIndex);
-            int outputDim = tensor.dim();
-            int inputDim = (1 + (int) Math.sqrt(1 + 8 * outputDim)) / 2;
-            Tensor passback = new Tensor(inputDim);
-            double[] passbackData = passback.getData();
-            double[] tensorData = tensor.getData();
-            double[] inputData = inObj[0].getData().get(batchIndex).getData();
+            final Tensor tensor = data.get(batchIndex);
+            final int outputDim = tensor.dim();
+            final int inputDim = (1 + (int) Math.sqrt(1 + 8 * outputDim)) / 2;
+            final Tensor passback = new Tensor(inputDim);
+            final double[] passbackData = passback.getData();
+            final double[] tensorData = tensor.getData();
+            final double[] inputData = inObj[0].getData().get(batchIndex).getData();
             IntStream.range(0, inputDim).forEach(x -> {
               IntStream.range(x + 1, inputDim).forEach(y -> {
-                passbackData[x] += tensorData[index(x, y, inputDim)] * inputData[y];
-                passbackData[y] += tensorData[index(x, y, inputDim)] * inputData[x];
+                passbackData[x] += tensorData[CrossProductLayer.index(x, y, inputDim)] * inputData[y];
+                passbackData[y] += tensorData[CrossProductLayer.index(x, y, inputDim)] * inputData[x];
               });
             });
             return passback;
@@ -123,6 +120,11 @@ public class CrossProductLayer extends NNLayer {
       }
       
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

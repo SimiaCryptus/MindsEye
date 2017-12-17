@@ -29,18 +29,18 @@ public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
   
   /**
    * Instantiates a new Entropy layer.
-   *
-   * @param id the id
    */
-  protected EntropyLayer(JsonObject id) {
-    super(id);
+  public EntropyLayer() {
+    super();
   }
   
   /**
    * Instantiates a new Entropy layer.
+   *
+   * @param id the id
    */
-  public EntropyLayer() {
-    super();
+  protected EntropyLayer(final JsonObject id) {
+    super(id);
   }
   
   /**
@@ -49,12 +49,8 @@ public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
    * @param json the json
    * @return the entropy layer
    */
-  public static EntropyLayer fromJson(JsonObject json) {
+  public static EntropyLayer fromJson(final JsonObject json) {
     return new EntropyLayer(json);
-  }
-  
-  public JsonObject getJson() {
-    return super.getJsonStub();
   }
   
   @Override
@@ -75,5 +71,10 @@ public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
     assert minDeriv <= Math.abs(d);
     results[0] = f;
     results[1] = d;
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
 }

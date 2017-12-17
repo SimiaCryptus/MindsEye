@@ -25,9 +25,9 @@ package com.simiacryptus.util.test;
 public class TestCategories {
   
   /**
-   * The type Unit test.
+   * The type Report.
    */
-  public static class UnitTest {
+  public static class Report {
   }
   
   /**
@@ -37,8 +37,8 @@ public class TestCategories {
   }
   
   /**
-   * The type Report.
+   * The type Unit test.
    */
-  public static class Report {
+  public static class UnitTest {
   }
 }

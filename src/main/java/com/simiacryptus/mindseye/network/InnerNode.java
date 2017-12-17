@@ -30,6 +30,7 @@ import java.util.UUID;
 /**
  * A calculation node, to be evaluated by a network once the inputs are available.
  */
+@SuppressWarnings("serial")
 final class InnerNode extends LazyResult {
   /**
    * The Created by.
@@ -48,7 +49,7 @@ final class InnerNode extends LazyResult {
    * @param inputNodes the input nodes
    */
   @SafeVarargs
-  InnerNode(DAGNetwork dagNetwork, final NNLayer key, final DAGNode... inputNodes) {
+  InnerNode(final DAGNetwork dagNetwork, final NNLayer key, final DAGNode... inputNodes) {
     this(dagNetwork, key, UUID.randomUUID(), inputNodes);
   }
   
@@ -61,44 +62,12 @@ final class InnerNode extends LazyResult {
    * @param inputNodes the input nodes
    */
   @SafeVarargs
-  InnerNode(DAGNetwork dagNetwork, final NNLayer layer, UUID key, final DAGNode... inputNodes) {
+  InnerNode(final DAGNetwork dagNetwork, final NNLayer layer, final UUID key, final DAGNode... inputNodes) {
     super(key);
     this.dagNetwork = dagNetwork;
     assert null != inputNodes;
-    this.setLayer(layer);
+    setLayer(layer);
     this.inputNodes = inputNodes;
-  }
-  
-  @Override
-  public DAGNode[] getInputs() {
-    return inputNodes;
-  }
-  
-  @Override
-  protected NNResult eval(final GraphEvaluationContext ctx, NNExecutionContext nncontext) {
-    NNLayer innerLayer = getLayer();
-    if (1 == this.inputNodes.length) {
-      DAGNode inputNode = this.inputNodes[0];
-      final NNResult in = null == inputNode ? null : inputNode.get(nncontext, ctx);
-      final NNResult output = innerLayer.eval(nncontext, in);
-      return output;
-    }
-    else {
-      final NNResult[] in = Arrays.stream(this.inputNodes).map(x -> x == null ? null : x.get(nncontext, ctx)).toArray(i -> new NNResult[i]);
-      final NNResult output = innerLayer.eval(nncontext, in);
-      return output;
-    }
-  }
-  
-  @Override
-  public NNLayer getLayer() {
-    return layer;
-  }
-  
-  public void setLayer(NNLayer layer) {
-    this.dagNetwork.layersById.put(layer.getId(), layer);
-    this.layer = layer;
-    this.dagNetwork.assertConsistent();
   }
   
   /**
@@ -107,7 +76,41 @@ final class InnerNode extends LazyResult {
    * @param nextHead the next head
    * @return the dag node
    */
-  public DAGNode add(NNLayer nextHead) {
+  public DAGNode add(final NNLayer nextHead) {
     return dagNetwork.add(nextHead, InnerNode.this);
+  }
+  
+  @Override
+  protected NNResult eval(final GraphEvaluationContext ctx, final NNExecutionContext nncontext) {
+    final NNLayer innerLayer = getLayer();
+    if (1 == inputNodes.length) {
+      final DAGNode inputNode = inputNodes[0];
+      final NNResult in = null == inputNode ? null : inputNode.get(nncontext, ctx);
+      final NNResult output = innerLayer.eval(nncontext, in);
+      return output;
+    }
+    else {
+      final NNResult[] in = Arrays.stream(inputNodes).map(x -> x == null ? null : x.get(nncontext, ctx)).toArray(i -> new NNResult[i]);
+      final NNResult output = innerLayer.eval(nncontext, in);
+      return output;
+    }
+  }
+  
+  @Override
+  public DAGNode[] getInputs() {
+    return inputNodes;
+  }
+  
+  @SuppressWarnings("unchecked")
+  @Override
+  public <T extends NNLayer> T getLayer() {
+    return (T) layer;
+  }
+  
+  @Override
+  public void setLayer(final NNLayer layer) {
+    dagNetwork.layersById.put(layer.getId(), layer);
+    this.layer = layer;
+    dagNetwork.assertConsistent();
   }
 }

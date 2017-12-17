@@ -49,19 +49,24 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
    * @param mode      the mode
    * @param precision the precision
    */
-  public ActivationLayerTest(ActivationLayer.Mode mode, Precision precision) {
+  public ActivationLayerTest(final ActivationLayer.Mode mode, final Precision precision) {
     this.mode = mode;
     this.precision = precision;
   }
   
   @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new ActivationLayer(mode).setPrecision(precision);
+  public SingleDerivativeTester getDerivativeTester() {
+    return new SingleDerivativeTester(1e-2, 1e-4);
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{{1, 1, 1}};
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new ActivationLayer(mode).setPrecision(precision);
   }
   
   @Override
@@ -72,29 +77,24 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public SingleDerivativeTester getDerivativeTester() {
-    return new SingleDerivativeTester(1e-2, 1e-4);
-  }
-  
-  @Override
-  public void test(NotebookOutput log) {
+  public void test(final NotebookOutput log) {
     super.test(log);
-    
+
     log.h3("Function Plots");
-    NNLayer layer = getLayer(new int[][]{{1,1,1}});
-    List<double[]> plotData = IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0).mapToObj(x -> {
-      SimpleEval eval = SimpleEval.run(layer, new Tensor(new double[]{x}, 1, 1, 1));
+    final NNLayer layer = getLayer(new int[][]{{1, 1, 1}});
+    final List<double[]> plotData = IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0).mapToObj(x -> {
+      final SimpleEval eval = SimpleEval.run(layer, new Tensor(new double[]{x}, 1, 1, 1));
       return new double[]{x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};
     }).collect(Collectors.toList());
-    
+  
     log.code(() -> {
       return ActivationLayerTestBase.plot("Value Plot", plotData, x -> new double[]{x[0], x[1]});
     });
-    
+  
     log.code(() -> {
       return ActivationLayerTestBase.plot("Derivative Plot", plotData, x -> new double[]{x[0], x[2]});
     });
-    
+  
   }
   
   /**
@@ -107,7 +107,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
     public ReLu_Double() {
       super(ActivationLayer.Mode.RELU, Precision.Double);
     }
-    
+  
     @Override
     public NNLayer getReferenceLayer() {
       return new ReLuActivationLayer();
@@ -124,7 +124,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
     public ReLu_Float() {
       super(ActivationLayer.Mode.RELU, Precision.Float);
     }
-    
+  
     @Override
     public NNLayer getReferenceLayer() {
       return new ReLuActivationLayer();
@@ -141,7 +141,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
     public Sigmoid_Double() {
       super(ActivationLayer.Mode.SIGMOID, Precision.Double);
     }
-    
+  
     @Override
     public NNLayer getReferenceLayer() {
       return new SigmoidActivationLayer().setBalanced(false);
@@ -158,7 +158,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
     public Sigmoid_Float() {
       super(ActivationLayer.Mode.SIGMOID, Precision.Float);
     }
-    
+  
     @Override
     public NNLayer getReferenceLayer() {
       return new SigmoidActivationLayer().setBalanced(false);

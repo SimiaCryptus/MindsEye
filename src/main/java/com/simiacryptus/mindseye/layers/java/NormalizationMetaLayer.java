@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,19 +35,10 @@ public class NormalizationMetaLayer extends PipelineNetwork {
   
   /**
    * Instantiates a new Normalization meta layer.
-   *
-   * @param json the json
-   */
-  protected NormalizationMetaLayer(JsonObject json) {
-    super(json);
-  }
-  
-  /**
-   * Instantiates a new Normalization meta layer.
    */
   public NormalizationMetaLayer() {
     super(1);
-    DAGNode input = getInput(0);
+    getInput(0);
     add(new SqActivationLayer());
     add(new AvgReducerLayer());
     add(new AvgMetaLayer());
@@ -57,12 +47,21 @@ public class NormalizationMetaLayer extends PipelineNetwork {
   }
   
   /**
+   * Instantiates a new Normalization meta layer.
+   *
+   * @param json the json
+   */
+  protected NormalizationMetaLayer(final JsonObject json) {
+    super(json);
+  }
+  
+  /**
    * From json normalization meta layer.
    *
    * @param json the json
    * @return the normalization meta layer
    */
-  public static NormalizationMetaLayer fromJson(JsonObject json) {
+  public static NormalizationMetaLayer fromJson(final JsonObject json) {
     return new NormalizationMetaLayer(json);
   }
   

@@ -52,13 +52,13 @@ public class AutoencodingProblem implements Problem {
   private static int modelNo = 0;
   
   private final int batchSize = 10000;
+  private final ImageProblemData data;
+  private final double dropout;
+  private final int features;
   private final FwdNetworkFactory fwdFactory;
+  private final List<StepRecord> history = new ArrayList<>();
   private final OptimizationStrategy optimizer;
   private final RevNetworkFactory revFactory;
-  private final List<StepRecord> history = new ArrayList<>();
-  private final ImageProblemData data;
-  private final int features;
-  private final double dropout;
   private int timeoutMinutes = 1;
   
   /**
@@ -71,7 +71,7 @@ public class AutoencodingProblem implements Problem {
    * @param features   the features
    * @param dropout    the dropout
    */
-  public AutoencodingProblem(FwdNetworkFactory fwdFactory, OptimizationStrategy optimizer, RevNetworkFactory revFactory, ImageProblemData data, int features, double dropout) {
+  public AutoencodingProblem(final FwdNetworkFactory fwdFactory, final OptimizationStrategy optimizer, final RevNetworkFactory revFactory, final ImageProblemData data, final int features, final double dropout) {
     this.fwdFactory = fwdFactory;
     this.optimizer = optimizer;
     this.revFactory = revFactory;
@@ -80,156 +80,9 @@ public class AutoencodingProblem implements Problem {
     this.dropout = dropout;
   }
   
-  public AutoencodingProblem run(NotebookOutput log) {
-    
-    DAGNetwork fwdNetwork = fwdFactory.imageToVector(log, features);
-    DAGNetwork revNetwork = revFactory.vectorToImage(log, features);
-    
-    PipelineNetwork echoNetwork = new PipelineNetwork(1);
-    echoNetwork.add(fwdNetwork);
-    echoNetwork.add(revNetwork);
-    
-    PipelineNetwork supervisedNetwork = new PipelineNetwork(1);
-    supervisedNetwork.add(fwdNetwork);
-    DropoutNoiseLayer dropoutNoiseLayer = new DropoutNoiseLayer().setValue(dropout);
-    supervisedNetwork.add(dropoutNoiseLayer);
-    supervisedNetwork.add(revNetwork);
-    supervisedNetwork.add(new MeanSqLossLayer(),
-      supervisedNetwork.getHead(),
-      supervisedNetwork.getInput(0));
-    
-    log.h3("Network Diagrams");
-    log.code(() -> {
-      return Graphviz.fromGraph(TestUtil.toGraph(fwdNetwork))
-        .height(400).width(600).render(Format.PNG).toImage();
-    });
-    log.code(() -> {
-      return Graphviz.fromGraph(TestUtil.toGraph(revNetwork))
-        .height(400).width(600).render(Format.PNG).toImage();
-    });
-    log.code(() -> {
-      return Graphviz.fromGraph(TestUtil.toGraph(supervisedNetwork))
-        .height(400).width(600).render(Format.PNG).toImage();
-    });
-    
-    TrainingMonitor monitor = new TrainingMonitor() {
-      TrainingMonitor inner = TestUtil.getMonitor(history);
-      
-      @Override
-      public void log(String msg) {
-        inner.log(msg);
-      }
-      
-      @Override
-      public void onStepComplete(Step currentPoint) {
-        dropoutNoiseLayer.shuffle();
-        inner.onStepComplete(currentPoint);
-      }
-    };
-    
-    Tensor[][] trainingData = getTrainingData(log);
-    
-    //MonitoredObject monitoringRoot = new MonitoredObject();
-    //TestUtil.addMonitoring(supervisedNetwork, monitoringRoot);
-    
-    log.h3("Training");
-    TestUtil.instrumentPerformance(log, supervisedNetwork);
-    ValidatingTrainer trainer = optimizer.train(log,
-      new SampledArrayTrainable(trainingData, supervisedNetwork, trainingData.length / 2, batchSize),
-      new ArrayTrainable(trainingData, supervisedNetwork, batchSize), monitor);
-    log.code(() -> {
-      trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(10000).run();
-    });
-    if (!history.isEmpty()) {
-      log.code(() -> {
-        return TestUtil.plot(history);
-      });
-      log.code(() -> {
-        return TestUtil.plotTime(history);
-      });
-    }
-    TestUtil.extractPerformance(log, supervisedNetwork);
-    
-    {
-      String modelName = "encoder_model" + modelNo++ + ".json";
-      log.p("Saved model as " + log.file(fwdNetwork.getJson().toString(), modelName, modelName));
-    }
-    
-    String modelName = "decoder_model" + modelNo++ + ".json";
-    log.p("Saved model as " + log.file(revNetwork.getJson().toString(), modelName, modelName));
-
-//    log.h3("Metrics");
-//    log.code(() -> {
-//      return TestUtil.toFormattedJson(monitoringRoot.getMetrics());
-//    });
-    
-    log.h3("Validation");
-    
-    log.p("Here are some re-encoded examples:");
-    log.code(() -> {
-      TableOutput table = new TableOutput();
-      data.validationData().map(labeledObject -> {
-        return toRow(log, labeledObject, GpuController.call(ctx -> echoNetwork.eval(ctx, labeledObject.data)).getData().get(0).getData());
-      }).filter(x -> null != x).limit(10).forEach(table::putRow);
-      return table;
-    });
-    
-    log.p("Some rendered unit vectors:");
-    for (int featureNumber = 0; featureNumber < features; featureNumber++) {
-      try {
-        Tensor input = new Tensor(features).set(featureNumber, 1);
-        Tensor tensor = GpuController.call(ctx -> revNetwork.eval(ctx, input)).getData().get(0);
-        log.out(log.image(tensor.toImage(), ""));
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-    return this;
-  }
-  
-  /**
-   * To row linked hash map.
-   *
-   * @param log              the log
-   * @param labeledObject    the labeled object
-   * @param predictionSignal the prediction signal
-   * @return the linked hash map
-   */
-  public LinkedHashMap<String, Object> toRow(NotebookOutput log, LabeledObject<Tensor> labeledObject, double[] predictionSignal) {
-    try {
-      LinkedHashMap<String, Object> row = new LinkedHashMap<String, Object>();
-      row.put("Image", log.image(labeledObject.data.toImage(), labeledObject.label));
-      row.put("Echo", log.image(new Tensor(predictionSignal, labeledObject.data.getDimensions()).toImage(), labeledObject.label));
-      return row;
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-  
-  /**
-   * Parse int.
-   *
-   * @param label the label
-   * @return the int
-   */
-  public int parse(String label) {
-    return Integer.parseInt(label.replaceAll("[^\\d]", ""));
-  }
-  
-  /**
-   * Get training data tensor [ ] [ ].
-   *
-   * @param log the log
-   * @return the tensor [ ] [ ]
-   */
-  public Tensor[][] getTrainingData(NotebookOutput log) {
-    try {
-      return data.trainingData().map(labeledObject -> {
-        return new Tensor[]{labeledObject.data};
-      }).toArray(i -> new Tensor[i][]);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  @Override
+  public List<StepRecord> getHistory() {
+    return history;
   }
   
   /**
@@ -247,12 +100,161 @@ public class AutoencodingProblem implements Problem {
    * @param timeoutMinutes the timeout minutes
    * @return the timeout minutes
    */
-  public AutoencodingProblem setTimeoutMinutes(int timeoutMinutes) {
+  public AutoencodingProblem setTimeoutMinutes(final int timeoutMinutes) {
     this.timeoutMinutes = timeoutMinutes;
     return this;
   }
   
-  public List<StepRecord> getHistory() {
-    return history;
+  /**
+   * Get training data tensor [ ] [ ].
+   *
+   * @param log the log
+   * @return the tensor [ ] [ ]
+   */
+  public Tensor[][] getTrainingData(final NotebookOutput log) {
+    try {
+      return data.trainingData().map(labeledObject -> {
+        return new Tensor[]{labeledObject.data};
+      }).toArray(i -> new Tensor[i][]);
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  /**
+   * Parse int.
+   *
+   * @param label the label
+   * @return the int
+   */
+  public int parse(final String label) {
+    return Integer.parseInt(label.replaceAll("[^\\d]", ""));
+  }
+  
+  @Override
+  public AutoencodingProblem run(final NotebookOutput log) {
+    
+    final DAGNetwork fwdNetwork = fwdFactory.imageToVector(log, features);
+    final DAGNetwork revNetwork = revFactory.vectorToImage(log, features);
+    
+    final PipelineNetwork echoNetwork = new PipelineNetwork(1);
+    echoNetwork.add(fwdNetwork);
+    echoNetwork.add(revNetwork);
+    
+    final PipelineNetwork supervisedNetwork = new PipelineNetwork(1);
+    supervisedNetwork.add(fwdNetwork);
+    final DropoutNoiseLayer dropoutNoiseLayer = new DropoutNoiseLayer().setValue(dropout);
+    supervisedNetwork.add(dropoutNoiseLayer);
+    supervisedNetwork.add(revNetwork);
+    supervisedNetwork.add(new MeanSqLossLayer(),
+      supervisedNetwork.getHead(),
+      supervisedNetwork.getInput(0));
+
+    log.h3("Network Diagrams");
+    log.code(() -> {
+      return Graphviz.fromGraph(TestUtil.toGraph(fwdNetwork))
+        .height(400).width(600).render(Format.PNG).toImage();
+    });
+    log.code(() -> {
+      return Graphviz.fromGraph(TestUtil.toGraph(revNetwork))
+        .height(400).width(600).render(Format.PNG).toImage();
+    });
+    log.code(() -> {
+      return Graphviz.fromGraph(TestUtil.toGraph(supervisedNetwork))
+        .height(400).width(600).render(Format.PNG).toImage();
+    });
+    
+    final TrainingMonitor monitor = new TrainingMonitor() {
+      TrainingMonitor inner = TestUtil.getMonitor(history);
+
+      @Override
+      public void log(final String msg) {
+        inner.log(msg);
+      }
+
+      @Override
+      public void onStepComplete(final Step currentPoint) {
+        dropoutNoiseLayer.shuffle();
+        inner.onStepComplete(currentPoint);
+      }
+    };
+    
+    final Tensor[][] trainingData = getTrainingData(log);
+
+    //MonitoredObject monitoringRoot = new MonitoredObject();
+    //TestUtil.addMonitoring(supervisedNetwork, monitoringRoot);
+
+    log.h3("Training");
+    TestUtil.instrumentPerformance(log, supervisedNetwork);
+    final ValidatingTrainer trainer = optimizer.train(log,
+      new SampledArrayTrainable(trainingData, supervisedNetwork, trainingData.length / 2, batchSize),
+      new ArrayTrainable(trainingData, supervisedNetwork, batchSize), monitor);
+    log.code(() -> {
+      trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(10000).run();
+    });
+    if (!history.isEmpty()) {
+      log.code(() -> {
+        return TestUtil.plot(history);
+      });
+      log.code(() -> {
+        return TestUtil.plotTime(history);
+      });
+    }
+    TestUtil.extractPerformance(log, supervisedNetwork);
+
+    {
+      final String modelName = "encoder_model" + AutoencodingProblem.modelNo++ + ".json";
+      log.p("Saved model as " + log.file(fwdNetwork.getJson().toString(), modelName, modelName));
+    }
+    
+    final String modelName = "decoder_model" + AutoencodingProblem.modelNo++ + ".json";
+    log.p("Saved model as " + log.file(revNetwork.getJson().toString(), modelName, modelName));
+
+//    log.h3("Metrics");
+//    log.code(() -> {
+//      return TestUtil.toFormattedJson(monitoringRoot.getMetrics());
+//    });
+
+    log.h3("Validation");
+    
+    log.p("Here are some re-encoded examples:");
+    log.code(() -> {
+      final TableOutput table = new TableOutput();
+      data.validationData().map(labeledObject -> {
+        return toRow(log, labeledObject, GpuController.call(ctx -> echoNetwork.eval(ctx, labeledObject.data)).getData().get(0).getData());
+      }).filter(x -> null != x).limit(10).forEach(table::putRow);
+      return table;
+    });
+    
+    log.p("Some rendered unit vectors:");
+    for (int featureNumber = 0; featureNumber < features; featureNumber++) {
+      try {
+        final Tensor input = new Tensor(features).set(featureNumber, 1);
+        final Tensor tensor = GpuController.call(ctx -> revNetwork.eval(ctx, input)).getData().get(0);
+        log.out(log.image(tensor.toImage(), ""));
+      } catch (final IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return this;
+  }
+  
+  /**
+   * To row linked hash map.
+   *
+   * @param log              the log
+   * @param labeledObject    the labeled object
+   * @param predictionSignal the prediction signal
+   * @return the linked hash map
+   */
+  public LinkedHashMap<String, Object> toRow(final NotebookOutput log, final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
+    try {
+      final LinkedHashMap<String, Object> row = new LinkedHashMap<>();
+      row.put("Image", log.image(labeledObject.data.toImage(), labeledObject.label));
+      row.put("Echo", log.image(new Tensor(predictionSignal, labeledObject.data.getDimensions()).toImage(), labeledObject.label));
+      return row;
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

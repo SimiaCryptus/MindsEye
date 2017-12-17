@@ -36,7 +36,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
    *
    * @param json the json
    */
-  protected LoggingWrapperLayer(JsonObject json) {
+  protected LoggingWrapperLayer(final JsonObject json) {
     super(json);
   }
   
@@ -55,18 +55,18 @@ public final class LoggingWrapperLayer extends WrapperLayer {
    * @param json the json
    * @return the monitoring wrapper layer
    */
-  public static LoggingWrapperLayer fromJson(JsonObject json) {
+  public static LoggingWrapperLayer fromJson(final JsonObject json) {
     return new LoggingWrapperLayer(json);
   }
   
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    NNResult[] wrappedInput = IntStream.range(0, inObj.length).mapToObj(i -> {
-      NNResult result = inObj[i];
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final NNResult[] wrappedInput = IntStream.range(0, inObj.length).mapToObj(i -> {
+      final NNResult result = inObj[i];
       return new NNResult(result.getData()) {
         @Override
-        public void accumulate(DeltaSet buffer, TensorList data) {
-          String formatted = data.stream().map(x -> x.prettyPrint())
+        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+          final String formatted = data.stream().map(x -> x.prettyPrint())
             .reduce((a, b) -> a + "\n" + b).get();
           System.out.println(String.format("Feedback Output %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
           result.accumulate(buffer, data);
@@ -79,23 +79,23 @@ public final class LoggingWrapperLayer extends WrapperLayer {
       };
     }).toArray(i -> new NNResult[i]);
     for (int i = 0; i < inObj.length; i++) {
-      TensorList tensorList = inObj[i].getData();
-      String formatted = tensorList.stream().map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).get();
+      final TensorList tensorList = inObj[i].getData();
+      final String formatted = tensorList.stream().map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).get();
       System.out.println(String.format("Input %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
     }
-    final NNResult output = this.getInner().eval(nncontext, wrappedInput);
+    final NNResult output = getInner().eval(nncontext, wrappedInput);
     
     {
-      TensorList tensorList = output.getData();
-      String formatted = tensorList.stream().map(x -> x.prettyPrint())
+      final TensorList tensorList = output.getData();
+      final String formatted = tensorList.stream().map(x -> x.prettyPrint())
         .reduce((a, b) -> a + "\n" + b).get();
       System.out.println(String.format("Output for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
     }
     
     return new NNResult(output.getData()) {
       @Override
-      public void accumulate(DeltaSet buffer, TensorList data) {
-        String formatted = data.stream().map(x -> x.prettyPrint())
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+        final String formatted = data.stream().map(x -> x.prettyPrint())
           .reduce((a, b) -> a + "\n" + b).get();
         System.out.println(String.format("Feedback Input for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
         output.accumulate(buffer, data);

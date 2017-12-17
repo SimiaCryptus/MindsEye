@@ -32,12 +32,7 @@ public class SumMetaLayerTest extends MetaLayerTestBase {
    */
   public SumMetaLayerTest() {
     super();
-    this.validateBatchExecution = false;
-  }
-  
-  @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new SumMetaLayer().setMinBatches(0);
+    validateBatchExecution = false;
   }
   
   @Override
@@ -45,6 +40,11 @@ public class SumMetaLayerTest extends MetaLayerTestBase {
     return new int[][]{
       {3}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new SumMetaLayer().setMinBatches(0);
   }
   
   @Override

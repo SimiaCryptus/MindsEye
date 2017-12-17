@@ -28,14 +28,14 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 public class ImgReshapeLayerTest extends LayerTestBase {
   
   @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new ImgReshapeLayer(2, 2, false);
-  }
-  
-  @Override
   public int[][] getInputDims() {
     return new int[][]{
       {2, 2, 3}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new ImgReshapeLayer(2, 2, false);
   }
 }

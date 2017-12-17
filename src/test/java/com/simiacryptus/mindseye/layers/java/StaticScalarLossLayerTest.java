@@ -31,12 +31,7 @@ public class StaticScalarLossLayerTest extends LayerTestBase {
    * Instantiates a new Static scalar loss layer test.
    */
   public StaticScalarLossLayerTest() {
-    this.validateBatchExecution = false;
-  }
-  
-  @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new StaticScalarLossLayer();
+    validateBatchExecution = false;
   }
   
   @Override
@@ -44,5 +39,10 @@ public class StaticScalarLossLayerTest extends LayerTestBase {
     return new int[][]{
       {1}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new StaticScalarLossLayer();
   }
 }

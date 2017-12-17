@@ -32,6 +32,18 @@ import java.util.List;
 public class ProblemRun {
   
   /**
+   * The Color.
+   */
+  public final Color color;
+  /**
+   * The History.
+   */
+  public final List<StepRecord> history;
+  /**
+   * The Name.
+   */
+  public final String name;
+  /**
    * The Type.
    */
   public final PlotType type;
@@ -44,7 +56,7 @@ public class ProblemRun {
    * @param history the history
    * @param type    the type
    */
-  public ProblemRun(String name, Color color, List<StepRecord> history, PlotType type) {
+  public ProblemRun(final String name, final Color color, final List<StepRecord> history, final PlotType type) {
     this.history = history;
     this.name = name;
     this.color = color;
@@ -57,7 +69,7 @@ public class ProblemRun {
    * @param pts the pts
    * @return the plot
    */
-  public Plot plot(double[][] pts) {
+  public Plot plot(final double[][] pts) {
     Plot plot;
     switch (type) {
       case Scatter:
@@ -76,29 +88,16 @@ public class ProblemRun {
   }
   
   /**
-   * The History.
-   */
-  public final List<StepRecord> history;
-  /**
-   * The Name.
-   */
-  public final String name;
-  /**
-   * The Color.
-   */
-  public final Color color;
-  
-  /**
    * The enum Plot type.
    */
   public enum PlotType {
     /**
-     * Scatter plot type.
-     */
-    Scatter,
-    /**
      * Line plot type.
      */
-    Line
+    Line,
+    /**
+     * Scatter plot type.
+     */
+    Scatter
   }
 }

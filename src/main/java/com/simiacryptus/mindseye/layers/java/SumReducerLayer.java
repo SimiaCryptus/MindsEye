@@ -31,19 +31,11 @@ import java.util.stream.IntStream;
 /**
  * The type Sum reducer layer.
  */
+@SuppressWarnings("serial")
 public class SumReducerLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SumReducerLayer.class);
-  
-  /**
-   * Instantiates a new Sum reducer layer.
-   *
-   * @param id the id
-   */
-  protected SumReducerLayer(JsonObject id) {
-    super(id);
-  }
   
   /**
    * Instantiates a new Sum reducer layer.
@@ -52,21 +44,26 @@ public class SumReducerLayer extends NNLayer {
   }
   
   /**
+   * Instantiates a new Sum reducer layer.
+   *
+   * @param id the id
+   */
+  protected SumReducerLayer(final JsonObject id) {
+    super(id);
+  }
+  
+  /**
    * From json sum reducer layer.
    *
    * @param json the json
    * @return the sum reducer layer
    */
-  public static SumReducerLayer fromJson(JsonObject json) {
+  public static SumReducerLayer fromJson(final JsonObject json) {
     return new SumReducerLayer(json);
   }
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     return new NNResult(IntStream.range(0, inObj[0].getData().length()).parallel().mapToDouble(dataIndex -> {
       double sum = 0;
       for (final NNResult element : inObj) {
@@ -78,7 +75,7 @@ public class SumReducerLayer extends NNLayer {
       return sum;
     }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         for (final NNResult in_l : inObj) {
           if (in_l.isAlive()) {
             final Tensor[] data1 = IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {
@@ -104,6 +101,11 @@ public class SumReducerLayer extends NNLayer {
       }
       
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

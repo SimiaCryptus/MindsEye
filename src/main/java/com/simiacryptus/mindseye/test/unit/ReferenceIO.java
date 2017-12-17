@@ -23,7 +23,6 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
-import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
 
@@ -33,7 +32,7 @@ import java.util.HashMap;
 /**
  * The type Reference io.
  */
-public class ReferenceIO implements ComponentTest {
+public class ReferenceIO implements ComponentTest<ToleranceStatistics> {
   /**
    * The Reference io.
    */
@@ -44,18 +43,18 @@ public class ReferenceIO implements ComponentTest {
    *
    * @param referenceIO the reference io
    */
-  public ReferenceIO(HashMap<Tensor[], Tensor> referenceIO) {
+  public ReferenceIO(final HashMap<Tensor[], Tensor> referenceIO) {
     this.referenceIO = referenceIO;
   }
   
   @Override
-  public ToleranceStatistics test(NotebookOutput log, NNLayer layer, Tensor... inputPrototype) {
+  public ToleranceStatistics test(final NotebookOutput log, final NNLayer layer, final Tensor... inputPrototype) {
     if (!referenceIO.isEmpty()) {
       log.h3("Reference Input/Output Pairs");
       referenceIO.forEach((input, output) -> {
         log.code(() -> {
-          SimpleEval eval = SimpleEval.run(layer, input);
-          DoubleStatistics error = new DoubleStatistics().accept(eval.getOutput().add(output.scale(-1)).getData());
+          final SimpleEval eval = SimpleEval.run(layer, input);
+          final DoubleStatistics error = new DoubleStatistics().accept(eval.getOutput().add(output.scale(-1)).getData());
           return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\nError: %s\n--------------------\nDerivative: \n%s",
             Arrays.stream(input).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
             eval.getOutput().prettyPrint(), error,
@@ -66,7 +65,7 @@ public class ReferenceIO implements ComponentTest {
     else {
       log.h3("Example Input/Output Pair");
       log.code(() -> {
-        SimpleEval eval = SimpleEval.run(layer, inputPrototype);
+        final SimpleEval eval = SimpleEval.run(layer, inputPrototype);
         return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
           Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
           eval.getOutput().prettyPrint(),

@@ -45,12 +45,11 @@ import java.util.stream.IntStream;
  */
 public class DeltaHoldoverArrayTrainable extends GpuTrainable {
   
-  private static final int LOW_MEM_USE = 4 * 1024 * 1024 * 1024;
+  private final double holdoverFraction = 0.5;
   private final List<? extends Supplier<Tensor[]>> trainingData;
   private final WrappingLayer wrappingLayer;
-  private final double holdoverFraction = 0.5;
-  private int trainingSize;
   private long hash = Util.R.get().nextLong();
+  private int trainingSize;
   
   /**
    * Instantiates a new Delta holdover array trainable.
@@ -59,23 +58,7 @@ public class DeltaHoldoverArrayTrainable extends GpuTrainable {
    * @param network      the network
    * @param trainingSize the training size
    */
-  public DeltaHoldoverArrayTrainable(Tensor[][] trainingData, NNLayer network, int trainingSize) {
-    super(new WrappingLayer(network));
-    this.wrappingLayer = new WrappingLayer(network);
-    if (0 == trainingData.length) throw new IllegalArgumentException();
-    this.trainingData = Arrays.stream(trainingData).map(obj -> new WeakCachedSupplier<Tensor[]>(() -> obj)).collect(Collectors.toList());
-    this.trainingSize = trainingSize;
-    reseed(System.nanoTime());
-  }
-  
-  /**
-   * Instantiates a new Delta holdover array trainable.
-   *
-   * @param trainingData the training data
-   * @param network      the network
-   * @param trainingSize the training size
-   */
-  public DeltaHoldoverArrayTrainable(List<? extends Supplier<Tensor[]>> trainingData, NNLayer network, int trainingSize) {
+  public DeltaHoldoverArrayTrainable(final List<? extends Supplier<Tensor[]>> trainingData, final NNLayer network, final int trainingSize) {
     this(trainingData, network, trainingSize, trainingSize);
   }
   
@@ -87,19 +70,29 @@ public class DeltaHoldoverArrayTrainable extends GpuTrainable {
    * @param trainingSize the training size
    * @param batchSize    the batch size
    */
-  public DeltaHoldoverArrayTrainable(List<? extends Supplier<Tensor[]>> trainingData, NNLayer network, int trainingSize, int batchSize) {
+  public DeltaHoldoverArrayTrainable(final List<? extends Supplier<Tensor[]>> trainingData, final NNLayer network, final int trainingSize, final int batchSize) {
     super(new WrappingLayer(network));
-    this.wrappingLayer = (WrappingLayer) network;
+    wrappingLayer = (WrappingLayer) network;
     if (0 == trainingData.size()) throw new IllegalArgumentException();
     this.trainingData = trainingData;
     this.trainingSize = trainingSize;
     reseed(System.nanoTime());
   }
   
-  @Override
-  public boolean reseed(long seed) {
-    setHash(Util.R.get().nextLong());
-    return true;
+  /**
+   * Instantiates a new Delta holdover array trainable.
+   *
+   * @param trainingData the training data
+   * @param network      the network
+   * @param trainingSize the training size
+   */
+  public DeltaHoldoverArrayTrainable(final Tensor[][] trainingData, final NNLayer network, final int trainingSize) {
+    super(new WrappingLayer(network));
+    wrappingLayer = new WrappingLayer(network);
+    if (0 == trainingData.length) throw new IllegalArgumentException();
+    this.trainingData = Arrays.stream(trainingData).map(obj -> new WeakCachedSupplier<>(() -> obj)).collect(Collectors.toList());
+    this.trainingSize = trainingSize;
+    reseed(System.nanoTime());
   }
   
   /**
@@ -108,7 +101,7 @@ public class DeltaHoldoverArrayTrainable extends GpuTrainable {
    * @return the training size
    */
   public int getTrainingSize() {
-    return this.trainingSize;
+    return trainingSize;
   }
   
   /**
@@ -121,12 +114,6 @@ public class DeltaHoldoverArrayTrainable extends GpuTrainable {
     this.trainingSize = trainingSize;
     refreshSampledData();
     return this;
-  }
-  
-  private void setHash(long newValue) {
-    if (this.hash == newValue) return;
-    this.hash = newValue;
-    refreshSampledData();
   }
   
   /**
@@ -142,9 +129,9 @@ public class DeltaHoldoverArrayTrainable extends GpuTrainable {
       if (wrappingLayer.firstResult != null && wrappingLayer.lastResult != null && wrappingLayer.firstResult != wrappingLayer.lastResult) {
         holdover = IntStream.range(0, data.size()).mapToObj(x -> x)
           .sorted(Comparator.comparingDouble(x -> {
-            double currentData = Arrays.stream(wrappingLayer.firstResult.getData().get(x).getData()).sum();
-            double latestData = Arrays.stream(wrappingLayer.lastResult.getData().get(x).getData()).sum();
-            return (latestData - currentData);
+            final double currentData = Arrays.stream(wrappingLayer.firstResult.getData().get(x).getData()).sum();
+            final double latestData = Arrays.stream(wrappingLayer.lastResult.getData().get(x).getData()).sum();
+            return latestData - currentData;
           }))
           .map(i -> data.get(i))
           .limit((long) (getTrainingSize() * holdoverFraction))
@@ -154,21 +141,38 @@ public class DeltaHoldoverArrayTrainable extends GpuTrainable {
       else {
         holdover = new ArrayList<>();
       }
-      List<Tensor[]> extra = trainingData.stream().filter(x -> x != null)
+      final List<Tensor[]> extra = trainingData.stream().filter(x -> x != null)
         .map(x -> x.get())
         .filter(x -> x != null)
         .filter(x -> !holdover.contains(x))
-        .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
+        .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ hash)) //
         .limit(getTrainingSize() - holdover.size()) //
         .collect(Collectors.toList());
-      ArrayList<Tensor[]> concat = new ArrayList<>();
+      final ArrayList<Tensor[]> concat = new ArrayList<>();
       concat.addAll(holdover);
       concat.addAll(extra);
       setData(concat);
     }
   }
   
+  @Override
+  public boolean reseed(final long seed) {
+    setHash(Util.R.get().nextLong());
+    return true;
+  }
+  
+  private void setHash(final long newValue) {
+    if (hash == newValue) return;
+    hash = newValue;
+    refreshSampledData();
+  }
+  
+  @SuppressWarnings("serial")
   private static class WrappingLayer extends NNLayer {
+    /**
+     * The First result.
+     */
+    NNResult firstResult;
     /**
      * The Inner.
      */
@@ -177,25 +181,23 @@ public class DeltaHoldoverArrayTrainable extends GpuTrainable {
      * The Last result.
      */
     NNResult lastResult;
-    /**
-     * The First result.
-     */
-    NNResult firstResult;
-  
+    
     /**
      * Instantiates a new Wrapping layer.
      *
      * @param network the network
      */
-    public WrappingLayer(NNLayer network) {
-      this.inner = network;
+    public WrappingLayer(final NNLayer network) {
+      inner = network;
     }
     
     @Override
-    public NNResult eval(NNExecutionContext nncontext, NNResult[] array) {
-      NNResult result = inner.eval(nncontext, array);
-      this.lastResult = result;
-      if (this.firstResult == null) this.firstResult = result;
+    public NNResult eval(final NNExecutionContext nncontext, final NNResult... array) {
+      final NNResult result = inner.eval(nncontext, array);
+      lastResult = result;
+      if (firstResult == null) {
+        firstResult = result;
+      }
       return result;
     }
     

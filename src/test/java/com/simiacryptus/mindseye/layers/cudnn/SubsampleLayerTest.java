@@ -36,13 +36,8 @@ public abstract class SubsampleLayerTest extends CudnnLayerTestBase {
    *
    * @param precision the precision
    */
-  public SubsampleLayerTest(Precision precision) {
+  public SubsampleLayerTest(final Precision precision) {
     this.precision = precision;
-  }
-  
-  @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new SubsampleLayer();
   }
   
   @Override
@@ -50,6 +45,11 @@ public abstract class SubsampleLayerTest extends CudnnLayerTestBase {
     return new int[][]{
       {2, 2, 1}, {2, 2, 1}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new SubsampleLayer();
   }
   
   /**

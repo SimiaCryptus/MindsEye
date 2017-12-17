@@ -29,13 +29,13 @@ import java.util.stream.Stream;
  */
 public abstract class FindFeatureSpace {
   /**
-   * The Log.
-   */
-  protected final NotebookOutput log;
-  /**
    * The Input bands.
    */
   protected final int inputBands;
+  /**
+   * The Log.
+   */
+  protected final NotebookOutput log;
   /**
    * The Averages.
    */
@@ -51,7 +51,7 @@ public abstract class FindFeatureSpace {
    * @param log        the log
    * @param inputBands the input bands
    */
-  public FindFeatureSpace(NotebookOutput log, int inputBands) {
+  public FindFeatureSpace(final NotebookOutput log, final int inputBands) {
     this.log = log;
     this.inputBands = inputBands;
   }
@@ -64,6 +64,13 @@ public abstract class FindFeatureSpace {
   public double[] getAverages() {
     return averages;
   }
+  
+  /**
+   * The Features.
+   *
+   * @return the features
+   */
+  public abstract Stream<Tensor[]> getFeatures();
   
   /**
    * Get vectors tensor [ ].
@@ -80,11 +87,4 @@ public abstract class FindFeatureSpace {
    * @return the find feature space
    */
   public abstract FindFeatureSpace invoke();
-  
-  /**
-   * The Features.
-   *
-   * @return the features
-   */
-  public abstract Stream<Tensor[]> getFeatures();
 }

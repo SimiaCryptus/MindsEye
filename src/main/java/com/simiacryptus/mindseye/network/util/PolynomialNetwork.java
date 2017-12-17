@@ -39,6 +39,7 @@ import java.util.UUID;
 /**
  * The type Polynomial network.
  */
+@SuppressWarnings("serial")
 public class PolynomialNetwork extends DAGNetwork {
   
   /**
@@ -58,31 +59,13 @@ public class PolynomialNetwork extends DAGNetwork {
    */
   protected NNLayer alphaBias = null;
   /**
-   * The Head.
-   */
-  protected DAGNode head;
-  /**
    * The Corrections.
    */
   protected List<Correcton> corrections = new ArrayList<>();
-  
   /**
-   * Instantiates a new Polynomial network.
-   *
-   * @param json the json
+   * The Head.
    */
-  protected PolynomialNetwork(JsonObject json) {
-    super(json);
-    head = nodesById.get(UUID.fromString(json.get("head").getAsString()));
-    if (json.get("alpha") != null) alpha = layersById.get(UUID.fromString(json.get("alpha").getAsString()));
-    if (json.get("alphaBias") != null) alphaBias = layersById.get(UUID.fromString(json.get("alphaBias").getAsString()));
-    inputDims = toIntArray(json.getAsJsonArray("inputDims"));
-    outputDims = toIntArray(json.getAsJsonArray("outputDims"));
-    json.getAsJsonArray("corrections").forEach(item -> {
-      corrections.add(new Correcton(item.getAsJsonObject()));
-    });
-  }
-  
+  protected DAGNode head;
   
   /**
    * Instantiates a new Polynomial network.
@@ -90,10 +73,32 @@ public class PolynomialNetwork extends DAGNetwork {
    * @param inputDims  the input dims
    * @param outputDims the output dims
    */
-  public PolynomialNetwork(int[] inputDims, int[] outputDims) {
+  public PolynomialNetwork(final int[] inputDims, final int[] outputDims) {
     super(1);
     this.inputDims = inputDims;
     this.outputDims = outputDims;
+  }
+  
+  
+  /**
+   * Instantiates a new Polynomial network.
+   *
+   * @param json the json
+   */
+  protected PolynomialNetwork(final JsonObject json) {
+    super(json);
+    head = nodesById.get(UUID.fromString(json.get("head").getAsString()));
+    if (json.get("alpha") != null) {
+      alpha = layersById.get(UUID.fromString(json.get("alpha").getAsString()));
+    }
+    if (json.get("alphaBias") != null) {
+      alphaBias = layersById.get(UUID.fromString(json.get("alphaBias").getAsString()));
+    }
+    inputDims = PolynomialNetwork.toIntArray(json.getAsJsonArray("inputDims"));
+    outputDims = PolynomialNetwork.toIntArray(json.getAsJsonArray("outputDims"));
+    json.getAsJsonArray("corrections").forEach(item -> {
+      corrections.add(new Correcton(item.getAsJsonObject()));
+    });
   }
   
   /**
@@ -102,20 +107,8 @@ public class PolynomialNetwork extends DAGNetwork {
    * @param json the json
    * @return the polynomial network
    */
-  public static PolynomialNetwork fromJson(JsonObject json) {
+  public static PolynomialNetwork fromJson(final JsonObject json) {
     return new PolynomialNetwork(json);
-  }
-  
-  /**
-   * To json json array.
-   *
-   * @param dims the dims
-   * @return the json array
-   */
-  public static JsonArray toJson(int[] dims) {
-    JsonArray array = new JsonArray();
-    for (int i : dims) array.add(new JsonPrimitive(i));
-    return array;
   }
   
   /**
@@ -124,26 +117,82 @@ public class PolynomialNetwork extends DAGNetwork {
    * @param dims the dims
    * @return the int [ ]
    */
-  public static int[] toIntArray(JsonArray dims) {
-    int[] x = new int[dims.size()];
+  public static int[] toIntArray(final JsonArray dims) {
+    final int[] x = new int[dims.size()];
     int j = 0;
-    for (Iterator<JsonElement> i = dims.iterator(); i.hasNext(); ) {
+    for (final Iterator<JsonElement> i = dims.iterator(); i.hasNext(); ) {
       x[j++] = i.next().getAsInt();
     }
     return x;
   }
   
+  /**
+   * To json json array.
+   *
+   * @param dims the dims
+   * @return the json array
+   */
+  public static JsonArray toJson(final int[] dims) {
+    final JsonArray array = new JsonArray();
+    for (final int i : dims) {
+      array.add(new JsonPrimitive(i));
+    }
+    return array;
+  }
+  
+  /**
+   * Add term.
+   *
+   * @param power the power
+   */
+  public void addTerm(final double power) {
+    corrections.add(new Correcton(power,
+      newBias(outputDims, 1.0),
+      newSynapse(0.0)
+    ));
+  }
+  
+  @Override
+  public synchronized DAGNode getHead() {
+    if (null == head) {
+      synchronized (this) {
+        if (null == head) {
+          if (null == alpha) {
+            alpha = newSynapse(1e-8);
+            alphaBias = newBias(inputDims, 0.0);
+          }
+          reset();
+          final DAGNode input = getInput(0);
+          final ArrayList<DAGNode> terms = new ArrayList<>();
+          terms.add(add(alpha, add(alphaBias, input)));
+          for (final Correcton c : corrections) {
+            terms.add(c.add(input));
+          }
+          head = terms.size() == 1 ? terms.get(0) : add(newProductLayer(), terms.toArray(new DAGNode[]{}));
+        }
+      }
+    }
+    return head;
+  }
+  
+  @Override
   public JsonObject getJson() {
     assertConsistent();
-    DAGNode head = getHead();
-    JsonObject json = super.getJson();
+    final DAGNode head = getHead();
+    final JsonObject json = super.getJson();
     json.addProperty("head", head.getId().toString());
-    if (null != alpha) json.addProperty("alpha", alpha.getId().toString());
-    if (null != alphaBias) json.addProperty("alphaBias", alpha.getId().toString());
-    json.add("inputDims", toJson(inputDims));
-    json.add("outputDims", toJson(outputDims));
-    JsonArray elements = new JsonArray();
-    for (Correcton c : corrections) elements.add(c.getJson());
+    if (null != alpha) {
+      json.addProperty("alpha", alpha.getId().toString());
+    }
+    if (null != alphaBias) {
+      json.addProperty("alphaBias", alpha.getId().toString());
+    }
+    json.add("inputDims", PolynomialNetwork.toJson(inputDims));
+    json.add("outputDims", PolynomialNetwork.toJson(outputDims));
+    final JsonArray elements = new JsonArray();
+    for (final Correcton c : corrections) {
+      elements.add(c.getJson());
+    }
     json.add("corrections", elements);
     assert null != NNLayer.fromJson(json) : "Smoke test deserialization";
     return json;
@@ -156,40 +205,8 @@ public class PolynomialNetwork extends DAGNetwork {
    * @param weight the weight
    * @return the nn layer
    */
-  public NNLayer newBias(int[] dims, double weight) {
+  public NNLayer newBias(final int[] dims, final double weight) {
     return new BiasLayer(dims).setWeights(i -> weight);
-  }
-  
-  /**
-   * New synapse nn layer.
-   *
-   * @param weight the weight
-   * @return the nn layer
-   */
-  public NNLayer newSynapse(double weight) {
-    return new FullyConnectedLayer(inputDims, outputDims).setWeights(() -> weight * (Math.random() - 1));
-  }
-  
-  public synchronized DAGNode getHead() {
-    if (null == head) {
-      synchronized (this) {
-        if (null == head) {
-          if (null == alpha) {
-            this.alpha = newSynapse(1e-8);
-            this.alphaBias = newBias(inputDims, 0.0);
-          }
-          this.reset();
-          DAGNode input = getInput(0);
-          ArrayList<DAGNode> terms = new ArrayList<>();
-          terms.add(add(alpha, add(alphaBias, input)));
-          for (Correcton c : corrections) {
-            terms.add(c.add(input));
-          }
-          head = terms.size() == 1 ? terms.get(0) : add(newProductLayer(), terms.toArray(new DAGNode[]{}));
-        }
-      }
-    }
-    return head;
   }
   
   /**
@@ -198,7 +215,7 @@ public class PolynomialNetwork extends DAGNetwork {
    * @param power the power
    * @return the nn layer
    */
-  public NNLayer newNthPowerLayer(double power) {
+  public NNLayer newNthPowerLayer(final double power) {
     return new NthPowerActivationLayer().setPower(power);
   }
   
@@ -212,25 +229,19 @@ public class PolynomialNetwork extends DAGNetwork {
   }
   
   /**
-   * Add term.
+   * New synapse nn layer.
    *
-   * @param power the power
+   * @param weight the weight
+   * @return the nn layer
    */
-  public void addTerm(double power) {
-    corrections.add(new Correcton(power,
-      newBias(outputDims, 1.0),
-      newSynapse(0.0)
-    ));
+  public NNLayer newSynapse(final double weight) {
+    return new FullyConnectedLayer(inputDims, outputDims).setWeights(() -> weight * (Math.random() - 1));
   }
   
   /**
    * The type Correcton.
    */
   public class Correcton {
-    /**
-     * The Power.
-     */
-    public final double power;
     /**
      * The Bias.
      */
@@ -239,7 +250,11 @@ public class PolynomialNetwork extends DAGNetwork {
      * The Factor.
      */
     public final NNLayer factor;
-  
+    /**
+     * The Power.
+     */
+    public final double power;
+
     /**
      * Instantiates a new Correcton.
      *
@@ -247,30 +262,30 @@ public class PolynomialNetwork extends DAGNetwork {
      * @param bias   the bias
      * @param factor the factor
      */
-    public Correcton(double power, NNLayer bias, NNLayer factor) {
+    public Correcton(final double power, final NNLayer bias, final NNLayer factor) {
       this.power = power;
       this.bias = bias;
       this.factor = factor;
     }
-  
+
     /**
      * Instantiates a new Correcton.
      *
      * @param json the json
      */
-    public Correcton(JsonObject json) {
-      this.power = json.get("power").getAsDouble();
-      this.bias = layersById.get(UUID.fromString(json.get("bias").getAsString()));
-      this.factor = layersById.get(UUID.fromString(json.get("factor").getAsString()));
+    public Correcton(final JsonObject json) {
+      power = json.get("power").getAsDouble();
+      bias = layersById.get(UUID.fromString(json.get("bias").getAsString()));
+      factor = layersById.get(UUID.fromString(json.get("factor").getAsString()));
     }
-  
+
     /**
      * Add dag node.
      *
      * @param input the input
      * @return the dag node
      */
-    public DAGNode add(DAGNode input) {
+    public DAGNode add(final DAGNode input) {
       return PolynomialNetwork.this.add(newNthPowerLayer(power), PolynomialNetwork.this.add(bias, PolynomialNetwork.this.add(factor, input)));
     }
   
@@ -280,7 +295,7 @@ public class PolynomialNetwork extends DAGNetwork {
      * @return the json
      */
     public JsonObject getJson() {
-      JsonObject json = new JsonObject();
+      final JsonObject json = new JsonObject();
       json.addProperty("bias", bias.getId().toString());
       json.addProperty("factor", factor.getId().toString());
       json.addProperty("power", power);

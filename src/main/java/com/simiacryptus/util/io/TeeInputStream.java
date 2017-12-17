@@ -29,8 +29,8 @@ import java.io.OutputStream;
  */
 public class TeeInputStream extends InputStream {
   
-  private final InputStream inputStream;
   private final OutputStream cache;
+  private final InputStream inputStream;
   
   
   /**
@@ -39,30 +39,9 @@ public class TeeInputStream extends InputStream {
    * @param inputStream the input stream
    * @param cache       the cache
    */
-  public TeeInputStream(InputStream inputStream, OutputStream cache) {
+  public TeeInputStream(final InputStream inputStream, final OutputStream cache) {
     this.inputStream = inputStream;
     this.cache = cache;
-  }
-  
-  @Override
-  public int read() throws IOException {
-    int read = inputStream.read();
-    cache.write(read);
-    return read;
-  }
-  
-  @Override
-  public int read(byte[] b) throws IOException {
-    int read = inputStream.read(b);
-    if (read > 0) cache.write(b);
-    return read;
-  }
-  
-  @Override
-  public int read(byte[] b, int off, int len) throws IOException {
-    int read = inputStream.read(b, off, len);
-    if (read > 0) cache.write(b, off, read);
-    return read;
   }
   
   @Override
@@ -74,5 +53,30 @@ public class TeeInputStream extends InputStream {
   public void close() throws IOException {
     inputStream.close();
     cache.close();
+  }
+  
+  @Override
+  public int read() throws IOException {
+    final int read = inputStream.read();
+    cache.write(read);
+    return read;
+  }
+  
+  @Override
+  public int read(final byte[] b) throws IOException {
+    final int read = inputStream.read(b);
+    if (read > 0) {
+      cache.write(b);
+    }
+    return read;
+  }
+  
+  @Override
+  public int read(final byte[] b, final int off, final int len) throws IOException {
+    final int read = inputStream.read(b, off, len);
+    if (read > 0) {
+      cache.write(b, off, read);
+    }
+    return read;
   }
 }

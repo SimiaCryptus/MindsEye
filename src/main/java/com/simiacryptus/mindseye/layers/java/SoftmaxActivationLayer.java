@@ -33,6 +33,7 @@ import java.util.stream.IntStream;
 /**
  * The type Softmax activation layer.
  */
+@SuppressWarnings("serial")
 public class SoftmaxActivationLayer extends NNLayer {
   
   @SuppressWarnings("unused")
@@ -44,17 +45,17 @@ public class SoftmaxActivationLayer extends NNLayer {
   
   /**
    * Instantiates a new Softmax activation layer.
-   *
-   * @param id the id
    */
-  protected SoftmaxActivationLayer(JsonObject id) {
-    super(id);
+  public SoftmaxActivationLayer() {
   }
   
   /**
    * Instantiates a new Softmax activation layer.
+   *
+   * @param id the id
    */
-  public SoftmaxActivationLayer() {
+  protected SoftmaxActivationLayer(final JsonObject id) {
+    super(id);
   }
   
   /**
@@ -63,22 +64,18 @@ public class SoftmaxActivationLayer extends NNLayer {
    * @param json the json
    * @return the softmax activation layer
    */
-  public static SoftmaxActivationLayer fromJson(JsonObject json) {
+  public static SoftmaxActivationLayer fromJson(final JsonObject json) {
     return new SoftmaxActivationLayer(json);
   }
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    int itemCnt = inObj[0].getData().length();
-    double[] sumA = new double[itemCnt];
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final int itemCnt = inObj[0].getData().length();
+    final double[] sumA = new double[itemCnt];
     final Tensor expA[] = new Tensor[itemCnt];
-    Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
+    final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);
-      assert (1 < input.dim()) : "input.dim() = " + input.dim();
+      assert 1 < input.dim() : "input.dim() = " + input.dim();
       
       final Tensor exp;
       final DoubleSummaryStatistics summaryStatistics = DoubleStream.of(input.getData()).filter(x -> Double.isFinite(x)).summaryStatistics();
@@ -90,8 +87,8 @@ public class SoftmaxActivationLayer extends NNLayer {
       assert Arrays.stream(exp.getData()).allMatch(Double::isFinite);
       assert Arrays.stream(exp.getData()).allMatch(v -> v >= 0);
       //assert exp.sum() > 0;
-      double sum = 0 < exp.sum() ? exp.sum() : 1;
-      assert (Double.isFinite(sum));
+      final double sum = 0 < exp.sum() ? exp.sum() : 1;
+      assert Double.isFinite(sum);
       expA[dataIndex] = exp;
       sumA[dataIndex] = sum;
       return exp.map(x -> x / sum);
@@ -99,9 +96,9 @@ public class SoftmaxActivationLayer extends NNLayer {
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (inObj[0].isAlive()) {
-          Tensor[] passbackA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
+          final Tensor[] passbackA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
             final double[] delta = data.get(dataIndex).getData();
             final double[] expdata = expA[dataIndex].getData();
             final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
@@ -110,10 +107,10 @@ public class SoftmaxActivationLayer extends NNLayer {
             for (int i = 0; i < expdata.length; i++) {
               dot += delta[i] * expdata[i];
             }
-            double sum = sumA[dataIndex];
+            final double sum = sumA[dataIndex];
             for (int i = 0; i < dim; i++) {
               double value = 0;
-              value = ((sum * delta[i] - dot) * expdata[i]) / (sum * sum);
+              value = (sum * delta[i] - dot) * expdata[i] / (sum * sum);
               passback.set(i, value);
             }
             return passback;
@@ -129,6 +126,11 @@ public class SoftmaxActivationLayer extends NNLayer {
       }
       
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

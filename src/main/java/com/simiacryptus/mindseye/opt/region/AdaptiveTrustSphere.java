@@ -27,27 +27,27 @@ import com.simiacryptus.util.ArrayUtil;
  */
 public class AdaptiveTrustSphere implements TrustRegion {
   
-  private int lookback = 10;
   private int divisor = 5;
+  private int lookback = 10;
   
-  @Override
-  public double[] project(double[][] history, double[] point) {
-    double[] weights = history[0];
-    double[] delta = ArrayUtil.subtract(point, weights);
-    double distance = ArrayUtil.magnitude(delta);
-    if (history.length < lookback + 1) return point;
-    double max = ArrayUtil.magnitude(ArrayUtil.subtract(weights, history[lookback])) / divisor;
-    return distance > max ? ArrayUtil.add(weights, ArrayUtil.multiply(delta, max / distance)) : point;
+  /**
+   * Gets divisor.
+   *
+   * @return the divisor
+   */
+  public int getDivisor() {
+    return divisor;
   }
   
   /**
-   * Length double.
+   * Sets divisor.
    *
-   * @param weights the weights
-   * @return the double
+   * @param divisor the divisor
+   * @return the divisor
    */
-  public double length(double[] weights) {
-    return ArrayUtil.magnitude(weights);
+  public AdaptiveTrustSphere setDivisor(final int divisor) {
+    this.divisor = divisor;
+    return this;
   }
   
   /**
@@ -65,28 +65,28 @@ public class AdaptiveTrustSphere implements TrustRegion {
    * @param lookback the lookback
    * @return the lookback
    */
-  public AdaptiveTrustSphere setLookback(int lookback) {
+  public AdaptiveTrustSphere setLookback(final int lookback) {
     this.lookback = lookback;
     return this;
   }
   
   /**
-   * Gets divisor.
+   * Length double.
    *
-   * @return the divisor
+   * @param weights the weights
+   * @return the double
    */
-  public int getDivisor() {
-    return divisor;
+  public double length(final double[] weights) {
+    return ArrayUtil.magnitude(weights);
   }
   
-  /**
-   * Sets divisor.
-   *
-   * @param divisor the divisor
-   * @return the divisor
-   */
-  public AdaptiveTrustSphere setDivisor(int divisor) {
-    this.divisor = divisor;
-    return this;
+  @Override
+  public double[] project(final double[][] history, final double[] point) {
+    final double[] weights = history[0];
+    final double[] delta = ArrayUtil.subtract(point, weights);
+    final double distance = ArrayUtil.magnitude(delta);
+    if (history.length < lookback + 1) return point;
+    final double max = ArrayUtil.magnitude(ArrayUtil.subtract(weights, history[lookback])) / divisor;
+    return distance > max ? ArrayUtil.add(weights, ArrayUtil.multiply(delta, max / distance)) : point;
   }
 }

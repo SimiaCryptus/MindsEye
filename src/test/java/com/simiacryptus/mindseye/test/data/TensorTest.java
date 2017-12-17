@@ -36,6 +36,30 @@ import java.util.stream.Collectors;
  */
 public class TensorTest {
   /**
+   * Parse tensor.
+   *
+   * @param str the str
+   * @return the tensor
+   */
+  public Tensor parse(final String str) {
+    final JsonElement json = new GsonBuilder().create().fromJson(str, JsonElement.class);
+    final Tensor tensor = Tensor.fromJson(json);
+    Assert.assertEquals(json, tensor.toJson());
+    return tensor;
+  }
+  
+  /**
+   * Test.
+   *
+   * @param t the t
+   */
+  public void test(final Tensor t) {
+    final JsonElement json = t.toJson();
+    Assert.assertEquals(Tensor.fromJson(json), t);
+    parse(json.toString());
+  }
+  
+  /**
    * Test coord stream.
    *
    * @throws Exception the exception
@@ -43,9 +67,9 @@ public class TensorTest {
   @Test
   @Category(TestCategories.UnitTest.class)
   public void testCoordStream() throws Exception {
-    List<String> coordinates = new Tensor(2, 2, 2).coordStream()
+    final List<String> coordinates = new Tensor(2, 2, 2).coordStream()
       .map(c -> String.format("%s - %s", c.getIndex(), Arrays.toString(c.getCoords()))).collect(Collectors.toList());
-    for (String c : coordinates) {
+    for (final String c : coordinates) {
       System.out.println(c);
     }
   }
@@ -60,30 +84,6 @@ public class TensorTest {
   public void testToJson() throws Exception {
     test(new Tensor(3, 3, 1).map(v -> Math.random()));
     test(new Tensor(1, 3, 3).map(v -> Math.random()));
-  }
-  
-  /**
-   * Test.
-   *
-   * @param t the t
-   */
-  public void test(Tensor t) {
-    JsonElement json = t.toJson();
-    Assert.assertEquals(Tensor.fromJson(json), t);
-    parse(json.toString());
-  }
-  
-  /**
-   * Parse tensor.
-   *
-   * @param str the str
-   * @return the tensor
-   */
-  public Tensor parse(String str) {
-    JsonElement json = new GsonBuilder().create().fromJson(str, JsonElement.class);
-    Tensor tensor = Tensor.fromJson(json);
-    Assert.assertEquals(json, tensor.toJson());
-    return tensor;
   }
   
 }

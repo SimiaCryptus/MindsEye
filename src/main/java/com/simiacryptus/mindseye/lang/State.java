@@ -33,6 +33,16 @@ public class State<K> extends DoubleBuffer<K> {
   
   
   /**
+   * Instantiates a new State.
+   *
+   * @param layer  the layer
+   * @param target the target
+   */
+  public State(final K layer, final double[] target) {
+    super(layer, target);
+  }
+  
+  /**
    * Instantiates a new Delta.
    *
    * @param layer  the layer
@@ -44,13 +54,12 @@ public class State<K> extends DoubleBuffer<K> {
   }
   
   /**
-   * Instantiates a new State.
+   * Are equal boolean.
    *
-   * @param layer  the layer
-   * @param target the target
+   * @return the boolean
    */
-  public State(final K layer, final double[] target) {
-    super(layer, target);
+  public boolean areEqual() {
+    return DoubleBuffer.areEqual(getDelta(), target);
   }
   
   /**
@@ -63,6 +72,16 @@ public class State<K> extends DoubleBuffer<K> {
     return this;
   }
   
+  @Override
+  public State<K> copy() {
+    return new State(layer, target, RecycleBin.DOUBLES.copyOf(delta));
+  }
+  
+  @Override
+  public State<K> map(final DoubleUnaryOperator mapper) {
+    return new State(layer, target, Arrays.stream(getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
+  }
+  
   /**
    * Overwrite.
    *
@@ -71,25 +90,6 @@ public class State<K> extends DoubleBuffer<K> {
   public final synchronized State<K> restore() {
     System.arraycopy(getDelta(), 0, target, 0, target.length);
     return this;
-  }
-  
-  @Override
-  public State<K> map(DoubleUnaryOperator mapper) {
-    return new State(this.layer, this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
-  }
-  
-  @Override
-  public State<K> copy() {
-    return new State(layer, target, RecycleBin.DOUBLES.copyOf(delta));
-  }
-  
-  /**
-   * Are equal boolean.
-   *
-   * @return the boolean
-   */
-  public boolean areEqual() {
-    return areEqual(getDelta(), target);
   }
   
 }

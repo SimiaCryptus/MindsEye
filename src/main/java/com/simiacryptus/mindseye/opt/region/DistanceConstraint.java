@@ -29,23 +29,6 @@ public class DistanceConstraint implements TrustRegion {
   
   private double max = Double.POSITIVE_INFINITY;
   
-  @Override
-  public double[] project(double[] weights, double[] point) {
-    double[] delta = ArrayUtil.subtract(point, weights);
-    double distance = ArrayUtil.magnitude(delta);
-    return distance > max ? ArrayUtil.add(weights, ArrayUtil.multiply(delta, max / distance)) : point;
-  }
-  
-  /**
-   * Length double.
-   *
-   * @param weights the weights
-   * @return the double
-   */
-  public double length(double[] weights) {
-    return ArrayUtil.magnitude(weights);
-  }
-  
   /**
    * Gets max.
    *
@@ -61,8 +44,25 @@ public class DistanceConstraint implements TrustRegion {
    * @param max the max
    * @return the max
    */
-  public DistanceConstraint setMax(double max) {
+  public DistanceConstraint setMax(final double max) {
     this.max = max;
     return this;
+  }
+  
+  /**
+   * Length double.
+   *
+   * @param weights the weights
+   * @return the double
+   */
+  public double length(final double[] weights) {
+    return ArrayUtil.magnitude(weights);
+  }
+  
+  @Override
+  public double[] project(final double[] weights, final double[] point) {
+    final double[] delta = ArrayUtil.subtract(point, weights);
+    final double distance = ArrayUtil.magnitude(delta);
+    return distance > max ? ArrayUtil.add(weights, ArrayUtil.multiply(delta, max / distance)) : point;
   }
 }

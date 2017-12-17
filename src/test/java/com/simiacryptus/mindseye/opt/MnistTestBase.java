@@ -58,25 +58,6 @@ public abstract class MnistTestBase {
   int modelNo = 0;
   
   /**
-   * Test.
-   *
-   * @throws IOException the io exception
-   */
-  @Test
-  @Category(TestCategories.Report.class)
-  public void test() throws IOException {
-    PrintStream originalOut = System.out;
-    try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
-      if (null != originalOut) log.addCopy(originalOut);
-      List<Step> history = new ArrayList<>();
-      MonitoredObject monitoringRoot = new MonitoredObject();
-      TrainingMonitor monitor = getMonitor(originalOut, history);
-      Tensor[][] trainingData = getTrainingData(log);
-      _test(log, monitoringRoot, monitor, trainingData, history);
-    }
-  }
-  
-  /**
    * Test nn layer.
    *
    * @param log            the log
@@ -86,8 +67,8 @@ public abstract class MnistTestBase {
    * @param history        the history
    * @return the nn layer
    */
-  public NNLayer _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
-    DAGNetwork network = buildModel(log);
+  public NNLayer _test(final NotebookOutput log, final MonitoredObject monitoringRoot, final TrainingMonitor monitor, final Tensor[][] trainingData, final List<Step> history) {
+    final DAGNetwork network = buildModel(log);
     addMonitoring(network, monitoringRoot);
     log.h3("Training");
     train(log, network, trainingData, monitor);
@@ -97,32 +78,122 @@ public abstract class MnistTestBase {
   }
   
   /**
+   * Add monitoring.
+   *
+   * @param network        the network
+   * @param monitoringRoot the monitoring root
+   */
+  public void addMonitoring(final DAGNetwork network, final MonitoredObject monitoringRoot) {
+    network.visitNodes(node -> {
+      if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
+        node.setLayer(new MonitoringWrapperLayer(node.getLayer()).addTo(monitoringRoot));
+      }
+    });
+  }
+  
+  /**
+   * Build model dag network.
+   *
+   * @param log the log
+   * @return the dag network
+   */
+  public DAGNetwork buildModel(final NotebookOutput log) {
+    log.h3("Model");
+    log.p("This is a very simple model that performs basic logistic regression. " +
+      "It is expected to be trainable to about 91% accuracy on MNIST.");
+    return log.code(() -> {
+      final PipelineNetwork network = new PipelineNetwork();
+      network.add(new BiasLayer(28, 28, 1));
+      network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{10})
+        .setWeights(() -> 0.001 * (Math.random() - 0.45)));
+      network.add(new SoftmaxActivationLayer());
+      return network;
+    });
+  }
+  
+  /**
    * Gets monitor.
    *
    * @param originalOut the original out
    * @param history     the history
    * @return the monitor
    */
-  public TrainingMonitor getMonitor(PrintStream originalOut, List<Step> history) {
+  public TrainingMonitor getMonitor(final PrintStream originalOut, final List<Step> history) {
     return new TrainingMonitor() {
-      @Override
-      public void log(String msg) {
-        System.out.println(msg);
-        if (null != originalOut && System.out != originalOut) originalOut.println(msg);
-        super.log(msg);
-      }
-      
-      @Override
-      public void onStepComplete(Step currentPoint) {
-        history.add(currentPoint);
-        super.onStepComplete(currentPoint);
-      }
-      
       @Override
       public void clear() {
         super.clear();
       }
+  
+      @Override
+      public void log(final String msg) {
+        System.out.println(msg);
+        if (null != originalOut && System.out != originalOut) {
+          originalOut.println(msg);
+        }
+        super.log(msg);
+      }
+      
+      @Override
+      public void onStepComplete(final Step currentPoint) {
+        history.add(currentPoint);
+        super.onStepComplete(currentPoint);
+      }
     };
+  }
+  
+  /**
+   * Get training data tensor [ ] [ ].
+   *
+   * @param log the log
+   * @return the tensor [ ] [ ]
+   */
+  public Tensor[][] getTrainingData(final NotebookOutput log) {
+    try {
+      return MNIST.trainingDataStream().map(labeledObject -> {
+        final Tensor categoryTensor = new Tensor(10);
+        final int category = parse(labeledObject.label);
+        categoryTensor.set(category, 1);
+        return new Tensor[]{labeledObject.data, categoryTensor};
+      }).toArray(i -> new Tensor[i][]);
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  /**
+   * Parse int.
+   *
+   * @param label the label
+   * @return the int
+   */
+  public int parse(final String label) {
+    return Integer.parseInt(label.replaceAll("[^\\d]", ""));
+  }
+  
+  /**
+   * Predict int [ ].
+   *
+   * @param network       the network
+   * @param labeledObject the labeled object
+   * @return the int [ ]
+   */
+  public int[] predict(final NNLayer network, final LabeledObject<Tensor> labeledObject) {
+    final double[] predictionSignal = GpuController.call(ctx -> network.eval(ctx, labeledObject.data).getData().get(0).getData());
+    return IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
+  }
+  
+  /**
+   * Remove monitoring.
+   *
+   * @param network the network
+   */
+  public void removeMonitoring(final DAGNetwork network) {
+    network.visitNodes(node -> {
+      if (node.getLayer() instanceof MonitoringWrapperLayer) {
+        node.setLayer(((MonitoringWrapperLayer) node.getLayer()).getInner());
+      }
+    });
   }
   
   /**
@@ -133,58 +204,52 @@ public abstract class MnistTestBase {
    * @param history        the history
    * @param network        the network
    */
-  public void report(NotebookOutput log, MonitoredObject monitoringRoot, List<Step> history, NNLayer network) {
+  public void report(final NotebookOutput log, final MonitoredObject monitoringRoot, final List<Step> history, final NNLayer network) {
     
     if (!history.isEmpty()) {
       log.code(() -> {
-        PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.getMean())}).toArray(i -> new double[i][]));
+        final PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.getMean())}).toArray(i -> new double[i][]));
         plot.setTitle("Convergence Plot");
         plot.setAxisLabels("Iteration", "log10(Fitness)");
         plot.setSize(600, 400);
         return plot;
       });
     }
-    
-    String modelName = "model" + modelNo++ + ".json";
+  
+    final String modelName = "model" + modelNo++ + ".json";
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
     
     log.h3("Metrics");
     log.code(() -> {
       try {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
         JsonUtil.writeJson(out, monitoringRoot.getMetrics());
         return out.toString();
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new RuntimeException(e);
       }
     });
   }
   
   /**
-   * Add monitoring.
+   * Test.
    *
-   * @param network        the network
-   * @param monitoringRoot the monitoring root
+   * @throws IOException the io exception
    */
-  public void addMonitoring(DAGNetwork network, MonitoredObject monitoringRoot) {
-    network.visitNodes(node -> {
-      if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
-        node.setLayer(new MonitoringWrapperLayer(node.getLayer()).addTo(monitoringRoot));
+  @Test
+  @Category(TestCategories.Report.class)
+  public void test() throws IOException {
+    final PrintStream originalOut = System.out;
+    try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
+      if (null != originalOut) {
+        log.addCopy(originalOut);
       }
-    });
-  }
-  
-  /**
-   * Remove monitoring.
-   *
-   * @param network the network
-   */
-  public void removeMonitoring(DAGNetwork network) {
-    network.visitNodes(node -> {
-      if (node.getLayer() instanceof MonitoringWrapperLayer) {
-        node.setLayer(((MonitoringWrapperLayer) node.getLayer()).getInner());
-      }
-    });
+      final List<Step> history = new ArrayList<>();
+      final MonitoredObject monitoringRoot = new MonitoredObject();
+      final TrainingMonitor monitor = getMonitor(originalOut, history);
+      final Tensor[][] trainingData = getTrainingData(log);
+      _test(log, monitoringRoot, monitor, trainingData, history);
+    }
   }
   
   /**
@@ -203,7 +268,7 @@ public abstract class MnistTestBase {
    * @param log     the log
    * @param network the network
    */
-  public void validate(NotebookOutput log, NNLayer network) {
+  public void validate(final NotebookOutput log, final NNLayer network) {
     log.h3("Validation");
     log.p("If we run our model against the entire validation dataset, we get this accuracy:");
     log.code(() -> {
@@ -215,88 +280,27 @@ public abstract class MnistTestBase {
     log.p("Let's examine some incorrectly predicted results in more detail:");
     log.code(() -> {
       try {
-        TableOutput table = new TableOutput();
+        final TableOutput table = new TableOutput();
         MNIST.validationDataStream().map(labeledObject -> {
           try {
-            int actualCategory = parse(labeledObject.label);
-            double[] predictionSignal = GpuController.call(ctx -> network.eval(ctx, labeledObject.data).getData().get(0).getData());
-            int[] predictionList = IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
+            final int actualCategory = parse(labeledObject.label);
+            final double[] predictionSignal = GpuController.call(ctx -> network.eval(ctx, labeledObject.data).getData().get(0).getData());
+            final int[] predictionList = IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
             if (predictionList[0] == actualCategory) return null; // We will only examine mispredicted rows
-            LinkedHashMap<String, Object> row = new LinkedHashMap<String, Object>();
+            final LinkedHashMap<String, Object> row = new LinkedHashMap<>();
             row.put("Image", log.image(labeledObject.data.toGrayImage(), labeledObject.label));
             row.put("Prediction", Arrays.stream(predictionList).limit(3)
               .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
               .reduce((a, b) -> a + ", " + b).get());
             return row;
-          } catch (IOException e) {
+          } catch (final IOException e) {
             throw new RuntimeException(e);
           }
         }).filter(x -> null != x).limit(10).forEach(table::putRow);
         return table;
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new RuntimeException(e);
       }
-    });
-  }
-  
-  /**
-   * Parse int.
-   *
-   * @param label the label
-   * @return the int
-   */
-  public int parse(String label) {
-    return Integer.parseInt(label.replaceAll("[^\\d]", ""));
-  }
-  
-  /**
-   * Predict int [ ].
-   *
-   * @param network       the network
-   * @param labeledObject the labeled object
-   * @return the int [ ]
-   */
-  public int[] predict(NNLayer network, LabeledObject<Tensor> labeledObject) {
-    double[] predictionSignal = GpuController.call(ctx -> network.eval(ctx, labeledObject.data).getData().get(0).getData());
-    return IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
-  }
-  
-  /**
-   * Get training data tensor [ ] [ ].
-   *
-   * @param log the log
-   * @return the tensor [ ] [ ]
-   */
-  public Tensor[][] getTrainingData(NotebookOutput log) {
-    try {
-      return MNIST.trainingDataStream().map(labeledObject -> {
-        Tensor categoryTensor = new Tensor(10);
-        int category = parse(labeledObject.label);
-        categoryTensor.set(category, 1);
-        return new Tensor[]{labeledObject.data, categoryTensor};
-      }).toArray(i -> new Tensor[i][]);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-  
-  /**
-   * Build model dag network.
-   *
-   * @param log the log
-   * @return the dag network
-   */
-  public DAGNetwork buildModel(NotebookOutput log) {
-    log.h3("Model");
-    log.p("This is a very simple model that performs basic logistic regression. " +
-      "It is expected to be trainable to about 91% accuracy on MNIST.");
-    return log.code(() -> {
-      PipelineNetwork network = new PipelineNetwork();
-      network.add(new BiasLayer(28, 28, 1));
-      network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{10})
-        .setWeights(() -> 0.001 * (Math.random() - 0.45)));
-      network.add(new SoftmaxActivationLayer());
-      return network;
     });
   }
 }

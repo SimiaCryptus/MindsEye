@@ -37,7 +37,7 @@ public class SoftCachedSupplier<T> implements Supplier<T> {
    *
    * @param fn the fn
    */
-  public SoftCachedSupplier(Supplier<T> fn) {
+  public SoftCachedSupplier(final Supplier<T> fn) {
     this.fn = fn;
   }
   
@@ -49,7 +49,9 @@ public class SoftCachedSupplier<T> implements Supplier<T> {
         obj = null == cached ? null : cached.get();
         if (null == obj) {
           obj = fn.get();
-          if (null != obj) cached = new SoftReference<T>(obj);
+          if (null != obj) {
+            cached = new SoftReference<>(obj);
+          }
         }
       }
     }

@@ -35,15 +35,15 @@ public class ScaleMetaLayerTest extends StandardLayerTests {
   }
   
   @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new ScaleMetaLayer();
-  }
-  
-  @Override
   public int[][] getInputDims() {
     return new int[][]{
       {3}, {3}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new ScaleMetaLayer();
   }
   
 }

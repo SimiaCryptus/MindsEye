@@ -33,6 +33,7 @@ import java.util.stream.IntStream;
  *
  * @param <T> the type parameter
  */
+@SuppressWarnings("serial")
 public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> extends NNLayer {
   
   @SuppressWarnings("unused")
@@ -40,19 +41,19 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
   
   /**
    * Instantiates a new Simple activation layer.
-   *
-   * @param id the id
-   */
-  protected SimpleActivationLayer(JsonObject id) {
-    super(id);
-  }
-  
-  /**
-   * Instantiates a new Simple activation layer.
    */
   public SimpleActivationLayer() {
     super();
     setFrozen(true);
+  }
+  
+  /**
+   * Instantiates a new Simple activation layer.
+   *
+   * @param id the id
+   */
+  protected SimpleActivationLayer(final JsonObject id) {
+    super(id);
   }
   
   /**
@@ -64,11 +65,11 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
   protected abstract void eval(final double x, double[] results);
   
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    int itemCnt = inObj[0].getData().length();
-    assert (0 < itemCnt);
-    Tensor inputGradientA[] = new Tensor[itemCnt];
-    Tensor[] outputA = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final int itemCnt = inObj[0].getData().length();
+    assert 0 < itemCnt;
+    final Tensor inputGradientA[] = new Tensor[itemCnt];
+    final Tensor[] outputA = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);
       final Tensor output = new Tensor(inObj[0].getData().get(dataIndex).getDimensions());
       final Tensor inputGradient = new Tensor(input.dim());
@@ -83,9 +84,9 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
     }).toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (inObj[0].isAlive()) {
-          Tensor[] passbackA = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
+          final Tensor[] passbackA = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
             final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
             final double[] gradientData = inputGradientA[dataIndex].getData();
             IntStream.range(0, passback.dim()).forEach(i -> {

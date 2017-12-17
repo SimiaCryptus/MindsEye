@@ -32,10 +32,10 @@ import java.util.stream.IntStream;
 /**
  * The type Equivalency tester.
  */
-public class EquivalencyTester implements ComponentTest {
+public class EquivalencyTester implements ComponentTest<ToleranceStatistics> {
   
-  private final double tolerance;
   private final NNLayer reference;
+  private final double tolerance;
   
   /**
    * Instantiates a new Equivalency tester.
@@ -43,9 +43,45 @@ public class EquivalencyTester implements ComponentTest {
    * @param tolerance      the tolerance
    * @param referenceLayer the reference layer
    */
-  public EquivalencyTester(double tolerance, NNLayer referenceLayer) {
+  public EquivalencyTester(final double tolerance, final NNLayer referenceLayer) {
     this.tolerance = tolerance;
-    this.reference = referenceLayer;
+    reference = referenceLayer;
+  }
+  
+  /**
+   * Test tolerance statistics.
+   *
+   * @param subject        the subject
+   * @param inputPrototype the input prototype
+   * @return the tolerance statistics
+   */
+  public ToleranceStatistics test(final NNLayer subject, final Tensor[] inputPrototype) {
+    if (null == reference || null == subject) return new ToleranceStatistics();
+    ToleranceStatistics result1;
+    final Tensor subjectOutput = SimpleEval.run(subject, inputPrototype).getOutput();
+    final Tensor referenceOutput = SimpleEval.run(reference, inputPrototype).getOutput();
+    final Tensor error = subjectOutput.minus(referenceOutput);
+    final ToleranceStatistics result = IntStream.range(0, subjectOutput.dim()).mapToObj(i1 -> {
+      return new ToleranceStatistics().accumulate(subjectOutput.getData()[i1], referenceOutput.getData()[i1]);
+    }).reduce((a, b) -> a.combine(b)).get();
+    try {
+      if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
+      result1 = result;
+    } catch (final Throwable e) {
+      System.out.println(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b)));
+      System.out.println(String.format("Subject Output: %s", subjectOutput.prettyPrint()));
+      System.out.println(String.format("Reference Output: %s", referenceOutput.prettyPrint()));
+      System.out.println(String.format("Error: %s", error.prettyPrint()));
+      System.out.flush();
+      throw e;
+    }
+    final ToleranceStatistics statistics = result1;
+    System.out.println(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));
+    System.out.println(String.format("Error: %s", error.prettyPrint()));
+    System.out.println(String.format("Accuracy:"));
+    System.out.println(String.format("absoluteTol: %s", statistics.absoluteTol.toString()));
+    System.out.println(String.format("relativeTol: %s", statistics.relativeTol.toString()));
+    return statistics;
   }
   
   /**
@@ -56,50 +92,15 @@ public class EquivalencyTester implements ComponentTest {
    * @param inputPrototype the input prototype
    * @return the tolerance statistics
    */
-  public ToleranceStatistics test(NotebookOutput log, final NNLayer subject, final Tensor... inputPrototype) {
+  @Override
+  public ToleranceStatistics test(final NotebookOutput log, final NNLayer subject, final Tensor... inputPrototype) {
     log.h3("Reference Implementation");
     log.code(() -> {
-      System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(this.reference.getJson()));
+      System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(reference.getJson()));
     });
     return log.code(() -> {
       return test(subject, inputPrototype);
     });
-  }
-  
-  /**
-   * Test tolerance statistics.
-   *
-   * @param subject        the subject
-   * @param inputPrototype the input prototype
-   * @return the tolerance statistics
-   */
-  public ToleranceStatistics test(NNLayer subject, Tensor[] inputPrototype) {
-    if (null == reference || null == subject) return new ToleranceStatistics();
-    ToleranceStatistics result1;
-    final Tensor subjectOutput = SimpleEval.run(subject, inputPrototype).getOutput();
-    final Tensor referenceOutput = SimpleEval.run(reference, inputPrototype).getOutput();
-    Tensor error = subjectOutput.minus(referenceOutput);
-    ToleranceStatistics result = IntStream.range(0, subjectOutput.dim()).mapToObj(i1 -> {
-      return new ToleranceStatistics().accumulate(subjectOutput.getData()[i1], referenceOutput.getData()[i1]);
-    }).reduce((a, b) -> a.combine(b)).get();
-    try {
-      if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
-      result1 = result;
-    } catch (Throwable e) {
-      System.out.println(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b)));
-      System.out.println(String.format("Subject Output: %s", subjectOutput.prettyPrint()));
-      System.out.println(String.format("Reference Output: %s", referenceOutput.prettyPrint()));
-      System.out.println(String.format("Error: %s", error.prettyPrint()));
-      System.out.flush();
-      throw e;
-    }
-    ToleranceStatistics statistics = result1;
-    System.out.println(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));
-    System.out.println(String.format("Error: %s", error.prettyPrint()));
-    System.out.println(String.format("Accuracy:"));
-    System.out.println(String.format("absoluteTol: %s", statistics.absoluteTol.toString()));
-    System.out.println(String.format("relativeTol: %s", statistics.relativeTol.toString()));
-    return statistics;
   }
   
 }

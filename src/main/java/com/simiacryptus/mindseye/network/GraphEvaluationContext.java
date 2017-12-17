@@ -40,13 +40,13 @@ class GraphEvaluationContext {
     cache.values().forEach(r -> {
       try {
         r.finalize();
-      } catch (Throwable e) {
+      } catch (final Throwable e) {
         throw new RuntimeException(e);
       }
     });
     try {
       super.finalize();
-    } catch (Throwable e) {
+    } catch (final Throwable e) {
       throw new RuntimeException(e);
     }
   }

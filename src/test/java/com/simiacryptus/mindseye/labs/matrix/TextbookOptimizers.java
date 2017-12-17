@@ -34,45 +34,12 @@ import com.simiacryptus.mindseye.test.integration.OptimizationStrategy;
 public class TextbookOptimizers {
   
   /**
-   * The constant simple_gradient_descent.
-   */
-  public static OptimizationStrategy simple_gradient_descent = (log, trainingSubject, validationSubject, monitor) -> {
-    log.p("Optimized via the Stochastic Gradient Descent method:");
-    return log.code(() -> {
-      double rate = 0.05;
-      ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
-        .setMinTrainingSize(Integer.MAX_VALUE)
-        .setMaxEpochIterations(100)
-        .setMonitor(monitor);
-      trainer.getRegimen().get(0)
-        .setOrientation(new GradientDescent())
-        .setLineSearchFactory(name -> new StaticLearningRate().setRate(rate));
-      return trainer;
-    });
-  };
-  /**
-   * The constant stochastic_gradient_descent.
-   */
-  public static OptimizationStrategy stochastic_gradient_descent = (log, trainingSubject, validationSubject, monitor) -> {
-    log.p("Optimized via the Stochastic Gradient Descent method with momentum and adaptve learning rate:");
-    return log.code(() -> {
-      double carryOver = 0.5;
-      ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
-        .setMaxEpochIterations(100)
-        .setMonitor(monitor);
-      trainer.getRegimen().get(0)
-        .setOrientation(new MomentumStrategy(new GradientDescent()).setCarryOver(carryOver))
-        .setLineSearchFactory(name -> new ArmijoWolfeSearch());
-      return trainer;
-    });
-  };
-  /**
    * The constant conjugate_gradient_descent.
    */
   public static OptimizationStrategy conjugate_gradient_descent = (log, trainingSubject, validationSubject, monitor) -> {
     log.p("Optimized via the Conjugate Gradient Descent method:");
     return log.code(() -> {
-      ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
+      final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMinTrainingSize(Integer.MAX_VALUE)
         .setMonitor(monitor);
       trainer.getRegimen().get(0)
@@ -87,7 +54,7 @@ public class TextbookOptimizers {
   public static OptimizationStrategy limited_memory_bfgs = (log, trainingSubject, validationSubject, monitor) -> {
     log.p("Optimized via the Limited-Memory BFGS method:");
     return log.code(() -> {
-      ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
+      final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMinTrainingSize(Integer.MAX_VALUE)
         .setMonitor(monitor);
       trainer.getRegimen().get(0)
@@ -103,13 +70,46 @@ public class TextbookOptimizers {
   public static OptimizationStrategy orthantwise_quasi_newton = (log, trainingSubject, validationSubject, monitor) -> {
     log.p("Optimized via the Orthantwise Quasi-Newton search method:");
     return log.code(() -> {
-      ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
+      final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMinTrainingSize(Integer.MAX_VALUE)
         .setMonitor(monitor);
       trainer.getRegimen().get(0)
         .setOrientation(new OwlQn())
         .setLineSearchFactory(name -> new ArmijoWolfeSearch()
           .setAlpha(name.contains("OWL") ? 1.0 : 1e-6));
+      return trainer;
+    });
+  };
+  /**
+   * The constant simple_gradient_descent.
+   */
+  public static OptimizationStrategy simple_gradient_descent = (log, trainingSubject, validationSubject, monitor) -> {
+    log.p("Optimized via the Stochastic Gradient Descent method:");
+    return log.code(() -> {
+      final double rate = 0.05;
+      final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
+        .setMinTrainingSize(Integer.MAX_VALUE)
+        .setMaxEpochIterations(100)
+        .setMonitor(monitor);
+      trainer.getRegimen().get(0)
+        .setOrientation(new GradientDescent())
+        .setLineSearchFactory(name -> new StaticLearningRate().setRate(rate));
+      return trainer;
+    });
+  };
+  /**
+   * The constant stochastic_gradient_descent.
+   */
+  public static OptimizationStrategy stochastic_gradient_descent = (log, trainingSubject, validationSubject, monitor) -> {
+    log.p("Optimized via the Stochastic Gradient Descent method with momentum and adaptve learning rate:");
+    return log.code(() -> {
+      final double carryOver = 0.5;
+      final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
+        .setMaxEpochIterations(100)
+        .setMonitor(monitor);
+      trainer.getRegimen().get(0)
+        .setOrientation(new MomentumStrategy(new GradientDescent()).setCarryOver(carryOver))
+        .setLineSearchFactory(name -> new ArmijoWolfeSearch());
       return trainer;
     });
   };

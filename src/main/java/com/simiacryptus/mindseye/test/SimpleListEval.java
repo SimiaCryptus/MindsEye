@@ -30,8 +30,8 @@ import java.util.stream.IntStream;
  * The type Simple list eval.
  */
 public class SimpleListEval implements Callable<SimpleListEval> {
-  private final NNLayer layer;
   private final TensorList[] input;
+  private final NNLayer layer;
   private TensorList[] derivative;
   private TensorList output;
   
@@ -41,7 +41,7 @@ public class SimpleListEval implements Callable<SimpleListEval> {
    * @param layer the layer
    * @param input the input
    */
-  public SimpleListEval(NNLayer layer, TensorList... input) {
+  public SimpleListEval(final NNLayer layer, final TensorList... input) {
     this.layer = layer;
     this.input = input;
   }
@@ -52,9 +52,9 @@ public class SimpleListEval implements Callable<SimpleListEval> {
    * @param buffer the buffer
    * @param data   the data
    */
-  public static void accumulate(TensorList buffer, TensorList data) {
+  public static void accumulate(final TensorList buffer, final TensorList data) {
     IntStream.range(0, data.length()).forEach(b -> {
-      buffer.get(b).accum(data.get(b));
+      buffer.get(b).accumulate(data.get(b));
     });
   }
   
@@ -65,8 +65,35 @@ public class SimpleListEval implements Callable<SimpleListEval> {
    * @param tensor the tensor
    * @return the simple list eval
    */
-  public static SimpleListEval run(NNLayer layer, TensorList... tensor) {
+  public static SimpleListEval run(final NNLayer layer, final TensorList... tensor) {
     return new SimpleListEval(layer, tensor).call();
+  }
+  
+  @Override
+  public SimpleListEval call() {
+    derivative = Arrays.stream(input).map(x -> new TensorArray(x.stream()
+      .map(i -> new Tensor(i.getDimensions()))
+      .toArray(i -> new Tensor[i]))
+    ).toArray(i -> new TensorList[i]);
+    final NNResult[] inputR = IntStream.range(0, input.length).mapToObj(i -> {
+      return new NNResult(input[i]) {
+        @Override
+        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+          SimpleListEval.accumulate(derivative[i], data);
+        }
+        
+        @Override
+        public boolean isAlive() {
+          return true;
+        }
+      };
+    }).toArray(i -> new NNResult[i]);
+    output = GpuController.call(cudaExeCtx -> {
+      final NNResult eval = layer.eval(cudaExeCtx, inputR);
+      eval.accumulate(new DeltaSet<NNLayer>(), getFeedback(eval.getData()));
+      return eval;
+    }).getData();
+    return this;
   }
   
   /**
@@ -79,48 +106,21 @@ public class SimpleListEval implements Callable<SimpleListEval> {
   }
   
   /**
+   * Gets feedback.
+   *
+   * @param data the data
+   * @return the feedback
+   */
+  public TensorArray getFeedback(final TensorList data) {
+    return new TensorArray(data.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i]));
+  }
+  
+  /**
    * Gets output.
    *
    * @return the output
    */
   public TensorList getOutput() {
     return output;
-  }
-  
-  @Override
-  public SimpleListEval call() {
-    derivative = Arrays.stream(input).map(x -> new TensorArray(x.stream()
-      .map(i -> new Tensor(i.getDimensions()))
-      .toArray(i -> new Tensor[i]))
-    ).toArray(i -> new TensorList[i]);
-    NNResult[] inputR = IntStream.range(0, input.length).mapToObj(i -> {
-      return new NNResult(input[i]) {
-        @Override
-        public void accumulate(DeltaSet buffer, TensorList data) {
-          SimpleListEval.accumulate(derivative[i], data);
-        }
-        
-        @Override
-        public boolean isAlive() {
-          return true;
-        }
-      };
-    }).toArray(i -> new NNResult[i]);
-    output = GpuController.call(cudaExeCtx -> {
-      NNResult eval = layer.eval(cudaExeCtx, inputR);
-      eval.accumulate(new DeltaSet(), getFeedback(eval.getData()));
-      return eval;
-    }).getData();
-    return this;
-  }
-  
-  /**
-   * Gets feedback.
-   *
-   * @param data the data
-   * @return the feedback
-   */
-  public TensorArray getFeedback(TensorList data) {
-    return new TensorArray(data.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i]));
   }
 }

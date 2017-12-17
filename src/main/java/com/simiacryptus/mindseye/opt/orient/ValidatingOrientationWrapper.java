@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
@@ -41,13 +42,13 @@ public class ValidatingOrientationWrapper implements OrientationStrategy<LineSea
    *
    * @param inner the inner
    */
-  public ValidatingOrientationWrapper(OrientationStrategy<? extends LineSearchCursor> inner) {
+  public ValidatingOrientationWrapper(final OrientationStrategy<? extends LineSearchCursor> inner) {
     this.inner = inner;
   }
   
   @Override
-  public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
-    LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
+  public LineSearchCursor orient(final Trainable subject, final PointSample measurement, final TrainingMonitor monitor) {
+    final LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
     return new ValidatingLineSearchCursor(cursor);
   }
   
@@ -58,31 +59,41 @@ public class ValidatingOrientationWrapper implements OrientationStrategy<LineSea
   
   private static class ValidatingLineSearchCursor implements LineSearchCursor {
     private final LineSearchCursor cursor;
-
+  
     /**
      * Instantiates a new Validating line search cursor.
      *
      * @param cursor the cursor
      */
-    public ValidatingLineSearchCursor(LineSearchCursor cursor) {
+    public ValidatingLineSearchCursor(final LineSearchCursor cursor) {
       this.cursor = cursor;
     }
-    
+
     @Override
     public String getDirectionType() {
       return cursor.getDirectionType();
     }
-    
+
     @Override
-    public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
-      LineSearchPoint primaryPoint = cursor.step(alpha, monitor);
+    public DeltaSet<NNLayer> position(final double alpha) {
+      return cursor.position(alpha);
+    }
+  
+    @Override
+    public void reset() {
+      cursor.reset();
+    }
+  
+    @Override
+    public LineSearchPoint step(final double alpha, final TrainingMonitor monitor) {
+      final LineSearchPoint primaryPoint = cursor.step(alpha, monitor);
       //monitor.log(String.format("f(%s) = %s",alpha, primaryPoint.point.value));
       test(monitor, primaryPoint, 1e-3);
       test(monitor, primaryPoint, 1e-4);
       test(monitor, primaryPoint, 1e-6);
       return primaryPoint;
     }
-
+  
     /**
      * Test.
      *
@@ -90,35 +101,17 @@ public class ValidatingOrientationWrapper implements OrientationStrategy<LineSea
      * @param primaryPoint the primary point
      * @param probeSize    the probe size
      */
-    public void test(TrainingMonitor monitor, LineSearchPoint primaryPoint, double probeSize) {
-      double tolerance = 1e-4;
-      double alpha = primaryPoint.point.rate;
-      double probeAlpha = alpha + ((primaryPoint.point.sum * probeSize) / primaryPoint.derivative);
+    public void test(final TrainingMonitor monitor, final LineSearchPoint primaryPoint, final double probeSize) {
+      final double alpha = primaryPoint.point.rate;
+      double probeAlpha = alpha + primaryPoint.point.sum * probeSize / primaryPoint.derivative;
       if (!Double.isFinite(probeAlpha) || probeAlpha == alpha) {
         probeAlpha = alpha + probeSize;
       }
-      LineSearchPoint probePoint = cursor.step(probeAlpha, monitor);
-      double dy = probePoint.point.sum - primaryPoint.point.sum;
-      double dx = probeAlpha - alpha;
-      double measuredDerivative = dy / dx;
+      final LineSearchPoint probePoint = cursor.step(probeAlpha, monitor);
+      final double dy = probePoint.point.sum - primaryPoint.point.sum;
+      final double dx = probeAlpha - alpha;
+      final double measuredDerivative = dy / dx;
       monitor.log(String.format("%s vs (%s, %s); probe=%s", measuredDerivative, primaryPoint.derivative, probePoint.derivative, probeSize));
-    }
-    
-    private int compare(double a, double b, double tol) {
-      double c = 2 * (a - b) / (a + b);
-      if (c < -tol) return -1;
-      if (c > tol) return 1;
-      return 0;
-    }
-    
-    @Override
-    public DeltaSet position(double alpha) {
-      return cursor.position(alpha);
-    }
-    
-    @Override
-    public void reset() {
-      cursor.reset();
     }
   }
 }

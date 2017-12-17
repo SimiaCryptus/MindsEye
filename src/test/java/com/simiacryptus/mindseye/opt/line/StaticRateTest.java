@@ -39,14 +39,14 @@ import java.util.concurrent.TimeUnit;
 public class StaticRateTest extends MnistTestBase {
   
   @Override
-  public void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor) {
+  public void train(final NotebookOutput log, final NNLayer network, final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.code(() -> {
-      SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-      Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 1000);
+      final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
+      final Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 1000);
       return new IterativeTrainer(trainable)
         .setMonitor(monitor)
         .setOrientation(new GradientDescent())
-        .setLineSearchFactory((String name) -> new StaticLearningRate().setRate(0.001))
+        .setLineSearchFactory((final String name) -> new StaticLearningRate().setRate(0.001))
         .setTimeout(3, TimeUnit.MINUTES)
         .setMaxIterations(500)
         .run();

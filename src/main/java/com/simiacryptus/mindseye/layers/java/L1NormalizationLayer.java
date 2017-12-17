@@ -32,6 +32,7 @@ import java.util.stream.IntStream;
 /**
  * The type L 1 normalization layer.
  */
+@SuppressWarnings("serial")
 public class L1NormalizationLayer extends NNLayer {
   
   @SuppressWarnings("unused")
@@ -43,17 +44,17 @@ public class L1NormalizationLayer extends NNLayer {
   
   /**
    * Instantiates a new L 1 normalization layer.
-   *
-   * @param id the id
    */
-  protected L1NormalizationLayer(JsonObject id) {
-    super(id);
+  public L1NormalizationLayer() {
   }
   
   /**
    * Instantiates a new L 1 normalization layer.
+   *
+   * @param id the id
    */
-  public L1NormalizationLayer() {
+  protected L1NormalizationLayer(final JsonObject id) {
+    super(id);
   }
   
   /**
@@ -62,35 +63,31 @@ public class L1NormalizationLayer extends NNLayer {
    * @param json the json
    * @return the l 1 normalization layer
    */
-  public static L1NormalizationLayer fromJson(JsonObject json) {
+  public static L1NormalizationLayer fromJson(final JsonObject json) {
     return new L1NormalizationLayer(json);
   }
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... input) {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... input) {
     final NNResult in = input[0];
     final TensorList inData = in.getData();
-    Tensor[] output = IntStream.range(0, inData.length()).mapToObj(dataIndex -> {
+    final Tensor[] output = IntStream.range(0, inData.length()).mapToObj(dataIndex -> {
       final Tensor value = inData.get(dataIndex);
-      double sum = value.sum();
+      final double sum = value.sum();
       if (!Double.isFinite(sum) || 0 == sum) return value;
       return value.scale(1.0 / sum);
     }).toArray(i -> new Tensor[i]);
     return new NNResult(output) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList outDelta) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList outDelta) {
         if (in.isAlive()) {
-          Tensor[] passbackArray = IntStream.range(0, outDelta.length()).mapToObj(dataIndex -> {
+          final Tensor[] passbackArray = IntStream.range(0, outDelta.length()).mapToObj(dataIndex -> {
             final double[] value = inData.get(dataIndex).getData();
             final double[] delta = outDelta.get(dataIndex).getData();
-            double dot = ArrayUtil.dot(value, delta);
-            double sum = Arrays.stream(value).sum();
+            final double dot = ArrayUtil.dot(value, delta);
+            final double sum = Arrays.stream(value).sum();
             final Tensor passback = new Tensor(outDelta.get(dataIndex).getDimensions());
-            double[] passbackData = passback.getData();
+            final double[] passbackData = passback.getData();
             if (0 != sum || Double.isFinite(sum)) {
               for (int i = 0; i < value.length; i++) {
                 passbackData[i] = (delta[i] - dot / sum) / sum;
@@ -109,6 +106,11 @@ public class L1NormalizationLayer extends NNLayer {
       }
       
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

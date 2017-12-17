@@ -32,13 +32,13 @@ public class MonitoredObject implements MonitoredItem {
   private final Map<String, Object> items = new HashMap<>();
   
   /**
-   * Add obj monitored object.
+   * Add const monitored object.
    *
    * @param key  the key
    * @param item the item
    * @return the monitored object
    */
-  public MonitoredObject addObj(String key, MonitoredItem item) {
+  public MonitoredObject addConst(final String key, final Object item) {
     items.put(key, item);
     return this;
   }
@@ -50,7 +50,19 @@ public class MonitoredObject implements MonitoredItem {
    * @param item the item
    * @return the monitored object
    */
-  public MonitoredObject addField(String key, Supplier<Object> item) {
+  public MonitoredObject addField(final String key, final Supplier<Object> item) {
+    items.put(key, item);
+    return this;
+  }
+  
+  /**
+   * Add obj monitored object.
+   *
+   * @param key  the key
+   * @param item the item
+   * @return the monitored object
+   */
+  public MonitoredObject addObj(final String key, final MonitoredItem item) {
     items.put(key, item);
     return this;
   }
@@ -61,9 +73,9 @@ public class MonitoredObject implements MonitoredItem {
    * @return the monitored object
    */
   public MonitoredObject clearConstants() {
-    HashSet<String> keys = new HashSet<>(items.keySet());
-    for (String k : keys) {
-      Object v = items.get(k);
+    final HashSet<String> keys = new HashSet<>(items.keySet());
+    for (final String k : keys) {
+      final Object v = items.get(k);
       if (v instanceof MonitoredObject) {
         ((MonitoredObject) v).clearConstants();
       }
@@ -74,29 +86,17 @@ public class MonitoredObject implements MonitoredItem {
     return this;
   }
   
-  /**
-   * Add const monitored object.
-   *
-   * @param key  the key
-   * @param item the item
-   * @return the monitored object
-   */
-  public MonitoredObject addConst(String key, Object item) {
-    items.put(key, item);
-    return this;
-  }
-  
   @Override
   public Map<String, Object> getMetrics() {
-    HashMap<String, Object> returnValue = new HashMap<>();
+    final HashMap<String, Object> returnValue = new HashMap<>();
     items.entrySet().stream().parallel().forEach(e -> {
-      String k = e.getKey();
-      Object v = e.getValue();
+      final String k = e.getKey();
+      final Object v = e.getValue();
       if (v instanceof MonitoredItem) {
         returnValue.put(k, ((MonitoredItem) v).getMetrics());
       }
       else if (v instanceof Supplier) {
-        returnValue.put(k, ((Supplier) v).get());
+        returnValue.put(k, ((Supplier<?>) v).get());
       }
       else {
         returnValue.put(k, v);

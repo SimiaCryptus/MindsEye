@@ -61,76 +61,30 @@ public class TestUtil {
   public static final PrintStream originalOut = System.out;
   
   /**
-   * Gets monitor.
+   * Add logging.
    *
-   * @param history the history
-   * @return the monitor
+   * @param network the network
    */
-  public static TrainingMonitor getMonitor(List<StepRecord> history) {
-    return new TrainingMonitor() {
-      @Override
-      public void log(String msg) {
-        System.out.println(msg);
-        if (null != originalOut && System.out != originalOut) originalOut.println(msg);
-        super.log(msg);
+  public static void addLogging(final DAGNetwork network) {
+    network.visitNodes(node -> {
+      if (!(node.getLayer() instanceof LoggingWrapperLayer)) {
+        node.setLayer(new LoggingWrapperLayer(node.getLayer()));
       }
-      
-      @Override
-      public void onStepComplete(Step currentPoint) {
-        history.add(new StepRecord(currentPoint.point.getMean(), currentPoint.time, currentPoint.iteration));
-        super.onStepComplete(currentPoint);
-      }
-      
-      @Override
-      public void clear() {
-        super.clear();
-      }
-    };
+    });
   }
   
   /**
-   * Plot plot canvas.
+   * Add monitoring.
    *
-   * @param history the history
-   * @return the plot canvas
+   * @param network        the network
+   * @param monitoringRoot the monitoring root
    */
-  public static PlotCanvas plot(List<StepRecord> history) {
-    try {
-      PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
-        step.iteraton, java.lang.Math.log10(step.fitness)})
-        .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
-        .toArray(i -> new double[i][]));
-      plot.setTitle("Convergence Plot");
-      plot.setAxisLabels("Iteration", "log10(Fitness)");
-      plot.setSize(600, 400);
-      return plot;
-    } catch (Exception e) {
-      e.printStackTrace(System.out);
-      return null;
-    }
-  }
-  
-  /**
-   * Plot plot canvas.
-   *
-   * @param history the history
-   * @return the plot canvas
-   */
-  public static PlotCanvas plotTime(List<StepRecord> history) {
-    try {
-      LongSummaryStatistics timeStats = history.stream().mapToLong(x -> x.epochTime).summaryStatistics();
-      PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
-        (step.epochTime - timeStats.getMin()) / 1000.0, java.lang.Math.log10(step.fitness)})
-        .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
-        .toArray(i -> new double[i][]));
-      plot.setTitle("Convergence Plot");
-      plot.setAxisLabels("Time", "log10(Fitness)");
-      plot.setSize(600, 400);
-      return plot;
-    } catch (Exception e) {
-      e.printStackTrace(System.out);
-      return null;
-    }
+  public static void addMonitoring(final DAGNetwork network, final MonitoredObject monitoringRoot) {
+    network.visitNodes(node -> {
+      if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
+        node.setLayer(new MonitoringWrapperLayer(node.getLayer()).addTo(monitoringRoot));
+      }
+    });
   }
   
   /**
@@ -140,34 +94,34 @@ public class TestUtil {
    * @param trials the trials
    * @return the plot canvas
    */
-  public static PlotCanvas compare(String title, ProblemRun... trials) {
-    DoubleSummaryStatistics xStatistics = Arrays.stream(trials)
-      .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> step.iteraton))
+  public static PlotCanvas compare(final String title, final ProblemRun... trials) {
+    final DoubleSummaryStatistics xStatistics = Arrays.stream(trials)
+      .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> step.iteration))
       .filter(Double::isFinite)
       .summaryStatistics();
-    DoubleSummaryStatistics yStatistics = Arrays.stream(trials)
+    final DoubleSummaryStatistics yStatistics = Arrays.stream(trials)
       .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> java.lang.Math.log10(step.fitness)))
       .filter(Double::isFinite)
       .summaryStatistics();
     if (xStatistics.getCount() == 0) return null;
-    double[] lowerBound = {xStatistics.getMin(), yStatistics.getMin()};
-    double[] upperBound = {xStatistics.getMax(), yStatistics.getMax()};
+    final double[] lowerBound = {xStatistics.getMin(), yStatistics.getMin()};
+    final double[] upperBound = {xStatistics.getMax(), yStatistics.getMax()};
     try {
-      PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
+      final PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
       canvas.setTitle(title);
       canvas.setAxisLabels("Iteration", "log10(Fitness)");
       canvas.setSize(600, 400);
-      List<ProblemRun> filtered = Arrays.stream(trials).filter(x -> !x.history.isEmpty()).collect(Collectors.toList());
+      final List<ProblemRun> filtered = Arrays.stream(trials).filter(x -> !x.history.isEmpty()).collect(Collectors.toList());
       if (filtered.isEmpty()) return null;
-      for (ProblemRun trial : filtered) {
-        double[][] pts = trial.history.stream().map(step -> new double[]{
-          step.iteraton, Math.log10(step.fitness)})
+      for (final ProblemRun trial : filtered) {
+        final double[][] pts = trial.history.stream().map(step -> new double[]{
+          step.iteration, Math.log10(step.fitness)})
           .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
           .toArray(i -> new double[i][]);
         canvas.add(trial.plot(pts));
       }
       return canvas;
-    } catch (Exception e) {
+    } catch (final Exception e) {
       e.printStackTrace(System.out);
       return null;
     }
@@ -180,29 +134,29 @@ public class TestUtil {
    * @param trials the trials
    * @return the plot canvas
    */
-  public static PlotCanvas compareTime(String title, ProblemRun... trials) {
-    DoubleSummaryStatistics[] xStatistics = Arrays.stream(trials)
+  public static PlotCanvas compareTime(final String title, final ProblemRun... trials) {
+    final DoubleSummaryStatistics[] xStatistics = Arrays.stream(trials)
       .map(x -> x.history.stream().mapToDouble(step -> step.epochTime)
         .filter(Double::isFinite)
         .summaryStatistics()).toArray(i -> new DoubleSummaryStatistics[i]);
-    double totalTime = Arrays.stream(xStatistics).mapToDouble(x -> x.getMax() - x.getMin()).max().getAsDouble();
-    DoubleSummaryStatistics yStatistics = Arrays.stream(trials)
+    final double totalTime = Arrays.stream(xStatistics).mapToDouble(x -> x.getMax() - x.getMin()).max().getAsDouble();
+    final DoubleSummaryStatistics yStatistics = Arrays.stream(trials)
       .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> java.lang.Math.log10(step.fitness)))
       .filter(Double::isFinite)
       .summaryStatistics();
     if (yStatistics.getCount() == 0) return null;
-    double[] lowerBound = {0, yStatistics.getMin()};
-    double[] upperBound = {(totalTime) / 1000.0, yStatistics.getMax()};
-    PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
+    final double[] lowerBound = {0, yStatistics.getMin()};
+    final double[] upperBound = {totalTime / 1000.0, yStatistics.getMax()};
+    final PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
     canvas.setTitle(title);
     canvas.setAxisLabels("Time", "log10(Fitness)");
     canvas.setSize(600, 400);
-    List<ProblemRun> filtered = Arrays.stream(trials).filter(x -> !x.history.isEmpty()).collect(Collectors.toList());
+    final List<ProblemRun> filtered = Arrays.stream(trials).filter(x -> !x.history.isEmpty()).collect(Collectors.toList());
     if (filtered.isEmpty()) return null;
     for (int t = 0; t < filtered.size(); t++) {
-      ProblemRun trial = filtered.get(t);
-      DoubleSummaryStatistics trialStats = xStatistics[t];
-      double[][] pts = trial.history.stream().map(step -> {
+      final ProblemRun trial = filtered.get(t);
+      final DoubleSummaryStatistics trialStats = xStatistics[t];
+      final double[][] pts = trial.history.stream().map(step -> {
         return new double[]{(step.epochTime - trialStats.getMin()) / 1000.0, Math.log10(step.fitness)};
       }).filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
         .toArray(i -> new double[i][]);
@@ -212,70 +166,27 @@ public class TestUtil {
   }
   
   /**
-   * Add monitoring.
-   *
-   * @param network        the network
-   * @param monitoringRoot the monitoring root
-   */
-  public static void addMonitoring(DAGNetwork network, MonitoredObject monitoringRoot) {
-    network.visitNodes(node -> {
-      if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
-        node.setLayer(new MonitoringWrapperLayer(node.getLayer()).addTo(monitoringRoot));
-      }
-    });
-  }
-  
-  /**
-   * Remove monitoring.
-   *
-   * @param network the network
-   */
-  public static void removeMonitoring(DAGNetwork network) {
-    network.visitNodes(node -> {
-      if (node.getLayer() instanceof MonitoringWrapperLayer) {
-        node.setLayer(((MonitoringWrapperLayer) node.getLayer()).getInner());
-      }
-    });
-  }
-  
-  /**
-   * To formatted json string.
-   *
-   * @param metrics the metrics
-   * @return the string
-   */
-  public static String toFormattedJson(Map<String, Object> metrics) {
-    try {
-      ByteArrayOutputStream out = new ByteArrayOutputStream();
-      JsonUtil.writeJson(out, metrics);
-      return out.toString();
-    } catch (IOException e1) {
-      throw new RuntimeException(e1);
-    }
-  }
-  
-  /**
    * Remove performance wrappers.
    *
    * @param log     the log
    * @param network the network
    */
-  public static void extractPerformance(NotebookOutput log, DAGNetwork network) {
+  public static void extractPerformance(final NotebookOutput log, final DAGNetwork network) {
     log.p("Per-layer Performance Metrics:");
     log.code(() -> {
-      Map<NNLayer, MonitoringWrapperLayer> metrics = new HashMap<>();
+      final Map<NNLayer, MonitoringWrapperLayer> metrics = new HashMap<>();
       network.visitNodes(node -> {
-        if ((node.getLayer() instanceof MonitoringWrapperLayer)) {
-          MonitoringWrapperLayer layer = node.getLayer();
+        if (node.getLayer() instanceof MonitoringWrapperLayer) {
+          final MonitoringWrapperLayer layer = node.getLayer();
           metrics.put(layer.getInner(), layer);
         }
       });
       System.out.println("Forward Performance: \n\t" + metrics.entrySet().stream().map(e -> {
-        PercentileStatistics performance = e.getValue().getForwardPerformance();
+        final PercentileStatistics performance = e.getValue().getForwardPerformance();
         return String.format("%s -> %.6fs +- %.6fs (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
       }).reduce((a, b) -> a + "\n\t" + b));
       System.out.println("Backward Performance: \n\t" + metrics.entrySet().stream().map(e -> {
-        PercentileStatistics performance = e.getValue().getBackwardPerformance();
+        final PercentileStatistics performance = e.getValue().getBackwardPerformance();
         return String.format("%s -> %.6fs +- %.6fs (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
       }).reduce((a, b) -> a + "\n\t" + b));
     });
@@ -290,12 +201,42 @@ public class TestUtil {
   }
   
   /**
+   * Gets monitor.
+   *
+   * @param history the history
+   * @return the monitor
+   */
+  public static TrainingMonitor getMonitor(final List<StepRecord> history) {
+    return new TrainingMonitor() {
+      @Override
+      public void clear() {
+        super.clear();
+      }
+      
+      @Override
+      public void log(final String msg) {
+        System.out.println(msg);
+        if (null != TestUtil.originalOut && System.out != TestUtil.originalOut) {
+          TestUtil.originalOut.println(msg);
+        }
+        super.log(msg);
+      }
+      
+      @Override
+      public void onStepComplete(final Step currentPoint) {
+        history.add(new StepRecord(currentPoint.point.getMean(), currentPoint.time, currentPoint.iteration));
+        super.onStepComplete(currentPoint);
+      }
+    };
+  }
+  
+  /**
    * Add performance wrappers.
    *
    * @param log     the log
    * @param network the network
    */
-  public static void instrumentPerformance(NotebookOutput log, DAGNetwork network) {
+  public static void instrumentPerformance(final NotebookOutput log, final DAGNetwork network) {
     log.p("Adding performance wrappers");
     log.code(() -> {
       network.visitNodes(node -> {
@@ -310,66 +251,48 @@ public class TestUtil {
   }
   
   /**
-   * To graph graph.
+   * Plot plot canvas.
    *
-   * @param network the network
-   * @return the graph
+   * @param history the history
+   * @return the plot canvas
    */
-  public static Graph toGraph(DAGNetwork network) {
-    List<DAGNode> nodes = network.getNodes();
-    Map<UUID, MutableNode> graphNodes = nodes.stream().collect(Collectors.toMap(node -> node.getId(), node -> {
-      String name;
-      NNLayer layer = node.getLayer();
-      if (null == layer) {
-        name = node.getId().toString();
-      }
-      else {
-        Class<? extends NNLayer> layerClass = layer.getClass();
-        name = layerClass.getSimpleName() + "\n" + layer.getId();
-      }
-      return Factory.mutNode(name);
-    }));
-    Stream<UUID[]> stream = nodes.stream().flatMap(to -> {
-      return Arrays.stream(to.getInputs()).map(from -> {
-        return new UUID[]{from.getId(), to.getId()};
-      });
-    });
-    Map<UUID, List<UUID>> idMap = stream.collect(Collectors.groupingBy(x -> x[0],
-      Collectors.mapping(x -> x[1], Collectors.toList())));
-    nodes.forEach(to -> {
-      graphNodes.get(to.getId()).addLink(
-        idMap.getOrDefault(to.getId(), Arrays.asList()).stream().map(from -> {
-          return Link.to(graphNodes.get(from));
-        }).<LinkTarget>toArray(i -> new LinkTarget[i]));
-    });
-    LinkSource[] nodeArray = graphNodes.values().stream().map(x -> (LinkSource) x).toArray(i -> new LinkSource[i]);
-    return Factory.graph().with(nodeArray).generalAttr().with(RankDir.TOP_TO_BOTTOM).directed();
+  public static PlotCanvas plot(final List<StepRecord> history) {
+    try {
+      final PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
+        step.iteration, java.lang.Math.log10(step.fitness)})
+        .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
+        .toArray(i -> new double[i][]));
+      plot.setTitle("Convergence Plot");
+      plot.setAxisLabels("Iteration", "log10(Fitness)");
+      plot.setSize(600, 400);
+      return plot;
+    } catch (final Exception e) {
+      e.printStackTrace(System.out);
+      return null;
+    }
   }
   
   /**
-   * Add logging.
+   * Plot plot canvas.
    *
-   * @param network the network
+   * @param history the history
+   * @return the plot canvas
    */
-  public static void addLogging(DAGNetwork network) {
-    network.visitNodes(node -> {
-      if (!(node.getLayer() instanceof LoggingWrapperLayer)) {
-        node.setLayer(new LoggingWrapperLayer(node.getLayer()));
-      }
-    });
-  }
-  
-  /**
-   * Remove monitoring.
-   *
-   * @param network the network
-   */
-  public static void removeLogging(DAGNetwork network) {
-    network.visitNodes(node -> {
-      if (node.getLayer() instanceof LoggingWrapperLayer) {
-        node.setLayer(((LoggingWrapperLayer) node.getLayer()).getInner());
-      }
-    });
+  public static PlotCanvas plotTime(final List<StepRecord> history) {
+    try {
+      final LongSummaryStatistics timeStats = history.stream().mapToLong(x -> x.epochTime).summaryStatistics();
+      final PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
+        (step.epochTime - timeStats.getMin()) / 1000.0, java.lang.Math.log10(step.fitness)})
+        .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
+        .toArray(i -> new double[i][]));
+      plot.setTitle("Convergence Plot");
+      plot.setAxisLabels("Time", "log10(Fitness)");
+      plot.setSize(600, 400);
+      return plot;
+    } catch (final Exception e) {
+      e.printStackTrace(System.out);
+      return null;
+    }
   }
   
   /**
@@ -378,25 +301,25 @@ public class TestUtil {
    * @param log  the log
    * @param data the data
    */
-  public static void printDataStatistics(NotebookOutput log, Tensor[][] data) {
+  public static void printDataStatistics(final NotebookOutput log, final Tensor[][] data) {
     for (int col = 1; col < data[0].length; col++) {
-      int c = col;
+      final int c = col;
       log.out("Learned Representation Statistics for Column " + col + " (all bands)");
       log.code(() -> {
-        ScalarStatistics scalarStatistics = new ScalarStatistics();
+        final ScalarStatistics scalarStatistics = new ScalarStatistics();
         Arrays.stream(data)
           .flatMapToDouble(row -> Arrays.stream(row[c].getData()))
           .forEach(v -> scalarStatistics.add(v));
         return scalarStatistics.getMetrics();
       });
-      int _col = col;
+      final int _col = col;
       log.out("Learned Representation Statistics for Column " + col + " (by band)");
       log.code(() -> {
-        int[] dimensions = data[0][_col].getDimensions();
+        final int[] dimensions = data[0][_col].getDimensions();
         return IntStream.range(0, dimensions[2]).mapToObj(x -> x).flatMap(b -> {
           return Arrays.stream(data).map(r -> r[_col]).map(tensor -> {
-            ScalarStatistics scalarStatistics = new ScalarStatistics();
-            scalarStatistics.add(new Tensor(dimensions[0], dimensions[1]).fillByCoord(coord -> tensor.get(coord.getCoords()[0], coord.getCoords()[1], b)).getData());
+            final ScalarStatistics scalarStatistics = new ScalarStatistics();
+            scalarStatistics.add(new Tensor(dimensions[0], dimensions[1]).setByCoord(coord -> tensor.get(coord.getCoords()[0], coord.getCoords()[1], b)).getData());
             return scalarStatistics;
           });
         }).map(x -> x.getMetrics().toString()).reduce((a, b) -> a + "\n" + b).get();
@@ -410,17 +333,43 @@ public class TestUtil {
    * @param log     the log
    * @param history the history
    */
-  public static void printHistory(NotebookOutput log, List<Step> history) {
+  public static void printHistory(final NotebookOutput log, final List<StepRecord> history) {
     if (!history.isEmpty()) {
       log.out("Convergence Plot: ");
       log.code(() -> {
-        PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.getMean())}).toArray(i -> new double[i][]));
+        final PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.fitness)}).toArray(i -> new double[i][]));
         plot.setTitle("Convergence Plot");
         plot.setAxisLabels("Iteration", "log10(Fitness)");
         plot.setSize(600, 400);
         return plot;
       });
     }
+  }
+  
+  /**
+   * Remove monitoring.
+   *
+   * @param network the network
+   */
+  public static void removeLogging(final DAGNetwork network) {
+    network.visitNodes(node -> {
+      if (node.getLayer() instanceof LoggingWrapperLayer) {
+        node.setLayer(((LoggingWrapperLayer) node.getLayer()).getInner());
+      }
+    });
+  }
+  
+  /**
+   * Remove monitoring.
+   *
+   * @param network the network
+   */
+  public static void removeMonitoring(final DAGNetwork network) {
+    network.visitNodes(node -> {
+      if (node.getLayer() instanceof MonitoringWrapperLayer) {
+        node.setLayer(((MonitoringWrapperLayer) node.getLayer()).getInner());
+      }
+    });
   }
   
   /**
@@ -431,11 +380,11 @@ public class TestUtil {
    * @param normalize the normalize
    * @return the string
    */
-  public static String render(NotebookOutput log, Tensor tensor, boolean normalize) {
-    return renderToImages(tensor, normalize).map(image -> {
+  public static String render(final NotebookOutput log, final Tensor tensor, final boolean normalize) {
+    return TestUtil.renderToImages(tensor, normalize).map(image -> {
       try {
         return log.image(image, "");
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new RuntimeException(e);
       }
     }).reduce((a, b) -> a + b).get();
@@ -448,25 +397,25 @@ public class TestUtil {
    * @param normalize the normalize
    * @return the stream
    */
-  public static Stream<BufferedImage> renderToImages(Tensor tensor, boolean normalize) {
-    DoubleStatistics[] statistics = IntStream.range(0, tensor.getDimensions()[2]).mapToObj(band -> {
+  public static Stream<BufferedImage> renderToImages(final Tensor tensor, final boolean normalize) {
+    final DoubleStatistics[] statistics = IntStream.range(0, tensor.getDimensions()[2]).mapToObj(band -> {
       return new DoubleStatistics().accept(tensor.coordStream()
         .filter(x -> x.getCoords()[2] == band)
         .mapToDouble(c -> tensor.get(c)).toArray());
     }).toArray(i -> new DoubleStatistics[i]);
-    BiFunction<Double, DoubleStatistics, Double> transform = (value, stats) -> {
-      double width = Math.sqrt(2) * stats.getStandardDeviation();
-      double centered = value - stats.getAverage();
-      double distance = Math.abs(value - stats.getAverage());
-      double positiveMax = stats.getMax() - stats.getAverage();
-      double negativeMax = stats.getAverage() - stats.getMin();
+    final BiFunction<Double, DoubleStatistics, Double> transform = (value, stats) -> {
+      final double width = Math.sqrt(2) * stats.getStandardDeviation();
+      final double centered = value - stats.getAverage();
+      final double distance = Math.abs(value - stats.getAverage());
+      final double positiveMax = stats.getMax() - stats.getAverage();
+      final double negativeMax = stats.getAverage() - stats.getMin();
       final double unitValue;
       if (value < centered) {
         if (distance > width) {
           unitValue = 0.25 - 0.25 * ((distance - width) / (negativeMax - width));
         }
         else {
-          unitValue = 0.5 - 0.25 * ((distance) / (width));
+          unitValue = 0.5 - 0.25 * (distance / width);
         }
       }
       else {
@@ -474,13 +423,13 @@ public class TestUtil {
           unitValue = 0.75 + 0.25 * ((distance - width) / (positiveMax - width));
         }
         else {
-          unitValue = 0.5 + 0.25 * ((distance) / (width));
+          unitValue = 0.5 + 0.25 * (distance / width);
         }
       }
-      return (0xFF * unitValue);
+      return 0xFF * unitValue;
     };
     tensor.coordStream().collect(Collectors.groupingBy(x -> x.getCoords()[2], Collectors.toList()));
-    Tensor normal = tensor.mapCoords((c) -> transform.apply(tensor.get(c), statistics[c.getCoords()[2]]))
+    final Tensor normal = tensor.mapCoords((c) -> transform.apply(tensor.get(c), statistics[c.getCoords()[2]]))
       .map(v -> Math.min(0xFF, Math.max(0, v)));
     return (normalize ? normal : tensor).toImages().stream();
   }
@@ -492,11 +441,64 @@ public class TestUtil {
    * @param size   the size
    * @return the buffered image
    */
-  public static BufferedImage resize(BufferedImage source, int size) {
-    BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
-    Graphics2D graphics = (Graphics2D) image.getGraphics();
+  public static BufferedImage resize(final BufferedImage source, final int size) {
+    final BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+    final Graphics2D graphics = (Graphics2D) image.getGraphics();
     graphics.setRenderingHints(new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC));
     graphics.drawImage(source, 0, 0, size, size, null);
     return image;
+  }
+  
+  /**
+   * To formatted json string.
+   *
+   * @param metrics the metrics
+   * @return the string
+   */
+  public static String toFormattedJson(final Map<String, Object> metrics) {
+    try {
+      final ByteArrayOutputStream out = new ByteArrayOutputStream();
+      JsonUtil.writeJson(out, metrics);
+      return out.toString();
+    } catch (final IOException e1) {
+      throw new RuntimeException(e1);
+    }
+  }
+  
+  /**
+   * To graph graph.
+   *
+   * @param network the network
+   * @return the graph
+   */
+  public static Graph toGraph(final DAGNetwork network) {
+    final List<DAGNode> nodes = network.getNodes();
+    final Map<UUID, MutableNode> graphNodes = nodes.stream().collect(Collectors.toMap(node -> node.getId(), node -> {
+      String name;
+      final NNLayer layer = node.getLayer();
+      if (null == layer) {
+        name = node.getId().toString();
+      }
+      else {
+        final Class<? extends NNLayer> layerClass = layer.getClass();
+        name = layerClass.getSimpleName() + "\n" + layer.getId();
+      }
+      return Factory.mutNode(name);
+    }));
+    final Stream<UUID[]> stream = nodes.stream().flatMap(to -> {
+      return Arrays.stream(to.getInputs()).map(from -> {
+        return new UUID[]{from.getId(), to.getId()};
+      });
+    });
+    final Map<UUID, List<UUID>> idMap = stream.collect(Collectors.groupingBy(x -> x[0],
+      Collectors.mapping(x -> x[1], Collectors.toList())));
+    nodes.forEach(to -> {
+      graphNodes.get(to.getId()).addLink(
+        idMap.getOrDefault(to.getId(), Arrays.asList()).stream().map(from -> {
+          return Link.to(graphNodes.get(from));
+        }).<LinkTarget>toArray(i -> new LinkTarget[i]));
+    });
+    final LinkSource[] nodeArray = graphNodes.values().stream().map(x -> (LinkSource) x).toArray(i -> new LinkSource[i]);
+    return Factory.graph().with(nodeArray).generalAttr().with(RankDir.TOP_TO_BOTTOM).directed();
   }
 }

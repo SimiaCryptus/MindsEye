@@ -79,7 +79,7 @@ public final class BinaryChunkIterator implements Iterator<byte[]> {
    * @return the stream
    */
   public static <T> Stream<T> toStream(final Iterator<T> iterator) {
-    return toStream(iterator, 0);
+    return BinaryChunkIterator.toStream(iterator, 0);
   }
   
   /**
@@ -91,7 +91,7 @@ public final class BinaryChunkIterator implements Iterator<byte[]> {
    * @return the stream
    */
   public static <T> Stream<T> toStream(final Iterator<T> iterator, final int size) {
-    return toStream(iterator, size, false);
+    return BinaryChunkIterator.toStream(iterator, size, false);
   }
   
   /**
@@ -110,7 +110,7 @@ public final class BinaryChunkIterator implements Iterator<byte[]> {
   @Override
   public boolean hasNext() {
     try {
-      return 0 < this.in.available();
+      return 0 < in.available();
     } catch (final Throwable e) {
       return false;
     }
@@ -120,7 +120,7 @@ public final class BinaryChunkIterator implements Iterator<byte[]> {
   public byte[] next() {
     assert hasNext();
     try {
-      return read(this.in, this.recordSize);
+      return BinaryChunkIterator.read(in, recordSize);
     } catch (final IOException e) {
       throw new RuntimeException(e);
     }
@@ -132,6 +132,6 @@ public final class BinaryChunkIterator implements Iterator<byte[]> {
    * @return the stream
    */
   public Stream<byte[]> toStream() {
-    return toStream(this);
+    return BinaryChunkIterator.toStream(this);
   }
 }

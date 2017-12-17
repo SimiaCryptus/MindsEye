@@ -53,32 +53,12 @@ public abstract class NNResult {
   }
   
   /**
-   * Single result array nn result [ ].
-   *
-   * @param input the input
-   * @return the nn result [ ]
-   */
-  public static NNResult[] singleResultArray(Tensor[][] input) {
-    return Arrays.stream(input).map((Tensor[] x) -> new NNConstant(new TensorArray(x))).toArray(i -> new NNResult[i]);
-  }
-  
-  /**
-   * Single result array nn result [ ].
-   *
-   * @param input the input
-   * @return the nn result [ ]
-   */
-  public static NNResult[] singleResultArray(Tensor[] input) {
-    return Arrays.stream(input).map((Tensor x) -> new NNConstant(new TensorArray(x))).toArray(i -> new NNResult[i]);
-  }
-  
-  /**
    * Batch result array nn result [ ].
    *
    * @param batchData the batch data
    * @return the nn result [ ]
    */
-  public static NNResult[] batchResultArray(Tensor[][] batchData) {
+  public static NNResult[] batchResultArray(final Tensor[][] batchData) {
     return IntStream.range(0, batchData[0].length).mapToObj(inputIndex ->
       new NNConstant(new TensorArray(IntStream.range(0, batchData.length).mapToObj(trainingExampleId ->
         batchData[trainingExampleId][inputIndex]
@@ -86,11 +66,31 @@ public abstract class NNResult {
   }
   
   /**
+   * Single result array nn result [ ].
+   *
+   * @param input the input
+   * @return the nn result [ ]
+   */
+  public static NNResult[] singleResultArray(final Tensor[] input) {
+    return Arrays.stream(input).map((final Tensor x) -> new NNConstant(new TensorArray(x))).toArray(i -> new NNResult[i]);
+  }
+  
+  /**
+   * Single result array nn result [ ].
+   *
+   * @param input the input
+   * @return the nn result [ ]
+   */
+  public static NNResult[] singleResultArray(final Tensor[][] input) {
+    return Arrays.stream(input).map((final Tensor[] x) -> new NNConstant(new TensorArray(x))).toArray(i -> new NNResult[i]);
+  }
+  
+  /**
    * Accumulate.
    *
    * @param buffer the buffer
    */
-  public final void accumulate(DeltaSet<NNLayer> buffer) {
+  public final void accumulate(final DeltaSet<NNLayer> buffer) {
     accumulate(buffer, 1.0);
   }
   
@@ -100,8 +100,8 @@ public abstract class NNResult {
    * @param buffer the buffer
    * @param value  the value
    */
-  public final void accumulate(DeltaSet<NNLayer> buffer, double value) {
-    Tensor[] defaultVector = getData().stream().map(t -> t.map(v -> value)).toArray(i -> new Tensor[i]);
+  public final void accumulate(final DeltaSet<NNLayer> buffer, final double value) {
+    final Tensor[] defaultVector = getData().stream().map(t -> t.map(v -> value)).toArray(i -> new Tensor[i]);
     accumulate(buffer, new TensorArray(defaultVector));
   }
   
@@ -114,13 +114,6 @@ public abstract class NNResult {
   public abstract void accumulate(DeltaSet<NNLayer> buffer, final TensorList data);
   
   /**
-   * Is alive boolean.
-   *
-   * @return the boolean
-   */
-  public abstract boolean isAlive();
-  
-  /**
    * Gets data.
    *
    * @return the data
@@ -128,5 +121,12 @@ public abstract class NNResult {
   public TensorList getData() {
     return data;
   }
+  
+  /**
+   * Is alive boolean.
+   *
+   * @return the boolean
+   */
+  public abstract boolean isAlive();
   
 }

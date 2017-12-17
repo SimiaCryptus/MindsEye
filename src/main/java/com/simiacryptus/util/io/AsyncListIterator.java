@@ -41,9 +41,14 @@ public class AsyncListIterator<T> implements Iterator<T> {
    * @param queue  the queue
    * @param thread the thread
    */
-  public AsyncListIterator(List<T> queue, Thread thread) {
+  public AsyncListIterator(final List<T> queue, final Thread thread) {
     this.thread = thread;
     this.queue = queue;
+  }
+  
+  @Override
+  protected void finalize() throws Throwable {
+    super.finalize();
   }
   
   @Override
@@ -63,13 +68,8 @@ public class AsyncListIterator<T> implements Iterator<T> {
         }
       }
       return null;
-    } catch (InterruptedException e) {
+    } catch (final InterruptedException e) {
       throw new RuntimeException(e);
     }
-  }
-  
-  @Override
-  protected void finalize() throws Throwable {
-    super.finalize();
   }
 }

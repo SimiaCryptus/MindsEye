@@ -28,13 +28,13 @@ import com.simiacryptus.mindseye.lang.PointSample;
  */
 public class LineSearchPoint {
   /**
-   * The Point.
-   */
-  public final PointSample point;
-  /**
    * The Derivative.
    */
   public final double derivative;
+  /**
+   * The Point.
+   */
+  public final PointSample point;
   
   /**
    * Instantiates a new Line search point.
@@ -42,7 +42,7 @@ public class LineSearchPoint {
    * @param point      the point
    * @param derivative the derivative
    */
-  public LineSearchPoint(PointSample point, double derivative) {
+  public LineSearchPoint(final PointSample point, final double derivative) {
     this.point = point;
     this.derivative = derivative;
   }

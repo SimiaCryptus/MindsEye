@@ -38,12 +38,12 @@ public final class NNConstant extends NNResult {
    *
    * @param tensorArray the tensor array
    */
-  public NNConstant(TensorArray tensorArray) {
+  public NNConstant(final TensorArray tensorArray) {
     super(tensorArray);
   }
   
   @Override
-  public void accumulate(final DeltaSet buffer, final TensorList data) {
+  public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
     // Do Nothing
   }
   

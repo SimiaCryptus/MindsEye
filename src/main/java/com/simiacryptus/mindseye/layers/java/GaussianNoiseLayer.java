@@ -32,6 +32,7 @@ import java.util.stream.IntStream;
 /**
  * The type Gaussian noise layer.
  */
+@SuppressWarnings("serial")
 public class GaussianNoiseLayer extends NNLayer {
   
   
@@ -46,25 +47,25 @@ public class GaussianNoiseLayer extends NNLayer {
   };
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(GaussianNoiseLayer.class);
+  private long seed = GaussianNoiseLayer.random.get().nextLong();
   private double value;
-  private long seed = random.get().nextLong();
-  
-  /**
-   * Instantiates a new Gaussian noise layer.
-   *
-   * @param json the json
-   */
-  protected GaussianNoiseLayer(JsonObject json) {
-    super(json);
-    this.value = json.get("value").getAsDouble();
-  }
   
   /**
    * Instantiates a new Gaussian noise layer.
    */
   public GaussianNoiseLayer() {
     super();
-    this.setValue(1.0);
+    setValue(1.0);
+  }
+  
+  /**
+   * Instantiates a new Gaussian noise layer.
+   *
+   * @param json the json
+   */
+  protected GaussianNoiseLayer(final JsonObject json) {
+    super(json);
+    value = json.get("value").getAsDouble();
   }
   
   /**
@@ -73,12 +74,27 @@ public class GaussianNoiseLayer extends NNLayer {
    * @param json the json
    * @return the gaussian noise layer
    */
-  public static GaussianNoiseLayer fromJson(JsonObject json) {
+  public static GaussianNoiseLayer fromJson(final JsonObject json) {
     return new GaussianNoiseLayer(json);
   }
   
+  @Override
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final int itemCnt = inObj[0].getData().length();
+    final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
+      final Random random = new Random(seed);
+      final Tensor input = inObj[0].getData().get(dataIndex);
+      final Tensor output = input.map(x -> {
+        return x + random.nextGaussian() * getValue();
+      });
+      return output;
+    }).toArray(i -> new Tensor[i]);
+    return new Result(outputA, inObj[0]);
+  }
+  
+  @Override
   public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
+    final JsonObject json = super.getJsonStub();
     json.addProperty("value", value);
     return json;
   }
@@ -98,35 +114,21 @@ public class GaussianNoiseLayer extends NNLayer {
    * @param value the value
    * @return the value
    */
-  public GaussianNoiseLayer setValue(double value) {
+  public GaussianNoiseLayer setValue(final double value) {
     this.value = value;
     return this;
-  }
-  
-  @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    int itemCnt = inObj[0].getData().length();
-    Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      Random random = new Random(seed);
-      final Tensor input = inObj[0].getData().get(dataIndex);
-      final Tensor output = input.map(x -> {
-        return x + random.nextGaussian() * getValue();
-      });
-      return output;
-    }).toArray(i -> new Tensor[i]);
-    return new Result(outputA, inObj[0]);
-  }
-  
-  @Override
-  public List<double[]> state() {
-    return Arrays.asList();
   }
   
   /**
    * Shuffle.
    */
   public void shuffle() {
-    seed = random.get().nextLong();
+    seed = GaussianNoiseLayer.random.get().nextLong();
+  }
+  
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList();
   }
   
   private final class Result extends NNResult {
@@ -138,24 +140,24 @@ public class GaussianNoiseLayer extends NNLayer {
     }
     
     @Override
-    public void accumulate(final DeltaSet buffer, final TensorList delta) {
-      if (this.inObj.isAlive()) {
-        Tensor[] passbackA = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+    public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
+      if (inObj.isAlive()) {
+        final Tensor[] passbackA = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           final double[] deltaData = delta.get(dataIndex).getData();
-          final int[] dims = this.inObj.getData().get(dataIndex).getDimensions();
+          final int[] dims = inObj.getData().get(dataIndex).getDimensions();
           final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, deltaData[i]);
           }
           return passback;
         }).toArray(i -> new Tensor[i]);
-        this.inObj.accumulate(buffer, new TensorArray(passbackA));
+        inObj.accumulate(buffer, new TensorArray(passbackA));
       }
     }
     
     @Override
     public boolean isAlive() {
-      return this.inObj.isAlive() || !isFrozen();
+      return inObj.isAlive() || !isFrozen();
     }
     
   }

@@ -38,17 +38,17 @@ public class CrossDotMetaLayer extends NNLayer {
   
   /**
    * Instantiates a new Cross dot meta layer.
-   *
-   * @param id the id
    */
-  protected CrossDotMetaLayer(JsonObject id) {
-    super(id);
+  public CrossDotMetaLayer() {
   }
   
   /**
    * Instantiates a new Cross dot meta layer.
+   *
+   * @param id the id
    */
-  public CrossDotMetaLayer() {
+  protected CrossDotMetaLayer(final JsonObject id) {
+    super(id);
   }
   
   /**
@@ -57,26 +57,24 @@ public class CrossDotMetaLayer extends NNLayer {
    * @param json the json
    * @return the cross dot meta layer
    */
-  public static CrossDotMetaLayer fromJson(JsonObject json) {
+  public static CrossDotMetaLayer fromJson(final JsonObject json) {
     return new CrossDotMetaLayer(json);
   }
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    NNResult input = inObj[0];
-    int itemCnt = input.getData().length();
-    int dim = input.getData().get(0).dim();
-    Tensor results = new Tensor(dim, dim);
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final NNResult input = inObj[0];
+    final int itemCnt = input.getData().length();
+    final int dim = input.getData().get(0).dim();
+    final Tensor results = new Tensor(dim, dim);
     for (int i = 0; i < dim; i++) {
       for (int j = 0; j < dim; j++) {
-        if (i == j) continue;
+        if (i == j) {
+          continue;
+        }
         double v = 0;
         for (int k = 0; k < itemCnt; k++) {
-          double[] kk = input.getData().get(k).getData();
+          final double[] kk = input.getData().get(k).getData();
           v += kk[i] * kk[j];
         }
         results.set(new int[]{i, j}, v);
@@ -84,18 +82,20 @@ public class CrossDotMetaLayer extends NNLayer {
     }
     return new NNResult(results) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (input.isAlive()) {
-          Tensor delta = data.get(0);
-          Tensor feedback[] = new Tensor[itemCnt];
+          final Tensor delta = data.get(0);
+          final Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(dim));
           
           for (int i = 0; i < dim; i++) {
             for (int j = 0; j < dim; j++) {
-              if (i == j) continue;
-              double v = delta.get(i, j);
+              if (i == j) {
+                continue;
+              }
+              final double v = delta.get(i, j);
               for (int k = 0; k < itemCnt; k++) {
-                double[] kk = input.getData().get(k).getData();
+                final double[] kk = input.getData().get(k).getData();
                 feedback[k].add(i, v * kk[j]);
                 feedback[k].add(j, v * kk[i]);
               }
@@ -113,6 +113,11 @@ public class CrossDotMetaLayer extends NNLayer {
       }
       
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

@@ -29,16 +29,16 @@ import com.simiacryptus.util.io.NotebookOutput;
 /**
  * The type Json test.
  */
-public class JsonTest implements ComponentTest {
+public class JsonTest implements ComponentTest<ToleranceStatistics> {
   @Override
-  public ToleranceStatistics test(NotebookOutput log, NNLayer layer, Tensor... inputPrototype) {
+  public ToleranceStatistics test(final NotebookOutput log, final NNLayer layer, final Tensor... inputPrototype) {
     log.h3("Json Serialization");
     log.code(() -> {
-      JsonObject json = layer.getJson();
-      NNLayer echo = NNLayer.fromJson(json);
-      if ((echo == null)) throw new AssertionError("Failed to deserialize");
-      if ((layer == echo)) throw new AssertionError("Serialization did not copy");
-      if ((!layer.equals(echo))) throw new AssertionError("Serialization not equal");
+      final JsonObject json = layer.getJson();
+      final NNLayer echo = NNLayer.fromJson(json);
+      if (echo == null) throw new AssertionError("Failed to deserialize");
+      if (layer == echo) throw new AssertionError("Serialization did not copy");
+      if (!layer.equals(echo)) throw new AssertionError("Serialization not equal");
       return new GsonBuilder().setPrettyPrinting().create().toJson(json);
     });
     return null;

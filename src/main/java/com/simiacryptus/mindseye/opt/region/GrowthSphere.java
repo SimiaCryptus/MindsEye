@@ -31,38 +31,9 @@ import com.simiacryptus.util.ArrayUtil;
  * all possible weightings.
  */
 public class GrowthSphere implements TrustRegion {
+  private boolean allowShrink = true;
   private double growthFactor = 1.5;
   private double minRadius = 1;
-  private boolean allowShrink = true;
-  
-  @Override
-  public double[] project(double[] weights, double[] point) {
-    double stateMagnitude = length(weights);
-    double frontier = getRadius(stateMagnitude);
-    double pointMag = length(point);
-    if (pointMag < frontier && allowShrink) return point;
-    return ArrayUtil.multiply(point, frontier / pointMag);
-  }
-  
-  /**
-   * Length double.
-   *
-   * @param weights the weights
-   * @return the double
-   */
-  public double length(double[] weights) {
-    return ArrayUtil.magnitude(weights);
-  }
-  
-  /**
-   * Gets radius.
-   *
-   * @param stateMagnitude the state magnitude
-   * @return the radius
-   */
-  public double getRadius(double stateMagnitude) {
-    return Math.max(minRadius, stateMagnitude * growthFactor);
-  }
   
   /**
    * Gets growth factor.
@@ -79,7 +50,7 @@ public class GrowthSphere implements TrustRegion {
    * @param growthFactor the growth factor
    * @return the growth factor
    */
-  public GrowthSphere setGrowthFactor(double growthFactor) {
+  public GrowthSphere setGrowthFactor(final double growthFactor) {
     this.growthFactor = growthFactor;
     return this;
   }
@@ -99,9 +70,19 @@ public class GrowthSphere implements TrustRegion {
    * @param minRadius the min radius
    * @return the min radius
    */
-  public GrowthSphere setMinRadius(double minRadius) {
+  public GrowthSphere setMinRadius(final double minRadius) {
     this.minRadius = minRadius;
     return this;
+  }
+  
+  /**
+   * Gets radius.
+   *
+   * @param stateMagnitude the state magnitude
+   * @return the radius
+   */
+  public double getRadius(final double stateMagnitude) {
+    return Math.max(minRadius, stateMagnitude * growthFactor);
   }
   
   /**
@@ -119,8 +100,27 @@ public class GrowthSphere implements TrustRegion {
    * @param allowShrink the allow shrink
    * @return the allow shrink
    */
-  public GrowthSphere setAllowShrink(boolean allowShrink) {
+  public GrowthSphere setAllowShrink(final boolean allowShrink) {
     this.allowShrink = allowShrink;
     return this;
+  }
+  
+  /**
+   * Length double.
+   *
+   * @param weights the weights
+   * @return the double
+   */
+  public double length(final double[] weights) {
+    return ArrayUtil.magnitude(weights);
+  }
+  
+  @Override
+  public double[] project(final double[] weights, final double[] point) {
+    final double stateMagnitude = length(weights);
+    final double frontier = getRadius(stateMagnitude);
+    final double pointMag = length(point);
+    if (pointMag < frontier && allowShrink) return point;
+    return ArrayUtil.multiply(point, frontier / pointMag);
   }
 }

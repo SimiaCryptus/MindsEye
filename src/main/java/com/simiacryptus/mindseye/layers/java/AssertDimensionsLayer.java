@@ -33,20 +33,10 @@ import java.util.stream.IntStream;
 /**
  * The type Assert dimensions layer.
  */
+@SuppressWarnings("serial")
 public class AssertDimensionsLayer extends NNLayer {
   
   private final int[] dims;
-  
-  /**
-   * Instantiates a new Assert dimensions layer.
-   *
-   * @param json the json
-   */
-  protected AssertDimensionsLayer(JsonObject json) {
-    super(json);
-    JsonArray dimsJson = json.get("dims").getAsJsonArray();
-    this.dims = IntStream.range(0, dimsJson.size()).map(i -> dimsJson.get(i).getAsInt()).toArray();
-  }
   
   /**
    * Instantiates a new Assert dimensions layer.
@@ -59,39 +49,35 @@ public class AssertDimensionsLayer extends NNLayer {
   }
   
   /**
+   * Instantiates a new Assert dimensions layer.
+   *
+   * @param json the json
+   */
+  protected AssertDimensionsLayer(final JsonObject json) {
+    super(json);
+    final JsonArray dimsJson = json.get("dims").getAsJsonArray();
+    dims = IntStream.range(0, dimsJson.size()).map(i -> dimsJson.get(i).getAsInt()).toArray();
+  }
+  
+  /**
    * From json assert dimensions layer.
    *
    * @param json the json
    * @return the assert dimensions layer
    */
-  public static AssertDimensionsLayer fromJson(JsonObject json) {
+  public static AssertDimensionsLayer fromJson(final JsonObject json) {
     return new AssertDimensionsLayer(json);
   }
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    JsonArray dimsJson = new JsonArray();
-    for (int dim : dims) {
-      dimsJson.add(new JsonPrimitive(dim));
-    }
-    json.add("dims", dimsJson);
-    return json;
-  }
-  
   @Override
-  public List<double[]> state() {
-    return Arrays.asList();
-  }
-  
-  @Override
-  public NNResult eval(NNExecutionContext nncontext, NNResult... array) {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... array) {
     if (0 == array.length) {
       throw new IllegalArgumentException();
     }
     if (0 == array[0].getData().length()) {
       throw new IllegalArgumentException();
     }
-    int[] inputDims = array[0].getData().get(0).getDimensions();
+    final int[] inputDims = array[0].getData().get(0).getDimensions();
     if (!Arrays.equals(inputDims, dims)) {
       throw new IllegalArgumentException(Arrays.toString(inputDims) + " != " + Arrays.toString(dims));
     }
@@ -101,6 +87,22 @@ public class AssertDimensionsLayer extends NNLayer {
   @Override
   public List<NNLayer> getChildren() {
     return super.getChildren();
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    final JsonArray dimsJson = new JsonArray();
+    for (final int dim : dims) {
+      dimsJson.add(new JsonPrimitive(dim));
+    }
+    json.add("dims", dimsJson);
+    return json;
+  }
+  
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList();
   }
   
 }

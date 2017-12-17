@@ -33,8 +33,13 @@ public class LayerTrustRegionMap extends TrustRegionStrategy {
   private final Map<NNLayer, TrustRegion> regionPolicies = new HashMap<>();
   private TrustRegion defaultRegionPolicy = null;
   
-  public TrustRegion getRegionPolicy(NNLayer layer) {
-    return regionPolicies.getOrDefault(layer, defaultRegionPolicy);
+  /**
+   * Gets default region policy.
+   *
+   * @return the default region policy
+   */
+  public TrustRegion getDefaultRegionPolicy() {
+    return defaultRegionPolicy;
   }
   
   /**
@@ -46,13 +51,14 @@ public class LayerTrustRegionMap extends TrustRegionStrategy {
     return regionPolicies;
   }
   
-  /**
-   * Gets default region policy.
-   *
-   * @return the default region policy
-   */
-  public TrustRegion getDefaultRegionPolicy() {
-    return defaultRegionPolicy;
+  @Override
+  public TrustRegion getRegionPolicy(final NNLayer layer) {
+    return regionPolicies.getOrDefault(layer, defaultRegionPolicy);
+  }
+  
+  @Override
+  public void reset() {
+    inner.reset();
   }
   
   /**
@@ -61,13 +67,8 @@ public class LayerTrustRegionMap extends TrustRegionStrategy {
    * @param defaultRegionPolicy the default region policy
    * @return the default region policy
    */
-  public TrustRegionStrategy setDefaultRegionPolicy(TrustRegion defaultRegionPolicy) {
+  public TrustRegionStrategy setDefaultRegionPolicy(final TrustRegion defaultRegionPolicy) {
     this.defaultRegionPolicy = defaultRegionPolicy;
     return this;
-  }
-  
-  @Override
-  public void reset() {
-    inner.reset();
   }
 }

@@ -29,17 +29,17 @@ import java.util.List;
  */
 public interface Problem {
   /**
+   * Gets history.
+   *
+   * @return the history
+   */
+  List<StepRecord> getHistory();
+  
+  /**
    * Run problem.
    *
    * @param log the log
    * @return the problem
    */
   Problem run(NotebookOutput log);
-  
-  /**
-   * Gets history.
-   *
-   * @return the history
-   */
-  List<StepRecord> getHistory();
 }

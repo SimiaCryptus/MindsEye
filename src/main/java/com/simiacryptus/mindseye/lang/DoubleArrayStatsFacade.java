@@ -37,30 +37,18 @@ public class DoubleArrayStatsFacade {
    *
    * @param data the data
    */
-  public DoubleArrayStatsFacade(double[] data) {
+  public DoubleArrayStatsFacade(final double[] data) {
     this.data = data;
   }
   
   
   /**
-   * Sum double.
+   * Length int.
    *
-   * @return the double
+   * @return the int
    */
-  public double sum() {
-    DoubleSummaryStatistics statistics = Arrays.stream(data).summaryStatistics();
-    return statistics.getSum();
-  }
-  
-  /**
-   * Sum sq double.
-   *
-   * @return the double
-   */
-  public double sumSq() {
-    DoubleStream doubleStream = Arrays.stream(data).map((double x) -> x * x);
-    DoubleSummaryStatistics statistics = doubleStream.summaryStatistics();
-    return statistics.getSum();
+  public int length() {
+    return data.length;
   }
   
   /**
@@ -73,11 +61,23 @@ public class DoubleArrayStatsFacade {
   }
   
   /**
-   * Length int.
+   * Sum double.
    *
-   * @return the int
+   * @return the double
    */
-  public int length() {
-    return data.length;
+  public double sum() {
+    final DoubleSummaryStatistics statistics = Arrays.stream(data).summaryStatistics();
+    return statistics.getSum();
+  }
+  
+  /**
+   * Sum sq double.
+   *
+   * @return the double
+   */
+  public double sumSq() {
+    final DoubleStream doubleStream = Arrays.stream(data).map((final double x) -> x * x);
+    final DoubleSummaryStatistics statistics = doubleStream.summaryStatistics();
+    return statistics.getSum();
   }
 }

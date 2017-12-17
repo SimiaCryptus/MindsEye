@@ -34,6 +34,7 @@ import java.util.UUID;
  * In general, these components define differentiable functions and the accompanying derivatives.
  * The interface is designed to support composability; see DAGNetwork for composition details.
  */
+@SuppressWarnings("serial")
 public abstract class NNLayer implements Serializable {
   
   private final UUID id;
@@ -42,24 +43,28 @@ public abstract class NNLayer implements Serializable {
   
   /**
    * Instantiates a new Nn layer.
-   *
-   * @param json the json
    */
-  protected NNLayer(JsonObject json) {
-    if (!getClass().getCanonicalName().equals(json.get("class").getAsString())) {
-      throw new IllegalArgumentException(getClass().getCanonicalName() + " != " + json.get("class").getAsString());
-    }
-    this.id = UUID.fromString(json.get("id").getAsString());
-    if (json.has("isFrozen")) setFrozen(json.get("isFrozen").getAsBoolean());
-    if (json.has("name")) setName(json.get("name").getAsString());
+  protected NNLayer() {
+    id = UUID.randomUUID();
+    name = getClass().getSimpleName() + "/" + getId();
   }
   
   /**
    * Instantiates a new Nn layer.
+   *
+   * @param json the json
    */
-  protected NNLayer() {
-    this.id = UUID.randomUUID();
-    this.name = getClass().getSimpleName() + "/" + getId();
+  protected NNLayer(final JsonObject json) {
+    if (!getClass().getCanonicalName().equals(json.get("class").getAsString())) {
+      throw new IllegalArgumentException(getClass().getCanonicalName() + " != " + json.get("class").getAsString());
+    }
+    id = UUID.fromString(json.get("id").getAsString());
+    if (json.has("isFrozen")) {
+      setFrozen(json.get("isFrozen").getAsBoolean());
+    }
+    if (json.has("name")) {
+      setName(json.get("name").getAsString());
+    }
   }
   
   /**
@@ -68,7 +73,7 @@ public abstract class NNLayer implements Serializable {
    * @param id   the id
    * @param name the name
    */
-  protected NNLayer(UUID id, String name) {
+  protected NNLayer(final UUID id, final String name) {
     this.id = id;
     this.name = name;
   }
@@ -79,12 +84,12 @@ public abstract class NNLayer implements Serializable {
    * @param inner the inner
    * @return the nn layer
    */
-  public static NNLayer fromJson(JsonObject inner) {
-    String className = inner.get("class").getAsString();
+  public static NNLayer fromJson(final JsonObject inner) {
+    final String className = inner.get("class").getAsString();
     try {
-      Class<?> clazz = Class.forName(className);
+      final Class<?> clazz = Class.forName(className);
       if (null == clazz) throw new ClassNotFoundException(className);
-      Method method = clazz.getMethod("fromJson", JsonObject.class);
+      final Method method = clazz.getMethod("fromJson", JsonObject.class);
       if (method.getDeclaringClass() == NNLayer.class) {
         throw new IllegalArgumentException("Cannot find deserialization method for " + className);
       }
@@ -95,26 +100,27 @@ public abstract class NNLayer implements Serializable {
   }
   
   /**
-   * Copy nn layer.
-   *
-   * @return the nn layer
-   */
-  public NNLayer copy() {
-    return NNLayer.fromJson(getJson());
-  }
-  
-  /**
    * As t.
    *
    * @param <T>         the type parameter
    * @param targetClass the target class
    * @return the t
    */
-  public <T extends NNLayer> T as(Class<T> targetClass) {
-    JsonObject json = getJson();
+  @SuppressWarnings("unchecked")
+  public <T extends NNLayer> T as(final Class<T> targetClass) {
+    final JsonObject json = getJson();
     json.remove("class");
     json.addProperty("class", targetClass.getCanonicalName());
-    return (T) fromJson(json);
+    return (T) NNLayer.fromJson(json);
+  }
+  
+  /**
+   * Copy nn layer.
+   *
+   * @return the nn layer
+   */
+  public NNLayer copy() {
+    return NNLayer.fromJson(getJson());
   }
   
   @Override
@@ -129,12 +135,12 @@ public abstract class NNLayer implements Serializable {
       return false;
     }
     final NNLayer other = (NNLayer) obj;
-    if (this.getId() == null) {
+    if (getId() == null) {
       if (other.getId() != null) {
         return false;
       }
     }
-    else if (!this.getId().equals(other.getId())) {
+    else if (!getId().equals(other.getId())) {
       return false;
     }
     return true;
@@ -147,29 +153,29 @@ public abstract class NNLayer implements Serializable {
    * @param array     the array
    * @return the nn result
    */
-  public final NNResult eval(NNExecutionContext nncontext, final Tensor... array) {
-    return eval(nncontext, NNResult.singleResultArray(array));
-  }
-  
-  /**
-   * Eval nn result.
-   *
-   * @param nncontext the nncontext
-   * @param array     the array
-   * @return the nn result
-   */
-  public final NNResult eval(NNExecutionContext nncontext, final Tensor[][] array) {
-    return eval(nncontext, NNResult.singleResultArray(array));
-  }
-  
-  /**
-   * Eval nn result.
-   *
-   * @param nncontext the nncontext
-   * @param array     the array
-   * @return the nn result
-   */
   public abstract NNResult eval(NNExecutionContext nncontext, NNResult... array);
+  
+  /**
+   * Eval nn result.
+   *
+   * @param nncontext the nncontext
+   * @param array     the array
+   * @return the nn result
+   */
+  public final NNResult eval(final NNExecutionContext nncontext, final Tensor... array) {
+    return eval(nncontext, NNResult.singleResultArray(array));
+  }
+  
+  /**
+   * Eval nn result.
+   *
+   * @param nncontext the nncontext
+   * @param array     the array
+   * @return the nn result
+   */
+  public final NNResult eval(final NNExecutionContext nncontext, final Tensor[][] array) {
+    return eval(nncontext, NNResult.singleResultArray(array));
+  }
   
   /**
    * Freeze nn layer.
@@ -195,8 +201,15 @@ public abstract class NNLayer implements Serializable {
    * @return the id
    */
   public Object getId() {
-    return this.id;
+    return id;
   }
+  
+  /**
+   * Gets json.
+   *
+   * @return the json
+   */
+  public abstract JsonObject getJson();
   
   /**
    * Gets json string.
@@ -206,13 +219,6 @@ public abstract class NNLayer implements Serializable {
   public String getJsonString() {
     return new GsonBuilder().setPrettyPrinting().create().toJson(getJson());
   }
-  
-  /**
-   * Gets json.
-   *
-   * @return the json
-   */
-  public abstract JsonObject getJson();
   
   /**
    * Gets json stub.
@@ -228,9 +234,29 @@ public abstract class NNLayer implements Serializable {
     return json;
   }
   
+  /**
+   * Gets name.
+   *
+   * @return the name
+   */
+  public String getName() {
+    return name;
+  }
+  
+  /**
+   * Sets name.
+   *
+   * @param name the name
+   * @return the name
+   */
+  public NNLayer setName(final String name) {
+    this.name = name;
+    return this;
+  }
+  
   @Override
   public final int hashCode() {
-    return this.getId().hashCode();
+    return getId().hashCode();
   }
   
   /**
@@ -239,7 +265,7 @@ public abstract class NNLayer implements Serializable {
    * @return the boolean
    */
   public boolean isFrozen() {
-    return this.frozen;
+    return frozen;
   }
   
   /**
@@ -258,7 +284,6 @@ public abstract class NNLayer implements Serializable {
    *
    * @return the nn layer
    */
-  @SuppressWarnings("unchecked")
   protected final NNLayer self() {
     return this;
   }
@@ -273,25 +298,5 @@ public abstract class NNLayer implements Serializable {
   @Override
   public final String toString() {
     return getName();
-  }
-  
-  /**
-   * Gets name.
-   *
-   * @return the name
-   */
-  public String getName() {
-    return name;
-  }
-  
-  /**
-   * Sets name.
-   *
-   * @param name the name
-   * @return the name
-   */
-  public NNLayer setName(String name) {
-    this.name = name;
-    return this;
   }
 }

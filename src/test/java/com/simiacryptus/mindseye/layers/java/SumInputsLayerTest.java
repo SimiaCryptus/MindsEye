@@ -27,40 +27,9 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
  */
 public class SumInputsLayerTest {
   /**
-   * The type Nn test.
-   */
-  public static class NNTest extends LayerTestBase {
-    
-    @Override
-    public NNLayer getLayer(int[][] inputSize) {
-      return new SumInputsLayer();
-    }
-    
-    @Override
-    public int[][] getInputDims() {
-      return new int[][]{
-        {3}, {3}
-      };
-    }
-    
-    @Override
-    public int[][] getPerfDims() {
-      return new int[][]{
-        {100}, {100}
-      };
-    }
-    
-  }
-  
-  /**
    * The type N 1 test.
    */
   public static class N1Test extends LayerTestBase {
-    
-    @Override
-    public NNLayer getLayer(int[][] inputSize) {
-      return new SumInputsLayer();
-    }
     
     @Override
     public int[][] getInputDims() {
@@ -68,11 +37,42 @@ public class SumInputsLayerTest {
         {3}, {1}
       };
     }
+  
+    @Override
+    public NNLayer getLayer(final int[][] inputSize) {
+      return new SumInputsLayer();
+    }
     
     @Override
     public int[][] getPerfDims() {
       return new int[][]{
         {100}, {1}
+      };
+    }
+    
+  }
+  
+  /**
+   * The type Nn test.
+   */
+  public static class NNTest extends LayerTestBase {
+    
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {3}, {3}
+      };
+    }
+  
+    @Override
+    public NNLayer getLayer(final int[][] inputSize) {
+      return new SumInputsLayer();
+    }
+    
+    @Override
+    public int[][] getPerfDims() {
+      return new int[][]{
+        {100}, {100}
       };
     }
     

@@ -33,6 +33,7 @@ import java.util.function.IntToDoubleFunction;
 /**
  * The type Convolution layer.
  */
+@SuppressWarnings("serial")
 public class ConvolutionLayer extends NNLayer implements LayerPrecision<ConvolutionLayer> {
   
   /**
@@ -47,21 +48,7 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
    * The Stride y.
    */
   int strideY = 1;
-  
   private Precision precision = Precision.Double;
-  
-  /**
-   * Instantiates a new Convolution layer.
-   *
-   * @param json the json
-   */
-  protected ConvolutionLayer(JsonObject json) {
-    super(json);
-    this.kernel = Tensor.fromJson(json.get("filter"));
-    this.strideX = json.get("strideX").getAsInt();
-    this.strideY = json.get("strideY").getAsInt();
-    this.precision = Precision.valueOf(json.get("precision").getAsString());
-  }
   
   /**
    * Instantiates a new Convolution layer.
@@ -73,25 +60,11 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   /**
    * Instantiates a new Convolution layer.
    *
-   * @param kernel the filter
-   */
-  protected ConvolutionLayer(Tensor kernel) {
-    super();
-    if (kernel.getDimensions().length != 3) throw new IllegalArgumentException();
-    if (kernel.getDimensions()[0] <= 0) throw new IllegalArgumentException();
-    if (kernel.getDimensions()[1] <= 0) throw new IllegalArgumentException();
-    if (kernel.getDimensions()[2] <= 0) throw new IllegalArgumentException();
-    this.kernel = kernel;
-  }
-  
-  /**
-   * Instantiates a new Convolution layer.
-   *
    * @param width  the width
    * @param height the height
    * @param bands  the bands
    */
-  public ConvolutionLayer(final int width, int height, final int bands) {
+  public ConvolutionLayer(final int width, final int height, final int bands) {
     this(new Tensor(width, height, bands));
   }
   
@@ -103,18 +76,35 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
    * @param inputBands  the input bands
    * @param outputBands the output bands
    */
-  public ConvolutionLayer(final int width, int height, final int inputBands, final int outputBands) {
+  public ConvolutionLayer(final int width, final int height, final int inputBands, final int outputBands) {
     this(width, height, inputBands * outputBands);
   }
   
   /**
-   * From json convolution layer.
+   * Instantiates a new Convolution layer.
    *
    * @param json the json
-   * @return the convolution layer
    */
-  public static ConvolutionLayer fromJson(JsonObject json) {
-    return new ConvolutionLayer(json);
+  protected ConvolutionLayer(final JsonObject json) {
+    super(json);
+    kernel = Tensor.fromJson(json.get("filter"));
+    strideX = json.get("strideX").getAsInt();
+    strideY = json.get("strideY").getAsInt();
+    precision = Precision.valueOf(json.get("precision").getAsString());
+  }
+  
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param kernel the filter
+   */
+  protected ConvolutionLayer(final Tensor kernel) {
+    super();
+    if (kernel.getDimensions().length != 3) throw new IllegalArgumentException();
+    if (kernel.getDimensions()[0] <= 0) throw new IllegalArgumentException();
+    if (kernel.getDimensions()[1] <= 0) throw new IllegalArgumentException();
+    if (kernel.getDimensions()[2] <= 0) throw new IllegalArgumentException();
+    this.kernel = kernel;
   }
   
   /**
@@ -129,13 +119,14 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     }
   }
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("filter", kernel.toJson());
-    json.addProperty("strideX", strideX);
-    json.addProperty("strideY", strideY);
-    json.addProperty("precision",precision.name());
-    return json;
+  /**
+   * From json convolution layer.
+   *
+   * @param json the json
+   * @return the convolution layer
+   */
+  public static ConvolutionLayer fromJson(final JsonObject json) {
+    return new ConvolutionLayer(json);
   }
   
   /**
@@ -145,25 +136,25 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
    * @return the convolution layer
    */
   public ConvolutionLayer addWeights(final DoubleSupplier f) {
-    add(f, this.kernel.getData());
+    ConvolutionLayer.add(f, kernel.getData());
     return this;
   }
   
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    PipelineNetwork network = new PipelineNetwork();
-    List<SimpleConvolutionLayer> subLayers = new ArrayList<>();
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final PipelineNetwork network = new PipelineNetwork();
+    final List<SimpleConvolutionLayer> subLayers = new ArrayList<>();
     // Extract Weights
-    int[] filterDimensions = kernel.getDimensions();
-    int[] inputDimensions = inObj[0].getData().getDimensions();
-    int inputBands = inputDimensions[2];
-    int outputBands = filterDimensions[2] / inputBands;
-    int inputBandsSq = inputBands * inputBands;
+    final int[] filterDimensions = kernel.getDimensions();
+    final int[] inputDimensions = inObj[0].getData().getDimensions();
+    final int inputBands = inputDimensions[2];
+    final int outputBands = filterDimensions[2] / inputBands;
+    final int inputBandsSq = inputBands * inputBands;
     for (int offset = 0; offset < filterDimensions[2]; offset += inputBandsSq) {
-      Tensor batchKernel = new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq);
-      int _offset = offset;
-      batchKernel.fillByCoord(batchCoord -> {
-        int filterBandT = getFilterBand(inputBands, outputBands, _offset, batchCoord);
+      final Tensor batchKernel = new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq);
+      final int _offset = offset;
+      batchKernel.setByCoord(batchCoord -> {
+        final int filterBandT = getFilterBand(inputBands, outputBands, _offset, batchCoord);
         if (_offset + batchCoord.getCoords()[2] < filterDimensions[2]) {
           return kernel.get(batchCoord.getCoords()[0], batchCoord.getCoords()[1], filterBandT);
         }
@@ -174,35 +165,37 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
       subLayers.add(new SimpleConvolutionLayer(batchKernel)
         .setStrideX(strideX).setStrideY(strideY).setPrecision(precision));
     }
-    DAGNode input = network.getHead();
+    final DAGNode input = network.getHead();
     network.add(new ImgConcatLayer().setMaxBands(outputBands).setPrecision(precision),
       subLayers.stream().map(l -> {
         return network.add(l, input);
       }).toArray(i -> new DAGNode[i]));
-    if (isFrozen()) network.freeze();
-    NNResult innerResult = network.eval(nncontext, inObj);
+    if (isFrozen()) {
+      network.freeze();
+    }
+    final NNResult innerResult = network.eval(nncontext, inObj);
     return new NNResult(innerResult.getData()) {
       @Override
-      public void accumulate(DeltaSet<NNLayer> deltaSet, TensorList data) {
-        innerResult.accumulate(deltaSet, data);
+      public void accumulate(final DeltaSet<NNLayer> xxx, final TensorList data) {
+        innerResult.accumulate(xxx, data);
         // Extract Deltas
-        Tensor filterDelta = new Tensor(filterDimensions);
+        final Tensor filterDelta = new Tensor(filterDimensions);
         for (int batchNumber = 0; batchNumber < subLayers.size(); batchNumber++) {
-          SimpleConvolutionLayer batchLayer = subLayers.get(batchNumber);
-          Delta<NNLayer> subnetDelta = deltaSet.getMap().remove(batchLayer);
+          final SimpleConvolutionLayer batchLayer = subLayers.get(batchNumber);
+          final Delta<NNLayer> subnetDelta = xxx.getMap().remove(batchLayer);
           if (null != subnetDelta) {
-            int[] batchDimensions = batchLayer.kernel.getDimensions();
-            Tensor batchDelta = new Tensor(null == subnetDelta ? null : subnetDelta.getDelta(), batchDimensions);
-            int offset = batchNumber * inputBandsSq;
+            final int[] batchDimensions = batchLayer.kernel.getDimensions();
+            final Tensor batchDelta = new Tensor(null == subnetDelta ? null : subnetDelta.getDelta(), batchDimensions);
+            final int offset = batchNumber * inputBandsSq;
             batchDelta.coordStream().forEach(batchCoord -> {
               if (offset + batchCoord.getCoords()[2] < filterDimensions[2]) {
-                int bandT = getFilterBand(inputBands, outputBands, offset, batchCoord);
+                final int bandT = getFilterBand(inputBands, outputBands, offset, batchCoord);
                 filterDelta.set(batchCoord.getCoords()[0], batchCoord.getCoords()[1], bandT, batchDelta.get(batchCoord));
               }
             });
           }
         }
-        deltaSet.get(ConvolutionLayer.this, ConvolutionLayer.this.kernel.getData()).addInPlace(filterDelta.getData());
+        xxx.get(ConvolutionLayer.this, kernel.getData()).addInPlace(filterDelta.getData());
       }
       
       @Override
@@ -221,22 +214,32 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
    * @param coord       the coord
    * @return the filter band
    */
-  public int getFilterBand(int inputBands, int outputBands, int offset, Coordinate coord) {
-    int filterBand = offset + coord.getCoords()[2];
-    int filterBandX = filterBand % inputBands;
-    int filterBandY = (filterBand - filterBandX) / inputBands;
+  public int getFilterBand(final int inputBands, final int outputBands, final int offset, final Coordinate coord) {
+    final int filterBand = offset + coord.getCoords()[2];
+    final int filterBandX = filterBand % inputBands;
+    final int filterBandY = (filterBand - filterBandX) / inputBands;
     assert filterBand == filterBandY * inputBands + filterBandX;
     return filterBandX * outputBands + filterBandY;
   }
   
-  /**
-   * Set convolution layer.
-   *
-   * @param f the f
-   * @return the convolution layer
-   */
-  public ConvolutionLayer set(final IntToDoubleFunction f) {
-    this.kernel.set(f);
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    json.add("filter", kernel.toJson());
+    json.addProperty("strideX", strideX);
+    json.addProperty("strideY", strideY);
+    json.addProperty("precision", precision.name());
+    return json;
+  }
+  
+  @Override
+  public Precision getPrecision() {
+    return precision;
+  }
+  
+  @Override
+  public ConvolutionLayer setPrecision(final Precision precision) {
+    this.precision = precision;
     return this;
   }
   
@@ -247,20 +250,22 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
    * @return the weights
    */
   public ConvolutionLayer set(final DoubleSupplier f) {
-    return set(i->f.getAsDouble());
+    return set(i -> f.getAsDouble());
+  }
+  
+  /**
+   * Set convolution layer.
+   *
+   * @param f the f
+   * @return the convolution layer
+   */
+  public ConvolutionLayer set(final IntToDoubleFunction f) {
+    kernel.set(f);
+    return this;
   }
   
   @Override
   public List<double[]> state() {
-    return Arrays.asList(this.kernel.getData());
-  }
-  
-  public Precision getPrecision() {
-    return precision;
-  }
-  
-  public ConvolutionLayer setPrecision(Precision precision) {
-    this.precision = precision;
-    return this;
+    return Arrays.asList(kernel.getData());
   }
 }

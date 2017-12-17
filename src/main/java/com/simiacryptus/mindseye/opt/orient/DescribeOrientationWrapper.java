@@ -42,36 +42,24 @@ public class DescribeOrientationWrapper implements OrientationStrategy<LineSearc
    *
    * @param inner the inner
    */
-  public DescribeOrientationWrapper(OrientationStrategy<? extends LineSearchCursor> inner) {
+  public DescribeOrientationWrapper(final OrientationStrategy<? extends LineSearchCursor> inner) {
     this.inner = inner;
   }
   
   /**
-   * Render string.
+   * Gets id.
    *
-   * @param weights   the weights
-   * @param direction the direction
-   * @return the string
+   * @param x the x
+   * @return the id
    */
-  public static String render(StateSet<NNLayer> weights, DeltaSet<NNLayer> direction) {
-    Map<String, String> data = weights.stream()
-      .collect(Collectors.groupingBy(x -> getId(x), Collectors.toList())).entrySet().stream()
-      .collect(Collectors.toMap(x -> x.getKey(), (Map.Entry<String, List<State<NNLayer>>> list) -> {
-        List<State<NNLayer>> deltaList = list.getValue();
-        if (1 == deltaList.size()) {
-          State weightDelta = deltaList.get(0);
-          return render(weightDelta, direction.getMap().get(weightDelta.layer));
-        }
-        else {
-          return deltaList.stream().map(weightDelta -> {
-            return render(weightDelta, direction.getMap().get(weightDelta.layer));
-          }).limit(10)
-            .reduce((a, b) -> a + "\n" + b).orElse("");
-        }
-      }));
-    return data.entrySet().stream().map(e -> String.format("%s = %s", e.getKey(), e.getValue()))
-      .map(str -> str.replaceAll("\n", "\n\t"))
-      .reduce((a, b) -> a + "\n" + b).orElse("");
+  public static String getId(final DoubleBuffer<NNLayer> x) {
+    final String name = x.layer.getName();
+    final String className = x.layer.getClass().getSimpleName();
+    return name.contains(className) ? className : name;
+//    if(x.layer instanceof PlaceholderLayer) {
+//      return "Input";
+//    }
+//    return x.layer.toString();
   }
   
   /**
@@ -81,35 +69,47 @@ public class DescribeOrientationWrapper implements OrientationStrategy<LineSearc
    * @param dirDelta    the dir delta
    * @return the string
    */
-  public static String render(DoubleBuffer weightDelta, DoubleBuffer dirDelta) {
-    String weightString = Arrays.toString(weightDelta.getDelta());
-    String deltaString = Arrays.toString(dirDelta.getDelta());
+  public static String render(final DoubleBuffer<NNLayer> weightDelta, final DoubleBuffer<NNLayer> dirDelta) {
+    final String weightString = Arrays.toString(weightDelta.getDelta());
+    final String deltaString = Arrays.toString(dirDelta.getDelta());
     return String.format("pos: %s\nvec: %s", weightString, deltaString);
   }
   
   /**
-   * Gets id.
+   * Render string.
    *
-   * @param x the x
-   * @return the id
+   * @param weights   the weights
+   * @param direction the direction
+   * @return the string
    */
-  public static String getId(DoubleBuffer<NNLayer> x) {
-    String name = x.layer.getName();
-    String className = x.layer.getClass().getSimpleName();
-    return name.contains(className) ? className : name;
-//    if(x.layer instanceof PlaceholderLayer) {
-//      return "Input";
-//    }
-//    return x.layer.toString();
+  public static String render(final StateSet<NNLayer> weights, final DeltaSet<NNLayer> direction) {
+    final Map<String, String> data = weights.stream()
+      .collect(Collectors.groupingBy(x -> DescribeOrientationWrapper.getId(x), Collectors.toList())).entrySet().stream()
+      .collect(Collectors.toMap(x -> x.getKey(), (final Map.Entry<String, List<State<NNLayer>>> list) -> {
+        final List<State<NNLayer>> deltaList = list.getValue();
+        if (1 == deltaList.size()) {
+          final State<NNLayer> weightDelta = deltaList.get(0);
+          return DescribeOrientationWrapper.render(weightDelta, direction.getMap().get(weightDelta.layer));
+        }
+        else {
+          return deltaList.stream().map(weightDelta -> {
+            return DescribeOrientationWrapper.render(weightDelta, direction.getMap().get(weightDelta.layer));
+          }).limit(10)
+            .reduce((a, b) -> a + "\n" + b).orElse("");
+        }
+      }));
+    return data.entrySet().stream().map(e -> String.format("%s = %s", e.getKey(), e.getValue()))
+      .map(str -> str.replaceAll("\n", "\n\t"))
+      .reduce((a, b) -> a + "\n" + b).orElse("");
   }
   
   @Override
-  public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
-    LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
+  public LineSearchCursor orient(final Trainable subject, final PointSample measurement, final TrainingMonitor monitor) {
+    final LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
     if (cursor instanceof SimpleLineSearchCursor) {
-      DeltaSet direction = ((SimpleLineSearchCursor) cursor).direction;
-      StateSet weights = ((SimpleLineSearchCursor) cursor).origin.weights;
-      String asString = render(weights, direction);
+      final DeltaSet<NNLayer> direction = ((SimpleLineSearchCursor) cursor).direction;
+      final StateSet<NNLayer> weights = ((SimpleLineSearchCursor) cursor).origin.weights;
+      final String asString = DescribeOrientationWrapper.render(weights, direction);
       monitor.log(String.format("Orientation Details: %s", asString));
     }
     else {

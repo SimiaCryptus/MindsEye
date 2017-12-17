@@ -32,15 +32,15 @@ public class TargetValueLayerTest {
   public static class Normal extends LayerTestBase {
     
     @Override
-    public NNLayer getLayer(int[][] inputSize) {
-      return new TargetValueLayer(0.0, 0.1, 0.2);
-    }
-    
-    @Override
     public int[][] getInputDims() {
       return new int[][]{
         {3}
       };
+    }
+  
+    @Override
+    public NNLayer getLayer(final int[][] inputSize) {
+      return new TargetValueLayer(0.0, 0.1, 0.2);
     }
   }
   

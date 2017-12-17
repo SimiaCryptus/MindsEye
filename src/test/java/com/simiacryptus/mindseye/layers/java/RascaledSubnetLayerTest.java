@@ -33,15 +33,15 @@ public class RascaledSubnetLayerTest {
   public static class Normal extends LayerTestBase {
     
     @Override
-    public NNLayer getLayer(int[][] inputSize) {
-      return new RescaledSubnetLayer(2, new ConvolutionLayer(3, 3, 1));
-    }
-    
-    @Override
     public int[][] getInputDims() {
       return new int[][]{
         {6, 6, 1}
       };
+    }
+  
+    @Override
+    public NNLayer getLayer(final int[][] inputSize) {
+      return new RescaledSubnetLayer(2, new ConvolutionLayer(3, 3, 1));
     }
   }
   

@@ -32,13 +32,13 @@ import java.util.stream.Stream;
 public class CIFARProblemData implements ImageProblemData {
   
   @Override
-  public Stream<LabeledObject<Tensor>> validationData() throws IOException {
+  public Stream<LabeledObject<Tensor>> trainingData() throws IOException {
+    System.out.println(String.format("Loaded %d items", CIFAR10.trainingDataStream().count()));
     return CIFAR10.trainingDataStream();
   }
   
   @Override
-  public Stream<LabeledObject<Tensor>> trainingData() throws IOException {
-    System.out.println(String.format("Loaded %d items", CIFAR10.trainingDataStream().count()));
+  public Stream<LabeledObject<Tensor>> validationData() throws IOException {
     return CIFAR10.trainingDataStream();
   }
   

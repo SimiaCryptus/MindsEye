@@ -29,6 +29,7 @@ import java.util.List;
 /**
  * The type Wrapper layer.
  */
+@SuppressWarnings("serial")
 public abstract class WrapperLayer extends NNLayer {
   /**
    * The Inner.
@@ -37,12 +38,19 @@ public abstract class WrapperLayer extends NNLayer {
   
   /**
    * Instantiates a new Wrapper layer.
+   */
+  protected WrapperLayer() {
+    inner = null;
+  }
+  
+  /**
+   * Instantiates a new Wrapper layer.
    *
    * @param json the json
    */
-  public WrapperLayer(JsonObject json) {
+  public WrapperLayer(final JsonObject json) {
     super(json);
-    this.inner = fromJson(json.getAsJsonObject("inner"));
+    inner = NNLayer.fromJson(json.getAsJsonObject("inner"));
   }
   
   /**
@@ -50,24 +58,12 @@ public abstract class WrapperLayer extends NNLayer {
    *
    * @param inner the inner
    */
-  public WrapperLayer(NNLayer inner) {
+  public WrapperLayer(final NNLayer inner) {
     this.inner = inner;
   }
   
-  /**
-   * Instantiates a new Wrapper layer.
-   */
-  protected WrapperLayer() {
-    this.inner = null;
-  }
-  
   @Override
-  public List<double[]> state() {
-    return this.inner.state();
-  }
-  
-  @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... array) {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... array) {
     return inner.eval(nncontext, array);
   }
   
@@ -77,11 +73,12 @@ public abstract class WrapperLayer extends NNLayer {
    * @return the inner
    */
   public final NNLayer getInner() {
-    return this.inner;
+    return inner;
   }
   
+  @Override
   public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
+    final JsonObject json = super.getJsonStub();
     json.add("inner", getInner().getJson());
     return json;
   }
@@ -93,8 +90,15 @@ public abstract class WrapperLayer extends NNLayer {
   }
   
   @Override
-  public NNLayer setFrozen(boolean frozen) {
-    if (inner != null) inner.setFrozen(frozen);
+  public NNLayer setFrozen(final boolean frozen) {
+    if (inner != null) {
+      inner.setFrozen(frozen);
+    }
     return this;
+  }
+  
+  @Override
+  public List<double[]> state() {
+    return inner.state();
   }
 }

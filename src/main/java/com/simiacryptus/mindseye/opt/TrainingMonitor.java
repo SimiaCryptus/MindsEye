@@ -24,11 +24,17 @@ package com.simiacryptus.mindseye.opt;
  */
 public class TrainingMonitor {
   /**
+   * Clear.
+   */
+  public void clear() {
+  }
+  
+  /**
    * This callback intercepts log messages describing the ongoing training process.
    *
    * @param msg the msg
    */
-  public void log(String msg) {
+  public void log(final String msg) {
   }
   
   /**
@@ -37,12 +43,6 @@ public class TrainingMonitor {
    *
    * @param currentPoint the current point
    */
-  public void onStepComplete(Step currentPoint) {
-  }
-  
-  /**
-   * Clear.
-   */
-  public void clear() {
+  public void onStepComplete(final Step currentPoint) {
   }
 }

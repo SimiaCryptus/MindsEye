@@ -41,17 +41,17 @@ public class MaxMetaLayer extends NNLayer {
   
   /**
    * Instantiates a new Max meta layer.
-   *
-   * @param id the id
    */
-  protected MaxMetaLayer(JsonObject id) {
-    super(id);
+  public MaxMetaLayer() {
   }
   
   /**
    * Instantiates a new Max meta layer.
+   *
+   * @param id the id
    */
-  public MaxMetaLayer() {
+  protected MaxMetaLayer(final JsonObject id) {
+    super(id);
   }
   
   /**
@@ -60,22 +60,18 @@ public class MaxMetaLayer extends NNLayer {
    * @param json the json
    * @return the max meta layer
    */
-  public static MaxMetaLayer fromJson(JsonObject json) {
+  public static MaxMetaLayer fromJson(final JsonObject json) {
     return new MaxMetaLayer(json);
   }
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    NNResult input = inObj[0];
-    int itemCnt = input.getData().length();
-    int vectorSize = input.getData().get(0).dim();
-    int[] indicies = new int[vectorSize];
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final NNResult input = inObj[0];
+    final int itemCnt = input.getData().length();
+    final int vectorSize = input.getData().get(0).dim();
+    final int[] indicies = new int[vectorSize];
     for (int i = 0; i < vectorSize; i++) {
-      int itemNumber = i;
+      final int itemNumber = i;
       indicies[i] = IntStream.range(0, itemCnt)
         .mapToObj(x -> x).max(Comparator.comparing(dataIndex -> input.getData().get(dataIndex).getData()[itemNumber])).get();
     }
@@ -83,10 +79,10 @@ public class MaxMetaLayer extends NNLayer {
       return input.getData().get(indicies[c]).getData()[c];
     })) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (input.isAlive()) {
-          Tensor delta = data.get(0);
-          Tensor feedback[] = new Tensor[itemCnt];
+          final Tensor delta = data.get(0);
+          final Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
           input.getData().get(0).coordStream().forEach((inputCoord) -> {
             feedback[indicies[inputCoord.getIndex()]].add(inputCoord, delta.get(inputCoord));
@@ -101,6 +97,11 @@ public class MaxMetaLayer extends NNLayer {
       }
       
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

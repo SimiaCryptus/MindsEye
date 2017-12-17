@@ -29,19 +29,57 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
  */
 public class BisectionSearch implements LineSearchStrategy {
   
-  private double zeroTol = 1e-20;
   private double currentRate = 1.0;
+  private double zeroTol = 1e-20;
+  
+  /**
+   * Gets current rate.
+   *
+   * @return the current rate
+   */
+  public double getCurrentRate() {
+    return currentRate;
+  }
+  
+  /**
+   * Sets current rate.
+   *
+   * @param currentRate the current rate
+   * @return the current rate
+   */
+  public BisectionSearch setCurrentRate(final double currentRate) {
+    this.currentRate = currentRate;
+    return this;
+  }
+  
+  /**
+   * Gets zero tol.
+   *
+   * @return the zero tol
+   */
+  public double getZeroTol() {
+    return zeroTol;
+  }
+  
+  /**
+   * Sets zero tol.
+   *
+   * @param zeroTol the zero tol
+   * @return the zero tol
+   */
+  public BisectionSearch setZeroTol(final double zeroTol) {
+    this.zeroTol = zeroTol;
+    return this;
+  }
   
   @Override
-  public PointSample step(LineSearchCursor cursor, TrainingMonitor monitor) {
+  public PointSample step(final LineSearchCursor cursor, final TrainingMonitor monitor) {
     
     double leftX = 0;
-    double leftLineDeriv;
     double leftValue;
     {
-      LineSearchPoint searchPoint = cursor.step(leftX, monitor);
+      final LineSearchPoint searchPoint = cursor.step(leftX, monitor);
       monitor.log(String.format("F(%s) = %s", leftX, searchPoint));
-      leftLineDeriv = searchPoint.derivative;
       leftValue = searchPoint.point.sum;
     }
     
@@ -49,7 +87,7 @@ public class BisectionSearch implements LineSearchStrategy {
     double rightX;
     double rightLineDeriv;
     double rightValue;
-    double rightRightSoft = this.currentRate * 2;
+    double rightRightSoft = currentRate * 2;
     LineSearchPoint rightPoint;
     int loopCount = 0;
     while (true) {
@@ -58,7 +96,9 @@ public class BisectionSearch implements LineSearchStrategy {
       monitor.log(String.format("F(%s)@%s = %s", rightX, loopCount, rightPoint));
       rightLineDeriv = rightPoint.derivative;
       rightValue = rightPoint.point.sum;
-      if (loopCount++ > 100) break;
+      if (loopCount++ > 100) {
+        break;
+      }
       if ((rightRight - leftX) * 2.0 / (leftX + rightRight) < Math.pow(10, -3)) {
         monitor.log(String.format("Right limit is nonconvergent at %s/%s", leftX, rightRight));
         return cursor.step(leftX, monitor).point;
@@ -69,7 +109,6 @@ public class BisectionSearch implements LineSearchStrategy {
       }
       else if (rightLineDeriv < 0) {
         rightRightSoft *= 2.0;
-        leftLineDeriv = rightLineDeriv;
         leftValue = rightValue;
         leftX = rightX;
         monitor.log(String.format("Right is at least %s", rightX));
@@ -78,8 +117,8 @@ public class BisectionSearch implements LineSearchStrategy {
         break;
       }
     }
-    
-    if (this.currentRate < rightX) {
+  
+    if (currentRate < rightX) {
       currentRate = rightX;
       return rightPoint.point;
     }
@@ -98,7 +137,6 @@ public class BisectionSearch implements LineSearchStrategy {
           currentRate = thisX;
           return searchPoint.point;
         }
-        leftLineDeriv = searchPoint.derivative;
         leftValue = searchPoint.point.sum;
         leftX = thisX;
       }
@@ -123,45 +161,5 @@ public class BisectionSearch implements LineSearchStrategy {
         return searchPoint.point;
       }
     }
-  }
-  
-  /**
-   * Gets zero tol.
-   *
-   * @return the zero tol
-   */
-  public double getZeroTol() {
-    return zeroTol;
-  }
-  
-  /**
-   * Sets zero tol.
-   *
-   * @param zeroTol the zero tol
-   * @return the zero tol
-   */
-  public BisectionSearch setZeroTol(double zeroTol) {
-    this.zeroTol = zeroTol;
-    return this;
-  }
-  
-  /**
-   * Gets current rate.
-   *
-   * @return the current rate
-   */
-  public double getCurrentRate() {
-    return currentRate;
-  }
-  
-  /**
-   * Sets current rate.
-   *
-   * @param currentRate the current rate
-   * @return the current rate
-   */
-  public BisectionSearch setCurrentRate(double currentRate) {
-    this.currentRate = currentRate;
-    return this;
   }
 }

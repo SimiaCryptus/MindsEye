@@ -21,38 +21,39 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import jcuda.jcudnn.cudnnHandle;
-import jcuda.jcudnn.cudnnPoolingDescriptor;
-import jcuda.jcudnn.cudnnTensorDescriptor;
+import jcuda.jcudnn.*;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static com.simiacryptus.mindseye.layers.cudnn.CuDNN.*;
-import static jcuda.jcudnn.cudnnPoolingMode.CUDNN_POOLING_AVERAGE_COUNT_EXCLUDE_PADDING;
-import static jcuda.jcudnn.cudnnPoolingMode.CUDNN_POOLING_MAX;
-import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
-
 /**
  * The type Pooling layer.
  */
+@SuppressWarnings("serial")
 public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer> {
   
   private PoolingMode mode = PoolingMode.Max;
-  private int windowX = 2;
-  private int windowY = 2;
   private int paddingX = 0;
   private int paddingY = 0;
+  private Precision precision = Precision.Double;
   private int strideX = 2;
   private int strideY = 2;
-  private Precision precision = Precision.Double;
+  private int windowX = 2;
+  private int windowY = 2;
+  
+  /**
+   * Instantiates a new Pooling layer.
+   */
+  public PoolingLayer() {
+    super();
+  }
   
   /**
    * Instantiates a new Pooling layer.
    *
    * @param json the json
    */
-  protected PoolingLayer(JsonObject json) {
+  protected PoolingLayer(final JsonObject json) {
     super(json);
     mode = Arrays.stream(PoolingMode.values()).filter(i -> i.id == json.get("mode").getAsInt()).findFirst().get();
     windowX = json.get("windowX").getAsInt();
@@ -65,37 +66,17 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
   }
   
   /**
-   * Instantiates a new Pooling layer.
-   */
-  public PoolingLayer() {
-    super();
-  }
-  
-  /**
    * From json pooling layer.
    *
    * @param json the json
    * @return the pooling layer
    */
-  public static PoolingLayer fromJson(JsonObject json) {
+  public static PoolingLayer fromJson(final JsonObject json) {
     return new PoolingLayer(json);
   }
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("mode", mode.id);
-    json.addProperty("windowX", windowX);
-    json.addProperty("windowY", windowY);
-    json.addProperty("paddingX", paddingX);
-    json.addProperty("paddingY", paddingY);
-    json.addProperty("strideX", strideX);
-    json.addProperty("strideY", strideY);
-    json.addProperty("precision",precision.name());
-    return json;
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     final int poolDims = 2;
     final int windowSize[] = {windowX, windowY};
     final int padding[] = {paddingX, paddingY};
@@ -106,38 +87,38 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
       final NNResult input = inObj[0];
       final TensorList batch = input.getData();
       final int[] inputSize = batch.get(0).getDimensions();
-      int length = batch.length();
-      int inputDims = Tensor.dim(inputSize);
-      CudaResource<cudnnPoolingDescriptor> poolingDesc = CuDNN.createPoolingDescriptor(
+      final int length = batch.length();
+      final int inputDims = Tensor.dim(inputSize);
+      final CudaResource<cudnnPoolingDescriptor> poolingDesc = CuDNN.createPoolingDescriptor(
         mode.id, poolDims, windowSize, padding, stride);
-      CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-        precision.code, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-      int[] outputSize = new int[4];
-      CuDNN.handle(cudnnGetPoolingNdForwardOutputDim(poolingDesc.getPtr(), inputDescriptor.getPtr(), 4, outputSize));
-      assert (inputSize[2] == outputSize[1]);
-      CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
-        precision.code, CUDNN_TENSOR_NCHW, outputSize[0], outputSize[1], outputSize[2], outputSize[3]);
-      CudaPtr alpha = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
-      CudaPtr beta = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 0.0);
-      CudaPtr inputData = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, batch);
-      CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), precision.size * 1l * Tensor.dim(outputSize));
+      final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+        precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+      final int[] outputSize = new int[4];
+      CuDNN.handle(CuDNN.cudnnGetPoolingNdForwardOutputDim(poolingDesc.getPtr(), inputDescriptor.getPtr(), 4, outputSize));
+      assert inputSize[2] == outputSize[1];
+      final CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
+        precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[0], outputSize[1], outputSize[2], outputSize[3]);
+      final CudaPtr alpha = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
+      final CudaPtr beta = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 0.0);
+      final CudaPtr inputData = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, batch);
+      final CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), precision.size * 1l * Tensor.dim(outputSize));
       final cudnnHandle cudnnHandle = ((CuDNN) nncontext).cudnnHandle;
-      CuDNN.handle(cudnnPoolingForward(cudnnHandle, poolingDesc.getPtr(),
+      CuDNN.handle(CuDNN.cudnnPoolingForward(cudnnHandle, poolingDesc.getPtr(),
         alpha.getPtr(),
         inputDescriptor.getPtr(), inputData.getPtr(),
         beta.getPtr(),
         outputDescriptor.getPtr(), outputData.getPtr()));
-      TensorList output = new GpuTensorList(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, cudnnHandle, precision);
+      final TensorList output = new GpuTensorList(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, cudnnHandle, precision);
       return new NNResult(output) {
         @Override
-        public void accumulate(final DeltaSet buffer, final TensorList error) {
+        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
           ((CudaExecutionContext) nncontext).initThread();
-          assert (error.length() == batch.length());
+          assert error.length() == batch.length();
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-          CudaPtr errorPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, error);
+          final CudaPtr errorPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, error);
           if (input.isAlive()) {
-            CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * precision.size * length);
-            CuDNN.handle(cudnnPoolingBackward(cudnnHandle, poolingDesc.getPtr(),
+            final CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * precision.size * length);
+            CuDNN.handle(CuDNN.cudnnPoolingBackward(cudnnHandle, poolingDesc.getPtr(),
               alpha.getPtr(),
               outputDescriptor.getPtr(), outputData.getPtr(),
               outputDescriptor.getPtr(), errorPtr.getPtr(),
@@ -147,21 +128,29 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
             input.accumulate(buffer, new GpuTensorList(passbackBuffer, length, inputSize, cudnnHandle, precision));
           }
         }
-        
+
         @Override
         public boolean isAlive() {
           return input.isAlive() || !isFrozen();
         }
       };
-    } catch (Throwable e) {
+    } catch (final Throwable e) {
       throw new ComponentException("Error", e);
     }
   }
   
-  
   @Override
-  public List<double[]> state() {
-    return Arrays.asList();
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    json.addProperty("mode", mode.id);
+    json.addProperty("windowX", windowX);
+    json.addProperty("windowY", windowY);
+    json.addProperty("paddingX", paddingX);
+    json.addProperty("paddingY", paddingY);
+    json.addProperty("strideX", strideX);
+    json.addProperty("strideY", strideY);
+    json.addProperty("precision", precision.name());
+    return json;
   }
   
   /**
@@ -179,48 +168,8 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    * @param mode the mode
    * @return the mode
    */
-  public PoolingLayer setMode(PoolingMode mode) {
+  public PoolingLayer setMode(final PoolingMode mode) {
     this.mode = mode;
-    return this;
-  }
-  
-  /**
-   * Gets window x.
-   *
-   * @return the window x
-   */
-  public int getWindowX() {
-    return windowX;
-  }
-  
-  /**
-   * Sets window x.
-   *
-   * @param windowX the window x
-   * @return the window x
-   */
-  public PoolingLayer setWindowX(int windowX) {
-    this.windowX = windowX;
-    return this;
-  }
-  
-  /**
-   * Gets window y.
-   *
-   * @return the window y
-   */
-  public int getWindowY() {
-    return windowY;
-  }
-  
-  /**
-   * Sets window y.
-   *
-   * @param windowY the window y
-   * @return the window y
-   */
-  public PoolingLayer setWindowY(int windowY) {
-    this.windowY = windowY;
     return this;
   }
   
@@ -239,7 +188,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    * @param paddingX the padding x
    * @return the padding x
    */
-  public PoolingLayer setPaddingX(int paddingX) {
+  public PoolingLayer setPaddingX(final int paddingX) {
     this.paddingX = paddingX;
     return this;
   }
@@ -259,8 +208,19 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    * @param paddingY the padding y
    * @return the padding y
    */
-  public PoolingLayer setPaddingY(int paddingY) {
+  public PoolingLayer setPaddingY(final int paddingY) {
     this.paddingY = paddingY;
+    return this;
+  }
+  
+  @Override
+  public Precision getPrecision() {
+    return precision;
+  }
+  
+  @Override
+  public PoolingLayer setPrecision(final Precision precision) {
+    this.precision = precision;
     return this;
   }
   
@@ -279,7 +239,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    * @param strideX the stride x
    * @return the stride x
    */
-  public PoolingLayer setStrideX(int strideX) {
+  public PoolingLayer setStrideX(final int strideX) {
     this.strideX = strideX;
     return this;
   }
@@ -299,18 +259,54 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    * @param strideY the stride y
    * @return the stride y
    */
-  public PoolingLayer setStrideY(int strideY) {
+  public PoolingLayer setStrideY(final int strideY) {
     this.strideY = strideY;
     return this;
   }
   
-  public Precision getPrecision() {
-    return precision;
+  /**
+   * Gets window x.
+   *
+   * @return the window x
+   */
+  public int getWindowX() {
+    return windowX;
   }
   
-  public PoolingLayer setPrecision(Precision precision) {
-    this.precision = precision;
+  /**
+   * Sets window x.
+   *
+   * @param windowX the window x
+   * @return the window x
+   */
+  public PoolingLayer setWindowX(final int windowX) {
+    this.windowX = windowX;
     return this;
+  }
+  
+  /**
+   * Gets window y.
+   *
+   * @return the window y
+   */
+  public int getWindowY() {
+    return windowY;
+  }
+  
+  /**
+   * Sets window y.
+   *
+   * @param windowY the window y
+   * @return the window y
+   */
+  public PoolingLayer setWindowY(final int windowY) {
+    this.windowY = windowY;
+    return this;
+  }
+  
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList();
   }
   
   /**
@@ -318,19 +314,19 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    */
   public enum PoolingMode {
     /**
-     * Max pooling mode.
-     */
-    Max(CUDNN_POOLING_MAX),
-    /**
      * Avg pooling mode.
      */
-    Avg(CUDNN_POOLING_AVERAGE_COUNT_EXCLUDE_PADDING);
+    Avg(cudnnPoolingMode.CUDNN_POOLING_AVERAGE_COUNT_EXCLUDE_PADDING),
+    /**
+     * Max pooling mode.
+     */
+    Max(cudnnPoolingMode.CUDNN_POOLING_MAX);
     /**
      * The Id.
      */
     final int id;
-    
-    PoolingMode(int id) {
+  
+    PoolingMode(final int id) {
       this.id = id;
     }
   }

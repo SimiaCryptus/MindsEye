@@ -33,6 +33,7 @@ import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.TableOutput;
@@ -58,96 +59,73 @@ import java.util.stream.Stream;
  */
 class EncodingUtil {
   /**
-   * The constant svgNumber.
-   */
-  public static int svgNumber = 0;
-  /**
    * The constant imageNumber.
    */
   public static int imageNumber = 0;
+  /**
+   * The constant svgNumber.
+   */
+  public static int svgNumber = 0;
   /**
    * The constant out.
    */
   protected static PrintStream rawOut = SysOutInterceptor.INSTANCE.getInner();
   
   /**
-   * Print model.
+   * Add column tensor [ ] [ ].
    *
-   * @param log     the log
-   * @param network the network
-   * @param modelNo the model no
+   * @param trainingData the training data
+   * @param size         the size
+   * @return the tensor [ ] [ ]
    */
-  public static void printModel(NotebookOutput log, NNLayer network, final int modelNo) {
-    log.out("Learned Model Statistics: ");
-    log.code(() -> {
-      ScalarStatistics scalarStatistics = new ScalarStatistics();
-      network.state().stream().flatMapToDouble(x -> Arrays.stream(x))
-        .forEach(v -> scalarStatistics.add(v));
-      return scalarStatistics.getMetrics();
-    });
-    String modelName = "model" + modelNo + ".json";
-    log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
+  public static Tensor[][] addColumn(final Tensor[][] trainingData, final int... size) {
+    return Arrays.stream(trainingData).map(x -> Stream.concat(
+      Arrays.stream(x),
+      Stream.of(new Tensor(size).set(() -> 0.0 * (FastRandom.random() - 0.5))))
+      .toArray(i -> new Tensor[i])).toArray(i -> new Tensor[i][]);
   }
   
   /**
-   * Validation report.
+   * Build training model dag network.
    *
-   * @param log          the log
-   * @param data         the data
-   * @param dataPipeline the data pipeline
-   * @param maxRows      the max rows
+   * @param innerModel       the inner model
+   * @param reproducedColumn the reproduced column
+   * @param learnedColumn    the learned column
+   * @return the dag network
    */
-  public static void validationReport(NotebookOutput log, Tensor[][] data, List<NNLayer> dataPipeline, int maxRows) {
-    log.out("Current dataset and evaluation results: ");
-    log.code(() -> {
-      TableOutput table = new TableOutput();
-      Arrays.stream(data).limit(maxRows).map(tensorArray -> {
-        LinkedHashMap<String, Object> row = new LinkedHashMap<String, Object>();
-        for (int col = 1; col < tensorArray.length; col++) {
-          renderLayer(log, dataPipeline, row, col, tensorArray[col]);
-        }
-        return row;
-      }).filter(x -> null != x).limit(10).forEach(table::putRow);
-      return table;
-    });
+  public static DAGNetwork buildTrainingModel(final NNLayer innerModel, final int reproducedColumn, final int learnedColumn) {
+    final PipelineNetwork network = new PipelineNetwork(Math.max(learnedColumn, reproducedColumn) + 1);
+    // network.add(new NthPowerActivationLayer().setPower(0.5), );
+    network.add(new MeanSqLossLayer(),
+      network.add("image", innerModel, network.getInput(learnedColumn)),
+      network.getInput(reproducedColumn));
+    //addLogging(network);
+    return network;
   }
   
   /**
-   * Render layer.
+   * Convolution features tensor [ ] [ ].
    *
-   * @param log          the log
-   * @param dataPipeline the data pipeline
-   * @param row          the row
-   * @param col          the col
-   * @param tensor       the tensor
+   * @param tensors the tensors
+   * @param radius  the radius
+   * @return the tensor [ ] [ ]
    */
-  public static void renderLayer(NotebookOutput log, List<NNLayer> dataPipeline, LinkedHashMap<String, Object> row, int col, Tensor tensor) {
-    row.put("Data_" + col, com.simiacryptus.mindseye.test.TestUtil.render(log, tensor, 0 < col));
-    if (dataPipeline.size() >= col - 1 && 1 < col) {
-      PipelineNetwork decoder = new PipelineNetwork();
-      for (int i = col - 2; i >= 0; i--) {
-        decoder.add(dataPipeline.get(i));
-      }
-      Tensor decoded = GpuController.call(ctx -> {
-        return decoder.eval(ctx, tensor);
-      }).getData().get(0);
-      row.put("Decode_" + col, com.simiacryptus.mindseye.test.TestUtil.render(log, decoded, false));
-      
-      List<Tensor> rawComponents = IntStream.range(0, tensor.getDimensions()[2])
-        .mapToObj(band -> findUnitComponent(decoder, band, tensor))
-        .collect(Collectors.toList());
-      Tensor baseline = findBaseline(decoder, tensor);
-      List<Tensor> signedComponents = IntStream.range(0, tensor.getDimensions()[2])
-        .mapToObj(band -> rawComponents.get(band).minus(baseline))
-        .collect(Collectors.toList());
-      
-      row.put("SVG_" + col, log.file(decompositionSvg(log, baseline, signedComponents), "svg" + svgNumber++ + ".svg", "SVG Composite Image"));
-      
-      String render = signedComponents.stream()
-        .map(signedContribution -> com.simiacryptus.mindseye.test.TestUtil.render(log, signedContribution, true))
-        .reduce((a, b) -> a + "" + b).get();
-      row.put("Band_Decode_" + col, render);
-    }
+  public static Stream<Tensor[]> convolutionFeatures(final Stream<Tensor[]> tensors, final int radius) {
+    final int column = 1;
+    final ThreadLocal<ConvolutionExtractor> extractors = ThreadLocal.withInitial(() -> new ConvolutionExtractor());
+    return tensors.parallel().flatMap(image -> {
+      final Tensor region = new Tensor(radius, radius, image[column].getDimensions()[2]);
+      return IntStream.range(0, image[column].getDimensions()[0] - (radius - 1)).mapToObj(x -> x).parallel().flatMap(x -> {
+        return IntStream.range(0, image[column].getDimensions()[column] - (radius - 1)).mapToObj(y -> {
+          final ConvolutionExtractor extractor = extractors.get();
+          extractor.x = x;
+          extractor.y = y;
+          extractor.column = column;
+          extractor.image = image;
+          return new Tensor[]{image[0], region.mapCoords(extractor)};
+        });
+      });
+    });
   }
   
   /**
@@ -158,41 +136,41 @@ class EncodingUtil {
    * @param signedComponents the signed components
    * @return the string
    */
-  public static String decompositionSvg(NotebookOutput log, Tensor baseline, List<Tensor> signedComponents) {
-    List<DoubleStatistics> componentStats = signedComponents.stream().map(t -> new DoubleStatistics().accept(t.getData())).collect(Collectors.toList());
-    String positiveFilter = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
+  public static String decompositionSvg(final NotebookOutput log, final Tensor baseline, final List<Tensor> signedComponents) {
+    final List<DoubleStatistics> componentStats = signedComponents.stream().map(t -> new DoubleStatistics().accept(t.getData())).collect(Collectors.toList());
+    final String positiveFilter = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
       String name;
       try {
-        name = String.format("component_%s.png", imageNumber++);
-        ImageIO.write(signedComponents.get(i).map(v -> v > 0 ? (v * (0xFF / componentStats.get(i).getMax())) : 0).toImage(), "png", log.file(name));
-      } catch (IOException e) {
+        name = String.format("component_%s.png", EncodingUtil.imageNumber++);
+        ImageIO.write(signedComponents.get(i).map(v -> v > 0 ? v * (0xFF / componentStats.get(i).getMax()) : 0).toImage(), "png", log.file(name));
+      } catch (final IOException e) {
         throw new RuntimeException(e);
       }
       return String.format("  <feImage xlink:href=\"%s\" result=\"pos_image_%s\" />\n", name, i);
     }).reduce((a, b) -> a + "\n" + b).get();
-    
-    String negativeFilter = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
+  
+    final String negativeFilter = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
       String name;
       try {
-        name = String.format("component_%s.png", imageNumber++);
-        ImageIO.write(signedComponents.get(i).map(v -> v < 0 ? (0xFF - (v * (0xFF / componentStats.get(i).getMin()))) : 0).toImage(), "png", log.file(name));
-      } catch (IOException e) {
+        name = String.format("component_%s.png", EncodingUtil.imageNumber++);
+        ImageIO.write(signedComponents.get(i).map(v -> v < 0 ? 0xFF - v * (0xFF / componentStats.get(i).getMin()) : 0).toImage(), "png", log.file(name));
+      } catch (final IOException e) {
         throw new RuntimeException(e);
       }
       return String.format("  <feImage xlink:href=\"%s\" result=\"neg_image_%s\" />\n", name, i);
     }).reduce((a, b) -> a + "\n" + b).get();
-    
-    String compositingFilters = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
-      double fPos = componentStats.get(i).getMax() / 0xFF;
-      double fNeg = componentStats.get(i).getMin() / 0xFF;
+  
+    final String compositingFilters = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
+      final double fPos = componentStats.get(i).getMax() / 0xFF;
+      final double fNeg = componentStats.get(i).getMin() / 0xFF;
       return "  <feComposite in=\"" + (i == 0 ? "FillPaint" : "lastResult") + "\" in2=\"neg_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\"" + -fNeg + "\" k4=\"" + fNeg + "\"/>\n" +
         "  <feComposite in=\"lastResult\" in2=\"pos_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\"" + fPos + "\" k4=\"" + 0.0 + "\"/>\n";
     }).reduce((a, b) -> a + "\n" + b).get();
-    
-    int red = (int) baseline.get(0, 0, 0);
-    int green = (int) baseline.get(0, 0, 1);
-    int blue = (int) baseline.get(0, 0, 2);
-    String avgHexColor = Long.toHexString(red + (green << 16) + (blue << 32));
+  
+    final int red = (int) baseline.get(0, 0, 0);
+    final int green = (int) baseline.get(0, 0, 1);
+    final int blue = (int) baseline.get(0, 0, 2);
+    final String avgHexColor = Long.toHexString(red + (green << 16) + (blue << 32));
     return "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n" +
       ("<defs>\n" +
         "<filter id=\"image\" >\n" + (
@@ -202,9 +180,53 @@ class EncodingUtil {
       ).replaceAll("\n", "\n\t") + "\n" +
         "</filter>\n" +
         "</defs>\n" +
-        "<rect style=\"filter:url(#image);\" fill=\"#" + avgHexColor + "\" width=\"256\" height=\"256\"/>"
+        "<rect style=\"filter:url(#image);\" set=\"#" + avgHexColor + "\" width=\"256\" height=\"256\"/>"
       ).replaceAll("\n", "\n\t") +
       "\n</svg>";
+  }
+  
+  /**
+   * Down explode tensors stream.
+   *
+   * @param stream the stream
+   * @param factor the factor
+   * @return the stream
+   */
+  public static Stream<Tensor[]> downExplodeTensors(final Stream<Tensor[]> stream, final int factor) {
+    if (0 >= factor) throw new IllegalArgumentException();
+    if (-1 == factor) throw new IllegalArgumentException();
+    return 1 == factor ? stream : stream.flatMap(tensor -> IntStream.range(0, factor * factor).mapToObj(subband -> {
+      final int[] select = new int[tensor[1].getDimensions()[2]];
+      final int offset = subband * select.length;
+      for (int i = 0; i < select.length; i++) {
+        select[i] = offset + i;
+      }
+      final PipelineNetwork network = new PipelineNetwork();
+      network.add(new ImgReshapeLayer(factor, factor, false));
+      network.add(new ImgBandSelectLayer(select));
+      final Tensor result = GpuController.call(ctx ->
+        network.eval(ctx, new Tensor[]{tensor[1]})).getData().get(0);
+      return new Tensor[]{tensor[0], result};
+    }));
+  }
+  
+  /**
+   * Down stack tensors stream.
+   *
+   * @param stream the stream
+   * @param factor the factor
+   * @return the stream
+   */
+  public static Stream<Tensor> downStackTensors(final Stream<Tensor> stream, final int factor) {
+    if (0 == factor) throw new IllegalArgumentException();
+    if (-1 == factor) throw new IllegalArgumentException();
+    return 1 == factor ? stream : stream.map(tensor -> {
+      return GpuController.call(ctx -> {
+        final boolean expand = factor < 0;
+        final int abs = expand ? -factor : factor;
+        return new ImgReshapeLayer(abs, abs, expand).eval(ctx, tensor);
+      }).getData().get(0);
+    });
   }
   
   /**
@@ -214,16 +236,16 @@ class EncodingUtil {
    * @param tensor  the tensor
    * @return the tensor
    */
-  public static Tensor findBaseline(PipelineNetwork decoder, Tensor tensor) {
-    PipelineNetwork decoderBand = new PipelineNetwork();
-    double[] gate = new double[tensor.getDimensions()[2]];
+  public static Tensor findBaseline(final PipelineNetwork decoder, final Tensor tensor) {
+    final PipelineNetwork decoderBand = new PipelineNetwork();
+    final double[] gate = new double[tensor.getDimensions()[2]];
     decoderBand.add(new ImgBandScaleLayer(gate));
     decoderBand.add(decoder);
     try {
       return GpuController.call(ctx -> {
         return decoder.eval(ctx, tensor.map(x -> 0));
       }).getData().get(0);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -236,9 +258,9 @@ class EncodingUtil {
    * @param tensor  the tensor
    * @return the tensor
    */
-  public static Tensor findUnitComponent(PipelineNetwork decoder, int band, Tensor tensor) {
-    PipelineNetwork decoderBand = new PipelineNetwork();
-    double[] gate = new double[tensor.getDimensions()[2]];
+  public static Tensor findUnitComponent(final PipelineNetwork decoder, final int band, final Tensor tensor) {
+    final PipelineNetwork decoderBand = new PipelineNetwork();
+    final double[] gate = new double[tensor.getDimensions()[2]];
     gate[band] = tensor.getDimensions()[2];
     decoderBand.add(new ImgBandScaleLayer(gate));
     decoderBand.add(decoder);
@@ -247,169 +269,9 @@ class EncodingUtil {
         return decoderBand.eval(ctx, tensor);
       }).getData().get(0);
       //return log.image(t.toImage(), "");
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new RuntimeException(e);
     }
-  }
-  
-  /**
-   * Add column tensor [ ] [ ].
-   *
-   * @param trainingData the training data
-   * @param size         the size
-   * @return the tensor [ ] [ ]
-   */
-  public static Tensor[][] addColumn(Tensor[][] trainingData, int... size) {
-    return Arrays.stream(trainingData).map(x -> Stream.concat(
-      Arrays.stream(x),
-      Stream.of(new Tensor(size).fill(() -> 0.0 * (FastRandom.random() - 0.5))))
-      .toArray(i -> new Tensor[i])).toArray(i -> new Tensor[i][]);
-  }
-  
-  /**
-   * Sets initial feature space.
-   *
-   * @param convolutionLayer the convolution layer
-   * @param biasLayer        the bias layer
-   * @param featureSpace     the feature space
-   */
-  public static void setInitialFeatureSpace(ConvolutionLayer convolutionLayer, ImgBandBiasLayer biasLayer, FindFeatureSpace featureSpace) {
-    int[] filterDimensions = convolutionLayer.kernel.getDimensions();
-    int outputBands = biasLayer.getBias().length;
-    assert outputBands == biasLayer.getBias().length;
-    int inputBands = filterDimensions[2] / outputBands;
-    biasLayer.setWeights(i -> {
-      double v = featureSpace.getAverages()[i];
-      return Double.isFinite(v) ? v : biasLayer.getBias()[i];
-    });
-    Tensor[] featureSpaceVectors = featureSpace.getVectors();
-    for (Tensor t : featureSpaceVectors) System.out.println(String.format("Feature Vector %s%n", t.prettyPrint()));
-    convolutionLayer.kernel.fillByCoord(c -> {
-      int kband = c.getCoords()[2];
-      int outband = kband % outputBands;
-      int inband = (kband - outband) / outputBands;
-      assert outband < outputBands;
-      assert inband < inputBands;
-      int x = c.getCoords()[0];
-      int y = c.getCoords()[1];
-      x = filterDimensions[0] - (x + 1);
-      y = filterDimensions[1] - (y + 1);
-      double v = featureSpaceVectors[inband].get(x, y, outband);
-      return Double.isFinite(v) ? v : convolutionLayer.kernel.get(c);
-    });
-    System.out.println(String.format("Bias: %s%n", Arrays.toString(biasLayer.getBias())));
-    System.out.println(String.format("Kernel: %s%n", convolutionLayer.kernel.prettyPrint()));
-  }
-  
-  /**
-   * Convolution features tensor [ ] [ ].
-   *
-   * @param tensors the tensors
-   * @param radius  the radius
-   * @return the tensor [ ] [ ]
-   */
-  public static Stream<Tensor[]> convolutionFeatures(Stream<Tensor[]> tensors, int radius) {
-    int column = 1;
-    ThreadLocal<ConvolutionExtractor> extractors = ThreadLocal.withInitial(() -> new ConvolutionExtractor());
-    return tensors.parallel().flatMap(image -> {
-      Tensor region = new Tensor(radius, radius, image[column].getDimensions()[2]);
-      return IntStream.range(0, image[column].getDimensions()[0] - (radius - 1)).mapToObj(x -> x).parallel().flatMap(x -> {
-        return IntStream.range(0, image[column].getDimensions()[column] - (radius - 1)).mapToObj(y -> {
-          ConvolutionExtractor extractor = extractors.get();
-          extractor.x = x;
-          extractor.y = y;
-          extractor.column = column;
-          extractor.image = image;
-          return new Tensor[]{image[0], region.mapCoords(extractor)};
-        });
-      });
-    });
-  }
-  
-  /**
-   * Down stack tensors stream.
-   *
-   * @param stream the stream
-   * @param factor the factor
-   * @return the stream
-   */
-  public static Stream<Tensor> downStackTensors(Stream<Tensor> stream, int factor) {
-    if (0 == factor) throw new IllegalArgumentException();
-    if (-1 == factor) throw new IllegalArgumentException();
-    return 1 == factor ? stream : stream.map(tensor -> {
-      return GpuController.call(ctx -> {
-        boolean expand = factor < 0;
-        int abs = expand ? -factor : factor;
-        return new ImgReshapeLayer(abs, abs, expand).eval(ctx, tensor);
-      }).getData().get(0);
-    });
-  }
-  
-  /**
-   * Down explode tensors stream.
-   *
-   * @param stream the stream
-   * @param factor the factor
-   * @return the stream
-   */
-  public static Stream<Tensor[]> downExplodeTensors(Stream<Tensor[]> stream, int factor) {
-    if (0 >= factor) throw new IllegalArgumentException();
-    if (-1 == factor) throw new IllegalArgumentException();
-    return 1 == factor ? stream : stream.flatMap(tensor -> IntStream.range(0, factor * factor).mapToObj(subband -> {
-      int[] select = new int[tensor[1].getDimensions()[2]];
-      int offset = subband * select.length;
-      for (int i = 0; i < select.length; i++) select[i] = offset + i;
-      PipelineNetwork network = new PipelineNetwork();
-      network.add(new ImgReshapeLayer(factor, factor, false));
-      network.add(new ImgBandSelectLayer(select));
-      Tensor result = GpuController.call(ctx ->
-        network.eval(ctx, new Tensor[]{tensor[1]})).getData().get(0);
-      return new Tensor[]{tensor[0], result};
-    }));
-  }
-  
-  /**
-   * Build training model dag network.
-   *
-   * @param innerModel       the inner model
-   * @param reproducedColumn the reproduced column
-   * @param learnedColumn    the learned column
-   * @return the dag network
-   */
-  public static DAGNetwork buildTrainingModel(NNLayer innerModel, int reproducedColumn, int learnedColumn) {
-    PipelineNetwork network = new PipelineNetwork(Math.max(learnedColumn, reproducedColumn) + 1);
-    // network.add(new NthPowerActivationLayer().setPower(0.5), );
-    network.add(new MeanSqLossLayer(),
-      network.add("image", innerModel, network.getInput(learnedColumn)),
-      network.getInput(reproducedColumn));
-    //addLogging(network);
-    return network;
-  }
-  
-  /**
-   * Gets monitor.
-   *
-   * @param history the history
-   * @return the monitor
-   */
-  public static TrainingMonitor getMonitor(List<Step> history) {
-    return new TrainingMonitor() {
-      @Override
-      public void log(String msg) {
-        System.out.println(msg); // Logged MnistProblemData
-        EncodingUtil.rawOut.println(msg); // Realtime MnistProblemData
-      }
-      
-      @Override
-      public void onStepComplete(Step currentPoint) {
-        history.add(currentPoint);
-      }
-      
-      @Override
-      public void clear() {
-        super.clear();
-      }
-    };
   }
   
   /**
@@ -421,12 +283,12 @@ class EncodingUtil {
    * @param categories the categories
    * @return the tensor [ ] [ ]
    */
-  public static Tensor[][] getImages(NotebookOutput log, int size, int maxImages, String... categories) {
+  public static Tensor[][] getImages(final NotebookOutput log, final int size, final int maxImages, final String... categories) {
     log.out("Available images and categories:");
     log.code(() -> {
       return Caltech101.trainingDataStream().collect(Collectors.groupingBy(x -> x.label, Collectors.counting()));
     });
-    int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
+    final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
     try {
       return Caltech101.trainingDataStream().filter(x -> {
         return Arrays.asList(categories).contains(x.label);
@@ -434,21 +296,156 @@ class EncodingUtil {
         new Tensor(categories.length).set(Arrays.asList(categories).indexOf(labeledObj.label), 1.0),
         Tensor.fromRGB(com.simiacryptus.mindseye.test.TestUtil.resize(labeledObj.data.get(), size))
       }).sorted(Comparator.comparingInt(a -> System.identityHashCode(a) ^ seed)).limit(maxImages).toArray(i -> new Tensor[i][]);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException(e);
     }
   }
   
+  /**
+   * Gets monitor.
+   *
+   * @param history the history
+   * @return the monitor
+   */
+  public static TrainingMonitor getMonitor(final List<StepRecord> history) {
+    return new TrainingMonitor() {
+      @Override
+      public void clear() {
+        super.clear();
+      }
+      
+      @Override
+      public void log(final String msg) {
+        System.out.println(msg); // Logged MnistProblemData
+        EncodingUtil.rawOut.println(msg); // Realtime MnistProblemData
+      }
+      
+      @Override
+      public void onStepComplete(final Step currentPoint) {
+        history.add(new StepRecord(currentPoint.point.getMean(), currentPoint.time, currentPoint.iteration));
+      }
+    };
+  }
+  
+  /**
+   * Print model.
+   *
+   * @param log     the log
+   * @param network the network
+   * @param modelNo the model no
+   */
+  public static void printModel(final NotebookOutput log, final NNLayer network, final int modelNo) {
+    log.out("Learned Model Statistics: ");
+    log.code(() -> {
+      final ScalarStatistics scalarStatistics = new ScalarStatistics();
+      network.state().stream().flatMapToDouble(x -> Arrays.stream(x))
+        .forEach(v -> scalarStatistics.add(v));
+      return scalarStatistics.getMetrics();
+    });
+    final String modelName = "model" + modelNo + ".json";
+    log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
+  }
+  
+  /**
+   * Render layer.
+   *
+   * @param log          the log
+   * @param dataPipeline the data pipeline
+   * @param row          the row
+   * @param col          the col
+   * @param tensor       the tensor
+   */
+  public static void renderLayer(final NotebookOutput log, final List<NNLayer> dataPipeline, final LinkedHashMap<String, Object> row, final int col, final Tensor tensor) {
+    row.put("Data_" + col, com.simiacryptus.mindseye.test.TestUtil.render(log, tensor, 0 < col));
+    if (dataPipeline.size() >= col - 1 && 1 < col) {
+      final PipelineNetwork decoder = new PipelineNetwork();
+      for (int i = col - 2; i >= 0; i--) {
+        decoder.add(dataPipeline.get(i));
+      }
+      final Tensor decoded = GpuController.call(ctx -> {
+        return decoder.eval(ctx, tensor);
+      }).getData().get(0);
+      row.put("Decode_" + col, com.simiacryptus.mindseye.test.TestUtil.render(log, decoded, false));
+      
+      final List<Tensor> rawComponents = IntStream.range(0, tensor.getDimensions()[2])
+        .mapToObj(band -> EncodingUtil.findUnitComponent(decoder, band, tensor))
+        .collect(Collectors.toList());
+      final Tensor baseline = EncodingUtil.findBaseline(decoder, tensor);
+      final List<Tensor> signedComponents = IntStream.range(0, tensor.getDimensions()[2])
+        .mapToObj(band -> rawComponents.get(band).minus(baseline))
+        .collect(Collectors.toList());
+      
+      row.put("SVG_" + col, log.file(EncodingUtil.decompositionSvg(log, baseline, signedComponents), "svg" + EncodingUtil.svgNumber++ + ".svg", "SVG Composite Image"));
+      
+      final String render = signedComponents.stream()
+        .map(signedContribution -> com.simiacryptus.mindseye.test.TestUtil.render(log, signedContribution, true))
+        .reduce((a, b) -> a + "" + b).get();
+      row.put("Band_Decode_" + col, render);
+    }
+  }
+  
+  /**
+   * Sets initial feature space.
+   *
+   * @param convolutionLayer the convolution layer
+   * @param biasLayer        the bias layer
+   * @param featureSpace     the feature space
+   */
+  public static void setInitialFeatureSpace(final ConvolutionLayer convolutionLayer, final ImgBandBiasLayer biasLayer, final FindFeatureSpace featureSpace) {
+    final int[] filterDimensions = convolutionLayer.kernel.getDimensions();
+    final int outputBands = biasLayer.getBias().length;
+    assert outputBands == biasLayer.getBias().length;
+    final int inputBands = filterDimensions[2] / outputBands;
+    biasLayer.setWeights(i -> {
+      final double v = featureSpace.getAverages()[i];
+      return Double.isFinite(v) ? v : biasLayer.getBias()[i];
+    });
+    final Tensor[] featureSpaceVectors = featureSpace.getVectors();
+    for (final Tensor t : featureSpaceVectors) {
+      System.out.println(String.format("Feature Vector %s%n", t.prettyPrint()));
+    }
+    convolutionLayer.kernel.setByCoord(c -> {
+      final int kband = c.getCoords()[2];
+      final int outband = kband % outputBands;
+      final int inband = (kband - outband) / outputBands;
+      assert outband < outputBands;
+      assert inband < inputBands;
+      int x = c.getCoords()[0];
+      int y = c.getCoords()[1];
+      x = filterDimensions[0] - (x + 1);
+      y = filterDimensions[1] - (y + 1);
+      final double v = featureSpaceVectors[inband].get(x, y, outband);
+      return Double.isFinite(v) ? v : convolutionLayer.kernel.get(c);
+    });
+    System.out.println(String.format("Bias: %s%n", Arrays.toString(biasLayer.getBias())));
+    System.out.println(String.format("Kernel: %s%n", convolutionLayer.kernel.prettyPrint()));
+  }
+  
+  /**
+   * Validation report.
+   *
+   * @param log          the log
+   * @param data         the data
+   * @param dataPipeline the data pipeline
+   * @param maxRows      the max rows
+   */
+  public static void validationReport(final NotebookOutput log, final Tensor[][] data, final List<NNLayer> dataPipeline, final int maxRows) {
+    log.out("Current dataset and evaluation results: ");
+    log.code(() -> {
+      final TableOutput table = new TableOutput();
+      Arrays.stream(data).limit(maxRows).map(tensorArray -> {
+        final LinkedHashMap<String, Object> row = new LinkedHashMap<>();
+        for (int col = 1; col < tensorArray.length; col++) {
+          EncodingUtil.renderLayer(log, dataPipeline, row, col, tensorArray[col]);
+        }
+        return row;
+      }).filter(x -> null != x).limit(10).forEach(table::putRow);
+      return table;
+    });
+  }
+  
   private static class ConvolutionExtractor implements ToDoubleFunction<Coordinate> {
   
-    /**
-     * The X.
-     */
-    public int x;
-    /**
-     * The Y.
-     */
-    public int y;
     /**
      * The Column.
      */
@@ -457,10 +454,18 @@ class EncodingUtil {
      * The Image.
      */
     public Tensor[] image;
+    /**
+     * The X.
+     */
+    public int x;
+    /**
+     * The Y.
+     */
+    public int y;
     
     @Override
-    public double applyAsDouble(Coordinate c) {
-      int[] coords = c.getCoords();
+    public double applyAsDouble(final Coordinate c) {
+      final int[] coords = c.getCoords();
       return image[column].get(coords[0] + x, coords[column] + y, coords[2]);
     }
   }

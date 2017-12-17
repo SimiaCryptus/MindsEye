@@ -31,12 +31,12 @@ public class CompoundRegion implements TrustRegion {
    *
    * @param inner the inner
    */
-  public CompoundRegion(TrustRegion... inner) {
+  public CompoundRegion(final TrustRegion... inner) {
     this.inner = inner;
   }
   
   @Override
-  public double[] project(double[][] history, double[] point) {
+  public double[] project(final double[][] history, final double[] point) {
     double[] returnValue = point;
     for (int i = 0; i < inner.length; i++) {
       returnValue = inner[i].project(history, returnValue);

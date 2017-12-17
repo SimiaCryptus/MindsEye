@@ -33,6 +33,7 @@ import java.util.function.DoubleSupplier;
 /**
  * The type Inception layer.
  */
+@SuppressWarnings("serial")
 public class InceptionLayer extends DAGNetwork {
   
   /**
@@ -50,21 +51,34 @@ public class InceptionLayer extends DAGNetwork {
    *
    * @param kernels the kernels
    */
-  public InceptionLayer(int[][][] kernels) {
+  public InceptionLayer(final int[][][] kernels) {
     super(1);
     this.kernels = kernels;
-    List<DAGNode> pipelines = new ArrayList<>();
-    for (int[][] kernelPipeline : this.kernels) {
-      PipelineNetwork kernelPipelineNetwork = new PipelineNetwork();
-      for (int[] kernel : kernelPipeline) {
-        ConvolutionLayer convolutionSynapseLayer = new ConvolutionLayer(kernel[0], kernel[1], kernel[2]);
+    final List<DAGNode> pipelines = new ArrayList<>();
+    for (final int[][] kernelPipeline : this.kernels) {
+      final PipelineNetwork kernelPipelineNetwork = new PipelineNetwork();
+      for (final int[] kernel : kernelPipeline) {
+        final ConvolutionLayer convolutionSynapseLayer = new ConvolutionLayer(kernel[0], kernel[1], kernel[2]);
         convolutionLayers.add(convolutionSynapseLayer);
         kernelPipelineNetwork.add(convolutionSynapseLayer);
       }
       pipelines.add(add(kernelPipelineNetwork, getInput(0)));
     }
-    assert (0 < pipelines.size());
-    this.head = add(new ImgConcatLayer(), pipelines.toArray(new DAGNode[]{}));
+    assert 0 < pipelines.size();
+    head = add(new ImgConcatLayer(), pipelines.toArray(new DAGNode[]{}));
+  }
+  
+  @Override
+  public DAGNode getHead() {
+    assert null != head;
+    return head;
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJson();
+    json.add("root", getHead().getLayer().getJson());
+    return json;
   }
   
   /**
@@ -76,19 +90,6 @@ public class InceptionLayer extends DAGNetwork {
   public InceptionLayer setWeights(final DoubleSupplier f) {
     convolutionLayers.forEach(x -> x.setWeights(f));
     return this;
-  }
-  
-  @Override
-  public DAGNode getHead() {
-    assert null != this.head;
-    return this.head;
-  }
-  
-  @Override
-  public JsonObject getJson() {
-    final JsonObject json = super.getJson();
-    json.add("root", getHead().getLayer().getJson());
-    return json;
   }
   
 }

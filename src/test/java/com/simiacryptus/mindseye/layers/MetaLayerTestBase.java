@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.layers;
 
+import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.BatchDerivativeTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.StandardLayerTests;
@@ -38,6 +39,11 @@ public abstract class MetaLayerTestBase extends StandardLayerTests {
     validateBatchExecution = false;
   }
   
+  @Override
+  public ComponentTest<ToleranceStatistics> getDerivativeTester() {
+    return new BatchDerivativeTester(1e-3, 1e-4, 10);
+  }
+  
   /**
    * Test.
    *
@@ -48,10 +54,5 @@ public abstract class MetaLayerTestBase extends StandardLayerTests {
     try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
       test(log);
     }
-  }
-  
-  @Override
-  public ComponentTest getDerivativeTester() {
-    return new BatchDerivativeTester(1e-3, 1e-4, 10);
   }
 }

@@ -36,13 +36,8 @@ public class TrainableWrapper<T extends Trainable> implements TrainableDataMask 
    *
    * @param inner the inner
    */
-  public TrainableWrapper(T inner) {
+  public TrainableWrapper(final T inner) {
     this.inner = inner;
-  }
-  
-  @Override
-  public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
-    return inner.measure(isStatic, monitor);
   }
   
   /**
@@ -55,17 +50,22 @@ public class TrainableWrapper<T extends Trainable> implements TrainableDataMask 
   }
   
   @Override
-  public boolean reseed(long seed) {
-    return getInner().reseed(seed);
-  }
-  
-  @Override
   public boolean[] getMask() {
     return ((TrainableDataMask) inner).getMask();
   }
   
   @Override
-  public TrainableDataMask setMask(boolean... mask) {
+  public PointSample measure(final boolean isStatic, final TrainingMonitor monitor) {
+    return inner.measure(isStatic, monitor);
+  }
+  
+  @Override
+  public boolean reseed(final long seed) {
+    return getInner().reseed(seed);
+  }
+  
+  @Override
+  public TrainableDataMask setMask(final boolean... mask) {
     ((TrainableDataMask) inner).setMask(mask);
     return this;
   }

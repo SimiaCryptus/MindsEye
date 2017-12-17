@@ -46,31 +46,31 @@ public class MNIST {
   /**
    * The constant training.
    */
-  public static final DataLoader training = new DataLoader<LabeledObject<Tensor>>() {
+  public static final DataLoader<LabeledObject<Tensor>> training = new DataLoader<LabeledObject<Tensor>>() {
     @Override
-    protected void read(List<LabeledObject<Tensor>> queue) {
+    protected void read(final List<LabeledObject<Tensor>> queue) {
       try {
-        final Stream<Tensor> imgStream = binaryStream("trainCjGD-images-idx3-ubyte.gz", 16, 28 * 28).map(b -> {
-          return fillImage(b, new Tensor(28, 28, 1));
+        final Stream<Tensor> imgStream = MNIST.binaryStream("trainCjGD-images-idx3-ubyte.gz", 16, 28 * 28).map(b -> {
+          return MNIST.fillImage(b, new Tensor(28, 28, 1));
         });
-        final Stream<byte[]> labelStream = binaryStream("trainCjGD-labels-idx1-ubyte.gz", 8, 1);
-        
-        final Stream<LabeledObject<Tensor>> merged = toStream(new Iterator<LabeledObject<Tensor>>() {
+        final Stream<byte[]> labelStream = MNIST.binaryStream("trainCjGD-labels-idx1-ubyte.gz", 8, 1);
+  
+        final Stream<LabeledObject<Tensor>> merged = MNIST.toStream(new Iterator<LabeledObject<Tensor>>() {
           Iterator<Tensor> imgItr = imgStream.iterator();
           Iterator<byte[]> labelItr = labelStream.iterator();
           
           @Override
           public boolean hasNext() {
-            return this.imgItr.hasNext() && this.labelItr.hasNext();
+            return imgItr.hasNext() && labelItr.hasNext();
           }
           
           @Override
           public LabeledObject<Tensor> next() {
-            return new LabeledObject<Tensor>(this.imgItr.next(), Arrays.toString(this.labelItr.next()));
+            return new LabeledObject<>(imgItr.next(), Arrays.toString(labelItr.next()));
           }
         }, 100);
         merged.forEach(x -> queue.add(x));
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new RuntimeException(e);
       }
     }
@@ -78,31 +78,31 @@ public class MNIST {
   /**
    * The constant validation.
    */
-  public static final DataLoader validation = new DataLoader<LabeledObject<Tensor>>() {
+  public static final DataLoader<LabeledObject<Tensor>> validation = new DataLoader<LabeledObject<Tensor>>() {
     @Override
-    protected void read(List<LabeledObject<Tensor>> queue) {
+    protected void read(final List<LabeledObject<Tensor>> queue) {
       try {
-        final Stream<Tensor> imgStream = binaryStream("t10k-images-idx3-ubyte.gz", 16, 28 * 28).map(b -> {
-          return fillImage(b, new Tensor(28, 28, 1));
+        final Stream<Tensor> imgStream = MNIST.binaryStream("t10k-images-idx3-ubyte.gz", 16, 28 * 28).map(b -> {
+          return MNIST.fillImage(b, new Tensor(28, 28, 1));
         });
-        final Stream<byte[]> labelStream = binaryStream("t10k-labels-idx1-ubyte.gz", 8, 1);
-        
-        final Stream<LabeledObject<Tensor>> merged = toStream(new Iterator<LabeledObject<Tensor>>() {
+        final Stream<byte[]> labelStream = MNIST.binaryStream("t10k-labels-idx1-ubyte.gz", 8, 1);
+  
+        final Stream<LabeledObject<Tensor>> merged = MNIST.toStream(new Iterator<LabeledObject<Tensor>>() {
           Iterator<Tensor> imgItr = imgStream.iterator();
           Iterator<byte[]> labelItr = labelStream.iterator();
           
           @Override
           public boolean hasNext() {
-            return this.imgItr.hasNext() && this.labelItr.hasNext();
+            return imgItr.hasNext() && labelItr.hasNext();
           }
           
           @Override
           public LabeledObject<Tensor> next() {
-            return new LabeledObject<Tensor>(this.imgItr.next(), Arrays.toString(this.labelItr.next()));
+            return new LabeledObject<>(imgItr.next(), Arrays.toString(labelItr.next()));
           }
         }, 100);
         merged.forEach(x -> queue.add(x));
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new RuntimeException(e);
       }
     }
@@ -111,28 +111,14 @@ public class MNIST {
   private static Stream<byte[]> binaryStream(final String name, final int skip, final int recordSize) throws IOException {
     InputStream stream = null;
     try {
-      stream = Util.cache(source.resolve(name));
+      stream = Util.cache(MNIST.source.resolve(name));
     } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
       throw new RuntimeException(e);
     }
-    byte[] fileData = org.apache.commons.io.IOUtils.toByteArray(new java.io.BufferedInputStream(new GZIPInputStream(new java.io.BufferedInputStream(stream))));
+    final byte[] fileData = org.apache.commons.io.IOUtils.toByteArray(new java.io.BufferedInputStream(new GZIPInputStream(new java.io.BufferedInputStream(stream))));
     final DataInputStream in = new DataInputStream(new java.io.ByteArrayInputStream(fileData));
     in.skip(skip);
-    return toIterator(new BinaryChunkIterator(in, recordSize));
-  }
-  
-  private static <T> Stream<T> toIterator(final Iterator<T> iterator) {
-    return StreamSupport.stream(Spliterators.spliterator(iterator, 1, Spliterator.ORDERED), false);
-  }
-  
-  /**
-   * Training data stream stream.
-   *
-   * @return the stream
-   * @throws IOException the io exception
-   */
-  public static Stream<LabeledObject<Tensor>> trainingDataStream() throws IOException {
-    return training.stream();
+    return MNIST.toIterator(new BinaryChunkIterator(in, recordSize));
   }
   
   private static Tensor fillImage(final byte[] b, final Tensor tensor) {
@@ -144,12 +130,26 @@ public class MNIST {
     return tensor;
   }
   
+  private static <T> Stream<T> toIterator(final Iterator<T> iterator) {
+    return StreamSupport.stream(Spliterators.spliterator(iterator, 1, Spliterator.ORDERED), false);
+  }
+  
   private static <T> Stream<T> toStream(final Iterator<T> iterator, final int size) {
-    return toStream(iterator, size, false);
+    return MNIST.toStream(iterator, size, false);
   }
   
   private static <T> Stream<T> toStream(final Iterator<T> iterator, final int size, final boolean parallel) {
     return StreamSupport.stream(Spliterators.spliterator(iterator, size, Spliterator.ORDERED), parallel);
+  }
+  
+  /**
+   * Training data stream stream.
+   *
+   * @return the stream
+   * @throws IOException the io exception
+   */
+  public static Stream<LabeledObject<Tensor>> trainingDataStream() throws IOException {
+    return MNIST.training.stream();
   }
   
   /**
@@ -159,7 +159,7 @@ public class MNIST {
    * @throws IOException the io exception
    */
   public static Stream<LabeledObject<Tensor>> validationDataStream() throws IOException {
-    return validation.stream();
+    return MNIST.validation.stream();
   }
   
 }

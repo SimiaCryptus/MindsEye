@@ -29,17 +29,17 @@ import java.util.List;
  */
 public interface DataTrainable extends Trainable {
   /**
+   * Get data tensor [ ] [ ].
+   *
+   * @return the tensor [ ] [ ]
+   */
+  Tensor[][] getData();
+  
+  /**
    * Sets data.
    *
    * @param tensors the tensors
    * @return the data
    */
   Trainable setData(List<Tensor[]> tensors);
-  
-  /**
-   * Get data tensor [ ] [ ].
-   *
-   * @return the tensor [ ] [ ]
-   */
-  Tensor[][] getData();
 }

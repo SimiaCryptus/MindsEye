@@ -24,19 +24,10 @@ import com.google.gson.JsonObject;
 /**
  * The type Sinewave activation layer.
  */
+@SuppressWarnings("serial")
 public final class SinewaveActivationLayer extends SimpleActivationLayer<SinewaveActivationLayer> {
   
   private boolean balanced = true;
-  
-  /**
-   * Instantiates a new Sinewave activation layer.
-   *
-   * @param id the id
-   */
-  protected SinewaveActivationLayer(JsonObject id) {
-    super(id);
-    balanced = id.get("balanced").getAsBoolean();
-  }
   
   /**
    * Instantiates a new Sinewave activation layer.
@@ -45,19 +36,23 @@ public final class SinewaveActivationLayer extends SimpleActivationLayer<Sinewav
   }
   
   /**
+   * Instantiates a new Sinewave activation layer.
+   *
+   * @param id the id
+   */
+  protected SinewaveActivationLayer(final JsonObject id) {
+    super(id);
+    balanced = id.get("balanced").getAsBoolean();
+  }
+  
+  /**
    * From json sinewave activation layer.
    *
    * @param json the json
    * @return the sinewave activation layer
    */
-  public static SinewaveActivationLayer fromJson(JsonObject json) {
+  public static SinewaveActivationLayer fromJson(final JsonObject json) {
     return new SinewaveActivationLayer(json);
-  }
-  
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("balanced", balanced);
-    return json;
   }
   
   @Override
@@ -72,13 +67,20 @@ public final class SinewaveActivationLayer extends SimpleActivationLayer<Sinewav
     results[1] = d;
   }
   
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    json.addProperty("balanced", balanced);
+    return json;
+  }
+  
   /**
    * Is balanced boolean.
    *
    * @return the boolean
    */
   public boolean isBalanced() {
-    return this.balanced;
+    return balanced;
   }
   
   /**

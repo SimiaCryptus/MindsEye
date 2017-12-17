@@ -28,13 +28,13 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 public class L1NormalizationLayerTest extends LayerTestBase {
   
   @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new L1NormalizationLayer();
+  public int[][] getInputDims() {
+    return new int[][]{{4}};
   }
   
   @Override
-  public int[][] getInputDims() {
-    return new int[][]{{4}};
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new L1NormalizationLayer();
   }
   
   @Override

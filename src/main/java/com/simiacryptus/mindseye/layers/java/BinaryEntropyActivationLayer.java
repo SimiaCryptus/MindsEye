@@ -24,16 +24,8 @@ import com.google.gson.JsonObject;
 /**
  * The type Binary entropy activation layer.
  */
+@SuppressWarnings("serial")
 public final class BinaryEntropyActivationLayer extends SimpleActivationLayer<BinaryEntropyActivationLayer> {
-  
-  /**
-   * Instantiates a new Binary entropy activation layer.
-   *
-   * @param id the id
-   */
-  protected BinaryEntropyActivationLayer(JsonObject id) {
-    super(id);
-  }
   
   /**
    * Instantiates a new Binary entropy activation layer.
@@ -42,28 +34,38 @@ public final class BinaryEntropyActivationLayer extends SimpleActivationLayer<Bi
   }
   
   /**
+   * Instantiates a new Binary entropy activation layer.
+   *
+   * @param id the id
+   */
+  protected BinaryEntropyActivationLayer(final JsonObject id) {
+    super(id);
+  }
+  
+  /**
    * From json binary entropy activation layer.
    *
    * @param json the json
    * @return the binary entropy activation layer
    */
-  public static BinaryEntropyActivationLayer fromJson(JsonObject json) {
+  public static BinaryEntropyActivationLayer fromJson(final JsonObject json) {
     return new BinaryEntropyActivationLayer(json);
-  }
-  
-  public JsonObject getJson() {
-    return super.getJsonStub();
   }
   
   @Override
   protected final void eval(final double x, final double[] results) {
     final double minDeriv = 0;
-    final double d = 0 >= x ? Double.NaN : (Math.log(x) - Math.log(1 - x));
-    final double f = (0 >= x || 1 <= x) ? Double.POSITIVE_INFINITY : (x * Math.log(x) + (1 - x) * Math.log(1 - x));
+    final double d = 0 >= x ? Double.NaN : Math.log(x) - Math.log(1 - x);
+    final double f = 0 >= x || 1 <= x ? Double.POSITIVE_INFINITY : x * Math.log(x) + (1 - x) * Math.log(1 - x);
     assert Double.isFinite(d);
     assert minDeriv <= Math.abs(d);
     results[0] = f;
     results[1] = d;
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
 }

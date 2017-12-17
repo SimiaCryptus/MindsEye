@@ -31,19 +31,11 @@ import java.util.stream.IntStream;
 /**
  * The type Avg reducer layer.
  */
+@SuppressWarnings("serial")
 public class AvgReducerLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SumReducerLayer.class);
-  
-  /**
-   * Instantiates a new Avg reducer layer.
-   *
-   * @param id the id
-   */
-  protected AvgReducerLayer(JsonObject id) {
-    super(id);
-  }
   
   /**
    * Instantiates a new Avg reducer layer.
@@ -52,21 +44,26 @@ public class AvgReducerLayer extends NNLayer {
   }
   
   /**
+   * Instantiates a new Avg reducer layer.
+   *
+   * @param id the id
+   */
+  protected AvgReducerLayer(final JsonObject id) {
+    super(id);
+  }
+  
+  /**
    * From json avg reducer layer.
    *
    * @param json the json
    * @return the avg reducer layer
    */
-  public static AvgReducerLayer fromJson(JsonObject json) {
+  public static AvgReducerLayer fromJson(final JsonObject json) {
     return new AvgReducerLayer(json);
   }
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     return new NNResult(IntStream.range(0, inObj[0].getData().length()).parallel().mapToDouble(dataIndex -> {
       double sum = 0;
       for (final NNResult element : inObj) {
@@ -78,20 +75,20 @@ public class AvgReducerLayer extends NNLayer {
       return sum;
     }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         for (final NNResult in_l : inObj) {
           if (in_l.isAlive()) {
-            final Tensor[] data1 = IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {
+            final TensorArray tensorArray = new TensorArray(IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {
               final double delta = data.get(dataIndex).get(0);
               final Tensor passback = new Tensor(in_l.getData().get(dataIndex).getDimensions());
-              int dim = in_l.getData().get(dataIndex).dim();
+              final int dim = in_l.getData().get(dataIndex).dim();
               for (int i = 0; i < dim; i++) {
                 passback.set(i, delta / dim);
               }
               return passback;
-            }).toArray(i -> new Tensor[i]);
-            in_l.accumulate(buffer, new TensorArray(data1));
-            for (Tensor t : data1) t.release();
+            }).toArray(i -> new Tensor[i]));
+            in_l.accumulate(buffer, tensorArray);
+            tensorArray.recycle();
           }
         }
       }
@@ -106,6 +103,11 @@ public class AvgReducerLayer extends NNLayer {
       }
       
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

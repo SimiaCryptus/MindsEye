@@ -27,7 +27,7 @@ import com.simiacryptus.util.ArrayUtil;
  */
 public class ProportionalityConstraint implements TrustRegion {
   @Override
-  public double[] project(double[] weights, double[] point) {
+  public double[] project(final double[] weights, final double[] point) {
     return ArrayUtil.multiply(weights, ArrayUtil.dot(weights, point) / ArrayUtil.dot(weights, weights));
   }
 }

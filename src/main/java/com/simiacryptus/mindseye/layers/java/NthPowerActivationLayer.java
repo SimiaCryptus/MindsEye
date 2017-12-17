@@ -29,19 +29,10 @@ import java.util.stream.IntStream;
 /**
  * The type Nth power activation layer.
  */
+@SuppressWarnings("serial")
 public final class NthPowerActivationLayer extends NNLayer {
   
   private double power = 1.0;
-  
-  /**
-   * Instantiates a new Nth power activation layer.
-   *
-   * @param id the id
-   */
-  protected NthPowerActivationLayer(JsonObject id) {
-    super(id);
-    power = id.get("power").getAsDouble();
-  }
   
   /**
    * Instantiates a new Nth power activation layer.
@@ -50,51 +41,43 @@ public final class NthPowerActivationLayer extends NNLayer {
   }
   
   /**
+   * Instantiates a new Nth power activation layer.
+   *
+   * @param id the id
+   */
+  protected NthPowerActivationLayer(final JsonObject id) {
+    super(id);
+    power = id.get("power").getAsDouble();
+  }
+  
+  /**
    * From json nth power activation layer.
    *
    * @param json the json
    * @return the nth power activation layer
    */
-  public static NthPowerActivationLayer fromJson(JsonObject json) {
+  public static NthPowerActivationLayer fromJson(final JsonObject json) {
     return new NthPowerActivationLayer(json);
   }
   
-  private static void nthPower(double power, Tensor input, double[] inputData, double[] gradientData, double[] outputData) {
+  private static void nthPower(final double power, final Tensor input, final double[] inputData, final double[] gradientData, final double[] outputData) {
     for (int i = 0; i < input.dim(); i++) {
       final double x = inputData[i];
-      boolean isZero = Math.abs(x) < 1e-20;
-      double d = isZero ? 0.0 : (power * Math.pow(x, power - 1));
+      final boolean isZero = Math.abs(x) < 1e-20;
+      double d = isZero ? 0.0 : power * Math.pow(x, power - 1);
       double f = isZero ? 0.0 : Math.pow(x, power);
-      if (!Double.isFinite(d)) d = 0.0;
-      if (!Double.isFinite(f)) f = 0.0;
+      if (!Double.isFinite(d)) {
+        d = 0.0;
+      }
+      if (!Double.isFinite(f)) {
+        f = 0.0;
+      }
       gradientData[i] = d;
       outputData[i] = f;
     }
   }
   
-  private static void unity(Tensor input, double[] inputData, double[] gradientData, double[] outputData) {
-    for (int i = 0; i < input.dim(); i++) {
-      gradientData[i] = 0;
-      outputData[i] = 1;
-    }
-  }
-  
-  private static void squareRoot(Tensor input, double[] inputData, double[] gradientData, double[] outputData) {
-    for (int i = 0; i < input.dim(); i++) {
-      final double x = inputData[i];
-      boolean isZero = Math.abs(x) < 1e-20;
-      double power = 0.5;
-      double v = Math.pow(x, power);
-      double d = isZero ? 0.0 : (power / v);
-      double f = isZero ? 0.0 : v;
-      if (!Double.isFinite(d)) d = 0.0;
-      if (!Double.isFinite(f)) f = 0.0;
-      gradientData[i] = d;
-      outputData[i] = f;
-    }
-  }
-  
-  private static void square(Tensor input, double[] inputData, double[] gradientData, double[] outputData) {
+  private static void square(final Tensor input, final double[] inputData, final double[] gradientData, final double[] outputData) {
     for (int i = 0; i < input.dim(); i++) {
       final double x = inputData[i];
       gradientData[i] = 2 * x;
@@ -102,8 +85,88 @@ public final class NthPowerActivationLayer extends NNLayer {
     }
   }
   
+  private static void squareRoot(final Tensor input, final double[] inputData, final double[] gradientData, final double[] outputData) {
+    for (int i = 0; i < input.dim(); i++) {
+      final double x = inputData[i];
+      final boolean isZero = Math.abs(x) < 1e-20;
+      final double power = 0.5;
+      final double v = Math.pow(x, power);
+      double d = isZero ? 0.0 : power / v;
+      double f = isZero ? 0.0 : v;
+      if (!Double.isFinite(d)) {
+        d = 0.0;
+      }
+      if (!Double.isFinite(f)) {
+        f = 0.0;
+      }
+      gradientData[i] = d;
+      outputData[i] = f;
+    }
+  }
+  
+  private static void unity(final Tensor input, final double[] inputData, final double[] gradientData, final double[] outputData) {
+    for (int i = 0; i < input.dim(); i++) {
+      gradientData[i] = 0;
+      outputData[i] = 1;
+    }
+  }
+  
+  @Override
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final int itemCnt = inObj[0].getData().length();
+    assert 0 < itemCnt;
+    final Tensor inputGradientA[] = new Tensor[itemCnt];
+    final Tensor[] outputA = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
+      final Tensor input = inObj[0].getData().get(dataIndex);
+      final Tensor output = new Tensor(inObj[0].getData().get(dataIndex).getDimensions());
+      final Tensor gradient = new Tensor(input.dim());
+      final double[] inputData = input.getData();
+      final double[] gradientData = gradient.getData();
+      final double[] outputData = output.getData();
+      inputGradientA[dataIndex] = gradient;
+      if (power == 2) {
+        NthPowerActivationLayer.square(input, inputData, gradientData, outputData);
+      }
+      else if (power == 0.5) {
+        NthPowerActivationLayer.squareRoot(input, inputData, gradientData, outputData);
+      }
+      else if (power == 0.0) {
+        NthPowerActivationLayer.unity(input, inputData, gradientData, outputData);
+      }
+      else {
+        NthPowerActivationLayer.nthPower(power, input, inputData, gradientData, outputData);
+      }
+      return output;
+    }).toArray(i -> new Tensor[i]);
+    return new NNResult(outputA) {
+      @Override
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+        if (inObj[0].isAlive()) {
+          final Tensor[] passbackA = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
+            final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
+            final double[] gradientData = inputGradientA[dataIndex].getData();
+            IntStream.range(0, passback.dim()).forEach(i -> {
+              final double v = gradientData[i];
+              if (Double.isFinite(v)) {
+                passback.set(i, data.get(dataIndex).getData()[i] * v);
+              }
+            });
+            return passback;
+          }).toArray(i -> new Tensor[i]);
+          inObj[0].accumulate(buffer, new TensorArray(passbackA));
+        }
+      }
+      
+      @Override
+      public boolean isAlive() {
+        return 0.0 != power && inObj[0].isAlive();
+      }
+    };
+  }
+  
+  @Override
   public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
+    final JsonObject json = super.getJsonStub();
     json.addProperty("power", power);
     return json;
   }
@@ -123,62 +186,9 @@ public final class NthPowerActivationLayer extends NNLayer {
    * @param power the power
    * @return the power
    */
-  public NthPowerActivationLayer setPower(double power) {
+  public NthPowerActivationLayer setPower(final double power) {
     this.power = power;
     return this;
-  }
-  
-  @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    int itemCnt = inObj[0].getData().length();
-    assert (0 < itemCnt);
-    Tensor inputGradientA[] = new Tensor[itemCnt];
-    Tensor[] outputA = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].getData().get(dataIndex);
-      final Tensor output = new Tensor(inObj[0].getData().get(dataIndex).getDimensions());
-      final Tensor gradient = new Tensor(input.dim());
-      double[] inputData = input.getData();
-      double[] gradientData = gradient.getData();
-      double[] outputData = output.getData();
-      inputGradientA[dataIndex] = gradient;
-      if (power == 2) {
-        square(input, inputData, gradientData, outputData);
-      }
-      else if (power == 0.5) {
-        squareRoot(input, inputData, gradientData, outputData);
-      }
-      else if (power == 0.0) {
-        unity(input, inputData, gradientData, outputData);
-      }
-      else {
-        nthPower(power, input, inputData, gradientData, outputData);
-      }
-      return output;
-    }).toArray(i -> new Tensor[i]);
-    return new NNResult(outputA) {
-      @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
-        if (inObj[0].isAlive()) {
-          Tensor[] passbackA = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
-            final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
-            final double[] gradientData = inputGradientA[dataIndex].getData();
-            IntStream.range(0, passback.dim()).forEach(i -> {
-              final double v = gradientData[i];
-              if (Double.isFinite(v)) {
-                passback.set(i, data.get(dataIndex).getData()[i] * v);
-              }
-            });
-            return passback;
-          }).toArray(i -> new Tensor[i]);
-          inObj[0].accumulate(buffer, new TensorArray(passbackA));
-        }
-      }
-      
-      @Override
-      public boolean isAlive() {
-        return (0.0 != power) && inObj[0].isAlive();
-      }
-    };
   }
   
   @Override

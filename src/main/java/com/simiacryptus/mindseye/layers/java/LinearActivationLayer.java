@@ -31,6 +31,7 @@ import java.util.stream.IntStream;
 /**
  * The type Linear activation layer.
  */
+@SuppressWarnings("serial")
 public class LinearActivationLayer extends NNLayer {
   
   
@@ -40,22 +41,22 @@ public class LinearActivationLayer extends NNLayer {
   
   /**
    * Instantiates a new Linear activation layer.
-   *
-   * @param json the json
    */
-  protected LinearActivationLayer(JsonObject json) {
-    super(json);
-    this.weights = Tensor.fromJson(json.get("weights"));
+  public LinearActivationLayer() {
+    super();
+    weights = new Tensor(2);
+    weights.set(0, 1.);
+    weights.set(1, 0.);
   }
   
   /**
    * Instantiates a new Linear activation layer.
+   *
+   * @param json the json
    */
-  public LinearActivationLayer() {
-    super();
-    this.weights = new Tensor(2);
-    this.weights.set(0, 1.);
-    this.weights.set(1, 0.);
+  protected LinearActivationLayer(final JsonObject json) {
+    super(json);
+    weights = Tensor.fromJson(json.get("weights"));
   }
   
   /**
@@ -64,31 +65,20 @@ public class LinearActivationLayer extends NNLayer {
    * @param json the json
    * @return the linear activation layer
    */
-  public static LinearActivationLayer fromJson(JsonObject json) {
+  public static LinearActivationLayer fromJson(final JsonObject json) {
     return new LinearActivationLayer(json);
   }
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("weights", weights.toJson());
-    return json;
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    int itemCnt = inObj[0].getData().length();
-    final double scale = this.weights.get(0);
-    final double bias = this.weights.get(1);
-    Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final int itemCnt = inObj[0].getData().length();
+    final double scale = weights.get(0);
+    final double bias = weights.get(1);
+    final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);
       return input.map(v -> scale * v + bias);
     }).toArray(i -> new Tensor[i]);
     return new Result(outputA, inObj[0]);
-  }
-  
-  @Override
-  public List<double[]> state() {
-    return Arrays.asList(this.weights.getData());
   }
   
   /**
@@ -97,7 +87,7 @@ public class LinearActivationLayer extends NNLayer {
    * @return the bias
    */
   public double getBias() {
-    return this.weights.get(1);
+    return weights.get(1);
   }
   
   /**
@@ -106,9 +96,16 @@ public class LinearActivationLayer extends NNLayer {
    * @param bias the bias
    * @return the bias
    */
-  public LinearActivationLayer setBias(double bias) {
-    this.weights.set(1, bias);
+  public LinearActivationLayer setBias(final double bias) {
+    weights.set(1, bias);
     return this;
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    json.add("weights", weights.toJson());
+    return json;
   }
   
   /**
@@ -117,7 +114,7 @@ public class LinearActivationLayer extends NNLayer {
    * @return the scale
    */
   public double getScale() {
-    return this.weights.get(0);
+    return weights.get(0);
   }
   
   /**
@@ -126,9 +123,14 @@ public class LinearActivationLayer extends NNLayer {
    * @param scale the scale
    * @return the scale
    */
-  public LinearActivationLayer setScale(double scale) {
-    this.weights.set(0, scale);
+  public LinearActivationLayer setScale(final double scale) {
+    weights.set(0, scale);
     return this;
+  }
+  
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList(weights.getData());
   }
   
   private final class Result extends NNResult {
@@ -144,33 +146,33 @@ public class LinearActivationLayer extends NNLayer {
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).forEach(dataIndex -> {
           final double[] deltaData = delta.get(dataIndex).getData();
-          final double[] inputData = this.inObj.getData().get(dataIndex).getData();
-          final Tensor weightDelta = new Tensor(LinearActivationLayer.this.weights.getDimensions());
+          final double[] inputData = inObj.getData().get(dataIndex).getData();
+          final Tensor weightDelta = new Tensor(weights.getDimensions());
           for (int i = 0; i < deltaData.length; i++) {
             weightDelta.add(0, deltaData[i] * inputData[inputData.length == 1 ? 0 : i]);
             weightDelta.add(1, deltaData[i]);
           }
-          buffer.get(LinearActivationLayer.this, LinearActivationLayer.this.weights.getData()).addInPlace(weightDelta.getData());
+          buffer.get(LinearActivationLayer.this, weights.getData()).addInPlace(weightDelta.getData());
         });
       }
-      if (this.inObj.isAlive()) {
-        Tensor[] passbackA = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+      if (inObj.isAlive()) {
+        final TensorArray tensorArray = new TensorArray(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           final double[] deltaData = delta.get(dataIndex).getData();
-          final int[] dims = this.inObj.getData().get(dataIndex).getDimensions();
+          final int[] dims = inObj.getData().get(dataIndex).getDimensions();
           final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
-            passback.set(i, deltaData[i] * LinearActivationLayer.this.weights.getData()[0]);
+            passback.set(i, deltaData[i] * weights.getData()[0]);
           }
           return passback;
-        }).toArray(i -> new Tensor[i]);
-        this.inObj.accumulate(buffer, new TensorArray(passbackA));
-        for (Tensor t : passbackA) t.release();
+        }).toArray(i -> new Tensor[i]));
+        inObj.accumulate(buffer, tensorArray);
+        tensorArray.recycle();
       }
     }
     
     @Override
     public boolean isAlive() {
-      return this.inObj.isAlive() || !isFrozen();
+      return inObj.isAlive() || !isFrozen();
     }
     
   }

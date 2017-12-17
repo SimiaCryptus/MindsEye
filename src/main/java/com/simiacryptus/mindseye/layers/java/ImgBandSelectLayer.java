@@ -31,6 +31,7 @@ import java.util.stream.IntStream;
 /**
  * The type Img band select layer.
  */
+@SuppressWarnings("serial")
 public class ImgBandSelectLayer extends NNLayer {
   
   
@@ -39,23 +40,25 @@ public class ImgBandSelectLayer extends NNLayer {
   /**
    * Instantiates a new Img band select layer.
    *
-   * @param json the json
+   * @param bands the bands
    */
-  protected ImgBandSelectLayer(JsonObject json) {
-    super(json);
-    JsonArray jsonArray = json.getAsJsonArray("bands");
-    this.bands = new int[jsonArray.size()];
-    for (int i = 0; i < bands.length; i++) bands[i] = jsonArray.get(i).getAsInt();
+  public ImgBandSelectLayer(final int... bands) {
+    super();
+    this.bands = bands;
   }
   
   /**
    * Instantiates a new Img band select layer.
    *
-   * @param bands the bands
+   * @param json the json
    */
-  public ImgBandSelectLayer(int... bands) {
-    super();
-    this.bands = bands;
+  protected ImgBandSelectLayer(final JsonObject json) {
+    super(json);
+    final JsonArray jsonArray = json.getAsJsonArray("bands");
+    bands = new int[jsonArray.size()];
+    for (int i = 0; i < bands.length; i++) {
+      bands[i] = jsonArray.get(i).getAsInt();
+    }
   }
   
   /**
@@ -64,35 +67,27 @@ public class ImgBandSelectLayer extends NNLayer {
    * @param json the json
    * @return the img band select layer
    */
-  public static ImgBandSelectLayer fromJson(JsonObject json) {
+  public static ImgBandSelectLayer fromJson(final JsonObject json) {
     return new ImgBandSelectLayer(json);
   }
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    JsonArray array = new JsonArray();
-    for (int b : bands) array.add(new JsonPrimitive(b));
-    json.add("bands", array);
-    return json;
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputDims = batch.get(0).getDimensions();
-    assert (3 == inputDims.length);
-    Tensor outputDims = new Tensor(inputDims[0], inputDims[1], bands.length);
+    assert 3 == inputDims.length;
+    final Tensor outputDims = new Tensor(inputDims[0], inputDims[1], bands.length);
     return new NNResult(IntStream.range(0, batch.length()).parallel()
       .mapToObj(dataIndex -> outputDims.mapCoords((c) -> batch.get(dataIndex).get(c.getCoords()[0], c.getCoords()[1], bands[c.getCoords()[2]])))
       .toArray(i -> new Tensor[i])) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList error) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
         if (input.isAlive()) {
           final Tensor[] data1 = IntStream.range(0, error.length()).parallel()
             .mapToObj(dataIndex -> {
-              Tensor passback = new Tensor(inputDims);
-              Tensor err = error.get(dataIndex);
+              final Tensor passback = new Tensor(inputDims);
+              final Tensor err = error.get(dataIndex);
               err.coordStream().forEach(c -> {
                 passback.set(c.getCoords()[0], c.getCoords()[1], bands[c.getCoords()[2]], err.get(c));
               });
@@ -107,6 +102,17 @@ public class ImgBandSelectLayer extends NNLayer {
         return input.isAlive() || !isFrozen();
       }
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    final JsonArray array = new JsonArray();
+    for (final int b : bands) {
+      array.add(new JsonPrimitive(b));
+    }
+    json.add("bands", array);
+    return json;
   }
   
   

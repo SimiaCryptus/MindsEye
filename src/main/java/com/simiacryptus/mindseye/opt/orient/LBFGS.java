@@ -44,37 +44,22 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
    * The Verbose.
    */
   protected boolean verbose = false;
-  private int minHistory = 3;
   private int maxHistory = 30;
+  private int minHistory = 3;
   
-  private static boolean isFinite(DoubleBufferSet<?, ?> delta) {
+  private static boolean isFinite(final DoubleBufferSet<?, ?> delta) {
     return delta.stream().parallel().flatMapToDouble(y -> Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d));
   }
   
-  @Override
-  public SimpleLineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
-    addToHistory(measurement, monitor);
-    List<PointSample> history = Arrays.asList(this.history.toArray(new PointSample[]{}));
-    DeltaSet result = lbfgs(measurement, monitor, history);
-    SimpleLineSearchCursor returnValue;
-    if (null == result) {
-      returnValue = cursor(subject, measurement, "GD", measurement.delta.scale(-1));
-    }
-    else {
-      returnValue = cursor(subject, measurement, "LBFGS", result);
-    }
-    while (this.history.size() > ((null == result) ? minHistory : maxHistory)) {
-      PointSample remove = this.history.pollFirst();
-      if (verbose) {
-        monitor.log(String.format("Removed measurement %s to history. Total: %s", Long.toHexString(System.identityHashCode(remove)), history.size()));
-      }
-    }
-    return returnValue;
-  }
-  
-  @Override
-  public void reset() {
-    history.clear();
+  /**
+   * Accept boolean.
+   *
+   * @param gradient  the gradient
+   * @param direction the direction
+   * @return the boolean
+   */
+  protected boolean accept(final DeltaSet<NNLayer> gradient, final DeltaSet<NNLayer> direction) {
+    return gradient.dot(direction) < 0;
   }
   
   /**
@@ -83,13 +68,17 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
    * @param measurement the measurement
    * @param monitor     the monitor
    */
-  public void addToHistory(PointSample measurement, TrainingMonitor monitor) {
-    PointSample copyFull = measurement.copyFull();
-    if (!isFinite(copyFull.delta)) {
-      if (verbose) monitor.log("Corrupt measurement");
+  public void addToHistory(final PointSample measurement, final TrainingMonitor monitor) {
+    final PointSample copyFull = measurement.copyFull();
+    if (!LBFGS.isFinite(copyFull.delta)) {
+      if (verbose) {
+        monitor.log("Corrupt measurement");
+      }
     }
-    else if (!isFinite(copyFull.weights)) {
-      if (verbose) monitor.log("Corrupt measurement");
+    else if (!LBFGS.isFinite(copyFull.weights)) {
+      if (verbose) {
+        monitor.log("Corrupt measurement");
+      }
     }
     else if (history.isEmpty() || !history.stream().filter(x -> x.sum <= copyFull.sum).findAny().isPresent()) {
       if (verbose) {
@@ -97,6 +86,58 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
       }
       history.add(copyFull);
     }
+  }
+  
+  private SimpleLineSearchCursor cursor(final Trainable subject, final PointSample measurement, final String type, final DeltaSet<NNLayer> result) {
+    return new SimpleLineSearchCursor(subject, measurement, result) {
+      @Override
+      public LineSearchPoint step(final double t, final TrainingMonitor monitor) {
+        final LineSearchPoint measure = super.step(t, monitor);
+        addToHistory(measure.point, monitor);
+        return measure;
+      }
+    }
+      .setDirectionType(type);
+  }
+  
+  /**
+   * Gets max history.
+   *
+   * @return the max history
+   */
+  public int getMaxHistory() {
+    return maxHistory;
+  }
+  
+  /**
+   * Sets max history.
+   *
+   * @param maxHistory the max history
+   * @return the max history
+   */
+  public LBFGS setMaxHistory(final int maxHistory) {
+    this.maxHistory = maxHistory;
+    return this;
+  }
+  
+  /**
+   * Gets min history.
+   *
+   * @return the min history
+   */
+  public int getMinHistory() {
+    return minHistory;
+  }
+  
+  /**
+   * Sets min history.
+   *
+   * @param minHistory the min history
+   * @return the min history
+   */
+  public LBFGS setMinHistory(final int minHistory) {
+    this.minHistory = minHistory;
+    return this;
   }
   
   /**
@@ -107,17 +148,17 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
    * @param history     the history
    * @return the delta set
    */
-  protected DeltaSet<NNLayer> lbfgs(PointSample measurement, TrainingMonitor monitor, List<PointSample> history) {
-    DeltaSet<NNLayer> result = measurement.delta.scale(-1);
+  protected DeltaSet<NNLayer> lbfgs(final PointSample measurement, final TrainingMonitor monitor, final List<PointSample> history) {
+    final DeltaSet<NNLayer> result = measurement.delta.scale(-1);
     if (history.size() > minHistory) {
-      DeltaSet<NNLayer> original = result.copy();
+      final DeltaSet<NNLayer> original = result.copy();
       DeltaSet<NNLayer> p = measurement.delta.copy();
       //assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
-      double[] alphas = new double[history.size()];
+      final double[] alphas = new double[history.size()];
       for (int i = history.size() - 2; i >= 0; i--) {
-        DeltaSet<NNLayer> sd = history.get(i + 1).weights.subtract(history.get(i).weights);
-        DeltaSet<NNLayer> yd = history.get(i + 1).delta.subtract(history.get(i).delta);
-        double denominator = sd.dot(yd);
+        final DeltaSet<NNLayer> sd = history.get(i + 1).weights.subtract(history.get(i).weights);
+        final DeltaSet<NNLayer> yd = history.get(i + 1).delta.subtract(history.get(i).delta);
+        final double denominator = sd.dot(yd);
         if (0 == denominator) {
           monitor.log("Orientation vanished. Popping history element from " + history.stream().map(x -> String.format("%s", x.getMean())).reduce((a, b) -> a + ", " + b).get());
           return lbfgs(measurement, monitor, history.subList(0, history.size() - 1));
@@ -126,43 +167,45 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
         p = p.subtract(yd.scale(alphas[i]));
         //assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
       }
-      DeltaSet<NNLayer> sk = history.get(history.size() - 1).weights.subtract(history.get(history.size() - 2).weights);
-      DeltaSet<NNLayer> yk = history.get(history.size() - 1).delta.subtract(history.get(history.size() - 2).delta);
+      final DeltaSet<NNLayer> sk = history.get(history.size() - 1).weights.subtract(history.get(history.size() - 2).weights);
+      final DeltaSet<NNLayer> yk = history.get(history.size() - 1).delta.subtract(history.get(history.size() - 2).delta);
       p = p.scale(sk.dot(yk) / yk.dot(yk));
       //assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
       for (int i = 0; i < history.size() - 1; i++) {
-        DeltaSet<NNLayer> sd = history.get(i + 1).weights.subtract(history.get(i).weights);
-        DeltaSet<NNLayer> yd = history.get(i + 1).delta.subtract(history.get(i).delta);
-        double beta = p.dot(yd) / sd.dot(yd);
+        final DeltaSet<NNLayer> sd = history.get(i + 1).weights.subtract(history.get(i).weights);
+        final DeltaSet<NNLayer> yd = history.get(i + 1).delta.subtract(history.get(i).delta);
+        final double beta = p.dot(yd) / sd.dot(yd);
         p = p.add(sd.scale(alphas[i] - beta));
         //assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
       }
-      for (Map.Entry<NNLayer, Delta<NNLayer>> e : result.getMap().entrySet()) {
-        double[] delta = p.getMap().get(e.getKey()).getDelta();
+      for (final Map.Entry<NNLayer, Delta<NNLayer>> e : result.getMap().entrySet()) {
+        final double[] delta = p.getMap().get(e.getKey()).getDelta();
         Arrays.setAll(e.getValue().getDelta(), j -> delta[j]);
       }
-      double mag = Math.sqrt(result.dot(result));
-      double magGrad = Math.sqrt(original.dot(original));
-      double dot = result.dot(original) / (mag * magGrad);
-      List<String> anglesPerLayer = measurement.delta.getMap().entrySet().stream()
+      final double mag = Math.sqrt(result.dot(result));
+      final double magGrad = Math.sqrt(original.dot(original));
+      final double dot = result.dot(original) / (mag * magGrad);
+      final List<String> anglesPerLayer = measurement.delta.getMap().entrySet().stream()
         .filter(e -> !(e.getKey() instanceof PlaceholderLayer)) // This would be too verbose
-        .map((Map.Entry<NNLayer, Delta<NNLayer>> e) -> {
-          double[] lbfgsVector = result.getMap().get(e.getKey()).getDelta();
-          for (int index = 0; index < lbfgsVector.length; index++)
+        .map((final Map.Entry<NNLayer, Delta<NNLayer>> e) -> {
+          final double[] lbfgsVector = result.getMap().get(e.getKey()).getDelta();
+          for (int index = 0; index < lbfgsVector.length; index++) {
             lbfgsVector[index] = Double.isFinite(lbfgsVector[index]) ? lbfgsVector[index] : 0;
-          double[] gradientVector = original.getMap().get(e.getKey()).getDelta();
-          for (int index = 0; index < gradientVector.length; index++)
+          }
+          final double[] gradientVector = original.getMap().get(e.getKey()).getDelta();
+          for (int index = 0; index < gradientVector.length; index++) {
             gradientVector[index] = Double.isFinite(gradientVector[index]) ? gradientVector[index] : 0;
-          double lbfgsMagnitude = ArrayUtil.magnitude(lbfgsVector);
-          double gradientMagnitude = ArrayUtil.magnitude(gradientVector);
+          }
+          final double lbfgsMagnitude = ArrayUtil.magnitude(lbfgsVector);
+          final double gradientMagnitude = ArrayUtil.magnitude(gradientVector);
           assert Double.isFinite(gradientMagnitude);
           //assert Double.isFinite(lbfgsMagnitude);
-          String layerName = measurement.delta.getMap().get(e.getKey()).layer.getName();
+          final String layerName = measurement.delta.getMap().get(e.getKey()).layer.getName();
           if (gradientMagnitude == 0.0) {
             return String.format("%s = %.3e", layerName, lbfgsMagnitude);
           }
           else {
-            double dotP = ArrayUtil.dot(lbfgsVector, gradientVector) / (lbfgsMagnitude * gradientMagnitude);
+            final double dotP = ArrayUtil.dot(lbfgsVector, gradientVector) / (lbfgsMagnitude * gradientMagnitude);
             return String.format("%s = %.3f/%.3e", layerName, dotP, lbfgsMagnitude / gradientMagnitude);
           }
         }).collect(Collectors.toList());
@@ -183,75 +226,29 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
     }
   }
   
-  private SimpleLineSearchCursor cursor(Trainable subject, PointSample measurement, String type, DeltaSet result) {
-    return new SimpleLineSearchCursor(subject, measurement, result) {
-      public LineSearchPoint step(double t, TrainingMonitor monitor) {
-        LineSearchPoint measure = super.step(t, monitor);
-        addToHistory(measure.point, monitor);
-        return measure;
+  @Override
+  public SimpleLineSearchCursor orient(final Trainable subject, final PointSample measurement, final TrainingMonitor monitor) {
+    addToHistory(measurement, monitor);
+    final List<PointSample> history = Arrays.asList(this.history.toArray(new PointSample[]{}));
+    final DeltaSet<NNLayer> result = lbfgs(measurement, monitor, history);
+    SimpleLineSearchCursor returnValue;
+    if (null == result) {
+      returnValue = cursor(subject, measurement, "GD", measurement.delta.scale(-1));
+    }
+    else {
+      returnValue = cursor(subject, measurement, "LBFGS", result);
+    }
+    while (this.history.size() > (null == result ? minHistory : maxHistory)) {
+      final PointSample remove = this.history.pollFirst();
+      if (verbose) {
+        monitor.log(String.format("Removed measurement %s to history. Total: %s", Long.toHexString(System.identityHashCode(remove)), history.size()));
       }
     }
-      .setDirectionType(type);
+    return returnValue;
   }
   
-  /**
-   * Accept boolean.
-   *
-   * @param gradient  the gradient
-   * @param direction the direction
-   * @return the boolean
-   */
-  protected boolean accept(DeltaSet gradient, DeltaSet direction) {
-    return gradient.dot(direction) < 0;
-  }
-  
-  private List<double[]> minus(List<DoubleBuffer> a, List<DoubleBuffer> b) {
-    assert (a.size() == b.size());
-    for (int i = 0; i < a.size(); i++) assert a.get(i).layer.equals(b.get(i).layer);
-    return ArrayUtil.minus(cvt(a), cvt(b));
-  }
-  
-  private List<double[]> cvt(List<DoubleBuffer> vector) {
-    return vector.stream().map(x -> x.getDelta()).collect(Collectors.toList());
-  }
-  
-  /**
-   * Gets min history.
-   *
-   * @return the min history
-   */
-  public int getMinHistory() {
-    return minHistory;
-  }
-  
-  /**
-   * Sets min history.
-   *
-   * @param minHistory the min history
-   * @return the min history
-   */
-  public LBFGS setMinHistory(int minHistory) {
-    this.minHistory = minHistory;
-    return this;
-  }
-  
-  /**
-   * Gets max history.
-   *
-   * @return the max history
-   */
-  public int getMaxHistory() {
-    return maxHistory;
-  }
-  
-  /**
-   * Sets max history.
-   *
-   * @param maxHistory the max history
-   * @return the max history
-   */
-  public LBFGS setMaxHistory(int maxHistory) {
-    this.maxHistory = maxHistory;
-    return this;
+  @Override
+  public void reset() {
+    history.clear();
   }
 }

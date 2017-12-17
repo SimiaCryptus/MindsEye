@@ -30,13 +30,13 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
  */
 public class SimpleLineSearchCursor implements LineSearchCursor {
   /**
-   * The Origin.
-   */
-  public final PointSample origin;
-  /**
    * The Direction.
    */
   public final DeltaSet<NNLayer> direction;
+  /**
+   * The Origin.
+   */
+  public final PointSample origin;
   /**
    * The Subject.
    */
@@ -50,7 +50,7 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
    * @param origin    the origin
    * @param direction the direction
    */
-  public SimpleLineSearchCursor(Trainable subject, PointSample origin, DeltaSet direction) {
+  public SimpleLineSearchCursor(final Trainable subject, final PointSample origin, final DeltaSet<NNLayer> direction) {
     this.origin = origin.copyFull();
     this.direction = direction;
     this.subject = subject;
@@ -67,28 +67,30 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
    * @param type the type
    * @return the direction type
    */
-  public SimpleLineSearchCursor setDirectionType(String type) {
+  public SimpleLineSearchCursor setDirectionType(final String type) {
     this.type = type;
     return this;
   }
   
   @Override
-  public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
-    if (!Double.isFinite(alpha)) throw new IllegalArgumentException();
-    reset();
-    if (0.0 != alpha) direction.accumulate(alpha);
-    PointSample sample = subject.measure(true, monitor).setRate(alpha);
-    double dot = direction.dot(sample.delta);
-    return new LineSearchPoint(sample, dot);
-  }
-  
-  @Override
-  public DeltaSet position(double alpha) {
+  public DeltaSet<NNLayer> position(final double alpha) {
     return direction.scale(alpha);
   }
   
   @Override
   public void reset() {
     origin.restore();
+  }
+  
+  @Override
+  public LineSearchPoint step(final double alpha, final TrainingMonitor monitor) {
+    if (!Double.isFinite(alpha)) throw new IllegalArgumentException();
+    reset();
+    if (0.0 != alpha) {
+      direction.accumulate(alpha);
+    }
+    final PointSample sample = subject.measure(true, monitor).setRate(alpha);
+    final double dot = direction.dot(sample.delta);
+    return new LineSearchPoint(sample, dot);
   }
 }

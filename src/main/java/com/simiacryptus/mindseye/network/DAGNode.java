@@ -37,28 +37,6 @@ public interface DAGNode extends Serializable {
   
   
   /**
-   * Gets id.
-   *
-   * @return the id
-   */
-  UUID getId();
-  
-  /**
-   * Gets layer.
-   *
-   * @param <T> the type parameter
-   * @return the layer
-   */
-  <T extends NNLayer> T getLayer();
-  
-  /**
-   * Sets layer.
-   *
-   * @param layer the layer
-   */
-  void setLayer(NNLayer layer);
-  
-  /**
    * Get nn result.
    *
    * @param nncontext   the nncontext
@@ -67,6 +45,12 @@ public interface DAGNode extends Serializable {
    */
   NNResult get(NNExecutionContext nncontext, GraphEvaluationContext buildExeCtx);
   
+  /**
+   * Gets id.
+   *
+   * @return the id
+   */
+  UUID getId();
   
   /**
    * Get inputs dag node [ ].
@@ -76,6 +60,22 @@ public interface DAGNode extends Serializable {
   default DAGNode[] getInputs() {
     return new DAGNode[]{};
   }
+  
+  /**
+   * Gets layer.
+   *
+   * @param <T> the type parameter
+   * @return the layer
+   */
+  <T extends NNLayer> T getLayer();
+  
+  
+  /**
+   * Sets layer.
+   *
+   * @param layer the layer
+   */
+  void setLayer(NNLayer layer);
   
   
 }

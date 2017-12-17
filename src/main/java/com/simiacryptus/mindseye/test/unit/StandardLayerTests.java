@@ -23,13 +23,12 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.lang.CodeUtil;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -45,9 +44,6 @@ public abstract class StandardLayerTests {
    * The constant originalOut.
    */
   public static final PrintStream originalOut = System.out;
-  private static final Logger log = LoggerFactory.getLogger(StandardLayerTests.class);
-  private ArrayList<ComponentTest> bigTests;
-  private ArrayList<ComponentTest> littleTests;
   /**
    * The Validate batch execution.
    */
@@ -56,15 +52,188 @@ public abstract class StandardLayerTests {
    * The Validate differentials.
    */
   protected boolean validateDifferentials = true;
+  private ArrayList<ComponentTest<?>> bigTests;
+  private ArrayList<ComponentTest<?>> littleTests;
+  
+  /**
+   * Gets batching tester.
+   *
+   * @return the batching tester
+   */
+  public ComponentTest<ToleranceStatistics> getBatchingTester() {
+    if (!validateBatchExecution) return null;
+    return new BatchingTester(1e-2) {
+      @Override
+      public double getRandom() {
+        return random();
+      }
+    };
+  }
+  
+  /**
+   * Gets big tests.
+   *
+   * @return the big tests
+   */
+  public ArrayList<ComponentTest<?>> getBigTests() {
+    if (null == bigTests) {
+      synchronized (this) {
+        if (null == bigTests) {
+          bigTests = new ArrayList<>(Arrays.asList(
+            getPerformanceTester(), getTrainingTester()
+          ));
+        }
+      }
+    }
+    return bigTests;
+  }
+  
+  /**
+   * Gets derivative tester.
+   *
+   * @return the derivative tester
+   */
+  public ComponentTest<ToleranceStatistics> getDerivativeTester() {
+    if (!validateDifferentials) return null;
+    return new SingleDerivativeTester(1e-3, 1e-4);
+  }
+  
+  /**
+   * Gets equivalency tester.
+   *
+   * @return the equivalency tester
+   */
+  public ComponentTest<ToleranceStatistics> getEquivalencyTester() {
+    final NNLayer referenceLayer = getReferenceLayer();
+    if (null == referenceLayer) return null;
+    return new EquivalencyTester(1e-2, referenceLayer);
+  }
+  
+  /**
+   * Get input dims int [ ] [ ].
+   *
+   * @return the int [ ] [ ]
+   */
+  public abstract int[][] getInputDims();
+  
+  /**
+   * Gets json tester.
+   *
+   * @return the json tester
+   */
+  protected ComponentTest<ToleranceStatistics> getJsonTester() {
+    return new JsonTest();
+  }
+  
+  /**
+   * Gets layer.
+   *
+   * @param inputSize the input size
+   * @return the layer
+   */
+  public abstract NNLayer getLayer(int[][] inputSize);
+  
+  /**
+   * Gets little tests.
+   *
+   * @return the little tests
+   */
+  public ArrayList<ComponentTest<?>> getLittleTests() {
+    if (null == littleTests) {
+      synchronized (this) {
+        if (null == littleTests) {
+          littleTests = new ArrayList<>(Arrays.asList(
+            getJsonTester(), getReferenceIOTester(), getBatchingTester(), getDerivativeTester(), getEquivalencyTester()
+          ));
+        }
+      }
+    }
+    return littleTests;
+  }
+  
+  /**
+   * Get perf dims int [ ] [ ].
+   *
+   * @return the int [ ] [ ]
+   */
+  public int[][] getPerfDims() {
+    return getInputDims();
+  }
+  
+  /**
+   * Gets performance tester.
+   *
+   * @return the performance tester
+   */
+  public PerformanceTester getPerformanceTester() {
+    return new PerformanceTester();
+  }
+  
+  /**
+   * Gets reference io.
+   *
+   * @return the reference io
+   */
+  protected HashMap<Tensor[], Tensor> getReferenceIO() {
+    return new HashMap<>();
+  }
+  
+  /**
+   * Gets reference io tester.
+   *
+   * @return the reference io tester
+   */
+  protected ComponentTest<ToleranceStatistics> getReferenceIOTester() {
+    return new ReferenceIO(getReferenceIO());
+  }
+  
+  /**
+   * Gets reference layer.
+   *
+   * @return the reference layer
+   */
+  public NNLayer getReferenceLayer() {
+    return null;
+  }
+  
+  /**
+   * Gets learning tester.
+   *
+   * @return the learning tester
+   */
+  public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
+    return new TrainingTester();
+  }
+  
+  /**
+   * Random double.
+   *
+   * @return the double
+   */
+  public double random() {
+    return Math.round(1000.0 * (Util.R.get().nextDouble() - 0.5)) / 250.0;
+  }
+  
+  /**
+   * Random tensor [ ].
+   *
+   * @param inputDims the input dims
+   * @return the tensor [ ]
+   */
+  public Tensor[] randomize(final int[][] inputDims) {
+    return Arrays.stream(inputDims).map(dim -> new Tensor(dim).set(() -> random())).toArray(i -> new Tensor[i]);
+  }
   
   /**
    * Test.
    *
    * @param log the log
    */
-  public void test(NotebookOutput log) {
-    if (null != originalOut) log.addCopy(originalOut);
-    NNLayer layer = getLayer(getInputDims());
+  public void test(final NotebookOutput log) {
+    if (null != StandardLayerTests.originalOut) {
+      log.addCopy(StandardLayerTests.originalOut);
+    }
+    final NNLayer layer = getLayer(getInputDims());
     log.h1("%s", layer.getClass().getSimpleName());
     log.p(String.format("Layer Type %s", log.link(CodeUtil.findFile(layer.getClass()), layer.getClass().getCanonicalName())));
     log.p(CodeUtil.getJavadoc(layer.getClass()));
@@ -82,172 +251,10 @@ public abstract class StandardLayerTests {
     getLittleTests().stream().filter(x -> null != x).forEach(test -> {
       test.test(log, layer.copy(), randomize(getInputDims()));
     });
-    NNLayer perfLayer = getLayer(getPerfDims());
+    final NNLayer perfLayer = getLayer(getPerfDims());
     getBigTests().stream().filter(x -> null != x).forEach(test -> {
       test.test(log, perfLayer.copy(), randomize(getPerfDims()));
     });
-  }
-  
-  /**
-   * Random tensor [ ].
-   *
-   * @param inputDims the input dims
-   * @return the tensor [ ]
-   */
-  public Tensor[] randomize(int[][] inputDims) {
-    return Arrays.stream(inputDims).map(dim -> new Tensor(dim).fill(() -> random())).toArray(i -> new Tensor[i]);
-  }
-  
-  /**
-   * Gets batching tester.
-   *
-   * @return the batching tester
-   */
-  public ComponentTest getBatchingTester() {
-    if (!validateBatchExecution) return null;
-    return new BatchingTester(1e-2) {
-      @Override
-      public double getRandom() {
-        return random();
-      }
-    };
-  }
-  
-  /**
-   * Random double.
-   *
-   * @return the double
-   */
-  public double random() {
-    return Math.round(1000.0 * (Util.R.get().nextDouble() - 0.5)) / 250.0;
-  }
-  
-  /**
-   * Gets equivalency tester.
-   *
-   * @return the equivalency tester
-   */
-  public ComponentTest getEquivalencyTester() {
-    NNLayer referenceLayer = getReferenceLayer();
-    if (null == referenceLayer) return null;
-    return new EquivalencyTester(1e-2, referenceLayer);
-  }
-  
-  /**
-   * Gets performance tester.
-   *
-   * @return the performance tester
-   */
-  public PerformanceTester getPerformanceTester() {
-    return new PerformanceTester();
-  }
-  
-  /**
-   * Gets reference io tester.
-   *
-   * @return the reference io tester
-   */
-  protected ComponentTest getReferenceIOTester() {
-    return new ReferenceIO(getReferenceIO());
-  }
-  
-  /**
-   * Gets json tester.
-   *
-   * @return the json tester
-   */
-  protected ComponentTest getJsonTester() {
-    return new JsonTest();
-  }
-  
-  /**
-   * Gets reference io.
-   *
-   * @return the reference io
-   */
-  protected HashMap<Tensor[], Tensor> getReferenceIO() {
-    return new HashMap<>();
-  }
-  
-  /**
-   * Gets derivative tester.
-   *
-   * @return the derivative tester
-   */
-  public ComponentTest getDerivativeTester() {
-    if (!validateDifferentials) return null;
-    return new SingleDerivativeTester(1e-3, 1e-4);
-  }
-  
-  /**
-   * Gets layer.
-   *
-   * @param inputSize the input size
-   * @return the layer
-   */
-  public abstract NNLayer getLayer(int[][] inputSize);
-  
-  /**
-   * Gets reference layer.
-   *
-   * @return the reference layer
-   */
-  public NNLayer getReferenceLayer() {
-    return null;
-  }
-  
-  /**
-   * Get input dims int [ ] [ ].
-   *
-   * @return the int [ ] [ ]
-   */
-  public abstract int[][] getInputDims();
-  
-  /**
-   * Get perf dims int [ ] [ ].
-   *
-   * @return the int [ ] [ ]
-   */
-  public int[][] getPerfDims() {
-    return getInputDims();
-  }
-  
-  /**
-   * Gets learning tester.
-   *
-   * @return the learning tester
-   */
-  public ComponentTest getTrainingTester() {
-    return new TrainingTester();
-  }
-  
-  /**
-   * Gets little tests.
-   *
-   * @return the little tests
-   */
-  public ArrayList<ComponentTest> getLittleTests() {
-    if(null == littleTests) {
-      synchronized (this) {
-        if(null == littleTests) {
-          littleTests = new ArrayList<>(Arrays.asList(
-            getJsonTester(), getReferenceIOTester(), getBatchingTester(), getDerivativeTester(), getEquivalencyTester()
-          ));
-        }
-      }
-    }
-    return littleTests;
-  }
-  
-  /**
-   * With little tests standard layer tests.
-   *
-   * @param fn the fn
-   * @return the standard layer tests
-   */
-  public StandardLayerTests withLittleTests(Consumer<ArrayList<ComponentTest>> fn) {
-    fn.accept(getLittleTests());
-    return this;
   }
   
   /**
@@ -256,27 +263,20 @@ public abstract class StandardLayerTests {
    * @param fn the fn
    * @return the standard layer tests
    */
-  public StandardLayerTests withBigTests(Consumer<ArrayList<ComponentTest>> fn) {
+  public StandardLayerTests withBigTests(final Consumer<ArrayList<ComponentTest<?>>> fn) {
     fn.accept(getBigTests());
     return this;
   }
   
   /**
-   * Gets big tests.
+   * With little tests standard layer tests.
    *
-   * @return the big tests
+   * @param fn the fn
+   * @return the standard layer tests
    */
-  public ArrayList<ComponentTest> getBigTests() {
-    if(null == bigTests) {
-      synchronized (this) {
-        if(null == bigTests) {
-          bigTests = new ArrayList<>(Arrays.asList(
-            getPerformanceTester(), getTrainingTester()
-          ));
-        }
-      }
-    }
-    return bigTests;
+  public StandardLayerTests withLittleTests(final Consumer<ArrayList<ComponentTest<?>>> fn) {
+    fn.accept(getLittleTests());
+    return this;
   }
   
 }

@@ -26,21 +26,21 @@ package com.simiacryptus.mindseye.lang;
  */
 public final class PointSample {
   /**
+   * The Count.
+   */
+  public final int count;
+  /**
    * The Delta.
    */
   public final DeltaSet<NNLayer> delta;
-  /**
-   * The Weights.
-   */
-  public final StateSet<NNLayer> weights;
   /**
    * The Sum.
    */
   public final double sum;
   /**
-   * The Count.
+   * The Weights.
    */
-  public final int count;
+  public final StateSet<NNLayer> weights;
   /**
    * The Rate.
    */
@@ -55,14 +55,14 @@ public final class PointSample {
    * @param rate    the rate
    * @param count   the count
    */
-  public PointSample(DeltaSet<NNLayer> delta, StateSet<NNLayer> weights, double sum, double rate, int count) {
-    assert (delta.getMap().size() == weights.getMap().size());
+  public PointSample(final DeltaSet<NNLayer> delta, final StateSet<NNLayer> weights, final double sum, final double rate, final int count) {
+    assert delta.getMap().size() == weights.getMap().size();
     this.delta = new DeltaSet<NNLayer>(delta);
-    this.weights = new StateSet<NNLayer>(weights);
+    this.weights = new StateSet<>(weights);
     assert delta.getMap().keySet().stream().allMatch(x -> weights.getMap().containsKey(x));
     this.sum = sum;
     this.count = count;
-    this.setRate(rate);
+    setRate(rate);
   }
   
   /**
@@ -72,9 +72,9 @@ public final class PointSample {
    * @param right the right
    * @return the point sample
    */
-  public static PointSample add(PointSample left, PointSample right) {
-    assert (left.delta.getMap().size() == left.weights.getMap().size());
-    assert (right.delta.getMap().size() == right.weights.getMap().size());
+  public static PointSample add(final PointSample left, final PointSample right) {
+    assert left.delta.getMap().size() == left.weights.getMap().size();
+    assert right.delta.getMap().size() == right.weights.getMap().size();
     assert left.rate == right.rate;
     return new PointSample(left.delta.add(right.delta),
       StateSet.union(left.weights, right.weights),
@@ -84,40 +84,30 @@ public final class PointSample {
   }
   
   /**
-   * Gets mean.
+   * Add point sample.
    *
-   * @return the mean
+   * @param right the right
+   * @return the point sample
    */
-  public double getMean() {
-    return sum / count;
-  }
-  
-  @Override
-  public String toString() {
-    final StringBuffer sb = new StringBuffer("PointSample{");
-    sb.append("avg=").append(getMean());
-    sb.append('}');
-    return sb.toString();
+  public PointSample add(final PointSample right) {
+    return PointSample.add(this, right);
   }
   
   /**
-   * Gets rate.
+   * Add in place point sample.
    *
-   * @return the rate
+   * @param right the right
+   * @return the point sample
    */
-  public double getRate() {
-    return rate;
-  }
-  
-  /**
-   * Sets rate.
-   *
-   * @param rate the rate
-   * @return the rate
-   */
-  public PointSample setRate(double rate) {
-    this.rate = rate;
-    return this;
+  public PointSample addInPlace(final PointSample right) {
+    assert delta.getMap().size() == weights.getMap().size();
+    assert right.delta.getMap().size() == right.weights.getMap().size();
+    assert rate == right.rate;
+    return new PointSample(delta.addInPlace(right.delta),
+      StateSet.union(weights, right.weights),
+      sum + right.sum,
+      rate,
+      count + right.count);
   }
   
   /**
@@ -139,40 +129,32 @@ public final class PointSample {
   }
   
   /**
-   * Reset point sample.
+   * Gets mean.
    *
-   * @return the point sample
+   * @return the mean
    */
-  public PointSample restore() {
-    weights.stream().forEach(d -> d.restore());
+  public double getMean() {
+    return sum / count;
+  }
+  
+  /**
+   * Gets rate.
+   *
+   * @return the rate
+   */
+  public double getRate() {
+    return rate;
+  }
+  
+  /**
+   * Sets rate.
+   *
+   * @param rate the rate
+   * @return the rate
+   */
+  public PointSample setRate(final double rate) {
+    this.rate = rate;
     return this;
-  }
-  
-  /**
-   * Add point sample.
-   *
-   * @param right the right
-   * @return the point sample
-   */
-  public PointSample add(PointSample right) {
-    return add(this, right);
-  }
-  
-  /**
-   * Add in place point sample.
-   *
-   * @param right the right
-   * @return the point sample
-   */
-  public PointSample addInPlace(PointSample right) {
-    assert (delta.getMap().size() == weights.getMap().size());
-    assert (right.delta.getMap().size() == right.weights.getMap().size());
-    assert rate == right.rate;
-    return new PointSample(delta.addInPlace(right.delta),
-      StateSet.union(weights, right.weights),
-      sum + right.sum,
-      rate,
-      count + right.count);
   }
   
   /**
@@ -187,6 +169,24 @@ public final class PointSample {
     else {
       return new PointSample(delta.scale(1.0 / count), weights, sum / count, rate, 1);
     }
+  }
+  
+  /**
+   * Reset point sample.
+   *
+   * @return the point sample
+   */
+  public PointSample restore() {
+    weights.stream().forEach(d -> d.restore());
+    return this;
+  }
+  
+  @Override
+  public String toString() {
+    final StringBuffer sb = new StringBuffer("PointSample{");
+    sb.append("avg=").append(getMean());
+    sb.append('}');
+    return sb.toString();
   }
   
 }

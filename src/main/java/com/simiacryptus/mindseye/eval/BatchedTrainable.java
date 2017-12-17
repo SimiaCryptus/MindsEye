@@ -42,31 +42,41 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
   /**
    * Instantiates a new Batched trainable.
    *
-   * @param network   the network
+   * @param inner     the inner
    * @param batchSize the batch size
    */
-  public BatchedTrainable(NNLayer network, int batchSize) {
-    this(new GpuTrainable(network), batchSize);
+  public BatchedTrainable(final DataTrainable inner, final int batchSize) {
+    super(inner);
+    this.batchSize = batchSize;
   }
   
   /**
    * Instantiates a new Batched trainable.
    *
-   * @param inner     the inner
+   * @param network   the network
    * @param batchSize the batch size
    */
-  public BatchedTrainable(DataTrainable inner, int batchSize) {
-    super(inner);
-    this.batchSize = batchSize;
+  public BatchedTrainable(final NNLayer network, final int batchSize) {
+    this(new GpuTrainable(network), batchSize);
   }
   
+  /**
+   * Gets batch size.
+   *
+   * @return the batch size
+   */
+  public int getBatchSize() {
+    return batchSize;
+  }
+  
+  
   @Override
-  public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
-    List<Tensor[]> tensors = Arrays.asList(getData());
+  public PointSample measure(final boolean isStatic, final TrainingMonitor monitor) {
+    final List<Tensor[]> tensors = Arrays.asList(getData());
     if (batchSize < tensors.size()) {
-      int batches = (int) Math.ceil(tensors.size() * 1.0 / batchSize);
-      int evenBatchSize = (int) Math.ceil(tensors.size() * 1.0 / batches);
-      List<List<Tensor[]>> collection = Lists.partition(tensors, evenBatchSize);
+      final int batches = (int) Math.ceil(tensors.size() * 1.0 / batchSize);
+      final int evenBatchSize = (int) Math.ceil(tensors.size() * 1.0 / batches);
+      final List<List<Tensor[]>> collection = Lists.partition(tensors, evenBatchSize);
       return collection.stream().map(trainingData -> {
         if (batchSize < trainingData.size()) {
           throw new RuntimeException();
@@ -79,16 +89,6 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
       getInner().setData(tensors);
       return super.measure(isStatic, monitor);
     }
-  }
-  
-  
-  /**
-   * Gets batch size.
-   *
-   * @return the batch size
-   */
-  public int getBatchSize() {
-    return batchSize;
   }
   
 }

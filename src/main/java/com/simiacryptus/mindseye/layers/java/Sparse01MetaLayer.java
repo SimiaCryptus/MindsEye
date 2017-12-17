@@ -43,17 +43,17 @@ public class Sparse01MetaLayer extends NNLayer {
   
   /**
    * Instantiates a new Sparse 01 meta layer.
-   *
-   * @param id the id
    */
-  protected Sparse01MetaLayer(JsonObject id) {
-    super(id);
+  public Sparse01MetaLayer() {
   }
   
   /**
    * Instantiates a new Sparse 01 meta layer.
+   *
+   * @param id the id
    */
-  public Sparse01MetaLayer() {
+  protected Sparse01MetaLayer(final JsonObject id) {
+    super(id);
   }
   
   /**
@@ -62,28 +62,22 @@ public class Sparse01MetaLayer extends NNLayer {
    * @param json the json
    * @return the sparse 01 meta layer
    */
-  public static Sparse01MetaLayer fromJson(JsonObject json) {
-    Sparse01MetaLayer obj = new Sparse01MetaLayer(json);
+  public static Sparse01MetaLayer fromJson(final JsonObject json) {
+    final Sparse01MetaLayer obj = new Sparse01MetaLayer(json);
     obj.sparsity = json.get("sparsity").getAsInt();
     return obj;
   }
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("sparsity", sparsity);
-    return json;
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    NNResult input = inObj[0];
-    int itemCnt = input.getData().length();
-    Tensor avgActivationArray = input.getData().get(0).mapIndex((v, c) ->
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final NNResult input = inObj[0];
+    final int itemCnt = input.getData().length();
+    final Tensor avgActivationArray = input.getData().get(0).mapIndex((v, c) ->
       IntStream.range(0, itemCnt)
         .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
         .average().getAsDouble());
-    Tensor divergenceArray = avgActivationArray.mapIndex((avgActivation, c) -> {
-      assert (Double.isFinite(avgActivation));
+    final Tensor divergenceArray = avgActivationArray.mapIndex((avgActivation, c) -> {
+      assert Double.isFinite(avgActivation);
       if (avgActivation > 0 && avgActivation < 1) {
         return sparsity * Math.log(sparsity / avgActivation) + (1 - sparsity) * Math.log((1 - sparsity) / (1 - avgActivation));
       }
@@ -93,16 +87,16 @@ public class Sparse01MetaLayer extends NNLayer {
     });
     return new NNResult(divergenceArray) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (input.isAlive()) {
-          Tensor delta = data.get(0);
-          Tensor feedback[] = new Tensor[itemCnt];
+          final Tensor delta = data.get(0);
+          final Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
           avgActivationArray.mapIndex((rho, inputCoord) -> {
-            double d = delta.get(inputCoord);
-            double log2 = (1 - sparsity) / (1 - rho);
-            double log3 = sparsity / rho;
-            double value = d * (log2 - log3) / itemCnt;
+            final double d = delta.get(inputCoord);
+            final double log2 = (1 - sparsity) / (1 - rho);
+            final double log3 = sparsity / rho;
+            final double value = d * (log2 - log3) / itemCnt;
             if (Double.isFinite(value)) {
               for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
                 //double in = input.data[inputItem].get(inputCoord);
@@ -121,6 +115,13 @@ public class Sparse01MetaLayer extends NNLayer {
       }
       
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    json.addProperty("sparsity", sparsity);
+    return json;
   }
   
   @Override

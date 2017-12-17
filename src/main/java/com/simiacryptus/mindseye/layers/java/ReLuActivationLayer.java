@@ -33,6 +33,7 @@ import java.util.stream.IntStream;
 /**
  * The type Re lu activation layer.
  */
+@SuppressWarnings("serial")
 public class ReLuActivationLayer extends NNLayer {
   
   
@@ -42,23 +43,23 @@ public class ReLuActivationLayer extends NNLayer {
   
   /**
    * Instantiates a new Re lu activation layer.
-   *
-   * @param json the json
    */
-  protected ReLuActivationLayer(JsonObject json) {
-    super(json);
-    this.weights = Tensor.fromJson(json.get("weights"));
+  public ReLuActivationLayer() {
+    super();
+    weights = new Tensor(1);
+    weights.set(0, 1.);
+    setFrozen(true);
   }
   
   
   /**
    * Instantiates a new Re lu activation layer.
+   *
+   * @param json the json
    */
-  public ReLuActivationLayer() {
-    super();
-    this.weights = new Tensor(1);
-    this.weights.set(0, 1.);
-    setFrozen(true);
+  protected ReLuActivationLayer(final JsonObject json) {
+    super(json);
+    weights = Tensor.fromJson(json.get("weights"));
   }
   
   /**
@@ -67,14 +68,8 @@ public class ReLuActivationLayer extends NNLayer {
    * @param json the json
    * @return the re lu activation layer
    */
-  public static ReLuActivationLayer fromJson(JsonObject json) {
+  public static ReLuActivationLayer fromJson(final JsonObject json) {
     return new ReLuActivationLayer(json);
-  }
-  
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("weights", weights.toJson());
-    return json;
   }
   
   /**
@@ -84,21 +79,23 @@ public class ReLuActivationLayer extends NNLayer {
    * @return the re lu activation layer
    */
   public ReLuActivationLayer addWeights(final DoubleSupplier f) {
-    Util.add(f, this.weights.getData());
+    Util.add(f, weights.getData());
     return this;
   }
   
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
-    int itemCnt = inObj[0].getData().length();
-    Tensor[] outputA = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
+    final int itemCnt = inObj[0].getData().length();
+    final Tensor[] outputA = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);
-      final double a = this.weights.get(0);
+      final double a = weights.get(0);
       final Tensor output = input.multiply(a);
-      double[] outputData = output.getData();
+      final double[] outputData = output.getData();
       for (int i = 0; i < outputData.length; i++) {
-        if (outputData[i] < 0) outputData[i] = 0;
+        if (outputData[i] < 0) {
+          outputData[i] = 0;
+        }
       }
       return output;
     }).toArray(i -> new Tensor[i]);
@@ -106,6 +103,12 @@ public class ReLuActivationLayer extends NNLayer {
     return new Result(outputA, inObj[0]);
   }
   
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    json.add("weights", weights.toJson());
+    return json;
+  }
   
   /**
    * Gets mobility.
@@ -123,7 +126,7 @@ public class ReLuActivationLayer extends NNLayer {
    * @return the weight
    */
   public ReLuActivationLayer setWeight(final double data) {
-    this.weights.set(0, data);
+    weights.set(0, data);
     return this;
   }
   
@@ -134,13 +137,13 @@ public class ReLuActivationLayer extends NNLayer {
    * @return the weights
    */
   public ReLuActivationLayer setWeights(final DoubleSupplier f) {
-    Arrays.parallelSetAll(this.weights.getData(), i -> f.getAsDouble());
+    Arrays.parallelSetAll(weights.getData(), i -> f.getAsDouble());
     return this;
   }
   
   @Override
   public List<double[]> state() {
-    return Arrays.asList(this.weights.getData());
+    return Arrays.asList(weights.getData());
   }
   
   private final class Result extends NNResult {
@@ -157,34 +160,34 @@ public class ReLuActivationLayer extends NNLayer {
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).parallel().forEach(dataIndex -> {
           final double[] deltaData = delta.get(dataIndex).getData();
-          final double[] inputData = this.inObj.getData().get(dataIndex).getData();
-          final Tensor weightDelta = new Tensor(ReLuActivationLayer.this.weights.getDimensions());
-          double[] weightDeltaData = weightDelta.getData();
+          final double[] inputData = inObj.getData().get(dataIndex).getData();
+          final Tensor weightDelta = new Tensor(weights.getDimensions());
+          final double[] weightDeltaData = weightDelta.getData();
           for (int i = 0; i < deltaData.length; i++) {
-            weightDeltaData[0] += inputData[i] < 0 ? 0 : (deltaData[i] * inputData[i]);
+            weightDeltaData[0] += inputData[i] < 0 ? 0 : deltaData[i] * inputData[i];
           }
-          buffer.get(ReLuActivationLayer.this, ReLuActivationLayer.this.weights.getData()).addInPlace(weightDeltaData);
+          buffer.get(ReLuActivationLayer.this, weights.getData()).addInPlace(weightDeltaData);
         });
       }
-      if (this.inObj.isAlive()) {
-        double weight = ReLuActivationLayer.this.weights.getData()[0];
-        Tensor[] passbackA = IntStream.range(0, delta.length()).parallel().mapToObj(dataIndex -> {
+      if (inObj.isAlive()) {
+        final double weight = weights.getData()[0];
+        final Tensor[] passbackA = IntStream.range(0, delta.length()).parallel().mapToObj(dataIndex -> {
           final double[] deltaData = delta.get(dataIndex).getData();
-          final double[] inputData = this.inObj.getData().get(dataIndex).getData();
-          final int[] dims = this.inObj.getData().get(dataIndex).getDimensions();
+          final double[] inputData = inObj.getData().get(dataIndex).getData();
+          final int[] dims = inObj.getData().get(dataIndex).getDimensions();
           final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
-            passback.set(i, inputData[i] < 0 ? 0 : (deltaData[i] * weight));
+            passback.set(i, inputData[i] < 0 ? 0 : deltaData[i] * weight);
           }
           return passback;
         }).toArray(i -> new Tensor[i]);
-        this.inObj.accumulate(buffer, new TensorArray(passbackA));
+        inObj.accumulate(buffer, new TensorArray(passbackA));
       }
     }
     
     @Override
     public boolean isAlive() {
-      return this.inObj.isAlive() || !isFrozen();
+      return inObj.isAlive() || !isFrozen();
     }
     
   }

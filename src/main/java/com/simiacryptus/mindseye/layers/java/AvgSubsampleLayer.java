@@ -39,6 +39,7 @@ import java.util.stream.IntStream;
 /**
  * The type Avg subsample layer.
  */
+@SuppressWarnings("serial")
 public class AvgSubsampleLayer extends NNLayer {
   
   /**
@@ -68,17 +69,6 @@ public class AvgSubsampleLayer extends NNLayer {
   
   /**
    * Instantiates a new Avg subsample layer.
-   *
-   * @param id         the id
-   * @param kernelDims the kernel dims
-   */
-  protected AvgSubsampleLayer(JsonObject id, int... kernelDims) {
-    super(id);
-    this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
-  }
-  
-  /**
-   * Instantiates a new Avg subsample layer.
    */
   protected AvgSubsampleLayer() {
     super();
@@ -95,45 +85,50 @@ public class AvgSubsampleLayer extends NNLayer {
   }
   
   /**
+   * Instantiates a new Avg subsample layer.
+   *
+   * @param id         the id
+   * @param kernelDims the kernel dims
+   */
+  protected AvgSubsampleLayer(final JsonObject id, final int... kernelDims) {
+    super(id);
+    this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
+  }
+  
+  /**
    * From json avg subsample layer.
    *
    * @param json the json
    * @return the avg subsample layer
    */
-  public static AvgSubsampleLayer fromJson(JsonObject json) {
+  public static AvgSubsampleLayer fromJson(final JsonObject json) {
     return new AvgSubsampleLayer(json,
       JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
   
   private static Map<Coordinate, List<int[]>> getCoordMap(final int[] kernelDims, final int[] outDims) {
     try {
-      return indexMapCache.get(new AvgSubsampleLayer.IndexMapKey(kernelDims, outDims));
+      return AvgSubsampleLayer.indexMapCache.get(new AvgSubsampleLayer.IndexMapKey(kernelDims, outDims));
     } catch (final ExecutionException e) {
       throw new RuntimeException(e);
     }
   }
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("inner", JsonUtil.getJson(kernelDims));
-    return json;
-  }
-  
   @SuppressWarnings("unchecked")
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    final int kernelSize = new Tensor(this.kernelDims).dim();
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final int kernelSize = new Tensor(kernelDims).dim();
     final int[] inputDims = inObj[0].getData().get(0).getDimensions();
-    int itemCnt = inObj[0].getData().length();
+    final int itemCnt = inObj[0].getData().length();
     final Map<Coordinate, List<int[]>> coordMapA[] = new Map[itemCnt];
-    Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
+    final Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);
       final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
-        assert 0 == inputDims[i] % this.kernelDims[i] : inputDims[i] + ":" + this.kernelDims[i];
-        return inputDims[i] / this.kernelDims[i];
+        assert 0 == inputDims[i] % kernelDims[i] : inputDims[i] + ":" + kernelDims[i];
+        return inputDims[i] / kernelDims[i];
       }).toArray();
       final Tensor output = new Tensor(newDims);
-      final Map<Coordinate, List<int[]>> coordMap = getCoordMap(this.kernelDims, output.getDimensions());
+      final Map<Coordinate, List<int[]>> coordMap = AvgSubsampleLayer.getCoordMap(kernelDims, output.getDimensions());
       for (final Entry<Coordinate, List<int[]>> outputMapping : coordMap.entrySet()) {
         double sum = 0;
         for (final int[] inputCoord : outputMapping.getValue()) {
@@ -148,9 +143,9 @@ public class AvgSubsampleLayer extends NNLayer {
     }).toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (inObj[0].isAlive()) {
-          Tensor[] passbackA = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
+          final Tensor[] passbackA = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
             final Tensor backSignal = new Tensor(inputDims);
             for (final Entry<Coordinate, List<int[]>> outputMapping : coordMapA[dataIndex].entrySet()) {
               final double outputValue = data.get(dataIndex).get(outputMapping.getKey());
@@ -169,6 +164,13 @@ public class AvgSubsampleLayer extends NNLayer {
         return inObj[0].isAlive();
       }
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    json.add("inner", JsonUtil.getJson(kernelDims));
+    return json;
   }
   
   @Override
@@ -226,18 +228,18 @@ public class AvgSubsampleLayer extends NNLayer {
         return false;
       }
       final AvgSubsampleLayer.IndexMapKey other = (AvgSubsampleLayer.IndexMapKey) obj;
-      if (!Arrays.equals(this.kernel, other.kernel)) {
+      if (!Arrays.equals(kernel, other.kernel)) {
         return false;
       }
-      return Arrays.equals(this.output, other.output);
+      return Arrays.equals(output, other.output);
     }
     
     @Override
     public int hashCode() {
       final int prime = 31;
       int result = 1;
-      result = prime * result + Arrays.hashCode(this.kernel);
-      result = prime * result + Arrays.hashCode(this.output);
+      result = prime * result + Arrays.hashCode(kernel);
+      result = prime * result + Arrays.hashCode(output);
       return result;
     }
   }

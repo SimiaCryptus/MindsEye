@@ -39,13 +39,13 @@ import java.util.concurrent.TimeUnit;
 public class TrustSphereTest extends MnistTestBase {
   
   @Override
-  public void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor) {
+  public void train(final NotebookOutput log, final NNLayer network, final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.code(() -> {
-      SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-      Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 10000);
-      TrustRegionStrategy trustRegionStrategy = new TrustRegionStrategy() {
+      final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
+      final Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 10000);
+      final TrustRegionStrategy trustRegionStrategy = new TrustRegionStrategy() {
         @Override
-        public TrustRegion getRegionPolicy(NNLayer layer) {
+        public TrustRegion getRegionPolicy(final NNLayer layer) {
           return new AdaptiveTrustSphere();
         }
       };

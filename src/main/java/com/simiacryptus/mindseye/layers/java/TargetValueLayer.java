@@ -43,23 +43,23 @@ public class TargetValueLayer extends DAGNetwork {
   /**
    * Instantiates a new Target value layer.
    *
-   * @param json the json
+   * @param values the values
    */
-  protected TargetValueLayer(JsonObject json) {
-    super(json);
-    head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
-    target = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("target").getAsString()));
+  public TargetValueLayer(final double... values) {
+    super(1);
+    target = add(new ConstNNLayer(new Tensor(values)));
+    head = add(new MeanSqLossLayer(), getInput(0), target);
   }
   
   /**
    * Instantiates a new Target value layer.
    *
-   * @param values the values
+   * @param json the json
    */
-  public TargetValueLayer(double... values) {
-    super(1);
-    this.target = add(new ConstNNLayer(new Tensor(values)));
-    this.head = add(new MeanSqLossLayer(), getInput(0), target);
+  protected TargetValueLayer(final JsonObject json) {
+    super(json);
+    head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
+    target = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("target").getAsString()));
   }
   
   /**
@@ -68,20 +68,20 @@ public class TargetValueLayer extends DAGNetwork {
    * @param inner the inner
    * @return the nn layer
    */
-  public static NNLayer fromJson(JsonObject inner) {
+  public static NNLayer fromJson(final JsonObject inner) {
     return new TargetValueLayer(inner);
-  }
-  
-  @Override
-  public JsonObject getJson() {
-    JsonObject json = super.getJson();
-    json.addProperty("target", target.getId().toString());
-    return json;
   }
   
   @Override
   public DAGNode getHead() {
     return head;
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJson();
+    json.addProperty("target", target.getId().toString());
+    return json;
   }
   
   /**
@@ -90,7 +90,7 @@ public class TargetValueLayer extends DAGNetwork {
    * @param value the value
    * @return the target
    */
-  public TargetValueLayer setTarget(double... value) {
+  public TargetValueLayer setTarget(final double... value) {
     target.<ConstNNLayer>getLayer().setData(new Tensor(value));
     return this;
   }

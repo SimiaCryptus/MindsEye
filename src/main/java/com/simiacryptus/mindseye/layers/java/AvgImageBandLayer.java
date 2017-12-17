@@ -32,19 +32,11 @@ import java.util.stream.IntStream;
 /**
  * The type Avg image band layer.
  */
+@SuppressWarnings("serial")
 public class AvgImageBandLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(AvgImageBandLayer.class);
-  
-  /**
-   * Instantiates a new Avg image band layer.
-   *
-   * @param id the id
-   */
-  protected AvgImageBandLayer(JsonObject id) {
-    super(id);
-  }
   
   /**
    * Instantiates a new Avg image band layer.
@@ -54,31 +46,35 @@ public class AvgImageBandLayer extends NNLayer {
   }
   
   /**
+   * Instantiates a new Avg image band layer.
+   *
+   * @param id the id
+   */
+  protected AvgImageBandLayer(final JsonObject id) {
+    super(id);
+  }
+  
+  /**
    * From json avg image band layer.
    *
    * @param json the json
    * @return the avg image band layer
    */
-  public static AvgImageBandLayer fromJson(JsonObject json) {
+  public static AvgImageBandLayer fromJson(final JsonObject json) {
     return new AvgImageBandLayer(json);
   }
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-  
-  @SuppressWarnings("unchecked")
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    
-    assert (1 == inObj.length);
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  
+    assert 1 == inObj.length;
     final NNResult in = inObj[0];
     final TensorList inData = in.getData();
     final int[] inputDims = inData.get(0).getDimensions();
-    assert (3 == inputDims.length);
-    
-    Tensor[] results = inData.stream().map(data -> {
-      DoubleStream doubleStream = IntStream.range(0, inputDims[2]).parallel().mapToDouble(band -> {
+    assert 3 == inputDims.length;
+  
+    final Tensor[] results = inData.stream().map(data -> {
+      final DoubleStream doubleStream = IntStream.range(0, inputDims[2]).parallel().mapToDouble(band -> {
         return data.coordStream().filter(e -> e.getCoords()[2] == band).mapToDouble(c -> data.get(c)).average().getAsDouble();
       });
       return new Tensor(1, 1, inputDims[2]).set(Tensor.getDoubles(doubleStream, inputDims[2]));
@@ -86,12 +82,12 @@ public class AvgImageBandLayer extends NNLayer {
     
     return new NNResult(results) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (in.isAlive()) {
           in.accumulate(buffer, new TensorArray(IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
-            Tensor tensor = inData.get(dataIndex);
-            int[] inputDim = tensor.getDimensions();
-            Tensor backprop = data.get(dataIndex);
+            final Tensor tensor = inData.get(dataIndex);
+            final int[] inputDim = tensor.getDimensions();
+            final Tensor backprop = data.get(dataIndex);
             return new Tensor(inputDim).mapCoords((c) -> {
               return backprop.get(0, 0, c.getCoords()[2]) / (inputDim[0] * inputDim[1]);
             });
@@ -104,6 +100,11 @@ public class AvgImageBandLayer extends NNLayer {
         return in.isAlive();
       }
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override
@@ -161,18 +162,18 @@ public class AvgImageBandLayer extends NNLayer {
         return false;
       }
       final AvgImageBandLayer.IndexMapKey other = (AvgImageBandLayer.IndexMapKey) obj;
-      if (!Arrays.equals(this.kernel, other.kernel)) {
+      if (!Arrays.equals(kernel, other.kernel)) {
         return false;
       }
-      return Arrays.equals(this.output, other.output);
+      return Arrays.equals(output, other.output);
     }
     
     @Override
     public int hashCode() {
       final int prime = 31;
       int result = 1;
-      result = prime * result + Arrays.hashCode(this.kernel);
-      result = prime * result + Arrays.hashCode(this.output);
+      result = prime * result + Arrays.hashCode(kernel);
+      result = prime * result + Arrays.hashCode(output);
       return result;
     }
   }

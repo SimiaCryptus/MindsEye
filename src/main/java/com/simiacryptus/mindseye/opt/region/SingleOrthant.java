@@ -25,18 +25,7 @@ package com.simiacryptus.mindseye.opt.region;
  * where an exact value of zero for many weights is desired.
  */
 public class SingleOrthant implements TrustRegion {
-  private final double zeroTol = 1e-20;
-  
-  @Override
-  public double[] project(double[] weights, double[] point) {
-    double[] returnValue = new double[point.length];
-    for (int i = 0; i < point.length; i++) {
-      int positionSign = sign(weights[i]);
-      int directionSign = sign(point[i]);
-      returnValue[i] = (0 != positionSign && positionSign != directionSign) ? 0 : point[i];
-    }
-    return returnValue;
-  }
+  private double zeroTol = 1e-20;
   
   /**
    * Gets zero tol.
@@ -53,7 +42,18 @@ public class SingleOrthant implements TrustRegion {
    * @param zeroTol the zero tol
    */
   public void setZeroTol(double zeroTol) {
-    zeroTol = zeroTol;
+    this.zeroTol = zeroTol;
+  }
+  
+  @Override
+  public double[] project(final double[] weights, final double[] point) {
+    final double[] returnValue = new double[point.length];
+    for (int i = 0; i < point.length; i++) {
+      final int positionSign = sign(weights[i]);
+      final int directionSign = sign(point[i]);
+      returnValue[i] = 0 != positionSign && positionSign != directionSign ? 0 : point[i];
+    }
+    return returnValue;
   }
   
   /**
@@ -62,7 +62,7 @@ public class SingleOrthant implements TrustRegion {
    * @param weight the weight
    * @return the int
    */
-  public int sign(double weight) {
+  public int sign(final double weight) {
     if (weight > zeroTol) {
       return 1;
     }

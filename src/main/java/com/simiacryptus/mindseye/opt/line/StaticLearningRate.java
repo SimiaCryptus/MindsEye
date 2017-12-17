@@ -28,33 +28,27 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
  */
 public class StaticLearningRate implements LineSearchStrategy {
   
-  private double rate = 1e-4;
   private double minimumRate = 1e-12;
+  private double rate = 1e-4;
   
-  @Override
-  public PointSample step(LineSearchCursor cursor, TrainingMonitor monitor) {
-    double thisRate = rate;
-    LineSearchPoint startPoint = cursor.step(0, monitor);
-    double startLineDeriv = startPoint.derivative; // theta'(0)
-    double startValue = startPoint.point.sum; // theta(0)
-    LineSearchPoint lastStep = null;
-    while (true) {
-      double lastValue = (null == lastStep) ? Double.POSITIVE_INFINITY : lastStep.point.sum;
-      if (!Double.isFinite(lastValue)) lastValue = Double.POSITIVE_INFINITY;
-      lastStep = cursor.step(thisRate, monitor);
-      lastValue = lastStep.point.sum;
-      if (!Double.isFinite(lastValue)) lastValue = Double.POSITIVE_INFINITY;
-      if ((lastValue + (startValue * 1e-15)) > startValue) {
-        monitor.log(String.format("Non-decreasing runStep. %s > %s at " + thisRate, lastValue, startValue));
-        thisRate /= 2;
-        if (thisRate < getMinimumRate()) {
-          return startPoint.point;
-        }
-      }
-      else {
-        return lastStep.point;
-      }
-    }
+  /**
+   * Gets minimum rate.
+   *
+   * @return the minimum rate
+   */
+  public double getMinimumRate() {
+    return minimumRate;
+  }
+  
+  /**
+   * Sets minimum rate.
+   *
+   * @param minimumRate the minimum rate
+   * @return the minimum rate
+   */
+  public StaticLearningRate setMinimumRate(final double minimumRate) {
+    this.minimumRate = minimumRate;
+    return this;
   }
   
   /**
@@ -72,28 +66,37 @@ public class StaticLearningRate implements LineSearchStrategy {
    * @param rate the rate
    * @return the rate
    */
-  public StaticLearningRate setRate(double rate) {
+  public StaticLearningRate setRate(final double rate) {
     this.rate = rate;
     return this;
   }
   
-  /**
-   * Gets minimum rate.
-   *
-   * @return the minimum rate
-   */
-  public double getMinimumRate() {
-    return minimumRate;
-  }
-  
-  /**
-   * Sets minimum rate.
-   *
-   * @param minimumRate the minimum rate
-   * @return the minimum rate
-   */
-  public StaticLearningRate setMinimumRate(double minimumRate) {
-    this.minimumRate = minimumRate;
-    return this;
+  @Override
+  public PointSample step(final LineSearchCursor cursor, final TrainingMonitor monitor) {
+    double thisRate = rate;
+    final LineSearchPoint startPoint = cursor.step(0, monitor);
+    final double startValue = startPoint.point.sum; // theta(0)
+    LineSearchPoint lastStep = null;
+    while (true) {
+      double lastValue = null == lastStep ? Double.POSITIVE_INFINITY : lastStep.point.sum;
+      if (!Double.isFinite(lastValue)) {
+        lastValue = Double.POSITIVE_INFINITY;
+      }
+      lastStep = cursor.step(thisRate, monitor);
+      lastValue = lastStep.point.sum;
+      if (!Double.isFinite(lastValue)) {
+        lastValue = Double.POSITIVE_INFINITY;
+      }
+      if (lastValue + startValue * 1e-15 > startValue) {
+        monitor.log(String.format("Non-decreasing runStep. %s > %s at " + thisRate, lastValue, startValue));
+        thisRate /= 2;
+        if (thisRate < getMinimumRate()) {
+          return startPoint.point;
+        }
+      }
+      else {
+        return lastStep.point;
+      }
+    }
   }
 }

@@ -24,25 +24,15 @@ import com.google.gson.JsonObject;
 /**
  * The type Gaussian activation layer.
  */
+@SuppressWarnings("serial")
 public final class GaussianActivationLayer extends SimpleActivationLayer<GaussianActivationLayer> {
   
   private static final double MIN_X = -20;
-  private static final double MAX_X = -MIN_X;
-  private static final double MAX_F = Math.exp(MAX_X);
-  private static final double MIN_F = Math.exp(MIN_X);
+  private static final double MAX_X = -GaussianActivationLayer.MIN_X;
+  private static final double MAX_F = Math.exp(GaussianActivationLayer.MAX_X);
+  private static final double MIN_F = Math.exp(GaussianActivationLayer.MIN_X);
   private final double mean;
   private final double stddev;
-  
-  /**
-   * Instantiates a new Gaussian activation layer.
-   *
-   * @param id the id
-   */
-  protected GaussianActivationLayer(JsonObject id) {
-    super(id);
-    mean = id.get("mean").getAsDouble();
-    stddev = id.get("stddev").getAsDouble();
-  }
   
   /**
    * Instantiates a new Gaussian activation layer.
@@ -50,9 +40,20 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
    * @param mean   the mean
    * @param stddev the stddev
    */
-  public GaussianActivationLayer(double mean, double stddev) {
+  public GaussianActivationLayer(final double mean, final double stddev) {
     this.mean = mean;
     this.stddev = stddev;
+  }
+  
+  /**
+   * Instantiates a new Gaussian activation layer.
+   *
+   * @param id the id
+   */
+  protected GaussianActivationLayer(final JsonObject id) {
+    super(id);
+    mean = id.get("mean").getAsDouble();
+    stddev = id.get("stddev").getAsDouble();
   }
   
   /**
@@ -61,15 +62,8 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
    * @param json the json
    * @return the gaussian activation layer
    */
-  public static GaussianActivationLayer fromJson(JsonObject json) {
+  public static GaussianActivationLayer fromJson(final JsonObject json) {
     return new GaussianActivationLayer(json);
-  }
-  
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("mean", mean);
-    json.addProperty("stddev", stddev);
-    return json;
   }
   
   @Override
@@ -79,9 +73,9 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
     final double s2 = stddev * stddev;
     final double s3 = stddev * s2;
     final double k = Math.sqrt(2 * Math.PI);
-    final double e = exp(-((c * c) / (2 * s2)));
+    final double e = exp(-(c * c / (2 * s2)));
     double d = e * c / (s3 * k);
-    double f = e / (stddev * k);
+    final double f = e / (stddev * k);
     // double d = f * (1 - f);
     if (!Double.isFinite(d) || Math.abs(d) < minDeriv) {
       d = minDeriv * Math.signum(d);
@@ -93,13 +87,21 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
   }
   
   private double exp(final double x) {
-    if (x < MIN_X) {
-      return MIN_F;
+    if (x < GaussianActivationLayer.MIN_X) {
+      return GaussianActivationLayer.MIN_F;
     }
-    if (x > MAX_X) {
-      return MAX_F;
+    if (x > GaussianActivationLayer.MAX_X) {
+      return GaussianActivationLayer.MAX_F;
     }
     return Math.exp(x);
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    json.addProperty("mean", mean);
+    json.addProperty("stddev", stddev);
+    return json;
   }
   
 }

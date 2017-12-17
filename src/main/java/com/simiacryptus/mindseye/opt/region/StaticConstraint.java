@@ -24,7 +24,7 @@ package com.simiacryptus.mindseye.opt.region;
  */
 public class StaticConstraint implements TrustRegion {
   @Override
-  public double[] project(double[] weights, double[] point) {
+  public double[] project(final double[] weights, final double[] point) {
     return weights;
   }
 }

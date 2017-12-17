@@ -31,6 +31,7 @@ import java.util.List;
  *
  * @param <T> the type parameter
  */
+@SuppressWarnings("serial")
 public final class PlaceholderLayer<T> extends NNLayer {
   
   private final T key;
@@ -40,15 +41,20 @@ public final class PlaceholderLayer<T> extends NNLayer {
    *
    * @param key the key
    */
-  public PlaceholderLayer(T key) {
+  public PlaceholderLayer(final T key) {
     if (null == key) throw new UnsupportedOperationException();
     this.key = key;
     setName(getClass().getSimpleName() + "/" + getId());
   }
   
   @Override
-  public NNResult eval(NNExecutionContext nncontext, NNResult[] array) {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... array) {
     throw new UnsupportedOperationException();
+  }
+  
+  @Override
+  public Object getId() {
+    return this.key;
   }
   
   @Override
@@ -59,11 +65,6 @@ public final class PlaceholderLayer<T> extends NNLayer {
   @Override
   public List<double[]> state() {
     throw new UnsupportedOperationException();
-  }
-  
-  @Override
-  public Object getId() {
-    return this.key;
   }
   
 }

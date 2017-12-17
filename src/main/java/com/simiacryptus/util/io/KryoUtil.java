@@ -48,9 +48,9 @@ public class KryoUtil {
           if (EnumMap.class.isAssignableFrom(clazz)) {
             return new EnumMapSerializer();
           }
-          Serializer<?> serializer = super.getDefaultSerializer(clazz);
+          final Serializer<?> serializer = super.getDefaultSerializer(clazz);
           if (serializer instanceof FieldSerializer) {
-            ((FieldSerializer) serializer).setCopyTransient(false);
+            ((FieldSerializer<?>) serializer).setCopyTransient(false);
           }
           return serializer;
         }
@@ -67,6 +67,6 @@ public class KryoUtil {
    * @return the kryo
    */
   public static Kryo kryo() {
-    return threadKryo.get();
+    return KryoUtil.threadKryo.get();
   }
 }

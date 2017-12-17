@@ -27,6 +27,7 @@ import java.util.List;
 /**
  * The type Variable layer.
  */
+@SuppressWarnings("serial")
 public class VariableLayer extends WrapperLayer {
   
   /**
@@ -34,7 +35,7 @@ public class VariableLayer extends WrapperLayer {
    *
    * @param json the json
    */
-  protected VariableLayer(JsonObject json) {
+  protected VariableLayer(final JsonObject json) {
     super(json);
   }
   
@@ -54,19 +55,20 @@ public class VariableLayer extends WrapperLayer {
    * @param json the json
    * @return the variable layer
    */
-  public static VariableLayer fromJson(JsonObject json) {
+  public static VariableLayer fromJson(final JsonObject json) {
     return new VariableLayer(json);
-  }
-  
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("inner", getInner().getJson());
-    return json;
   }
   
   @Override
   public List<NNLayer> getChildren() {
     return super.getChildren();
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    json.add("inner", getInner().getJson());
+    return json;
   }
   
   /**

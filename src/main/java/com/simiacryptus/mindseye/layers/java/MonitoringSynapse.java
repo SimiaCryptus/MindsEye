@@ -44,18 +44,18 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
   
   /**
    * Instantiates a new Monitoring synapse.
-   *
-   * @param id the id
    */
-  protected MonitoringSynapse(JsonObject id) {
-    super(id);
+  public MonitoringSynapse() {
+    super();
   }
   
   /**
    * Instantiates a new Monitoring synapse.
+   *
+   * @param id the id
    */
-  public MonitoringSynapse() {
-    super();
+  protected MonitoringSynapse(final JsonObject id) {
+    super(id);
   }
   
   /**
@@ -64,8 +64,8 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
    * @param json the json
    * @return the monitoring synapse
    */
-  public static MonitoringSynapse fromJson(JsonObject json) {
-    MonitoringSynapse obj = new MonitoringSynapse(json);
+  public static MonitoringSynapse fromJson(final JsonObject json) {
+    final MonitoringSynapse obj = new MonitoringSynapse(json);
     obj.totalBatches = json.get("totalBatches").getAsInt();
     obj.totalItems = json.get("totalItems").getAsInt();
     obj.backpropStatistics.readJson(json.getAsJsonObject("backpropStatistics"));
@@ -73,19 +73,35 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     return obj;
   }
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("totalBatches", totalBatches);
-    json.addProperty("totalItems", totalItems);
-    return json;
+  /**
+   * Add to monitoring synapse.
+   *
+   * @param obj the obj
+   * @return the monitoring synapse
+   */
+  public MonitoringSynapse addTo(final MonitoredObject obj) {
+    return addTo(obj, getName());
+  }
+  
+  /**
+   * Add to monitoring synapse.
+   *
+   * @param obj  the obj
+   * @param name the name
+   * @return the monitoring synapse
+   */
+  public MonitoringSynapse addTo(final MonitoredObject obj, final String name) {
+    setName(name);
+    obj.addObj(getName(), this);
+    return this;
   }
   
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    assert (1 == inObj.length);
-    NNResult input = inObj[0];
-    long start = System.nanoTime();
-    double elapsed = (System.nanoTime() - start) / 1000000000.0;
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    assert 1 == inObj.length;
+    final NNResult input = inObj[0];
+    System.nanoTime();
+    System.nanoTime();
     totalBatches++;
     totalItems += input.getData().length();
     forwardStatistics.clear();
@@ -94,7 +110,7 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     });
     return new NNResult(input.getData()) {
       @Override
-      public void accumulate(DeltaSet buffer, TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         backpropStatistics.clear();
         data.stream().parallel().forEach(t -> {
           backpropStatistics.add(t.getData());
@@ -110,13 +126,16 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
   }
   
   @Override
-  public List<double[]> state() {
-    return Arrays.asList();
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    json.addProperty("totalBatches", totalBatches);
+    json.addProperty("totalItems", totalItems);
+    return json;
   }
   
   @Override
   public Map<String, Object> getMetrics() {
-    HashMap<String, Object> map = new HashMap<>();
+    final HashMap<String, Object> map = new HashMap<>();
     map.put("totalBatches", totalBatches);
     map.put("totalItems", totalItems);
     map.put("forward", forwardStatistics.getMetrics());
@@ -124,26 +143,8 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     return map;
   }
   
-  /**
-   * Add to monitoring synapse.
-   *
-   * @param obj the obj
-   * @return the monitoring synapse
-   */
-  public MonitoringSynapse addTo(MonitoredObject obj) {
-    return addTo(obj, getName());
-  }
-  
-  /**
-   * Add to monitoring synapse.
-   *
-   * @param obj  the obj
-   * @param name the name
-   * @return the monitoring synapse
-   */
-  public MonitoringSynapse addTo(MonitoredObject obj, String name) {
-    setName(name);
-    obj.addObj(getName(), this);
-    return this;
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList();
   }
 }

@@ -37,13 +37,8 @@ public abstract class ImgBandBiasLayerTest extends CudnnLayerTestBase {
    *
    * @param precision the precision
    */
-  public ImgBandBiasLayerTest(Precision precision) {
+  public ImgBandBiasLayerTest(final Precision precision) {
     this.precision = precision;
-  }
-  
-  @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new ImgBandBiasLayer(2).setPrecision(precision).addWeights(this::random);
   }
   
   @Override
@@ -51,6 +46,11 @@ public abstract class ImgBandBiasLayerTest extends CudnnLayerTestBase {
     return new int[][]{
       {3, 3, 2}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new ImgBandBiasLayer(2).setPrecision(precision).addWeights(this::random);
   }
   
   @Override
@@ -82,7 +82,7 @@ public abstract class ImgBandBiasLayerTest extends CudnnLayerTestBase {
     public Float() {
       super(Precision.Float);
     }
-    
+  
     @Override
     public SingleDerivativeTester getDerivativeTester() {
       return new SingleDerivativeTester(1e-2, 1e-3);

@@ -44,25 +44,25 @@ public final class WeightExtractor extends NNLayer {
   /**
    * Instantiates a new Weight extractor.
    *
-   * @param json the json
+   * @param index the index
+   * @param inner the inner
    */
-  protected WeightExtractor(JsonObject json) {
-    super(json);
-    this.setInner(null);
-    this.index = json.get("index").getAsInt();
-    this.innerId = (json.getAsJsonPrimitive("innerId").getAsString());
+  public WeightExtractor(final int index, final NNLayer inner) {
+    setInner(inner);
+    this.index = index;
+    innerId = inner.getId().toString();
   }
   
   /**
    * Instantiates a new Weight extractor.
    *
-   * @param index the index
-   * @param inner the inner
+   * @param json the json
    */
-  public WeightExtractor(final int index, final NNLayer inner) {
-    this.setInner(inner);
-    this.index = index;
-    this.innerId = inner.getId().toString();
+  protected WeightExtractor(final JsonObject json) {
+    super(json);
+    setInner(null);
+    index = json.get("index").getAsInt();
+    innerId = json.getAsJsonPrimitive("innerId").getAsString();
   }
   
   /**
@@ -71,52 +71,31 @@ public final class WeightExtractor extends NNLayer {
    * @param json the json
    * @return the weight extractor
    */
-  public static WeightExtractor fromJson(JsonObject json) {
+  public static WeightExtractor fromJson(final JsonObject json) {
     return new WeightExtractor(json);
   }
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("innerId", getInner().getId().toString());
-    json.addProperty("index", index);
-    return json;
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    double[] doubles = null == getInner() ? new double[]{} : getInner().state().get(index);
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final double[] doubles = null == getInner() ? new double[]{} : getInner().state().get(index);
     return new NNResult(new Tensor(doubles)) {
       
+      @Override
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+        assert data.length() == 1;
+        if (!isFrozen() && !inner.isFrozen()) {
+          final Delta<NNLayer> delta = buffer.get(inner, doubles);
+          final Tensor tensor = data.get(0);
+          final double[] tensorData = tensor.getData();
+          delta.addInPlace(tensorData);
+        }
+      }
+  
       @Override
       public boolean isAlive() {
         return !isFrozen() && !inner.isFrozen();
       }
-      
-      @Override
-      public void accumulate(DeltaSet<NNLayer> buffer, TensorList data) {
-        assert (data.length() == 1);
-        if (!isFrozen() && !inner.isFrozen()) {
-          Delta<NNLayer> delta = buffer.get(inner, doubles);
-          Tensor tensor = data.get(0);
-          double[] tensorData = tensor.getData();
-          delta.addInPlace(tensorData);
-        }
-      }
     };
-  }
-  
-  @Override
-  public List<double[]> state() {
-    return new ArrayList<>();
-  }
-  
-  /**
-   * Gets inner id.
-   *
-   * @return the inner id
-   */
-  public Object getInnerId() {
-    return innerId;
   }
   
   /**
@@ -133,8 +112,30 @@ public final class WeightExtractor extends NNLayer {
    *
    * @param inner the inner
    */
-  public void setInner(NNLayer inner) {
+  public void setInner(final NNLayer inner) {
     this.inner = inner;
-    this.innerId = null == inner ? null : inner.getId();
+    innerId = null == inner ? null : inner.getId();
+  }
+  
+  /**
+   * Gets inner id.
+   *
+   * @return the inner id
+   */
+  public Object getInnerId() {
+    return innerId;
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    json.addProperty("innerId", getInner().getId().toString());
+    json.addProperty("index", index);
+    return json;
+  }
+  
+  @Override
+  public List<double[]> state() {
+    return new ArrayList<>();
   }
 }

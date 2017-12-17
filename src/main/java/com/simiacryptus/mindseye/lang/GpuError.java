@@ -22,38 +22,8 @@ package com.simiacryptus.mindseye.lang;
 /**
  * A low-level exception occured while executing GPU instructions
  */
+@SuppressWarnings("serial")
 public class GpuError extends RuntimeException {
-  
-  /**
-   * Instantiates a new Gpu error.
-   *
-   * @param message the message
-   * @param cause   the cause
-   */
-  public GpuError(String message, Throwable cause) {
-    super(message, cause);
-  }
-  
-  /**
-   * Instantiates a new Gpu error.
-   *
-   * @param cause the cause
-   */
-  public GpuError(Throwable cause) {
-    super(cause);
-  }
-  
-  /**
-   * Instantiates a new Gpu error.
-   *
-   * @param message            the message
-   * @param cause              the cause
-   * @param enableSuppression  the enable suppression
-   * @param writableStackTrace the writable stack trace
-   */
-  public GpuError(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-    super(message, cause, enableSuppression, writableStackTrace);
-  }
   
   /**
    * Instantiates a new Gpu error.
@@ -66,7 +36,38 @@ public class GpuError extends RuntimeException {
    *
    * @param message the message
    */
-  public GpuError(String message) {
+  public GpuError(final String message) {
     super(message);
+  }
+  
+  /**
+   * Instantiates a new Gpu error.
+   *
+   * @param message the message
+   * @param cause   the cause
+   */
+  public GpuError(final String message, final Throwable cause) {
+    super(message, cause);
+  }
+  
+  /**
+   * Instantiates a new Gpu error.
+   *
+   * @param message            the message
+   * @param cause              the cause
+   * @param enableSuppression  the enable suppression
+   * @param writableStackTrace the writable stack trace
+   */
+  public GpuError(final String message, final Throwable cause, final boolean enableSuppression, final boolean writableStackTrace) {
+    super(message, cause, enableSuppression, writableStackTrace);
+  }
+  
+  /**
+   * Instantiates a new Gpu error.
+   *
+   * @param cause the cause
+   */
+  public GpuError(final Throwable cause) {
+    super(cause);
   }
 }

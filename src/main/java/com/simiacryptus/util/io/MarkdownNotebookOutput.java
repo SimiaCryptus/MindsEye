@@ -40,13 +40,17 @@ import java.util.List;
  */
 public class MarkdownNotebookOutput implements NotebookOutput {
   
-  private static int imageNumber = 0;
   private static int excerptNumber = 0;
-  
-  private final List<PrintStream> outs = new ArrayList<>();
+  private static int imageNumber = 0;
   private final File fileName;
   private final String name;
+  private final List<PrintStream> outs = new ArrayList<>();
   private final OutputStream primaryOut;
+  /**
+   * The Anchor.
+   */
+  int anchor = 0;
+  private String absoluteUrl = null;
   
   /**
    * Instantiates a new Markdown notebook output.
@@ -55,9 +59,9 @@ public class MarkdownNotebookOutput implements NotebookOutput {
    * @param name     the name
    * @throws FileNotFoundException the file not found exception
    */
-  public MarkdownNotebookOutput(File fileName, String name) throws FileNotFoundException {
+  public MarkdownNotebookOutput(final File fileName, final String name) throws FileNotFoundException {
     this.name = name;
-    this.primaryOut = new FileOutputStream(fileName);
+    primaryOut = new FileOutputStream(fileName);
     outs.add(new PrintStream(primaryOut));
     this.fileName = fileName;
   }
@@ -68,25 +72,16 @@ public class MarkdownNotebookOutput implements NotebookOutput {
    * @param source the source
    * @return the markdown notebook output
    */
-  public static MarkdownNotebookOutput get(Object source) {
+  public static MarkdownNotebookOutput get(final Object source) {
     try {
-      StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[2];
-      String className = null == source ? callingFrame.getClassName() : source.getClass().getCanonicalName();
-      String methodName = callingFrame.getMethodName();
-      String fileName = methodName + ".md";
-      File path = new File(Util.mkString(File.separator, "reports", className.replaceAll("\\.", "/").replaceAll("\\$", "/"), fileName));
+      final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[2];
+      final String className = null == source ? callingFrame.getClassName() : source.getClass().getCanonicalName();
+      final String methodName = callingFrame.getMethodName();
+      final String fileName = methodName + ".md";
+      final File path = new File(Util.mkString(File.separator, "reports", className.replaceAll("\\.", "/").replaceAll("\\$", "/"), fileName));
       path.getParentFile().mkdirs();
       return new MarkdownNotebookOutput(path, methodName);
-    } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);
-    }
-  }
-  
-  @Override
-  public OutputStream file(String name) {
-    try {
-      return new FileOutputStream(new File(getResourceDir(), name));
-    } catch (FileNotFoundException e) {
+    } catch (final FileNotFoundException e) {
       throw new RuntimeException(e);
     }
   }
@@ -97,31 +92,10 @@ public class MarkdownNotebookOutput implements NotebookOutput {
    * @param out the out
    * @return the notebook output
    */
-  public NotebookOutput addCopy(PrintStream out) {
+  @Override
+  public NotebookOutput addCopy(final PrintStream out) {
     outs.add(out);
     return this;
-  }
-  
-  /**
-   * The Anchor.
-   */
-  int anchor = 0;
-  
-  @Override
-  public void out(String fmt, Object... args) {
-    String msg = 0 == args.length ? fmt : String.format(fmt, args);
-    outs.forEach(out -> out.println(msg));
-  }
-  
-  private String absoluteUrl = null;
-  
-  @Override
-  public String link(File file, String text) {
-    try {
-      return "[" + text + "](" + fileName.getCanonicalFile().toPath().relativize(file.getCanonicalFile().toPath()).normalize().toString().replaceAll("\\\\", "/") + ")";
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
   }
   
   /**
@@ -134,35 +108,23 @@ public class MarkdownNotebookOutput implements NotebookOutput {
   }
   
   @Override
-  public void p(String fmt, Object... args) {
-    this.out(anchor() + fmt + "\n", args);
+  public void close() throws IOException {
+    if (null != primaryOut) {
+      primaryOut.close();
+    }
   }
   
+  @SuppressWarnings("unchecked")
   @Override
-  public void h1(String fmt, Object... args) {
-    this.out("# " + anchor() + fmt, args);
-  }
-  
-  @Override
-  public void h2(String fmt, Object... args) {
-    this.out("## " + anchor() + fmt, args);
-  }
-  
-  @Override
-  public void h3(String fmt, Object... args) {
-    this.out("### " + anchor() + fmt, args);
-  }
-  
-  @Override
-  public <T> T code(UncheckedSupplier<T> fn, int maxLog, int framesNo) {
+  public <T> T code(final UncheckedSupplier<T> fn, final int maxLog, final int framesNo) {
     try {
-      StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[framesNo];
-      String sourceCode = CodeUtil.getInnerText(callingFrame);
-      SysOutInterceptor.LoggedResult<TimedResult<Object>> result = SysOutInterceptor.withOutput(() -> {
+      final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[framesNo];
+      final String sourceCode = CodeUtil.getInnerText(callingFrame);
+      final SysOutInterceptor.LoggedResult<TimedResult<Object>> result = SysOutInterceptor.withOutput(() -> {
         try {
           return TimedResult.time(() -> fn.get());
-        } catch (Throwable e) {
-          return new TimedResult(e, 0);
+        } catch (final Throwable e) {
+          return new TimedResult<Object>(e, 0);
         }
       });
       out(anchor() + "Code from [%s:%s](%s#L%s) executed in %.2f seconds: ",
@@ -180,13 +142,13 @@ public class MarkdownNotebookOutput implements NotebookOutput {
       }
       out("");
       
-      Object eval = result.obj.result;
+      final Object eval = result.obj.result;
       if (null != eval) {
         out(anchor() + "Returns: \n");
         String str;
         boolean escape;
         if (eval instanceof Throwable) {
-          ByteArrayOutputStream out = new ByteArrayOutputStream();
+          final ByteArrayOutputStream out = new ByteArrayOutputStream();
           ((Throwable) eval).printStackTrace(new PrintStream(out));
           str = new String(out.toByteArray(), "UTF-8");
           escape = true;//
@@ -207,102 +169,48 @@ public class MarkdownNotebookOutput implements NotebookOutput {
           str = eval.toString();
           escape = true;
         }
-        if (escape) out("```");
-        out(escape ? ("    " + summarize(str, maxLog).replaceAll("\n", "\n    ").replaceAll("    ~", "")) : str);
-        if (escape) out("```");
+        if (escape) {
+          out("```");
+        }
+        out(escape ? "    " + summarize(str, maxLog).replaceAll("\n", "\n    ").replaceAll("    ~", "") : str);
+        if (escape) {
+          out("```");
+        }
         out("\n\n");
         if (eval instanceof Throwable) {
           throw new RuntimeException((Throwable) result.obj.result);
         }
       }
       return (T) eval;
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException(e);
     }
   }
   
-  /**
-   * Link to string.
-   *
-   * @param file the file
-   * @return the string
-   * @throws IOException the io exception
-   */
-  public String linkTo(File file) throws IOException {
-    String path = Util.pathTo(fileName.getParentFile().getCanonicalFile(), file.getCanonicalFile());
-    if (null != getAbsoluteUrl()) {
-      path = new File(getAbsoluteUrl()).toPath().relativize(new File(path).toPath()).toString();
+  @Override
+  public OutputStream file(final String name) {
+    try {
+      return new FileOutputStream(new File(getResourceDir(), name));
+    } catch (final FileNotFoundException e) {
+      throw new RuntimeException(e);
     }
-    return path;
-  }
-  
-  /**
-   * Summarize string.
-   *
-   * @param logSrc the log src
-   * @param maxLog the max log
-   * @return the string
-   */
-  public String summarize(String logSrc, int maxLog) {
-    if (logSrc.length() > maxLog * 2) {
-      String prefix = logSrc.substring(0, maxLog);
-      logSrc = prefix + String.format(
-        (prefix.endsWith("\n") ? "" : "\n") + "~```\n~..." + file(logSrc, "skipping %s bytes") + "...\n~```\n",
-        logSrc.length() - 2 * maxLog) + logSrc.substring(logSrc.length() - maxLog);
-    }
-    else if (logSrc.length() > 0) {
-      logSrc = logSrc;
-    }
-    return logSrc;
   }
   
   @Override
-  public String file(String data, String caption) {
-    return file(data, ++excerptNumber + ".txt", caption);
+  public String file(final String data, final String caption) {
+    return file(data, ++MarkdownNotebookOutput.excerptNumber + ".txt", caption);
   }
   
   @Override
-  public String file(String data, String fileName, String caption) {
+  public String file(final String data, final String fileName, final String caption) {
     try {
       if (null != data) {
         IOUtils.write(data, new FileOutputStream(new File(getResourceDir(), fileName)), Charset.forName("UTF-8"));
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException(e);
     }
     return "[" + caption + "](etc/" + fileName + ")";
-  }
-  
-  @Override
-  public String image(BufferedImage rawImage, String caption) throws IOException {
-    if (null == rawImage) return "";
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    int thisImage = ++imageNumber;
-    String fileName = this.name + "." + thisImage + ".png";
-    File file = new File(getResourceDir(), fileName);
-    BufferedImage stdImage = Util.resize(rawImage);
-    if (stdImage != rawImage) {
-      String rawName = this.name + "_raw." + thisImage + ".png";
-      ImageIO.write(rawImage, "png", new File(getResourceDir(), rawName));
-    }
-    ImageIO.write(stdImage, "png", file);
-    return anchor() + "![" + caption + "](etc/" + file.getName() + ")";
-  }
-  
-  /**
-   * Gets resource dir.
-   *
-   * @return the resource dir
-   */
-  public File getResourceDir() {
-    File etc = new File(this.fileName.getParentFile(), "etc");
-    etc.mkdirs();
-    return etc;
-  }
-  
-  @Override
-  public void close() throws IOException {
-    if (null != primaryOut) primaryOut.close();
   }
   
   /**
@@ -320,8 +228,102 @@ public class MarkdownNotebookOutput implements NotebookOutput {
    * @param absoluteUrl the absolute url
    * @return the absolute url
    */
-  public MarkdownNotebookOutput setAbsoluteUrl(String absoluteUrl) {
+  public MarkdownNotebookOutput setAbsoluteUrl(final String absoluteUrl) {
     this.absoluteUrl = absoluteUrl;
     return this;
+  }
+  
+  /**
+   * Gets resource dir.
+   *
+   * @return the resource dir
+   */
+  public File getResourceDir() {
+    final File etc = new File(fileName.getParentFile(), "etc");
+    etc.mkdirs();
+    return etc;
+  }
+  
+  @Override
+  public void h1(final String fmt, final Object... args) {
+    out("# " + anchor() + fmt, args);
+  }
+  
+  @Override
+  public void h2(final String fmt, final Object... args) {
+    out("## " + anchor() + fmt, args);
+  }
+  
+  @Override
+  public void h3(final String fmt, final Object... args) {
+    out("### " + anchor() + fmt, args);
+  }
+  
+  @Override
+  public String image(final BufferedImage rawImage, final String caption) throws IOException {
+    if (null == rawImage) return "";
+    new ByteArrayOutputStream();
+    final int thisImage = ++MarkdownNotebookOutput.imageNumber;
+    final String fileName = name + "." + thisImage + ".png";
+    final File file = new File(getResourceDir(), fileName);
+    final BufferedImage stdImage = Util.resize(rawImage);
+    if (stdImage != rawImage) {
+      final String rawName = name + "_raw." + thisImage + ".png";
+      ImageIO.write(rawImage, "png", new File(getResourceDir(), rawName));
+    }
+    ImageIO.write(stdImage, "png", file);
+    return anchor() + "![" + caption + "](etc/" + file.getName() + ")";
+  }
+  
+  @Override
+  public String link(final File file, final String text) {
+    try {
+      return "[" + text + "](" + fileName.getCanonicalFile().toPath().relativize(file.getCanonicalFile().toPath()).normalize().toString().replaceAll("\\\\", "/") + ")";
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  /**
+   * Link to string.
+   *
+   * @param file the file
+   * @return the string
+   * @throws IOException the io exception
+   */
+  public String linkTo(final File file) throws IOException {
+    String path = Util.pathTo(fileName.getParentFile().getCanonicalFile(), file.getCanonicalFile());
+    if (null != getAbsoluteUrl()) {
+      path = new File(getAbsoluteUrl()).toPath().relativize(new File(path).toPath()).toString();
+    }
+    return path;
+  }
+  
+  @Override
+  public void out(final String fmt, final Object... args) {
+    final String msg = 0 == args.length ? fmt : String.format(fmt, args);
+    outs.forEach(out -> out.println(msg));
+  }
+  
+  @Override
+  public void p(final String fmt, final Object... args) {
+    out(anchor() + fmt + "\n", args);
+  }
+  
+  /**
+   * Summarize string.
+   *
+   * @param logSrc the log src
+   * @param maxLog the max log
+   * @return the string
+   */
+  public String summarize(String logSrc, final int maxLog) {
+    if (logSrc.length() > maxLog * 2) {
+      final String prefix = logSrc.substring(0, maxLog);
+      logSrc = prefix + String.format(
+        (prefix.endsWith("\n") ? "" : "\n") + "~```\n~..." + file(logSrc, "skipping %s bytes") + "...\n~```\n",
+        logSrc.length() - 2 * maxLog) + logSrc.substring(logSrc.length() - maxLog);
+    }
+    return logSrc;
   }
 }

@@ -45,21 +45,9 @@ public enum Precision {
    */
   public final int size;
   
-  Precision(int code, int size) {
+  Precision(final int code, final int size) {
     this.code = code;
     this.size = size;
-  }
-  
-  /**
-   * Get floats float [ ].
-   *
-   * @param data the data
-   * @return the float [ ]
-   */
-  public static float[] getFloats(double[] data) {
-    float[] floats = new float[data.length];
-    for (int i = 0; i < data.length; i++) floats[i] = (float) data[i];
-    return floats;
   }
   
   /**
@@ -68,12 +56,27 @@ public enum Precision {
    * @param data the data
    * @return the double [ ]
    */
-  public static double[] getDoubles(float[] data) {
-    double[] doubles = new double[data.length];
-    for (int i = 0; i < data.length; i++) doubles[i] = (double) data[i];
+  public static double[] getDoubles(final float[] data) {
+    final double[] doubles = new double[data.length];
+    for (int i = 0; i < data.length; i++) {
+      doubles[i] = data[i];
+    }
     return doubles;
   }
   
+  /**
+   * Get floats float [ ].
+   *
+   * @param data the data
+   * @return the float [ ]
+   */
+  public static float[] getFloats(final double[] data) {
+    final float[] floats = new float[data.length];
+    for (int i = 0; i < data.length; i++) {
+      floats[i] = (float) data[i];
+    }
+    return floats;
+  }
   
   /**
    * Gets pointer.
@@ -81,12 +84,12 @@ public enum Precision {
    * @param data the data
    * @return the pointer
    */
-  public Pointer getPointer(float... data) {
+  public Pointer getPointer(final double... data) {
     switch (this) {
       case Float:
-        return Pointer.to(data);
+        return Pointer.to(Precision.getFloats(data));
       case Double:
-        return Pointer.to(getDoubles(data));
+        return Pointer.to(data);
       default:
         throw new IllegalStateException();
     }
@@ -98,12 +101,12 @@ public enum Precision {
    * @param data the data
    * @return the pointer
    */
-  public Pointer getPointer(double... data) {
+  public Pointer getPointer(final float... data) {
     switch (this) {
       case Float:
-        return Pointer.to(getFloats(data));
-      case Double:
         return Pointer.to(data);
+      case Double:
+        return Pointer.to(Precision.getDoubles(data));
       default:
         throw new IllegalStateException();
     }
@@ -117,7 +120,7 @@ public enum Precision {
    * @param data         the data
    * @return the cuda ptr
    */
-  public CudaPtr javaPtr(int deviceNumber, double... data) {
+  public CudaPtr javaPtr(final int deviceNumber, final double... data) {
     return new CudaPtr(getPointer(data), data.length * size, deviceNumber);
   }
   

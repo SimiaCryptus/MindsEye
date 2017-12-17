@@ -36,16 +36,17 @@ public class SupplierWeakCache<T> implements Supplier<T> {
    *
    * @param fn the fn
    */
-  public SupplierWeakCache(Supplier<T> fn) {
+  public SupplierWeakCache(final Supplier<T> fn) {
     this.fn = fn;
     this.ptr = null;
   }
   
+  @Override
   public T get() {
     T x = null == ptr ? null : ptr.get();
     if (null == x) {
       x = fn.get();
-      ptr = new WeakReference<T>(x);
+      ptr = new WeakReference<>(x);
     }
     return x;
   }

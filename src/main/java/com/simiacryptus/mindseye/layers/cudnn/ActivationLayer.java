@@ -21,23 +21,15 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import jcuda.jcudnn.cudnnActivationDescriptor;
-import jcuda.jcudnn.cudnnHandle;
-import jcuda.jcudnn.cudnnTensorDescriptor;
+import jcuda.jcudnn.*;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static com.simiacryptus.mindseye.layers.cudnn.CuDNN.cudnnActivationBackward;
-import static com.simiacryptus.mindseye.layers.cudnn.CuDNN.cudnnActivationForward;
-import static jcuda.jcudnn.cudnnActivationMode.CUDNN_ACTIVATION_RELU;
-import static jcuda.jcudnn.cudnnActivationMode.CUDNN_ACTIVATION_SIGMOID;
-import static jcuda.jcudnn.cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN;
-import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
-
 /**
  * The type Activation layer.
  */
+@SuppressWarnings("serial")
 public class ActivationLayer extends NNLayer implements LayerPrecision<ActivationLayer> {
   /**
    * The Mode.
@@ -49,9 +41,18 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
   /**
    * Instantiates a new Activation layer.
    *
+   * @param id the id
+   */
+  public ActivationLayer(final int id) {
+    mode = id;
+  }
+  
+  /**
+   * Instantiates a new Activation layer.
+   *
    * @param json the json
    */
-  protected ActivationLayer(JsonObject json) {
+  protected ActivationLayer(final JsonObject json) {
     super(json);
     mode = json.getAsJsonPrimitive("mode").getAsInt();
     precision = Precision.valueOf(json.get("precision").getAsString());
@@ -62,17 +63,8 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
    *
    * @param mode the mode
    */
-  public ActivationLayer(Mode mode) {
+  public ActivationLayer(final Mode mode) {
     this(mode.id);
-  }
-  
-  /**
-   * Instantiates a new Activation layer.
-   *
-   * @param id the id
-   */
-  public ActivationLayer(int id) {
-    this.mode = id;
   }
   
   /**
@@ -81,71 +73,64 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
    * @param json the json
    * @return the activation layer
    */
-  public static ActivationLayer fromJson(JsonObject json) {
+  public static ActivationLayer fromJson(final JsonObject json) {
     return new ActivationLayer(json);
   }
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("mode", mode);
-    json.addProperty("precision",precision.name());
-    return json;
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     ((CudaExecutionContext) nncontext).initThread();
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputSize = batch.get(0).getDimensions();
-    int[] outputSize = inputSize;
-    int length = batch.length();
-    int inputDims = Tensor.dim(inputSize);
+    final int[] outputSize = inputSize;
+    final int length = batch.length();
+    final int inputDims = Tensor.dim(inputSize);
     
     try {
-      
-      CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-        precision.code, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-      CudaPtr alpha = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
-      CudaPtr beta = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 0.0);
-      
-      CudaPtr inputData = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, batch);
-      CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), precision.size * 1l * inputDims * length);
-      CudaResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, CUDNN_NOT_PROPAGATE_NAN, 0);
+  
+      final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+        precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+      final CudaPtr alpha = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
+      final CudaPtr beta = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 0.0);
+  
+      final CudaPtr inputData = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, batch);
+      final CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), precision.size * 1l * inputDims * length);
+      final CudaResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
       final cudnnHandle cudnnHandle = ((CuDNN) nncontext).cudnnHandle;
       try {
-        CuDNN.handle(cudnnActivationForward(((CuDNN) nncontext).cudnnHandle, activationDesc.getPtr(),
+        CuDNN.handle(CuDNN.cudnnActivationForward(((CuDNN) nncontext).cudnnHandle, activationDesc.getPtr(),
           alpha.getPtr(),
           inputDescriptor.getPtr(), inputData.getPtr(),
           beta.getPtr(),
           inputDescriptor.getPtr(), outputData.getPtr()));
-      } catch (Throwable e) {
+      } catch (final Throwable e) {
         throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
       }
-      TensorList output = new GpuTensorList(outputData, length, outputSize, ((CuDNN) nncontext).cudnnHandle, precision);
+      final TensorList output = new GpuTensorList(outputData, length, outputSize, ((CuDNN) nncontext).cudnnHandle, precision);
       //assert output.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       return new NNResult(output) {
         @Override
-        public void accumulate(final DeltaSet buffer, final TensorList error) {
+        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
           //assert (error.length() == batch.length());
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           ((CudaExecutionContext) nncontext).initThread();
-          CudaPtr errorPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, error);
+          final CudaPtr errorPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, error);
           if (input.isAlive()) {
-            CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * precision.size * length);
+            final CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * precision.size * length);
             try {
-              CuDNN.handle(cudnnActivationBackward(((CuDNN) nncontext).cudnnHandle, activationDesc.getPtr(),
+              CuDNN.handle(CuDNN.cudnnActivationBackward(((CuDNN) nncontext).cudnnHandle, activationDesc.getPtr(),
                 alpha.getPtr(),
                 inputDescriptor.getPtr(), outputData.getPtr(),
                 inputDescriptor.getPtr(), errorPtr.getPtr(),
                 inputDescriptor.getPtr(), inputData.getPtr(),
                 beta.getPtr(),
                 inputDescriptor.getPtr(), passbackBuffer.getPtr()));
-            } catch (Throwable e) {
+            } catch (final Throwable e) {
               throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
             }
-            GpuTensorList data = new GpuTensorList(passbackBuffer, length, inputSize, cudnnHandle, precision);
+            final GpuTensorList data = new GpuTensorList(passbackBuffer, length, inputSize, cudnnHandle, precision);
             input.accumulate(buffer, data);
             data.recycle();
           }
@@ -156,14 +141,17 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
           return input.isAlive() || !isFrozen();
         }
       };
-    } catch (Throwable e) {
+    } catch (final Throwable e) {
       throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
     }
   }
   
   @Override
-  public List<double[]> state() {
-    return Arrays.asList();
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    json.addProperty("mode", mode);
+    json.addProperty("precision", precision.name());
+    return json;
   }
   
   @Override
@@ -172,9 +160,14 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
   }
   
   @Override
-  public ActivationLayer setPrecision(Precision precision) {
+  public ActivationLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
+  }
+  
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList();
   }
   
   
@@ -185,17 +178,17 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
     /**
      * Relu mode.
      */
-    RELU(CUDNN_ACTIVATION_RELU),
+    RELU(cudnnActivationMode.CUDNN_ACTIVATION_RELU),
     /**
      * Sigmoid mode.
      */
-    SIGMOID(CUDNN_ACTIVATION_SIGMOID);
+    SIGMOID(cudnnActivationMode.CUDNN_ACTIVATION_SIGMOID);
     /**
      * The Id.
      */
     public final int id;
-    
-    Mode(int id) {
+  
+    Mode(final int id) {
       this.id = id;
     }
   }

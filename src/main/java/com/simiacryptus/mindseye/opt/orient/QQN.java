@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
@@ -41,58 +42,25 @@ public class QQN implements OrientationStrategy<LineSearchCursor> {
   
   private final LBFGS inner = new LBFGS();
   
-  @Override
-  public LineSearchCursor orient(Trainable subject, PointSample origin, TrainingMonitor monitor) {
-    inner.addToHistory(origin, monitor);
-    SimpleLineSearchCursor lbfgsCursor = inner.orient(subject, origin, monitor);
-    final DeltaSet lbfgs = lbfgsCursor.direction;
-    DeltaSet gd = origin.delta.scale(-1.0);
-    double lbfgsMag = lbfgs.getMagnitude();
-    double gdMag = gd.getMagnitude();
-    if ((Math.abs(lbfgsMag - gdMag) / (lbfgsMag + gdMag)) > 1e-2) {
-      DeltaSet scaledGradient = gd.scale(lbfgsMag / gdMag);
-      monitor.log(String.format("Returning Quadratic Cursor %s GD, %s QN", gdMag, lbfgsMag));
-      return new LineSearchCursor() {
-        
-        @Override
-        public String getDirectionType() {
-          return "QQN";
-        }
-        
-        @Override
-        public LineSearchPoint step(double t, TrainingMonitor monitor) {
-          if (!Double.isFinite(t)) throw new IllegalArgumentException();
-          reset();
-          position(t).accumulate(1);
-          PointSample sample = subject.measure(true, monitor).setRate(t);
-          //monitor.log(String.format("delta buffers %d %d %d %d %d", sample.delta.run.size(), origin.delta.run.size(), lbfgs.run.size(), gd.run.size(), scaledGradient.run.size()));
-          inner.addToHistory(sample, monitor);
-          DeltaSet tangent = scaledGradient.scale(1 - 2 * t).add(lbfgs.scale(2 * t));
-          return new LineSearchPoint(sample, tangent.dot(sample.delta));
-        }
-        
-        @Override
-        public DeltaSet position(double t) {
-          if (!Double.isFinite(t)) throw new IllegalArgumentException();
-          return scaledGradient.scale(t - t * t).add(lbfgs.scale(t * t));
-        }
-        
-        @Override
-        public void reset() {
-          lbfgsCursor.reset();
-        }
-      };
-    }
-    else {
-      return lbfgsCursor;
-    }
+  /**
+   * Gets max history.
+   *
+   * @return the max history
+   */
+  public int getMaxHistory() {
+    return inner.getMaxHistory();
   }
   
-  @Override
-  public void reset() {
-    inner.reset();
+  /**
+   * Sets max history.
+   *
+   * @param maxHistory the max history
+   * @return the max history
+   */
+  public QQN setMaxHistory(final int maxHistory) {
+    inner.setMaxHistory(maxHistory);
+    return this;
   }
-  
   
   /**
    * Gets min history.
@@ -109,29 +77,61 @@ public class QQN implements OrientationStrategy<LineSearchCursor> {
    * @param minHistory the min history
    * @return the min history
    */
-  public QQN setMinHistory(int minHistory) {
+  public QQN setMinHistory(final int minHistory) {
     inner.setMinHistory(minHistory);
     return this;
   }
   
-  /**
-   * Gets max history.
-   *
-   * @return the max history
-   */
-  public int getMaxHistory() {
-    return inner.getMaxHistory();
+  @Override
+  public LineSearchCursor orient(final Trainable subject, final PointSample origin, final TrainingMonitor monitor) {
+    inner.addToHistory(origin, monitor);
+    final SimpleLineSearchCursor lbfgsCursor = inner.orient(subject, origin, monitor);
+    final DeltaSet<NNLayer> lbfgs = lbfgsCursor.direction;
+    final DeltaSet<NNLayer> gd = origin.delta.scale(-1.0);
+    final double lbfgsMag = lbfgs.getMagnitude();
+    final double gdMag = gd.getMagnitude();
+    if (Math.abs(lbfgsMag - gdMag) / (lbfgsMag + gdMag) > 1e-2) {
+      final DeltaSet<NNLayer> scaledGradient = gd.scale(lbfgsMag / gdMag);
+      monitor.log(String.format("Returning Quadratic Cursor %s GD, %s QN", gdMag, lbfgsMag));
+      return new LineSearchCursor() {
+
+        @Override
+        public String getDirectionType() {
+          return "QQN";
+        }
+
+        @Override
+        public DeltaSet<NNLayer> position(final double t) {
+          if (!Double.isFinite(t)) throw new IllegalArgumentException();
+          return scaledGradient.scale(t - t * t).add(lbfgs.scale(t * t));
+        }
+  
+        @Override
+        public void reset() {
+          lbfgsCursor.reset();
+        }
+  
+        @Override
+        public LineSearchPoint step(final double t, final TrainingMonitor monitor) {
+          if (!Double.isFinite(t)) throw new IllegalArgumentException();
+          reset();
+          position(t).accumulate(1);
+          final PointSample sample = subject.measure(true, monitor).setRate(t);
+          //monitor.log(String.format("delta buffers %d %d %d %d %d", sample.delta.run.size(), origin.delta.run.size(), lbfgs.run.size(), gd.run.size(), scaledGradient.run.size()));
+          inner.addToHistory(sample, monitor);
+          final DeltaSet<NNLayer> tangent = scaledGradient.scale(1 - 2 * t).add(lbfgs.scale(2 * t));
+          return new LineSearchPoint(sample, tangent.dot(sample.delta));
+        }
+      };
+    }
+    else {
+      return lbfgsCursor;
+    }
   }
   
-  /**
-   * Sets max history.
-   *
-   * @param maxHistory the max history
-   * @return the max history
-   */
-  public QQN setMaxHistory(int maxHistory) {
-    inner.setMaxHistory(maxHistory);
-    return this;
+  @Override
+  public void reset() {
+    inner.reset();
   }
   
 }

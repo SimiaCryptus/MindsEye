@@ -24,23 +24,14 @@ import com.google.gson.JsonObject;
 /**
  * The type Sigmoid activation layer.
  */
+@SuppressWarnings("serial")
 public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidActivationLayer> {
   
   private static final double MIN_X = -20;
-  private static final double MAX_X = -MIN_X;
-  private static final double MAX_F = Math.exp(MAX_X);
-  private static final double MIN_F = Math.exp(MIN_X);
+  private static final double MAX_X = -SigmoidActivationLayer.MIN_X;
+  private static final double MAX_F = Math.exp(SigmoidActivationLayer.MAX_X);
+  private static final double MIN_F = Math.exp(SigmoidActivationLayer.MIN_X);
   private boolean balanced = true;
-  
-  /**
-   * Instantiates a new Sigmoid activation layer.
-   *
-   * @param id the id
-   */
-  protected SigmoidActivationLayer(JsonObject id) {
-    super(id);
-    balanced = id.get("balanced").getAsBoolean();
-  }
   
   /**
    * Instantiates a new Sigmoid activation layer.
@@ -49,19 +40,23 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
   }
   
   /**
+   * Instantiates a new Sigmoid activation layer.
+   *
+   * @param id the id
+   */
+  protected SigmoidActivationLayer(final JsonObject id) {
+    super(id);
+    balanced = id.get("balanced").getAsBoolean();
+  }
+  
+  /**
    * From json sigmoid activation layer.
    *
    * @param json the json
    * @return the sigmoid activation layer
    */
-  public static SigmoidActivationLayer fromJson(JsonObject json) {
+  public static SigmoidActivationLayer fromJson(final JsonObject json) {
     return new SigmoidActivationLayer(json);
-  }
-  
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("balanced", balanced);
-    return json;
   }
   
   @Override
@@ -86,13 +81,20 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
   }
   
   private double exp(final double x) {
-    if (x < MIN_X) {
-      return MIN_F;
+    if (x < SigmoidActivationLayer.MIN_X) {
+      return SigmoidActivationLayer.MIN_F;
     }
-    if (x > MAX_X) {
-      return MAX_F;
+    if (x > SigmoidActivationLayer.MAX_X) {
+      return SigmoidActivationLayer.MAX_F;
     }
     return Math.exp(x);
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    json.addProperty("balanced", balanced);
+    return json;
   }
   
   /**
@@ -101,7 +103,7 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
    * @return the boolean
    */
   public boolean isBalanced() {
-    return this.balanced;
+    return balanced;
   }
   
   /**

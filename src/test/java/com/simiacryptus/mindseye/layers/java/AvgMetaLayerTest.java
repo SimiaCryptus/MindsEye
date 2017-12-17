@@ -28,15 +28,15 @@ import com.simiacryptus.mindseye.layers.MetaLayerTestBase;
 public class AvgMetaLayerTest extends MetaLayerTestBase {
   
   @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new AvgMetaLayer().setMinBatchCount(0);
-  }
-  
-  @Override
   public int[][] getInputDims() {
     return new int[][]{
       {3}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new AvgMetaLayer().setMinBatchCount(0);
   }
   
   @Override

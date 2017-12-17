@@ -32,12 +32,7 @@ public class ImgCropLayerTest extends LayerTestBase {
    * Instantiates a new Img crop layer test.
    */
   public ImgCropLayerTest() {
-    this.validateBatchExecution = false;
-  }
-  
-  @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new ImgCropLayer(1, 1);
+    validateBatchExecution = false;
   }
   
   @Override
@@ -45,5 +40,10 @@ public class ImgCropLayerTest extends LayerTestBase {
     return new int[][]{
       {3, 3, 1}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new ImgCropLayer(1, 1);
   }
 }

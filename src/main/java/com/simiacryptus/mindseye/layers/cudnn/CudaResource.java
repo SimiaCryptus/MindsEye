@@ -32,25 +32,23 @@ import java.util.function.ToIntFunction;
 public class CudaResource<T> {
   
   /**
-   * The constant gpuGeneration.
-   */
-  public static AtomicInteger gpuGeneration = new AtomicInteger(0);
-  /**
    * The constant debugLifecycle.
    */
   public static boolean debugLifecycle = false;
   /**
-   * The Obj generation.
+   * The constant gpuGeneration.
    */
-  public final int objGeneration = gpuGeneration.get();
+  public static AtomicInteger gpuGeneration = new AtomicInteger(0);
   /**
    * The Created by.
    */
-  public final StackTraceElement[] createdBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
-  private final T ptr;
+  public final StackTraceElement[] createdBy = CudaResource.debugLifecycle ? Thread.currentThread().getStackTrace() : null;
+  /**
+   * The Obj generation.
+   */
+  public final int objGeneration = CudaResource.gpuGeneration.get();
   private final ToIntFunction<T> destructor;
-  //private final StackTraceElement[] createdBy = Thread.currentThread().getStackTrace();
-  private final int device = CuDNN.getDevice();
+  private final T ptr;
   /**
    * The Finalized by.
    */
@@ -63,41 +61,25 @@ public class CudaResource<T> {
    * @param obj        the obj
    * @param destructor the destructor
    */
-  protected CudaResource(T obj, ToIntFunction<T> destructor) {
+  protected CudaResource(final T obj, final ToIntFunction<T> destructor) {
     this.ptr = obj;
     this.destructor = destructor;
-  }
-  
-  /**
-   * Is finalized boolean.
-   *
-   * @return the boolean
-   */
-  public boolean isFinalized() {
-    return finalized;
   }
   
   @Override
   public synchronized void finalize() {
     try {
       if (!this.finalized && isActiveObj()) {
-        if (null != this.destructor) free();
-        finalizedBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
+        if (null != this.destructor) {
+          free();
+        }
+        finalizedBy = CudaResource.debugLifecycle ? Thread.currentThread().getStackTrace() : null;
         this.finalized = true;
       }
       super.finalize();
-    } catch (Throwable e) {
+    } catch (final Throwable e) {
       new ComponentException("Error freeing resource " + this, e).printStackTrace(System.err);
     }
-  }
-  
-  /**
-   * Is active obj boolean.
-   *
-   * @return the boolean
-   */
-  public boolean isActiveObj() {
-    return objGeneration == gpuGeneration.get();
   }
   
   /**
@@ -108,7 +90,7 @@ public class CudaResource<T> {
       if (isActiveObj()) {
         CuDNN.handle(this.destructor.applyAsInt(ptr));
       }
-    } catch (Throwable e) {
+    } catch (final Throwable e) {
       //new ComponentException("Error freeing resource " + this, e).printStackTrace(System.err);
     }
   }
@@ -121,5 +103,23 @@ public class CudaResource<T> {
   public T getPtr() {
     if (isFinalized()) return null;
     return ptr;
+  }
+  
+  /**
+   * Is active obj boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isActiveObj() {
+    return objGeneration == CudaResource.gpuGeneration.get();
+  }
+  
+  /**
+   * Is finalized boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isFinalized() {
+    return finalized;
   }
 }

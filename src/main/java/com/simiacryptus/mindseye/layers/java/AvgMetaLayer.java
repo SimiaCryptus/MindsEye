@@ -46,19 +46,19 @@ public class AvgMetaLayer extends NNLayer {
   
   /**
    * Instantiates a new Avg meta layer.
-   *
-   * @param json the json
    */
-  protected AvgMetaLayer(JsonObject json) {
-    super(json);
-    this.lastResult = Tensor.fromJson(json.get("lastResult"));
-    this.minBatchCount = json.get("minBatchCount").getAsInt();
+  public AvgMetaLayer() {
   }
   
   /**
    * Instantiates a new Avg meta layer.
+   *
+   * @param json the json
    */
-  public AvgMetaLayer() {
+  protected AvgMetaLayer(final JsonObject json) {
+    super(json);
+    lastResult = Tensor.fromJson(json.get("lastResult"));
+    minBatchCount = json.get("minBatchCount").getAsInt();
   }
   
   /**
@@ -67,21 +67,14 @@ public class AvgMetaLayer extends NNLayer {
    * @param json the json
    * @return the avg meta layer
    */
-  public static AvgMetaLayer fromJson(JsonObject json) {
+  public static AvgMetaLayer fromJson(final JsonObject json) {
     return new AvgMetaLayer(json);
   }
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    if (null != lastResult) json.add("lastResult", lastResult.toJson());
-    json.addProperty("minBatchCount", minBatchCount);
-    return json;
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    NNResult input = inObj[0];
-    int itemCnt = input.getData().length();
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final NNResult input = inObj[0];
+    final int itemCnt = input.getData().length();
     Tensor thisResult;
     boolean passback;
     if (null == lastResult || input.getData().length() > minBatchCount) {
@@ -91,18 +84,18 @@ public class AvgMetaLayer extends NNLayer {
           .sum() / itemCnt;
       thisResult = input.getData().get(0).mapCoords(f);
       passback = true;
-      this.lastResult = thisResult;
+      lastResult = thisResult;
     }
     else {
       passback = false;
-      thisResult = this.lastResult;
+      thisResult = lastResult;
     }
     return new NNResult(thisResult) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (passback && input.isAlive()) {
-          Tensor delta = data.get(0);
-          Tensor feedback[] = new Tensor[itemCnt];
+          final Tensor delta = data.get(0);
+          final Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
           thisResult.coordStream().forEach((inputCoord) -> {
             for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
@@ -122,8 +115,13 @@ public class AvgMetaLayer extends NNLayer {
   }
   
   @Override
-  public List<double[]> state() {
-    return Arrays.asList();
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    if (null != lastResult) {
+      json.add("lastResult", lastResult.toJson());
+    }
+    json.addProperty("minBatchCount", minBatchCount);
+    return json;
   }
   
   /**
@@ -141,8 +139,13 @@ public class AvgMetaLayer extends NNLayer {
    * @param minBatchCount the min batch count
    * @return the min batch count
    */
-  public AvgMetaLayer setMinBatchCount(int minBatchCount) {
+  public AvgMetaLayer setMinBatchCount(final int minBatchCount) {
     this.minBatchCount = minBatchCount;
     return this;
+  }
+  
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList();
   }
 }

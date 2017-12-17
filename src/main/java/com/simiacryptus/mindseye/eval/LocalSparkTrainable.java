@@ -43,7 +43,7 @@ public class LocalSparkTrainable extends SparkTrainable {
    * @param trainingData the training data
    * @param network      the network
    */
-  public LocalSparkTrainable(RDD<Tensor[]> trainingData, NNLayer network) {
+  public LocalSparkTrainable(final RDD<Tensor[]> trainingData, final NNLayer network) {
     super(trainingData, network);
   }
   
@@ -54,38 +54,38 @@ public class LocalSparkTrainable extends SparkTrainable {
    * @param network      the network
    * @param sampleSize   the sample size
    */
-  public LocalSparkTrainable(RDD<Tensor[]> trainingData, NNLayer network, int sampleSize) {
+  public LocalSparkTrainable(final RDD<Tensor[]> trainingData, final NNLayer network, final int sampleSize) {
     super(trainingData, network, sampleSize);
   }
   
   
   @Override
-  public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
-    long time1 = System.nanoTime();
-    JavaRDD<Tensor[]> javaRDD = this.sampledRDD.toJavaRDD();
+  public PointSample measure(final boolean isStatic, final TrainingMonitor monitor) {
+    final long time1 = System.nanoTime();
+    final JavaRDD<Tensor[]> javaRDD = sampledRDD.toJavaRDD();
     assert !javaRDD.isEmpty();
-    List<ReducableResult> mapPartitions = javaRDD.partitions().stream().map(partition -> {
+    final List<ReducableResult> mapPartitions = javaRDD.partitions().stream().map(partition -> {
       try {
-        List<Tensor[]>[] array = javaRDD.collectPartitions(new int[]{partition.index()});
+        final List<Tensor[]>[] array = javaRDD.collectPartitions(new int[]{partition.index()});
         assert 0 < array.length;
-        if (0 == Arrays.stream(array).mapToInt((List<Tensor[]> x) -> x.size()).sum()) {
+        if (0 == Arrays.stream(array).mapToInt((final List<Tensor[]> x) -> x.size()).sum()) {
           return null;
         }
         assert 0 < Arrays.stream(array).mapToInt(x -> x.stream().mapToInt(y -> y.length).sum()).sum();
-        Stream<Tensor[]> stream = Arrays.stream(array).flatMap(i -> i.stream());
-        Iterator<Tensor[]> iterator = stream.iterator();
+        final Stream<Tensor[]> stream = Arrays.stream(array).flatMap(i -> i.stream());
+        final Iterator<Tensor[]> iterator = stream.iterator();
         return new PartitionTask(network).call(iterator).next();
-      } catch (Exception e) {
+      } catch (final Exception e) {
         throw new RuntimeException(e);
       }
     }).filter(x -> null != x).collect(Collectors.toList());
-    long time2 = System.nanoTime();
-    SparkTrainable.ReducableResult result = mapPartitions.stream().reduce(SparkTrainable.ReducableResult::add).get();
+    final long time2 = System.nanoTime();
+    final SparkTrainable.ReducableResult result = mapPartitions.stream().reduce(SparkTrainable.ReducableResult::add).get();
     if (isVerbose()) {
       System.out.println(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
     }
-    DeltaSet deltaSet = getDelta(result);
-    return new PointSample(deltaSet, new StateSet(deltaSet), result.sum, 0.0, result.count).normalize();
+    final DeltaSet<NNLayer> xxx = getDelta(result);
+    return new PointSample(xxx, new StateSet<NNLayer>(xxx), result.sum, 0.0, result.count).normalize();
   }
   
 }

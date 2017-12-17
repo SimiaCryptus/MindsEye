@@ -45,8 +45,23 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
    *
    * @param layer the layer
    */
-  public ActivationLayerTestBase(NNLayer layer) {
+  public ActivationLayerTestBase(final NNLayer layer) {
     this.layer = layer;
+  }
+  
+  /**
+   * Plot plot canvas.
+   *
+   * @param title the title
+   * @param data  the data
+   * @return the plot canvas
+   */
+  public static PlotCanvas plot(final String title, final double[][] data) {
+    final PlotCanvas plot = ScatterPlot.plot(data);
+    plot.setTitle(title);
+    plot.setAxisLabels("x", "y");
+    plot.setSize(600, 400);
+    return plot;
   }
   
   /**
@@ -57,29 +72,9 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
    * @param function the function
    * @return the plot canvas
    */
-  public static PlotCanvas plot(String title, List<double[]> plotData, Function<double[], double[]> function) {
-    double[][] data = plotData.stream().map(function).toArray(i -> new double[i][]);
-    return plot(title, data);
-  }
-  
-  /**
-   * Plot plot canvas.
-   *
-   * @param title the title
-   * @param data  the data
-   * @return the plot canvas
-   */
-  public static PlotCanvas plot(String title, double[][] data) {
-    PlotCanvas plot = ScatterPlot.plot(data);
-    plot.setTitle(title);
-    plot.setAxisLabels("x", "y");
-    plot.setSize(600, 400);
-    return plot;
-  }
-  
-  @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return layer;
+  public static PlotCanvas plot(final String title, final List<double[]> plotData, final Function<double[], double[]> function) {
+    final double[][] data = plotData.stream().map(function).toArray(i -> new double[i][]);
+    return ActivationLayerTestBase.plot(title, data);
   }
   
   @Override
@@ -90,31 +85,15 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
   }
   
   @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return layer;
+  }
+  
+  @Override
   public int[][] getPerfDims() {
     return new int[][]{
       {100, 100, 1}
     };
-  }
-  
-  @Override
-  public void test(NotebookOutput log) {
-    super.test(log);
-    
-    log.h3("Function Plots");
-    NNLayer layer = getLayer(new int[][]{{1}});
-    List<double[]> plotData = scan().mapToObj(x -> {
-      SimpleEval eval = SimpleEval.run(layer, new Tensor(x));
-      return new double[]{x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};
-    }).collect(Collectors.toList());
-    
-    log.code(() -> {
-      return plot("Value Plot", plotData, x -> new double[]{x[0], x[1]});
-    });
-    
-    log.code(() -> {
-      return plot("Derivative Plot", plotData, x -> new double[]{x[0], x[2]});
-    });
-    
   }
   
   /**
@@ -124,6 +103,27 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
    */
   public DoubleStream scan() {
     return IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0);
+  }
+  
+  @Override
+  public void test(final NotebookOutput log) {
+    super.test(log);
+    
+    log.h3("Function Plots");
+    final NNLayer layer = getLayer(new int[][]{{1}});
+    final List<double[]> plotData = scan().mapToObj(x -> {
+      final SimpleEval eval = SimpleEval.run(layer, new Tensor(x));
+      return new double[]{x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};
+    }).collect(Collectors.toList());
+    
+    log.code(() -> {
+      return ActivationLayerTestBase.plot("Value Plot", plotData, x -> new double[]{x[0], x[1]});
+    });
+    
+    log.code(() -> {
+      return ActivationLayerTestBase.plot("Derivative Plot", plotData, x -> new double[]{x[0], x[2]});
+    });
+    
   }
   
 }

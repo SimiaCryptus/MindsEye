@@ -46,45 +46,58 @@ public class Caltech101 {
   
   private static final URI source = URI.create("https://s3-us-west-2.amazonaws.com/simiacryptus/");
   
-  private static final DataLoader training = new DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>>() {
+  private static final DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>> training = new DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>>() {
     @Override
-    protected void read(List<LabeledObject<SupplierWeakCache<BufferedImage>>> queue) {
+    protected void read(final List<LabeledObject<SupplierWeakCache<BufferedImage>>> queue) {
       try {
         InputStream stream = null;
         try {
           // Repackaging as a zip is needed - the tar format classes dont work here
-          stream = Util.cache(source.resolve("101_ObjectCategories.zip"));
+          stream = Util.cache(Caltech101.source.resolve("101_ObjectCategories.zip"));
         } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
           throw new RuntimeException(e);
         }
-        boolean continueLoop = true;
-        ZipInputStream tar = new ZipInputStream(stream);
+        final boolean continueLoop = true;
+        final ZipInputStream tar = new ZipInputStream(stream);
         while (continueLoop) {
-          if (Thread.interrupted()) break;
-          ZipEntry entry = tar.getNextEntry();
+          if (Thread.interrupted()) {
+            break;
+          }
+          final ZipEntry entry = tar.getNextEntry();
           if (null == entry) {
             System.err.println("Null Entry");
             break;
           }
-          if (0 == entry.getSize()) continue;
-          String category = entry.getName().split("/")[1];
+          if (0 == entry.getSize()) {
+            continue;
+          }
+          final String category = entry.getName().split("/")[1];
           //System.err.println(String.format("%s -> %s (%s)", entry.getName(), category, entry.getSize()));
-          byte[] data = IOUtils.toByteArray(tar, entry.getSize());
-          if (!entry.getName().toLowerCase().endsWith(".jpg")) continue;
-          queue.add(new LabeledObject<>(new SupplierWeakCache<BufferedImage>(() -> {
+          final byte[] data = IOUtils.toByteArray(tar, entry.getSize());
+          if (!entry.getName().toLowerCase().endsWith(".jpg")) {
+            continue;
+          }
+          queue.add(new LabeledObject<>(new SupplierWeakCache<>(() -> {
             try {
               return ImageIO.read(new ByteArrayInputStream(data));
-            } catch (IOException e) {
+            } catch (final IOException e) {
               throw new RuntimeException(e);
             }
           }), category));
         }
-      } catch (IOException e) {
+      } catch (final IOException e) {
         e.printStackTrace();
         throw new RuntimeException(e);
       }
     }
   };
+  
+  /**
+   * Halt.
+   */
+  public static void halt() {
+    Caltech101.training.stop();
+  }
   
   /**
    * Training data stream stream.
@@ -93,14 +106,7 @@ public class Caltech101 {
    * @throws IOException the io exception
    */
   public static Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> trainingDataStream() throws IOException {
-    return training.stream();
-  }
-  
-  /**
-   * Halt.
-   */
-  public static void halt() {
-    training.stop();
+    return Caltech101.training.stream();
   }
   
   

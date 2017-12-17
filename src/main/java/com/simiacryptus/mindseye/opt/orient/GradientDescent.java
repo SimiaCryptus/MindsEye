@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
@@ -31,13 +32,15 @@ import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 public class GradientDescent implements OrientationStrategy<SimpleLineSearchCursor> {
   
   @Override
-  public SimpleLineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
-    DeltaSet direction = measurement.delta.scale(-1);
-    double magnitude = direction.getMagnitude();
+  public SimpleLineSearchCursor orient(final Trainable subject, final PointSample measurement, final TrainingMonitor monitor) {
+    final DeltaSet<NNLayer> direction = measurement.delta.scale(-1);
+    final double magnitude = direction.getMagnitude();
     if (Math.abs(magnitude) < 1e-10) {
       monitor.log(String.format("Zero gradient: %s", magnitude));
     }
-    else if (Math.abs(magnitude) < 1e-5) monitor.log(String.format("Low gradient: %s", magnitude));
+    else if (Math.abs(magnitude) < 1e-5) {
+      monitor.log(String.format("Low gradient: %s", magnitude));
+    }
     return new SimpleLineSearchCursor(subject, measurement, direction).setDirectionType("GD");
   }
   

@@ -29,16 +29,8 @@ import java.util.stream.IntStream;
 /**
  * The type Cross difference layer.
  */
+@SuppressWarnings("serial")
 public class CrossDifferenceLayer extends NNLayer {
-  
-  /**
-   * Instantiates a new Cross difference layer.
-   *
-   * @param id the id
-   */
-  protected CrossDifferenceLayer(JsonObject id) {
-    super(id);
-  }
   
   /**
    * Instantiates a new Cross difference layer.
@@ -47,12 +39,21 @@ public class CrossDifferenceLayer extends NNLayer {
   }
   
   /**
+   * Instantiates a new Cross difference layer.
+   *
+   * @param id the id
+   */
+  protected CrossDifferenceLayer(final JsonObject id) {
+    super(id);
+  }
+  
+  /**
    * From json cross difference layer.
    *
    * @param json the json
    * @return the cross difference layer
    */
-  public static CrossDifferenceLayer fromJson(JsonObject json) {
+  public static CrossDifferenceLayer fromJson(final JsonObject json) {
     return new CrossDifferenceLayer(json);
   }
   
@@ -64,44 +65,40 @@ public class CrossDifferenceLayer extends NNLayer {
    * @param max the max
    * @return the int
    */
-  public static int index(int x, int y, int max) {
-    return (max * (max - 1) / 2) - (max - x) * ((max - x) - 1) / 2 + y - x - 1;
-  }
-  
-  public JsonObject getJson() {
-    return super.getJsonStub();
+  public static int index(final int x, final int y, final int max) {
+    return max * (max - 1) / 2 - (max - x) * (max - x - 1) / 2 + y - x - 1;
   }
   
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    assert (1 == inObj.length);
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    assert 1 == inObj.length;
     return new NNResult(inObj[0].getData().stream().parallel().map(tensor -> {
-      int inputDim = tensor.dim();
-      int outputDim = (inputDim * inputDim - inputDim) / 2;
-      Tensor result = new Tensor(outputDim);
-      double[] inputData = tensor.getData();
-      double[] resultData = result.getData();
+      final int inputDim = tensor.dim();
+      final int outputDim = (inputDim * inputDim - inputDim) / 2;
+      final Tensor result = new Tensor(outputDim);
+      final double[] inputData = tensor.getData();
+      final double[] resultData = result.getData();
       IntStream.range(0, inputDim).forEach(x -> {
         IntStream.range(x + 1, inputDim).forEach(y -> {
-          resultData[index(x, y, inputDim)] = inputData[x] - inputData[y];
+          resultData[CrossDifferenceLayer.index(x, y, inputDim)] = inputData[x] - inputData[y];
         });
       });
       return result;
     }).toArray(i -> new Tensor[i])) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         final NNResult input = inObj[0];
         if (input.isAlive()) {
           input.accumulate(buffer, new TensorArray(data.stream().parallel().map(tensor -> {
-            int outputDim = tensor.dim();
-            int inputDim = (1 + (int) Math.sqrt(1 + 8 * outputDim)) / 2;
-            Tensor passback = new Tensor(inputDim);
-            double[] passbackData = passback.getData();
-            double[] tensorData = tensor.getData();
+            final int outputDim = tensor.dim();
+            final int inputDim = (1 + (int) Math.sqrt(1 + 8 * outputDim)) / 2;
+            final Tensor passback = new Tensor(inputDim);
+            final double[] passbackData = passback.getData();
+            final double[] tensorData = tensor.getData();
             IntStream.range(0, inputDim).forEach(x -> {
               IntStream.range(x + 1, inputDim).forEach(y -> {
-                passbackData[x] += tensorData[index(x, y, inputDim)];
-                passbackData[y] += -tensorData[index(x, y, inputDim)];
+                passbackData[x] += tensorData[CrossDifferenceLayer.index(x, y, inputDim)];
+                passbackData[y] += -tensorData[CrossDifferenceLayer.index(x, y, inputDim)];
               });
             });
             return passback;
@@ -119,6 +116,11 @@ public class CrossDifferenceLayer extends NNLayer {
       }
       
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

@@ -28,6 +28,7 @@ import java.util.List;
 /**
  * The type Const nn layer.
  */
+@SuppressWarnings("serial")
 public class ConstNNLayer extends NNLayer {
   
   private Tensor data;
@@ -37,9 +38,9 @@ public class ConstNNLayer extends NNLayer {
    *
    * @param json the json
    */
-  protected ConstNNLayer(JsonObject json) {
+  protected ConstNNLayer(final JsonObject json) {
     super(json);
-    this.data = Tensor.fromJson(json.get("value"));
+    data = Tensor.fromJson(json.get("value"));
   }
   
   /**
@@ -47,7 +48,7 @@ public class ConstNNLayer extends NNLayer {
    *
    * @param data the data
    */
-  public ConstNNLayer(Tensor data) {
+  public ConstNNLayer(final Tensor data) {
     super();
     this.data = data;
     setFrozen(true);
@@ -59,22 +60,15 @@ public class ConstNNLayer extends NNLayer {
    * @param json the json
    * @return the const nn layer
    */
-  public static ConstNNLayer fromJson(JsonObject json) {
+  public static ConstNNLayer fromJson(final JsonObject json) {
     return new ConstNNLayer(json);
   }
   
   @Override
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("value", data.toJson());
-    return json;
-  }
-  
-  @Override
-  public NNResult eval(NNExecutionContext nncontext, NNResult... array) {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... array) {
     return new NNResult(data) {
       @Override
-      public void accumulate(DeltaSet<NNLayer> buffer, TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (!isFrozen()) {
           data.stream().forEach(datum -> {
             buffer.get(ConstNNLayer.this, ConstNNLayer.this.data.getData()).addInPlace(datum.getData());
@@ -87,12 +81,6 @@ public class ConstNNLayer extends NNLayer {
         return !ConstNNLayer.this.isFrozen();
       }
     };
-  }
-  
-  
-  @Override
-  public List<double[]> state() {
-    return Arrays.asList(data.getData());
   }
   
   /**
@@ -109,7 +97,19 @@ public class ConstNNLayer extends NNLayer {
    *
    * @param data the data
    */
-  public void setData(Tensor data) {
+  public void setData(final Tensor data) {
     this.data = data;
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    json.add("value", data.toJson());
+    return json;
+  }
+  
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList(data.getData());
   }
 }

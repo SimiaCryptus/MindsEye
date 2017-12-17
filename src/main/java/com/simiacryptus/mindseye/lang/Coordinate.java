@@ -75,20 +75,7 @@ public final class Coordinate {
       return false;
     }
     final Coordinate other = (Coordinate) obj;
-    return Arrays.equals(this.coords, other.coords);
-  }
-  
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + Arrays.hashCode(this.coords);
-    return result;
-  }
-  
-  @Override
-  public String toString() {
-    return Arrays.toString(this.coords) + "<" + this.index + ">";
+    return Arrays.equals(coords, other.coords);
   }
   
   /**
@@ -106,7 +93,7 @@ public final class Coordinate {
    * @param coords the coords
    * @return the coords
    */
-  Coordinate setCoords(int[] coords) {
+  Coordinate setCoords(final int[] coords) {
     this.coords = coords;
     return this;
   }
@@ -126,8 +113,21 @@ public final class Coordinate {
    * @param index the index
    * @return the index
    */
-  Coordinate setIndex(int index) {
+  Coordinate setIndex(final int index) {
     this.index = index;
     return this;
+  }
+  
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + Arrays.hashCode(coords);
+    return result;
+  }
+  
+  @Override
+  public String toString() {
+    return Arrays.toString(coords) + "<" + index + ">";
   }
 }

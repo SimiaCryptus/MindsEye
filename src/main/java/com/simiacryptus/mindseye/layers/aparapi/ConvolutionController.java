@@ -54,11 +54,11 @@ public final class ConvolutionController {
    * @param kernelSize the kernel size
    * @param simple     the simple
    */
-  public ConvolutionController(final int[] inputSize, final int[] kernelSize, boolean simple) {
+  public ConvolutionController(final int[] inputSize, final int[] kernelSize, final boolean simple) {
     this.inputSize = inputSize;
     this.kernelSize = kernelSize;
     this.simple = simple;
-    this.outputSize = IntStream.range(0, kernelSize.length).map(i -> {
+    outputSize = IntStream.range(0, kernelSize.length).map(i -> {
       int x;
       if (i == kernelSize.length - 1) {
         x = kernelSize[i] / inputSize[i];
@@ -72,18 +72,9 @@ public final class ConvolutionController {
       assert 0 < x;
       return x;
     }).toArray();
-    assert this.outputSize.length == 3;
+    assert outputSize.length == 3;
     assert this.kernelSize.length == 3;
     assert this.inputSize.length == 3;
-  }
-  
-  /**
-   * Get output dims int [ ].
-   *
-   * @return the int [ ]
-   */
-  public int[] getOutputDims() {
-    return outputSize;
   }
   
   /**
@@ -94,33 +85,33 @@ public final class ConvolutionController {
    * @param output  the output
    */
   public void backprop(final double[][] input, final double[] weights, final double[][] output) {
-    int length = input.length;
-    assert (length == output.length);
-    int inLength = input[0].length;
-    int outLength = output[0].length;
-    int inputsPerRun = Math.min(Math.floorDiv(MAX_BUFFER_SIZE, inLength), length);
-    int runs = length / inputsPerRun;
-    int leftover = length - runs * inputsPerRun;
+    final int length = input.length;
+    assert length == output.length;
+    final int inLength = input[0].length;
+    final int outLength = output[0].length;
+    final int inputsPerRun = Math.min(Math.floorDiv(ConvolutionController.MAX_BUFFER_SIZE, inLength), length);
+    final int runs = length / inputsPerRun;
+    final int leftover = length - runs * inputsPerRun;
     OpenCL.devicePool.with(device -> {
       try {
-        synchronized (backpropTask) {
-          assert (0 < weights.length);
-          assert this.kernelSize[0] * this.kernelSize[1] * this.kernelSize[2] == weights.length;
-          backpropTask.setExplicit(true);
-          backpropTask.weights = weights;
-          backpropTask.put(backpropTask.weights);
-          backpropTask.kernelSize = this.kernelSize;
-          backpropTask.put(backpropTask.kernelSize);
-          backpropTask.kernelOffset = new int[]{
-            simple ? ((this.kernelSize[1] - 1) / 2) : 0,
-            simple ? ((this.kernelSize[0] - 1) / 2) : 0
+        synchronized (ConvolutionController.backpropTask) {
+          assert 0 < weights.length;
+          assert kernelSize[0] * kernelSize[1] * kernelSize[2] == weights.length;
+          ConvolutionController.backpropTask.setExplicit(true);
+          ConvolutionController.backpropTask.weights = weights;
+          ConvolutionController.backpropTask.put(ConvolutionController.backpropTask.weights);
+          ConvolutionController.backpropTask.kernelSize = kernelSize;
+          ConvolutionController.backpropTask.put(ConvolutionController.backpropTask.kernelSize);
+          ConvolutionController.backpropTask.kernelOffset = new int[]{
+            simple ? (kernelSize[1] - 1) / 2 : 0,
+            simple ? (kernelSize[0] - 1) / 2 : 0
           };
-          backpropTask.put(convolveTask.kernelOffset);
+          ConvolutionController.backpropTask.put(ConvolutionController.convolveTask.kernelOffset);
           double[] inputBuffer = null;
           double[] outputBuffer = null;
           for (int run = 0; run < runs; run++) {
-            int currentIndexOffset = run * inputsPerRun;
-            int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
+            final int currentIndexOffset = run * inputsPerRun;
+            final int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
             if (null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
               RecycleBin.DOUBLES.recycle(inputBuffer);
               inputBuffer = RecycleBin.DOUBLES.obtain(inLength * currentNumItems);
@@ -133,21 +124,21 @@ public final class ConvolutionController {
               assert outLength == output[currentIndexOffset + i].length;
               System.arraycopy(output[currentIndexOffset + i], 0, outputBuffer, i * outLength, outLength);
             }
-            assert (0 < inputBuffer.length);
-            assert (0 < outputBuffer.length);
-            backpropTask.input = inputBuffer;
-            backpropTask.output = outputBuffer;
-            backpropTask.outputSize = this.outputSize;
-            backpropTask.inputSize = this.inputSize;
-            backpropTask.put(backpropTask.outputSize);
-            backpropTask.put(backpropTask.inputSize);
-            backpropTask.put(backpropTask.output);
-            backpropTask.exe(device);
-            backpropTask.get(backpropTask.input);
-            backpropTask.input = null;
-            backpropTask.output = null;
-            backpropTask.outputSize = null;
-            backpropTask.inputSize = null;
+            assert 0 < inputBuffer.length;
+            assert 0 < outputBuffer.length;
+            ConvolutionController.backpropTask.input = inputBuffer;
+            ConvolutionController.backpropTask.output = outputBuffer;
+            ConvolutionController.backpropTask.outputSize = outputSize;
+            ConvolutionController.backpropTask.inputSize = inputSize;
+            ConvolutionController.backpropTask.put(ConvolutionController.backpropTask.outputSize);
+            ConvolutionController.backpropTask.put(ConvolutionController.backpropTask.inputSize);
+            ConvolutionController.backpropTask.put(ConvolutionController.backpropTask.output);
+            ConvolutionController.backpropTask.exe(device);
+            ConvolutionController.backpropTask.get(ConvolutionController.backpropTask.input);
+            ConvolutionController.backpropTask.input = null;
+            ConvolutionController.backpropTask.output = null;
+            ConvolutionController.backpropTask.outputSize = null;
+            ConvolutionController.backpropTask.inputSize = null;
             for (int i = 0; i < currentNumItems; i++) {
               assert inLength == input[currentIndexOffset + i].length;
               System.arraycopy(inputBuffer, i * inLength, input[currentIndexOffset + i], 0, inLength);
@@ -155,10 +146,10 @@ public final class ConvolutionController {
           }
           RecycleBin.DOUBLES.recycle(inputBuffer);
           RecycleBin.DOUBLES.recycle(outputBuffer);
-          backpropTask.kernelSize = null;
-          backpropTask.weights = null;
+          ConvolutionController.backpropTask.kernelSize = null;
+          ConvolutionController.backpropTask.weights = null;
         }
-      } catch (Throwable e) {
+      } catch (final Throwable e) {
         throw new ComponentException("Error with " + this, e);
       }
     });
@@ -173,35 +164,37 @@ public final class ConvolutionController {
    * @param output  the output
    */
   public void convolve(final double[][] input, final double[] weights, final double[][] output) {
-    int length = input.length;
-    assert (length == output.length);
-    int inLength = input[0].length;
-    int outLength = output[0].length;
-    int inputsPerRun = Math.min(Math.floorDiv(MAX_BUFFER_SIZE, inLength), length);
-    assert (0 < inputsPerRun) : "Requested buffer is over max of " + MAX_BUFFER_SIZE;
-    int runs = length / inputsPerRun;
-    int leftover = length - runs * inputsPerRun;
+    final int length = input.length;
+    assert length == output.length;
+    final int inLength = input[0].length;
+    final int outLength = output[0].length;
+    final int inputsPerRun = Math.min(Math.floorDiv(ConvolutionController.MAX_BUFFER_SIZE, inLength), length);
+    assert 0 < inputsPerRun : "Requested buffer is over max of " + ConvolutionController.MAX_BUFFER_SIZE;
+    final int runs = length / inputsPerRun;
+    final int leftover = length - runs * inputsPerRun;
     OpenCL.devicePool.with(device -> {
       try {
-        synchronized (convolveTask) {
-          assert (null != weights);
-          assert (0 < weights.length);
-          convolveTask.setExplicit(true);
-          convolveTask.weights = weights;
-          convolveTask.put(convolveTask.weights);
-          convolveTask.kernelSize = this.kernelSize;
-          convolveTask.kernelOffset = new int[]{
-            simple ? ((this.kernelSize[1] - 1) / 2) : 0,
-            simple ? ((this.kernelSize[0] - 1) / 2) : 0
+        synchronized (ConvolutionController.convolveTask) {
+          assert null != weights;
+          assert 0 < weights.length;
+          ConvolutionController.convolveTask.setExplicit(true);
+          ConvolutionController.convolveTask.weights = weights;
+          ConvolutionController.convolveTask.put(ConvolutionController.convolveTask.weights);
+          ConvolutionController.convolveTask.kernelSize = kernelSize;
+          ConvolutionController.convolveTask.kernelOffset = new int[]{
+            simple ? (kernelSize[1] - 1) / 2 : 0,
+            simple ? (kernelSize[0] - 1) / 2 : 0
           };
-          convolveTask.put(convolveTask.kernelOffset);
-          convolveTask.put(convolveTask.kernelSize);
+          ConvolutionController.convolveTask.put(ConvolutionController.convolveTask.kernelOffset);
+          ConvolutionController.convolveTask.put(ConvolutionController.convolveTask.kernelSize);
           double[] inputBuffer = null;
           double[] outputBuffer = null;
           for (int run = 0; run <= runs; run++) {
-            int currentIndexOffset = run * inputsPerRun;
-            int currentNumItems = run < runs ? inputsPerRun : leftover;
-            if (0 == currentNumItems) continue;
+            final int currentIndexOffset = run * inputsPerRun;
+            final int currentNumItems = run < runs ? inputsPerRun : leftover;
+            if (0 == currentNumItems) {
+              continue;
+            }
             if (null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
               RecycleBin.DOUBLES.recycle(inputBuffer);
               inputBuffer = RecycleBin.DOUBLES.obtain(inLength * currentNumItems);
@@ -214,21 +207,21 @@ public final class ConvolutionController {
               assert inLength == input[currentIndexOffset + i].length;
               System.arraycopy(input[currentIndexOffset + i], 0, inputBuffer, i * inLength, inLength);
             }
-            assert (0 < inputBuffer.length);
-            assert (0 < outputBuffer.length);
-            convolveTask.input = inputBuffer;
-            convolveTask.output = outputBuffer;
-            convolveTask.outputSize = this.outputSize;
-            convolveTask.inputSize = this.inputSize;
-            convolveTask.put(convolveTask.outputSize);
-            convolveTask.put(convolveTask.inputSize);
-            convolveTask.put(convolveTask.input);
-            convolveTask.exe(device);
-            convolveTask.get(convolveTask.output);
-            convolveTask.input = null;
-            convolveTask.output = null;
-            convolveTask.outputSize = null;
-            convolveTask.inputSize = null;
+            assert 0 < inputBuffer.length;
+            assert 0 < outputBuffer.length;
+            ConvolutionController.convolveTask.input = inputBuffer;
+            ConvolutionController.convolveTask.output = outputBuffer;
+            ConvolutionController.convolveTask.outputSize = outputSize;
+            ConvolutionController.convolveTask.inputSize = inputSize;
+            ConvolutionController.convolveTask.put(ConvolutionController.convolveTask.outputSize);
+            ConvolutionController.convolveTask.put(ConvolutionController.convolveTask.inputSize);
+            ConvolutionController.convolveTask.put(ConvolutionController.convolveTask.input);
+            ConvolutionController.convolveTask.exe(device);
+            ConvolutionController.convolveTask.get(ConvolutionController.convolveTask.output);
+            ConvolutionController.convolveTask.input = null;
+            ConvolutionController.convolveTask.output = null;
+            ConvolutionController.convolveTask.outputSize = null;
+            ConvolutionController.convolveTask.inputSize = null;
             for (int i = 0; i < currentNumItems; i++) {
               assert outLength == output[currentIndexOffset + i].length;
               System.arraycopy(outputBuffer, i * outLength, output[currentIndexOffset + i], 0, outLength);
@@ -236,10 +229,60 @@ public final class ConvolutionController {
           }
           RecycleBin.DOUBLES.recycle(inputBuffer);
           RecycleBin.DOUBLES.recycle(outputBuffer);
-          convolveTask.kernelSize = null;
-          convolveTask.weights = null;
+          ConvolutionController.convolveTask.kernelSize = null;
+          ConvolutionController.convolveTask.weights = null;
         }
-      } catch (Throwable e) {
+      } catch (final Throwable e) {
+        throw new ComponentException("Error with " + this, e);
+      }
+    });
+  }
+  
+  /**
+   * Get output dims int [ ].
+   *
+   * @return the int [ ]
+   */
+  public int[] getOutputDims() {
+    return outputSize;
+  }
+  
+  private void gradient(final double[] input, final double[] weights, final int weightSize, final double[] output) {
+    assert 0 < input.length;
+    assert 0 < weights.length;
+    assert 0 < output.length;
+    OpenCL.devicePool.with(device -> {
+      try {
+        synchronized (ConvolutionController.kernelTask) {
+          ConvolutionController.kernelTask.input = input;
+          ConvolutionController.kernelTask.weights = weights;
+          ConvolutionController.kernelTask.output = output;
+          ConvolutionController.kernelTask.outputSize = outputSize;
+          ConvolutionController.kernelTask.inputSize = inputSize;
+          ConvolutionController.kernelTask.kernelSize = kernelSize;
+          ConvolutionController.kernelTask.weightSize = weightSize;
+          ConvolutionController.kernelTask.paralellism = weights.length / weightSize;
+          ConvolutionController.kernelTask.kernelOffset = new int[]{
+            simple ? (kernelSize[1] - 1) / 2 : 0,
+            simple ? (kernelSize[0] - 1) / 2 : 0
+          };
+          ConvolutionController.kernelTask.setExplicit(true);
+          ConvolutionController.kernelTask.put(ConvolutionController.convolveTask.kernelOffset);
+          ConvolutionController.kernelTask.put(ConvolutionController.kernelTask.outputSize);
+          ConvolutionController.kernelTask.put(ConvolutionController.kernelTask.inputSize);
+          ConvolutionController.kernelTask.put(ConvolutionController.kernelTask.kernelSize);
+          ConvolutionController.kernelTask.put(ConvolutionController.kernelTask.input);
+          ConvolutionController.kernelTask.put(ConvolutionController.kernelTask.output);
+          ConvolutionController.kernelTask.exe(device);
+          ConvolutionController.kernelTask.get(ConvolutionController.kernelTask.weights);
+          ConvolutionController.kernelTask.input = null;
+          ConvolutionController.kernelTask.weights = null;
+          ConvolutionController.kernelTask.output = null;
+          ConvolutionController.kernelTask.outputSize = null;
+          ConvolutionController.kernelTask.inputSize = null;
+          ConvolutionController.kernelTask.kernelSize = null;
+        }
+      } catch (final Throwable e) {
         throw new ComponentException("Error with " + this, e);
       }
     });
@@ -253,18 +296,18 @@ public final class ConvolutionController {
    * @param output  the output
    */
   public void gradient(final double[][] input, final double[] weights, final double[][] output) {
-    int length = input.length;
-    assert (length == output.length);
-    int inLength = input[0].length;
-    int outLength = output[0].length;
-    int inputsPerRun = Math.min(Math.floorDiv(MAX_BUFFER_SIZE, Math.max(inLength, outLength)), length);
-    int runs = length / inputsPerRun;
-    int leftover = length - runs * inputsPerRun;
+    final int length = input.length;
+    assert length == output.length;
+    final int inLength = input[0].length;
+    final int outLength = output[0].length;
+    final int inputsPerRun = Math.min(Math.floorDiv(ConvolutionController.MAX_BUFFER_SIZE, Math.max(inLength, outLength)), length);
+    final int runs = length / inputsPerRun;
+    final int leftover = length - runs * inputsPerRun;
     double[] inputBuffer = null;
     double[] outputBuffer = null;
     for (int run = 0; run < runs; run++) {
-      int currentIndexOffset = run * inputsPerRun;
-      int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
+      final int currentIndexOffset = run * inputsPerRun;
+      final int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
       if (null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
         RecycleBin.DOUBLES.recycle(inputBuffer);
         inputBuffer = RecycleBin.DOUBLES.obtain(inLength * currentNumItems);
@@ -279,8 +322,8 @@ public final class ConvolutionController {
         System.arraycopy(input[currentIndexOffset + i], 0, inputBuffer, i * inLength, inLength);
         System.arraycopy(output[currentIndexOffset + i], 0, outputBuffer, i * outLength, outLength);
       }
-      int parallelism = Math.min(16, inLength);
-      double[] buffer = RecycleBin.DOUBLES.obtain(weights.length * parallelism);
+      final int parallelism = Math.min(16, inLength);
+      final double[] buffer = RecycleBin.DOUBLES.obtain(weights.length * parallelism);
       gradient(inputBuffer, buffer, weights.length, outputBuffer);
       IntStream.range(0, weights.length).forEach(weightIndex -> {
         for (int i = weightIndex; i < buffer.length; i += weights.length) {
@@ -293,56 +336,15 @@ public final class ConvolutionController {
     RecycleBin.DOUBLES.recycle(outputBuffer);
   }
   
-  private void gradient(final double[] input, final double[] weights, int weightSize, final double[] output) {
-    assert (0 < input.length);
-    assert (0 < weights.length);
-    assert (0 < output.length);
-    OpenCL.devicePool.with(device -> {
-      try {
-        synchronized (kernelTask) {
-          kernelTask.input = input;
-          kernelTask.weights = weights;
-          kernelTask.output = output;
-          kernelTask.outputSize = this.outputSize;
-          kernelTask.inputSize = this.inputSize;
-          kernelTask.kernelSize = this.kernelSize;
-          kernelTask.weightSize = weightSize;
-          kernelTask.paralellism = weights.length / weightSize;
-          kernelTask.kernelOffset = new int[]{
-            simple ? ((this.kernelSize[1] - 1) / 2) : 0,
-            simple ? ((this.kernelSize[0] - 1) / 2) : 0
-          };
-          kernelTask.setExplicit(true);
-          kernelTask.put(convolveTask.kernelOffset);
-          kernelTask.put(kernelTask.outputSize);
-          kernelTask.put(kernelTask.inputSize);
-          kernelTask.put(kernelTask.kernelSize);
-          kernelTask.put(kernelTask.input);
-          kernelTask.put(kernelTask.output);
-          kernelTask.exe(device);
-          kernelTask.get(kernelTask.weights);
-          kernelTask.input = null;
-          kernelTask.weights = null;
-          kernelTask.output = null;
-          kernelTask.outputSize = null;
-          kernelTask.inputSize = null;
-          kernelTask.kernelSize = null;
-        }
-      } catch (Throwable e) {
-        throw new ComponentException("Error with " + this, e);
-      }
-    });
-  }
-  
   @Override
   public String toString() {
     final StringBuilder builder = new StringBuilder();
     builder.append("Convolve [");
-    builder.append(Arrays.toString(this.inputSize));
+    builder.append(Arrays.toString(inputSize));
     builder.append(" x ");
-    builder.append(Arrays.toString(this.kernelSize));
+    builder.append(Arrays.toString(kernelSize));
     builder.append(" => ");
-    builder.append(Arrays.toString(this.outputSize));
+    builder.append(Arrays.toString(outputSize));
     builder.append("]");
     return builder.toString();
   }

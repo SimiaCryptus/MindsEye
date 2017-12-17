@@ -41,17 +41,17 @@ public class BiasMetaLayer extends NNLayer {
   
   /**
    * Instantiates a new Bias meta layer.
-   *
-   * @param id the id
    */
-  protected BiasMetaLayer(JsonObject id) {
-    super(id);
+  public BiasMetaLayer() {
   }
   
   /**
    * Instantiates a new Bias meta layer.
+   *
+   * @param id the id
    */
-  public BiasMetaLayer() {
+  protected BiasMetaLayer(final JsonObject id) {
+    super(id);
   }
   
   /**
@@ -60,24 +60,20 @@ public class BiasMetaLayer extends NNLayer {
    * @param json the json
    * @return the bias meta layer
    */
-  public static BiasMetaLayer fromJson(JsonObject json) {
+  public static BiasMetaLayer fromJson(final JsonObject json) {
     return new BiasMetaLayer(json);
   }
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    int itemCnt = inObj[0].getData().length();
-    Tensor[] tensors = IntStream.range(0, itemCnt)
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final int itemCnt = inObj[0].getData().length();
+    final Tensor[] tensors = IntStream.range(0, itemCnt)
       .parallel()
       .mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).mapIndex((v, c) -> v + inObj[1].getData().get(0).get(c)))
       .toArray(i -> new Tensor[i]);
     return new NNResult(tensors) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (inObj[0].isAlive()) {
           inObj[0].accumulate(buffer, new TensorArray(data.stream().map(t -> t.mapParallel(v -> v)).toArray(i -> new Tensor[i])));
         }
@@ -85,7 +81,7 @@ public class BiasMetaLayer extends NNLayer {
           final ToDoubleFunction<Coordinate> f = (c) -> {
             return IntStream.range(0, itemCnt).mapToDouble(i -> data.get(i).get(c)).sum();
           };
-          Tensor passback = tensors[0].mapCoords(f);
+          final Tensor passback = tensors[0].mapCoords(f);
           inObj[1].accumulate(buffer, new TensorArray(passback));
         }
       }
@@ -96,6 +92,11 @@ public class BiasMetaLayer extends NNLayer {
       }
       
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

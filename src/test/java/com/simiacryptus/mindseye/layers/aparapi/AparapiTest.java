@@ -89,7 +89,7 @@ public class AparapiTest {
       System.out.println("}");
       platformc++;
     }
-    
+
     final Device bestDevice = Device.best();
     if (bestDevice == null) {
       System.out.println("OpenCLDevice.best() returned null!");
@@ -104,7 +104,7 @@ public class AparapiTest {
       System.out.println("   MaxWorkItemDimensions : " + bestDevice.getMaxWorkItemDimensions());
       System.out.println("}");
     }
-    
+
     final Device firstCPU = Device.firstCPU();
     if (firstCPU == null) {
       System.out.println("OpenCLDevice.firstCPU() returned null!");
@@ -119,7 +119,7 @@ public class AparapiTest {
       System.out.println("   MaxWorkItemDimensions : " + firstCPU.getMaxWorkItemDimensions());
       System.out.println("}");
     }
-    
+
     final Device firstGPU = Device.firstGPU();
     if (firstGPU == null) {
       System.out.println("OpenCLDevice.firstGPU() returned null!");
@@ -134,7 +134,7 @@ public class AparapiTest {
       System.out.println("   MaxWorkItemDimensions : " + firstGPU.getMaxWorkItemDimensions());
       System.out.println("}");
     }
-    
+
     final Device bestGPU = Device.bestGPU();
     if (bestGPU == null) {
       System.out.println("OpenCLDevice.bestGPU() returned null!");
@@ -149,7 +149,7 @@ public class AparapiTest {
       System.out.println("   MaxWorkItemDimensions : " + bestGPU.getMaxWorkItemDimensions());
       System.out.println("}");
     }
-    
+  
     final Device firstACC = Device.bestACC();
     if (firstACC == null) {
       System.out.println("OpenCLDevice.firstACC() returned null!");
@@ -164,7 +164,7 @@ public class AparapiTest {
       System.out.println("   MaxWorkItemDimensions : " + firstACC.getMaxWorkItemDimensions());
       System.out.println("}");
     }
-    
+  
     final Device bestACC = Device.bestACC();
     if (bestACC == null) {
       System.out.println("OpenCLDevice.bestACC() returned null!");
@@ -179,7 +179,7 @@ public class AparapiTest {
       System.out.println("   MaxWorkItemDimensions : " + bestACC.getMaxWorkItemDimensions());
       System.out.println("}");
     }
-    
+  
   }
   
   /**
@@ -188,7 +188,7 @@ public class AparapiTest {
   @Test
   @Ignore
   public void test1() {
-    
+  
     final OpenCLDevice openclDevice = (OpenCLDevice) Device.best();
     // final Convolution convolution = openclDevice.bind(Convolution.class);
     final AparapiTest.TestKernel testKernel = new AparapiTest.TestKernel();
@@ -211,20 +211,20 @@ public class AparapiTest {
    */
   @Test
   public void test2() throws Exception {
-    float inA[] = new float[1024];
-    float inB[] = new float[1024];
-    assert (inA.length == inB.length);
-    float[] result = new float[inA.length];
-    
-    Kernel kernel = new Kernel() {
+    final float inA[] = new float[1024];
+    final float inB[] = new float[1024];
+    assert inA.length == inB.length;
+    final float[] result = new float[inA.length];
+  
+    final Kernel kernel = new Kernel() {
       @Override
       public void run() {
-        int i = getGlobalId();
+        final int i = getGlobalId();
         result[i] = inA[i] + inB[i];
       }
     };
-    
-    Range range = Range.create(result.length);
+  
+    final Range range = Range.create(result.length);
     kernel.execute(range);
   }
   
@@ -271,15 +271,15 @@ public class AparapiTest {
      * The Results.
      */
     public final int[] results = new int[10240];
-    
+  
     @Override
     public void run() {
       final int i = getGlobalId();
       if (i > 1) {
-        this.results[i] += (1 + this.results[i - 1] + this.results[i + 1]) * this.input[i];
+        results[i] += (1 + results[i - 1] + results[i + 1]) * input[i];
       }
     }
-    
+  
   }
   
   

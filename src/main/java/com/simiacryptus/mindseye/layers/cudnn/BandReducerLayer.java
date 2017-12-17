@@ -32,21 +32,11 @@ import java.util.List;
 /**
  * The type Pooling layer.
  */
+@SuppressWarnings("serial")
 public class BandReducerLayer extends NNLayer implements LayerPrecision<BandReducerLayer> {
   
   private PoolingLayer.PoolingMode mode = PoolingLayer.PoolingMode.Max;
   private Precision precision = Precision.Double;
-  
-  /**
-   * Instantiates a new Pooling layer.
-   *
-   * @param json the json
-   */
-  protected BandReducerLayer(JsonObject json) {
-    super(json);
-    mode = Arrays.stream(PoolingLayer.PoolingMode.values()).filter(i -> i.id == json.get("mode").getAsInt()).findFirst().get();
-    precision = Precision.valueOf(json.get("precision").getAsString());
-  }
   
   /**
    * Instantiates a new Pooling layer.
@@ -56,35 +46,42 @@ public class BandReducerLayer extends NNLayer implements LayerPrecision<BandRedu
   }
   
   /**
+   * Instantiates a new Pooling layer.
+   *
+   * @param json the json
+   */
+  protected BandReducerLayer(final JsonObject json) {
+    super(json);
+    mode = Arrays.stream(PoolingLayer.PoolingMode.values()).filter(i -> i.id == json.get("mode").getAsInt()).findFirst().get();
+    precision = Precision.valueOf(json.get("precision").getAsString());
+  }
+  
+  /**
    * From json pooling layer.
    *
    * @param json the json
    * @return the pooling layer
    */
-  public static BandReducerLayer fromJson(JsonObject json) {
+  public static BandReducerLayer fromJson(final JsonObject json) {
     return new BandReducerLayer(json);
   }
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("mode", mode.id);
-    json.addProperty("precision",precision.name());
-    return json;
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputSize = batch.getDimensions();
     return new PoolingLayer().setMode(mode).setPrecision(precision).setWindowX(inputSize[0]).setWindowY(inputSize[1]).eval(nncontext, inObj);
   }
   
-  
   @Override
-  public List<double[]> state() {
-    return Arrays.asList();
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    json.addProperty("mode", mode.id);
+    json.addProperty("precision", precision.name());
+    return json;
   }
+  
   
   /**
    * Gets mode.
@@ -101,18 +98,25 @@ public class BandReducerLayer extends NNLayer implements LayerPrecision<BandRedu
    * @param mode the mode
    * @return the mode
    */
-  public BandReducerLayer setMode(PoolingMode mode) {
+  public BandReducerLayer setMode(final PoolingMode mode) {
     this.mode = mode;
     return this;
   }
   
+  @Override
   public Precision getPrecision() {
     return precision;
   }
   
-  public BandReducerLayer setPrecision(Precision precision) {
+  @Override
+  public BandReducerLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
+  }
+  
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList();
   }
   
 }

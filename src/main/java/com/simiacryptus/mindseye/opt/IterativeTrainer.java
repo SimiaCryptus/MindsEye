@@ -46,26 +46,86 @@ import java.util.function.Function;
  */
 public class IterativeTrainer {
   
-  private final Trainable subject;
   private final Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
-  private Duration timeout;
-  private double terminateThreshold;
-  private OrientationStrategy orientation = new LBFGS();
-  private Function<String, LineSearchStrategy> lineSearchFactory = (s) -> new ArmijoWolfeSearch();
-  private TrainingMonitor monitor = new TrainingMonitor();
-  private int maxIterations = Integer.MAX_VALUE;
+  private final Trainable subject;
   private AtomicInteger currentIteration = new AtomicInteger(0);
   private int iterationsPerSample = 1;
+  private Function<String, LineSearchStrategy> lineSearchFactory = (s) -> new ArmijoWolfeSearch();
+  private int maxIterations = Integer.MAX_VALUE;
+  private TrainingMonitor monitor = new TrainingMonitor();
+  private OrientationStrategy<?> orientation = new LBFGS();
+  private double terminateThreshold;
+  private Duration timeout;
   
   /**
    * Instantiates a new Iterative trainer.
    *
    * @param subject the subject
    */
-  public IterativeTrainer(Trainable subject) {
+  public IterativeTrainer(final Trainable subject) {
     this.subject = subject;
     timeout = Duration.of(5, ChronoUnit.MINUTES);
     terminateThreshold = Double.NEGATIVE_INFINITY;
+  }
+  
+  /**
+   * Gets current iteration.
+   *
+   * @return the current iteration
+   */
+  public AtomicInteger getCurrentIteration() {
+    return currentIteration;
+  }
+  
+  /**
+   * Sets current iteration.
+   *
+   * @param currentIteration the current iteration
+   * @return the current iteration
+   */
+  public IterativeTrainer setCurrentIteration(final AtomicInteger currentIteration) {
+    this.currentIteration = currentIteration;
+    return this;
+  }
+  
+  /**
+   * Gets iterations per sample.
+   *
+   * @return the iterations per sample
+   */
+  public int getIterationsPerSample() {
+    return iterationsPerSample;
+  }
+  
+  /**
+   * Sets iterations per sample.
+   *
+   * @param iterationsPerSample the iterations per sample
+   * @return the iterations per sample
+   */
+  public IterativeTrainer setIterationsPerSample(final int iterationsPerSample) {
+    this.iterationsPerSample = iterationsPerSample;
+    return this;
+  }
+  
+  /**
+   * Gets line search factory.
+   *
+   * @return the line search factory
+   */
+  public Function<String, LineSearchStrategy> getLineSearchFactory() {
+    return lineSearchFactory;
+  }
+  
+  /**
+   * Sets line search factory.
+   *
+   * @param lineSearchFactory the line search factory
+   * @return the line search factory
+   */
+  public IterativeTrainer setLineSearchFactory(final Function<String, LineSearchStrategy> lineSearchFactory) {
+    this.lineSearchFactory = lineSearchFactory;
+    return this;
   }
   
   /**
@@ -83,9 +143,106 @@ public class IterativeTrainer {
    * @param maxIterations the max iterations
    * @return the max iterations
    */
-  public IterativeTrainer setMaxIterations(int maxIterations) {
+  public IterativeTrainer setMaxIterations(final int maxIterations) {
     this.maxIterations = maxIterations;
     return this;
+  }
+  
+  /**
+   * Gets monitor.
+   *
+   * @return the monitor
+   */
+  public TrainingMonitor getMonitor() {
+    return monitor;
+  }
+  
+  /**
+   * Sets monitor.
+   *
+   * @param monitor the monitor
+   * @return the monitor
+   */
+  public IterativeTrainer setMonitor(final TrainingMonitor monitor) {
+    this.monitor = monitor;
+    return this;
+  }
+  
+  /**
+   * Gets orientation.
+   *
+   * @return the orientation
+   */
+  public OrientationStrategy<?> getOrientation() {
+    return orientation;
+  }
+  
+  /**
+   * Sets orientation.
+   *
+   * @param orientation the orientation
+   * @return the orientation
+   */
+  public IterativeTrainer setOrientation(final OrientationStrategy<?> orientation) {
+    this.orientation = orientation;
+    return this;
+  }
+  
+  /**
+   * Gets terminate threshold.
+   *
+   * @return the terminate threshold
+   */
+  public double getTerminateThreshold() {
+    return terminateThreshold;
+  }
+  
+  /**
+   * Sets terminate threshold.
+   *
+   * @param terminateThreshold the terminate threshold
+   * @return the terminate threshold
+   */
+  public IterativeTrainer setTerminateThreshold(final double terminateThreshold) {
+    this.terminateThreshold = terminateThreshold;
+    return this;
+  }
+  
+  /**
+   * Gets timeout.
+   *
+   * @return the timeout
+   */
+  public Duration getTimeout() {
+    return timeout;
+  }
+  
+  /**
+   * Sets timeout.
+   *
+   * @param timeout the timeout
+   * @return the timeout
+   */
+  public IterativeTrainer setTimeout(final Duration timeout) {
+    this.timeout = timeout;
+    return this;
+  }
+  
+  /**
+   * Measure point sample.
+   *
+   * @return the point sample
+   */
+  public PointSample measure() {
+    PointSample currentPoint;
+    int retries = 0;
+    do {
+      if (!subject.reseed(System.nanoTime()) && retries > 0) throw new IterativeStopException();
+      if (10 < retries++) throw new IterativeStopException();
+      currentPoint = subject.measure(false, monitor);
+    } while (!Double.isFinite(currentPoint.getMean()));
+    assert Double.isFinite(currentPoint.getMean());
+    return currentPoint;
   }
   
   /**
@@ -94,27 +251,33 @@ public class IterativeTrainer {
    * @return the double
    */
   public double run() {
-    long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
+    final long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     long lastIterationTime = System.nanoTime();
     PointSample currentPoint = measure();
     mainLoop:
     while (timeoutMs > System.currentTimeMillis() && currentPoint.getMean() > terminateThreshold) {
-      if (currentIteration.get() > maxIterations) break;
+      if (currentIteration.get() > maxIterations) {
+        break;
+      }
       currentPoint = measure();
-      assert (0 < currentPoint.delta.getMap().size()) : "Nothing to optimize";
+      assert 0 < currentPoint.delta.getMap().size() : "Nothing to optimize";
       subiterationLoop:
       for (int subiteration = 0; subiteration < iterationsPerSample || iterationsPerSample <= 0; subiteration++) {
-        if (timeoutMs < System.currentTimeMillis()) break mainLoop;
-        if (currentIteration.incrementAndGet() > maxIterations) break mainLoop;
-        PointSample _currentPoint = currentPoint;
-        TimedResult<LineSearchCursor> timedOrientation = TimedResult.time(() -> orientation.orient(subject, _currentPoint, monitor));
-        LineSearchCursor direction = timedOrientation.result;
-        String directionType = direction.getDirectionType();
-        PointSample previous = currentPoint;
-        TimedResult<PointSample> timedLineSearch = TimedResult.time(() -> step(direction, directionType, previous));
+        if (timeoutMs < System.currentTimeMillis()) {
+          break mainLoop;
+        }
+        if (currentIteration.incrementAndGet() > maxIterations) {
+          break mainLoop;
+        }
+        final PointSample _currentPoint = currentPoint;
+        final TimedResult<LineSearchCursor> timedOrientation = TimedResult.time(() -> orientation.orient(subject, _currentPoint, monitor));
+        final LineSearchCursor direction = timedOrientation.result;
+        final String directionType = direction.getDirectionType();
+        final PointSample previous = currentPoint;
+        final TimedResult<PointSample> timedLineSearch = TimedResult.time(() -> step(direction, directionType, previous));
         currentPoint = timedLineSearch.result;
-        long now = System.nanoTime();
-        String perfString = String.format("Total: %.4f; Orientation: %.4f; Line Search: %.4f",
+        final long now = System.nanoTime();
+        final String perfString = String.format("Total: %.4f; Orientation: %.4f; Line Search: %.4f",
           now - lastIterationTime / 1e9, timedOrientation.timeNanos / 1e9, timedLineSearch.timeNanos / 1e9);
         lastIterationTime = now;
         if (previous.getMean() <= currentPoint.getMean()) {
@@ -142,6 +305,29 @@ public class IterativeTrainer {
   }
   
   /**
+   * Sets timeout.
+   *
+   * @param number the number
+   * @param units  the units
+   * @return the timeout
+   */
+  public IterativeTrainer setTimeout(final int number, final TemporalUnit units) {
+    timeout = Duration.of(number, units);
+    return this;
+  }
+  
+  /**
+   * Sets timeout.
+   *
+   * @param number the number
+   * @param units  the units
+   * @return the timeout
+   */
+  public IterativeTrainer setTimeout(final int number, final TimeUnit units) {
+    return setTimeout(number, Util.cvt(units));
+  }
+  
+  /**
    * Step point sample.
    *
    * @param direction     the direction
@@ -149,7 +335,7 @@ public class IterativeTrainer {
    * @param previous      the previous
    * @return the point sample
    */
-  public PointSample step(LineSearchCursor direction, String directionType, PointSample previous) {
+  public PointSample step(final LineSearchCursor direction, final String directionType, final PointSample previous) {
     PointSample currentPoint;
     LineSearchStrategy lineSearchStrategy;
     if (lineSearchStrategyMap.containsKey(directionType)) {
@@ -160,190 +346,10 @@ public class IterativeTrainer {
       lineSearchStrategy = lineSearchFactory.apply(direction.getDirectionType());
       lineSearchStrategyMap.put(directionType, lineSearchStrategy);
     }
-    FailsafeLineSearchCursor wrapped = new FailsafeLineSearchCursor(direction, previous, monitor);
+    final FailsafeLineSearchCursor wrapped = new FailsafeLineSearchCursor(direction, previous, monitor);
     lineSearchStrategy.step(wrapped, monitor);
     currentPoint = wrapped.getBest(monitor);
     return currentPoint;
-  }
-  
-  /**
-   * Measure point sample.
-   *
-   * @return the point sample
-   */
-  public PointSample measure() {
-    PointSample currentPoint;
-    int retries = 0;
-    do {
-      if (!subject.reseed(System.nanoTime()) && retries > 0) throw new IterativeStopException();
-      if (10 < retries++) throw new IterativeStopException();
-      currentPoint = subject.measure(false, monitor);
-    } while (!Double.isFinite(currentPoint.getMean()));
-    assert (Double.isFinite(currentPoint.getMean()));
-    return currentPoint;
-  }
-  
-  /**
-   * Gets timeout.
-   *
-   * @return the timeout
-   */
-  public Duration getTimeout() {
-    return timeout;
-  }
-  
-  /**
-   * Sets timeout.
-   *
-   * @param timeout the timeout
-   * @return the timeout
-   */
-  public IterativeTrainer setTimeout(Duration timeout) {
-    this.timeout = timeout;
-    return this;
-  }
-  
-  /**
-   * Sets timeout.
-   *
-   * @param number the number
-   * @param units  the units
-   * @return the timeout
-   */
-  public IterativeTrainer setTimeout(int number, TimeUnit units) {
-    return setTimeout(number, Util.cvt(units));
-  }
-  
-  /**
-   * Sets timeout.
-   *
-   * @param number the number
-   * @param units  the units
-   * @return the timeout
-   */
-  public IterativeTrainer setTimeout(int number, TemporalUnit units) {
-    this.timeout = Duration.of(number, units);
-    return this;
-  }
-  
-  /**
-   * Gets terminate threshold.
-   *
-   * @return the terminate threshold
-   */
-  public double getTerminateThreshold() {
-    return terminateThreshold;
-  }
-  
-  /**
-   * Sets terminate threshold.
-   *
-   * @param terminateThreshold the terminate threshold
-   * @return the terminate threshold
-   */
-  public IterativeTrainer setTerminateThreshold(double terminateThreshold) {
-    this.terminateThreshold = terminateThreshold;
-    return this;
-  }
-  
-  /**
-   * Gets orientation.
-   *
-   * @return the orientation
-   */
-  public OrientationStrategy getOrientation() {
-    return orientation;
-  }
-  
-  /**
-   * Sets orientation.
-   *
-   * @param orientation the orientation
-   * @return the orientation
-   */
-  public IterativeTrainer setOrientation(OrientationStrategy orientation) {
-    this.orientation = orientation;
-    return this;
-  }
-  
-  /**
-   * Gets monitor.
-   *
-   * @return the monitor
-   */
-  public TrainingMonitor getMonitor() {
-    return monitor;
-  }
-  
-  /**
-   * Sets monitor.
-   *
-   * @param monitor the monitor
-   * @return the monitor
-   */
-  public IterativeTrainer setMonitor(TrainingMonitor monitor) {
-    this.monitor = monitor;
-    return this;
-  }
-  
-  /**
-   * Gets current iteration.
-   *
-   * @return the current iteration
-   */
-  public AtomicInteger getCurrentIteration() {
-    return currentIteration;
-  }
-  
-  /**
-   * Sets current iteration.
-   *
-   * @param currentIteration the current iteration
-   * @return the current iteration
-   */
-  public IterativeTrainer setCurrentIteration(AtomicInteger currentIteration) {
-    this.currentIteration = currentIteration;
-    return this;
-  }
-  
-  /**
-   * Gets line search factory.
-   *
-   * @return the line search factory
-   */
-  public Function<String, LineSearchStrategy> getLineSearchFactory() {
-    return lineSearchFactory;
-  }
-  
-  /**
-   * Sets line search factory.
-   *
-   * @param lineSearchFactory the line search factory
-   * @return the line search factory
-   */
-  public IterativeTrainer setLineSearchFactory(Function<String, LineSearchStrategy> lineSearchFactory) {
-    this.lineSearchFactory = lineSearchFactory;
-    return this;
-  }
-  
-  /**
-   * Gets iterations per sample.
-   *
-   * @return the iterations per sample
-   */
-  public int getIterationsPerSample() {
-    return iterationsPerSample;
-  }
-  
-  /**
-   * Sets iterations per sample.
-   *
-   * @param iterationsPerSample the iterations per sample
-   * @return the iterations per sample
-   */
-  public IterativeTrainer setIterationsPerSample(int iterationsPerSample) {
-    this.iterationsPerSample = iterationsPerSample;
-    return this;
   }
   
 }

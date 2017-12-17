@@ -36,13 +36,8 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
    *
    * @param precision the precision
    */
-  public ImgConcatLayerTest(Precision precision) {
+  public ImgConcatLayerTest(final Precision precision) {
     this.precision = precision;
-  }
-  
-  @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new ImgConcatLayer();
   }
   
   @Override
@@ -53,10 +48,40 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new ImgConcatLayer();
+  }
+  
+  @Override
   public int[][] getPerfDims() {
     return new int[][]{
       {100, 100, 1}, {100, 100, 1}
     };
+  }
+  
+  /**
+   * The type Band limit test.
+   */
+  public static class BandLimitTest extends ImgConcatLayerTest {
+    
+    /**
+     * Instantiates a new Band limit test.
+     */
+    public BandLimitTest() {
+      super(Precision.Double);
+    }
+    
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {2, 2, 2}, {2, 2, 2}
+      };
+    }
+    
+    @Override
+    public NNLayer getLayer(final int[][] inputSize) {
+      return new ImgConcatLayer().setMaxBands(3);
+    }
   }
   
   /**
@@ -80,31 +105,6 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
      */
     public Float() {
       super(Precision.Float);
-    }
-  }
-  
-  /**
-   * The type Band limit test.
-   */
-  public static class BandLimitTest extends ImgConcatLayerTest {
-  
-    /**
-     * Instantiates a new Band limit test.
-     */
-    public BandLimitTest() {
-      super(Precision.Double);
-    }
-    
-    @Override
-    public NNLayer getLayer(int[][] inputSize) {
-      return new ImgConcatLayer().setMaxBands(3);
-    }
-    
-    @Override
-    public int[][] getInputDims() {
-      return new int[][]{
-        {2, 2, 2}, {2, 2, 2}
-      };
     }
   }
   

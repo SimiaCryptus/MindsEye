@@ -31,18 +31,18 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
   
   /**
    * Instantiates a new Max const layer.
-   *
-   * @param id the id
    */
-  protected MaxConstLayer(JsonObject id) {
-    super(id);
+  public MaxConstLayer() {
+    super();
   }
   
   /**
    * Instantiates a new Max const layer.
+   *
+   * @param id the id
    */
-  public MaxConstLayer() {
-    super();
+  protected MaxConstLayer(final JsonObject id) {
+    super(id);
   }
   
   /**
@@ -51,25 +51,26 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
    * @param json the json
    * @return the max const layer
    */
-  public static MaxConstLayer fromJson(JsonObject json) {
-    MaxConstLayer obj = new MaxConstLayer(json);
+  public static MaxConstLayer fromJson(final JsonObject json) {
+    final MaxConstLayer obj = new MaxConstLayer(json);
     obj.value = json.get("value").getAsDouble();
     return obj;
   }
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("value", value);
-    return json;
-  }
-  
   @Override
   protected void eval(final double x, final double[] results) {
-    final double d = x < this.value ? 0 : 1;
-    final double f = x < this.value ? this.value : x;
+    final double d = x < value ? 0 : 1;
+    final double f = x < value ? value : x;
     assert Double.isFinite(d);
     results[0] = f;
     results[1] = d;
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    json.addProperty("value", value);
+    return json;
   }
   
   /**
@@ -78,7 +79,7 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
    * @return the value
    */
   public double getValue() {
-    return this.value;
+    return value;
   }
   
   /**

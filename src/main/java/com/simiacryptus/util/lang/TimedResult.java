@@ -40,7 +40,7 @@ public class TimedResult<T> {
    * @param result    the obj
    * @param timeNanos the time nanos
    */
-  public TimedResult(T result, long timeNanos) {
+  public TimedResult(final T result, final long timeNanos) {
     this.result = result;
     this.timeNanos = timeNanos;
   }
@@ -52,15 +52,15 @@ public class TimedResult<T> {
    * @param fn  the fn
    * @return the timed result
    */
-  public static <T> TimedResult<T> time(UncheckedSupplier<T> fn) {
-    long start = System.nanoTime();
+  public static <T> TimedResult<T> time(final UncheckedSupplier<T> fn) {
+    final long start = System.nanoTime();
     T result = null;
     try {
       result = fn.get();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new RuntimeException(e);
     }
-    return new TimedResult(result, System.nanoTime() - start);
+    return new TimedResult<T>(result, System.nanoTime() - start);
   }
   
   /**

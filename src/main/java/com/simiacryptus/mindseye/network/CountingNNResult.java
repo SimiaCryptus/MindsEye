@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.TensorList;
 
@@ -49,9 +50,48 @@ class CountingNNResult extends NNResult {
    *
    * @param inner the inner
    */
-  protected CountingNNResult(NNResult inner) {
+  protected CountingNNResult(final NNResult inner) {
     super(inner.getData());
     this.inner = inner;
+  }
+  
+  @Override
+  public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+    if (1 >= getCount()) {
+      inner.accumulate(buffer, data);
+    }
+    else {
+      if (null == passbackBuffer) {
+        passbackBuffer = data.copy();
+      }
+      else {
+        passbackBuffer.accum(data);
+      }
+      if (++queued == getCount()) {
+        inner.accumulate(buffer, passbackBuffer);
+        if (1 < getCount()) {
+          passbackBuffer.recycle();
+        }
+        queued = 0;
+      }
+    }
+  }
+  
+  /**
+   * Add int.
+   *
+   * @param count the count
+   * @return the int
+   */
+  public synchronized int add(final int count) {
+    this.count += count;
+    //System.err.println("Count -> " + this.count);
+    return this.count;
+  }
+  
+  @Override
+  protected void finalize() throws Throwable {
+    super.finalize();
   }
   
   /**
@@ -73,47 +113,8 @@ class CountingNNResult extends NNResult {
     return this;
   }
   
-  /**
-   * Add int.
-   *
-   * @param count the count
-   * @return the int
-   */
-  public synchronized int add(int count) {
-    this.count += count;
-    //System.err.println("Count -> " + this.count);
-    return this.count;
-  }
-  
-  @Override
-  public void accumulate(DeltaSet buffer, TensorList data) {
-    if (1 >= getCount()) {
-      inner.accumulate(buffer, data);
-    }
-    else {
-      if (null == passbackBuffer) {
-        passbackBuffer = data.copy();
-      }
-      else {
-        passbackBuffer.accum(data);
-      }
-      if (++queued == getCount()) {
-        inner.accumulate(buffer, passbackBuffer);
-        if (1 < getCount()) {
-          passbackBuffer.recycle();
-        }
-        queued = 0;
-      }
-    }
-  }
-  
   @Override
   public boolean isAlive() {
     return inner.isAlive();
-  }
-  
-  @Override
-  protected void finalize() throws Throwable {
-    super.finalize();
   }
 }

@@ -39,7 +39,6 @@ public abstract class L12Normalizer implements Trainable {
    * The Inner.
    */
   public final Trainable inner;
-  
   private final boolean hideAdj = false;
   
   /**
@@ -47,33 +46,8 @@ public abstract class L12Normalizer implements Trainable {
    *
    * @param inner the inner
    */
-  public L12Normalizer(Trainable inner) {
+  public L12Normalizer(final Trainable inner) {
     this.inner = inner;
-  }
-  
-  @Override
-  public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
-    PointSample innerMeasure = inner.measure(isStatic, monitor);
-    DeltaSet normalizationVector = new DeltaSet();
-    double valueAdj = 0;
-    for (NNLayer layer : getLayers(innerMeasure.delta.getMap().keySet())) {
-      double[] weights = innerMeasure.delta.getMap().get(layer).target;
-      double[] gradientAdj = normalizationVector.get(layer, weights).getDelta();
-      double factor_L1 = getL1(layer);
-      double factor_L2 = getL2(layer);
-      for (int i = 0; i < gradientAdj.length; i++) {
-        double sign = weights[i] < 0 ? -1.0 : 1.0;
-        gradientAdj[i] += factor_L1 * sign + 2 * factor_L2 * weights[i];
-        valueAdj += (factor_L1 * sign + factor_L2 * weights[i]) * weights[i];
-      }
-      assert (null != gradientAdj);
-    }
-    return new PointSample(
-      innerMeasure.delta.add(normalizationVector),
-      innerMeasure.weights,
-      innerMeasure.sum + (hideAdj ? 0 : valueAdj),
-      innerMeasure.rate,
-      innerMeasure.count).normalize();
   }
   
   /**
@@ -92,24 +66,49 @@ public abstract class L12Normalizer implements Trainable {
    */
   protected abstract double getL2(NNLayer layer);
   
-  
-  @Override
-  public boolean reseed(long seed) {
-    return inner.reseed(seed);
-  }
-  
   /**
    * Gets layers.
    *
    * @param layers the layers
    * @return the layers
    */
-  public Collection<NNLayer> getLayers(Collection<NNLayer> layers) {
+  public Collection<NNLayer> getLayers(final Collection<NNLayer> layers) {
     return layers.stream()
       .filter(layer -> {
         return layer instanceof FullyConnectedLayer;
       })
       .collect(Collectors.toList());
+  }
+  
+  
+  @Override
+  public PointSample measure(final boolean isStatic, final TrainingMonitor monitor) {
+    final PointSample innerMeasure = inner.measure(isStatic, monitor);
+    final DeltaSet<NNLayer> normalizationVector = new DeltaSet<NNLayer>();
+    double valueAdj = 0;
+    for (final NNLayer layer : getLayers(innerMeasure.delta.getMap().keySet())) {
+      final double[] weights = innerMeasure.delta.getMap().get(layer).target;
+      final double[] gradientAdj = normalizationVector.get(layer, weights).getDelta();
+      final double factor_L1 = getL1(layer);
+      final double factor_L2 = getL2(layer);
+      for (int i = 0; i < gradientAdj.length; i++) {
+        final double sign = weights[i] < 0 ? -1.0 : 1.0;
+        gradientAdj[i] += factor_L1 * sign + 2 * factor_L2 * weights[i];
+        valueAdj += (factor_L1 * sign + factor_L2 * weights[i]) * weights[i];
+      }
+      assert null != gradientAdj;
+    }
+    return new PointSample(
+      innerMeasure.delta.add(normalizationVector),
+      innerMeasure.weights,
+      innerMeasure.sum + (hideAdj ? 0 : valueAdj),
+      innerMeasure.rate,
+      innerMeasure.count).normalize();
+  }
+  
+  @Override
+  public boolean reseed(final long seed) {
+    return inner.reseed(seed);
   }
   
 }

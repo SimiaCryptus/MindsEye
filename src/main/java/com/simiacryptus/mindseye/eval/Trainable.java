@@ -30,15 +30,6 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
  */
 public interface Trainable {
   /**
-   * Measure trainable . point sample.
-   *
-   * @param isStatic the is static
-   * @param monitor  the monitor
-   * @return the trainable . point sample
-   */
-  PointSample measure(boolean isStatic, TrainingMonitor monitor);
-  
-  /**
    * Cached cached trainable.
    *
    * @return the cached trainable
@@ -48,12 +39,21 @@ public interface Trainable {
   }
   
   /**
+   * Measure trainable . point sample.
+   *
+   * @param isStatic the is static
+   * @param monitor  the monitor
+   * @return the trainable . point sample
+   */
+  PointSample measure(boolean isStatic, TrainingMonitor monitor);
+  
+  /**
    * Reset sampling boolean.
    *
    * @param seed the seed
    * @return the boolean
    */
-  default boolean reseed(long seed) {
+  default boolean reseed(final long seed) {
     return false;
   }
   

@@ -37,13 +37,8 @@ public abstract class BandReducerLayerTest extends CudnnLayerTestBase {
    *
    * @param precision the precision
    */
-  public BandReducerLayerTest(Precision precision) {
+  public BandReducerLayerTest(final Precision precision) {
     this.precision = precision;
-  }
-  
-  @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new BandReducerLayer().setPrecision(precision);
   }
   
   @Override
@@ -53,6 +48,10 @@ public abstract class BandReducerLayerTest extends CudnnLayerTestBase {
     };
   }
   
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new BandReducerLayer().setPrecision(precision);
+  }
   
   @Override
   public int[][] getPerfDims() {
@@ -83,7 +82,7 @@ public abstract class BandReducerLayerTest extends CudnnLayerTestBase {
     public Float() {
       super(Precision.Float);
     }
-    
+  
     @Override
     public SingleDerivativeTester getDerivativeTester() {
       return new SingleDerivativeTester(1e-2, 1e-3);

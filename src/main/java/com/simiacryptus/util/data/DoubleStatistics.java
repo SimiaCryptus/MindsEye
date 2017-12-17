@@ -49,9 +49,17 @@ public class DoubleStatistics extends DoubleSummaryStatistics {
     d -> d
   );
   
+  private double simpleSumOfSquare; // Used to compute right sum for non-finite inputs
   private double sumOfSquare = 0.0d;
   private double sumOfSquareCompensation; // Low order bits of sum
-  private double simpleSumOfSquare; // Used to compute right sum for non-finite inputs
+  
+  @Override
+  public synchronized void accept(final double value) {
+    super.accept(value);
+    final double squareValue = value * value;
+    simpleSumOfSquare += squareValue;
+    sumOfSquareWithCompensation(squareValue);
+  }
   
   /**
    * Accept double statistics.
@@ -59,17 +67,9 @@ public class DoubleStatistics extends DoubleSummaryStatistics {
    * @param value the value
    * @return the double statistics
    */
-  public DoubleStatistics accept(double[] value) {
+  public DoubleStatistics accept(final double[] value) {
     Arrays.stream(value).forEach(this::accept);
     return this;
-  }
-  
-  @Override
-  public synchronized void accept(double value) {
-    super.accept(value);
-    double squareValue = value * value;
-    simpleSumOfSquare += squareValue;
-    sumOfSquareWithCompensation(squareValue);
   }
   
   /**
@@ -78,32 +78,12 @@ public class DoubleStatistics extends DoubleSummaryStatistics {
    * @param other the other
    * @return the double statistics
    */
-  public DoubleStatistics combine(DoubleStatistics other) {
+  public DoubleStatistics combine(final DoubleStatistics other) {
     super.combine(other);
     simpleSumOfSquare += other.simpleSumOfSquare;
     sumOfSquareWithCompensation(other.sumOfSquare);
     sumOfSquareWithCompensation(other.sumOfSquareCompensation);
     return this;
-  }
-  
-  private void sumOfSquareWithCompensation(double value) {
-    double tmp = value - sumOfSquareCompensation;
-    double velvel = sumOfSquare + tmp; // Little wolf of rounding error
-    sumOfSquareCompensation = (velvel - sumOfSquare) - tmp;
-    sumOfSquare = velvel;
-  }
-  
-  /**
-   * Gets sum of square.
-   *
-   * @return the sum of square
-   */
-  public double getSumOfSquare() {
-    double tmp = sumOfSquare + sumOfSquareCompensation;
-    if (Double.isNaN(tmp) && Double.isInfinite(simpleSumOfSquare)) {
-      return simpleSumOfSquare;
-    }
-    return tmp;
   }
   
   /**
@@ -112,7 +92,27 @@ public class DoubleStatistics extends DoubleSummaryStatistics {
    * @return the standard deviation
    */
   public final double getStandardDeviation() {
-    return getCount() > 0 ? Math.sqrt((getSumOfSquare() / getCount()) - Math.pow(getAverage(), 2)) : 0.0d;
+    return getCount() > 0 ? Math.sqrt(getSumOfSquare() / getCount() - Math.pow(getAverage(), 2)) : 0.0d;
+  }
+  
+  /**
+   * Gets sum of square.
+   *
+   * @return the sum of square
+   */
+  public double getSumOfSquare() {
+    final double tmp = sumOfSquare + sumOfSquareCompensation;
+    if (Double.isNaN(tmp) && Double.isInfinite(simpleSumOfSquare)) {
+      return simpleSumOfSquare;
+    }
+    return tmp;
+  }
+  
+  private void sumOfSquareWithCompensation(final double value) {
+    final double tmp = value - sumOfSquareCompensation;
+    final double velvel = sumOfSquare + tmp; // Little wolf of rounding error
+    sumOfSquareCompensation = velvel - sumOfSquare - tmp;
+    sumOfSquare = velvel;
   }
   
   @Override
@@ -126,7 +126,7 @@ public class DoubleStatistics extends DoubleSummaryStatistics {
    * @param scale the scale
    * @return the string
    */
-  public String toString(double scale) {
+  public String toString(final double scale) {
     return String.format("%.4e +- %.4e [%.4e - %.4e] (%d#)", getAverage() * scale, getStandardDeviation() * scale, getMin() * scale, getMax() * scale, getCount());
   }
 }

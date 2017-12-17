@@ -36,7 +36,7 @@ import java.util.stream.Stream;
  * @param <K> the type parameter
  * @param <T> the type parameter
  */
-public abstract class DoubleBufferSet<K, T extends DoubleBuffer> {
+public abstract class DoubleBufferSet<K, T extends DoubleBuffer<K>> {
   /**
    * The Map.
    */
@@ -53,7 +53,7 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer> {
    *
    * @param toCopy the to copy
    */
-  public DoubleBufferSet(DoubleBufferSet<K, T> toCopy) {
+  public DoubleBufferSet(final DoubleBufferSet<K, T> toCopy) {
     this(toCopy.map);
   }
   
@@ -67,17 +67,13 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer> {
   }
   
   /**
-   * Get delta.
+   * Copy delta set.
    *
-   * @param layer the layer
-   * @param ptr   the ptr
-   * @return the delta
+   * @return the delta set
    */
-  public T get(final K layer, final double[] ptr) {
-    T delta = get(layer, () -> factory(layer, ptr));
-    assert delta.layer.equals(layer);
-    assert delta.target == ptr;
-    return delta;
+  @SuppressWarnings("unchecked")
+  public DoubleBufferSet<K, T> copy() {
+    return map(x -> (T) x.copy());
   }
   
   /**
@@ -90,13 +86,27 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer> {
   protected abstract T factory(final K layer, final double[] ptr);
   
   /**
+   * Get delta.
+   *
+   * @param layer the layer
+   * @param ptr   the ptr
+   * @return the delta
+   */
+  public T get(final K layer, final double[] ptr) {
+    final T delta = get(layer, () -> factory(layer, ptr));
+    assert delta.layer.equals(layer);
+    assert delta.target == ptr;
+    return delta;
+  }
+  
+  /**
    * Get t.
    *
    * @param layer   the layer
    * @param factory the factory
    * @return the t
    */
-  public T get(final K layer, Supplier<T> factory) {
+  public T get(final K layer, final Supplier<T> factory) {
     if (null == map) throw new IllegalArgumentException();
     if (null == factory) throw new IllegalArgumentException();
     if (null == layer) throw new IllegalArgumentException();
@@ -115,19 +125,29 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer> {
   }
   
   /**
+   * Gets map.
+   *
+   * @return the map
+   */
+  public ConcurrentHashMap<K, T> getMap() {
+    return map;
+  }
+  
+  /**
    * Map delta set.
    *
    * @param mapper the mapper
    * @return the delta set
    */
   public DoubleBufferSet<K, T> map(final Function<T, T> mapper) {
-    DoubleBufferSet<K, T> parent = this;
+    final DoubleBufferSet<K, T> parent = this;
     Stream<Map.Entry<K, T>> stream = map.entrySet().stream();
-    if (map.size() > 100) stream = stream.parallel();
-    Map<K, T> newMap = stream.collect(Collectors.toMap(e -> e.getKey(), e -> mapper.apply(e.getValue())));
+    if (map.size() > 100) {
+      stream = stream.parallel();
+    }
+    final Map<K, T> newMap = stream.collect(Collectors.toMap(e -> e.getKey(), e -> mapper.apply(e.getValue())));
     return new Delegate(parent, newMap);
   }
-  
   
   /**
    * Stream stream.
@@ -136,24 +156,6 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer> {
    */
   public Stream<T> stream() {
     return map.values().stream().filter(n -> null != n).distinct().sorted(Comparator.comparing(y -> System.identityHashCode(y.target)));
-  }
-  
-  /**
-   * Copy delta set.
-   *
-   * @return the delta set
-   */
-  public DoubleBufferSet<K, T> copy() {
-    return map(x -> (T) x.copy());
-  }
-  
-  /**
-   * Gets map.
-   *
-   * @return the map
-   */
-  public ConcurrentHashMap<K, T> getMap() {
-    return map;
   }
   
   /**
@@ -166,24 +168,24 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer> {
      * Instantiates a new Delegate.
      *
      * @param parent the parent
-     * @param newMap the new map
      */
-    public Delegate(DoubleBufferSet<K, T> parent, Map<K, T> newMap) {
-      super(newMap);
-      this.parent = parent;
+    public Delegate(final DoubleBufferSet<K, T> parent) {
+      this(parent, new HashMap<>());
     }
   
     /**
      * Instantiates a new Delegate.
      *
      * @param parent the parent
+     * @param newMap the new map
      */
-    public Delegate(DoubleBufferSet<K, T> parent) {
-      this(parent, new HashMap<>());
+    public Delegate(final DoubleBufferSet<K, T> parent, final Map<K, T> newMap) {
+      super(newMap);
+      this.parent = parent;
     }
     
     @Override
-    protected T factory(K layer, double[] ptr) {
+    protected T factory(final K layer, final double[] ptr) {
       return parent.factory(layer, ptr);
     }
   }

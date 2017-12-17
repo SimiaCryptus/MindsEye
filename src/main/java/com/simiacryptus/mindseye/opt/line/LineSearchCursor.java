@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**
@@ -35,6 +36,19 @@ public interface LineSearchCursor {
   String getDirectionType();
   
   /**
+   * Position delta set.
+   *
+   * @param alpha the alpha
+   * @return the delta set
+   */
+  DeltaSet<NNLayer> position(double alpha);
+  
+  /**
+   * Reset.
+   */
+  void reset();
+  
+  /**
    * Step line search point.
    *
    * @param alpha   the alpha
@@ -42,17 +56,4 @@ public interface LineSearchCursor {
    * @return the line search point
    */
   LineSearchPoint step(double alpha, TrainingMonitor monitor);
-  
-  /**
-   * Position delta set.
-   *
-   * @param alpha the alpha
-   * @return the delta set
-   */
-  DeltaSet position(double alpha);
-  
-  /**
-   * Reset.
-   */
-  void reset();
 }

@@ -35,15 +35,14 @@ public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
   /**
    * The constant gpuContexts.
    */
-  public static StaticResourcePool<CudaExecutionContext> gpuContexts = new StaticResourcePool<CudaExecutionContext>(loadGpuContexts());
-  private boolean isStatic = false;
+  public static StaticResourcePool<CudaExecutionContext> gpuContexts = new StaticResourcePool<>(CudaExecutionContext.loadGpuContexts());
   
   /**
    * Instantiates a new Cuda execution context.
    *
    * @param deviceNumber the device number
    */
-  public CudaExecutionContext(int deviceNumber) {
+  public CudaExecutionContext(final int deviceNumber) {
     this(deviceNumber, false);
   }
   
@@ -53,9 +52,8 @@ public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
    * @param deviceNumber the device number
    * @param isStatic     the is static
    */
-  public CudaExecutionContext(int deviceNumber, boolean isStatic) {
+  public CudaExecutionContext(final int deviceNumber, final boolean isStatic) {
     super(deviceNumber);
-    this.isStatic = isStatic;
   }
   
   /**
@@ -64,12 +62,12 @@ public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
    * @return the list
    */
   static List<CudaExecutionContext> loadGpuContexts() {
-    int deviceCount = CuDNN.deviceCount();
+    final int deviceCount = CuDNN.deviceCount();
     System.out.println(String.format("Found %s devices", deviceCount));
-    List<Integer> devices = new ArrayList<Integer>();
+    List<Integer> devices = new ArrayList<>();
     for (int device = 0; device < deviceCount; device++) {
       //if(device>0) System.err.println(String.format("IGNORING Device %s - %s", device, getDeviceName(device)));
-      System.out.println(String.format("Device %s - %s", device, getDeviceName(device)));
+      System.out.println(String.format("Device %s - %s", device, CuDNN.getDeviceName(device)));
       devices.add(device);
     }
     if (System.getProperties().containsKey("gpus")) {

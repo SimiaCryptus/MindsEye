@@ -29,24 +29,13 @@ import java.util.stream.IntStream;
 /**
  * The type Img reshape layer.
  */
+@SuppressWarnings("serial")
 public class ImgReshapeLayer extends NNLayer {
   
   
+  private final boolean expand;
   private final int kernelSizeX;
   private final int kernelSizeY;
-  private final boolean expand;
-  
-  /**
-   * Instantiates a new Img reshape layer.
-   *
-   * @param json the json
-   */
-  protected ImgReshapeLayer(JsonObject json) {
-    super(json);
-    this.kernelSizeX = json.getAsJsonPrimitive("kernelSizeX").getAsInt();
-    this.kernelSizeY = json.getAsJsonPrimitive("kernelSizeY").getAsInt();
-    this.expand = json.getAsJsonPrimitive("expand").getAsBoolean();
-  }
   
   /**
    * Instantiates a new Img reshape layer.
@@ -55,7 +44,7 @@ public class ImgReshapeLayer extends NNLayer {
    * @param kernelSizeY the kernel size y
    * @param expand      the expand
    */
-  public ImgReshapeLayer(int kernelSizeX, int kernelSizeY, boolean expand) {
+  public ImgReshapeLayer(final int kernelSizeX, final int kernelSizeY, final boolean expand) {
     super();
     this.kernelSizeX = kernelSizeX;
     this.kernelSizeY = kernelSizeY;
@@ -63,13 +52,15 @@ public class ImgReshapeLayer extends NNLayer {
   }
   
   /**
-   * From json img reshape layer.
+   * Instantiates a new Img reshape layer.
    *
    * @param json the json
-   * @return the img reshape layer
    */
-  public static ImgReshapeLayer fromJson(JsonObject json) {
-    return new ImgReshapeLayer(json);
+  protected ImgReshapeLayer(final JsonObject json) {
+    super(json);
+    kernelSizeX = json.getAsJsonPrimitive("kernelSizeX").getAsInt();
+    kernelSizeY = json.getAsJsonPrimitive("kernelSizeY").getAsInt();
+    expand = json.getAsJsonPrimitive("expand").getAsBoolean();
   }
   
   /**
@@ -79,9 +70,9 @@ public class ImgReshapeLayer extends NNLayer {
    * @param outputData the output data
    * @return the tensor
    */
-  public static Tensor copyCondense(Tensor inputData, Tensor outputData) {
-    int[] inDim = inputData.getDimensions();
-    int[] outDim = outputData.getDimensions();
+  public static Tensor copyCondense(final Tensor inputData, final Tensor outputData) {
+    final int[] inDim = inputData.getDimensions();
+    final int[] outDim = outputData.getDimensions();
     assert 3 == inDim.length;
     assert 3 == outDim.length;
     assert inDim[0] >= outDim[0];
@@ -89,10 +80,10 @@ public class ImgReshapeLayer extends NNLayer {
     assert inDim[2] < outDim[2];
     assert 0 == inDim[0] % outDim[0];
     assert 0 == inDim[1] % outDim[1];
-    int kernelSizeX = inDim[0] / outDim[0];
-    int kernelSizeY = inDim[0] / outDim[0];
+    final int kernelSizeX = inDim[0] / outDim[0];
+    final int kernelSizeY = inDim[0] / outDim[0];
     int index = 0;
-    double[] outputDataData = outputData.getData();
+    final double[] outputDataData = outputData.getData();
     for (int xx = 0; xx < kernelSizeX; xx++) {
       for (int yy = 0; yy < kernelSizeY; yy++) {
         for (int z = 0; z < inDim[2]; z++) {
@@ -114,9 +105,9 @@ public class ImgReshapeLayer extends NNLayer {
    * @param outputData the output data
    * @return the tensor
    */
-  public static Tensor copyExpand(Tensor inputData, Tensor outputData) {
-    int[] inDim = inputData.getDimensions();
-    int[] outDim = outputData.getDimensions();
+  public static Tensor copyExpand(final Tensor inputData, final Tensor outputData) {
+    final int[] inDim = inputData.getDimensions();
+    final int[] outDim = outputData.getDimensions();
     assert 3 == inDim.length;
     assert 3 == outDim.length;
     assert inDim[0] <= outDim[0];
@@ -124,8 +115,8 @@ public class ImgReshapeLayer extends NNLayer {
     assert inDim[2] > outDim[2];
     assert 0 == outDim[0] % inDim[0];
     assert 0 == outDim[1] % inDim[1];
-    int kernelSizeX = outDim[0] / inDim[0];
-    int kernelSizeY = outDim[0] / inDim[0];
+    final int kernelSizeX = outDim[0] / inDim[0];
+    final int kernelSizeY = outDim[0] / inDim[0];
     int index = 0;
     for (int xx = 0; xx < kernelSizeX; xx++) {
       for (int yy = 0; yy < kernelSizeY; yy++) {
@@ -141,25 +132,27 @@ public class ImgReshapeLayer extends NNLayer {
     return outputData;
   }
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("kernelSizeX", kernelSizeX);
-    json.addProperty("kernelSizeY", kernelSizeX);
-    json.addProperty("expand", expand);
-    return json;
+  /**
+   * From json img reshape layer.
+   *
+   * @param json the json
+   * @return the img reshape layer
+   */
+  public static ImgReshapeLayer fromJson(final JsonObject json) {
+    return new ImgReshapeLayer(json);
   }
   
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     //assert Arrays.stream(inObj).flatMapToDouble(input-> input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputDims = batch.get(0).getDimensions();
-    assert (3 == inputDims.length);
-    assert (expand || 0 == inputDims[0] % kernelSizeX);
-    assert (expand || 0 == inputDims[1] % kernelSizeX);
-    assert (!expand || 0 == inputDims[2] % (kernelSizeX * kernelSizeY));
+    assert 3 == inputDims.length;
+    assert expand || 0 == inputDims[0] % kernelSizeX;
+    assert expand || 0 == inputDims[1] % kernelSizeX;
+    assert !expand || 0 == inputDims[2] % (kernelSizeX * kernelSizeY);
     //assert input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     Tensor outputDims;
     if (expand) {
@@ -173,17 +166,17 @@ public class ImgReshapeLayer extends NNLayer {
         inputDims[2] * kernelSizeX * kernelSizeY);
     }
     return new NNResult(IntStream.range(0, batch.length()).parallel()
-      .mapToObj(dataIndex -> expand ? copyExpand(batch.get(dataIndex), outputDims.copy()) : copyCondense(batch.get(dataIndex), outputDims.copy()))
+      .mapToObj(dataIndex -> expand ? ImgReshapeLayer.copyExpand(batch.get(dataIndex), outputDims.copy()) : ImgReshapeLayer.copyCondense(batch.get(dataIndex), outputDims.copy()))
       .toArray(i -> new Tensor[i])) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList error) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
         //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         if (input.isAlive()) {
           final Tensor[] data1 = IntStream.range(0, error.length()).parallel()
             .mapToObj(dataIndex -> {
-              Tensor passback = new Tensor(inputDims);
-              Tensor err = error.get(dataIndex);
-              return expand ? copyCondense(err, passback) : copyExpand(err, passback);
+              final Tensor passback = new Tensor(inputDims);
+              final Tensor err = error.get(dataIndex);
+              return expand ? ImgReshapeLayer.copyCondense(err, passback) : ImgReshapeLayer.copyExpand(err, passback);
             }).toArray(i -> new Tensor[i]);
           input.accumulate(buffer, new TensorArray(data1));
         }
@@ -194,6 +187,15 @@ public class ImgReshapeLayer extends NNLayer {
         return input.isAlive() || !isFrozen();
       }
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    json.addProperty("kernelSizeX", kernelSizeX);
+    json.addProperty("kernelSizeY", kernelSizeX);
+    json.addProperty("expand", expand);
+    return json;
   }
   
   @Override

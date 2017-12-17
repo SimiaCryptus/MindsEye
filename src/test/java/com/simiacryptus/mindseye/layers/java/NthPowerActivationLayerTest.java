@@ -27,6 +27,54 @@ import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 public class NthPowerActivationLayerTest {
   
   /**
+   * The type Inv power test.
+   */
+  public static class InvPowerTest extends ActivationLayerTestBase {
+    /**
+     * Instantiates a new Inv power test.
+     */
+    public InvPowerTest() {
+      super(new NthPowerActivationLayer().setPower(-1));
+    }
+  
+    @Override
+    public SingleDerivativeTester getDerivativeTester() {
+      return new SingleDerivativeTester(1e-2, 1e-4);
+    }
+    
+    @Override
+    public double random() {
+      final double v = super.random();
+      if (Math.abs(v) < 0.2) return random();
+      return v;
+    }
+  }
+  
+  /**
+   * The type Inv sqrt power test.
+   */
+  public static class InvSqrtPowerTest extends ActivationLayerTestBase {
+    /**
+     * Instantiates a new Inv sqrt power test.
+     */
+    public InvSqrtPowerTest() {
+      super(new NthPowerActivationLayer().setPower(-0.5));
+    }
+  
+    @Override
+    public SingleDerivativeTester getDerivativeTester() {
+      return new SingleDerivativeTester(1e-2, 1e-4);
+    }
+    
+    @Override
+    public double random() {
+      final double v = super.random();
+      if (Math.abs(v) < 0.2) return random();
+      return v;
+    }
+  }
+  
+  /**
    * The type Nth power test.
    */
   public static class NthPowerTest extends ActivationLayerTestBase {
@@ -35,18 +83,6 @@ public class NthPowerActivationLayerTest {
      */
     public NthPowerTest() {
       super(new NthPowerActivationLayer().setPower(2.5));
-    }
-  }
-  
-  /**
-   * The type Square power test.
-   */
-  public static class SquarePowerTest extends ActivationLayerTestBase {
-    /**
-     * Instantiates a new Square power test.
-     */
-    public SquarePowerTest() {
-      super(new NthPowerActivationLayer().setPower(2));
     }
   }
   
@@ -63,50 +99,14 @@ public class NthPowerActivationLayerTest {
   }
   
   /**
-   * The type Inv power test.
+   * The type Square power test.
    */
-  public static class InvPowerTest extends ActivationLayerTestBase {
+  public static class SquarePowerTest extends ActivationLayerTestBase {
     /**
-     * Instantiates a new Inv power test.
+     * Instantiates a new Square power test.
      */
-    public InvPowerTest() {
-      super(new NthPowerActivationLayer().setPower(-1));
-    }
-    
-    @Override
-    public double random() {
-      double v = super.random();
-      if (Math.abs(v) < 0.2) return random();
-      return v;
-    }
-    
-    @Override
-    public SingleDerivativeTester getDerivativeTester() {
-      return new SingleDerivativeTester(1e-2, 1e-4);
-    }
-  }
-  
-  /**
-   * The type Inv sqrt power test.
-   */
-  public static class InvSqrtPowerTest extends ActivationLayerTestBase {
-    /**
-     * Instantiates a new Inv sqrt power test.
-     */
-    public InvSqrtPowerTest() {
-      super(new NthPowerActivationLayer().setPower(-0.5));
-    }
-    
-    @Override
-    public double random() {
-      double v = super.random();
-      if (Math.abs(v) < 0.2) return random();
-      return v;
-    }
-    
-    @Override
-    public SingleDerivativeTester getDerivativeTester() {
-      return new SingleDerivativeTester(1e-2, 1e-4);
+    public SquarePowerTest() {
+      super(new NthPowerActivationLayer().setPower(2));
     }
   }
   

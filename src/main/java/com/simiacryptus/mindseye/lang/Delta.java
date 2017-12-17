@@ -39,10 +39,9 @@ public class Delta<K> extends DoubleBuffer<K> {
    *
    * @param layer  the layer
    * @param target the target
-   * @param delta  the delta
    */
-  public Delta(final K layer, final double[] target, final double[] delta) {
-    this(layer, target, delta, RecycleBin.DOUBLES.obtain(delta.length));
+  public Delta(final K layer, final double[] target) {
+    this(layer, target, null == target ? null : RecycleBin.DOUBLES.obtain(target.length));
   }
   
   /**
@@ -50,9 +49,10 @@ public class Delta<K> extends DoubleBuffer<K> {
    *
    * @param layer  the layer
    * @param target the target
+   * @param delta  the delta
    */
-  public Delta(final K layer, final double[] target) {
-    this(layer, target, null == target ? null : RecycleBin.DOUBLES.obtain(target.length));
+  public Delta(final K layer, final double[] target, final double[] delta) {
+    this(layer, target, delta, RecycleBin.DOUBLES.obtain(delta.length));
   }
   
   /**
@@ -63,7 +63,7 @@ public class Delta<K> extends DoubleBuffer<K> {
    * @param doubles           the doubles
    * @param deltaCompensation the delta compensation
    */
-  protected Delta(K layer, double[] target, double[] doubles, double[] deltaCompensation) {
+  protected Delta(final K layer, final double[] target, final double[] doubles, final double[] deltaCompensation) {
     super(layer, target, doubles);
     if (null == target) throw new IllegalArgumentException();
     //if(null == array) throw new IllegalArgumentException();
@@ -77,26 +77,54 @@ public class Delta<K> extends DoubleBuffer<K> {
    * @param delta            the delta
    * @param dataCompensation the data compensation
    */
-  public static void accumulate(double[] data, double[] delta, double[] dataCompensation) {
+  public static void accumulate(final double[] data, final double[] delta, final double[] dataCompensation) {
     for (int i = 0; i < data.length; i++) {
-      double sum = data[i];
-      double input = delta[i];
+      final double sum = data[i];
+      final double input = delta[i];
       double c = null == dataCompensation ? 0 : dataCompensation[i];
       if (Math.abs(sum) >= Math.abs(input)) {
-        double y = sum - c;
-        double t = input + y;
-        c = (t - input) - y;
+        final double y = sum - c;
+        final double t = input + y;
+        c = t - input - y;
         data[i] = t;
-        if (null != dataCompensation) dataCompensation[i] = c;
+        if (null != dataCompensation) {
+          dataCompensation[i] = c;
+        }
       }
       else {
-        double y = input - c;
-        double t = sum + y;
-        c = (t - sum) - y;
+        final double y = input - c;
+        final double t = sum + y;
+        c = t - sum - y;
         data[i] = t;
-        if (null != dataCompensation) dataCompensation[i] = c;
+        if (null != dataCompensation) {
+          dataCompensation[i] = c;
+        }
       }
     }
+  }
+  
+  /**
+   * Accumulate.
+   *
+   * @param factor the factor
+   */
+  public final synchronized void accumulate(final double factor) {
+    assert Arrays.stream(target).allMatch(Double::isFinite);
+    final double[] delta = getDelta();
+    for (int i = 0; i < length(); i++) {
+      target[i] += delta[i] * factor;
+    }
+    assert Arrays.stream(target).allMatch(Double::isFinite);
+  }
+  
+  /**
+   * Add in place delta.
+   *
+   * @param buffer the buffer
+   * @return the delta
+   */
+  public Delta<K> addInPlace(final Delta<K> buffer) {
+    return addInPlace(buffer.delta).addInPlace(buffer.deltaCompensation);
   }
   
   /**
@@ -107,38 +135,15 @@ public class Delta<K> extends DoubleBuffer<K> {
    */
   public Delta<K> addInPlace(final double[] data) {
     //assert Arrays.stream(data).allMatch(Double::isFinite);
-    accumulate(getDelta(), data, deltaCompensation);
+    Delta.accumulate(getDelta(), data, deltaCompensation);
     //assert Arrays.stream(getDelta()).allMatch(Double::isFinite);
     return this;
   }
   
-  /**
-   * Scale delta.
-   *
-   * @param f the f
-   * @return the delta
-   */
-  public Delta<K> scale(final double f) {
-    return map(x -> x * f);
-  }
   
-  public Delta<K> map(final DoubleUnaryOperator mapper) {
-    return new Delta(this.layer, this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
-  }
-  
-  
-  /**
-   * Accumulate.
-   *
-   * @param factor the factor
-   */
-  public final synchronized void accumulate(final double factor) {
-    assert Arrays.stream(target).allMatch(Double::isFinite);
-    double[] delta = this.getDelta();
-    for (int i = 0; i < length(); i++) {
-      target[i] += delta[i] * factor;
-    }
-    assert Arrays.stream(target).allMatch(Double::isFinite);
+  @Override
+  public Delta<K> copy() {
+    return new Delta<K>(layer, target, RecycleBin.DOUBLES.copyOf(delta), RecycleBin.DOUBLES.copyOf(deltaCompensation));
   }
   
   @Override
@@ -155,23 +160,23 @@ public class Delta<K> extends DoubleBuffer<K> {
   }
   
   @Override
-  public Delta<K> set(double[] data) {
-    super.set(data);
-    return this;
-  }
-  
-  @Override
-  public Delta<K> copy() {
-    return new Delta(layer, target, RecycleBin.DOUBLES.copyOf(delta), RecycleBin.DOUBLES.copyOf(deltaCompensation));
+  public Delta<K> map(final DoubleUnaryOperator mapper) {
+    return new Delta<K>(layer, target, Arrays.stream(getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
   }
   
   /**
-   * Add in place delta.
+   * Scale delta.
    *
-   * @param buffer the buffer
+   * @param f the f
    * @return the delta
    */
-  public Delta<K> addInPlace(Delta<K> buffer) {
-    return addInPlace(buffer.delta).addInPlace(buffer.deltaCompensation);
+  public Delta<K> scale(final double f) {
+    return map(x -> x * f);
+  }
+  
+  @Override
+  public Delta<K> set(final double[] data) {
+    super.set(data);
+    return this;
   }
 }

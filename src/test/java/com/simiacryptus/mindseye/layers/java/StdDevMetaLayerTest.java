@@ -32,12 +32,7 @@ public class StdDevMetaLayerTest extends MetaLayerTestBase {
    */
   public StdDevMetaLayerTest() {
     super();
-    this.validateDifferentials = false;
-  }
-  
-  @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new StdDevMetaLayer(0);
+    validateDifferentials = false;
   }
   
   @Override
@@ -45,6 +40,11 @@ public class StdDevMetaLayerTest extends MetaLayerTestBase {
     return new int[][]{
       {3}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new StdDevMetaLayer(0);
   }
   
   @Override

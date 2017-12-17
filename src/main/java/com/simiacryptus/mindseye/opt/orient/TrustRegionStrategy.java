@@ -34,8 +34,7 @@ import com.simiacryptus.util.ArrayUtil;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.IntStream;
-
-import static com.simiacryptus.util.ArrayUtil.*;
+import java.util.stream.Stream;
 
 /**
  * A generalization of the OWL-QN algorithm, this wrapping strategy projects an inner cursor to the interior of a trust region, which can be defined per-layer. Any simple orientation strategy can be used as the inner, most commonly either GD or LBFGS. Many trust regions can be defined; see the com.simiacryptus.mindseye.opt.region package.
@@ -62,7 +61,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy<LineSea
    *
    * @param inner the inner
    */
-  protected TrustRegionStrategy(OrientationStrategy<? extends SimpleLineSearchCursor> inner) {
+  protected TrustRegionStrategy(final OrientationStrategy<? extends SimpleLineSearchCursor> inner) {
     this.inner = inner;
   }
   
@@ -73,110 +72,10 @@ public abstract class TrustRegionStrategy implements OrientationStrategy<LineSea
    * @param b the b
    * @return the double
    */
-  public static double dot(List<DoubleBuffer> a, List<DoubleBuffer> b) {
-    assert (a.size() == b.size());
+  public static double dot(final List<DoubleBuffer<NNLayer>> a, final List<DoubleBuffer<NNLayer>> b) {
+    assert a.size() == b.size();
     return IntStream.range(0, a.size()).mapToDouble(i -> a.get(i).dot(b.get(i))).sum();
   }
-  
-  @Override
-  public void reset() {
-    inner.reset();
-  }
-  
-  @Override
-  public LineSearchCursor orient(Trainable subject, PointSample origin, TrainingMonitor monitor) {
-    history.add(0, origin);
-    while (history.size() > maxHistory) history.remove(history.size() - 1);
-    SimpleLineSearchCursor cursor = inner.orient(subject, origin, monitor);
-    return new LineSearchCursor() {
-      @Override
-      public String getDirectionType() {
-        return cursor.getDirectionType() + "+Trust";
-      }
-      
-      @Override
-      public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
-        cursor.reset();
-        DeltaSet adjustedPosVector = cursor.position(alpha);
-        DeltaSet adjustedGradient = project(adjustedPosVector, monitor);
-        adjustedPosVector.accumulate(1);
-        PointSample sample = subject.measure(true, monitor).setRate(alpha);
-        return new LineSearchPoint(sample, adjustedGradient.dot(sample.delta));
-      }
-      
-      @Override
-      public DeltaSet position(double alpha) {
-        reset();
-        DeltaSet adjustedPosVector = cursor.position(alpha);
-        project(adjustedPosVector, new TrainingMonitor());
-        return adjustedPosVector;
-      }
-      
-      public DeltaSet project(DeltaSet<NNLayer> deltaSet, TrainingMonitor monitor) {
-        DeltaSet originalAlphaDerivative = cursor.direction;
-        DeltaSet newAlphaDerivative = originalAlphaDerivative.copy();
-        deltaSet.getMap().forEach((layer, buffer) -> {
-          double[] delta = buffer.getDelta();
-          if (null == delta) return;
-          double[] currentPosition = buffer.target;
-          double[] originalAlphaD = originalAlphaDerivative.get(layer, currentPosition).getDelta();
-          double[] newAlphaD = newAlphaDerivative.get(layer, currentPosition).getDelta();
-          double[] proposedPosition = add(currentPosition, delta);
-          TrustRegion region = getRegionPolicy(layer);
-          if (null != region) {
-            double[][] historyData = history.stream().map((PointSample x) -> {
-              DoubleBuffer d = x.weights.getMap().get(layer);
-              return null == d ? null : d.getDelta();
-            }).filter(x -> null != x).toArray(i -> new double[i][]);
-            double[] projectedPosition = region.project(historyData, proposedPosition);
-            if (projectedPosition != proposedPosition) {
-              for (int i = 0; i < projectedPosition.length; i++) {
-                delta[i] = projectedPosition[i] - currentPosition[i];
-              }
-              double[] normal = subtract(projectedPosition, proposedPosition);
-              double normalMagSq = ArrayUtil.dot(normal, normal);
-//              monitor.log(String.format("%s: delta = %s, projectedPosition = %s, proposedPosition = %s, currentPosition = %s, normalMagSq = %s", layer,
-//                ArrayUtil.dot(delta,delta),
-//                ArrayUtil.dot(projectedPosition,projectedPosition),
-//                ArrayUtil.dot(proposedPosition,proposedPosition),
-//                ArrayUtil.dot(currentPosition,currentPosition),
-//                normalMagSq));
-              if (0 < normalMagSq) {
-                double a = ArrayUtil.dot(originalAlphaD, normal);
-                if (a != -1) {
-                  double[] tangent = add(originalAlphaD, multiply(normal, -a / normalMagSq));
-                  for (int i = 0; i < tangent.length; i++) {
-                    newAlphaD[i] = tangent[i];
-                  }
-//                  double newAlphaDerivSq = ArrayUtil.dot(tangent, tangent);
-//                  double originalAlphaDerivSq = ArrayUtil.dot(originalAlphaD, originalAlphaD);
-//                  assert(newAlphaDerivSq <= originalAlphaDerivSq);
-//                  assert(Math.abs(ArrayUtil.dot(tangent, normal)) <= 1e-4);
-//                  monitor.log(String.format("%s: normalMagSq = %s, newAlphaDerivSq = %s, originalAlphaDerivSq = %s", layer, normalMagSq, newAlphaDerivSq, originalAlphaDerivSq));
-                }
-              }
-              
-              
-            }
-          }
-        });
-        return newAlphaDerivative;
-      }
-      
-      @Override
-      public void reset() {
-        cursor.reset();
-      }
-    };
-  }
-  
-  /**
-   * Gets the Trust Region for a particular Layer
-   *
-   * @param layer the layer
-   * @return the region policy
-   */
-  public abstract TrustRegion getRegionPolicy(NNLayer layer);
   
   /**
    * Gets max history.
@@ -193,8 +92,111 @@ public abstract class TrustRegionStrategy implements OrientationStrategy<LineSea
    * @param maxHistory the max history
    * @return the max history
    */
-  public TrustRegionStrategy setMaxHistory(int maxHistory) {
+  public TrustRegionStrategy setMaxHistory(final int maxHistory) {
     this.maxHistory = maxHistory;
     return this;
+  }
+  
+  /**
+   * Gets the Trust Region for a particular Layer
+   *
+   * @param layer the layer
+   * @return the region policy
+   */
+  public abstract TrustRegion getRegionPolicy(NNLayer layer);
+  
+  @Override
+  public LineSearchCursor orient(final Trainable subject, final PointSample origin, final TrainingMonitor monitor) {
+    history.add(0, origin);
+    while (history.size() > maxHistory) {
+      history.remove(history.size() - 1);
+    }
+    final SimpleLineSearchCursor cursor = inner.orient(subject, origin, monitor);
+    return new LineSearchCursor() {
+      @Override
+      public String getDirectionType() {
+        return cursor.getDirectionType() + "+Trust";
+      }
+
+      @Override
+      public DeltaSet<NNLayer> position(final double alpha) {
+        reset();
+        final DeltaSet<NNLayer> adjustedPosVector = cursor.position(alpha);
+        project(adjustedPosVector, new TrainingMonitor());
+        return adjustedPosVector;
+      }
+  
+      public DeltaSet<NNLayer> project(final DeltaSet<NNLayer> deltaIn, final TrainingMonitor monitor) {
+        final DeltaSet<NNLayer> originalAlphaDerivative = cursor.direction;
+        final DeltaSet<NNLayer> newAlphaDerivative = originalAlphaDerivative.copy();
+        deltaIn.getMap().forEach((layer, buffer) -> {
+          final double[] delta = buffer.getDelta();
+          if (null == delta) return;
+          final double[] currentPosition = buffer.target;
+          final double[] originalAlphaD = originalAlphaDerivative.get(layer, currentPosition).getDelta();
+          final double[] newAlphaD = newAlphaDerivative.get(layer, currentPosition).getDelta();
+          final double[] proposedPosition = ArrayUtil.add(currentPosition, delta);
+          final TrustRegion region = getRegionPolicy(layer);
+          if (null != region) {
+            final Stream<double[]> zz = history.stream().map((final PointSample x) -> {
+              final DoubleBuffer<NNLayer> d = x.weights.getMap().get(layer);
+              final double[] z = null == d ? null : d.getDelta();
+              return z;
+            });
+            final double[] projectedPosition = region.project(zz.filter(x -> null != x).toArray(i -> new double[i][]), proposedPosition);
+            if (projectedPosition != proposedPosition) {
+              for (int i = 0; i < projectedPosition.length; i++) {
+                delta[i] = projectedPosition[i] - currentPosition[i];
+              }
+              final double[] normal = ArrayUtil.subtract(projectedPosition, proposedPosition);
+              final double normalMagSq = ArrayUtil.dot(normal, normal);
+//              monitor.log(String.format("%s: delta = %s, projectedPosition = %s, proposedPosition = %s, currentPosition = %s, normalMagSq = %s", layer,
+//                ArrayUtil.dot(delta,delta),
+//                ArrayUtil.dot(projectedPosition,projectedPosition),
+//                ArrayUtil.dot(proposedPosition,proposedPosition),
+//                ArrayUtil.dot(currentPosition,currentPosition),
+//                normalMagSq));
+              if (0 < normalMagSq) {
+                final double a = ArrayUtil.dot(originalAlphaD, normal);
+                if (a != -1) {
+                  final double[] tangent = ArrayUtil.add(originalAlphaD, ArrayUtil.multiply(normal, -a / normalMagSq));
+                  for (int i = 0; i < tangent.length; i++) {
+                    newAlphaD[i] = tangent[i];
+                  }
+//                  double newAlphaDerivSq = ArrayUtil.dot(tangent, tangent);
+//                  double originalAlphaDerivSq = ArrayUtil.dot(originalAlphaD, originalAlphaD);
+//                  assert(newAlphaDerivSq <= originalAlphaDerivSq);
+//                  assert(Math.abs(ArrayUtil.dot(tangent, normal)) <= 1e-4);
+//                  monitor.log(String.format("%s: normalMagSq = %s, newAlphaDerivSq = %s, originalAlphaDerivSq = %s", layer, normalMagSq, newAlphaDerivSq, originalAlphaDerivSq));
+                }
+              }
+  
+  
+            }
+          }
+        });
+        return newAlphaDerivative;
+      }
+
+      @Override
+      public void reset() {
+        cursor.reset();
+      }
+  
+      @Override
+      public LineSearchPoint step(final double alpha, final TrainingMonitor monitor) {
+        cursor.reset();
+        final DeltaSet<NNLayer> adjustedPosVector = cursor.position(alpha);
+        final DeltaSet<NNLayer> adjustedGradient = project(adjustedPosVector, monitor);
+        adjustedPosVector.accumulate(1);
+        final PointSample sample = subject.measure(true, monitor).setRate(alpha);
+        return new LineSearchPoint(sample, adjustedGradient.dot(sample.delta));
+      }
+    };
+  }
+  
+  @Override
+  public void reset() {
+    inner.reset();
   }
 }

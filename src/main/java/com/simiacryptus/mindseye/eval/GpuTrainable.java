@@ -48,6 +48,11 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    */
   protected final NNLayer network;
   /**
+   * The Data.
+   */
+  protected List<Tensor[]> data;
+  
+  /**
    * Between each iteration we have the option to initiate a garbage collection.
    * This is a good opportunity since the reachable object count will be at a minimum
    * between collections, making GC more efficient.
@@ -60,26 +65,21 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    * The Gc period.
    */
   protected double gcPeriod = 5.0;
-  
-  /**
-   * The Data.
-   */
-  protected List<Tensor[]> data;
   /**
    * The Mask.
    */
   boolean[] mask = null;
-  private int verbosity = 0;
   private long lastGc = 0;
+  private int verbosity = 0;
   
   /**
    * Instantiates a new Gpu trainable.
    *
    * @param network the network
    */
-  public GpuTrainable(NNLayer network) {
+  public GpuTrainable(final NNLayer network) {
     this.network = network;
-    this.data = null;
+    data = null;
   }
   
   /**
@@ -89,28 +89,28 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    * @param mask the mask
    * @return the nn result [ ]
    */
-  public static NNResult[] getNNContext(List<Tensor[]> data, boolean[] mask) {
+  public static NNResult[] getNNContext(final List<Tensor[]> data, final boolean[] mask) {
     if (null == data) throw new IllegalArgumentException();
     if (0 >= data.size()) throw new IllegalArgumentException();
-    int cols = data.get(0).length;
+    final int cols = data.get(0).length;
     return IntStream.range(0, cols).parallel().mapToObj(col -> {
-      Tensor[] tensors = IntStream.range(0, data.size()).mapToObj(row -> data.get(row)[col]).toArray(i -> new Tensor[i]);
+      final Tensor[] tensors = IntStream.range(0, data.size()).mapToObj(row -> data.get(row)[col]).toArray(i -> new Tensor[i]);
       if (null == mask || col >= mask.length || !mask[col]) {
         return new NNConstant(tensors);
       }
       else {
         return new NNResult(tensors) {
           @Override
-          public void accumulate(DeltaSet<NNLayer> buffer, TensorList delta) {
+          public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
             for (int index = 0; index < delta.length(); index++) {
-              Tensor dt = delta.get(index);
-              double[] d = dt.getData();
-              Tensor t = tensors[index];
-              double[] p = t.getData();
-              buffer.get(new PlaceholderLayer(p), p).addInPlace(d);
+              final Tensor dt = delta.get(index);
+              final double[] d = dt.getData();
+              final Tensor t = tensors[index];
+              final double[] p = t.getData();
+              buffer.get(new PlaceholderLayer<double[]>(p), p).addInPlace(d);
             }
           }
-          
+  
           @Override
           public boolean isAlive() {
             return true;
@@ -120,8 +120,82 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
     }).toArray(x1 -> new NNResult[x1]);
   }
   
+  /**
+   * Eval point sample.
+   *
+   * @param list      the list
+   * @param nncontext the nncontext
+   * @param monitor   the monitor
+   * @return the point sample
+   */
+  protected PointSample eval(final List<Tensor[]> list, final CudaExecutionContext nncontext, final TrainingMonitor monitor) {
+    final TimedResult<PointSample> timedResult = TimedResult.time(() -> {
+      final NNResult[] nnContext = GpuTrainable.getNNContext(list, mask);
+      final NNResult result = network.eval(nncontext, nnContext);
+      final TensorList resultData = result.getData();
+      assert resultData.stream().allMatch(x -> x.dim() == 1);
+      assert resultData.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite));
+      final DoubleSummaryStatistics statistics = resultData.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).summaryStatistics();
+      final double sum = statistics.getSum();
+      final DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
+      result.accumulate(xxx, 1.0);
+      //System.out.println(String.format("Evaluated to %s delta buffers, %s mag", DeltaSet<NNLayer>.getMap().size(), DeltaSet<NNLayer>.getMagnitude()));
+      return new PointSample(xxx, new StateSet<NNLayer>(xxx), sum, 0.0, list.size());
+    });
+    if (null != monitor && verbosity() > 0) {
+      monitor.log(String.format("Device %s completed %s items in %.3f sec", nncontext.toString(), list.size(), timedResult.timeNanos / 1e9));
+    }
+    return timedResult.result.normalize();
+  }
+  
   @Override
-  public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
+  public Tensor[][] getData() {
+    return data.toArray(new Tensor[][]{});
+  }
+  
+  /**
+   * Gets gc period.
+   *
+   * @return the gc period
+   */
+  public double getGcPeriod() {
+    return gcPeriod;
+  }
+  
+  /**
+   * Sets gc period.
+   *
+   * @param gcPeriod the gc period
+   */
+  public void setGcPeriod(final double gcPeriod) {
+    this.gcPeriod = gcPeriod;
+  }
+  
+  @Override
+  public boolean[] getMask() {
+    return mask;
+  }
+  
+  /**
+   * Is gc each iteration boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isGcEachIteration() {
+    return gcEachIteration;
+  }
+  
+  /**
+   * Sets gc each iteration.
+   *
+   * @param gcEachIteration the gc each iteration
+   */
+  public void setGcEachIteration(final boolean gcEachIteration) {
+    this.gcEachIteration = gcEachIteration;
+  }
+  
+  @Override
+  public PointSample measure(final boolean isStatic, final TrainingMonitor monitor) {
     return measure(3, isStatic, monitor);
   }
   
@@ -133,19 +207,19 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    * @param monitor  the monitor
    * @return the point sample
    */
-  public PointSample measure(int retries, boolean isStatic, TrainingMonitor monitor) {
+  public PointSample measure(final int retries, final boolean isStatic, final TrainingMonitor monitor) {
     try {
       assert !data.isEmpty();
-      
-      TimedResult<PointSample> timedResult = TimedResult.time(() -> GpuController.INSTANCE.distribute(data,
+  
+      final TimedResult<PointSample> timedResult = TimedResult.time(() -> GpuController.INSTANCE.distribute(data,
         (list, dev) -> eval(list, dev, monitor),
         (a, b) -> a.addInPlace(b)
       ));
-      //          System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
+      //          System.out.println(String.format("Evaluated to %s delta arrays", DeltaSet<NNLayer>.run.size()));
       if (null != monitor && verbosity() > 1) {
         monitor.log(String.format("Evaluated %s items in %.4fs (%s/%s)", data.size(), timedResult.timeNanos / 1e9, timedResult.result.getMean(), timedResult.result.delta.getMagnitude()));
       }
-      assert (null != timedResult.result);
+      assert null != timedResult.result;
       // Between each iteration is a great time to collect garbage, since the reachable object count will be at a low point.
       // Recommended JVM flags: -XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC
       if (gcEachIteration && TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - lastGc) > gcPeriod) {
@@ -153,22 +227,22 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
         GpuController.INSTANCE.cleanMemory();
       }
       return timedResult.result;
-    } catch (Exception e) {
+    } catch (final Exception e) {
       RecycleBin.DOUBLES.printNetProfiling(System.err);
       if (retries > 0) {
         lastGc = System.currentTimeMillis();
         GpuController.INSTANCE.cleanMemory();
         synchronized (CudaResource.gpuGeneration) {
-          for (Map.Entry<CudaExecutionContext, ExecutorService> entry : GpuController.INSTANCE.getGpuDriverThreads().asMap().entrySet()) {
+          for (final Map.Entry<CudaExecutionContext, ExecutorService> entry : GpuController.INSTANCE.getGpuDriverThreads().asMap().entrySet()) {
             CudaResource.gpuGeneration.incrementAndGet();
             try {
               entry.getValue().submit(() -> {
                 CudaPtr.getGpuStats(entry.getKey().getDeviceNumber()).usedMemory.set(0);
                 return CuDNN.cudaDeviceReset();
               }).get();
-            } catch (InterruptedException e1) {
+            } catch (final InterruptedException e1) {
               throw new GpuError(e1);
-            } catch (ExecutionException e1) {
+            } catch (final ExecutionException e1) {
               throw new GpuError(e1);
             }
           }
@@ -186,50 +260,11 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
     }
   }
   
-  /**
-   * Eval point sample.
-   *
-   * @param list      the list
-   * @param nncontext the nncontext
-   * @param monitor   the monitor
-   * @return the point sample
-   */
-  protected PointSample eval(List<Tensor[]> list, CudaExecutionContext nncontext, TrainingMonitor monitor) {
-    TimedResult<PointSample> timedResult = TimedResult.time(() -> {
-      NNResult[] nnContext = getNNContext(list, mask);
-      NNResult result = network.eval(nncontext, nnContext);
-      TensorList resultData = result.getData();
-      assert (resultData.stream().allMatch(x -> x.dim() == 1));
-      assert (resultData.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
-      DoubleSummaryStatistics statistics = resultData.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).summaryStatistics();
-      double sum = statistics.getSum();
-      DeltaSet<NNLayer> deltaSet = new DeltaSet();
-      result.accumulate(deltaSet, 1.0);
-      //System.out.println(String.format("Evaluated to %s delta buffers, %s mag", deltaSet.getMap().size(), deltaSet.getMagnitude()));
-      return new PointSample(deltaSet, new StateSet(deltaSet), sum, 0.0, list.size());
-    });
-    if (null != monitor && verbosity() > 0) {
-      monitor.log(String.format("Device %s completed %s items in %.3f sec", nncontext.toString(), list.size(), timedResult.timeNanos / 1e9));
-    }
-    return timedResult.result.normalize();
-  }
-  
-  /**
-   * Is gc each iteration boolean.
-   *
-   * @return the boolean
-   */
-  public boolean isGcEachIteration() {
-    return gcEachIteration;
-  }
-  
-  /**
-   * Sets gc each iteration.
-   *
-   * @param gcEachIteration the gc each iteration
-   */
-  public void setGcEachIteration(boolean gcEachIteration) {
-    this.gcEachIteration = gcEachIteration;
+  @Override
+  public Trainable setData(final List<Tensor[]> sampledData) {
+    assert !sampledData.isEmpty();
+    data = sampledData;
+    return this;
   }
   
   /**
@@ -237,19 +272,25 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    *
    * @param data the data
    */
-  protected void setDataSupplier(List<? extends Supplier<Tensor[]>> data) {
+  protected void setDataSupplier(final List<? extends Supplier<Tensor[]>> data) {
     setData(data.stream().parallel().map(x -> x.get()).collect(Collectors.toList()));
   }
   
-  public Trainable setData(List<Tensor[]> sampledData) {
-    assert !sampledData.isEmpty();
-    this.data = sampledData;
+  @Override
+  public TrainableDataMask setMask(final boolean... mask) {
+    this.mask = mask;
     return this;
   }
   
-  @Override
-  public Tensor[][] getData() {
-    return data.toArray(new Tensor[][]{});
+  /**
+   * Sets verbose.
+   *
+   * @param verbose the verbose
+   * @return the verbose
+   */
+  public GpuTrainable setVerbosity(final int verbose) {
+    verbosity = verbose;
+    return this;
   }
   
   /**
@@ -259,45 +300,5 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    */
   public int verbosity() {
     return verbosity;
-  }
-  
-  /**
-   * Sets verbose.
-   *
-   * @param verbose the verbose
-   * @return the verbose
-   */
-  public GpuTrainable setVerbosity(int verbose) {
-    this.verbosity = verbose;
-    return this;
-  }
-  
-  @Override
-  public boolean[] getMask() {
-    return mask;
-  }
-  
-  @Override
-  public TrainableDataMask setMask(boolean... mask) {
-    this.mask = mask;
-    return this;
-  }
-  
-  /**
-   * Gets gc period.
-   *
-   * @return the gc period
-   */
-  public double getGcPeriod() {
-    return gcPeriod;
-  }
-  
-  /**
-   * Sets gc period.
-   *
-   * @param gcPeriod the gc period
-   */
-  public void setGcPeriod(double gcPeriod) {
-    this.gcPeriod = gcPeriod;
   }
 }

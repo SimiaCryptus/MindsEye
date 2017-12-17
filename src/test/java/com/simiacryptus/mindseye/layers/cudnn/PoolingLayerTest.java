@@ -37,13 +37,8 @@ public abstract class PoolingLayerTest extends CudnnLayerTestBase {
    *
    * @param precision the precision
    */
-  public PoolingLayerTest(Precision precision) {
+  public PoolingLayerTest(final Precision precision) {
     this.precision = precision;
-  }
-  
-  @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new PoolingLayer().setPrecision(precision);
   }
   
   @Override
@@ -51,6 +46,11 @@ public abstract class PoolingLayerTest extends CudnnLayerTestBase {
     return new int[][]{
       {4, 4, 2}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new PoolingLayer().setPrecision(precision);
   }
   
   @Override
@@ -82,11 +82,11 @@ public abstract class PoolingLayerTest extends CudnnLayerTestBase {
     public Float() {
       super(Precision.Float);
     }
-    
+  
     @Override
     public SingleDerivativeTester getDerivativeTester() {
       return new SingleDerivativeTester(1e-2, 1e-3);
     }
-    
+  
   }
 }

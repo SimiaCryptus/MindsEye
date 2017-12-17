@@ -48,30 +48,34 @@ public class CIFAR10 {
   
   private static final URI source = URI.create("https://www.cs.toronto.edu/~kriz/");
   
-  private static final DataLoader training = new DataLoader<LabeledObject<Tensor>>() {
+  private static final DataLoader<LabeledObject<Tensor>> training = new DataLoader<LabeledObject<Tensor>>() {
     @Override
-    protected void read(List<LabeledObject<Tensor>> queue) {
+    protected void read(final List<LabeledObject<Tensor>> queue) {
       try {
         InputStream stream = null;
         try {
-          stream = Util.cache(source.resolve("cifar-10-binary.tar.gz"));
+          stream = Util.cache(CIFAR10.source.resolve("cifar-10-binary.tar.gz"));
         } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
           throw new RuntimeException(e);
         }
-        int recordSize = 3073;
-        GZIPInputStream inflatedInput = new GZIPInputStream(stream);
-        TarArchiveInputStream tar = new TarArchiveInputStream(inflatedInput);
+        final int recordSize = 3073;
+        final GZIPInputStream inflatedInput = new GZIPInputStream(stream);
+        final TarArchiveInputStream tar = new TarArchiveInputStream(inflatedInput);
         while (0 < inflatedInput.available()) {
-          if (Thread.interrupted()) break;
-          TarArchiveEntry nextTarEntry = tar.getNextTarEntry();
-          if (null == nextTarEntry) break;
-          BinaryChunkIterator iterator = new BinaryChunkIterator(new DataInputStream(new BoundedInputStream(tar, nextTarEntry.getSize())), recordSize);
-          for (byte[] chunk : (Iterable<byte[]>) () -> iterator) {
-            queue.add(toImage(chunk).map(img -> Tensor.fromRGB(img)));
+          if (Thread.interrupted()) {
+            break;
+          }
+          final TarArchiveEntry nextTarEntry = tar.getNextTarEntry();
+          if (null == nextTarEntry) {
+            break;
+          }
+          final BinaryChunkIterator iterator = new BinaryChunkIterator(new DataInputStream(new BoundedInputStream(tar, nextTarEntry.getSize())), recordSize);
+          for (final byte[] chunk : (Iterable<byte[]>) () -> iterator) {
+            queue.add(CIFAR10.toImage(chunk).map(img -> Tensor.fromRGB(img)));
           }
         }
         System.err.println("Done loading");
-      } catch (IOException e) {
+      } catch (final IOException e) {
         e.printStackTrace();
         throw new RuntimeException(e);
       }
@@ -79,20 +83,10 @@ public class CIFAR10 {
   };
   
   /**
-   * Training data stream stream.
-   *
-   * @return the stream
-   * @throws IOException the io exception
-   */
-  public static Stream<LabeledObject<Tensor>> trainingDataStream() throws IOException {
-    return training.stream();
-  }
-  
-  /**
    * Halt.
    */
   public static void halt() {
-    training.stop();
+    CIFAR10.training.stop();
   }
   
   private static LabeledObject<BufferedImage> toImage(final byte[] b) {
@@ -106,7 +100,17 @@ public class CIFAR10 {
         img.setRGB(x, y, c);
       }
     }
-    return new LabeledObject<BufferedImage>(img, Arrays.toString(new byte[]{b[0]}));
+    return new LabeledObject<>(img, Arrays.toString(new byte[]{b[0]}));
+  }
+  
+  /**
+   * Training data stream stream.
+   *
+   * @return the stream
+   * @throws IOException the io exception
+   */
+  public static Stream<LabeledObject<Tensor>> trainingDataStream() throws IOException {
+    return CIFAR10.training.stream();
   }
   
   

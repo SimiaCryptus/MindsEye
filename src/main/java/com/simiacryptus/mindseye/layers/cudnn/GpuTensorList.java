@@ -24,13 +24,11 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
 import jcuda.jcudnn.cudnnTensorDescriptor;
+import jcuda.jcudnn.cudnnTensorFormat;
 
 import java.util.Arrays;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import static com.simiacryptus.mindseye.layers.cudnn.CuDNN.cudnnAddTensor;
-import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
 /**
  * The type Cu dnn double tensor list.
@@ -38,17 +36,17 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 public class GpuTensorList implements TensorList {
   
   /**
-   * The Ptr.
+   * The Dimensions.
    */
-  public final CudaPtr ptr;
+  public final int[] dimensions;
   /**
    * The Length.
    */
   public final int length;
   /**
-   * The Dimensions.
+   * The Ptr.
    */
-  public final int[] dimensions;
+  public final CudaPtr ptr;
   /**
    * The Cudnn handle.
    */
@@ -65,7 +63,7 @@ public class GpuTensorList implements TensorList {
    * @param cudnnHandle the cudnn handle
    * @param precision   the precision
    */
-  public GpuTensorList(CudaPtr ptr, int length, int[] dimensions, jcuda.jcudnn.cudnnHandle cudnnHandle, Precision precision) {
+  public GpuTensorList(final CudaPtr ptr, final int length, final int[] dimensions, final jcuda.jcudnn.cudnnHandle cudnnHandle, final Precision precision) {
     this.precision = precision;
     if (null == ptr) throw new IllegalArgumentException("ptr");
     if (null == ptr.getPtr()) throw new IllegalArgumentException("ptr.getPtr()");
@@ -73,10 +71,70 @@ public class GpuTensorList implements TensorList {
     this.length = length;
     this.dimensions = dimensions;
     this.cudnnHandle = cudnnHandle;
-    assert (ptr.size == length * Tensor.dim(dimensions) * precision.size);
+    assert ptr.size == length * Tensor.dim(dimensions) * precision.size;
     assert ptr.getPtr() != null;
     //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-    assert !System.getProperties().containsKey("safe") || this.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+    assert !System.getProperties().containsKey("safe") || stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+  }
+  
+  @Override
+  public void accum(final TensorList right) {
+    assert length() == right.length();
+    if (right instanceof GpuTensorList && ((GpuTensorList) right).precision == precision) {
+      final GpuTensorList nativeRight = (GpuTensorList) right;
+      assert cudnnHandle == nativeRight.cudnnHandle;
+      final CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
+      CuDNN.handle(CuDNN.cudnnAddTensor(cudnnHandle,
+        precision.getPointer(1.0), size.getPtr(), nativeRight.ptr.getPtr(),
+        precision.getPointer(1.0), size.getPtr(), GpuTensorList.this.ptr.getPtr()));
+      size.finalize();
+      nativeRight.ptr.finalize(); // Make this function destructive to both arguments
+    }
+    else {
+      IntStream.range(0, length()).forEach(i -> {
+        get(i).accumulate(right.get(i));
+      });
+    }
+  }
+  
+  @Override
+  public TensorList add(final TensorList right) {
+    assert length() == right.length();
+    if (right instanceof GpuTensorList && ((GpuTensorList) right).precision == precision) {
+      final GpuTensorList nativeRight = (GpuTensorList) right;
+      assert cudnnHandle == nativeRight.cudnnHandle;
+      final CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
+      CuDNN.handle(CuDNN.cudnnAddTensor(cudnnHandle,
+        precision.getPointer(1.0), size.getPtr(), nativeRight.ptr.getPtr(),
+        precision.getPointer(1.0), size.getPtr(), GpuTensorList.this.ptr.getPtr()));
+      size.finalize();
+      nativeRight.ptr.finalize(); // Make this function destructive to both arguments
+      return this;
+    }
+    return new TensorArray(
+      IntStream.range(0, length()).mapToObj(i -> {
+        return get(i).add(right.get(i));
+      }).toArray(i -> new Tensor[i])
+    );
+  }
+  
+  @Override
+  public Tensor get(final int i) {
+    return inner().get(i);
+  }
+  
+  @Override
+  public int[] getDimensions() {
+    return dimensions;
+  }
+  
+  /**
+   * Gets precision.
+   *
+   * @return the precision
+   */
+  public Precision getPrecision() {
+    return precision;
   }
   
   /**
@@ -88,14 +146,14 @@ public class GpuTensorList implements TensorList {
     if (null == _inner) {
       synchronized (this) {
         if (null == _inner) {
-          int itemLength = Tensor.dim(dimensions);
+          final int itemLength = Tensor.dim(dimensions);
           final double[] outputBuffer = RecycleBin.DOUBLES.obtain(itemLength * length);
-          assert (0 < outputBuffer.length);
-          Tensor[] output = IntStream.range(0, length)
+          assert 0 < outputBuffer.length;
+          final Tensor[] output = IntStream.range(0, length)
             .mapToObj(dataIndex -> new Tensor(dimensions))
             .toArray(i -> new Tensor[i]);
-          double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
-          assert (length == outputBuffers.length);
+          final double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
+          assert length == outputBuffers.length;
           ptr.read(precision, outputBuffer);
           for (int i = 0; i < length; i++) {
             assert itemLength == outputBuffers[0 + i].length;
@@ -111,78 +169,20 @@ public class GpuTensorList implements TensorList {
   }
   
   @Override
-  public TensorList add(TensorList right) {
-    assert (length() == right.length());
-    if (right instanceof GpuTensorList && ((GpuTensorList) right).precision == precision) {
-      GpuTensorList nativeRight = (GpuTensorList) right;
-      assert (cudnnHandle == nativeRight.cudnnHandle);
-      CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(precision.code, CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
-      CuDNN.handle(cudnnAddTensor(cudnnHandle,
-        precision.getPointer(1.0), size.getPtr(), nativeRight.ptr.getPtr(),
-        precision.getPointer(1.0), size.getPtr(), GpuTensorList.this.ptr.getPtr()));
-      size.finalize();
-      nativeRight.ptr.finalize(); // Make this function destructive to both arguments
-      return this;
-    }
-    return new TensorArray(
-      IntStream.range(0, length()).mapToObj(i -> {
-        return get(i).add(right.get(i));
-      }).toArray(i -> new Tensor[i])
-    );
-  }
-  
-  @Override
-  public void accum(TensorList right) {
-    assert (length() == right.length());
-    if (right instanceof GpuTensorList && ((GpuTensorList) right).precision == precision) {
-      GpuTensorList nativeRight = (GpuTensorList) right;
-      assert (cudnnHandle == nativeRight.cudnnHandle);
-      CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(precision.code, CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
-      CuDNN.handle(cudnnAddTensor(cudnnHandle,
-        precision.getPointer(1.0), size.getPtr(), nativeRight.ptr.getPtr(),
-        precision.getPointer(1.0), size.getPtr(), GpuTensorList.this.ptr.getPtr()));
-      size.finalize();
-      nativeRight.ptr.finalize(); // Make this function destructive to both arguments
-    }
-    else {
-      IntStream.range(0, length()).forEach(i -> {
-        get(i).accum(right.get(i));
-      });
-    }
-  }
-  
-  @Override
-  public void recycle() {
-    ptr.finalize();
-    if (null != _inner) _inner.recycle();
-  }
-  
-  @Override
-  public Tensor get(int i) {
-    return inner().get(i);
-  }
-  
-  @Override
   public int length() {
     return length;
   }
   
   @Override
-  public Stream<Tensor> stream() {
-    return inner().stream();
+  public void recycle() {
+    ptr.finalize();
+    if (null != _inner) {
+      _inner.recycle();
+    }
   }
   
   @Override
-  public int[] getDimensions() {
-    return dimensions;
-  }
-  
-  /**
-   * Gets precision.
-   *
-   * @return the precision
-   */
-  public Precision getPrecision() {
-    return precision;
+  public Stream<Tensor> stream() {
+    return inner().stream();
   }
 }

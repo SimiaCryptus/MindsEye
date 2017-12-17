@@ -24,16 +24,8 @@ import com.google.gson.JsonObject;
 /**
  * The type Log activation layer.
  */
+@SuppressWarnings("serial")
 public final class LogActivationLayer extends SimpleActivationLayer<LogActivationLayer> {
-  
-  /**
-   * Instantiates a new Log activation layer.
-   *
-   * @param id the id
-   */
-  protected LogActivationLayer(JsonObject id) {
-    super(id);
-  }
   
   /**
    * Instantiates a new Log activation layer.
@@ -42,17 +34,22 @@ public final class LogActivationLayer extends SimpleActivationLayer<LogActivatio
   }
   
   /**
+   * Instantiates a new Log activation layer.
+   *
+   * @param id the id
+   */
+  protected LogActivationLayer(final JsonObject id) {
+    super(id);
+  }
+  
+  /**
    * From json log activation layer.
    *
    * @param json the json
    * @return the log activation layer
    */
-  public static LogActivationLayer fromJson(JsonObject json) {
+  public static LogActivationLayer fromJson(final JsonObject json) {
     return new LogActivationLayer(json);
-  }
-  
-  public JsonObject getJson() {
-    return super.getJsonStub();
   }
   
   @Override
@@ -75,6 +72,11 @@ public final class LogActivationLayer extends SimpleActivationLayer<LogActivatio
       results[0] = 0;
       results[1] = 0;
     }
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
 }

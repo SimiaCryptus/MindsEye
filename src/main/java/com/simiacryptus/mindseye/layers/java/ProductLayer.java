@@ -31,19 +31,11 @@ import java.util.stream.IntStream;
 /**
  * The type Product layer.
  */
+@SuppressWarnings("serial")
 public class ProductLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ProductLayer.class);
-  
-  /**
-   * Instantiates a new Product layer.
-   *
-   * @param id the id
-   */
-  protected ProductLayer(JsonObject id) {
-    super(id);
-  }
   
   /**
    * Instantiates a new Product layer.
@@ -52,23 +44,28 @@ public class ProductLayer extends NNLayer {
   }
   
   /**
+   * Instantiates a new Product layer.
+   *
+   * @param id the id
+   */
+  protected ProductLayer(final JsonObject id) {
+    super(id);
+  }
+  
+  /**
    * From json product layer.
    *
    * @param json the json
    * @return the product layer
    */
-  public static ProductLayer fromJson(JsonObject json) {
+  public static ProductLayer fromJson(final JsonObject json) {
     return new ProductLayer(json);
   }
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-  
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    double[] sum_A = new double[inObj[0].getData().length()];
-    Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final double[] sum_A = new double[inObj[0].getData().length()];
+    final Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
       double sum = 1;
       for (final NNResult element : inObj) {
         final double[] input = element.getData().get(dataIndex).getData();
@@ -81,10 +78,10 @@ public class ProductLayer extends NNLayer {
     }).toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         for (final NNResult in_l : inObj) {
           if (in_l.isAlive()) {
-            Tensor[] passbackA = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
+            final Tensor[] passbackA = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
               final double delta = data.get(dataIndex).get(0);
               final Tensor passback = new Tensor(in_l.getData().get(dataIndex).getDimensions());
               for (int i = 0; i < in_l.getData().get(dataIndex).dim(); i++) {
@@ -107,6 +104,11 @@ public class ProductLayer extends NNLayer {
       }
       
     };
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

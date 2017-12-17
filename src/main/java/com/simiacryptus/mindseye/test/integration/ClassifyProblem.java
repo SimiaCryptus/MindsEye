@@ -51,10 +51,10 @@ public class ClassifyProblem implements Problem {
   
   private final int batchSize = 10000;
   private final int categories;
-  private final FwdNetworkFactory fwdFactory;
-  private final OptimizationStrategy optimizer;
-  private final List<StepRecord> history = new ArrayList<>();
   private final ImageProblemData data;
+  private final FwdNetworkFactory fwdFactory;
+  private final List<StepRecord> history = new ArrayList<>();
+  private final OptimizationStrategy optimizer;
   private int timeoutMinutes = 1;
   
   /**
@@ -65,7 +65,7 @@ public class ClassifyProblem implements Problem {
    * @param data       the data
    * @param categories the categories
    */
-  public ClassifyProblem(FwdNetworkFactory fwdFactory, OptimizationStrategy optimizer, ImageProblemData data, int categories) {
+  public ClassifyProblem(final FwdNetworkFactory fwdFactory, final OptimizationStrategy optimizer, final ImageProblemData data, final int categories) {
     this.fwdFactory = fwdFactory;
     this.optimizer = optimizer;
     this.data = data;
@@ -73,124 +73,9 @@ public class ClassifyProblem implements Problem {
   }
   
   
-  public ClassifyProblem run(NotebookOutput log) {
-    TrainingMonitor monitor = TestUtil.getMonitor(history);
-    Tensor[][] trainingData = getTrainingData(log);
-    
-    DAGNetwork network = fwdFactory.imageToVector(log, categories);
-    log.h3("Network Diagram");
-    log.code(() -> {
-      return Graphviz.fromGraph(TestUtil.toGraph(network))
-        .height(400).width(600).render(Format.PNG).toImage();
-    });
-    
-    log.h3("Training");
-    SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-    TestUtil.instrumentPerformance(log, supervisedNetwork);
-    ValidatingTrainer trainer = optimizer.train(log,
-      new SampledArrayTrainable(trainingData, supervisedNetwork, trainingData.length / 2, batchSize),
-      new ArrayTrainable(trainingData, supervisedNetwork, batchSize), monitor);
-    log.code(() -> {
-      trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(10000).run();
-    });
-    if (!history.isEmpty()) {
-      log.code(() -> {
-        return TestUtil.plot(history);
-      });
-      log.code(() -> {
-        return TestUtil.plotTime(history);
-      });
-    }
-    TestUtil.extractPerformance(log, supervisedNetwork);
-    String modelName = "classification_model" + modelNo++ + ".json";
-    log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
-    
-    log.h3("Validation");
-    log.p("If we run our model against the entire validation dataset, we get this accuracy:");
-    log.code(() -> {
-      return data.validationData().mapToDouble(labeledObject ->
-        predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
-        .average().getAsDouble() * 100;
-    });
-    
-    log.p("Let's examine some incorrectly predicted results in more detail:");
-    log.code(() -> {
-      try {
-        TableOutput table = new TableOutput();
-        data.validationData().map(labeledObject -> {
-          return toRow(log, labeledObject, GpuController.call(ctx -> network.eval(ctx, labeledObject.data)).getData().get(0).getData());
-        }).filter(x -> null != x).limit(10).forEach(table::putRow);
-        return table;
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    });
-    return this;
-  }
-  
-  /**
-   * To row linked hash map.
-   *
-   * @param log              the log
-   * @param labeledObject    the labeled object
-   * @param predictionSignal the prediction signal
-   * @return the linked hash map
-   */
-  public LinkedHashMap<String, Object> toRow(NotebookOutput log, LabeledObject<Tensor> labeledObject, double[] predictionSignal) {
-    try {
-      int actualCategory = parse(labeledObject.label);
-      int[] predictionList = IntStream.range(0, categories).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
-      if (predictionList[0] == actualCategory) return null; // We will only examine mispredicted rows
-      LinkedHashMap<String, Object> row = new LinkedHashMap<String, Object>();
-      row.put("Image", log.image(labeledObject.data.toImage(), labeledObject.label));
-      row.put("Prediction", Arrays.stream(predictionList).limit(3)
-        .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
-        .reduce((a, b) -> a + ", " + b).get());
-      return row;
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-  
-  /**
-   * Parse int.
-   *
-   * @param label the label
-   * @return the int
-   */
-  public int parse(String label) {
-    return Integer.parseInt(label.replaceAll("[^\\d]", ""));
-  }
-  
-  /**
-   * Predict int [ ].
-   *
-   * @param network       the network
-   * @param labeledObject the labeled object
-   * @return the int [ ]
-   */
-  public int[] predict(NNLayer network, LabeledObject<Tensor> labeledObject) {
-    double[] predictionSignal = GpuController.call(ctx -> network.eval(ctx, labeledObject.data).getData().get(0).getData());
-    return IntStream.range(0, categories).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
-  }
-  
-  /**
-   * Get training data tensor [ ] [ ].
-   *
-   * @param log the log
-   * @return the tensor [ ] [ ]
-   */
-  public Tensor[][] getTrainingData(NotebookOutput log) {
-    try {
-      return data.trainingData().map(labeledObject -> {
-        Tensor categoryTensor = new Tensor(categories);
-        int category = parse(labeledObject.label);
-        categoryTensor.set(category, 1);
-        return new Tensor[]{labeledObject.data, categoryTensor};
-      }).toArray(i -> new Tensor[i][]);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  @Override
+  public List<StepRecord> getHistory() {
+    return history;
   }
   
   /**
@@ -208,12 +93,129 @@ public class ClassifyProblem implements Problem {
    * @param timeoutMinutes the timeout minutes
    * @return the timeout minutes
    */
-  public ClassifyProblem setTimeoutMinutes(int timeoutMinutes) {
+  public ClassifyProblem setTimeoutMinutes(final int timeoutMinutes) {
     this.timeoutMinutes = timeoutMinutes;
     return this;
   }
   
-  public List<StepRecord> getHistory() {
-    return history;
+  /**
+   * Get training data tensor [ ] [ ].
+   *
+   * @param log the log
+   * @return the tensor [ ] [ ]
+   */
+  public Tensor[][] getTrainingData(final NotebookOutput log) {
+    try {
+      return data.trainingData().map(labeledObject -> {
+        final Tensor categoryTensor = new Tensor(categories);
+        final int category = parse(labeledObject.label);
+        categoryTensor.set(category, 1);
+        return new Tensor[]{labeledObject.data, categoryTensor};
+      }).toArray(i -> new Tensor[i][]);
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  /**
+   * Parse int.
+   *
+   * @param label the label
+   * @return the int
+   */
+  public int parse(final String label) {
+    return Integer.parseInt(label.replaceAll("[^\\d]", ""));
+  }
+  
+  /**
+   * Predict int [ ].
+   *
+   * @param network       the network
+   * @param labeledObject the labeled object
+   * @return the int [ ]
+   */
+  public int[] predict(final NNLayer network, final LabeledObject<Tensor> labeledObject) {
+    final double[] predictionSignal = GpuController.call(ctx -> network.eval(ctx, labeledObject.data).getData().get(0).getData());
+    return IntStream.range(0, categories).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
+  }
+  
+  @Override
+  public ClassifyProblem run(final NotebookOutput log) {
+    final TrainingMonitor monitor = TestUtil.getMonitor(history);
+    final Tensor[][] trainingData = getTrainingData(log);
+    
+    final DAGNetwork network = fwdFactory.imageToVector(log, categories);
+    log.h3("Network Diagram");
+    log.code(() -> {
+      return Graphviz.fromGraph(TestUtil.toGraph(network))
+        .height(400).width(600).render(Format.PNG).toImage();
+    });
+
+    log.h3("Training");
+    final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
+    TestUtil.instrumentPerformance(log, supervisedNetwork);
+    final ValidatingTrainer trainer = optimizer.train(log,
+      new SampledArrayTrainable(trainingData, supervisedNetwork, trainingData.length / 2, batchSize),
+      new ArrayTrainable(trainingData, supervisedNetwork, batchSize), monitor);
+    log.code(() -> {
+      trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(10000).run();
+    });
+    if (!history.isEmpty()) {
+      log.code(() -> {
+        return TestUtil.plot(history);
+      });
+      log.code(() -> {
+        return TestUtil.plotTime(history);
+      });
+    }
+    TestUtil.extractPerformance(log, supervisedNetwork);
+    final String modelName = "classification_model" + ClassifyProblem.modelNo++ + ".json";
+    log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
+
+    log.h3("Validation");
+    log.p("If we run our model against the entire validation dataset, we get this accuracy:");
+    log.code(() -> {
+      return data.validationData().mapToDouble(labeledObject ->
+        predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
+        .average().getAsDouble() * 100;
+    });
+
+    log.p("Let's examine some incorrectly predicted results in more detail:");
+    log.code(() -> {
+      try {
+        final TableOutput table = new TableOutput();
+        data.validationData().map(labeledObject -> {
+          return toRow(log, labeledObject, GpuController.call(ctx -> network.eval(ctx, labeledObject.data)).getData().get(0).getData());
+        }).filter(x -> null != x).limit(10).forEach(table::putRow);
+        return table;
+      } catch (final IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
+    return this;
+  }
+  
+  /**
+   * To row linked hash map.
+   *
+   * @param log              the log
+   * @param labeledObject    the labeled object
+   * @param predictionSignal the prediction signal
+   * @return the linked hash map
+   */
+  public LinkedHashMap<String, Object> toRow(final NotebookOutput log, final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
+    try {
+      final int actualCategory = parse(labeledObject.label);
+      final int[] predictionList = IntStream.range(0, categories).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
+      if (predictionList[0] == actualCategory) return null; // We will only examine mispredicted rows
+      final LinkedHashMap<String, Object> row = new LinkedHashMap<>();
+      row.put("Image", log.image(labeledObject.data.toImage(), labeledObject.label));
+      row.put("Prediction", Arrays.stream(predictionList).limit(3)
+        .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
+        .reduce((a, b) -> a + ", " + b).get());
+      return row;
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

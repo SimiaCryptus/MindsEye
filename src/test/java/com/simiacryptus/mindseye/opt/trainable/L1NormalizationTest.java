@@ -39,17 +39,17 @@ import java.util.concurrent.TimeUnit;
 public class L1NormalizationTest extends MnistTestBase {
   
   @Override
-  public void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor) {
+  public void train(final NotebookOutput log, final NNLayer network, final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.code(() -> {
-      SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-      Trainable trainable = new L12Normalizer(new SampledArrayTrainable(trainingData, supervisedNetwork, 1000)) {
+      final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
+      final Trainable trainable = new L12Normalizer(new SampledArrayTrainable(trainingData, supervisedNetwork, 1000)) {
         @Override
-        protected double getL1(NNLayer layer) {
+        protected double getL1(final NNLayer layer) {
           return 1.0;
         }
         
         @Override
-        protected double getL2(NNLayer layer) {
+        protected double getL2(final NNLayer layer) {
           return 0;
         }
       };

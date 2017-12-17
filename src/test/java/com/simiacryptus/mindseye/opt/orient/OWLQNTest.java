@@ -38,10 +38,10 @@ import java.util.concurrent.TimeUnit;
 public class OWLQNTest extends MnistTestBase {
   
   @Override
-  public void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor) {
+  public void train(final NotebookOutput log, final NNLayer network, final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.code(() -> {
-      SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-      Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 10000);
+      final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
+      final Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 10000);
       return new IterativeTrainer(trainable)
         .setIterationsPerSample(100)
         .setMonitor(monitor)

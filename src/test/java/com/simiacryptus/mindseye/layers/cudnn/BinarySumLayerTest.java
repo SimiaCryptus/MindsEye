@@ -37,13 +37,8 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
    *
    * @param precision the precision
    */
-  public BinarySumLayerTest(Precision precision) {
+  public BinarySumLayerTest(final Precision precision) {
     this.precision = precision;
-  }
-  
-  @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new BinarySumLayer().setPrecision(precision);
   }
   
   @Override
@@ -51,6 +46,11 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
     return new int[][]{
       {2, 2, 1}, {2, 2, 1}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new BinarySumLayer().setPrecision(precision);
   }
   
   @Override
@@ -82,35 +82,12 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
     public Double_Subtract() {
       super(Precision.Double);
     }
-    
+
     @Override
-    public NNLayer getLayer(int[][] inputSize) {
+    public NNLayer getLayer(final int[][] inputSize) {
       return new BinarySumLayer(1.0, -1.0).setPrecision(precision);
     }
-    
-  }
-  
-  /**
-   * The type Float.
-   */
-  public static class Float_Avg extends BinarySumLayerTest {
-    /**
-     * Instantiates a new Float.
-     */
-    public Float_Avg() {
-      super(Precision.Float);
-    }
-    
-    @Override
-    public SingleDerivativeTester getDerivativeTester() {
-      return new SingleDerivativeTester(1e-2, 1e-3);
-    }
-    
-    @Override
-    public NNLayer getLayer(int[][] inputSize) {
-      return new BinarySumLayer(0.5, 0.5).setPrecision(precision);
-    }
-    
+
   }
   
   /**
@@ -123,11 +100,34 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
     public Float_Add() {
       super(Precision.Float);
     }
-    
+
     @Override
     public SingleDerivativeTester getDerivativeTester() {
       return new SingleDerivativeTester(1e-2, 1e-3);
     }
-    
+  
+  }
+  
+  /**
+   * The type Float.
+   */
+  public static class Float_Avg extends BinarySumLayerTest {
+    /**
+     * Instantiates a new Float.
+     */
+    public Float_Avg() {
+      super(Precision.Float);
+    }
+  
+    @Override
+    public SingleDerivativeTester getDerivativeTester() {
+      return new SingleDerivativeTester(1e-2, 1e-3);
+    }
+  
+    @Override
+    public NNLayer getLayer(final int[][] inputSize) {
+      return new BinarySumLayer(0.5, 0.5).setPrecision(precision);
+    }
+
   }
 }

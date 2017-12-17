@@ -31,13 +31,8 @@ public class WeightExtractorTest extends LayerTestBase {
    * Instantiates a new Weight extractor test.
    */
   public WeightExtractorTest() {
-    this.validateDifferentials = false;
-    this.validateBatchExecution = false;
-  }
-  
-  @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new WeightExtractor(0, new FullyConnectedLayer(new int[]{3}, new int[]{3}));
+    validateDifferentials = false;
+    validateBatchExecution = false;
   }
   
   @Override
@@ -45,5 +40,10 @@ public class WeightExtractorTest extends LayerTestBase {
     return new int[][]{
       {0}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new WeightExtractor(0, new FullyConnectedLayer(new int[]{3}, new int[]{3}));
   }
 }

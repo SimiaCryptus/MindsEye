@@ -38,16 +38,17 @@ import java.util.concurrent.TimeUnit;
 public class QQNTest extends MnistTestBase {
 
   @Override
-  public void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor) {
+  public void train(final NotebookOutput log, final NNLayer network, final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.code(() -> {
-      SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
+      final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       //return new IterativeTrainer(new SampledArrayTrainable(trainingData, supervisedNetwork, 10000))
-      return new ValidatingTrainer(
+      ValidatingTrainer trainer = new ValidatingTrainer(
         new SampledArrayTrainable(trainingData, supervisedNetwork, 1000, 10000),
         new ArrayTrainable(trainingData, supervisedNetwork)
       )
-        .setMonitor(monitor)
-        .setOrientation(new QQN())
+        .setMonitor(monitor);
+      trainer.getRegimen().get(0).setOrientation(new QQN());
+      return trainer
         .setTimeout(5, TimeUnit.MINUTES)
         .setMaxIterations(500)
         .run();

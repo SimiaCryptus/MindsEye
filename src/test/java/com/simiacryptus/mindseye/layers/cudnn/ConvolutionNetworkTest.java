@@ -38,19 +38,8 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
    *
    * @param precision the precision
    */
-  public ConvolutionNetworkTest(Precision precision) {
+  public ConvolutionNetworkTest(final Precision precision) {
     this.precision = precision;
-  }
-  
-  @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    PipelineNetwork network = new PipelineNetwork(1);
-    network.add(new ImgConcatLayer().setPrecision(precision));
-    network.add(new ImgBandBiasLayer(3).setPrecision(precision).addWeights(this::random));
-    network.add(new ActivationLayer(ActivationLayer.Mode.RELU).setPrecision(precision));
-    return network;
-    
-    
   }
   
   @Override
@@ -58,6 +47,17 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
     return new int[][]{
       {1, 1, 3}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    final PipelineNetwork network = new PipelineNetwork(1);
+    network.add(new ImgConcatLayer().setPrecision(precision));
+    network.add(new ImgBandBiasLayer(3).setPrecision(precision).addWeights(this::random));
+    network.add(new ActivationLayer(ActivationLayer.Mode.RELU).setPrecision(precision));
+    return network;
+    
+    
   }
   
   @Override
@@ -89,12 +89,12 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
     public Float() {
       super(Precision.Float);
     }
-    
+  
     @Override
     public SingleDerivativeTester getDerivativeTester() {
       return new SingleDerivativeTester(1e-2, 1e-3);
     }
-    
+  
   }
   
   

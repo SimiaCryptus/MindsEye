@@ -52,12 +52,11 @@ public class DoubleBuffer<K> {
    *
    * @param layer  the layer
    * @param target the target
-   * @param delta  the delta
    */
-  public DoubleBuffer(K layer, double[] target, double[] delta) {
+  public DoubleBuffer(final K layer, final double[] target) {
     this.layer = layer;
     this.target = target;
-    this.delta = delta;
+    this.delta = null;
   }
   
   /**
@@ -65,11 +64,12 @@ public class DoubleBuffer<K> {
    *
    * @param layer  the layer
    * @param target the target
+   * @param delta  the delta
    */
-  public DoubleBuffer(K layer, double[] target) {
+  public DoubleBuffer(final K layer, final double[] target, final double[] delta) {
     this.layer = layer;
     this.target = target;
-    this.delta = null;
+    this.delta = delta;
   }
   
   /**
@@ -79,12 +79,21 @@ public class DoubleBuffer<K> {
    * @param r the r
    * @return the boolean
    */
-  public static boolean areEqual(double[] l, double[] r) {
-    if ((r.length != l.length)) throw new IllegalArgumentException();
+  public static boolean areEqual(final double[] l, final double[] r) {
+    if (r.length != l.length) throw new IllegalArgumentException();
     for (int i = 0; i < r.length; i++) {
       if (r[i] != l[i]) return false;
     }
     return true;
+  }
+  
+  /**
+   * Copy delta.
+   *
+   * @return the delta
+   */
+  public DoubleBuffer<K> copy() {
+    return new DoubleBuffer<K>(layer, target, RecycleBin.DOUBLES.copyOf(delta));
   }
   
   /**
@@ -97,25 +106,39 @@ public class DoubleBuffer<K> {
   }
   
   /**
-   * Target statistics double array stats facade.
+   * Dot double.
    *
-   * @return the double array stats facade
+   * @param right the right
+   * @return the double
    */
-  public DoubleArrayStatsFacade targetStatistics() {
-    return new DoubleArrayStatsFacade(target);
+  public double dot(final DoubleBuffer<K> right) {
+    if (this.target != right.target) {
+      throw new IllegalArgumentException(String.format("Deltas are not based on same buffer. %s != %s", this.layer, right.layer));
+    }
+    if (!this.layer.equals(right.layer)) {
+      throw new IllegalArgumentException(String.format("Deltas are not based on same layer. %s != %s", this.layer, right.layer));
+    }
+    final double[] l = this.getDelta();
+    final double[] r = right.getDelta();
+    assert l.length == r.length;
+    final double[] array = IntStream.range(0, l.length).mapToDouble(i -> l[i] * r[i]).toArray();
+    return Arrays.stream(array).summaryStatistics().getSum();
   }
   
   /**
-   * Set delta.
+   * Get delta double [ ].
    *
-   * @param data the data
-   * @return the delta
+   * @return the double [ ]
    */
-  public DoubleBuffer set(final double[] data) {
-    assert Arrays.stream(data).allMatch(Double::isFinite);
-    Arrays.parallelSetAll(this.getDelta(), i -> data[i]);
-    assert Arrays.stream(getDelta()).allMatch(Double::isFinite);
-    return this;
+  public double[] getDelta() {
+    if (null == delta) {
+      synchronized (this) {
+        if (null == delta) {
+          delta = RecycleBin.DOUBLES.obtain(target.length);
+        }
+      }
+    }
+    return delta;
   }
   
   /**
@@ -142,8 +165,30 @@ public class DoubleBuffer<K> {
    * @param mapper the mapper
    * @return the delta
    */
-  public DoubleBuffer map(final DoubleUnaryOperator mapper) {
-    return new DoubleBuffer(this.layer, this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
+  public DoubleBuffer<K> map(final DoubleUnaryOperator mapper) {
+    return new DoubleBuffer<K>(this.layer, this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
+  }
+  
+  /**
+   * Set delta.
+   *
+   * @param data the data
+   * @return the delta
+   */
+  public DoubleBuffer<K> set(final double[] data) {
+    assert Arrays.stream(data).allMatch(Double::isFinite);
+    Arrays.parallelSetAll(this.getDelta(), i -> data[i]);
+    assert Arrays.stream(getDelta()).allMatch(Double::isFinite);
+    return this;
+  }
+  
+  /**
+   * Target statistics double array stats facade.
+   *
+   * @return the double array stats facade
+   */
+  public DoubleArrayStatsFacade targetStatistics() {
+    return new DoubleArrayStatsFacade(target);
   }
   
   @Override
@@ -153,51 +198,6 @@ public class DoubleBuffer<K> {
     builder.append("/");
     builder.append(this.layer);
     return builder.toString();
-  }
-  
-  /**
-   * Dot double.
-   *
-   * @param right the right
-   * @return the double
-   */
-  public double dot(DoubleBuffer right) {
-    if (this.target != right.target) {
-      throw new IllegalArgumentException(String.format("Deltas are not based on same buffer. %s != %s", this.layer, right.layer));
-    }
-    if (!this.layer.equals(right.layer)) {
-      throw new IllegalArgumentException(String.format("Deltas are not based on same layer. %s != %s", this.layer, right.layer));
-    }
-    double[] l = this.getDelta();
-    double[] r = right.getDelta();
-    assert (l.length == r.length);
-    double[] array = IntStream.range(0, l.length).mapToDouble(i -> l[i] * r[i]).toArray();
-    return Arrays.stream(array).summaryStatistics().getSum();
-  }
-  
-  /**
-   * Copy delta.
-   *
-   * @return the delta
-   */
-  public DoubleBuffer copy() {
-    return new DoubleBuffer(layer, target, RecycleBin.DOUBLES.copyOf(delta));
-  }
-  
-  /**
-   * Get delta double [ ].
-   *
-   * @return the double [ ]
-   */
-  public double[] getDelta() {
-    if (null == delta) {
-      synchronized (this) {
-        if (null == delta) {
-          delta = RecycleBin.DOUBLES.obtain(target.length);
-        }
-      }
-    }
-    return delta;
   }
   
 }

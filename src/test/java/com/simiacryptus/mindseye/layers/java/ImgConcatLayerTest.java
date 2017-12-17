@@ -28,14 +28,14 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 public class ImgConcatLayerTest extends LayerTestBase {
   
   @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new ImgConcatLayer();
-  }
-  
-  @Override
   public int[][] getInputDims() {
     return new int[][]{
       {2, 2, 1}, {2, 2, 1}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new ImgConcatLayer();
   }
 }

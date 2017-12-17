@@ -28,22 +28,11 @@ import com.simiacryptus.mindseye.layers.cudnn.ProductLayer;
 /**
  * The type Polynomial convolution network.
  */
+@SuppressWarnings("serial")
 public class PolynomialConvolutionNetwork extends PolynomialNetwork {
   
   private final int radius;
-  private final boolean simple;
-  
-  /**
-   * Instantiates a new Polynomial convolution network.
-   *
-   * @param json the json
-   */
-  protected PolynomialConvolutionNetwork(JsonObject json) {
-    super(json);
-    radius = json.get("radius").getAsInt();
-    simple = json.get("simple").getAsBoolean();
-  }
-  
+
   /**
    * Instantiates a new Polynomial convolution network.
    *
@@ -52,10 +41,20 @@ public class PolynomialConvolutionNetwork extends PolynomialNetwork {
    * @param radius     the radius
    * @param simple     the simple
    */
-  public PolynomialConvolutionNetwork(int[] inputDims, int[] outputDims, int radius, boolean simple) {
+  public PolynomialConvolutionNetwork(final int[] inputDims, final int[] outputDims, final int radius, final boolean simple) {
     super(inputDims, outputDims);
     this.radius = radius;
-    this.simple = simple;
+  }
+  
+  /**
+   * Instantiates a new Polynomial convolution network.
+   *
+   * @param json the json
+   */
+  protected PolynomialConvolutionNetwork(final JsonObject json) {
+    super(json);
+    radius = json.get("radius").getAsInt();
+    json.get("simple").getAsBoolean();
   }
   
   /**
@@ -64,12 +63,12 @@ public class PolynomialConvolutionNetwork extends PolynomialNetwork {
    * @param json the json
    * @return the polynomial convolution network
    */
-  public static PolynomialConvolutionNetwork fromJson(JsonObject json) {
+  public static PolynomialConvolutionNetwork fromJson(final JsonObject json) {
     return new PolynomialConvolutionNetwork(json);
   }
   
   @Override
-  public NNLayer newBias(int[] dims, double weight) {
+  public NNLayer newBias(final int[] dims, final double weight) {
     return new ImgBandBiasLayer(dims[2]).setWeights(i -> weight);
   }
   
@@ -79,7 +78,7 @@ public class PolynomialConvolutionNetwork extends PolynomialNetwork {
   }
   
   @Override
-  public NNLayer newSynapse(double weight) {
+  public NNLayer newSynapse(final double weight) {
     return new ConvolutionLayer(radius, radius, inputDims[2] * outputDims[2]).set(i -> weight * (Math.random() - 0.5));
   }
 }

@@ -19,12 +19,9 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.mindseye.test.unit.ComponentTest;
 
 import java.io.PrintStream;
 
@@ -40,19 +37,16 @@ public abstract class CudnnLayerTestBase extends LayerTestBase {
   }
   
   @Override
-  protected ComponentTest getReferenceIOTester() {
-    ComponentTest inner = super.getReferenceIOTester();
-    return new ComponentTest() {
-      @Override
-      public Object test(NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
-        try {
-          CuDNN.apiLog = new PrintStream(log.file("cuda.log"));
-          return inner.test(log, component, inputPrototype);
-        } finally {
-          log.p(log.file(null, "cuda.log", "GPU Log"));
-          CuDNN.apiLog.close();
-          CuDNN.apiLog = null;
-        }
+  protected ComponentTest<ToleranceStatistics> getReferenceIOTester() {
+    final ComponentTest<ToleranceStatistics> inner = super.getReferenceIOTester();
+    return (log, component, inputPrototype) -> {
+      try {
+        CuDNN.apiLog = new PrintStream(log.file("cuda.log"));
+        return inner.test(log, component, inputPrototype);
+      } finally {
+        log.p(log.file(null, "cuda.log", "GPU Log"));
+        CuDNN.apiLog.close();
+        CuDNN.apiLog = null;
       }
     };
   }

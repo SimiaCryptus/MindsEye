@@ -56,7 +56,7 @@ public class HtmlNotebookOutput implements NotebookOutput {
   /**
    * The Source root.
    */
-  public String sourceRoot = DEFAULT_ROOT;
+  public String sourceRoot = HtmlNotebookOutput.DEFAULT_ROOT;
   /**
    * The Excerpt number.
    */
@@ -69,10 +69,10 @@ public class HtmlNotebookOutput implements NotebookOutput {
    * @param out             the out
    * @throws FileNotFoundException the file not found exception
    */
-  public HtmlNotebookOutput(File parentDirectory, OutputStream out) throws FileNotFoundException {
-    this.primaryOut = out;
+  public HtmlNotebookOutput(final File parentDirectory, final OutputStream out) throws FileNotFoundException {
+    primaryOut = out;
     outs.add(new PrintStream(out));
-    this.workingDir = parentDirectory;
+    workingDir = parentDirectory;
     out("<html><head><style>\n" +
       "pre {\n" +
       "    background-color: lightyellow;\n" +
@@ -89,8 +89,8 @@ public class HtmlNotebookOutput implements NotebookOutput {
    * @return the html notebook output
    * @throws FileNotFoundException the file not found exception
    */
-  public static HtmlNotebookOutput create(File parentDirectory) throws FileNotFoundException {
-    FileOutputStream out = new FileOutputStream(new File(parentDirectory, "index.html"));
+  public static HtmlNotebookOutput create(final File parentDirectory) throws FileNotFoundException {
+    final FileOutputStream out = new FileOutputStream(new File(parentDirectory, "index.html"));
     return new HtmlNotebookOutput(parentDirectory, out) {
       @Override
       public void close() throws IOException {
@@ -99,73 +99,45 @@ public class HtmlNotebookOutput implements NotebookOutput {
     };
   }
   
-  @Override
-  public OutputStream file(String name) {
-    try {
-      return new FileOutputStream(new File(getResourceDir(), name));
-    } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);
-    }
-  }
-  
   /**
    * Add copy notebook output.
    *
    * @param out the out
    * @return the notebook output
    */
-  public NotebookOutput addCopy(PrintStream out) {
+  @Override
+  public NotebookOutput addCopy(final PrintStream out) {
     outs.add(out);
     return this;
   }
   
   @Override
-  public void out(String fmt, Object... args) {
-    String msg = 0 == args.length ? fmt : String.format(fmt, args);
-    outs.forEach(out -> {
-      out.println(msg);
-      out.flush();
-    });
+  public void close() throws IOException {
+    out("</body></html>");
+    if (null != primaryOut) {
+      primaryOut.close();
+    }
   }
   
+  @SuppressWarnings("unchecked")
   @Override
-  public void p(String fmt, Object... args) {
-    this.out("<p>" + fmt + "</p>", args);
-  }
-  
-  @Override
-  public void h1(String fmt, Object... args) {
-    this.out("<h1>" + fmt + "</h1>", args);
-  }
-  
-  @Override
-  public void h2(String fmt, Object... args) {
-    this.out("<h2>" + fmt + "</h2>", args);
-  }
-  
-  @Override
-  public void h3(String fmt, Object... args) {
-    this.out("<h3>" + fmt + "</h3>", args);
-  }
-  
-  @Override
-  public <T> T code(UncheckedSupplier<T> fn, int maxLog, int framesNo) {
+  public <T> T code(final UncheckedSupplier<T> fn, final int maxLog, final int framesNo) {
     try {
-      StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-      StackTraceElement callingFrame = stackTrace[framesNo];
-      String sourceCode = CodeUtil.getInnerText(callingFrame);
-      SysOutInterceptor.LoggedResult<TimedResult<Object>> result = SysOutInterceptor.withOutput(() -> {
+      final StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+      final StackTraceElement callingFrame = stackTrace[framesNo];
+      final String sourceCode = CodeUtil.getInnerText(callingFrame);
+      final SysOutInterceptor.LoggedResult<TimedResult<Object>> result = SysOutInterceptor.withOutput(() -> {
         try {
           return TimedResult.time(() -> fn.get());
-        } catch (Throwable e) {
-          return new TimedResult(e, 0);
+        } catch (final Throwable e) {
+          return new TimedResult<Object>(e, 0);
         }
       });
       try {
-        URI resolved = URI.create(sourceRoot).resolve(Util.pathTo(CodeUtil.projectRoot, CodeUtil.findFile(callingFrame)));
+        final URI resolved = URI.create(sourceRoot).resolve(Util.pathTo(CodeUtil.projectRoot, CodeUtil.findFile(callingFrame)));
         out("<p>Code from <a href='%s#L%s'>%s:%s</a> executed in %.2f seconds: <br/>",
           resolved, callingFrame.getLineNumber(), callingFrame.getFileName(), callingFrame.getLineNumber(), result.obj.seconds());
-      } catch (Exception e) {
+      } catch (final Exception e) {
         out("<p>Code from %s:%s executed in %.2f seconds: <br/>",
           callingFrame.getFileName(), callingFrame.getLineNumber(), result.obj.seconds());
       }
@@ -181,13 +153,13 @@ public class HtmlNotebookOutput implements NotebookOutput {
       }
       out("");
       
-      Object eval = result.obj.result;
+      final Object eval = result.obj.result;
       if (null != eval) {
         out("Returns: <br/>");
         String str;
         boolean escape;
         if (eval instanceof Throwable) {
-          ByteArrayOutputStream out = new ByteArrayOutputStream();
+          final ByteArrayOutputStream out = new ByteArrayOutputStream();
           ((Throwable) eval).printStackTrace(new PrintStream(out));
           str = new String(out.toByteArray(), "UTF-8");
           escape = true;//
@@ -208,10 +180,13 @@ public class HtmlNotebookOutput implements NotebookOutput {
           str = eval.toString();
           escape = true;
         }
-        if (escape) out("<pre>");
-        String valTxt = str;
+        if (escape) {
+          out("<pre>");
+        }
         out(summarize(maxLog, str));
-        if (escape) out("</pre>");
+        if (escape) {
+          out("</pre>");
+        }
         out("\n\n");
         if (eval instanceof Throwable) {
           throw new RuntimeException((Throwable) result.obj.result);
@@ -219,65 +194,33 @@ public class HtmlNotebookOutput implements NotebookOutput {
       }
       out("</p>");
       return (T) eval;
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException(e);
     }
   }
   
-  /**
-   * Summarize string.
-   *
-   * @param maxLog the max log
-   * @param string the string
-   * @return the string
-   */
-  public String summarize(int maxLog, String string) {
-    if (string.length() > maxLog * 2) {
-      String left = string.substring(0, maxLog);
-      String right = string.substring(string.length() - maxLog);
-      String link = String.format(file(string, "\n...skipping %s bytes...\n"), string.length() - 2 * maxLog);
-      return left + link + right;
-    }
-    else {
-      return string;
+  @Override
+  public OutputStream file(final String name) {
+    try {
+      return new FileOutputStream(new File(getResourceDir(), name));
+    } catch (final FileNotFoundException e) {
+      throw new RuntimeException(e);
     }
   }
   
   @Override
-  public String file(String data, String caption) {
+  public String file(final String data, final String caption) {
     return file(data, excerptNumber++ + ".txt", caption);
   }
   
   @Override
-  public String file(String data, String fileName, String caption) {
+  public String file(final String data, final String fileName, final String caption) {
     try {
       IOUtils.write(data, new FileOutputStream(new File(getResourceDir(), fileName)), Charset.forName("UTF-8"));
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException(e);
     }
     return "<a href='etc/" + fileName + "'>" + caption + "</a>";
-  }
-  
-  @Override
-  public String image(BufferedImage rawImage, String caption) throws IOException {
-    if (null == rawImage) return "";
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    String thisImage = UUID.randomUUID().toString().substring(0, 8);
-    File file = new File(getResourceDir(), "img" + thisImage + ".png");
-    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-    ImageIO.write(rawImage, "png", buffer);
-    String pngSrc = Base64.getEncoder().encodeToString(buffer.toByteArray());
-    if (pngSrc.length() < 4 * 1024) {
-      return "<img src='data:image/png;base64," + pngSrc + "' alt='" + caption + "'/>";
-    }
-    else {
-      BufferedImage stdImage = Util.resize(rawImage);
-      if (stdImage != rawImage) {
-        ImageIO.write(rawImage, "png", new File(getResourceDir(), "raw" + thisImage + ".png"));
-      }
-      ImageIO.write(stdImage, "png", file);
-      return "<img src='etc/" + file.getName() + "' alt='" + caption + "'/>";
-    }
   }
   
   /**
@@ -286,15 +229,9 @@ public class HtmlNotebookOutput implements NotebookOutput {
    * @return the resource dir
    */
   public File getResourceDir() {
-    File etc = new File(this.workingDir, "etc");
+    final File etc = new File(workingDir, "etc");
     etc.mkdirs();
     return etc;
-  }
-  
-  @Override
-  public void close() throws IOException {
-    out("</body></html>");
-    if (null != primaryOut) primaryOut.close();
   }
   
   /**
@@ -312,19 +249,89 @@ public class HtmlNotebookOutput implements NotebookOutput {
    * @param sourceRoot the source root
    * @return the source root
    */
-  public HtmlNotebookOutput setSourceRoot(String sourceRoot) {
+  public HtmlNotebookOutput setSourceRoot(final String sourceRoot) {
     this.sourceRoot = sourceRoot;
     return this;
   }
   
   @Override
-  public String link(File file, String text) {
+  public void h1(final String fmt, final Object... args) {
+    out("<h1>" + fmt + "</h1>", args);
+  }
+  
+  @Override
+  public void h2(final String fmt, final Object... args) {
+    out("<h2>" + fmt + "</h2>", args);
+  }
+  
+  @Override
+  public void h3(final String fmt, final Object... args) {
+    out("<h3>" + fmt + "</h3>", args);
+  }
+  
+  @Override
+  public String image(final BufferedImage rawImage, final String caption) throws IOException {
+    if (null == rawImage) return "";
+    new ByteArrayOutputStream();
+    final String thisImage = UUID.randomUUID().toString().substring(0, 8);
+    final File file = new File(getResourceDir(), "img" + thisImage + ".png");
+    final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    ImageIO.write(rawImage, "png", buffer);
+    final String pngSrc = Base64.getEncoder().encodeToString(buffer.toByteArray());
+    if (pngSrc.length() < 4 * 1024) {
+      return "<img src='data:image/png;base64," + pngSrc + "' alt='" + caption + "'/>";
+    }
+    else {
+      final BufferedImage stdImage = Util.resize(rawImage);
+      if (stdImage != rawImage) {
+        ImageIO.write(rawImage, "png", new File(getResourceDir(), "raw" + thisImage + ".png"));
+      }
+      ImageIO.write(stdImage, "png", file);
+      return "<img src='etc/" + file.getName() + "' alt='" + caption + "'/>";
+    }
+  }
+  
+  @Override
+  public String link(final File file, final String text) {
     String path = null;
     try {
-      path = this.workingDir.getCanonicalFile().toPath().relativize(file.getCanonicalFile().toPath()).normalize().toString().replaceAll("\\\\", "/");
-    } catch (IOException e) {
+      path = workingDir.getCanonicalFile().toPath().relativize(file.getCanonicalFile().toPath()).normalize().toString().replaceAll("\\\\", "/");
+    } catch (final IOException e) {
       throw new RuntimeException(e);
     }
     return String.format("<a href=\"%s\">%s</a>", path, text);
+  }
+  
+  @Override
+  public void out(final String fmt, final Object... args) {
+    final String msg = 0 == args.length ? fmt : String.format(fmt, args);
+    outs.forEach(out -> {
+      out.println(msg);
+      out.flush();
+    });
+  }
+  
+  @Override
+  public void p(final String fmt, final Object... args) {
+    out("<p>" + fmt + "</p>", args);
+  }
+  
+  /**
+   * Summarize string.
+   *
+   * @param maxLog the max log
+   * @param string the string
+   * @return the string
+   */
+  public String summarize(final int maxLog, final String string) {
+    if (string.length() > maxLog * 2) {
+      final String left = string.substring(0, maxLog);
+      final String right = string.substring(string.length() - maxLog);
+      final String link = String.format(file(string, "\n...skipping %s bytes...\n"), string.length() - 2 * maxLog);
+      return left + link + right;
+    }
+    else {
+      return string;
+    }
   }
 }

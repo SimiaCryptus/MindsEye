@@ -43,7 +43,7 @@ public class MomentumStrategy implements OrientationStrategy<SimpleLineSearchCur
   /**
    * The Prev delta.
    */
-  DeltaSet prevDelta = new DeltaSet();
+  DeltaSet<NNLayer> prevDelta = new DeltaSet<NNLayer>();
   private double carryOver = 0.1;
   
   /**
@@ -51,26 +51,8 @@ public class MomentumStrategy implements OrientationStrategy<SimpleLineSearchCur
    *
    * @param inner the inner
    */
-  public MomentumStrategy(OrientationStrategy<SimpleLineSearchCursor> inner) {
+  public MomentumStrategy(final OrientationStrategy<SimpleLineSearchCursor> inner) {
     this.inner = inner;
-  }
-  
-  @Override
-  public SimpleLineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
-    LineSearchCursor orient = inner.orient(subject, measurement, monitor);
-    DeltaSet<NNLayer> direction = ((SimpleLineSearchCursor) orient).direction;
-    DeltaSet<NNLayer> newDelta = new DeltaSet();
-    direction.getMap().forEach((layer, delta) -> {
-      DoubleBuffer prevBuffer = prevDelta.get(layer, delta.target);
-      newDelta.get(layer, delta.target).addInPlace(ArrayUtil.add(ArrayUtil.multiply(prevBuffer.getDelta(), carryOver), delta.getDelta()));
-    });
-    prevDelta = newDelta;
-    return new SimpleLineSearchCursor(subject, measurement, newDelta);
-  }
-  
-  @Override
-  public void reset() {
-    inner.reset();
   }
   
   /**
@@ -88,8 +70,26 @@ public class MomentumStrategy implements OrientationStrategy<SimpleLineSearchCur
    * @param carryOver the carry over
    * @return the carry over
    */
-  public MomentumStrategy setCarryOver(double carryOver) {
+  public MomentumStrategy setCarryOver(final double carryOver) {
     this.carryOver = carryOver;
     return this;
+  }
+  
+  @Override
+  public SimpleLineSearchCursor orient(final Trainable subject, final PointSample measurement, final TrainingMonitor monitor) {
+    final LineSearchCursor orient = inner.orient(subject, measurement, monitor);
+    final DeltaSet<NNLayer> direction = ((SimpleLineSearchCursor) orient).direction;
+    final DeltaSet<NNLayer> newDelta = new DeltaSet<NNLayer>();
+    direction.getMap().forEach((layer, delta) -> {
+      final DoubleBuffer<NNLayer> prevBuffer = prevDelta.get(layer, delta.target);
+      newDelta.get(layer, delta.target).addInPlace(ArrayUtil.add(ArrayUtil.multiply(prevBuffer.getDelta(), carryOver), delta.getDelta()));
+    });
+    prevDelta = newDelta;
+    return new SimpleLineSearchCursor(subject, measurement, newDelta);
+  }
+  
+  @Override
+  public void reset() {
+    inner.reset();
   }
 }

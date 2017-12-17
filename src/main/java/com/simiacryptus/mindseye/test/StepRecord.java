@@ -24,28 +24,28 @@ package com.simiacryptus.mindseye.test;
  */
 public class StepRecord {
   /**
-   * The Fitness.
-   */
-  public final double fitness;
-  /**
    * The Epoch time.
    */
   public final long epochTime;
   /**
+   * The Fitness.
+   */
+  public final double fitness;
+  /**
    * The Iteraton.
    */
-  public final long iteraton;
+  public final long iteration;
   
   /**
    * Instantiates a new Step record.
    *
    * @param fitness   the fitness
    * @param epochTime the epoch time
-   * @param iteraton  the iteraton
+   * @param iteration the iteraton
    */
-  public StepRecord(double fitness, long epochTime, long iteraton) {
+  public StepRecord(final double fitness, final long epochTime, final long iteration) {
     this.fitness = fitness;
     this.epochTime = epochTime;
-    this.iteraton = iteraton;
+    this.iteration = iteration;
   }
 }

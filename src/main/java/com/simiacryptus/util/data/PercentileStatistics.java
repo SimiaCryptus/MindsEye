@@ -27,24 +27,18 @@ import java.util.Map;
 /**
  * The type Percentile statistics.
  */
+@SuppressWarnings("serial")
 public class PercentileStatistics extends ScalarStatistics {
   
   private final List<double[]> values = new ArrayList<>();
   
   @Override
-  public synchronized ScalarStatistics add(double... values) {
-    if (null != this.values) this.values.add(Arrays.copyOf(values, values.length));
+  public synchronized ScalarStatistics add(final double... values) {
+    if (null != this.values) {
+      this.values.add(Arrays.copyOf(values, values.length));
+    }
     super.add(values);
     return null;
-  }
-  
-  @Override
-  public Map<String, Object> getMetrics() {
-    Map<String, Object> map = super.getMetrics();
-    map.put("tp50", getPercentile(0.5));
-    map.put("tp75", getPercentile(0.75));
-    map.put("tp90", getPercentile(0.9));
-    return map;
   }
   
   @Override
@@ -53,13 +47,22 @@ public class PercentileStatistics extends ScalarStatistics {
     super.clear();
   }
   
+  @Override
+  public Map<String, Object> getMetrics() {
+    final Map<String, Object> map = super.getMetrics();
+    map.put("tp50", getPercentile(0.5));
+    map.put("tp75", getPercentile(0.75));
+    map.put("tp90", getPercentile(0.9));
+    return map;
+  }
+  
   /**
    * Gets percentile.
    *
    * @param percentile the percentile
    * @return the percentile
    */
-  public synchronized Double getPercentile(double percentile) {
+  public synchronized Double getPercentile(final double percentile) {
     if (null == values) return Double.NaN;
     return values.parallelStream().flatMapToDouble(x -> Arrays.stream(x)).sorted().skip((int) (percentile * values.size())).findFirst().orElse(Double.NaN);
   }

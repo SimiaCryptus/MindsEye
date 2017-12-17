@@ -32,6 +32,7 @@ import java.util.stream.IntStream;
 /**
  * The type Dropout noise layer.
  */
+@SuppressWarnings("serial")
 public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
   
   
@@ -49,28 +50,8 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
   /**
    * The Seed.
    */
-  long seed = random.get().nextLong();
+  long seed = DropoutNoiseLayer.random.get().nextLong();
   private double value;
-  
-  /**
-   * Instantiates a new Dropout noise layer.
-   *
-   * @param json the json
-   */
-  protected DropoutNoiseLayer(JsonObject json) {
-    super(json);
-    this.value = json.get("value").getAsDouble();
-  }
-  
-  /**
-   * Instantiates a new Dropout noise layer.
-   *
-   * @param value the value
-   */
-  public DropoutNoiseLayer(double value) {
-    super();
-    this.setValue(value);
-  }
   
   /**
    * Instantiates a new Dropout noise layer.
@@ -80,17 +61,62 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
   }
   
   /**
+   * Instantiates a new Dropout noise layer.
+   *
+   * @param value the value
+   */
+  public DropoutNoiseLayer(final double value) {
+    super();
+    setValue(value);
+  }
+  
+  /**
+   * Instantiates a new Dropout noise layer.
+   *
+   * @param json the json
+   */
+  protected DropoutNoiseLayer(final JsonObject json) {
+    super(json);
+    value = json.get("value").getAsDouble();
+  }
+  
+  /**
    * From json dropout noise layer.
    *
    * @param json the json
    * @return the dropout noise layer
    */
-  public static DropoutNoiseLayer fromJson(JsonObject json) {
+  public static DropoutNoiseLayer fromJson(final JsonObject json) {
     return new DropoutNoiseLayer(json);
   }
   
+  @Override
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final int itemCnt = inObj[0].getData().length();
+    final Tensor[] mask = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
+      final Random random = new Random(seed);
+      final Tensor input = inObj[0].getData().get(dataIndex);
+      final Tensor output = input.map(x -> {
+        return random.nextDouble() < getValue() ? 0 : 1;
+      });
+      return output;
+    }).toArray(i -> new Tensor[i]);
+    final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
+      final double[] input = inObj[0].getData().get(dataIndex).getData();
+      final double[] maskT = mask[dataIndex].getData();
+      final Tensor output = new Tensor(inObj[0].getData().get(dataIndex).getDimensions());
+      final double[] outputData = output.getData();
+      for (int i = 0; i < outputData.length; i++) {
+        outputData[i] = input[i] * maskT[i];
+      }
+      return output;
+    }).toArray(i -> new Tensor[i]);
+    return new Result(outputA, inObj[0], mask);
+  }
+  
+  @Override
   public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
+    final JsonObject json = super.getJsonStub();
     json.addProperty("value", value);
     return json;
   }
@@ -110,38 +136,14 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
    * @param value the value
    * @return the value
    */
-  public DropoutNoiseLayer setValue(double value) {
+  public DropoutNoiseLayer setValue(final double value) {
     this.value = value;
     return this;
   }
   
   @Override
   public void shuffle() {
-    seed = random.get().nextLong();
-  }
-  
-  @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    int itemCnt = inObj[0].getData().length();
-    Tensor[] mask = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      Random random = new Random(seed);
-      final Tensor input = inObj[0].getData().get(dataIndex);
-      final Tensor output = input.map(x -> {
-        return (random.nextDouble() < getValue()) ? 0 : 1;
-      });
-      return output;
-    }).toArray(i -> new Tensor[i]);
-    Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final double[] input = inObj[0].getData().get(dataIndex).getData();
-      final double[] maskT = mask[dataIndex].getData();
-      final Tensor output = new Tensor(inObj[0].getData().get(dataIndex).getDimensions());
-      double[] outputData = output.getData();
-      for (int i = 0; i < outputData.length; i++) {
-        outputData[i] = input[i] * maskT[i];
-      }
-      return output;
-    }).toArray(i -> new Tensor[i]);
-    return new Result(outputA, inObj[0], mask);
+    seed = DropoutNoiseLayer.random.get().nextLong();
   }
   
   @Override
@@ -152,33 +154,33 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
   private final class Result extends NNResult {
     private final NNResult inObj;
     private final Tensor[] mask;
-    
-    private Result(final Tensor[] outputA, final NNResult inObj, Tensor[] mask) {
+  
+    private Result(final Tensor[] outputA, final NNResult inObj, final Tensor[] mask) {
       super(outputA);
       this.inObj = inObj;
       this.mask = mask;
     }
     
     @Override
-    public void accumulate(final DeltaSet buffer, final TensorList delta) {
-      if (this.inObj.isAlive()) {
-        Tensor[] passbackA = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+    public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
+      if (inObj.isAlive()) {
+        final Tensor[] passbackA = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           final double[] deltaData = delta.get(dataIndex).getData();
-          final int[] dims = this.inObj.getData().get(dataIndex).getDimensions();
-          double[] maskData = mask[dataIndex].getData();
+          final int[] dims = inObj.getData().get(dataIndex).getDimensions();
+          final double[] maskData = mask[dataIndex].getData();
           final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, maskData[i] * deltaData[i]);
           }
           return passback;
         }).toArray(i -> new Tensor[i]);
-        this.inObj.accumulate(buffer, new TensorArray(passbackA));
+        inObj.accumulate(buffer, new TensorArray(passbackA));
       }
     }
     
     @Override
     public boolean isAlive() {
-      return this.inObj.isAlive() || !isFrozen();
+      return inObj.isAlive() || !isFrozen();
     }
     
   }

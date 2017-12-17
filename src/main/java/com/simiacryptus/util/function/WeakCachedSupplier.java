@@ -37,17 +37,8 @@ public class WeakCachedSupplier<T> implements Supplier<T> {
    *
    * @param fn the fn
    */
-  public WeakCachedSupplier(Supplier<T> fn) {
+  public WeakCachedSupplier(final Supplier<T> fn) {
     this.fn = fn;
-  }
-  
-  /**
-   * Gets soft ref.
-   *
-   * @return the soft ref
-   */
-  public SoftCachedSupplier<T> getSoftRef() {
-    return new SoftCachedSupplier<T>(this::get);
   }
   
   @Override
@@ -58,10 +49,21 @@ public class WeakCachedSupplier<T> implements Supplier<T> {
         obj = null == cached ? null : cached.get();
         if (null == obj) {
           obj = fn.get();
-          if (null != obj) cached = new WeakReference<T>(obj);
+          if (null != obj) {
+            cached = new WeakReference<>(obj);
+          }
         }
       }
     }
     return obj;
+  }
+  
+  /**
+   * Gets soft ref.
+   *
+   * @return the soft ref
+   */
+  public SoftCachedSupplier<T> getSoftRef() {
+    return new SoftCachedSupplier<>(this::get);
   }
 }

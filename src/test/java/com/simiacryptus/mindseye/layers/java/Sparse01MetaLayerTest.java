@@ -31,12 +31,7 @@ public class Sparse01MetaLayerTest extends LayerTestBase {
    * Instantiates a new Sparse 01 meta layer test.
    */
   public Sparse01MetaLayerTest() {
-    this.validateBatchExecution = false;
-  }
-  
-  @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new Sparse01MetaLayer();
+    validateBatchExecution = false;
   }
   
   @Override
@@ -44,5 +39,10 @@ public class Sparse01MetaLayerTest extends LayerTestBase {
     return new int[][]{
       {3}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new Sparse01MetaLayer();
   }
 }

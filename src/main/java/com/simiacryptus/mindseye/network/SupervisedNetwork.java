@@ -22,13 +22,14 @@ package com.simiacryptus.mindseye.network;
 /**
  * The type Supervised network.
  */
+@SuppressWarnings("serial")
 public abstract class SupervisedNetwork extends DAGNetwork {
   /**
    * Instantiates a new Supervised network.
    *
    * @param inputs the inputs
    */
-  public SupervisedNetwork(int inputs) {
+  public SupervisedNetwork(final int inputs) {
     super(inputs);
   }
 }

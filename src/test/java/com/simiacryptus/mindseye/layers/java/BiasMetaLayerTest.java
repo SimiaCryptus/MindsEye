@@ -34,15 +34,15 @@ public class BiasMetaLayerTest extends LayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new BiasMetaLayer();
-  }
-  
-  @Override
   public int[][] getInputDims() {
     return new int[][]{
       {3}, {3}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new BiasMetaLayer();
   }
   
 }

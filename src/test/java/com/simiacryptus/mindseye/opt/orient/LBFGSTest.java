@@ -39,17 +39,19 @@ import java.util.concurrent.TimeUnit;
 public class LBFGSTest extends MnistTestBase {
   
   @Override
-  public void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor) {
+  public void train(final NotebookOutput log, final NNLayer network, final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.code(() -> {
-      SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-      return new ValidatingTrainer(
+      final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
+      ValidatingTrainer trainer = new ValidatingTrainer(
         new SampledArrayTrainable(trainingData, supervisedNetwork, 1000, 10000),
         new ArrayTrainable(trainingData, supervisedNetwork).cached()
       )
-        .setMonitor(monitor)
+        .setMonitor(monitor);
+      trainer.getRegimen().get(0)
         //.setOrientation(new ValidatingOrientationWrapper(new LBFGS()))
         .setOrientation(new LBFGS())
-        .setLineSearchFactory(name -> name.contains("LBFGS") ? new QuadraticSearch().setCurrentRate(1.0) : new QuadraticSearch())
+        .setLineSearchFactory(name -> name.contains("LBFGS") ? new QuadraticSearch().setCurrentRate(1.0) : new QuadraticSearch());
+      return trainer
         .setTimeout(5, TimeUnit.MINUTES)
         .setMaxIterations(500)
         .run();

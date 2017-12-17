@@ -30,16 +30,17 @@ import com.simiacryptus.mindseye.network.SupervisedNetwork;
 /**
  * The type Sparse autoencoder trainer.
  */
+@SuppressWarnings("serial")
 public class SparseAutoencoderTrainer extends SupervisedNetwork {
   
-  /**
-   * The Encoder.
-   */
-  public final DAGNode encoder;
   /**
    * The Decoder.
    */
   public final DAGNode decoder;
+  /**
+   * The Encoder.
+   */
+  public final DAGNode encoder;
   /**
    * The Loss.
    */
@@ -49,17 +50,17 @@ public class SparseAutoencoderTrainer extends SupervisedNetwork {
    */
   public final DAGNode sparsity;
   /**
-   * The Sum sparsity layer.
+   * The Sparsity throttle layer.
    */
-  public final DAGNode sumSparsityLayer;
+  public final DAGNode sparsityThrottleLayer;
   /**
    * The Sum fitness layer.
    */
   public final DAGNode sumFitnessLayer;
   /**
-   * The Sparsity throttle layer.
+   * The Sum sparsity layer.
    */
-  public final DAGNode sparsityThrottleLayer;
+  public final DAGNode sumSparsityLayer;
   
   /**
    * Instantiates a new Sparse autoencoder trainer.
@@ -71,15 +72,15 @@ public class SparseAutoencoderTrainer extends SupervisedNetwork {
     super(1);
     this.encoder = add(encoder, getInput(0));
     this.decoder = add(decoder, this.encoder);
-    this.loss = add(new MeanSqLossLayer(), this.decoder, getInput(0));
-    this.sparsity = add(new Sparse01MetaLayer(), this.encoder);
-    this.sumSparsityLayer = add(new SumReducerLayer(), this.sparsity);
-    this.sparsityThrottleLayer = add(new LinearActivationLayer().setScale(0.5), this.sumSparsityLayer);
-    this.sumFitnessLayer = add(new SumReducerLayer(), this.sparsityThrottleLayer, this.loss);
+    loss = add(new MeanSqLossLayer(), this.decoder, getInput(0));
+    sparsity = add(new Sparse01MetaLayer(), this.encoder);
+    sumSparsityLayer = add(new SumReducerLayer(), sparsity);
+    sparsityThrottleLayer = add(new LinearActivationLayer().setScale(0.5), sumSparsityLayer);
+    sumFitnessLayer = add(new SumReducerLayer(), sparsityThrottleLayer, loss);
   }
   
   @Override
   public DAGNode getHead() {
-    return this.sumFitnessLayer;
+    return sumFitnessLayer;
   }
 }

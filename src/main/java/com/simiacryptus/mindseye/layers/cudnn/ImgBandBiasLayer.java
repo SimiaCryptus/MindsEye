@@ -25,19 +25,17 @@ import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
 import jcuda.jcudnn.cudnnHandle;
 import jcuda.jcudnn.cudnnTensorDescriptor;
+import jcuda.jcudnn.cudnnTensorFormat;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
-import static com.simiacryptus.mindseye.layers.cudnn.CuDNN.cudnnAddTensor;
-import static com.simiacryptus.mindseye.layers.cudnn.CuDNN.cudnnConvolutionBackwardBias;
-import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
-
 /**
  * The type Img band bias layer.
  */
+@SuppressWarnings("serial")
 public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandBiasLayer> {
   
   private final double[] bias;
@@ -46,22 +44,22 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
   /**
    * Instantiates a new Img band bias layer.
    *
-   * @param json the json
+   * @param bands the bands
    */
-  protected ImgBandBiasLayer(JsonObject json) {
-    super(json);
-    this.bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
-    precision = Precision.valueOf(json.get("precision").getAsString());
+  public ImgBandBiasLayer(final int bands) {
+    bias = new double[bands];
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
   }
   
   /**
    * Instantiates a new Img band bias layer.
    *
-   * @param bands the bands
+   * @param json the json
    */
-  public ImgBandBiasLayer(int bands) {
-    this.bias = new double[bands];
+  protected ImgBandBiasLayer(final JsonObject json) {
+    super(json);
+    bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
+    precision = Precision.valueOf(json.get("precision").getAsString());
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
   }
   
@@ -71,87 +69,8 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
    * @param json the json
    * @return the img band bias layer
    */
-  public static ImgBandBiasLayer fromJson(JsonObject json) {
+  public static ImgBandBiasLayer fromJson(final JsonObject json) {
     return new ImgBandBiasLayer(json);
-  }
-  
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("bias", JsonUtil.getJson(getBias()));
-    json.addProperty("precision",precision.name());
-    return json;
-  }
-  
-  @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
-    //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
-    ((CudaExecutionContext) nncontext).initThread();
-    final NNResult input = inObj[0];
-    final TensorList batch = input.getData();
-    final int[] inputSize = batch.get(0).getDimensions();
-    assert (inputSize[2] == bias.length) : inputSize[2] + " != " + bias.length;
-    int[] outputSize = inputSize;
-    int length = batch.length();
-    
-    try {
-      
-      CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-        precision.code, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-      CudaResource<cudnnTensorDescriptor> filterDescriptor = CuDNN.newTensorDescriptor(
-        precision.code, CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
-      CudaPtr alpha = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
-      CudaPtr beta = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
-      
-      assert (0 < this.bias.length);
-      CudaPtr filterPtr = new CudaPtr(this.bias.length * precision.size, ((CudaExecutionContext) nncontext).getDeviceNumber()).write(precision, this.bias);
-      CudaPtr inputData = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, batch);
-      final cudnnHandle cudnnHandle = ((CuDNN) nncontext).cudnnHandle;
-      try {
-        CuDNN.handle(cudnnAddTensor(cudnnHandle, alpha.getPtr(),
-          filterDescriptor.getPtr(), filterPtr.getPtr(),
-          beta.getPtr(),
-          inputDescriptor.getPtr(), inputData.getPtr()));
-      } catch (Throwable e) {
-        throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
-      }
-      TensorList output = new GpuTensorList(inputData, length, outputSize, cudnnHandle, precision);
-      return new NNResult(output) {
-        @Override
-        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
-          ((CudaExecutionContext) nncontext).initThread();
-          assert (error.length() == batch.length());
-          //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
-          CudaPtr errorPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, error);
-          if (!isFrozen()) {
-            CudaPtr filterBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), ImgBandBiasLayer.this.bias.length * 1l * precision.size);
-            try {
-              CuDNN.handle(cudnnConvolutionBackwardBias(cudnnHandle, alpha.getPtr(),
-                inputDescriptor.getPtr(), errorPtr.getPtr(),
-                beta.getPtr(),
-                filterDescriptor.getPtr(), filterBuffer.getPtr()));
-            } catch (Throwable e) {
-              throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
-            }
-            final Tensor weightGradient = CudaPtr.read(filterBuffer, precision, new int[]{1, 1, inputSize[2]});
-            //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
-            Delta<NNLayer> deltaBuffer = buffer.get(ImgBandBiasLayer.this, ImgBandBiasLayer.this.bias);
-            deltaBuffer.addInPlace(weightGradient.getData());
-            //assert Arrays.stream(deltaBuffer.delta).allMatch(Double::isFinite);
-          }
-          if (input.isAlive()) {
-            input.accumulate(buffer, error);
-          }
-        }
-        
-        @Override
-        public boolean isAlive() {
-          return input.isAlive() || !isFrozen();
-        }
-      };
-    } catch (Throwable e) {
-      throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
-    }
   }
   
   /**
@@ -163,13 +82,13 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
   public double[] add(final double[] input) {
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(input).allMatch(v->Double.isFinite(v));
-    assert (null != input);
-    double[] bias = this.getBias();
+    assert null != input;
+    final double[] bias = getBias();
     //assert Arrays.stream(bias).allMatch(v->Double.isFinite(v));
-    assert (null != bias);
+    assert null != bias;
     if (input.length % bias.length != 0) throw new IllegalArgumentException();
     final double[] array = new double[input.length];
-    int size = input.length / bias.length;
+    final int size = input.length / bias.length;
     for (int i = 0; i < array.length; i++) {
       array[i] = input[i] + bias[i / size];
     }
@@ -185,8 +104,109 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
    * @return the img band bias layer
    */
   public ImgBandBiasLayer addWeights(final DoubleSupplier f) {
-    Util.add(f, this.getBias());
+    Util.add(f, getBias());
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
+    return this;
+  }
+  
+  @Override
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
+    //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    ((CudaExecutionContext) nncontext).initThread();
+    final NNResult input = inObj[0];
+    final TensorList batch = input.getData();
+    final int[] inputSize = batch.get(0).getDimensions();
+    assert inputSize[2] == bias.length : inputSize[2] + " != " + bias.length;
+    final int[] outputSize = inputSize;
+    final int length = batch.length();
+    
+    try {
+  
+      final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+        precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+      final CudaResource<cudnnTensorDescriptor> filterDescriptor = CuDNN.newTensorDescriptor(
+        precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
+      final CudaPtr alpha = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
+      final CudaPtr beta = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
+  
+      assert 0 < bias.length;
+      final CudaPtr filterPtr = new CudaPtr(bias.length * precision.size, ((CudaExecutionContext) nncontext).getDeviceNumber()).write(precision, bias);
+      final CudaPtr inputData = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, batch);
+      final cudnnHandle cudnnHandle = ((CuDNN) nncontext).cudnnHandle;
+      try {
+        CuDNN.handle(CuDNN.cudnnAddTensor(cudnnHandle, alpha.getPtr(),
+          filterDescriptor.getPtr(), filterPtr.getPtr(),
+          beta.getPtr(),
+          inputDescriptor.getPtr(), inputData.getPtr()));
+      } catch (final Throwable e) {
+        throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
+      }
+      final TensorList output = new GpuTensorList(inputData, length, outputSize, cudnnHandle, precision);
+      return new NNResult(output) {
+        @Override
+        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
+          ((CudaExecutionContext) nncontext).initThread();
+          assert error.length() == batch.length();
+          //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
+          final CudaPtr errorPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, error);
+          if (!isFrozen()) {
+            final CudaPtr filterBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), bias.length * 1l * precision.size);
+            try {
+              CuDNN.handle(CuDNN.cudnnConvolutionBackwardBias(cudnnHandle, alpha.getPtr(),
+                inputDescriptor.getPtr(), errorPtr.getPtr(),
+                beta.getPtr(),
+                filterDescriptor.getPtr(), filterBuffer.getPtr()));
+            } catch (final Throwable e) {
+              throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
+            }
+            final Tensor weightGradient = CudaPtr.read(filterBuffer, precision, new int[]{1, 1, inputSize[2]});
+            //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
+            final Delta<NNLayer> deltaBuffer = buffer.get(ImgBandBiasLayer.this, bias);
+            deltaBuffer.addInPlace(weightGradient.getData());
+            //assert Arrays.stream(deltaBuffer.delta).allMatch(Double::isFinite);
+          }
+          if (input.isAlive()) {
+            input.accumulate(buffer, error);
+          }
+        }
+        
+        @Override
+        public boolean isAlive() {
+          return input.isAlive() || !isFrozen();
+        }
+      };
+    } catch (final Throwable e) {
+      throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
+    }
+  }
+  
+  /**
+   * Get bias double [ ].
+   *
+   * @return the double [ ]
+   */
+  public double[] getBias() {
+    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
+    return bias;
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    json.add("bias", JsonUtil.getJson(getBias()));
+    json.addProperty("precision", precision.name());
+    return json;
+  }
+  
+  @Override
+  public Precision getPrecision() {
+    return precision;
+  }
+  
+  @Override
+  public ImgBandBiasLayer setPrecision(final Precision precision) {
+    this.precision = precision;
     return this;
   }
   
@@ -199,7 +219,7 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
   public NNLayer set(final double[] ds) {
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(ds).allMatch(Double::isFinite);
-    double[] bias = this.getBias();
+    final double[] bias = getBias();
     for (int i = 0; i < ds.length; i++) {
       bias[i] = ds[i];
     }
@@ -215,7 +235,7 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
    * @return the weights
    */
   public ImgBandBiasLayer setWeights(final IntToDoubleFunction f) {
-    double[] bias = this.getBias();
+    final double[] bias = getBias();
     for (int i = 0; i < bias.length; i++) {
       bias[i] = f.applyAsDouble(i);
     }
@@ -225,25 +245,6 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
   
   @Override
   public List<double[]> state() {
-    return Arrays.asList(this.getBias());
-  }
-  
-  /**
-   * Get bias double [ ].
-   *
-   * @return the double [ ]
-   */
-  public double[] getBias() {
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
-    return bias;
-  }
-  
-  public Precision getPrecision() {
-    return precision;
-  }
-  
-  public ImgBandBiasLayer setPrecision(Precision precision) {
-    this.precision = precision;
-    return this;
+    return Arrays.asList(getBias());
   }
 }

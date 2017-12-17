@@ -31,12 +31,7 @@ public class LoggingWrapperLayerTest extends LayerTestBase {
    * Instantiates a new Logging wrapper layer test.
    */
   public LoggingWrapperLayerTest() {
-    this.validateBatchExecution = false;
-  }
-  
-  @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new LoggingWrapperLayer(new LinearActivationLayer());
+    validateBatchExecution = false;
   }
   
   @Override
@@ -44,5 +39,10 @@ public class LoggingWrapperLayerTest extends LayerTestBase {
     return new int[][]{
       {3}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new LoggingWrapperLayer(new LinearActivationLayer());
   }
 }

@@ -28,17 +28,18 @@ import com.simiacryptus.mindseye.lang.NNLayer;
  * and the resulting output is combined with the exemplar output
  * via the loss function.
  */
+@SuppressWarnings("serial")
 public class SimpleLossNetwork extends SupervisedNetwork {
   
   
   /**
-   * The Student node.
-   */
-  public final DAGNode studentNode;
-  /**
    * The Loss node.
    */
   public final DAGNode lossNode;
+  /**
+   * The Student node.
+   */
+  public final DAGNode studentNode;
   
   /**
    * Instantiates a new Simple loss network.

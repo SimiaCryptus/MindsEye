@@ -33,6 +33,7 @@ import java.util.Random;
 /**
  * The type Binary noise layer.
  */
+@SuppressWarnings("serial")
 public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
   
   
@@ -55,12 +56,9 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
   
   /**
    * Instantiates a new Binary noise layer.
-   *
-   * @param json the json
    */
-  protected BinaryNoiseLayer(JsonObject json) {
-    super(json);
-    this.value = json.get("value").getAsDouble();
+  public BinaryNoiseLayer() {
+    this(0.5);
   }
   
   /**
@@ -68,16 +66,19 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
    *
    * @param value the value
    */
-  public BinaryNoiseLayer(double value) {
+  public BinaryNoiseLayer(final double value) {
     super();
-    this.setValue(value);
+    setValue(value);
   }
   
   /**
    * Instantiates a new Binary noise layer.
+   *
+   * @param json the json
    */
-  public BinaryNoiseLayer() {
-    this(0.5);
+  protected BinaryNoiseLayer(final JsonObject json) {
+    super(json);
+    value = json.get("value").getAsDouble();
   }
   
   /**
@@ -86,12 +87,39 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
    * @param json the json
    * @return the binary noise layer
    */
-  public static BinaryNoiseLayer fromJson(JsonObject json) {
+  public static BinaryNoiseLayer fromJson(final JsonObject json) {
     return new BinaryNoiseLayer(json);
   }
   
+  @Override
+  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    final NNResult input = inObj[0];
+    final int[] dimensions = input.getData().getDimensions();
+    final int length = input.getData().length();
+    if (maskList.size() > 1 && !Arrays.equals(maskList.get(0).getDimensions(), dimensions)) {
+      maskList.clear();
+    }
+    final Tensor tensorPrototype = new Tensor(dimensions);
+    while (length > maskList.size()) {
+      maskList.add(tensorPrototype.map(v -> FastRandom.random() < getValue() ? 0 : 1));
+    }
+    final TensorArray mask = new TensorArray(maskList.stream().limit(length).toArray(i -> new Tensor[i]));
+    return new NNResult(mask) {
+      @Override
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+        input.accumulate(buffer, data);
+      }
+      
+      @Override
+      public boolean isAlive() {
+        return input.isAlive();
+      }
+    };
+  }
+  
+  @Override
   public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
+    final JsonObject json = super.getJsonStub();
     json.addProperty("value", value);
     return json;
   }
@@ -111,7 +139,7 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
    * @param value the value
    * @return the value
    */
-  public BinaryNoiseLayer setValue(double value) {
+  public BinaryNoiseLayer setValue(final double value) {
     this.value = value;
     shuffle();
     return this;
@@ -120,30 +148,6 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
   @Override
   public void shuffle() {
     maskList.clear();
-  }
-  
-  @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    final NNResult input = inObj[0];
-    int[] dimensions = input.getData().getDimensions();
-    int length = input.getData().length();
-    if (maskList.size() > 1 && !Arrays.equals(maskList.get(0).getDimensions(), dimensions)) maskList.clear();
-    Tensor tensorPrototype = new Tensor(dimensions);
-    while (length > maskList.size()) {
-      maskList.add(tensorPrototype.map(v -> (FastRandom.random() < getValue()) ? 0 : 1));
-    }
-    TensorArray mask = new TensorArray(maskList.stream().limit(length).toArray(i -> new Tensor[i]));
-    return new NNResult(mask) {
-      @Override
-      public void accumulate(DeltaSet buffer, TensorList data) {
-        input.accumulate(buffer, data);
-      }
-      
-      @Override
-      public boolean isAlive() {
-        return input.isAlive();
-      }
-    };
   }
   
   @Override

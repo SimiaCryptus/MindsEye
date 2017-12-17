@@ -28,15 +28,15 @@ import com.simiacryptus.mindseye.layers.MetaLayerTestBase;
 public class MaxMetaLayerTest extends MetaLayerTestBase {
   
   @Override
-  public NNLayer getLayer(int[][] inputSize) {
-    return new MaxMetaLayer();
-  }
-  
-  @Override
   public int[][] getInputDims() {
     return new int[][]{
       {3}
     };
+  }
+  
+  @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new MaxMetaLayer();
   }
   
   @Override
@@ -45,5 +45,5 @@ public class MaxMetaLayerTest extends MetaLayerTestBase {
       {3}
     };
   }
-
+  
 }
