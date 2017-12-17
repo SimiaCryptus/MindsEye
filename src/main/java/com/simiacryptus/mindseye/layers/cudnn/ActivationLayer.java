@@ -145,7 +145,9 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
             } catch (Throwable e) {
               throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
             }
-            input.accumulate(buffer, new GpuTensorList(passbackBuffer, length, inputSize, cudnnHandle, precision));
+            GpuTensorList data = new GpuTensorList(passbackBuffer, length, inputSize, cudnnHandle, precision);
+            input.accumulate(buffer, data);
+            data.recycle();
           }
         }
         

@@ -57,4 +57,12 @@ public class TensorArray implements TensorList {
     return data[0].getDimensions();
   }
   
+  @Override
+  public void recycle() {
+    try {
+      for (Tensor d : data) d.finalize();
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
+  }
 }

@@ -138,7 +138,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
       assert !data.isEmpty();
       
       TimedResult<PointSample> timedResult = TimedResult.time(() -> GpuController.INSTANCE.distribute(data,
-        (list, dev) -> eval(list, dev, isStatic, monitor),
+        (list, dev) -> eval(list, dev, monitor),
         (a, b) -> a.addInPlace(b)
       ));
       //          System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
@@ -191,13 +191,11 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    *
    * @param list      the list
    * @param nncontext the nncontext
-   * @param isStatic  the is static
    * @param monitor   the monitor
    * @return the point sample
    */
-  protected PointSample eval(List<Tensor[]> list, CudaExecutionContext nncontext, boolean isStatic, TrainingMonitor monitor) {
+  protected PointSample eval(List<Tensor[]> list, CudaExecutionContext nncontext, TrainingMonitor monitor) {
     TimedResult<PointSample> timedResult = TimedResult.time(() -> {
-      nncontext.setStatic(isStatic);
       NNResult[] nnContext = getNNContext(list, mask);
       NNResult result = network.eval(nncontext, nnContext);
       TensorList resultData = result.getData();

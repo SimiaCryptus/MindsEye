@@ -152,6 +152,12 @@ public class GpuTensorList implements TensorList {
   }
   
   @Override
+  public void recycle() {
+    ptr.finalize();
+    if (null != _inner) _inner.recycle();
+  }
+  
+  @Override
   public Tensor get(int i) {
     return inner().get(i);
   }

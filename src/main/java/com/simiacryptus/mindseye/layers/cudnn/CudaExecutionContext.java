@@ -82,17 +82,4 @@ public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
       .map(i -> new CudaExecutionContext(i)).collect(Collectors.toList());
   }
   
-  @Override
-  public boolean staticEvaluation() {
-    return isStatic;
-  }
-  
-  /**
-   * Sets static.
-   *
-   * @param aStatic the a static
-   */
-  public void setStatic(boolean aStatic) {
-    isStatic = aStatic;
-  }
 }

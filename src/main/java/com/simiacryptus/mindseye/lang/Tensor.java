@@ -564,9 +564,11 @@ public class Tensor implements Serializable {
         if (null == this.data) {
           int length = Tensor.dim(this.dimensions);
           this.data = RecycleBin.DOUBLES.obtain(length);
+          assert null != this.data;
         }
       }
     }
+    assert null != this.data;
     assert (dim() == this.data.length);
     return this.data;
   }
@@ -709,9 +711,10 @@ public class Tensor implements Serializable {
    * @return the tensor
    */
   public Tensor map(final java.util.function.DoubleUnaryOperator f) {
-    final double[] cpy = new double[getData().length];
-    for (int i = 0; i < getData().length; i++) {
-      final double x = getData()[i];
+    double[] data = getData();
+    final double[] cpy = new double[data.length];
+    for (int i = 0; i < data.length; i++) {
+      final double x = data[i];
       // assert Double.isFinite(x);
       final double v = f.applyAsDouble(x);
       // assert Double.isFinite(v);

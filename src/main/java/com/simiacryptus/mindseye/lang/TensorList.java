@@ -98,4 +98,5 @@ public interface TensorList {
     );
   }
   
+  void recycle();
 }

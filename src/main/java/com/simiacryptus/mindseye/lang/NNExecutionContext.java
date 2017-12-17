@@ -23,16 +23,4 @@ package com.simiacryptus.mindseye.lang;
  * This base class is passed into any NNLayer evaluation code to communicate context information.
  */
 public interface NNExecutionContext {
-  /**
-   * This flag determines how strictly to observe idempotence.
-   * If true, the current NNLayer evaluation should be strictly and exactly repeatable;
-   * No state modification is allowed, in particular.
-   * This is important when within the line-search phase of optimization, where our
-   * convergence gaurantee is largely based on numerical accuracy and consistency.
-   *
-   * @return the boolean
-   */
-  default boolean staticEvaluation() {
-    return false;
-  }
 }

@@ -26,7 +26,6 @@ import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
-import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.java.WeightExtractor;
 import com.simiacryptus.mindseye.layers.java.WrapperLayer;
 import com.simiacryptus.util.MonitoredItem;
@@ -330,16 +329,6 @@ public abstract class DAGNetwork extends NNLayer {
   }
   
   /**
-   * Single exe ctx graph evaluation context.
-   *
-   * @param input the input
-   * @return the graph evaluation context
-   */
-  public final GraphEvaluationContext singleExeCtx(final Tensor... input) {
-    return buildExeCtx(NNResult.singleResultArray(input));
-  }
-  
-  /**
    * Build exe ctx graph evaluation context.
    *
    * @param inputs the inputs
@@ -352,16 +341,6 @@ public abstract class DAGNetwork extends NNLayer {
       graphEvaluationContext.cache.put(this.inputHandles.get(i), new CountingNNResult(inputs[i]));
     }
     return graphEvaluationContext;
-  }
-  
-  /**
-   * Batch exe context graph evaluation context.
-   *
-   * @param batchData the batch data
-   * @return the graph evaluation context
-   */
-  public GraphEvaluationContext batchExeContext(final Tensor[][] batchData) {
-    return this.buildExeCtx(NNResult.batchResultArray(batchData));
   }
   
   /**
@@ -418,31 +397,6 @@ public abstract class DAGNetwork extends NNLayer {
   }
   
   /**
-   * Gets label network.
-   *
-   * @param key the key
-   * @return the label network
-   */
-  public NNLayer getLabelNetwork(String key) {
-    return new NNLayer() {
-      @Override
-      public NNResult eval(NNExecutionContext nncontext, NNResult[] array) {
-        return nodesById.get(labels.get(key)).get(nncontext, buildExeCtx(array));
-      }
-      
-      @Override
-      public JsonObject getJson() {
-        throw new UnsupportedOperationException();
-      }
-      
-      @Override
-      public List<double[]> state() {
-        return DAGNetwork.this.state();
-      }
-    };
-  }
-  
-  /**
    * Get nn result.
    *
    * @param nncontext   the nncontext
@@ -455,7 +409,10 @@ public abstract class DAGNetwork extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult[] input) {
-    return getHead().get(nncontext, buildExeCtx(input));
+    GraphEvaluationContext exeCtx = buildExeCtx(input);
+    NNResult result = get(nncontext, exeCtx);
+    //exeCtx.finalize();
+    return result;
   }
   
   @Override

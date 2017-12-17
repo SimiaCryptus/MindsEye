@@ -87,31 +87,24 @@ class CountingNNResult extends NNResult {
   
   @Override
   public void accumulate(DeltaSet buffer, TensorList data) {
-    if (null == passbackBuffer) {
-      if (1 == getCount()) {
-        passbackBuffer = data;
-      }
-      else {
-        passbackBuffer = data.copy();
-      }
+    if (1 >= getCount()) {
+      inner.accumulate(buffer, data);
     }
     else {
-      if (passbackBuffer.length() == 0) {
-        passbackBuffer = data;
+      if (null == passbackBuffer) {
+        passbackBuffer = data.copy();
       }
       else {
         passbackBuffer.accum(data);
       }
+      if (++queued == getCount()) {
+        inner.accumulate(buffer, passbackBuffer);
+        if (1 < getCount()) {
+          passbackBuffer.recycle();
+        }
+        queued = 0;
+      }
     }
-    if (++queued == getCount()) {
-      //System.err.println(String.format("Pass Count -> %s, Buffer -> %s", this.count, passbackBuffer.size()));
-      inner.accumulate(buffer, passbackBuffer);
-      queued = 0;
-    }
-    else {
-      //System.err.println(String.format("Accum Count -> %s, Buffer -> %s", this.count, passbackBuffer.size()));
-    }
-    
   }
   
   @Override
