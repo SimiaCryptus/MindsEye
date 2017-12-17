@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.unit.JsonTest;
-import com.simiacryptus.mindseye.test.unit.LearningTester;
+import com.simiacryptus.mindseye.test.unit.TrainingTester;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -70,7 +70,7 @@ public abstract class NLayerTest {
       workingSpec.add(l);
       NNLayer layer = buildNetwork(concat(inputDims, workingSpec));
       graphviz(log, layer);
-      double test = test(log, layer, inputDims);
+      test(log, layer, inputDims);
     }
   }
   
@@ -82,11 +82,11 @@ public abstract class NLayerTest {
    * @param inputDims the input dims
    * @return the double
    */
-  public double test(NotebookOutput log, NNLayer layer, int[]... inputDims) {
+  public TrainingTester.ComponentResult test(NotebookOutput log, NNLayer layer, int[]... inputDims) {
     NNLayer component = layer.copy();
     Tensor[] randomize = randomize(inputDims);
     new JsonTest().test(log, component, randomize);
-    return new LearningTester().test(log, component, randomize);
+    return new TrainingTester().test(log, component, randomize);
   }
   
   /**

@@ -56,15 +56,16 @@ import java.util.stream.Stream;
 /**
  * The type Derivative tester.
  */
-public class LearningTester implements ComponentTest<Double> {
+public class TrainingTester implements ComponentTest<TrainingTester.ComponentResult> {
   
   private boolean verbose = true;
   private RandomizationMode randomizationMode = RandomizationMode.Permute;
+  private int batches = 3;
   
   /**
    * Instantiates a new Learning tester.
    */
-  public LearningTester() {
+  public TrainingTester() {
   }
   
   /**
@@ -110,37 +111,58 @@ public class LearningTester implements ComponentTest<Double> {
    */
   public TestResult testInputLearning(NotebookOutput log, NNLayer component, Random random, Tensor[] inputPrototype) {
     NNLayer shuffleCopy = shuffle(random, component.copy()).freeze();
-    final Tensor[] input_target = shuffle(random, Arrays.stream(inputPrototype).map(t -> t.copy()));
+    final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
     log.p("In this test, we use a network to learn this target input, given it's pre-evaluated output:");
     log.code(() -> {
-      return Arrays.stream(input_target).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
+      return Arrays.stream(input_target)
+        .flatMap(x -> Arrays.stream(x))
+        .map(x -> x.prettyPrint())
+        .reduce((a, b) -> a + "\n" + b)
+        .orElse("");
     });
-    Tensor targetOutput = GpuController.call(ctx -> {
-      return shuffleCopy.eval(ctx, NNResult.singleResultArray(input_target)).getData().get(0);
-    });
-    PipelineNetwork network = new PipelineNetwork(inputPrototype.length);
+    Tensor[] targetOutput = GpuController.call(ctx -> {
+      return shuffleCopy.eval(ctx, NNResult.batchResultArray(input_target)).getData();
+    }).stream().toArray(i -> new Tensor[i]);
+    PipelineNetwork network = new PipelineNetwork(inputPrototype.length + 1);
     network.add(new MeanSqLossLayer(),
       network.add(shuffleCopy, IntStream.range(0, inputPrototype.length).mapToObj(i -> network.getInput(0)).toArray(i -> new DAGNode[i])),
-      network.constValue(targetOutput));
-    Tensor[] input_gd = shuffle(random, Arrays.stream(inputPrototype).map(t -> t.copy()));
-    Tensor[] input_lbgfs = Arrays.stream(input_gd).map(t -> t.copy()).toArray(i -> new Tensor[i]);
+      network.getInput(inputPrototype.length));
+    Tensor[][] random_in = shuffleCopy(random, inputPrototype);
+    if (targetOutput.length != random_in.length) throw new AssertionError();
+    Tensor[][] input_gd = IntStream.range(0, random_in.length).mapToObj(i ->
+      Stream.concat(
+        Arrays.stream(random_in[i]),
+        Stream.of(targetOutput[i])
+      ).toArray(j -> new Tensor[j])
+    ).toArray(j -> new Tensor[j][]);
+    Tensor[][] input_lbgfs = Arrays.stream(input_gd)
+      .map(t -> Arrays.stream(t).map(x -> x.copy()).toArray(i -> new Tensor[i]))
+      .toArray(i -> new Tensor[i][]);
     boolean[] mask = new boolean[input_gd.length];
     for (int i = 0; i < mask.length; i++) mask[i] = true;
-    List<StepRecord> gd = trainCjGD(log, getTrainable(network, input_gd).setMask(mask));
+    List<StepRecord> gd = trainCjGD(log, new ArrayTrainable(input_gd, network).setMask(mask));
     if (gd.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
       log.p("This training run resulted in the following regressed input:");
       log.code(() -> {
-        return Arrays.stream(input_gd).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
+        return Arrays.stream(input_gd)
+          .flatMap(x -> Arrays.stream(x))
+          .map(x -> x.prettyPrint())
+          .reduce((a, b) -> a + "\n" + b)
+          .orElse("");
       });
     }
     else {
       log.p("Training Converged");
     }
-    List<StepRecord> lbfgs = trainLBFGS(log, getTrainable(network, input_lbgfs).setMask(true));
+    List<StepRecord> lbfgs = trainLBFGS(log, new ArrayTrainable(input_lbgfs, network).setMask(true));
     if (lbfgs.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
       log.p("This training run resulted in the following regressed input:");
       log.code(() -> {
-        return Arrays.stream(input_lbgfs).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
+        return Arrays.stream(input_lbgfs)
+          .flatMap(x -> Arrays.stream(x))
+          .map(x -> x.prettyPrint())
+          .reduce((a, b) -> a + "\n" + b)
+          .orElse("");
       });
     }
     else {
@@ -156,8 +178,12 @@ public class LearningTester implements ComponentTest<Double> {
     PlotCanvas timePlot = log.code(() -> {
       return TestUtil.compareTime("Input Convergence vs Time", runs);
     });
-    double fitness = Stream.concat(gd.stream(), lbfgs.stream()).mapToDouble(x -> x.fitness).min().orElse(Double.NaN);
-    return new TestResult(iterPlot, timePlot, fitness);
+    double gdmin = gd.stream().mapToDouble(x -> x.fitness).min().orElse(Double.NaN);
+    double lbfgsmin = lbfgs.stream().mapToDouble(x -> x.fitness).min().orElse(Double.NaN);
+    return new TestResult(iterPlot, timePlot, new ProblemResult(
+      new TrainingResult(getResultType(gdmin), gdmin),
+      new TrainingResult(getResultType(lbfgsmin), lbfgsmin)
+    ));
   }
   
   /**
@@ -171,19 +197,26 @@ public class LearningTester implements ComponentTest<Double> {
    */
   public TestResult testModelLearning(NotebookOutput log, NNLayer component, Random random, Tensor[] inputPrototype) {
     NNLayer network_target = shuffle(random, component.copy()).freeze();
-    Tensor[] testInput = shuffle(random, Arrays.stream(inputPrototype).map(t -> t.copy()));
+    Tensor[][] testInput = shuffleCopy(random, inputPrototype);
     log.p("In this test, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
     log.code(() -> {
       return network_target.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
     });
-    Tensor targetOutput = GpuController.call(ctx -> {
-      return network_target.eval(ctx, NNResult.singleResultArray(testInput)).getData().get(0);
-    });
-    PipelineNetwork network_gd = new PipelineNetwork(1);
+    Tensor[] targetOutput = GpuController.call(ctx -> {
+      return network_target.eval(ctx, NNResult.batchResultArray(testInput)).getData();
+    }).stream().toArray(i -> new Tensor[i]);
+    if (targetOutput.length != testInput.length) throw new AssertionError();
+    Tensor[][] appended = IntStream.range(0, testInput.length).mapToObj(i ->
+      Stream.concat(
+        Arrays.stream(testInput[i]),
+        Stream.of(targetOutput[i])
+      ).toArray(j -> new Tensor[j])
+    ).toArray(j -> new Tensor[j][]);
+    PipelineNetwork network_gd = new PipelineNetwork(inputPrototype.length + 1);
     network_gd.add(new MeanSqLossLayer(),
       network_gd.add(shuffle(random, component.copy()), network_gd.getInput(0)),
-      network_gd.constValue(targetOutput));
-    List<StepRecord> gd = trainCjGD(log, getTrainable(network_gd, testInput));
+      network_gd.getInput(inputPrototype.length));
+    List<StepRecord> gd = trainCjGD(log, new ArrayTrainable(appended, network_gd));
     if (gd.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
       log.p("This training run resulted in the following configuration:");
       log.code(() -> {
@@ -193,11 +226,11 @@ public class LearningTester implements ComponentTest<Double> {
     else {
       log.p("Training Converged");
     }
-    PipelineNetwork network_lbfgs = new PipelineNetwork(1);
+    PipelineNetwork network_lbfgs = new PipelineNetwork(inputPrototype.length + 1);
     network_lbfgs.add(new MeanSqLossLayer(),
       network_lbfgs.add(shuffle(random, component.copy()), network_lbfgs.getInput(0)),
-      network_lbfgs.constValue(targetOutput));
-    List<StepRecord> lbfgs = trainLBFGS(log, getTrainable(network_lbfgs, testInput));
+      network_lbfgs.getInput(inputPrototype.length));
+    List<StepRecord> lbfgs = trainLBFGS(log, new ArrayTrainable(appended, network_lbfgs));
     if (lbfgs.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
       log.p("This training run resulted in the following configuration:");
       log.code(() -> {
@@ -218,19 +251,12 @@ public class LearningTester implements ComponentTest<Double> {
     PlotCanvas timePlot = log.code(() -> {
       return TestUtil.compareTime("Model Convergence vs Time", runs);
     });
-    double fitness = Stream.concat(gd.stream(), lbfgs.stream()).mapToDouble(x -> x.fitness).min().orElse(Double.NaN);
-    return new TestResult(iterPlot, timePlot, fitness);
-  }
-  
-  /**
-   * Gets trainable.
-   *
-   * @param network_gd the network gd
-   * @param testInput  the test input
-   * @return the trainable
-   */
-  public ArrayTrainable getTrainable(PipelineNetwork network_gd, Tensor... testInput) {
-    return new ArrayTrainable(new Tensor[][]{testInput}, network_gd);
+    double gdmin = gd.stream().mapToDouble(x -> x.fitness).min().orElse(Double.NaN);
+    double lbfgsmin = lbfgs.stream().mapToDouble(x -> x.fitness).min().orElse(Double.NaN);
+    return new TestResult(iterPlot, timePlot, new ProblemResult(
+      new TrainingResult(getResultType(gdmin), gdmin),
+      new TrainingResult(getResultType(lbfgsmin), lbfgsmin)
+    ));
   }
   
   /**
@@ -244,32 +270,44 @@ public class LearningTester implements ComponentTest<Double> {
    */
   public TestResult testCompleteLearning(NotebookOutput log, NNLayer component, Random random, Tensor[] inputPrototype) {
     NNLayer network_target = shuffle(random, component.copy()).freeze();
-    Tensor[] testInput = shuffle(random, Arrays.stream(inputPrototype).map(t -> t.copy()));
+    Tensor[][] testInput = shuffleCopy(random, inputPrototype);
     log.p("In this test, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
     log.code(() -> {
       return network_target.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
     });
     log.p("We simultaneously regress this target input:");
     log.code(() -> {
-      return Arrays.stream(testInput).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
+      return Arrays.stream(testInput)
+        .flatMap(x -> Arrays.stream(x))
+        .map(x -> x.prettyPrint())
+        .reduce((a, b) -> a + "\n" + b)
+        .orElse("");
     });
     log.p("Which produces the following output:");
-    Tensor targetOutput = GpuController.call(ctx -> {
-      return network_target.eval(ctx, NNResult.singleResultArray(testInput)).getData().get(0);
-    });
+    Tensor[] targetOutput = GpuController.call(ctx -> {
+      return network_target.eval(ctx, NNResult.batchResultArray(testInput)).getData();
+    }).stream().toArray(i -> new Tensor[i]);
     log.code(() -> {
       return Stream.of(targetOutput).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
     });
-    Tensor[] input_gd = shuffle(random, Arrays.stream(inputPrototype).map(t -> t.copy()));
-    Tensor[] input_lbgfs = Arrays.stream(input_gd).map(t -> t.copy()).toArray(i -> new Tensor[i]);
+    Tensor[][] random_in = shuffleCopy(random, inputPrototype);
+    Tensor[][] input_gd = IntStream.range(0, random_in.length).mapToObj(i ->
+      Stream.concat(
+        Arrays.stream(random_in[i]),
+        Stream.of(targetOutput[i])
+      ).toArray(j -> new Tensor[j])
+    ).toArray(j -> new Tensor[j][]);
+    Tensor[][] input_lbgfs = Arrays.stream(input_gd)
+      .map(t -> Arrays.stream(t).map(v -> v.copy()).toArray(i -> new Tensor[i]))
+      .toArray(i -> new Tensor[i][]);
     boolean[] mask = new boolean[input_gd.length];
     for (int i = 0; i < mask.length; i++) mask[i] = true;
-    PipelineNetwork network_gd = new PipelineNetwork(1);
+    PipelineNetwork network_gd = new PipelineNetwork(inputPrototype.length + 1);
     network_gd.add(new MeanSqLossLayer(),
       network_gd.add(shuffle(random, component.copy()), network_gd.getInput(0)),
-      network_gd.constValue(targetOutput));
+      network_gd.getInput(inputPrototype.length));
     DAGNetwork network_lbfgs = network_gd.copy();
-    List<StepRecord> gd = trainCjGD(log, getTrainable(network_gd, input_gd).setMask(mask));
+    List<StepRecord> gd = trainCjGD(log, new ArrayTrainable(input_gd, network_gd).setMask(mask));
     if (gd.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
       log.p("This training run resulted in the following configuration:");
       log.code(() -> {
@@ -277,11 +315,15 @@ public class LearningTester implements ComponentTest<Double> {
       });
       log.p("And regressed input:");
       log.code(() -> {
-        return Arrays.stream(input_gd).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
+        return Arrays.stream(input_gd)
+          .flatMap(x -> Arrays.stream(x))
+          .map(x -> x.prettyPrint())
+          .reduce((a, b) -> a + "\n" + b)
+          .orElse("");
       });
       log.p("Which produces the following output:");
       Tensor regressedOutput = GpuController.call(ctx -> {
-        return network_gd.eval(ctx, NNResult.singleResultArray(input_gd)).getData().get(0);
+        return network_gd.eval(ctx, NNResult.batchResultArray(input_gd)).getData().get(0);
       });
       log.code(() -> {
         return Stream.of(regressedOutput).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
@@ -290,7 +332,7 @@ public class LearningTester implements ComponentTest<Double> {
     else {
       log.p("Training Converged");
     }
-    List<StepRecord> lbfgs = trainLBFGS(log, new ArrayTrainable(new Tensor[][]{input_lbgfs}, network_lbfgs).setMask(mask));
+    List<StepRecord> lbfgs = trainLBFGS(log, new ArrayTrainable(input_lbgfs, network_lbfgs).setMask(mask));
     if (lbfgs.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
       log.p("This training run resulted in the following configuration:");
       log.code(() -> {
@@ -298,11 +340,15 @@ public class LearningTester implements ComponentTest<Double> {
       });
       log.p("And regressed input:");
       log.code(() -> {
-        return Arrays.stream(input_lbgfs).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
+        return Arrays.stream(input_lbgfs)
+          .flatMap(x -> Arrays.stream(x))
+          .map(x -> x.prettyPrint())
+          .reduce((a, b) -> a + "\n" + b)
+          .orElse("");
       });
       log.p("Which produces the following output:");
       Tensor regressedOutput = GpuController.call(ctx -> {
-        return network_lbfgs.eval(ctx, NNResult.singleResultArray(input_lbgfs)).getData().get(0);
+        return network_lbfgs.eval(ctx, NNResult.batchResultArray(input_lbgfs)).getData().get(0);
       });
       log.code(() -> {
         return Stream.of(regressedOutput).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
@@ -322,8 +368,16 @@ public class LearningTester implements ComponentTest<Double> {
     PlotCanvas timePlot = log.code(() -> {
       return TestUtil.compareTime("Integrated Convergence vs Time", runs);
     });
-    double fitness = Stream.concat(gd.stream(), lbfgs.stream()).mapToDouble(x -> x.fitness).min().orElse(Double.NaN);
-    return new TestResult(iterPlot, timePlot, fitness);
+    double gdmin = gd.stream().mapToDouble(x -> x.fitness).min().orElse(Double.NaN);
+    double lbfgsmin = lbfgs.stream().mapToDouble(x -> x.fitness).min().orElse(Double.NaN);
+    return new TestResult(iterPlot, timePlot, new ProblemResult(
+      new TrainingResult(getResultType(gdmin), gdmin),
+      new TrainingResult(getResultType(lbfgsmin), lbfgsmin)
+    ));
+  }
+  
+  public ResultType getResultType(double lbfgsmin) {
+    return Math.abs(lbfgsmin) < 1e-9 ? ResultType.Converged : ResultType.NonConverged;
   }
   
   /**
@@ -333,7 +387,7 @@ public class LearningTester implements ComponentTest<Double> {
    * @param component      the component
    * @param inputPrototype the input prototype
    */
-  public Double test(NotebookOutput log, final NNLayer component, final Tensor... inputPrototype) {
+  public ComponentResult test(NotebookOutput log, final NNLayer component, final Tensor... inputPrototype) {
     boolean testModel = !component.state().isEmpty();
     if (testModel && isZero(component.state().stream().flatMapToDouble(x1 -> Arrays.stream(x1)))) {
       throw new AssertionError("Weights are all zero?");
@@ -370,8 +424,44 @@ public class LearningTester implements ComponentTest<Double> {
     log.code(() -> {
       return grid(inputLearning, modelLearning, completeLearning);
     });
-    return Stream.of(inputLearning, modelLearning, completeLearning).filter(x -> x != null).mapToDouble(x -> x.value).filter(Double::isFinite).min().orElse(Double.NaN);
+    return log.code(() -> {
+      return new ComponentResult(
+        null == inputLearning ? null : inputLearning.value,
+        null == modelLearning ? null : modelLearning.value,
+        null == completeLearning ? null : completeLearning.value);
+    });
   }
+  
+  /**
+   * Shuffle tensor [ ].
+   *
+   * @param random the randomize
+   * @param copy   the copy
+   * @return the tensor [ ]
+   */
+  private Tensor[][] shuffleCopy(Random random, Tensor... copy) {
+    return IntStream.range(0, getBatches()).mapToObj(i -> {
+      return Arrays.stream(copy).map(tensor -> {
+        Tensor cpy = tensor.copy();
+        randomizationMode.shuffle(random, cpy.getData());
+        return cpy;
+      }).toArray(j -> new Tensor[j]);
+    }).toArray(i -> new Tensor[i][]);
+  }
+  
+  public int getBatches() {
+    return batches;
+  }
+  
+  public void setBatches(int batches) {
+    this.batches = batches;
+  }
+  
+  public enum ResultType {
+    Converged,
+    NonConverged
+  }
+  
   
   /**
    * Train cj gd list.
@@ -422,18 +512,52 @@ public class LearningTester implements ComponentTest<Double> {
   }
   
   /**
-   * Shuffle tensor [ ].
-   *
-   * @param random the randomize
-   * @param copy   the copy
-   * @return the tensor [ ]
+   * The enum Randomization mode.
    */
-  private Tensor[] shuffle(Random random, Stream<Tensor> copy) {
-    return copy
-      .map(tensor -> {
-        randomizationMode.shuffle(random, tensor.getData());
-        return tensor;
-      }).toArray(i -> new Tensor[i]);
+  public enum RandomizationMode {
+    /**
+     * The Permute.
+     */
+    Permute {
+      @Override
+      public void shuffle(Random random, double[] buffer) {
+        for (int i = 0; i < buffer.length; i++) {
+          int j = random.nextInt(buffer.length);
+          double v = buffer[i];
+          buffer[i] = buffer[j];
+          buffer[j] = v;
+        }
+      }
+    }, /**
+     * The Permute duplicates.
+     */
+    PermuteDuplicates {
+        @Override
+        public void shuffle(Random random, double[] buffer) {
+          Permute.shuffle(random, buffer);
+          for (int i = 0; i < buffer.length; i++) {
+            buffer[i] = buffer[random.nextInt(buffer.length)];
+          }
+        }
+      }, /**
+     * The Random.
+     */
+    Random {
+        @Override
+        public void shuffle(Random random, double[] buffer) {
+          for (int i = 0; i < buffer.length; i++) {
+            buffer[i] = 2 * (random.nextDouble() - 0.5);
+          }
+        }
+      };
+  
+    /**
+     * Shuffle.
+     *
+     * @param random the randomize
+     * @param buffer the buffer
+     */
+    public abstract void shuffle(Random random, double[] buffer);
   }
   
   /**
@@ -501,34 +625,35 @@ public class LearningTester implements ComponentTest<Double> {
     return jPanel;
   }
   
-  /**
-   * The type Test result.
-   */
-  public static class TestResult {
-    /**
-     * The Time plot.
-     */
-    PlotCanvas timePlot;
-    /**
-     * The Iter plot.
-     */
-    PlotCanvas iterPlot;
-    /**
-     * The Value.
-     */
-    double value;
+  public static class ComponentResult {
+    ProblemResult input;
+    ProblemResult model;
+    ProblemResult complete;
     
-    /**
-     * Instantiates a new Test result.
-     *
-     * @param iterPlot the iter plot
-     * @param timePlot the time plot
-     * @param value    the value
-     */
-    public TestResult(PlotCanvas iterPlot, PlotCanvas timePlot, double value) {
-      this.timePlot = timePlot;
-      this.iterPlot = iterPlot;
-      this.value = value;
+    public ComponentResult(ProblemResult input, ProblemResult model, ProblemResult complete) {
+      this.input = input;
+      this.model = model;
+      this.complete = complete;
+    }
+    
+    @Override
+    public String toString() {
+      return String.format("ComponentResult{input=%s, model=%s, complete=%s}", input, model, complete);
+    }
+  }
+  
+  public static class ProblemResult {
+    TrainingResult cjgd;
+    TrainingResult lbfgs;
+    
+    public ProblemResult(TrainingResult cjgd, TrainingResult lbfgs) {
+      this.cjgd = cjgd;
+      this.lbfgs = lbfgs;
+    }
+    
+    @Override
+    public String toString() {
+      return String.format("ProblemResult{cjgd=%s, lbfgs=%s}", cjgd, lbfgs);
     }
   }
   
@@ -552,52 +677,49 @@ public class LearningTester implements ComponentTest<Double> {
     return this;
   }
   
-  /**
-   * The enum Randomization mode.
-   */
-  public enum RandomizationMode {
-    /**
-     * The Permute.
-     */
-    Permute {
-      @Override
-      public void shuffle(Random random, double[] buffer) {
-        for (int i = 0; i < buffer.length; i++) {
-          int j = random.nextInt(buffer.length);
-          double v = buffer[i];
-          buffer[i] = buffer[j];
-          buffer[j] = v;
-        }
-      }
-    }, /**
-     * The Permute duplicates.
-     */
-    PermuteDuplicates {
-        @Override
-        public void shuffle(Random random, double[] buffer) {
-          Permute.shuffle(random, buffer);
-          for (int i = 0; i < buffer.length; i++) {
-            buffer[i] = buffer[random.nextInt(buffer.length)];
-          }
-        }
-      }, /**
-     * The Random.
-     */
-    Random {
-        @Override
-        public void shuffle(Random random, double[] buffer) {
-          for (int i = 0; i < buffer.length; i++) {
-            buffer[i] = 2 * (random.nextDouble() - 0.5);
-          }
-        }
-      };
+  public static class TrainingResult {
+    ResultType type;
+    double value;
+    
+    public TrainingResult(ResultType type, double value) {
+      this.type = type;
+      this.value = value;
+    }
+    
+    @Override
+    public String toString() {
+      return String.format("TrainingResult{type=%s, value=%s}", type, value);
+    }
+  }
   
+  /**
+   * The type Test result.
+   */
+  public static class TestResult {
     /**
-     * Shuffle.
-     *
-     * @param random the randomize
-     * @param buffer the buffer
+     * The Time plot.
      */
-    public abstract void shuffle(Random random, double[] buffer);
+    PlotCanvas timePlot;
+    /**
+     * The Iter plot.
+     */
+    PlotCanvas iterPlot;
+    /**
+     * The Value.
+     */
+    ProblemResult value;
+    
+    /**
+     * Instantiates a new Test result.
+     *
+     * @param iterPlot the iter plot
+     * @param timePlot the time plot
+     * @param value    the value
+     */
+    public TestResult(PlotCanvas iterPlot, PlotCanvas timePlot, ProblemResult value) {
+      this.timePlot = timePlot;
+      this.iterPlot = iterPlot;
+      this.value = value;
+    }
   }
 }

@@ -217,8 +217,8 @@ public abstract class StandardLayerTests {
    *
    * @return the learning tester
    */
-  public ComponentTest getLearningTester() {
-    return new LearningTester();
+  public ComponentTest getTrainingTester() {
+    return new TrainingTester();
   }
   
   /**
@@ -271,7 +271,7 @@ public abstract class StandardLayerTests {
       synchronized (this) {
         if(null == bigTests) {
           bigTests = new ArrayList<>(Arrays.asList(
-            getPerformanceTester(), getLearningTester()
+            getPerformanceTester(), getTrainingTester()
           ));
         }
       }
