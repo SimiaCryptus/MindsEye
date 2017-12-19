@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.simiacryptus.mindseye.lang.GpuError;
 import jcuda.Pointer;
 import jcuda.jcudnn.*;
@@ -43,7 +44,7 @@ public class CuDNN {
       return -1;
     }
   };
-  private static final ExecutorService logThread = Executors.newSingleThreadExecutor();
+  private static final ExecutorService logThread = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
   private static final long start = System.nanoTime();
   /**
    * The constant apiLog.

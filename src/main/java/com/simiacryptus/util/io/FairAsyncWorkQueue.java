@@ -19,6 +19,8 @@
 
 package com.simiacryptus.util.io;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -29,7 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class FairAsyncWorkQueue implements Runnable {
   private final AtomicBoolean isRunning = new AtomicBoolean(false);
-  private final ExecutorService pool = Executors.newCachedThreadPool();
+  private final ExecutorService pool = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).build());
   private final LinkedBlockingDeque<Runnable> queue = new LinkedBlockingDeque<>();
   
   @Override

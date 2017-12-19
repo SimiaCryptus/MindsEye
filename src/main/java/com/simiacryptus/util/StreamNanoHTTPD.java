@@ -19,6 +19,7 @@
 
 package com.simiacryptus.util;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.simiacryptus.util.io.AsyncOutputStream;
 import com.simiacryptus.util.io.TeeOutputStream;
 import fi.iki.elonen.NanoHTTPD;
@@ -50,7 +51,7 @@ public class StreamNanoHTTPD extends NanoHTTPD {
   private final File file;
   private final URI gatewayUri;
   private final String mimeType;
-  private final ExecutorService pool = Executors.newCachedThreadPool();
+  private final ExecutorService pool = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).build());
   
   
   /**

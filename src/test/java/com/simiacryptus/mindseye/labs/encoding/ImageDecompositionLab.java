@@ -137,11 +137,11 @@ public class ImageDecompositionLab {
    * @param log the log
    */
   public void run(final NotebookOutput log) {
-    final int pretrainMinutes = 60;
-    final int timeoutMinutes = 60;
+    final int pretrainMinutes = 5;
+    final int timeoutMinutes = 5;
     final int size = 256;
   
-    final Tensor[][] trainingImages = EncodingUtil.getImages(log, size, 5, "kangaroo");
+    final Tensor[][] trainingImages = EncodingUtil.getImages(log, size, 50, "kangaroo");
     
     log.h1("First Layer");
     final InitializationStep step0 = log.code(() -> {
@@ -194,7 +194,7 @@ public class ImageDecompositionLab {
       trainingSubject = (SampledTrainable) ((TrainableDataMask) trainingSubject).setMask(mask);
       final ValidatingTrainer validatingTrainer = new ValidatingTrainer(trainingSubject, new ArrayTrainable(data, network))
         .setMaxTrainingSize(data.length)
-        .setMinTrainingSize(1)
+        .setMinTrainingSize(5)
         .setMonitor(monitor)
         .setTimeout(timeoutMinutes, TimeUnit.MINUTES)
         .setMaxIterations(1000);
@@ -305,6 +305,7 @@ public class ImageDecompositionLab {
       if (0 != fromSize % scale) throw new IllegalArgumentException(fromSize + " % " + scale);
       this.fromSize = fromSize;
       toSize = (fromSize / scale + radius - 1) * scale; // 70
+      Arrays.stream(trainingData).allMatch(x -> x.length == this.layerNumber - 1);
       this.trainingData = EncodingUtil.addColumn(trainingData, toSize, toSize, band2);
       this.pretrainMinutes = pretrainMinutes;
       this.timeoutMinutes = timeoutMinutes;

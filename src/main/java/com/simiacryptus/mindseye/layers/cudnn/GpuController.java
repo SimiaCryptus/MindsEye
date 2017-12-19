@@ -23,6 +23,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.simiacryptus.mindseye.lang.GpuError;
 import com.simiacryptus.mindseye.lang.RecycleBin;
 import com.simiacryptus.util.test.SysOutInterceptor;
@@ -47,7 +48,7 @@ public final class GpuController {
    * The constant INSTANCE.
    */
   public static final GpuController INSTANCE = new GpuController();
-  private static final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+  private static final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
   /**
    * The Device batch sizes.
    */
@@ -62,6 +63,7 @@ public final class GpuController {
       return Executors.newSingleThreadExecutor(r -> {
         final Thread thread = new Thread(r);
         thread.setName(gpu.toString());
+        thread.setDaemon(true);
         return thread;
       });
     }

@@ -19,9 +19,17 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
 import java.io.PrintStream;
+import java.lang.ref.PhantomReference;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.concurrent.*;
+
+import static com.simiacryptus.mindseye.lang.RecycleBin.PersistanceMode.Soft;
 
 /**
  * This is a recycling mechanism to reuse short-term-lifecycle T objects of regular length.
@@ -66,39 +74,27 @@ public abstract class RecycleBin<T> {
   private final StackCounter frees = new StackCounter();
   private final StackCounter recycle_get = new StackCounter();
   private final StackCounter recycle_submit = new StackCounter();
-  private final ConcurrentHashMap<Integer, ConcurrentLinkedDeque<T>> recycling = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<Integer, ConcurrentLinkedDeque<Reference<T>>> recycling = new ConcurrentHashMap<>();
   private int profilingThreshold = 32 * 1024;
+  private PersistanceMode persistanceMode = Soft;
   
   private RecycleBin() {
     super();
     RecycleBin.getGarbageTruck().scheduleAtFixedRate(() -> recycling.forEach((k, v) -> {
       final StackCounter stackCounter = getRecycle_submit(k.intValue());
       if (null != stackCounter) {
-        T poll;
+        Reference<T> poll;
         while (null != (poll = v.poll())) {
-          stackCounter.increment(length(poll));
+          T obj = poll.get();
+          if (obj != null) {
+            stackCounter.increment(length(obj));
+          }
         }
       }
       else {
         v.clear();
       }
     }), 10, 10, TimeUnit.SECONDS);
-  }
-  
-  /**
-   * Gets garbage truck.
-   *
-   * @return the garbage truck
-   */
-  public static ScheduledExecutorService getGarbageTruck() {
-    if (null == RecycleBin.garbageTruck) {
-      synchronized (RecycleBin.class) {
-        if (null == RecycleBin.garbageTruck) {
-          RecycleBin.garbageTruck = Executors.newScheduledThreadPool(1);
-        }
-      }
-    }
-    return RecycleBin.garbageTruck;
   }
   
   /**
@@ -192,39 +188,19 @@ public abstract class RecycleBin<T> {
   protected abstract int length(T data);
   
   /**
-   * Obtain double [ ].
+   * Gets garbage truck.
    *
-   * @param length the length
-   * @return the double [ ]
+   * @return the garbage truck
    */
-  public T obtain(final int length) {
-    final ConcurrentLinkedDeque<T> bin = recycling.get(length);
-    StackCounter stackCounter = getRecycle_get(length);
-    if (null != stackCounter) {
-      stackCounter.increment(length);
-    }
-    if (null != bin) {
-      final T data = bin.poll();
-      if (null != data) {
-        reset(data);
-        return data;
+  public static ScheduledExecutorService getGarbageTruck() {
+    if (null == RecycleBin.garbageTruck) {
+      synchronized (RecycleBin.class) {
+        if (null == RecycleBin.garbageTruck) {
+          RecycleBin.garbageTruck = Executors.newScheduledThreadPool(1, new ThreadFactoryBuilder().setDaemon(true).build());
+        }
       }
     }
-    try {
-      stackCounter = getAllocations(length);
-      if (null != stackCounter) {
-        stackCounter.increment(length);
-      }
-      return create(length);
-    } catch (final java.lang.OutOfMemoryError e) {
-      try {
-        clear();
-        System.gc();
-        return create(length);
-      } catch (final java.lang.OutOfMemoryError e2) {
-        throw new OutOfMemoryError("Could not allocate " + length + " bytes", e2);
-      }
-    }
+    return RecycleBin.garbageTruck;
   }
   
   /**
@@ -271,6 +247,45 @@ public abstract class RecycleBin<T> {
   }
   
   /**
+   * Obtain double [ ].
+   *
+   * @param length the length
+   * @return the double [ ]
+   */
+  public T obtain(final int length) {
+    final ConcurrentLinkedDeque<Reference<T>> bin = recycling.get(length);
+    StackCounter stackCounter = getRecycle_get(length);
+    if (null != stackCounter) {
+      stackCounter.increment(length);
+    }
+    if (null != bin) {
+      final Reference<T> ref = bin.poll();
+      if (null != ref) {
+        final T data = ref.get();
+        if (null != data) {
+          reset(data);
+          return data;
+        }
+      }
+    }
+    try {
+      stackCounter = getAllocations(length);
+      if (null != stackCounter) {
+        stackCounter.increment(length);
+      }
+      return create(length);
+    } catch (final java.lang.OutOfMemoryError e) {
+      try {
+        clear();
+        System.gc();
+        return create(length);
+      } catch (final java.lang.OutOfMemoryError e2) {
+        throw new OutOfMemoryError("Could not allocate " + length + " bytes", e2);
+      }
+    }
+  }
+  
+  /**
    * Recycle.
    *
    * @param data the data
@@ -279,7 +294,7 @@ public abstract class RecycleBin<T> {
     if (null == data) return;
     final int length = length(data);
     if (length < 256) return;
-    ConcurrentLinkedDeque<T> bin = recycling.get(length);
+    ConcurrentLinkedDeque<Reference<T>> bin = recycling.get(length);
     if (null == bin) {
       bin = new ConcurrentLinkedDeque<>();
       recycling.put(length, bin);
@@ -291,7 +306,7 @@ public abstract class RecycleBin<T> {
     if (bin.size() < Math.max(1, (int) (1e8 / length))) {
       synchronized (bin) {
         if (!bin.contains(data)) {
-          bin.add(data);
+          bin.add(newRef(data));
         }
       }
     }
@@ -301,6 +316,33 @@ public abstract class RecycleBin<T> {
         stackCounter.increment(length);
       }
     }
+  }
+  
+  public PersistanceMode getPersistanceMode() {
+    return persistanceMode;
+  }
+  
+  public void setPersistanceMode(PersistanceMode persistanceMode) {
+    this.persistanceMode = persistanceMode;
+  }
+  
+  protected Reference<T> newRef(T data) {
+    switch (persistanceMode) {
+      case Soft:
+        return new SoftReference<T>(data);
+      case Weak:
+        return new WeakReference<T>(data);
+      case Phantom:
+        return new PhantomReference<T>(data, null);
+      default:
+        throw new IllegalStateException(persistanceMode.toString());
+    }
+  }
+  
+  public enum PersistanceMode {
+    Soft,
+    Weak,
+    Phantom
   }
   
   /**
