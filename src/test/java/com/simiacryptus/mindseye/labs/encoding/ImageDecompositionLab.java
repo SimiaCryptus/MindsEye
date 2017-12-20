@@ -137,9 +137,9 @@ public class ImageDecompositionLab {
    * @param log the log
    */
   public void run(final NotebookOutput log) {
-    final int pretrainMinutes = 1;
-    final int timeoutMinutes = 1;
-    final int images = 1;
+    final int pretrainMinutes = 45;
+    final int timeoutMinutes = 45;
+    final int images = 50;
     final int size = 256;
   
     final Tensor[][] trainingImages = EncodingUtil.getImages(log, size, images, "kangaroo");

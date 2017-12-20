@@ -40,7 +40,9 @@ import guru.nidi.graphviz.engine.Graphviz;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * The type Mnist run base.
@@ -55,6 +57,7 @@ public class ClassifyProblem implements Problem {
   private final FwdNetworkFactory fwdFactory;
   private final List<StepRecord> history = new ArrayList<>();
   private final OptimizationStrategy optimizer;
+  private final List<String> labels;
   private int timeoutMinutes = 1;
   
   /**
@@ -70,6 +73,11 @@ public class ClassifyProblem implements Problem {
     this.optimizer = optimizer;
     this.data = data;
     this.categories = categories;
+    try {
+      this.labels = Stream.concat(this.data.trainingData(), this.data.validationData()).map(x -> x.label).distinct().sorted().collect(Collectors.toList());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
   
   
@@ -124,7 +132,7 @@ public class ClassifyProblem implements Problem {
    * @return the int
    */
   public int parse(final String label) {
-    return Integer.parseInt(label.replaceAll("[^\\d]", ""));
+    return this.labels.indexOf(label);
   }
   
   /**

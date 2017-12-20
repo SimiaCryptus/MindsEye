@@ -19,12 +19,20 @@
 
 package com.simiacryptus.mindseye.opt.orient;
 
+import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.eval.ArrayTrainable;
+import com.simiacryptus.mindseye.eval.BasicTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * An implementation of the Limited-Memory Broyden–Fletcher–Goldfarb–Shanno algorithm
@@ -41,7 +49,56 @@ public class RLBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
     else if (Math.abs(magnitude) < 1e-5) {
       monitor.log(String.format("Low gradient: %s", magnitude));
     }
-    return new SimpleLineSearchCursor(subject, measurement, direction).setDirectionType("GD");
+    StateSet<NNLayer> origin = direction.asState().map(x -> x.backup());
+    List<NNLayer> deltaLayers = direction.getMap().entrySet().stream().map(x -> x.getKey()).collect(Collectors.toList());
+    double[] weights = new double[direction.getMap().size()];
+    NNLayer macroLayer = new NNLayer() {
+      NNLayer self = this;
+    
+      @Override
+      public NNResult eval(NNExecutionContext nncontext, NNResult... array) {
+        monitor.log(String.format("Recursive Layer Weighting: %s", Arrays.toString(weights)));
+        origin.stream().forEach(x -> x.restore());
+        IntStream.range(0, deltaLayers.size()).forEach(i -> {
+          direction.getMap().get(deltaLayers.get(i)).accumulate(weights[i]);
+        });
+        PointSample measure = subject.measure(monitor);
+        return new NNResult(new Tensor(measure.getMean())) {
+          @Override
+          public void accumulate(DeltaSet<NNLayer> buffer, TensorList data) {
+            buffer.get(self, weights).addInPlace(IntStream.range(0, deltaLayers.size()).mapToDouble(i -> {
+              NNLayer layer = deltaLayers.get(i);
+              Delta<NNLayer> a = direction.getMap().get(layer);
+              Delta<NNLayer> b = measure.delta.getMap().get(layer);
+              return b.dot(a);
+            }).toArray());
+          }
+        
+          @Override
+          public boolean isAlive() {
+            return true;
+          }
+        };
+      }
+    
+      @Override
+      public JsonObject getJson() {
+        throw new IllegalStateException();
+      }
+    
+      @Override
+      public List<double[]> state() {
+        return null;
+      }
+    };
+    ArrayTrainable trainable = new ArrayTrainable(new BasicTrainable(macroLayer), new Tensor[][]{{new Tensor()}});
+    new IterativeTrainer(trainable)
+      .setOrientation(new LBFGS())
+      .setLineSearchFactory(n -> new ArmijoWolfeSearch())
+      .setMaxIterations(5).run();
+    DeltaSet<NNLayer> delta = origin.map(x -> x.copy().backup()).subtract(origin);
+    origin.stream().forEach(s -> s.restore());
+    return new SimpleLineSearchCursor(subject, measurement, delta).setDirectionType("RLBFGS");
   }
   
   @Override

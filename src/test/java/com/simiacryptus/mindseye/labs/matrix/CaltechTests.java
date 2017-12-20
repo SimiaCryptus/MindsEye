@@ -33,6 +33,9 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The type Mnist run base.
@@ -124,7 +127,8 @@ public class CaltechTests {
      * The Timeout minutes.
      */
     protected int timeoutMinutes = 1;
-    protected int categories = (int) data.trainingData().map(x -> x.label).distinct().count();
+    List<String> labels = Stream.concat(this.data.trainingData(), this.data.validationData()).map(x -> x.label).distinct().sorted().collect(Collectors.toList());
+    protected int categories = labels.size();
     
     /**
      * Instantiates a new All tests.

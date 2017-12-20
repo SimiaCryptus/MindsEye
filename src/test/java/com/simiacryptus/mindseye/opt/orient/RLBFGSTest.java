@@ -80,17 +80,17 @@ public abstract class RLBFGSTest extends MnistTestBase {
   protected abstract OrientationStrategy<?> getOrientation();
   
   public static class Baseline extends RLBFGSTest {
-    
-    public LBFGS getOrientation() {
+  
+    public OrientationStrategy<?> getOrientation() {
       return new LBFGS();
     }
     
   }
   
   public static class Demo extends RLBFGSTest {
-    
-    public LBFGS getOrientation() {
-      return new LBFGS();
+  
+    public OrientationStrategy<?> getOrientation() {
+      return new RLBFGS();
     }
     
   }
