@@ -208,7 +208,7 @@ public class SparkTrainable implements Trainable {
   }
   
   @Override
-  public PointSample measure(final boolean isStatic, final TrainingMonitor monitor) {
+  public PointSample measure(final TrainingMonitor monitor) {
     final long time1 = System.nanoTime();
     final JavaRDD<ReducableResult> mapPartitions = sampledRDD.toJavaRDD().mapPartitions(new PartitionTask(network));
     final long time2 = System.nanoTime();
@@ -268,7 +268,7 @@ public class SparkTrainable implements Trainable {
       if (verbose) {
         SparkTrainable.debug("Materialized %s records in %4f sec", tensors.length, (System.nanoTime() - startTime) * 1e-9);
       }
-      final PointSample measure = trainable.setData(Arrays.asList(tensors)).measure(false, new TrainingMonitor() {
+      final PointSample measure = trainable.setData(Arrays.asList(tensors)).measure(new TrainingMonitor() {
         @Override
         public void log(final String msg) {
           SparkTrainable.debug(msg);

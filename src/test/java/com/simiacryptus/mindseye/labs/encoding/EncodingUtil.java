@@ -34,6 +34,7 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.test.StepRecord;
+import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.TableOutput;
@@ -294,7 +295,7 @@ class EncodingUtil {
         return Arrays.asList(categories).contains(x.label);
       }).map(labeledObj -> new Tensor[]{
         new Tensor(categories.length).set(Arrays.asList(categories).indexOf(labeledObj.label), 1.0),
-        Tensor.fromRGB(com.simiacryptus.mindseye.test.TestUtil.resize(labeledObj.data.get(), size))
+        Tensor.fromRGB(TestUtil.resize(labeledObj.data.get(), size))
       }).sorted(Comparator.comparingInt(a -> System.identityHashCode(a) ^ seed)).limit(maxImages).toArray(i -> new Tensor[i][]);
     } catch (final IOException e) {
       throw new RuntimeException(e);

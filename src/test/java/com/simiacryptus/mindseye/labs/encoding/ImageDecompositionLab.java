@@ -137,11 +137,12 @@ public class ImageDecompositionLab {
    * @param log the log
    */
   public void run(final NotebookOutput log) {
-    final int pretrainMinutes = 5;
-    final int timeoutMinutes = 5;
+    final int pretrainMinutes = 1;
+    final int timeoutMinutes = 1;
+    final int images = 1;
     final int size = 256;
   
-    final Tensor[][] trainingImages = EncodingUtil.getImages(log, size, 50, "kangaroo");
+    final Tensor[][] trainingImages = EncodingUtil.getImages(log, size, images, "kangaroo");
     
     log.h1("First Layer");
     final InitializationStep step0 = log.code(() -> {
@@ -173,7 +174,7 @@ public class ImageDecompositionLab {
     log.h1("Transcoding Different Category");
     log.code(() -> {
       return new TranscodeStep(log, "yin_yang",
-        100, size, timeoutMinutes * 5, step3.integrationModel, step3.toSize, step3.toSize, step3.band2);
+        images, size, timeoutMinutes * 5, step3.integrationModel, step3.toSize, step3.toSize, step3.band2);
     }).invoke();
   }
   
@@ -295,7 +296,9 @@ public class ImageDecompositionLab {
      * @param radius          the radius
      * @param scale           the scale
      */
-    public AddLayerStep(final NotebookOutput log, final Tensor[][] trainingData, final DAGNetwork priorModel, final int layerNumber, final int fromSize, final int pretrainMinutes, final int timeoutMinutes, final int band1, final int band2, final int radius, final int scale) {
+    public AddLayerStep(final NotebookOutput log, final Tensor[][] trainingData, final DAGNetwork priorModel,
+                        final int layerNumber, final int fromSize, final int pretrainMinutes, final int timeoutMinutes,
+                        final int band1, final int band2, final int radius, final int scale) {
       originalOut = EncodingUtil.rawOut;
       this.log = log;
       this.band1 = band1;
@@ -356,7 +359,7 @@ public class ImageDecompositionLab {
      * @return the boolean [ ]
      */
     public boolean[] getTrainingMask() {
-      final boolean[] mask = new boolean[layerNumber + 3];
+      final boolean[] mask = new boolean[layerNumber + 2];
       mask[layerNumber + 1] = true;
       return mask;
     }

@@ -116,7 +116,7 @@ public class QQN implements OrientationStrategy<LineSearchCursor> {
           if (!Double.isFinite(t)) throw new IllegalArgumentException();
           reset();
           position(t).accumulate(1);
-          final PointSample sample = subject.measure(true, monitor).setRate(t);
+          final PointSample sample = subject.measure(monitor).setRate(t);
           //monitor.log(String.format("delta buffers %d %d %d %d %d", sample.delta.run.size(), origin.delta.run.size(), lbfgs.run.size(), gd.run.size(), scaledGradient.run.size()));
           inner.addToHistory(sample, monitor);
           final DeltaSet<NNLayer> tangent = scaledGradient.scale(1 - 2 * t).add(lbfgs.scale(2 * t));

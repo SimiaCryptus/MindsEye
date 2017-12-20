@@ -71,7 +71,7 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
   
   
   @Override
-  public PointSample measure(final boolean isStatic, final TrainingMonitor monitor) {
+  public PointSample measure(final TrainingMonitor monitor) {
     final List<Tensor[]> tensors = Arrays.asList(getData());
     if (batchSize < tensors.size()) {
       final int batches = (int) Math.ceil(tensors.size() * 1.0 / batchSize);
@@ -82,12 +82,12 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
           throw new RuntimeException();
         }
         getInner().setData(trainingData);
-        return super.measure(isStatic, monitor);
+        return super.measure(monitor);
       }).reduce((a, b) -> a.add(b)).get();
     }
     else {
       getInner().setData(tensors);
-      return super.measure(isStatic, monitor);
+      return super.measure(monitor);
     }
   }
   

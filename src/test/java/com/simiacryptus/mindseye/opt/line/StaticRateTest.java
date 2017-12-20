@@ -46,7 +46,7 @@ public class StaticRateTest extends MnistTestBase {
       return new IterativeTrainer(trainable)
         .setMonitor(monitor)
         .setOrientation(new GradientDescent())
-        .setLineSearchFactory((final String name) -> new StaticLearningRate().setRate(0.001))
+        .setLineSearchFactory((final String name) -> new StaticLearningRate(0.001))
         .setTimeout(3, TimeUnit.MINUTES)
         .setMaxIterations(500)
         .run();

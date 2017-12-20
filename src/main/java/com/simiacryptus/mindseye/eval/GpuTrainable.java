@@ -195,19 +195,18 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
   }
   
   @Override
-  public PointSample measure(final boolean isStatic, final TrainingMonitor monitor) {
-    return measure(3, isStatic, monitor);
+  public PointSample measure(final TrainingMonitor monitor) {
+    return measure(3, monitor);
   }
   
   /**
    * Measure point sample.
    *
    * @param retries  the retries
-   * @param isStatic the is static
    * @param monitor  the monitor
    * @return the point sample
    */
-  public PointSample measure(final int retries, final boolean isStatic, final TrainingMonitor monitor) {
+  public PointSample measure(final int retries, final TrainingMonitor monitor) {
     try {
       assert !data.isEmpty();
   
@@ -252,7 +251,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
           lastGc = System.currentTimeMillis();
           GpuController.INSTANCE.cleanMemory();
         }
-        return measure(retries - 1, isStatic, monitor);
+        return measure(retries - 1, monitor);
       }
       else {
         throw e;

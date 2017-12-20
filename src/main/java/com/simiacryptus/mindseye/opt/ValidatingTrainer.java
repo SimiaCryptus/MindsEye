@@ -90,9 +90,9 @@ public class ValidatingTrainer {
     regimen = new ArrayList<TrainingPhase>(Arrays.asList(new TrainingPhase(new PerformanceWrapper(trainingSubject))));
     this.validationSubject = new Trainable() {
       @Override
-      public PointSample measure(final boolean isStatic, final TrainingMonitor monitor) {
+      public PointSample measure(final TrainingMonitor monitor) {
         final TimedResult<PointSample> time = TimedResult.time(() ->
-          validationSubject.measure(isStatic, monitor)
+          validationSubject.measure(monitor)
         );
         validatingMeasurementTime.addAndGet(time.timeNanos);
         return time.result;
@@ -509,7 +509,7 @@ public class ValidatingTrainer {
     int retries = 0;
     do {
       if (10 < retries++) throw new IterativeStopException();
-      final PointSample currentPoint = phase.trainingSubject.measure(false, monitor);
+      final PointSample currentPoint = phase.trainingSubject.measure(monitor);
       phase.orientation.reset();
       if (Double.isFinite(currentPoint.getMean())) return currentPoint;
     } while (true);
@@ -530,7 +530,7 @@ public class ValidatingTrainer {
   public double run() {
     try {
       final long timeoutAt = System.currentTimeMillis() + timeout.toMillis();
-      final EpochParams epochParams = new EpochParams(timeoutAt, epochIterations, getTrainingSize(), validationSubject.measure(true, monitor));
+      final EpochParams epochParams = new EpochParams(timeoutAt, epochIterations, getTrainingSize(), validationSubject.measure(monitor));
       int epochNumber = 0;
       int iterationNumber = 0;
       int lastImprovement = 0;
@@ -550,7 +550,7 @@ public class ValidatingTrainer {
         final EpochResult primaryPhase = epochResults.get(0);
         iterationNumber += primaryPhase.iterations;
         final double trainingDelta = primaryPhase.currentPoint.getMean() / primaryPhase.priorMean;
-        final PointSample currentValidation = validationSubject.measure(true, monitor);
+        final PointSample currentValidation = validationSubject.measure(monitor);
         final double overtraining = Math.log(trainingDelta) / Math.log(currentValidation.getMean() / epochParams.validation.getMean());
         final double validationDelta = currentValidation.getMean() / epochParams.validation.getMean();
         final double adj1 = Math.pow(Math.log(getTrainingTarget()) / Math.log(validationDelta), adjustmentFactor);
@@ -956,9 +956,9 @@ public class ValidatingTrainer {
     }
     
     @Override
-    public PointSample measure(final boolean isStatic, final TrainingMonitor monitor) {
+    public PointSample measure(final TrainingMonitor monitor) {
       final TimedResult<PointSample> time = TimedResult.time(() ->
-        getInner().measure(isStatic, monitor)
+        getInner().measure(monitor)
       );
       trainingMeasurementTime.addAndGet(time.timeNanos);
       return time.result;

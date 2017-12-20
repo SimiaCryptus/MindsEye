@@ -40,32 +40,17 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
    * The Filter.
    */
   public final Tensor kernel;
-  /**
-   * The Stride x.
-   */
-  int strideX = 1;
-  /**
-   * The Stride y.
-   */
-  int strideY = 1;
+  private final int inputBands;
+  private final int outputBands;
+  private int strideX = 1;
+  private int strideY = 1;
   private Precision precision = Precision.Double;
   
   /**
    * Instantiates a new Convolution layer.
    */
   protected ConvolutionLayer() {
-    this((Tensor) null);
-  }
-  
-  /**
-   * Instantiates a new Convolution layer.
-   *
-   * @param width  the width
-   * @param height the height
-   * @param bands  the bands
-   */
-  public ConvolutionLayer(final int width, final int height, final int bands) {
-    this(new Tensor(width, height, bands));
+    this(1, 1, 1, 1);
   }
   
   /**
@@ -77,7 +62,14 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
    * @param outputBands the output bands
    */
   public ConvolutionLayer(final int width, final int height, final int inputBands, final int outputBands) {
-    this(width, height, inputBands * outputBands);
+    super();
+    this.kernel = new Tensor(width, height, inputBands * outputBands);
+    if (kernel.getDimensions().length != 3) throw new IllegalArgumentException();
+    if (kernel.getDimensions()[0] <= 0) throw new IllegalArgumentException();
+    if (kernel.getDimensions()[1] <= 0) throw new IllegalArgumentException();
+    if (kernel.getDimensions()[2] <= 0) throw new IllegalArgumentException();
+    this.inputBands = inputBands;
+    this.outputBands = outputBands;
   }
   
   /**
@@ -87,24 +79,12 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
    */
   protected ConvolutionLayer(final JsonObject json) {
     super(json);
-    kernel = Tensor.fromJson(json.get("filter"));
-    strideX = json.get("strideX").getAsInt();
-    strideY = json.get("strideY").getAsInt();
-    precision = Precision.valueOf(json.get("precision").getAsString());
-  }
-  
-  /**
-   * Instantiates a new Convolution layer.
-   *
-   * @param kernel the filter
-   */
-  protected ConvolutionLayer(final Tensor kernel) {
-    super();
-    if (kernel.getDimensions().length != 3) throw new IllegalArgumentException();
-    if (kernel.getDimensions()[0] <= 0) throw new IllegalArgumentException();
-    if (kernel.getDimensions()[1] <= 0) throw new IllegalArgumentException();
-    if (kernel.getDimensions()[2] <= 0) throw new IllegalArgumentException();
-    this.kernel = kernel;
+    this.kernel = Tensor.fromJson(json.get("filter"));
+    this.setStrideX(json.get("strideX").getAsInt());
+    this.setStrideY(json.get("strideY").getAsInt());
+    this.precision = Precision.valueOf(json.get("precision").getAsString());
+    this.inputBands = json.get("inputBands").getAsInt();
+    this.outputBands = json.get("outputBands").getAsInt();
   }
   
   /**
@@ -142,6 +122,9 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    assert 1 == inObj.length;
+    assert 3 == inObj[0].getData().getDimensions().length;
+    assert inputBands == inObj[0].getData().getDimensions()[2];
     final PipelineNetwork network = new PipelineNetwork();
     final List<SimpleConvolutionLayer> subLayers = new ArrayList<>();
     // Extract Weights
@@ -163,7 +146,7 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
         }
       });
       subLayers.add(new SimpleConvolutionLayer(batchKernel)
-        .setStrideX(strideX).setStrideY(strideY).setPrecision(precision));
+        .setStrideX(getStrideX()).setStrideY(getStrideY()).setPrecision(precision));
     }
     final DAGNode input = network.getHead();
     network.add(new ImgConcatLayer().setMaxBands(outputBands).setPrecision(precision),
@@ -173,11 +156,15 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     if (isFrozen()) {
       network.freeze();
     }
-    final NNResult innerResult = network.eval(nncontext, inObj);
-    return new NNResult(innerResult.getData()) {
+    final NNResult result = network.eval(nncontext, inObj);
+    assert 1 == inObj.length;
+    assert inObj[0].getData().length() == result.getData().length();
+    assert 3 == result.getData().getDimensions().length;
+    assert outputBands == result.getData().getDimensions()[2];
+    return new NNResult(result.getData()) {
       @Override
       public void accumulate(final DeltaSet<NNLayer> xxx, final TensorList data) {
-        innerResult.accumulate(xxx, data);
+        result.accumulate(xxx, data);
         // Extract Deltas
         final Tensor filterDelta = new Tensor(filterDimensions);
         for (int batchNumber = 0; batchNumber < subLayers.size(); batchNumber++) {
@@ -226,9 +213,11 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   public JsonObject getJson() {
     final JsonObject json = super.getJsonStub();
     json.add("filter", kernel.toJson());
-    json.addProperty("strideX", strideX);
-    json.addProperty("strideY", strideY);
+    json.addProperty("strideX", getStrideX());
+    json.addProperty("strideY", getStrideY());
     json.addProperty("precision", precision.name());
+    json.addProperty("inputBands", inputBands);
+    json.addProperty("outputBands", outputBands);
     return json;
   }
   
@@ -267,5 +256,29 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   @Override
   public List<double[]> state() {
     return Arrays.asList(kernel.getData());
+  }
+  
+  /**
+   * The Stride x.
+   */
+  public int getStrideX() {
+    return strideX;
+  }
+  
+  public ConvolutionLayer setStrideX(int strideX) {
+    this.strideX = strideX;
+    return this;
+  }
+  
+  /**
+   * The Stride y.
+   */
+  public int getStrideY() {
+    return strideY;
+  }
+  
+  public ConvolutionLayer setStrideY(int strideY) {
+    this.strideY = strideY;
+    return this;
   }
 }

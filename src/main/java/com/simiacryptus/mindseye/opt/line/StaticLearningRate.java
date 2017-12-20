@@ -31,6 +31,10 @@ public class StaticLearningRate implements LineSearchStrategy {
   private double minimumRate = 1e-12;
   private double rate = 1e-4;
   
+  public StaticLearningRate(double rate) {
+    this.rate = rate;
+  }
+  
   /**
    * Gets minimum rate.
    *

@@ -79,6 +79,6 @@ public class PolynomialConvolutionNetwork extends PolynomialNetwork {
   
   @Override
   public NNLayer newSynapse(final double weight) {
-    return new ConvolutionLayer(radius, radius, inputDims[2] * outputDims[2]).set(i -> weight * (Math.random() - 0.5));
+    return new ConvolutionLayer(radius, radius, inputDims[2], outputDims[2]).set(i -> weight * (Math.random() - 0.5));
   }
 }

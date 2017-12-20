@@ -92,7 +92,7 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
   }
   
   @Override
-  public PointSample measure(final boolean isStatic, final TrainingMonitor monitor) {
+  public PointSample measure(final TrainingMonitor monitor) {
     for (final PointSample result : history) {
       if (!result.weights.isDifferent()) {
         if (isVerbose()) {
@@ -102,7 +102,7 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
         return result.copyFull();
       }
     }
-    final PointSample result = super.measure(isStatic, monitor);
+    final PointSample result = super.measure(monitor);
     history.add(result.copyFull());
     while (getHistorySize() < history.size()) {
       history.remove(0);

@@ -239,7 +239,7 @@ public class IterativeTrainer {
     do {
       if (!subject.reseed(System.nanoTime()) && retries > 0) throw new IterativeStopException();
       if (10 < retries++) throw new IterativeStopException();
-      currentPoint = subject.measure(false, monitor);
+      currentPoint = subject.measure(monitor);
     } while (!Double.isFinite(currentPoint.getMean()));
     assert Double.isFinite(currentPoint.getMean());
     return currentPoint;

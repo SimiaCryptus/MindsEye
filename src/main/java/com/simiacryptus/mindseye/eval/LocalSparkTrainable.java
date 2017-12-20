@@ -60,7 +60,7 @@ public class LocalSparkTrainable extends SparkTrainable {
   
   
   @Override
-  public PointSample measure(final boolean isStatic, final TrainingMonitor monitor) {
+  public PointSample measure(final TrainingMonitor monitor) {
     final long time1 = System.nanoTime();
     final JavaRDD<Tensor[]> javaRDD = sampledRDD.toJavaRDD();
     assert !javaRDD.isEmpty();

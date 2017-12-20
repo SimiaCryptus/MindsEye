@@ -89,7 +89,7 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
     if (0.0 != alpha) {
       direction.accumulate(alpha);
     }
-    final PointSample sample = subject.measure(true, monitor).setRate(alpha);
+    final PointSample sample = subject.measure(monitor).setRate(alpha);
     final double dot = direction.dot(sample.delta);
     return new LineSearchPoint(sample, dot);
   }

@@ -82,8 +82,8 @@ public abstract class L12Normalizer implements Trainable {
   
   
   @Override
-  public PointSample measure(final boolean isStatic, final TrainingMonitor monitor) {
-    final PointSample innerMeasure = inner.measure(isStatic, monitor);
+  public PointSample measure(final TrainingMonitor monitor) {
+    final PointSample innerMeasure = inner.measure(monitor);
     final DeltaSet<NNLayer> normalizationVector = new DeltaSet<NNLayer>();
     double valueAdj = 0;
     for (final NNLayer layer : getLayers(innerMeasure.delta.getMap().keySet())) {

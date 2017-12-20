@@ -442,6 +442,7 @@ public class TestUtil {
    * @return the buffered image
    */
   public static BufferedImage resize(final BufferedImage source, final int size) {
+    if (size < 0) return source;
     final BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
     final Graphics2D graphics = (Graphics2D) image.getGraphics();
     graphics.setRenderingHints(new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC));

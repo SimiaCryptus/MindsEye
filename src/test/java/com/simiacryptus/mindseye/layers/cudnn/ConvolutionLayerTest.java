@@ -88,13 +88,27 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   /**
    * The type Asymmetric test.
    */
-  public static class AsymmetricTest extends ConvolutionLayerTest {
+  public static class BandExpand extends ConvolutionLayerTest {
     
     /**
      * Instantiates a new Asymmetric test.
      */
-    public AsymmetricTest() {
+    public BandExpand() {
       super(3, 3, 6, Precision.Double);
+    }
+    
+  }
+  
+  /**
+   * The type Asymmetric test.
+   */
+  public static class BandReduceTest extends ConvolutionLayerTest {
+    
+    /**
+     * Instantiates a new Asymmetric test.
+     */
+    public BandReduceTest() {
+      super(3, 6, 3, Precision.Double);
     }
     
   }

@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 /**
  * The type Rascaled subnet layer test.
  */
-public class RascaledSubnetLayerTest {
+public class RescaledSubnetLayerTest {
   /**
    * The type Normal.
    */
@@ -41,7 +41,7 @@ public class RascaledSubnetLayerTest {
   
     @Override
     public NNLayer getLayer(final int[][] inputSize) {
-      return new RescaledSubnetLayer(2, new ConvolutionLayer(3, 3, 1));
+      return new RescaledSubnetLayer(2, new ConvolutionLayer(3, 3, 1, 1));
     }
   }
   

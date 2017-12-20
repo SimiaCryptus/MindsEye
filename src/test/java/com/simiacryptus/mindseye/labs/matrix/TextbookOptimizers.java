@@ -93,7 +93,7 @@ public class TextbookOptimizers {
         .setMonitor(monitor);
       trainer.getRegimen().get(0)
         .setOrientation(new GradientDescent())
-        .setLineSearchFactory(name -> new StaticLearningRate().setRate(rate));
+        .setLineSearchFactory(name -> new StaticLearningRate(rate));
       return trainer;
     });
   };

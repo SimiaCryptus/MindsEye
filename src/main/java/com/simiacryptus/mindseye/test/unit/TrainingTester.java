@@ -44,6 +44,7 @@ import smile.plot.PlotCanvas;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -58,6 +59,7 @@ import java.util.stream.Stream;
  */
 public class TrainingTester implements ComponentTest<TrainingTester.ComponentResult> {
   
+  private static final PrintStream originalOut = System.out;
   private int batches = 3;
   private RandomizationMode randomizationMode = RandomizationMode.Permute;
   private boolean verbose = true;
@@ -78,6 +80,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     return new TrainingMonitor() {
       @Override
       public void log(final String msg) {
+        originalOut.println(msg);
         System.out.println(msg);
       }
   
@@ -200,9 +203,20 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
    * @return the boolean
    */
   public boolean isZero(final DoubleStream stream) {
+    return isZero(stream, 1e-14);
+  }
+  
+  /**
+   * Is zero boolean.
+   *
+   * @param stream  the stream
+   * @param zeroTol
+   * @return the boolean
+   */
+  public boolean isZero(final DoubleStream stream, double zeroTol) {
     final double[] array = stream.toArray();
     if (array.length == 0) return false;
-    return Arrays.stream(array).map(x -> Math.abs(x)).sum() < 1e-6;
+    return Arrays.stream(array).map(x -> Math.abs(x)).sum() < zeroTol;
   }
   
   /**

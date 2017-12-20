@@ -72,7 +72,7 @@ public class Caltech101 {
             continue;
           }
           final String category = entry.getName().split("/")[1];
-          //System.err.println(String.format("%s -> %s (%s)", entry.getName(), category, entry.getSize()));
+          //System.err.println(String.format("%s -> %s (%s)", entry.getName(), category, entry.getImageSize()));
           final byte[] data = IOUtils.toByteArray(tar, entry.getSize());
           if (!entry.getName().toLowerCase().endsWith(".jpg")) {
             continue;

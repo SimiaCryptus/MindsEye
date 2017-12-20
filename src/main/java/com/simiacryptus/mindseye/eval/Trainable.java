@@ -41,11 +41,10 @@ public interface Trainable {
   /**
    * Measure trainable . point sample.
    *
-   * @param isStatic the is static
    * @param monitor  the monitor
    * @return the trainable . point sample
    */
-  PointSample measure(boolean isStatic, TrainingMonitor monitor);
+  PointSample measure(TrainingMonitor monitor);
   
   /**
    * Reset sampling boolean.

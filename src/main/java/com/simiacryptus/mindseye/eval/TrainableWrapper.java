@@ -55,8 +55,8 @@ public class TrainableWrapper<T extends Trainable> implements TrainableDataMask 
   }
   
   @Override
-  public PointSample measure(final boolean isStatic, final TrainingMonitor monitor) {
-    return inner.measure(isStatic, monitor);
+  public PointSample measure(final TrainingMonitor monitor) {
+    return inner.measure(monitor);
   }
   
   @Override
