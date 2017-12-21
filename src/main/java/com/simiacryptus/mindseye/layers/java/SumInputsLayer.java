@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * The type Sum inputs layer.
+ * Sums all inputs together, element-by-element, assuming they all have the same dimension.
  */
 @SuppressWarnings("serial")
 public class SumInputsLayer extends NNLayer {

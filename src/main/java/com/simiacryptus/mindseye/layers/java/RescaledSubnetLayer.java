@@ -33,7 +33,8 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * The type Rescaled subnet layer.
+ * This layer works as a scaling function, similar to a father wavelet.
+ * Allows convolutional and pooling layers to work across larger image regions.
  */
 @SuppressWarnings("serial")
 public class RescaledSubnetLayer extends NNLayer {

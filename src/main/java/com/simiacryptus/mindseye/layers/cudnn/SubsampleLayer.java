@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * The type Img concat layer.
+ * Work in Progress. Experimental. Do Not Use. :-)
  */
 @SuppressWarnings("serial")
 public class SubsampleLayer extends NNLayer implements LayerPrecision<SubsampleLayer> {

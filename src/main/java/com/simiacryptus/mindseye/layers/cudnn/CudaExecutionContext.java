@@ -28,7 +28,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * The type Cuda execution context.
+ * An execution context subtype that communicates CuDNN-related GPU information.
+ * Used in combination with the layers in this package and the GPUTrainable component.
  */
 public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
   

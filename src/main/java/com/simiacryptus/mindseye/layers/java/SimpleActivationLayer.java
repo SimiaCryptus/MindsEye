@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * The type Simple activation layer.
+ * A parent class for all stateless, univariate "activation" functions.
  *
  * @param <T> the type parameter
  */

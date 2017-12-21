@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * The type Sum reducer layer.
+ * Sums all input values to produce a single-element output.
  */
 @SuppressWarnings("serial")
 public class SumReducerLayer extends NNLayer {

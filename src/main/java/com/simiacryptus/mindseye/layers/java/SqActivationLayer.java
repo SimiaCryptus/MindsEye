@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 
 /**
- * The type Sq activation layer.
+ * Specialized square activation function. Deprecated. Use NthPowerActivationLayer.
  */
 @SuppressWarnings("serial")
 public final class SqActivationLayer extends SimpleActivationLayer<SqActivationLayer> {

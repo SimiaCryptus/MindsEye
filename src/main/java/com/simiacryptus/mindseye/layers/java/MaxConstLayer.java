@@ -22,7 +22,8 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 
 /**
- * The type Max const layer.
+ * Enforces a maximum-value constraint on the input signal,
+ * rounding down any values exceeding a set threshold.
  */
 @SuppressWarnings("serial")
 public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {

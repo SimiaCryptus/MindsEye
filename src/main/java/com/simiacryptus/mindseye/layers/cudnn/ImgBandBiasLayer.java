@@ -33,7 +33,7 @@ import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
 /**
- * The type Img band bias layer.
+ * Adds a scalar offset to the input based on color band (3rd tensor dimension)
  */
 @SuppressWarnings("serial")
 public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandBiasLayer> {

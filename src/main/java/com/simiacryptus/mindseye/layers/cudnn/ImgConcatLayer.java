@@ -27,7 +27,9 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * The type Img concat layer.
+ * Concatenates two or more inputs, assuming they have the same width and height,
+ * to produce an image with both inputs' color bands. 
+ * (e.g. Used in Inception modules in GoogLeNet.)
  */
 @SuppressWarnings("serial")
 public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatLayer> {

@@ -30,7 +30,8 @@ import org.slf4j.LoggerFactory;
 import java.util.UUID;
 
 /**
- * The type Target value layer.
+ * Works as a single-input terminal loss function which compares
+ * the input with a preset constant target tensor.
  */
 @SuppressWarnings("serial")
 public class TargetValueLayer extends DAGNetwork {

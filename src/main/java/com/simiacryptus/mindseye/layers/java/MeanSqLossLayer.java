@@ -30,7 +30,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * The type Mean sq loss layer.
+ * An RMS-differencing loss function without the final square root.
  */
 @SuppressWarnings("serial")
 public class MeanSqLossLayer extends NNLayer {

@@ -25,7 +25,9 @@ import com.simiacryptus.mindseye.lang.*;
 import java.util.stream.IntStream;
 
 /**
- * The type Monitoring wrapper layer.
+ * This wrapper adds a highly verbose amount of logging to System.out
+ * detailing all inputs and outputs during forward and backwards evaluation.
+ * Intended as a diagnostic and demonstration tool.
  */
 @SuppressWarnings("serial")
 public final class LoggingWrapperLayer extends WrapperLayer {

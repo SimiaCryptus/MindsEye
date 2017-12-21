@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * The type L 1 normalization layer.
+ * Normalizes the input so that the L1 magnitude (ie sum of abs) is 1.
  */
 @SuppressWarnings("serial")
 public class L1NormalizationLayer extends NNLayer {

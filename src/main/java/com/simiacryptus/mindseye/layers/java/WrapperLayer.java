@@ -27,7 +27,7 @@ import com.simiacryptus.mindseye.lang.NNResult;
 import java.util.List;
 
 /**
- * The type Wrapper layer.
+ * A base class for layers whose actual behavior is delegated.
  */
 @SuppressWarnings("serial")
 public abstract class WrapperLayer extends NNLayer {

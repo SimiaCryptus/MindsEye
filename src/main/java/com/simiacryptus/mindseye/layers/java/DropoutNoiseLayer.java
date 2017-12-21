@@ -30,7 +30,7 @@ import java.util.Random;
 import java.util.stream.IntStream;
 
 /**
- * The type Dropout noise layer.
+ * Randomly selects a fraction of the inputs and sets all other elements to zero.
  */
 @SuppressWarnings("serial")
 public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {

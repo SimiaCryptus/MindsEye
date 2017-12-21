@@ -30,7 +30,8 @@ import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
 /**
- * The type Avg meta layer.
+ * Computes the average value for each element across all elements of an execution batch.
+ * The output batch size will always be one.
  */
 @SuppressWarnings("serial")
 public class AvgMetaLayer extends NNLayer {

@@ -31,7 +31,8 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * The type Assert dimensions layer.
+ * This layer is a pass-thru except that it throws an error if the
+ * dimensions are not consistent with its setting.
  */
 @SuppressWarnings("serial")
 public class AssertDimensionsLayer extends NNLayer {

@@ -30,7 +30,7 @@ import java.util.Random;
 import java.util.stream.IntStream;
 
 /**
- * The type Gaussian noise layer.
+ * Adds uniform random gaussian noise to all input elements.
  */
 @SuppressWarnings("serial")
 public class GaussianNoiseLayer extends NNLayer {

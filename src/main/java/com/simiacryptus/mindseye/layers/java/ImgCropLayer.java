@@ -28,7 +28,8 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * The type Img crop layer.
+ * Reduces the resolution of the input by selecting a centered window.
+ * The output image will have the same number of color bands.
  */
 @SuppressWarnings("serial")
 public class ImgCropLayer extends NNLayer {

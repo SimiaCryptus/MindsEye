@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * The type Product inputs layer.
+ * Multiplies all inputs together, element-by-element.
  */
 @SuppressWarnings("serial")
 public class ProductInputsLayer extends NNLayer {

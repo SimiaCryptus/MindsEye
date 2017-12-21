@@ -27,7 +27,9 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * The type Pooling layer.
+ * The standard image-pixel pooling layer. 
+ * Using a configurable stride and window size, 
+ * reduces pixels using either the Max or Avg operation.
  */
 @SuppressWarnings("serial")
 public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer> {

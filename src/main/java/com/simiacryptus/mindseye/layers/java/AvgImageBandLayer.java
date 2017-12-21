@@ -30,7 +30,7 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 /**
- * The type Avg image band layer.
+ * Reduces each band of an image to its average (arithmetic mean) value.
  */
 @SuppressWarnings("serial")
 public class AvgImageBandLayer extends NNLayer {

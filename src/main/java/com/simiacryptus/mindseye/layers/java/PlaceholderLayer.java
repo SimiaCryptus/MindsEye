@@ -27,7 +27,8 @@ import com.simiacryptus.mindseye.lang.NNResult;
 import java.util.List;
 
 /**
- * The type Placeholder layer.
+ * An ephemeral, non-serializable, non-evaluatable layer.
+ * Used when a layer is required as an identifier, e.g. DeltaSet
  *
  * @param <T> the type parameter
  */

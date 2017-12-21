@@ -32,7 +32,7 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 /**
- * The type Max image band layer.
+ * Selects the highest value in each color band, emitting a 1x1xN tensor.
  */
 @SuppressWarnings("serial")
 public class MaxImageBandLayer extends NNLayer {
