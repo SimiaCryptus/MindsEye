@@ -64,7 +64,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
   /**
    * The Gc period.
    */
-  protected double gcPeriod = 5.0;
+  protected double gcPeriod = 0.0;
   /**
    * The Mask.
    */

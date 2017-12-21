@@ -23,6 +23,10 @@ import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
+import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
@@ -51,8 +55,19 @@ public abstract class RLBFGSTest extends MnistTestBase {
       "It is expected to be trainable to about 91% accuracy on MNIST.");
     return log.code(() -> {
       final PipelineNetwork network = new PipelineNetwork();
-      network.add(new BiasLayer(28, 28, 1));
-      network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{10})
+  
+      network.add(new ConvolutionLayer(3, 3, 1, 5));
+      network.add(new ImgBandBiasLayer(5));
+      network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
+      network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+  
+      network.add(new ConvolutionLayer(3, 3, 5, 5));
+      network.add(new ImgBandBiasLayer(5));
+      network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
+      network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+  
+      network.add(new BiasLayer(7, 7, 5));
+      network.add(new FullyConnectedLayer(new int[]{7, 7, 5}, new int[]{10})
         .setWeights(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new SoftmaxActivationLayer());
       return network;

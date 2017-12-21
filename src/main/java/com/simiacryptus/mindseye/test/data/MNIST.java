@@ -50,10 +50,10 @@ public class MNIST {
     @Override
     protected void read(final List<LabeledObject<Tensor>> queue) {
       try {
-        final Stream<Tensor> imgStream = MNIST.binaryStream("trainCjGD-images-idx3-ubyte.gz", 16, 28 * 28).map(b -> {
+        final Stream<Tensor> imgStream = MNIST.binaryStream("train-images-idx3-ubyte.gz", 16, 28 * 28).map(b -> {
           return MNIST.fillImage(b, new Tensor(28, 28, 1));
         });
-        final Stream<byte[]> labelStream = MNIST.binaryStream("trainCjGD-labels-idx1-ubyte.gz", 8, 1);
+        final Stream<byte[]> labelStream = MNIST.binaryStream("train-labels-idx1-ubyte.gz", 8, 1);
   
         final Stream<LabeledObject<Tensor>> merged = MNIST.toStream(new Iterator<LabeledObject<Tensor>>() {
           Iterator<Tensor> imgItr = imgStream.iterator();

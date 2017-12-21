@@ -150,12 +150,13 @@ public abstract class MnistTestBase {
    */
   public Tensor[][] getTrainingData(final NotebookOutput log) {
     try {
-      return MNIST.trainingDataStream().map(labeledObject -> {
+      Tensor[][] tensors = MNIST.trainingDataStream().map(labeledObject -> {
         final Tensor categoryTensor = new Tensor(10);
         final int category = parse(labeledObject.label);
         categoryTensor.set(category, 1);
         return new Tensor[]{labeledObject.data, categoryTensor};
       }).toArray(i -> new Tensor[i][]);
+      return tensors;
     } catch (final IOException e) {
       throw new RuntimeException(e);
     }
