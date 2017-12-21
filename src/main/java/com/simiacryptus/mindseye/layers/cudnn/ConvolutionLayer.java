@@ -31,7 +31,9 @@ import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
 /**
- * The type Convolution layer.
+ * This is the general convolution layer, allowing any number of input and output bands.
+ * During execution it delegates processing to a dynamically created subbnet created 
+ * using SimpleConvolutionLayer and ImgConcatLayer to implement the more general layer contract.
  */
 @SuppressWarnings("serial")
 public class ConvolutionLayer extends NNLayer implements LayerPrecision<ConvolutionLayer> {

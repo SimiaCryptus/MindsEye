@@ -31,7 +31,9 @@ import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
 /**
- * The type Convolution layer.
+ * This convolution layer only supports an equal number of input and output bands. 
+ * It is used as the foundational component for ConvolutionLayer, 
+ * since the CuDNN api has this restriction (in recent versions).
  */
 @SuppressWarnings("serial")
 public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<SimpleConvolutionLayer> {

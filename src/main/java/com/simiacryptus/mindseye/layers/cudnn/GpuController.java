@@ -40,7 +40,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * The type Gpu controller.
+ * Manages the GPU resources and related execution threadpools.
  */
 public final class GpuController {
   

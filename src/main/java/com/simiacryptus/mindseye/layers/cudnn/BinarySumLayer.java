@@ -27,7 +27,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * The type Product inputs layer.
+ * Computes a weighted binary sum of two layers. Provides two weighting coefficients, one for each input.
+ * This can be used to implement a summation layer, a difference layer, a scaling layer, or any combination.
  */
 @SuppressWarnings("serial")
 public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumLayer> {

@@ -24,7 +24,8 @@ import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnDataType;
 
 /**
- * The enum Precision.
+ * This enum defines the levels or precision supported by (our support of) the CuDNN library.
+ * It also provides related methods involving precision-dependant code.
  */
 public enum Precision {
   /**

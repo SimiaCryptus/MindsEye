@@ -27,7 +27,9 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * The type Img reshape layer.
+ * Reduces or expands image resolution by rearranging the values
+ * in NxN tiles to effectively stripe the small-scale spacial dimension 
+ * across N^2 color bands.
  */
 @SuppressWarnings("serial")
 public class ImgReshapeLayer extends NNLayer {

@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 
 /**
- * The type Sinewave activation layer.
+ * Calculates y=sin(x) in radians with signed unit amplitude.
  */
 @SuppressWarnings("serial")
 public final class SinewaveActivationLayer extends SimpleActivationLayer<SinewaveActivationLayer> {

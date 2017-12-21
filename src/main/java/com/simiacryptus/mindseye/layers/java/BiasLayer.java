@@ -33,7 +33,8 @@ import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
 /**
- * The type Bias layer.
+ * Adds a bias tensor to the input. 
+ * Expects a single input of the same dimension as the bias tensor.
  */
 @SuppressWarnings("serial")
 public class BiasLayer extends NNLayer {

@@ -28,7 +28,9 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * The type Product inputs layer.
+ * This layer multiplies together the inputs, element-by-element.
+ * It can be used to implement integer-power activation layers, 
+ * such as the square needed in MeanSqLossLayer.
  */
 @SuppressWarnings("serial")
 public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer> {

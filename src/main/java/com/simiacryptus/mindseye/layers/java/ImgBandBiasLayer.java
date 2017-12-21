@@ -32,7 +32,7 @@ import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
 /**
- * The type Img band bias layer.
+ * Adds a per-color-band value offset to the single tensor input.
  */
 @SuppressWarnings("serial")
 public class ImgBandBiasLayer extends NNLayer {

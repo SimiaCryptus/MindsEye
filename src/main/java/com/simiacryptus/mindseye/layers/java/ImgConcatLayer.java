@@ -29,7 +29,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * The type Img concat layer.
+ * Concatenates two or more images with the same resolution so the
+ * output contains all input color bands.
  */
 @SuppressWarnings("serial")
 public class ImgConcatLayer extends NNLayer {

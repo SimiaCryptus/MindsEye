@@ -31,7 +31,8 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 /**
- * The type Softmax activation layer.
+ * The classic "softmax" layer.
+ * All outputs will sum to 1 and be proportional to the log of the input.
  */
 @SuppressWarnings("serial")
 public class SoftmaxActivationLayer extends NNLayer {

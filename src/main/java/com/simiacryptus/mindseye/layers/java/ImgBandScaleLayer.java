@@ -33,7 +33,7 @@ import java.util.function.IntToDoubleFunction;
 import java.util.stream.IntStream;
 
 /**
- * The type Img band scale layer.
+ * Scales the input using per-color-band coefficients
  */
 @SuppressWarnings("serial")
 public class ImgBandScaleLayer extends NNLayer {

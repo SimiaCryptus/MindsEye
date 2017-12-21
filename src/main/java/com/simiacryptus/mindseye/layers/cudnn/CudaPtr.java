@@ -33,7 +33,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * The type Cuda ptr.
+ * A GPU memory segment
  */
 public class CudaPtr extends CudaResource<Pointer> {
   

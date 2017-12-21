@@ -27,7 +27,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * The type Activation layer.
+ * The generic Activation layer, exposing the activation types provided by CuDNN.
+ * This layer is stateless and is determined by a univariate function, e.g. ReLU or Sigmoid.
  */
 @SuppressWarnings("serial")
 public class ActivationLayer extends NNLayer implements LayerPrecision<ActivationLayer> {

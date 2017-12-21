@@ -25,7 +25,8 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import java.util.List;
 
 /**
- * The type Variable layer.
+ * Acts as a mutable placeholder layer, 
+ * whose inner implementation can be set and changed.
  */
 @SuppressWarnings("serial")
 public class VariableLayer extends WrapperLayer {

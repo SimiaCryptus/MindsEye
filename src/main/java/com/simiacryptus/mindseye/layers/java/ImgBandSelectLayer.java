@@ -29,7 +29,8 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * The type Img band select layer.
+ * Selects specific color bands from the input, producing an image
+ * with the same resolution but fewer bands.
  */
 @SuppressWarnings("serial")
 public class ImgBandSelectLayer extends NNLayer {

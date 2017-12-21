@@ -29,7 +29,10 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * The type Hyperbolic activation layer.
+ * This activation layer uses a parameterized hyperbolic function.
+ * This function, ion various parameterizations, 
+ * can resemble: x^2, abs(x), x^3, x
+ * However, at high +/- x, the behavior is nearly linear.
  */
 @SuppressWarnings("serial")
 public class HyperbolicActivationLayer extends NNLayer {

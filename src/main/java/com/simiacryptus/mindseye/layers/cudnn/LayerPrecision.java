@@ -20,9 +20,9 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 /**
- * The interface Layer precision.
+ * An interface for CuDNN layers supporting any CuDNN numeric resolution type.
  *
- * @param <T> the type parameter
+ * @param <T> the parent type, specified for return values.
  */
 public interface LayerPrecision<T> {
   /**

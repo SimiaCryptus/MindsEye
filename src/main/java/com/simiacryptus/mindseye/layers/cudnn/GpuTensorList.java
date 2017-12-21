@@ -31,7 +31,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * The type Cu dnn double tensor list.
+ * A TensorList data object stored on a GPU with a configurable precision.
  */
 public class GpuTensorList implements TensorList {
   

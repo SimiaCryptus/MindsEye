@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 
 /**
- * The type Log activation layer.
+ * A y=log(abs(x)) activation function. Note the discontinuity at 0. 
  */
 @SuppressWarnings("serial")
 public final class LogActivationLayer extends SimpleActivationLayer<LogActivationLayer> {

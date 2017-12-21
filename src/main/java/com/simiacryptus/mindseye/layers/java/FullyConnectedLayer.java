@@ -37,7 +37,9 @@ import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
 /**
- * The type Fully connected layer.
+ * A dense matrix operator using vector-matrix multiplication.
+ * Represents a fully connected layer of synapses, where all inputs
+ * are connected to all outputs via seperate coefficients.
  */
 @SuppressWarnings("serial")
 public class FullyConnectedLayer extends NNLayer {

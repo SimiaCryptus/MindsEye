@@ -34,7 +34,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
 
 /**
- * The type Cu dnn.
+ * Main library wrapper class around the CuDNN API, providing logging and managed wrappers.
  */
 public class CuDNN {
   

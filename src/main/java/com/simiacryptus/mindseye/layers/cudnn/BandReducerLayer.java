@@ -30,7 +30,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * The type Pooling layer.
+ * Similar to the pooling layer, but the pool size is always the image size.
+ * The output dimensions are always 1x1xN.
  */
 @SuppressWarnings("serial")
 public class BandReducerLayer extends NNLayer implements LayerPrecision<BandReducerLayer> {

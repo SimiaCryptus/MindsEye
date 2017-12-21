@@ -30,7 +30,9 @@ import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
 /**
- * The type Convolution layer.
+ * This convolution layer is often used as the reference implementation for other convolution implementation.
+ * It uses OpenCL via Aparapi to compile Java into GPU-accellerated kernels. 
+ * Due to its simple implementation and limitations of Aparapi, it is not as fast as CuDNN-powered layers.
  */
 @SuppressWarnings("serial")
 public class ConvolutionLayer extends NNLayer {

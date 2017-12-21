@@ -29,7 +29,10 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * The type Entropy loss layer.
+ * An entropy-based cost function. The output value is
+ * the expected number of nats needed to encode a category
+ * chosen using the first input as a distribution, but using
+ * the second input distribution for the encoding scheme. 
  */
 @SuppressWarnings("serial")
 public class EntropyLossLayer extends NNLayer {

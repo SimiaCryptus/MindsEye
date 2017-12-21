@@ -29,7 +29,8 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * The type Avg reducer layer.
+ * Computes the average value across all elements of each input tensor.
+ * The output dimensions are always 1x1x1.
  */
 @SuppressWarnings("serial")
 public class AvgReducerLayer extends NNLayer {

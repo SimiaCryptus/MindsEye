@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The type Avg subsample layer.
+ *
  */
 @SuppressWarnings("serial")
 public class AvgSubsampleLayer extends NNLayer {
