@@ -31,8 +31,8 @@ import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
 /**
- * This convolution layer only supports an equal number of input and output bands. 
- * It is used as the foundational component for ConvolutionLayer, 
+ * This convolution layer only supports an equal number of input and output bands.
+ * It is used as the foundational component for ConvolutionLayer,
  * since the CuDNN api has this restriction (in recent versions).
  */
 @SuppressWarnings("serial")
@@ -130,6 +130,12 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
     return outputSize[2] == outputDims[1];
   }
   
+  /**
+   * Reverse int [ ].
+   *
+   * @param array the array
+   * @return the int [ ]
+   */
   public static int[] reverse(int... array) {
     for (int i = 0; i < array.length / 2; i++) {
       int j = array[array.length - (i + 1)];
@@ -364,19 +370,41 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
     return Arrays.asList(kernel.getData());
   }
   
+  /**
+   * Gets padding x.
+   *
+   * @return the padding x
+   */
   public int getPaddingX() {
     return paddingX;
   }
   
+  /**
+   * Sets padding x.
+   *
+   * @param paddingX the padding x
+   * @return the padding x
+   */
   public SimpleConvolutionLayer setPaddingX(int paddingX) {
     this.paddingX = paddingX;
     return this;
   }
   
+  /**
+   * Gets padding y.
+   *
+   * @return the padding y
+   */
   public int getPaddingY() {
     return paddingY;
   }
   
+  /**
+   * Sets padding y.
+   *
+   * @param paddingY the padding y
+   * @return the padding y
+   */
   public SimpleConvolutionLayer setPaddingY(int paddingY) {
     this.paddingY = paddingY;
     return this;

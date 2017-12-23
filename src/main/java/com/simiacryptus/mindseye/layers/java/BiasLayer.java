@@ -33,7 +33,7 @@ import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
 /**
- * Adds a bias tensor to the input. 
+ * Adds a bias tensor to the input.
  * Expects a single input of the same dimension as the bias tensor.
  */
 @SuppressWarnings("serial")

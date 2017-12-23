@@ -28,7 +28,7 @@ import java.util.List;
 
 /**
  * Concatenates two or more inputs, assuming they have the same width and height,
- * to produce an image with both inputs' color bands. 
+ * to produce an image with both inputs' color bands.
  * (e.g. Used in Inception modules in GoogLeNet.)
  */
 @SuppressWarnings("serial")

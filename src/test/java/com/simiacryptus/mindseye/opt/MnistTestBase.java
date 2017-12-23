@@ -234,6 +234,7 @@ public abstract class MnistTestBase {
       }
     };
   }
+  
   /**
    * Test.
    *

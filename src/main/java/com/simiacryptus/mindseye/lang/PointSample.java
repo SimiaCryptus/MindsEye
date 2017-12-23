@@ -181,6 +181,11 @@ public final class PointSample {
     return this;
   }
   
+  /**
+   * Backup point sample.
+   *
+   * @return the point sample
+   */
   public PointSample backup() {
     weights.stream().forEach(d -> d.backup());
     return this;

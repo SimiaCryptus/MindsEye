@@ -41,7 +41,7 @@ public interface Trainable {
   /**
    * Measure trainable . point sample.
    *
-   * @param monitor  the monitor
+   * @param monitor the monitor
    * @return the trainable . point sample
    */
   PointSample measure(TrainingMonitor monitor);

@@ -130,10 +130,20 @@ public class StateSet<K> extends DoubleBufferSet<K, State<K>> {
     return map(x -> x.copy());
   }
   
+  /**
+   * Backup copy state set.
+   *
+   * @return the state set
+   */
   public StateSet<K> backupCopy() {
     return map(l -> l.backupCopy());
   }
   
+  /**
+   * Backup state set.
+   *
+   * @return the state set
+   */
   public StateSet<K> backup() {
     Stream<Map.Entry<K, State<K>>> stream = map.entrySet().stream();
     if (map.size() > 100) {

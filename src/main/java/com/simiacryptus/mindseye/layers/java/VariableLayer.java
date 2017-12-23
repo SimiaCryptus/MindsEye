@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import java.util.List;
 
 /**
- * Acts as a mutable placeholder layer, 
+ * Acts as a mutable placeholder layer,
  * whose inner implementation can be setByCoord and changed.
  */
 @SuppressWarnings("serial")

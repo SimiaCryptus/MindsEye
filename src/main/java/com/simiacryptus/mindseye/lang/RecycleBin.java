@@ -318,14 +318,30 @@ public abstract class RecycleBin<T> {
     }
   }
   
+  /**
+   * Gets persistance mode.
+   *
+   * @return the persistance mode
+   */
   public PersistanceMode getPersistanceMode() {
     return persistanceMode;
   }
   
+  /**
+   * Sets persistance mode.
+   *
+   * @param persistanceMode the persistance mode
+   */
   public void setPersistanceMode(PersistanceMode persistanceMode) {
     this.persistanceMode = persistanceMode;
   }
   
+  /**
+   * New ref reference.
+   *
+   * @param data the data
+   * @return the reference
+   */
   protected Reference<T> newRef(T data) {
     switch (persistanceMode) {
       case Soft:
@@ -339,9 +355,21 @@ public abstract class RecycleBin<T> {
     }
   }
   
+  /**
+   * The enum Persistance mode.
+   */
   public enum PersistanceMode {
+    /**
+     * Soft persistance mode.
+     */
     Soft,
+    /**
+     * Weak persistance mode.
+     */
     Weak,
+    /**
+     * Phantom persistance mode.
+     */
     Phantom
   }
   

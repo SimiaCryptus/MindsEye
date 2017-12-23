@@ -120,6 +120,11 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
     }).toArray(x1 -> new NNResult[x1]);
   }
   
+  /**
+   * Gets verbosity.
+   *
+   * @return the verbosity
+   */
   public static int getVerbosity() {
     return verbosity;
   }
@@ -238,8 +243,8 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
   /**
    * Measure point sample.
    *
-   * @param retries  the retries
-   * @param monitor  the monitor
+   * @param retries the retries
+   * @param monitor the monitor
    * @return the point sample
    */
   public PointSample measure(final int retries, final TrainingMonitor monitor) {

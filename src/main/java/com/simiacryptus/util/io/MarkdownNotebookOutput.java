@@ -86,6 +86,13 @@ public class MarkdownNotebookOutput implements NotebookOutput {
     }
   }
   
+  /**
+   * Get markdown notebook output.
+   *
+   * @param source the source
+   * @param suffix the suffix
+   * @return the markdown notebook output
+   */
   public static MarkdownNotebookOutput get(final Object source, String... suffix) {
     try {
       final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[2];

@@ -114,7 +114,7 @@ public class CifarTests {
      * The Timeout minutes.
      */
     protected int timeoutMinutes = 10;
-
+  
     /**
      * Instantiates a new All tests.
      *
@@ -127,7 +127,7 @@ public class CifarTests {
       this.optimizationStrategy = optimizationStrategy;
       this.fwdFactory = fwdFactory;
     }
-
+  
     /**
      * Autoencoder test.
      *
@@ -146,7 +146,7 @@ public class CifarTests {
         new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data, 100, 0.8).setTimeoutMinutes(timeoutMinutes).run(log);
       }
     }
-
+  
     /**
      * Classification test.
      *
@@ -164,7 +164,7 @@ public class CifarTests {
         new ClassifyProblem(fwdFactory, optimizationStrategy, data, 10).setTimeoutMinutes(timeoutMinutes).run(log);
       }
     }
-
+  
     /**
      * Encoding test.
      *

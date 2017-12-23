@@ -50,11 +50,18 @@ public abstract class PipelineTest {
   
   /**
    * Instantiates a new N layer test.
+   *
+   * @param pipeline the pipeline
    */
   public PipelineTest(final List<NNLayer> pipeline) {
     this.pipeline = pipeline;
   }
   
+  /**
+   * Instantiates a new Pipeline test.
+   *
+   * @param pipeline the pipeline
+   */
   public PipelineTest(final NNLayer... pipeline) {
     this(Arrays.asList(pipeline));
   }

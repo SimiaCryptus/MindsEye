@@ -108,10 +108,21 @@ public class MnistTests {
     });
   };
   
+  /**
+   * Fwd conv 2 fwd network factory.
+   *
+   * @return the fwd network factory
+   */
   public static FwdNetworkFactory fwd_conv_2() {
     return fwd_conv_2(() -> null);
   }
   
+  /**
+   * Fwd conv 2 fwd network factory.
+   *
+   * @param newNormalizationLayer the new normalization layer
+   * @return the fwd network factory
+   */
   public static FwdNetworkFactory fwd_conv_2(Supplier<NNLayer> newNormalizationLayer) {
     return (log, features) -> {
       log.p("The image-to-vector network is a single layer convolutional:");
@@ -141,7 +152,7 @@ public class MnistTests {
   }
   
   private abstract static class AllTests {
-
+  
     /**
      * The Data.
      */
@@ -162,7 +173,7 @@ public class MnistTests {
      * The Timeout minutes.
      */
     protected int timeoutMinutes = 10;
-
+  
     /**
      * Instantiates a new All tests.
      *
@@ -175,7 +186,7 @@ public class MnistTests {
       this.optimizationStrategy = optimizationStrategy;
       this.fwdFactory = fwdFactory;
     }
-
+  
     /**
      * Autoencoder test.
      *
@@ -194,7 +205,7 @@ public class MnistTests {
         new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data, 100, 0.2).setTimeoutMinutes(5 * timeoutMinutes).run(log);
       }
     }
-
+  
     /**
      * Classification test.
      *
@@ -212,7 +223,7 @@ public class MnistTests {
         new ClassifyProblem(fwdFactory, optimizationStrategy, data, 10).setTimeoutMinutes(timeoutMinutes).run(log);
       }
     }
-
+  
     /**
      * Encoding test.
      *

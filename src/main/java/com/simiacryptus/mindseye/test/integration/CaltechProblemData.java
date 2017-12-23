@@ -37,10 +37,18 @@ public class CaltechProblemData implements ImageProblemData {
   private final int imageSize;
   private List<String> labels = null;
   
+  /**
+   * Instantiates a new Caltech problem data.
+   */
   public CaltechProblemData() {
     this(256);
   }
   
+  /**
+   * Instantiates a new Caltech problem data.
+   *
+   * @param imageSize the image size
+   */
   public CaltechProblemData(int imageSize) {
     this.imageSize = imageSize;
   }
@@ -59,10 +67,20 @@ public class CaltechProblemData implements ImageProblemData {
     return trainingData();
   }
   
+  /**
+   * Gets image size.
+   *
+   * @return the image size
+   */
   public int getImageSize() {
     return imageSize;
   }
   
+  /**
+   * Gets labels.
+   *
+   * @return the labels
+   */
   public List<String> getLabels() {
     if (null == labels) {
       synchronized (this) {

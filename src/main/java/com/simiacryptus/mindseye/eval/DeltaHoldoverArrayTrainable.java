@@ -181,7 +181,7 @@ public class DeltaHoldoverArrayTrainable extends GpuTrainable {
      * The Last result.
      */
     NNResult lastResult;
-    
+  
     /**
      * Instantiates a new Wrapping layer.
      *

@@ -210,7 +210,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
    * Is zero boolean.
    *
    * @param stream  the stream
-   * @param zeroTol
+   * @param zeroTol the zero tol
    * @return the boolean
    */
   public boolean isZero(final DoubleStream stream, double zeroTol) {
@@ -743,7 +743,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
      * The Lbfgs.
      */
     TrainingResult lbfgs;
-    
+  
     /**
      * Instantiates a new Problem result.
      *
@@ -804,7 +804,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
      * The Value.
      */
     double value;
-    
+  
     /**
      * Instantiates a new Training result.
      *

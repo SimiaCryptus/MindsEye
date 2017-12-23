@@ -30,7 +30,7 @@ import java.util.stream.IntStream;
 
 /**
  * This activation layer uses a parameterized hyperbolic function.
- * This function, ion various parameterizations, 
+ * This function, ion various parameterizations,
  * can resemble: x^2, abs(x), x^3, x
  * However, at high +/- x, the behavior is nearly linear.
  */

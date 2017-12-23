@@ -77,6 +77,11 @@ public class State<K> extends DoubleBuffer<K> {
     return new State(layer, target, RecycleBin.DOUBLES.copyOf(delta));
   }
   
+  /**
+   * Backup copy state.
+   *
+   * @return the state
+   */
   public State<K> backupCopy() {
     return new State(layer, target, RecycleBin.DOUBLES.copyOf(target));
   }

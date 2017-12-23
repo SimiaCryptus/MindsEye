@@ -85,6 +85,9 @@ public abstract class OptimizerComparison {
     });
   };
   
+  /**
+   * The constant limited_memory_bfgs.
+   */
   public static OptimizationStrategy limited_memory_bfgs = (log, trainingSubject, validationSubject, monitor) -> {
     log.p("Optimized via the Limited-Memory BFGS method:");
     return log.code(() -> {
@@ -99,8 +102,17 @@ public abstract class OptimizerComparison {
     });
   };
   
+  /**
+   * The Data.
+   */
   protected ImageProblemData data;
+  /**
+   * The Fwd factory.
+   */
   protected FwdNetworkFactory fwdFactory;
+  /**
+   * The Rev factory.
+   */
   protected RevNetworkFactory revFactory;
   private int timeoutMinutes = 15;
   
@@ -188,7 +200,7 @@ public abstract class OptimizerComparison {
    * The type Compare qqn.
    */
   public static class Research extends OptimizerComparison {
-
+  
     /**
      * Instantiates a new Compare qqn.
      */
@@ -240,7 +252,7 @@ public abstract class OptimizerComparison {
    * The type Compare textbook.
    */
   public static class Textbook extends OptimizerComparison {
-
+  
     /**
      * Instantiates a new Compare textbook.
      */

@@ -165,7 +165,7 @@ public class SysOutInterceptor extends PrintStream {
      * The Obj.
      */
     public final T obj;
-
+  
     /**
      * Instantiates a new Logged result.
      *

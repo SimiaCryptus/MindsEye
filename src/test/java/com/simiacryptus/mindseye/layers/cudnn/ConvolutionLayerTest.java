@@ -89,7 +89,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
    * The type Asymmetric test.
    */
   public static class Temp extends ConvolutionLayerTest {
-    
+  
     /**
      * Instantiates a new Asymmetric test.
      */
@@ -116,7 +116,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
    * The type Asymmetric test.
    */
   public static class BandExpand extends ConvolutionLayerTest {
-    
+  
     /**
      * Instantiates a new Asymmetric test.
      */
@@ -130,7 +130,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
    * The type Asymmetric test.
    */
   public static class BandReduceTest extends ConvolutionLayerTest {
-    
+  
     /**
      * Instantiates a new Asymmetric test.
      */
@@ -181,7 +181,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
    * The type Irregular test float.
    */
   public static class IrregularTest_Float extends ConvolutionLayerTest {
-    
+  
     /**
      * Instantiates a new Irregular test float.
      */

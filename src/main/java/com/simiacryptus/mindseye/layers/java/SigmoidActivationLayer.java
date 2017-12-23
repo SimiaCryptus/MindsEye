@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 
 /**
- * The classic activation function, either "sigmoid" or "tanh" 
+ * The classic activation function, either "sigmoid" or "tanh"
  * dependiong on the setting of "balanced".
  * If balanced==true, the function exhibits odd symmetry (f(x) == -f(-x))
  * If balanced==false, the function is bounded to (0,1)

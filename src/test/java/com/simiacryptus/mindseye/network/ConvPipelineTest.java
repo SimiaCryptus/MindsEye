@@ -26,14 +26,25 @@ import com.simiacryptus.mindseye.layers.java.*;
 
 import java.util.ArrayList;
 
+/**
+ * The type Conv pipeline test.
+ */
 public class ConvPipelineTest extends PipelineTest {
   
+  /**
+   * Instantiates a new Conv pipeline test.
+   */
   public ConvPipelineTest() {
     super(
       buildList_1()
     );
   }
   
+  /**
+   * Build list 1 nn layer [ ].
+   *
+   * @return the nn layer [ ]
+   */
   public static NNLayer[] buildList_1() {
     final ArrayList<NNLayer> network = new ArrayList<NNLayer>();
     

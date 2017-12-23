@@ -31,7 +31,7 @@ import java.util.stream.IntStream;
 /**
  * A tunable linear (y=A*x+B) function, whose parameters can participate in learning.
  * Defaults to y=1*x+0, and is NOT frozen by default.
-*/
+ */
 @SuppressWarnings("serial")
 public class LinearActivationLayer extends NNLayer {
   

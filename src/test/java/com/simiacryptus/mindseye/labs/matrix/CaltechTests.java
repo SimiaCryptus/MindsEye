@@ -138,8 +138,11 @@ public class CaltechTests {
      * The Timeout minutes.
      */
     protected int timeoutMinutes = 1;
+    /**
+     * The Categories.
+     */
     protected int categories = data.getLabels().size();
-    
+  
     /**
      * Instantiates a new All tests.
      *
@@ -152,7 +155,7 @@ public class CaltechTests {
       this.optimizationStrategy = optimizationStrategy;
       this.fwdFactory = fwdFactory;
     }
-    
+  
     /**
      * Autoencoder test.
      *
@@ -171,7 +174,7 @@ public class CaltechTests {
         new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data, 100, 0.8).setTimeoutMinutes(timeoutMinutes).run(log);
       }
     }
-    
+  
     /**
      * Classification test.
      *
@@ -190,7 +193,7 @@ public class CaltechTests {
         new ClassifyProblem(fwdFactory, optimizationStrategy, data, categories).setTimeoutMinutes(timeoutMinutes).setBatchSize(100).run(log);
       }
     }
-    
+  
     /**
      * Encoding test.
      *
@@ -208,7 +211,7 @@ public class CaltechTests {
         new EncodingProblem(revFactory, optimizationStrategy, data, categories).setTimeoutMinutes(timeoutMinutes).setBatchSize(100).run(log);
       }
     }
-    
+  
     /**
      * Intro.
      *

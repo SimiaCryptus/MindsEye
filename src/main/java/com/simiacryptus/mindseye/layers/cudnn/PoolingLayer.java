@@ -27,8 +27,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * The standard image-pixel pooling layer. 
- * Using a configurable stride and window size, 
+ * The standard image-pixel pooling layer.
+ * Using a configurable stride and window size,
  * reduces pixels using either the Max or Avg operation.
  */
 @SuppressWarnings("serial")

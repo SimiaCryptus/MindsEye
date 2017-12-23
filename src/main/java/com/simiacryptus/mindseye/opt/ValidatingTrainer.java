@@ -935,7 +935,7 @@ public class ValidatingTrainer {
   }
   
   private class PerformanceWrapper extends TrainableWrapper<SampledTrainable> implements SampledTrainable {
-    
+  
     /**
      * Instantiates a new Performance wrapper.
      *

@@ -29,7 +29,7 @@ import java.util.stream.IntStream;
 
 /**
  * This layer multiplies together the inputs, element-by-element.
- * It can be used to implement integer-power activation layers, 
+ * It can be used to implement integer-power activation layers,
  * such as the square needed in MeanSqLossLayer.
  */
 @SuppressWarnings("serial")

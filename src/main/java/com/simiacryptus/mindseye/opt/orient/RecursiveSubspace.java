@@ -54,6 +54,14 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
     return new SimpleLineSearchCursor(subject, origin, delta).setDirectionType("RecursiveSubspace");
   }
   
+  /**
+   * Build subspace nn layer.
+   *
+   * @param subject     the subject
+   * @param measurement the measurement
+   * @param monitor     the monitor
+   * @return the nn layer
+   */
   public NNLayer buildSubspace(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     PointSample origin = measurement.copyFull().backup();
     final DeltaSet<NNLayer> direction = measurement.delta.scale(-1);
@@ -77,7 +85,7 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
         });
         PointSample measure = subject.measure(monitor);
         double mean = measure.getMean();
-        monitor.log(String.format("R-L-BFGS: %s <- %s", mean, Arrays.toString(weights)));
+        monitor.log(String.format("RecursiveSubspace: %s <- %s", mean, Arrays.toString(weights)));
         return new NNResult(new Tensor(mean)) {
           @Override
           public void accumulate(DeltaSet<NNLayer> buffer, TensorList data) {
@@ -107,6 +115,12 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
     };
   }
   
+  /**
+   * Train.
+   *
+   * @param monitor    the monitor
+   * @param macroLayer the macro layer
+   */
   public void train(TrainingMonitor monitor, NNLayer macroLayer) {
     ArrayTrainable trainable = new ArrayTrainable(new BasicTrainable(macroLayer), new Tensor[][]{{new Tensor()}});
     new IterativeTrainer(trainable)
@@ -126,10 +140,21 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
     weights = null;
   }
   
+  /**
+   * Gets iterations.
+   *
+   * @return the iterations
+   */
   public int getIterations() {
     return iterations;
   }
   
+  /**
+   * Sets iterations.
+   *
+   * @param iterations the iterations
+   * @return the iterations
+   */
   public RecursiveSubspace setIterations(int iterations) {
     this.iterations = iterations;
     return this;

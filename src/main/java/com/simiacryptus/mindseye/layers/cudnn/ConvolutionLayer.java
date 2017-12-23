@@ -32,7 +32,7 @@ import java.util.function.IntToDoubleFunction;
 
 /**
  * This is the general convolution layer, allowing any number of input and output bands.
- * During execution it delegates processing to a dynamically created subbnet created 
+ * During execution it delegates processing to a dynamically created subbnet created
  * using SimpleConvolutionLayer and ImgConcatLayer to implement the more general layer contract.
  */
 @SuppressWarnings("serial")
@@ -262,11 +262,19 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   
   /**
    * The Stride x.
+   *
+   * @return the stride x
    */
   public int getStrideX() {
     return strideX;
   }
   
+  /**
+   * Sets stride x.
+   *
+   * @param strideX the stride x
+   * @return the stride x
+   */
   public ConvolutionLayer setStrideX(int strideX) {
     this.strideX = strideX;
     return this;
@@ -274,11 +282,19 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   
   /**
    * The Stride y.
+   *
+   * @return the stride y
    */
   public int getStrideY() {
     return strideY;
   }
   
+  /**
+   * Sets stride y.
+   *
+   * @param strideY the stride y
+   * @return the stride y
+   */
   public ConvolutionLayer setStrideY(int strideY) {
     this.strideY = strideY;
     return this;

@@ -74,6 +74,11 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
     });
   }
   
+  /**
+   * New normalization layer nn layer.
+   *
+   * @return the nn layer
+   */
   protected NNLayer newNormalizationLayer() {
     return null;
   }
@@ -96,8 +101,16 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
     });
   }
   
+  /**
+   * Gets orientation.
+   *
+   * @return the orientation
+   */
   protected abstract OrientationStrategy<?> getOrientation();
   
+  /**
+   * The type Baseline.
+   */
   public static class Baseline extends RecursiveSubspaceTest {
     
     public OrientationStrategy<?> getOrientation() {
@@ -106,6 +119,9 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
     
   }
   
+  /**
+   * The type Normalized.
+   */
   public static class Normalized extends RecursiveSubspaceTest {
     
     public OrientationStrategy<?> getOrientation() {
@@ -118,6 +134,9 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
     }
   }
   
+  /**
+   * The type Demo.
+   */
   public static class Demo extends RecursiveSubspaceTest {
     
     public OrientationStrategy<?> getOrientation() {

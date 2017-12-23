@@ -32,10 +32,23 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
   
   private Tensor[][] trainingData;
   
+  /**
+   * Instantiates a new Array trainable.
+   *
+   * @param inner        the inner
+   * @param trainingData the training data
+   */
   public ArrayTrainable(DataTrainable inner, Tensor[][] trainingData) {
     this(inner, trainingData, trainingData.length);
   }
   
+  /**
+   * Instantiates a new Array trainable.
+   *
+   * @param inner        the inner
+   * @param trainingData the training data
+   * @param batchSize    the batch size
+   */
   public ArrayTrainable(DataTrainable inner, Tensor[][] trainingData, int batchSize) {
     super(inner, batchSize);
     this.trainingData = trainingData;

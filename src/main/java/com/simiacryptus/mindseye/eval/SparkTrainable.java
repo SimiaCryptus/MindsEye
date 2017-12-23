@@ -250,7 +250,7 @@ public class SparkTrainable implements Trainable {
      * The Verbose.
      */
     boolean verbose = true;
-    
+  
     /**
      * Instantiates a new Partition task.
      *
