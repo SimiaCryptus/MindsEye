@@ -25,6 +25,8 @@ import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.test.LabeledObject;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -33,6 +35,7 @@ import java.util.stream.Stream;
 public class CaltechProblemData implements ImageProblemData {
   
   private final int imageSize;
+  private List<String> labels = null;
   
   public CaltechProblemData() {
     this(256);
@@ -45,8 +48,7 @@ public class CaltechProblemData implements ImageProblemData {
   @Override
   public Stream<LabeledObject<Tensor>> trainingData() {
     try {
-      System.out.println(String.format("Loaded %d items", Caltech101.trainingDataStream().count()));
-      return Caltech101.trainingDataStream().map(x -> x.map(y -> Tensor.fromRGB(TestUtil.resize(y.get(), getImageSize()))));
+      return Caltech101.trainingDataStream().parallel().map(x -> x.map(y -> Tensor.fromRGB(TestUtil.resize(y.get(), getImageSize()))));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -60,4 +62,16 @@ public class CaltechProblemData implements ImageProblemData {
   public int getImageSize() {
     return imageSize;
   }
+  
+  public List<String> getLabels() {
+    if (null == labels) {
+      synchronized (this) {
+        if (null == labels) {
+          labels = trainingData().map(x -> x.label).distinct().sorted().collect(Collectors.toList());
+        }
+      }
+    }
+    return labels;
+  }
+  
 }

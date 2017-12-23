@@ -59,18 +59,18 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    * This can be configured as a non-blocking operation by using the
    * JVM flags "-XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC"
    */
-  protected boolean gcEachIteration = true;
+  protected static boolean gcEachIteration = true;
   
   /**
    * The Gc period.
    */
-  protected double gcPeriod = 0.0;
+  protected static double gcPeriod = 1.0;
   /**
    * The Mask.
    */
   boolean[] mask = null;
   private long lastGc = 0;
-  private int verbosity = 0;
+  private static int verbosity = 0;
   
   /**
    * Instantiates a new Gpu trainable.
@@ -120,6 +120,71 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
     }).toArray(x1 -> new NNResult[x1]);
   }
   
+  public static int getVerbosity() {
+    return verbosity;
+  }
+  
+  /**
+   * Sets verbose.
+   *
+   * @param verbose the verbose
+   * @return the verbose
+   */
+  public static void setVerbosity(final int verbose) {
+    verbosity = verbose;
+  }
+  
+  @Override
+  public Tensor[][] getData() {
+    return data.toArray(new Tensor[][]{});
+  }
+  
+  /**
+   * Gets gc period.
+   *
+   * @return the gc period
+   */
+  public static double getGcPeriod() {
+    return gcPeriod;
+  }
+  
+  /**
+   * Sets gc period.
+   *
+   * @param gcPeriod the gc period
+   */
+  public static void setGcPeriod(final double gcPeriod) {
+    GpuTrainable.gcPeriod = gcPeriod;
+  }
+  
+  @Override
+  public boolean[] getMask() {
+    return mask;
+  }
+  
+  /**
+   * Is gc each iteration boolean.
+   *
+   * @return the boolean
+   */
+  public static boolean isGcEachIteration() {
+    return gcEachIteration;
+  }
+  
+  /**
+   * Sets gc each iteration.
+   *
+   * @param gcEachIteration the gc each iteration
+   */
+  public static void setGcEachIteration(final boolean gcEachIteration) {
+    GpuTrainable.gcEachIteration = gcEachIteration;
+  }
+  
+  @Override
+  public PointSample measure(final TrainingMonitor monitor) {
+    return measure(3, monitor);
+  }
+  
   /**
    * Eval point sample.
    *
@@ -142,61 +207,32 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
       //System.out.println(String.format("Evaluated to %s delta buffers, %s mag", DeltaSet<NNLayer>.getMap().size(), DeltaSet<NNLayer>.getMagnitude()));
       return new PointSample(xxx, new StateSet<NNLayer>(xxx), sum, 0.0, list.size());
     });
-    if (null != monitor && verbosity() > 0) {
+    if (null != monitor && getVerbosity() > 0) {
       monitor.log(String.format("Device %s completed %s items in %.3f sec", nncontext.toString(), list.size(), timedResult.timeNanos / 1e9));
     }
     return timedResult.result.normalize();
   }
   
   @Override
-  public Tensor[][] getData() {
-    return data.toArray(new Tensor[][]{});
+  public Trainable setData(final List<Tensor[]> sampledData) {
+    assert !sampledData.isEmpty();
+    data = sampledData;
+    return this;
   }
   
   /**
-   * Gets gc period.
+   * Sets data supplier.
    *
-   * @return the gc period
+   * @param data the data
    */
-  public double getGcPeriod() {
-    return gcPeriod;
-  }
-  
-  /**
-   * Sets gc period.
-   *
-   * @param gcPeriod the gc period
-   */
-  public void setGcPeriod(final double gcPeriod) {
-    this.gcPeriod = gcPeriod;
+  protected void setDataSupplier(final List<? extends Supplier<Tensor[]>> data) {
+    setData(data.stream().parallel().map(x -> x.get()).collect(Collectors.toList()));
   }
   
   @Override
-  public boolean[] getMask() {
-    return mask;
-  }
-  
-  /**
-   * Is gc each iteration boolean.
-   *
-   * @return the boolean
-   */
-  public boolean isGcEachIteration() {
-    return gcEachIteration;
-  }
-  
-  /**
-   * Sets gc each iteration.
-   *
-   * @param gcEachIteration the gc each iteration
-   */
-  public void setGcEachIteration(final boolean gcEachIteration) {
-    this.gcEachIteration = gcEachIteration;
-  }
-  
-  @Override
-  public PointSample measure(final TrainingMonitor monitor) {
-    return measure(3, monitor);
+  public TrainableDataMask setMask(final boolean... mask) {
+    this.mask = mask;
+    return this;
   }
   
   /**
@@ -215,7 +251,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
         (a, b) -> a.addInPlace(b)
       ));
       //          System.out.println(String.format("Evaluated to %s delta arrays", DeltaSet<NNLayer>.run.size()));
-      if (null != monitor && verbosity() > 1) {
+      if (null != monitor && getVerbosity() > 1) {
         monitor.log(String.format("Evaluated %s items in %.4fs (%s/%s)", data.size(), timedResult.timeNanos / 1e9, timedResult.result.getMean(), timedResult.result.delta.getMagnitude()));
       }
       assert null != timedResult.result;
@@ -259,45 +295,4 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
     }
   }
   
-  @Override
-  public Trainable setData(final List<Tensor[]> sampledData) {
-    assert !sampledData.isEmpty();
-    data = sampledData;
-    return this;
-  }
-  
-  /**
-   * Sets data supplier.
-   *
-   * @param data the data
-   */
-  protected void setDataSupplier(final List<? extends Supplier<Tensor[]>> data) {
-    setData(data.stream().parallel().map(x -> x.get()).collect(Collectors.toList()));
-  }
-  
-  @Override
-  public TrainableDataMask setMask(final boolean... mask) {
-    this.mask = mask;
-    return this;
-  }
-  
-  /**
-   * Sets verbose.
-   *
-   * @param verbose the verbose
-   * @return the verbose
-   */
-  public GpuTrainable setVerbosity(final int verbose) {
-    verbosity = verbose;
-    return this;
-  }
-  
-  /**
-   * Is verbose boolean.
-   *
-   * @return the boolean
-   */
-  public int verbosity() {
-    return verbosity;
-  }
 }

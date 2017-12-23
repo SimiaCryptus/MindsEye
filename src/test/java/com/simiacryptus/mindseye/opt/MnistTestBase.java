@@ -91,6 +91,8 @@ public abstract class MnistTestBase {
     });
   }
   
+  private static final PrintStream originalOut = System.out;
+  
   /**
    * Build model dag network.
    *
@@ -105,41 +107,10 @@ public abstract class MnistTestBase {
       final PipelineNetwork network = new PipelineNetwork();
       network.add(new BiasLayer(28, 28, 1));
       network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{10})
-        .setWeights(() -> 0.001 * (Math.random() - 0.45)));
+        .set(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new SoftmaxActivationLayer());
       return network;
     });
-  }
-  
-  /**
-   * Gets monitor.
-   *
-   * @param originalOut the original out
-   * @param history     the history
-   * @return the monitor
-   */
-  public TrainingMonitor getMonitor(final PrintStream originalOut, final List<Step> history) {
-    return new TrainingMonitor() {
-      @Override
-      public void clear() {
-        super.clear();
-      }
-  
-      @Override
-      public void log(final String msg) {
-        System.out.println(msg);
-        if (null != originalOut && System.out != originalOut) {
-          originalOut.println(msg);
-        }
-        super.log(msg);
-      }
-      
-      @Override
-      public void onStepComplete(final Step currentPoint) {
-        history.add(currentPoint);
-        super.onStepComplete(currentPoint);
-      }
-    };
   }
   
   /**
@@ -233,6 +204,37 @@ public abstract class MnistTestBase {
   }
   
   /**
+   * Gets monitor.
+   *
+   * @param originalOut the original out
+   * @param history     the history
+   * @return the monitor
+   */
+  public TrainingMonitor getMonitor(final PrintStream originalOut, final List<Step> history) {
+    return new TrainingMonitor() {
+      @Override
+      public void clear() {
+        super.clear();
+      }
+      
+      @Override
+      public void log(final String msg) {
+        System.out.println(msg);
+        if (null != originalOut && System.out != originalOut) {
+          originalOut.println(msg);
+        }
+        System.out.println(msg);
+        super.log(msg);
+      }
+      
+      @Override
+      public void onStepComplete(final Step currentPoint) {
+        history.add(currentPoint);
+        super.onStepComplete(currentPoint);
+      }
+    };
+  }
+  /**
    * Test.
    *
    * @throws IOException the io exception
@@ -240,7 +242,6 @@ public abstract class MnistTestBase {
   @Test
   @Category(TestCategories.Report.class)
   public void test() throws IOException {
-    final PrintStream originalOut = System.out;
     try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
       if (null != originalOut) {
         log.addCopy(originalOut);

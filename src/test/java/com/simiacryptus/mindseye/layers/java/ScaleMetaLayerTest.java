@@ -20,12 +20,12 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.test.unit.StandardLayerTests;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
  * The type Scale meta layer test.
  */
-public class ScaleMetaLayerTest extends StandardLayerTests {
+public class ScaleMetaLayerTest extends LayerTestBase {
   
   /**
    * Instantiates a new Scale meta layer test.

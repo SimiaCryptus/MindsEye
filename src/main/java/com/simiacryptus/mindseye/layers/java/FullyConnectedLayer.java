@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleSupplier;
+import java.util.function.IntToDoubleFunction;
 import java.util.function.ToDoubleBiFunction;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
@@ -82,7 +83,7 @@ public class FullyConnectedLayer extends NNLayer {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
     final int outs = Tensor.dim(outputDims);
     weights = new Tensor(inputs, outs);
-    setWeights(() -> {
+    set(() -> {
       final double ratio = Math.sqrt(6. / (inputs + outs + 1));
       final double fate = Util.R.get().nextDouble();
       final double v = (1 - 2 * fate) * ratio;
@@ -226,7 +227,7 @@ public class FullyConnectedLayer extends NNLayer {
    * @param f the f
    * @return the weights
    */
-  public FullyConnectedLayer setWeights(final DoubleSupplier f) {
+  public FullyConnectedLayer set(final DoubleSupplier f) {
     Arrays.parallelSetAll(weights.getData(), i -> f.getAsDouble());
     return this;
   }
@@ -237,7 +238,18 @@ public class FullyConnectedLayer extends NNLayer {
    * @param f the f
    * @return the weights
    */
-  public FullyConnectedLayer setWeights(final ToDoubleFunction<Coordinate> f) {
+  public FullyConnectedLayer set(final IntToDoubleFunction f) {
+    weights.set(f);
+    return this;
+  }
+  
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
+  public FullyConnectedLayer setByCoord(final ToDoubleFunction<Coordinate> f) {
     weights.coordStream().parallel().forEach(c -> {
       weights.set(c, f.applyAsDouble(c));
     });
@@ -252,7 +264,7 @@ public class FullyConnectedLayer extends NNLayer {
    * @param peak      the peak
    */
   public void initSpacial(final double radius, final double stiffness, final double peak) {
-    setWeights((final Coordinate in, final Coordinate out) -> {
+    setByCoord((final Coordinate in, final Coordinate out) -> {
       final double[] doubleCoords = IntStream.range(0, in.getCoords().length).mapToDouble(d -> {
         final double from = in.getCoords()[d] * 1.0 / FullyConnectedLayer.this.inputDims[d];
         final double to = out.getCoords()[d] * 1.0 / FullyConnectedLayer.this.outputDims[d];
@@ -276,7 +288,7 @@ public class FullyConnectedLayer extends NNLayer {
    * @param data the data
    * @return the weights
    */
-  public FullyConnectedLayer setWeights(final double[] data) {
+  public FullyConnectedLayer set(final double[] data) {
     weights.set(data);
     return this;
   }
@@ -287,7 +299,7 @@ public class FullyConnectedLayer extends NNLayer {
    * @param f the f
    * @return the weights
    */
-  public FullyConnectedLayer setWeights(final ToDoubleBiFunction<Coordinate, Coordinate> f) {
+  public FullyConnectedLayer setByCoord(final ToDoubleBiFunction<Coordinate, Coordinate> f) {
     new Tensor(inputDims).coordStream().parallel().forEach(in -> {
       new Tensor(outputDims).coordStream().parallel().forEach(out -> {
         weights.set(new int[]{in.getIndex(), out.getIndex()}, f.applyAsDouble(in, out));

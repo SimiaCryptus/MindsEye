@@ -19,10 +19,10 @@
 
 package com.simiacryptus.mindseye.test.integration;
 
+import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
@@ -51,7 +51,7 @@ public class ClassifyProblem implements Problem {
   
   private static int modelNo = 0;
   
-  private final int batchSize = 10000;
+  private int batchSize = 10000;
   private final int categories;
   private final ImageProblemData data;
   private final FwdNetworkFactory fwdFactory;
@@ -162,9 +162,10 @@ public class ClassifyProblem implements Problem {
     log.h3("Training");
     final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
     TestUtil.instrumentPerformance(log, supervisedNetwork);
+    int initialSampleSize = Math.max(trainingData.length / 5, Math.min(10, trainingData.length / 2));
     final ValidatingTrainer trainer = optimizer.train(log,
-      new SampledArrayTrainable(trainingData, supervisedNetwork, trainingData.length / 2, batchSize),
-      new ArrayTrainable(trainingData, supervisedNetwork, batchSize), monitor);
+      new SampledArrayTrainable(trainingData, supervisedNetwork, initialSampleSize, getBatchSize()),
+      new ArrayTrainable(trainingData, supervisedNetwork, getBatchSize()), monitor);
     log.code(() -> {
       trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(10000).run();
     });
@@ -192,8 +193,11 @@ public class ClassifyProblem implements Problem {
     log.code(() -> {
       try {
         final TableOutput table = new TableOutput();
-        data.validationData().map(labeledObject -> {
-          return toRow(log, labeledObject, GpuController.call(ctx -> network.eval(ctx, labeledObject.data)).getData().get(0).getData());
+        Lists.partition(data.validationData().collect(Collectors.toList()), 100).stream().flatMap(batch -> {
+          TensorArray batchIn = new TensorArray(batch.stream().map(x -> x.data).toArray(i -> new Tensor[i]));
+          TensorList batchOut = GpuController.call(ctx -> network.eval(ctx, new NNConstant(batchIn))).getData();
+          return IntStream.range(0, batchOut.length())
+            .mapToObj(i -> toRow(log, batch.get(i), batchOut.get(i).getData()));
         }).filter(x -> null != x).limit(10).forEach(table::putRow);
         return table;
       } catch (final IOException e) {
@@ -225,5 +229,14 @@ public class ClassifyProblem implements Problem {
     } catch (final IOException e) {
       throw new RuntimeException(e);
     }
+  }
+  
+  public int getBatchSize() {
+    return batchSize;
+  }
+  
+  public ClassifyProblem setBatchSize(int batchSize) {
+    this.batchSize = batchSize;
+    return this;
   }
 }

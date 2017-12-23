@@ -181,7 +181,7 @@ class EncodingUtil {
       ).replaceAll("\n", "\n\t") + "\n" +
         "</filter>\n" +
         "</defs>\n" +
-        "<rect style=\"filter:url(#image);\" set=\"#" + avgHexColor + "\" width=\"256\" height=\"256\"/>"
+        "<rect style=\"filter:url(#image);\" setByCoord=\"#" + avgHexColor + "\" width=\"256\" height=\"256\"/>"
       ).replaceAll("\n", "\n\t") +
       "\n</svg>";
   }

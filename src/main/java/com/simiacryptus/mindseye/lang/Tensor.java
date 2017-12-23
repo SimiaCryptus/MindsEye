@@ -224,8 +224,8 @@ public class Tensor implements Serializable {
     final int height = img.getHeight();
     final Tensor a = new Tensor(width, height, 3);
     final int[] coords = {0, 0, 0};
-    for (int x = 0; x < width; x++) {
-      for (int y = 0; y < height; y++) {
+    IntStream.range(0, width).parallel().forEach(x -> {
+      IntStream.range(0, height).forEach(y -> {
         coords[0] = x;
         coords[1] = y;
         coords[2] = 0;
@@ -234,8 +234,8 @@ public class Tensor implements Serializable {
         a.set(coords, img.getRGB(x, y) >> 8 & 0xFF);
         coords[2] = 2;
         a.set(coords, img.getRGB(x, y) >> 16 & 0x0FF);
-      }
-    }
+      });
+    });
     return a;
   }
   

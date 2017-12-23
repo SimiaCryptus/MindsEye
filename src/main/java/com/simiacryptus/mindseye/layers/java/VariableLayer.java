@@ -26,7 +26,7 @@ import java.util.List;
 
 /**
  * Acts as a mutable placeholder layer, 
- * whose inner implementation can be set and changed.
+ * whose inner implementation can be setByCoord and changed.
  */
 @SuppressWarnings("serial")
 public class VariableLayer extends WrapperLayer {

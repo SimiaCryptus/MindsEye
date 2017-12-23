@@ -23,7 +23,7 @@ import com.google.gson.JsonObject;
 
 /**
  * Enforces a maximum-value constraint on the input signal,
- * rounding down any values exceeding a set threshold.
+ * rounding down any values exceeding a setByCoord threshold.
  */
 @SuppressWarnings("serial")
 public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {

@@ -106,13 +106,14 @@ public class PipelineNetwork extends DAGNetwork {
    * @return the dag node
    */
   public DAGNode add(final NNLayer nextHead) {
+    if (null == nextHead) return null;
     return add(nextHead, getHead());
   }
   
   @Override
   public DAGNode add(final NNLayer nextHead, final DAGNode... head) {
     if (null == nextHead && head.length == 1) return head[0];
-    if (null == nextHead) throw new IllegalArgumentException();
+    if (null == nextHead) return null;
     assert Arrays.stream(head).allMatch(x -> x == null || nodesById.containsKey(x.getId()) || inputNodes.containsKey(x.getId()));
     final DAGNode node = super.add(nextHead, head);
     assert null != getInput();

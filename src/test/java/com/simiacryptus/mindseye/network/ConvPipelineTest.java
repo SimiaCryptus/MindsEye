@@ -58,7 +58,7 @@ public class ConvPipelineTest extends PipelineTest {
     network.add(new ImgCropLayer(4, 4));
     
     network.add(new ImgBandBiasLayer(40));
-    network.add(new FullyConnectedLayer(new int[]{4, 4, 40}, new int[]{100}).setWeights(() -> 0.001 * (Math.random() - 0.45)));
+    network.add(new FullyConnectedLayer(new int[]{4, 4, 40}, new int[]{100}).set(() -> 0.001 * (Math.random() - 0.45)));
     network.add(new SoftmaxActivationLayer());
     
     return network.toArray(new NNLayer[]{});

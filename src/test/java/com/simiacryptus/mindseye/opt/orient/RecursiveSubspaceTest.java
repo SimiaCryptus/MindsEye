@@ -27,10 +27,7 @@ import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
-import com.simiacryptus.mindseye.layers.java.BiasLayer;
-import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
-import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
-import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.layers.java.*;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
@@ -42,36 +39,43 @@ import com.simiacryptus.mindseye.opt.line.StaticLearningRate;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import java.util.concurrent.TimeUnit;
+import java.util.function.DoubleSupplier;
 
 /**
  * The type Lbfgs run.
  */
-public abstract class RLBFGSTest extends MnistTestBase {
+public abstract class RecursiveSubspaceTest extends MnistTestBase {
   
   @Override
   public DAGNetwork buildModel(NotebookOutput log) {
     log.h3("Model");
-    log.p("This is a very simple model that performs basic logistic regression. " +
-      "It is expected to be trainable to about 91% accuracy on MNIST.");
+    log.p("We use a multi-level convolution network");
     return log.code(() -> {
       final PipelineNetwork network = new PipelineNetwork();
+      double weight = 1e-3;
   
-      network.add(new ConvolutionLayer(3, 3, 1, 5));
+      DoubleSupplier init = () -> weight * (Math.random() - 0.5);
+      network.add(new ConvolutionLayer(3, 3, 1, 5).set(init));
       network.add(new ImgBandBiasLayer(5));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+      network.add(newNormalizationLayer());
   
-      network.add(new ConvolutionLayer(3, 3, 5, 5));
+      network.add(new ConvolutionLayer(3, 3, 5, 5).set(init));
       network.add(new ImgBandBiasLayer(5));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+      network.add(newNormalizationLayer());
   
       network.add(new BiasLayer(7, 7, 5));
-      network.add(new FullyConnectedLayer(new int[]{7, 7, 5}, new int[]{10})
-        .setWeights(() -> 0.001 * (Math.random() - 0.45)));
+      network.add(new FullyConnectedLayer(new int[]{7, 7, 5}, new int[]{10}).set(init));
       network.add(new SoftmaxActivationLayer());
       return network;
     });
+  }
+  
+  protected NNLayer newNormalizationLayer() {
+    return null;
   }
   
   @Override
@@ -79,14 +83,14 @@ public abstract class RLBFGSTest extends MnistTestBase {
     log.code(() -> {
       final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       ValidatingTrainer trainer = new ValidatingTrainer(
-        new SampledArrayTrainable(trainingData, supervisedNetwork, 1000, 10000),
-        new ArrayTrainable(trainingData, supervisedNetwork).cached()
+        new SampledArrayTrainable(trainingData, supervisedNetwork, 1000, 1000),
+        new ArrayTrainable(trainingData, supervisedNetwork, 1000).cached()
       ).setMonitor(monitor);
       trainer.getRegimen().get(0)
         .setOrientation(getOrientation())
         .setLineSearchFactory(name -> name.contains("LBFGS") ? new StaticLearningRate(1.0) : new QuadraticSearch());
       return trainer
-        .setTimeout(5, TimeUnit.MINUTES)
+        .setTimeout(15, TimeUnit.MINUTES)
         .setMaxIterations(500)
         .run();
     });
@@ -94,18 +98,30 @@ public abstract class RLBFGSTest extends MnistTestBase {
   
   protected abstract OrientationStrategy<?> getOrientation();
   
-  public static class Baseline extends RLBFGSTest {
-  
+  public static class Baseline extends RecursiveSubspaceTest {
+    
     public OrientationStrategy<?> getOrientation() {
       return new LBFGS();
     }
     
   }
   
-  public static class Demo extends RLBFGSTest {
-  
+  public static class Normalized extends RecursiveSubspaceTest {
+    
     public OrientationStrategy<?> getOrientation() {
-      return new RLBFGS();
+      return new LBFGS();
+    }
+    
+    @Override
+    protected NNLayer newNormalizationLayer() {
+      return new NormalizationMetaLayer();
+    }
+  }
+  
+  public static class Demo extends RecursiveSubspaceTest {
+    
+    public OrientationStrategy<?> getOrientation() {
+      return new RecursiveSubspace();
     }
     
   }

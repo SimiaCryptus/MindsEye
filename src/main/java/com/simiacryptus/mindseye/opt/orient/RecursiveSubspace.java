@@ -35,12 +35,27 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * An implementation of the Limited-Memory Broyden–Fletcher–Goldfarb–Shanno algorithm
- * https://en.m.wikipedia.org/wiki/Limited-memory_BFGS
+ * An recursive optimization strategy which projects the current space into
+ * a reduced-dimensional subspace for a sub-optimization batch run.
  */
-public class RLBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
+public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCursor> {
+  
+  private int iterations = 4;
+  private double[] weights = null;
+
   @Override
   public SimpleLineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
+    PointSample origin = measurement.copyFull().backup();
+    NNLayer macroLayer = buildSubspace(subject, measurement, monitor);
+    train(monitor, macroLayer);
+    macroLayer.eval(null, (NNResult) null);
+    DeltaSet<NNLayer> delta = origin.weights.backupCopy().subtract(origin.weights);
+    origin.restore();
+    return new SimpleLineSearchCursor(subject, origin, delta).setDirectionType("RecursiveSubspace");
+  }
+  
+  public NNLayer buildSubspace(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
+    PointSample origin = measurement.copyFull().backup();
     final DeltaSet<NNLayer> direction = measurement.delta.scale(-1);
     final double magnitude = direction.getMagnitude();
     if (Math.abs(magnitude) < 1e-10) {
@@ -49,60 +64,74 @@ public class RLBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
     else if (Math.abs(magnitude) < 1e-5) {
       monitor.log(String.format("Low gradient: %s", magnitude));
     }
-    StateSet<NNLayer> origin = direction.asState().map(x -> x.backup());
     List<NNLayer> deltaLayers = direction.getMap().entrySet().stream().map(x -> x.getKey()).collect(Collectors.toList());
-    double[] weights = new double[direction.getMap().size()];
-    NNLayer macroLayer = new NNLayer() {
+    if (null == weights || weights.length != direction.getMap().size()) weights = new double[direction.getMap().size()];
+    return new NNLayer() {
       NNLayer self = this;
-    
+      
       @Override
       public NNResult eval(NNExecutionContext nncontext, NNResult... array) {
-        monitor.log(String.format("Recursive Layer Weighting: %s", Arrays.toString(weights)));
-        origin.stream().forEach(x -> x.restore());
+        origin.restore();
         IntStream.range(0, deltaLayers.size()).forEach(i -> {
           direction.getMap().get(deltaLayers.get(i)).accumulate(weights[i]);
         });
         PointSample measure = subject.measure(monitor);
-        return new NNResult(new Tensor(measure.getMean())) {
+        double mean = measure.getMean();
+        monitor.log(String.format("R-L-BFGS: %s <- %s", mean, Arrays.toString(weights)));
+        return new NNResult(new Tensor(mean)) {
           @Override
           public void accumulate(DeltaSet<NNLayer> buffer, TensorList data) {
-            buffer.get(self, weights).addInPlace(IntStream.range(0, deltaLayers.size()).mapToDouble(i -> {
-              NNLayer layer = deltaLayers.get(i);
+            buffer.get(self, weights).addInPlace(deltaLayers.stream().mapToDouble(layer -> {
               Delta<NNLayer> a = direction.getMap().get(layer);
               Delta<NNLayer> b = measure.delta.getMap().get(layer);
-              return b.dot(a);
+              return b.dot(a) / Math.max(Math.sqrt(a.dot(a)), 1e-8);
             }).toArray());
           }
-        
+          
           @Override
           public boolean isAlive() {
             return true;
           }
         };
       }
-    
+      
       @Override
       public JsonObject getJson() {
         throw new IllegalStateException();
       }
-    
+      
       @Override
       public List<double[]> state() {
         return null;
       }
     };
+  }
+  
+  public void train(TrainingMonitor monitor, NNLayer macroLayer) {
     ArrayTrainable trainable = new ArrayTrainable(new BasicTrainable(macroLayer), new Tensor[][]{{new Tensor()}});
     new IterativeTrainer(trainable)
       .setOrientation(new LBFGS())
       .setLineSearchFactory(n -> new ArmijoWolfeSearch())
-      .setMaxIterations(5).run();
-    DeltaSet<NNLayer> delta = origin.map(x -> x.copy().backup()).subtract(origin);
-    origin.stream().forEach(s -> s.restore());
-    return new SimpleLineSearchCursor(subject, measurement, delta).setDirectionType("RLBFGS");
+      .setMonitor(new TrainingMonitor() {
+        @Override
+        public void log(String msg) {
+          monitor.log("\t" + msg);
+        }
+      })
+      .setMaxIterations(getIterations()).setIterationsPerSample(getIterations()).run();
   }
   
   @Override
   public void reset() {
+    weights = null;
+  }
   
+  public int getIterations() {
+    return iterations;
+  }
+  
+  public RecursiveSubspace setIterations(int iterations) {
+    this.iterations = iterations;
+    return this;
   }
 }

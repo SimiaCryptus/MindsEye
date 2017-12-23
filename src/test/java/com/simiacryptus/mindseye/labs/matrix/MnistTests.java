@@ -19,7 +19,10 @@
 
 package com.simiacryptus.mindseye.labs.matrix;
 
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
@@ -36,6 +39,8 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import java.io.IOException;
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 /**
  * The type Mnist run base.
@@ -53,7 +58,7 @@ public class MnistTests {
       network.add(new ReLuActivationLayer());
       network.add(new BiasLayer(14, 14, 5));
       network.add(new FullyConnectedLayer(new int[]{14, 14, 5}, new int[]{features})
-        .setWeights(() -> 0.001 * (Math.random() - 0.45)));
+        .set(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new SoftmaxActivationLayer());
       return network;
     });
@@ -67,7 +72,7 @@ public class MnistTests {
       final PipelineNetwork network = new PipelineNetwork();
       network.add(new BiasLayer(28, 28, 1));
       network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{features})
-        .setWeights(() -> 0.001 * (Math.random() - 0.45)));
+        .set(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new SoftmaxActivationLayer());
       return network;
     });
@@ -80,7 +85,7 @@ public class MnistTests {
     return log.code(() -> {
       final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{28, 28, 5})
-        .setWeights(() -> 0.25 * (Math.random() - 0.5)));
+        .set(() -> 0.25 * (Math.random() - 0.5)));
       network.add(new ReLuActivationLayer());
       network.add(new ConvolutionLayer(3, 3, 5, 1)
         .set(i -> 1e-8 * (Math.random() - 0.5)));
@@ -97,11 +102,43 @@ public class MnistTests {
     return log.code(() -> {
       final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{28, 28, 1})
-        .setWeights(() -> 0.25 * (Math.random() - 0.5)));
+        .set(() -> 0.25 * (Math.random() - 0.5)));
       network.add(new BiasLayer(28, 28, 1));
       return network;
     });
   };
+  
+  public static FwdNetworkFactory fwd_conv_2() {
+    return fwd_conv_2(() -> null);
+  }
+  
+  public static FwdNetworkFactory fwd_conv_2(Supplier<NNLayer> newNormalizationLayer) {
+    return (log, features) -> {
+      log.p("The image-to-vector network is a single layer convolutional:");
+      return log.code(() -> {
+        final PipelineNetwork network = new PipelineNetwork();
+        double weight = 1e-3;
+        
+        DoubleSupplier init = () -> weight * (Math.random() - 0.5);
+        network.add(new ConvolutionLayer(3, 3, 1, 5).set(init));
+        network.add(new ImgBandBiasLayer(5));
+        network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
+        network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+        network.add(newNormalizationLayer.get());
+        
+        network.add(new ConvolutionLayer(3, 3, 5, 5).set(init));
+        network.add(new ImgBandBiasLayer(5));
+        network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
+        network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+        network.add(newNormalizationLayer.get());
+        
+        network.add(new BiasLayer(7, 7, 5));
+        network.add(new FullyConnectedLayer(new int[]{7, 7, 5}, new int[]{10}).set(init));
+        network.add(new SoftmaxActivationLayer());
+        return network;
+      });
+    };
+  }
   
   private abstract static class AllTests {
 
@@ -182,6 +219,7 @@ public class MnistTests {
      * @throws IOException the io exception
      */
     @Test
+    @Ignore
     @Category(TestCategories.Report.class)
     public void encoding_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {

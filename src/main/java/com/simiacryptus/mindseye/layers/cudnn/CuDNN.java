@@ -633,7 +633,7 @@ public class CuDNN {
   }
   
   /**
-   * Cudnn set reduce tensor descriptor int.
+   * Cudnn setByCoord reduce tensor descriptor int.
    *
    * @param reduceTensorDesc        the reduce tensor desc
    * @param reduceTensorOp          the reduce tensor op

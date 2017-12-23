@@ -36,10 +36,10 @@ public interface LineSearchCursor {
   String getDirectionType();
   
   /**
-   * Position delta set.
+   * Position delta setByCoord.
    *
    * @param alpha the alpha
-   * @return the delta set
+   * @return the delta setByCoord
    */
   DeltaSet<NNLayer> position(double alpha);
   

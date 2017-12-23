@@ -37,13 +37,13 @@ import java.util.stream.Stream;
 public class StateSet<K> extends DoubleBufferSet<K, State<K>> {
   
   /**
-   * Instantiates a new State set.
+   * Instantiates a new State setByCoord.
    */
   public StateSet() {
   }
   
   /**
-   * Instantiates a new State set as a copy of the target data buffers in the input set
+   * Instantiates a new State setByCoord as a copy of the target data buffers in the input setByCoord
    *
    * @param toCopy the to copy
    */
@@ -57,7 +57,7 @@ public class StateSet<K> extends DoubleBufferSet<K, State<K>> {
   }
   
   /**
-   * Instantiates a new State set.
+   * Instantiates a new State setByCoord.
    *
    * @param toCopy the to copy
    */
@@ -67,7 +67,7 @@ public class StateSet<K> extends DoubleBufferSet<K, State<K>> {
   }
   
   /**
-   * Instantiates a new State set.
+   * Instantiates a new State setByCoord.
    *
    * @param collect the collect
    */
@@ -76,12 +76,12 @@ public class StateSet<K> extends DoubleBufferSet<K, State<K>> {
   }
   
   /**
-   * Union state set.
+   * Union state setByCoord.
    *
    * @param <K>   the type parameter
    * @param left  the left
    * @param right the right
-   * @return the state set
+   * @return the state setByCoord
    */
   public static <K> StateSet<K> union(final DoubleBufferSet<K, State<K>> left, final DoubleBufferSet<K, State<K>> right) {
     final Map<K, State<K>> collect = Stream.concat(
@@ -98,10 +98,10 @@ public class StateSet<K> extends DoubleBufferSet<K, State<K>> {
   }
   
   /**
-   * Add delta set.
+   * Add delta setByCoord.
    *
    * @param right the right
-   * @return the delta set
+   * @return the delta setByCoord
    */
   public StateSet<K> add(final DeltaSet<K> right) {
     final DeltaSet<K> deltas = new DeltaSet<K>();
@@ -115,19 +115,32 @@ public class StateSet<K> extends DoubleBufferSet<K, State<K>> {
   }
   
   /**
-   * As vector delta set.
+   * As vector delta setByCoord.
    *
-   * @return the delta set
+   * @return the delta setByCoord
    */
   public DeltaSet<K> asVector() {
     final HashMap<K, Delta<K>> newMap = new HashMap<>();
-    map.forEach((layer, state) -> new Delta<K>(layer, state.target, state.delta));
+    map.forEach((layer, state) -> newMap.put(layer, new Delta<K>(layer, state.target, state.delta)));
     return new DeltaSet<K>(newMap);
   }
   
   @Override
   public StateSet<K> copy() {
     return map(x -> x.copy());
+  }
+  
+  public StateSet<K> backupCopy() {
+    return map(l -> l.backupCopy());
+  }
+  
+  public StateSet<K> backup() {
+    Stream<Map.Entry<K, State<K>>> stream = map.entrySet().stream();
+    if (map.size() > 100) {
+      stream = stream.parallel();
+    }
+    stream.forEach(e -> e.getValue().backup());
+    return this;
   }
   
   @Override
@@ -155,30 +168,31 @@ public class StateSet<K> extends DoubleBufferSet<K, State<K>> {
   }
   
   /**
-   * Subtract delta set.
+   * Subtract delta setByCoord.
    *
    * @param right the right
-   * @return the delta set
+   * @return the delta setByCoord
    */
   public StateSet<K> subtract(final DeltaSet<K> right) {
     return this.add(right.scale(-1));
   }
   
   /**
-   * Subtract delta set.
+   * Subtract delta setByCoord.
    *
    * @param right the right
-   * @return the delta set
+   * @return the delta setByCoord
    */
   public DeltaSet<K> subtract(final StateSet<K> right) {
     return this.add(right.asVector().scale(-1)).asVector();
   }
   
+  
   /**
-   * Union delta set.
+   * Union delta setByCoord.
    *
    * @param right the right
-   * @return the delta set
+   * @return the delta setByCoord
    */
   public DoubleBufferSet<K, State<K>> union(final DoubleBufferSet<K, State<K>> right) {
     return StateSet.union(this, right);

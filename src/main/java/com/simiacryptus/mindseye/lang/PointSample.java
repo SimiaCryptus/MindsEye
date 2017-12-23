@@ -181,6 +181,11 @@ public final class PointSample {
     return this;
   }
   
+  public PointSample backup() {
+    weights.stream().forEach(d -> d.backup());
+    return this;
+  }
+  
   @Override
   public String toString() {
     final StringBuffer sb = new StringBuffer("PointSample{");

@@ -341,7 +341,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
             //System.out.println(String.format("Component: %s", component));
             if (verbose) {
   
-              System.out.println(String.format("Learning Gradient for weight set %s", i));
+              System.out.println(String.format("Learning Gradient for weight setByCoord %s", i));
               System.out.println(String.format("Weights: %s", new Tensor(component.state().get(i)).prettyPrint()));
               System.out.println(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
               System.out.println(String.format("Implemented Statistics: %s", new ScalarStatistics().add(implementedGradient.getData())));
@@ -356,7 +356,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
           }
         } catch (final Throwable e) {
           //System.out.println(String.format("Component: %s", component));
-          System.out.println(String.format("Learning Gradient for weight set %s", i));
+          System.out.println(String.format("Learning Gradient for weight setByCoord %s", i));
           System.out.println(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
           System.out.println(String.format("Implemented Statistics: %s", new ScalarStatistics().add(implementedGradient.getData())));
           if (null != measuredGradient) {

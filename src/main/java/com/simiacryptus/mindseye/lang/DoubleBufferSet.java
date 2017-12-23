@@ -43,13 +43,13 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer<K>> {
   protected final ConcurrentHashMap<K, T> map = new ConcurrentHashMap<>();
   
   /**
-   * Instantiates a new Delta set.
+   * Instantiates a new Delta setByCoord.
    */
   public DoubleBufferSet() {
   }
   
   /**
-   * Instantiates a new Delta set.
+   * Instantiates a new Delta setByCoord.
    *
    * @param toCopy the to copy
    */
@@ -58,7 +58,7 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer<K>> {
   }
   
   /**
-   * Instantiates a new Delta set.
+   * Instantiates a new Delta setByCoord.
    *
    * @param collect the collect
    */
@@ -67,9 +67,9 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer<K>> {
   }
   
   /**
-   * Copy delta set.
+   * Copy delta setByCoord.
    *
-   * @return the delta set
+   * @return the delta setByCoord
    */
   @SuppressWarnings("unchecked")
   public DoubleBufferSet<K, T> copy() {
@@ -134,10 +134,10 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer<K>> {
   }
   
   /**
-   * Map delta set.
+   * Map delta setByCoord.
    *
    * @param mapper the mapper
-   * @return the delta set
+   * @return the delta setByCoord
    */
   public DoubleBufferSet<K, T> map(final Function<T, T> mapper) {
     final DoubleBufferSet<K, T> parent = this;

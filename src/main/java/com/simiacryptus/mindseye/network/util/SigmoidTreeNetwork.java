@@ -252,7 +252,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
         head = null;
         final FullyConnectedLayer alpha = (FullyConnectedLayer) this.alpha;
         final BiasLayer alphaBias = (BiasLayer) this.alphaBias;
-        beta = new FullyConnectedLayer(alpha.inputDims, alpha.outputDims).setWeights(() -> {
+        beta = new FullyConnectedLayer(alpha.inputDims, alpha.outputDims).set(() -> {
           return initialFuzzyCoeff * (FastRandom.random() - 0.5);
         });
         betaBias = new BiasLayer(alphaBias.bias.length);

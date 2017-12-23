@@ -69,18 +69,34 @@ public class MarkdownNotebookOutput implements NotebookOutput {
   /**
    * Get markdown notebook output.
    *
-   * @param source the source
    * @return the markdown notebook output
    */
-  public static MarkdownNotebookOutput get(final Object source) {
+  public static MarkdownNotebookOutput get() {
     try {
       final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[2];
-      final String className = null == source ? callingFrame.getClassName() : source.getClass().getCanonicalName();
+      final String className = callingFrame.getClassName();
       final String methodName = callingFrame.getMethodName();
       final String fileName = methodName + ".md";
-      final File path = new File(Util.mkString(File.separator, "reports", className.replaceAll("\\.", "/").replaceAll("\\$", "/"), fileName));
+      File path = new File(Util.mkString(File.separator, "reports", className.replaceAll("\\.", "/").replaceAll("\\$", "/")));
+      path = new File(path, fileName);
       path.getParentFile().mkdirs();
       return new MarkdownNotebookOutput(path, methodName);
+    } catch (final FileNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  public static MarkdownNotebookOutput get(final Object source, String... suffix) {
+    try {
+      final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[2];
+      final String methodName = callingFrame.getMethodName();
+      final String className = source.getClass().getCanonicalName();
+      File path = new File(Util.mkString(File.separator, "reports", className.replaceAll("\\.", "/").replaceAll("\\$", "/")));
+      for (int i = 0; i < suffix.length - 1; i++) path = new File(path, suffix[i]);
+      String testName = suffix.length == 0 ? methodName : suffix[suffix.length - 1];
+      path = new File(path, testName + ".md");
+      path.getParentFile().mkdirs();
+      return new MarkdownNotebookOutput(path, testName);
     } catch (final FileNotFoundException e) {
       throw new RuntimeException(e);
     }

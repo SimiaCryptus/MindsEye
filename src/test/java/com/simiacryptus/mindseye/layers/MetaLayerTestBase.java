@@ -22,15 +22,11 @@ package com.simiacryptus.mindseye.layers;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.BatchDerivativeTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
-import com.simiacryptus.mindseye.test.unit.StandardLayerTests;
-import com.simiacryptus.util.io.MarkdownNotebookOutput;
-import com.simiacryptus.util.io.NotebookOutput;
-import org.junit.Test;
 
 /**
  * The type Meta layer test base.
  */
-public abstract class MetaLayerTestBase extends StandardLayerTests {
+public abstract class MetaLayerTestBase extends LayerTestBase {
   
   /**
    * Instantiates a new Meta layer test base.
@@ -44,15 +40,4 @@ public abstract class MetaLayerTestBase extends StandardLayerTests {
     return new BatchDerivativeTester(1e-3, 1e-4, 10);
   }
   
-  /**
-   * Test.
-   *
-   * @throws Throwable the throwable
-   */
-  @Test
-  public void test() throws Throwable {
-    try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
-      test(log);
-    }
-  }
 }

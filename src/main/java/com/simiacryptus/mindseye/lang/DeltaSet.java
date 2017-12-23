@@ -35,13 +35,13 @@ import java.util.stream.Stream;
 public class DeltaSet<K> extends DoubleBufferSet<K, Delta<K>> {
   
   /**
-   * Instantiates a new Delta set.
+   * Instantiates a new Delta setByCoord.
    */
   public DeltaSet() {
   }
   
   /**
-   * Instantiates a new Delta set.
+   * Instantiates a new Delta setByCoord.
    *
    * @param toCopy the to copy
    */
@@ -51,7 +51,7 @@ public class DeltaSet<K> extends DoubleBufferSet<K, Delta<K>> {
   }
   
   /**
-   * Instantiates a new Delta set.
+   * Instantiates a new Delta setByCoord.
    *
    * @param collect the collect
    */
@@ -61,10 +61,10 @@ public class DeltaSet<K> extends DoubleBufferSet<K, Delta<K>> {
   }
   
   /**
-   * Accumulate delta set.
+   * Accumulate delta setByCoord.
    *
    * @param alpha the alpha
-   * @return the delta set
+   * @return the delta setByCoord
    */
   public DeltaSet<K> accumulate(final double alpha) {
     stream().forEach(d -> d.accumulate(alpha));
@@ -73,20 +73,20 @@ public class DeltaSet<K> extends DoubleBufferSet<K, Delta<K>> {
   
   
   /**
-   * Add delta set.
+   * Add delta setByCoord.
    *
    * @param right the right
-   * @return the delta set
+   * @return the delta setByCoord
    */
   public DeltaSet<K> add(final DeltaSet<K> right) {
     return this.copy().addInPlace(right);
   }
   
   /**
-   * Add in place delta set.
+   * Add in place delta setByCoord.
    *
    * @param right the right
-   * @return the delta set
+   * @return the delta setByCoord
    */
   public DeltaSet<K> addInPlace(final DeltaSet<K> right) {
     right.map.forEach(100, (layer, buffer) -> {
@@ -96,9 +96,9 @@ public class DeltaSet<K> extends DoubleBufferSet<K, Delta<K>> {
   }
   
   /**
-   * As state state set.
+   * As state state setByCoord.
    *
-   * @return the state set
+   * @return the state setByCoord
    */
   public StateSet<K> asState() {
     final StateSet<K> returnValue = new StateSet<>();
@@ -166,29 +166,29 @@ public class DeltaSet<K> extends DoubleBufferSet<K, Delta<K>> {
   }
   
   /**
-   * Scale delta set.
+   * Scale delta setByCoord.
    *
    * @param f the f
-   * @return the delta set
+   * @return the delta setByCoord
    */
   public DeltaSet<K> scale(final double f) {
     return new DeltaSet<K>(map(x -> x.scale(f)));
   }
   
   /**
-   * Subtract delta set.
+   * Subtract delta setByCoord.
    *
    * @param right the right
-   * @return the delta set
+   * @return the delta setByCoord
    */
   public DeltaSet<K> subtract(final DeltaSet<K> right) {
     return this.add(new DeltaSet<K>(right).scale(-1));
   }
   
   /**
-   * Unit delta set.
+   * Unit delta setByCoord.
    *
-   * @return the delta set
+   * @return the delta setByCoord
    */
   public DeltaSet<K> unit() {
     return scale(1.0 / getMagnitude());

@@ -235,7 +235,7 @@ public class PolynomialNetwork extends DAGNetwork {
    * @return the nn layer
    */
   public NNLayer newSynapse(final double weight) {
-    return new FullyConnectedLayer(inputDims, outputDims).setWeights(() -> weight * (Math.random() - 1));
+    return new FullyConnectedLayer(inputDims, outputDims).set(() -> weight * (Math.random() - 1));
   }
   
   /**

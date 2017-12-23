@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.labs.matrix;
 
+import com.simiacryptus.mindseye.eval.GpuTrainable;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.java.*;
@@ -33,9 +34,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.function.IntToDoubleFunction;
 
 /**
  * The type Mnist run base.
@@ -49,29 +48,34 @@ public class CaltechTests {
     log.p("The image-to-vector network is a single layer convolutional:");
     return log.code(() -> {
       final PipelineNetwork network = new PipelineNetwork();
-      
-      network.add(new ConvolutionLayer(3, 3, 3, 10).set(i -> 1e-8 * (Math.random() - 0.5)));
+  
+      IntToDoubleFunction weights = i -> 1e-8 * (Math.random() - 0.5);
+      network.add(new ConvolutionLayer(3, 3, 3, 10).set(weights));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());
       network.add(new ImgCropLayer(126, 126));
-      
-      network.add(new ConvolutionLayer(3, 3, 10, 20).set(i -> 1e-8 * (Math.random() - 0.5)));
+      network.add(new NormalizationMetaLayer());
+  
+      network.add(new ConvolutionLayer(3, 3, 10, 20).set(weights));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());
       network.add(new ImgCropLayer(62, 62));
-      
-      network.add(new ConvolutionLayer(5, 5, 20, 30).set(i -> 1e-8 * (Math.random() - 0.5)));
+      network.add(new NormalizationMetaLayer());
+  
+      network.add(new ConvolutionLayer(5, 5, 20, 30).set(weights));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());
       network.add(new ImgCropLayer(18, 18));
-      
-      network.add(new ConvolutionLayer(3, 3, 30, 40).set(i -> 1e-8 * (Math.random() - 0.5)));
+      network.add(new NormalizationMetaLayer());
+  
+      network.add(new ConvolutionLayer(3, 3, 30, 40).set(weights));
       network.add(new PoolingLayer().setWindowX(4).setWindowY(4).setMode(PoolingLayer.PoolingMode.Avg));
       network.add(new ReLuActivationLayer());
       network.add(new ImgCropLayer(4, 4));
+      network.add(new NormalizationMetaLayer());
       
       network.add(new ImgBandBiasLayer(40));
-      network.add(new FullyConnectedLayer(new int[]{4, 4, 40}, new int[]{100}).setWeights(() -> 0.001 * (Math.random() - 0.45)));
+      network.add(new FullyConnectedLayer(new int[]{4, 4, 40}, new int[]{features}).set(weights));
       network.add(new SoftmaxActivationLayer());
       
       return network;
@@ -85,31 +89,38 @@ public class CaltechTests {
     log.p("The vector-to-image network uses a fully connected layer then a single convolutional layer:");
     return log.code(() -> {
       final PipelineNetwork network = new PipelineNetwork();
-      
-      network.add(new FullyConnectedLayer(new int[]{features}, new int[]{4, 4, 40}).setWeights(() -> 0.001 * (Math.random() - 0.45)));
+  
+      IntToDoubleFunction weights = i -> 1e-8 * (Math.random() - 0.5);
+      network.add(new FullyConnectedLayer(new int[]{features}, new int[]{4, 4, 40}).set(weights));
       network.add(new ImgBandBiasLayer(40));
-      
-      network.add(new ConvolutionLayer(3, 3, 40, 160).set(i -> 1e-8 * (Math.random() - 0.5)));
+      network.add(new NormalizationMetaLayer());
+  
+      network.add(new ConvolutionLayer(3, 3, 40, 160).set(weights));
       network.add(new ImgReshapeLayer(2, 2, true)); // 8x8x40
       network.add(new ReLuActivationLayer());
-      
-      network.add(new ConvolutionLayer(3, 3, 40, 160).set(i -> 1e-8 * (Math.random() - 0.5)));
+      network.add(new NormalizationMetaLayer());
+  
+      network.add(new ConvolutionLayer(3, 3, 40, 160).set(weights));
       network.add(new ImgReshapeLayer(2, 2, true)); // 16x16x40
       network.add(new ReLuActivationLayer());
-      
-      network.add(new ConvolutionLayer(3, 3, 40, 160).set(i -> 1e-8 * (Math.random() - 0.5)));
+      network.add(new NormalizationMetaLayer());
+  
+      network.add(new ConvolutionLayer(3, 3, 40, 160).set(weights));
       network.add(new ImgReshapeLayer(2, 2, true)); // 32x32x40
       network.add(new ReLuActivationLayer());
-      
-      network.add(new ConvolutionLayer(3, 3, 40, 160).set(i -> 1e-8 * (Math.random() - 0.5)));
+      network.add(new NormalizationMetaLayer());
+  
+      network.add(new ConvolutionLayer(3, 3, 40, 160).set(weights));
       network.add(new ImgReshapeLayer(2, 2, true)); // 64x64x40
       network.add(new ReLuActivationLayer());
-      
-      network.add(new ConvolutionLayer(3, 3, 40, 160).set(i -> 1e-8 * (Math.random() - 0.5)));
+      network.add(new NormalizationMetaLayer());
+  
+      network.add(new ConvolutionLayer(3, 3, 40, 160).set(weights));
       network.add(new ImgReshapeLayer(2, 2, true)); // 128x128x40
       network.add(new ReLuActivationLayer());
-      
-      network.add(new ConvolutionLayer(3, 3, 40, 12).set(i -> 1e-8 * (Math.random() - 0.5)));
+      network.add(new NormalizationMetaLayer());
+  
+      network.add(new ConvolutionLayer(3, 3, 40, 12).set(weights));
       network.add(new ImgReshapeLayer(2, 2, true)); // 256x256x3
       network.add(new ReLuActivationLayer());
       
@@ -127,8 +138,7 @@ public class CaltechTests {
      * The Timeout minutes.
      */
     protected int timeoutMinutes = 1;
-    List<String> labels = Stream.concat(this.data.trainingData(), this.data.validationData()).map(x -> x.label).distinct().sorted().collect(Collectors.toList());
-    protected int categories = labels.size();
+    protected int categories = data.getLabels().size();
     
     /**
      * Instantiates a new All tests.
@@ -176,7 +186,8 @@ public class CaltechTests {
         }
         log.h1("Caltech101 Classification");
         intro(log);
-        new ClassifyProblem(fwdFactory, optimizationStrategy, data, categories).setTimeoutMinutes(timeoutMinutes).run(log);
+        GpuTrainable.setVerbosity(2);
+        new ClassifyProblem(fwdFactory, optimizationStrategy, data, categories).setTimeoutMinutes(timeoutMinutes).setBatchSize(100).run(log);
       }
     }
     
@@ -194,7 +205,7 @@ public class CaltechTests {
         }
         log.h1("Caltech101 Image-to-Vector Encoding");
         intro(log);
-        new EncodingProblem(revFactory, optimizationStrategy, data, categories).setTimeoutMinutes(timeoutMinutes).run(log);
+        new EncodingProblem(revFactory, optimizationStrategy, data, categories).setTimeoutMinutes(timeoutMinutes).setBatchSize(100).run(log);
       }
     }
     

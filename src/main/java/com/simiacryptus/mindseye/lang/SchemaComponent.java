@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.lang;
 
 /**
  * Largely intended as a decorator interface for NNLayer classes,
- * this specifies a component with an active "dictionary" which can be set.
+ * this specifies a component with an active "dictionary" which can be setByCoord.
  */
 public interface SchemaComponent {
   /**

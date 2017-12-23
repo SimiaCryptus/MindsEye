@@ -624,6 +624,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
         .setOrientation(new LBFGS())
         .setMonitor(monitor)
         .setTimeout(30, TimeUnit.SECONDS)
+        .setIterationsPerSample(100)
         .setMaxIterations(250)
         .setTerminateThreshold(0)
         .run();

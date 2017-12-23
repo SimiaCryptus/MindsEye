@@ -29,7 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Base class to manage batched execution, where a data set is executed
+ * Base class to manage batched execution, where a data setByCoord is executed
  * in segments in order to manage execution memory requirements.
  */
 public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> implements DataTrainable {
