@@ -249,33 +249,37 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
     double bestValue = startPoint.point.getMean();
     while (true) {
       if (!isAlphaValid()) {
-        monitor.log(String.format("INVALID ALPHA: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
-        return cursor.step(bestAlpha, monitor).point;
+        PointSample point = cursor.step(bestAlpha, monitor).point;
+        monitor.log(String.format("INVALID ALPHA (%s): th(%s)=%s", alpha, bestAlpha, point.getMean()));
+        return point;
       }
       double lastValue = null == lastStep ? Double.POSITIVE_INFINITY : lastStep.point.getMean();
       if (!Double.isFinite(lastValue)) {
         lastValue = Double.POSITIVE_INFINITY;
       }
       if (mu >= nu - absoluteTolerance) {
-        monitor.log(String.format("mu >= nu: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
         loosenMetaparameters();
-        return cursor.step(bestAlpha, monitor).point;
+        PointSample point = cursor.step(bestAlpha, monitor).point;
+        monitor.log(String.format("mu >= nu (%s): th(%s)=%s", mu, bestAlpha, point.getMean()));
+        return point;
       }
-  
       if (nu - mu < nu * relativeTolerance) {
-        monitor.log(String.format("mu /= nu: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
         loosenMetaparameters();
-        return cursor.step(bestAlpha, monitor).point;
+        PointSample point = cursor.step(bestAlpha, monitor).point;
+        monitor.log(String.format("mu ~= nu (%s): th(%s)=%s", mu, bestAlpha, point.getMean()));
+        return point;
       }
       if (Math.abs(alpha) < minAlpha) {
-        alpha = 1;
-        monitor.log(String.format("MIN ALPHA: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
-        return cursor.step(bestAlpha, monitor).point;
+        PointSample point = cursor.step(bestAlpha, monitor).point;
+        monitor.log(String.format("MIN ALPHA (%s): th(%s)=%s", alpha, bestAlpha, point.getMean()));
+        alpha = minAlpha;
+        return point;
       }
       if (Math.abs(alpha) > maxAlpha) {
-        alpha = 1;
-        monitor.log(String.format("MAX ALPHA: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
-        return cursor.step(bestAlpha, monitor).point;
+        PointSample point = cursor.step(bestAlpha, monitor).point;
+        monitor.log(String.format("MAX ALPHA (%s): th(%s)=%s", alpha, bestAlpha, point.getMean()));
+        alpha = maxAlpha;
+        return point;
       }
       lastStep = cursor.step(alpha, monitor);
       lastValue = lastStep.point.getMean();

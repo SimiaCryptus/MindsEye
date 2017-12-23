@@ -33,14 +33,15 @@ import java.util.List;
 @SuppressWarnings("serial")
 public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumLayer> {
   
-  private double leftFactor = 1.0;
+  private double leftFactor;
   private Precision precision = Precision.Double;
-  private double rightFactor = 1.0;
+  private double rightFactor;
   
   /**
    * Instantiates a new Product inputs layer.
    */
   public BinarySumLayer() {
+    this(1.0, 1.0);
   }
   
   /**

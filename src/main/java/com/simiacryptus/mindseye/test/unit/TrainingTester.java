@@ -334,22 +334,9 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     });
     final Tensor[][] random_in = shuffleCopy(random, inputPrototype);
     if (targetOutput.length != random_in.length) return null;
-    final Tensor[][] trainingInput = IntStream.range(0, random_in.length).mapToObj(i ->
-      Stream.concat(
-        Arrays.stream(random_in[i]),
-        Stream.of(targetOutput[i])
-      ).toArray(j -> new Tensor[j])
-    ).toArray(j -> new Tensor[j][]);
-    final boolean[] mask = new boolean[trainingInput.length];
-    for (int i = 0; i < mask.length; i++) {
-      mask[i] = true;
-    }
-    final PipelineNetwork trainingNetwork = new PipelineNetwork(inputPrototype.length + 1);
-    trainingNetwork.add(new MeanSqLossLayer(),
-      trainingNetwork.add(shuffle(random, component.copy()), trainingNetwork.getInput(0)),
-      trainingNetwork.getInput(inputPrototype.length));
-  
-    return eval(log, trainingInput, trainingNetwork, mask);
+    final Tensor[][] trainingInput = buildInput(random_in, targetOutput);
+    final boolean[] mask = buildMask(inputPrototype);
+    return eval(log, component, random, inputPrototype, trainingInput, mask);
   }
   
   /**
@@ -375,24 +362,11 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     final Tensor[] targetOutput = GpuController.call(ctx -> {
       return shuffleCopy.eval(ctx, NNResult.batchResultArray(input_target)).getData();
     }).stream().toArray(i -> new Tensor[i]);
-    final PipelineNetwork trainingNetwork = new PipelineNetwork(inputPrototype.length + 1);
-    trainingNetwork.add(new MeanSqLossLayer(),
-      trainingNetwork.add(shuffleCopy, IntStream.range(0, inputPrototype.length).mapToObj(i -> trainingNetwork.getInput(0)).toArray(i -> new DAGNode[i])),
-      trainingNetwork.getInput(inputPrototype.length));
     final Tensor[][] random_in = shuffleCopy(random, inputPrototype);
     if (targetOutput.length != random_in.length) return null;
-    final Tensor[][] trainingInput = IntStream.range(0, random_in.length).mapToObj(i ->
-      Stream.concat(
-        Arrays.stream(random_in[i]),
-        Stream.of(targetOutput[i].copy())
-      ).toArray(j -> new Tensor[j])
-    ).toArray(j -> new Tensor[j][]);
-    final boolean[] mask = new boolean[trainingInput.length];
-    for (int i = 0; i < mask.length - 1; i++) {
-      mask[i] = true;
-    }
-  
-    return eval(log, trainingInput, trainingNetwork, mask);
+    final Tensor[][] trainingInput = buildInput(random_in, targetOutput);
+    final boolean[] mask = buildMask(inputPrototype);
+    return eval(log, shuffleCopy, random, inputPrototype, trainingInput, mask);
   }
   
   /**
@@ -415,20 +389,33 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
       return network_target.eval(ctx, NNResult.batchResultArray(testInput)).getData();
     }).stream().toArray(i -> new Tensor[i]);
     if (targetOutput.length != testInput.length) return null;
-    final Tensor[][] trainingInput = IntStream.range(0, testInput.length).mapToObj(i ->
+    final Tensor[][] trainingInput = buildInput(testInput, targetOutput);
+    return eval(log, component, random, inputPrototype, trainingInput);
+  }
+  
+  public boolean[] buildMask(Tensor[] inputPrototype) {
+    final boolean[] mask = new boolean[inputPrototype.length + 1];
+    for (int i = 0; i < inputPrototype.length; i++) {
+      mask[i] = true;
+    }
+    return mask;
+  }
+  
+  public Tensor[][] buildInput(Tensor[][] testInput, Tensor[] targetOutput) {
+    return IntStream.range(0, testInput.length).mapToObj(i ->
       Stream.concat(
         Arrays.stream(testInput[i]),
         Stream.of(targetOutput[i])
       ).toArray(j -> new Tensor[j])
     ).toArray(j -> new Tensor[j][]);
-    final PipelineNetwork trainingNetwork = new PipelineNetwork(inputPrototype.length + 1);
-    trainingNetwork.add(new MeanSqLossLayer(),
-      trainingNetwork.add(shuffle(random, component.copy()), trainingNetwork.getInput(0)),
-      trainingNetwork.getInput(inputPrototype.length));
-    return eval(log, trainingInput, trainingNetwork);
   }
   
-  public TestResult eval(NotebookOutput log, Tensor[][] trainingInput, PipelineNetwork trainingNetwork, boolean... mask) {
+  public TestResult eval(NotebookOutput log, NNLayer component, Random random, Tensor[] inputPrototype, Tensor[][] trainingInput, boolean... mask) {
+    final PipelineNetwork trainingNetwork1 = new PipelineNetwork(inputPrototype.length + 1);
+    trainingNetwork1.add(new MeanSqLossLayer(),
+      trainingNetwork1.add(shuffle(random, component.copy()), IntStream.range(0, inputPrototype.length).mapToObj(i -> trainingNetwork1.getInput(i)).toArray(i -> new DAGNode[i])),
+      trainingNetwork1.getInput(inputPrototype.length));
+    PipelineNetwork trainingNetwork = trainingNetwork1;
     final List<StepRecord> gd = train(log, copy(trainingInput), trainingNetwork.copy(), this::trainCjGD, mask);
     final List<StepRecord> lbfgs = train(log, copy(trainingInput), trainingNetwork.copy(), this::trainLBFGS, mask);
     final ProblemRun[] runs = {
@@ -457,7 +444,10 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
       .toArray(i -> new Tensor[i][]);
   }
   
-  private void print(NotebookOutput log, Tensor[][] data, NNLayer network, List<StepRecord> history, boolean... mask) {
+  private List<StepRecord> train(NotebookOutput log, Tensor[][] data, NNLayer network, BiFunction<NotebookOutput, Trainable, List<StepRecord>> opt, boolean... mask) {
+    ArrayTrainable trainable = new ArrayTrainable(data, network);
+    if (0 < mask.length) trainable.setMask(mask);
+    List<StepRecord> history = opt.apply(log, trainable);
     if (history.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
       if (!network.isFrozen()) {
         log.p("This training run resulted in the following configuration:");
@@ -486,13 +476,6 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     else {
       log.p("Training Converged");
     }
-  }
-  
-  private List<StepRecord> train(NotebookOutput log, Tensor[][] data, NNLayer network, BiFunction<NotebookOutput, Trainable, List<StepRecord>> opt, boolean... mask) {
-    ArrayTrainable trainable = new ArrayTrainable(data, network);
-    if (0 < mask.length) trainable.setMask(mask);
-    List<StepRecord> history = opt.apply(log, trainable);
-    print(log, data, network, history, mask);
     return history;
   }
   
