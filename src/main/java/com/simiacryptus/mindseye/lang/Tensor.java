@@ -381,6 +381,7 @@ public class Tensor implements Serializable {
    * @return the stream
    */
   public Stream<Coordinate> coordStream() {
+    HashSet<Object> distinctBuffer = new HashSet<>();
     return StreamSupport.stream(Spliterators.spliterator(new Iterator<Coordinate>() {
       
       int cnt = 0;
@@ -409,7 +410,11 @@ public class Tensor implements Serializable {
         coordinate.setCoords(val);
         return coordinate;
       }
-    }, dim(), Spliterator.ORDERED), false);
+    }, dim(), Spliterator.ORDERED), false).map(coordinate -> {
+      coordinate = coordinate.copy();
+      assert distinctBuffer.add(coordinate) : String.format("Duplicate: %s in %s", coordinate, distinctBuffer);
+      return coordinate;
+    });
   }
   
   /**

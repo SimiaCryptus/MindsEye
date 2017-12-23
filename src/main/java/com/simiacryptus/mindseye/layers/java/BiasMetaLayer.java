@@ -82,7 +82,8 @@ public class BiasMetaLayer extends NNLayer {
             return IntStream.range(0, itemCnt).mapToDouble(i -> data.get(i).get(c)).sum();
           };
           final Tensor passback = tensors[0].mapCoords(f);
-          inObj[1].accumulate(buffer, new TensorArray(passback));
+          inObj[1].accumulate(buffer, new TensorArray(IntStream.range(0, inObj[1].getData().length())
+            .mapToObj(i -> i == 0 ? passback : passback.map(v -> 0)).toArray(i -> new Tensor[i])));
         }
       }
       

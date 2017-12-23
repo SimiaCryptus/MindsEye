@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +52,6 @@ public final class WeightExtractor extends NNLayer {
   public WeightExtractor(final int index, final NNLayer inner) {
     setInner(inner);
     this.index = index;
-    innerId = inner.getId().toString();
   }
   
   /**
@@ -61,9 +61,9 @@ public final class WeightExtractor extends NNLayer {
    */
   protected WeightExtractor(final JsonObject json) {
     super(json);
-    setInner(null);
     index = json.get("index").getAsInt();
-    innerId = json.getAsJsonPrimitive("innerId").getAsString();
+    JsonPrimitive innerId = json.getAsJsonPrimitive("innerId");
+    this.innerId = null == innerId ? null : innerId.getAsString();
   }
   
   /**
@@ -130,7 +130,9 @@ public final class WeightExtractor extends NNLayer {
   @Override
   public JsonObject getJson() {
     final JsonObject json = super.getJsonStub();
-    json.addProperty("innerId", getInner().getId().toString());
+    NNLayer inner = getInner();
+    Object id = null == inner ? innerId : inner.getId();
+    if (null != id) json.addProperty("innerId", id.toString());
     json.addProperty("index", index);
     return json;
   }

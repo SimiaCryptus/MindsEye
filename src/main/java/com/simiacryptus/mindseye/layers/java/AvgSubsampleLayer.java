@@ -50,11 +50,12 @@ public class AvgSubsampleLayer extends NNLayer {
       @Override
       public Map<Coordinate, List<int[]>> load(final AvgSubsampleLayer.IndexMapKey key) throws Exception {
         final int[] ksize = key.kernel;
-        final Map<Coordinate, List<int[]>> coordMap = new Tensor(key.output).coordStream().collect(Collectors.toMap(o -> o, o -> {
+        final Map<Coordinate, List<int[]>> coordMap = new Tensor(key.output).coordStream().distinct().collect(Collectors.toMap(o -> o, o -> {
           return new Tensor(ksize).coordStream().map(kernelCoord -> {
-            final int[] r = new int[o.getCoords().length];
-            for (int i = 0; i < o.getCoords().length; i++) {
-              r[i] = o.getCoords()[i] * ksize[i] + kernelCoord.getCoords()[i];
+            int[] coords = o.getCoords();
+            final int[] r = new int[coords.length];
+            for (int i = 0; i < coords.length; i++) {
+              r[i] = coords[i] * ksize[i] + kernelCoord.getCoords()[i];
             }
             return r;
           }).collect(Collectors.toList());
@@ -106,7 +107,7 @@ public class AvgSubsampleLayer extends NNLayer {
       JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
   
-  private static Map<Coordinate, List<int[]>> getCoordMap(final int[] kernelDims, final int[] outDims) {
+  private static synchronized Map<Coordinate, List<int[]>> getCoordMap(final int[] kernelDims, final int[] outDims) {
     try {
       return AvgSubsampleLayer.indexMapCache.get(new AvgSubsampleLayer.IndexMapKey(kernelDims, outDims));
     } catch (final ExecutionException e) {

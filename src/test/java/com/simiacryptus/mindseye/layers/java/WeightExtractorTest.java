@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.mindseye.network.DAGNode;
+import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 /**
  * The type Weight extractor test.
@@ -44,6 +46,10 @@ public class WeightExtractorTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer(final int[][] inputSize) {
-    return new WeightExtractor(0, new FullyConnectedLayer(new int[]{3}, new int[]{3}));
+    PipelineNetwork network = new PipelineNetwork();
+    FullyConnectedLayer layer = new FullyConnectedLayer(new int[]{3}, new int[]{3});
+    network.add(layer);
+    network.add(new WeightExtractor(0, layer), new DAGNode[]{});
+    return network;
   }
 }

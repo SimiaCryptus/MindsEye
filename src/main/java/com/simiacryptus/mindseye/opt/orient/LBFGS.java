@@ -151,44 +151,70 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
   protected DeltaSet<NNLayer> lbfgs(final PointSample measurement, final TrainingMonitor monitor, final List<PointSample> history) {
     final DeltaSet<NNLayer> result = measurement.delta.scale(-1);
     if (history.size() > minHistory) {
-      final DeltaSet<NNLayer> original = result.copy();
+      if (!step(measurement, monitor, history, result.copy())) {
+        monitor.log("Orientation rejected. Popping history element from " + history.stream().map(x -> String.format("%s", x.getMean())).reduce((a, b) -> a + ", " + b).get());
+        return lbfgs(measurement, monitor, history.subList(0, history.size() - 1));
+      }
+      else {
+        this.history.clear();
+        this.history.addAll(history);
+        return result;
+      }
+    }
+    else {
+      monitor.log(String.format("LBFGS Accumulation History: %s points", history.size()));
+      return null;
+    }
+  }
+  
+  private boolean step(PointSample measurement, TrainingMonitor monitor, List<PointSample> history, DeltaSet<NNLayer> original) {
+    try {
+      //final DeltaSet<NNLayer> original = result.copy();
       DeltaSet<NNLayer> p = measurement.delta.copy();
-      //assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
+      if ((!p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))))) {
+        throw new IllegalStateException();
+      }
       final double[] alphas = new double[history.size()];
       for (int i = history.size() - 2; i >= 0; i--) {
         final DeltaSet<NNLayer> sd = history.get(i + 1).weights.subtract(history.get(i).weights);
         final DeltaSet<NNLayer> yd = history.get(i + 1).delta.subtract(history.get(i).delta);
         final double denominator = sd.dot(yd);
         if (0 == denominator) {
-          monitor.log("Orientation vanished. Popping history element from " + history.stream().map(x -> String.format("%s", x.getMean())).reduce((a, b) -> a + ", " + b).get());
-          return lbfgs(measurement, monitor, history.subList(0, history.size() - 1));
+          monitor.log("Orientation vanished.");
+          return false;
         }
         alphas[i] = p.dot(sd) / denominator;
         p = p.subtract(yd.scale(alphas[i]));
-        //assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
+        if ((!p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))))) {
+          throw new IllegalStateException();
+        }
       }
       final DeltaSet<NNLayer> sk = history.get(history.size() - 1).weights.subtract(history.get(history.size() - 2).weights);
       final DeltaSet<NNLayer> yk = history.get(history.size() - 1).delta.subtract(history.get(history.size() - 2).delta);
       p = p.scale(sk.dot(yk) / yk.dot(yk));
-      //assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
+      if ((!p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))))) {
+        throw new IllegalStateException();
+      }
       for (int i = 0; i < history.size() - 1; i++) {
         final DeltaSet<NNLayer> sd = history.get(i + 1).weights.subtract(history.get(i).weights);
         final DeltaSet<NNLayer> yd = history.get(i + 1).delta.subtract(history.get(i).delta);
         final double beta = p.dot(yd) / sd.dot(yd);
         p = p.add(sd.scale(alphas[i] - beta));
-        //assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
+        if ((!p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))))) {
+          throw new IllegalStateException();
+        }
       }
-      for (final Map.Entry<NNLayer, Delta<NNLayer>> e : result.getMap().entrySet()) {
+      for (final Map.Entry<NNLayer, Delta<NNLayer>> e : original.getMap().entrySet()) {
         final double[] delta = p.getMap().get(e.getKey()).getDelta();
         Arrays.setAll(e.getValue().getDelta(), j -> delta[j]);
       }
-      final double mag = Math.sqrt(result.dot(result));
+      final double mag = Math.sqrt(original.dot(original));
       final double magGrad = Math.sqrt(original.dot(original));
-      final double dot = result.dot(original) / (mag * magGrad);
+      final double dot = original.dot(original) / (mag * magGrad);
       final List<String> anglesPerLayer = measurement.delta.getMap().entrySet().stream()
         .filter(e -> !(e.getKey() instanceof PlaceholderLayer)) // This would be too verbose
         .map((final Map.Entry<NNLayer, Delta<NNLayer>> e) -> {
-          final double[] lbfgsVector = result.getMap().get(e.getKey()).getDelta();
+          final double[] lbfgsVector = original.getMap().get(e.getKey()).getDelta();
           for (int index = 0; index < lbfgsVector.length; index++) {
             lbfgsVector[index] = Double.isFinite(lbfgsVector[index]) ? lbfgsVector[index] : 0;
           }
@@ -198,8 +224,8 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
           }
           final double lbfgsMagnitude = ArrayUtil.magnitude(lbfgsVector);
           final double gradientMagnitude = ArrayUtil.magnitude(gradientVector);
-          assert Double.isFinite(gradientMagnitude);
-          //assert Double.isFinite(lbfgsMagnitude);
+          if (!Double.isFinite(gradientMagnitude)) throw new IllegalStateException();
+          if (!Double.isFinite(lbfgsMagnitude)) throw new IllegalStateException();
           final String layerName = measurement.delta.getMap().get(e.getKey()).layer.getName();
           if (gradientMagnitude == 0.0) {
             return String.format("%s = %.3e", layerName, lbfgsMagnitude);
@@ -210,19 +236,10 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
           }
         }).collect(Collectors.toList());
       monitor.log(String.format("LBFGS Orientation magnitude: %.3e, gradient %.3e, dot %.3f; %s", mag, magGrad, dot, anglesPerLayer));
-    }
-    else {
-      monitor.log(String.format("LBFGS Accumulation History: %s points", history.size()));
-      return null;
-    }
-    if (!accept(measurement.delta, result)) {
-      monitor.log("Orientation rejected. Popping history element from " + history.stream().map(x -> String.format("%s", x.getMean())).reduce((a, b) -> a + ", " + b).get());
-      return lbfgs(measurement, monitor, history.subList(0, history.size() - 1));
-    }
-    else {
-      this.history.clear();
-      this.history.addAll(history);
-      return result;
+      return accept(measurement.delta, original);
+    } catch (Throwable e) {
+      monitor.log(String.format("LBFGS Orientation Error: %s", e.getMessage()));
+      return false;
     }
   }
   

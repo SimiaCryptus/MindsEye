@@ -74,8 +74,7 @@ public final class Coordinate {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    final Coordinate other = (Coordinate) obj;
-    return Arrays.equals(coords, other.coords);
+    return index == ((Coordinate) obj).index;
   }
   
   /**
@@ -120,14 +119,15 @@ public final class Coordinate {
   
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + Arrays.hashCode(coords);
-    return result;
+    return Integer.hashCode(index) ^ Arrays.hashCode(coords);
   }
   
   @Override
   public String toString() {
     return Arrays.toString(coords) + "<" + index + ">";
+  }
+  
+  public Coordinate copy() {
+    return new Coordinate(index, Arrays.copyOf(coords, coords.length));
   }
 }
