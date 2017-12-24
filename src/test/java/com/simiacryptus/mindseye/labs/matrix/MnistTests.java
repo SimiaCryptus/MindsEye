@@ -277,7 +277,7 @@ public class MnistTests {
      * Instantiates a new Qqn.
      */
     public QQN() {
-      super(OptimizerComparison.quadratic_quasi_newton, MnistTests.rev_conv_1, MnistTests.fwd_conv_1);
+      super(Research.quadratic_quasi_newton, MnistTests.rev_conv_1, MnistTests.fwd_conv_1);
     }
     
     @Override

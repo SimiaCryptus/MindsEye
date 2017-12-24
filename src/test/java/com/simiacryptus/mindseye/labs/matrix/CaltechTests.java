@@ -229,7 +229,7 @@ public class CaltechTests {
      * Instantiates a new Qqn.
      */
     public QQN() {
-      super(OptimizerComparison.quadratic_quasi_newton, CaltechTests.rev_conv_1, CaltechTests.fwd_conv_1);
+      super(Research.quadratic_quasi_newton, CaltechTests.rev_conv_1, CaltechTests.fwd_conv_1);
     }
     
     @Override

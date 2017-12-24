@@ -217,7 +217,7 @@ public class CifarTests {
      * Instantiates a new Qqn.
      */
     public QQN() {
-      super(OptimizerComparison.quadratic_quasi_newton, CifarTests.rev_conv_1, CifarTests.fwd_conv_1);
+      super(Research.quadratic_quasi_newton, CifarTests.rev_conv_1, CifarTests.fwd_conv_1);
     }
     
     @Override
