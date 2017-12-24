@@ -52,7 +52,7 @@ public class MeanSqLossLayerTest extends LayerTestBase {
   }
   
   /**
-   * The type Asymetric.
+   * The type Asymmetric.
    */
   public class Asymetric extends MeanSqLossLayerTest {
   

@@ -26,12 +26,55 @@ import com.simiacryptus.mindseye.opt.line.StaticLearningRate;
 import com.simiacryptus.mindseye.opt.orient.GradientDescent;
 import com.simiacryptus.mindseye.opt.orient.MomentumStrategy;
 import com.simiacryptus.mindseye.opt.orient.OwlQn;
+import com.simiacryptus.mindseye.test.ProblemRun;
+import com.simiacryptus.mindseye.test.StepRecord;
+import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.mindseye.test.integration.MnistProblemData;
 import com.simiacryptus.mindseye.test.integration.OptimizationStrategy;
+import com.simiacryptus.util.io.NotebookOutput;
+
+import java.awt.*;
+import java.util.List;
+import java.util.function.Function;
 
 /**
  * The type Textbook optimizers.
  */
-public class TextbookOptimizers {
+public class TextbookOptimizers extends OptimizerComparison {
+  
+  /**
+   * Instantiates a new Compare textbook.
+   */
+  public TextbookOptimizers() {
+    super(MnistTests.fwd_linear_1, MnistTests.rev_linear_1, new MnistProblemData());
+  }
+  
+  @Override
+  public void compare(final NotebookOutput log, final Function<OptimizationStrategy, List<StepRecord>> test) {
+    log.h1("Textbook Optimizer Comparison");
+    log.h2("GD");
+    final ProblemRun gd = new ProblemRun("GD", Color.BLACK,
+      test.apply(TextbookOptimizers.simple_gradient_descent), ProblemRun.PlotType.Line);
+    log.h2("SGD");
+    final ProblemRun sgd = new ProblemRun("SGD", Color.GREEN,
+      test.apply(TextbookOptimizers.stochastic_gradient_descent), ProblemRun.PlotType.Line);
+    log.h2("CGD");
+    final ProblemRun cgd = new ProblemRun("CjGD", Color.BLUE,
+      test.apply(TextbookOptimizers.conjugate_gradient_descent), ProblemRun.PlotType.Line);
+    log.h2("L-BFGS");
+    final ProblemRun lbfgs = new ProblemRun("L-BFGS", Color.MAGENTA,
+      test.apply(TextbookOptimizers.limited_memory_bfgs), ProblemRun.PlotType.Line);
+    log.h2("OWL-QN");
+    final ProblemRun owlqn = new ProblemRun("OWL-QN", Color.ORANGE,
+      test.apply(TextbookOptimizers.orthantwise_quasi_newton), ProblemRun.PlotType.Line);
+    log.h2("Comparison");
+    log.code(() -> {
+      return TestUtil.compare("Convergence Plot", gd, sgd, cgd, lbfgs, owlqn);
+    });
+    log.code(() -> {
+      return TestUtil.compareTime("Convergence Plot", gd, sgd, cgd, lbfgs, owlqn);
+    });
+  }
   
   /**
    * The constant conjugate_gradient_descent.

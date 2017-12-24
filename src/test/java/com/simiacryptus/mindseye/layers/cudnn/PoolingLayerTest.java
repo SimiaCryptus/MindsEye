@@ -42,15 +42,15 @@ public abstract class PoolingLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new PoolingLayer().setPrecision(precision);
+  }
+  
+  @Override
   public int[][] getInputDims() {
     return new int[][]{
       {4, 4, 2}
     };
-  }
-  
-  @Override
-  public NNLayer getLayer(final int[][] inputSize) {
-    return new PoolingLayer().setPrecision(precision);
   }
   
   @Override
@@ -70,6 +70,24 @@ public abstract class PoolingLayerTest extends CudnnLayerTestBase {
     public Double() {
       super(Precision.Double);
     }
+  }
+  
+  /**
+   * The type Double.
+   */
+  public static class Asymmetric extends PoolingLayerTest {
+    /**
+     * Instantiates a new Double.
+     */
+    public Asymmetric() {
+      super(Precision.Double);
+    }
+    
+    @Override
+    public NNLayer getLayer(final int[][] inputSize) {
+      return new PoolingLayer().setPrecision(precision).setWindowY(4);
+    }
+    
   }
   
   /**

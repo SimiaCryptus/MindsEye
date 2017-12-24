@@ -127,6 +127,11 @@ public final class Coordinate {
     return Arrays.toString(coords) + "<" + index + ">";
   }
   
+  /**
+   * Copy coordinate.
+   *
+   * @return the coordinate
+   */
   public Coordinate copy() {
     return new Coordinate(index, Arrays.copyOf(coords, coords.length));
   }

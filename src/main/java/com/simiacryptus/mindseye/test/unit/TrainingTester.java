@@ -393,6 +393,12 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     return eval(log, component, random, inputPrototype, trainingInput);
   }
   
+  /**
+   * Build mask boolean [ ].
+   *
+   * @param inputPrototype the input prototype
+   * @return the boolean [ ]
+   */
   public boolean[] buildMask(Tensor[] inputPrototype) {
     final boolean[] mask = new boolean[inputPrototype.length + 1];
     for (int i = 0; i < inputPrototype.length; i++) {
@@ -401,6 +407,13 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     return mask;
   }
   
+  /**
+   * Build input tensor [ ] [ ].
+   *
+   * @param testInput    the test input
+   * @param targetOutput the target output
+   * @return the tensor [ ] [ ]
+   */
   public Tensor[][] buildInput(Tensor[][] testInput, Tensor[] targetOutput) {
     return IntStream.range(0, testInput.length).mapToObj(i ->
       Stream.concat(
@@ -410,6 +423,17 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     ).toArray(j -> new Tensor[j][]);
   }
   
+  /**
+   * Eval test result.
+   *
+   * @param log            the log
+   * @param component      the component
+   * @param random         the random
+   * @param inputPrototype the input prototype
+   * @param trainingInput  the training input
+   * @param mask           the mask
+   * @return the test result
+   */
   public TestResult eval(NotebookOutput log, NNLayer component, Random random, Tensor[] inputPrototype, Tensor[][] trainingInput, boolean... mask) {
     final PipelineNetwork trainingNetwork1 = new PipelineNetwork(inputPrototype.length + 1);
     trainingNetwork1.add(new MeanSqLossLayer(),
@@ -434,10 +458,22 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     return new TestResult(iterPlot, timePlot, result);
   }
   
+  /**
+   * Min double.
+   *
+   * @param history the history
+   * @return the double
+   */
   public double min(List<StepRecord> history) {
     return history.stream().mapToDouble(x -> x.fitness).min().orElse(Double.NaN);
   }
   
+  /**
+   * Copy tensor [ ] [ ].
+   *
+   * @param input_gd the input gd
+   * @return the tensor [ ] [ ]
+   */
   public Tensor[][] copy(Tensor[][] input_gd) {
     return Arrays.stream(input_gd)
       .map(t -> Arrays.stream(t).map(v -> v.copy()).toArray(i -> new Tensor[i]))
@@ -637,16 +673,25 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
    * The type Problem result.
    */
   public static class ProblemResult {
+    /**
+     * The Map.
+     */
     Map<String, TrainingResult> map;
   
     /**
      * Instantiates a new Problem result.
-     *
      */
     public ProblemResult() {
       this.map = new HashMap<>();
     }
   
+    /**
+     * Put problem result.
+     *
+     * @param key    the key
+     * @param result the result
+     * @return the problem result
+     */
     public ProblemResult put(String key, TrainingResult result) {
       map.put(key, result);
       return this;

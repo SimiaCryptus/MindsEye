@@ -73,6 +73,33 @@ public abstract class BandReducerLayerTest extends CudnnLayerTestBase {
   }
   
   /**
+   * The type Double.
+   */
+  public static class Asymmetric extends BandReducerLayerTest {
+    /**
+     * Instantiates a new Double.
+     */
+    public Asymmetric() {
+      super(Precision.Double);
+    }
+    
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {3, 5, 2}
+      };
+    }
+    
+    @Override
+    public int[][] getPerfDims() {
+      return new int[][]{
+        {100, 60, 3}
+      };
+    }
+    
+  }
+  
+  /**
    * The type Float.
    */
   public static class Float extends BandReducerLayerTest {

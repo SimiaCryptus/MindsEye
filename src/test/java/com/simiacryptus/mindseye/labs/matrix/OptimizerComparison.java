@@ -19,19 +19,6 @@
 
 package com.simiacryptus.mindseye.labs.matrix;
 
-import com.simiacryptus.mindseye.eval.ArrayTrainable;
-import com.simiacryptus.mindseye.eval.BasicTrainable;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.java.NormalizationMetaLayer;
-import com.simiacryptus.mindseye.opt.IterativeTrainer;
-import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.mindseye.opt.ValidatingTrainer;
-import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
-import com.simiacryptus.mindseye.opt.line.StaticLearningRate;
-import com.simiacryptus.mindseye.opt.orient.QQN;
-import com.simiacryptus.mindseye.opt.orient.RecursiveSubspace;
-import com.simiacryptus.mindseye.test.ProblemRun;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.integration.*;
@@ -42,7 +29,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import java.awt.*;
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Function;
@@ -51,88 +37,6 @@ import java.util.function.Function;
  * The type Optimizer comparison.
  */
 public abstract class OptimizerComparison {
-  
-  /**
-   * The constant quadratic_quasi_newton.
-   */
-  public static OptimizationStrategy recursive_subspace = (log, trainingSubject, validationSubject, monitor) -> {
-    log.p("Optimized via the Recursive Subspace method:");
-    return log.code(() -> {
-      final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
-        .setMonitor(monitor);
-      trainer.getRegimen().get(0)
-        .setOrientation(new RecursiveSubspace() {
-          @Override
-          public void train(TrainingMonitor monitor, NNLayer subspace) {
-            //new SingleDerivativeTester(1e-3,1e-4).test(subspace, new Tensor[]{new Tensor()});
-            super.train(monitor, subspace);
-          }
-        })
-        .setLineSearchFactory(name -> new StaticLearningRate(1.0));
-      return trainer;
-    });
-  };
-  public static OptimizationStrategy recursive_subspace_2 = (log, trainingSubject, validationSubject, monitor) -> {
-    log.p("Optimized via the Recursive Subspace method:");
-    return log.code(() -> {
-      final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
-        .setMonitor(monitor);
-      trainer.getRegimen().get(0)
-        .setOrientation(new RecursiveSubspace() {
-          @Override
-          public void train(TrainingMonitor monitor, NNLayer subspace) {
-            //new SingleDerivativeTester(1e-3,1e-4).test(subspace, new Tensor[]{new Tensor()});
-            ArrayTrainable trainable = new ArrayTrainable(new BasicTrainable(subspace), new Tensor[][]{{new Tensor()}});
-            new IterativeTrainer(trainable)
-              .setOrientation(new QQN())
-              .setLineSearchFactory(n -> new QuadraticSearch())
-              .setMonitor(new TrainingMonitor() {
-                @Override
-                public void log(String msg) {
-                  monitor.log("\t" + msg);
-                }
-              })
-              .setMaxIterations(getIterations()).setIterationsPerSample(getIterations()).run();
-          }
-        })
-        .setLineSearchFactory(name -> new StaticLearningRate(1.0));
-      return trainer;
-    });
-  };
-  
-  /**
-   * The constant quadratic_quasi_newton.
-   */
-  public static OptimizationStrategy quadratic_quasi_newton = (log, trainingSubject, validationSubject, monitor) -> {
-    log.p("Optimized via the Quadratic Quasi-Newton method:");
-    return log.code(() -> {
-      final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
-        .setMonitor(monitor);
-      trainer.getRegimen().get(0)
-        .setOrientation(new com.simiacryptus.mindseye.opt.orient.QQN())
-        .setLineSearchFactory(name -> new QuadraticSearch()
-          .setCurrentRate(name.contains("QQN") ? 1.0 : 1e-6)
-          .setRelativeTolerance(2e-1));
-      return trainer;
-    });
-  };
-  
-  /**
-   * The constant limited_memory_bfgs.
-   */
-  public static OptimizationStrategy limited_memory_bfgs = (log, trainingSubject, validationSubject, monitor) -> {
-    log.p("Optimized via the Limited-Memory BFGS method:");
-    return log.code(() -> {
-      final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
-        .setMinTrainingSize(Integer.MAX_VALUE)
-        .setMonitor(monitor);
-      trainer.getRegimen().get(0)
-        .setOrientation(new com.simiacryptus.mindseye.opt.orient.LBFGS())
-        .setLineSearchFactory(name -> new QuadraticSearch()
-          .setCurrentRate(name.contains("LBFGS") ? 1.0 : 1e-6));
-      return trainer;
-    });
-  };
   
   /**
    * The Data.
@@ -146,7 +50,10 @@ public abstract class OptimizerComparison {
    * The Rev factory.
    */
   protected RevNetworkFactory revFactory;
-  private int timeoutMinutes = 15;
+  /**
+   * The Timeout minutes.
+   */
+  protected int timeoutMinutes = 15;
   
   /**
    * Instantiates a new Optimizer comparison.
@@ -228,101 +135,4 @@ public abstract class OptimizerComparison {
     return this;
   }
   
-  /**
-   * The type Compare qqn.
-   */
-  public static class Research extends OptimizerComparison {
-  
-    /**
-     * Instantiates a new Compare qqn.
-     */
-    public Research() {
-      super(MnistTests.fwd_conv_2(), MnistTests.rev_conv_1, new MnistProblemData());
-    }
-
-    @Override
-    public void compare(final NotebookOutput log, final Function<OptimizationStrategy, List<StepRecord>> test) {
-      log.h1("Research Optimizer Comparison");
-  
-      log.h2("Recursive Subspace (Un-Normalized)");
-      fwdFactory = MnistTests.fwd_conv_2();
-      final ProblemRun subspace_1 = new ProblemRun("SS", Color.LIGHT_GRAY,
-        test.apply(OptimizerComparison.recursive_subspace), ProblemRun.PlotType.Line);
-  
-      log.h2("Recursive Subspace (Un-Normalized)");
-      fwdFactory = MnistTests.fwd_conv_2();
-      final ProblemRun subspace_2 = new ProblemRun("SS+QQN", Color.RED,
-        test.apply(OptimizerComparison.recursive_subspace_2), ProblemRun.PlotType.Line);
-  
-      log.h2("QQN (Normalized)");
-      fwdFactory = MnistTests.fwd_conv_2(() -> new NormalizationMetaLayer());
-      final ProblemRun qqn1 = new ProblemRun("QQN", Color.DARK_GRAY,
-        test.apply(OptimizerComparison.quadratic_quasi_newton), ProblemRun.PlotType.Line);
-  
-      log.h2("L-BFGS (Strong Line Search) (Normalized)");
-      fwdFactory = MnistTests.fwd_conv_2(() -> new NormalizationMetaLayer());
-      final ProblemRun lbfgs_2 = new ProblemRun("LB-2", Color.MAGENTA,
-        test.apply(OptimizerComparison.limited_memory_bfgs), ProblemRun.PlotType.Line);
-  
-      log.h2("L-BFGS (Normalized)");
-      fwdFactory = MnistTests.fwd_conv_2(() -> new NormalizationMetaLayer());
-      final ProblemRun lbfgs_1 = new ProblemRun("LB-1", Color.GREEN,
-        test.apply(TextbookOptimizers.limited_memory_bfgs), ProblemRun.PlotType.Line);
-  
-      log.h2("L-BFGS-0 (Un-Normalized)");
-      fwdFactory = MnistTests.fwd_conv_2();
-      final ProblemRun rawlbfgs = new ProblemRun("LBFGS-0", Color.CYAN,
-        test.apply(TextbookOptimizers.limited_memory_bfgs), ProblemRun.PlotType.Line);
-      
-      log.h2("Comparison");
-      log.code(() -> {
-        return TestUtil.compare("Convergence Plot", subspace_1, subspace_2, rawlbfgs, lbfgs_1, lbfgs_2, qqn1);
-      });
-      log.code(() -> {
-        return TestUtil.compareTime("Convergence Plot", subspace_1, subspace_2, rawlbfgs, lbfgs_1, lbfgs_2, qqn1);
-      });
-    }
-
-  }
-  
-  /**
-   * The type Compare textbook.
-   */
-  public static class Textbook extends OptimizerComparison {
-  
-    /**
-     * Instantiates a new Compare textbook.
-     */
-    public Textbook() {
-      super(MnistTests.fwd_linear_1, MnistTests.rev_linear_1, new MnistProblemData());
-    }
-
-    @Override
-    public void compare(final NotebookOutput log, final Function<OptimizationStrategy, List<StepRecord>> test) {
-      log.h1("Textbook Optimizer Comparison");
-      log.h2("GD");
-      final ProblemRun gd = new ProblemRun("GD", Color.BLACK,
-        test.apply(TextbookOptimizers.simple_gradient_descent), ProblemRun.PlotType.Line);
-      log.h2("SGD");
-      final ProblemRun sgd = new ProblemRun("SGD", Color.GREEN,
-        test.apply(TextbookOptimizers.stochastic_gradient_descent), ProblemRun.PlotType.Line);
-      log.h2("CGD");
-      final ProblemRun cgd = new ProblemRun("CjGD", Color.BLUE,
-        test.apply(TextbookOptimizers.conjugate_gradient_descent), ProblemRun.PlotType.Line);
-      log.h2("L-BFGS");
-      final ProblemRun lbfgs = new ProblemRun("L-BFGS", Color.MAGENTA,
-        test.apply(TextbookOptimizers.limited_memory_bfgs), ProblemRun.PlotType.Line);
-      log.h2("OWL-QN");
-      final ProblemRun owlqn = new ProblemRun("OWL-QN", Color.ORANGE,
-        test.apply(TextbookOptimizers.orthantwise_quasi_newton), ProblemRun.PlotType.Line);
-      log.h2("Comparison");
-      log.code(() -> {
-        return TestUtil.compare("Convergence Plot", gd, sgd, cgd, lbfgs, owlqn);
-      });
-      log.code(() -> {
-        return TestUtil.compareTime("Convergence Plot", gd, sgd, cgd, lbfgs, owlqn);
-      });
-    }
-  
-  }
 }
