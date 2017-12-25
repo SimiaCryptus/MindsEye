@@ -38,7 +38,7 @@ public abstract class LayerTestBase extends StandardLayerTests {
   @Test
   public void test() throws Throwable {
     final NNLayer layer = getLayer(getInputDims());
-    try (NotebookOutput log = MarkdownNotebookOutput.get(layer, getClass().getSimpleName())) {
+    try (NotebookOutput log = MarkdownNotebookOutput.get(layer, "https://github.com/SimiaCryptus/MindsEye/tree/master/src/", getClass().getSimpleName())) {
       test(log);
     }
   }

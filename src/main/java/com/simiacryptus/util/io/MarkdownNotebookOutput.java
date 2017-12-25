@@ -31,7 +31,10 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,6 +49,10 @@ public class MarkdownNotebookOutput implements NotebookOutput {
   private final String name;
   private final List<PrintStream> outs = new ArrayList<>();
   private final OutputStream primaryOut;
+  private final List<String> buffer = new ArrayList<>();
+  private final List<String> frontMatter = new ArrayList<>();
+  public List<String> toc = new ArrayList<>();
+
   /**
    * The Anchor.
    */
@@ -69,6 +76,56 @@ public class MarkdownNotebookOutput implements NotebookOutput {
   /**
    * Get markdown notebook output.
    *
+   * @param source the source
+   * @param absoluteUrl
+   * @param suffix the suffix
+   * @return the markdown notebook output
+   */
+  public static MarkdownNotebookOutput get(final Object source, String absoluteUrl, String... suffix) {
+    try {
+      final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[2];
+      final String methodName = callingFrame.getMethodName();
+      final String className = source.getClass().getCanonicalName();
+      File path = new File(Util.mkString(File.separator, "reports", className.replaceAll("\\.", "/").replaceAll("\\$", "/")));
+      for (int i = 0; i < suffix.length - 1; i++) path = new File(path, suffix[i]);
+      String testName = suffix.length == 0 ? methodName : suffix[suffix.length - 1];
+      path = new File(path, testName + ".md");
+      path.getParentFile().mkdirs();
+      MarkdownNotebookOutput notebookOutput = new MarkdownNotebookOutput(path, testName);
+      if (null != absoluteUrl) {
+        try {
+          String url = new URI(absoluteUrl + "/" + path.toPath().toString().replaceAll("\\\\", "/")).normalize().toString();
+          notebookOutput.setAbsoluteUrl(url);
+        } catch (URISyntaxException e) {
+          throw new RuntimeException(e);
+        }
+      }
+      return notebookOutput;
+    } catch (final FileNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  @Override
+  public void close() throws IOException {
+    if (null != primaryOut) {
+      primaryOut.close();
+      try (PrintWriter out = new PrintWriter(new FileOutputStream(fileName))) {
+        if (!frontMatter.isEmpty()) {
+          out.println("---");
+          frontMatter.forEach(out::println);
+          out.println("---");
+        }
+        toc.forEach(out::println);
+        out.print("\n\n");
+        buffer.forEach(out::println);
+      }
+    }
+  }
+  
+  /**
+   * Get markdown notebook output.
+   *
    * @return the markdown notebook output
    */
   public static MarkdownNotebookOutput get() {
@@ -86,27 +143,8 @@ public class MarkdownNotebookOutput implements NotebookOutput {
     }
   }
   
-  /**
-   * Get markdown notebook output.
-   *
-   * @param source the source
-   * @param suffix the suffix
-   * @return the markdown notebook output
-   */
-  public static MarkdownNotebookOutput get(final Object source, String... suffix) {
-    try {
-      final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[2];
-      final String methodName = callingFrame.getMethodName();
-      final String className = source.getClass().getCanonicalName();
-      File path = new File(Util.mkString(File.separator, "reports", className.replaceAll("\\.", "/").replaceAll("\\$", "/")));
-      for (int i = 0; i < suffix.length - 1; i++) path = new File(path, suffix[i]);
-      String testName = suffix.length == 0 ? methodName : suffix[suffix.length - 1];
-      path = new File(path, testName + ".md");
-      path.getParentFile().mkdirs();
-      return new MarkdownNotebookOutput(path, testName);
-    } catch (final FileNotFoundException e) {
-      throw new RuntimeException(e);
-    }
+  public void setFMProp(String key, String value) {
+    frontMatter.add(String.format("%s: %s", key, value));
   }
   
   /**
@@ -125,16 +163,14 @@ public class MarkdownNotebookOutput implements NotebookOutput {
    * Anchor string.
    *
    * @return the string
+   * @param anchorId
    */
-  public String anchor() {
-    return String.format("<a name=\"p-%d\"></a>", anchor++);
+  public String anchor(String anchorId) {
+    return String.format("<a id=\"%s\"></a>", anchorId);
   }
   
-  @Override
-  public void close() throws IOException {
-    if (null != primaryOut) {
-      primaryOut.close();
-    }
+  public String anchorId() {
+    return String.format("p-%d", anchor++);
   }
   
   @SuppressWarnings("unchecked")
@@ -150,7 +186,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
           return new TimedResult<Object>(e, 0);
         }
       });
-      out(anchor() + "Code from [%s:%s](%s#L%s) executed in %.2f seconds: ",
+      out(anchor(anchorId()) + "Code from [%s:%s](%s#L%s) executed in %.2f seconds: ",
         callingFrame.getFileName(), callingFrame.getLineNumber(),
         linkTo(CodeUtil.findFile(callingFrame)), callingFrame.getLineNumber(), result.obj.seconds());
       out("```java");
@@ -158,7 +194,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
       out("```");
       
       if (!result.log.isEmpty()) {
-        out(anchor() + "Logging: ");
+        out(anchor(anchorId()) + "Logging: ");
         out("```");
         out("    " + summarize(result.log, maxLog).replaceAll("\n", "\n    ").replaceAll("    ~", ""));
         out("```");
@@ -167,7 +203,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
       
       final Object eval = result.obj.result;
       if (null != eval) {
-        out(anchor() + "Returns: \n");
+        out(anchor(anchorId()) + "Returns: \n");
         String str;
         boolean escape;
         if (eval instanceof Throwable) {
@@ -267,19 +303,29 @@ public class MarkdownNotebookOutput implements NotebookOutput {
     return etc;
   }
   
+  
   @Override
   public void h1(final String fmt, final Object... args) {
-    out("# " + anchor() + fmt, args);
+    String anchorId = anchorId();
+    String msg = format(fmt, args);
+    toc.add(String.format("1. [%s](#%s)", msg, anchorId));
+    out("# " + anchor(anchorId) + msg);
   }
   
   @Override
   public void h2(final String fmt, final Object... args) {
-    out("## " + anchor() + fmt, args);
+    String anchorId = anchorId();
+    String msg = format(fmt, args);
+    toc.add(String.format("   1. [%s](#%s)", msg, anchorId));
+    out("## " + anchor(anchorId) + fmt, args);
   }
   
   @Override
   public void h3(final String fmt, final Object... args) {
-    out("### " + anchor() + fmt, args);
+    String anchorId = anchorId();
+    String msg = format(fmt, args);
+    toc.add(String.format("      1. [%s](#%s)", msg, anchorId));
+    out("### " + anchor(anchorId) + fmt, args);
   }
   
   @Override
@@ -295,16 +341,34 @@ public class MarkdownNotebookOutput implements NotebookOutput {
       ImageIO.write(rawImage, "png", new File(getResourceDir(), rawName));
     }
     ImageIO.write(stdImage, "png", file);
-    return anchor() + "![" + caption + "](etc/" + file.getName() + ")";
+    return anchor(anchorId()) + "![" + caption + "](etc/" + file.getName() + ")";
   }
   
   @Override
   public String link(final File file, final String text) {
     try {
-      return "[" + text + "](" + fileName.getCanonicalFile().toPath().relativize(file.getCanonicalFile().toPath()).normalize().toString().replaceAll("\\\\", "/") + ")";
+      return "[" + text + "](" + codeFile(file) + ")";
     } catch (final IOException e) {
       throw new RuntimeException(e);
     }
+  }
+  
+  public String codeFile(File file) throws IOException {
+    Path path = pathToCodeFile(file);
+    if (null != getAbsoluteUrl()) {
+      try {
+        return new URI(getAbsoluteUrl()).resolve(path.normalize().toString().replaceAll("\\\\", "/")).normalize().toString();
+      } catch (URISyntaxException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    else {
+      return path.normalize().toString().replaceAll("\\\\", "/");
+    }
+  }
+  
+  public Path pathToCodeFile(File file) throws IOException {
+    return fileName.getCanonicalFile().toPath().relativize(file.getCanonicalFile().toPath());
   }
   
   /**
@@ -315,22 +379,23 @@ public class MarkdownNotebookOutput implements NotebookOutput {
    * @throws IOException the io exception
    */
   public String linkTo(final File file) throws IOException {
-    String path = Util.pathTo(fileName.getParentFile().getCanonicalFile(), file.getCanonicalFile());
-    if (null != getAbsoluteUrl()) {
-      path = new File(getAbsoluteUrl()).toPath().relativize(new File(path).toPath()).toString();
-    }
-    return path;
+    return codeFile(file);
   }
   
   @Override
   public void out(final String fmt, final Object... args) {
-    final String msg = 0 == args.length ? fmt : String.format(fmt, args);
+    final String msg = format(fmt, args);
+    buffer.add(msg);
     outs.forEach(out -> out.println(msg));
+  }
+  
+  public String format(String fmt, Object... args) {
+    return 0 == args.length ? fmt : String.format(fmt, args);
   }
   
   @Override
   public void p(final String fmt, final Object... args) {
-    out(anchor() + fmt + "\n", args);
+    out(anchor(anchorId()) + fmt + "\n", args);
   }
   
   /**

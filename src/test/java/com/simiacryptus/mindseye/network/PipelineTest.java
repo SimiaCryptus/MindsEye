@@ -128,7 +128,7 @@ public abstract class PipelineTest {
    */
   @Test
   public void test() throws Throwable {
-    try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
+    try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
       test(log);
     }
   }

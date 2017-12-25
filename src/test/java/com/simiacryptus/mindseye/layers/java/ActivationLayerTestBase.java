@@ -23,6 +23,8 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.test.SimpleEval;
+import com.simiacryptus.mindseye.test.unit.ComponentTest;
+import com.simiacryptus.mindseye.test.unit.TrainingTester;
 import com.simiacryptus.util.io.NotebookOutput;
 import smile.plot.PlotCanvas;
 import smile.plot.ScatterPlot;
@@ -126,4 +128,8 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     
   }
   
+  @Override
+  public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
+    return new TrainingTester().setRandomizationMode(TrainingTester.RandomizationMode.Random);
+  }
 }

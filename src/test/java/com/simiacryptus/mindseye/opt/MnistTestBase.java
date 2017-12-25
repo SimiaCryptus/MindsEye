@@ -242,7 +242,7 @@ public abstract class MnistTestBase {
   @Test
   @Category(TestCategories.Report.class)
   public void test() throws IOException {
-    try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
+    try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
       if (null != TestUtil.originalOut) {
         log.addCopy(TestUtil.originalOut);
       }

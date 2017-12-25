@@ -32,6 +32,7 @@ import guru.nidi.graphviz.engine.Graphviz;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.function.Consumer;
 
@@ -231,6 +232,11 @@ public abstract class StandardLayerTests {
     final NNLayer layer = getLayer(getInputDims());
     log.h1("%s", layer.getClass().getSimpleName());
     log.p(String.format("Layer Type %s", log.link(CodeUtil.findFile(layer.getClass()), layer.getClass().getCanonicalName())));
+    log.setFMProp("layer_class_short", layer.getClass().getSimpleName());
+    log.setFMProp("test_class_short", getClass().getSimpleName());
+    log.setFMProp("created_on", new Date().toString());
+    log.setFMProp("layer_class_full", layer.getClass().getCanonicalName());
+    log.setFMProp("test_class_full", getClass().getCanonicalName());
     log.p(CodeUtil.getJavadoc(layer.getClass()));
     log.h2("%s", getClass().getSimpleName());
     log.p(String.format("Test Type %s", log.link(CodeUtil.findFile(getClass()), getClass().getCanonicalName())));

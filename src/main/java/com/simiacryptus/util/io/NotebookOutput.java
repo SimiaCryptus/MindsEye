@@ -172,4 +172,7 @@ public interface NotebookOutput extends Closeable {
    * @param args the args
    */
   void p(String fmt, Object... args);
+  
+  default void setFMProp(String key, String value) {
+  }
 }

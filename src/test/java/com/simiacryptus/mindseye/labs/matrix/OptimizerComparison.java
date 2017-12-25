@@ -76,7 +76,7 @@ public abstract class OptimizerComparison {
   @Test
   @Category(TestCategories.Report.class)
   public void classification() throws IOException {
-    try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
+    try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
       if (null != TestUtil.originalOut) {
         log.addCopy(TestUtil.originalOut);
       }
@@ -104,7 +104,7 @@ public abstract class OptimizerComparison {
   @Ignore
   @Category(TestCategories.Report.class)
   public void encoding() throws IOException {
-    try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
+    try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
       if (null != TestUtil.originalOut) {
         log.addCopy(TestUtil.originalOut);
       }

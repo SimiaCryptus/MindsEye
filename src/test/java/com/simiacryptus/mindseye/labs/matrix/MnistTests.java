@@ -196,7 +196,7 @@ public class MnistTests {
     @Ignore
     @Category(TestCategories.Report.class)
     public void autoencoder_test() throws IOException {
-      try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
+      try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
         if (null != TestUtil.originalOut) {
           log.addCopy(TestUtil.originalOut);
         }
@@ -214,7 +214,7 @@ public class MnistTests {
     @Test
     @Category(TestCategories.Report.class)
     public void classification_test() throws IOException {
-      try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
+      try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
         if (null != TestUtil.originalOut) {
           log.addCopy(TestUtil.originalOut);
         }
@@ -233,7 +233,7 @@ public class MnistTests {
     @Ignore
     @Category(TestCategories.Report.class)
     public void encoding_test() throws IOException {
-      try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
+      try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
         if (null != TestUtil.originalOut) {
           log.addCopy(TestUtil.originalOut);
         }
