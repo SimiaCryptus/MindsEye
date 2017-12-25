@@ -332,4 +332,22 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
       this.id = id;
     }
   }
+  
+  public PoolingLayer setWindowXY(int x, int y) {
+    setWindowY(y);
+    setWindowX(x);
+    return this;
+  }
+  
+  public PoolingLayer setStrideXY(int x, int y) {
+    setStrideX(x);
+    setStrideY(y);
+    return this;
+  }
+  
+  public PoolingLayer setPaddingXY(int x, int y) {
+    setPaddingX(x);
+    setPaddingY(y);
+    return this;
+  }
 }

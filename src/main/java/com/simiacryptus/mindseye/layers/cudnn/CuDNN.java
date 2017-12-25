@@ -395,20 +395,20 @@ public class CuDNN {
     CuDNN.log("cudnnConvolutionForward", result, handle, alpha, xDesc, x, wDesc, w, convDesc, algo, workSpace, workSpaceSizeInBytes, beta, yDesc, y);
     return result;
   }
-  
-  /**
-   * Cudnn create reduce tensor descriptor int.
-   *
-   * @param reduceTensorDesc the reduce tensor desc
-   * @return the int
-   */
-  public static int cudnnCreateReduceTensorDescriptor(
-    final cudnnReduceTensorDescriptor reduceTensorDesc) {
-    final int result = JCudnn.cudnnCreateReduceTensorDescriptor(reduceTensorDesc);
-    CuDNN.log("cudnnCreateReduceTensorDescriptor", result, reduceTensorDesc);
-    CuDNN.handle(result);
-    return result;
-  }
+
+//  /**
+//   * Cudnn create reduce tensor descriptor int.
+//   *
+//   * @param reduceTensorDesc the reduce tensor desc
+//   * @return the int
+//   */
+//  public static int cudnnCreateReduceTensorDescriptor(
+//    final cudnnReduceTensorDescriptor reduceTensorDesc) {
+//    final int result = JCudnn.cudnnCreateReduceTensorDescriptor(reduceTensorDesc);
+//    CuDNN.log("cudnnCreateReduceTensorDescriptor", result, reduceTensorDesc);
+//    CuDNN.handle(result);
+//    return result;
+//  }
   
   /**
    * Cudnn destroy activation descriptor int.
@@ -595,66 +595,66 @@ public class CuDNN {
     CuDNN.log("cudnnPoolingForward", result, handle, poolingDesc, alpha, xDesc, x, beta, yDesc, y);
     return result;
   }
-  
-  /**
-   * Cudnn reduce tensor int.
-   *
-   * @param handle               the handle
-   * @param reduceTensorDesc     the reduce tensor desc
-   * @param indices              the indices
-   * @param indicesSizeInBytes   the indices size in bytes
-   * @param workspace            the workspace
-   * @param workspaceSizeInBytes the workspace size in bytes
-   * @param alpha                the alpha
-   * @param aDesc                the a desc
-   * @param A                    the a
-   * @param beta                 the beta
-   * @param cDesc                the c desc
-   * @param C                    the c
-   * @return the int
-   */
-  public static int cudnnReduceTensor(
-    final cudnnHandle handle,
-    final cudnnReduceTensorDescriptor reduceTensorDesc,
-    final Pointer indices,
-    final long indicesSizeInBytes,
-    final Pointer workspace,
-    final long workspaceSizeInBytes,
-    final Pointer alpha,
-    final cudnnTensorDescriptor aDesc,
-    final Pointer A,
-    final Pointer beta,
-    final cudnnTensorDescriptor cDesc,
-    final Pointer C) {
-    final int result = JCudnn.cudnnReduceTensor(handle, reduceTensorDesc, indices, indicesSizeInBytes, workspace, workspaceSizeInBytes, alpha, aDesc, A, beta, cDesc, C);
-    CuDNN.log("cudnnReduceTensor", result, handle, reduceTensorDesc, indices, indicesSizeInBytes, workspace, workspaceSizeInBytes, alpha, aDesc, A, beta, cDesc, C);
-    CuDNN.handle(result);
-    return result;
-  }
-  
-  /**
-   * Cudnn setByCoord reduce tensor descriptor int.
-   *
-   * @param reduceTensorDesc        the reduce tensor desc
-   * @param reduceTensorOp          the reduce tensor op
-   * @param reduceTensorCompType    the reduce tensor comp type
-   * @param reduceTensorNanOpt      the reduce tensor nan opt
-   * @param reduceTensorIndices     the reduce tensor indices
-   * @param reduceTensorIndicesType the reduce tensor indices type
-   * @return the int
-   */
-  public static int cudnnSetReduceTensorDescriptor(
-    final cudnnReduceTensorDescriptor reduceTensorDesc,
-    final int reduceTensorOp,
-    final int reduceTensorCompType,
-    final int reduceTensorNanOpt,
-    final int reduceTensorIndices,
-    final int reduceTensorIndicesType) {
-    final int result = JCudnn.cudnnSetReduceTensorDescriptor(reduceTensorDesc, reduceTensorOp, reduceTensorCompType, reduceTensorNanOpt, reduceTensorIndices, reduceTensorIndicesType);
-    CuDNN.log("cudnnSetReduceTensorDescriptor", result, reduceTensorDesc, reduceTensorOp, reduceTensorCompType, reduceTensorNanOpt, reduceTensorIndices, reduceTensorIndicesType);
-    CuDNN.handle(result);
-    return result;
-  }
+
+//  /**
+//   * Cudnn reduce tensor int.
+//   *
+//   * @param handle               the handle
+//   * @param reduceTensorDesc     the reduce tensor desc
+//   * @param indices              the indices
+//   * @param indicesSizeInBytes   the indices size in bytes
+//   * @param workspace            the workspace
+//   * @param workspaceSizeInBytes the workspace size in bytes
+//   * @param alpha                the alpha
+//   * @param aDesc                the a desc
+//   * @param A                    the a
+//   * @param beta                 the beta
+//   * @param cDesc                the c desc
+//   * @param C                    the c
+//   * @return the int
+//   */
+//  public static int cudnnReduceTensor(
+//    final cudnnHandle handle,
+//    final cudnnReduceTensorDescriptor reduceTensorDesc,
+//    final Pointer indices,
+//    final long indicesSizeInBytes,
+//    final Pointer workspace,
+//    final long workspaceSizeInBytes,
+//    final Pointer alpha,
+//    final cudnnTensorDescriptor aDesc,
+//    final Pointer A,
+//    final Pointer beta,
+//    final cudnnTensorDescriptor cDesc,
+//    final Pointer C) {
+//    final int result = JCudnn.cudnnReduceTensor(handle, reduceTensorDesc, indices, indicesSizeInBytes, workspace, workspaceSizeInBytes, alpha, aDesc, A, beta, cDesc, C);
+//    CuDNN.log("cudnnReduceTensor", result, handle, reduceTensorDesc, indices, indicesSizeInBytes, workspace, workspaceSizeInBytes, alpha, aDesc, A, beta, cDesc, C);
+//    CuDNN.handle(result);
+//    return result;
+//  }
+//
+//  /**
+//   * Cudnn setByCoord reduce tensor descriptor int.
+//   *
+//   * @param reduceTensorDesc        the reduce tensor desc
+//   * @param reduceTensorOp          the reduce tensor op
+//   * @param reduceTensorCompType    the reduce tensor comp type
+//   * @param reduceTensorNanOpt      the reduce tensor nan opt
+//   * @param reduceTensorIndices     the reduce tensor indices
+//   * @param reduceTensorIndicesType the reduce tensor indices type
+//   * @return the int
+//   */
+//  public static int cudnnSetReduceTensorDescriptor(
+//    final cudnnReduceTensorDescriptor reduceTensorDesc,
+//    final int reduceTensorOp,
+//    final int reduceTensorCompType,
+//    final int reduceTensorNanOpt,
+//    final int reduceTensorIndices,
+//    final int reduceTensorIndicesType) {
+//    final int result = JCudnn.cudnnSetReduceTensorDescriptor(reduceTensorDesc, reduceTensorOp, reduceTensorCompType, reduceTensorNanOpt, reduceTensorIndices, reduceTensorIndicesType);
+//    CuDNN.log("cudnnSetReduceTensorDescriptor", result, reduceTensorDesc, reduceTensorOp, reduceTensorCompType, reduceTensorNanOpt, reduceTensorIndices, reduceTensorIndicesType);
+//    CuDNN.handle(result);
+//    return result;
+//  }
   
   /**
    * Cudnn transform tensor int.
@@ -876,8 +876,8 @@ public class CuDNN {
       strideWidth, // horizontal filter stride
       1, // upscale the input in x-direction
       1, // upscale the input in y-direction
-      mode,
-      dataType
+      mode
+//      ,dataType
     );
     CuDNN.log("cudnnSetConvolution2dDescriptor", result, convDesc,
       paddingY, // zero-padding height
