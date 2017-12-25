@@ -26,6 +26,8 @@ import com.simiacryptus.util.test.TestCategories;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -35,6 +37,8 @@ import java.util.stream.Collectors;
  * The type Tensor run.
  */
 public class TensorTest {
+  private static final Logger logger = LoggerFactory.getLogger(TensorTest.class);
+
   /**
    * Parse tensor.
    *
@@ -70,7 +74,7 @@ public class TensorTest {
     final List<String> coordinates = new Tensor(2, 2, 2).coordStream()
       .map(c -> String.format("%s - %s", c.getIndex(), Arrays.toString(c.getCoords()))).collect(Collectors.toList());
     for (final String c : coordinates) {
-      System.out.println(c);
+      logger.info(c);
     }
   }
   

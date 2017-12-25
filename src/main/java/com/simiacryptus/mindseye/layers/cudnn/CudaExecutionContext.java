@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.util.lang.StaticResourcePool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +34,7 @@ import java.util.stream.Collectors;
  * Used in combination with the layers in this package and the GPUTrainable component.
  */
 public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
+  private static final Logger logger = LoggerFactory.getLogger(CudaExecutionContext.class);
   
   /**
    * The constant gpuContexts.
@@ -64,11 +67,11 @@ public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
    */
   static List<CudaExecutionContext> loadGpuContexts() {
     final int deviceCount = CuDNN.deviceCount();
-    System.out.println(String.format("Found %s devices", deviceCount));
+    logger.info(String.format("Found %s devices", deviceCount));
     List<Integer> devices = new ArrayList<>();
     for (int device = 0; device < deviceCount; device++) {
       //if(device>0) System.err.println(String.format("IGNORING Device %s - %s", device, getDeviceName(device)));
-      System.out.println(String.format("Device %s - %s", device, CuDNN.getDeviceName(device)));
+      logger.info(String.format("Device %s - %s", device, CuDNN.getDeviceName(device)));
       devices.add(device);
     }
     if (System.getProperties().containsKey("gpus")) {
@@ -76,7 +79,7 @@ public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
         .map(Integer::parseInt).collect(Collectors.toList());
       
     }
-    System.out.println(String.format("Found %s devices; using devices %s", deviceCount, devices));
+    logger.info(String.format("Found %s devices; using devices %s", deviceCount, devices));
     return devices.stream()
       .map(i -> new CudaExecutionContext(i)).collect(Collectors.toList());
   }

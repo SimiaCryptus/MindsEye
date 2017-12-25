@@ -28,6 +28,8 @@ import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.orient.LBFGS;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.util.Util;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -43,7 +45,7 @@ import java.util.function.Supplier;
  * e.g. Generative Adversarial Networks.
  */
 public class RoundRobinTrainer {
-  
+  private static final Logger logger = LoggerFactory.getLogger(RoundRobinTrainer.class);
   
   private final Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private final Trainable subject;
@@ -283,7 +285,7 @@ public class RoundRobinTrainer {
             lineSearchStrategy = lineSearchStrategyMap.get(directionType);
           }
           else {
-            System.out.println(String.format("Constructing line search parameters: %s", directionType));
+            logger.info(String.format("Constructing line search parameters: %s", directionType));
             lineSearchStrategy = lineSearchFactory.apply(directionType);
             lineSearchStrategyMap.put(directionType, lineSearchStrategy);
           }

@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,7 @@ import java.util.List;
  * @param <T> the type parameter
  */
 public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
+  private static final Logger logger = LoggerFactory.getLogger(CachedTrainable.class);
   
   private final List<PointSample> history = new ArrayList<>();
   private int historySize = 3;
@@ -96,7 +99,7 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
     for (final PointSample result : history) {
       if (!result.weights.isDifferent()) {
         if (isVerbose()) {
-          System.out.println(String.format("Returning cached value; %s buffers unchanged since %s => %s",
+          logger.info(String.format("Returning cached value; %s buffers unchanged since %s => %s",
             result.weights.getMap().size(), result.rate, result.getMean()));
         }
         return result.copyFull();

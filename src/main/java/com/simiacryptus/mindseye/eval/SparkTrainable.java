@@ -26,6 +26,8 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.rdd.RDD;
 import org.apache.spark.storage.StorageLevel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
@@ -38,6 +40,7 @@ import java.util.stream.StreamSupport;
  * and distributes network evaluation over the partitions.
  */
 public class SparkTrainable implements Trainable {
+  static final Logger logger = LoggerFactory.getLogger(SparkTrainable.class);
   
   /**
    * The Data rdd.
@@ -102,7 +105,7 @@ public class SparkTrainable implements Trainable {
    */
   protected static void debug(final String msg, final Object... args) {
     final String format = String.format(msg, args);
-    System.out.println(format);
+    logger.info(format);
   }
   
   /**
@@ -214,7 +217,7 @@ public class SparkTrainable implements Trainable {
     final long time2 = System.nanoTime();
     final SparkTrainable.ReducableResult result = mapPartitions.reduce(SparkTrainable.ReducableResult::add);
     if (isVerbose()) {
-      System.out.println(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
+      logger.info(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
     }
     final DeltaSet<NNLayer> xxx = getDelta(result);
     return new PointSample(xxx, new StateSet<NNLayer>(xxx), result.sum, 0.0, result.count).normalize();
@@ -233,7 +236,7 @@ public class SparkTrainable implements Trainable {
       .repartition(getPartitions(), null)
       .persist(getStorageLevel());
     assert !sampledRDD.isEmpty();
-    System.out.println(String.format("Sampled %s items from main dataset of %s (%s) items", sampledRDD.count(), count, sampleSize));
+    logger.info(String.format("Sampled %s items from main dataset of %s (%s) items", sampledRDD.count(), count, sampleSize));
     return true;
   }
   

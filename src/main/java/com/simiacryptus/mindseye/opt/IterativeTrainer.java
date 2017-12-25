@@ -30,6 +30,8 @@ import com.simiacryptus.mindseye.opt.orient.LBFGS;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.lang.TimedResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -45,6 +47,7 @@ import java.util.function.Function;
  * with an Orientation and Line Search strategy
  */
 public class IterativeTrainer {
+  private static final Logger logger = LoggerFactory.getLogger(IterativeTrainer.class);
   
   private final Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private final Trainable subject;
@@ -360,7 +363,7 @@ public class IterativeTrainer {
       lineSearchStrategy = lineSearchStrategyMap.get(directionType);
     }
     else {
-      System.out.println(String.format("Constructing line search parameters: %s", directionType));
+      logger.info(String.format("Constructing line search parameters: %s", directionType));
       lineSearchStrategy = lineSearchFactory.apply(direction.getDirectionType());
       lineSearchStrategyMap.put(directionType, lineSearchStrategy);
     }

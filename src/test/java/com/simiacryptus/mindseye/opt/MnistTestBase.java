@@ -39,6 +39,8 @@ import com.simiacryptus.util.test.LabeledObject;
 import com.simiacryptus.util.test.TestCategories;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import smile.plot.PlotCanvas;
 import smile.plot.ScatterPlot;
 
@@ -52,6 +54,7 @@ import java.util.stream.IntStream;
  * The type Mnist run base.
  */
 public abstract class MnistTestBase {
+  private static final Logger logger = LoggerFactory.getLogger(MnistTestBase.class);
   
   /**
    * The Model no.
@@ -218,11 +221,11 @@ public abstract class MnistTestBase {
       
       @Override
       public void log(final String msg) {
-        System.out.println(msg);
+        logger.info(msg);
         if (null != originalOut && System.out != originalOut) {
           originalOut.println(msg);
         }
-        System.out.println(msg);
+        logger.info(msg);
         super.log(msg);
       }
       

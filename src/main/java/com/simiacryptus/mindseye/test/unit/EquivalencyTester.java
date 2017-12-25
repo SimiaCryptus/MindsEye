@@ -25,6 +25,8 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.stream.IntStream;
@@ -33,6 +35,7 @@ import java.util.stream.IntStream;
  * The type Equivalency tester.
  */
 public class EquivalencyTester implements ComponentTest<ToleranceStatistics> {
+  private static final Logger logger = LoggerFactory.getLogger(EquivalencyTester.class);
   
   private final NNLayer reference;
   private final double tolerance;
@@ -68,19 +71,19 @@ public class EquivalencyTester implements ComponentTest<ToleranceStatistics> {
       if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
       result1 = result;
     } catch (final Throwable e) {
-      System.out.println(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b)));
-      System.out.println(String.format("Subject Output: %s", subjectOutput.prettyPrint()));
-      System.out.println(String.format("Reference Output: %s", referenceOutput.prettyPrint()));
-      System.out.println(String.format("Error: %s", error.prettyPrint()));
+      logger.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b)));
+      logger.info(String.format("Subject Output: %s", subjectOutput.prettyPrint()));
+      logger.info(String.format("Reference Output: %s", referenceOutput.prettyPrint()));
+      logger.info(String.format("Error: %s", error.prettyPrint()));
       System.out.flush();
       throw e;
     }
     final ToleranceStatistics statistics = result1;
-    System.out.println(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));
-    System.out.println(String.format("Error: %s", error.prettyPrint()));
-    System.out.println(String.format("Accuracy:"));
-    System.out.println(String.format("absoluteTol: %s", statistics.absoluteTol.toString()));
-    System.out.println(String.format("relativeTol: %s", statistics.relativeTol.toString()));
+    logger.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));
+    logger.info(String.format("Error: %s", error.prettyPrint()));
+    logger.info(String.format("Accuracy:"));
+    logger.info(String.format("absoluteTol: %s", statistics.absoluteTol.toString()));
+    logger.info(String.format("relativeTol: %s", statistics.relativeTol.toString()));
     return statistics;
   }
   
@@ -96,7 +99,7 @@ public class EquivalencyTester implements ComponentTest<ToleranceStatistics> {
   public ToleranceStatistics test(final NotebookOutput log, final NNLayer subject, final Tensor... inputPrototype) {
     log.h3("Reference Implementation");
     log.code(() -> {
-      System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(reference.getJson()));
+      logger.info(new GsonBuilder().setPrettyPrinting().create().toJson(reference.getJson()));
     });
     return log.code(() -> {
       return test(subject, inputPrototype);

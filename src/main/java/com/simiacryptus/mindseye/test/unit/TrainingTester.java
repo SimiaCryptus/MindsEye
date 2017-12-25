@@ -43,6 +43,8 @@ import com.simiacryptus.mindseye.test.ProblemRun;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import smile.plot.PlotCanvas;
 
 import javax.swing.*;
@@ -60,6 +62,7 @@ import java.util.stream.Stream;
  * The type Derivative tester.
  */
 public class TrainingTester implements ComponentTest<TrainingTester.ComponentResult> {
+  static final Logger logger = LoggerFactory.getLogger(TrainingTester.class);
   
   private int batches = 3;
   private RandomizationMode randomizationMode = RandomizationMode.Permute;
@@ -83,7 +86,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
       @Override
       public void log(final String msg) {
         TestUtil.originalOut.println(msg);
-        System.out.println(msg);
+        logger.info(msg);
       }
   
       @Override

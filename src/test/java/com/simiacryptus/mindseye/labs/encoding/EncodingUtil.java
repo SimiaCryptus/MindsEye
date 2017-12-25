@@ -42,6 +42,8 @@ import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.SysOutInterceptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.io.IOException;
@@ -59,6 +61,8 @@ import java.util.stream.Stream;
  * The type Image encoding util.
  */
 class EncodingUtil {
+  private static final Logger logger = LoggerFactory.getLogger(EncodingUtil.class);
+
   /**
    * The constant imageNumber.
    */
@@ -317,7 +321,7 @@ class EncodingUtil {
       
       @Override
       public void log(final String msg) {
-        System.out.println(msg); // Logged MnistProblemData
+        logger.info(msg); // Logged MnistProblemData
         EncodingUtil.rawOut.println(msg); // Realtime MnistProblemData
       }
       
@@ -403,7 +407,7 @@ class EncodingUtil {
     });
     final Tensor[] featureSpaceVectors = featureSpace.getVectors();
     for (final Tensor t : featureSpaceVectors) {
-      System.out.println(String.format("Feature Vector %s%n", t.prettyPrint()));
+      logger.info(String.format("Feature Vector %s%n", t.prettyPrint()));
     }
     convolutionLayer.kernel.setByCoord(c -> {
       final int kband = c.getCoords()[2];
@@ -418,8 +422,8 @@ class EncodingUtil {
       final double v = featureSpaceVectors[inband].get(x, y, outband);
       return Double.isFinite(v) ? v : convolutionLayer.kernel.get(c);
     });
-    System.out.println(String.format("Bias: %s%n", Arrays.toString(biasLayer.getBias())));
-    System.out.println(String.format("Kernel: %s%n", convolutionLayer.kernel.prettyPrint()));
+    logger.info(String.format("Bias: %s%n", Arrays.toString(biasLayer.getBias())));
+    logger.info(String.format("Kernel: %s%n", convolutionLayer.kernel.prettyPrint()));
   }
   
   /**

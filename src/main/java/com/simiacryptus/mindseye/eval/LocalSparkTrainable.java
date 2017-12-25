@@ -23,6 +23,8 @@ import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.rdd.RDD;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -36,6 +38,7 @@ import java.util.stream.Stream;
  * for debugging in some situations.
  */
 public class LocalSparkTrainable extends SparkTrainable {
+  private static final Logger logger = LoggerFactory.getLogger(LocalSparkTrainable.class);
   
   /**
    * Instantiates a new Local spark trainable.
@@ -82,7 +85,7 @@ public class LocalSparkTrainable extends SparkTrainable {
     final long time2 = System.nanoTime();
     final SparkTrainable.ReducableResult result = mapPartitions.stream().reduce(SparkTrainable.ReducableResult::add).get();
     if (isVerbose()) {
-      System.out.println(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
+      logger.info(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
     }
     final DeltaSet<NNLayer> xxx = getDelta(result);
     return new PointSample(xxx, new StateSet<NNLayer>(xxx), result.sum, 0.0, result.count).normalize();

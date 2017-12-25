@@ -137,7 +137,7 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
       final double sum = statistics.getSum();
       final DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
       result.accumulate(xxx, 1.0);
-      //System.out.println(String.format("Evaluated to %s delta buffers, %s mag", DeltaSet<NNLayer>.getMap().size(), DeltaSet<NNLayer>.getMagnitude()));
+      //logger.info(String.format("Evaluated to %s delta buffers, %s mag", DeltaSet<NNLayer>.getMap().size(), DeltaSet<NNLayer>.getMagnitude()));
       return new PointSample(xxx, new StateSet<NNLayer>(xxx), sum, 0.0, list.size());
     });
     if (null != monitor && verbosity() > 0) {
@@ -210,7 +210,7 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
       
       final TimedResult<PointSample> timedResult = TimedResult.time(() -> eval(data, new NNExecutionContext() {
       }, monitor));
-      //          System.out.println(String.format("Evaluated to %s delta arrays", DeltaSet<NNLayer>.run.size()));
+      //          logger.info(String.format("Evaluated to %s delta arrays", DeltaSet<NNLayer>.run.size()));
       if (null != monitor && verbosity() > 1) {
         monitor.log(String.format("Evaluated %s items in %.4fs (%s/%s)", data.size(), timedResult.timeNanos / 1e9, timedResult.result.getMean(), timedResult.result.delta.getMagnitude()));
       }

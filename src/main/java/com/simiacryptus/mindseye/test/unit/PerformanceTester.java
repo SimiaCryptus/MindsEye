@@ -28,6 +28,8 @@ import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.lang.TimedResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.stream.IntStream;
@@ -37,6 +39,7 @@ import java.util.stream.Stream;
  * The type Performance tester.
  */
 public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
+  static final Logger logger = LoggerFactory.getLogger(PerformanceTester.class);
   
   private int batches = 100;
   private int samples = 5;
@@ -137,16 +140,16 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
    * @param inputPrototype the input prototype
    */
   public void test(final NNLayer component, final Tensor[] inputPrototype) {
-    System.out.println(String.format("%s batches", batches));
-    System.out.println("Input Dimensions:");
+    logger.info(String.format("%s batches", batches));
+    logger.info("Input Dimensions:");
     final Tensor outputPrototype = SimpleEval.run(component, inputPrototype).getOutput();
     Arrays.stream(inputPrototype).map(t -> "\t" + Arrays.toString(t.getDimensions())).forEach(System.out::println);
-    System.out.println("Performance:");
+    logger.info("Performance:");
     if (isTestEvaluation()) {
       final DoubleStatistics statistics = IntStream.range(0, samples).mapToObj(i -> {
         return testEvaluationPerformance(component, inputPrototype);
       }).reduce((a, b) -> a.combine(b)).get();
-      System.out.println(String.format("\tEvaluation performance: %.6fs +- %.6fs [%.6fs - %.6fs]",
+      logger.info(String.format("\tEvaluation performance: %.6fs +- %.6fs [%.6fs - %.6fs]",
         statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
     }
     if (isTestLearning()) {
@@ -154,7 +157,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
         return testLearningPerformance(component, outputPrototype, inputPrototype);
       }).reduce((a, b) -> a.combine(b)).orElseGet(() -> null);
       if (null != statistics) {
-        System.out.println(String.format("\tLearning performance: %.6fs +- %.6fs [%.6fs - %.6fs]",
+        logger.info(String.format("\tLearning performance: %.6fs +- %.6fs [%.6fs - %.6fs]",
           statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
       }
     }

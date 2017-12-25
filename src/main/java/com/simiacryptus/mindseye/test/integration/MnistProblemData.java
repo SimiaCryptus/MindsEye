@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.test.integration;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.data.MNIST;
 import com.simiacryptus.util.test.LabeledObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.stream.Stream;
@@ -30,10 +32,11 @@ import java.util.stream.Stream;
  * The type Mnist problem data.
  */
 public class MnistProblemData implements ImageProblemData {
+  static final Logger logger = LoggerFactory.getLogger(MnistProblemData.class);
   
   @Override
   public Stream<LabeledObject<Tensor>> trainingData() throws IOException {
-    System.out.println(String.format("Loaded %d items", MNIST.trainingDataStream().count()));
+    logger.info(String.format("Loaded %d items", MNIST.trainingDataStream().count()));
     return MNIST.trainingDataStream();
   }
   

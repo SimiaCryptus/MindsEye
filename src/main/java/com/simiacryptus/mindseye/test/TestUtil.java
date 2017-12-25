@@ -35,6 +35,8 @@ import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 import guru.nidi.graphviz.attribute.RankDir;
 import guru.nidi.graphviz.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import smile.plot.PlotCanvas;
 import smile.plot.ScatterPlot;
 
@@ -54,6 +56,7 @@ import java.util.stream.Stream;
  * The type Image test util.
  */
 public class TestUtil {
+  private static final Logger logger = LoggerFactory.getLogger(TestUtil.class);
   
   /**
    * The constant originalOut.
@@ -105,7 +108,7 @@ public class TestUtil {
         .filter(Double::isFinite)
         .summaryStatistics();
       if (xStatistics.getCount() == 0) {
-        System.out.println("No Data");
+        logger.info("No Data");
         return null;
       }
       final double[] lowerBound = {xStatistics.getCount() == 0 ? 0 : xStatistics.getMin(), yStatistics.getCount() < 2 ? 0 : yStatistics.getMin()};
@@ -116,22 +119,22 @@ public class TestUtil {
       canvas.setSize(600, 400);
       final List<ProblemRun> filtered = Arrays.stream(trials).filter(x -> !x.history.isEmpty()).collect(Collectors.toList());
       if (filtered.isEmpty()) {
-        System.out.println("No Data");
+        logger.info("No Data");
         return null;
       }
       DoubleSummaryStatistics valueStatistics = filtered.stream().flatMap(x -> x.history.stream()).mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
-      System.out.println(String.format("Plotting range=%s, %s; valueStats=%s", Arrays.toString(lowerBound), Arrays.toString(upperBound), valueStatistics));
+      logger.info(String.format("Plotting range=%s, %s; valueStats=%s", Arrays.toString(lowerBound), Arrays.toString(upperBound), valueStatistics));
       for (final ProblemRun trial : filtered) {
         final double[][] pts = trial.history.stream().map(step -> new double[]{
           step.iteration, Math.log10(Math.max(step.fitness, valueStatistics.getMin()))})
           .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
           .toArray(i -> new double[i][]);
         if (pts.length > 1) {
-          System.out.println(String.format("Plotting %s points for %s", pts.length, trial.name));
+          logger.info(String.format("Plotting %s points for %s", pts.length, trial.name));
           canvas.add(trial.plot(pts));
         }
         else {
-          System.out.println(String.format("Only %s points for %s", pts.length, trial.name));
+          logger.info(String.format("Only %s points for %s", pts.length, trial.name));
         }
       }
       return canvas;
@@ -160,7 +163,7 @@ public class TestUtil {
         .filter(Double::isFinite)
         .summaryStatistics();
       if (yStatistics.getCount() == 0) {
-        System.out.println("No Data");
+        logger.info("No Data");
         return null;
       }
       final double[] lowerBound = {0, yStatistics.getCount() == 0 ? 0 : yStatistics.getMin()};
@@ -171,11 +174,11 @@ public class TestUtil {
       canvas.setSize(600, 400);
       final List<ProblemRun> filtered = Arrays.stream(trials).filter(x -> !x.history.isEmpty()).collect(Collectors.toList());
       if (filtered.isEmpty()) {
-        System.out.println("No Data");
+        logger.info("No Data");
         return null;
       }
       DoubleSummaryStatistics valueStatistics = filtered.stream().flatMap(x -> x.history.stream()).mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
-      System.out.println(String.format("Plotting range=%s, %s; valueStats=%s", Arrays.toString(lowerBound), Arrays.toString(upperBound), valueStatistics));
+      logger.info(String.format("Plotting range=%s, %s; valueStats=%s", Arrays.toString(lowerBound), Arrays.toString(upperBound), valueStatistics));
       for (int t = 0; t < filtered.size(); t++) {
         final ProblemRun trial = filtered.get(t);
         final DoubleSummaryStatistics trialStats = xStatistics[t];
@@ -184,11 +187,11 @@ public class TestUtil {
         }).filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
           .toArray(i -> new double[i][]);
         if (pts.length > 1) {
-          System.out.println(String.format("Plotting %s points for %s", pts.length, trial.name));
+          logger.info(String.format("Plotting %s points for %s", pts.length, trial.name));
           canvas.add(trial.plot(pts));
         }
         else {
-          System.out.println(String.format("Only %s points for %s", pts.length, trial.name));
+          logger.info(String.format("Only %s points for %s", pts.length, trial.name));
         }
       }
       return canvas;
@@ -214,11 +217,11 @@ public class TestUtil {
           metrics.put(layer.getInner(), layer);
         }
       });
-      System.out.println("Forward Performance: \n\t" + metrics.entrySet().stream().map(e -> {
+      logger.info("Forward Performance: \n\t" + metrics.entrySet().stream().map(e -> {
         final PercentileStatistics performance = e.getValue().getForwardPerformance();
         return String.format("%s -> %.6fs +- %.6fs (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
       }).reduce((a, b) -> a + "\n\t" + b));
-      System.out.println("Backward Performance: \n\t" + metrics.entrySet().stream().map(e -> {
+      logger.info("Backward Performance: \n\t" + metrics.entrySet().stream().map(e -> {
         final PercentileStatistics performance = e.getValue().getBackwardPerformance();
         return String.format("%s -> %.6fs +- %.6fs (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
       }).reduce((a, b) -> a + "\n\t" + b));
@@ -248,7 +251,7 @@ public class TestUtil {
       
       @Override
       public void log(final String msg) {
-        System.out.println(msg);
+        logger.info(msg);
         if (null != TestUtil.originalOut && System.out != TestUtil.originalOut) {
           TestUtil.originalOut.println(msg);
         }

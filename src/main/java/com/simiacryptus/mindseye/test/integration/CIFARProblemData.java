@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.test.integration;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.data.CIFAR10;
 import com.simiacryptus.util.test.LabeledObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.stream.Stream;
@@ -30,10 +32,11 @@ import java.util.stream.Stream;
  * The type Cifar problem data.
  */
 public class CIFARProblemData implements ImageProblemData {
+  private static final Logger logger = LoggerFactory.getLogger(CIFARProblemData.class);
   
   @Override
   public Stream<LabeledObject<Tensor>> trainingData() throws IOException {
-    System.out.println(String.format("Loaded %d items", CIFAR10.trainingDataStream().count()));
+    logger.info(String.format("Loaded %d items", CIFAR10.trainingDataStream().count()));
     return CIFAR10.trainingDataStream();
   }
   
