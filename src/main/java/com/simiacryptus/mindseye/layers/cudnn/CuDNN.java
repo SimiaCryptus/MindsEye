@@ -877,7 +877,7 @@ public class CuDNN {
       1, // upscale the input in x-direction
       1, // upscale the input in y-direction
       mode
-//      ,dataType
+      , dataType
     );
     CuDNN.log("cudnnSetConvolution2dDescriptor", result, convDesc,
       paddingY, // zero-padding height

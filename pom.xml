@@ -55,9 +55,9 @@
                 <groupId>org.jcuda</groupId>
                 <artifactId>jcudnn</artifactId>
                 <!--
-                <version>0.8.0-7.0.2</version>
-                -->
                 <version>0.8.0</version>
+                -->
+                <version>0.8.0-7.0.2</version>
             </dependency>
             <!-- Java Libraries: -->
             <dependency>
