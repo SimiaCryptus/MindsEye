@@ -23,7 +23,6 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.unit.JsonTest;
-import com.simiacryptus.mindseye.test.unit.StandardLayerTests;
 import com.simiacryptus.mindseye.test.unit.TrainingTester;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
@@ -156,8 +155,8 @@ public abstract class NLayerTest {
    * @param log the log
    */
   public void test(final NotebookOutput log) {
-    if (null != StandardLayerTests.originalOut) {
-      log.addCopy(StandardLayerTests.originalOut);
+    if (null != TestUtil.originalOut) {
+      log.addCopy(TestUtil.originalOut);
     }
     log.h1("%s", getClass().getSimpleName());
     final int[] inputDims = getInputDims();

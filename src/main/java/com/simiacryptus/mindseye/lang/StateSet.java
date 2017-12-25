@@ -153,6 +153,20 @@ public class StateSet<K> extends DoubleBufferSet<K, State<K>> {
     return this;
   }
   
+  /**
+   * Restore state set.
+   *
+   * @return the state set
+   */
+  public StateSet<K> restore() {
+    Stream<Map.Entry<K, State<K>>> stream = map.entrySet().stream();
+    if (map.size() > 100) {
+      stream = stream.parallel();
+    }
+    stream.forEach(e -> e.getValue().restore());
+    return this;
+  }
+  
   @Override
   protected State<K> factory(final K layer, final double[] ptr) {
     return new State<K>(layer, ptr);

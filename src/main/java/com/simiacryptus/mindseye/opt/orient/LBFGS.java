@@ -52,17 +52,6 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
   }
   
   /**
-   * Accept boolean.
-   *
-   * @param gradient  the gradient
-   * @param direction the direction
-   * @return the boolean
-   */
-  protected boolean accept(final DeltaSet<NNLayer> gradient, final DeltaSet<NNLayer> direction) {
-    return gradient.dot(direction) < 0;
-  }
-  
-  /**
    * Add to history.
    *
    * @param measurement the measurement
@@ -96,8 +85,7 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
         addToHistory(measure.point, monitor);
         return measure;
       }
-    }
-      .setDirectionType(type);
+    }.setDirectionType(type);
   }
   
   /**
@@ -151,14 +139,14 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
   protected DeltaSet<NNLayer> lbfgs(final PointSample measurement, final TrainingMonitor monitor, final List<PointSample> history) {
     final DeltaSet<NNLayer> result = measurement.delta.scale(-1);
     if (history.size() > minHistory) {
-      if (!step(measurement, monitor, history, result.copy())) {
-        monitor.log("Orientation rejected. Popping history element from " + history.stream().map(x -> String.format("%s", x.getMean())).reduce((a, b) -> a + ", " + b).get());
-        return lbfgs(measurement, monitor, history.subList(0, history.size() - 1));
-      }
-      else {
+      if (lbfgs(measurement, monitor, history, result)) {
         this.history.clear();
         this.history.addAll(history);
         return result;
+      }
+      else {
+        monitor.log("Orientation rejected. Popping history element from " + history.stream().map(x -> String.format("%s", x.getMean())).reduce((a, b) -> a + ", " + b).get());
+        return lbfgs(measurement, monitor, history.subList(0, history.size() - 1));
       }
     }
     else {
@@ -167,12 +155,11 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
     }
   }
   
-  private boolean step(PointSample measurement, TrainingMonitor monitor, List<PointSample> history, DeltaSet<NNLayer> original) {
+  private boolean lbfgs(PointSample measurement, TrainingMonitor monitor, List<PointSample> history, DeltaSet<NNLayer> direction) {
     try {
-      //final DeltaSet<NNLayer> original = result.copy();
       DeltaSet<NNLayer> p = measurement.delta.copy();
-      if ((!p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))))) {
-        throw new IllegalStateException();
+      if (!p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d)))) {
+        throw new IllegalStateException("Non-finite value");
       }
       final double[] alphas = new double[history.size()];
       for (int i = history.size() - 2; i >= 0; i--) {
@@ -180,71 +167,62 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
         final DeltaSet<NNLayer> yd = history.get(i + 1).delta.subtract(history.get(i).delta);
         final double denominator = sd.dot(yd);
         if (0 == denominator) {
-          monitor.log("Orientation vanished.");
-          return false;
+          throw new IllegalStateException("Orientation vanished.");
         }
         alphas[i] = p.dot(sd) / denominator;
         p = p.subtract(yd.scale(alphas[i]));
         if ((!p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))))) {
-          throw new IllegalStateException();
+          throw new IllegalStateException("Non-finite value");
         }
       }
       final DeltaSet<NNLayer> sk = history.get(history.size() - 1).weights.subtract(history.get(history.size() - 2).weights);
       final DeltaSet<NNLayer> yk = history.get(history.size() - 1).delta.subtract(history.get(history.size() - 2).delta);
       p = p.scale(sk.dot(yk) / yk.dot(yk));
-      if ((!p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))))) {
-        throw new IllegalStateException();
+      if (!p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d)))) {
+        throw new IllegalStateException("Non-finite value");
       }
       for (int i = 0; i < history.size() - 1; i++) {
         final DeltaSet<NNLayer> sd = history.get(i + 1).weights.subtract(history.get(i).weights);
         final DeltaSet<NNLayer> yd = history.get(i + 1).delta.subtract(history.get(i).delta);
         final double beta = p.dot(yd) / sd.dot(yd);
         p = p.add(sd.scale(alphas[i] - beta));
-        if ((!p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))))) {
-          throw new IllegalStateException();
+        if (!p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d)))) {
+          throw new IllegalStateException("Non-finite value");
         }
       }
-      for (final Map.Entry<NNLayer, Delta<NNLayer>> e : original.getMap().entrySet()) {
-        final double[] delta = p.getMap().get(e.getKey()).getDelta();
-        Arrays.setAll(e.getValue().getDelta(), j -> delta[j]);
+      boolean accept = measurement.delta.dot(p) < 0;
+      if (accept) {
+        monitor.log("Accepted: " + new Stats(direction, p));
+        copy(p, direction);
       }
-      final double mag = Math.sqrt(original.dot(original));
-      final double magGrad = Math.sqrt(original.dot(original));
-      final double dot = original.dot(original) / (mag * magGrad);
-      final List<String> anglesPerLayer = measurement.delta.getMap().entrySet().stream()
-        .filter(e -> !(e.getKey() instanceof PlaceholderLayer)) // This would be too verbose
-        .map((final Map.Entry<NNLayer, Delta<NNLayer>> e) -> {
-          final double[] lbfgsVector = original.getMap().get(e.getKey()).getDelta();
-          for (int index = 0; index < lbfgsVector.length; index++) {
-            lbfgsVector[index] = Double.isFinite(lbfgsVector[index]) ? lbfgsVector[index] : 0;
-          }
-          final double[] gradientVector = original.getMap().get(e.getKey()).getDelta();
-          for (int index = 0; index < gradientVector.length; index++) {
-            gradientVector[index] = Double.isFinite(gradientVector[index]) ? gradientVector[index] : 0;
-          }
-          final double lbfgsMagnitude = ArrayUtil.magnitude(lbfgsVector);
-          final double gradientMagnitude = ArrayUtil.magnitude(gradientVector);
-          if (!Double.isFinite(gradientMagnitude)) throw new IllegalStateException();
-          if (!Double.isFinite(lbfgsMagnitude)) throw new IllegalStateException();
-          final String layerName = measurement.delta.getMap().get(e.getKey()).layer.getName();
-          if (gradientMagnitude == 0.0) {
-            return String.format("%s = %.3e", layerName, lbfgsMagnitude);
-          }
-          else {
-            final double dotP = ArrayUtil.dot(lbfgsVector, gradientVector) / (lbfgsMagnitude * gradientMagnitude);
-            return String.format("%s = %.3f/%.3e", layerName, dotP, lbfgsMagnitude / gradientMagnitude);
-          }
-        }).collect(Collectors.toList());
-      monitor.log(String.format("LBFGS Orientation magnitude: %.3e, gradient %.3e, dot %.3f; %s", mag, magGrad, dot, anglesPerLayer));
-      return accept(measurement.delta, original);
+      else {
+        monitor.log("Rejected: " + new Stats(direction, p));
+      }
+      return accept;
     } catch (Throwable e) {
       monitor.log(String.format("LBFGS Orientation Error: %s", e.getMessage()));
       return false;
     }
   }
   
+  private void copy(DeltaSet<NNLayer> from, DeltaSet<NNLayer> to) {
+    for (final Map.Entry<NNLayer, Delta<NNLayer>> e : to.getMap().entrySet()) {
+      final double[] delta = from.getMap().get(e.getKey()).getDelta();
+      Arrays.setAll(e.getValue().getDelta(), j -> delta[j]);
+    }
+  }
+  
   @Override
   public SimpleLineSearchCursor orient(final Trainable subject, final PointSample measurement, final TrainingMonitor monitor) {
+  
+    if (getClass().desiredAssertionStatus()) {
+      double verify = subject.measure(monitor).getMean();
+      double input = measurement.getMean();
+      boolean isDifferent = Math.abs(verify - input) > 1e-2;
+      if (isDifferent) throw new AssertionError(String.format("Invalid input point: %s != %s", verify, input));
+      monitor.log(String.format("Verified input point: %s == %s", verify, input));
+    }
+    
     addToHistory(measurement, monitor);
     final List<PointSample> history = Arrays.asList(this.history.toArray(new PointSample[]{}));
     final DeltaSet<NNLayer> result = lbfgs(measurement, monitor, history);
@@ -261,11 +239,105 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
         monitor.log(String.format("Removed measurement %s to history. Total: %s", Long.toHexString(System.identityHashCode(remove)), history.size()));
       }
     }
+  
+    if (getClass().desiredAssertionStatus()) {
+      double verify = returnValue.step(0, monitor).point.getMean();
+      double input = measurement.getMean();
+      boolean isDifferent = Math.abs(verify - input) > 1e-2;
+      if (isDifferent) throw new AssertionError(String.format("Invalid lfbgs cursor: %s != %s", verify, input));
+      monitor.log(String.format("Verified lfbgs cursor: %s == %s", verify, input));
+    }
+
     return returnValue;
   }
   
   @Override
   public void reset() {
     history.clear();
+  }
+  
+  private class Stats {
+    private final double mag;
+    private final double magGrad;
+    private final double dot;
+    private final List<String> anglesPerLayer;
+    
+    /**
+     * Instantiates a new Stats.
+     *
+     * @param gradient    the gradient
+     * @param quasinewton the quasinewton
+     */
+    public Stats(DeltaSet<NNLayer> gradient, DeltaSet<NNLayer> quasinewton) {
+      mag = Math.sqrt(quasinewton.dot(quasinewton));
+      magGrad = Math.sqrt(gradient.dot(gradient));
+      dot = gradient.dot(quasinewton) / (mag * magGrad);
+      anglesPerLayer = gradient.getMap().entrySet().stream()
+        .filter(e -> !(e.getKey() instanceof PlaceholderLayer)) // This would be too verbose
+        .map((final Map.Entry<NNLayer, Delta<NNLayer>> e) -> {
+          final double[] lbfgsVector = gradient.getMap().get(e.getKey()).getDelta();
+          for (int index = 0; index < lbfgsVector.length; index++) {
+            lbfgsVector[index] = Double.isFinite(lbfgsVector[index]) ? lbfgsVector[index] : 0;
+          }
+          final double[] gradientVector = gradient.getMap().get(e.getKey()).getDelta();
+          for (int index = 0; index < gradientVector.length; index++) {
+            gradientVector[index] = Double.isFinite(gradientVector[index]) ? gradientVector[index] : 0;
+          }
+          final double lbfgsMagnitude = ArrayUtil.magnitude(lbfgsVector);
+          final double gradientMagnitude = ArrayUtil.magnitude(gradientVector);
+          if (!Double.isFinite(gradientMagnitude)) throw new IllegalStateException();
+          if (!Double.isFinite(lbfgsMagnitude)) throw new IllegalStateException();
+          final String layerName = gradient.getMap().get(e.getKey()).layer.getName();
+          if (gradientMagnitude == 0.0) {
+            return String.format("%s = %.3e", layerName, lbfgsMagnitude);
+          }
+          else {
+            final double dotP = ArrayUtil.dot(lbfgsVector, gradientVector) / (lbfgsMagnitude * gradientMagnitude);
+            return String.format("%s = %.3f/%.3e", layerName, dotP, lbfgsMagnitude / gradientMagnitude);
+          }
+        }).collect(Collectors.toList());
+    }
+    
+    @Override
+    public String toString() {
+      return String.format("LBFGS Orientation magnitude: %.3e, gradient %.3e, dot %.3f; %s",
+        getMag(), getMagGrad(), getDot(), getAnglesPerLayer());
+    }
+    
+    /**
+     * Gets mag.
+     *
+     * @return the mag
+     */
+    public double getMag() {
+      return mag;
+    }
+    
+    /**
+     * Gets mag grad.
+     *
+     * @return the mag grad
+     */
+    public double getMagGrad() {
+      return magGrad;
+    }
+    
+    /**
+     * Gets dot.
+     *
+     * @return the dot
+     */
+    public double getDot() {
+      return dot;
+    }
+    
+    /**
+     * Gets angles per layer.
+     *
+     * @return the angles per layer
+     */
+    public List<String> getAnglesPerLayer() {
+      return anglesPerLayer;
+    }
   }
 }

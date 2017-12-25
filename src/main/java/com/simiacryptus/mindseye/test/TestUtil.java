@@ -95,30 +95,44 @@ public class TestUtil {
    * @return the plot canvas
    */
   public static PlotCanvas compare(final String title, final ProblemRun... trials) {
-    final DoubleSummaryStatistics xStatistics = Arrays.stream(trials)
-      .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> step.iteration))
-      .filter(Double::isFinite)
-      .summaryStatistics();
-    final DoubleSummaryStatistics yStatistics = Arrays.stream(trials)
-      .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> java.lang.Math.log10(step.fitness)))
-      .filter(Double::isFinite)
-      .summaryStatistics();
-    if (xStatistics.getCount() == 0) return null;
-    final double[] lowerBound = {xStatistics.getMin(), yStatistics.getMin()};
-    final double[] upperBound = {xStatistics.getMax(), yStatistics.getMax()};
     try {
+      final DoubleSummaryStatistics xStatistics = Arrays.stream(trials)
+        .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> step.iteration))
+        .filter(Double::isFinite)
+        .summaryStatistics();
+      final DoubleSummaryStatistics yStatistics = Arrays.stream(trials)
+        .flatMapToDouble(x -> x.history.stream().filter(y -> y.fitness > 0).mapToDouble(step -> java.lang.Math.log10(step.fitness)))
+        .filter(Double::isFinite)
+        .summaryStatistics();
+      if (xStatistics.getCount() == 0) {
+        System.out.println("No Data");
+        return null;
+      }
+      final double[] lowerBound = {xStatistics.getCount() == 0 ? 0 : xStatistics.getMin(), yStatistics.getCount() < 2 ? 0 : yStatistics.getMin()};
+      final double[] upperBound = {xStatistics.getCount() == 0 ? 1 : xStatistics.getMax(), yStatistics.getCount() < 2 ? 1 : yStatistics.getMax()};
       final PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
       canvas.setTitle(title);
       canvas.setAxisLabels("Iteration", "log10(Fitness)");
       canvas.setSize(600, 400);
       final List<ProblemRun> filtered = Arrays.stream(trials).filter(x -> !x.history.isEmpty()).collect(Collectors.toList());
-      if (filtered.isEmpty()) return null;
+      if (filtered.isEmpty()) {
+        System.out.println("No Data");
+        return null;
+      }
+      DoubleSummaryStatistics valueStatistics = filtered.stream().flatMap(x -> x.history.stream()).mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
+      System.out.println(String.format("Plotting range=%s, %s; valueStats=%s", Arrays.toString(lowerBound), Arrays.toString(upperBound), valueStatistics));
       for (final ProblemRun trial : filtered) {
         final double[][] pts = trial.history.stream().map(step -> new double[]{
-          step.iteration, Math.log10(step.fitness)})
+          step.iteration, Math.log10(Math.max(step.fitness, valueStatistics.getMin()))})
           .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
           .toArray(i -> new double[i][]);
-        canvas.add(trial.plot(pts));
+        if (pts.length > 1) {
+          System.out.println(String.format("Plotting %s points for %s", pts.length, trial.name));
+          canvas.add(trial.plot(pts));
+        }
+        else {
+          System.out.println(String.format("Only %s points for %s", pts.length, trial.name));
+        }
       }
       return canvas;
     } catch (final Exception e) {
@@ -135,34 +149,53 @@ public class TestUtil {
    * @return the plot canvas
    */
   public static PlotCanvas compareTime(final String title, final ProblemRun... trials) {
-    final DoubleSummaryStatistics[] xStatistics = Arrays.stream(trials)
-      .map(x -> x.history.stream().mapToDouble(step -> step.epochTime)
+    try {
+      final DoubleSummaryStatistics[] xStatistics = Arrays.stream(trials)
+        .map(x -> x.history.stream().mapToDouble(step -> step.epochTime)
+          .filter(Double::isFinite)
+          .summaryStatistics()).toArray(i -> new DoubleSummaryStatistics[i]);
+      final double totalTime = Arrays.stream(xStatistics).mapToDouble(x -> x.getMax() - x.getMin()).max().getAsDouble();
+      final DoubleSummaryStatistics yStatistics = Arrays.stream(trials)
+        .flatMapToDouble(x -> x.history.stream().filter(y -> y.fitness > 0).mapToDouble(step -> java.lang.Math.log10(step.fitness)))
         .filter(Double::isFinite)
-        .summaryStatistics()).toArray(i -> new DoubleSummaryStatistics[i]);
-    final double totalTime = Arrays.stream(xStatistics).mapToDouble(x -> x.getMax() - x.getMin()).max().getAsDouble();
-    final DoubleSummaryStatistics yStatistics = Arrays.stream(trials)
-      .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> java.lang.Math.log10(step.fitness)))
-      .filter(Double::isFinite)
-      .summaryStatistics();
-    if (yStatistics.getCount() == 0) return null;
-    final double[] lowerBound = {0, yStatistics.getMin()};
-    final double[] upperBound = {totalTime / 1000.0, yStatistics.getMax()};
-    final PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
-    canvas.setTitle(title);
-    canvas.setAxisLabels("Time", "log10(Fitness)");
-    canvas.setSize(600, 400);
-    final List<ProblemRun> filtered = Arrays.stream(trials).filter(x -> !x.history.isEmpty()).collect(Collectors.toList());
-    if (filtered.isEmpty()) return null;
-    for (int t = 0; t < filtered.size(); t++) {
-      final ProblemRun trial = filtered.get(t);
-      final DoubleSummaryStatistics trialStats = xStatistics[t];
-      final double[][] pts = trial.history.stream().map(step -> {
-        return new double[]{(step.epochTime - trialStats.getMin()) / 1000.0, Math.log10(step.fitness)};
-      }).filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
-        .toArray(i -> new double[i][]);
-      canvas.add(trial.plot(pts));
+        .summaryStatistics();
+      if (yStatistics.getCount() == 0) {
+        System.out.println("No Data");
+        return null;
+      }
+      final double[] lowerBound = {0, yStatistics.getCount() == 0 ? 0 : yStatistics.getMin()};
+      final double[] upperBound = {totalTime / 1000.0, yStatistics.getCount() == 1 ? 0 : yStatistics.getMax()};
+      final PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
+      canvas.setTitle(title);
+      canvas.setAxisLabels("Time", "log10(Fitness)");
+      canvas.setSize(600, 400);
+      final List<ProblemRun> filtered = Arrays.stream(trials).filter(x -> !x.history.isEmpty()).collect(Collectors.toList());
+      if (filtered.isEmpty()) {
+        System.out.println("No Data");
+        return null;
+      }
+      DoubleSummaryStatistics valueStatistics = filtered.stream().flatMap(x -> x.history.stream()).mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
+      System.out.println(String.format("Plotting range=%s, %s; valueStats=%s", Arrays.toString(lowerBound), Arrays.toString(upperBound), valueStatistics));
+      for (int t = 0; t < filtered.size(); t++) {
+        final ProblemRun trial = filtered.get(t);
+        final DoubleSummaryStatistics trialStats = xStatistics[t];
+        final double[][] pts = trial.history.stream().map(step -> {
+          return new double[]{(step.epochTime - trialStats.getMin()) / 1000.0, Math.log10(Math.max(step.fitness, valueStatistics.getMin()))};
+        }).filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
+          .toArray(i -> new double[i][]);
+        if (pts.length > 1) {
+          System.out.println(String.format("Plotting %s points for %s", pts.length, trial.name));
+          canvas.add(trial.plot(pts));
+        }
+        else {
+          System.out.println(String.format("Only %s points for %s", pts.length, trial.name));
+        }
+      }
+      return canvas;
+    } catch (final Exception e) {
+      e.printStackTrace(System.out);
+      return null;
     }
-    return canvas;
   }
   
   /**
@@ -258,8 +291,9 @@ public class TestUtil {
    */
   public static PlotCanvas plot(final List<StepRecord> history) {
     try {
+      final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
       final PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
-        step.iteration, java.lang.Math.log10(step.fitness)})
+        step.iteration, java.lang.Math.log10(Math.max(valueStats.getMin(), step.fitness))})
         .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
         .toArray(i -> new double[i][]));
       plot.setTitle("Convergence Plot");
@@ -281,8 +315,9 @@ public class TestUtil {
   public static PlotCanvas plotTime(final List<StepRecord> history) {
     try {
       final LongSummaryStatistics timeStats = history.stream().mapToLong(x -> x.epochTime).summaryStatistics();
+      final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
       final PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
-        (step.epochTime - timeStats.getMin()) / 1000.0, java.lang.Math.log10(step.fitness)})
+        (step.epochTime - timeStats.getMin()) / 1000.0, java.lang.Math.log10(Math.max(valueStats.getMin(), step.fitness))})
         .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
         .toArray(i -> new double[i][]));
       plot.setTitle("Convergence Plot");
@@ -337,7 +372,10 @@ public class TestUtil {
     if (!history.isEmpty()) {
       log.out("Convergence Plot: ");
       log.code(() -> {
-        final PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.fitness)}).toArray(i -> new double[i][]));
+        final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
+        final PlotCanvas plot = ScatterPlot.plot(history.stream().map(step ->
+          new double[]{step.iteration, java.lang.Math.log10(Math.max(valueStats.getMin(), step.fitness))})
+          .toArray(i -> new double[i][]));
         plot.setTitle("Convergence Plot");
         plot.setAxisLabels("Iteration", "log10(Fitness)");
         plot.setSize(600, 400);

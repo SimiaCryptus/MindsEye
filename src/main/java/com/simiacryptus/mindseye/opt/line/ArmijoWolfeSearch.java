@@ -232,7 +232,7 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
   
   @Override
   public PointSample step(final LineSearchCursor cursor, final TrainingMonitor monitor) {
-    alpha *= alphaGrowth; // Keep memory of alpha from one iteration to next, but have a bias for growing the value
+    alpha = Math.min(maxAlpha, alpha * alphaGrowth); // Keep memory of alpha from one iteration to next, but have a bias for growing the value
     double mu = 0;
     double nu = Double.POSITIVE_INFINITY;
     final LineSearchPoint startPoint = cursor.step(0, monitor);
@@ -254,9 +254,6 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
         return point;
       }
       double lastValue = null == lastStep ? Double.POSITIVE_INFINITY : lastStep.point.getMean();
-      if (!Double.isFinite(lastValue)) {
-        lastValue = Double.POSITIVE_INFINITY;
-      }
       if (mu >= nu - absoluteTolerance) {
         loosenMetaparameters();
         PointSample point = cursor.step(bestAlpha, monitor).point;
@@ -310,7 +307,6 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
       }
       else {
         monitor.log(String.format("END: th(%s)=%s; dx=%s delta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
-        stepBias = 0;
         return lastStep.point;
       }
       if (!Double.isFinite(nu)) {

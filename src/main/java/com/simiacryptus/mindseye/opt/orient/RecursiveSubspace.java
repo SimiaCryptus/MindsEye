@@ -42,6 +42,10 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
   
   private int iterations = 4;
   private double[] weights = null;
+  /**
+   * The constant CURSOR_LABEL.
+   */
+  public static final String CURSOR_LABEL = "RecursiveSubspace";
 
   @Override
   public SimpleLineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
@@ -51,7 +55,7 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
     macroLayer.eval(null, (NNResult) null);
     DeltaSet<NNLayer> delta = origin.weights.backupCopy().subtract(origin.weights);
     origin.restore();
-    return new SimpleLineSearchCursor(subject, origin, delta).setDirectionType("RecursiveSubspace");
+    return new SimpleLineSearchCursor(subject, origin, delta).setDirectionType(CURSOR_LABEL);
   }
   
   /**

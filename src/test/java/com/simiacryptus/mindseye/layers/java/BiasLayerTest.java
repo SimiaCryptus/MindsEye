@@ -27,23 +27,48 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
  */
 public class BiasLayerTest extends LayerTestBase {
   
+  private final int dimension;
+  
+  /**
+   * Instantiates a new Bias layer test.
+   */
+  public BiasLayerTest() {
+    this(5);
+  }
+  
+  /**
+   * Instantiates a new Bias layer test.
+   *
+   * @param dimension the dimension
+   */
+  public BiasLayerTest(int dimension) {
+    this.dimension = dimension;
+  }
+  
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3}
+      {dimension}
     };
   }
   
   @Override
   public NNLayer getLayer(final int[][] inputSize) {
-    return new BiasLayer(3).addWeights(this::random);
+    return new BiasLayer(dimension).addWeights(this::random);
   }
   
   /**
    * The type Reducing.
    */
   public static class Reducing extends BiasLayerTest {
-
+  
+    /**
+     * Instantiates a new Reducing.
+     */
+    public Reducing() {
+      super(5);
+    }
+  
     @Override
     public NNLayer getLayer(final int[][] inputSize) {
       return new BiasLayer(1).addWeights(this::random);

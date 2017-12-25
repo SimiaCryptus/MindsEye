@@ -27,7 +27,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.IntStream;
 
 /**
- * The type Simple eval.
+ * The type Simple trainAll.
  */
 public class SimpleEval implements Callable<SimpleEval> {
   private final Tensor[] input;
@@ -36,7 +36,7 @@ public class SimpleEval implements Callable<SimpleEval> {
   private Tensor output;
   
   /**
-   * Instantiates a new Simple eval.
+   * Instantiates a new Simple trainAll.
    *
    * @param layer the layer
    * @param input the input
@@ -47,11 +47,11 @@ public class SimpleEval implements Callable<SimpleEval> {
   }
   
   /**
-   * Run simple eval.
+   * Run simple trainAll.
    *
    * @param layer  the layer
    * @param tensor the tensor
-   * @return the simple eval
+   * @return the simple trainAll
    */
   public static SimpleEval run(final NNLayer layer, final Tensor... tensor) {
     return new SimpleEval(layer, tensor).call();

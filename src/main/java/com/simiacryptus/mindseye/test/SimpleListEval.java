@@ -27,7 +27,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.IntStream;
 
 /**
- * The type Simple list eval.
+ * The type Simple list trainAll.
  */
 public class SimpleListEval implements Callable<SimpleListEval> {
   private final TensorList[] input;
@@ -36,7 +36,7 @@ public class SimpleListEval implements Callable<SimpleListEval> {
   private TensorList output;
   
   /**
-   * Instantiates a new Simple list eval.
+   * Instantiates a new Simple list trainAll.
    *
    * @param layer the layer
    * @param input the input
@@ -59,11 +59,11 @@ public class SimpleListEval implements Callable<SimpleListEval> {
   }
   
   /**
-   * Run simple list eval.
+   * Run simple list trainAll.
    *
    * @param layer  the layer
    * @param tensor the tensor
-   * @return the simple list eval
+   * @return the simple list trainAll
    */
   public static SimpleListEval run(final NNLayer layer, final TensorList... tensor) {
     return new SimpleListEval(layer, tensor).call();

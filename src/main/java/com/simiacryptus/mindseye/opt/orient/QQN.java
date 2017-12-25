@@ -40,6 +40,10 @@ import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
  */
 public class QQN implements OrientationStrategy<LineSearchCursor> {
   
+  /**
+   * The constant CURSOR_NAME.
+   */
+  public static final String CURSOR_NAME = "QQN";
   private final LBFGS inner = new LBFGS();
   
   /**
@@ -97,7 +101,7 @@ public class QQN implements OrientationStrategy<LineSearchCursor> {
 
         @Override
         public String getDirectionType() {
-          return "QQN";
+          return CURSOR_NAME;
         }
 
         @Override

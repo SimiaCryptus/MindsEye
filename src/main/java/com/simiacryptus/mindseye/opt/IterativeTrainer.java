@@ -231,17 +231,25 @@ public class IterativeTrainer {
   /**
    * Measure point sample.
    *
+   * @param reset the reset
    * @return the point sample
    */
-  public PointSample measure() {
+  public PointSample measure(boolean reset) {
     PointSample currentPoint;
     int retries = 0;
     do {
-      if (!subject.reseed(System.nanoTime()) && retries > 0) throw new IterativeStopException();
-      if (10 < retries++) throw new IterativeStopException();
+      if (reset) {
+        orientation.reset();
+        if (!subject.reseed(System.nanoTime())) {
+          if (retries > 0) throw new IterativeStopException("Failed to reset training subject");
+        }
+        else {
+          monitor.log(String.format("Reset training subject"));
+        }
+      }
       currentPoint = subject.measure(monitor);
-    } while (!Double.isFinite(currentPoint.getMean()));
-    assert Double.isFinite(currentPoint.getMean());
+    } while (!Double.isFinite(currentPoint.getMean()) && 10 < retries++);
+    if (!Double.isFinite(currentPoint.getMean())) throw new IterativeStopException();
     return currentPoint;
   }
   
@@ -253,13 +261,13 @@ public class IterativeTrainer {
   public double run() {
     final long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     long lastIterationTime = System.nanoTime();
-    PointSample currentPoint = measure();
+    PointSample currentPoint = measure(true);
     mainLoop:
     while (timeoutMs > System.currentTimeMillis() && currentPoint.getMean() > terminateThreshold) {
       if (currentIteration.get() > maxIterations) {
         break;
       }
-      currentPoint = measure();
+      currentPoint = measure(true);
       assert 0 < currentPoint.delta.getMap().size() : "Nothing to optimize";
       subiterationLoop:
       for (int subiteration = 0; subiteration < iterationsPerSample || iterationsPerSample <= 0; subiteration++) {
@@ -269,6 +277,7 @@ public class IterativeTrainer {
         if (currentIteration.incrementAndGet() > maxIterations) {
           break mainLoop;
         }
+        currentPoint = measure(true);
         final PointSample _currentPoint = currentPoint;
         final TimedResult<LineSearchCursor> timedOrientation = TimedResult.time(() -> orientation.orient(subject, _currentPoint, monitor));
         final LineSearchCursor direction = timedOrientation.result;
@@ -282,24 +291,33 @@ public class IterativeTrainer {
         lastIterationTime = now;
         if (previous.getMean() <= currentPoint.getMean()) {
           if (previous.getMean() < currentPoint.getMean()) {
-            monitor.log(String.format("Resetting Iteration " + perfString));
+            monitor.log(String.format("Resetting Iteration %s", perfString));
             currentPoint = direction.step(0, monitor).point;
           }
+          else {
+            monitor.log(String.format("Static Iteration %s", perfString));
+          }
           if (subject.reseed(System.nanoTime())) {
-            monitor.log(String.format("Iteration %s failed, retrying. Error: %s " + perfString, currentIteration.get(), currentPoint.getMean()));
+            monitor.log(String.format("Iteration %s failed, retrying. Error: %s",
+              currentIteration.get(), currentPoint.getMean()));
+            monitor.log(String.format("Previous Error: %s -> %s",
+              previous.getRate(), previous.getMean()));
             break subiterationLoop;
           }
           else {
-            monitor.log(String.format("Iteration %s failed, aborting. Error: %s " + perfString, currentIteration.get(), currentPoint.getMean()));
+            monitor.log(String.format("Iteration %s failed, aborting. Error: %s",
+              currentIteration.get(), currentPoint.getMean()));
+            monitor.log(String.format("Previous Error: %s -> %s",
+              previous.getRate(), previous.getMean()));
             break mainLoop;
           }
         }
         else {
-          monitor.log(String.format("Iteration %s complete. Error: %s " + perfString, currentIteration.get(), currentPoint.getMean()));
+          monitor.log(String.format("Iteration %s complete. Error: %s " + perfString,
+            currentIteration.get(), currentPoint.getMean()));
         }
         monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
       }
-      orientation.reset();
     }
     return null == currentPoint ? Double.NaN : currentPoint.getMean();
   }

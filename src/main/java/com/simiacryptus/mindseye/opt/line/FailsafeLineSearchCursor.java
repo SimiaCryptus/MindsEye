@@ -65,6 +65,7 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
    * @return the best
    */
   public PointSample getBest(final TrainingMonitor monitor) {
+    best.weights.restore();
     return best;
   }
   

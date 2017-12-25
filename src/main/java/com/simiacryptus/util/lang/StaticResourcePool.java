@@ -48,7 +48,6 @@ public class StaticResourcePool<T> {
    * With u.
    *
    * @param f the f
-   * @return the u
    */
   public void apply(final Consumer<T> f) {
     T poll = this.pool.poll();

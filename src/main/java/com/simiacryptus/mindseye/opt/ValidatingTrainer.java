@@ -637,7 +637,7 @@ public class ValidatingTrainer {
       final StepResult epoch = runStep(currentPoint, phase);
       final long newGcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
       final long endTime = System.nanoTime();
-      final String performance = String.format("%s in %.3f seconds; %.3f in orientation, %.3f in gc, %.3f in line search; %.3f eval time",
+      final String performance = String.format("%s in %.3f seconds; %.3f in orientation, %.3f in gc, %.3f in line search; %.3f trainAll time",
         epochParams.trainingSize, (endTime - startTime) / 1e9,
         epoch.performance[0],
         (newGcTime - prevGcTime) / 1e3,

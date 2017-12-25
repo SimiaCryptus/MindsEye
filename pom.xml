@@ -29,8 +29,9 @@
     </parent>
 
     <artifactId>mindseye</artifactId>
-    <version>1.3</version>
-    <description>A neural network library for Java 8</description>
+    <version>1.4</version>
+    <description>Neural Networks with Java 8 and CuDNN</description>
+    <url>https://github.com/SimiaCryptus/MindsEye/</url>
 
     <properties>
         <github.project>mindseye</github.project>
@@ -39,7 +40,7 @@
     <distributionManagement>
         <site>
             <id>github</id>
-            <url>https://simiacryptus.github.io/${github.project}/${github.path}</url>
+            <url>https://simiacryptus.github.io/MindsEye</url>
         </site>
     </distributionManagement>
 

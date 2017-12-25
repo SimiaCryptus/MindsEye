@@ -20,6 +20,8 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.test.unit.ComponentTest;
+import com.simiacryptus.mindseye.test.unit.TrainingTester;
 
 import java.util.HashMap;
 
@@ -39,5 +41,10 @@ public class HyperbolicActivationLayerTest extends ActivationLayerTestBase {
     final HashMap<Tensor[], Tensor> map = super.getReferenceIO();
     map.put(new Tensor[]{new Tensor(0.0)}, new Tensor(0.0));
     return map;
+  }
+  
+  @Override
+  public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
+    return new TrainingTester().setRandomizationMode(TrainingTester.RandomizationMode.Random);
   }
 }

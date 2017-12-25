@@ -30,7 +30,6 @@ import com.simiacryptus.util.lang.CodeUtil;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -40,10 +39,6 @@ import java.util.function.Consumer;
  * The type Layer test base.
  */
 public abstract class StandardLayerTests {
-  /**
-   * The constant originalOut.
-   */
-  public static final PrintStream originalOut = System.out;
   /**
    * The Validate batch execution.
    */
@@ -230,8 +225,8 @@ public abstract class StandardLayerTests {
    * @param log the log
    */
   public void test(final NotebookOutput log) {
-    if (null != StandardLayerTests.originalOut) {
-      log.addCopy(StandardLayerTests.originalOut);
+    if (null != TestUtil.originalOut) {
+      log.addCopy(TestUtil.originalOut);
     }
     final NNLayer layer = getLayer(getInputDims());
     log.h1("%s", layer.getClass().getSimpleName());

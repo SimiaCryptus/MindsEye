@@ -133,7 +133,6 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    * Sets verbose.
    *
    * @param verbose the verbose
-   * @return the verbose
    */
   public static void setVerbosity(final int verbose) {
     verbosity = verbose;

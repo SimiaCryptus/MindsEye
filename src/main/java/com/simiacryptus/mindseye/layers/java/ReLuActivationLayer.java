@@ -31,7 +31,7 @@ import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
 
 /**
- * Rectified Linear Unit. y=(x<0)?0:x
+ * Rectified Linear Unit. y=(x&lt;0)?0:x
  */
 @SuppressWarnings("serial")
 public class ReLuActivationLayer extends NNLayer {
