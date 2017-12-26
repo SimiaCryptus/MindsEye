@@ -172,7 +172,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
    */
   @Override
   public ToleranceStatistics test(final NotebookOutput log, final NNLayer component, final Tensor... inputPrototype) {
-    log.h3("Performance");
+    log.h1("Performance");
     if (component instanceof DAGNetwork) {
       TestUtil.instrumentPerformance(log, (DAGNetwork) component);
     }

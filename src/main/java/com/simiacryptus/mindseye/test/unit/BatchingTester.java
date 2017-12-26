@@ -108,7 +108,8 @@ public class BatchingTester implements ComponentTest<ToleranceStatistics> {
    */
   @Override
   public ToleranceStatistics test(final NotebookOutput log, final NNLayer reference, final Tensor... inputPrototype) {
-    log.h3("Batch Execution");
+    log.h1("Batch Execution");
+    log.p("Most layers, including this one, should behave the same no matter how the items are split between batches. We verify this:");
     return log.code(() -> {
       return test(reference, inputPrototype);
     });

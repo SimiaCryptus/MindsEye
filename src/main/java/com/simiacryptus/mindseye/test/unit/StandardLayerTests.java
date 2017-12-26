@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.lang.CodeUtil;
+import com.simiacryptus.util.test.SysOutInterceptor;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 
@@ -40,6 +41,9 @@ import java.util.function.Consumer;
  * The type Layer test base.
  */
 public abstract class StandardLayerTests {
+  protected static final Object force_classload[] = {
+    SysOutInterceptor.class
+  };
   /**
    * The Validate batch execution.
    */
@@ -230,19 +234,21 @@ public abstract class StandardLayerTests {
       log.addCopy(TestUtil.originalOut);
     }
     final NNLayer layer = getLayer(getInputDims());
-    log.h1("%s", layer.getClass().getSimpleName());
-    log.p(String.format("Layer Type %s", log.link(CodeUtil.findFile(layer.getClass()), layer.getClass().getCanonicalName())));
+    String layerJavadoc = CodeUtil.getJavadoc(layer.getClass());
+    String testJavadoc = CodeUtil.getJavadoc(getClass());
     log.setFMProp("layer_class_short", layer.getClass().getSimpleName());
     log.setFMProp("test_class_short", getClass().getSimpleName());
     log.setFMProp("created_on", new Date().toString());
     log.setFMProp("layer_class_full", layer.getClass().getCanonicalName());
     log.setFMProp("test_class_full", getClass().getCanonicalName());
-    log.p(CodeUtil.getJavadoc(layer.getClass()));
-    log.h2("%s", getClass().getSimpleName());
-    log.p(String.format("Test Type %s", log.link(CodeUtil.findFile(getClass()), getClass().getCanonicalName())));
-    log.p(CodeUtil.getJavadoc(getClass()));
+    log.setFMProp("layer_class_doc", layerJavadoc.replaceAll("\n", ""));
+    log.setFMProp("test_class_doc", testJavadoc.replaceAll("\n", ""));
+  
+    log.p("__Layer Description:__ " + layerJavadoc);
+    log.p("__Test Description:__ " + testJavadoc);
+
     if (layer instanceof DAGNetwork) {
-      log.h3("Network Diagram");
+      log.h1("Network Diagram");
       log.p("This is a network with the following layout:");
       log.code(() -> {
         return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))

@@ -97,10 +97,12 @@ public class EquivalencyTester implements ComponentTest<ToleranceStatistics> {
    */
   @Override
   public ToleranceStatistics test(final NotebookOutput log, final NNLayer subject, final Tensor... inputPrototype) {
-    log.h3("Reference Implementation");
+    log.h1("Reference Implementation");
+    log.p("This layer is an alternate implementation which is expected to behave the same as the following layer:");
     log.code(() -> {
       logger.info(new GsonBuilder().setPrettyPrinting().create().toJson(reference.getJson()));
     });
+    log.p("We measure the agreement between the two layers in a random execution:");
     return log.code(() -> {
       return test(subject, inputPrototype);
     });

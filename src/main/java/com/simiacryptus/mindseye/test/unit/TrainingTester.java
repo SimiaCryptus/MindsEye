@@ -304,6 +304,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
    */
   @Override
   public ComponentResult test(final NotebookOutput log, final NNLayer component, final Tensor... inputPrototype) {
+    log.h1("Training Characteristics");
     final boolean testModel = !component.state().isEmpty();
     if (testModel && isZero(component.state().stream().flatMapToDouble(x1 -> Arrays.stream(x1)))) {
       throw new AssertionError("Weights are all zero?");
@@ -315,7 +316,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     final boolean testInput = Arrays.stream(inputPrototype).anyMatch(x -> x.dim() > 0);
     TestResult inputLearning;
     if (testInput) {
-      log.h3("Input Learning");
+      log.h2("Input Learning");
       inputLearning = testInputLearning(log, component, random, inputPrototype);
     }
     else {
@@ -323,7 +324,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     }
     TestResult modelLearning;
     if (testModel) {
-      log.h3("Model Learning");
+      log.h2("Model Learning");
       modelLearning = testModelLearning(log, component, random, inputPrototype);
     }
     else {
@@ -331,12 +332,13 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     }
     TestResult completeLearning;
     if (testInput && testModel) {
-      log.h3("Composite Learning");
+      log.h2("Composite Learning");
       completeLearning = testCompleteLearning(log, component, random, inputPrototype);
     }
     else {
       completeLearning = null;
     }
+    log.h2("Results");
     log.code(() -> {
       return grid(inputLearning, modelLearning, completeLearning);
     });
@@ -482,21 +484,25 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
    * @return the test result
    */
   public TestResult trainAll(String title, NotebookOutput log, Tensor[][] trainingInput, NNLayer layer, boolean... mask) {
+    log.h3("Gradient Descent");
     final List<StepRecord> gd = train(log, this::trainGD, layer.copy(), copy(trainingInput), mask);
+    log.h3("Conjugate Gradient Descent");
     final List<StepRecord> cjgd = train(log, this::trainCjGD, layer.copy(), copy(trainingInput), mask);
+    log.h3("Limited-Memory BFGS");
     final List<StepRecord> lbfgs = train(log, this::trainLBFGS, layer.copy(), copy(trainingInput), mask);
+    log.h3("Experimental Optimizer");
     final List<StepRecord> magic = train(log, this::trainMagic, layer.copy(), copy(trainingInput), mask);
     final ProblemRun[] runs = {
       new ProblemRun("GD", Color.GRAY, gd, ProblemRun.PlotType.Line),
-      new ProblemRun("CjGD", Color.BLUE, cjgd, ProblemRun.PlotType.Line),
+      new ProblemRun("CjGD", Color.CYAN, cjgd, ProblemRun.PlotType.Line),
       new ProblemRun("LBFGS", Color.GREEN, lbfgs, ProblemRun.PlotType.Line),
-      new ProblemRun("Magic", Color.RED, magic, ProblemRun.PlotType.Line)
+      new ProblemRun("Experimental", Color.MAGENTA, magic, ProblemRun.PlotType.Line)
     };
     ProblemResult result = new ProblemResult();
     result.put("GD", new TrainingResult(getResultType(gd), min(gd)));
     result.put("CjGD", new TrainingResult(getResultType(cjgd), min(cjgd)));
     result.put("LBFGS", new TrainingResult(getResultType(lbfgs), min(lbfgs)));
-    result.put("Magic", new TrainingResult(getResultType(magic), min(magic)));
+    result.put("Experimental", new TrainingResult(getResultType(magic), min(magic)));
     if (verbose) {
       final PlotCanvas iterPlot = log.code(() -> {
         return TestUtil.compare(title + " vs Iteration", runs);

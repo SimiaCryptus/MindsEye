@@ -50,7 +50,8 @@ public class ReferenceIO implements ComponentTest<ToleranceStatistics> {
   @Override
   public ToleranceStatistics test(final NotebookOutput log, final NNLayer layer, final Tensor... inputPrototype) {
     if (!referenceIO.isEmpty()) {
-      log.h3("Reference Input/Output Pairs");
+      log.h1("Reference Input/Output Pairs");
+      log.p("Display pre-set input/output example pairs:");
       referenceIO.forEach((input, output) -> {
         log.code(() -> {
           final SimpleEval eval = SimpleEval.run(layer, input);
@@ -63,7 +64,8 @@ public class ReferenceIO implements ComponentTest<ToleranceStatistics> {
       });
     }
     else {
-      log.h3("Example Input/Output Pair");
+      log.h1("Example Input/Output Pair");
+      log.p("Display input/output pairs from random executions:");
       log.code(() -> {
         final SimpleEval eval = SimpleEval.run(layer, inputPrototype);
         return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",

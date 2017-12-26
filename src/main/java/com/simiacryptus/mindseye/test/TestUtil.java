@@ -226,13 +226,10 @@ public class TestUtil {
         return String.format("%s -> %.6fs +- %.6fs (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
       }).reduce((a, b) -> a + "\n\t" + b));
     });
-    log.p("Removing performance wrappers");
-    log.code(() -> {
-      network.visitNodes(node -> {
-        if (node.getLayer() instanceof MonitoringWrapperLayer) {
-          node.setLayer(node.<MonitoringWrapperLayer>getLayer().getInner());
-        }
-      });
+    network.visitNodes(node -> {
+      if (node.getLayer() instanceof MonitoringWrapperLayer) {
+        node.setLayer(node.<MonitoringWrapperLayer>getLayer().getInner());
+      }
     });
   }
   
@@ -273,16 +270,13 @@ public class TestUtil {
    * @param network the network
    */
   public static void instrumentPerformance(final NotebookOutput log, final DAGNetwork network) {
-    log.p("Adding performance wrappers");
-    log.code(() -> {
-      network.visitNodes(node -> {
-        if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
-          node.setLayer(new MonitoringWrapperLayer(node.getLayer()).shouldRecordSignalMetrics(false));
-        }
-        else {
-          ((MonitoringWrapperLayer) node.getLayer()).shouldRecordSignalMetrics(false);
-        }
-      });
+    network.visitNodes(node -> {
+      if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
+        node.setLayer(new MonitoringWrapperLayer(node.getLayer()).shouldRecordSignalMetrics(false));
+      }
+      else {
+        ((MonitoringWrapperLayer) node.getLayer()).shouldRecordSignalMetrics(false);
+      }
     });
   }
   

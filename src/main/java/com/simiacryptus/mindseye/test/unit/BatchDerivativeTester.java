@@ -41,7 +41,7 @@ import java.util.stream.IntStream;
  */
 public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics> {
   static final Logger logger = LoggerFactory.getLogger(BatchDerivativeTester.class);
-
+  
   /**
    * The Probe size.
    */
@@ -259,118 +259,94 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
     return gradient;
   }
   
-  /**
-   * Test tolerance statistics.
-   *
-   * @param component   the component
-   * @param inputSingle the input prototype
-   * @return the tolerance statistics
-   */
-  public ToleranceStatistics test(final NNLayer component, final Tensor[] inputSingle) {
-    final Tensor[] inputPrototype = IntStream.range(0, batches).mapToObj(i -> inputSingle[0].copy()).toArray(j -> new Tensor[j]);
-    final Tensor outputPrototype = SimpleEval.run(component, inputPrototype[0]).getOutput();
-    ToleranceStatistics statistics = new ToleranceStatistics();
-    if (verbose) {
-      logger.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));
-      logger.info(String.format("Inputs Statistics: %s", Arrays.stream(inputPrototype).map(x -> new ScalarStatistics().add(x.getData()).toString()).reduce((a, b) -> a + ",\n" + b).get()));
-      logger.info(String.format("Output: %s", outputPrototype.prettyPrint()));
-      logger.info(String.format("Outputs Statistics: %s", new ScalarStatistics().add(outputPrototype.getData())));
-    }
-    if (isTestFeedback()) {
-      statistics = statistics.combine(IntStream.range(0, inputPrototype.length).mapToObj(i -> {
-        final Tensor measuredGradient = !verify ? null : measureFeedbackGradient(component, i, outputPrototype, inputPrototype);
-        final Tensor implementedGradient = getFeedbackGradient(component, i, outputPrototype, inputPrototype);
-        try {
-          final ToleranceStatistics result = IntStream.range(0, null == measuredGradient ? 0 : measuredGradient.dim()).mapToObj(i1 -> {
-            return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], implementedGradient.getData()[i1]);
-          }).reduce((a, b) -> a.combine(b)).orElse(new ToleranceStatistics());
-          
-          if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
+  public ToleranceStatistics testLearning(NNLayer component, IOPair IOPair, ToleranceStatistics statistics) {
+    final ToleranceStatistics prev = statistics;
+    statistics = IntStream.range(0, component.state().size()).mapToObj(i -> {
+      final Tensor measuredGradient = !verify ? null : measureLearningGradient(component, i, IOPair.getOutputPrototype(), IOPair.getInputPrototype());
+      final Tensor implementedGradient = getLearningGradient(component, i, IOPair.getOutputPrototype(), IOPair.getInputPrototype());
+      try {
+        final ToleranceStatistics result = IntStream.range(0, null == measuredGradient ? 0 : measuredGradient.dim()).mapToObj(i1 -> {
+          return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], implementedGradient.getData()[i1]);
+        }).reduce((a, b) -> a.combine(b)).orElse(new ToleranceStatistics());
+        if (!(result.absoluteTol.getMax() < tolerance)) {
+          throw new AssertionError(result.toString());
+        }
+        else {
           //logger.info(String.format("Component: %s", component));
           if (verbose) {
-            logger.info(String.format("Feedback for input %s", i));
-            logger.info(String.format("Inputs Values: %s", inputPrototype[i].prettyPrint()));
-            logger.info(String.format("Value Statistics: %s", new ScalarStatistics().add(inputPrototype[i].getData())));
-            logger.info(String.format("Implemented Feedback: %s", implementedGradient.prettyPrint()));
+  
+            logger.info(String.format("Learning Gradient for weight setByCoord %s", i));
+            logger.info(String.format("Weights: %s", new Tensor(component.state().get(i)).prettyPrint()));
+            logger.info(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
             logger.info(String.format("Implemented Statistics: %s", new ScalarStatistics().add(implementedGradient.getData())));
             if (null != measuredGradient) {
-              logger.info(String.format("Measured Feedback: %s", measuredGradient.prettyPrint()));
+              logger.info(String.format("Measured Gradient: %s", measuredGradient.prettyPrint()));
               logger.info(String.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
-              logger.info(String.format("Feedback Error: %s", measuredGradient.minus(implementedGradient).prettyPrint()));
+              logger.info(String.format("Gradient Error: %s", measuredGradient.minus(implementedGradient).prettyPrint()));
               logger.info(String.format("Error Statistics: %s", new ScalarStatistics().add(measuredGradient.minus(implementedGradient).getData())));
             }
           }
           return result;
-        } catch (final Throwable e) {
-          //logger.info(String.format("Component: %s", component));
+        }
+      } catch (final Throwable e) {
+        //logger.info(String.format("Component: %s", component));
+        logger.info(String.format("Learning Gradient for weight setByCoord %s", i));
+        logger.info(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
+        logger.info(String.format("Implemented Statistics: %s", new ScalarStatistics().add(implementedGradient.getData())));
+        if (null != measuredGradient) {
+          logger.info(String.format("Measured Gradient: %s", measuredGradient.prettyPrint()));
+          logger.info(String.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
+          logger.info(String.format("Gradient Error: %s", measuredGradient.minus(implementedGradient).prettyPrint()));
+          logger.info(String.format("Error Statistics: %s", new ScalarStatistics().add(measuredGradient.minus(implementedGradient).getData())));
+        }
+        throw e;
+      }
+      
+    }).reduce((a, b) -> a.combine(b)).map(x -> x.combine(prev)).orElseGet(() -> prev);
+    return statistics;
+  }
+  
+  public ToleranceStatistics testFeedback(NNLayer component, IOPair IOPair, ToleranceStatistics statistics) {
+    statistics = statistics.combine(IntStream.range(0, IOPair.getInputPrototype().length).mapToObj(i -> {
+      final Tensor measuredGradient = !verify ? null : measureFeedbackGradient(component, i, IOPair.getOutputPrototype(), IOPair.getInputPrototype());
+      final Tensor implementedGradient = getFeedbackGradient(component, i, IOPair.getOutputPrototype(), IOPair.getInputPrototype());
+      try {
+        final ToleranceStatistics result = IntStream.range(0, null == measuredGradient ? 0 : measuredGradient.dim()).mapToObj(i1 -> {
+          return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], implementedGradient.getData()[i1]);
+        }).reduce((a, b) -> a.combine(b)).orElse(new ToleranceStatistics());
+        
+        if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
+        //logger.info(String.format("Component: %s", component));
+        if (verbose) {
           logger.info(String.format("Feedback for input %s", i));
-          logger.info(String.format("Inputs Values: %s", inputPrototype[i].prettyPrint()));
-          logger.info(String.format("Value Statistics: %s", new ScalarStatistics().add(inputPrototype[i].getData())));
+          logger.info(String.format("Inputs Values: %s", IOPair.getInputPrototype()[i].prettyPrint()));
+          logger.info(String.format("Value Statistics: %s", new ScalarStatistics().add(IOPair.getInputPrototype()[i].getData())));
           logger.info(String.format("Implemented Feedback: %s", implementedGradient.prettyPrint()));
           logger.info(String.format("Implemented Statistics: %s", new ScalarStatistics().add(implementedGradient.getData())));
           if (null != measuredGradient) {
-            logger.info(String.format("Measured: %s", measuredGradient.prettyPrint()));
+            logger.info(String.format("Measured Feedback: %s", measuredGradient.prettyPrint()));
             logger.info(String.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
             logger.info(String.format("Feedback Error: %s", measuredGradient.minus(implementedGradient).prettyPrint()));
             logger.info(String.format("Error Statistics: %s", new ScalarStatistics().add(measuredGradient.minus(implementedGradient).getData())));
           }
-          throw e;
         }
-      }).reduce((a, b) -> a.combine(b)).get());
-    }
-    if (isTestLearning()) {
-      final ToleranceStatistics prev = statistics;
-      statistics = IntStream.range(0, component.state().size()).mapToObj(i -> {
-        final Tensor measuredGradient = !verify ? null : measureLearningGradient(component, i, outputPrototype, inputPrototype);
-        final Tensor implementedGradient = getLearningGradient(component, i, outputPrototype, inputPrototype);
-        try {
-          final ToleranceStatistics result = IntStream.range(0, null == measuredGradient ? 0 : measuredGradient.dim()).mapToObj(i1 -> {
-            return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], implementedGradient.getData()[i1]);
-          }).reduce((a, b) -> a.combine(b)).orElse(new ToleranceStatistics());
-          if (!(result.absoluteTol.getMax() < tolerance)) {
-            throw new AssertionError(result.toString());
-          }
-          else {
-            //logger.info(String.format("Component: %s", component));
-            if (verbose) {
-  
-              logger.info(String.format("Learning Gradient for weight setByCoord %s", i));
-              logger.info(String.format("Weights: %s", new Tensor(component.state().get(i)).prettyPrint()));
-              logger.info(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
-              logger.info(String.format("Implemented Statistics: %s", new ScalarStatistics().add(implementedGradient.getData())));
-              if (null != measuredGradient) {
-                logger.info(String.format("Measured Gradient: %s", measuredGradient.prettyPrint()));
-                logger.info(String.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
-                logger.info(String.format("Gradient Error: %s", measuredGradient.minus(implementedGradient).prettyPrint()));
-                logger.info(String.format("Error Statistics: %s", new ScalarStatistics().add(measuredGradient.minus(implementedGradient).getData())));
-              }
-            }
-            return result;
-          }
-        } catch (final Throwable e) {
-          //logger.info(String.format("Component: %s", component));
-          logger.info(String.format("Learning Gradient for weight setByCoord %s", i));
-          logger.info(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
-          logger.info(String.format("Implemented Statistics: %s", new ScalarStatistics().add(implementedGradient.getData())));
-          if (null != measuredGradient) {
-            logger.info(String.format("Measured Gradient: %s", measuredGradient.prettyPrint()));
-            logger.info(String.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
-            logger.info(String.format("Gradient Error: %s", measuredGradient.minus(implementedGradient).prettyPrint()));
-            logger.info(String.format("Error Statistics: %s", new ScalarStatistics().add(measuredGradient.minus(implementedGradient).getData())));
-          }
-          throw e;
+        return result;
+      } catch (final Throwable e) {
+        //logger.info(String.format("Component: %s", component));
+        logger.info(String.format("Feedback for input %s", i));
+        logger.info(String.format("Inputs Values: %s", IOPair.getInputPrototype()[i].prettyPrint()));
+        logger.info(String.format("Value Statistics: %s", new ScalarStatistics().add(IOPair.getInputPrototype()[i].getData())));
+        logger.info(String.format("Implemented Feedback: %s", implementedGradient.prettyPrint()));
+        logger.info(String.format("Implemented Statistics: %s", new ScalarStatistics().add(implementedGradient.getData())));
+        if (null != measuredGradient) {
+          logger.info(String.format("Measured: %s", measuredGradient.prettyPrint()));
+          logger.info(String.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
+          logger.info(String.format("Feedback Error: %s", measuredGradient.minus(implementedGradient).prettyPrint()));
+          logger.info(String.format("Error Statistics: %s", new ScalarStatistics().add(measuredGradient.minus(implementedGradient).getData())));
         }
-        
-      }).reduce((a, b) -> a.combine(b)).map(x -> x.combine(prev)).orElseGet(() -> prev);
-    }
-    //logger.info(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toString(inputPrototype), outputPrototype));
-    logger.info(String.format("Finite-Difference Derivative Accuracy:"));
-    logger.info(String.format("absoluteTol: %s", statistics.absoluteTol));
-    logger.info(String.format("relativeTol: %s", statistics.relativeTol));
-    
-    testFrozen(component, inputPrototype);
-    testUnFrozen(component, inputPrototype);
-    
+        throw e;
+      }
+    }).reduce((a, b) -> a.combine(b)).get());
     return statistics;
   }
   
@@ -384,10 +360,54 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
    */
   @Override
   public ToleranceStatistics test(final NotebookOutput log, final NNLayer component, final Tensor... inputPrototype) {
-    log.h3("Differential Validation");
-    return log.code(() -> {
-      return test(component, inputPrototype);
+    log.h1("Differential Validation");
+    IOPair ioPair = new IOPair(component, inputPrototype[0]).invoke();
+  
+    if (verbose) {
+      log.code(() -> {
+        logger.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));
+        logger.info(String.format("Inputs Statistics: %s", Arrays.stream(inputPrototype).map(x -> new ScalarStatistics().add(x.getData()).toString()).reduce((a, b) -> a + ",\n" + b).get()));
+        logger.info(String.format("Output: %s", ioPair.getOutputPrototype().prettyPrint()));
+        logger.info(String.format("Outputs Statistics: %s", new ScalarStatistics().add(ioPair.getOutputPrototype().getData())));
+      });
+    }
+  
+    ToleranceStatistics _statistics = new ToleranceStatistics();
+  
+    if (isTestFeedback()) {
+      log.h2("Feedback Validation");
+      log.p("We validate the agreement between the implemented derivative _of the inputs_ with finite difference estimations:");
+      ToleranceStatistics statistics = _statistics;
+      _statistics = log.code(() -> {
+        return testFeedback(component, ioPair, statistics);
+      });
+    }
+    if (isTestLearning()) {
+      log.h2("Learning Validation");
+      log.p("We validate the agreement between the implemented derivative _of the internal weights_ with finite difference estimations:");
+      ToleranceStatistics statistics = _statistics;
+      _statistics = log.code(() -> {
+        return testLearning(component, ioPair, statistics);
+      });
+    }
+  
+    log.h2("Total Accuracy");
+    log.p("The overall agreement accuracy between the implemented derivative and the finite difference estimations:");
+    ToleranceStatistics statistics = _statistics;
+    log.code(() -> {
+      //logger.info(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toString(inputPrototype), outputPrototype));
+      logger.info(String.format("Finite-Difference Derivative Accuracy:"));
+      logger.info(String.format("absoluteTol: %s", statistics.absoluteTol));
+      logger.info(String.format("relativeTol: %s", statistics.relativeTol));
     });
+  
+    log.h2("Frozen and Alive Status");
+    log.code(() -> {
+      testFrozen(component, ioPair.getInputPrototype());
+      testUnFrozen(component, ioPair.getInputPrototype());
+    });
+  
+    return _statistics;
   }
   
   /**
@@ -405,7 +425,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
           reachedInputFeedback.set(true);
         }
-    
+  
         @Override
         public boolean isAlive() {
           return true;
@@ -441,7 +461,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
           reachedInputFeedback.set(true);
         }
-    
+  
         @Override
         public boolean isAlive() {
           return true;
@@ -460,5 +480,31 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
         throw new RuntimeException("Nonfrozen component did not pass input backwards");
       }
     });
+  }
+  
+  private class IOPair {
+    private final NNLayer component;
+    private final Tensor tensor;
+    private Tensor[] inputPrototype;
+    private Tensor outputPrototype;
+    
+    public IOPair(NNLayer component, Tensor tensor) {
+      this.component = component;
+      this.tensor = tensor;
+    }
+    
+    public Tensor[] getInputPrototype() {
+      return inputPrototype;
+    }
+    
+    public Tensor getOutputPrototype() {
+      return outputPrototype;
+    }
+    
+    public IOPair invoke() {
+      inputPrototype = IntStream.range(0, batches).mapToObj(i -> tensor.copy()).toArray(j -> new Tensor[j]);
+      outputPrototype = SimpleEval.run(component, inputPrototype[0]).getOutput();
+      return this;
+    }
   }
 }

@@ -32,7 +32,8 @@ import com.simiacryptus.util.io.NotebookOutput;
 public class JsonTest implements ComponentTest<ToleranceStatistics> {
   @Override
   public ToleranceStatistics test(final NotebookOutput log, final NNLayer layer, final Tensor... inputPrototype) {
-    log.h3("Json Serialization");
+    log.h1("Json Serialization");
+    log.p("This test will demonstrate the layer's JSON serialization, and verify deserialization integrity.");
     log.code(() -> {
       final JsonObject json = layer.getJson();
       final NNLayer echo = NNLayer.fromJson(json);
