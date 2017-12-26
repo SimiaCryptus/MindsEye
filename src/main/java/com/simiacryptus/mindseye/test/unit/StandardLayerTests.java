@@ -231,8 +231,7 @@ public abstract class StandardLayerTests {
    * @param log the log
    */
   public void test(final NotebookOutput log) {
-    if (null != TestUtil.originalOut) {
-    }
+  
     final NNLayer layer = getLayer(getInputDims());
     String layerJavadoc = CodeUtil.getJavadoc(layer.getClass());
     String testJavadoc = CodeUtil.getJavadoc(getClass());
@@ -247,21 +246,27 @@ public abstract class StandardLayerTests {
     log.p("__Layer Description:__ " + layerJavadoc);
     log.p("__Test Description:__ " + testJavadoc);
   
-    if (layer instanceof DAGNetwork) {
-      log.h1("Network Diagram");
-      log.p("This is a network with the following layout:");
-      log.code(() -> {
-        return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
-          .height(400).width(600).render(Format.PNG).toImage();
+    try {
+    
+      if (layer instanceof DAGNetwork) {
+        log.h1("Network Diagram");
+        log.p("This is a network with the following layout:");
+        log.code(() -> {
+          return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
+            .height(400).width(600).render(Format.PNG).toImage();
+        });
+      }
+      getLittleTests().stream().filter(x -> null != x).forEach(test -> {
+        test.test(log, layer.copy(), randomize(getInputDims()));
       });
+      final NNLayer perfLayer = getLayer(getPerfDims());
+      getBigTests().stream().filter(x -> null != x).forEach(test -> {
+        test.test(log, perfLayer.copy(), randomize(getPerfDims()));
+      });
+      log.setFMProp("status", "OK");
+    } catch (Throwable e) {
+      log.setFMProp("status", e.toString().replaceAll("\n", "").trim());
     }
-    getLittleTests().stream().filter(x -> null != x).forEach(test -> {
-      test.test(log, layer.copy(), randomize(getInputDims()));
-    });
-    final NNLayer perfLayer = getLayer(getPerfDims());
-    getBigTests().stream().filter(x -> null != x).forEach(test -> {
-      test.test(log, perfLayer.copy(), randomize(getPerfDims()));
-    });
   }
   
   /**

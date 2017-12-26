@@ -28,7 +28,6 @@ import com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.MNIST;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.TableOutput;
@@ -240,8 +239,7 @@ public abstract class MnistTestBase {
   @Category(TestCategories.Report.class)
   public void test() throws IOException {
     try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-      if (null != TestUtil.originalOut) {
-      }
+  
       final List<Step> history = new ArrayList<>();
       final MonitoredObject monitoringRoot = new MonitoredObject();
       final TrainingMonitor monitor = getMonitor(history);

@@ -151,6 +151,11 @@ public class MarkdownNotebookOutput implements NotebookOutput {
     frontMatter.add(String.format("%s: %s", key, value));
   }
   
+  @Override
+  public String getName() {
+    return name;
+  }
+  
   /**
    * Anchor string.
    *

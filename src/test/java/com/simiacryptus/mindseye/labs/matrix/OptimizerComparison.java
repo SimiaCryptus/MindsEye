@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.labs.matrix;
 
 import com.simiacryptus.mindseye.test.StepRecord;
-import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.integration.*;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -77,8 +76,7 @@ public abstract class OptimizerComparison {
   @Category(TestCategories.Report.class)
   public void classification() throws IOException {
     try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-      if (null != TestUtil.originalOut) {
-      }
+  
       compare(log, opt -> {
         return new ClassifyProblem(fwdFactory, opt, data, 10)
           .setTimeoutMinutes(timeoutMinutes).run(log).getHistory();
@@ -104,8 +102,7 @@ public abstract class OptimizerComparison {
   @Category(TestCategories.Report.class)
   public void encoding() throws IOException {
     try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-      if (null != TestUtil.originalOut) {
-      }
+  
       compare(log, opt -> {
         return new EncodingProblem(revFactory, opt, data, 10)
           .setTimeoutMinutes(timeoutMinutes).setTrainingSize(5000).run(log).getHistory();

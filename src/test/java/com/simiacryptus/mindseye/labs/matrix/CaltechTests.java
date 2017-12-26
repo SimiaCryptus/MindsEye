@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.java.*;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.integration.*;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -166,8 +165,7 @@ public class CaltechTests {
     @Category(TestCategories.Report.class)
     public void autoencoder_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-        if (null != TestUtil.originalOut) {
-        }
+  
         log.h1("Caltech101 Denoising Autoencoder");
         intro(log);
         new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data, 100, 0.8).setTimeoutMinutes(timeoutMinutes).run(log);
@@ -183,8 +181,7 @@ public class CaltechTests {
     @Category(TestCategories.Report.class)
     public void classification_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-        if (null != TestUtil.originalOut) {
-        }
+  
         log.h1("Caltech101 Classification");
         intro(log);
         GpuTrainable.setVerbosity(2);
@@ -201,8 +198,7 @@ public class CaltechTests {
     @Category(TestCategories.Report.class)
     public void encoding_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-        if (null != TestUtil.originalOut) {
-        }
+  
         log.h1("Caltech101 Image-to-Vector Encoding");
         intro(log);
         new EncodingProblem(revFactory, optimizationStrategy, data, categories).setTimeoutMinutes(timeoutMinutes).setBatchSize(100).run(log);

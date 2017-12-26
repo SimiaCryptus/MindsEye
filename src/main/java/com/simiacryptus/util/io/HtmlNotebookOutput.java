@@ -303,6 +303,11 @@ public class HtmlNotebookOutput implements NotebookOutput {
     out("<p>" + fmt + "</p>", args);
   }
   
+  @Override
+  public String getName() {
+    return "www";
+  }
+  
   /**
    * Summarize string.
    *

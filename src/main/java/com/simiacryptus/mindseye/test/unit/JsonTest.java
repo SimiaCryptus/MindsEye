@@ -34,7 +34,7 @@ public class JsonTest implements ComponentTest<ToleranceStatistics> {
   public ToleranceStatistics test(final NotebookOutput log, final NNLayer layer, final Tensor... inputPrototype) {
     log.h1("Json Serialization");
     log.p("This test will demonstrate the layer's JSON serialization, and verify deserialization integrity.");
-    log.code(() -> {
+    String prettyPrint = log.code(() -> {
       final JsonObject json = layer.getJson();
       final NNLayer echo = NNLayer.fromJson(json);
       if (echo == null) throw new AssertionError("Failed to deserialize");
@@ -42,6 +42,7 @@ public class JsonTest implements ComponentTest<ToleranceStatistics> {
       if (!layer.equals(echo)) throw new AssertionError("Serialization not equal");
       return new GsonBuilder().setPrettyPrinting().create().toJson(json);
     });
+    log.p("Wrote Model to %s", log.file(prettyPrint, log.getName() + "_layer.json"));
     return null;
   }
 }

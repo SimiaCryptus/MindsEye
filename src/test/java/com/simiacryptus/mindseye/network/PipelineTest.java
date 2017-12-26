@@ -139,8 +139,7 @@ public abstract class PipelineTest {
    * @param log the log
    */
   public void test(final NotebookOutput log) {
-    if (null != TestUtil.originalOut) {
-    }
+  
     log.h1("%s", getClass().getSimpleName());
     final ArrayList<NNLayer> workingSpec = new ArrayList<>();
     for (final NNLayer l : pipeline) {

@@ -40,12 +40,15 @@ import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
+import com.simiacryptus.util.io.GifSequenceWriter;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -54,6 +57,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -71,6 +75,10 @@ class EncodingUtil {
    * The constant svgNumber.
    */
   public static int svgNumber = 0;
+  /**
+   * The constant gifNumber.
+   */
+  public static int gifNumber = 0;
   /**
    * The constant out.
    */
@@ -131,6 +139,26 @@ class EncodingUtil {
         });
       });
     });
+  }
+  
+  public static String animatedGif(final NotebookOutput log, final Tensor baseline, final List<Tensor> signedComponents) {
+    int loopTimeMs = 5000;
+    int framerate = 24;
+    int frames = loopTimeMs * framerate / 1000;
+    try {
+      double step = 2 * Math.PI / frames;
+      String filename = EncodingUtil.gifNumber++ + ".gif";
+      File file = new File(log.getResourceDir(), filename);
+      GifSequenceWriter.write(file, loopTimeMs / frames, true,
+        DoubleStream.iterate(0, x -> x + step).limit(frames).mapToObj(t -> {
+          return IntStream.range(0, signedComponents.size()).mapToObj(i -> {
+            return signedComponents.get(i).scale((1 + Math.sin(i * t)) / 2);
+          }).reduce((a, b) -> a.add(b)).get().add(baseline).toImage();
+        }).toArray(i -> new BufferedImage[i]));
+      return String.format("<img src=\"etc/%s\" />", filename);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
   
   /**
@@ -381,6 +409,7 @@ class EncodingUtil {
         .collect(Collectors.toList());
       
       row.put("SVG_" + col, log.file(EncodingUtil.decompositionSvg(log, baseline, signedComponents), "svg" + EncodingUtil.svgNumber++ + ".svg", "SVG Composite Image"));
+      row.put("GIF_" + col, EncodingUtil.animatedGif(log, baseline, signedComponents));
       
       final String render = signedComponents.stream()
         .map(signedContribution -> com.simiacryptus.mindseye.test.TestUtil.render(log, signedContribution, true))

@@ -69,7 +69,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
   
   private int batches = 3;
   private RandomizationMode randomizationMode = RandomizationMode.Permute;
-  private boolean verbose = false;
+  private boolean verbose = true;
   private boolean throwExceptions = false;
   
   /**

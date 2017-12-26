@@ -29,7 +29,6 @@ import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.integration.*;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -197,8 +196,7 @@ public class MnistTests {
     @Category(TestCategories.Report.class)
     public void autoencoder_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-        if (null != TestUtil.originalOut) {
-        }
+  
         log.h1("MNIST Denoising Autoencoder");
         intro(log);
         new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data, 100, 0.2).setTimeoutMinutes(5 * timeoutMinutes).run(log);
@@ -214,8 +212,7 @@ public class MnistTests {
     @Category(TestCategories.Report.class)
     public void classification_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-        if (null != TestUtil.originalOut) {
-        }
+  
         log.h1("MNIST Digit Classification");
         intro(log);
         new ClassifyProblem(fwdFactory, optimizationStrategy, data, 10).setTimeoutMinutes(timeoutMinutes).run(log);
@@ -232,8 +229,7 @@ public class MnistTests {
     @Category(TestCategories.Report.class)
     public void encoding_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-        if (null != TestUtil.originalOut) {
-        }
+  
         log.h1("MNIST Image-to-Vector Encoding");
         intro(log);
         new EncodingProblem(revFactory, optimizationStrategy, data, 20).setTimeoutMinutes(timeoutMinutes).run(log);
