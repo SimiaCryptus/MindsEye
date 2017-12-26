@@ -125,7 +125,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy<LineSea
         project(adjustedPosVector, new TrainingMonitor());
         return adjustedPosVector;
       }
-  
+
       public DeltaSet<NNLayer> project(final DeltaSet<NNLayer> deltaIn, final TrainingMonitor monitor) {
         final DeltaSet<NNLayer> originalAlphaDerivative = cursor.direction;
         final DeltaSet<NNLayer> newAlphaDerivative = originalAlphaDerivative.copy();

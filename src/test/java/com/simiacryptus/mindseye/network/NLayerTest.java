@@ -156,7 +156,6 @@ public abstract class NLayerTest {
    */
   public void test(final NotebookOutput log) {
     if (null != TestUtil.originalOut) {
-      log.addCopy(TestUtil.originalOut);
     }
     log.h1("%s", getClass().getSimpleName());
     final int[] inputDims = getInputDims();

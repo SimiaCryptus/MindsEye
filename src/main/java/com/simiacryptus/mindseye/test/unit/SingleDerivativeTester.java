@@ -327,6 +327,15 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
     return _statistics;
   }
   
+  /**
+   * Test learning tolerance statistics.
+   *
+   * @param prev            the prev
+   * @param component       the component
+   * @param inputPrototype  the input prototype
+   * @param outputPrototype the output prototype
+   * @return the tolerance statistics
+   */
   public ToleranceStatistics testLearning(ToleranceStatistics prev, NNLayer component, Tensor[] inputPrototype, Tensor outputPrototype) {
     return IntStream.range(0, component.state().size()).mapToObj(i -> {
       final Tensor measuredGradient = !verify ? null : measureLearningGradient(component, i, outputPrototype, inputPrototype);
@@ -341,7 +350,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
         else {
           //logger.info(String.format("Component: %s", component));
           if (verbose) {
-  
+            
             logger.info(String.format("Learning Gradient for weight setByCoord %s", i));
             logger.info(String.format("Weights: %s", new Tensor(component.state().get(i)).prettyPrint()));
             logger.info(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
@@ -372,6 +381,15 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
     }).reduce((a, b) -> a.combine(b)).map(x -> x.combine(prev)).orElseGet(() -> prev);
   }
   
+  /**
+   * Test feedback tolerance statistics.
+   *
+   * @param statistics      the statistics
+   * @param component       the component
+   * @param inputPrototype  the input prototype
+   * @param outputPrototype the output prototype
+   * @return the tolerance statistics
+   */
   public ToleranceStatistics testFeedback(ToleranceStatistics statistics, NNLayer component, Tensor[] inputPrototype, Tensor outputPrototype) {
     return statistics.combine(IntStream.range(0, inputPrototype.length).mapToObj(i -> {
       final Tensor measuredGradient = !verify ? null : measureFeedbackGradient(component, i, outputPrototype, inputPrototype);

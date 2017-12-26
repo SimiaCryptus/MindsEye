@@ -78,7 +78,6 @@ public abstract class OptimizerComparison {
   public void classification() throws IOException {
     try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
       if (null != TestUtil.originalOut) {
-        log.addCopy(TestUtil.originalOut);
       }
       compare(log, opt -> {
         return new ClassifyProblem(fwdFactory, opt, data, 10)
@@ -106,7 +105,6 @@ public abstract class OptimizerComparison {
   public void encoding() throws IOException {
     try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
       if (null != TestUtil.originalOut) {
-        log.addCopy(TestUtil.originalOut);
       }
       compare(log, opt -> {
         return new EncodingProblem(revFactory, opt, data, 10)

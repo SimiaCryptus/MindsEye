@@ -149,7 +149,7 @@ public class AutoencodingProblem implements Problem {
     supervisedNetwork.add(new MeanSqLossLayer(),
       supervisedNetwork.getHead(),
       supervisedNetwork.getInput(0));
-
+  
     log.h3("Network Diagrams");
     log.code(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(fwdNetwork))
@@ -166,12 +166,12 @@ public class AutoencodingProblem implements Problem {
     
     final TrainingMonitor monitor = new TrainingMonitor() {
       TrainingMonitor inner = TestUtil.getMonitor(history);
-
+  
       @Override
       public void log(final String msg) {
         inner.log(msg);
       }
-
+  
       @Override
       public void onStepComplete(final Step currentPoint) {
         dropoutNoiseLayer.shuffle();
@@ -180,10 +180,10 @@ public class AutoencodingProblem implements Problem {
     };
     
     final Tensor[][] trainingData = getTrainingData(log);
-
+  
     //MonitoredObject monitoringRoot = new MonitoredObject();
     //TestUtil.addMonitoring(supervisedNetwork, monitoringRoot);
-
+  
     log.h3("Training");
     TestUtil.instrumentPerformance(log, supervisedNetwork);
     final ValidatingTrainer trainer = optimizer.train(log,
@@ -201,7 +201,7 @@ public class AutoencodingProblem implements Problem {
       });
     }
     TestUtil.extractPerformance(log, supervisedNetwork);
-
+  
     {
       final String modelName = "encoder_model" + AutoencodingProblem.modelNo++ + ".json";
       log.p("Saved model as " + log.file(fwdNetwork.getJson().toString(), modelName, modelName));
@@ -214,7 +214,7 @@ public class AutoencodingProblem implements Problem {
 //    log.code(() -> {
 //      return TestUtil.toFormattedJson(monitoringRoot.getMetrics());
 //    });
-
+  
     log.h3("Validation");
     
     log.p("Here are some re-encoded examples:");

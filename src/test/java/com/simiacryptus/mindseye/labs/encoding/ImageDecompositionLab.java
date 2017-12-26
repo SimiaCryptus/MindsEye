@@ -124,7 +124,6 @@ public class ImageDecompositionLab {
       final File logFile = new File(path, "index.html");
       final StreamNanoHTTPD server = new StreamNanoHTTPD(1999, "text/html", logFile).init();
       final HtmlNotebookOutput log = new HtmlNotebookOutput(path, server.dataReciever);
-      log.addCopy(EncodingUtil.rawOut);
       return log;
     } catch (final IOException e) {
       throw new RuntimeException(e);
@@ -378,7 +377,7 @@ public class ImageDecompositionLab {
         }, convolutionLayer, biasLayer);
       });
       final boolean[] mask = getTrainingMask();
-    
+  
       {
         log.h2("Initialization");
         log.h3("Training");
@@ -391,7 +390,7 @@ public class ImageDecompositionLab {
         com.simiacryptus.mindseye.test.TestUtil.printDataStatistics(log, trainingData);
         history.clear();
       }
-    
+  
       log.h2("Tuning");
       log.h3("Training");
       final DAGNetwork trainingModel0 = EncodingUtil.buildTrainingModel(innerModel, layerNumber, layerNumber + 1);
@@ -402,7 +401,7 @@ public class ImageDecompositionLab {
       EncodingUtil.printModel(log, innerModel, modelNo++);
       com.simiacryptus.mindseye.test.TestUtil.printDataStatistics(log, trainingData);
       history.clear();
-    
+  
       log.h2("Integration Training");
       log.h3("Training");
       final DAGNetwork trainingModel1 = EncodingUtil.buildTrainingModel(integrationModel, 1, layerNumber + 1);

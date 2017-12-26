@@ -46,7 +46,6 @@ import smile.plot.ScatterPlot;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -208,11 +207,10 @@ public abstract class MnistTestBase {
   /**
    * Gets monitor.
    *
-   * @param originalOut the original out
-   * @param history     the history
+   * @param history the history
    * @return the monitor
    */
-  public TrainingMonitor getMonitor(final PrintStream originalOut, final List<Step> history) {
+  public TrainingMonitor getMonitor(final List<Step> history) {
     return new TrainingMonitor() {
       @Override
       public void clear() {
@@ -221,10 +219,6 @@ public abstract class MnistTestBase {
       
       @Override
       public void log(final String msg) {
-        logger.info(msg);
-        if (null != originalOut && System.out != originalOut) {
-          originalOut.println(msg);
-        }
         logger.info(msg);
         super.log(msg);
       }
@@ -247,11 +241,10 @@ public abstract class MnistTestBase {
   public void test() throws IOException {
     try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
       if (null != TestUtil.originalOut) {
-        log.addCopy(TestUtil.originalOut);
       }
       final List<Step> history = new ArrayList<>();
       final MonitoredObject monitoringRoot = new MonitoredObject();
-      final TrainingMonitor monitor = getMonitor(TestUtil.originalOut, history);
+      final TrainingMonitor monitor = getMonitor(history);
       final Tensor[][] trainingData = getTrainingData(log);
       _test(log, monitoringRoot, monitor, trainingData, history);
     }

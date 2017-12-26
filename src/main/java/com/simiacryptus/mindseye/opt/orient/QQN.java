@@ -98,12 +98,12 @@ public class QQN implements OrientationStrategy<LineSearchCursor> {
       final DeltaSet<NNLayer> scaledGradient = gd.scale(lbfgsMag / gdMag);
       monitor.log(String.format("Returning Quadratic Cursor %s GD, %s QN", gdMag, lbfgsMag));
       return new LineSearchCursor() {
-
+  
         @Override
         public String getDirectionType() {
           return CURSOR_NAME;
         }
-
+  
         @Override
         public DeltaSet<NNLayer> position(final double t) {
           if (!Double.isFinite(t)) throw new IllegalArgumentException();

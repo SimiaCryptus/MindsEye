@@ -40,6 +40,9 @@ import java.util.stream.StreamSupport;
  * and distributes network evaluation over the partitions.
  */
 public class SparkTrainable implements Trainable {
+  /**
+   * The Logger.
+   */
   static final Logger logger = LoggerFactory.getLogger(SparkTrainable.class);
   
   /**

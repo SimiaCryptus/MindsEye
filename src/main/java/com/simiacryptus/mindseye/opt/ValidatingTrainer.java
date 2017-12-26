@@ -97,7 +97,7 @@ public class ValidatingTrainer {
         validatingMeasurementTime.addAndGet(time.timeNanos);
         return time.result;
       }
-
+  
       @Override
       public boolean reseed(final long seed) {
         return validationSubject.reseed(seed);
@@ -787,7 +787,7 @@ public class ValidatingTrainer {
       this.trainingSize = trainingSize;
       this.validation = validation;
     }
-
+  
   }
   
   private static class EpochResult {
@@ -823,7 +823,7 @@ public class ValidatingTrainer {
       this.continueTraining = continueTraining;
       this.iterations = iterations;
     }
-
+  
   }
   
   /**
@@ -924,7 +924,7 @@ public class ValidatingTrainer {
       this.trainingSubject = trainingSubject;
       return this;
     }
-
+  
     @Override
     public String toString() {
       return "TrainingPhase{" +
@@ -998,7 +998,7 @@ public class ValidatingTrainer {
       this.previous = previous;
       this.performance = performance;
     }
-
+  
   }
 }
 

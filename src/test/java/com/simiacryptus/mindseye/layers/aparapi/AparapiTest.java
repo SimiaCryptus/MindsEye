@@ -39,8 +39,6 @@ import java.util.Random;
  * The type Aparapi test.
  */
 public class AparapiTest {
-  private static final Logger logger = LoggerFactory.getLogger(AparapiTest.class);
-  
   /**
    * The constant randomize.
    */
@@ -49,6 +47,7 @@ public class AparapiTest {
    * The Log.
    */
   static final Logger log = LoggerFactory.getLogger(AparapiTest.class);
+  private static final Logger logger = LoggerFactory.getLogger(AparapiTest.class);
   
   /**
    * Instantiates a new Aparapi test.

@@ -40,6 +40,9 @@ import java.util.stream.IntStream;
  * The type Derivative tester.
  */
 public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics> {
+  /**
+   * The Logger.
+   */
   static final Logger logger = LoggerFactory.getLogger(BatchDerivativeTester.class);
   
   /**
@@ -259,6 +262,14 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
     return gradient;
   }
   
+  /**
+   * Test learning tolerance statistics.
+   *
+   * @param component  the component
+   * @param IOPair     the io pair
+   * @param statistics the statistics
+   * @return the tolerance statistics
+   */
   public ToleranceStatistics testLearning(NNLayer component, IOPair IOPair, ToleranceStatistics statistics) {
     final ToleranceStatistics prev = statistics;
     statistics = IntStream.range(0, component.state().size()).mapToObj(i -> {
@@ -274,7 +285,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
         else {
           //logger.info(String.format("Component: %s", component));
           if (verbose) {
-  
+            
             logger.info(String.format("Learning Gradient for weight setByCoord %s", i));
             logger.info(String.format("Weights: %s", new Tensor(component.state().get(i)).prettyPrint()));
             logger.info(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
@@ -306,6 +317,14 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
     return statistics;
   }
   
+  /**
+   * Test feedback tolerance statistics.
+   *
+   * @param component  the component
+   * @param IOPair     the io pair
+   * @param statistics the statistics
+   * @return the tolerance statistics
+   */
   public ToleranceStatistics testFeedback(NNLayer component, IOPair IOPair, ToleranceStatistics statistics) {
     statistics = statistics.combine(IntStream.range(0, IOPair.getInputPrototype().length).mapToObj(i -> {
       final Tensor measuredGradient = !verify ? null : measureFeedbackGradient(component, i, IOPair.getOutputPrototype(), IOPair.getInputPrototype());
@@ -487,20 +506,41 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
     private final Tensor tensor;
     private Tensor[] inputPrototype;
     private Tensor outputPrototype;
-    
+  
+    /**
+     * Instantiates a new Io pair.
+     *
+     * @param component the component
+     * @param tensor    the tensor
+     */
     public IOPair(NNLayer component, Tensor tensor) {
       this.component = component;
       this.tensor = tensor;
     }
-    
+  
+    /**
+     * Get input prototype tensor [ ].
+     *
+     * @return the tensor [ ]
+     */
     public Tensor[] getInputPrototype() {
       return inputPrototype;
     }
-    
+  
+    /**
+     * Gets output prototype.
+     *
+     * @return the output prototype
+     */
     public Tensor getOutputPrototype() {
       return outputPrototype;
     }
-    
+  
+    /**
+     * Invoke io pair.
+     *
+     * @return the io pair
+     */
     public IOPair invoke() {
       inputPrototype = IntStream.range(0, batches).mapToObj(i -> tensor.copy()).toArray(j -> new Tensor[j]);
       outputPrototype = SimpleEval.run(component, inputPrototype[0]).getOutput();

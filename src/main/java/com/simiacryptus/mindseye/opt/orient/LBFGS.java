@@ -247,7 +247,7 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
       if (isDifferent) throw new AssertionError(String.format("Invalid lfbgs cursor: %s != %s", verify, input));
       monitor.log(String.format("Verified lfbgs cursor: %s == %s", verify, input));
     }
-
+  
     return returnValue;
   }
   

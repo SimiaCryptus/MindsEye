@@ -104,7 +104,7 @@ public final class BackpropKernel extends Kernel {
         final int k2 = k % ks2 / ks1;
         final int k1 = k % ks1 / ks0;
         final int k0 = k % ks0;
-      
+  
         final int o2 = k2 - i2 * outputSize[2];
         if (o2 >= 0 && o2 < outputSize[2]) {
           final int o1 = i1 + k1 - kernelOffset[1];

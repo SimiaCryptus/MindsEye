@@ -50,14 +50,13 @@ import java.util.stream.Stream;
 public class ClassifyProblem implements Problem {
   
   private static int modelNo = 0;
-  
-  private int batchSize = 10000;
   private final int categories;
   private final ImageProblemData data;
   private final FwdNetworkFactory fwdFactory;
   private final List<StepRecord> history = new ArrayList<>();
   private final OptimizationStrategy optimizer;
   private final List<String> labels;
+  private int batchSize = 10000;
   private int timeoutMinutes = 1;
   
   /**
@@ -158,7 +157,7 @@ public class ClassifyProblem implements Problem {
       return Graphviz.fromGraph(TestUtil.toGraph(network))
         .height(400).width(600).render(Format.PNG).toImage();
     });
-
+  
     log.h3("Training");
     final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
     TestUtil.instrumentPerformance(log, supervisedNetwork);
@@ -180,7 +179,7 @@ public class ClassifyProblem implements Problem {
     TestUtil.extractPerformance(log, supervisedNetwork);
     final String modelName = "classification_model" + ClassifyProblem.modelNo++ + ".json";
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
-
+  
     log.h3("Validation");
     log.p("If we run our model against the entire validation dataset, we get this accuracy:");
     log.code(() -> {
@@ -188,7 +187,7 @@ public class ClassifyProblem implements Problem {
         predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
         .average().getAsDouble() * 100;
     });
-
+  
     log.p("Let's examine some incorrectly predicted results in more detail:");
     log.code(() -> {
       try {

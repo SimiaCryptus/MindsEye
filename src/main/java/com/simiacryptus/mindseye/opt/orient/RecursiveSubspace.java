@@ -40,13 +40,13 @@ import java.util.stream.IntStream;
  */
 public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCursor> {
   
-  private int iterations = 4;
-  private double[] weights = null;
   /**
    * The constant CURSOR_LABEL.
    */
   public static final String CURSOR_LABEL = "RecursiveSubspace";
-
+  private int iterations = 4;
+  private double[] weights = null;
+  
   @Override
   public SimpleLineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     PointSample origin = measurement.copyFull().backup();

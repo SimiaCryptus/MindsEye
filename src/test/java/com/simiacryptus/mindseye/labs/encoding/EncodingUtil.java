@@ -62,7 +62,7 @@ import java.util.stream.Stream;
  */
 class EncodingUtil {
   private static final Logger logger = LoggerFactory.getLogger(EncodingUtil.class);
-
+  
   /**
    * The constant imageNumber.
    */

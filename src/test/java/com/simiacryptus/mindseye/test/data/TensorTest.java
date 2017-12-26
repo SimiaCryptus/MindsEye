@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  */
 public class TensorTest {
   private static final Logger logger = LoggerFactory.getLogger(TensorTest.class);
-
+  
   /**
    * Parse tensor.
    *

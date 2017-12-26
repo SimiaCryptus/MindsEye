@@ -62,6 +62,9 @@ import java.util.stream.Stream;
  * The type Derivative tester.
  */
 public class TrainingTester implements ComponentTest<TrainingTester.ComponentResult> {
+  /**
+   * The Logger.
+   */
   static final Logger logger = LoggerFactory.getLogger(TrainingTester.class);
   
   private int batches = 3;
@@ -94,6 +97,46 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
         history.add(new StepRecord(currentPoint.point.getMean(), currentPoint.time, currentPoint.iteration));
       }
     };
+  }
+  
+  /**
+   * Build input tensor [ ] [ ].
+   *
+   * @param left  the test input
+   * @param right the target output
+   * @return the tensor [ ] [ ]
+   */
+  public static Tensor[][] append(Tensor[][] left, Tensor[] right) {
+    return IntStream.range(0, left.length).mapToObj(i ->
+      Stream.concat(
+        Arrays.stream(left[i]),
+        Stream.of(right[i])
+      ).toArray(j -> new Tensor[j])
+    ).toArray(j -> new Tensor[j][]);
+  }
+  
+  /**
+   * Copy tensor [ ] [ ].
+   *
+   * @param input_gd the input gd
+   * @return the tensor [ ] [ ]
+   */
+  public static Tensor[][] copy(Tensor[][] input_gd) {
+    return Arrays.stream(input_gd)
+      .map(t -> Arrays.stream(t).map(v -> v.copy()).toArray(i -> new Tensor[i]))
+      .toArray(i -> new Tensor[i][]);
+  }
+  
+  /**
+   * Pop tensor [ ] [ ].
+   *
+   * @param data the data
+   * @return the tensor [ ] [ ]
+   */
+  public static Tensor[][] pop(Tensor[][] data) {
+    return Arrays.stream(data)
+      .map(t -> Arrays.stream(t).limit(t.length - 1).toArray(i -> new Tensor[i]))
+      .toArray(i -> new Tensor[i][]);
   }
   
   /**
@@ -253,46 +296,6 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
         return cpy;
       }).toArray(j -> new Tensor[j]);
     }).toArray(i -> new Tensor[i][]);
-  }
-  
-  /**
-   * Build input tensor [ ] [ ].
-   *
-   * @param left  the test input
-   * @param right the target output
-   * @return the tensor [ ] [ ]
-   */
-  public static Tensor[][] append(Tensor[][] left, Tensor[] right) {
-    return IntStream.range(0, left.length).mapToObj(i ->
-      Stream.concat(
-        Arrays.stream(left[i]),
-        Stream.of(right[i])
-      ).toArray(j -> new Tensor[j])
-    ).toArray(j -> new Tensor[j][]);
-  }
-  
-  /**
-   * Copy tensor [ ] [ ].
-   *
-   * @param input_gd the input gd
-   * @return the tensor [ ] [ ]
-   */
-  public static Tensor[][] copy(Tensor[][] input_gd) {
-    return Arrays.stream(input_gd)
-      .map(t -> Arrays.stream(t).map(v -> v.copy()).toArray(i -> new Tensor[i]))
-      .toArray(i -> new Tensor[i][]);
-  }
-  
-  /**
-   * Pop tensor [ ] [ ].
-   *
-   * @param data the data
-   * @return the tensor [ ] [ ]
-   */
-  public static Tensor[][] pop(Tensor[][] data) {
-    return Arrays.stream(data)
-      .map(t -> Arrays.stream(t).limit(t.length - 1).toArray(i -> new Tensor[i]))
-      .toArray(i -> new Tensor[i][]);
   }
   
   /**
@@ -803,7 +806,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
       this.model = model;
       this.complete = complete;
     }
-
+  
     @Override
     public String toString() {
       return String.format("ComponentResult{input=%s, model=%s, complete=%s}", input, model, complete);

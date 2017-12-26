@@ -26,6 +26,8 @@ import com.simiacryptus.util.lang.TimedResult;
 import com.simiacryptus.util.lang.UncheckedSupplier;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -33,15 +35,14 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
 import java.util.UUID;
 
 /**
  * The type Html notebook output.
  */
 public class HtmlNotebookOutput implements NotebookOutput {
+  private static final Logger logger = LoggerFactory.getLogger(HtmlNotebookOutput.class);
   
   /**
    * The constant DEFAULT_ROOT.
@@ -51,8 +52,7 @@ public class HtmlNotebookOutput implements NotebookOutput {
    * The Working dir.
    */
   public final File workingDir;
-  private final List<PrintStream> outs = new ArrayList<>();
-  private final OutputStream primaryOut;
+  private final PrintStream primaryOut;
   /**
    * The Source root.
    */
@@ -70,8 +70,7 @@ public class HtmlNotebookOutput implements NotebookOutput {
    * @throws FileNotFoundException the file not found exception
    */
   public HtmlNotebookOutput(final File parentDirectory, final OutputStream out) throws FileNotFoundException {
-    primaryOut = out;
-    outs.add(new PrintStream(out));
+    primaryOut = new PrintStream(out);
     workingDir = parentDirectory;
     out("<html><head><style>\n" +
       "pre {\n" +
@@ -99,17 +98,6 @@ public class HtmlNotebookOutput implements NotebookOutput {
     };
   }
   
-  /**
-   * Add copy notebook output.
-   *
-   * @param out the out
-   * @return the notebook output
-   */
-  @Override
-  public NotebookOutput addCopy(final PrintStream out) {
-    outs.add(out);
-    return this;
-  }
   
   @Override
   public void close() throws IOException {
@@ -305,10 +293,9 @@ public class HtmlNotebookOutput implements NotebookOutput {
   @Override
   public void out(final String fmt, final Object... args) {
     final String msg = 0 == args.length ? fmt : String.format(fmt, args);
-    outs.forEach(out -> {
-      out.println(msg);
-      out.flush();
-    });
+    primaryOut.println(msg);
+    primaryOut.flush();
+    logger.info(msg);
   }
   
   @Override

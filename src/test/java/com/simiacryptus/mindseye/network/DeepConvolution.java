@@ -120,7 +120,7 @@ public abstract class DeepConvolution extends NLayerTest {
     public NNLayer getActivation() {
       return new ActivationLayer(ActivationLayer.Mode.SIGMOID);
     }
-
+  
   }
   
   /**

@@ -39,6 +39,9 @@ import java.util.stream.Stream;
  * The type Performance tester.
  */
 public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
+  /**
+   * The Logger.
+   */
   static final Logger logger = LoggerFactory.getLogger(PerformanceTester.class);
   
   private int batches = 100;

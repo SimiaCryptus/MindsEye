@@ -130,7 +130,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
             input.accumulate(buffer, new GpuTensorList(passbackBuffer, length, inputSize, cudnnHandle, precision));
           }
         }
-
+  
         @Override
         public boolean isAlive() {
           return input.isAlive() || !isFrozen();
@@ -312,6 +312,45 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
   }
   
   /**
+   * Sets window xy.
+   *
+   * @param x the x
+   * @param y the y
+   * @return the window xy
+   */
+  public PoolingLayer setWindowXY(int x, int y) {
+    setWindowY(y);
+    setWindowX(x);
+    return this;
+  }
+  
+  /**
+   * Sets stride xy.
+   *
+   * @param x the x
+   * @param y the y
+   * @return the stride xy
+   */
+  public PoolingLayer setStrideXY(int x, int y) {
+    setStrideX(x);
+    setStrideY(y);
+    return this;
+  }
+  
+  /**
+   * Sets padding xy.
+   *
+   * @param x the x
+   * @param y the y
+   * @return the padding xy
+   */
+  public PoolingLayer setPaddingXY(int x, int y) {
+    setPaddingX(x);
+    setPaddingY(y);
+    return this;
+  }
+  
+  /**
    * The enum Pooling mode.
    */
   public enum PoolingMode {
@@ -327,27 +366,9 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
      * The Id.
      */
     final int id;
-  
+    
     PoolingMode(final int id) {
       this.id = id;
     }
-  }
-  
-  public PoolingLayer setWindowXY(int x, int y) {
-    setWindowY(y);
-    setWindowX(x);
-    return this;
-  }
-  
-  public PoolingLayer setStrideXY(int x, int y) {
-    setStrideX(x);
-    setStrideY(y);
-    return this;
-  }
-  
-  public PoolingLayer setPaddingXY(int x, int y) {
-    setPaddingX(x);
-    setPaddingY(y);
-    return this;
   }
 }

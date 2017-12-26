@@ -300,10 +300,23 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     return this;
   }
   
+  /**
+   * Sets weights log.
+   *
+   * @param f the f
+   * @return the weights log
+   */
   public ConvolutionLayer setWeightsLog(double f) {
     return set(() -> Math.pow(10, f) * (Math.random() - 0.5));
   }
   
+  /**
+   * Sets stride xy.
+   *
+   * @param x the x
+   * @param y the y
+   * @return the stride xy
+   */
   public ConvolutionLayer setStrideXY(int x, int y) {
     setStrideX(x);
     setStrideY(y);

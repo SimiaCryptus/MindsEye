@@ -98,6 +98,22 @@ public abstract class RecycleBin<T> {
   }
   
   /**
+   * Gets garbage truck.
+   *
+   * @return the garbage truck
+   */
+  public static ScheduledExecutorService getGarbageTruck() {
+    if (null == RecycleBin.garbageTruck) {
+      synchronized (RecycleBin.class) {
+        if (null == RecycleBin.garbageTruck) {
+          RecycleBin.garbageTruck = Executors.newScheduledThreadPool(1, new ThreadFactoryBuilder().setDaemon(true).build());
+        }
+      }
+    }
+    return RecycleBin.garbageTruck;
+  }
+  
+  /**
    * Clear.
    */
   public void clear() {
@@ -186,22 +202,6 @@ public abstract class RecycleBin<T> {
    * @return the int
    */
   protected abstract int length(T data);
-  
-  /**
-   * Gets garbage truck.
-   *
-   * @return the garbage truck
-   */
-  public static ScheduledExecutorService getGarbageTruck() {
-    if (null == RecycleBin.garbageTruck) {
-      synchronized (RecycleBin.class) {
-        if (null == RecycleBin.garbageTruck) {
-          RecycleBin.garbageTruck = Executors.newScheduledThreadPool(1, new ThreadFactoryBuilder().setDaemon(true).build());
-        }
-      }
-    }
-    return RecycleBin.garbageTruck;
-  }
   
   /**
    * Print all profiling.
@@ -356,24 +356,6 @@ public abstract class RecycleBin<T> {
   }
   
   /**
-   * The enum Persistance mode.
-   */
-  public enum PersistanceMode {
-    /**
-     * Soft persistance mode.
-     */
-    Soft,
-    /**
-     * Weak persistance mode.
-     */
-    Weak,
-    /**
-     * Phantom persistance mode.
-     */
-    Phantom
-  }
-  
-  /**
    * Reset.
    *
    * @param data the data
@@ -389,5 +371,23 @@ public abstract class RecycleBin<T> {
   public RecycleBin<T> setProfiling(final int threshold) {
     this.profilingThreshold = threshold;
     return this;
+  }
+  
+  /**
+   * The enum Persistance mode.
+   */
+  public enum PersistanceMode {
+    /**
+     * Soft persistance mode.
+     */
+    Soft,
+    /**
+     * Weak persistance mode.
+     */
+    Weak,
+    /**
+     * Phantom persistance mode.
+     */
+    Phantom
   }
 }

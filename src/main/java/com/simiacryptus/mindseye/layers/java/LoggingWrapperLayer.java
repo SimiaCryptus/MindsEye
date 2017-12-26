@@ -33,6 +33,9 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public final class LoggingWrapperLayer extends WrapperLayer {
+  /**
+   * The Logger.
+   */
   static final Logger logger = LoggerFactory.getLogger(LoggingWrapperLayer.class);
   
   

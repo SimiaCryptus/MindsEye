@@ -96,7 +96,7 @@ public final class ConvolveKernel extends Kernel {
         final int k2 = k % ks2 / ks1;
         final int k1 = k % ks1 / ks0;
         final int k0 = k % ks0;
-      
+  
         final int x = k2 - o2;
         if (x >= 0 && 0 == x % outputSize[2]) {
           final int i2 = x / outputSize[2];

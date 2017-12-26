@@ -43,40 +43,6 @@ import java.util.function.Function;
 public class TextbookOptimizers extends OptimizerComparison {
   
   /**
-   * Instantiates a new Compare textbook.
-   */
-  public TextbookOptimizers() {
-    super(MnistTests.fwd_linear_1, MnistTests.rev_linear_1, new MnistProblemData());
-  }
-  
-  @Override
-  public void compare(final NotebookOutput log, final Function<OptimizationStrategy, List<StepRecord>> test) {
-    log.h1("Textbook Optimizer Comparison");
-    log.h2("GD");
-    final ProblemRun gd = new ProblemRun("GD", Color.BLACK,
-      test.apply(TextbookOptimizers.simple_gradient_descent), ProblemRun.PlotType.Line);
-    log.h2("SGD");
-    final ProblemRun sgd = new ProblemRun("SGD", Color.GREEN,
-      test.apply(TextbookOptimizers.stochastic_gradient_descent), ProblemRun.PlotType.Line);
-    log.h2("CGD");
-    final ProblemRun cgd = new ProblemRun("CjGD", Color.BLUE,
-      test.apply(TextbookOptimizers.conjugate_gradient_descent), ProblemRun.PlotType.Line);
-    log.h2("L-BFGS");
-    final ProblemRun lbfgs = new ProblemRun("L-BFGS", Color.MAGENTA,
-      test.apply(TextbookOptimizers.limited_memory_bfgs), ProblemRun.PlotType.Line);
-    log.h2("OWL-QN");
-    final ProblemRun owlqn = new ProblemRun("OWL-QN", Color.ORANGE,
-      test.apply(TextbookOptimizers.orthantwise_quasi_newton), ProblemRun.PlotType.Line);
-    log.h2("Comparison");
-    log.code(() -> {
-      return TestUtil.compare("Convergence Plot", gd, sgd, cgd, lbfgs, owlqn);
-    });
-    log.code(() -> {
-      return TestUtil.compareTime("Convergence Plot", gd, sgd, cgd, lbfgs, owlqn);
-    });
-  }
-  
-  /**
    * The constant conjugate_gradient_descent.
    */
   public static OptimizationStrategy conjugate_gradient_descent = (log, trainingSubject, validationSubject, monitor) -> {
@@ -156,4 +122,38 @@ public class TextbookOptimizers extends OptimizerComparison {
       return trainer;
     });
   };
+  
+  /**
+   * Instantiates a new Compare textbook.
+   */
+  public TextbookOptimizers() {
+    super(MnistTests.fwd_linear_1, MnistTests.rev_linear_1, new MnistProblemData());
+  }
+  
+  @Override
+  public void compare(final NotebookOutput log, final Function<OptimizationStrategy, List<StepRecord>> test) {
+    log.h1("Textbook Optimizer Comparison");
+    log.h2("GD");
+    final ProblemRun gd = new ProblemRun("GD", Color.BLACK,
+      test.apply(TextbookOptimizers.simple_gradient_descent), ProblemRun.PlotType.Line);
+    log.h2("SGD");
+    final ProblemRun sgd = new ProblemRun("SGD", Color.GREEN,
+      test.apply(TextbookOptimizers.stochastic_gradient_descent), ProblemRun.PlotType.Line);
+    log.h2("CGD");
+    final ProblemRun cgd = new ProblemRun("CjGD", Color.BLUE,
+      test.apply(TextbookOptimizers.conjugate_gradient_descent), ProblemRun.PlotType.Line);
+    log.h2("L-BFGS");
+    final ProblemRun lbfgs = new ProblemRun("L-BFGS", Color.MAGENTA,
+      test.apply(TextbookOptimizers.limited_memory_bfgs), ProblemRun.PlotType.Line);
+    log.h2("OWL-QN");
+    final ProblemRun owlqn = new ProblemRun("OWL-QN", Color.ORANGE,
+      test.apply(TextbookOptimizers.orthantwise_quasi_newton), ProblemRun.PlotType.Line);
+    log.h2("Comparison");
+    log.code(() -> {
+      return TestUtil.compare("Convergence Plot", gd, sgd, cgd, lbfgs, owlqn);
+    });
+    log.code(() -> {
+      return TestUtil.compareTime("Convergence Plot", gd, sgd, cgd, lbfgs, owlqn);
+    });
+  }
 }

@@ -32,6 +32,9 @@ import java.util.stream.Stream;
  * The type Mnist problem data.
  */
 public class MnistProblemData implements ImageProblemData {
+  /**
+   * The Logger.
+   */
   static final Logger logger = LoggerFactory.getLogger(MnistProblemData.class);
   
   @Override

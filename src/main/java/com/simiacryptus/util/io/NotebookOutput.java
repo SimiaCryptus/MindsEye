@@ -22,20 +22,15 @@ package com.simiacryptus.util.io;
 import com.simiacryptus.util.lang.UncheckedSupplier;
 
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * The interface Notebook output.
  */
 public interface NotebookOutput extends Closeable {
-  
-  /**
-   * Add copy notebook output.
-   *
-   * @param out the out
-   * @return the notebook output
-   */
-  NotebookOutput addCopy(PrintStream out);
   
   /**
    * Code.
@@ -173,6 +168,12 @@ public interface NotebookOutput extends Closeable {
    */
   void p(String fmt, Object... args);
   
+  /**
+   * Sets fm prop.
+   *
+   * @param key   the key
+   * @param value the value
+   */
   default void setFMProp(String key, String value) {
   }
 }

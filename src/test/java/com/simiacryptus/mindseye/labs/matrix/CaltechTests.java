@@ -167,7 +167,6 @@ public class CaltechTests {
     public void autoencoder_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
         if (null != TestUtil.originalOut) {
-          log.addCopy(TestUtil.originalOut);
         }
         log.h1("Caltech101 Denoising Autoencoder");
         intro(log);
@@ -185,7 +184,6 @@ public class CaltechTests {
     public void classification_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
         if (null != TestUtil.originalOut) {
-          log.addCopy(TestUtil.originalOut);
         }
         log.h1("Caltech101 Classification");
         intro(log);
@@ -204,7 +202,6 @@ public class CaltechTests {
     public void encoding_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
         if (null != TestUtil.originalOut) {
-          log.addCopy(TestUtil.originalOut);
         }
         log.h1("Caltech101 Image-to-Vector Encoding");
         intro(log);

@@ -56,7 +56,7 @@ public class EntropyLossLayerTest extends LayerTestBase {
    * The type Probability test.
    */
   public class ProbabilityTest extends LayerTestBase {
-
+  
     @Override
     public SingleDerivativeTester getDerivativeTester() {
       return new SingleDerivativeTester(1e-4, 1e-8);

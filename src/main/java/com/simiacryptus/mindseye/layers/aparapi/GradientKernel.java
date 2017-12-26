@@ -102,7 +102,7 @@ public final class GradientKernel extends Kernel {
         final int i2 = i % is2 / is1;
         final int i1 = i % is1 / is0;
         final int i0 = i % is0;
-      
+  
         final int o2 = k2 - i2 * outputSize[2];
         if (o2 >= 0 && o2 < outputSize[2]) {
           final int o1 = i1 + k1 - kernelOffset[1];

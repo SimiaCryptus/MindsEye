@@ -56,7 +56,7 @@ public class QuadraticSearch implements LineSearchStrategy {
     final LocateInitialRightPoint locateInitialRightPoint = new LocateInitialRightPoint(cursor, monitor, leftPoint).apply();
     LineSearchPoint rightPoint = locateInitialRightPoint.getRightPoint();
     double rightX = locateInitialRightPoint.getRightX();
-
+  
     int loops = 0;
     while (true) {
       final double a = (rightPoint.derivative - leftPoint.derivative) / (rightX - leftX);

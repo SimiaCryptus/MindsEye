@@ -113,6 +113,21 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
   }
   
   /**
+   * Reverse int [ ].
+   *
+   * @param array the array
+   * @return the int [ ]
+   */
+  public static int[] reverse(int... array) {
+    for (int i = 0; i < array.length / 2; i++) {
+      int j = array[array.length - (i + 1)];
+      array[array.length - (i + 1)] = array[i];
+      array[i] = j;
+    }
+    return array;
+  }
+  
+  /**
    * Add weights convolution layer.
    *
    * @param f the f
@@ -128,21 +143,6 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
     if (outputSize[0] != outputDims[3]) return false;
     if (outputSize[1] != outputDims[2]) return false;
     return outputSize[2] == outputDims[1];
-  }
-  
-  /**
-   * Reverse int [ ].
-   *
-   * @param array the array
-   * @return the int [ ]
-   */
-  public static int[] reverse(int... array) {
-    for (int i = 0; i < array.length / 2; i++) {
-      int j = array[array.length - (i + 1)];
-      array[array.length - (i + 1)] = array[i];
-      array[i] = j;
-    }
-    return array;
   }
   
   @Override

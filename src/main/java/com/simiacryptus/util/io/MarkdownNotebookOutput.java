@@ -26,6 +26,8 @@ import com.simiacryptus.util.lang.TimedResult;
 import com.simiacryptus.util.lang.UncheckedSupplier;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -42,17 +44,20 @@ import java.util.List;
  * The type Markdown notebook output.
  */
 public class MarkdownNotebookOutput implements NotebookOutput {
+  static final Logger logger = LoggerFactory.getLogger(MarkdownNotebookOutput.class);
   
   private static int excerptNumber = 0;
   private static int imageNumber = 0;
   private final File fileName;
   private final String name;
-  private final List<PrintStream> outs = new ArrayList<>();
-  private final OutputStream primaryOut;
+  private final PrintStream primaryOut;
   private final List<String> buffer = new ArrayList<>();
   private final List<String> frontMatter = new ArrayList<>();
+  /**
+   * The Toc.
+   */
   public List<String> toc = new ArrayList<>();
-
+  
   /**
    * The Anchor.
    */
@@ -68,17 +73,16 @@ public class MarkdownNotebookOutput implements NotebookOutput {
    */
   public MarkdownNotebookOutput(final File fileName, final String name) throws FileNotFoundException {
     this.name = name;
-    primaryOut = new FileOutputStream(fileName);
-    outs.add(new PrintStream(primaryOut));
+    primaryOut = new PrintStream(new FileOutputStream(fileName));
     this.fileName = fileName;
   }
   
   /**
    * Get markdown notebook output.
    *
-   * @param source the source
-   * @param absoluteUrl
-   * @param suffix the suffix
+   * @param source      the source
+   * @param absoluteUrl the absolute url
+   * @param suffix      the suffix
    * @return the markdown notebook output
    */
   public static MarkdownNotebookOutput get(final Object source, String absoluteUrl, String... suffix) {
@@ -106,23 +110,6 @@ public class MarkdownNotebookOutput implements NotebookOutput {
     }
   }
   
-  @Override
-  public void close() throws IOException {
-    if (null != primaryOut) {
-      primaryOut.close();
-      try (PrintWriter out = new PrintWriter(new FileOutputStream(fileName))) {
-        if (!frontMatter.isEmpty()) {
-          out.println("---");
-          frontMatter.forEach(out::println);
-          out.println("---");
-        }
-        toc.forEach(out::println);
-        out.print("\n\n");
-        buffer.forEach(out::println);
-      }
-    }
-  }
-  
   /**
    * Get markdown notebook output.
    *
@@ -143,32 +130,42 @@ public class MarkdownNotebookOutput implements NotebookOutput {
     }
   }
   
+  @Override
+  public void close() throws IOException {
+    if (null != primaryOut) {
+      primaryOut.close();
+      try (PrintWriter out = new PrintWriter(new FileOutputStream(fileName))) {
+        if (!frontMatter.isEmpty()) {
+          out.println("---");
+          frontMatter.forEach(out::println);
+          out.println("---");
+        }
+        toc.forEach(out::println);
+        out.print("\n\n");
+        buffer.forEach(out::println);
+      }
+    }
+  }
+  
   public void setFMProp(String key, String value) {
     frontMatter.add(String.format("%s: %s", key, value));
   }
   
   /**
-   * Add copy notebook output.
-   *
-   * @param out the out
-   * @return the notebook output
-   */
-  @Override
-  public NotebookOutput addCopy(final PrintStream out) {
-    outs.add(out);
-    return this;
-  }
-  
-  /**
    * Anchor string.
    *
+   * @param anchorId the anchor id
    * @return the string
-   * @param anchorId
    */
   public String anchor(String anchorId) {
     return String.format("<a id=\"%s\"></a>", anchorId);
   }
   
+  /**
+   * Anchor id string.
+   *
+   * @return the string
+   */
   public String anchorId() {
     return String.format("p-%d", anchor++);
   }
@@ -353,6 +350,13 @@ public class MarkdownNotebookOutput implements NotebookOutput {
     }
   }
   
+  /**
+   * Code file string.
+   *
+   * @param file the file
+   * @return the string
+   * @throws IOException the io exception
+   */
   public String codeFile(File file) throws IOException {
     Path path = pathToCodeFile(file);
     if (null != getAbsoluteUrl()) {
@@ -367,6 +371,13 @@ public class MarkdownNotebookOutput implements NotebookOutput {
     }
   }
   
+  /**
+   * Path to code file path.
+   *
+   * @param file the file
+   * @return the path
+   * @throws IOException the io exception
+   */
   public Path pathToCodeFile(File file) throws IOException {
     return fileName.getCanonicalFile().toPath().relativize(file.getCanonicalFile().toPath());
   }
@@ -386,9 +397,17 @@ public class MarkdownNotebookOutput implements NotebookOutput {
   public void out(final String fmt, final Object... args) {
     final String msg = format(fmt, args);
     buffer.add(msg);
-    outs.forEach(out -> out.println(msg));
+    primaryOut.println(msg);
+    logger.info(msg);
   }
   
+  /**
+   * Format string.
+   *
+   * @param fmt  the fmt
+   * @param args the args
+   * @return the string
+   */
   public String format(String fmt, Object... args) {
     return 0 == args.length ? fmt : String.format(fmt, args);
   }

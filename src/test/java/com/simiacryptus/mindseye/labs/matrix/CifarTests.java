@@ -105,7 +105,7 @@ public class CifarTests {
   };
   
   private abstract static class AllTests {
-
+  
     private final CIFARProblemData data = new CIFARProblemData();
     private final FwdNetworkFactory fwdFactory;
     private final OptimizationStrategy optimizationStrategy;
@@ -139,7 +139,6 @@ public class CifarTests {
     public void autoencoder_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
         if (null != TestUtil.originalOut) {
-          log.addCopy(TestUtil.originalOut);
         }
         log.h1("CIFAR10 Denoising Autoencoder");
         intro(log);
@@ -157,7 +156,6 @@ public class CifarTests {
     public void classification_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
         if (null != TestUtil.originalOut) {
-          log.addCopy(TestUtil.originalOut);
         }
         log.h1("CIFAR10 Classification");
         intro(log);
@@ -175,7 +173,6 @@ public class CifarTests {
     public void encoding_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
         if (null != TestUtil.originalOut) {
-          log.addCopy(TestUtil.originalOut);
         }
         log.h1("CIFAR10 Image-to-Vector Encoding");
         intro(log);

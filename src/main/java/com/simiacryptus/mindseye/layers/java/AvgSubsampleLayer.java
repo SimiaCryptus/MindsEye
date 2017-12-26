@@ -186,7 +186,7 @@ public class AvgSubsampleLayer extends NNLayer {
      * The Output.
      */
     int[] output;
-
+  
     /**
      * Instantiates a new Index map key.
      *
@@ -198,7 +198,7 @@ public class AvgSubsampleLayer extends NNLayer {
       this.kernel = kernel;
       this.output = output;
     }
-
+  
     /**
      * Instantiates a new Index map key.
      *

@@ -44,15 +44,6 @@ import java.util.stream.IntStream;
 public class GpuTrainable implements DataTrainable, TrainableDataMask {
   
   /**
-   * The Network.
-   */
-  protected final NNLayer network;
-  /**
-   * The Data.
-   */
-  protected List<Tensor[]> data;
-  
-  /**
    * Between each iteration we have the option to initiate a garbage collection.
    * This is a good opportunity since the reachable object count will be at a minimum
    * between collections, making GC more efficient.
@@ -60,17 +51,24 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    * JVM flags "-XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC"
    */
   protected static boolean gcEachIteration = true;
-  
   /**
    * The Gc period.
    */
   protected static double gcPeriod = 1.0;
+  private static int verbosity = 0;
+  /**
+   * The Network.
+   */
+  protected final NNLayer network;
+  /**
+   * The Data.
+   */
+  protected List<Tensor[]> data;
   /**
    * The Mask.
    */
   boolean[] mask = null;
   private long lastGc = 0;
-  private static int verbosity = 0;
   
   /**
    * Instantiates a new Gpu trainable.
@@ -138,11 +136,6 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
     verbosity = verbose;
   }
   
-  @Override
-  public Tensor[][] getData() {
-    return data.toArray(new Tensor[][]{});
-  }
-  
   /**
    * Gets gc period.
    *
@@ -161,11 +154,6 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
     GpuTrainable.gcPeriod = gcPeriod;
   }
   
-  @Override
-  public boolean[] getMask() {
-    return mask;
-  }
-  
   /**
    * Is gc each iteration boolean.
    *
@@ -182,6 +170,16 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    */
   public static void setGcEachIteration(final boolean gcEachIteration) {
     GpuTrainable.gcEachIteration = gcEachIteration;
+  }
+  
+  @Override
+  public Tensor[][] getData() {
+    return data.toArray(new Tensor[][]{});
+  }
+  
+  @Override
+  public boolean[] getMask() {
+    return mask;
   }
   
   @Override

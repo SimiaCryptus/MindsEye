@@ -124,6 +124,17 @@ public class RoundRobinTrainer {
    * @param lineSearchFactory the line search factory
    * @return the line search factory
    */
+  public RoundRobinTrainer setLineSearchFactory(final Supplier<LineSearchStrategy> lineSearchFactory) {
+    this.lineSearchFactory = s -> lineSearchFactory.get();
+    return this;
+  }
+  
+  /**
+   * Sets line search factory.
+   *
+   * @param lineSearchFactory the line search factory
+   * @return the line search factory
+   */
   public RoundRobinTrainer setLineSearchFactory(final Function<String, ? extends LineSearchStrategy> lineSearchFactory) {
     this.lineSearchFactory = lineSearchFactory;
     return this;
@@ -136,17 +147,6 @@ public class RoundRobinTrainer {
    */
   public int getMaxIterations() {
     return maxIterations;
-  }
-  
-  /**
-   * Sets line search factory.
-   *
-   * @param lineSearchFactory the line search factory
-   * @return the line search factory
-   */
-  public RoundRobinTrainer setLineSearchFactory(final Supplier<LineSearchStrategy> lineSearchFactory) {
-    this.lineSearchFactory = s -> lineSearchFactory.get();
-    return this;
   }
   
   /**

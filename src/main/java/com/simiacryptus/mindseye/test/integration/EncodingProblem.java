@@ -210,7 +210,7 @@ public class EncodingProblem implements Problem {
       preTrainer.setTimeout(timeoutMinutes / 2, TimeUnit.MINUTES).setMaxIterations(batchSize).run();
     });
     TestUtil.extractPerformance(log, trainingNetwork);
-
+  
     log.p("Then our main training phase:");
     TestUtil.instrumentPerformance(log, trainingNetwork);
     final ValidatingTrainer mainTrainer = optimizer.train(log,
@@ -220,7 +220,7 @@ public class EncodingProblem implements Problem {
       mainTrainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(batchSize).run();
     });
     TestUtil.extractPerformance(log, trainingNetwork);
-
+  
     if (!history.isEmpty()) {
       log.code(() -> {
         return TestUtil.plot(history);
@@ -231,7 +231,7 @@ public class EncodingProblem implements Problem {
     }
     final String modelName = "encoding_model" + EncodingProblem.modelNo++ + ".json";
     log.p("Saved model as " + log.file(trainingNetwork.getJson().toString(), modelName, modelName));
-
+  
     log.h3("Results");
     final PipelineNetwork testNetwork = new PipelineNetwork(2);
     testNetwork.add(imageNetwork, testNetwork.getInput(0));
@@ -250,7 +250,7 @@ public class EncodingProblem implements Problem {
       }).filter(x -> null != x).limit(10).forEach(table::putRow);
       return table;
     });
-
+  
     log.p("Learned Model Statistics:");
     log.code(() -> {
       final ScalarStatistics scalarStatistics = new ScalarStatistics();

@@ -41,6 +41,9 @@ import java.util.function.Consumer;
  * The type Layer test base.
  */
 public abstract class StandardLayerTests {
+  /**
+   * The constant force_classload.
+   */
   protected static final Object force_classload[] = {
     SysOutInterceptor.class
   };
@@ -231,7 +234,6 @@ public abstract class StandardLayerTests {
    */
   public void test(final NotebookOutput log) {
     if (null != TestUtil.originalOut) {
-      log.addCopy(TestUtil.originalOut);
     }
     final NNLayer layer = getLayer(getInputDims());
     String layerJavadoc = CodeUtil.getJavadoc(layer.getClass());
@@ -246,7 +248,7 @@ public abstract class StandardLayerTests {
   
     log.p("__Layer Description:__ " + layerJavadoc);
     log.p("__Test Description:__ " + testJavadoc);
-
+  
     if (layer instanceof DAGNetwork) {
       log.h1("Network Diagram");
       log.p("This is a network with the following layout:");

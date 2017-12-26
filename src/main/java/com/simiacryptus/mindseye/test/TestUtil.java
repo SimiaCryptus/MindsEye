@@ -56,12 +56,11 @@ import java.util.stream.Stream;
  * The type Image test util.
  */
 public class TestUtil {
-  private static final Logger logger = LoggerFactory.getLogger(TestUtil.class);
-  
   /**
    * The constant originalOut.
    */
   public static final PrintStream originalOut = System.out;
+  private static final Logger logger = LoggerFactory.getLogger(TestUtil.class);
   
   /**
    * Add logging.
@@ -249,9 +248,6 @@ public class TestUtil {
       @Override
       public void log(final String msg) {
         logger.info(msg);
-        if (null != TestUtil.originalOut && System.out != TestUtil.originalOut) {
-          TestUtil.originalOut.println(msg);
-        }
         super.log(msg);
       }
       

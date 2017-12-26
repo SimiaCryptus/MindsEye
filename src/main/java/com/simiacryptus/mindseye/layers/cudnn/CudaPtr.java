@@ -239,7 +239,7 @@ public class CudaPtr extends CudaResource<Pointer> {
       CudaPtr.getGpuStats(deviceId).memoryReads.addAndGet(size);
       return this;
     }
-
+  
   }
   
   /**

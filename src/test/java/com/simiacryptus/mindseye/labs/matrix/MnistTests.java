@@ -198,7 +198,6 @@ public class MnistTests {
     public void autoencoder_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
         if (null != TestUtil.originalOut) {
-          log.addCopy(TestUtil.originalOut);
         }
         log.h1("MNIST Denoising Autoencoder");
         intro(log);
@@ -216,7 +215,6 @@ public class MnistTests {
     public void classification_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
         if (null != TestUtil.originalOut) {
-          log.addCopy(TestUtil.originalOut);
         }
         log.h1("MNIST Digit Classification");
         intro(log);
@@ -235,7 +233,6 @@ public class MnistTests {
     public void encoding_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
         if (null != TestUtil.originalOut) {
-          log.addCopy(TestUtil.originalOut);
         }
         log.h1("MNIST Image-to-Vector Encoding");
         intro(log);
