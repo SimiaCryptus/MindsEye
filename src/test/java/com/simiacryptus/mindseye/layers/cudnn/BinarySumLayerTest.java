@@ -109,7 +109,7 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * Subtracts using float (32-bit) precision, C = A - B
+   * Binary averaging using float (32-bit) precision, C = (A + B) / 2
    */
   public static class Float_Avg extends BinarySumLayerTest {
     /**
