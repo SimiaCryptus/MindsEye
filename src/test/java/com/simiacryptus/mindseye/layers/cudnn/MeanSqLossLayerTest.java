@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Mean sq loss layer test.
  */
-public class MeanSqLossLayerTest extends LayerTestBase {
+public abstract class MeanSqLossLayerTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -52,7 +52,20 @@ public class MeanSqLossLayerTest extends LayerTestBase {
   }
   
   /**
-   * The type Asymmetric.
+   * Basic test.
+   */
+  public class Basic extends MeanSqLossLayerTest {
+  
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {3, 3, 2}, {3, 3, 2}
+      };
+    }
+  }
+  
+  /**
+   * Test using asymmetric input.
    */
   public class Asymetric extends MeanSqLossLayerTest {
   

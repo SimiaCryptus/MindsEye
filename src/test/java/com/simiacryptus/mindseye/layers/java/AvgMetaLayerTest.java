@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.MetaLayerTestBase;
 /**
  * The type Avg meta layer test.
  */
-public class AvgMetaLayerTest extends MetaLayerTestBase {
+public abstract class AvgMetaLayerTest extends MetaLayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -44,6 +44,13 @@ public class AvgMetaLayerTest extends MetaLayerTestBase {
     return new int[][]{
       {100}
     };
+  }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends AvgMetaLayerTest {
+  
   }
   
 }

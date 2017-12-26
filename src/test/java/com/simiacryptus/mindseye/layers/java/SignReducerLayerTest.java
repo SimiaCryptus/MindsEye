@@ -44,4 +44,10 @@ public class SignReducerLayerTest {
     }
   }
   
+  /**
+   * Basic Test
+   */
+  public static class Basic extends SignReducerLayerTest {
+  }
+  
 }

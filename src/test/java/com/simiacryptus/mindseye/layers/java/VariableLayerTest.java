@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Variable layer test.
  */
-public class VariableLayerTest extends LayerTestBase {
+public abstract class VariableLayerTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -38,4 +38,11 @@ public class VariableLayerTest extends LayerTestBase {
   public NNLayer getLayer(final int[][] inputSize) {
     return new VariableLayer(new MonitoringSynapse());
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends VariableLayerTest {
+  }
+
 }

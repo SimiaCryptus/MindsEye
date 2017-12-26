@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Binary noise layer test.
  */
-public class BinaryNoiseLayerTest extends LayerTestBase {
+public abstract class BinaryNoiseLayerTest extends LayerTestBase {
   
   /**
    * Instantiates a new Binary noise layer test.
@@ -45,4 +45,11 @@ public class BinaryNoiseLayerTest extends LayerTestBase {
   public NNLayer getLayer(final int[][] inputSize) {
     return new BinaryNoiseLayer();
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends BinaryNoiseLayerTest {
+  }
+  
 }

@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.MetaLayerTestBase;
 /**
  * The type Std dev meta layer test.
  */
-public class StdDevMetaLayerTest extends MetaLayerTestBase {
+public abstract class StdDevMetaLayerTest extends MetaLayerTestBase {
   
   /**
    * Instantiates a new Std dev meta layer test.
@@ -54,4 +54,10 @@ public class StdDevMetaLayerTest extends MetaLayerTestBase {
     };
   }
   
+  /**
+   * Basic Test
+   */
+  public static class Basic extends StdDevMetaLayerTest {
+  }
+
 }

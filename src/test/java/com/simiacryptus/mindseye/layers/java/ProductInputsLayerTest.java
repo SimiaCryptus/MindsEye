@@ -39,7 +39,7 @@ public abstract class ProductInputsLayerTest extends LayerTestBase {
   }
   
   /**
-   * The type N 1 test.
+   * Multiply one multivariate input with a univariate input
    */
   public static class N1Test extends ProductInputsLayerTest {
     @Override
@@ -51,7 +51,7 @@ public abstract class ProductInputsLayerTest extends LayerTestBase {
   }
   
   /**
-   * The type Nnn test.
+   * Multiply three multivariate inputs
    */
   public static class NNNTest extends ProductInputsLayerTest {
 
@@ -64,7 +64,7 @@ public abstract class ProductInputsLayerTest extends LayerTestBase {
   }
   
   /**
-   * The type Nn test.
+   * Multiply two multivariate inputs
    */
   public static class NNTest extends ProductInputsLayerTest {
 

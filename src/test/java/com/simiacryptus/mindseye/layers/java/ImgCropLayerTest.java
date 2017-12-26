@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Img crop layer test.
  */
-public class ImgCropLayerTest extends LayerTestBase {
+public abstract class ImgCropLayerTest extends LayerTestBase {
   
   /**
    * Instantiates a new Img crop layer test.
@@ -46,4 +46,11 @@ public class ImgCropLayerTest extends LayerTestBase {
   public NNLayer getLayer(final int[][] inputSize) {
     return new ImgCropLayer(1, 1);
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends ImgCropLayerTest {
+  }
+  
 }

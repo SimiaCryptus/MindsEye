@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Cross difference layer test.
  */
-public class CrossDifferenceLayerTest extends LayerTestBase {
+public abstract class CrossDifferenceLayerTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -38,4 +38,11 @@ public class CrossDifferenceLayerTest extends LayerTestBase {
   public NNLayer getLayer(final int[][] inputSize) {
     return new CrossDifferenceLayer();
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends CrossDifferenceLayerTest {
+  }
+
 }

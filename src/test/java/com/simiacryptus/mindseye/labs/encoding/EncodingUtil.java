@@ -25,10 +25,10 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
-import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.java.ImgBandScaleLayer;
 import com.simiacryptus.mindseye.layers.java.ImgBandSelectLayer;
 import com.simiacryptus.mindseye.layers.java.ImgReshapeLayer;
+import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.Step;
@@ -143,7 +143,7 @@ class EncodingUtil {
   
   public static String animatedGif(final NotebookOutput log, final Tensor baseline, final List<Tensor> signedComponents) {
     int loopTimeMs = 5000;
-    int framerate = 24;
+    int framerate = 8;
     int frames = loopTimeMs * framerate / 1000;
     try {
       double step = 2 * Math.PI / frames;

@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Bias meta layer test.
  */
-public class BiasMetaLayerTest extends LayerTestBase {
+public abstract class BiasMetaLayerTest extends LayerTestBase {
   /**
    * Instantiates a new Bias meta layer test.
    */
@@ -43,6 +43,12 @@ public class BiasMetaLayerTest extends LayerTestBase {
   @Override
   public NNLayer getLayer(final int[][] inputSize) {
     return new BiasMetaLayer();
+  }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends BiasMetaLayerTest {
   }
   
 }

@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.MetaLayerTestBase;
 /**
  * The type Sum meta layer test.
  */
-public class SumMetaLayerTest extends MetaLayerTestBase {
+public abstract class SumMetaLayerTest extends MetaLayerTestBase {
   
   /**
    * Instantiates a new Sum meta layer test.
@@ -54,4 +54,10 @@ public class SumMetaLayerTest extends MetaLayerTestBase {
     };
   }
   
+  /**
+   * Basic Test
+   */
+  public static class Basic extends SumMetaLayerTest {
+  }
+
 }

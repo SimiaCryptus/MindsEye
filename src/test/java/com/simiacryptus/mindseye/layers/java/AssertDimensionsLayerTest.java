@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Assert dimensions layer test.
  */
-public class AssertDimensionsLayerTest extends LayerTestBase {
+public abstract class AssertDimensionsLayerTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -38,4 +38,12 @@ public class AssertDimensionsLayerTest extends LayerTestBase {
   public NNLayer getLayer(final int[][] inputSize) {
     return new AssertDimensionsLayer(2, 2);
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends AssertDimensionsLayerTest {
+  
+  }
+  
 }

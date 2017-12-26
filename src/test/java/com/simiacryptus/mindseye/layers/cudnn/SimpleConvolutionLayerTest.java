@@ -27,7 +27,7 @@ import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 /**
  * The type Simple convolution layer test.
  */
-public class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
+public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
   
   private final int bands;
   private final int radius;
@@ -36,12 +36,6 @@ public class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
    */
   SimpleConvolutionLayer layer;
   
-  /**
-   * Instantiates a new Simple convolution layer test.
-   */
-  public SimpleConvolutionLayerTest() {
-    this(1, 1, Precision.Double);
-  }
   
   /**
    * Instantiates a new Simple convolution layer test.
@@ -93,7 +87,19 @@ public class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Image.
+   * Maximally-basic single-value "convolution" in 64 bits
+   */
+  public static class Basic extends SimpleConvolutionLayerTest {
+    /**
+     * Instantiates a new Image.
+     */
+    public Basic() {
+      super(1, 1, Precision.Double);
+    }
+  }
+  
+  /**
+   * Typical 3x3 image convolution (64-bit)
    */
   public static class Image extends SimpleConvolutionLayerTest {
     /**
@@ -105,7 +111,7 @@ public class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Image float.
+   * Typical 3x3 image convolution (32-bit)
    */
   public static class Image_Float extends SimpleConvolutionLayerTest {
     /**
@@ -123,7 +129,7 @@ public class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Matrix.
+   * Basic single-band 3x3 image filter.
    */
   public static class Matrix extends SimpleConvolutionLayerTest {
     /**
@@ -135,7 +141,7 @@ public class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Multi band.
+   * Basic multi-band, 1-pixel-radius filter.
    */
   public static class MultiBand extends SimpleConvolutionLayerTest {
     /**

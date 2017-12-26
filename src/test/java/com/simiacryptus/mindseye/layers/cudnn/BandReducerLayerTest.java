@@ -61,7 +61,7 @@ public abstract class BandReducerLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Double.
+   * Basic test in double (64-bit) precision
    */
   public static class Double extends BandReducerLayerTest {
     /**
@@ -73,7 +73,7 @@ public abstract class BandReducerLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Double.
+   * Inputs asymmetric (height != width) images
    */
   public static class Asymmetric extends BandReducerLayerTest {
     /**
@@ -100,7 +100,7 @@ public abstract class BandReducerLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Float.
+   * Basic test using float (32-bit) precision.
    */
   public static class Float extends BandReducerLayerTest {
     /**

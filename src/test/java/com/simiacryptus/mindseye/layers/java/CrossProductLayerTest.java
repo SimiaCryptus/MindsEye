@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Cross product layer test.
  */
-public class CrossProductLayerTest extends LayerTestBase {
+public abstract class CrossProductLayerTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -38,4 +38,11 @@ public class CrossProductLayerTest extends LayerTestBase {
   public NNLayer getLayer(final int[][] inputSize) {
     return new CrossProductLayer();
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends CrossProductLayerTest {
+  }
+
 }

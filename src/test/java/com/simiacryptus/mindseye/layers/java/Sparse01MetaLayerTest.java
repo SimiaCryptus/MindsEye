@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Sparse 01 meta layer test.
  */
-public class Sparse01MetaLayerTest extends LayerTestBase {
+public abstract class Sparse01MetaLayerTest extends LayerTestBase {
   
   /**
    * Instantiates a new Sparse 01 meta layer test.
@@ -45,4 +45,11 @@ public class Sparse01MetaLayerTest extends LayerTestBase {
   public NNLayer getLayer(final int[][] inputSize) {
     return new Sparse01MetaLayer();
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends Sparse01MetaLayerTest {
+  }
+
 }

@@ -28,7 +28,7 @@ import com.simiacryptus.mindseye.test.unit.ComponentTest;
 /**
  * The type Normalization meta layer test.
  */
-public class NormalizationMetaLayerTest extends MetaLayerTestBase {
+public abstract class NormalizationMetaLayerTest extends MetaLayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -53,4 +53,11 @@ public class NormalizationMetaLayerTest extends MetaLayerTestBase {
   public ComponentTest<ToleranceStatistics> getDerivativeTester() {
     return new BatchDerivativeTester(1e-2, 1e-5, 10);
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends NormalizationMetaLayerTest {
+  }
+  
 }

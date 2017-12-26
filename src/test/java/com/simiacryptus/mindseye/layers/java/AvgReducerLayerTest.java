@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Avg reducer layer test.
  */
-public class AvgReducerLayerTest extends LayerTestBase {
+public abstract class AvgReducerLayerTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -45,5 +45,13 @@ public class AvgReducerLayerTest extends LayerTestBase {
       {100, 100, 1}
     };
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends AvgMetaLayerTest {
+  
+  }
+  
   
 }

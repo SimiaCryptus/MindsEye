@@ -22,11 +22,18 @@ package com.simiacryptus.mindseye.layers.java;
 /**
  * The type Max const layer test.
  */
-public class MaxConstLayerTest extends ActivationLayerTestBase {
+public abstract class MaxConstLayerTest extends ActivationLayerTestBase {
   /**
    * Instantiates a new Max const layer test.
    */
   public MaxConstLayerTest() {
     super(new MaxConstLayer());
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends MaxConstLayerTest {
+  }
+
 }

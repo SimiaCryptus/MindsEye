@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Img reshape layer test.
  */
-public class ImgReshapeLayerTest extends LayerTestBase {
+public abstract class ImgReshapeLayerTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -38,4 +38,11 @@ public class ImgReshapeLayerTest extends LayerTestBase {
   public NNLayer getLayer(final int[][] inputSize) {
     return new ImgReshapeLayer(2, 2, false);
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends ImgReshapeLayerTest {
+  }
+  
 }

@@ -25,7 +25,7 @@ import java.util.stream.IntStream;
 /**
  * The type Binary entropy activation layer test.
  */
-public class BinaryEntropyActivationLayerTest extends ActivationLayerTestBase {
+public abstract class BinaryEntropyActivationLayerTest extends ActivationLayerTestBase {
   /**
    * Instantiates a new Binary entropy activation layer test.
    */
@@ -42,4 +42,11 @@ public class BinaryEntropyActivationLayerTest extends ActivationLayerTestBase {
   public DoubleStream scan() {
     return IntStream.range(50, 450).mapToDouble(x -> x * 1.0 / 500.0);
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends BinaryEntropyActivationLayerTest {
+  }
+
 }

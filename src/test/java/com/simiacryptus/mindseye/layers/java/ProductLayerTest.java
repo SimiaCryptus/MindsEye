@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Product layer test.
  */
-public class ProductLayerTest extends LayerTestBase {
+public abstract class ProductLayerTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -38,4 +38,11 @@ public class ProductLayerTest extends LayerTestBase {
   public NNLayer getLayer(final int[][] inputSize) {
     return new ProductLayer();
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends ProductLayerTest {
+  }
+  
 }

@@ -98,7 +98,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Re lu double.
+   * Configured with double (64-bit) precision, y=x&lt;0?0:x
    */
   public static class ReLu_Double extends ActivationLayerTest {
     /**
@@ -115,7 +115,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Re lu float.
+   * Configured with float (32-bit) precision, y=x&lt;0?0:x
    */
   public static class ReLu_Float extends ActivationLayerTest {
     /**
@@ -132,7 +132,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Sigmoid double.
+   * Configured with double (64-bit) precision using the Sigmoid function
    */
   public static class Sigmoid_Double extends ActivationLayerTest {
     /**
@@ -149,7 +149,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Sigmoid float.
+   * Configured with float (32-bit) precision using the Sigmoid function
    */
   public static class Sigmoid_Float extends ActivationLayerTest {
     /**

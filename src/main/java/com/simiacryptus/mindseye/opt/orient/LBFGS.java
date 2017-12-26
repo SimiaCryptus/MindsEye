@@ -214,14 +214,14 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
   
   @Override
   public SimpleLineSearchCursor orient(final Trainable subject, final PointSample measurement, final TrainingMonitor monitor) {
-  
-    if (getClass().desiredAssertionStatus()) {
-      double verify = subject.measure(monitor).getMean();
-      double input = measurement.getMean();
-      boolean isDifferent = Math.abs(verify - input) > 1e-2;
-      if (isDifferent) throw new AssertionError(String.format("Invalid input point: %s != %s", verify, input));
-      monitor.log(String.format("Verified input point: %s == %s", verify, input));
-    }
+
+//    if (getClass().desiredAssertionStatus()) {
+//      double verify = subject.measure(monitor).getMean();
+//      double input = measurement.getMean();
+//      boolean isDifferent = Math.abs(verify - input) > 1e-2;
+//      if (isDifferent) throw new AssertionError(String.format("Invalid input point: %s != %s", verify, input));
+//      monitor.log(String.format("Verified input point: %s == %s", verify, input));
+//    }
     
     addToHistory(measurement, monitor);
     final List<PointSample> history = Arrays.asList(this.history.toArray(new PointSample[]{}));
@@ -239,14 +239,14 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
         monitor.log(String.format("Removed measurement %s to history. Total: %s", Long.toHexString(System.identityHashCode(remove)), history.size()));
       }
     }
-  
-    if (getClass().desiredAssertionStatus()) {
-      double verify = returnValue.step(0, monitor).point.getMean();
-      double input = measurement.getMean();
-      boolean isDifferent = Math.abs(verify - input) > 1e-2;
-      if (isDifferent) throw new AssertionError(String.format("Invalid lfbgs cursor: %s != %s", verify, input));
-      monitor.log(String.format("Verified lfbgs cursor: %s == %s", verify, input));
-    }
+
+//    if (getClass().desiredAssertionStatus()) {
+//      double verify = returnValue.step(0, monitor).point.getMean();
+//      double input = measurement.getMean();
+//      boolean isDifferent = Math.abs(verify - input) > 1e-2;
+//      if (isDifferent) throw new AssertionError(String.format("Invalid lfbgs cursor: %s != %s", verify, input));
+//      monitor.log(String.format("Verified lfbgs cursor: %s == %s", verify, input));
+//    }
   
     return returnValue;
   }

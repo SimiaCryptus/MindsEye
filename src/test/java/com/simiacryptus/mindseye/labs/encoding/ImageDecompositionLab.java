@@ -35,13 +35,15 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
-import com.simiacryptus.mindseye.opt.orient.GradientDescent;
+import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.mindseye.test.StepRecord;
+import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.StreamNanoHTTPD;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.HtmlNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 
+import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -100,7 +102,9 @@ public class ImageDecompositionLab {
     assert filterDimensions[0] == dimensions[0];
     assert filterDimensions[1] == dimensions[1];
     final int outputBands = dimensions[2];
-    assert outputBands == biasLayer.getBias().length;
+    if (outputBands != biasLayer.getBias().length) {
+      throw new AssertionError(String.format("%d != %d", outputBands, biasLayer.getBias().length));
+    }
     final int inputBands = filterDimensions[2] / outputBands;
     final FindFeatureSpace findFeatureSpace = new FindPCAFeatures(log, inputBands) {
       @Override
@@ -136,12 +140,24 @@ public class ImageDecompositionLab {
    * @param log the log
    */
   public void run(final NotebookOutput log) {
-    final int pretrainMinutes = 45;
-    final int timeoutMinutes = 45;
+    final int pretrainMinutes = 15;
+    final int timeoutMinutes = 30;
     final int images = 50;
-    final int size = 256;
+    final int size = 600;
   
-    final Tensor[][] trainingImages = EncodingUtil.getImages(log, size, images, "kangaroo");
+    String source = "H:\\SimiaCryptus\\photos";
+    displayImage = images;
+    final Tensor[][] trainingImages = null == source ? EncodingUtil.getImages(log, size, images, "kangaroo") :
+      Arrays.stream(new File(source).listFiles()).map(input -> {
+        try {
+          return ImageIO.read(input);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }).map(img -> new Tensor[]{
+        new Tensor(1.0),
+        Tensor.fromRGB(TestUtil.resize(img, size))
+      }).toArray(i -> new Tensor[i][]);
     
     log.h1("First Layer");
     final InitializationStep step0 = log.code(() -> {
@@ -199,8 +215,8 @@ public class ImageDecompositionLab {
         .setTimeout(timeoutMinutes, TimeUnit.MINUTES)
         .setMaxIterations(1000);
       validatingTrainer.getRegimen().get(0)
-        .setOrientation(new GradientDescent())
-        .setLineSearchFactory(name -> new QuadraticSearch().setCurrentRate(1.0));
+        .setOrientation(new QQN())
+        .setLineSearchFactory(name -> name.equals(QQN.CURSOR_NAME) ? new QuadraticSearch().setCurrentRate(1.0) : new QuadraticSearch().setCurrentRate(1e-4));
       validatingTrainer
         .run();
     });

@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Avg image band layer test.
  */
-public class AvgImageBandLayerTest extends LayerTestBase {
+public abstract class AvgImageBandLayerTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -46,4 +46,10 @@ public class AvgImageBandLayerTest extends LayerTestBase {
     };
   }
   
+  /**
+   * Basic Test
+   */
+  public static class Basic extends AvgImageBandLayerTest {
+  }
+
 }

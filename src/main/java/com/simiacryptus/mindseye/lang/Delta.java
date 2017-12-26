@@ -78,26 +78,28 @@ public class Delta<K> extends DoubleBuffer<K> {
    * @param dataCompensation the data compensation
    */
   public static void accumulate(final double[] data, final double[] delta, final double[] dataCompensation) {
-    for (int i = 0; i < data.length; i++) {
-      final double sum = data[i];
-      final double input = delta[i];
-      double c = null == dataCompensation ? 0 : dataCompensation[i];
-      if (Math.abs(sum) >= Math.abs(input)) {
-        final double y = sum - c;
-        final double t = input + y;
-        c = t - input - y;
-        data[i] = t;
-        if (null != dataCompensation) {
-          dataCompensation[i] = c;
+    synchronized (data) {
+      for (int i = 0; i < data.length; i++) {
+        final double sum = data[i];
+        final double input = delta[i];
+        double c = null == dataCompensation ? 0 : dataCompensation[i];
+        if (Math.abs(sum) >= Math.abs(input)) {
+          final double y = sum - c;
+          final double t = input + y;
+          c = t - input - y;
+          data[i] = t;
+          if (null != dataCompensation) {
+            dataCompensation[i] = c;
+          }
         }
-      }
-      else {
-        final double y = input - c;
-        final double t = sum + y;
-        c = t - sum - y;
-        data[i] = t;
-        if (null != dataCompensation) {
-          dataCompensation[i] = c;
+        else {
+          final double y = input - c;
+          final double t = sum + y;
+          c = t - sum - y;
+          data[i] = t;
+          if (null != dataCompensation) {
+            dataCompensation[i] = c;
+          }
         }
       }
     }
@@ -108,13 +110,15 @@ public class Delta<K> extends DoubleBuffer<K> {
    *
    * @param factor the factor
    */
-  public final synchronized void accumulate(final double factor) {
-    assert Arrays.stream(target).allMatch(Double::isFinite);
-    final double[] delta = getDelta();
-    for (int i = 0; i < length(); i++) {
-      target[i] += delta[i] * factor;
+  public final void accumulate(final double factor) {
+    synchronized (target) {
+      assert Arrays.stream(target).allMatch(Double::isFinite);
+      final double[] delta = getDelta();
+      for (int i = 0; i < length(); i++) {
+        target[i] += delta[i] * factor;
+      }
+      assert Arrays.stream(target).allMatch(Double::isFinite);
     }
-    assert Arrays.stream(target).allMatch(Double::isFinite);
   }
   
   /**

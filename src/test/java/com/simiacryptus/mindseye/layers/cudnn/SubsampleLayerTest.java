@@ -53,7 +53,7 @@ public abstract class SubsampleLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Double.
+   * Basic 64-bit test
    */
   public static class Double extends SubsampleLayerTest {
     /**
@@ -65,7 +65,7 @@ public abstract class SubsampleLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Float.
+   * Basic 32-bit test
    */
   public static class Float extends SubsampleLayerTest {
     /**

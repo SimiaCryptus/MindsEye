@@ -61,7 +61,7 @@ public abstract class PoolingLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Double.
+   * Basic 64-bit test.
    */
   public static class Double extends PoolingLayerTest {
     /**
@@ -73,7 +73,7 @@ public abstract class PoolingLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Double.
+   * Test using an asymmetric window size.
    */
   public static class Asymmetric extends PoolingLayerTest {
     /**
@@ -91,7 +91,7 @@ public abstract class PoolingLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Float.
+   * Basic 32-bit test.
    */
   public static class Float extends PoolingLayerTest {
     /**

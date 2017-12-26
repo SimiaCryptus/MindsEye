@@ -25,31 +25,39 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Convolution layer test.
  */
-public class ConvolutionLayerTest extends LayerTestBase {
-  
-  @Override
-  public int[][] getInputDims() {
-    return new int[][]{
-      {3, 3, 2}
-    };
-  }
-  
-  @Override
-  public NNLayer getLayer(final int[][] inputSize) {
-    return new ConvolutionLayer(3, 3, 2, 2, true).setWeights(this::random);
-  }
-  
-  @Override
-  public int[][] getPerfDims() {
-    return new int[][]{
-      {100, 100, 3}
-    };
-  }
+public abstract class ConvolutionLayerTest extends LayerTestBase {
   
   /**
-   * The type Downsize test.
+   * Basic 3x3 convolution with 2 color bands
    */
-  public static class DownsizeTest extends ConvolutionLayerTest {
+  public static class Basic extends ConvolutionLayerTest {
+    
+    @Override
+    public NNLayer getLayer(final int[][] inputSize) {
+      return new ConvolutionLayer(3, 3, 2, 2, true).setWeights(this::random);
+    }
+    
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {3, 3, 2}
+      };
+    }
+    
+    @Override
+    public int[][] getPerfDims() {
+      return new int[][]{
+        {100, 100, 2}
+      };
+    }
+    
+  }
+  
+  
+  /**
+   * Reducing the number of bands (output less data than input)
+   */
+  public static class Downsize extends ConvolutionLayerTest {
 
     @Override
     public int[][] getInputDims() {
@@ -66,9 +74,9 @@ public class ConvolutionLayerTest extends LayerTestBase {
   }
   
   /**
-   * The type Upsize test.
+   * Increasing the number of bands (output more data than input)
    */
-  public static class UpsizeTest extends ConvolutionLayerTest {
+  public static class Upsize extends ConvolutionLayerTest {
 
     @Override
     public int[][] getInputDims() {

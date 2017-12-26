@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Monitoring wrapper test.
  */
-public class MonitoringWrapperTest extends LayerTestBase {
+public abstract class MonitoringWrapperTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -38,4 +38,11 @@ public class MonitoringWrapperTest extends LayerTestBase {
   public NNLayer getLayer(final int[][] inputSize) {
     return new MonitoringWrapperLayer(new MonitoringSynapse());
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends MonitoringWrapperTest {
+  }
+  
 }

@@ -27,7 +27,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
  */
 public class TargetValueLayerTest {
   /**
-   * The type Normal.
+   * Basic test.
    */
   public static class Normal extends LayerTestBase {
     

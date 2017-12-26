@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Img concat layer test.
  */
-public class ImgConcatLayerTest extends LayerTestBase {
+public abstract class ImgConcatLayerTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -38,4 +38,11 @@ public class ImgConcatLayerTest extends LayerTestBase {
   public NNLayer getLayer(final int[][] inputSize) {
     return new ImgConcatLayer();
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends ImgConcatLayerTest {
+  }
+  
 }

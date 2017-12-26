@@ -54,7 +54,7 @@ public abstract class ProductLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Double.
+   * Multiplication of 2 inputs using 64-bit precision
    */
   public static class Double extends ProductLayerTest {
     /**
@@ -66,7 +66,7 @@ public abstract class ProductLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Double.
+   * Multiplication of 3 inputs using 64-bit precision
    */
   public static class Double3 extends ProductLayerTest {
     /**
@@ -85,7 +85,7 @@ public abstract class ProductLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Float.
+   * Multiplication of 2 inputs using 32-bit precision
    */
   public static class Float extends ProductLayerTest {
     /**

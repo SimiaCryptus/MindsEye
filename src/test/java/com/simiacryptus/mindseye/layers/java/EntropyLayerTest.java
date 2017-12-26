@@ -22,11 +22,18 @@ package com.simiacryptus.mindseye.layers.java;
 /**
  * The type Entropy layer test.
  */
-public class EntropyLayerTest extends ActivationLayerTestBase {
+public abstract class EntropyLayerTest extends ActivationLayerTestBase {
   /**
    * Instantiates a new Entropy layer test.
    */
   public EntropyLayerTest() {
     super(new EntropyLayer());
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends EntropyLayerTest {
+  }
+
 }

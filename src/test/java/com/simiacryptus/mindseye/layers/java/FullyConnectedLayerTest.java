@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Fully connected layer test.
  */
-public class FullyConnectedLayerTest extends LayerTestBase {
+public abstract class FullyConnectedLayerTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -38,4 +38,11 @@ public class FullyConnectedLayerTest extends LayerTestBase {
   public NNLayer getLayer(final int[][] inputSize) {
     return new FullyConnectedLayer(new int[]{3}, new int[]{3});
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends FullyConnectedLayerTest {
+  }
+
 }

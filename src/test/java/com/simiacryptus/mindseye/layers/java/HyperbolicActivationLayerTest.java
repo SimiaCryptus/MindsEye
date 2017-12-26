@@ -28,7 +28,7 @@ import java.util.HashMap;
 /**
  * The type Hyperbolic activation layer test.
  */
-public class HyperbolicActivationLayerTest extends ActivationLayerTestBase {
+public abstract class HyperbolicActivationLayerTest extends ActivationLayerTestBase {
   /**
    * Instantiates a new Hyperbolic activation layer test.
    */
@@ -47,4 +47,11 @@ public class HyperbolicActivationLayerTest extends ActivationLayerTestBase {
   public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
     return new TrainingTester().setRandomizationMode(TrainingTester.RandomizationMode.Random);
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends HyperbolicActivationLayerTest {
+  }
+  
 }

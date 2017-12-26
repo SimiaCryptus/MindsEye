@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Cross dot meta layer test.
  */
-public class CrossDotMetaLayerTest extends LayerTestBase {
+public abstract class CrossDotMetaLayerTest extends LayerTestBase {
   
   /**
    * Instantiates a new Cross dot meta layer test.
@@ -45,4 +45,11 @@ public class CrossDotMetaLayerTest extends LayerTestBase {
   public NNLayer getLayer(final int[][] inputSize) {
     return new CrossDotMetaLayer();
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends CrossDotMetaLayerTest {
+  }
+  
 }

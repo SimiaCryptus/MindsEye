@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 /**
@@ -265,8 +266,15 @@ public abstract class StandardLayerTests {
       });
       log.setFMProp("status", "OK");
     } catch (Throwable e) {
-      log.setFMProp("status", e.toString().replaceAll("\n", "").trim());
+      log.setFMProp("status", describe(e));
+      throw new RuntimeException(e);
     }
+  }
+  
+  public String describe(Throwable e) {
+    if (e instanceof RuntimeException && null != e.getCause() && e != e.getCause()) return describe(e.getCause());
+    if (e instanceof ExecutionException && null != e.getCause() && e != e.getCause()) return describe(e.getCause());
+    return e.getClass().toString().replaceAll("\n", "").trim();
   }
   
   /**

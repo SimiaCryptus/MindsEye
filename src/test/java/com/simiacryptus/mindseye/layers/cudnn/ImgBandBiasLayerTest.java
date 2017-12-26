@@ -61,7 +61,7 @@ public abstract class ImgBandBiasLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Double.
+   * Basic 64-bit test
    */
   public static class Double extends ImgBandBiasLayerTest {
     /**
@@ -73,7 +73,7 @@ public abstract class ImgBandBiasLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Float.
+   * Basic 32-bit test
    */
   public static class Float extends ImgBandBiasLayerTest {
     /**

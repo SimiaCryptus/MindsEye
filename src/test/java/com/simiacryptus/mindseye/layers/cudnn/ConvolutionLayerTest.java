@@ -86,34 +86,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Asymmetric test.
-   */
-  public static class Temp extends ConvolutionLayerTest {
-  
-    /**
-     * Instantiates a new Asymmetric test.
-     */
-    public Temp() {
-      super(3, 1, 5, Precision.Double);
-    }
-    
-    @Override
-    public int[][] getInputDims() {
-      return new int[][]{
-        {28, 28, inputBands}
-      };
-    }
-    
-    @Override
-    public int[][] getPerfDims() {
-      return new int[][]{
-        {100, 100, inputBands}
-      };
-    }
-  }
-  
-  /**
-   * The type Asymmetric test.
+   * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
    */
   public static class BandExpand extends ConvolutionLayerTest {
   
@@ -127,7 +100,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Asymmetric test.
+   * Reduces the number of color bands from 6 to 3 (radius 3; 64-bit precision)
    */
   public static class BandReduceTest extends ConvolutionLayerTest {
   
@@ -141,7 +114,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Double.
+   * Test using 64-bit precision with a radius of 1
    */
   public static class Double extends ConvolutionLayerTest {
     /**
@@ -153,7 +126,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Float.
+   * Test using 32-bit precision with a radius of 1
    */
   public static class Float extends ConvolutionLayerTest {
     /**
@@ -165,7 +138,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Irregular test.
+   * Convert from 7 bands to 5; this is meant to not divide evenly for testing. (64-bit)
    */
   public static class IrregularTest extends ConvolutionLayerTest {
   
@@ -178,7 +151,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Irregular test float.
+   * Convert from 7 bands to 5; this is meant to not divide evenly for testing. (32-bit)
    */
   public static class IrregularTest_Float extends ConvolutionLayerTest {
   

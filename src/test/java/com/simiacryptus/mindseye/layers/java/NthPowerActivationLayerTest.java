@@ -27,7 +27,7 @@ import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 public class NthPowerActivationLayerTest {
   
   /**
-   * The type Inv power test.
+   * Tests x^-1 aka 1/x
    */
   public static class InvPowerTest extends ActivationLayerTestBase {
     /**
@@ -51,7 +51,7 @@ public class NthPowerActivationLayerTest {
   }
   
   /**
-   * The type Inv sqrt power test.
+   * Tests x^-1/2 aka 1/sqrt(x)
    */
   public static class InvSqrtPowerTest extends ActivationLayerTestBase {
     /**
@@ -75,19 +75,19 @@ public class NthPowerActivationLayerTest {
   }
   
   /**
-   * The type Nth power test.
+   * Tests an irregular power
    */
   public static class NthPowerTest extends ActivationLayerTestBase {
     /**
      * Instantiates a new Nth power test.
      */
     public NthPowerTest() {
-      super(new NthPowerActivationLayer().setPower(2.5));
+      super(new NthPowerActivationLayer().setPower(Math.PI));
     }
   }
   
   /**
-   * The type Sqrt power test.
+   * Tests x^1/2 aka sqrt(x)
    */
   public static class SqrtPowerTest extends ActivationLayerTestBase {
     /**
@@ -99,7 +99,7 @@ public class NthPowerActivationLayerTest {
   }
   
   /**
-   * The type Square power test.
+   * Tests x^2
    */
   public static class SquarePowerTest extends ActivationLayerTestBase {
     /**
@@ -111,7 +111,7 @@ public class NthPowerActivationLayerTest {
   }
   
   /**
-   * The type Zero power test.
+   * Tests x^0 aka 1
    */
   public static class ZeroPowerTest extends ActivationLayerTestBase {
     /**

@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Logging wrapper layer test.
  */
-public class LoggingWrapperLayerTest extends LayerTestBase {
+public abstract class LoggingWrapperLayerTest extends LayerTestBase {
   
   /**
    * Instantiates a new Logging wrapper layer test.
@@ -45,4 +45,11 @@ public class LoggingWrapperLayerTest extends LayerTestBase {
   public NNLayer getLayer(final int[][] inputSize) {
     return new LoggingWrapperLayer(new LinearActivationLayer());
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends LoggingWrapperLayerTest {
+  }
+  
 }

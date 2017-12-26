@@ -25,16 +25,9 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Bias layer test.
  */
-public class BiasLayerTest extends LayerTestBase {
+public abstract class BiasLayerTest extends LayerTestBase {
   
   private final int dimension;
-  
-  /**
-   * Instantiates a new Bias layer test.
-   */
-  public BiasLayerTest() {
-    this(5);
-  }
   
   /**
    * Instantiates a new Bias layer test.
@@ -58,7 +51,16 @@ public class BiasLayerTest extends LayerTestBase {
   }
   
   /**
-   * The type Reducing.
+   * Basic Test
+   */
+  public static class Basic extends BiasLayerTest {
+    public Basic() {
+      super(5);
+    }
+  }
+  
+  /**
+   * Tests applying a single bias value on all inputs.
    */
   public static class Reducing extends BiasLayerTest {
   

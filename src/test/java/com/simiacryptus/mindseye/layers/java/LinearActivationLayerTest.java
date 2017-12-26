@@ -22,11 +22,18 @@ package com.simiacryptus.mindseye.layers.java;
 /**
  * The type Linear activation layer test.
  */
-public class LinearActivationLayerTest extends ActivationLayerTestBase {
+public abstract class LinearActivationLayerTest extends ActivationLayerTestBase {
   /**
    * Instantiates a new Linear activation layer test.
    */
   public LinearActivationLayerTest() {
     super(new LinearActivationLayer());
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends LinearActivationLayerTest {
+  }
+  
 }

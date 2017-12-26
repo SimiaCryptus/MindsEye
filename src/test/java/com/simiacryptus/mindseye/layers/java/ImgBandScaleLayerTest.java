@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Img band scale layer test.
  */
-public class ImgBandScaleLayerTest extends LayerTestBase {
+public abstract class ImgBandScaleLayerTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -38,4 +38,11 @@ public class ImgBandScaleLayerTest extends LayerTestBase {
   public NNLayer getLayer(final int[][] inputSize) {
     return new ImgBandScaleLayer(0.0, 0.0, 0.0).addWeights(this::random);
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends ImgBandScaleLayerTest {
+  }
+  
 }

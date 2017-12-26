@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Avg subsample layer test.
  */
-public class AvgSubsampleLayerTest extends LayerTestBase {
+public abstract class AvgSubsampleLayerTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -44,6 +44,13 @@ public class AvgSubsampleLayerTest extends LayerTestBase {
     return new int[][]{
       {100, 100, 3}
     };
+  }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends AvgSubsampleLayerTest {
+  
   }
   
 }

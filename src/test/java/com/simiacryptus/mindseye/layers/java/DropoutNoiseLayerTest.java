@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Dropout noise layer test.
  */
-public class DropoutNoiseLayerTest extends LayerTestBase {
+public abstract class DropoutNoiseLayerTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -38,4 +38,11 @@ public class DropoutNoiseLayerTest extends LayerTestBase {
   public NNLayer getLayer(final int[][] inputSize) {
     return new DropoutNoiseLayer();
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends DropoutNoiseLayerTest {
+  }
+  
 }

@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Softmax activation layer test.
  */
-public class SoftmaxActivationLayerTest extends LayerTestBase {
+public abstract class SoftmaxActivationLayerTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -36,4 +36,11 @@ public class SoftmaxActivationLayerTest extends LayerTestBase {
   public NNLayer getLayer(final int[][] inputSize) {
     return new SoftmaxActivationLayer();
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends SoftmaxActivationLayerTest {
+  }
+
 }

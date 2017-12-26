@@ -21,14 +21,13 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 import com.simiacryptus.util.Util;
 
 /**
  * The type Entropy loss layer test.
  */
-public class EntropyLossLayerTest extends LayerTestBase {
+public abstract class EntropyLossLayerTest extends LayerTestBase {
   
   @Override
   public SingleDerivativeTester getDerivativeTester() {
@@ -53,34 +52,9 @@ public class EntropyLossLayerTest extends LayerTestBase {
   }
   
   /**
-   * The type Probability test.
+   * Basic Test
    */
-  public class ProbabilityTest extends LayerTestBase {
-  
-    @Override
-    public SingleDerivativeTester getDerivativeTester() {
-      return new SingleDerivativeTester(1e-4, 1e-8);
-    }
-  
-    @Override
-    public int[][] getInputDims() {
-      return new int[][]{
-        {4}, {4}
-      };
-    }
-  
-    @Override
-    public NNLayer getLayer(final int[][] inputSize) {
-      final PipelineNetwork network = new PipelineNetwork(2);
-      network.add(new EntropyLossLayer(),
-        network.add(new SoftmaxActivationLayer(), network.getInput(0)),
-        network.add(new SoftmaxActivationLayer(), network.getInput(1)));
-      return network;
-    }
-  
-    @Override
-    public double random() {
-      return Util.R.get().nextDouble();
-    }
+  public static class Basic extends EntropyLossLayerTest {
   }
+  
 }

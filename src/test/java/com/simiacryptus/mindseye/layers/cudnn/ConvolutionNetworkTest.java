@@ -68,25 +68,25 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Double.
+   * Expands the an example low-level network implementing general convolutions. (64-bit)
    */
-  public static class Double extends ConvolutionNetworkTest {
+  public static class DoubleConvolutionNetwork extends ConvolutionNetworkTest {
     /**
      * Instantiates a new Double.
      */
-    public Double() {
+    public DoubleConvolutionNetwork() {
       super(Precision.Double);
     }
   }
   
   /**
-   * The type Float.
+   * Expands the an example low-level network implementing general convolutions. (32-bit)
    */
-  public static class Float extends ConvolutionNetworkTest {
+  public static class FloatConvolutionNetwork extends ConvolutionNetworkTest {
     /**
      * Instantiates a new Float.
      */
-    public Float() {
+    public FloatConvolutionNetwork() {
       super(Precision.Float);
     }
   

@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.java;
 /**
  * The type Max dropout noise layer test.
  */
-public class MaxDropoutNoiseLayerTest extends ActivationLayerTestBase {
+public abstract class MaxDropoutNoiseLayerTest extends ActivationLayerTestBase {
   /**
    * Instantiates a new Max dropout noise layer test.
    */
@@ -35,6 +35,12 @@ public class MaxDropoutNoiseLayerTest extends ActivationLayerTestBase {
     return new int[][]{
       {4, 4, 1}
     };
+  }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends MaxDropoutNoiseLayerTest {
   }
   
 }

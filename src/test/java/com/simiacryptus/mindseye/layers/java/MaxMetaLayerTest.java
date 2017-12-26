@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.MetaLayerTestBase;
 /**
  * The type Max meta layer test.
  */
-public class MaxMetaLayerTest extends MetaLayerTestBase {
+public abstract class MaxMetaLayerTest extends MetaLayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -44,6 +44,12 @@ public class MaxMetaLayerTest extends MetaLayerTestBase {
     return new int[][]{
       {3}
     };
+  }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends MaxMetaLayerTest {
   }
   
 }

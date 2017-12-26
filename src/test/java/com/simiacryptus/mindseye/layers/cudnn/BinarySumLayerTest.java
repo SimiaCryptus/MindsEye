@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
 /**
- * The type Product layer test.
+ * The type BinarySumLayerTest layer test.
  */
 public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
   
@@ -61,7 +61,7 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Double.
+   * Adds using double (64-bit) precision, C = A + B
    */
   public static class Double_Add extends BinarySumLayerTest {
     /**
@@ -73,7 +73,7 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Double.
+   * Subtracts using double (64-bit) precision, C = A - B
    */
   public static class Double_Subtract extends BinarySumLayerTest {
     /**
@@ -91,7 +91,7 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Float.
+   * Adds using float (32-bit) precision, C = A + B
    */
   public static class Float_Add extends BinarySumLayerTest {
     /**
@@ -109,7 +109,7 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Float.
+   * Subtracts using float (32-bit) precision, C = A - B
    */
   public static class Float_Avg extends BinarySumLayerTest {
     /**

@@ -60,7 +60,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Band limit test.
+   * Test truncation feature that limits the image to N bands, discarding the last as needed.
    */
   public static class BandLimitTest extends ImgConcatLayerTest {
   
@@ -85,7 +85,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Double.
+   * Basic 64-bit test
    */
   public static class Double extends ImgConcatLayerTest {
     /**
@@ -97,7 +97,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Float.
+   * Basic 32-bit test
    */
   public static class Float extends ImgConcatLayerTest {
     /**

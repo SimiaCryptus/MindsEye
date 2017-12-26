@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type L 1 normalization layer test.
  */
-public class L1NormalizationLayerTest extends LayerTestBase {
+public abstract class L1NormalizationLayerTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -41,4 +41,11 @@ public class L1NormalizationLayerTest extends LayerTestBase {
   public double random() {
     return super.random() * 100;
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends L1NormalizationLayerTest {
+  }
+
 }

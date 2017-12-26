@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Sum reducer layer test.
  */
-public class SumReducerLayerTest extends LayerTestBase {
+public abstract class SumReducerLayerTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -44,6 +44,12 @@ public class SumReducerLayerTest extends LayerTestBase {
     return new int[][]{
       {100, 100, 1}
     };
+  }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends SumReducerLayerTest {
   }
   
 }

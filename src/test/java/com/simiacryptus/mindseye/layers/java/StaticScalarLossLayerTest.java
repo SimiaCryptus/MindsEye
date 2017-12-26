@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Static scalar loss layer test.
  */
-public class StaticScalarLossLayerTest extends LayerTestBase {
+public abstract class StaticScalarLossLayerTest extends LayerTestBase {
   
   /**
    * Instantiates a new Static scalar loss layer test.
@@ -45,4 +45,11 @@ public class StaticScalarLossLayerTest extends LayerTestBase {
   public NNLayer getLayer(final int[][] inputSize) {
     return new StaticScalarLossLayer();
   }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends StaticScalarLossLayerTest {
+  }
+  
 }

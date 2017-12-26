@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Scale meta layer test.
  */
-public class ScaleMetaLayerTest extends LayerTestBase {
+public abstract class ScaleMetaLayerTest extends LayerTestBase {
   
   /**
    * Instantiates a new Scale meta layer test.
@@ -46,4 +46,10 @@ public class ScaleMetaLayerTest extends LayerTestBase {
     return new ScaleMetaLayer();
   }
   
+  /**
+   * Basic Test
+   */
+  public static class Basic extends ScaleMetaLayerTest {
+  }
+
 }
