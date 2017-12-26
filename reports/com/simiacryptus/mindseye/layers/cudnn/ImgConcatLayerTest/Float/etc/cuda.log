@@ -1,9 +1,0 @@
-514.559911: cudaSetDevice(0) = 0
-514.560041: cudaMalloc(Pointer[nativePointer=0x2109600600,byteOffset=0], 64) = 0
-514.560070: cudaMemset(Pointer[nativePointer=0x2109600600,byteOffset=0], 0, 64) = 0
-514.560089: cudnnCreateTensorDescriptor(cudnnTensorDescriptor[nativePointer=0x893ff1dd0]) = 0
-514.560099: cudnnSetTensor4dDescriptorEx(cudnnTensorDescriptor[nativePointer=0x893ff1dd0], 1, 1, 1, 2, 2, 4, 4, 2, 1) = 0
-514.560103: cudnnCreateTensorDescriptor(cudnnTensorDescriptor[nativePointer=0x893ff1970]) = 0
-514.560108: cudnnSetTensor4dDescriptorEx(cudnnTensorDescriptor[nativePointer=0x893ff1970], 1, 1, 1, 2, 2, 8, 4, 2, 1) = 0
-514.560137: cudaMalloc(Pointer[nativePointer=0x2109600800,byteOffset=0], 32) = 0
-514.560143: cudaMemset(Pointer[nativePointer=0x2109600800,byteOffset=0], 0, 32) = 0

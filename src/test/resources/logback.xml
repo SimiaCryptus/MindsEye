@@ -30,7 +30,7 @@
             <pattern>%msg%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/log-%d{HH-mm}.log</fileNamePattern>
+            <fileNamePattern>logs/test-%d{yyyy-MM-dd-HH-mm}.log</fileNamePattern>
         </rollingPolicy>
     </appender>
 

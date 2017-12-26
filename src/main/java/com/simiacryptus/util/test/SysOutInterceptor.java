@@ -20,9 +20,13 @@
 package com.simiacryptus.util.test;
 
 import com.simiacryptus.util.lang.UncheckedSupplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The type Sys out interceptor.
@@ -32,7 +36,9 @@ public class SysOutInterceptor extends PrintStream {
   /**
    * The constant INSTANCE.
    */
-  public static final SysOutInterceptor INSTANCE = SysOutInterceptor.init();
+  public static final PrintStream ORIGINAL_OUT = System.out;
+  private static final Logger logger = LoggerFactory.getLogger(SysOutInterceptor.class);
+  public static final SysOutInterceptor INSTANCE = new SysOutInterceptor(ORIGINAL_OUT).init();
   private final ThreadLocal<Boolean> isMonitoring = new ThreadLocal<Boolean>() {
     @Override
     protected Boolean initialValue() {
@@ -46,6 +52,7 @@ public class SysOutInterceptor extends PrintStream {
     }
   };
   
+  private final AtomicBoolean initialized = new AtomicBoolean(false);
   /**
    * Instantiates a new Sys out interceptor.
    *
@@ -55,13 +62,14 @@ public class SysOutInterceptor extends PrintStream {
     super(out);
   }
   
-  private static SysOutInterceptor init() {
-    if (!(System.out instanceof SysOutInterceptor)) {
-      final SysOutInterceptor out = new SysOutInterceptor(System.out);
-      System.setOut(out);
-      return out;
+  public SysOutInterceptor init() {
+    if (!initialized.getAndSet(true)) {
+      ch.qos.logback.classic.Logger root = ((ch.qos.logback.classic.Logger) logger).getLoggerContext().getLogger("ROOT");
+      ch.qos.logback.core.ConsoleAppender stdout = (ch.qos.logback.core.ConsoleAppender) root.getAppender("STDOUT");
+      stdout.setOutputStream(this);
+      System.setOut(this);
     }
-    return (SysOutInterceptor) System.out;
+    return this;
   }
   
   /**
@@ -134,6 +142,11 @@ public class SysOutInterceptor extends PrintStream {
   @Override
   public void print(final String s) {
     currentHandler().print(s);
+  }
+  
+  @Override
+  public void write(byte[] b) throws IOException {
+    currentHandler().print(new String(b));
   }
   
   @Override

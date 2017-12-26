@@ -41,12 +41,10 @@ import java.util.function.Consumer;
  * The type Layer test base.
  */
 public abstract class StandardLayerTests {
-  /**
-   * The constant force_classload.
-   */
-  protected static final Object force_classload[] = {
-    SysOutInterceptor.class
-  };
+  static {
+    SysOutInterceptor.INSTANCE.init();
+  }
+  
   /**
    * The Validate batch execution.
    */
