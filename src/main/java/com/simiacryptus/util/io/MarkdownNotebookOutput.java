@@ -44,6 +44,9 @@ import java.util.List;
  * The type Markdown notebook output.
  */
 public class MarkdownNotebookOutput implements NotebookOutput {
+  /**
+   * The Logger.
+   */
   static final Logger logger = LoggerFactory.getLogger(MarkdownNotebookOutput.class);
   
   private static int excerptNumber = 0;

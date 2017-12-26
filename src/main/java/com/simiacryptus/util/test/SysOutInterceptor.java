@@ -38,6 +38,9 @@ public class SysOutInterceptor extends PrintStream {
    */
   public static final PrintStream ORIGINAL_OUT = System.out;
   private static final Logger logger = LoggerFactory.getLogger(SysOutInterceptor.class);
+  /**
+   * The constant INSTANCE.
+   */
   public static final SysOutInterceptor INSTANCE = new SysOutInterceptor(ORIGINAL_OUT).init();
   private final ThreadLocal<Boolean> isMonitoring = new ThreadLocal<Boolean>() {
     @Override
@@ -62,6 +65,11 @@ public class SysOutInterceptor extends PrintStream {
     super(out);
   }
   
+  /**
+   * Init sys out interceptor.
+   *
+   * @return the sys out interceptor
+   */
   public SysOutInterceptor init() {
     if (!initialized.getAndSet(true)) {
       ch.qos.logback.classic.Logger root = ((ch.qos.logback.classic.Logger) logger).getLoggerContext().getLogger("ROOT");

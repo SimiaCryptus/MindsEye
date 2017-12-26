@@ -261,7 +261,7 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
     private final double magGrad;
     private final double dot;
     private final List<String> anglesPerLayer;
-    
+  
     /**
      * Instantiates a new Stats.
      *
@@ -303,7 +303,7 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
       return String.format("LBFGS Orientation magnitude: %.3e, gradient %.3e, dot %.3f; %s",
         getMag(), getMagGrad(), getDot(), getAnglesPerLayer());
     }
-    
+  
     /**
      * Gets mag.
      *
@@ -312,7 +312,7 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
     public double getMag() {
       return mag;
     }
-    
+  
     /**
      * Gets mag grad.
      *
@@ -321,7 +321,7 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
     public double getMagGrad() {
       return magGrad;
     }
-    
+  
     /**
      * Gets dot.
      *
@@ -330,7 +330,7 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
     public double getDot() {
       return dot;
     }
-    
+  
     /**
      * Gets angles per layer.
      *

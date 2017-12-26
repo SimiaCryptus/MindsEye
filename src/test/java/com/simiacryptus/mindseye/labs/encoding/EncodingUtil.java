@@ -141,6 +141,14 @@ class EncodingUtil {
     });
   }
   
+  /**
+   * Animated gif string.
+   *
+   * @param log              the log
+   * @param baseline         the baseline
+   * @param signedComponents the signed components
+   * @return the string
+   */
   public static String animatedGif(final NotebookOutput log, final Tensor baseline, final List<Tensor> signedComponents) {
     int loopTimeMs = 5000;
     int framerate = 8;

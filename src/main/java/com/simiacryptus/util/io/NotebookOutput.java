@@ -177,7 +177,17 @@ public interface NotebookOutput extends Closeable {
   default void setFMProp(String key, String value) {
   }
   
+  /**
+   * Gets name.
+   *
+   * @return the name
+   */
   String getName();
   
+  /**
+   * Gets resource dir.
+   *
+   * @return the resource dir
+   */
   File getResourceDir();
 }

@@ -243,12 +243,9 @@ public abstract class StandardLayerTests {
     log.setFMProp("test_class_full", getClass().getCanonicalName());
     log.setFMProp("layer_class_doc", layerJavadoc.replaceAll("\n", ""));
     log.setFMProp("test_class_doc", testJavadoc.replaceAll("\n", ""));
-  
     log.p("__Layer Description:__ " + layerJavadoc);
     log.p("__Test Description:__ " + testJavadoc);
-  
     try {
-    
       if (layer instanceof DAGNetwork) {
         log.h1("Network Diagram");
         log.p("This is a network with the following layout:");
@@ -271,10 +268,16 @@ public abstract class StandardLayerTests {
     }
   }
   
+  /**
+   * Describe string.
+   *
+   * @param e the e
+   * @return the string
+   */
   public String describe(Throwable e) {
     if (e instanceof RuntimeException && null != e.getCause() && e != e.getCause()) return describe(e.getCause());
     if (e instanceof ExecutionException && null != e.getCause() && e != e.getCause()) return describe(e.getCause());
-    return e.getClass().toString().replaceAll("\n", "").trim();
+    return e.getClass().getSimpleName().toString().replaceAll("\n", "").trim();
   }
   
   /**

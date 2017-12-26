@@ -37,10 +37,22 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 
+/**
+ * The type Gif sequence writer.
+ */
 public class GifSequenceWriter {
   
+  /**
+   * The Gif writer.
+   */
   protected ImageWriter gifWriter;
+  /**
+   * The Image write param.
+   */
   protected ImageWriteParam imageWriteParam;
+  /**
+   * The Image meta data.
+   */
   protected IIOMetadata imageMetaData;
   
   /**
@@ -50,7 +62,7 @@ public class GifSequenceWriter {
    * @param imageType           one of the imageTypes specified in BufferedImage
    * @param timeBetweenFramesMS the time between frames in miliseconds
    * @param loopContinuously    wether the gif should loop repeatedly
-   * @throws IIOException if no gif ImageWriters are found
+   * @throws IOException the io exception
    * @author Elliot Kroo (elliot[at]kroo[dot]net)
    */
   public GifSequenceWriter(
@@ -114,6 +126,15 @@ public class GifSequenceWriter {
     gifWriter.prepareWriteSequence(null);
   }
   
+  /**
+   * Write.
+   *
+   * @param gif                 the gif
+   * @param timeBetweenFramesMS the time between frames ms
+   * @param loopContinuously    the loop continuously
+   * @param images              the images
+   * @throws IOException the io exception
+   */
   public static void write(File gif, int timeBetweenFramesMS, boolean loopContinuously, BufferedImage... images) throws IOException {
     ImageOutputStream output = new FileImageOutputStream(gif);
     try {
@@ -173,8 +194,10 @@ public class GifSequenceWriter {
    * int imageType,
    * int timeBetweenFramesMS,
    * boolean loopContinuously) {
+   *
+   * @param args the input arguments
+   * @throws Exception the exception
    */
-  
   public static void main(String[] args) throws Exception {
     if (args.length > 1) {
       // grab the output image type from the first image in the sequence
@@ -205,6 +228,12 @@ public class GifSequenceWriter {
     }
   }
   
+  /**
+   * Write to sequence.
+   *
+   * @param img the img
+   * @throws IOException the io exception
+   */
   public void writeToSequence(RenderedImage img) throws IOException {
     gifWriter.writeToSequence(
       new IIOImage(
@@ -217,6 +246,8 @@ public class GifSequenceWriter {
   /**
    * Close this GifSequenceWriter object. This does not close the underlying
    * stream, just finishes off the GIF.
+   *
+   * @throws IOException the io exception
    */
   public void close() throws IOException {
     gifWriter.endWriteSequence();

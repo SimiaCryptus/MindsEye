@@ -42,7 +42,8 @@ public class JsonTest implements ComponentTest<ToleranceStatistics> {
       if (!layer.equals(echo)) throw new AssertionError("Serialization not equal");
       return new GsonBuilder().setPrettyPrinting().create().toJson(json);
     });
-    log.p("Wrote Model to %s", log.file(prettyPrint, log.getName() + "_layer.json"));
+    String filename = layer.getClass().getSimpleName() + "_" + log.getName() + ".json";
+    log.p(log.file(prettyPrint, filename, String.format("Wrote Model to %s", filename)));
     return null;
   }
 }

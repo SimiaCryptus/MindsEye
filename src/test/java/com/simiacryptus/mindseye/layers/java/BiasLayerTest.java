@@ -54,6 +54,9 @@ public abstract class BiasLayerTest extends LayerTestBase {
    * Basic Test
    */
   public static class Basic extends BiasLayerTest {
+    /**
+     * Instantiates a new Basic.
+     */
     public Basic() {
       super(5);
     }

@@ -280,6 +280,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
    */
   @Override
   public ToleranceStatistics test(final NotebookOutput log, final NNLayer component, final Tensor... inputPrototype) {
+    log.h1("Differential Validation");
     ToleranceStatistics _statistics = new ToleranceStatistics();
     final Tensor outputPrototype = SimpleEval.run(component, inputPrototype).getOutput();
   
