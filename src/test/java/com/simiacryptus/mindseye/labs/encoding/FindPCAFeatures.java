@@ -87,7 +87,7 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
     final int outputBands = getFeatures().findAny().get()[1].getDimensions()[2];
     return IntStream.range(0, outputBands).parallel().mapToDouble(b -> {
       return getFeatures().mapToDouble(tensor -> {
-        return tensor[1].coordStream().mapToDouble((c) -> c.getCoords()[2] == b ? tensor[1].get(c) : Double.NaN).filter(Double::isFinite).average().getAsDouble();
+        return tensor[1].coordStream().filter((c) -> c.getCoords()[2] == b).mapToDouble((c) -> tensor[1].get(c)).average().getAsDouble();
       }).average().getAsDouble();
     }).toArray();
   }
@@ -112,9 +112,9 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
         .mapToObj(i -> {
           final Tensor src = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), dimensions).copy();
             return src
-              .scaleInPlace(1.0 / src.rms())
-              .scale(decomposition.getRealEigenvalue(orderedVectors[i]) / decomposition.getRealEigenvalue(orderedVectors[inputBands - 1]))
-              .scaleInPlace(Math.sqrt(6. / (components + prototype[column].dim() + 1)))
+              .scale(1.0 / src.rms())
+              .scale((decomposition.getRealEigenvalue(orderedVectors[i]) / decomposition.getRealEigenvalue(orderedVectors[orderedVectors.length - 1])))
+              .scale(Math.sqrt(6. / (components + prototype[column].dim() + 1)))
               ;
           }
         ).toArray(i -> new Tensor[i]);

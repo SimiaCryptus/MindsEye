@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.BasicTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
@@ -32,6 +33,7 @@ import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 /**
@@ -76,8 +78,13 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
     else if (Math.abs(magnitude) < 1e-5) {
       monitor.log(String.format("Low gradient: %s", magnitude));
     }
-    List<NNLayer> deltaLayers = direction.getMap().entrySet().stream().map(x -> x.getKey()).collect(Collectors.toList());
-    if (null == weights || weights.length != direction.getMap().size()) weights = new double[direction.getMap().size()];
+    boolean hasPlaceholders = direction.getMap().entrySet().stream().filter(x -> x.getKey() instanceof PlaceholderLayer).findAny().isPresent();
+  
+    List<NNLayer> deltaLayers = direction.getMap().entrySet().stream().map(x -> x.getKey())
+      .filter(x -> !(x instanceof PlaceholderLayer))
+      .collect(Collectors.toList());
+    int size = deltaLayers.size() + (hasPlaceholders ? 1 : 0);
+    if (null == weights || weights.length != size) weights = new double[size];
     return new NNLayer() {
       NNLayer self = this;
       
@@ -85,19 +92,33 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
       public NNResult eval(NNExecutionContext nncontext, NNResult... array) {
         origin.restore();
         IntStream.range(0, deltaLayers.size()).forEach(i -> {
-          direction.getMap().get(deltaLayers.get(i)).accumulate(weights[i]);
+          direction.getMap().get(deltaLayers.get(i)).accumulate(weights[hasPlaceholders ? (i + 1) : i]);
         });
+        if (hasPlaceholders) {
+          direction.getMap().entrySet().stream()
+            .filter(x -> x.getKey() instanceof PlaceholderLayer).distinct()
+            .forEach(entry -> entry.getValue().accumulate(weights[0]));
+        }
         PointSample measure = subject.measure(monitor);
         double mean = measure.getMean();
         monitor.log(String.format("RecursiveSubspace: %s <- %s", mean, Arrays.toString(weights)));
         return new NNResult(new Tensor(mean)) {
           @Override
           public void accumulate(DeltaSet<NNLayer> buffer, TensorList data) {
-            buffer.get(self, weights).addInPlace(deltaLayers.stream().mapToDouble(layer -> {
+            DoubleStream deltaStream = deltaLayers.stream().mapToDouble(layer -> {
               Delta<NNLayer> a = direction.getMap().get(layer);
               Delta<NNLayer> b = measure.delta.getMap().get(layer);
               return b.dot(a) / Math.max(Math.sqrt(a.dot(a)), 1e-8);
-            }).toArray());
+            });
+            if (hasPlaceholders) {
+              deltaStream = DoubleStream.concat(DoubleStream.of(
+                direction.getMap().keySet().stream().filter(x -> x instanceof PlaceholderLayer).distinct().mapToDouble(layer -> {
+                  Delta<NNLayer> a = direction.getMap().get(layer);
+                  Delta<NNLayer> b = measure.delta.getMap().get(layer);
+                  return b.dot(a) / Math.max(Math.sqrt(a.dot(a)), 1e-8);
+                }).sum()), deltaStream);
+            }
+            buffer.get(self, weights).addInPlace(deltaStream.toArray());
           }
           
           @Override

@@ -139,14 +139,13 @@ public abstract class PipelineTest {
    * @param log the log
    */
   public void test(final NotebookOutput log) {
-  
-    log.h1("%s", getClass().getSimpleName());
     final ArrayList<NNLayer> workingSpec = new ArrayList<>();
+    int layerIndex = 0;
     for (final NNLayer l : pipeline) {
       workingSpec.add(l);
       final NNLayer networkHead = buildNetwork(workingSpec.toArray(new NNLayer[]{}));
       graphviz(log, networkHead);
-      test(log, networkHead, getInputDims());
+      test(log, networkHead, String.format("Pipeline Network with %d Layers", layerIndex++), getInputDims());
     }
   }
   
@@ -155,14 +154,20 @@ public abstract class PipelineTest {
    *
    * @param log       the log
    * @param layer     the layer
+   * @param header
    * @param inputDims the input dims
    * @return the double
    */
-  public TrainingTester.ComponentResult test(final NotebookOutput log, final NNLayer layer, final int[]... inputDims) {
+  public TrainingTester.ComponentResult test(final NotebookOutput log, final NNLayer layer, final String header, final int[]... inputDims) {
     final NNLayer component = layer.copy();
     final Tensor[] randomize = randomize(inputDims);
     new JsonTest().test(log, component, randomize);
-    return new TrainingTester().test(log, component, randomize);
+    return new TrainingTester() {
+      @Override
+      protected void printHeader(NotebookOutput log) {
+        log.h1(header);
+      }
+    }.test(log, component, randomize);
   }
   
 }

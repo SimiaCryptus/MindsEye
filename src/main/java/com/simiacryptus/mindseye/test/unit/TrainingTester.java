@@ -307,7 +307,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
    */
   @Override
   public ComponentResult test(final NotebookOutput log, final NNLayer component, final Tensor... inputPrototype) {
-    log.h1("Training Characteristics");
+    printHeader(log);
     final boolean testModel = !component.state().isEmpty();
     if (testModel && isZero(component.state().stream().flatMapToDouble(x1 -> Arrays.stream(x1)))) {
       throw new AssertionError("Weights are all zero?");
@@ -357,6 +357,10 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
       assert result.model.map.values().stream().allMatch(x -> x.type == ResultType.Converged);
     }
     return result;
+  }
+  
+  protected void printHeader(NotebookOutput log) {
+    log.h1("Training Characteristics");
   }
   
   /**

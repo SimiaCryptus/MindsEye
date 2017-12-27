@@ -35,6 +35,7 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
+import com.simiacryptus.mindseye.opt.orient.GradientDescent;
 import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
@@ -140,13 +141,13 @@ public class ImageDecompositionLab {
    * @param log the log
    */
   public void run(final NotebookOutput log) {
-    final int pretrainMinutes = 15;
-    final int timeoutMinutes = 30;
-    final int images = 50;
-    final int size = 600;
-  
-    String source = "H:\\SimiaCryptus\\photos";
+    final int pretrainMinutes = 5;
+    final int timeoutMinutes = 5;
+    final int images = 10;
+    final int size = 256;
+    String source = null;//"H:\\SimiaCryptus\\photos";
     displayImage = images;
+
     final Tensor[][] trainingImages = null == source ? EncodingUtil.getImages(log, size, images, "kangaroo") :
       Arrays.stream(new File(source).listFiles()).map(input -> {
         try {
@@ -215,8 +216,10 @@ public class ImageDecompositionLab {
         .setTimeout(timeoutMinutes, TimeUnit.MINUTES)
         .setMaxIterations(1000);
       validatingTrainer.getRegimen().get(0)
-        .setOrientation(new QQN())
-        .setLineSearchFactory(name -> name.equals(QQN.CURSOR_NAME) ? new QuadraticSearch().setCurrentRate(1.0) : new QuadraticSearch().setCurrentRate(1e-4));
+        .setOrientation(new GradientDescent())
+        .setLineSearchFactory(name -> name.equals(QQN.CURSOR_NAME) ?
+          new QuadraticSearch().setCurrentRate(1.0) :
+          new QuadraticSearch().setCurrentRate(1.0));
       validatingTrainer
         .run();
     });
@@ -389,7 +392,7 @@ public class ImageDecompositionLab {
       log.code(() -> {
         initialize(log, () -> {
           final Stream<Tensor[]> tensors = EncodingUtil.downExplodeTensors(Arrays.stream(trainingData).map(x -> new Tensor[]{x[0], x[layerNumber]}), scale);
-          return EncodingUtil.convolutionFeatures(tensors, radius);
+          return EncodingUtil.convolutionFeatures(tensors, radius, 1);
         }, convolutionLayer, biasLayer);
       });
       final boolean[] mask = getTrainingMask();
@@ -560,7 +563,7 @@ public class ImageDecompositionLab {
     public InitializationStep invoke() {
       dataPipeline.add(model);
       log.code(() -> {
-        initialize(log, () -> EncodingUtil.convolutionFeatures(Arrays.stream(trainingData).map(x1 -> new Tensor[]{x1[0], x1[1]}), radius), convolutionLayer, biasLayer);
+        initialize(log, () -> EncodingUtil.convolutionFeatures(Arrays.stream(trainingData).map(x1 -> new Tensor[]{x1[0], x1[1]}), radius, 1), convolutionLayer, biasLayer);
       });
       
       {

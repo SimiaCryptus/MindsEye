@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.test.unit.TrainingTester;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.util.test.SysOutInterceptor;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import org.junit.Test;
@@ -41,6 +42,10 @@ import java.util.stream.Stream;
  * The type N layer test.
  */
 public abstract class NLayerTest {
+  static {
+    SysOutInterceptor.INSTANCE.init();
+  }
+  
   
   /**
    * The Dim list.

@@ -121,21 +121,21 @@ class EncodingUtil {
    *
    * @param tensors the tensors
    * @param radius  the radius
+   * @param column
    * @return the tensor [ ] [ ]
    */
-  public static Stream<Tensor[]> convolutionFeatures(final Stream<Tensor[]> tensors, final int radius) {
-    final int column = 1;
+  public static Stream<Tensor[]> convolutionFeatures(final Stream<Tensor[]> tensors, final int radius, int column) {
     final ThreadLocal<ConvolutionExtractor> extractors = ThreadLocal.withInitial(() -> new ConvolutionExtractor());
-    return tensors.parallel().flatMap(image -> {
-      final Tensor region = new Tensor(radius, radius, image[column].getDimensions()[2]);
-      return IntStream.range(0, image[column].getDimensions()[0] - (radius - 1)).mapToObj(x -> x).parallel().flatMap(x -> {
-        return IntStream.range(0, image[column].getDimensions()[column] - (radius - 1)).mapToObj(y -> {
+    return tensors.parallel().flatMap(row -> {
+      final Tensor region = new Tensor(radius, radius, row[column].getDimensions()[2]);
+      return IntStream.range(0, row[column].getDimensions()[0] - (radius - 1)).mapToObj(x -> x).parallel().flatMap(x -> {
+        return IntStream.range(0, row[column].getDimensions()[column] - (radius - 1)).mapToObj(y -> {
           final ConvolutionExtractor extractor = extractors.get();
           extractor.x = x;
           extractor.y = y;
           extractor.column = column;
-          extractor.image = image;
-          return new Tensor[]{image[0], region.mapCoords(extractor)};
+          extractor.image = row;
+          return new Tensor[]{row[0], region.mapCoords(extractor)};
         });
       });
     });
@@ -158,7 +158,7 @@ class EncodingUtil {
       String filename = EncodingUtil.gifNumber++ + ".gif";
       File file = new File(log.getResourceDir(), filename);
       GifSequenceWriter.write(file, loopTimeMs / frames, true,
-        DoubleStream.iterate(0, x -> x + step).limit(frames).mapToObj(t -> {
+        DoubleStream.iterate(0, x -> x + step).limit(frames).parallel().mapToObj(t -> {
           return IntStream.range(0, signedComponents.size()).mapToObj(i -> {
             return signedComponents.get(i).scale((1 + Math.sin(i * t)) / 2);
           }).reduce((a, b) -> a.add(b)).get().add(baseline).toImage();
