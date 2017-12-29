@@ -17,10 +17,9 @@
  * under the License.
  */
 
-package org.deeplearning4j.nn.conf.graph;
+package org.nd4j.linalg.dataset.api.preprocessor;
 
-import org.deeplearning4j.nn.conf.inputs.InputType;
+import org.nd4j.linalg.dataset.api.DataSetPreProcessor;
 
-public interface GraphVertex {
-  InputType getOutputType(int i, InputType[] inputType);
+public class VGG16ImagePreProcessor extends DataSetPreProcessor {
 }

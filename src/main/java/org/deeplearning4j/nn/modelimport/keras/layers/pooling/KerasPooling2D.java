@@ -18,7 +18,6 @@
  */
 package org.deeplearning4j.nn.modelimport.keras.layers.pooling;
 
-import lombok.extern.slf4j.Slf4j;
 import org.deeplearning4j.nn.conf.inputs.InputType;
 import org.deeplearning4j.nn.conf.layers.SubsamplingLayer;
 import org.deeplearning4j.nn.modelimport.keras.KerasLayer;
@@ -27,14 +26,11 @@ import org.deeplearning4j.nn.modelimport.keras.exceptions.UnsupportedKerasConfig
 
 import java.util.Map;
 
-import static org.deeplearning4j.nn.modelimport.keras.layers.convolutional.KerasConvolutionUtils.*;
-
 /**
  * Imports a Keras 2D Pooling layer as a DL4J Subsampling layer.
  *
  * @author dave@skymind.io
  */
-@Slf4j
 public class KerasPooling2D extends KerasLayer {
   
   /**
@@ -60,18 +56,19 @@ public class KerasPooling2D extends KerasLayer {
   public KerasPooling2D(Map<String, Object> layerConfig, boolean enforceTrainingConfig)
     throws InvalidKerasConfigurationException, UnsupportedKerasConfigurationException {
     super(layerConfig, enforceTrainingConfig);
-    SubsamplingLayer.Builder builder = new SubsamplingLayer.Builder(
-      KerasPoolingUtils.mapPoolingType(this.className, conf)).name(this.layerName)
-      .dropOut(this.dropout)
-      .convolutionMode(getConvolutionModeFromConfig(layerConfig, conf))
-      .kernelSize(getKernelSizeFromConfig(layerConfig, 2, conf, kerasMajorVersion))
-      .stride(getStrideFromConfig(layerConfig, 2, conf));
-    int[] padding = getPaddingFromBorderModeConfig(layerConfig, 2, conf, kerasMajorVersion);
-    if (padding != null) {
-      builder.padding(padding);
-    }
-    this.layer = builder.build();
-    this.vertex = null;
+    throw new RuntimeException("NI");
+//    SubsamplingLayer.Builder builder = new SubsamplingLayer.Builder(
+//      KerasPoolingUtils.mapPoolingType(this.className, conf)).name(this.layerName)
+//      .dropOut(this.dropout)
+//      .convolutionMode(getConvolutionModeFromConfig(layerConfig, conf))
+//      .kernelSize(getKernelSizeFromConfig(layerConfig, 2, conf, kerasMajorVersion))
+//      .stride(getStrideFromConfig(layerConfig, 2, conf));
+//    int[] padding = getPaddingFromBorderModeConfig(layerConfig, 2, conf, kerasMajorVersion);
+//    if (padding != null) {
+//      builder.padding(padding);
+//    }
+//    this.layer = builder.build();
+//    this.vertex = null;
   }
   
   /**

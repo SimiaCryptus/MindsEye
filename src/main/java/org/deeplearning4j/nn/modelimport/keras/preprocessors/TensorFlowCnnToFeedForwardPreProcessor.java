@@ -19,12 +19,9 @@
 
 package org.deeplearning4j.nn.modelimport.keras.preprocessors;
 
-import lombok.extern.slf4j.Slf4j;
 import org.deeplearning4j.nn.conf.preprocessor.CnnToFeedForwardPreProcessor;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.api.shape.Shape;
-import org.nd4j.shade.jackson.annotation.JsonCreator;
-import org.nd4j.shade.jackson.annotation.JsonProperty;
 
 /**
  * Specialized CnnToFeedForwardInputPreProcessor for use with
@@ -33,22 +30,24 @@ import org.nd4j.shade.jackson.annotation.JsonProperty;
  *
  * @author dave@skymind.io
  */
-@Slf4j
 public class TensorFlowCnnToFeedForwardPreProcessor extends CnnToFeedForwardPreProcessor {
-  
-  @JsonCreator
-  public TensorFlowCnnToFeedForwardPreProcessor(@JsonProperty("inputHeight") int inputHeight,
-                                                @JsonProperty("inputWidth") int inputWidth, @JsonProperty("numChannels") int numChannels) {
-    super(inputHeight, inputWidth, numChannels);
+  public TensorFlowCnnToFeedForwardPreProcessor(int height, int width, int depth) {
+    super(height, width, depth);
   }
-  
-  public TensorFlowCnnToFeedForwardPreProcessor(int inputHeight, int inputWidth) {
-    super(inputHeight, inputWidth);
-  }
-  
-  public TensorFlowCnnToFeedForwardPreProcessor() {
-    super();
-  }
+
+//  @JsonCreator
+//  public TensorFlowCnnToFeedForwardPreProcessor(@JsonProperty("inputHeight") int inputHeight,
+//                                                @JsonProperty("inputWidth") int inputWidth, @JsonProperty("numChannels") int numChannels) {
+//    super(inputHeight, inputWidth, numChannels);
+//  }
+//
+//  public TensorFlowCnnToFeedForwardPreProcessor(int inputHeight, int inputWidth) {
+//    super(inputHeight, inputWidth);
+//  }
+//
+//  public TensorFlowCnnToFeedForwardPreProcessor() {
+//    super();
+//  }
   
   @Override
   public INDArray preProcess(INDArray input, int miniBatchSize) {
@@ -80,6 +79,10 @@ public class TensorFlowCnnToFeedForwardPreProcessor extends CnnToFeedForwardPreP
   
   @Override
   public TensorFlowCnnToFeedForwardPreProcessor clone() {
-    return (TensorFlowCnnToFeedForwardPreProcessor) super.clone();
+    try {
+      return (TensorFlowCnnToFeedForwardPreProcessor) super.clone();
+    } catch (CloneNotSupportedException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

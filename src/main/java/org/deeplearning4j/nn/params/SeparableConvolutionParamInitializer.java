@@ -25,6 +25,8 @@ import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.layers.Layer;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -59,33 +61,29 @@ public class SeparableConvolutionParamInitializer implements ParamInitializer {
   }
   
   @Override
-  public Map<String, INDArray> init(NeuralNetConfiguration conf, INDArray paramsView, boolean initializeParams) {
+  public Map<String, INDArray> getGradientsFromFlattened(NeuralNetConfiguration conf, INDArray gradientView) {
     throw new RuntimeException("NI");
   }
   
   @Override
-  public Map<String, INDArray> getGradientsFromFlattened(NeuralNetConfiguration conf, INDArray gradientView) {
+  public List<String> paramKeys(Layer layer) {
     throw new RuntimeException("NI");
-  }
-
-//    @Override
-//    public List<String> paramKeys(Layer layer) {
-//        SeparableConvolution2D layerConf =
-//                (SeparableConvolution2D) layer;
+//      SeparableConvolution2D layerConf = (SeparableConvolution2D) layer;
 //        if(layerConf.hasBias()){
 //            return Arrays.asList(DEPTH_WISE_WEIGHT_KEY, POINT_WISE_WEIGHT_KEY, BIAS_KEY);
 //        } else {
 //            return weightKeys(layer);
 //        }
-//    }
-
-//    @Override
-//    public List<String> weightKeys(Layer layer) {
-//        return Arrays.asList(DEPTH_WISE_WEIGHT_KEY, POINT_WISE_WEIGHT_KEY);
-//    }
-//
-//    @Override
-//    public List<String> biasKeys(Layer layer) {
+  }
+  
+  @Override
+  public List<String> weightKeys(Layer layer) {
+    return Arrays.asList(DEPTH_WISE_WEIGHT_KEY, POINT_WISE_WEIGHT_KEY);
+  }
+  
+  @Override
+  public List<String> biasKeys(Layer layer) {
+    throw new RuntimeException("NI");
 //        SeparableConvolution2D layerConf =
 //                (SeparableConvolution2D) layer;
 //        if(layerConf.hasBias()){
@@ -93,7 +91,7 @@ public class SeparableConvolutionParamInitializer implements ParamInitializer {
 //        } else {
 //            return Collections.emptyList();
 //        }
-//    }
+  }
   
   //    @Override
   public boolean isWeightParam(Layer layer, String key) {
@@ -104,10 +102,11 @@ public class SeparableConvolutionParamInitializer implements ParamInitializer {
   public boolean isBiasParam(Layer layer, String key) {
     return BIAS_KEY.equals(key);
   }
-
-
-//    @Override
-//    public Map<String, INDArray> init(NeuralNetConfiguration conf, INDArray paramsView, boolean initializeParams) {
+  
+  
+  @Override
+  public Map<String, INDArray> init(NeuralNetConfiguration conf, INDArray paramsView, boolean initializeParams) {
+    throw new RuntimeException("NI");
 //        SeparableConvolution2D layer = (SeparableConvolution2D) conf.getLayer();
 //        if (layer.getKernelSize().length != 2) throw new IllegalArgumentException("Filter size must be == 2");
 //
@@ -134,7 +133,7 @@ public class SeparableConvolutionParamInitializer implements ParamInitializer {
 //        }
 //
 //        return params;
-//    }
+  }
 
 //    @Override
 //    public Map<String, INDArray> getGradientsFromFlattened(NeuralNetConfiguration conf, INDArray gradientView) {

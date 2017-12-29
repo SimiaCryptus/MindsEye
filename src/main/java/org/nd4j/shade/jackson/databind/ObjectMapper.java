@@ -23,6 +23,8 @@ import org.nd4j.shade.jackson.core.type.TypeReference;
 import org.nd4j.shade.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,5 +51,9 @@ public class ObjectMapper {
   
   public String writeValueAsString(Map<String, Object> modelMapper) {
     return null;
+  }
+  
+  public HashMap<String, ArrayList<String>> readValue(URL url, Class<HashMap> hashMapClass) {
+    throw new RuntimeException("NI");
   }
 }

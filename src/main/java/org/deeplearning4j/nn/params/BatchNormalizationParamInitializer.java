@@ -17,10 +17,11 @@
  * under the License.
  */
 
-package org.deeplearning4j.nn.conf.graph;
+package org.deeplearning4j.nn.params;
 
-import org.deeplearning4j.nn.conf.inputs.InputType;
-
-public interface GraphVertex {
-  InputType getOutputType(int i, InputType[] inputType);
+public class BatchNormalizationParamInitializer {
+  public static final String BETA = "";
+  public static final String GLOBAL_MEAN = "";
+  public static final String GLOBAL_VAR = "";
+  public static String GAMMA = "";
 }

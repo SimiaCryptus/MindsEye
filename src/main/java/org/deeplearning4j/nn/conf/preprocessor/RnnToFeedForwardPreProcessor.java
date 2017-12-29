@@ -17,10 +17,9 @@
  * under the License.
  */
 
-package org.deeplearning4j.nn.conf.graph;
+package org.deeplearning4j.nn.conf.preprocessor;
 
-import org.deeplearning4j.nn.conf.inputs.InputType;
+import org.deeplearning4j.nn.conf.InputPreProcessor;
 
-public interface GraphVertex {
-  InputType getOutputType(int i, InputType[] inputType);
+public class RnnToFeedForwardPreProcessor extends InputPreProcessor {
 }

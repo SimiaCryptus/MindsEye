@@ -34,6 +34,10 @@ public class NeuralNetConfiguration {
     public ListBuilder list() {
       return null;
     }
+  
+    public ComputationGraphConfiguration.GraphBuilder graphBuilder() {
+      throw new RuntimeException("NI");
+    }
   }
   
   public class ListBuilder {

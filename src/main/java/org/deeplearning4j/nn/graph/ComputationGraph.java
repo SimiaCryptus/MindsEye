@@ -21,11 +21,19 @@ package org.deeplearning4j.nn.graph;
 
 import org.deeplearning4j.nn.api.Layer;
 import org.deeplearning4j.nn.api.Model;
+import org.deeplearning4j.nn.conf.ComputationGraphConfiguration;
 
 public class ComputationGraph extends Model {
   private Layer[] layers;
   
+  public ComputationGraph(ComputationGraphConfiguration computationGraphConfiguration) {
+    super();
+  }
+  
   public Layer[] getLayers() {
     return layers;
+  }
+  
+  public void init() {
   }
 }

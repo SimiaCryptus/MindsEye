@@ -77,4 +77,24 @@ public class KerasModelConfiguration {
   public String getTrainingTrainingConfigAttribute() {
     return trainingTrainingConfigAttribute;
   }
+  
+  public String getFieldClassNameModel() {
+    return fieldClassNameModel;
+  }
+  
+  public String getModelFieldInputLayers() {
+    return modelFieldInputLayers;
+  }
+  
+  public String getModelFieldOutputLayers() {
+    return modelFieldOutputLayers;
+  }
+  
+  public String getModelFieldLayers() {
+    return modelFieldLayers;
+  }
+  
+  public String getTrainingLoss() {
+    return trainingLoss;
+  }
 }

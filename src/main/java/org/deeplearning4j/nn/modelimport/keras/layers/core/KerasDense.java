@@ -19,12 +19,9 @@
 
 package org.deeplearning4j.nn.modelimport.keras.layers.core;
 
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 import org.deeplearning4j.nn.conf.InputPreProcessor;
 import org.deeplearning4j.nn.conf.distribution.Distribution;
 import org.deeplearning4j.nn.conf.inputs.InputType;
-import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.modelimport.keras.KerasLayer;
 import org.deeplearning4j.nn.modelimport.keras.exceptions.InvalidKerasConfigurationException;
 import org.deeplearning4j.nn.modelimport.keras.exceptions.UnsupportedKerasConfigurationException;
@@ -48,8 +45,6 @@ import static org.deeplearning4j.nn.modelimport.keras.utils.KerasLayerUtils.getH
  *
  * @author dave@skymind.io
  */
-@Slf4j
-@Data
 public class KerasDense extends KerasLayer {
   private static final Logger log = LoggerFactory.getLogger(KerasInitilizationUtils.class);
   
@@ -111,15 +106,6 @@ public class KerasDense extends KerasLayer {
   }
   
   /**
-   * Get DL4J DenseLayer.
-   *
-   * @return DenseLayer
-   */
-  public DenseLayer getDenseLayer() {
-    return (DenseLayer) this.layer;
-  }
-  
-  /**
    * Get layer output type.
    *
    * @param inputType Array of InputTypes
@@ -130,10 +116,11 @@ public class KerasDense extends KerasLayer {
   public InputType getOutputType(InputType... inputType) throws InvalidKerasConfigurationException {
         /* Check whether layer requires a preprocessor for this InputType. */
     InputPreProcessor preprocessor = getInputPreprocessor(inputType[0]);
-    if (preprocessor != null) {
-      return this.getDenseLayer().getOutputType(-1, preprocessor.getOutputType(inputType[0]));
-    }
-    return this.getDenseLayer().getOutputType(-1, inputType[0]);
+    throw new RuntimeException("NI");
+//    if (preprocessor != null) {
+//      return this.getDenseLayer().getOutputType(-1, preprocessor.getOutputType(inputType[0]));
+//    }
+//    return this.getDenseLayer().getOutputType(-1, inputType[0]);
   }
   
   /**

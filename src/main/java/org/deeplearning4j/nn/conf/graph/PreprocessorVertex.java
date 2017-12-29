@@ -19,8 +19,16 @@
 
 package org.deeplearning4j.nn.conf.graph;
 
+import org.deeplearning4j.nn.conf.InputPreProcessor;
 import org.deeplearning4j.nn.conf.inputs.InputType;
 
-public interface GraphVertex {
-  InputType getOutputType(int i, InputType[] inputType);
+public class PreprocessorVertex implements GraphVertex {
+  public PreprocessorVertex(InputPreProcessor preprocessor) {
+  
+  }
+  
+  @Override
+  public InputType getOutputType(int i, InputType[] inputType) {
+    return null;
+  }
 }

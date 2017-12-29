@@ -30,7 +30,7 @@ public class INDArray {
     throw new RuntimeException();
   }
   
-  public void reshape(int size, int i) {
+  public INDArray reshape(int size, int... i) {
     throw new RuntimeException("NI");
   }
   
@@ -118,6 +118,26 @@ public class INDArray {
   }
   
   public INDArray reshape(int[] inputShape) {
+    throw new RuntimeException("NI");
+  }
+  
+  public INDArray getRow(int batch) {
+    return null;
+  }
+  
+  public float getFloat(int batch, int i) {
+    throw new RuntimeException("NI");
+  }
+  
+  public int getInt(int i, int i1) {
+    throw new RuntimeException("NI");
+  }
+  
+  public int rank() {
+    throw new RuntimeException("NI");
+  }
+  
+  public char ordering() {
     throw new RuntimeException("NI");
   }
 }

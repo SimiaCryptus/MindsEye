@@ -21,6 +21,17 @@ package org.deeplearning4j.nn.conf.graph;
 
 import org.deeplearning4j.nn.conf.inputs.InputType;
 
-public interface GraphVertex {
-  InputType getOutputType(int i, InputType[] inputType);
+public class ElementWiseVertex implements GraphVertex {
+  public ElementWiseVertex(Op mergeMode) {
+  
+  }
+  
+  @Override
+  public InputType getOutputType(int i, InputType[] inputType) {
+    throw new RuntimeException("NI");
+  }
+  
+  public enum Op {
+    Product, Add
+  }
 }

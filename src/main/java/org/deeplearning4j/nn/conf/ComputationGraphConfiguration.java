@@ -19,5 +19,47 @@
 
 package org.deeplearning4j.nn.conf;
 
+import org.deeplearning4j.nn.conf.graph.GraphVertex;
+import org.deeplearning4j.nn.conf.inputs.InputType;
+import org.deeplearning4j.nn.conf.layers.Layer;
+
+import java.util.Map;
+
 public class ComputationGraphConfiguration {
+  public class GraphBuilder {
+    private InputType[] inputTypes;
+    private String[] outputs;
+    private Map<String, InputPreProcessor> inputPreProcessors;
+    
+    public void addInputs(String[] inputLayerNameArray) {
+    }
+    
+    public void setInputTypes(InputType[] inputTypes) {
+      this.inputTypes = inputTypes;
+    }
+    
+    public void setOutputs(String[] outputs) {
+      this.outputs = outputs;
+    }
+    
+    public void addLayer(String layerName, Layer layer, String[] inboundLayerNamesArray) {
+      throw new RuntimeException("NI");
+    }
+    
+    public void addVertex(String layerName, GraphVertex vertex, String[] inboundLayerNamesArray) {
+      throw new RuntimeException("NI");
+    }
+    
+    public void setInputPreProcessors(Map<String, InputPreProcessor> inputPreProcessors) {
+      this.inputPreProcessors = inputPreProcessors;
+    }
+    
+    public NeuralNetConfiguration.ListBuilder backpropType(BackpropType truncatedBPTT) {
+      throw new RuntimeException("NI");
+    }
+    
+    public ComputationGraphConfiguration build() {
+      throw new RuntimeException("NI");
+    }
+  }
 }

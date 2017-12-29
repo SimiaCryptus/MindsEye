@@ -19,10 +19,7 @@
 
 package org.deeplearning4j.nn.modelimport.keras.layers.normalization;
 
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 import org.deeplearning4j.nn.conf.inputs.InputType;
-import org.deeplearning4j.nn.conf.layers.BatchNormalization;
 import org.deeplearning4j.nn.modelimport.keras.KerasLayer;
 import org.deeplearning4j.nn.modelimport.keras.exceptions.InvalidKerasConfigurationException;
 import org.deeplearning4j.nn.modelimport.keras.exceptions.UnsupportedKerasConfigurationException;
@@ -37,13 +34,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+//import org.deeplearning4j.nn.conf.layers.BatchNormalization;
+
 /**
  * Imports a BatchNormalization layer from Keras.
  *
  * @author dave@skymind.io
  */
-@Slf4j
-@Data
 public class KerasBatchNormalization extends KerasLayer {
   private static final Logger log = LoggerFactory.getLogger(KerasInitilizationUtils.class);
   
@@ -110,20 +107,21 @@ public class KerasBatchNormalization extends KerasLayer {
       throw new UnsupportedKerasConfigurationException("Unsupported batch normalization axis " + batchNormAxis +
         "DL4J currently supports axis=3 only. Consider reshaping your input.");
     }
-    
-    BatchNormalization.Builder builder = new BatchNormalization.Builder().name(this.layerName).dropOut(this.dropout).minibatch(true)
-      .lockGammaBeta(false).eps(getEpsFromConfig(layerConfig));
-    this.layer = builder.build();
+    throw new RuntimeException("NI");
+
+//    BatchNormalization.Builder builder = new BatchNormalization.Builder().name(this.layerName).dropOut(this.dropout).minibatch(true)
+//      .lockGammaBeta(false).eps(getEpsFromConfig(layerConfig));
+//    this.layer = builder.build();
   }
-  
-  /**
-   * Get DL4J BatchNormalizationLayer.
-   *
-   * @return BatchNormalizationLayer
-   */
-  public BatchNormalization getBatchNormalizationLayer() {
-    return (BatchNormalization) this.layer;
-  }
+
+//  /**
+//   * Get DL4J BatchNormalizationLayer.
+//   *
+//   * @return BatchNormalizationLayer
+//   */
+//  public BatchNormalization getBatchNormalizationLayer() {
+//    return (BatchNormalization) this.layer;
+//  }
   
   /**
    * Get layer output type.
@@ -137,7 +135,8 @@ public class KerasBatchNormalization extends KerasLayer {
       throw new InvalidKerasConfigurationException(
         "Keras BatchNorm layer accepts only one input (received " + inputType.length + ")");
     }
-    return this.getBatchNormalizationLayer().getOutputType(-1, inputType[0]);
+    throw new RuntimeException("NI");
+//    return this.getBatchNormalizationLayer().getOutputType(-1, inputType[0]);
   }
   
   /**

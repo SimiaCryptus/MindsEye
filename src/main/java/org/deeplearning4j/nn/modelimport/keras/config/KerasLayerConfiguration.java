@@ -1011,4 +1011,12 @@ public class KerasLayerConfiguration {
   public String getLAYER_FIELD_ZERO_PADDING() {
     return LAYER_FIELD_ZERO_PADDING;
   }
+  
+  public String getLAYER_FIELD_UNROLL() {
+    return LAYER_FIELD_UNROLL;
+  }
+  
+  public String getLAYER_FIELD_DROPOUT_U() {
+    return LAYER_FIELD_DROPOUT_U;
+  }
 }

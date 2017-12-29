@@ -30,7 +30,7 @@ import java.util.*;
 
 import static org.nd4j.linalg.indexing.NDArrayIndex.interval;
 
-public class SimpleRnnParamInitializer extends ParamInitializer {
+public class SimpleRnnParamInitializer implements ParamInitializer {
   
   public static final String WEIGHT_KEY = DefaultParamInitializer.WEIGHT_KEY;
   public static final String RECURRENT_WEIGHT_KEY = "RW";

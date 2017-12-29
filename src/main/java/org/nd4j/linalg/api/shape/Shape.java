@@ -17,10 +17,12 @@
  * under the License.
  */
 
-package org.deeplearning4j.nn.conf.graph;
+package org.nd4j.linalg.api.shape;
 
-import org.deeplearning4j.nn.conf.inputs.InputType;
+import org.nd4j.linalg.api.ndarray.INDArray;
 
-public interface GraphVertex {
-  InputType getOutputType(int i, InputType[] inputType);
+public class Shape {
+  public static boolean strideDescendingCAscendingF(INDArray epsilons) {
+    throw new RuntimeException("NI");
+  }
 }

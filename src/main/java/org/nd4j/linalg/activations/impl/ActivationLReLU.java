@@ -17,10 +17,11 @@
  * under the License.
  */
 
-package org.deeplearning4j.nn.conf.graph;
+package org.nd4j.linalg.activations.impl;
 
-import org.deeplearning4j.nn.conf.inputs.InputType;
+import org.nd4j.linalg.activations.IActivation;
 
-public interface GraphVertex {
-  InputType getOutputType(int i, InputType[] inputType);
+public class ActivationLReLU extends IActivation {
+  public ActivationLReLU(double alpha) {
+  }
 }

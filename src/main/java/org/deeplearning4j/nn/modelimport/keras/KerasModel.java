@@ -19,7 +19,6 @@
 
 package org.deeplearning4j.nn.modelimport.keras;
 
-import lombok.extern.slf4j.Slf4j;
 import org.deeplearning4j.nn.api.layers.IOutputLayer;
 import org.deeplearning4j.nn.conf.BackpropType;
 import org.deeplearning4j.nn.conf.ComputationGraphConfiguration;
@@ -39,6 +38,8 @@ import org.deeplearning4j.nn.modelimport.keras.layers.recurrent.KerasSimpleRnn;
 import org.deeplearning4j.nn.modelimport.keras.utils.KerasLayerUtils;
 import org.deeplearning4j.nn.modelimport.keras.utils.KerasModelBuilder;
 import org.deeplearning4j.nn.modelimport.keras.utils.KerasModelUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,8 +55,8 @@ import static org.deeplearning4j.nn.modelimport.keras.KerasLayer.customLayers;
  *
  * @author dave@skymind.io
  */
-@Slf4j
 public class KerasModel {
+  private static final Logger log = LoggerFactory.getLogger(KerasModel.class);
   
   protected static KerasModelConfiguration config = new KerasModelConfiguration();
   protected KerasModelBuilder modelBuilder = new KerasModelBuilder(config);

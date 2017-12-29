@@ -19,7 +19,6 @@
 
 package org.deeplearning4j.nn.modelimport.keras.layers.core;
 
-import lombok.extern.slf4j.Slf4j;
 import org.deeplearning4j.nn.conf.InputPreProcessor;
 import org.deeplearning4j.nn.conf.inputs.InputType;
 import org.deeplearning4j.nn.conf.inputs.InputType.InputTypeConvolutional;
@@ -37,7 +36,6 @@ import java.util.Map;
  *
  * @author dave@skymind.io
  */
-@Slf4j
 public class KerasFlatten extends KerasLayer {
   
   /**

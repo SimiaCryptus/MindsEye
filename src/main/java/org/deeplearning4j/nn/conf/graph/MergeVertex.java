@@ -21,6 +21,9 @@ package org.deeplearning4j.nn.conf.graph;
 
 import org.deeplearning4j.nn.conf.inputs.InputType;
 
-public interface GraphVertex {
-  InputType getOutputType(int i, InputType[] inputType);
+public class MergeVertex implements GraphVertex {
+  @Override
+  public InputType getOutputType(int i, InputType[] inputType) {
+    throw new RuntimeException("NI");
+  }
 }

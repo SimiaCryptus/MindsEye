@@ -17,10 +17,7 @@
  * under the License.
  */
 
-package org.deeplearning4j.nn.conf.graph;
+package org.deeplearning4j.nn.conf.layers;
 
-import org.deeplearning4j.nn.conf.inputs.InputType;
-
-public interface GraphVertex {
-  InputType getOutputType(int i, InputType[] inputType);
+public class DenseLayer {
 }

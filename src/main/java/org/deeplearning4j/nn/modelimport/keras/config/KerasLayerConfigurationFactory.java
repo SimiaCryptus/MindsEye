@@ -18,10 +18,8 @@
  */
 package org.deeplearning4j.nn.modelimport.keras.config;
 
-import lombok.extern.slf4j.Slf4j;
 import org.deeplearning4j.nn.modelimport.keras.exceptions.UnsupportedKerasConfigurationException;
 
-@Slf4j
 public class KerasLayerConfigurationFactory {
   
   public KerasLayerConfigurationFactory() {

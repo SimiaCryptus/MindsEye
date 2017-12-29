@@ -17,36 +17,21 @@
  * under the License.
  */
 
-package org.nd4j.linalg.factory;
+package org.deeplearning4j.nn.conf.preprocessor;
 
+import org.deeplearning4j.nn.conf.InputPreProcessor;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
-public class Nd4j {
-  public static INDArray zeros(int rows, int i) {
+public class CnnToFeedForwardPreProcessor extends InputPreProcessor {
+  public CnnToFeedForwardPreProcessor(int height, int width, int depth) {
+  
+  }
+  
+  public INDArray preProcess(INDArray input, int miniBatchSize) {
     throw new RuntimeException("NI");
   }
   
-  public static INDArray create(int dim, int dim1, int dim2, int dim3) {
-    throw new RuntimeException("NI");
-  }
-  
-  public static INDArray create(int dim, int dim1, int dim2) {
-    throw new RuntimeException("NI");
-  }
-  
-  public static INDArray create(int dim, int dim1) {
-    throw new RuntimeException("NI");
-  }
-  
-  public static INDArray create(int dim) {
-    throw new RuntimeException("NI");
-  }
-  
-  public static INDArray create(double[] flattenedFilter, int[] shape) {
-    throw new RuntimeException("NI");
-  }
-  
-  public static INDArray argMax(INDArray currentBatch, int i) {
+  public INDArray backprop(INDArray epsilons, int miniBatchSize) {
     throw new RuntimeException("NI");
   }
 }

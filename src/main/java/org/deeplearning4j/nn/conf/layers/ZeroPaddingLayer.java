@@ -17,10 +17,24 @@
  * under the License.
  */
 
-package org.deeplearning4j.nn.conf.graph;
+package org.deeplearning4j.nn.conf.layers;
 
-import org.deeplearning4j.nn.conf.inputs.InputType;
-
-public interface GraphVertex {
-  InputType getOutputType(int i, InputType[] inputType);
+public class ZeroPaddingLayer extends Layer {
+  public static class Builder {
+    public Builder(int[] zeroPaddingFromConfig) {
+      throw new RuntimeException("NI");
+    }
+    
+    public Builder name(String layerName) {
+      throw new RuntimeException("NI");
+    }
+    
+    public Builder dropOut(double dropout) {
+      throw new RuntimeException("NI");
+    }
+    
+    public Layer build() {
+      throw new RuntimeException("NI");
+    }
+  }
 }

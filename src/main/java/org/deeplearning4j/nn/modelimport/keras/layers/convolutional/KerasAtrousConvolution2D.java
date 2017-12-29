@@ -20,7 +20,6 @@ package org.deeplearning4j.nn.modelimport.keras.layers.convolutional;
 
 import org.deeplearning4j.nn.conf.distribution.Distribution;
 import org.deeplearning4j.nn.conf.inputs.InputType;
-import org.deeplearning4j.nn.conf.layers.ConvolutionLayer;
 import org.deeplearning4j.nn.modelimport.keras.exceptions.InvalidKerasConfigurationException;
 import org.deeplearning4j.nn.modelimport.keras.exceptions.UnsupportedKerasConfigurationException;
 import org.deeplearning4j.nn.weights.WeightInit;
@@ -101,15 +100,15 @@ public class KerasAtrousConvolution2D extends KerasConvolution {
 //            builder.padding(padding);
 //        this.layer = builder.build();
   }
-  
-  /**
-   * Get DL4J ConvolutionLayer.
-   *
-   * @return ConvolutionLayer
-   */
-  public ConvolutionLayer getAtrousConvolution2D() {
-    return (ConvolutionLayer) this.layer;
-  }
+
+//  /**
+//   * Get DL4J ConvolutionLayer.
+//   *
+//   * @return ConvolutionLayer
+//   */
+//  public ConvolutionLayer getAtrousConvolution2D() {
+//    return (ConvolutionLayer) this.layer;
+//  }
   
   /**
    * Get layer output type.
@@ -124,7 +123,8 @@ public class KerasAtrousConvolution2D extends KerasConvolution {
       throw new InvalidKerasConfigurationException(
         "Keras Convolution layer accepts only one input (received " + inputType.length + ")");
     }
-    return this.getAtrousConvolution2D().getOutputType(-1, inputType[0]);
+    throw new RuntimeException("NI");
+//    return this.getAtrousConvolution2D().getOutputType(-1, inputType[0]);
   }
   
 }

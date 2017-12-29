@@ -26,22 +26,22 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import java.util.List;
 import java.util.Map;
 
-public abstract class ParamInitializer {
-  public abstract int numParams(NeuralNetConfiguration conf);
+public interface ParamInitializer {
+  int numParams(NeuralNetConfiguration conf);
   
-  public abstract int numParams(Layer layer);
+  int numParams(Layer layer);
   
-  public abstract List<String> paramKeys(Layer layer);
+  List<String> paramKeys(Layer layer);
   
-  public abstract List<String> weightKeys(Layer layer);
+  List<String> weightKeys(Layer layer);
   
-  public abstract List<String> biasKeys(Layer layer);
+  List<String> biasKeys(Layer layer);
   
-  public abstract boolean isWeightParam(Layer layer, String key);
+  boolean isWeightParam(Layer layer, String key);
   
-  public abstract boolean isBiasParam(Layer layer, String key);
+  boolean isBiasParam(Layer layer, String key);
   
-  public abstract Map<String, INDArray> init(NeuralNetConfiguration conf, INDArray paramsView, boolean initializeParams);
+  Map<String, INDArray> init(NeuralNetConfiguration conf, INDArray paramsView, boolean initializeParams);
   
-  public abstract Map<String, INDArray> getGradientsFromFlattened(NeuralNetConfiguration conf, INDArray gradientView);
+  Map<String, INDArray> getGradientsFromFlattened(NeuralNetConfiguration conf, INDArray gradientView);
 }

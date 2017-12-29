@@ -17,10 +17,16 @@
  * under the License.
  */
 
-package org.deeplearning4j.nn.conf.graph;
+package com.simiacryptus.mindseye.network;
 
-import org.deeplearning4j.nn.conf.inputs.InputType;
+import org.deeplearning4j.nn.modelimport.keras.KerasModelImport;
+import org.deeplearning4j.nn.modelimport.keras.exceptions.InvalidKerasConfigurationException;
+import org.deeplearning4j.nn.modelimport.keras.exceptions.UnsupportedKerasConfigurationException;
 
-public interface GraphVertex {
-  InputType getOutputType(int i, InputType[] inputType);
+import java.io.IOException;
+
+public class KerasImporter {
+  public static void main(String[] args) throws InvalidKerasConfigurationException, IOException, UnsupportedKerasConfigurationException {
+    KerasModelImport.importKerasModelAndWeights("C:\\Users\\andre\\Downloads\\vgg16_weights.h5");
+  }
 }

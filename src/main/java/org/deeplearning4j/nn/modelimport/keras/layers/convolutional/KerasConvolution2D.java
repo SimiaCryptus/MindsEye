@@ -18,8 +18,6 @@
  */
 package org.deeplearning4j.nn.modelimport.keras.layers.convolutional;
 
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 import org.deeplearning4j.nn.conf.InputPreProcessor;
 import org.deeplearning4j.nn.conf.distribution.Distribution;
 import org.deeplearning4j.nn.conf.inputs.InputType;
@@ -41,8 +39,6 @@ import static org.deeplearning4j.nn.modelimport.keras.utils.KerasLayerUtils.getH
  *
  * @author dave@skymind.io
  */
-@Slf4j
-@Data
 public class KerasConvolution2D extends KerasConvolution {
   
   /**

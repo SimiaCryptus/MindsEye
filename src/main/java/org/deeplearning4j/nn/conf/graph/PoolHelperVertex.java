@@ -19,5 +19,11 @@
 
 package org.deeplearning4j.nn.conf.graph;
 
-public class PoolHelperVertex extends GraphVertex {
+import org.deeplearning4j.nn.conf.inputs.InputType;
+
+public class PoolHelperVertex implements GraphVertex {
+  @Override
+  public InputType getOutputType(int i, InputType[] inputType) {
+    throw new RuntimeException("NI");
+  }
 }
