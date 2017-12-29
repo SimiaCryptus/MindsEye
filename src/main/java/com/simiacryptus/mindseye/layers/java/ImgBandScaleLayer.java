@@ -40,14 +40,14 @@ public class ImgBandScaleLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ImgBandScaleLayer.class);
-  private final double[] wieghts;
+  private final double[] weights;
   
   /**
    * Instantiates a new Img band scale layer.
    */
   protected ImgBandScaleLayer() {
     super();
-    wieghts = null;
+    weights = null;
   }
   
   /**
@@ -57,7 +57,7 @@ public class ImgBandScaleLayer extends NNLayer {
    */
   public ImgBandScaleLayer(final double... bands) {
     super();
-    wieghts = bands;
+    weights = bands;
   }
   
   
@@ -68,7 +68,7 @@ public class ImgBandScaleLayer extends NNLayer {
    */
   protected ImgBandScaleLayer(final JsonObject json) {
     super(json);
-    wieghts = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
+    weights = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
   }
   
   /**
@@ -88,7 +88,7 @@ public class ImgBandScaleLayer extends NNLayer {
    * @return the img band scale layer
    */
   public ImgBandScaleLayer addWeights(final DoubleSupplier f) {
-    Util.add(f, getWieghts());
+    Util.add(f, getWeights());
     return this;
   }
   
@@ -104,36 +104,38 @@ public class ImgBandScaleLayer extends NNLayer {
    * @return the nn result
    */
   public NNResult eval(final NNResult input) {
-    final double[] bias = getWieghts();
+    final double[] weights = getWeights();
     assert input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
     final Tensor[] outputA = input.getData().stream().parallel()
-      .map(r -> {
-        if (r.getDimensions().length != 3) {
-          throw new IllegalArgumentException(Arrays.toString(r.getDimensions()));
+      .map(tensor -> {
+        if (tensor.getDimensions().length != 3) {
+          throw new IllegalArgumentException(Arrays.toString(tensor.getDimensions()));
         }
-        if (r.getDimensions()[2] != bias.length) {
+        if (tensor.getDimensions()[2] != weights.length) {
           throw new IllegalArgumentException(String.format("%s: %s does not have %s bands",
-            getName(), Arrays.toString(r.getDimensions()), bias.length));
+            getName(), Arrays.toString(tensor.getDimensions()), weights.length));
         }
-        return new Tensor(fn(r.getData()), r.getDimensions());
-      })
-      .toArray(i -> new Tensor[i]);
+        return tensor.mapCoords(c -> tensor.get(c) * weights[c.getCoords()[2]]);
+      }).toArray(i -> new Tensor[i]);
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
+        assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         if (!isFrozen()) {
-          final Delta<NNLayer> deltaBuffer = buffer.get(ImgBandScaleLayer.this, bias);
-          IntStream.range(0, data.length()).forEach(index -> {
-            final double[] array = RecycleBin.DOUBLES.obtain(bias.length);
-            final double[] signal = data.get(index).getData();
-            final double[] in = input.getData().get(index).getData();
-            final int size = signal.length / bias.length;
-            for (int i = 0; i < signal.length; i++) {
-              array[i / size] += signal[i] * in[i];
-              if (!Double.isFinite(array[i / size])) {
-                array[i / size] = 0.0;
+          final Delta<NNLayer> deltaBuffer = buffer.get(ImgBandScaleLayer.this, weights);
+          IntStream.range(0, delta.length()).forEach(index -> {
+            int[] dimensions = delta.getDimensions();
+            int z = dimensions[2];
+            int y = dimensions[1];
+            int x = dimensions[0];
+            final double[] array = RecycleBin.DOUBLES.obtain(z);
+            final double[] deltaArray = delta.get(index).getData();
+            final double[] inputData = input.getData().get(index).getData();
+            for (int i = 0; i < z; i++) {
+              for (int j = 0; j < y * x; j++) {
+                //array[i] += deltaArray[i + z * j];
+                array[i] += deltaArray[i * x * y + j] * inputData[i * x * y + j];
               }
             }
             assert Arrays.stream(array).allMatch(v -> Double.isFinite(v));
@@ -142,8 +144,8 @@ public class ImgBandScaleLayer extends NNLayer {
           });
         }
         if (input.isAlive()) {
-          input.accumulate(buffer, new TensorArray(data.stream().map(
-            t -> t.mapCoords((c) -> t.get(c) * bias[c.getCoords()[2]])
+          input.accumulate(buffer, new TensorArray(delta.stream().map(
+            t -> t.mapCoords((c) -> t.get(c) * weights[c.getCoords()[2]])
           ).toArray(i -> new Tensor[i])));
         }
       }
@@ -155,25 +157,10 @@ public class ImgBandScaleLayer extends NNLayer {
     };
   }
   
-  private double[] fn(final double[] input) {
-    assert Arrays.stream(input).allMatch(v -> Double.isFinite(v));
-    assert null != input;
-    final double[] wieghts = getWieghts();
-    assert null != wieghts;
-    if (input.length % wieghts.length != 0) throw new IllegalArgumentException();
-    final double[] array = new double[input.length];
-    final int size = input.length / wieghts.length;
-    for (int i = 0; i < array.length; i++) {
-      array[i] = input[i] * wieghts[i / size];
-    }
-    assert Arrays.stream(array).allMatch(v -> Double.isFinite(v));
-    return array;
-  }
-  
   @Override
   public JsonObject getJson() {
     final JsonObject json = super.getJsonStub();
-    json.add("bias", JsonUtil.getJson(getWieghts()));
+    json.add("bias", JsonUtil.getJson(getWeights()));
     return json;
   }
   
@@ -182,26 +169,11 @@ public class ImgBandScaleLayer extends NNLayer {
    *
    * @return the double [ ]
    */
-  public double[] getWieghts() {
-    if (!Arrays.stream(wieghts).allMatch(v -> Double.isFinite(v))) {
-      throw new IllegalStateException(Arrays.toString(wieghts));
+  public double[] getWeights() {
+    if (!Arrays.stream(weights).allMatch(v -> Double.isFinite(v))) {
+      throw new IllegalStateException(Arrays.toString(weights));
     }
-    return wieghts;
-  }
-  
-  /**
-   * Set nn layer.
-   *
-   * @param ds the ds
-   * @return the nn layer
-   */
-  public NNLayer set(final double[] ds) {
-    final double[] bias = getWieghts();
-    for (int i = 0; i < ds.length; i++) {
-      bias[i] = ds[i];
-    }
-    assert Arrays.stream(bias).allMatch(v -> Double.isFinite(v));
-    return this;
+    return weights;
   }
   
   /**
@@ -211,7 +183,7 @@ public class ImgBandScaleLayer extends NNLayer {
    * @return the weights
    */
   public ImgBandScaleLayer setWeights(final IntToDoubleFunction f) {
-    final double[] bias = getWieghts();
+    final double[] bias = getWeights();
     for (int i = 0; i < bias.length; i++) {
       bias[i] = f.applyAsDouble(i);
     }
@@ -219,8 +191,23 @@ public class ImgBandScaleLayer extends NNLayer {
     return this;
   }
   
+  /**
+   * Set nn layer.
+   *
+   * @param ds the ds
+   * @return the nn layer
+   */
+  public NNLayer set(final double[] ds) {
+    final double[] bias = getWeights();
+    for (int i = 0; i < ds.length; i++) {
+      bias[i] = ds[i];
+    }
+    assert Arrays.stream(bias).allMatch(v -> Double.isFinite(v));
+    return this;
+  }
+  
   @Override
   public List<double[]> state() {
-    return Arrays.asList(getWieghts());
+    return Arrays.asList(getWeights());
   }
 }

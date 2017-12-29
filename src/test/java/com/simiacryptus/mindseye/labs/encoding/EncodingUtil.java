@@ -150,8 +150,8 @@ class EncodingUtil {
    * @return the string
    */
   public static String animatedGif(final NotebookOutput log, final Tensor baseline, final List<Tensor> signedComponents) {
-    int loopTimeMs = 5000;
-    int framerate = 8;
+    int loopTimeMs = 15000;
+    int framerate = 12;
     int frames = loopTimeMs * framerate / 1000;
     try {
       double step = 2 * Math.PI / frames;
@@ -160,7 +160,7 @@ class EncodingUtil {
       GifSequenceWriter.write(file, loopTimeMs / frames, true,
         DoubleStream.iterate(0, x -> x + step).limit(frames).parallel().mapToObj(t -> {
           return IntStream.range(0, signedComponents.size()).mapToObj(i -> {
-            return signedComponents.get(i).scale((1 + Math.sin(i * t)) / 2);
+            return signedComponents.get(i).scale((1 + Math.sin((1 + i) * t)) / 2);
           }).reduce((a, b) -> a.add(b)).get().add(baseline).toImage();
         }).toArray(i -> new BufferedImage[i]));
       return String.format("<img src=\"etc/%s\" />", filename);
@@ -278,10 +278,6 @@ class EncodingUtil {
    * @return the tensor
    */
   public static Tensor findBaseline(final PipelineNetwork decoder, final Tensor tensor) {
-    final PipelineNetwork decoderBand = new PipelineNetwork();
-    final double[] gate = new double[tensor.getDimensions()[2]];
-    decoderBand.add(new ImgBandScaleLayer(gate));
-    decoderBand.add(decoder);
     try {
       return GpuController.call(ctx -> {
         return decoder.eval(ctx, tensor.map(x -> 0));
@@ -302,7 +298,7 @@ class EncodingUtil {
   public static Tensor findUnitComponent(final PipelineNetwork decoder, final int band, final Tensor tensor) {
     final PipelineNetwork decoderBand = new PipelineNetwork();
     final double[] gate = new double[tensor.getDimensions()[2]];
-    gate[band] = tensor.getDimensions()[2];
+    gate[band] = 1;
     decoderBand.add(new ImgBandScaleLayer(gate));
     decoderBand.add(decoder);
     try {
@@ -333,9 +329,13 @@ class EncodingUtil {
     try {
       return Caltech101.trainingDataStream().filter(x -> {
         return Arrays.asList(categories).contains(x.label);
-      }).map(labeledObj -> new Tensor[]{
-        new Tensor(categories.length).set(Arrays.asList(categories).indexOf(labeledObj.label), 1.0),
-        Tensor.fromRGB(TestUtil.resize(labeledObj.data.get(), size))
+      }).map(labeledObj -> {
+        BufferedImage img = labeledObj.data.get();
+        img = TestUtil.resize(img, size);
+        return new Tensor[]{
+          new Tensor(categories.length).set(Arrays.asList(categories).indexOf(labeledObj.label), 1.0),
+          Tensor.fromRGB(img)
+        };
       }).sorted(Comparator.comparingInt(a -> System.identityHashCode(a) ^ seed)).limit(maxImages).toArray(i -> new Tensor[i][]);
     } catch (final IOException e) {
       throw new RuntimeException(e);

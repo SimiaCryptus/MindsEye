@@ -223,8 +223,8 @@ public class Tensor implements Serializable {
     final int width = img.getWidth();
     final int height = img.getHeight();
     final Tensor a = new Tensor(width, height, 3);
-    final int[] coords = {0, 0, 0};
     IntStream.range(0, width).parallel().forEach(x -> {
+      final int[] coords = {0, 0, 0};
       IntStream.range(0, height).forEach(y -> {
         coords[0] = x;
         coords[1] = y;

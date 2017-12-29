@@ -285,6 +285,12 @@ public abstract class RecycleBin<T> {
     }
   }
   
+  public static boolean equals(Object a, Object b) {
+    if (a == b) return true;
+    if (a == null || b == null) return false;
+    return a.equals(b);
+  }
+  
   /**
    * Recycle.
    *
@@ -305,7 +311,7 @@ public abstract class RecycleBin<T> {
     }
     if (bin.size() < Math.max(1, (int) (1e8 / length))) {
       synchronized (bin) {
-        if (!bin.contains(data)) {
+        if (!bin.stream().filter(x -> equals(x.get(), data)).findAny().isPresent()) {
           bin.add(newRef(data));
         }
       }

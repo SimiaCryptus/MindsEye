@@ -141,11 +141,11 @@ public class ImageDecompositionLab {
    * @param log the log
    */
   public void run(final NotebookOutput log) {
-    final int pretrainMinutes = 5;
-    final int timeoutMinutes = 5;
+    final int pretrainMinutes = 30;
+    final int timeoutMinutes = 30;
     final int images = 10;
-    final int size = 256;
-    String source = null;//"H:\\SimiaCryptus\\photos";
+    final int size = 400;
+    String source = "H:\\SimiaCryptus\\photos";
     displayImage = images;
 
     final Tensor[][] trainingImages = null == source ? EncodingUtil.getImages(log, size, images, "kangaroo") :
@@ -159,25 +159,33 @@ public class ImageDecompositionLab {
         new Tensor(1.0),
         Tensor.fromRGB(TestUtil.resize(img, size))
       }).toArray(i -> new Tensor[i][]);
+  
+    Arrays.stream(trainingImages).map(x -> x[1]).map(x -> x.toImage()).map(x -> {
+      try {
+        return log.image(x, "example");
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }).forEach(str -> log.p(str));
     
     log.h1("First Layer");
     final InitializationStep step0 = log.code(() -> {
       return new InitializationStep(log, trainingImages,
-        size, pretrainMinutes, timeoutMinutes, 3, 12, 5);
+        size, pretrainMinutes, timeoutMinutes, 3, 9, 5);
     }).invoke(); // output: 260
     
     log.h1("Second Layer");
     final AddLayerStep step1 = log.code(() -> {
       return new AddLayerStep(log, step0.trainingData, step0.model,
         2, step0.toSize, pretrainMinutes * 2, timeoutMinutes,
-        step0.band1, 24, 5, 4);
+        step0.band1, 18, 3, 4);
     }).invoke(); // output: 274
     
     log.h1("Third Layer");
     final AddLayerStep step2 = log.code(() -> {
       return new AddLayerStep(log, step1.trainingData, step1.integrationModel,
         3, step1.toSize, pretrainMinutes * 3, timeoutMinutes,
-        step1.band2, 48, 5, 1);
+        step1.band2, 48, 3, 1);
     }).invoke(); // 276
     
     log.h1("Fourth Layer");
