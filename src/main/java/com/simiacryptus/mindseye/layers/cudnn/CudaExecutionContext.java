@@ -30,8 +30,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * An execution context subtype that communicates CuDNN-related GPU information.
- * Used in combination with the layers in this package and the GPUTrainable component.
+ * An execution context subtype that communicates CuDNN-related GPU information. Used in combination with the layers in
+ * this package and the GPUTrainable component.
  */
 public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
   private static final Logger logger = LoggerFactory.getLogger(CudaExecutionContext.class);
@@ -76,12 +76,12 @@ public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
     }
     if (System.getProperties().containsKey("gpus")) {
       devices = Arrays.stream(System.getProperty("gpus").split(","))
-        .map(Integer::parseInt).collect(Collectors.toList());
+                      .map(Integer::parseInt).collect(Collectors.toList());
       
     }
     logger.info(String.format("Found %s devices; using devices %s", deviceCount, devices));
     return devices.stream()
-      .map(i -> new CudaExecutionContext(i)).collect(Collectors.toList());
+                  .map(i -> new CudaExecutionContext(i)).collect(Collectors.toList());
   }
   
 }

@@ -48,5 +48,5 @@ public abstract class BinaryEntropyActivationLayerTest extends ActivationLayerTe
    */
   public static class Basic extends BinaryEntropyActivationLayerTest {
   }
-
+  
 }

@@ -41,8 +41,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Directed Acyclical Graph Network
- * The base class for all conventional network wiring.
+ * Directed Acyclical Graph Network The base class for all conventional network wiring.
  */
 @SuppressWarnings("serial")
 public abstract class DAGNetwork extends NNLayer {
@@ -294,8 +293,8 @@ public abstract class DAGNetwork extends NNLayer {
       return nodesById.get(id);
     }
     return nodesById.values().stream().map(x -> x.getLayer())
-      .filter(x -> x instanceof DAGNetwork)
-      .map(x -> ((DAGNetwork) x).getChildNode(id)).findAny().orElse(null);
+                    .filter(x -> x instanceof DAGNetwork)
+                    .map(x -> ((DAGNetwork) x).getChildNode(id)).findAny().orElse(null);
   }
   
   @Override
@@ -398,7 +397,7 @@ public abstract class DAGNetwork extends NNLayer {
     return Stream.concat(
       nodesById.values().stream(),
       getInput().stream()
-    ).collect(Collectors.toList());
+                        ).collect(Collectors.toList());
   }
   
   private void initLinks(final Map<UUID, List<UUID>> nodeLinks, final Map<UUID, NNLayer> layersByNodeId, final UUID newNodeId) {

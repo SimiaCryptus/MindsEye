@@ -26,8 +26,8 @@ import com.simiacryptus.mindseye.lang.NNResult;
 import java.util.UUID;
 
 /**
- * A base class for a network node providing cached lazy evaluation;
- * It gaurantees a node is only evaluated once, and only if and when needed.
+ * A base class for a network node providing cached lazy evaluation; It gaurantees a node is only evaluated once, and
+ * only if and when needed.
  */
 @SuppressWarnings("serial")
 abstract class LazyResult implements DAGNode {

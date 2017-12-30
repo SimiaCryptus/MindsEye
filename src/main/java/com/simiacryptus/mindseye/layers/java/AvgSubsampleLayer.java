@@ -46,23 +46,23 @@ public class AvgSubsampleLayer extends NNLayer {
    * The constant indexMapCache.
    */
   public static final LoadingCache<AvgSubsampleLayer.IndexMapKey, Map<Coordinate, List<int[]>>> indexMapCache = CacheBuilder.newBuilder()
-    .build(new CacheLoader<AvgSubsampleLayer.IndexMapKey, Map<Coordinate, List<int[]>>>() {
-      @Override
-      public Map<Coordinate, List<int[]>> load(final AvgSubsampleLayer.IndexMapKey key) throws Exception {
-        final int[] ksize = key.kernel;
-        final Map<Coordinate, List<int[]>> coordMap = new Tensor(key.output).coordStream().distinct().collect(Collectors.toMap(o -> o, o -> {
-          return new Tensor(ksize).coordStream().map(kernelCoord -> {
-            int[] coords = o.getCoords();
-            final int[] r = new int[coords.length];
-            for (int i = 0; i < coords.length; i++) {
-              r[i] = coords[i] * ksize[i] + kernelCoord.getCoords()[i];
-            }
-            return r;
-          }).collect(Collectors.toList());
-        }));
-        return coordMap;
-      }
-    });
+                                                                                                                            .build(new CacheLoader<AvgSubsampleLayer.IndexMapKey, Map<Coordinate, List<int[]>>>() {
+                                                                                                                              @Override
+                                                                                                                              public Map<Coordinate, List<int[]>> load(final AvgSubsampleLayer.IndexMapKey key) throws Exception {
+                                                                                                                                final int[] ksize = key.kernel;
+                                                                                                                                final Map<Coordinate, List<int[]>> coordMap = new Tensor(key.output).coordStream().distinct().collect(Collectors.toMap(o -> o, o -> {
+                                                                                                                                  return new Tensor(ksize).coordStream().map(kernelCoord -> {
+                                                                                                                                    int[] coords = o.getCoords();
+                                                                                                                                    final int[] r = new int[coords.length];
+                                                                                                                                    for (int i = 0; i < coords.length; i++) {
+                                                                                                                                      r[i] = coords[i] * ksize[i] + kernelCoord.getCoords()[i];
+                                                                                                                                    }
+                                                                                                                                    return r;
+                                                                                                                                  }).collect(Collectors.toList());
+                                                                                                                                }));
+                                                                                                                                return coordMap;
+                                                                                                                              }
+                                                                                                                            });
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(AvgSubsampleLayer.class);
   private int[] kernelDims;
@@ -104,7 +104,7 @@ public class AvgSubsampleLayer extends NNLayer {
    */
   public static AvgSubsampleLayer fromJson(final JsonObject json) {
     return new AvgSubsampleLayer(json,
-      JsonUtil.getIntArray(json.getAsJsonArray("inner")));
+                                 JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
   
   private static synchronized Map<Coordinate, List<int[]>> getCoordMap(final int[] kernelDims, final int[] outDims) {

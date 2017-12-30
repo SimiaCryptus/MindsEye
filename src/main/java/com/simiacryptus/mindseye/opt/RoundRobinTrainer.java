@@ -41,8 +41,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * This basic training class provides support for a sequence of independant training configuration,
- * e.g. Generative Adversarial Networks.
+ * This basic training class provides support for a sequence of independant training configuration, e.g. Generative
+ * Adversarial Networks.
  */
 public class RoundRobinTrainer {
   private static final Logger logger = LoggerFactory.getLogger(RoundRobinTrainer.class);
@@ -124,8 +124,8 @@ public class RoundRobinTrainer {
    * @param lineSearchFactory the line search factory
    * @return the line search factory
    */
-  public RoundRobinTrainer setLineSearchFactory(final Supplier<LineSearchStrategy> lineSearchFactory) {
-    this.lineSearchFactory = s -> lineSearchFactory.get();
+  public RoundRobinTrainer setLineSearchFactory(final Function<String, ? extends LineSearchStrategy> lineSearchFactory) {
+    this.lineSearchFactory = lineSearchFactory;
     return this;
   }
   
@@ -135,8 +135,8 @@ public class RoundRobinTrainer {
    * @param lineSearchFactory the line search factory
    * @return the line search factory
    */
-  public RoundRobinTrainer setLineSearchFactory(final Function<String, ? extends LineSearchStrategy> lineSearchFactory) {
-    this.lineSearchFactory = lineSearchFactory;
+  public RoundRobinTrainer setLineSearchFactory(final Supplier<LineSearchStrategy> lineSearchFactory) {
+    this.lineSearchFactory = s -> lineSearchFactory.get();
     return this;
   }
   

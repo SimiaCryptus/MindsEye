@@ -33,9 +33,8 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 /**
- * Orthant-Wise Limited-memory Quasi-Newton optimization
- * This is a modified L-BFGS algorithm which uses orthant trust regions
- * to bound the cursor path during the line search phase of each iteration
+ * Orthant-Wise Limited-memory Quasi-Newton optimization This is a modified L-BFGS algorithm which uses orthant trust
+ * regions to bound the cursor path during the line search phase of each iteration
  */
 public class OwlQn implements OrientationStrategy<LineSearchCursor> {
   /**
@@ -89,10 +88,10 @@ public class OwlQn implements OrientationStrategy<LineSearchCursor> {
    */
   public Collection<NNLayer> getLayers(final Collection<NNLayer> layers) {
     return layers.stream()
-      .filter(layer -> {
-        return layer instanceof FullyConnectedLayer;
-      })
-      .collect(Collectors.toList());
+                 .filter(layer -> {
+                   return layer instanceof FullyConnectedLayer;
+                 })
+                 .collect(Collectors.toList());
   }
   
   /**

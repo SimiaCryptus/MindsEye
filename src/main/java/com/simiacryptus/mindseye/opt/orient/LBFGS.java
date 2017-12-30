@@ -129,12 +129,12 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
   }
   
   /**
-   * Lbfgs delta set.
+   * Lbfgs delta setBytes.
    *
    * @param measurement the measurement
    * @param monitor     the monitor
    * @param history     the history
-   * @return the delta set
+   * @return the delta setBytes
    */
   protected DeltaSet<NNLayer> lbfgs(final PointSample measurement, final TrainingMonitor monitor, final List<PointSample> history) {
     final DeltaSet<NNLayer> result = measurement.delta.scale(-1);
@@ -273,35 +273,35 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
       magGrad = Math.sqrt(gradient.dot(gradient));
       dot = gradient.dot(quasinewton) / (mag * magGrad);
       anglesPerLayer = gradient.getMap().entrySet().stream()
-        .filter(e -> !(e.getKey() instanceof PlaceholderLayer)) // This would be too verbose
-        .map((final Map.Entry<NNLayer, Delta<NNLayer>> e) -> {
-          final double[] lbfgsVector = gradient.getMap().get(e.getKey()).getDelta();
-          for (int index = 0; index < lbfgsVector.length; index++) {
-            lbfgsVector[index] = Double.isFinite(lbfgsVector[index]) ? lbfgsVector[index] : 0;
-          }
-          final double[] gradientVector = gradient.getMap().get(e.getKey()).getDelta();
-          for (int index = 0; index < gradientVector.length; index++) {
-            gradientVector[index] = Double.isFinite(gradientVector[index]) ? gradientVector[index] : 0;
-          }
-          final double lbfgsMagnitude = ArrayUtil.magnitude(lbfgsVector);
-          final double gradientMagnitude = ArrayUtil.magnitude(gradientVector);
-          if (!Double.isFinite(gradientMagnitude)) throw new IllegalStateException();
-          if (!Double.isFinite(lbfgsMagnitude)) throw new IllegalStateException();
-          final String layerName = gradient.getMap().get(e.getKey()).layer.getName();
-          if (gradientMagnitude == 0.0) {
-            return String.format("%s = %.3e", layerName, lbfgsMagnitude);
-          }
-          else {
-            final double dotP = ArrayUtil.dot(lbfgsVector, gradientVector) / (lbfgsMagnitude * gradientMagnitude);
-            return String.format("%s = %.3f/%.3e", layerName, dotP, lbfgsMagnitude / gradientMagnitude);
-          }
-        }).collect(Collectors.toList());
+                               .filter(e -> !(e.getKey() instanceof PlaceholderLayer)) // This would be too verbose
+                               .map((final Map.Entry<NNLayer, Delta<NNLayer>> e) -> {
+                                 final double[] lbfgsVector = gradient.getMap().get(e.getKey()).getDelta();
+                                 for (int index = 0; index < lbfgsVector.length; index++) {
+                                   lbfgsVector[index] = Double.isFinite(lbfgsVector[index]) ? lbfgsVector[index] : 0;
+                                 }
+                                 final double[] gradientVector = gradient.getMap().get(e.getKey()).getDelta();
+                                 for (int index = 0; index < gradientVector.length; index++) {
+                                   gradientVector[index] = Double.isFinite(gradientVector[index]) ? gradientVector[index] : 0;
+                                 }
+                                 final double lbfgsMagnitude = ArrayUtil.magnitude(lbfgsVector);
+                                 final double gradientMagnitude = ArrayUtil.magnitude(gradientVector);
+                                 if (!Double.isFinite(gradientMagnitude)) throw new IllegalStateException();
+                                 if (!Double.isFinite(lbfgsMagnitude)) throw new IllegalStateException();
+                                 final String layerName = gradient.getMap().get(e.getKey()).layer.getName();
+                                 if (gradientMagnitude == 0.0) {
+                                   return String.format("%s = %.3e", layerName, lbfgsMagnitude);
+                                 }
+                                 else {
+                                   final double dotP = ArrayUtil.dot(lbfgsVector, gradientVector) / (lbfgsMagnitude * gradientMagnitude);
+                                   return String.format("%s = %.3f/%.3e", layerName, dotP, lbfgsMagnitude / gradientMagnitude);
+                                 }
+                               }).collect(Collectors.toList());
     }
     
     @Override
     public String toString() {
       return String.format("LBFGS Orientation magnitude: %.3e, gradient %.3e, dot %.3f; %s",
-        getMag(), getMagGrad(), getDot(), getAnglesPerLayer());
+                           getMag(), getMagGrad(), getDot(), getAnglesPerLayer());
     }
   
     /**

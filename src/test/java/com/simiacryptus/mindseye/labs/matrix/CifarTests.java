@@ -53,7 +53,7 @@ public class CifarTests {
       network.add(new ReLuActivationLayer());
       network.add(new BiasLayer(16, 16, 5));
       network.add(new FullyConnectedLayer(new int[]{16, 16, 5}, new int[]{features})
-        .set(() -> 0.001 * (Math.random() - 0.45)));
+                    .set(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new SoftmaxActivationLayer());
       return network;
     });
@@ -67,7 +67,7 @@ public class CifarTests {
       final PipelineNetwork network = new PipelineNetwork();
       network.add(new BiasLayer(32, 32, 3));
       network.add(new FullyConnectedLayer(new int[]{32, 32, 3}, new int[]{features})
-        .set(() -> 0.001 * (Math.random() - 0.45)));
+                    .set(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new SoftmaxActivationLayer());
       return network;
     });
@@ -80,10 +80,10 @@ public class CifarTests {
     return log.code(() -> {
       final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{32, 32, 5})
-        .set(() -> 0.25 * (Math.random() - 0.5)));
+                    .set(() -> 0.25 * (Math.random() - 0.5)));
       network.add(new ReLuActivationLayer());
       network.add(new ConvolutionLayer(3, 3, 5, 3)
-        .set(i -> 1e-8 * (Math.random() - 0.5)));
+                    .set(i -> 1e-8 * (Math.random() - 0.5)));
       network.add(new BiasLayer(32, 32, 3));
       network.add(new ReLuActivationLayer());
       return network;
@@ -97,14 +97,14 @@ public class CifarTests {
     return log.code(() -> {
       final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{32, 32, 3})
-        .set(() -> 0.25 * (Math.random() - 0.5)));
+                    .set(() -> 0.25 * (Math.random() - 0.5)));
       network.add(new BiasLayer(32, 32, 3));
       return network;
     });
   };
   
   private abstract static class AllTests {
-  
+
     private final CIFARProblemData data = new CIFARProblemData();
     private final FwdNetworkFactory fwdFactory;
     private final OptimizationStrategy optimizationStrategy;
@@ -113,7 +113,7 @@ public class CifarTests {
      * The Timeout minutes.
      */
     protected int timeoutMinutes = 10;
-  
+
     /**
      * Instantiates a new All tests.
      *
@@ -126,7 +126,7 @@ public class CifarTests {
       this.optimizationStrategy = optimizationStrategy;
       this.fwdFactory = fwdFactory;
     }
-  
+
     /**
      * Autoencoder test.
      *
@@ -136,8 +136,8 @@ public class CifarTests {
     @Ignore
     @Category(TestCategories.Report.class)
     public void autoencoder_test() throws IOException {
-      try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-  
+      try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
+
         log.h1("CIFAR10 Denoising Autoencoder");
         intro(log);
         new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data, 100, 0.8).setTimeoutMinutes(timeoutMinutes).run(log);
@@ -152,8 +152,8 @@ public class CifarTests {
     @Test
     @Category(TestCategories.Report.class)
     public void classification_test() throws IOException {
-      try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-  
+      try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
+
         log.h1("CIFAR10 Classification");
         intro(log);
         new ClassifyProblem(fwdFactory, optimizationStrategy, data, 10).setTimeoutMinutes(timeoutMinutes).run(log);
@@ -168,8 +168,8 @@ public class CifarTests {
     @Test
     @Category(TestCategories.Report.class)
     public void encoding_test() throws IOException {
-      try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-  
+      try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
+
         log.h1("CIFAR10 Image-to-Vector Encoding");
         intro(log);
         new EncodingProblem(revFactory, optimizationStrategy, data, 10).setTimeoutMinutes(timeoutMinutes).run(log);

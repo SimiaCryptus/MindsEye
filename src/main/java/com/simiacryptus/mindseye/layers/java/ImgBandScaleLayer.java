@@ -107,16 +107,16 @@ public class ImgBandScaleLayer extends NNLayer {
     final double[] weights = getWeights();
     assert input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
     final Tensor[] outputA = input.getData().stream().parallel()
-      .map(tensor -> {
-        if (tensor.getDimensions().length != 3) {
-          throw new IllegalArgumentException(Arrays.toString(tensor.getDimensions()));
-        }
-        if (tensor.getDimensions()[2] != weights.length) {
-          throw new IllegalArgumentException(String.format("%s: %s does not have %s bands",
-            getName(), Arrays.toString(tensor.getDimensions()), weights.length));
-        }
-        return tensor.mapCoords(c -> tensor.get(c) * weights[c.getCoords()[2]]);
-      }).toArray(i -> new Tensor[i]);
+                                  .map(tensor -> {
+                                    if (tensor.getDimensions().length != 3) {
+                                      throw new IllegalArgumentException(Arrays.toString(tensor.getDimensions()));
+                                    }
+                                    if (tensor.getDimensions()[2] != weights.length) {
+                                      throw new IllegalArgumentException(String.format("%s: %s does not have %s bands",
+                                                                                       getName(), Arrays.toString(tensor.getDimensions()), weights.length));
+                                    }
+                                    return tensor.mapCoords(c -> tensor.get(c) * weights[c.getCoords()[2]]);
+                                  }).toArray(i -> new Tensor[i]);
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
     return new NNResult(outputA) {
       @Override
@@ -146,7 +146,7 @@ public class ImgBandScaleLayer extends NNLayer {
         if (input.isAlive()) {
           input.accumulate(buffer, new TensorArray(delta.stream().map(
             t -> t.mapCoords((c) -> t.get(c) * weights[c.getCoords()[2]])
-          ).toArray(i -> new Tensor[i])));
+                                                                     ).toArray(i -> new Tensor[i])));
         }
       }
       

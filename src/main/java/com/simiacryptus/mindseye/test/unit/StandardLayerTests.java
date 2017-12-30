@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.test.unit;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.network.DAGNetwork;
+import com.simiacryptus.mindseye.test.NotebookOutputTestBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.Util;
@@ -41,7 +42,7 @@ import java.util.function.Consumer;
 /**
  * The type Layer test base.
  */
-public abstract class StandardLayerTests {
+public abstract class StandardLayerTests extends NotebookOutputTestBase {
   static {
     SysOutInterceptor.INSTANCE.init();
   }
@@ -83,7 +84,7 @@ public abstract class StandardLayerTests {
         if (null == bigTests) {
           bigTests = new ArrayList<>(Arrays.asList(
             getPerformanceTester(), getTrainingTester()
-          ));
+                                                  ));
         }
       }
     }
@@ -146,7 +147,7 @@ public abstract class StandardLayerTests {
         if (null == littleTests) {
           littleTests = new ArrayList<>(Arrays.asList(
             getJsonTester(), getReferenceIOTester(), getBatchingTester(), getDerivativeTester(), getEquivalencyTester()
-          ));
+                                                     ));
         }
       }
     }
@@ -236,13 +237,13 @@ public abstract class StandardLayerTests {
     final NNLayer layer = getLayer(getInputDims());
     String layerJavadoc = CodeUtil.getJavadoc(layer.getClass());
     String testJavadoc = CodeUtil.getJavadoc(getClass());
-    log.setFMProp("layer_class_short", layer.getClass().getSimpleName());
-    log.setFMProp("test_class_short", getClass().getSimpleName());
-    log.setFMProp("created_on", new Date().toString());
-    log.setFMProp("layer_class_full", layer.getClass().getCanonicalName());
-    log.setFMProp("test_class_full", getClass().getCanonicalName());
-    log.setFMProp("layer_class_doc", layerJavadoc.replaceAll("\n", ""));
-    log.setFMProp("test_class_doc", testJavadoc.replaceAll("\n", ""));
+    log.setFrontMatterProperty("layer_class_short", layer.getClass().getSimpleName());
+    log.setFrontMatterProperty("test_class_short", getClass().getSimpleName());
+    log.setFrontMatterProperty("created_on", new Date().toString());
+    log.setFrontMatterProperty("layer_class_full", layer.getClass().getCanonicalName());
+    log.setFrontMatterProperty("test_class_full", getClass().getCanonicalName());
+    log.setFrontMatterProperty("layer_class_doc", layerJavadoc.replaceAll("\n", ""));
+    log.setFrontMatterProperty("test_class_doc", testJavadoc.replaceAll("\n", ""));
     log.p("__Layer Description:__ " + layerJavadoc);
     log.p("__Test Description:__ " + testJavadoc);
     try {
@@ -251,7 +252,7 @@ public abstract class StandardLayerTests {
         log.p("This is a network with the following layout:");
         log.code(() -> {
           return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
-            .height(400).width(600).render(Format.PNG).toImage();
+                         .height(400).width(600).render(Format.PNG).toImage();
         });
       }
       getLittleTests().stream().filter(x -> null != x).forEach(test -> {
@@ -261,9 +262,9 @@ public abstract class StandardLayerTests {
       getBigTests().stream().filter(x -> null != x).forEach(test -> {
         test.test(log, perfLayer.copy(), randomize(getPerfDims()));
       });
-      log.setFMProp("status", "OK");
+      log.setFrontMatterProperty("status", "OK");
     } catch (Throwable e) {
-      log.setFMProp("status", describe(e));
+      log.setFrontMatterProperty("status", describe(e));
       throw new RuntimeException(e);
     }
   }
@@ -302,4 +303,8 @@ public abstract class StandardLayerTests {
     return this;
   }
   
+  @Override
+  protected Class<?> getTargetClass() {
+    return getLayer(getInputDims()).getClass();
+  }
 }

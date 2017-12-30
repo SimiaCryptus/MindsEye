@@ -43,11 +43,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 /**
- * The basic type of training loop, which integrates a Trainable object
- * with an Orientation and Line Search strategy
+ * The basic type of training loop, which integrates a Trainable object with an Orientation and Line Search strategy
  */
 public class IterativeTrainer {
-  private static final Logger log = LoggerFactory.getLogger(IterativeTrainer.class);
+  private static final Logger logger = LoggerFactory.getLogger(IterativeTrainer.class);
   
   private final Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private final Trainable subject;
@@ -290,7 +289,7 @@ public class IterativeTrainer {
         currentPoint = timedLineSearch.result;
         final long now = System.nanoTime();
         final String perfString = String.format("Total: %.4f; Orientation: %.4f; Line Search: %.4f",
-          now - lastIterationTime / 1e9, timedOrientation.timeNanos / 1e9, timedLineSearch.timeNanos / 1e9);
+                                                now - lastIterationTime / 1e9, timedOrientation.timeNanos / 1e9, timedLineSearch.timeNanos / 1e9);
         lastIterationTime = now;
         if (previous.getMean() <= currentPoint.getMean()) {
           if (previous.getMean() < currentPoint.getMean()) {
@@ -302,22 +301,22 @@ public class IterativeTrainer {
           }
           if (subject.reseed(System.nanoTime())) {
             monitor.log(String.format("Iteration %s failed, retrying. Error: %s",
-              currentIteration.get(), currentPoint.getMean()));
+                                      currentIteration.get(), currentPoint.getMean()));
             monitor.log(String.format("Previous Error: %s -> %s",
-              previous.getRate(), previous.getMean()));
+                                      previous.getRate(), previous.getMean()));
             break subiterationLoop;
           }
           else {
             monitor.log(String.format("Iteration %s failed, aborting. Error: %s",
-              currentIteration.get(), currentPoint.getMean()));
+                                      currentIteration.get(), currentPoint.getMean()));
             monitor.log(String.format("Previous Error: %s -> %s",
-              previous.getRate(), previous.getMean()));
+                                      previous.getRate(), previous.getMean()));
             break mainLoop;
           }
         }
         else {
           monitor.log(String.format("Iteration %s complete. Error: %s " + perfString,
-            currentIteration.get(), currentPoint.getMean()));
+                                    currentIteration.get(), currentPoint.getMean()));
         }
         monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
       }
@@ -363,7 +362,7 @@ public class IterativeTrainer {
       lineSearchStrategy = lineSearchStrategyMap.get(directionType);
     }
     else {
-      log.info(String.format("Constructing line search parameters: %s", directionType));
+      logger.info(String.format("Constructing line search parameters: %s", directionType));
       lineSearchStrategy = lineSearchFactory.apply(direction.getDirectionType());
       lineSearchStrategyMap.put(directionType, lineSearchStrategy);
     }

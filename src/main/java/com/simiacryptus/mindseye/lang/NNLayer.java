@@ -30,9 +30,9 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * The basic type of Neural Network Layer supporting the backpropigation model of learning.
- * In general, these components define differentiable functions and the accompanying derivatives.
- * The interface is designed to support composability; see DAGNetwork for composition details.
+ * The basic type of Neural Network Layer supporting the backpropigation model of learning. In general, these components
+ * define differentiable functions and the accompanying derivatives. The interface is designed to support composability;
+ * see DAGNetwork for composition details.
  */
 @SuppressWarnings("serial")
 public abstract class NNLayer implements Serializable {

@@ -121,12 +121,11 @@ public class GifSequenceWriter {
   }
   
   /**
-   * Returns the first available GIF ImageWriter using
-   * ImageIO.getImageWritersBySuffix("gif").
+   * Returns the first available GIF ImageWriter using ImageIO.getImageWritersBySuffix("gif").
    *
+   * @param format
    * @return a GIF ImageWriter object
    * @throws IIOException if no GIF image writers are returned
-   * @param format
    */
   private static ImageWriter getWriter(String format) throws IIOException {
     Iterator<ImageWriter> iter = ImageIO.getImageWritersBySuffix(format);
@@ -139,8 +138,7 @@ public class GifSequenceWriter {
   }
   
   /**
-   * Returns an existing child node, or creates and returns a new child node (if
-   * the requested node does not exist).
+   * Returns an existing child node, or creates and returns a new child node (if the requested node does not exist).
    *
    * @param rootNode the <tt>IIOMetadataNode</tt> to search for the child node.
    * @param nodeName the name of the child node.
@@ -177,8 +175,7 @@ public class GifSequenceWriter {
   }
   
   /**
-   * Close this GifSequenceWriter object. This does not close the underlying
-   * stream, just finishes off the GIF.
+   * Close this GifSequenceWriter object. This does not close the underlying stream, just finishes off the GIF.
    *
    * @throws IOException the io exception
    */

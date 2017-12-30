@@ -27,10 +27,8 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * A multi-purpose Nth-power exponential function.
- * Has reasonably efficient specialized (pure java)
- * implementations of many common signed rational values,
- * such as +/-0.5, +/-1.0, 2.0, etc
+ * A multi-purpose Nth-power exponential function. Has reasonably efficient specialized (pure java) implementations of
+ * many common signed rational values, such as +/-0.5, +/-1.0, 2.0, etc
  */
 @SuppressWarnings("serial")
 public final class NthPowerActivationLayer extends NNLayer {

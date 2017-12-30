@@ -72,7 +72,7 @@ public class TensorTest {
   @Category(TestCategories.UnitTest.class)
   public void testCoordStream() throws Exception {
     final List<String> coordinates = new Tensor(2, 2, 2).coordStream()
-      .map(c -> String.format("%s - %s", c.getIndex(), Arrays.toString(c.getCoords()))).collect(Collectors.toList());
+                                                        .map(c -> String.format("%s - %s", c.getIndex(), Arrays.toString(c.getCoords()))).collect(Collectors.toList());
     for (final String c : coordinates) {
       logger.info(c);
     }

@@ -66,6 +66,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
    */
   int anchor = 0;
   private String absoluteUrl = null;
+  private int maxOutSize = 8 * 1024;
   
   /**
    * Instantiates a new Markdown notebook output.
@@ -83,16 +84,16 @@ public class MarkdownNotebookOutput implements NotebookOutput {
   /**
    * Get markdown notebook output.
    *
-   * @param source      the source
+   * @param sourceClass the source class
    * @param absoluteUrl the absolute url
    * @param suffix      the suffix
    * @return the markdown notebook output
    */
-  public static MarkdownNotebookOutput get(final Object source, String absoluteUrl, String... suffix) {
+  public static MarkdownNotebookOutput get(Class<?> sourceClass, String absoluteUrl, String... suffix) {
     try {
       final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[2];
       final String methodName = callingFrame.getMethodName();
-      final String className = source.getClass().getCanonicalName();
+      final String className = sourceClass.getCanonicalName();
       File path = new File(Util.mkString(File.separator, "reports", className.replaceAll("\\.", "/").replaceAll("\\$", "/")));
       for (int i = 0; i < suffix.length - 1; i++) path = new File(path, suffix[i]);
       String testName = suffix.length == 0 ? methodName : suffix[suffix.length - 1];
@@ -150,7 +151,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
     }
   }
   
-  public void setFMProp(String key, String value) {
+  public void setFrontMatterProperty(String key, String value) {
     frontMatter.add(String.format("%s: %s", key, value));
   }
   
@@ -192,8 +193,8 @@ public class MarkdownNotebookOutput implements NotebookOutput {
         }
       });
       out(anchor(anchorId()) + "Code from [%s:%s](%s#L%s) executed in %.2f seconds: ",
-        callingFrame.getFileName(), callingFrame.getLineNumber(),
-        linkTo(CodeUtil.findFile(callingFrame)), callingFrame.getLineNumber(), result.obj.seconds());
+          callingFrame.getFileName(), callingFrame.getLineNumber(),
+          linkTo(CodeUtil.findFile(callingFrame)), callingFrame.getLineNumber(), result.obj.seconds());
       out("```java");
       out("  " + sourceCode.replaceAll("\n", "\n  "));
       out("```");
@@ -266,6 +267,11 @@ public class MarkdownNotebookOutput implements NotebookOutput {
   }
   
   @Override
+  public String file(byte[] data, String filename, String caption) {
+    return file(new String(data, Charset.forName("UTF-8")), filename, caption);
+  }
+  
+  @Override
   public String file(final String data, final String fileName, final String caption) {
     try {
       if (null != data) {
@@ -308,6 +314,11 @@ public class MarkdownNotebookOutput implements NotebookOutput {
     return etc;
   }
   
+  @Override
+  public NotebookOutput setMaxOutSize(int size) {
+    this.maxOutSize = size;
+    return this;
+  }
   
   @Override
   public void h1(final String fmt, final Object... args) {
@@ -441,4 +452,9 @@ public class MarkdownNotebookOutput implements NotebookOutput {
     }
     return logSrc;
   }
+  
+  public int getMaxOutSize() {
+    return maxOutSize;
+  }
+  
 }

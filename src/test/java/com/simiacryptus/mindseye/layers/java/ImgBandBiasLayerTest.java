@@ -44,5 +44,5 @@ public abstract class ImgBandBiasLayerTest extends LayerTestBase {
    */
   public static class Basic extends ImgBandBiasLayerTest {
   }
-
+  
 }

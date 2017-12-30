@@ -147,26 +147,26 @@ public class AutoencodingProblem implements Problem {
     supervisedNetwork.add(dropoutNoiseLayer);
     supervisedNetwork.add(revNetwork);
     supervisedNetwork.add(new MeanSqLossLayer(),
-      supervisedNetwork.getHead(),
-      supervisedNetwork.getInput(0));
-  
+                          supervisedNetwork.getHead(),
+                          supervisedNetwork.getInput(0));
+
     log.h3("Network Diagrams");
     log.code(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(fwdNetwork))
-        .height(400).width(600).render(Format.PNG).toImage();
+                     .height(400).width(600).render(Format.PNG).toImage();
     });
     log.code(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(revNetwork))
-        .height(400).width(600).render(Format.PNG).toImage();
+                     .height(400).width(600).render(Format.PNG).toImage();
     });
     log.code(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(supervisedNetwork))
-        .height(400).width(600).render(Format.PNG).toImage();
+                     .height(400).width(600).render(Format.PNG).toImage();
     });
     
     final TrainingMonitor monitor = new TrainingMonitor() {
       TrainingMonitor inner = TestUtil.getMonitor(history);
-  
+
       @Override
       public void log(final String msg) {
         inner.log(msg);
@@ -187,8 +187,8 @@ public class AutoencodingProblem implements Problem {
     log.h3("Training");
     TestUtil.instrumentPerformance(log, supervisedNetwork);
     final ValidatingTrainer trainer = optimizer.train(log,
-      new SampledArrayTrainable(trainingData, supervisedNetwork, trainingData.length / 2, batchSize),
-      new ArrayTrainable(trainingData, supervisedNetwork, batchSize), monitor);
+                                                      new SampledArrayTrainable(trainingData, supervisedNetwork, trainingData.length / 2, batchSize),
+                                                      new ArrayTrainable(trainingData, supervisedNetwork, batchSize), monitor);
     log.code(() -> {
       trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(10000).run();
     });

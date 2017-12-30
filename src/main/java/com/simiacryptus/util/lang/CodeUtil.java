@@ -131,13 +131,13 @@ public class CodeUtil {
       if (null == source) return clazz.getName() + " not found";
       final List<String> lines = IOUtils.readLines(new FileInputStream(source), Charset.forName("UTF-8"));
       final int classDeclarationLine = IntStream.range(0, lines.size())
-        .filter(i -> lines.get(i).contains("class " + clazz.getSimpleName())).findFirst().getAsInt();
+                                                .filter(i -> lines.get(i).contains("class " + clazz.getSimpleName())).findFirst().getAsInt();
       final int firstLine = IntStream.rangeClosed(1, classDeclarationLine).map(i -> classDeclarationLine - i)
-        .filter(i -> !lines.get(i).matches("\\s*[/\\*@].*")).findFirst().orElse(-1) + 1;
+                                     .filter(i -> !lines.get(i).matches("\\s*[/\\*@].*")).findFirst().orElse(-1) + 1;
       final String javadoc = lines.subList(firstLine, classDeclarationLine).stream()
-        .filter(s -> s.matches("\\s*[/\\*].*"))
-        .map(s -> s.replaceFirst("^[ \t]*[/\\*]+", "").trim())
-        .filter(x -> !x.isEmpty()).reduce((a, b) -> a + "\n" + b).orElse("");
+                                  .filter(s -> s.matches("\\s*[/\\*].*"))
+                                  .map(s -> s.replaceFirst("^[ \t]*[/\\*]+", "").trim())
+                                  .filter(x -> !x.isEmpty()).reduce((a, b) -> a + "\n" + b).orElse("");
       return javadoc;
     } catch (final IOException e) {
       throw new RuntimeException(e);
@@ -147,13 +147,13 @@ public class CodeUtil {
   private static List<File> loadCodeRoots() {
     final List<String> folders = Arrays.asList(
       "src/main/java", "src/test/java", "src/main/scala", "src/test/scala"
-    );
+                                              );
     List<File> codeLocation = folders.stream().map(name -> new File(CodeUtil.projectRoot, name))
-      .filter(file -> file.exists() && file.isDirectory()).collect(Collectors.toList());
+                                     .filter(file -> file.exists() && file.isDirectory()).collect(Collectors.toList());
     if (codeLocation.isEmpty()) {
       codeLocation = Arrays.stream(CodeUtil.projectRoot.listFiles()).filter(x -> x.isDirectory()).flatMap(childRoot ->
-        folders.stream().map(name -> new File(childRoot, name)).filter(file -> file.exists() && file.isDirectory()))
-        .collect(Collectors.toList());
+                                                                                                            folders.stream().map(name -> new File(childRoot, name)).filter(file -> file.exists() && file.isDirectory()))
+                           .collect(Collectors.toList());
     }
     return codeLocation;
   }

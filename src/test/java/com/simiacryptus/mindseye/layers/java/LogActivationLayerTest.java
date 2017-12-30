@@ -42,5 +42,5 @@ public abstract class LogActivationLayerTest extends ActivationLayerTestBase {
    */
   public static class Basic extends LogActivationLayerTest {
   }
-
+  
 }

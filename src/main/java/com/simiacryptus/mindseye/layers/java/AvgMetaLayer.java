@@ -30,8 +30,8 @@ import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
 /**
- * Computes the average value for each element across all elements of an execution batch.
- * The output batch size will always be one.
+ * Computes the average value for each element across all elements of an execution batch. The output batch size will
+ * always be one.
  */
 @SuppressWarnings("serial")
 public class AvgMetaLayer extends NNLayer {
@@ -81,8 +81,8 @@ public class AvgMetaLayer extends NNLayer {
     if (null == lastResult || input.getData().length() > minBatchCount) {
       final ToDoubleFunction<Coordinate> f = (c) ->
         IntStream.range(0, itemCnt)
-          .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
-          .sum() / itemCnt;
+                 .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
+                 .sum() / itemCnt;
       thisResult = input.getData().get(0).mapCoords(f);
       passback = true;
       lastResult = thisResult;

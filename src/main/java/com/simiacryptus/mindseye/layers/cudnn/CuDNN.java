@@ -98,11 +98,11 @@ public class CuDNN {
     CuDNN.log("cudnnCreatePoolingDescriptor", result, poolingDesc);
     CuDNN.handle(result);
     result = JCudnn.cudnnSetPoolingNdDescriptor(poolingDesc,
-      mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, poolDims, windowSize,
-      padding, stride);
+                                                mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, poolDims, windowSize,
+                                                padding, stride);
     CuDNN.log("cudnnSetPoolingNdDescriptor", result, poolingDesc,
-      mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, poolDims, windowSize,
-      padding, stride);
+              mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, poolDims, windowSize,
+              padding, stride);
     CuDNN.handle(result);
     return new CudaResource<>(poolingDesc, CuDNN::cudnnDestroyPoolingDescriptor);
   }
@@ -827,18 +827,18 @@ public class CuDNN {
     CuDNN.log("cudnnCreateConvolutionDescriptor", result, convDesc);
     CuDNN.handle(result);
     result = JCudnn.cudnnSetConvolutionNdDescriptor(convDesc, padding.length,
-      padding,
-      stride,
-      dilation,
-      mode,
-      dataType
-    );
+                                                    padding,
+                                                    stride,
+                                                    dilation,
+                                                    mode,
+                                                    dataType
+                                                   );
     CuDNN.log("cudnnSetConvolutionNdDescriptor", result, convDesc, padding.length,
-      padding,
-      stride,
-      dilation,
-      mode,
-      dataType);
+              padding,
+              stride,
+              dilation,
+              mode,
+              dataType);
     CuDNN.handle(result);
     return new CudaResource<cudnnConvolutionDescriptor>(convDesc, CuDNN::cudnnDestroyConvolutionDescriptor) {
       @Override
@@ -878,16 +878,16 @@ public class CuDNN {
       1, // upscale the input in y-direction
       mode
       , dataType
-    );
+                                                   );
     CuDNN.log("cudnnSetConvolution2dDescriptor", result, convDesc,
-      paddingY, // zero-padding height
-      paddingX, // zero-padding width
-      strideHeight, // vertical filter stride
-      strideWidth, // horizontal filter stride
-      1, // upscale the input in x-direction
-      1, // upscale the input in y-direction
-      mode,
-      dataType);
+              paddingY, // zero-padding height
+              paddingX, // zero-padding width
+              strideHeight, // vertical filter stride
+              strideWidth, // horizontal filter stride
+              1, // upscale the input in x-direction
+              1, // upscale the input in y-direction
+              mode,
+              dataType);
     CuDNN.handle(result);
     return new CudaResource<>(convDesc, CuDNN::cudnnDestroyConvolutionDescriptor);
   }
@@ -1067,11 +1067,11 @@ public class CuDNN {
   public CudaPtr allocateBackwardDataWorkspace(final int deviceId, final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc, final int algorithm) {
     final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionBackwardDataWorkspaceSize(cudnnHandle,
-      filterDesc, outputDesc, convDesc, inputDesc,
-      algorithm, sizeInBytesArray);
+                                                                           filterDesc, outputDesc, convDesc, inputDesc,
+                                                                           algorithm, sizeInBytesArray);
     CuDNN.log("cudnnGetConvolutionBackwardDataWorkspaceSize", result, cudnnHandle,
-      filterDesc, outputDesc, convDesc, inputDesc,
-      algorithm, sizeInBytesArray);
+              filterDesc, outputDesc, convDesc, inputDesc,
+              algorithm, sizeInBytesArray);
     CuDNN.handle(result);
     final long workspaceSize = sizeInBytesArray[0];
     return CuDNN.alloc(deviceId, 0 < workspaceSize ? workspaceSize : 0);
@@ -1091,11 +1091,11 @@ public class CuDNN {
   public CudaPtr allocateBackwardFilterWorkspace(final int deviceId, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
     final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionBackwardFilterWorkspaceSize(cudnnHandle,
-      srcTensorDesc, dstTensorDesc, convDesc, filterDesc,
-      algorithm, sizeInBytesArray);
+                                                                             srcTensorDesc, dstTensorDesc, convDesc, filterDesc,
+                                                                             algorithm, sizeInBytesArray);
     CuDNN.log("cudnnGetConvolutionBackwardFilterWorkspaceSize", result, cudnnHandle,
-      srcTensorDesc, dstTensorDesc, convDesc, filterDesc,
-      algorithm, sizeInBytesArray);
+              srcTensorDesc, dstTensorDesc, convDesc, filterDesc,
+              algorithm, sizeInBytesArray);
     CuDNN.handle(result);
     final long workspaceSize = sizeInBytesArray[0];
     return CuDNN.alloc(deviceId, 0 < workspaceSize ? workspaceSize : 0);
@@ -1115,11 +1115,11 @@ public class CuDNN {
   public CudaPtr allocateForwardWorkspace(final int deviceId, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
     final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionForwardWorkspaceSize(cudnnHandle,
-      srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
-      algorithm, sizeInBytesArray);
+                                                                      srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
+                                                                      algorithm, sizeInBytesArray);
     CuDNN.log("cudnnGetConvolutionForwardWorkspaceSize", result, cudnnHandle,
-      srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
-      algorithm, sizeInBytesArray);
+              srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
+              algorithm, sizeInBytesArray);
     CuDNN.handle(result);
     final long workspaceSize = sizeInBytesArray[0];
     return CuDNN.alloc(deviceId, 0 < workspaceSize ? workspaceSize : 0);
@@ -1144,11 +1144,11 @@ public class CuDNN {
   public int getBackwardDataAlgorithm(final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor weightDesc) {
     final int algoArray[] = {-1};
     final int result = JCudnn.cudnnGetConvolutionBackwardDataAlgorithm(cudnnHandle,
-      filterDesc, srcTensorDesc, convDesc, weightDesc,
-      cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, algoArray);
+                                                                       filterDesc, srcTensorDesc, convDesc, weightDesc,
+                                                                       cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, algoArray);
     CuDNN.log("cudnnGetConvolutionBackwardDataAlgorithm", result, cudnnHandle,
-      filterDesc, srcTensorDesc, convDesc, weightDesc,
-      cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, algoArray);
+              filterDesc, srcTensorDesc, convDesc, weightDesc,
+              cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, algoArray);
     CuDNN.handle(result);
     return algoArray[0];
   }
@@ -1165,11 +1165,11 @@ public class CuDNN {
   public int getBackwardFilterAlgorithm(final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc) {
     final int algoArray[] = {-1};
     final int result = JCudnn.cudnnGetConvolutionBackwardFilterAlgorithm(cudnnHandle,
-      inputDesc, outputDesc, convDesc, filterDesc,
-      cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, algoArray);
+                                                                         inputDesc, outputDesc, convDesc, filterDesc,
+                                                                         cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, algoArray);
     CuDNN.log("cudnnGetConvolutionBackwardFilterAlgorithm", result, cudnnHandle,
-      inputDesc, outputDesc, convDesc, filterDesc,
-      cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, algoArray);
+              inputDesc, outputDesc, convDesc, filterDesc,
+              cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, algoArray);
     CuDNN.handle(result);
     return algoArray[0];
   }
@@ -1195,11 +1195,11 @@ public class CuDNN {
   public int getForwardAlgorithm(final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc) {
     final int algoArray[] = {-1};
     final int result = JCudnn.cudnnGetConvolutionForwardAlgorithm(cudnnHandle,
-      srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
-      cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, algoArray);
+                                                                  srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
+                                                                  cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, algoArray);
     CuDNN.log("cudnnGetConvolutionForwardAlgorithm", result, cudnnHandle,
-      srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
-      cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, algoArray);
+              srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
+              cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, algoArray);
     CuDNN.handle(result);
     return algoArray[0];
   }

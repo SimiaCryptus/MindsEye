@@ -36,8 +36,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * A training implementation which holds data as a Spark RDD
- * and distributes network evaluation over the partitions.
+ * A training implementation which holds data as a Spark RDD and distributes network evaluation over the partitions.
  */
 public class SparkTrainable implements Trainable {
   /**
@@ -121,7 +120,7 @@ public class SparkTrainable implements Trainable {
   protected static SparkTrainable.ReducableResult getResult(final DeltaSet<NNLayer> delta, final double[] values) {
     final Map<String, double[]> deltas = delta.getMap().entrySet().stream().collect(Collectors.toMap(
       e -> e.getKey().getId().toString(), e -> e.getValue().getDelta()
-    ));
+                                                                                                    ));
     return new SparkTrainable.ReducableResult(deltas, values.length, Arrays.stream(values).sum());
   }
   
@@ -236,8 +235,8 @@ public class SparkTrainable implements Trainable {
       sampledRDD.unpersist(false);
     }
     sampledRDD = dataRDD.sample(false, sampleSize * 1.0 / count, System.currentTimeMillis())
-      .repartition(getPartitions(), null)
-      .persist(getStorageLevel());
+                        .repartition(getPartitions(), null)
+                        .persist(getStorageLevel());
     assert !sampledRDD.isEmpty();
     logger.info(String.format("Sampled %s items from main dataset of %s (%s) items", sampledRDD.count(), count, sampleSize));
     return true;
@@ -324,7 +323,7 @@ public class SparkTrainable implements Trainable {
     public void accumulate(final DeltaSet<NNLayer> source) {
       final Map<String, NNLayer> idIndex = source.getMap().entrySet().stream().collect(Collectors.toMap(
         e -> e.getKey().getId().toString(), e -> e.getKey()
-      ));
+                                                                                                       ));
       deltas.forEach((k, v) -> source.get(idIndex.get(k), (double[]) null).addInPlace(v));
     }
   

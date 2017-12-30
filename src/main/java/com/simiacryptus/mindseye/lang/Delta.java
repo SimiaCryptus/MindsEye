@@ -23,8 +23,8 @@ import java.util.Arrays;
 import java.util.function.DoubleUnaryOperator;
 
 /**
- * An arithmetic delta being staged to effect an in-memory change to a double[] array.
- * In comparison with the State class via geometric analogy, this would be a vector whereas State is a point.
+ * An arithmetic delta being staged to effect an in-memory change to a double[] array. In comparison with the State
+ * class via geometric analogy, this would be a vector whereas State is a point.
  *
  * @param <K> the type parameter
  */

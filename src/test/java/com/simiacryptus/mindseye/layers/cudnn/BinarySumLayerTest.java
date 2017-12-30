@@ -82,12 +82,12 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
     public Double_Subtract() {
       super(Precision.Double);
     }
-
+  
     @Override
     public NNLayer getLayer(final int[][] inputSize) {
       return new BinarySumLayer(1.0, -1.0).setPrecision(precision);
     }
-
+  
   }
   
   /**
@@ -100,7 +100,7 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
     public Float_Add() {
       super(Precision.Float);
     }
-
+  
     @Override
     public SingleDerivativeTester getDerivativeTester() {
       return new SingleDerivativeTester(1e-2, 1e-3);
@@ -128,6 +128,6 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
     public NNLayer getLayer(final int[][] inputSize) {
       return new BinarySumLayer(0.5, 0.5).setPrecision(precision);
     }
-
+  
   }
 }

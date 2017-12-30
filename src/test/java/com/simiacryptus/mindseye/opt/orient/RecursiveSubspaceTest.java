@@ -53,7 +53,7 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
     return log.code(() -> {
       final PipelineNetwork network = new PipelineNetwork();
       double weight = 1e-3;
-  
+
       DoubleSupplier init = () -> weight * (Math.random() - 0.5);
       network.add(new ConvolutionLayer(3, 3, 1, 5).set(init));
       network.add(new ImgBandBiasLayer(5));
@@ -92,8 +92,8 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
         new ArrayTrainable(trainingData, supervisedNetwork, 1000).cached()
       ).setMonitor(monitor);
       trainer.getRegimen().get(0)
-        .setOrientation(getOrientation())
-        .setLineSearchFactory(name -> name.contains("LBFGS") ? new StaticLearningRate(1.0) : new QuadraticSearch());
+             .setOrientation(getOrientation())
+             .setLineSearchFactory(name -> name.contains("LBFGS") ? new StaticLearningRate(1.0) : new QuadraticSearch());
       return trainer
         .setTimeout(15, TimeUnit.MINUTES)
         .setMaxIterations(500)

@@ -136,9 +136,9 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
       final cudnnHandle cudnnHandle = ((CuDNN) nncontext).cudnnHandle;
       try {
         CuDNN.handle(CuDNN.cudnnAddTensor(cudnnHandle, alpha.getPtr(),
-          filterDescriptor.getPtr(), filterPtr.getPtr(),
-          beta.getPtr(),
-          inputDescriptor.getPtr(), inputData.getPtr()));
+                                          filterDescriptor.getPtr(), filterPtr.getPtr(),
+                                          beta.getPtr(),
+                                          inputDescriptor.getPtr(), inputData.getPtr()));
       } catch (final Throwable e) {
         throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
       }
@@ -154,9 +154,9 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
             final CudaPtr filterBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), bias.length * 1l * precision.size);
             try {
               CuDNN.handle(CuDNN.cudnnConvolutionBackwardBias(cudnnHandle, alpha.getPtr(),
-                inputDescriptor.getPtr(), errorPtr.getPtr(),
-                beta.getPtr(),
-                filterDescriptor.getPtr(), filterBuffer.getPtr()));
+                                                              inputDescriptor.getPtr(), errorPtr.getPtr(),
+                                                              beta.getPtr(),
+                                                              filterDescriptor.getPtr(), filterBuffer.getPtr()));
             } catch (final Throwable e) {
               throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
             }
@@ -222,6 +222,24 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
     final double[] bias = getBias();
     for (int i = 0; i < ds.length; i++) {
       bias[i] = ds[i];
+    }
+    //assert Arrays.stream(bias).allMatch(v->Double.isFinite(v));
+    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
+    return this;
+  }
+  
+  /**
+   * Set nn layer.
+   *
+   * @param ds the ds
+   * @return the nn layer
+   */
+  public NNLayer set(final Tensor ds) {
+    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
+    //assert Arrays.stream(ds).allMatch(Double::isFinite);
+    final double[] bias = getBias();
+    for (int i = 0; i < bias.length; i++) {
+      bias[i] = ds.get(i);
     }
     //assert Arrays.stream(bias).allMatch(v->Double.isFinite(v));
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);

@@ -27,8 +27,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * The generic Activation layer, exposing the activation types provided by CuDNN.
- * This layer is stateless and is determined by a univariate function, e.g. ReLU or Sigmoid.
+ * The generic Activation layer, exposing the activation types provided by CuDNN. This layer is stateless and is
+ * determined by a univariate function, e.g. ReLU or Sigmoid.
  */
 @SuppressWarnings("serial")
 public class ActivationLayer extends NNLayer implements LayerPrecision<ActivationLayer> {
@@ -102,10 +102,10 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
       final cudnnHandle cudnnHandle = ((CuDNN) nncontext).cudnnHandle;
       try {
         CuDNN.handle(CuDNN.cudnnActivationForward(((CuDNN) nncontext).cudnnHandle, activationDesc.getPtr(),
-          alpha.getPtr(),
-          inputDescriptor.getPtr(), inputData.getPtr(),
-          beta.getPtr(),
-          inputDescriptor.getPtr(), outputData.getPtr()));
+                                                  alpha.getPtr(),
+                                                  inputDescriptor.getPtr(), inputData.getPtr(),
+                                                  beta.getPtr(),
+                                                  inputDescriptor.getPtr(), outputData.getPtr()));
       } catch (final Throwable e) {
         throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
       }
@@ -122,12 +122,12 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
             final CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * precision.size * length);
             try {
               CuDNN.handle(CuDNN.cudnnActivationBackward(((CuDNN) nncontext).cudnnHandle, activationDesc.getPtr(),
-                alpha.getPtr(),
-                inputDescriptor.getPtr(), outputData.getPtr(),
-                inputDescriptor.getPtr(), errorPtr.getPtr(),
-                inputDescriptor.getPtr(), inputData.getPtr(),
-                beta.getPtr(),
-                inputDescriptor.getPtr(), passbackBuffer.getPtr()));
+                                                         alpha.getPtr(),
+                                                         inputDescriptor.getPtr(), outputData.getPtr(),
+                                                         inputDescriptor.getPtr(), errorPtr.getPtr(),
+                                                         inputDescriptor.getPtr(), inputData.getPtr(),
+                                                         beta.getPtr(),
+                                                         inputDescriptor.getPtr(), passbackBuffer.getPtr()));
             } catch (final Throwable e) {
               throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
             }

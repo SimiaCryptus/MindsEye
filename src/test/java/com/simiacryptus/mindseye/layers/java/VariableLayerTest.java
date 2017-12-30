@@ -44,5 +44,5 @@ public abstract class VariableLayerTest extends LayerTestBase {
    */
   public static class Basic extends VariableLayerTest {
   }
-
+  
 }

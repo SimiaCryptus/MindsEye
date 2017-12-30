@@ -21,7 +21,10 @@ package com.simiacryptus.mindseye.lang;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.simiacryptus.mindseye.layers.cudnn.Precision;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
@@ -30,18 +33,16 @@ import java.util.function.*;
 import java.util.stream.*;
 
 /**
- * A multi-dimensional array of data.
- * Represented internally as a single double[] array.
- * This class is central to data handling in MindsEye, and
- * may have some odd-looking or suprising optimizations.
+ * A multi-dimensional array of data. Represented internally as a single double[] array. This class is central to data
+ * handling in MindsEye, and may have some odd-looking or suprising optimizations.
  */
 @SuppressWarnings("serial")
 public class Tensor implements Serializable {
   
   /**
-   * The constant JSON_PRECISION.
+   * The constant json_precision.
    */
-  public static int JSON_PRECISION = 16;
+  public static Precision json_precision = Precision.Float;
   /**
    * The Dimensions.
    */
@@ -208,6 +209,13 @@ public class Tensor implements Serializable {
         return tensor;
       }
     }
+    else if (json.isJsonObject()) {
+      JsonObject jsonObject = json.getAsJsonObject();
+      int[] dims = fromJsonArray(jsonObject.getAsJsonArray("dim"));
+      Tensor tensor = new Tensor(dims);
+      tensor.setBytes(Base64.getDecoder().decode(jsonObject.get("base64").getAsString()));
+      return tensor;
+    }
     else {
       return new Tensor(json.getAsJsonPrimitive().getAsDouble());
     }
@@ -320,6 +328,97 @@ public class Tensor implements Serializable {
       buffer[i] = (float) data[i];
     }
     return buffer;
+  }
+  
+  /**
+   * To json array json array.
+   *
+   * @param ints the ints
+   * @return the json array
+   */
+  public static JsonArray toJsonArray(int[] ints) {
+    JsonArray dim = new JsonArray();
+    for (int i = 0; i < ints.length; i++) {
+      dim.add(new JsonPrimitive(ints[i]));
+    }
+    return dim;
+  }
+  
+  /**
+   * From json array int [ ].
+   *
+   * @param ints the ints
+   * @return the int [ ]
+   */
+  public static int[] fromJsonArray(JsonArray ints) {
+    int[] array = new int[ints.size()];
+    for (int i = 0; i < ints.size(); i++) {
+      array[i] = ints.get(i).getAsInt();
+    }
+    return array;
+  }
+  
+  /**
+   * Reverse dimensions tensor.
+   *
+   * @param tensor the tensor
+   * @return the tensor
+   */
+  public static Tensor reverseDimensions(Tensor tensor) {
+    return reorderDimensions(tensor, Tensor::reverse);
+  }
+  
+  /**
+   * Permute dimensions tensor.
+   *
+   * @param tensor the tensor
+   * @param key    the key
+   * @return the tensor
+   */
+  public static Tensor permuteDimensions(Tensor tensor, int... key) {
+    return reorderDimensions(tensor, in -> permute(key, in));
+  }
+  
+  /**
+   * Reorder dimensions tensor.
+   *
+   * @param tensor the tensor
+   * @param fn     the fn
+   * @return the tensor
+   */
+  public static Tensor reorderDimensions(Tensor tensor, UnaryOperator<int[]> fn) {
+    Tensor result = new Tensor(fn.apply(tensor.getDimensions()));
+    tensor.coordStream().forEach(c -> {
+      result.set(fn.apply(c.getCoords()), tensor.get(c));
+    });
+    return result;
+  }
+  
+  /**
+   * Permute int [ ].
+   *
+   * @param key  the key
+   * @param data the data
+   * @return the int [ ]
+   */
+  public static int[] permute(int[] key, int[] data) {
+    int[] copy = new int[key.length];
+    for (int i = 0; i < key.length; i++) {
+      copy[i] = data[key[i]];
+    }
+    return copy;
+  }
+  
+  /**
+   * Reverse int [ ].
+   *
+   * @param dimensions the dimensions
+   * @return the int [ ]
+   */
+  public static int[] reverse(int[] dimensions) {
+    int[] copy = Arrays.copyOf(dimensions, dimensions.length);
+    ArrayUtils.reverse(copy);
+    return copy;
   }
   
   /**
@@ -797,7 +896,7 @@ public class Tensor implements Serializable {
   }
   
   /**
-   * Pretty print string.
+   * Pretty printGroups string.
    *
    * @return the string
    */
@@ -951,6 +1050,20 @@ public class Tensor implements Serializable {
   public void set(final int coord1, final int coord2, final int coord3, final double value) {
     assert Double.isFinite(value);
     set(index(coord1, coord2, coord3), value);
+  }
+  
+  /**
+   * Set.
+   *
+   * @param coord1 the coord 1
+   * @param coord2 the coord 2
+   * @param coord3 the coord 3
+   * @param coord4 the coord 4
+   * @param value  the value
+   */
+  public void set(final int coord1, final int coord2, final int coord3, final int coord4, final double value) {
+    assert Double.isFinite(value);
+    set(index(coord1, coord2, coord3, coord4), value);
   }
   
   /**
@@ -1146,7 +1259,56 @@ public class Tensor implements Serializable {
    * @return the json element
    */
   public JsonElement toJson() {
-    return round(Tensor.JSON_PRECISION).toJson(new int[]{});
+    if (dim() > 64 * 1024) {
+      JsonObject obj = new JsonObject();
+      int[] dimensions = getDimensions();
+      obj.add("dim", toJsonArray(dimensions));
+      byte[] bytes = getBytes();
+      obj.addProperty("base64", Base64.getEncoder().encodeToString(bytes));
+      return obj;
+    }
+    else {
+      return toJson(new int[]{});
+    }
+  }
+  
+  /**
+   * Get bytes byte [ ].
+   *
+   * @return the byte [ ]
+   */
+  public byte[] getBytes() {return getBytes(json_precision);}
+  
+  /**
+   * Sets bytes.
+   *
+   * @param bytes the bytes
+   * @return the bytes
+   */
+  public Tensor setBytes(byte[] bytes) {return setBytes(bytes, json_precision);}
+  
+  /**
+   * Get bytes byte [ ].
+   *
+   * @param precision the precision
+   * @return the byte [ ]
+   */
+  public byte[] getBytes(Precision precision) {
+    byte[] to = new byte[dim() * precision.size];
+    Precision.copy(getData(), to, precision);
+    return to;
+  }
+  
+  /**
+   * Sets bytes.
+   *
+   * @param bytes     the bytes
+   * @param precision the precision
+   * @return the bytes
+   */
+  public Tensor setBytes(byte[] bytes, Precision precision) {
+    Precision.copy(bytes, getData(), precision);
+    return this;
   }
   
   private JsonElement toJson(final int[] coords) {
@@ -1225,8 +1387,8 @@ public class Tensor implements Serializable {
       if (prettyPrint) {
         if (coords.length < dimensions.length - 2) {
           final String str = list.stream().limit(10)
-            .map(s -> "\t" + s.replaceAll("\n", "\n\t"))
-            .reduce((a, b) -> a + ",\n" + b).orElse("");
+                                 .map(s -> "\t" + s.replaceAll("\n", "\n\t"))
+                                 .reduce((a, b) -> a + ",\n" + b).orElse("");
           return "[\n" + str + "\n]";
         }
         else {
@@ -1239,6 +1401,35 @@ public class Tensor implements Serializable {
         return "[ " + str + " ]";
       }
     }
+  }
+  
+  /**
+   * Reverse dimensions tensor.
+   *
+   * @return the tensor
+   */
+  public Tensor reverseDimensions() {
+    return reverseDimensions(this);
+  }
+  
+  /**
+   * Permute dimensions tensor.
+   *
+   * @param key the key
+   * @return the tensor
+   */
+  public Tensor permuteDimensions(int... key) {
+    return permuteDimensions(this, key);
+  }
+  
+  /**
+   * Reorder dimensions tensor.
+   *
+   * @param fn the fn
+   * @return the tensor
+   */
+  public Tensor reorderDimensions(UnaryOperator<int[]> fn) {
+    return reorderDimensions(this, fn);
   }
   
   /**

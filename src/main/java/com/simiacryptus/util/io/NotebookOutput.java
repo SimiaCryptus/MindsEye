@@ -41,7 +41,20 @@ public interface NotebookOutput extends Closeable {
     this.code(() -> {
       fn.run();
       return null;
-    }, 1024, 3);
+    }, getMaxOutSize(), 3);
+  }
+  
+  /**
+   * Code.
+   *
+   * @param fn   the fn
+   * @param size the size
+   */
+  default void code(final Runnable fn, int size) {
+    this.code(() -> {
+      fn.run();
+      return null;
+    }, size, 3);
   }
   
   /**
@@ -66,7 +79,19 @@ public interface NotebookOutput extends Closeable {
    * @return the t
    */
   default <T> T code(final UncheckedSupplier<T> fn) {
-    return code(fn, 1024, 3);
+    return code(fn, getMaxOutSize(), 3);
+  }
+  
+  /**
+   * Code t.
+   *
+   * @param <T>  the type parameter
+   * @param fn   the fn
+   * @param size the size
+   * @return the t
+   */
+  default <T> T code(final UncheckedSupplier<T> fn, int size) {
+    return code(fn, size, 3);
   }
   
   /**
@@ -96,6 +121,16 @@ public interface NotebookOutput extends Closeable {
    * @return the string
    */
   String file(String data, String caption);
+  
+  /**
+   * File string.
+   *
+   * @param data     the data
+   * @param filename the filename
+   * @param caption  the caption
+   * @return the string
+   */
+  String file(byte[] data, String filename, String caption);
   
   /**
    * File string.
@@ -174,7 +209,7 @@ public interface NotebookOutput extends Closeable {
    * @param key   the key
    * @param value the value
    */
-  default void setFMProp(String key, String value) {
+  default void setFrontMatterProperty(String key, String value) {
   }
   
   /**
@@ -190,4 +225,19 @@ public interface NotebookOutput extends Closeable {
    * @return the resource dir
    */
   File getResourceDir();
+  
+  /**
+   * Gets max out size.
+   *
+   * @return the max out size
+   */
+  int getMaxOutSize();
+  
+  /**
+   * Sets max out size.
+   *
+   * @param size the size
+   * @return the max out size
+   */
+  NotebookOutput setMaxOutSize(int size);
 }

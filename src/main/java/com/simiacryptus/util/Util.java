@@ -295,7 +295,7 @@ public class Util {
     final File outDir = new File("reports");
     outDir.mkdirs();
     final StackTraceElement caller = Util.getLast(Arrays.stream(Thread.currentThread().getStackTrace())//
-      .filter(x -> x.getClassName().contains("simiacryptus")));
+                                                        .filter(x -> x.getClassName().contains("simiacryptus")));
     final File report = new File(outDir, caller.getClassName() + "_" + caller.getLineNumber() + ".html");
     final PrintStream out = new PrintStream(new FileOutputStream(report));
     out.println("<html><head></head><body>");

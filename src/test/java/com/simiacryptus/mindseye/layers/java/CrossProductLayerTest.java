@@ -44,5 +44,5 @@ public abstract class CrossProductLayerTest extends LayerTestBase {
    */
   public static class Basic extends CrossProductLayerTest {
   }
-
+  
 }

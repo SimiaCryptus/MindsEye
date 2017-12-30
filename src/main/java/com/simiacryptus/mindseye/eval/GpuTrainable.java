@@ -37,18 +37,15 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * This class handles dispatching network evaluations,
- * and distributing the evaluations to the system GPU(s).
- * This is the main class the handles actual execution for training purposes.
+ * This class handles dispatching network evaluations, and distributing the evaluations to the system GPU(s). This is
+ * the main class the handles actual execution for training purposes.
  */
 public class GpuTrainable implements DataTrainable, TrainableDataMask {
   
   /**
-   * Between each iteration we have the option to initiate a garbage collection.
-   * This is a good opportunity since the reachable object count will be at a minimum
-   * between collections, making GC more efficient.
-   * This can be configured as a non-blocking operation by using the
-   * JVM flags "-XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC"
+   * Between each iteration we have the option to initiate a garbage collection. This is a good opportunity since the
+   * reachable object count will be at a minimum between collections, making GC more efficient. This can be configured
+   * as a non-blocking operation by using the JVM flags "-XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC"
    */
   protected static boolean gcEachIteration = true;
   /**
@@ -249,9 +246,9 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
       assert !data.isEmpty();
   
       final TimedResult<PointSample> timedResult = TimedResult.time(() -> GpuController.INSTANCE.distribute(data,
-        (list, dev) -> eval(list, dev, monitor),
-        (a, b) -> a.addInPlace(b)
-      ));
+                                                                                                            (list, dev) -> eval(list, dev, monitor),
+                                                                                                            (a, b) -> a.addInPlace(b)
+                                                                                                           ));
       //          logger.info(String.format("Evaluated to %s delta arrays", DeltaSet<NNLayer>.run.size()));
       if (null != monitor && getVerbosity() > 1) {
         monitor.log(String.format("Evaluated %s items in %.4fs (%s/%s)", data.size(), timedResult.timeNanos / 1e9, timedResult.result.getMean(), timedResult.result.delta.getMagnitude()));

@@ -82,7 +82,7 @@ public class CudaPtr extends CudaResource<Pointer> {
         final long freedMemory = startMemory - metrics.usedMemory.get();
         CuDNN.handle(CuDNN.cudaMalloc(getPtr(), size));
         System.err.println(String.format("Low GPU Memory while allocating %s bytes; %s freed resulting in %s total (triggered by %s)",
-          size, freedMemory, metrics.usedMemory.get() + size, e.getMessage()));
+                                         size, freedMemory, metrics.usedMemory.get() + size, e.getMessage()));
       } catch (final Exception e2) {
         throw new com.simiacryptus.mindseye.lang.OutOfMemoryError(String.format("Error allocating %s bytes; %s currently allocated to device %s", size, metrics.usedMemory.get(), deviceId), e2);
       }

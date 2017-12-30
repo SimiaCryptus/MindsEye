@@ -23,8 +23,8 @@ import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**
- * A very basic line search which uses a static rate,
- * searching lower rates when iterations do not result in improvement.
+ * A very basic line search which uses a static rate, searching lower rates when iterations do not result in
+ * improvement.
  */
 public class StaticLearningRate implements LineSearchStrategy {
   

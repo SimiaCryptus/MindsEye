@@ -51,5 +51,5 @@ public abstract class AvgImageBandLayerTest extends LayerTestBase {
    */
   public static class Basic extends AvgImageBandLayerTest {
   }
-
+  
 }

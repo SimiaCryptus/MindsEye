@@ -33,8 +33,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * A diagnostic wrapper that collects performance data and, if enabled,
- * value statistics of output and backprop signals.
+ * A diagnostic wrapper that collects performance data and, if enabled, value statistics of output and backprop
+ * signals.
  */
 @SuppressWarnings("serial")
 public final class MonitoringWrapperLayer extends WrapperLayer implements MonitoredItem {

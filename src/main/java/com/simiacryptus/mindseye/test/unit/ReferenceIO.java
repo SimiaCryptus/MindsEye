@@ -51,15 +51,15 @@ public class ReferenceIO implements ComponentTest<ToleranceStatistics> {
   public ToleranceStatistics test(final NotebookOutput log, final NNLayer layer, final Tensor... inputPrototype) {
     if (!referenceIO.isEmpty()) {
       log.h1("Reference Input/Output Pairs");
-      log.p("Display pre-set input/output example pairs:");
+      log.p("Display pre-setBytes input/output example pairs:");
       referenceIO.forEach((input, output) -> {
         log.code(() -> {
           final SimpleEval eval = SimpleEval.run(layer, input);
           final DoubleStatistics error = new DoubleStatistics().accept(eval.getOutput().add(output.scale(-1)).getData());
           return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\nError: %s\n--------------------\nDerivative: \n%s",
-            Arrays.stream(input).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
-            eval.getOutput().prettyPrint(), error,
-            Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
+                               Arrays.stream(input).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
+                               eval.getOutput().prettyPrint(), error,
+                               Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
         });
       });
     }
@@ -69,9 +69,9 @@ public class ReferenceIO implements ComponentTest<ToleranceStatistics> {
       log.code(() -> {
         final SimpleEval eval = SimpleEval.run(layer, inputPrototype);
         return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
-          Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
-          eval.getOutput().prettyPrint(),
-          Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
+                             Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
+                             eval.getOutput().prettyPrint(),
+                             Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
       });
     }
     return null;

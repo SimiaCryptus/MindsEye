@@ -44,5 +44,5 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
    */
   public static class Basic extends FullyConnectedLayerTest {
   }
-
+  
 }

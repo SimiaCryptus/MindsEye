@@ -104,17 +104,17 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
       };
       final Tensor[] data = {new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0)};
       GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
-        (d, exe) -> {
-          final NNResult eval = component.eval(exe, copyInput);
-          final Tensor tensor = eval.getData().get(0);
-          final DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
-          eval.accumulate(xxx, new TensorArray(data));
-          final Delta<NNLayer> inputDelta = xxx.getMap().get(inputKey);
-          if (null != inputDelta) {
-            result.accumulate(new Tensor(inputDelta.getDelta(), result.getDimensions()));
-          }
-          return tensor;
-        }, (a, b) -> a.add(b));
+                                        (d, exe) -> {
+                                          final NNResult eval = component.eval(exe, copyInput);
+                                          final Tensor tensor = eval.getData().get(0);
+                                          final DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
+                                          eval.accumulate(xxx, new TensorArray(data));
+                                          final Delta<NNLayer> inputDelta = xxx.getMap().get(inputKey);
+                                          if (null != inputDelta) {
+                                            result.accumulate(new Tensor(inputDelta.getDelta(), result.getDimensions()));
+                                          }
+                                          return tensor;
+                                        }, (a, b) -> a.add(b));
     }
     return result;
   }

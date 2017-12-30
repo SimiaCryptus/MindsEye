@@ -30,19 +30,29 @@ import com.simiacryptus.util.Util;
  */
 public abstract class DeepConvolution extends NLayerTest {
   
+  /**
+   * The Height.
+   */
   static int height = 64;
+  /**
+   * The Width.
+   */
   static int width = 64;
+  /**
+   * The Radius.
+   */
   int radius;
+
   /**
    * Instantiates a new Linear depth.
    *
-   * @param radius
+   * @param radius  the radius
    * @param dimList the dim list
    */
   public DeepConvolution(int radius, final int[]... dimList) {
     super(dimList);
     this.radius = radius;
-  
+
   }
   
   
@@ -83,11 +93,11 @@ public abstract class DeepConvolution extends NLayerTest {
      */
     public ExpandPipeline() {
       super(3,
-        new int[]{width, height, 9},
-        new int[]{width, height, 12},
-        new int[]{width, height, 48},
-        new int[]{width, height, 48}
-      );
+            new int[]{width, height, 9},
+            new int[]{width, height, 12},
+            new int[]{width, height, 48},
+            new int[]{width, height, 48}
+           );
     }
     
   }
@@ -101,11 +111,11 @@ public abstract class DeepConvolution extends NLayerTest {
      */
     public NarrowingPipeline() {
       super(3,
-        new int[]{width, height, 2},
-        new int[]{width, height, 1},
-        new int[]{width, height, 1},
-        new int[]{width, height, 1}
-      );
+            new int[]{width, height, 2},
+            new int[]{width, height, 1},
+            new int[]{width, height, 1},
+            new int[]{width, height, 1}
+           );
     }
     
   }
@@ -119,12 +129,12 @@ public abstract class DeepConvolution extends NLayerTest {
      */
     public SigmoidPipeline() {
       super(3,
-        new int[]{width, height, 5},
-        new int[]{width, height, 5},
-        new int[]{width, height, 5},
-        new int[]{width, height, 5},
-        new int[]{width, height, 5}
-      );
+            new int[]{width, height, 5},
+            new int[]{width, height, 5},
+            new int[]{width, height, 5},
+            new int[]{width, height, 5},
+            new int[]{width, height, 5}
+           );
     }
   
     @Override
@@ -143,11 +153,11 @@ public abstract class DeepConvolution extends NLayerTest {
      */
     public UniformPipeline() {
       super(3,
-        new int[]{width, height, 3},
-        new int[]{width, height, 3},
-        new int[]{width, height, 3},
-        new int[]{width, height, 3}
-      );
+            new int[]{width, height, 3},
+            new int[]{width, height, 3},
+            new int[]{width, height, 3},
+            new int[]{width, height, 3}
+           );
     }
   
   }

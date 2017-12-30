@@ -30,8 +30,7 @@ import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.util.ArrayUtil;
 
 /**
- * A simple momentum module which uses a cumulative decay algorithm
- * to add a momentum term to any orientation strategy
+ * A simple momentum module which uses a cumulative decay algorithm to add a momentum term to any orientation strategy
  * (if it yields a SimpleLineSearch cursor)
  */
 public class MomentumStrategy implements OrientationStrategy<SimpleLineSearchCursor> {

@@ -36,12 +36,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * Experimental.
- * The idea behind this class is to track for each row the change
- * in value for an objective function over the course of a single
- * training epoch. Rows which are observed to have a high delta
- * are inferred to be "interesting" rows, subject to retention
- * when re-sampling training data between epochs.
+ * Experimental. The idea behind this class is to track for each row the change in value for an objective function over
+ * the course of a single training epoch. Rows which are observed to have a high delta are inferred to be "interesting"
+ * rows, subject to retention when re-sampling training data between epochs.
  */
 public class DeltaHoldoverArrayTrainable extends GpuTrainable {
   
@@ -128,26 +125,26 @@ public class DeltaHoldoverArrayTrainable extends GpuTrainable {
       List<Tensor[]> holdover;
       if (wrappingLayer.firstResult != null && wrappingLayer.lastResult != null && wrappingLayer.firstResult != wrappingLayer.lastResult) {
         holdover = IntStream.range(0, data.size()).mapToObj(x -> x)
-          .sorted(Comparator.comparingDouble(x -> {
-            final double currentData = Arrays.stream(wrappingLayer.firstResult.getData().get(x).getData()).sum();
-            final double latestData = Arrays.stream(wrappingLayer.lastResult.getData().get(x).getData()).sum();
-            return latestData - currentData;
-          }))
-          .map(i -> data.get(i))
-          .limit((long) (getTrainingSize() * holdoverFraction))
-          .collect(Collectors.toList());
+                            .sorted(Comparator.comparingDouble(x -> {
+                              final double currentData = Arrays.stream(wrappingLayer.firstResult.getData().get(x).getData()).sum();
+                              final double latestData = Arrays.stream(wrappingLayer.lastResult.getData().get(x).getData()).sum();
+                              return latestData - currentData;
+                            }))
+                            .map(i -> data.get(i))
+                            .limit((long) (getTrainingSize() * holdoverFraction))
+                            .collect(Collectors.toList());
         
       }
       else {
         holdover = new ArrayList<>();
       }
       final List<Tensor[]> extra = trainingData.stream().filter(x -> x != null)
-        .map(x -> x.get())
-        .filter(x -> x != null)
-        .filter(x -> !holdover.contains(x))
-        .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ hash)) //
-        .limit(getTrainingSize() - holdover.size()) //
-        .collect(Collectors.toList());
+                                               .map(x -> x.get())
+                                               .filter(x -> x != null)
+                                               .filter(x -> !holdover.contains(x))
+                                               .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ hash)) //
+                                               .limit(getTrainingSize() - holdover.size()) //
+                                               .collect(Collectors.toList());
       final ArrayList<Tensor[]> concat = new ArrayList<>();
       concat.addAll(holdover);
       concat.addAll(extra);

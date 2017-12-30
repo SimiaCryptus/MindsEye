@@ -32,8 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A diagnostic pass-through layer that collects
- * value statistics of forward and backprop signals.
+ * A diagnostic pass-through layer that collects value statistics of forward and backprop signals.
  */
 @SuppressWarnings("serial")
 public final class MonitoringSynapse extends NNLayer implements MonitoredItem {

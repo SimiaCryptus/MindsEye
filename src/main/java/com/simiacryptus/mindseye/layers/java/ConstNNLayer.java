@@ -26,8 +26,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * This layer does not require any input, and produces a constant output.
- * This constant can be tuned by optimization processes.
+ * This layer does not require any input, and produces a constant output. This constant can be tuned by optimization
+ * processes.
  */
 @SuppressWarnings("serial")
 public class ConstNNLayer extends NNLayer {

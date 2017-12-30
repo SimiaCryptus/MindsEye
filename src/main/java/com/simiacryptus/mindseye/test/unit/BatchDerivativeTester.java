@@ -96,17 +96,17 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
       };
       copyInput.getData().stream().map(s -> s.mapCoords(k -> k.getIndex() == j_ ? 1 : 0)).toArray(i -> new Tensor[i]);
       GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
-        (d, exe) -> {
-          final NNResult eval = component.eval(exe, copyInput);
-          final Tensor tensor = eval.getData().get(0);
-          final DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
-          eval.accumulate(xxx, new TensorArray(eval.getData().stream().map(x -> x.map(v -> 1)).toArray(i -> new Tensor[i])));
-          final Delta<NNLayer> inputDelta = xxx.getMap().get(inputKey);
-          if (null != inputDelta) {
-            result.accumulate(new Tensor(inputDelta.getDelta(), result.getDimensions()));
-          }
-          return tensor;
-        }, (a, b) -> a.add(b));
+                                        (d, exe) -> {
+                                          final NNResult eval = component.eval(exe, copyInput);
+                                          final Tensor tensor = eval.getData().get(0);
+                                          final DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
+                                          eval.accumulate(xxx, new TensorArray(eval.getData().stream().map(x -> x.map(v -> 1)).toArray(i -> new Tensor[i])));
+                                          final Delta<NNLayer> inputDelta = xxx.getMap().get(inputKey);
+                                          if (null != inputDelta) {
+                                            result.accumulate(new Tensor(inputDelta.getDelta(), result.getDimensions()));
+                                          }
+                                          return tensor;
+                                        }, (a, b) -> a.add(b));
     }
     return result;
   }

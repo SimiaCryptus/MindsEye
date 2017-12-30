@@ -33,8 +33,8 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * This layer works as a scaling function, similar to a father wavelet.
- * Allows convolutional and pooling layers to work across larger image regions.
+ * This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work
+ * across larger image regions.
  */
 @SuppressWarnings("serial")
 public class RescaledSubnetLayer extends NNLayer {
@@ -92,8 +92,8 @@ public class RescaledSubnetLayer extends NNLayer {
         select[i] = subband * inputDims[2] + i;
       }
       return network.add(subnetwork,
-        network.add(new ImgBandSelectLayer(select),
-          condensed));
+                         network.add(new ImgBandSelectLayer(select),
+                                     condensed));
     }).toArray(i -> new DAGNode[i]));
     network.add(new ImgReshapeLayer(scale, scale, true));
     

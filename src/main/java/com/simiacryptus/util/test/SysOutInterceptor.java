@@ -56,6 +56,7 @@ public class SysOutInterceptor extends PrintStream {
   };
   
   private final AtomicBoolean initialized = new AtomicBoolean(false);
+  
   /**
    * Instantiates a new Sys out interceptor.
    *
@@ -63,21 +64,6 @@ public class SysOutInterceptor extends PrintStream {
    */
   private SysOutInterceptor(final PrintStream out) {
     super(out);
-  }
-  
-  /**
-   * Init sys out interceptor.
-   *
-   * @return the sys out interceptor
-   */
-  public SysOutInterceptor init() {
-    if (!initialized.getAndSet(true)) {
-      ch.qos.logback.classic.Logger root = ((ch.qos.logback.classic.Logger) logger).getLoggerContext().getLogger("ROOT");
-      ch.qos.logback.core.ConsoleAppender stdout = (ch.qos.logback.core.ConsoleAppender) root.getAppender("STDOUT");
-      stdout.setOutputStream(this);
-      System.setOut(this);
-    }
-    return this;
   }
   
   /**
@@ -130,9 +116,24 @@ public class SysOutInterceptor extends PrintStream {
   }
   
   /**
-   * Current handler print stream.
+   * Init sys out interceptor.
    *
-   * @return the print stream
+   * @return the sys out interceptor
+   */
+  public SysOutInterceptor init() {
+    if (!initialized.getAndSet(true)) {
+      ch.qos.logback.classic.Logger root = ((ch.qos.logback.classic.Logger) logger).getLoggerContext().getLogger("ROOT");
+      ch.qos.logback.core.ConsoleAppender stdout = (ch.qos.logback.core.ConsoleAppender) root.getAppender("STDOUT");
+      stdout.setOutputStream(this);
+      System.setOut(this);
+    }
+    return this;
+  }
+  
+  /**
+   * Current handler printGroups stream.
+   *
+   * @return the printGroups stream
    */
   public PrintStream currentHandler() {
     return threadHandler.get();

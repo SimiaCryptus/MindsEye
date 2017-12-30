@@ -37,8 +37,8 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 /**
- * An recursive optimization strategy which projects the current space into
- * a reduced-dimensional subspace for a sub-optimization batch run.
+ * An recursive optimization strategy which projects the current space into a reduced-dimensional subspace for a
+ * sub-optimization batch run.
  */
 public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCursor> {
   
@@ -81,8 +81,8 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
     boolean hasPlaceholders = direction.getMap().entrySet().stream().filter(x -> x.getKey() instanceof PlaceholderLayer).findAny().isPresent();
   
     List<NNLayer> deltaLayers = direction.getMap().entrySet().stream().map(x -> x.getKey())
-      .filter(x -> !(x instanceof PlaceholderLayer))
-      .collect(Collectors.toList());
+                                         .filter(x -> !(x instanceof PlaceholderLayer))
+                                         .collect(Collectors.toList());
     int size = deltaLayers.size() + (hasPlaceholders ? 1 : 0);
     if (null == weights || weights.length != size) weights = new double[size];
     return new NNLayer() {
@@ -96,8 +96,8 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
         });
         if (hasPlaceholders) {
           direction.getMap().entrySet().stream()
-            .filter(x -> x.getKey() instanceof PlaceholderLayer).distinct()
-            .forEach(entry -> entry.getValue().accumulate(weights[0]));
+                   .filter(x -> x.getKey() instanceof PlaceholderLayer).distinct()
+                   .forEach(entry -> entry.getValue().accumulate(weights[0]));
         }
         PointSample measure = subject.measure(monitor);
         double mean = measure.getMean();

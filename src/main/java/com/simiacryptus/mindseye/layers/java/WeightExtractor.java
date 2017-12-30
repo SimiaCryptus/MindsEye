@@ -29,8 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This input-less layer emits the weights of the referenced layer.
- * This can be used to cause targeted normalization effects.
+ * This input-less layer emits the weights of the referenced layer. This can be used to cause targeted normalization
+ * effects.
  */
 @SuppressWarnings("serial")
 public final class WeightExtractor extends NNLayer {

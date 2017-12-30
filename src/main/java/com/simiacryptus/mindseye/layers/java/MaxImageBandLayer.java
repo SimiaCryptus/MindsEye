@@ -65,7 +65,7 @@ public class MaxImageBandLayer extends NNLayer {
    */
   public static MaxImageBandLayer fromJson(final JsonObject json) {
     return new MaxImageBandLayer(json,
-      JsonUtil.getIntArray(json.getAsJsonArray("inner")));
+                                 JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
   
   @Override

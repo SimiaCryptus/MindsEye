@@ -102,12 +102,12 @@ public abstract class MnistTestBase {
   public DAGNetwork buildModel(final NotebookOutput log) {
     log.h3("Model");
     log.p("This is a very simple model that performs basic logistic regression. " +
-      "It is expected to be trainable to about 91% accuracy on MNIST.");
+            "It is expected to be trainable to about 91% accuracy on MNIST.");
     return log.code(() -> {
       final PipelineNetwork network = new PipelineNetwork();
       network.add(new BiasLayer(28, 28, 1));
       network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{10})
-        .set(() -> 0.001 * (Math.random() - 0.45)));
+                    .set(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new SoftmaxActivationLayer());
       return network;
     });
@@ -187,7 +187,7 @@ public abstract class MnistTestBase {
         return plot;
       });
     }
-  
+
     final String modelName = "model" + modelNo++ + ".json";
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
     
@@ -238,8 +238,8 @@ public abstract class MnistTestBase {
   @Test
   @Category(TestCategories.Report.class)
   public void test() throws IOException {
-    try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-  
+    try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
+
       final List<Step> history = new ArrayList<>();
       final MonitoredObject monitoringRoot = new MonitoredObject();
       final TrainingMonitor monitor = getMonitor(history);
@@ -269,8 +269,8 @@ public abstract class MnistTestBase {
     log.p("If we run our model against the entire validation dataset, we get this accuracy:");
     log.code(() -> {
       return MNIST.validationDataStream().mapToDouble(labeledObject ->
-        predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
-        .average().getAsDouble() * 100;
+                                                        predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
+                  .average().getAsDouble() * 100;
     });
     
     log.p("Let's examine some incorrectly predicted results in more detail:");
@@ -286,8 +286,8 @@ public abstract class MnistTestBase {
             final LinkedHashMap<String, Object> row = new LinkedHashMap<>();
             row.put("Image", log.image(labeledObject.data.toGrayImage(), labeledObject.label));
             row.put("Prediction", Arrays.stream(predictionList).limit(3)
-              .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
-              .reduce((a, b) -> a + ", " + b).get());
+                                        .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
+                                        .reduce((a, b) -> a + ", " + b).get());
             return row;
           } catch (final IOException e) {
             throw new RuntimeException(e);

@@ -73,9 +73,9 @@ public class Sparse01MetaLayer extends NNLayer {
     final NNResult input = inObj[0];
     final int itemCnt = input.getData().length();
     final Tensor avgActivationArray = input.getData().get(0).mapIndex((v, c) ->
-      IntStream.range(0, itemCnt)
-        .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
-        .average().getAsDouble());
+                                                                        IntStream.range(0, itemCnt)
+                                                                                 .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
+                                                                                 .average().getAsDouble());
     final Tensor divergenceArray = avgActivationArray.mapIndex((avgActivation, c) -> {
       assert Double.isFinite(avgActivation);
       if (avgActivation > 0 && avgActivation < 1) {

@@ -97,7 +97,7 @@ public abstract class PipelineTest {
       log.p("This is a network with the following layout:");
       log.code(() -> {
         return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
-          .height(400).width(600).render(Format.PNG).toImage();
+                       .height(400).width(600).render(Format.PNG).toImage();
       });
     }
   }
@@ -128,7 +128,7 @@ public abstract class PipelineTest {
    */
   @Test
   public void test() throws Throwable {
-    try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
+    try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
       test(log);
     }
   }
@@ -154,7 +154,7 @@ public abstract class PipelineTest {
    *
    * @param log       the log
    * @param layer     the layer
-   * @param header
+   * @param header    the header
    * @param inputDims the input dims
    * @return the double
    */

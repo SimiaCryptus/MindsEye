@@ -38,9 +38,8 @@ import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
 /**
- * A dense matrix operator using vector-matrix multiplication.
- * Represents a fully connected layer of synapses, where all inputs
- * are connected to all outputs via seperate coefficients.
+ * A dense matrix operator using vector-matrix multiplication. Represents a fully connected layer of synapses, where all
+ * inputs are connected to all outputs via seperate coefficients.
  */
 @SuppressWarnings("serial")
 public class FullyConnectedLayer extends NNLayer {
@@ -186,6 +185,7 @@ public class FullyConnectedLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    assert Tensor.dim(inObj[0].getData().getDimensions()) == Tensor.dim(this.inputDims) : Arrays.toString(inObj[0].getData().getDimensions()) + " == " + Arrays.toString(this.inputDims);
     assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
     final Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);
@@ -289,6 +289,17 @@ public class FullyConnectedLayer extends NNLayer {
    * @return the weights
    */
   public FullyConnectedLayer set(final double[] data) {
+    weights.set(data);
+    return this;
+  }
+  
+  /**
+   * Set fully connected layer.
+   *
+   * @param data the data
+   * @return the fully connected layer
+   */
+  public FullyConnectedLayer set(final Tensor data) {
     weights.set(data);
     return this;
   }

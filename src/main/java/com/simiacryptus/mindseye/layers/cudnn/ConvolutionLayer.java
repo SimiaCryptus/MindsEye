@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.network.DAGNode;
@@ -31,9 +32,9 @@ import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
 /**
- * This is the general convolution layer, allowing any number of input and output bands.
- * During execution it delegates processing to a dynamically created subbnet created
- * using SimpleConvolutionLayer and ImgConcatLayer to implement the more general layer contract.
+ * This is the general convolution layer, allowing any number of input and output bands. During execution it delegates
+ * processing to a dynamically created subbnet created using SimpleConvolutionLayer and ImgConcatLayer to implement the
+ * more general layer contract.
  */
 @SuppressWarnings("serial")
 public class ConvolutionLayer extends NNLayer implements LayerPrecision<ConvolutionLayer> {
@@ -46,6 +47,8 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   private final int outputBands;
   private int strideX = 1;
   private int strideY = 1;
+  private Integer paddingX = null;
+  private Integer paddingY = null;
   private Precision precision = Precision.Double;
   
   /**
@@ -84,6 +87,10 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     this.kernel = Tensor.fromJson(json.get("filter"));
     this.setStrideX(json.get("strideX").getAsInt());
     this.setStrideY(json.get("strideY").getAsInt());
+    JsonElement paddingX = json.get("paddingX");
+    if (null != paddingX) this.setPaddingX((paddingX.getAsInt()));
+    JsonElement paddingY = json.get("paddingY");
+    if (null != paddingY) this.setPaddingY((paddingY.getAsInt()));
     this.precision = Precision.valueOf(json.get("precision").getAsString());
     this.inputBands = json.get("inputBands").getAsInt();
     this.outputBands = json.get("outputBands").getAsInt();
@@ -147,14 +154,17 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
           return 0;
         }
       });
-      subLayers.add(new SimpleConvolutionLayer(batchKernel)
-        .setStrideX(getStrideX()).setStrideY(getStrideY()).setPrecision(precision));
+      SimpleConvolutionLayer simpleConvolutionLayer = new SimpleConvolutionLayer(batchKernel)
+        .setStrideX(getStrideX()).setStrideY(getStrideY()).setPrecision(precision);
+      if (paddingX != null) simpleConvolutionLayer.setPaddingX(paddingX);
+      if (paddingY != null) simpleConvolutionLayer.setPaddingY(paddingY);
+      subLayers.add(simpleConvolutionLayer);
     }
     final DAGNode input = network.getHead();
     network.add(new ImgConcatLayer().setMaxBands(outputBands).setPrecision(precision),
-      subLayers.stream().map(l -> {
-        return network.add(l, input);
-      }).toArray(i -> new DAGNode[i]));
+                subLayers.stream().map(l -> {
+                  return network.add(l, input);
+                }).toArray(i -> new DAGNode[i]));
     if (isFrozen()) {
       network.freeze();
     }
@@ -217,6 +227,8 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     json.add("filter", kernel.toJson());
     json.addProperty("strideX", getStrideX());
     json.addProperty("strideY", getStrideY());
+    json.addProperty("paddingX", getPaddingX());
+    json.addProperty("paddingY", getPaddingY());
     json.addProperty("precision", precision.name());
     json.addProperty("inputBands", inputBands);
     json.addProperty("outputBands", outputBands);
@@ -242,6 +254,17 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
    */
   public ConvolutionLayer set(final DoubleSupplier f) {
     return set(i -> f.getAsDouble());
+  }
+  
+  /**
+   * Set convolution layer.
+   *
+   * @param tensor the tensor
+   * @return the convolution layer
+   */
+  public ConvolutionLayer set(final Tensor tensor) {
+    kernel.set(tensor);
+    return this;
   }
   
   /**
@@ -318,9 +341,57 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
    * @return the stride xy
    */
   public ConvolutionLayer setStrideXY(int x, int y) {
-    setStrideX(x);
-    setStrideY(y);
+    return setStrideX(x).setStrideY(y);
+  }
+  
+  /**
+   * Sets padding xy.
+   *
+   * @param x the x
+   * @param y the y
+   * @return the padding xy
+   */
+  public ConvolutionLayer setPaddingXY(Integer x, Integer y) {
+    return setPaddingX(x).setPaddingY(y);
+  }
+  
+  /**
+   * Gets padding x.
+   *
+   * @return the padding x
+   */
+  public Integer getPaddingX() {
+    return paddingX;
+  }
+  
+  /**
+   * Sets padding x.
+   *
+   * @param paddingX the padding x
+   * @return the padding x
+   */
+  public ConvolutionLayer setPaddingX(Integer paddingX) {
+    this.paddingX = paddingX;
     return this;
   }
   
+  /**
+   * Gets padding y.
+   *
+   * @return the padding y
+   */
+  public Integer getPaddingY() {
+    return paddingY;
+  }
+  
+  /**
+   * Sets padding y.
+   *
+   * @param paddingY the padding y
+   * @return the padding y
+   */
+  public ConvolutionLayer setPaddingY(Integer paddingY) {
+    this.paddingY = paddingY;
+    return this;
+  }
 }

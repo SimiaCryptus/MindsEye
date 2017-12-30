@@ -186,41 +186,41 @@ public class EncodingProblem implements Problem {
     log.h3("Network Diagram");
     log.code(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(imageNetwork))
-        .height(400).width(600).render(Format.PNG).toImage();
+                     .height(400).width(600).render(Format.PNG).toImage();
     });
     
     final PipelineNetwork trainingNetwork = new PipelineNetwork(2);
     final DAGNode image = trainingNetwork.add(imageNetwork, trainingNetwork.getInput(0));
     final DAGNode softmax = trainingNetwork.add(new SoftmaxActivationLayer(), trainingNetwork.getInput(0));
     trainingNetwork.add(new SumInputsLayer(),
-      trainingNetwork.add(new LinearActivationLayer().setScale(1).freeze(),
-        trainingNetwork.add(new EntropyLossLayer(), softmax, softmax)),
-      trainingNetwork.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
-        trainingNetwork.add(new MeanSqLossLayer(), image, trainingNetwork.getInput(1))
-      )
-    );
+                        trainingNetwork.add(new LinearActivationLayer().setScale(1).freeze(),
+                                            trainingNetwork.add(new EntropyLossLayer(), softmax, softmax)),
+                        trainingNetwork.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
+                                            trainingNetwork.add(new MeanSqLossLayer(), image, trainingNetwork.getInput(1))
+                                           )
+                       );
     log.h3("Training");
     log.p("We start by training with a very small population to improve initial convergence performance:");
     TestUtil.instrumentPerformance(log, trainingNetwork);
     final Tensor[][] primingData = Arrays.copyOfRange(trainingData, 0, 1000);
     final ValidatingTrainer preTrainer = optimizer.train(log,
-      (SampledTrainable) new SampledArrayTrainable(primingData, trainingNetwork, trainingSize, batchSize).setMinSamples(trainingSize).setMask(true, false),
-      new ArrayTrainable(primingData, trainingNetwork, batchSize), monitor);
+                                                         (SampledTrainable) new SampledArrayTrainable(primingData, trainingNetwork, trainingSize, batchSize).setMinSamples(trainingSize).setMask(true, false),
+                                                         new ArrayTrainable(primingData, trainingNetwork, batchSize), monitor);
     log.code(() -> {
       preTrainer.setTimeout(timeoutMinutes / 2, TimeUnit.MINUTES).setMaxIterations(batchSize).run();
     });
     TestUtil.extractPerformance(log, trainingNetwork);
-  
+
     log.p("Then our main training phase:");
     TestUtil.instrumentPerformance(log, trainingNetwork);
     final ValidatingTrainer mainTrainer = optimizer.train(log,
-      (SampledTrainable) new SampledArrayTrainable(trainingData, trainingNetwork, trainingSize, batchSize).setMinSamples(trainingSize).setMask(true, false),
-      new ArrayTrainable(trainingData, trainingNetwork, batchSize), monitor);
+                                                          (SampledTrainable) new SampledArrayTrainable(trainingData, trainingNetwork, trainingSize, batchSize).setMinSamples(trainingSize).setMask(true, false),
+                                                          new ArrayTrainable(trainingData, trainingNetwork, batchSize), monitor);
     log.code(() -> {
       mainTrainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(batchSize).run();
     });
     TestUtil.extractPerformance(log, trainingNetwork);
-  
+
     if (!history.isEmpty()) {
       log.code(() -> {
         return TestUtil.plot(history);
@@ -255,7 +255,7 @@ public class EncodingProblem implements Problem {
     log.code(() -> {
       final ScalarStatistics scalarStatistics = new ScalarStatistics();
       trainingNetwork.state().stream().flatMapToDouble(x -> Arrays.stream(x))
-        .forEach(v -> scalarStatistics.add(v));
+                     .forEach(v -> scalarStatistics.add(v));
       return scalarStatistics.getMetrics();
     });
     
@@ -263,8 +263,8 @@ public class EncodingProblem implements Problem {
     log.code(() -> {
       final ScalarStatistics scalarStatistics = new ScalarStatistics();
       Arrays.stream(trainingData)
-        .flatMapToDouble(row -> Arrays.stream(row[0].getData()))
-        .forEach(v -> scalarStatistics.add(v));
+            .flatMapToDouble(row -> Arrays.stream(row[0].getData()))
+            .forEach(v -> scalarStatistics.add(v));
       return scalarStatistics.getMetrics();
     });
     

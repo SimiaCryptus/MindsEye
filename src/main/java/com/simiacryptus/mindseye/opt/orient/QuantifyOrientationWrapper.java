@@ -69,17 +69,18 @@ public class QuantifyOrientationWrapper implements OrientationStrategy<LineSearc
       final DeltaSet<NNLayer> direction = ((SimpleLineSearchCursor) cursor).direction;
       final StateSet<NNLayer> weights = ((SimpleLineSearchCursor) cursor).origin.weights;
       final Map<String, String> dataMap = weights.stream()
-        .collect(Collectors.groupingBy(x -> getId(x), Collectors.toList())).entrySet().stream()
-        .collect(Collectors.toMap(x -> x.getKey(), list -> {
-          final List<Double> doubleList = list.getValue().stream().map(weightDelta -> {
-            final DoubleBuffer<NNLayer> dirDelta = direction.getMap().get(weightDelta.layer);
-            final double denominator = weightDelta.deltaStatistics().rms();
-            final double numerator = null == dirDelta ? 0 : dirDelta.deltaStatistics().rms();
-            return numerator / (0 == denominator ? 1 : denominator);
-          }).collect(Collectors.toList());
-          if (1 == doubleList.size()) return Double.toString(doubleList.get(0));
-          return new DoubleStatistics().accept(doubleList.stream().mapToDouble(x -> x).toArray()).toString();
-        }));
+                                                 .collect(Collectors.groupingBy(x -> getId(x), Collectors.toList())).entrySet().stream()
+                                                 .collect(Collectors.toMap(x -> x.getKey(), list -> {
+                                                   final List<Double> doubleList = list.getValue().stream().map(weightDelta -> {
+                                                     final DoubleBuffer<NNLayer> dirDelta = direction.getMap().get(weightDelta.layer);
+                                                     final double denominator = weightDelta.deltaStatistics().rms();
+                                                     final double numerator = null == dirDelta ? 0 : dirDelta.deltaStatistics().rms();
+                                                     return numerator / (0 == denominator ? 1 : denominator);
+                                                   }).collect(Collectors.toList());
+                                                   if (1 == doubleList.size())
+                                                     return Double.toString(doubleList.get(0));
+                                                   return new DoubleStatistics().accept(doubleList.stream().mapToDouble(x -> x).toArray()).toString();
+                                                 }));
       monitor.log(String.format("Line search stats: %s", dataMap));
     }
     else {

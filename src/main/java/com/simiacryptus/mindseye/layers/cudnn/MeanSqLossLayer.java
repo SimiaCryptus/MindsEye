@@ -26,8 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Implements the RMS loss layer (without the final square root).
- * Implemented as a sutnetwork.
+ * Implements the RMS loss layer (without the final square root). Implemented as a sutnetwork.
  */
 @SuppressWarnings("serial")
 public class MeanSqLossLayer extends PipelineNetwork {

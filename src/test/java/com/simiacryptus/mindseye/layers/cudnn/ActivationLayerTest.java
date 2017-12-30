@@ -79,7 +79,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   @Override
   public void test(final NotebookOutput log) {
     super.test(log);
-
+  
     log.h3("Function Plots");
     final NNLayer layer = getLayer(new int[][]{{1, 1, 1}});
     final List<double[]> plotData = IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0).mapToObj(x -> {

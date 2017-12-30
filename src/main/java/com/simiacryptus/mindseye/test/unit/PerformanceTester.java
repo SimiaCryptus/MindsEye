@@ -153,7 +153,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
         return testEvaluationPerformance(component, inputPrototype);
       }).reduce((a, b) -> a.combine(b)).get();
       logger.info(String.format("\tEvaluation performance: %.6fs +- %.6fs [%.6fs - %.6fs]",
-        statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
+                                statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
     }
     if (isTestLearning()) {
       final DoubleStatistics statistics = IntStream.range(0, samples).mapToObj(i -> {
@@ -161,7 +161,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
       }).reduce((a, b) -> a.combine(b)).orElseGet(() -> null);
       if (null != statistics) {
         logger.info(String.format("\tLearning performance: %.6fs +- %.6fs [%.6fs - %.6fs]",
-          statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
+                                  statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
       }
     }
   }

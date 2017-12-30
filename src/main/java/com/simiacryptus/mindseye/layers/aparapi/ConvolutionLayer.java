@@ -30,9 +30,9 @@ import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
 /**
- * This convolution layer is often used as the reference implementation for other convolution implementation.
- * It uses OpenCL via Aparapi to compile Java into GPU-accellerated kernels.
- * Due to its simple implementation and limitations of Aparapi, it is not as fast as CuDNN-powered layers.
+ * This convolution layer is often used as the reference implementation for other convolution implementation. It uses
+ * OpenCL via Aparapi to compile Java into GPU-accellerated kernels. Due to its simple implementation and limitations of
+ * Aparapi, it is not as fast as CuDNN-powered layers.
  */
 @SuppressWarnings("serial")
 public class ConvolutionLayer extends NNLayer {
@@ -171,8 +171,8 @@ public class ConvolutionLayer extends NNLayer {
     final double[] kernelData = ConvolutionLayer.this.kernel.getData();
     final ConvolutionController convolutionController = new ConvolutionController(inputDims, kernelDims, simple);
     final Tensor[] output = IntStream.range(0, batch.length())
-      .mapToObj(dataIndex -> new Tensor(convolutionController.getOutputDims()))
-      .toArray(i -> new Tensor[i]);
+                                     .mapToObj(dataIndex -> new Tensor(convolutionController.getOutputDims()))
+                                     .toArray(i -> new Tensor[i]);
     try {
       final double[][] inputBuffers = batch.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
       final double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);

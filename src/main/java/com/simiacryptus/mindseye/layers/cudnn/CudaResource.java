@@ -25,8 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.ToIntFunction;
 
 /**
- * A managed resource containing a native CuDNN resource,
- * bound to its lifecycle with a prearranged destructor.
+ * A managed resource containing a native CuDNN resource, bound to its lifecycle with a prearranged destructor.
  *
  * @param <T> the type parameter
  */

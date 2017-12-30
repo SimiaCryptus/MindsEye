@@ -33,8 +33,7 @@ import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
 /**
- * Adds a bias tensor to the input.
- * Expects a single input of the same dimension as the bias tensor.
+ * Adds a bias tensor to the input. Expects a single input of the same dimension as the bias tensor.
  */
 @SuppressWarnings("serial")
 public class BiasLayer extends NNLayer {
@@ -127,8 +126,8 @@ public class BiasLayer extends NNLayer {
       input = inObj[0].getData();
     }
     final Tensor[] outputA = input.stream().parallel()
-      .map(r -> new Tensor(add(r.getData()), r.getDimensions()))
-      .toArray(i -> new Tensor[i]);
+                                  .map(r -> new Tensor(add(r.getData()), r.getDimensions()))
+                                  .toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
@@ -209,4 +208,17 @@ public class BiasLayer extends NNLayer {
     return Arrays.asList(bias);
   }
   
+  /**
+   * Set bias layer.
+   *
+   * @param tensor the tensor
+   * @return the bias layer
+   */
+  public BiasLayer set(Tensor tensor) {
+    assert bias.length == tensor.dim();
+    for (int i = 0; i < bias.length; i++) {
+      bias[i] = tensor.get(i);
+    }
+    return this;
+  }
 }

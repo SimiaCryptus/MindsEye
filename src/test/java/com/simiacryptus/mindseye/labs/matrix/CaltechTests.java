@@ -47,20 +47,20 @@ public class CaltechTests {
     log.p("The image-to-vector network is a single layer convolutional:");
     return log.code(() -> {
       final PipelineNetwork network = new PipelineNetwork();
-  
+
       IntToDoubleFunction weights = i -> 1e-8 * (Math.random() - 0.5);
       network.add(new ConvolutionLayer(3, 3, 3, 10).set(weights));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());
       network.add(new ImgCropLayer(126, 126));
       network.add(new NormalizationMetaLayer());
-  
+
       network.add(new ConvolutionLayer(3, 3, 10, 20).set(weights));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());
       network.add(new ImgCropLayer(62, 62));
       network.add(new NormalizationMetaLayer());
-  
+
       network.add(new ConvolutionLayer(5, 5, 20, 30).set(weights));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());
@@ -164,8 +164,8 @@ public class CaltechTests {
     @Ignore
     @Category(TestCategories.Report.class)
     public void autoencoder_test() throws IOException {
-      try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-  
+      try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
+
         log.h1("Caltech101 Denoising Autoencoder");
         intro(log);
         new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data, 100, 0.8).setTimeoutMinutes(timeoutMinutes).run(log);
@@ -180,8 +180,8 @@ public class CaltechTests {
     @Test
     @Category(TestCategories.Report.class)
     public void classification_test() throws IOException {
-      try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-  
+      try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
+
         log.h1("Caltech101 Classification");
         intro(log);
         GpuTrainable.setVerbosity(2);
@@ -197,8 +197,8 @@ public class CaltechTests {
     @Test
     @Category(TestCategories.Report.class)
     public void encoding_test() throws IOException {
-      try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-  
+      try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
+
         log.h1("Caltech101 Image-to-Vector Encoding");
         intro(log);
         new EncodingProblem(revFactory, optimizationStrategy, data, categories).setTimeoutMinutes(timeoutMinutes).setBatchSize(100).run(log);

@@ -70,27 +70,27 @@ public class BatchingTester implements ComponentTest<ToleranceStatistics> {
   
     final int batchSize = 10;
     final TensorList[] inputTensorLists = Arrays.stream(inputPrototype).map(t ->
-      new TensorArray(IntStream.range(0, batchSize).mapToObj(i -> t.map(v -> getRandom()))
-        .toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
+                                                                              new TensorArray(IntStream.range(0, batchSize).mapToObj(i -> t.map(v -> getRandom()))
+                                                                                                       .toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
     final SimpleListEval asABatch = SimpleListEval.run(reference, inputTensorLists);
     final List<SimpleEval> oneAtATime = IntStream.range(0, batchSize).mapToObj(batch ->
-      SimpleEval.run(reference, IntStream.range(0, inputTensorLists.length)
-        .mapToObj(i -> inputTensorLists[i].get(batch)).toArray(i -> new Tensor[i]))
-    ).collect(Collectors.toList());
-  
+                                                                                 SimpleEval.run(reference, IntStream.range(0, inputTensorLists.length)
+                                                                                                                    .mapToObj(i -> inputTensorLists[i].get(batch)).toArray(i -> new Tensor[i]))
+                                                                              ).collect(Collectors.toList());
+    
     final ToleranceStatistics outputAgreement = IntStream.range(0, batchSize).mapToObj(batch ->
-      new ToleranceStatistics().accumulate(
-        asABatch.getOutput().get(batch).getData(),
-        oneAtATime.get(batch).getOutput().getData())
-    ).reduce((a, b) -> a.combine(b)).get();
+                                                                                         new ToleranceStatistics().accumulate(
+                                                                                           asABatch.getOutput().get(batch).getData(),
+                                                                                           oneAtATime.get(batch).getOutput().getData())
+                                                                                      ).reduce((a, b) -> a.combine(b)).get();
     if (!(outputAgreement.absoluteTol.getMax() < tolerance)) throw new AssertionError(outputAgreement.toString());
   
     final ToleranceStatistics derivativeAgreement = IntStream.range(0, batchSize).mapToObj(batch ->
-      IntStream.range(0, inputTensorLists.length).mapToObj(input ->
-        new ToleranceStatistics().accumulate(
-          asABatch.getDerivative()[input].get(batch).getData(),
-          oneAtATime.get(batch).getDerivative()[input].getData())
-      ).reduce((a, b) -> a.combine(b)).get()).reduce((a, b) -> a.combine(b)).get();
+                                                                                             IntStream.range(0, inputTensorLists.length).mapToObj(input ->
+                                                                                                                                                    new ToleranceStatistics().accumulate(
+                                                                                                                                                      asABatch.getDerivative()[input].get(batch).getData(),
+                                                                                                                                                      oneAtATime.get(batch).getDerivative()[input].getData())
+                                                                                                                                                 ).reduce((a, b) -> a.combine(b)).get()).reduce((a, b) -> a.combine(b)).get();
     if (!(derivativeAgreement.absoluteTol.getMax() < tolerance)) {
       throw new AssertionError(derivativeAgreement.toString());
     }

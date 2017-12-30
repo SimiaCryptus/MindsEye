@@ -27,8 +27,7 @@ import com.simiacryptus.mindseye.lang.NNResult;
 import java.util.List;
 
 /**
- * An ephemeral, non-serializable, non-evaluatable layer.
- * Used when a layer is required as an identifier, e.g. DeltaSet
+ * An ephemeral, non-serializable, non-evaluatable layer. Used when a layer is required as an identifier, e.g. DeltaSet
  *
  * @param <T> the type parameter
  */

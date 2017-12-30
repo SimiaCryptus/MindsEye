@@ -27,10 +27,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A collection of State objects being staged for particular layers.
- * Provides indexing capabilities to reference the deltas based on physical references (to double[] objects)
- * and based on logical referants (i.e. layers)
- * Provides collection-arithmetic operations appropriate to the State's 'point' geometric archtype.
+ * A collection of State objects being staged for particular layers. Provides indexing capabilities to reference the
+ * deltas based on physical references (to double[] objects) and based on logical referants (i.e. layers) Provides
+ * collection-arithmetic operations appropriate to the State's 'point' geometric archtype.
  *
  * @param <K> the type parameter
  */
@@ -87,13 +86,13 @@ public class StateSet<K> extends DoubleBufferSet<K, State<K>> {
     final Map<K, State<K>> collect = Stream.concat(
       left.map.entrySet().stream(),
       right.map.entrySet().stream()
-    ).collect(Collectors.groupingBy((final Map.Entry<K, State<K>> e1) -> e1.getKey(),
-      Collectors.mapping((final Map.Entry<K, State<K>> x) -> x.getValue(), Collectors.collectingAndThen(
-        Collectors.reducing((final State<K> a, final State<K> b) -> {
-          assert a.target == b.target;
-          assert a.layer.equals(b.layer);
-          return a;
-        }), x -> x.get()))));
+                                                  ).collect(Collectors.groupingBy((final Map.Entry<K, State<K>> e1) -> e1.getKey(),
+                                                                                  Collectors.mapping((final Map.Entry<K, State<K>> x) -> x.getValue(), Collectors.collectingAndThen(
+                                                                                    Collectors.reducing((final State<K> a, final State<K> b) -> {
+                                                                                      assert a.target == b.target;
+                                                                                      assert a.layer.equals(b.layer);
+                                                                                      return a;
+                                                                                    }), x -> x.get()))));
     return new StateSet<K>(collect);
   }
   
@@ -131,18 +130,18 @@ public class StateSet<K> extends DoubleBufferSet<K, State<K>> {
   }
   
   /**
-   * Backup copy state set.
+   * Backup copy state setBytes.
    *
-   * @return the state set
+   * @return the state setBytes
    */
   public StateSet<K> backupCopy() {
     return map(l -> l.backupCopy());
   }
   
   /**
-   * Backup state set.
+   * Backup state setBytes.
    *
-   * @return the state set
+   * @return the state setBytes
    */
   public StateSet<K> backup() {
     Stream<Map.Entry<K, State<K>>> stream = map.entrySet().stream();
@@ -154,9 +153,9 @@ public class StateSet<K> extends DoubleBufferSet<K, State<K>> {
   }
   
   /**
-   * Restore state set.
+   * Restore state setBytes.
    *
-   * @return the state set
+   * @return the state setBytes
    */
   public StateSet<K> restore() {
     Stream<Map.Entry<K, State<K>>> stream = map.entrySet().stream();

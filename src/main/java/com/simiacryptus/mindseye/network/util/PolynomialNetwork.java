@@ -147,8 +147,8 @@ public class PolynomialNetwork extends DAGNetwork {
    */
   public void addTerm(final double power) {
     corrections.add(new Correcton(power,
-      newBias(outputDims, 1.0),
-      newSynapse(0.0)
+                                  newBias(outputDims, 1.0),
+                                  newSynapse(0.0)
     ));
   }
   

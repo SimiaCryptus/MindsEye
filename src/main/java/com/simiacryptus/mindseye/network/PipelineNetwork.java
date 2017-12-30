@@ -28,9 +28,8 @@ import java.util.Arrays;
 import java.util.UUID;
 
 /**
- * A simple network architecture based on the assumption of a linear sequence of components.
- * Each component added becomes the new head node, and a default add method
- * appends a new node on the existing head.
+ * A simple network architecture based on the assumption of a linear sequence of components. Each component added
+ * becomes the new head node, and a default add method appends a new node on the existing head.
  */
 @SuppressWarnings("serial")
 public class PipelineNetwork extends DAGNetwork {

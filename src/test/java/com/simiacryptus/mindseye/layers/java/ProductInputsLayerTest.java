@@ -54,7 +54,7 @@ public abstract class ProductInputsLayerTest extends LayerTestBase {
    * Multiply three multivariate inputs
    */
   public static class NNNTest extends ProductInputsLayerTest {
-
+  
     @Override
     public int[][] getInputDims() {
       return new int[][]{
@@ -67,7 +67,7 @@ public abstract class ProductInputsLayerTest extends LayerTestBase {
    * Multiply two multivariate inputs
    */
   public static class NNTest extends ProductInputsLayerTest {
-
+  
     @Override
     public int[][] getInputDims() {
       return new int[][]{

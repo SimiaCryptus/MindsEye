@@ -23,9 +23,13 @@ import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnDataType;
 
+import java.nio.ByteBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
+
 /**
- * This enum defines the levels or precision supported by (our support of) the CuDNN library.
- * It also provides related methods involving precision-dependant code.
+ * This enum defines the levels or precision supported by (our support of) the CuDNN library. It also provides related
+ * methods involving precision-dependant code.
  */
 public enum Precision {
   /**
@@ -77,6 +81,88 @@ public enum Precision {
       floats[i] = (float) data[i];
     }
     return floats;
+  }
+  
+  /**
+   * Copy.
+   *
+   * @param from      the from
+   * @param to        the to
+   * @param precision the precision
+   */
+  public static void copy(double[] from, byte[] to, Precision precision) {
+    if (precision == Float) copyFloats(from, to);
+    else if (precision == Double) copyDoubles(from, to);
+    else throw new RuntimeException();
+  }
+  
+  /**
+   * Copy.
+   *
+   * @param from      the from
+   * @param to        the to
+   * @param precision the precision
+   */
+  public static void copy(byte[] from, double[] to, Precision precision) {
+    if (precision == Float) copyFloats(from, to);
+    else if (precision == Double) copyDoubles(from, to);
+    else throw new RuntimeException();
+  }
+  
+  /**
+   * Copy doubles.
+   *
+   * @param from the from
+   * @param to   the to
+   */
+  public static void copyDoubles(double[] from, byte[] to) {
+    DoubleBuffer inBuffer = DoubleBuffer.wrap(from);
+    DoubleBuffer outBuffer = ByteBuffer.wrap(to).asDoubleBuffer();
+    while (inBuffer.hasRemaining()) {
+      outBuffer.put(inBuffer.get());
+    }
+  }
+  
+  /**
+   * Copy doubles.
+   *
+   * @param from the from
+   * @param to   the to
+   */
+  public static void copyDoubles(byte[] from, double[] to) {
+    DoubleBuffer inBuffer = ByteBuffer.wrap(from).asDoubleBuffer();
+    DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
+    while (inBuffer.hasRemaining()) {
+      outBuffer.put(inBuffer.get());
+    }
+  }
+  
+  /**
+   * Copy floats.
+   *
+   * @param from the from
+   * @param to   the to
+   */
+  public static void copyFloats(double[] from, byte[] to) {
+    DoubleBuffer inBuffer = DoubleBuffer.wrap(from);
+    FloatBuffer outBuffer = ByteBuffer.wrap(to).asFloatBuffer();
+    while (inBuffer.hasRemaining()) {
+      outBuffer.put((float) inBuffer.get());
+    }
+  }
+  
+  /**
+   * Copy floats.
+   *
+   * @param from the from
+   * @param to   the to
+   */
+  public static void copyFloats(byte[] from, double[] to) {
+    FloatBuffer inBuffer = ByteBuffer.wrap(from).asFloatBuffer();
+    DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
+    while (inBuffer.hasRemaining()) {
+      outBuffer.put(inBuffer.get());
+    }
   }
   
   /**

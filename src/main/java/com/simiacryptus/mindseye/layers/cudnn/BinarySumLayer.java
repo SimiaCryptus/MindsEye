@@ -27,8 +27,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Computes a weighted binary sum of two layers. Provides two weighting coefficients, one for each input.
- * This can be used to implement a summation layer, a difference layer, a scaling layer, or any combination.
+ * Computes a weighted binary sum of two layers. Provides two weighting coefficients, one for each input. This can be
+ * used to implement a summation layer, a difference layer, a scaling layer, or any combination.
  */
 @SuppressWarnings("serial")
 public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumLayer> {
@@ -105,9 +105,9 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
     assert lPtr.size == rPtr.size;
     final CudaPtr outputPtr = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), lPtr.size);
     CuDNN.handle(JCudnn.cudnnOpTensor(((CuDNN) nncontext).cudnnHandle, opDescriptor.getPtr(),
-      precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
-      precision.getPointer(rightFactor), sizeDescriptor.getPtr(), rPtr.getPtr(),
-      precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
+                                      precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
+                                      precision.getPointer(rightFactor), sizeDescriptor.getPtr(), rPtr.getPtr(),
+                                      precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
     final TensorList result = new GpuTensorList(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle, precision);
     
     return new NNResult(result) {
@@ -120,8 +120,8 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
           final CudaPtr lPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, delta);
           final CudaPtr outputPtr = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), lPtr.size);
           CuDNN.handle(JCudnn.cudnnAddTensor(((CuDNN) nncontext).cudnnHandle,
-            precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
-            precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
+                                             precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
+                                             precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
           final TensorList data = new GpuTensorList(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle, precision);
           inObj[0].accumulate(buffer, data);
         }
@@ -130,8 +130,8 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
           final CudaPtr lPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, delta);
           final CudaPtr outputPtr = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), lPtr.size);
           CuDNN.handle(JCudnn.cudnnAddTensor(((CuDNN) nncontext).cudnnHandle,
-            precision.getPointer(rightFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
-            precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
+                                             precision.getPointer(rightFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
+                                             precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
           final TensorList data = new GpuTensorList(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle, precision);
           inObj[1].accumulate(buffer, data);
         }

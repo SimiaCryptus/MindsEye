@@ -30,8 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Similar to the pooling layer, but the pool size is always the image size.
- * The output dimensions are always 1x1xN.
+ * Similar to the pooling layer, but the pool size is always the image size. The output dimensions are always 1x1xN.
  */
 @SuppressWarnings("serial")
 public class BandReducerLayer extends NNLayer implements LayerPrecision<BandReducerLayer> {
@@ -73,9 +72,9 @@ public class BandReducerLayer extends NNLayer implements LayerPrecision<BandRedu
     final TensorList batch = input.getData();
     final int[] inputSize = batch.getDimensions();
     return new PoolingLayer().setMode(mode).setPrecision(precision)
-      .setWindowX(inputSize[1])
-      .setWindowY(inputSize[0])
-      .eval(nncontext, inObj);
+                             .setWindowX(inputSize[1])
+                             .setWindowY(inputSize[0])
+                             .eval(nncontext, inObj);
   }
   
   @Override

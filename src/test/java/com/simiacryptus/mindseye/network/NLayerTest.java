@@ -118,7 +118,7 @@ public abstract class NLayerTest {
       log.p("This is a network with the following layout:");
       log.code(() -> {
         return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
-          .height(400).width(600).render(Format.PNG).toImage();
+                       .height(400).width(600).render(Format.PNG).toImage();
       });
     }
   }
@@ -149,7 +149,7 @@ public abstract class NLayerTest {
    */
   @Test
   public void test() throws Throwable {
-    try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
+    try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
       test(log);
     }
   }

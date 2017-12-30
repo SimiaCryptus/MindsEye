@@ -72,9 +72,9 @@ public class SimpleListEval implements Callable<SimpleListEval> {
   @Override
   public SimpleListEval call() {
     derivative = Arrays.stream(input).map(x -> new TensorArray(x.stream()
-      .map(i -> new Tensor(i.getDimensions()))
-      .toArray(i -> new Tensor[i]))
-    ).toArray(i -> new TensorList[i]);
+                                                                .map(i -> new Tensor(i.getDimensions()))
+                                                                .toArray(i -> new Tensor[i]))
+                                         ).toArray(i -> new TensorList[i]);
     final NNResult[] inputR = IntStream.range(0, input.length).mapToObj(i -> {
       return new NNResult(input[i]) {
         @Override

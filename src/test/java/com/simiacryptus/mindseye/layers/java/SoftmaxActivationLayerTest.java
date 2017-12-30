@@ -42,5 +42,5 @@ public abstract class SoftmaxActivationLayerTest extends LayerTestBase {
    */
   public static class Basic extends SoftmaxActivationLayerTest {
   }
-
+  
 }

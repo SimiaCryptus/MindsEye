@@ -120,7 +120,7 @@ public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
     public Image_Float() {
       super(3, 3, Precision.Float);
     }
-
+  
     @Override
     public SingleDerivativeTester getDerivativeTester() {
       return new SingleDerivativeTester(1e-2, 1e-3);

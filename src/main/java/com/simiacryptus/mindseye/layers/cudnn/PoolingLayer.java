@@ -27,9 +27,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * The standard image-pixel pooling layer.
- * Using a configurable stride and window size,
- * reduces pixels using either the Max or Avg operation.
+ * The standard image-pixel pooling layer. Using a configurable stride and window size, reduces pixels using either the
+ * Max or Avg operation.
  */
 @SuppressWarnings("serial")
 public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer> {
@@ -106,10 +105,10 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
       final CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), precision.size * 1l * Tensor.dim(outputSize));
       final cudnnHandle cudnnHandle = ((CuDNN) nncontext).cudnnHandle;
       CuDNN.handle(CuDNN.cudnnPoolingForward(cudnnHandle, poolingDesc.getPtr(),
-        alpha.getPtr(),
-        inputDescriptor.getPtr(), inputData.getPtr(),
-        beta.getPtr(),
-        outputDescriptor.getPtr(), outputData.getPtr()));
+                                             alpha.getPtr(),
+                                             inputDescriptor.getPtr(), inputData.getPtr(),
+                                             beta.getPtr(),
+                                             outputDescriptor.getPtr(), outputData.getPtr()));
       final TensorList output = new GpuTensorList(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, cudnnHandle, precision);
       return new NNResult(output) {
         @Override
@@ -121,12 +120,12 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
           if (input.isAlive()) {
             final CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * precision.size * length);
             CuDNN.handle(CuDNN.cudnnPoolingBackward(cudnnHandle, poolingDesc.getPtr(),
-              alpha.getPtr(),
-              outputDescriptor.getPtr(), outputData.getPtr(),
-              outputDescriptor.getPtr(), errorPtr.getPtr(),
-              inputDescriptor.getPtr(), inputData.getPtr(),
-              beta.getPtr(),
-              inputDescriptor.getPtr(), passbackBuffer.getPtr()));
+                                                    alpha.getPtr(),
+                                                    outputDescriptor.getPtr(), outputData.getPtr(),
+                                                    outputDescriptor.getPtr(), errorPtr.getPtr(),
+                                                    inputDescriptor.getPtr(), inputData.getPtr(),
+                                                    beta.getPtr(),
+                                                    inputDescriptor.getPtr(), passbackBuffer.getPtr()));
             input.accumulate(buffer, new GpuTensorList(passbackBuffer, length, inputSize, cudnnHandle, precision));
           }
         }

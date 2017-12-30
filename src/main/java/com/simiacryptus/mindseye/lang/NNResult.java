@@ -23,8 +23,8 @@ import java.util.Arrays;
 import java.util.stream.IntStream;
 
 /**
- * This type holds the result from a NNLayer evaluation.
- * It holds the result and a callback mechanism to evaluate the derivatives.
+ * This type holds the result from a NNLayer evaluation. It holds the result and a callback mechanism to evaluate the
+ * derivatives.
  */
 public abstract class NNResult {
   
@@ -58,11 +58,11 @@ public abstract class NNResult {
    * @param batchData the batch data
    * @return the nn result [ ]
    */
-  public static NNResult[] batchResultArray(final Tensor[][] batchData) {
+  public static NNResult[] batchResultArray(final Tensor[]... batchData) {
     return IntStream.range(0, batchData[0].length).mapToObj(inputIndex ->
-      new NNConstant(new TensorArray(IntStream.range(0, batchData.length).mapToObj(trainingExampleId ->
-        batchData[trainingExampleId][inputIndex]
-      ).toArray(i -> new Tensor[i])))).toArray(x -> new NNResult[x]);
+                                                              new NNConstant(new TensorArray(IntStream.range(0, batchData.length).mapToObj(trainingExampleId ->
+                                                                                                                                             batchData[trainingExampleId][inputIndex]
+                                                                                                                                          ).toArray(i -> new Tensor[i])))).toArray(x -> new NNResult[x]);
   }
   
   /**

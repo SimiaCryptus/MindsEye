@@ -25,10 +25,9 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
- * This is a collection of Deltas being staged for particular layers.
- * Provides indexing capabilities to reference the deltas based on physical references (to double[] objects)
- * and based on logical referants (i.e. layers)
- * Provides collection-arithmetic operations appropriate to the Delta's vector geometric archtype.
+ * This is a collection of Deltas being staged for particular layers. Provides indexing capabilities to reference the
+ * deltas based on physical references (to double[] objects) and based on logical referants (i.e. layers) Provides
+ * collection-arithmetic operations appropriate to the Delta's vector geometric archtype.
  *
  * @param <K> the type parameter
  */

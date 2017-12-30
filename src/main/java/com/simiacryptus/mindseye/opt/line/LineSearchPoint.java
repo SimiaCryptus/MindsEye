@@ -22,9 +22,8 @@ package com.simiacryptus.mindseye.opt.line;
 import com.simiacryptus.mindseye.lang.PointSample;
 
 /**
- * A particular point in a NNLayer line search phase.
- * Contains both the high-dimensional position and derivative,
- * and the simplified one-dimensional positiion and derivative.
+ * A particular point in a NNLayer line search phase. Contains both the high-dimensional position and derivative, and
+ * the simplified one-dimensional positiion and derivative.
  */
 public class LineSearchPoint {
   /**

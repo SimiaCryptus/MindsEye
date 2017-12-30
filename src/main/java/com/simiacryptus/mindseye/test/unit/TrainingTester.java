@@ -108,11 +108,11 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
    */
   public static Tensor[][] append(Tensor[][] left, Tensor[] right) {
     return IntStream.range(0, left.length).mapToObj(i ->
-      Stream.concat(
-        Arrays.stream(left[i]),
-        Stream.of(right[i])
-      ).toArray(j -> new Tensor[j])
-    ).toArray(j -> new Tensor[j][]);
+                                                      Stream.concat(
+                                                        Arrays.stream(left[i]),
+                                                        Stream.of(right[i])
+                                                                   ).toArray(j -> new Tensor[j])
+                                                   ).toArray(j -> new Tensor[j][]);
   }
   
   /**
@@ -123,8 +123,8 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
    */
   public static Tensor[][] copy(Tensor[][] input_gd) {
     return Arrays.stream(input_gd)
-      .map(t -> Arrays.stream(t).map(v -> v.copy()).toArray(i -> new Tensor[i]))
-      .toArray(i -> new Tensor[i][]);
+                 .map(t -> Arrays.stream(t).map(v -> v.copy()).toArray(i -> new Tensor[i]))
+                 .toArray(i -> new Tensor[i][]);
   }
   
   /**
@@ -135,8 +135,8 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
    */
   public static Tensor[][] pop(Tensor[][] data) {
     return Arrays.stream(data)
-      .map(t -> Arrays.stream(t).limit(t.length - 1).toArray(i -> new Tensor[i]))
-      .toArray(i -> new Tensor[i][]);
+                 .map(t -> Arrays.stream(t).limit(t.length - 1).toArray(i -> new Tensor[i]))
+                 .toArray(i -> new Tensor[i][]);
   }
   
   /**
@@ -359,6 +359,11 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     return result;
   }
   
+  /**
+   * Print header.
+   *
+   * @param log the log
+   */
   protected void printHeader(NotebookOutput log) {
     log.h1("Training Characteristics");
   }
@@ -382,10 +387,10 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     log.p("We simultaneously regress this target input:");
     log.code(() -> {
       return Arrays.stream(input_target)
-        .flatMap(x -> Arrays.stream(x))
-        .map(x -> x.prettyPrint())
-        .reduce((a, b) -> a + "\n" + b)
-        .orElse("");
+                   .flatMap(x -> Arrays.stream(x))
+                   .map(x -> x.prettyPrint())
+                   .reduce((a, b) -> a + "\n" + b)
+                   .orElse("");
     });
     log.p("Which produces the following output:");
     final Tensor[] output_target = GpuController.call(ctx -> {
@@ -396,9 +401,9 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     });
     //if (output_target.length != inputPrototype.length) return null;
     return trainAll("Integrated Convergence", log,
-      append(shuffleCopy(random, inputPrototype), output_target),
-      shuffle(random, component.copy()),
-      buildMask(inputPrototype.length));
+                    append(shuffleCopy(random, inputPrototype), output_target),
+                    shuffle(random, component.copy()),
+                    buildMask(inputPrototype.length));
   }
   
   /**
@@ -416,19 +421,19 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     log.p("In this test, we use a network to learn this target input, given it's pre-evaluated output:");
     log.code(() -> {
       return Arrays.stream(input_target)
-        .flatMap(x -> Arrays.stream(x))
-        .map(x -> x.prettyPrint())
-        .reduce((a, b) -> a + "\n" + b)
-        .orElse("");
+                   .flatMap(x -> Arrays.stream(x))
+                   .map(x -> x.prettyPrint())
+                   .reduce((a, b) -> a + "\n" + b)
+                   .orElse("");
     });
     final Tensor[] output_target = GpuController.call(ctx -> {
       return network.eval(ctx, NNResult.batchResultArray(input_target)).getData();
     }).stream().toArray(i -> new Tensor[i]);
     //if (output_target.length != inputPrototype.length) return null;
     return trainAll("Input Convergence", log,
-      append(shuffleCopy(random, inputPrototype), output_target),
-      network,
-      buildMask(inputPrototype.length));
+                    append(shuffleCopy(random, inputPrototype), output_target),
+                    network,
+                    buildMask(inputPrototype.length));
   }
   
   /**
@@ -452,8 +457,8 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     }).stream().toArray(i -> new Tensor[i]);
     //if (output_target.length != input_target.length) return null;
     return trainAll("Model Convergence", log,
-      append(input_target, output_target),
-      shuffle(random, component.copy()));
+                    append(input_target, output_target),
+                    shuffle(random, component.copy()));
   }
   
   /**
@@ -530,8 +535,8 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     int inputs = data[0].length;
     final PipelineNetwork network = new PipelineNetwork(inputs);
     network.add(new MeanSqLossLayer(),
-      network.add(layer, IntStream.range(0, inputs - 1).mapToObj(i -> network.getInput(i)).toArray(i -> new DAGNode[i])),
-      network.getInput(inputs - 1));
+                network.add(layer, IntStream.range(0, inputs - 1).mapToObj(i -> network.getInput(i)).toArray(i -> new DAGNode[i])),
+                network.getInput(inputs - 1));
     ArrayTrainable trainable = new ArrayTrainable(data, network);
     if (0 < mask.length) trainable.setMask(mask);
     List<StepRecord> history = opt.apply(log, trainable);
@@ -546,11 +551,11 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
         log.p("And regressed input:");
         log.code(() -> {
           return Arrays.stream(data)
-            .flatMap(x -> Arrays.stream(x))
-            .limit(1)
-            .map(x -> x.prettyPrint())
-            .reduce((a, b) -> a + "\n" + b)
-            .orElse("");
+                       .flatMap(x -> Arrays.stream(x))
+                       .limit(1)
+                       .map(x -> x.prettyPrint())
+                       .reduce((a, b) -> a + "\n" + b)
+                       .orElse("");
         });
       }
       log.p("To produce the following output:");
@@ -558,10 +563,10 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
         return GpuController.call(ctx -> {
           return layer.eval(ctx, NNResult.batchResultArray(pop(data))).getData().stream().collect(Collectors.toList());
         }).stream()
-          .limit(1)
-          .map(x -> x.prettyPrint())
-          .reduce((a, b) -> a + "\n" + b)
-          .orElse("");
+                            .limit(1)
+                            .map(x -> x.prettyPrint())
+                            .reduce((a, b) -> a + "\n" + b)
+                            .orElse("");
       });
     }
     else {

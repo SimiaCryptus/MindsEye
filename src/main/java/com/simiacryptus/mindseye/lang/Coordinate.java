@@ -22,8 +22,8 @@ package com.simiacryptus.mindseye.lang;
 import java.util.Arrays;
 
 /**
- * A data structure to represent an index/coordinate/tuple for referencing elements in a Tensor.
- * It contains both the physical (1-d) and logical (N-d) indicies of the element.
+ * A data structure to represent an index/coordinate/tuple for referencing elements in a Tensor. It contains both the
+ * physical (1-d) and logical (N-d) indicies of the element.
  */
 public final class Coordinate {
   private int[] coords;

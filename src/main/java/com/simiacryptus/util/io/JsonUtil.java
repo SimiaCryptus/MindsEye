@@ -92,7 +92,7 @@ public class JsonUtil {
    */
   public static void writeJson(final OutputStream out, final Object obj) throws IOException {
     final ObjectMapper mapper = new ObjectMapper().enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL)
-      .enable(SerializationFeature.INDENT_OUTPUT);
+                                                  .enable(SerializationFeature.INDENT_OUTPUT);
     final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     mapper.writeValue(buffer, obj);
     out.write(buffer.toByteArray());

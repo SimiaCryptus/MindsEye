@@ -159,7 +159,7 @@ public class ImageDecompositionLab {
         new Tensor(1.0),
         Tensor.fromRGB(TestUtil.resize(img, size))
       }).toArray(i -> new Tensor[i][]);
-  
+
     Arrays.stream(trainingImages).map(x -> x[1]).map(x -> x.toImage()).map(x -> {
       try {
         return log.image(x, "example");
@@ -171,34 +171,34 @@ public class ImageDecompositionLab {
     log.h1("First Layer");
     final InitializationStep step0 = log.code(() -> {
       return new InitializationStep(log, trainingImages,
-        size, pretrainMinutes, timeoutMinutes, 3, 9, 5);
+                                    size, pretrainMinutes, timeoutMinutes, 3, 9, 5);
     }).invoke(); // output: 260
     
     log.h1("Second Layer");
     final AddLayerStep step1 = log.code(() -> {
       return new AddLayerStep(log, step0.trainingData, step0.model,
-        2, step0.toSize, pretrainMinutes * 2, timeoutMinutes,
-        step0.band1, 18, 3, 4);
+                              2, step0.toSize, pretrainMinutes * 2, timeoutMinutes,
+                              step0.band1, 18, 3, 4);
     }).invoke(); // output: 274
     
     log.h1("Third Layer");
     final AddLayerStep step2 = log.code(() -> {
       return new AddLayerStep(log, step1.trainingData, step1.integrationModel,
-        3, step1.toSize, pretrainMinutes * 3, timeoutMinutes,
-        step1.band2, 48, 3, 1);
+                              3, step1.toSize, pretrainMinutes * 3, timeoutMinutes,
+                              step1.band2, 48, 3, 1);
     }).invoke(); // 276
     
     log.h1("Fourth Layer");
     final AddLayerStep step3 = log.code(() -> {
       return new AddLayerStep(log, step2.trainingData, step2.integrationModel,
-        4, step2.toSize, pretrainMinutes * 4, timeoutMinutes,
-        step2.band2, 48, 5, 4);
+                              4, step2.toSize, pretrainMinutes * 4, timeoutMinutes,
+                              step2.band2, 48, 5, 4);
     }).invoke(); // 278
     
     log.h1("Transcoding Different Category");
     log.code(() -> {
       return new TranscodeStep(log, "yin_yang",
-        images, size, timeoutMinutes * 5, step3.integrationModel, step3.toSize, step3.toSize, step3.band2);
+                               images, size, timeoutMinutes * 5, step3.integrationModel, step3.toSize, step3.toSize, step3.band2);
     }).invoke();
   }
   
@@ -224,10 +224,10 @@ public class ImageDecompositionLab {
         .setTimeout(timeoutMinutes, TimeUnit.MINUTES)
         .setMaxIterations(1000);
       validatingTrainer.getRegimen().get(0)
-        .setOrientation(new GradientDescent())
-        .setLineSearchFactory(name -> name.equals(QQN.CURSOR_NAME) ?
-          new QuadraticSearch().setCurrentRate(1.0) :
-          new QuadraticSearch().setCurrentRate(1.0));
+                       .setOrientation(new GradientDescent())
+                       .setLineSearchFactory(name -> name.equals(QQN.CURSOR_NAME) ?
+                         new QuadraticSearch().setCurrentRate(1.0) :
+                         new QuadraticSearch().setCurrentRate(1.0));
       validatingTrainer
         .run();
     });
@@ -360,12 +360,12 @@ public class ImageDecompositionLab {
     public PipelineNetwork buildNetwork() {
       return log.code(() -> {
         return new PipelineNetwork(1,
-          new RescaledSubnetLayer(scale,
-            new PipelineNetwork(1,
-              convolutionLayer,
-              biasLayer
-            )
-          ), new ImgCropLayer(fromSize, fromSize)
+                                   new RescaledSubnetLayer(scale,
+                                                           new PipelineNetwork(1,
+                                                                               convolutionLayer,
+                                                                               biasLayer
+                                                           )
+                                   ), new ImgCropLayer(fromSize, fromSize)
         );
       });
     }

@@ -24,8 +24,7 @@ import java.util.DoubleSummaryStatistics;
 import java.util.stream.Collector;
 
 /**
- * From: http://stackoverflow.com/questions/36263352/java-streams-standard-deviation
- * Author: Tunaki
+ * From: http://stackoverflow.com/questions/36263352/java-streams-standard-deviation Author: Tunaki
  */
 public class DoubleStatistics extends DoubleSummaryStatistics {
   
@@ -37,7 +36,7 @@ public class DoubleStatistics extends DoubleSummaryStatistics {
     DoubleStatistics::accept,
     DoubleStatistics::combine,
     d -> d
-  );
+                                                                                              );
   
   /**
    * The Numbers.
@@ -47,7 +46,7 @@ public class DoubleStatistics extends DoubleSummaryStatistics {
     (a, n) -> a.accept(n.doubleValue()),
     DoubleStatistics::combine,
     d -> d
-  );
+                                                                                            );
   
   private double simpleSumOfSquare; // Used to compute right sum for non-finite inputs
   private double sumOfSquare = 0.0d;

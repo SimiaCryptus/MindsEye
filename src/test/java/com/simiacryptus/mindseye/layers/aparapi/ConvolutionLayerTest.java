@@ -58,14 +58,14 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
    * Reducing the number of bands (output less data than input)
    */
   public static class Downsize extends ConvolutionLayerTest {
-
+  
     @Override
     public int[][] getInputDims() {
       return new int[][]{
         {3, 3, 7}
       };
     }
-
+  
     @Override
     public NNLayer getLayer(final int[][] inputSize) {
       return new ConvolutionLayer(3, 3, 7, 3, false).setWeights(this::random);
@@ -77,7 +77,7 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
    * Increasing the number of bands (output more data than input)
    */
   public static class Upsize extends ConvolutionLayerTest {
-
+  
     @Override
     public int[][] getInputDims() {
       return new int[][]{
@@ -89,6 +89,6 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
     public NNLayer getLayer(final int[][] inputSize) {
       return new ConvolutionLayer(3, 3, 2, 3, false).setWeights(this::random);
     }
-
+  
   }
 }

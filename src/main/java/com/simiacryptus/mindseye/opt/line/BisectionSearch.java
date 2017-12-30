@@ -23,9 +23,8 @@ import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**
- * An exact line search method which ignores the quantity of the derivative, using only sign.
- * Signs are sufficient to find and detect bracketing conditions.
- * When the solution is bracketed, the next iteration always tests the midpoint.
+ * An exact line search method which ignores the quantity of the derivative, using only sign. Signs are sufficient to
+ * find and detect bracketing conditions. When the solution is bracketed, the next iteration always tests the midpoint.
  */
 public class BisectionSearch implements LineSearchStrategy {
   

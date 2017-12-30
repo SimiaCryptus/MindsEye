@@ -61,6 +61,7 @@ public class HtmlNotebookOutput implements NotebookOutput {
    * The Excerpt number.
    */
   int excerptNumber = 0;
+  private int maxOutSize = 8 * 1024;
   
   /**
    * Instantiates a new Html notebook output.
@@ -73,12 +74,12 @@ public class HtmlNotebookOutput implements NotebookOutput {
     primaryOut = new PrintStream(out);
     workingDir = parentDirectory;
     out("<html><head><style>\n" +
-      "pre {\n" +
-      "    background-color: lightyellow;\n" +
-      "    margin-left: 20pt;\n" +
-      "    font-family: monospace;\n" +
-      "}\n" +
-      "</style></head><body>");
+          "pre {\n" +
+          "    background-color: lightyellow;\n" +
+          "    margin-left: 20pt;\n" +
+          "    font-family: monospace;\n" +
+          "}\n" +
+          "</style></head><body>");
   }
   
   /**
@@ -124,10 +125,10 @@ public class HtmlNotebookOutput implements NotebookOutput {
       try {
         final URI resolved = URI.create(sourceRoot).resolve(Util.pathTo(CodeUtil.projectRoot, CodeUtil.findFile(callingFrame)));
         out("<p>Code from <a href='%s#L%s'>%s:%s</a> executed in %.2f seconds: <br/>",
-          resolved, callingFrame.getLineNumber(), callingFrame.getFileName(), callingFrame.getLineNumber(), result.obj.seconds());
+            resolved, callingFrame.getLineNumber(), callingFrame.getFileName(), callingFrame.getLineNumber(), result.obj.seconds());
       } catch (final Exception e) {
         out("<p>Code from %s:%s executed in %.2f seconds: <br/>",
-          callingFrame.getFileName(), callingFrame.getLineNumber(), result.obj.seconds());
+            callingFrame.getFileName(), callingFrame.getLineNumber(), result.obj.seconds());
       }
       out("<pre>");
       out(sourceCode);
@@ -202,6 +203,16 @@ public class HtmlNotebookOutput implements NotebookOutput {
   }
   
   @Override
+  public String file(byte[] data, String filename, String caption) {
+    try {
+      IOUtils.write(data, new FileOutputStream(new File(getResourceDir(), filename)));
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
+    return "<a href='etc/" + filename + "'>" + caption + "</a>";
+  }
+  
+  @Override
   public String file(final String data, final String fileName, final String caption) {
     try {
       IOUtils.write(data, new FileOutputStream(new File(getResourceDir(), fileName)), Charset.forName("UTF-8"));
@@ -220,6 +231,12 @@ public class HtmlNotebookOutput implements NotebookOutput {
     final File etc = new File(workingDir, "etc");
     etc.mkdirs();
     return etc;
+  }
+  
+  @Override
+  public NotebookOutput setMaxOutSize(int size) {
+    this.maxOutSize = size;
+    return this;
   }
   
   /**
@@ -325,5 +342,9 @@ public class HtmlNotebookOutput implements NotebookOutput {
     else {
       return string;
     }
+  }
+  
+  public int getMaxOutSize() {
+    return maxOutSize;
   }
 }

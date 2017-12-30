@@ -20,11 +20,9 @@
 package com.simiacryptus.mindseye.layers.java;
 
 /**
- * A parent interface for layers which should be "shuffled" often,
- * generally when the layer has some random noise-determining state.
- * This is needed since even noise-introducing layers must behave well
- * as analytic functions between shuffles to guarantee the optimizer will
- * converge.
+ * A parent interface for layers which should be "shuffled" often, generally when the layer has some random
+ * noise-determining state. This is needed since even noise-introducing layers must behave well as analytic functions
+ * between shuffles to guarantee the optimizer will converge.
  */
 public interface StochasticComponent {
   /**

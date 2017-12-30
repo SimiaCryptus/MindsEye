@@ -32,9 +32,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * This type handles the data selection part of stochastic gradient descent training.
- * Between each epoch, a "reset" method is called to re-sample the training data
- * and pass it to the inner Trainable implementation.
+ * This type handles the data selection part of stochastic gradient descent training. Between each epoch, a "reset"
+ * method is called to re-sample the training data and pass it to the inner Trainable implementation.
  */
 public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> implements SampledTrainable, TrainableDataMask {
   
@@ -136,17 +135,17 @@ public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> impl
     if (0 < getTrainingSize() && getTrainingSize() < this.trainingData.size() - 1) {
       final Random random = new Random(seed);
       trainingData = IntStream.generate(() -> random.nextInt(this.trainingData.size()))
-        .distinct()
-        .mapToObj(i -> this.trainingData.get(i))
-        .filter(x -> x != null && x.get() != null)
-        .limit(getTrainingSize()).map(x -> x.get())
-        .toArray(i -> new Tensor[i][]);
+                              .distinct()
+                              .mapToObj(i -> this.trainingData.get(i))
+                              .filter(x -> x != null && x.get() != null)
+                              .limit(getTrainingSize()).map(x -> x.get())
+                              .toArray(i -> new Tensor[i][]);
     }
     else {
       trainingData = this.trainingData.stream()
-        .filter(x -> x != null && x.get() != null)
-        .limit(getTrainingSize()).map(x -> x.get())
-        .toArray(i -> new Tensor[i][]);
+                                      .filter(x -> x != null && x.get() != null)
+                                      .limit(getTrainingSize()).map(x -> x.get())
+                                      .toArray(i -> new Tensor[i][]);
     }
     getInner().setTrainingData(trainingData);
   }

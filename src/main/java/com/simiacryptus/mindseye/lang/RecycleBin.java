@@ -32,9 +32,9 @@ import java.util.concurrent.*;
 import static com.simiacryptus.mindseye.lang.RecycleBin.PersistanceMode.Soft;
 
 /**
- * This is a recycling mechanism to reuse short-term-lifecycle T objects of regular length.
- * It is a convenience mechanism to optimize tight loops which
- * would otherwise require careful and complex coding to minimize allocations and avoid excessive GC load
+ * This is a recycling mechanism to reuse short-term-lifecycle T objects of regular length. It is a convenience
+ * mechanism to optimize tight loops which would otherwise require careful and complex coding to minimize allocations
+ * and avoid excessive GC load
  *
  * @param <T> the type parameter
  */
@@ -111,6 +111,19 @@ public abstract class RecycleBin<T> {
       }
     }
     return RecycleBin.garbageTruck;
+  }
+  
+  /**
+   * Equals boolean.
+   *
+   * @param a the a
+   * @param b the b
+   * @return the boolean
+   */
+  public static boolean equals(Object a, Object b) {
+    if (a == b) return true;
+    if (a == null || b == null) return false;
+    return a.equals(b);
   }
   
   /**
@@ -241,8 +254,8 @@ public abstract class RecycleBin<T> {
   public void printNetProfiling(final PrintStream out) {
     if (null != out && null != recycle_get && null != recycle_submit) {
       out.println("Recycle Bin (Net) Profiling:\n\t" +
-        StackCounter.toString(recycle_get, recycle_submit, (a, b) -> a.getSum() - b.getSum())
-          .replaceAll("\n", "\n\t"));
+                    StackCounter.toString(recycle_get, recycle_submit, (a, b) -> a.getSum() - b.getSum())
+                                .replaceAll("\n", "\n\t"));
     }
   }
   
@@ -283,12 +296,6 @@ public abstract class RecycleBin<T> {
         throw new OutOfMemoryError("Could not allocate " + length + " bytes", e2);
       }
     }
-  }
-  
-  public static boolean equals(Object a, Object b) {
-    if (a == b) return true;
-    if (a == null || b == null) return false;
-    return a.equals(b);
   }
   
   /**

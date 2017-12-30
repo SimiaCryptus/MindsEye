@@ -30,8 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.util.UUID;
 
 /**
- * Works as a single-input terminal loss function which compares
- * the input with a preset constant target tensor.
+ * Works as a single-input terminal loss function which compares the input with a preset constant target tensor.
  */
 @SuppressWarnings("serial")
 public class TargetValueLayer extends DAGNetwork {

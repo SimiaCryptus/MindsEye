@@ -155,16 +155,16 @@ public class ClassifyProblem implements Problem {
     log.h3("Network Diagram");
     log.code(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(network))
-        .height(400).width(600).render(Format.PNG).toImage();
+                     .height(400).width(600).render(Format.PNG).toImage();
     });
-  
+
     log.h3("Training");
     final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
     TestUtil.instrumentPerformance(log, supervisedNetwork);
     int initialSampleSize = Math.max(trainingData.length / 5, Math.min(10, trainingData.length / 2));
     final ValidatingTrainer trainer = optimizer.train(log,
-      new SampledArrayTrainable(trainingData, supervisedNetwork, initialSampleSize, getBatchSize()),
-      new ArrayTrainable(trainingData, supervisedNetwork, getBatchSize()), monitor);
+                                                      new SampledArrayTrainable(trainingData, supervisedNetwork, initialSampleSize, getBatchSize()),
+                                                      new ArrayTrainable(trainingData, supervisedNetwork, getBatchSize()), monitor);
     log.code(() -> {
       trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(10000).run();
     });
@@ -179,13 +179,13 @@ public class ClassifyProblem implements Problem {
     TestUtil.extractPerformance(log, supervisedNetwork);
     final String modelName = "classification_model" + ClassifyProblem.modelNo++ + ".json";
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
-  
+
     log.h3("Validation");
     log.p("If we run our model against the entire validation dataset, we get this accuracy:");
     log.code(() -> {
       return data.validationData().mapToDouble(labeledObject ->
-        predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
-        .average().getAsDouble() * 100;
+                                                 predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
+                 .average().getAsDouble() * 100;
     });
   
     log.p("Let's examine some incorrectly predicted results in more detail:");
@@ -196,7 +196,7 @@ public class ClassifyProblem implements Problem {
           TensorArray batchIn = new TensorArray(batch.stream().map(x -> x.data).toArray(i -> new Tensor[i]));
           TensorList batchOut = GpuController.call(ctx -> network.eval(ctx, new NNConstant(batchIn))).getData();
           return IntStream.range(0, batchOut.length())
-            .mapToObj(i -> toRow(log, batch.get(i), batchOut.get(i).getData()));
+                          .mapToObj(i -> toRow(log, batch.get(i), batchOut.get(i).getData()));
         }).filter(x -> null != x).limit(10).forEach(table::putRow);
         return table;
       } catch (final IOException e) {
@@ -222,8 +222,8 @@ public class ClassifyProblem implements Problem {
       final LinkedHashMap<String, Object> row = new LinkedHashMap<>();
       row.put("Image", log.image(labeledObject.data.toImage(), labeledObject.label));
       row.put("Prediction", Arrays.stream(predictionList).limit(3)
-        .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
-        .reduce((a, b) -> a + ", " + b).get());
+                                  .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
+                                  .reduce((a, b) -> a + ", " + b).get());
       return row;
     } catch (final IOException e) {
       throw new RuntimeException(e);

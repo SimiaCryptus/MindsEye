@@ -75,8 +75,8 @@ public class SumMetaLayer extends NNLayer {
     if (null == lastResult || minBatches < itemCnt) {
       final ToDoubleFunction<Coordinate> f = (c) ->
         IntStream.range(0, itemCnt)
-          .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
-          .sum();
+                 .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
+                 .sum();
       lastResult = input.getData().get(0).mapCoords(f);
     }
     return new NNResult(lastResult) {

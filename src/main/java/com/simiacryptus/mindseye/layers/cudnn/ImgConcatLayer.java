@@ -27,9 +27,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Concatenates two or more inputs, assuming they have the same width and height,
- * to produce an image with both inputs' color bands.
- * (e.g. Used in Inception modules in GoogLeNet.)
+ * Concatenates two or more inputs, assuming they have the same width and height, to produce an image with both inputs'
+ * color bands. (e.g. Used in Inception modules in GoogLeNet.)
  */
 @SuppressWarnings("serial")
 public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatLayer> {
@@ -91,9 +90,9 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
         dimOut[2] * dimOut[1] * dimOut[0], dimOut[1] * dimOut[0], dimOut[0], 1);
       final CudaPtr cudaPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, data);
       CuDNN.cudnnTransformTensor(((CuDNN) nncontext).cudnnHandle,
-        precision.getPointer(1.0), inputDescriptor.getPtr(), cudaPtr.getPtr(),
-        precision.getPointer(0.0), viewDescriptor.getPtr(), outputBuffer.getPtr().withByteOffset(dimensions[1] * dimensions[0] * bandOffset * precision.size)
-      );
+                                 precision.getPointer(1.0), inputDescriptor.getPtr(), cudaPtr.getPtr(),
+                                 precision.getPointer(0.0), viewDescriptor.getPtr(), outputBuffer.getPtr().withByteOffset(dimensions[1] * dimensions[0] * bandOffset * precision.size)
+                                );
       bandOffset += bands;
     }
     final TensorList outputData = new GpuTensorList(outputBuffer, length, dimOut, ((CuDNN) nncontext).cudnnHandle, precision);
@@ -124,9 +123,9 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
               precision.code, length, bands, dimensions[1], dimensions[0],
               dimOut[2] * dimOut[1] * dimOut[0], dimOut[1] * dimOut[0], dimOut[0], 1);
             CuDNN.cudnnTransformTensor(((CuDNN) nncontext).cudnnHandle,
-              precision.getPointer(1.0), viewDescriptor.getPtr(), errorPtr.getPtr().withByteOffset(dimensions[1] * dimensions[0] * _bandOffset * precision.size),
-              precision.getPointer(0.0), inputDescriptor.getPtr(), passbackBuffer.getPtr()
-            );
+                                       precision.getPointer(1.0), viewDescriptor.getPtr(), errorPtr.getPtr().withByteOffset(dimensions[1] * dimensions[0] * _bandOffset * precision.size),
+                                       precision.getPointer(0.0), inputDescriptor.getPtr(), passbackBuffer.getPtr()
+                                      );
             final TensorList passbackTensorList = new GpuTensorList(passbackBuffer, length, dimensions, ((CuDNN) nncontext).cudnnHandle, precision);
             //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
             input.accumulate(buffer, passbackTensorList);

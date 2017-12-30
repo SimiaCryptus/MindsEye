@@ -51,5 +51,5 @@ public abstract class ScaleMetaLayerTest extends LayerTestBase {
    */
   public static class Basic extends ScaleMetaLayerTest {
   }
-
+  
 }

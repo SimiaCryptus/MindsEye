@@ -47,5 +47,5 @@ public abstract class L1NormalizationLayerTest extends LayerTestBase {
    */
   public static class Basic extends L1NormalizationLayerTest {
   }
-
+  
 }

@@ -22,13 +22,10 @@ package com.simiacryptus.mindseye.opt.region;
 import com.simiacryptus.util.ArrayUtil;
 
 /**
- * This trust region restricts a weight vector so that it cannot
- * increase in L2 magnitude beyond a certian amount each iteration.
- * This effectively generates a spherical trust region centered on
- * the origin with the current position X distance into the sphere
- * interior. A growth factor must be allowed for to provide
- * convergence behavior so that the search algorithm can reach
- * all possible weightings.
+ * This trust region restricts a weight vector so that it cannot increase in L2 magnitude beyond a certian amount each
+ * iteration. This effectively generates a spherical trust region centered on the origin with the current position X
+ * distance into the sphere interior. A growth factor must be allowed for to provide convergence behavior so that the
+ * search algorithm can reach all possible weightings.
  */
 public class GrowthSphere implements TrustRegion {
   private boolean allowShrink = true;

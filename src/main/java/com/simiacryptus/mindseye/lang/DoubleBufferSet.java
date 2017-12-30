@@ -29,9 +29,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A collection of DoubleBuffer objects being staged for particular layers.
- * Provides indexing capabilities to reference the deltas based on physical references (to double[] objects)
- * and based on logical referants (i.e. layers)
+ * A collection of DoubleBuffer objects being staged for particular layers. Provides indexing capabilities to reference
+ * the deltas based on physical references (to double[] objects) and based on logical referants (i.e. layers)
  *
  * @param <K> the type parameter
  * @param <T> the type parameter

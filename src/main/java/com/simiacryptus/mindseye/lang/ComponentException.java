@@ -20,8 +20,7 @@
 package com.simiacryptus.mindseye.lang;
 
 /**
- * An exception occured within a NNLayer component.
- * This is most often due to invalid input or configuration.
+ * An exception occured within a NNLayer component. This is most often due to invalid input or configuration.
  */
 @SuppressWarnings("serial")
 public class ComponentException extends RuntimeException {

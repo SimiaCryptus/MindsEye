@@ -37,7 +37,7 @@ public class ConvPipelineTest extends PipelineTest {
   public ConvPipelineTest() {
     super(
       buildList_1()
-    );
+         );
   }
   
   /**

@@ -75,8 +75,8 @@ public abstract class OptimizerComparison {
   @Test
   @Category(TestCategories.Report.class)
   public void classification() throws IOException {
-    try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-  
+    try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
+
       compare(log, opt -> {
         return new ClassifyProblem(fwdFactory, opt, data, 10)
           .setTimeoutMinutes(timeoutMinutes).run(log).getHistory();
@@ -101,8 +101,8 @@ public abstract class OptimizerComparison {
   @Ignore
   @Category(TestCategories.Report.class)
   public void encoding() throws IOException {
-    try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-  
+    try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
+
       compare(log, opt -> {
         return new EncodingProblem(revFactory, opt, data, 10)
           .setTimeoutMinutes(timeoutMinutes).setTrainingSize(5000).run(log).getHistory();

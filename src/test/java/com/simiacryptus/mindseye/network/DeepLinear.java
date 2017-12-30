@@ -79,7 +79,7 @@ public abstract class DeepLinear extends NLayerTest {
         new int[]{3, 3, 1},
         new int[]{2, 2, 1},
         new int[]{2, 2, 1}
-      );
+           );
     }
     
   }
@@ -97,9 +97,9 @@ public abstract class DeepLinear extends NLayerTest {
         new int[]{10},
         new int[]{10},
         new int[]{10}
-      );
+           );
     }
-  
+
     @Override
     public NNLayer getActivation() {
       return new SigmoidActivationLayer();
@@ -120,7 +120,7 @@ public abstract class DeepLinear extends NLayerTest {
         new int[]{10},
         new int[]{10},
         new int[]{10}
-      );
+           );
     }
   
   }

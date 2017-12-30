@@ -106,7 +106,7 @@ public class MaxSubsampleLayer extends NNLayer {
    */
   public static MaxSubsampleLayer fromJson(final JsonObject json) {
     return new MaxSubsampleLayer(json,
-      JsonUtil.getIntArray(json.getAsJsonArray("inner")));
+                                 JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
   
   @Override

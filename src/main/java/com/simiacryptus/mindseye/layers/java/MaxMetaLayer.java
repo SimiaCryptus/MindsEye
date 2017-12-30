@@ -73,7 +73,7 @@ public class MaxMetaLayer extends NNLayer {
     for (int i = 0; i < vectorSize; i++) {
       final int itemNumber = i;
       indicies[i] = IntStream.range(0, itemCnt)
-        .mapToObj(x -> x).max(Comparator.comparing(dataIndex -> input.getData().get(dataIndex).getData()[itemNumber])).get();
+                             .mapToObj(x -> x).max(Comparator.comparing(dataIndex -> input.getData().get(dataIndex).getData()[itemNumber])).get();
     }
     return new NNResult(input.getData().get(0).mapIndex((v, c) -> {
       return input.getData().get(indicies[c]).getData()[c];

@@ -27,9 +27,8 @@ import org.slf4j.LoggerFactory;
 import java.util.stream.IntStream;
 
 /**
- * This wrapper adds a highly verbose amount of logging to System.out
- * detailing all inputs and outputs during forward and backwards evaluation.
- * Intended as a diagnostic and demonstration tool.
+ * This wrapper adds a highly verbose amount of logging to System.out detailing all inputs and outputs during forward
+ * and backwards evaluation. Intended as a diagnostic and demonstration tool.
  */
 @SuppressWarnings("serial")
 public final class LoggingWrapperLayer extends WrapperLayer {
@@ -75,7 +74,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
           final String formatted = data.stream().map(x -> x.prettyPrint())
-            .reduce((a, b) -> a + "\n" + b).get();
+                                       .reduce((a, b) -> a + "\n" + b).get();
           logger.info(String.format("Feedback Output %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
           result.accumulate(buffer, data);
         }
@@ -96,7 +95,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
     {
       final TensorList tensorList = output.getData();
       final String formatted = tensorList.stream().map(x -> x.prettyPrint())
-        .reduce((a, b) -> a + "\n" + b).get();
+                                         .reduce((a, b) -> a + "\n" + b).get();
       logger.info(String.format("Output for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
     }
     
@@ -104,7 +103,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         final String formatted = data.stream().map(x -> x.prettyPrint())
-          .reduce((a, b) -> a + "\n" + b).get();
+                                     .reduce((a, b) -> a + "\n" + b).get();
         logger.info(String.format("Feedback Input for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
         output.accumulate(buffer, data);
       }

@@ -22,8 +22,8 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 
 /**
- * This activation layer uses the unit gaussian curve.
- * The maximal response, at x=0, is y=1. At +/- infinity, the value is zero.
+ * This activation layer uses the unit gaussian curve. The maximal response, at x=0, is y=1. At +/- infinity, the value
+ * is zero.
  */
 @SuppressWarnings("serial")
 public final class GaussianActivationLayer extends SimpleActivationLayer<GaussianActivationLayer> {

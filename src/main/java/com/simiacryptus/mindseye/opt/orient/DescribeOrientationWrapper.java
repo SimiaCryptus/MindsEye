@@ -84,23 +84,23 @@ public class DescribeOrientationWrapper implements OrientationStrategy<LineSearc
    */
   public static String render(final StateSet<NNLayer> weights, final DeltaSet<NNLayer> direction) {
     final Map<String, String> data = weights.stream()
-      .collect(Collectors.groupingBy(x -> DescribeOrientationWrapper.getId(x), Collectors.toList())).entrySet().stream()
-      .collect(Collectors.toMap(x -> x.getKey(), (final Map.Entry<String, List<State<NNLayer>>> list) -> {
-        final List<State<NNLayer>> deltaList = list.getValue();
-        if (1 == deltaList.size()) {
-          final State<NNLayer> weightDelta = deltaList.get(0);
-          return DescribeOrientationWrapper.render(weightDelta, direction.getMap().get(weightDelta.layer));
-        }
-        else {
-          return deltaList.stream().map(weightDelta -> {
-            return DescribeOrientationWrapper.render(weightDelta, direction.getMap().get(weightDelta.layer));
-          }).limit(10)
-            .reduce((a, b) -> a + "\n" + b).orElse("");
-        }
-      }));
+                                            .collect(Collectors.groupingBy(x -> DescribeOrientationWrapper.getId(x), Collectors.toList())).entrySet().stream()
+                                            .collect(Collectors.toMap(x -> x.getKey(), (final Map.Entry<String, List<State<NNLayer>>> list) -> {
+                                              final List<State<NNLayer>> deltaList = list.getValue();
+                                              if (1 == deltaList.size()) {
+                                                final State<NNLayer> weightDelta = deltaList.get(0);
+                                                return DescribeOrientationWrapper.render(weightDelta, direction.getMap().get(weightDelta.layer));
+                                              }
+                                              else {
+                                                return deltaList.stream().map(weightDelta -> {
+                                                  return DescribeOrientationWrapper.render(weightDelta, direction.getMap().get(weightDelta.layer));
+                                                }).limit(10)
+                                                                .reduce((a, b) -> a + "\n" + b).orElse("");
+                                              }
+                                            }));
     return data.entrySet().stream().map(e -> String.format("%s = %s", e.getKey(), e.getValue()))
-      .map(str -> str.replaceAll("\n", "\n\t"))
-      .reduce((a, b) -> a + "\n" + b).orElse("");
+               .map(str -> str.replaceAll("\n", "\n\t"))
+               .reduce((a, b) -> a + "\n" + b).orElse("");
   }
   
   @Override

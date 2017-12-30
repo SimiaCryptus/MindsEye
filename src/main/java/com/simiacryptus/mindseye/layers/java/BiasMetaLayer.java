@@ -68,9 +68,9 @@ public class BiasMetaLayer extends NNLayer {
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
     final Tensor[] tensors = IntStream.range(0, itemCnt)
-      .parallel()
-      .mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).mapIndex((v, c) -> v + inObj[1].getData().get(0).get(c)))
-      .toArray(i -> new Tensor[i]);
+                                      .parallel()
+                                      .mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).mapIndex((v, c) -> v + inObj[1].getData().get(0).get(c)))
+                                      .toArray(i -> new Tensor[i]);
     return new NNResult(tensors) {
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
@@ -83,7 +83,7 @@ public class BiasMetaLayer extends NNLayer {
           };
           final Tensor passback = tensors[0].mapCoords(f);
           inObj[1].accumulate(buffer, new TensorArray(IntStream.range(0, inObj[1].getData().length())
-            .mapToObj(i -> i == 0 ? passback : passback.map(v -> 0)).toArray(i -> new Tensor[i])));
+                                                               .mapToObj(i -> i == 0 ? passback : passback.map(v -> 0)).toArray(i -> new Tensor[i])));
         }
       }
       

@@ -36,8 +36,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * Selects the maximum value in each NxN cell, setting all other values to zero.
- * This introduces sparsity into the signal, but does not reduce resolution.
+ * Selects the maximum value in each NxN cell, setting all other values to zero. This introduces sparsity into the
+ * signal, but does not reduce resolution.
  */
 @SuppressWarnings("serial")
 public class MaxDropoutNoiseLayer extends NNLayer {

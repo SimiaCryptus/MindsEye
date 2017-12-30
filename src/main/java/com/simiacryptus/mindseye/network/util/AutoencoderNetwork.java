@@ -70,7 +70,7 @@ public class AutoencoderNetwork {
     this.networkParameters = networkParameters;
     outerSize = networkParameters.getOuterSize();
     innerSize = networkParameters.getInnerSize();
-  
+
     inputNoise = new GaussianNoiseLayer().setValue(networkParameters.getNoise());
     encoderSynapse = new FullyConnectedLayer(outerSize, innerSize);
     encoderSynapse.initSpacial(networkParameters.getInitRadius(), networkParameters.getInitStiffness(), networkParameters.getInitPeak());
@@ -114,9 +114,9 @@ public class AutoencoderNetwork {
    */
   public TensorList encode(final TensorList data) {
     return encoder.getLayer()
-      .eval(new NNExecutionContext() {
-      }, NNResult.batchResultArray(data.stream().map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
-      .getData();
+                  .eval(new NNExecutionContext() {
+                  }, NNResult.batchResultArray(data.stream().map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
+                  .getData();
   }
   
   /**

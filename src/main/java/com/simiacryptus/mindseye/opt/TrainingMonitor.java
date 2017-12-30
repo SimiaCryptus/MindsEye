@@ -38,8 +38,8 @@ public class TrainingMonitor {
   }
   
   /**
-   * This callback is executed periodically, between each line-search process.
-   * While processing, the training process is blocked.
+   * This callback is executed periodically, between each line-search process. While processing, the training process is
+   * blocked.
    *
    * @param currentPoint the current point
    */

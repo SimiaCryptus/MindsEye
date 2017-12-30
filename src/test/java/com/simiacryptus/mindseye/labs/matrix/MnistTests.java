@@ -57,7 +57,7 @@ public class MnistTests {
       network.add(new ReLuActivationLayer());
       network.add(new BiasLayer(14, 14, 5));
       network.add(new FullyConnectedLayer(new int[]{14, 14, 5}, new int[]{features})
-        .set(() -> 0.001 * (Math.random() - 0.45)));
+                    .set(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new SoftmaxActivationLayer());
       return network;
     });
@@ -71,7 +71,7 @@ public class MnistTests {
       final PipelineNetwork network = new PipelineNetwork();
       network.add(new BiasLayer(28, 28, 1));
       network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{features})
-        .set(() -> 0.001 * (Math.random() - 0.45)));
+                    .set(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new SoftmaxActivationLayer());
       return network;
     });
@@ -84,10 +84,10 @@ public class MnistTests {
     return log.code(() -> {
       final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{28, 28, 5})
-        .set(() -> 0.25 * (Math.random() - 0.5)));
+                    .set(() -> 0.25 * (Math.random() - 0.5)));
       network.add(new ReLuActivationLayer());
       network.add(new ConvolutionLayer(3, 3, 5, 1)
-        .set(i -> 1e-8 * (Math.random() - 0.5)));
+                    .set(i -> 1e-8 * (Math.random() - 0.5)));
       network.add(new BiasLayer(28, 28, 1));
       network.add(new ReLuActivationLayer());
       return network;
@@ -101,7 +101,7 @@ public class MnistTests {
     return log.code(() -> {
       final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{28, 28, 1})
-        .set(() -> 0.25 * (Math.random() - 0.5)));
+                    .set(() -> 0.25 * (Math.random() - 0.5)));
       network.add(new BiasLayer(28, 28, 1));
       return network;
     });
@@ -151,7 +151,7 @@ public class MnistTests {
   }
   
   private abstract static class AllTests {
-  
+
     /**
      * The Data.
      */
@@ -172,7 +172,7 @@ public class MnistTests {
      * The Timeout minutes.
      */
     protected int timeoutMinutes = 10;
-  
+
     /**
      * Instantiates a new All tests.
      *
@@ -185,7 +185,7 @@ public class MnistTests {
       this.optimizationStrategy = optimizationStrategy;
       this.fwdFactory = fwdFactory;
     }
-  
+
     /**
      * Autoencoder test.
      *
@@ -195,8 +195,8 @@ public class MnistTests {
     @Ignore
     @Category(TestCategories.Report.class)
     public void autoencoder_test() throws IOException {
-      try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-  
+      try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
+
         log.h1("MNIST Denoising Autoencoder");
         intro(log);
         new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data, 100, 0.2).setTimeoutMinutes(5 * timeoutMinutes).run(log);
@@ -211,8 +211,8 @@ public class MnistTests {
     @Test
     @Category(TestCategories.Report.class)
     public void classification_test() throws IOException {
-      try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-  
+      try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
+
         log.h1("MNIST Digit Classification");
         intro(log);
         new ClassifyProblem(fwdFactory, optimizationStrategy, data, 10).setTimeoutMinutes(timeoutMinutes).run(log);
@@ -228,8 +228,8 @@ public class MnistTests {
     @Ignore
     @Category(TestCategories.Report.class)
     public void encoding_test() throws IOException {
-      try (NotebookOutput log = MarkdownNotebookOutput.get(this, null)) {
-  
+      try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
+
         log.h1("MNIST Image-to-Vector Encoding");
         intro(log);
         new EncodingProblem(revFactory, optimizationStrategy, data, 20).setTimeoutMinutes(timeoutMinutes).run(log);

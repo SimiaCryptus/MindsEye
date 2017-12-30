@@ -85,8 +85,8 @@ public class GpuTensorList implements TensorList {
       assert cudnnHandle == nativeRight.cudnnHandle;
       final CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
       CuDNN.handle(CuDNN.cudnnAddTensor(cudnnHandle,
-        precision.getPointer(1.0), size.getPtr(), nativeRight.ptr.getPtr(),
-        precision.getPointer(1.0), size.getPtr(), GpuTensorList.this.ptr.getPtr()));
+                                        precision.getPointer(1.0), size.getPtr(), nativeRight.ptr.getPtr(),
+                                        precision.getPointer(1.0), size.getPtr(), GpuTensorList.this.ptr.getPtr()));
       size.finalize();
       nativeRight.ptr.finalize(); // Make this function destructive to both arguments
     }
@@ -105,8 +105,8 @@ public class GpuTensorList implements TensorList {
       assert cudnnHandle == nativeRight.cudnnHandle;
       final CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
       CuDNN.handle(CuDNN.cudnnAddTensor(cudnnHandle,
-        precision.getPointer(1.0), size.getPtr(), nativeRight.ptr.getPtr(),
-        precision.getPointer(1.0), size.getPtr(), GpuTensorList.this.ptr.getPtr()));
+                                        precision.getPointer(1.0), size.getPtr(), nativeRight.ptr.getPtr(),
+                                        precision.getPointer(1.0), size.getPtr(), GpuTensorList.this.ptr.getPtr()));
       size.finalize();
       nativeRight.ptr.finalize(); // Make this function destructive to both arguments
       return this;
@@ -150,8 +150,8 @@ public class GpuTensorList implements TensorList {
           final double[] outputBuffer = RecycleBin.DOUBLES.obtain(itemLength * length);
           assert 0 < outputBuffer.length;
           final Tensor[] output = IntStream.range(0, length)
-            .mapToObj(dataIndex -> new Tensor(dimensions))
-            .toArray(i -> new Tensor[i]);
+                                           .mapToObj(dataIndex -> new Tensor(dimensions))
+                                           .toArray(i -> new Tensor[i]);
           final double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
           assert length == outputBuffers.length;
           ptr.read(precision, outputBuffer);

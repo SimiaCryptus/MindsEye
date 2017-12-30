@@ -27,9 +27,8 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * Reduces or expands image resolution by rearranging the values
- * in NxN tiles to effectively stripe the small-scale spacial dimension
- * across N^2 color bands.
+ * Reduces or expands image resolution by rearranging the values in NxN tiles to effectively stripe the small-scale
+ * spacial dimension across N^2 color bands.
  */
 @SuppressWarnings("serial")
 public class ImgReshapeLayer extends NNLayer {
@@ -159,27 +158,27 @@ public class ImgReshapeLayer extends NNLayer {
     Tensor outputDims;
     if (expand) {
       outputDims = new Tensor(inputDims[0] * kernelSizeX,
-        inputDims[1] * kernelSizeY,
-        inputDims[2] / (kernelSizeX * kernelSizeY));
+                              inputDims[1] * kernelSizeY,
+                              inputDims[2] / (kernelSizeX * kernelSizeY));
     }
     else {
       outputDims = new Tensor(inputDims[0] / kernelSizeX,
-        inputDims[1] / kernelSizeY,
-        inputDims[2] * kernelSizeX * kernelSizeY);
+                              inputDims[1] / kernelSizeY,
+                              inputDims[2] * kernelSizeX * kernelSizeY);
     }
     return new NNResult(IntStream.range(0, batch.length()).parallel()
-      .mapToObj(dataIndex -> expand ? ImgReshapeLayer.copyExpand(batch.get(dataIndex), outputDims.copy()) : ImgReshapeLayer.copyCondense(batch.get(dataIndex), outputDims.copy()))
-      .toArray(i -> new Tensor[i])) {
+                                 .mapToObj(dataIndex -> expand ? ImgReshapeLayer.copyExpand(batch.get(dataIndex), outputDims.copy()) : ImgReshapeLayer.copyCondense(batch.get(dataIndex), outputDims.copy()))
+                                 .toArray(i -> new Tensor[i])) {
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
         //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         if (input.isAlive()) {
           final Tensor[] data1 = IntStream.range(0, error.length()).parallel()
-            .mapToObj(dataIndex -> {
-              final Tensor passback = new Tensor(inputDims);
-              final Tensor err = error.get(dataIndex);
-              return expand ? ImgReshapeLayer.copyCondense(err, passback) : ImgReshapeLayer.copyExpand(err, passback);
-            }).toArray(i -> new Tensor[i]);
+                                          .mapToObj(dataIndex -> {
+                                            final Tensor passback = new Tensor(inputDims);
+                                            final Tensor err = error.get(dataIndex);
+                                            return expand ? ImgReshapeLayer.copyCondense(err, passback) : ImgReshapeLayer.copyExpand(err, passback);
+                                          }).toArray(i -> new Tensor[i]);
           input.accumulate(buffer, new TensorArray(data1));
         }
       }

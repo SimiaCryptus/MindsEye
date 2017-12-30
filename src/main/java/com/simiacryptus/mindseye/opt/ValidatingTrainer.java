@@ -48,10 +48,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * This training class attempts to manage the sample size hyperparameter
- * and convergence criteria via the periodic evaluation of a validation function.
- * It uses an itermediate "epoch" loop where a target learning improvement and overtraining ratio are sought.
- * It also supports multiple stages to each epoch, allowing use cases such as GAN and layerwise training.
+ * This training class attempts to manage the sample size hyperparameter and convergence criteria via the periodic
+ * evaluation of a validation function. It uses an itermediate "epoch" loop where a target learning improvement and
+ * overtraining ratio are sought. It also supports multiple stages to each epoch, allowing use cases such as GAN and
+ * layerwise training.
  */
 public class ValidatingTrainer {
   
@@ -92,12 +92,12 @@ public class ValidatingTrainer {
       @Override
       public PointSample measure(final TrainingMonitor monitor) {
         final TimedResult<PointSample> time = TimedResult.time(() ->
-          validationSubject.measure(monitor)
-        );
+                                                                 validationSubject.measure(monitor)
+                                                              );
         validatingMeasurementTime.addAndGet(time.timeNanos);
         return time.result;
       }
-  
+
       @Override
       public boolean reseed(final long seed) {
         return validationSubject.reseed(seed);
@@ -118,17 +118,18 @@ public class ValidatingTrainer {
     final StateSet<NNLayer> nextWeights = nextPoint.weights;
     final StateSet<NNLayer> prevWeights = previousPoint.weights;
     return String.format("Overall network state change: %s", prevWeights.stream()
-      .collect(Collectors.groupingBy(x -> ValidatingTrainer.getId(x), Collectors.toList())).entrySet().stream()
-      .collect(Collectors.toMap(x -> x.getKey(), list -> {
-        final List<Double> doubleList = list.getValue().stream().map(prevWeight -> {
-          final DoubleBuffer<NNLayer> dirDelta = nextWeights.getMap().get(prevWeight.layer);
-          final double numerator = prevWeight.deltaStatistics().rms();
-          final double denominator = null == dirDelta ? 0 : dirDelta.deltaStatistics().rms();
-          return numerator / (0 == denominator ? 1 : denominator);
-        }).collect(Collectors.toList());
-        if (1 == doubleList.size()) return Double.toString(doubleList.get(0));
-        return new DoubleStatistics().accept(doubleList.stream().mapToDouble(x -> x).toArray()).toString();
-      })));
+                                                                        .collect(Collectors.groupingBy(x -> ValidatingTrainer.getId(x), Collectors.toList())).entrySet().stream()
+                                                                        .collect(Collectors.toMap(x -> x.getKey(), list -> {
+                                                                          final List<Double> doubleList = list.getValue().stream().map(prevWeight -> {
+                                                                            final DoubleBuffer<NNLayer> dirDelta = nextWeights.getMap().get(prevWeight.layer);
+                                                                            final double numerator = prevWeight.deltaStatistics().rms();
+                                                                            final double denominator = null == dirDelta ? 0 : dirDelta.deltaStatistics().rms();
+                                                                            return numerator / (0 == denominator ? 1 : denominator);
+                                                                          }).collect(Collectors.toList());
+                                                                          if (1 == doubleList.size())
+                                                                            return Double.toString(doubleList.get(0));
+                                                                          return new DoubleStatistics().accept(doubleList.stream().mapToDouble(x -> x).toArray()).toString();
+                                                                        })));
   }
   
   /**
@@ -561,10 +562,10 @@ public class ValidatingTrainer {
           lastImprovement = iterationNumber;
         }
         monitor.log(String.format("Epoch %d result with %s iterations, %s/%s samples: {validation *= 2^%.5f; training *= 2^%.3f; Overtraining = %.2f}, {itr*=%.2f, len*=%.2f} %s since improvement; %.4f validation time",
-          ++epochNumber, primaryPhase.iterations, epochParams.trainingSize, getMaxTrainingSize(),
-          Math.log(validationDelta) / Math.log(2), Math.log(trainingDelta) / Math.log(2),
-          overtraining, adj1, adj2, iterationNumber - lastImprovement,
-          validatingMeasurementTime.getAndSet(0) / 1e9));
+                                  ++epochNumber, primaryPhase.iterations, epochParams.trainingSize, getMaxTrainingSize(),
+                                  Math.log(validationDelta) / Math.log(2), Math.log(trainingDelta) / Math.log(2),
+                                  overtraining, adj1, adj2, iterationNumber - lastImprovement,
+                                  validatingMeasurementTime.getAndSet(0) / 1e9));
         if (!primaryPhase.continueTraining) {
           monitor.log(String.format("Training %d runPhase halted", epochNumber));
           break;
@@ -638,16 +639,16 @@ public class ValidatingTrainer {
       final long newGcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
       final long endTime = System.nanoTime();
       final String performance = String.format("%s in %.3f seconds; %.3f in orientation, %.3f in gc, %.3f in line search; %.3f trainAll time",
-        epochParams.trainingSize, (endTime - startTime) / 1e9,
-        epoch.performance[0],
-        (newGcTime - prevGcTime) / 1e3,
-        epoch.performance[1],
-        trainingMeasurementTime.getAndSet(0) / 1e9
-      );
+                                               epochParams.trainingSize, (endTime - startTime) / 1e9,
+                                               epoch.performance[0],
+                                               (newGcTime - prevGcTime) / 1e3,
+                                               epoch.performance[1],
+                                               trainingMeasurementTime.getAndSet(0) / 1e9
+                                              );
       currentPoint = epoch.currentPoint.setRate(0.0);
       if (epoch.previous.getMean() <= epoch.currentPoint.getMean()) {
         monitor.log(String.format("Iteration %s failed, aborting. Error: %s (%s)",
-          currentIteration.get(), epoch.currentPoint.getMean(), performance));
+                                  currentIteration.get(), epoch.currentPoint.getMean(), performance));
         return new EpochResult(false, pointMean, currentPoint, step);
       }
       else {
@@ -958,8 +959,8 @@ public class ValidatingTrainer {
     @Override
     public PointSample measure(final TrainingMonitor monitor) {
       final TimedResult<PointSample> time = TimedResult.time(() ->
-        getInner().measure(monitor)
-      );
+                                                               getInner().measure(monitor)
+                                                            );
       trainingMeasurementTime.addAndGet(time.timeNanos);
       return time.result;
     }

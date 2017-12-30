@@ -35,5 +35,5 @@ public abstract class MaxConstLayerTest extends ActivationLayerTestBase {
    */
   public static class Basic extends MaxConstLayerTest {
   }
-
+  
 }

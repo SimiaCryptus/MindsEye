@@ -35,5 +35,5 @@ public abstract class GaussianNoiseLayerTest extends ActivationLayerTestBase {
    */
   public static class Basic extends GaussianNoiseLayerTest {
   }
-
+  
 }
