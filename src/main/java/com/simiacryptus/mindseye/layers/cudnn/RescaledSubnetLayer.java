@@ -37,7 +37,7 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public class RescaledSubnetLayer extends NNLayer implements LayerPrecision<RescaledSubnetLayer> {
-  private static final Logger logger = LoggerFactory.getLogger(RescaledSubnetLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(RescaledSubnetLayer.class);
   
   private int scale;
   private NNLayer layer;
@@ -85,8 +85,8 @@ public class RescaledSubnetLayer extends NNLayer implements LayerPrecision<Resca
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
-    
-    logger.warn("Not Implemented: " + getClass().getCanonicalName());
+  
+    log.warn("Not Implemented: " + getClass().getCanonicalName());
     return getCompatibilityLayer().eval(nncontext, inObj);
   }
   

@@ -52,7 +52,7 @@ import java.util.stream.IntStream;
  * The type Mnist run base.
  */
 public abstract class MnistTestBase extends NotebookReportBase {
-  private static final Logger logger = LoggerFactory.getLogger(MnistTestBase.class);
+  private static final Logger log = LoggerFactory.getLogger(MnistTestBase.class);
   
   /**
    * The Model no.
@@ -228,7 +228,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
       
       @Override
       public void log(final String msg) {
-        logger.info(msg);
+        log.info(msg);
         super.log(msg);
       }
       

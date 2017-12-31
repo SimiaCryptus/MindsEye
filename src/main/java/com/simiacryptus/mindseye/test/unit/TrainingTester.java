@@ -65,7 +65,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
   /**
    * The Logger.
    */
-  static final Logger logger = LoggerFactory.getLogger(TrainingTester.class);
+  static final Logger log = LoggerFactory.getLogger(TrainingTester.class);
   
   private int batches = 3;
   private RandomizationMode randomizationMode = RandomizationMode.Permute;
@@ -89,7 +89,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
       @Override
       public void log(final String msg) {
         TestUtil.originalOut.println(msg);
-        logger.info(msg);
+        log.info(msg);
       }
   
       @Override

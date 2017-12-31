@@ -42,7 +42,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
   /**
    * The Logger.
    */
-  static final Logger logger = LoggerFactory.getLogger(PerformanceTester.class);
+  static final Logger log = LoggerFactory.getLogger(PerformanceTester.class);
   
   private int batches = 100;
   private int samples = 5;
@@ -143,25 +143,25 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
    * @param inputPrototype the input prototype
    */
   public void test(final NNLayer component, final Tensor[] inputPrototype) {
-    logger.info(String.format("%s batches", batches));
-    logger.info("Input Dimensions:");
+    log.info(String.format("%s batches", batches));
+    log.info("Input Dimensions:");
     final Tensor outputPrototype = SimpleEval.run(component, inputPrototype).getOutput();
     Arrays.stream(inputPrototype).map(t -> "\t" + Arrays.toString(t.getDimensions())).forEach(System.out::println);
-    logger.info("Performance:");
+    log.info("Performance:");
     if (isTestEvaluation()) {
       final DoubleStatistics statistics = IntStream.range(0, samples).mapToObj(i -> {
         return testEvaluationPerformance(component, inputPrototype);
       }).reduce((a, b) -> a.combine(b)).get();
-      logger.info(String.format("\tEvaluation performance: %.6fs +- %.6fs [%.6fs - %.6fs]",
-                                statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
+      log.info(String.format("\tEvaluation performance: %.6fs +- %.6fs [%.6fs - %.6fs]",
+                             statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
     }
     if (isTestLearning()) {
       final DoubleStatistics statistics = IntStream.range(0, samples).mapToObj(i -> {
         return testLearningPerformance(component, outputPrototype, inputPrototype);
       }).reduce((a, b) -> a.combine(b)).orElseGet(() -> null);
       if (null != statistics) {
-        logger.info(String.format("\tLearning performance: %.6fs +- %.6fs [%.6fs - %.6fs]",
-                                  statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
+        log.info(String.format("\tLearning performance: %.6fs +- %.6fs [%.6fs - %.6fs]",
+                               statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
       }
     }
   }

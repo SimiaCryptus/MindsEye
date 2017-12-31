@@ -36,7 +36,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
   /**
    * The Logger.
    */
-  static final Logger logger = LoggerFactory.getLogger(LoggingWrapperLayer.class);
+  static final Logger log = LoggerFactory.getLogger(LoggingWrapperLayer.class);
   
   
   /**
@@ -77,7 +77,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
           final String formatted = data.stream().map(x -> x.prettyPrint())
                                        .reduce((a, b) -> a + "\n" + b).get();
-          logger.info(String.format("Feedback Output %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
+          log.info(String.format("Feedback Output %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
           result.accumulate(buffer, data);
         }
         
@@ -90,7 +90,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
     for (int i = 0; i < inObj.length; i++) {
       final TensorList tensorList = inObj[i].getData();
       final String formatted = tensorList.stream().map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).get();
-      logger.info(String.format("Input %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
+      log.info(String.format("Input %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
     }
     final NNResult output = getInner().eval(nncontext, wrappedInput);
     
@@ -98,7 +98,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
       final TensorList tensorList = output.getData();
       final String formatted = tensorList.stream().map(x -> x.prettyPrint())
                                          .reduce((a, b) -> a + "\n" + b).get();
-      logger.info(String.format("Output for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
+      log.info(String.format("Output for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
     }
     
     return new NNResult(output.getData()) {
@@ -106,7 +106,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         final String formatted = data.stream().map(x -> x.prettyPrint())
                                      .reduce((a, b) -> a + "\n" + b).get();
-        logger.info(String.format("Feedback Input for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
+        log.info(String.format("Feedback Input for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
         output.accumulate(buffer, data);
       }
       

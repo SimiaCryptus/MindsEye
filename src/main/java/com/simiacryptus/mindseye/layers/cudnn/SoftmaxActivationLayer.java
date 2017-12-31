@@ -36,7 +36,7 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public class SoftmaxActivationLayer extends NNLayer implements LayerPrecision<SoftmaxActivationLayer> {
-  private static final Logger logger = LoggerFactory.getLogger(SoftmaxActivationLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(SoftmaxActivationLayer.class);
   
   private Precision precision = Precision.Double;
   
@@ -76,8 +76,8 @@ public class SoftmaxActivationLayer extends NNLayer implements LayerPrecision<So
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
-    
-    logger.warn("Not Implemented: " + getClass().getCanonicalName());
+  
+    log.warn("Not Implemented: " + getClass().getCanonicalName());
     return getCompatibilityLayer().eval(nncontext, inObj);
   }
   

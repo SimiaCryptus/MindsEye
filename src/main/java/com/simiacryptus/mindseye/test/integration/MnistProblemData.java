@@ -35,11 +35,11 @@ public class MnistProblemData implements ImageProblemData {
   /**
    * The Logger.
    */
-  static final Logger logger = LoggerFactory.getLogger(MnistProblemData.class);
+  static final Logger log = LoggerFactory.getLogger(MnistProblemData.class);
   
   @Override
   public Stream<LabeledObject<Tensor>> trainingData() throws IOException {
-    logger.info(String.format("Loaded %d items", MNIST.trainingDataStream().count()));
+    log.info(String.format("Loaded %d items", MNIST.trainingDataStream().count()));
     return MNIST.trainingDataStream();
   }
   

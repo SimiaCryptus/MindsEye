@@ -41,7 +41,7 @@ import java.util.function.ToDoubleFunction;
  */
 @SuppressWarnings("serial")
 public class FullyConnectedLayer extends NNLayer implements LayerPrecision<FullyConnectedLayer> {
-  private static final Logger logger = LoggerFactory.getLogger(FullyConnectedLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(FullyConnectedLayer.class);
   /**
    * The Input dims.
    */
@@ -197,8 +197,8 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
-    
-    logger.warn("Not Implemented: " + getClass().getCanonicalName());
+  
+    log.warn("Not Implemented: " + getClass().getCanonicalName());
     return getCompatibilityLayer().eval(nncontext, inObj);
   }
   

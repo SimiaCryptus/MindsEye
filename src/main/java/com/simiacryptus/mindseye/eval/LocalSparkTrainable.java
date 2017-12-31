@@ -37,7 +37,7 @@ import java.util.stream.Stream;
  * This can be useful for debugging in some situations.
  */
 public class LocalSparkTrainable extends SparkTrainable {
-  private static final Logger logger = LoggerFactory.getLogger(LocalSparkTrainable.class);
+  private static final Logger log = LoggerFactory.getLogger(LocalSparkTrainable.class);
   
   /**
    * Instantiates a new Local spark trainable.
@@ -84,7 +84,7 @@ public class LocalSparkTrainable extends SparkTrainable {
     final long time2 = System.nanoTime();
     final SparkTrainable.ReducableResult result = mapPartitions.stream().reduce(SparkTrainable.ReducableResult::add).get();
     if (isVerbose()) {
-      logger.info(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
+      log.info(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
     }
     final DeltaSet<NNLayer> xxx = getDelta(result);
     return new PointSample(xxx, new StateSet<NNLayer>(xxx), result.sum, 0.0, result.count).normalize();

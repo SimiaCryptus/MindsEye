@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * The type Tensor run.
  */
 public class TensorTest {
-  private static final Logger logger = LoggerFactory.getLogger(TensorTest.class);
+  private static final Logger log = LoggerFactory.getLogger(TensorTest.class);
   
   /**
    * Parse tensor.
@@ -74,7 +74,7 @@ public class TensorTest {
     final List<String> coordinates = new Tensor(2, 2, 2).coordStream()
                                                         .map(c -> String.format("%s - %s", c.getIndex(), Arrays.toString(c.getCoords()))).collect(Collectors.toList());
     for (final String c : coordinates) {
-      logger.info(c);
+      log.info(c);
     }
   }
   

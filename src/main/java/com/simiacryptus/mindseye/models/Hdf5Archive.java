@@ -83,15 +83,15 @@ public class Hdf5Archive {
     }
   }
   
-  private static void print(Hdf5Archive archive, Logger logger) {
-    printTree(archive, "", false, logger);
+  private static void print(Hdf5Archive archive, Logger log) {
+    printTree(archive, "", false, log);
   }
   
-  private static void printTree(Hdf5Archive hdf5, String prefix, boolean printData, Logger logger, String... path) {
+  private static void printTree(Hdf5Archive hdf5, String prefix, boolean printData, Logger log, String... path) {
     for (String datasetName : hdf5.getDataSets(path)) {
       Tensor tensor = hdf5.readDataSet(datasetName, path);
       log.info(String.format("%sDataset %s: %s", prefix, datasetName, Arrays.toString(tensor.getDimensions())));
-      if (printData) logger.info(String.format("%s%s", prefix, tensor.prettyPrint().replaceAll("\n", "\n" + prefix)));
+      if (printData) log.info(String.format("%s%s", prefix, tensor.prettyPrint().replaceAll("\n", "\n" + prefix)));
     }
     hdf5.getAttributes(path).forEach((k, v) -> {
       log.info((String.format("%sAttribute: %s => %s", prefix, k, v)));
@@ -109,7 +109,7 @@ public class Hdf5Archive {
       }
     }).collect(Collectors.toList())) {
       log.info(prefix + t);
-      printTree(hdf5, prefix + "\t", printData, logger, concat(path, t));
+      printTree(hdf5, prefix + "\t", printData, log, concat(path, t));
     }
   }
   
@@ -514,10 +514,10 @@ public class Hdf5Archive {
   /**
    * Print.
    *
-   * @param logger the logger
+   * @param log the log
    */
-  public void print(Logger logger) {
-    print(this, logger);
+  public void print(Logger log) {
+    print(this, log);
   }
   
   /**

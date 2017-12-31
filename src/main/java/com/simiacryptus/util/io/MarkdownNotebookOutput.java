@@ -49,7 +49,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
   /**
    * The Logger.
    */
-  static final Logger logger = LoggerFactory.getLogger(MarkdownNotebookOutput.class);
+  static final Logger log = LoggerFactory.getLogger(MarkdownNotebookOutput.class);
   
   private static int excerptNumber = 0;
   private static int imageNumber = 0;
@@ -423,7 +423,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
     final String msg = format(fmt, args);
     buffer.add(msg);
     primaryOut.println(msg);
-    logger.info(msg);
+    log.info(msg);
   }
   
   /**

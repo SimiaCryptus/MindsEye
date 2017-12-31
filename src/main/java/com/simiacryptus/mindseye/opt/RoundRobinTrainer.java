@@ -45,7 +45,7 @@ import java.util.function.Supplier;
  * Adversarial Networks.
  */
 public class RoundRobinTrainer {
-  private static final Logger logger = LoggerFactory.getLogger(RoundRobinTrainer.class);
+  private static final Logger log = LoggerFactory.getLogger(RoundRobinTrainer.class);
   
   private final Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private final Trainable subject;
@@ -285,7 +285,7 @@ public class RoundRobinTrainer {
             lineSearchStrategy = lineSearchStrategyMap.get(directionType);
           }
           else {
-            logger.info(String.format("Constructing line search parameters: %s", directionType));
+            log.info(String.format("Constructing line search parameters: %s", directionType));
             lineSearchStrategy = lineSearchFactory.apply(directionType);
             lineSearchStrategyMap.put(directionType, lineSearchStrategy);
           }

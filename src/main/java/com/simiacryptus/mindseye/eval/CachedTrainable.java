@@ -34,7 +34,7 @@ import java.util.List;
  * @param <T> the type parameter
  */
 public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
-  private static final Logger logger = LoggerFactory.getLogger(CachedTrainable.class);
+  private static final Logger log = LoggerFactory.getLogger(CachedTrainable.class);
   
   private final List<PointSample> history = new ArrayList<>();
   private int historySize = 3;
@@ -99,8 +99,8 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
     for (final PointSample result : history) {
       if (!result.weights.isDifferent()) {
         if (isVerbose()) {
-          logger.info(String.format("Returning cached value; %s buffers unchanged since %s => %s",
-                                    result.weights.getMap().size(), result.rate, result.getMean()));
+          log.info(String.format("Returning cached value; %s buffers unchanged since %s => %s",
+                                 result.weights.getMap().size(), result.rate, result.getMean()));
         }
         return result.copyFull();
       }

@@ -32,11 +32,11 @@ import java.util.stream.Stream;
  * The type Cifar problem data.
  */
 public class CIFARProblemData implements ImageProblemData {
-  private static final Logger logger = LoggerFactory.getLogger(CIFARProblemData.class);
+  private static final Logger log = LoggerFactory.getLogger(CIFARProblemData.class);
   
   @Override
   public Stream<LabeledObject<Tensor>> trainingData() throws IOException {
-    logger.info(String.format("Loaded %d items", CIFAR10.trainingDataStream().count()));
+    log.info(String.format("Loaded %d items", CIFAR10.trainingDataStream().count()));
     return CIFAR10.trainingDataStream();
   }
   

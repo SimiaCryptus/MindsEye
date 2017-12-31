@@ -42,7 +42,7 @@ public class SparkTrainable implements Trainable {
   /**
    * The Logger.
    */
-  static final Logger logger = LoggerFactory.getLogger(SparkTrainable.class);
+  static final Logger log = LoggerFactory.getLogger(SparkTrainable.class);
   
   /**
    * The Data rdd.
@@ -107,7 +107,7 @@ public class SparkTrainable implements Trainable {
    */
   protected static void debug(final String msg, final Object... args) {
     final String format = String.format(msg, args);
-    logger.info(format);
+    log.info(format);
   }
   
   /**
@@ -219,7 +219,7 @@ public class SparkTrainable implements Trainable {
     final long time2 = System.nanoTime();
     final SparkTrainable.ReducableResult result = mapPartitions.reduce(SparkTrainable.ReducableResult::add);
     if (isVerbose()) {
-      logger.info(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
+      log.info(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
     }
     final DeltaSet<NNLayer> xxx = getDelta(result);
     return new PointSample(xxx, new StateSet<NNLayer>(xxx), result.sum, 0.0, result.count).normalize();
@@ -238,7 +238,7 @@ public class SparkTrainable implements Trainable {
                         .repartition(getPartitions(), null)
                         .persist(getStorageLevel());
     assert !sampledRDD.isEmpty();
-    logger.info(String.format("Sampled %s items from main dataset of %s (%s) items", sampledRDD.count(), count, sampleSize));
+    log.info(String.format("Sampled %s items from main dataset of %s (%s) items", sampledRDD.count(), count, sampleSize));
     return true;
   }
   

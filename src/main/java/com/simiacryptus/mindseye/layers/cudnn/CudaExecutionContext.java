@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  * this package and the GPUTrainable component.
  */
 public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
-  private static final Logger logger = LoggerFactory.getLogger(CudaExecutionContext.class);
+  private static final Logger log = LoggerFactory.getLogger(CudaExecutionContext.class);
   
   /**
    * The constant gpuContexts.
@@ -68,15 +68,15 @@ public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
    */
   static List<CudaExecutionContext> loadGpuContexts() {
     if (Boolean.parseBoolean(System.getProperty("disableCuDnn", "false"))) {
-      logger.warn("Disabled CuDNN");
+      log.warn("Disabled CuDNN");
       return Arrays.asList();
     }
     final int deviceCount = CuDNN.deviceCount();
-    logger.info(String.format("Found %s devices", deviceCount));
+    log.info(String.format("Found %s devices", deviceCount));
     List<Integer> devices = new ArrayList<>();
     for (int device = 0; device < deviceCount; device++) {
       //if(device>0) System.err.println(String.format("IGNORING Device %s - %s", device, getDeviceName(device)));
-      logger.info(String.format("Device %s - %s", device, CuDNN.getDeviceName(device)));
+      log.info(String.format("Device %s - %s", device, CuDNN.getDeviceName(device)));
       devices.add(device);
     }
     if (System.getProperties().containsKey("gpus")) {
@@ -84,7 +84,7 @@ public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
                       .map(Integer::parseInt).collect(Collectors.toList());
       
     }
-    logger.info(String.format("Found %s devices; using devices %s", deviceCount, devices));
+    log.info(String.format("Found %s devices; using devices %s", deviceCount, devices));
     return devices.stream()
                   .map(i -> {
                     try {

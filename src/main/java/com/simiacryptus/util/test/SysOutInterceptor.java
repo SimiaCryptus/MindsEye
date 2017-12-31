@@ -37,7 +37,7 @@ public class SysOutInterceptor extends PrintStream {
    * The constant INSTANCE.
    */
   public static final PrintStream ORIGINAL_OUT = System.out;
-  private static final Logger logger = LoggerFactory.getLogger(SysOutInterceptor.class);
+  private static final Logger log = LoggerFactory.getLogger(SysOutInterceptor.class);
   /**
    * The constant INSTANCE.
    */
@@ -122,7 +122,7 @@ public class SysOutInterceptor extends PrintStream {
    */
   public SysOutInterceptor init() {
     if (!initialized.getAndSet(true)) {
-      ch.qos.logback.classic.Logger root = ((ch.qos.logback.classic.Logger) logger).getLoggerContext().getLogger("ROOT");
+      ch.qos.logback.classic.Logger root = ((ch.qos.logback.classic.Logger) log).getLoggerContext().getLogger("ROOT");
       ch.qos.logback.core.ConsoleAppender stdout = (ch.qos.logback.core.ConsoleAppender) root.getAppender("STDOUT");
       stdout.setOutputStream(this);
       System.setOut(this);

@@ -65,7 +65,7 @@ import java.util.stream.Stream;
  * The type Image encoding util.
  */
 public class EncodingUtil {
-  private static final Logger logger = LoggerFactory.getLogger(EncodingUtil.class);
+  private static final Logger log = LoggerFactory.getLogger(EncodingUtil.class);
   
   /**
    * The constant imageNumber.
@@ -357,7 +357,7 @@ public class EncodingUtil {
       
       @Override
       public void log(final String msg) {
-        logger.info(msg); // Logged MnistProblemData
+        log.info(msg); // Logged MnistProblemData
         EncodingUtil.rawOut.println(msg); // Realtime MnistProblemData
       }
       
@@ -444,7 +444,7 @@ public class EncodingUtil {
     });
     final Tensor[] featureSpaceVectors = featureSpace.getVectors();
     for (final Tensor t : featureSpaceVectors) {
-      logger.info(String.format("Feature Vector %s%n", t.prettyPrint()));
+      log.info(String.format("Feature Vector %s%n", t.prettyPrint()));
     }
     convolutionLayer.kernel.setByCoord(c -> {
       final int kband = c.getCoords()[2];
@@ -459,8 +459,8 @@ public class EncodingUtil {
       final double v = featureSpaceVectors[inband].get(x, y, outband);
       return Double.isFinite(v) ? v : convolutionLayer.kernel.get(c);
     });
-    logger.info(String.format("Bias: %s%n", Arrays.toString(biasLayer.getBias())));
-    logger.info(String.format("Kernel: %s%n", convolutionLayer.kernel.prettyPrint()));
+    log.info(String.format("Bias: %s%n", Arrays.toString(biasLayer.getBias())));
+    log.info(String.format("Kernel: %s%n", convolutionLayer.kernel.prettyPrint()));
   }
   
   /**

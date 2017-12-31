@@ -46,7 +46,7 @@ import java.util.function.Function;
  * The basic type of training loop, which integrates a Trainable object with an Orientation and Line Search strategy
  */
 public class IterativeTrainer {
-  private static final Logger logger = LoggerFactory.getLogger(IterativeTrainer.class);
+  private static final Logger log = LoggerFactory.getLogger(IterativeTrainer.class);
   
   private final Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private final Trainable subject;
@@ -362,7 +362,7 @@ public class IterativeTrainer {
       lineSearchStrategy = lineSearchStrategyMap.get(directionType);
     }
     else {
-      logger.info(String.format("Constructing line search parameters: %s", directionType));
+      log.info(String.format("Constructing line search parameters: %s", directionType));
       lineSearchStrategy = lineSearchFactory.apply(direction.getDirectionType());
       lineSearchStrategyMap.put(directionType, lineSearchStrategy);
     }

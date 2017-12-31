@@ -37,7 +37,7 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public class ImgZeroPaddingLayer extends NNLayer implements LayerPrecision<ImgZeroPaddingLayer> {
-  private static final Logger logger = LoggerFactory.getLogger(ImgZeroPaddingLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(ImgZeroPaddingLayer.class);
   
   private int sizeX;
   private int sizeY;
@@ -84,10 +84,9 @@ public class ImgZeroPaddingLayer extends NNLayer implements LayerPrecision<ImgZe
   
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
-    if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
-    
-    logger.warn("Not Implemented: " + getClass().getCanonicalName());
-    return getCompatibilityLayer().eval(nncontext, inObj);
+    assert inObj.length == 1;
+    int[] dimensions = inObj[0].getData().getDimensions();
+    return new ImgCropLayer(dimensions[0] + 2 * this.sizeX, dimensions[1] + 2 * this.sizeY).eval(nncontext, inObj);
   }
   
   @Override

@@ -42,7 +42,7 @@ import java.util.UUID;
  * The type Html notebook output.
  */
 public class HtmlNotebookOutput implements NotebookOutput {
-  private static final Logger logger = LoggerFactory.getLogger(HtmlNotebookOutput.class);
+  private static final Logger log = LoggerFactory.getLogger(HtmlNotebookOutput.class);
   
   /**
    * The constant DEFAULT_ROOT.
@@ -313,7 +313,7 @@ public class HtmlNotebookOutput implements NotebookOutput {
     final String msg = 0 == args.length ? fmt : String.format(fmt, args);
     primaryOut.println(msg);
     primaryOut.flush();
-    logger.info(msg);
+    log.info(msg);
   }
   
   @Override

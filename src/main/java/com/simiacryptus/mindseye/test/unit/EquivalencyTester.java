@@ -35,7 +35,7 @@ import java.util.stream.IntStream;
  * The type Equivalency tester.
  */
 public class EquivalencyTester implements ComponentTest<ToleranceStatistics> {
-  private static final Logger logger = LoggerFactory.getLogger(EquivalencyTester.class);
+  private static final Logger log = LoggerFactory.getLogger(EquivalencyTester.class);
   
   private final NNLayer reference;
   private final double tolerance;
@@ -71,39 +71,39 @@ public class EquivalencyTester implements ComponentTest<ToleranceStatistics> {
       if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
       result1 = result;
     } catch (final Throwable e) {
-      logger.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b)));
-      logger.info(String.format("Subject Output: %s", subjectOutput.prettyPrint()));
-      logger.info(String.format("Reference Output: %s", referenceOutput.prettyPrint()));
-      logger.info(String.format("Error: %s", error.prettyPrint()));
+      log.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b)));
+      log.info(String.format("Subject Output: %s", subjectOutput.prettyPrint()));
+      log.info(String.format("Reference Output: %s", referenceOutput.prettyPrint()));
+      log.info(String.format("Error: %s", error.prettyPrint()));
       System.out.flush();
       throw e;
     }
     final ToleranceStatistics statistics = result1;
-    logger.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));
-    logger.info(String.format("Error: %s", error.prettyPrint()));
-    logger.info(String.format("Accuracy:"));
-    logger.info(String.format("absoluteTol: %s", statistics.absoluteTol.toString()));
-    logger.info(String.format("relativeTol: %s", statistics.relativeTol.toString()));
+    log.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));
+    log.info(String.format("Error: %s", error.prettyPrint()));
+    log.info(String.format("Accuracy:"));
+    log.info(String.format("absoluteTol: %s", statistics.absoluteTol.toString()));
+    log.info(String.format("relativeTol: %s", statistics.relativeTol.toString()));
     return statistics;
   }
   
   /**
    * Test tolerance statistics.
    *
-   * @param log
+   * @param output
    * @param subject        the subject
    * @param inputPrototype the input prototype
    * @return the tolerance statistics
    */
   @Override
-  public ToleranceStatistics test(final NotebookOutput log, final NNLayer subject, final Tensor... inputPrototype) {
-    log.h1("Reference Implementation");
-    log.p("This layer is an alternate implementation which is expected to behave the same as the following layer:");
-    log.code(() -> {
-      logger.info(new GsonBuilder().setPrettyPrinting().create().toJson(reference.getJson()));
+  public ToleranceStatistics test(final NotebookOutput output, final NNLayer subject, final Tensor... inputPrototype) {
+    output.h1("Reference Implementation");
+    output.p("This layer is an alternate implementation which is expected to behave the same as the following layer:");
+    output.code(() -> {
+      log.info(new GsonBuilder().setPrettyPrinting().create().toJson(reference.getJson()));
     });
-    log.p("We measure the agreement between the two layers in a random execution:");
-    return log.code(() -> {
+    output.p("We measure the agreement between the two layers in a random execution:");
+    return output.code(() -> {
       return test(subject, inputPrototype);
     });
   }
