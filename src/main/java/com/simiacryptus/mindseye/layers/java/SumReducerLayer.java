@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -58,7 +59,7 @@ public class SumReducerLayer extends NNLayer {
    * @param json the json
    * @return the sum reducer layer
    */
-  public static SumReducerLayer fromJson(final JsonObject json) {
+  public static SumReducerLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new SumReducerLayer(json);
   }
   
@@ -104,7 +105,7 @@ public class SumReducerLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

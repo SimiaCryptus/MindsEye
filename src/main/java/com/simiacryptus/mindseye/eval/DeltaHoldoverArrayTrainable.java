@@ -20,17 +20,11 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.NNExecutionContext;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
-import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.function.WeakCachedSupplier;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -199,8 +193,8 @@ public class DeltaHoldoverArrayTrainable extends GpuTrainable {
     }
     
     @Override
-    public JsonObject getJson() {
-      return inner.getJson();
+    public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+      return inner.getJson(resources, dataSerializer);
     }
     
     @Override

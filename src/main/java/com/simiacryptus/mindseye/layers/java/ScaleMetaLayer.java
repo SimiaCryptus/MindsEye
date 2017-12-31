@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -59,7 +60,7 @@ public class ScaleMetaLayer extends NNLayer {
    * @param json the json
    * @return the scale meta layer
    */
-  public static ScaleMetaLayer fromJson(final JsonObject json) {
+  public static ScaleMetaLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new ScaleMetaLayer(json);
   }
   
@@ -91,7 +92,7 @@ public class ScaleMetaLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

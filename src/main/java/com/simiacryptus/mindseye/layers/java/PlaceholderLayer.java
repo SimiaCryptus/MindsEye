@@ -20,11 +20,13 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * An ephemeral, non-serializable, non-evaluatable layer. Used when a layer is required as an identifier, e.g. DeltaSet
@@ -58,7 +60,7 @@ public final class PlaceholderLayer<T> extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     throw new UnsupportedOperationException();
   }
   

@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.network.DAGNetwork;
@@ -27,6 +28,7 @@ import com.simiacryptus.mindseye.network.DAGNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -55,9 +57,10 @@ public class TargetValueLayer extends DAGNetwork {
    * Instantiates a new Target value layer.
    *
    * @param json the json
+   * @param rs
    */
-  protected TargetValueLayer(final JsonObject json) {
-    super(json);
+  protected TargetValueLayer(final JsonObject json, Map<String, byte[]> rs) {
+    super(json, rs);
     head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
     target = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("target").getAsString()));
   }
@@ -66,10 +69,11 @@ public class TargetValueLayer extends DAGNetwork {
    * From json nn layer.
    *
    * @param inner the inner
+   * @param rs
    * @return the nn layer
    */
-  public static NNLayer fromJson(final JsonObject inner) {
-    return new TargetValueLayer(inner);
+  public static NNLayer fromJson(final JsonObject inner, Map<String, byte[]> rs) {
+    return new TargetValueLayer(inner, rs);
   }
   
   @Override
@@ -78,8 +82,8 @@ public class TargetValueLayer extends DAGNetwork {
   }
   
   @Override
-  public JsonObject getJson() {
-    final JsonObject json = super.getJson();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    final JsonObject json = super.getJson(resources, dataSerializer);
     json.addProperty("target", target.getId().toString());
     return json;
   }

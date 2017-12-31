@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -62,7 +63,7 @@ public class Sparse01MetaLayer extends NNLayer {
    * @param json the json
    * @return the sparse 01 meta layer
    */
-  public static Sparse01MetaLayer fromJson(final JsonObject json) {
+  public static Sparse01MetaLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     final Sparse01MetaLayer obj = new Sparse01MetaLayer(json);
     obj.sparsity = json.get("sparsity").getAsInt();
     return obj;
@@ -118,7 +119,7 @@ public class Sparse01MetaLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("sparsity", sparsity);
     return json;

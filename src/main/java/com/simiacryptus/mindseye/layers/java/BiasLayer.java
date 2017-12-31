@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
@@ -79,7 +80,7 @@ public class BiasLayer extends NNLayer {
    * @param json the json
    * @return the bias layer
    */
-  public static BiasLayer fromJson(final JsonObject json) {
+  public static BiasLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new BiasLayer(json);
   }
   
@@ -157,7 +158,7 @@ public class BiasLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.add("bias", JsonUtil.getJson(bias));
     return json;

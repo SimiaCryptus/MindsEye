@@ -23,7 +23,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.simiacryptus.mindseye.layers.cudnn.Precision;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.awt.image.BufferedImage;
@@ -42,7 +41,7 @@ public class Tensor implements Serializable {
   /**
    * The constant json_precision.
    */
-  public static Precision json_precision = Precision.Float;
+  public static DataSerializer json_precision = SerialPrecision.Float;
   /**
    * The Dimensions.
    */
@@ -173,9 +172,10 @@ public class Tensor implements Serializable {
    * From json tensor.
    *
    * @param json the json
+   * @param resources
    * @return the tensor
    */
-  public static Tensor fromJson(final JsonElement json) {
+  public static Tensor fromJson(final JsonElement json, Map<String, byte[]> resources) {
     if (null == json) return null;
     if (json.isJsonArray()) {
       final JsonArray array = json.getAsJsonArray();
@@ -192,7 +192,7 @@ public class Tensor implements Serializable {
         final List<Tensor> elements = IntStream.range(0, size).mapToObj(i -> {
           return array.get(i);
         }).map(element -> {
-          return Tensor.fromJson(element);
+          return Tensor.fromJson(element, resources);
         }).collect(Collectors.toList());
         final int[] dimensions = elements.get(0).getDimensions();
         if (!elements.stream().allMatch(t -> Arrays.equals(dimensions, t.getDimensions()))) {
@@ -213,7 +213,16 @@ public class Tensor implements Serializable {
       JsonObject jsonObject = json.getAsJsonObject();
       int[] dims = fromJsonArray(jsonObject.getAsJsonArray("dim"));
       Tensor tensor = new Tensor(dims);
-      tensor.setBytes(Base64.getDecoder().decode(jsonObject.get("base64").getAsString()));
+      SerialPrecision precision = SerialPrecision.valueOf(jsonObject.getAsJsonPrimitive("precision").getAsString());
+      JsonElement base64 = jsonObject.get("base64");
+      if (null == base64) {
+        if (null == resources) throw new IllegalArgumentException("No Data Resources");
+        String resourceId = jsonObject.getAsJsonPrimitive("resource").getAsString();
+        tensor.setBytes(resources.get(resourceId), precision);
+      }
+      else {
+        tensor.setBytes(Base64.getDecoder().decode(base64.getAsString()), precision);
+      }
       return tensor;
     }
     else {
@@ -1257,27 +1266,30 @@ public class Tensor implements Serializable {
    * To json json element.
    *
    * @return the json element
+   * @param resources
+   * @param dataSerializer
    */
-  public JsonElement toJson() {
+  public JsonElement toJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     if (dim() > 64 * 1024) {
       JsonObject obj = new JsonObject();
       int[] dimensions = getDimensions();
       obj.add("dim", toJsonArray(dimensions));
-      byte[] bytes = getBytes();
-      obj.addProperty("base64", Base64.getEncoder().encodeToString(bytes));
+      byte[] bytes = getBytes(dataSerializer);
+      obj.addProperty("precision", ((SerialPrecision) dataSerializer).name());
+      if (null != resources) {
+        String id = UUID.randomUUID().toString();
+        obj.addProperty("resource", id);
+        resources.put(id, bytes);
+      }
+      else {
+        obj.addProperty("base64", Base64.getEncoder().encodeToString(bytes));
+      }
       return obj;
     }
     else {
       return toJson(new int[]{});
     }
   }
-  
-  /**
-   * Get bytes byte [ ].
-   *
-   * @return the byte [ ]
-   */
-  public byte[] getBytes() {return getBytes(json_precision);}
   
   /**
    * Sets bytes.
@@ -1293,10 +1305,8 @@ public class Tensor implements Serializable {
    * @param precision the precision
    * @return the byte [ ]
    */
-  public byte[] getBytes(Precision precision) {
-    byte[] to = new byte[dim() * precision.size];
-    Precision.copy(getData(), to, precision);
-    return to;
+  public byte[] getBytes(DataSerializer precision) {
+    return precision.toBytes(getData());
   }
   
   /**
@@ -1306,8 +1316,8 @@ public class Tensor implements Serializable {
    * @param precision the precision
    * @return the bytes
    */
-  public Tensor setBytes(byte[] bytes, Precision precision) {
-    Precision.copy(bytes, getData(), precision);
+  public Tensor setBytes(byte[] bytes, DataSerializer precision) {
+    precision.copy(bytes, getData());
     return this;
   }
   

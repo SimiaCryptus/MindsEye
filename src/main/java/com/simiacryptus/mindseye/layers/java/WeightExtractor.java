@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This input-less layer emits the weights of the referenced layer. This can be used to cause targeted normalization
@@ -72,7 +73,7 @@ public final class WeightExtractor extends NNLayer {
    * @param json the json
    * @return the weight extractor
    */
-  public static WeightExtractor fromJson(final JsonObject json) {
+  public static WeightExtractor fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new WeightExtractor(json);
   }
   
@@ -128,7 +129,7 @@ public final class WeightExtractor extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     NNLayer inner = getInner();
     Object id = null == inner ? innerId : inner.getId();

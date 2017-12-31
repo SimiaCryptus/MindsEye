@@ -20,6 +20,9 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+
+import java.util.Map;
 
 /**
  * The type Entropy layer.
@@ -49,7 +52,7 @@ public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
    * @param json the json
    * @return the entropy layer
    */
-  public static EntropyLayer fromJson(final JsonObject json) {
+  public static EntropyLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new EntropyLayer(json);
   }
   
@@ -74,7 +77,7 @@ public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
 }

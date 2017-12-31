@@ -30,6 +30,7 @@ import org.bytedeco.javacpp.hdf5;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.Exception;
 import java.nio.ByteBuffer;
@@ -57,7 +58,7 @@ public class Hdf5Archive {
   }
   
   private final H5File file;
-  private final String filename;
+  private final File filename;
   
   /**
    * Instantiates a new Hdf 5 archive.
@@ -65,8 +66,16 @@ public class Hdf5Archive {
    * @param filename the archive filename
    */
   public Hdf5Archive(String filename) {
+    this(new File(filename));
+  }
+  
+  public Hdf5Archive(File filename) {
     this.filename = filename;
-    this.file = new H5File(filename, H5F_ACC_RDONLY());
+    try {
+      this.file = new H5File(filename.getCanonicalPath(), H5F_ACC_RDONLY());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
   
   private static void print(Hdf5Archive archive, Logger logger) {
@@ -504,5 +513,9 @@ public class Hdf5Archive {
    */
   public void print(Logger logger) {
     print(this, logger);
+  }
+  
+  public File getFilename() {
+    return filename;
   }
 }

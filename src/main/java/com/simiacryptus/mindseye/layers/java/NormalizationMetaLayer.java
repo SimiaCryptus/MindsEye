@@ -24,6 +24,8 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
 /**
  * The type Normalization meta layer.
  */
@@ -50,9 +52,10 @@ public class NormalizationMetaLayer extends PipelineNetwork {
    * Instantiates a new Normalization meta layer.
    *
    * @param json the json
+   * @param rs
    */
-  protected NormalizationMetaLayer(final JsonObject json) {
-    super(json);
+  protected NormalizationMetaLayer(final JsonObject json, Map<String, byte[]> rs) {
+    super(json, rs);
   }
   
   /**
@@ -61,8 +64,8 @@ public class NormalizationMetaLayer extends PipelineNetwork {
    * @param json the json
    * @return the normalization meta layer
    */
-  public static NormalizationMetaLayer fromJson(final JsonObject json) {
-    return new NormalizationMetaLayer(json);
+  public static NormalizationMetaLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    return new NormalizationMetaLayer(json, rs);
   }
   
 }

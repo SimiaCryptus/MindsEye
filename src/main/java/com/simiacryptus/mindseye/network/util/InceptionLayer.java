@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.network.util;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.java.ImgConcatLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
@@ -28,6 +29,7 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.DoubleSupplier;
 
 /**
@@ -75,9 +77,9 @@ public class InceptionLayer extends DAGNetwork {
   }
   
   @Override
-  public JsonObject getJson() {
-    final JsonObject json = super.getJson();
-    json.add("root", getHead().getLayer().getJson());
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    final JsonObject json = super.getJson(resources, dataSerializer);
+    json.add("root", getHead().getLayer().getJson(resources, dataSerializer));
     return json;
   }
   

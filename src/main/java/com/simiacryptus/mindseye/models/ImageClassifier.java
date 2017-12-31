@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -71,18 +72,10 @@ public abstract class ImageClassifier {
    */
   public abstract List<String> getCategories();
   
-  /**
-   * Predict list.
-   *
-   * @param count the count
-   * @param data  the data
-   * @return the list
-   */
-  public List<LinkedHashMap<String, Double>> predict(int count, Tensor... data) {
-    NNLayer network = getNetwork();
+  public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, NNLayer network, int count, List<String> categories, Tensor[] data) {
     return GpuController.call(ctx -> {
       TensorList evalResult = network.eval(ctx, NNResult.singleResultArray(new Tensor[][]{
-        Arrays.stream(data).map(this::prefilter).toArray(i -> new Tensor[i])
+        Arrays.stream(data).map(prefilter).toArray(i -> new Tensor[i])
       })).getData();
       return evalResult.stream().collect(Collectors.toList());
     }).stream().map(tensor -> {
@@ -90,7 +83,6 @@ public abstract class ImageClassifier {
       int[] order = IntStream.range(0, 1000).mapToObj(x -> x)
                              .sorted(Comparator.comparing(i -> -predictionSignal[i]))
                              .mapToInt(x -> x).toArray();
-      List<String> categories = getCategories();
       assert categories.size() == predictionSignal.length;
       LinkedHashMap<String, Double> topN = new LinkedHashMap<>();
       for (int i = 0; i < count; i++) {
@@ -99,6 +91,21 @@ public abstract class ImageClassifier {
       }
       return topN;
     }).collect(Collectors.toList());
+  }
+  
+  /**
+   * Predict list.
+   *
+   * @param count the count
+   * @param data  the data
+   * @return the list
+   */
+  public List<LinkedHashMap<String, Double>> predict(int count, Tensor... data) {
+    return predict(this::prefilter, getNetwork(), count, getCategories(), data);
+  }
+  
+  public List<LinkedHashMap<String, Double>> predict(NNLayer network, int count, Tensor[] data) {
+    return predict(this::prefilter, network, count, getCategories(), data);
   }
   
   /**

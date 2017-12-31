@@ -25,10 +25,7 @@ import com.simiacryptus.util.FastRandom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
  * The type Binary noise layer.
@@ -87,7 +84,7 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
    * @param json the json
    * @return the binary noise layer
    */
-  public static BinaryNoiseLayer fromJson(final JsonObject json) {
+  public static BinaryNoiseLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new BinaryNoiseLayer(json);
   }
   
@@ -118,7 +115,7 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("value", value);
     return json;

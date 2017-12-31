@@ -22,12 +22,14 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -65,7 +67,7 @@ public class AssertDimensionsLayer extends NNLayer {
    * @param json the json
    * @return the assert dimensions layer
    */
-  public static AssertDimensionsLayer fromJson(final JsonObject json) {
+  public static AssertDimensionsLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new AssertDimensionsLayer(json);
   }
   
@@ -90,7 +92,7 @@ public class AssertDimensionsLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     final JsonArray dimsJson = new JsonArray();
     for (final int dim : dims) {

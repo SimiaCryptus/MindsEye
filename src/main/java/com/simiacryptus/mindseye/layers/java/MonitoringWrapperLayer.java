@@ -25,6 +25,7 @@ import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.data.PercentileStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
+import com.simiacryptus.util.lang.TimedResult;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -44,7 +45,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   private final PercentileStatistics forwardPerformance = new PercentileStatistics();
   private final ScalarStatistics forwardSignal = new PercentileStatistics();
   private final boolean verbose = false;
-  private boolean recordSignalMetrics = true;
+  private boolean recordSignalMetrics = false;
   private int totalBatches = 0;
   private int totalItems = 0;
   
@@ -87,7 +88,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
    * @param json the json
    * @return the monitoring wrapper layer
    */
-  public static MonitoringWrapperLayer fromJson(final JsonObject json) {
+  public static MonitoringWrapperLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new MonitoringWrapperLayer(json);
   }
   
@@ -116,14 +117,11 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
-    final AtomicLong passback = new AtomicLong(0);
+    final AtomicLong passbackNanos = new AtomicLong(0);
     final NNResult[] wrappedInput = Arrays.stream(inObj).map(result -> new NNResult(result.getData()) {
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        final long start = System.nanoTime();
-        result.accumulate(buffer, data);
-        final long elapsed = System.nanoTime() - start;
-        passback.addAndGet(elapsed);
+        passbackNanos.addAndGet(TimedResult.time(() -> result.accumulate(buffer, data)).timeNanos);
       }
       
       @Override
@@ -131,9 +129,9 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
         return result.isAlive();
       }
     }).toArray(i -> new NNResult[i]);
-    final long start = System.nanoTime();
-    final NNResult output = getInner().eval(nncontext, wrappedInput);
-    forwardPerformance.add((System.nanoTime() - start) / 1000000000.0);
+    TimedResult<NNResult> timedResult = TimedResult.time(() -> getInner().eval(nncontext, wrappedInput));
+    final NNResult output = timedResult.result;
+    forwardPerformance.add((timedResult.timeNanos) / 1000000000.0);
     totalBatches++;
     final int items = Arrays.stream(inObj).mapToInt(x -> x.getData().length()).max().orElse(1);
     totalItems += items;
@@ -152,9 +150,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
             backwardSignal.add(t.getData());
           });
         }
-        final long start = System.nanoTime();
-        output.accumulate(buffer, data);
-        backwardPerformance.add((System.nanoTime() - start - passback.getAndSet(0)) / (items * 1e9));
+        backwardPerformance.add((TimedResult.time(() -> output.accumulate(buffer, data)).timeNanos - passbackNanos.getAndSet(0)) / (items * 1e9));
       }
       
       @Override
@@ -201,11 +197,11 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     //json.fn("forwardPerf",forwardPerf.getJson());
     //json.fn("backwardPerf",backwardPerf.getJson());
-    json.add("inner", getInner().getJson());
+    json.add("inner", getInner().getJson(resources, dataSerializer));
     json.addProperty("totalBatches", totalBatches);
     json.addProperty("totalItems", totalItems);
     json.addProperty("recordSignalMetrics", recordSignalMetrics);

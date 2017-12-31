@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -55,10 +56,11 @@ public class HyperbolicActivationLayer extends NNLayer {
    * Instantiates a new Hyperbolic activation layer.
    *
    * @param json the json
+   * @param resources
    */
-  protected HyperbolicActivationLayer(final JsonObject json) {
+  protected HyperbolicActivationLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
-    weights = Tensor.fromJson(json.get("weights"));
+    weights = Tensor.fromJson(json.get("weights"), resources);
     negativeMode = json.getAsJsonPrimitive("negativeMode").getAsInt();
   }
   
@@ -68,8 +70,8 @@ public class HyperbolicActivationLayer extends NNLayer {
    * @param json the json
    * @return the hyperbolic activation layer
    */
-  public static HyperbolicActivationLayer fromJson(final JsonObject json) {
-    return new HyperbolicActivationLayer(json);
+  public static HyperbolicActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    return new HyperbolicActivationLayer(json, rs);
   }
   
   @Override
@@ -87,9 +89,9 @@ public class HyperbolicActivationLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
-    json.add("weights", weights.toJson());
+    json.add("weights", weights.toJson(resources, dataSerializer));
     json.addProperty("negativeMode", negativeMode);
     return json;
   }

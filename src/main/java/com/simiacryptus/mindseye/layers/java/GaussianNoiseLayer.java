@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.stream.IntStream;
 
@@ -74,7 +75,7 @@ public class GaussianNoiseLayer extends NNLayer {
    * @param json the json
    * @return the gaussian noise layer
    */
-  public static GaussianNoiseLayer fromJson(final JsonObject json) {
+  public static GaussianNoiseLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new GaussianNoiseLayer(json);
   }
   
@@ -93,7 +94,7 @@ public class GaussianNoiseLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("value", value);
     return json;

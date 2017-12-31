@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
@@ -60,7 +61,7 @@ public class AvgImageBandLayer extends NNLayer {
    * @param json the json
    * @return the avg image band layer
    */
-  public static AvgImageBandLayer fromJson(final JsonObject json) {
+  public static AvgImageBandLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new AvgImageBandLayer(json);
   }
   
@@ -103,7 +104,7 @@ public class AvgImageBandLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

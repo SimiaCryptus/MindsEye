@@ -19,20 +19,22 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.google.gson.stream.JsonReader;
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.SerialPrecision;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.apache.commons.io.IOUtils;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipFile;
 
 /**
  * The type Json test.
@@ -71,6 +73,7 @@ public class JsonTest implements ComponentTest<ToleranceStatistics> {
     log.h1("Json Serialization");
     log.p("This test will demonstrate the layer's JSON serialization, and verify deserialization integrity.");
   
+    log.h2("Raw Json");
     try {
       String prettyPrint = log.code(() -> {
         final JsonObject json = layer.getJson();
@@ -84,34 +87,24 @@ public class JsonTest implements ComponentTest<ToleranceStatistics> {
       log.p(log.file(prettyPrint, filename, String.format("Wrote Model to %s; %s characters", filename, prettyPrint.length())));
     } catch (RuntimeException e) {
       e.printStackTrace();
+      Util.sleep(1000);
     } catch (OutOfMemoryError e) {
       e.printStackTrace();
+      Util.sleep(1000);
     }
   
+    log.h2("Json Zipfile");
     try {
       File file = log.code(() -> {
-        File gz = new File(log.getResourceDir(), layer.getClass().getSimpleName() + "_" + log.getName() + ".json.gz");
-        final JsonObject json = layer.getJson();
-        final NNLayer echo = NNLayer.fromJson(json);
+        File zip = new File(log.getResourceDir(), layer.getClass().getSimpleName() + "_" + log.getName() + ".zip");
+        layer.writeZip(zip, SerialPrecision.Float);
+        final NNLayer echo = NNLayer.fromZip(new ZipFile(zip));
         if (echo == null) throw new AssertionError("Failed to deserialize");
         if (layer == echo) throw new AssertionError("Serialization did not copy");
         if (!layer.equals(echo)) throw new AssertionError("Serialization not equal");
-        OutputStream out = null;
-        out = new FileOutputStream(gz);
-        Writer writer = new OutputStreamWriter(new GZIPOutputStream(out));
-        new GsonBuilder().setPrettyPrinting().create().toJson(json, writer);
-        writer.close();
-        return gz;
+        return zip;
       });
-      log.p(log.link(file, String.format("Wrote Model to %s; %s bytes", file.getName(), file.length())));
-      log.code(() -> {
-        FileInputStream fileInputStream = new FileInputStream(file);
-        GZIPInputStream gzipInputStream = new GZIPInputStream(fileInputStream);
-        InputStreamReader streamReader = new InputStreamReader(gzipInputStream);
-        JsonReader jsonReader = new JsonReader(streamReader);
-        Gson gson = new GsonBuilder().create();
-        return gson.fromJson(jsonReader, JsonObject.class);
-      });
+      log.p(log.link(file, String.format("Wrote Model to %s; %.3fMiB bytes", file.getName(), file.length() * 1.0 / (0x100000))));
     } catch (RuntimeException e) {
       e.printStackTrace();
     } catch (OutOfMemoryError e) {

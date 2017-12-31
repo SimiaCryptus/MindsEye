@@ -25,6 +25,7 @@ import com.google.common.cache.LoadingCache;
 import com.simiacryptus.util.io.BinaryChunkIterator;
 import com.simiacryptus.util.io.TeeInputStream;
 import com.simiacryptus.util.test.LabeledObject;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 
 import javax.imageio.ImageIO;
@@ -129,42 +130,51 @@ public class Util {
    * @throws KeyStoreException        the key store exception
    * @throws KeyManagementException   the key management exception
    */
-  public static InputStream cache(final String url, final String file) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+  public static InputStream cacheStream(final String url, final String file) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
     if (new File(file).exists()) {
       return new FileInputStream(file);
     }
     else {
-      final TrustManager[] trustManagers = {
-        new X509TrustManager() {
-          @Override
-          public void checkClientTrusted(
-            final X509Certificate[] certs, final String authType) {
-          }
-          
-          @Override
-          public void checkServerTrusted(
-            final X509Certificate[] certs, final String authType) {
-          }
-          
-          @Override
-          public X509Certificate[] getAcceptedIssuers() {
-            return new X509Certificate[0];
-          }
-        }
-      };
-      final SSLContext ctx = SSLContext.getInstance("TLS");
-      ctx.init(null, trustManagers, null);
-      final SSLSocketFactory sslFactory = ctx.getSocketFactory();
-      final URLConnection urlConnection = new URL(url).openConnection();
-      if (urlConnection instanceof HttpsURLConnection) {
-        final HttpsURLConnection conn = (HttpsURLConnection) urlConnection;
-        conn.setSSLSocketFactory(sslFactory);
-        conn.setRequestMethod("GET");
-      }
-      final InputStream inputStream = urlConnection.getInputStream();
-      final FileOutputStream cache = new FileOutputStream(file);
-      return new TeeInputStream(inputStream, cache);
+      return new TeeInputStream(get(url), new FileOutputStream(file));
     }
+  }
+  
+  public static File cacheFile(final String url, final String file) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    if (!new File(file).exists()) {
+      IOUtils.copy(get(url), new FileOutputStream(file));
+    }
+    return new File(file);
+  }
+  
+  public static InputStream get(String url) throws NoSuchAlgorithmException, KeyManagementException, IOException {
+    final TrustManager[] trustManagers = {
+      new X509TrustManager() {
+        @Override
+        public void checkClientTrusted(
+          final X509Certificate[] certs, final String authType) {
+        }
+        
+        @Override
+        public void checkServerTrusted(
+          final X509Certificate[] certs, final String authType) {
+        }
+        
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+          return new X509Certificate[0];
+        }
+      }
+    };
+    final SSLContext ctx = SSLContext.getInstance("TLS");
+    ctx.init(null, trustManagers, null);
+    final SSLSocketFactory sslFactory = ctx.getSocketFactory();
+    final URLConnection urlConnection = new URL(url).openConnection();
+    if (urlConnection instanceof HttpsURLConnection) {
+      final HttpsURLConnection conn = (HttpsURLConnection) urlConnection;
+      conn.setSSLSocketFactory(sslFactory);
+      conn.setRequestMethod("GET");
+    }
+    return urlConnection.getInputStream();
   }
   
   /**
@@ -177,8 +187,12 @@ public class Util {
    * @throws KeyStoreException        the key store exception
    * @throws KeyManagementException   the key management exception
    */
-  public static InputStream cache(final URI url) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-    return Util.cache(url.toString(), new File(url.getPath()).getName());
+  public static InputStream cacheStream(final URI url) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    return Util.cacheStream(url.toString(), new File(url.getPath()).getName());
+  }
+  
+  public static File cacheFile(final URI url) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    return Util.cacheFile(url.toString(), new File(url.getPath()).getName());
   }
   
   /**
@@ -442,5 +456,13 @@ public class Util {
     }
     final String tempId = Util.jvmId.substring(0, Util.jvmId.length() - index.length()) + index;
     return UUID.fromString(tempId);
+  }
+  
+  public static void sleep(int i) {
+    try {
+      Thread.sleep(i);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
   }
 }

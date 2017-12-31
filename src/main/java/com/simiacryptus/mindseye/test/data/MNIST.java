@@ -111,7 +111,7 @@ public class MNIST {
   private static Stream<byte[]> binaryStream(final String name, final int skip, final int recordSize) throws IOException {
     InputStream stream = null;
     try {
-      stream = Util.cache(MNIST.source.resolve(name));
+      stream = Util.cacheStream(MNIST.source.resolve(name));
     } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
       throw new RuntimeException(e);
     }

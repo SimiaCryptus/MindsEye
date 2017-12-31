@@ -17,27 +17,20 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.models;
-
-import com.simiacryptus.util.io.NotebookOutput;
+package com.simiacryptus.util.lang;
 
 /**
- * The type Layer test base.
+ * The interface Unchecked supplier.
+ *
+ * @param <T> the type parameter
  */
-public class VGG16_HDF5_Test extends ImageClassifierTestBase {
+public interface UncheckedRunnable<T> {
   
-  @Override
-  public ImageClassifier getImageClassifier(NotebookOutput log) {
-    return log.code(() -> {
-      VGG16_HDF5 vgg16_hdf5 = VGG16_HDF5.fromS3();
-      vgg16_hdf5.getHDF5().print();
-      return vgg16_hdf5;
-    });
-  }
-  
-  @Override
-  protected Class<?> getTargetClass() {
-    return VGG16_HDF5.class;
-  }
-  
+  /**
+   * Gets a result.
+   *
+   * @return a result
+   * @throws Exception the exception
+   */
+  void get() throws Exception;
 }

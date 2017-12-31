@@ -25,6 +25,7 @@ import jcuda.jcudnn.cudnnTensorDescriptor;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Work in Progress. Experimental. Do Not Use. :-)
@@ -58,7 +59,7 @@ public class SubsampleLayer extends NNLayer implements LayerPrecision<SubsampleL
    * @param json the json
    * @return the img concat layer
    */
-  public static SubsampleLayer fromJson(final JsonObject json) {
+  public static SubsampleLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new SubsampleLayer(json);
   }
   
@@ -142,7 +143,7 @@ public class SubsampleLayer extends NNLayer implements LayerPrecision<SubsampleL
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("maxBands", maxBands);
     json.addProperty("precision", precision.name());

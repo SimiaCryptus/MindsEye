@@ -23,6 +23,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
@@ -86,8 +87,9 @@ public abstract class DAGNetwork extends NNLayer {
    * Instantiates a new Dag network.
    *
    * @param json the json
+   * @param rs
    */
-  protected DAGNetwork(final JsonObject json) {
+  protected DAGNetwork(final JsonObject json, Map<String, byte[]> rs) {
     super(json);
     inputHandles = new ArrayList<>();
     inputNodes = new LinkedHashMap<>();
@@ -103,7 +105,7 @@ public abstract class DAGNetwork extends NNLayer {
     final Map<UUID, NNLayer> source_layersByNodeId = new HashMap<>();
     final Map<UUID, NNLayer> source_layersByLayerId = new HashMap<>();
     for (final Entry<String, JsonElement> e : jsonLayers.entrySet()) {
-      source_layersByLayerId.put(UUID.fromString(e.getKey()), NNLayer.fromJson(e.getValue().getAsJsonObject()));
+      source_layersByLayerId.put(UUID.fromString(e.getKey()), NNLayer.fromJson(e.getValue().getAsJsonObject(), rs));
     }
     for (final Entry<String, JsonElement> e : jsonNodes.entrySet()) {
       final UUID nodeId = UUID.fromString(e.getKey());
@@ -341,7 +343,7 @@ public abstract class DAGNetwork extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     final JsonArray inputs = new JsonArray();
     json.add("inputs", inputs);
@@ -356,7 +358,7 @@ public abstract class DAGNetwork extends NNLayer {
       final String nodeId = node.getId().toString();
       final String layerId = layer.getId().toString();
       nodeMap.addProperty(nodeId, layerId);
-      layerMap.add(layerId, layer.getJson());
+      layerMap.add(layerId, layer.getJson(resources, dataSerializer));
       links.add(nodeId, linkArray);
     });
     json.add("nodes", nodeMap);

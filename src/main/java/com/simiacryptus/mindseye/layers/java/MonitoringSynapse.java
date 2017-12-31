@@ -64,7 +64,7 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
    * @param json the json
    * @return the monitoring synapse
    */
-  public static MonitoringSynapse fromJson(final JsonObject json) {
+  public static MonitoringSynapse fromJson(final JsonObject json, Map<String, byte[]> rs) {
     final MonitoringSynapse obj = new MonitoringSynapse(json);
     obj.totalBatches = json.get("totalBatches").getAsInt();
     obj.totalItems = json.get("totalItems").getAsInt();
@@ -126,7 +126,7 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("totalBatches", totalBatches);
     json.addProperty("totalItems", totalItems);

@@ -37,7 +37,7 @@ public class ScalarStatistics implements MonitoredItem, Serializable {
   private volatile double min = Double.POSITIVE_INFINITY;
   private volatile int negatives = 0;
   private volatile int positives = 0;
-  private volatile double sum0 = 0;
+  private volatile int sum0 = 0;
   private volatile double sum1 = 0;
   private volatile double sum2 = 0;
   private volatile double sumLog = 0;
@@ -165,7 +165,7 @@ public class ScalarStatistics implements MonitoredItem, Serializable {
    *
    * @return the count
    */
-  public double getCount() {
+  public int getCount() {
     return sum0;
   }
   
@@ -242,7 +242,7 @@ public class ScalarStatistics implements MonitoredItem, Serializable {
     negatives = json.get("negatives").getAsInt();
     positives = json.get("positives").getAsInt();
     zeros = json.get("zeros").getAsInt();
-    sum0 = json.get("sum0").getAsDouble();
+    sum0 = json.get("sum0").getAsInt();
     sum1 = json.get("sum1").getAsDouble();
     sum2 = json.get("sum2").getAsDouble();
     sumLog = json.get("sumLog").getAsDouble();

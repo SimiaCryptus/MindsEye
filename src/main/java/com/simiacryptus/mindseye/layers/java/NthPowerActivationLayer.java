@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -57,7 +58,7 @@ public final class NthPowerActivationLayer extends NNLayer {
    * @param json the json
    * @return the nth power activation layer
    */
-  public static NthPowerActivationLayer fromJson(final JsonObject json) {
+  public static NthPowerActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new NthPowerActivationLayer(json);
   }
   
@@ -166,7 +167,7 @@ public final class NthPowerActivationLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("power", power);
     return json;

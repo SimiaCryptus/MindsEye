@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -63,7 +64,7 @@ public class L1NormalizationLayer extends NNLayer {
    * @param json the json
    * @return the l 1 normalization layer
    */
-  public static L1NormalizationLayer fromJson(final JsonObject json) {
+  public static L1NormalizationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new L1NormalizationLayer(json);
   }
   
@@ -109,7 +110,7 @@ public class L1NormalizationLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

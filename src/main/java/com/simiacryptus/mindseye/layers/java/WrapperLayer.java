@@ -20,11 +20,13 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * A base class for layers whose actual behavior is delegated.
@@ -77,9 +79,9 @@ public abstract class WrapperLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
-    json.add("inner", getInner().getJson());
+    json.add("inner", getInner().getJson(resources, dataSerializer));
     return json;
   }
   

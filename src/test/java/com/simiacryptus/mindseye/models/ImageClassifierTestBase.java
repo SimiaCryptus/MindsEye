@@ -73,20 +73,24 @@ public abstract class ImageClassifierTestBase extends NotebookOutputTestBase {
    * @param vgg16 the vgg 16
    */
   public void test(NotebookOutput log, ImageClassifier vgg16) {
-    //log.p("__Test Description:__ " + testJavadoc);
-    
     PipelineNetwork network = vgg16.build(log);
+
     log.h1("Network Diagram");
     log.p("This is a diagram of the imported network:");
     log.code(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(network))
                      .height(4000).width(800).render(Format.PNG).toImage();
     });
+  
+    new JsonTest().test(log, network, (Tensor[]) null);
+  
     log.h1("Predictions");
     Tensor[][] images = EncodingUtil.getImages(log, 224, 10);
     TestUtil.instrumentPerformance(log, network);
     List<LinkedHashMap<String, Double>> predictions = log.code(() -> {
-      return vgg16.predict(5, Arrays.stream(images).map(x -> x[1]).toArray(i -> new Tensor[i]));
+      Tensor[] data = Arrays.stream(images).map(x -> x[1]).toArray(i -> new Tensor[i]);
+      return ImageClassifier.predict(
+        vgg16::prefilter, network, 5, vgg16.getCategories(), data);
     });
     TestUtil.extractPerformance(log, network);
     log.code(() -> {
@@ -101,8 +105,7 @@ public abstract class ImageClassifierTestBase extends NotebookOutputTestBase {
       }
       return tableOutput;
     }, 256 * 1024);
-    log.h1("JSON");
-    new JsonTest().test(log, network, null);
+    log.setFrontMatterProperty("status", "OK");
   }
   
   /**
@@ -123,6 +126,7 @@ public abstract class ImageClassifierTestBase extends NotebookOutputTestBase {
     log.setFrontMatterProperty("test_class_full", selfClass.getCanonicalName());
     log.setFrontMatterProperty("test_class_doc", testJavadoc.replaceAll("\n", ""));
     log.p("__Application Description:__ " + appJavadoc);
+    //log.p("__Test Description:__ " + testJavadoc);
   }
   
   /**

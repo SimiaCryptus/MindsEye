@@ -26,6 +26,7 @@ import com.simiacryptus.mindseye.network.DAGNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -59,9 +60,10 @@ public class SignReducerLayer extends DAGNetwork {
    * Instantiates a new Sign reducer layer.
    *
    * @param json the json
+   * @param rs
    */
-  protected SignReducerLayer(final JsonObject json) {
-    super(json);
+  protected SignReducerLayer(final JsonObject json, Map<String, byte[]> rs) {
+    super(json, rs);
     head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
   }
   
@@ -69,10 +71,11 @@ public class SignReducerLayer extends DAGNetwork {
    * From json nn layer.
    *
    * @param inner the inner
+   * @param rs
    * @return the nn layer
    */
-  public static NNLayer fromJson(final JsonObject inner) {
-    return new SignReducerLayer(inner);
+  public static NNLayer fromJson(final JsonObject inner, Map<String, byte[]> rs) {
+    return new SignReducerLayer(inner, rs);
   }
   
   @Override

@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.test.data;
 
+import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.DataLoader;
 import com.simiacryptus.util.lang.SupplierWeakCache;
@@ -30,7 +31,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -44,8 +44,6 @@ import java.util.zip.ZipInputStream;
  */
 public class Caltech101 {
   
-  private static final URI source = URI.create("https://s3-us-west-2.amazonaws.com/simiacryptus/");
-  
   private static final DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>> training = new DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>>() {
     @Override
     protected void read(final List<LabeledObject<SupplierWeakCache<BufferedImage>>> queue) {
@@ -53,7 +51,7 @@ public class Caltech101 {
         InputStream stream = null;
         try {
           // Repackaging as a zip is needed - the tar format classes dont work here
-          stream = Util.cache(Caltech101.source.resolve("101_ObjectCategories.zip"));
+          stream = Util.cacheStream(TestUtil.S3_ROOT.resolve("101_ObjectCategories.zip"));
         } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
           throw new RuntimeException(e);
         }

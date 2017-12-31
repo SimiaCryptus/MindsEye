@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
@@ -63,7 +64,7 @@ public class MaxImageBandLayer extends NNLayer {
    * @param json the json
    * @return the max image band layer
    */
-  public static MaxImageBandLayer fromJson(final JsonObject json) {
+  public static MaxImageBandLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new MaxImageBandLayer(json,
                                  JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
@@ -115,7 +116,7 @@ public class MaxImageBandLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     return json;
   }

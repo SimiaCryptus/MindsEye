@@ -25,6 +25,7 @@ import jcuda.jcudnn.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The generic Activation layer, exposing the activation types provided by CuDNN. This layer is stateless and is
@@ -74,7 +75,7 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
    * @param json the json
    * @return the activation layer
    */
-  public static ActivationLayer fromJson(final JsonObject json) {
+  public static ActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new ActivationLayer(json);
   }
   
@@ -148,7 +149,7 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("mode", mode);
     json.addProperty("precision", precision.name());

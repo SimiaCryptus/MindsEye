@@ -27,6 +27,8 @@ import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.java.*;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
+import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +48,15 @@ import java.util.stream.Collectors;
 public class VGG16_HDF5 extends ImageClassifier {
   private static final Logger log = LoggerFactory.getLogger(Hdf5Archive.class);
   private final Hdf5Archive hdf5;
+  
+  
+  public static VGG16_HDF5 fromS3() {
+    try {
+      return new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5"))));
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
+  }
   
   /**
    * Instantiates a new Vgg 16 hdf 5.
@@ -1297,4 +1308,7 @@ public class VGG16_HDF5 extends ImageClassifier {
                              "toilet tissue, toilet paper, bathroom tissue\n").split("\n")).map(x -> x.trim()).collect(Collectors.toList());
   }
   
+  public Hdf5Archive getHDF5() {
+    return hdf5;
+  }
 }

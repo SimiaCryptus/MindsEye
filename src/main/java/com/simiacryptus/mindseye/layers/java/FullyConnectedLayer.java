@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 import java.util.function.ToDoubleBiFunction;
@@ -94,12 +95,13 @@ public class FullyConnectedLayer extends NNLayer {
    * Instantiates a new Fully connected layer.
    *
    * @param json the json
+   * @param resources
    */
-  protected FullyConnectedLayer(final JsonObject json) {
+  protected FullyConnectedLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
     outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
     inputDims = JsonUtil.getIntArray(json.getAsJsonArray("inputDims"));
-    weights = Tensor.fromJson(json.get("weights"));
+    weights = Tensor.fromJson(json.get("weights"), resources);
   }
   
   /**
@@ -124,8 +126,8 @@ public class FullyConnectedLayer extends NNLayer {
    * @param json the json
    * @return the fully connected layer
    */
-  public static FullyConnectedLayer fromJson(final JsonObject json) {
-    return new FullyConnectedLayer(json);
+  public static FullyConnectedLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    return new FullyConnectedLayer(json, rs);
   }
   
   /**
@@ -195,11 +197,11 @@ public class FullyConnectedLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.add("outputDims", JsonUtil.getJson(outputDims));
     json.add("inputDims", JsonUtil.getJson(inputDims));
-    json.add("weights", weights.toJson());
+    json.add("weights", weights.toJson(resources, dataSerializer));
     return json;
   }
   

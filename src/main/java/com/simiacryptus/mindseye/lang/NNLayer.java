@@ -21,13 +21,16 @@ package com.simiacryptus.mindseye.lang;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.google.gson.stream.JsonWriter;
+import org.apache.commons.io.IOUtils;
 
-import java.io.Serializable;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 /**
  * The basic type of Neural Network Layer supporting the backpropigation model of learning. In general, these components
@@ -78,22 +81,47 @@ public abstract class NNLayer implements Serializable {
     this.name = name;
   }
   
+  public static NNLayer fromJson(final JsonObject json) { return fromJson(json, null);}
+  
+  public static NNLayer fromZip(final ZipFile zipfile) {
+    Enumeration<? extends ZipEntry> entries = zipfile.entries();
+    JsonObject json = null;
+    HashMap<String, byte[]> resources = new HashMap<>();
+    while (entries.hasMoreElements()) {
+      ZipEntry zipEntry = entries.nextElement();
+      String name = zipEntry.getName();
+      try {
+        InputStream inputStream = zipfile.getInputStream(zipEntry);
+        if (name.equals("model.json")) {
+          json = new GsonBuilder().create().fromJson(new InputStreamReader(inputStream), JsonObject.class);
+        }
+        else {
+          resources.put(name, IOUtils.readFully(inputStream, (int) zipEntry.getSize()));
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return fromJson(json, resources);
+  }
+  
+  
   /**
    * From json nn layer.
    *
-   * @param inner the inner
+   * @param json the json
    * @return the nn layer
    */
-  public static NNLayer fromJson(final JsonObject inner) {
-    final String className = inner.get("class").getAsString();
+  public static NNLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    final String className = json.get("class").getAsString();
     try {
       final Class<?> clazz = Class.forName(className);
       if (null == clazz) throw new ClassNotFoundException(className);
-      final Method method = clazz.getMethod("fromJson", JsonObject.class);
+      final Method method = clazz.getMethod("fromJson", JsonObject.class, Map.class);
       if (method.getDeclaringClass() == NNLayer.class) {
         throw new IllegalArgumentException("Cannot find deserialization method for " + className);
       }
-      return (NNLayer) method.invoke(null, inner);
+      return (NNLayer) method.invoke(null, json, rs);
     } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
       throw new RuntimeException(e);
     }
@@ -207,9 +235,54 @@ public abstract class NNLayer implements Serializable {
   /**
    * Gets json.
    *
+   * @param resources
+   * @param dataSerializer
    * @return the json
    */
-  public abstract JsonObject getJson();
+  public abstract JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer);
+  
+  public final JsonObject getJson() {
+    return getJson(null, SerialPrecision.Double);
+  }
+  
+  public final void writeZip(File out) {writeZip(out, SerialPrecision.Double);}
+  
+  public final void writeZip(File out, SerialPrecision precision) {
+    try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(out))) {
+      writeZip(zipOutputStream, precision);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  public final void writeZip(ZipOutputStream out) {writeZip(out, SerialPrecision.Double);}
+  
+  public final void writeZip(ZipOutputStream out, SerialPrecision precision) {
+    try {
+      HashMap<String, byte[]> resources = new HashMap<>();
+      JsonObject json = getJson(resources, precision);
+      out.putNextEntry(new ZipEntry("model.json"));
+      JsonWriter writer = new JsonWriter(new OutputStreamWriter(out));
+      writer.setIndent("  ");
+      writer.setHtmlSafe(true);
+      writer.setSerializeNulls(false);
+      new GsonBuilder().setPrettyPrinting().create().toJson(json, writer);
+      writer.flush();
+      out.closeEntry();
+      resources.forEach((name, data) -> {
+        try {
+          out.putNextEntry(new ZipEntry(name));
+          IOUtils.write(data, out);
+          out.flush();
+          out.closeEntry();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
   
   /**
    * Gets json string.

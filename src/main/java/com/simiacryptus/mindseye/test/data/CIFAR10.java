@@ -54,7 +54,7 @@ public class CIFAR10 {
       try {
         InputStream stream = null;
         try {
-          stream = Util.cache(CIFAR10.source.resolve("cifar-10-binary.tar.gz"));
+          stream = Util.cacheStream(CIFAR10.source.resolve("cifar-10-binary.tar.gz"));
         } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
           throw new RuntimeException(e);
         }

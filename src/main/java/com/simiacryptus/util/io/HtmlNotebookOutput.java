@@ -170,11 +170,12 @@ public class HtmlNotebookOutput implements NotebookOutput {
           escape = true;
         }
         if (escape) {
-          out("<pre>");
+          out("<pre>" + summarize(maxLog, str) + "</pre>");
         }
-        out(summarize(maxLog, str));
+        else {
+          out(summarize(maxLog, str));
+        }
         if (escape) {
-          out("</pre>");
         }
         out("\n\n");
         if (eval instanceof Throwable) {

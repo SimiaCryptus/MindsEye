@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -53,7 +54,7 @@ public class SumInputsLayer extends NNLayer {
    * @param json the json
    * @return the sum inputs layer
    */
-  public static SumInputsLayer fromJson(final JsonObject json) {
+  public static SumInputsLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new SumInputsLayer(json);
   }
   
@@ -105,7 +106,7 @@ public class SumInputsLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

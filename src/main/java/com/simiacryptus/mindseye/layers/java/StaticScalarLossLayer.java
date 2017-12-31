@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -60,7 +61,7 @@ public class StaticScalarLossLayer extends NNLayer {
    * @param json the json
    * @return the static scalar loss layer
    */
-  public static StaticScalarLossLayer fromJson(final JsonObject json) {
+  public static StaticScalarLossLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new StaticScalarLossLayer(json);
   }
   
@@ -97,7 +98,7 @@ public class StaticScalarLossLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

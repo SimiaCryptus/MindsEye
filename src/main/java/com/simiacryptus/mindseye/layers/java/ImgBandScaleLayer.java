@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 import java.util.stream.IntStream;
@@ -77,7 +78,7 @@ public class ImgBandScaleLayer extends NNLayer {
    * @param json the json
    * @return the img band scale layer
    */
-  public static ImgBandScaleLayer fromJson(final JsonObject json) {
+  public static ImgBandScaleLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new ImgBandScaleLayer(json);
   }
   
@@ -158,7 +159,7 @@ public class ImgBandScaleLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.add("bias", JsonUtil.getJson(getWeights()));
     return json;

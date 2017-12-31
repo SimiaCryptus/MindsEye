@@ -23,6 +23,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
@@ -31,10 +32,7 @@ import com.simiacryptus.mindseye.layers.java.ProductInputsLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * The type Polynomial network.
@@ -84,9 +82,10 @@ public class PolynomialNetwork extends DAGNetwork {
    * Instantiates a new Polynomial network.
    *
    * @param json the json
+   * @param rs
    */
-  protected PolynomialNetwork(final JsonObject json) {
-    super(json);
+  protected PolynomialNetwork(final JsonObject json, Map<String, byte[]> rs) {
+    super(json, rs);
     head = nodesById.get(UUID.fromString(json.get("head").getAsString()));
     if (json.get("alpha") != null) {
       alpha = layersById.get(UUID.fromString(json.get("alpha").getAsString()));
@@ -107,8 +106,8 @@ public class PolynomialNetwork extends DAGNetwork {
    * @param json the json
    * @return the polynomial network
    */
-  public static PolynomialNetwork fromJson(final JsonObject json) {
-    return new PolynomialNetwork(json);
+  public static PolynomialNetwork fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    return new PolynomialNetwork(json, rs);
   }
   
   /**
@@ -176,10 +175,10 @@ public class PolynomialNetwork extends DAGNetwork {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     assertConsistent();
     final DAGNode head = getHead();
-    final JsonObject json = super.getJson();
+    final JsonObject json = super.getJson(resources, dataSerializer);
     json.addProperty("head", head.getId().toString());
     if (null != alpha) {
       json.addProperty("alpha", alpha.getId().toString());

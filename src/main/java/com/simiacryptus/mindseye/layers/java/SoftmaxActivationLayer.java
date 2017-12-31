@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
@@ -64,7 +65,7 @@ public class SoftmaxActivationLayer extends NNLayer {
    * @param json the json
    * @return the softmax activation layer
    */
-  public static SoftmaxActivationLayer fromJson(final JsonObject json) {
+  public static SoftmaxActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new SoftmaxActivationLayer(json);
   }
   
@@ -129,7 +130,7 @@ public class SoftmaxActivationLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

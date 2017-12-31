@@ -20,6 +20,9 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+
+import java.util.Map;
 
 /**
  * This activation layer uses the unit gaussian curve. The maximal response, at x=0, is y=1. At +/- infinity, the value
@@ -63,7 +66,7 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
    * @param json the json
    * @return the gaussian activation layer
    */
-  public static GaussianActivationLayer fromJson(final JsonObject json) {
+  public static GaussianActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new GaussianActivationLayer(json);
   }
   
@@ -98,7 +101,7 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("mean", mean);
     json.addProperty("stddev", stddev);

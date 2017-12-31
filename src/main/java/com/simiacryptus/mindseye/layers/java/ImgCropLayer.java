@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.lang.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -99,7 +100,7 @@ public class ImgCropLayer extends NNLayer {
    * @param json the json
    * @return the img crop layer
    */
-  public static ImgCropLayer fromJson(final JsonObject json) {
+  public static ImgCropLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new ImgCropLayer(json);
   }
   
@@ -140,7 +141,7 @@ public class ImgCropLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("sizeX", sizeX);
     json.addProperty("sizeY", sizeX);

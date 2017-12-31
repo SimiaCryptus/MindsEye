@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
@@ -76,7 +77,7 @@ public class ImgBandBiasLayer extends NNLayer {
    * @param json the json
    * @return the img band bias layer
    */
-  public static ImgBandBiasLayer fromJson(final JsonObject json) {
+  public static ImgBandBiasLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new ImgBandBiasLayer(json);
   }
   
@@ -185,7 +186,7 @@ public class ImgBandBiasLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.add("bias", JsonUtil.getJson(getBias()));
     return json;

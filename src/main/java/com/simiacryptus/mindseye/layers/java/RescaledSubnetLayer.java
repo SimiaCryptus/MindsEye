@@ -20,16 +20,14 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.NNExecutionContext;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.ImgConcatLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -71,7 +69,7 @@ public class RescaledSubnetLayer extends NNLayer {
    * @param json the json
    * @return the rescaled subnet layer
    */
-  public static RescaledSubnetLayer fromJson(final JsonObject json) {
+  public static RescaledSubnetLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new RescaledSubnetLayer(json);
   }
   
@@ -101,10 +99,10 @@ public class RescaledSubnetLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("scale", scale);
-    json.add("subnetwork", subnetwork.getJson());
+    json.add("subnetwork", subnetwork.getJson(resources, dataSerializer));
     return json;
   }
   

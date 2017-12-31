@@ -20,6 +20,9 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+
+import java.util.Map;
 
 /**
  * The classic activation function, either "sigmoid" or "tanh" dependiong on the setting of "balanced". If
@@ -57,7 +60,7 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
    * @param json the json
    * @return the sigmoid activation layer
    */
-  public static SigmoidActivationLayer fromJson(final JsonObject json) {
+  public static SigmoidActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new SigmoidActivationLayer(json);
   }
   
@@ -93,7 +96,7 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("balanced", balanced);
     return json;

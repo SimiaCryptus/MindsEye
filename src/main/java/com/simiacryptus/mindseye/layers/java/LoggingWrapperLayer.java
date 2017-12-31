@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -62,7 +63,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
    * @param json the json
    * @return the monitoring wrapper layer
    */
-  public static LoggingWrapperLayer fromJson(final JsonObject json) {
+  public static LoggingWrapperLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new LoggingWrapperLayer(json);
   }
   

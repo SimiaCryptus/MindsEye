@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -53,7 +54,7 @@ public class ProductInputsLayer extends NNLayer {
    * @param json the json
    * @return the product inputs layer
    */
-  public static ProductInputsLayer fromJson(final JsonObject json) {
+  public static ProductInputsLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new ProductInputsLayer(json);
   }
   
@@ -115,7 +116,7 @@ public class ProductInputsLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

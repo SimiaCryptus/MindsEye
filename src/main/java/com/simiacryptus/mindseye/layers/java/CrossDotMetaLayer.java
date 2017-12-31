@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The type Cross dot meta layer.
@@ -57,7 +58,7 @@ public class CrossDotMetaLayer extends NNLayer {
    * @param json the json
    * @return the cross dot meta layer
    */
-  public static CrossDotMetaLayer fromJson(final JsonObject json) {
+  public static CrossDotMetaLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new CrossDotMetaLayer(json);
   }
   
@@ -116,7 +117,7 @@ public class CrossDotMetaLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

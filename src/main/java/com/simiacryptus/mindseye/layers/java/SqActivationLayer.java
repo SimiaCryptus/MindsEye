@@ -20,6 +20,9 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+
+import java.util.Map;
 
 /**
  * Specialized square activation function. Deprecated. Use NthPowerActivationLayer.
@@ -48,7 +51,7 @@ public final class SqActivationLayer extends SimpleActivationLayer<SqActivationL
    * @param json the json
    * @return the sq activation layer
    */
-  public static SqActivationLayer fromJson(final JsonObject json) {
+  public static SqActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new SqActivationLayer(json);
   }
   
@@ -64,7 +67,7 @@ public final class SqActivationLayer extends SimpleActivationLayer<SqActivationL
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

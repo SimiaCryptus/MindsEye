@@ -32,6 +32,7 @@ import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
@@ -129,7 +130,7 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
       }
       
       @Override
-      public JsonObject getJson() {
+      public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
         throw new IllegalStateException();
       }
       

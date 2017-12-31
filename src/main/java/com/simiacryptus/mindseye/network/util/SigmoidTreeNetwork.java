@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.network.util;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.java.*;
 import com.simiacryptus.mindseye.network.DAGNetwork;
@@ -27,6 +28,7 @@ import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.util.FastRandom;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -56,9 +58,10 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
    * Instantiates a new Sigmoid tree network.
    *
    * @param json the json
+   * @param rs
    */
-  protected SigmoidTreeNetwork(final JsonObject json) {
-    super(json);
+  protected SigmoidTreeNetwork(final JsonObject json, Map<String, byte[]> rs) {
+    super(json, rs);
     head = nodesById.get(UUID.fromString(json.get("head").getAsString()));
     if (json.get("alpha") != null) {
       alpha = layersById.get(UUID.fromString(json.get("alpha").getAsString()));
@@ -102,8 +105,8 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
    * @param json the json
    * @return the sigmoid tree network
    */
-  public static SigmoidTreeNetwork fromJson(final JsonObject json) {
-    return new SigmoidTreeNetwork(json);
+  public static SigmoidTreeNetwork fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    return new SigmoidTreeNetwork(json, rs);
   }
   
   /**
@@ -177,10 +180,10 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     assertConsistent();
     final DAGNode head = getHead();
-    final JsonObject json = super.getJson();
+    final JsonObject json = super.getJson(resources, dataSerializer);
     json.addProperty("head", head.getId().toString());
     if (null != alpha) {
       json.addProperty("alpha", alpha.getId().toString());

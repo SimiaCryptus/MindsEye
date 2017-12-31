@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
 
@@ -56,10 +57,11 @@ public class ReLuActivationLayer extends NNLayer {
    * Instantiates a new Re lu activation layer.
    *
    * @param json the json
+   * @param resources
    */
-  protected ReLuActivationLayer(final JsonObject json) {
+  protected ReLuActivationLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
-    weights = Tensor.fromJson(json.get("weights"));
+    weights = Tensor.fromJson(json.get("weights"), resources);
   }
   
   /**
@@ -68,8 +70,8 @@ public class ReLuActivationLayer extends NNLayer {
    * @param json the json
    * @return the re lu activation layer
    */
-  public static ReLuActivationLayer fromJson(final JsonObject json) {
-    return new ReLuActivationLayer(json);
+  public static ReLuActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    return new ReLuActivationLayer(json, rs);
   }
   
   /**
@@ -104,9 +106,9 @@ public class ReLuActivationLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
-    json.add("weights", weights.toJson());
+    json.add("weights", weights.toJson(resources, dataSerializer));
     return json;
   }
   

@@ -20,6 +20,9 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+
+import java.util.Map;
 
 /**
  * The type Binary entropy activation layer.
@@ -48,7 +51,7 @@ public final class BinaryEntropyActivationLayer extends SimpleActivationLayer<Bi
    * @param json the json
    * @return the binary entropy activation layer
    */
-  public static BinaryEntropyActivationLayer fromJson(final JsonObject json) {
+  public static BinaryEntropyActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new BinaryEntropyActivationLayer(json);
   }
   
@@ -64,7 +67,7 @@ public final class BinaryEntropyActivationLayer extends SimpleActivationLayer<Bi
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

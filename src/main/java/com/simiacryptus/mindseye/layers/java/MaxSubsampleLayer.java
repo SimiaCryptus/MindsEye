@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.IntToDoubleFunction;
 import java.util.stream.Collectors;
@@ -104,7 +105,7 @@ public class MaxSubsampleLayer extends NNLayer {
    * @param json the json
    * @return the max subsample layer
    */
-  public static MaxSubsampleLayer fromJson(final JsonObject json) {
+  public static MaxSubsampleLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new MaxSubsampleLayer(json,
                                  JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
@@ -173,7 +174,7 @@ public class MaxSubsampleLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.add("inner", JsonUtil.getJson(kernelDims));
     return json;

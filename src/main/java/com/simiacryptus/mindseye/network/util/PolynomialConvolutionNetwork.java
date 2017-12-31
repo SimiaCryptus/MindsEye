@@ -25,6 +25,8 @@ import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ProductLayer;
 
+import java.util.Map;
+
 /**
  * The type Polynomial convolution network.
  */
@@ -50,9 +52,10 @@ public class PolynomialConvolutionNetwork extends PolynomialNetwork {
    * Instantiates a new Polynomial convolution network.
    *
    * @param json the json
+   * @param rs
    */
-  protected PolynomialConvolutionNetwork(final JsonObject json) {
-    super(json);
+  protected PolynomialConvolutionNetwork(final JsonObject json, Map<String, byte[]> rs) {
+    super(json, rs);
     radius = json.get("radius").getAsInt();
     json.get("simple").getAsBoolean();
   }
@@ -63,8 +66,8 @@ public class PolynomialConvolutionNetwork extends PolynomialNetwork {
    * @param json the json
    * @return the polynomial convolution network
    */
-  public static PolynomialConvolutionNetwork fromJson(final JsonObject json) {
-    return new PolynomialConvolutionNetwork(json);
+  public static PolynomialConvolutionNetwork fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    return new PolynomialConvolutionNetwork(json, rs);
   }
   
   @Override

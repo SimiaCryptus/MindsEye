@@ -26,6 +26,7 @@ import jcuda.jcudnn.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.DoubleSupplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
@@ -52,7 +53,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
    * Instantiates a new Convolution layer.
    */
   protected SimpleConvolutionLayer() {
-    this((Tensor) null);
+    this(null);
   }
   
   /**
@@ -72,10 +73,11 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
    * Instantiates a new Convolution layer.
    *
    * @param json the json
+   * @param resources
    */
-  protected SimpleConvolutionLayer(final JsonObject json) {
+  protected SimpleConvolutionLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
-    kernel = Tensor.fromJson(json.get("filter"));
+    kernel = Tensor.fromJson(json.get("filter"), resources);
     strideX = json.get("strideX").getAsInt();
     strideY = json.get("strideY").getAsInt();
     setPaddingX(json.get("paddingX").getAsInt());
@@ -107,8 +109,8 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
    * @param json the json
    * @return the convolution layer
    */
-  public static SimpleConvolutionLayer fromJson(final JsonObject json) {
-    return new SimpleConvolutionLayer(json);
+  public static SimpleConvolutionLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    return new SimpleConvolutionLayer(json, rs);
   }
   
   /**
@@ -252,9 +254,9 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
-    json.add("filter", kernel.toJson());
+    json.add("filter", kernel.toJson(resources, dataSerializer));
     json.addProperty("strideX", strideX);
     json.addProperty("strideY", strideY);
     json.addProperty("paddingX", getPaddingX());

@@ -25,6 +25,7 @@ import com.simiacryptus.util.Util;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.DoubleSupplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
@@ -113,11 +114,12 @@ public class ConvolutionLayer extends NNLayer {
    * Instantiates a new Convolution layer.
    *
    * @param json the json
+   * @param resources
    */
-  protected ConvolutionLayer(final JsonObject json) {
+  protected ConvolutionLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
-    kernel = Tensor.fromJson(json.get("filter"));
-    skip = Tensor.fromJson(json.get("skip"));
+    kernel = Tensor.fromJson(json.get("filter"), resources);
+    skip = Tensor.fromJson(json.get("skip"), resources);
     simple = json.getAsJsonPrimitive("simple").getAsBoolean();
   }
   
@@ -145,8 +147,8 @@ public class ConvolutionLayer extends NNLayer {
    * @param json the json
    * @return the convolution layer
    */
-  public static ConvolutionLayer fromJson(final JsonObject json) {
-    return new ConvolutionLayer(json);
+  public static ConvolutionLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    return new ConvolutionLayer(json, rs);
   }
   
   /**
@@ -211,10 +213,10 @@ public class ConvolutionLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
-    json.add("filter", kernel.toJson());
-    json.add("skip", skip.toJson());
+    json.add("filter", kernel.toJson(resources, dataSerializer));
+    json.add("skip", skip.toJson(resources, dataSerializer));
     json.addProperty("simple", simple);
     return json;
   }

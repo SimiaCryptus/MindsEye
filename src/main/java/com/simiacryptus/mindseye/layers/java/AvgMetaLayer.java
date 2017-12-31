@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
@@ -55,10 +56,11 @@ public class AvgMetaLayer extends NNLayer {
    * Instantiates a new Avg meta layer.
    *
    * @param json the json
+   * @param resources
    */
-  protected AvgMetaLayer(final JsonObject json) {
+  protected AvgMetaLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
-    lastResult = Tensor.fromJson(json.get("lastResult"));
+    lastResult = Tensor.fromJson(json.get("lastResult"), resources);
     minBatchCount = json.get("minBatchCount").getAsInt();
   }
   
@@ -68,8 +70,8 @@ public class AvgMetaLayer extends NNLayer {
    * @param json the json
    * @return the avg meta layer
    */
-  public static AvgMetaLayer fromJson(final JsonObject json) {
-    return new AvgMetaLayer(json);
+  public static AvgMetaLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    return new AvgMetaLayer(json, rs);
   }
   
   @Override
@@ -116,10 +118,10 @@ public class AvgMetaLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     if (null != lastResult) {
-      json.add("lastResult", lastResult.toJson());
+      json.add("lastResult", lastResult.toJson(resources, dataSerializer));
     }
     json.addProperty("minBatchCount", minBatchCount);
     return json;

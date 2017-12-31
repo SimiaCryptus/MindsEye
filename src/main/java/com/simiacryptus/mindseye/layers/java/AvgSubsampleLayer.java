@@ -102,7 +102,7 @@ public class AvgSubsampleLayer extends NNLayer {
    * @param json the json
    * @return the avg subsample layer
    */
-  public static AvgSubsampleLayer fromJson(final JsonObject json) {
+  public static AvgSubsampleLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new AvgSubsampleLayer(json,
                                  JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
@@ -163,7 +163,7 @@ public class AvgSubsampleLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.add("inner", JsonUtil.getJson(kernelDims));
     return json;

@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Concatenates two or more images with the same resolution so the output contains all input color bands.
@@ -58,7 +59,7 @@ public class ImgConcatLayer extends NNLayer {
    * @param json the json
    * @return the img concat layer
    */
-  public static ImgConcatLayer fromJson(final JsonObject json) {
+  public static ImgConcatLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new ImgConcatLayer(json);
   }
   
@@ -132,7 +133,7 @@ public class ImgConcatLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.stream.IntStream;
 
@@ -86,7 +87,7 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
    * @param json the json
    * @return the dropout noise layer
    */
-  public static DropoutNoiseLayer fromJson(final JsonObject json) {
+  public static DropoutNoiseLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new DropoutNoiseLayer(json);
   }
   
@@ -115,7 +116,7 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("value", value);
     return json;

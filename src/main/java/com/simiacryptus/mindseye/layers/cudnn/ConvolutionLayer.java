@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
@@ -81,10 +82,11 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
    * Instantiates a new Convolution layer.
    *
    * @param json the json
+   * @param resources
    */
-  protected ConvolutionLayer(final JsonObject json) {
+  protected ConvolutionLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
-    this.kernel = Tensor.fromJson(json.get("filter"));
+    this.kernel = Tensor.fromJson(json.get("filter"), resources);
     this.setStrideX(json.get("strideX").getAsInt());
     this.setStrideY(json.get("strideY").getAsInt());
     JsonElement paddingX = json.get("paddingX");
@@ -114,8 +116,8 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
    * @param json the json
    * @return the convolution layer
    */
-  public static ConvolutionLayer fromJson(final JsonObject json) {
-    return new ConvolutionLayer(json);
+  public static ConvolutionLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    return new ConvolutionLayer(json, rs);
   }
   
   /**
@@ -222,9 +224,9 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
-    json.add("filter", kernel.toJson());
+    json.add("filter", kernel.toJson(resources, dataSerializer));
     json.addProperty("strideX", getStrideX());
     json.addProperty("strideY", getStrideY());
     json.addProperty("paddingX", getPaddingX());

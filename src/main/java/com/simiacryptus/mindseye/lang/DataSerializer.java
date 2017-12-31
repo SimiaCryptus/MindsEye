@@ -17,27 +17,24 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.models;
+package com.simiacryptus.mindseye.lang;
 
-import com.simiacryptus.util.io.NotebookOutput;
-
-/**
- * The type Layer test base.
- */
-public class VGG16_HDF5_Test extends ImageClassifierTestBase {
+public interface DataSerializer {
+  void copy(double[] from, byte[] to);
   
-  @Override
-  public ImageClassifier getImageClassifier(NotebookOutput log) {
-    return log.code(() -> {
-      VGG16_HDF5 vgg16_hdf5 = VGG16_HDF5.fromS3();
-      vgg16_hdf5.getHDF5().print();
-      return vgg16_hdf5;
-    });
+  void copy(byte[] from, double[] to);
+  
+  int getElementSize();
+  
+  default byte[] toBytes(double[] from) {
+    byte[] to = new byte[from.length * getElementSize()];
+    copy(from, to);
+    return to;
   }
   
-  @Override
-  protected Class<?> getTargetClass() {
-    return VGG16_HDF5.class;
+  default double[] fromBytes(byte[] from) {
+    double[] to = new double[from.length / getElementSize()];
+    copy(from, to);
+    return to;
   }
-  
 }

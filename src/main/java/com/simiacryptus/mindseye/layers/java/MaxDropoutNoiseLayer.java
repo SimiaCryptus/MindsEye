@@ -27,10 +27,7 @@ import com.simiacryptus.util.io.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -80,7 +77,7 @@ public class MaxDropoutNoiseLayer extends NNLayer {
    * @param json the json
    * @return the max dropout noise layer
    */
-  public static MaxDropoutNoiseLayer fromJson(final JsonObject json) {
+  public static MaxDropoutNoiseLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new MaxDropoutNoiseLayer(json);
   }
   
@@ -123,7 +120,7 @@ public class MaxDropoutNoiseLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.add("kernelSize", JsonUtil.getJson(kernelSize));
     return json;

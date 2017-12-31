@@ -45,6 +45,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.URI;
 import java.util.*;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -60,6 +61,7 @@ public class TestUtil {
    * The constant originalOut.
    */
   public static final PrintStream originalOut = System.out;
+  public static final URI S3_ROOT = URI.create("https://s3-us-west-2.amazonaws.com/simiacryptus/");
   private static final Logger logger = LoggerFactory.getLogger(TestUtil.class);
   
   /**
@@ -216,13 +218,11 @@ public class TestUtil {
           metrics.put(layer.getInner(), layer);
         }
       });
-      logger.info("Forward Performance: \n\t" + metrics.entrySet().stream().map(e -> {
-        final PercentileStatistics performance = e.getValue().getForwardPerformance();
-        return String.format("%s -> %.6fs +- %.6fs (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
-      }).reduce((a, b) -> a + "\n\t" + b));
-      logger.info("Backward Performance: \n\t" + metrics.entrySet().stream().map(e -> {
-        final PercentileStatistics performance = e.getValue().getBackwardPerformance();
-        return String.format("%s -> %.6fs +- %.6fs (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
+      logger.info("Performance: \n\t" + metrics.entrySet().stream().map(e -> {
+        final PercentileStatistics performanceF = e.getValue().getForwardPerformance();
+        final PercentileStatistics performanceB = e.getValue().getBackwardPerformance();
+        return String.format("%s -> %.6fs +- %.6fs (%d)", e.getKey(), performanceF.getMean(), performanceF.getStdDev(), performanceF.getCount()) +
+          (performanceB.getCount() == 0 ? "" : String.format("%n\tBack: %.6fs +- %.6fs (%s)", performanceB.getMean(), performanceB.getStdDev(), performanceB.getCount()));
       }).reduce((a, b) -> a + "\n\t" + b));
     });
     network.visitNodes(node -> {

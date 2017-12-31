@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -58,7 +59,7 @@ public class ProductLayer extends NNLayer {
    * @param json the json
    * @return the product layer
    */
-  public static ProductLayer fromJson(final JsonObject json) {
+  public static ProductLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new ProductLayer(json);
   }
   
@@ -107,7 +108,7 @@ public class ProductLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

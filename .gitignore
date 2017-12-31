@@ -8,3 +8,7 @@ logs/
 *.iml
 *.gz
 *.zip
+*.log
+reports/
+logs/
+www/

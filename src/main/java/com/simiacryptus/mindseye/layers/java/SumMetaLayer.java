@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
@@ -51,10 +52,11 @@ public class SumMetaLayer extends NNLayer {
    * Instantiates a new Sum meta layer.
    *
    * @param json the id
+   * @param resources
    */
-  protected SumMetaLayer(final JsonObject json) {
+  protected SumMetaLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
-    lastResult = Tensor.fromJson(json.get("lastResult"));
+    lastResult = Tensor.fromJson(json.get("lastResult"), resources);
     minBatches = json.get("minBatches").getAsInt();
   }
   
@@ -64,8 +66,8 @@ public class SumMetaLayer extends NNLayer {
    * @param json the json
    * @return the sum meta layer
    */
-  public static SumMetaLayer fromJson(final JsonObject json) {
-    return new SumMetaLayer(json);
+  public static SumMetaLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    return new SumMetaLayer(json, rs);
   }
   
   @Override
@@ -106,10 +108,10 @@ public class SumMetaLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     if (null != lastResult) {
-      json.add("lastResult", lastResult.toJson());
+      json.add("lastResult", lastResult.toJson(resources, dataSerializer));
     }
     json.addProperty("minBatches", minBatches);
     return json;

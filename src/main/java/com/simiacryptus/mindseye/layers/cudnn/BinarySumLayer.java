@@ -25,6 +25,7 @@ import jcuda.jcudnn.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Computes a weighted binary sum of two layers. Provides two weighting coefficients, one for each input. This can be
@@ -73,7 +74,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
    * @param json the json
    * @return the product inputs layer
    */
-  public static BinarySumLayer fromJson(final JsonObject json) {
+  public static BinarySumLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new BinarySumLayer(json);
   }
   
@@ -151,7 +152,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("rightFactor", rightFactor);
     json.addProperty("leftFactor", leftFactor);

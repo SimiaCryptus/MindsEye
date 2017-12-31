@@ -20,6 +20,9 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+
+import java.util.Map;
 
 /**
  * A y=log(abs(x)) activation function. Note the discontinuity at 0.
@@ -48,7 +51,7 @@ public final class LogActivationLayer extends SimpleActivationLayer<LogActivatio
    * @param json the json
    * @return the log activation layer
    */
-  public static LogActivationLayer fromJson(final JsonObject json) {
+  public static LogActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new LogActivationLayer(json);
   }
   
@@ -75,7 +78,7 @@ public final class LogActivationLayer extends SimpleActivationLayer<LogActivatio
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

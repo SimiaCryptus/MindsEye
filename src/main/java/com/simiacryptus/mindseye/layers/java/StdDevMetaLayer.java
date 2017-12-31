@@ -25,6 +25,8 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
 /**
  * The type Std dev meta layer.
  */
@@ -63,9 +65,10 @@ public class StdDevMetaLayer extends PipelineNetwork {
    * Instantiates a new Std dev meta layer.
    *
    * @param json the json
+   * @param rs
    */
-  protected StdDevMetaLayer(final JsonObject json) {
-    super(json);
+  protected StdDevMetaLayer(final JsonObject json, Map<String, byte[]> rs) {
+    super(json, rs);
   }
   
   /**
@@ -74,8 +77,8 @@ public class StdDevMetaLayer extends PipelineNetwork {
    * @param json the json
    * @return the std dev meta layer
    */
-  public static StdDevMetaLayer fromJson(final JsonObject json) {
-    return new StdDevMetaLayer(json);
+  public static StdDevMetaLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    return new StdDevMetaLayer(json, rs);
   }
   
 }

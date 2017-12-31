@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -58,7 +59,7 @@ public class AvgReducerLayer extends NNLayer {
    * @param json the json
    * @return the avg reducer layer
    */
-  public static AvgReducerLayer fromJson(final JsonObject json) {
+  public static AvgReducerLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new AvgReducerLayer(json);
   }
   
@@ -106,7 +107,7 @@ public class AvgReducerLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

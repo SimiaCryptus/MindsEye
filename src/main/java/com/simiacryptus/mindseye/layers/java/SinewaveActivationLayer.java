@@ -20,6 +20,9 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+
+import java.util.Map;
 
 /**
  * Calculates y=sin(x) in radians with signed unit amplitude.
@@ -51,7 +54,7 @@ public final class SinewaveActivationLayer extends SimpleActivationLayer<Sinewav
    * @param json the json
    * @return the sinewave activation layer
    */
-  public static SinewaveActivationLayer fromJson(final JsonObject json) {
+  public static SinewaveActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new SinewaveActivationLayer(json);
   }
   
@@ -68,7 +71,7 @@ public final class SinewaveActivationLayer extends SimpleActivationLayer<Sinewav
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("balanced", balanced);
     return json;

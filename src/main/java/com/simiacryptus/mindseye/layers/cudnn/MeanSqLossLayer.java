@@ -20,10 +20,13 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.layers.java.AvgReducerLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 
 /**
  * Implements the RMS loss layer (without the final square root). Implemented as a sutnetwork.
@@ -49,9 +52,10 @@ public class MeanSqLossLayer extends PipelineNetwork {
    * Instantiates a new Mean sq loss layer.
    *
    * @param id the id
+   * @param rs
    */
-  protected MeanSqLossLayer(final JsonObject id) {
-    super(id);
+  protected MeanSqLossLayer(final JsonObject id, Map<String, byte[]> rs) {
+    super(id, rs);
   }
   
   /**
@@ -60,13 +64,13 @@ public class MeanSqLossLayer extends PipelineNetwork {
    * @param json the json
    * @return the mean sq loss layer
    */
-  public static MeanSqLossLayer fromJson(final JsonObject json) {
-    return new MeanSqLossLayer(json);
+  public static MeanSqLossLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    return new MeanSqLossLayer(json, rs);
   }
   
   @Override
-  public JsonObject getJson() {
-    return super.getJson();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    return super.getJson(resources, dataSerializer);
   }
   
 }

@@ -20,14 +20,12 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.NNExecutionContext;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer.PoolingMode;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Similar to the pooling layer, but the pool size is always the image size. The output dimensions are always 1x1xN.
@@ -62,7 +60,7 @@ public class BandReducerLayer extends NNLayer implements LayerPrecision<BandRedu
    * @param json the json
    * @return the pooling layer
    */
-  public static BandReducerLayer fromJson(final JsonObject json) {
+  public static BandReducerLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new BandReducerLayer(json);
   }
   
@@ -78,7 +76,7 @@ public class BandReducerLayer extends NNLayer implements LayerPrecision<BandRedu
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("mode", mode.id);
     json.addProperty("precision", precision.name());

@@ -63,6 +63,16 @@ public class TimedResult<T> {
     return new TimedResult<T>(result, System.nanoTime() - start);
   }
   
+  public static <T> TimedResult<Void> time(final UncheckedRunnable<T> fn) {
+    final long start = System.nanoTime();
+    try {
+      fn.get();
+    } catch (final Exception e) {
+      throw new RuntimeException(e);
+    }
+    return new TimedResult<Void>(null, System.nanoTime() - start);
+  }
+  
   /**
    * Seconds double.
    *

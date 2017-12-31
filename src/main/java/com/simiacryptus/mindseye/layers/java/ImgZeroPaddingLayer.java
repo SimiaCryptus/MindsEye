@@ -20,12 +20,14 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Reduces the resolution of the input by selecting a centered window. The output image will have the same number of
@@ -67,7 +69,7 @@ public class ImgZeroPaddingLayer extends NNLayer {
    * @param json the json
    * @return the img crop layer
    */
-  public static ImgZeroPaddingLayer fromJson(final JsonObject json) {
+  public static ImgZeroPaddingLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new ImgZeroPaddingLayer(json);
   }
   
@@ -79,7 +81,7 @@ public class ImgZeroPaddingLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("sizeX", sizeX);
     json.addProperty("sizeY", sizeX);

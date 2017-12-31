@@ -25,6 +25,7 @@ import jcuda.jcudnn.cudnnTensorDescriptor;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Concatenates two or more inputs, assuming they have the same width and height, to produce an image with both inputs'
@@ -59,7 +60,7 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
    * @param json the json
    * @return the img concat layer
    */
-  public static ImgConcatLayer fromJson(final JsonObject json) {
+  public static ImgConcatLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new ImgConcatLayer(json);
   }
   
@@ -143,7 +144,7 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("maxBands", maxBands);
     json.addProperty("precision", precision.name());

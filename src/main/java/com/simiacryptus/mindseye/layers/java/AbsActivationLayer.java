@@ -20,6 +20,9 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+
+import java.util.Map;
 
 /**
  * The Absolute Value.
@@ -48,7 +51,7 @@ public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivatio
    * @param json the json
    * @return the abs activation layer
    */
-  public static AbsActivationLayer fromJson(final JsonObject json) {
+  public static AbsActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new AbsActivationLayer(json);
   }
   
@@ -64,7 +67,7 @@ public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivatio
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

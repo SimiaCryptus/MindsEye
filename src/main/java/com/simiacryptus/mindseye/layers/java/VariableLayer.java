@@ -20,9 +20,11 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNLayer;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Acts as a mutable placeholder layer, whose inner implementation can be setByCoord and changed.
@@ -55,7 +57,7 @@ public class VariableLayer extends WrapperLayer {
    * @param json the json
    * @return the variable layer
    */
-  public static VariableLayer fromJson(final JsonObject json) {
+  public static VariableLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new VariableLayer(json);
   }
   
@@ -65,9 +67,9 @@ public class VariableLayer extends WrapperLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
-    json.add("inner", getInner().getJson());
+    json.add("inner", getInner().getJson(resources, dataSerializer));
     return json;
   }
   

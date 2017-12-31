@@ -20,6 +20,9 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+
+import java.util.Map;
 
 /**
  * Enforces a maximum-value constraint on the input signal, rounding down any values exceeding a setByCoord threshold.
@@ -51,7 +54,7 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
    * @param json the json
    * @return the max const layer
    */
-  public static MaxConstLayer fromJson(final JsonObject json) {
+  public static MaxConstLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     final MaxConstLayer obj = new MaxConstLayer(json);
     obj.value = json.get("value").getAsDouble();
     return obj;
@@ -67,7 +70,7 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("value", value);
     return json;

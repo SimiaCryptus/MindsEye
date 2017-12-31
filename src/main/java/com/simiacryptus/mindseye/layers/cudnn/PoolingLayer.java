@@ -25,6 +25,7 @@ import jcuda.jcudnn.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The standard image-pixel pooling layer. Using a configurable stride and window size, reduces pixels using either the
@@ -72,7 +73,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    * @param json the json
    * @return the pooling layer
    */
-  public static PoolingLayer fromJson(final JsonObject json) {
+  public static PoolingLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new PoolingLayer(json);
   }
   
@@ -141,7 +142,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("mode", mode.id);
     json.addProperty("windowX", windowX);

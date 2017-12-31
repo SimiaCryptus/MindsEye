@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -139,7 +140,7 @@ public class ImgReshapeLayer extends NNLayer {
    * @param json the json
    * @return the img reshape layer
    */
-  public static ImgReshapeLayer fromJson(final JsonObject json) {
+  public static ImgReshapeLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new ImgReshapeLayer(json);
   }
   
@@ -191,7 +192,7 @@ public class ImgReshapeLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("kernelSizeX", kernelSizeX);
     json.addProperty("kernelSizeY", kernelSizeX);

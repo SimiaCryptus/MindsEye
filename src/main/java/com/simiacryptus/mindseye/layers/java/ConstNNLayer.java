@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This layer does not require any input, and produces a constant output. This constant can be tuned by optimization
@@ -38,10 +39,11 @@ public class ConstNNLayer extends NNLayer {
    * Instantiates a new Const nn layer.
    *
    * @param json the json
+   * @param resources
    */
-  protected ConstNNLayer(final JsonObject json) {
+  protected ConstNNLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
-    data = Tensor.fromJson(json.get("value"));
+    data = Tensor.fromJson(json.get("value"), resources);
   }
   
   /**
@@ -61,8 +63,8 @@ public class ConstNNLayer extends NNLayer {
    * @param json the json
    * @return the const nn layer
    */
-  public static ConstNNLayer fromJson(final JsonObject json) {
-    return new ConstNNLayer(json);
+  public static ConstNNLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    return new ConstNNLayer(json, rs);
   }
   
   @Override
@@ -103,9 +105,9 @@ public class ConstNNLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
-    json.add("value", data.toJson());
+    json.add("value", data.toJson(resources, dataSerializer));
     return json;
   }
   

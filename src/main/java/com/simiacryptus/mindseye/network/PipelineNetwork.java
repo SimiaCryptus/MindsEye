@@ -20,11 +20,13 @@
 package com.simiacryptus.mindseye.network;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.java.ConstNNLayer;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -63,8 +65,8 @@ public class PipelineNetwork extends DAGNetwork {
    *
    * @param json the json
    */
-  protected PipelineNetwork(final JsonObject json) {
-    super(json);
+  protected PipelineNetwork(final JsonObject json, Map<String, byte[]> rs) {
+    super(json, rs);
     final UUID headId = UUID.fromString(json.get("head").getAsString());
     assert null != headId;
     head = nodesById.get(headId);
@@ -94,8 +96,8 @@ public class PipelineNetwork extends DAGNetwork {
    * @param json the json
    * @return the pipeline network
    */
-  public static PipelineNetwork fromJson(final JsonObject json) {
-    return new PipelineNetwork(json);
+  public static PipelineNetwork fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    return new PipelineNetwork(json, rs);
   }
   
   /**
@@ -186,11 +188,10 @@ public class PipelineNetwork extends DAGNetwork {
   }
   
   @Override
-  public JsonObject getJson() {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     assertConsistent();
-    final JsonObject json = super.getJson();
+    final JsonObject json = super.getJson(resources, dataSerializer);
     json.addProperty("head", head.getId().toString());
-    assert null != NNLayer.fromJson(json) : "Smoke test deserialization";
     return json;
   }
   
