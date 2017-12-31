@@ -61,6 +61,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
    * From json monitoring wrapper layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the monitoring wrapper layer
    */
   public static LoggingWrapperLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

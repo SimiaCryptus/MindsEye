@@ -57,6 +57,7 @@ public class ProductLayer extends NNLayer {
    * From json product layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the product layer
    */
   public static ProductLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

@@ -49,6 +49,7 @@ public final class SqActivationLayer extends SimpleActivationLayer<SqActivationL
    * From json sq activation layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the sq activation layer
    */
   public static SqActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

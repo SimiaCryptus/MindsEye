@@ -213,6 +213,35 @@ public interface NotebookOutput extends Closeable {
   }
   
   /**
+   * Append front matter property.
+   *
+   * @param key   the key
+   * @param value the value
+   */
+  default void appendFrontMatterProperty(String key, String value) {appendFrontMatterProperty(key, value, "");}
+  
+  /**
+   * Append front matter property.
+   *
+   * @param key       the key
+   * @param value     the value
+   * @param delimiter the delimiter
+   */
+  default void appendFrontMatterProperty(String key, String value, String delimiter) {
+    String prior = getFrontMatterProperty(key);
+    if (null == prior) setFrontMatterProperty(key, value);
+    else setFrontMatterProperty(key, prior + delimiter + value);
+  }
+  
+  /**
+   * Gets front matter property.
+   *
+   * @param key the key
+   * @return the front matter property
+   */
+  String getFrontMatterProperty(String key);
+  
+  /**
    * Gets name.
    *
    * @return the name

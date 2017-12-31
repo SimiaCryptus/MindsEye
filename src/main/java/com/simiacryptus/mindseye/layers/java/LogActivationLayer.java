@@ -49,6 +49,7 @@ public final class LogActivationLayer extends SimpleActivationLayer<LogActivatio
    * From json log activation layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the log activation layer
    */
   public static LogActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

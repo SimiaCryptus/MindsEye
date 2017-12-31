@@ -56,6 +56,7 @@ public final class NthPowerActivationLayer extends NNLayer {
    * From json nth power activation layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the nth power activation layer
    */
   public static NthPowerActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

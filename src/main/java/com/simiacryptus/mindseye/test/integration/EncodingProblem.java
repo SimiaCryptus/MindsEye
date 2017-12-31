@@ -33,11 +33,13 @@ import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.TableOutput;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 
+import javax.imageio.ImageIO;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -210,7 +212,7 @@ public class EncodingProblem implements Problem {
       preTrainer.setTimeout(timeoutMinutes / 2, TimeUnit.MINUTES).setMaxIterations(batchSize).run();
     });
     TestUtil.extractPerformance(log, trainingNetwork);
-
+  
     log.p("Then our main training phase:");
     TestUtil.instrumentPerformance(log, trainingNetwork);
     final ValidatingTrainer mainTrainer = optimizer.train(log,
@@ -220,7 +222,7 @@ public class EncodingProblem implements Problem {
       mainTrainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(batchSize).run();
     });
     TestUtil.extractPerformance(log, trainingNetwork);
-
+  
     if (!history.isEmpty()) {
       log.code(() -> {
         return TestUtil.plot(history);
@@ -229,7 +231,18 @@ public class EncodingProblem implements Problem {
         return TestUtil.plotTime(history);
       });
     }
-    final String modelName = "encoding_model" + EncodingProblem.modelNo++ + ".json";
+  
+    try {
+      String filename = log.getName() + EncodingProblem.modelNo++ + "_plot.png";
+      ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(filename));
+      log.appendFrontMatterProperty("result_plot", filename, ";");
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  
+    //log.file()
+    final String modelName = "encoding_model_" + EncodingProblem.modelNo++ + ".json";
+    log.appendFrontMatterProperty("result_model", modelName, ";");
     log.p("Saved model as " + log.file(trainingNetwork.getJson().toString(), modelName, modelName));
   
     log.h3("Results");

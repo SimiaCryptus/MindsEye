@@ -147,7 +147,7 @@ public class ImageDecompositionLab {
     final int size = 400;
     String source = "H:\\SimiaCryptus\\photos";
     displayImage = images;
-
+  
     final Tensor[][] trainingImages = null == source ? EncodingUtil.getImages(log, size, images, "kangaroo") :
       Arrays.stream(new File(source).listFiles()).map(input -> {
         try {
@@ -159,7 +159,7 @@ public class ImageDecompositionLab {
         new Tensor(1.0),
         Tensor.fromRGB(TestUtil.resize(img, size))
       }).toArray(i -> new Tensor[i][]);
-
+  
     Arrays.stream(trainingImages).map(x -> x[1]).map(x -> x.toImage()).map(x -> {
       try {
         return log.image(x, "example");

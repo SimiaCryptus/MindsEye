@@ -81,8 +81,20 @@ public abstract class NNLayer implements Serializable {
     this.name = name;
   }
   
+  /**
+   * From json nn layer.
+   *
+   * @param json the json
+   * @return the nn layer
+   */
   public static NNLayer fromJson(final JsonObject json) { return fromJson(json, null);}
   
+  /**
+   * From zip nn layer.
+   *
+   * @param zipfile the zipfile
+   * @return the nn layer
+   */
   public static NNLayer fromZip(final ZipFile zipfile) {
     Enumeration<? extends ZipEntry> entries = zipfile.entries();
     JsonObject json = null;
@@ -110,6 +122,7 @@ public abstract class NNLayer implements Serializable {
    * From json nn layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the nn layer
    */
   public static NNLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
@@ -235,18 +248,34 @@ public abstract class NNLayer implements Serializable {
   /**
    * Gets json.
    *
-   * @param resources
-   * @param dataSerializer
+   * @param resources      the resources
+   * @param dataSerializer the data serializer
    * @return the json
    */
   public abstract JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer);
   
+  /**
+   * Gets json.
+   *
+   * @return the json
+   */
   public final JsonObject getJson() {
     return getJson(null, SerialPrecision.Double);
   }
   
+  /**
+   * Write zip.
+   *
+   * @param out the out
+   */
   public final void writeZip(File out) {writeZip(out, SerialPrecision.Double);}
   
+  /**
+   * Write zip.
+   *
+   * @param out       the out
+   * @param precision the precision
+   */
   public final void writeZip(File out, SerialPrecision precision) {
     try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(out))) {
       writeZip(zipOutputStream, precision);
@@ -255,8 +284,19 @@ public abstract class NNLayer implements Serializable {
     }
   }
   
+  /**
+   * Write zip.
+   *
+   * @param out the out
+   */
   public final void writeZip(ZipOutputStream out) {writeZip(out, SerialPrecision.Double);}
   
+  /**
+   * Write zip.
+   *
+   * @param out       the out
+   * @param precision the precision
+   */
   public final void writeZip(ZipOutputStream out, SerialPrecision precision) {
     try {
       HashMap<String, byte[]> resources = new HashMap<>();

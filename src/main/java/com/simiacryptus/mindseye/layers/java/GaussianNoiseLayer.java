@@ -73,6 +73,7 @@ public class GaussianNoiseLayer extends NNLayer {
    * From json gaussian noise layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the gaussian noise layer
    */
   public static GaussianNoiseLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

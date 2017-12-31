@@ -55,8 +55,8 @@ public class HyperbolicActivationLayer extends NNLayer {
   /**
    * Instantiates a new Hyperbolic activation layer.
    *
-   * @param json the json
-   * @param resources
+   * @param json      the json
+   * @param resources the resources
    */
   protected HyperbolicActivationLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
@@ -68,6 +68,7 @@ public class HyperbolicActivationLayer extends NNLayer {
    * From json hyperbolic activation layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the hyperbolic activation layer
    */
   public static HyperbolicActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

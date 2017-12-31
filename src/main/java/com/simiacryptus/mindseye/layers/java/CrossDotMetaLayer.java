@@ -56,6 +56,7 @@ public class CrossDotMetaLayer extends NNLayer {
    * From json cross dot meta layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the cross dot meta layer
    */
   public static CrossDotMetaLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

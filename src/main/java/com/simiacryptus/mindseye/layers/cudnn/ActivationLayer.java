@@ -73,6 +73,7 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
    * From json activation layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the activation layer
    */
   public static ActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

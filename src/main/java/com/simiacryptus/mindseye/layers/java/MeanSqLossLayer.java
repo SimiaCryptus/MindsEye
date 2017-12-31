@@ -58,6 +58,7 @@ public class MeanSqLossLayer extends NNLayer {
    * From json mean sq loss layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the mean sq loss layer
    */
   public static MeanSqLossLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

@@ -76,6 +76,7 @@ public class ImgBandScaleLayer extends NNLayer {
    * From json img band scale layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the img band scale layer
    */
   public static ImgBandScaleLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

@@ -66,6 +66,7 @@ public class ImgBandSelectLayer extends NNLayer {
    * From json img band select layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the img band select layer
    */
   public static ImgBandSelectLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

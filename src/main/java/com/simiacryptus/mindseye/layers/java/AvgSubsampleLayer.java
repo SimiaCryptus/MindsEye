@@ -100,6 +100,7 @@ public class AvgSubsampleLayer extends NNLayer {
    * From json avg subsample layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the avg subsample layer
    */
   public static AvgSubsampleLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

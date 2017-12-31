@@ -86,6 +86,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
    * From json monitoring wrapper layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the monitoring wrapper layer
    */
   public static MonitoringWrapperLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

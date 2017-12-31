@@ -69,6 +69,11 @@ public class Hdf5Archive {
     this(new File(filename));
   }
   
+  /**
+   * Instantiates a new Hdf 5 archive.
+   *
+   * @param filename the filename
+   */
   public Hdf5Archive(File filename) {
     this.filename = filename;
     try {
@@ -515,6 +520,11 @@ public class Hdf5Archive {
     print(this, logger);
   }
   
+  /**
+   * Gets filename.
+   *
+   * @return the filename
+   */
   public File getFilename() {
     return filename;
   }

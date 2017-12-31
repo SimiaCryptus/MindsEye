@@ -26,16 +26,9 @@ import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.data.CIFAR10;
 import com.simiacryptus.mindseye.test.integration.*;
 import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.test.TestCategories;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-
-import java.io.IOException;
 
 /**
  * The type Mnist run base.
@@ -104,17 +97,10 @@ public class CifarTests {
     });
   };
   
-  private abstract static class AllTests {
-
-    private final CIFARProblemData data = new CIFARProblemData();
-    private final FwdNetworkFactory fwdFactory;
-    private final OptimizationStrategy optimizationStrategy;
-    private final RevNetworkFactory revFactory;
-    /**
-     * The Timeout minutes.
-     */
-    protected int timeoutMinutes = 10;
-
+  /**
+   * The type All cifar tests.
+   */
+  public abstract static class All_CIFAR_Tests extends AllTrainingTests {
     /**
      * Instantiates a new All tests.
      *
@@ -122,131 +108,30 @@ public class CifarTests {
      * @param revFactory           the rev factory
      * @param fwdFactory           the fwd factory
      */
-    public AllTests(final OptimizationStrategy optimizationStrategy, final RevNetworkFactory revFactory, final FwdNetworkFactory fwdFactory) {
-      this.revFactory = revFactory;
-      this.optimizationStrategy = optimizationStrategy;
-      this.fwdFactory = fwdFactory;
+    public All_CIFAR_Tests(final OptimizationStrategy optimizationStrategy, final RevNetworkFactory revFactory, final FwdNetworkFactory fwdFactory) {
+      super(fwdFactory, revFactory, optimizationStrategy);
     }
-
-    /**
-     * Autoencoder run.
-     *
-     * @throws IOException the io exception
-     */
-    @Test
-    @Ignore
-    @Category(TestCategories.Report.class)
-    public void autoencoder_test() throws IOException {
-      new NotebookReportBase() {
-        @Override
-        protected void run(NotebookOutput log) {
-      
-          log.h1("CIFAR10 Denoising Autoencoder");
-          intro(log);
-          new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data, 100, 0.8).setTimeoutMinutes(timeoutMinutes).run(log);
-        }
     
-        @Override
-        public void printHeader(NotebookOutput log) {
-          String fwdFactory_javadoc = printHeader(log, fwdFactory.getClass(), "fwd");
-          String optimizationStrategy_javadoc = printHeader(log, optimizationStrategy.getClass(), "opt");
-          String revFactory_javadoc = printHeader(log, revFactory.getClass(), "rev");
-          super.printHeader(log);
-          log.p("_Forward Strategy Javadoc_: " + fwdFactory_javadoc);
-          log.p("_Reverse Strategy Javadoc_: " + revFactory_javadoc);
-          log.p("_Optimization Strategy Javadoc_: " + optimizationStrategy_javadoc);
-        }
-    
-        @Override
-        protected Class<?> getTargetClass() {
-          return CIFAR10.class;
-        }
-      }.run();
+    @Override
+    protected Class<?> getTargetClass() {
+      return CIFAR10.class;
     }
-  
-    /**
-     * Classification run.
-     *
-     * @throws IOException the io exception
-     */
-    @Test
-    @Category(TestCategories.Report.class)
-    public void classification_test() throws IOException {
-      new NotebookReportBase() {
-        @Override
-        protected void run(NotebookOutput log) {
-      
-          log.h1("CIFAR10 Denoising Autoencoder");
-          intro(log);
-          new ClassifyProblem(fwdFactory, optimizationStrategy, data, 100).setTimeoutMinutes(timeoutMinutes).run(log);
-        }
     
-        @Override
-        public void printHeader(NotebookOutput log) {
-          String fwdFactory_javadoc = printHeader(log, fwdFactory.getClass(), "fwd");
-          String optimizationStrategy_javadoc = printHeader(log, optimizationStrategy.getClass(), "opt");
-          String revFactory_javadoc = printHeader(log, revFactory.getClass(), "rev");
-          super.printHeader(log);
-          log.p("_Forward Strategy Javadoc_: " + fwdFactory_javadoc);
-          log.p("_Reverse Strategy Javadoc_: " + revFactory_javadoc);
-          log.p("_Optimization Strategy Javadoc_: " + optimizationStrategy_javadoc);
-        }
-    
-        @Override
-        protected Class<?> getTargetClass() {
-          return CIFAR10.class;
-        }
-      }.run();
+    @Override
+    public ImageProblemData getData() {
+      return new CIFARProblemData();
     }
-  
-    /**
-     * Encoding run.
-     *
-     * @throws IOException the io exception
-     */
-    @Test
-    @Category(TestCategories.Report.class)
-    public void encoding_test() throws IOException {
-      new NotebookReportBase() {
-        @Override
-        protected void run(NotebookOutput log) {
-      
-          log.h1("CIFAR10 Image-to-Vector Encoding");
-          intro(log);
-          new EncodingProblem(revFactory, optimizationStrategy, data, 10).setTimeoutMinutes(timeoutMinutes).run(log);
-        }
     
-        @Override
-        public void printHeader(NotebookOutput log) {
-          String fwdFactory_javadoc = printHeader(log, fwdFactory.getClass(), "fwd");
-          String optimizationStrategy_javadoc = printHeader(log, optimizationStrategy.getClass(), "opt");
-          String revFactory_javadoc = printHeader(log, revFactory.getClass(), "rev");
-          super.printHeader(log);
-          log.p("_Forward Strategy Javadoc_: " + fwdFactory_javadoc);
-          log.p("_Reverse Strategy Javadoc_: " + revFactory_javadoc);
-          log.p("_Optimization Strategy Javadoc_: " + optimizationStrategy_javadoc);
-        }
-    
-        @Override
-        protected Class<?> getTargetClass() {
-          return CIFAR10.class;
-        }
-      }.run();
+    @Override
+    public String getDatasetName() {
+      return "CIFAR10";
     }
-  
-    /**
-     * Intro.
-     *
-     * @param log the log
-     */
-    protected abstract void intro(NotebookOutput log);
-  
   }
   
   /**
    * The type Owl qn.
    */
-  public static class OWL_QN extends AllTests {
+  public static class OWL_QN extends All_CIFAR_Tests {
     /**
      * Instantiates a new Owl qn.
      */
@@ -263,7 +148,7 @@ public class CifarTests {
   /**
    * The type Qqn.
    */
-  public static class QQN extends AllTests {
+  public static class QQN extends All_CIFAR_Tests {
     /**
      * Instantiates a new Qqn.
      */
@@ -281,7 +166,7 @@ public class CifarTests {
   /**
    * The type Sgd.
    */
-  public static class SGD extends AllTests {
+  public static class SGD extends All_CIFAR_Tests {
     /**
      * Instantiates a new Sgd.
      */

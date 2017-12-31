@@ -56,6 +56,7 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
    * From json product inputs layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the product inputs layer
    */
   public static ProductLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

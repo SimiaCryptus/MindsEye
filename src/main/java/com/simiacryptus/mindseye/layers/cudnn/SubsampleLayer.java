@@ -57,6 +57,7 @@ public class SubsampleLayer extends NNLayer implements LayerPrecision<SubsampleL
    * From json img concat layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the img concat layer
    */
   public static SubsampleLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

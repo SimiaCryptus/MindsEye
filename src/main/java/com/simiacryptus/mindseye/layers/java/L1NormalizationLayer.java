@@ -62,6 +62,7 @@ public class L1NormalizationLayer extends NNLayer {
    * From json l 1 normalization layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the l 1 normalization layer
    */
   public static L1NormalizationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

@@ -52,7 +52,7 @@ public class NormalizationMetaLayer extends PipelineNetwork {
    * Instantiates a new Normalization meta layer.
    *
    * @param json the json
-   * @param rs
+   * @param rs   the rs
    */
   protected NormalizationMetaLayer(final JsonObject json, Map<String, byte[]> rs) {
     super(json, rs);
@@ -62,6 +62,7 @@ public class NormalizationMetaLayer extends PipelineNetwork {
    * From json normalization meta layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the normalization meta layer
    */
   public static NormalizationMetaLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

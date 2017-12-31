@@ -51,8 +51,8 @@ public class SumMetaLayer extends NNLayer {
   /**
    * Instantiates a new Sum meta layer.
    *
-   * @param json the id
-   * @param resources
+   * @param json      the id
+   * @param resources the resources
    */
   protected SumMetaLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
@@ -64,6 +64,7 @@ public class SumMetaLayer extends NNLayer {
    * From json sum meta layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the sum meta layer
    */
   public static SumMetaLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

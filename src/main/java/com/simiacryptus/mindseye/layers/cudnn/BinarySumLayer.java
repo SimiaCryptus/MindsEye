@@ -72,6 +72,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
    * From json product inputs layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the product inputs layer
    */
   public static BinarySumLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

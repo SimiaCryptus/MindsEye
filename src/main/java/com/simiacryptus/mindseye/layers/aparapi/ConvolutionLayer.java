@@ -113,8 +113,8 @@ public class ConvolutionLayer extends NNLayer {
   /**
    * Instantiates a new Convolution layer.
    *
-   * @param json the json
-   * @param resources
+   * @param json      the json
+   * @param resources the resources
    */
   protected ConvolutionLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
@@ -145,6 +145,7 @@ public class ConvolutionLayer extends NNLayer {
    * From json convolution layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the convolution layer
    */
   public static ConvolutionLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

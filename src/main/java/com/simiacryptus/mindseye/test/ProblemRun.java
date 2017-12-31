@@ -52,11 +52,11 @@ public class ProblemRun {
    * Instantiates a new Problem run.
    *
    * @param name    the name
-   * @param color   the color
    * @param history the history
+   * @param color   the color
    * @param type    the type
    */
-  public ProblemRun(final String name, final Color color, final List<StepRecord> history, final PlotType type) {
+  public ProblemRun(final String name, final List<StepRecord> history, final Color color, final PlotType type) {
     this.history = history;
     this.name = name;
     this.color = color;

@@ -57,7 +57,7 @@ public class TargetValueLayer extends DAGNetwork {
    * Instantiates a new Target value layer.
    *
    * @param json the json
-   * @param rs
+   * @param rs   the rs
    */
   protected TargetValueLayer(final JsonObject json, Map<String, byte[]> rs) {
     super(json, rs);
@@ -69,7 +69,7 @@ public class TargetValueLayer extends DAGNetwork {
    * From json nn layer.
    *
    * @param inner the inner
-   * @param rs
+   * @param rs    the rs
    * @return the nn layer
    */
   public static NNLayer fromJson(final JsonObject inner, Map<String, byte[]> rs) {

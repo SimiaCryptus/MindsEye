@@ -70,7 +70,7 @@ public class AutoencoderNetwork {
     this.networkParameters = networkParameters;
     outerSize = networkParameters.getOuterSize();
     innerSize = networkParameters.getInnerSize();
-
+  
     inputNoise = new GaussianNoiseLayer().setValue(networkParameters.getNoise());
     encoderSynapse = new FullyConnectedLayer(outerSize, innerSize);
     encoderSynapse.initSpacial(networkParameters.getInitRadius(), networkParameters.getInitStiffness(), networkParameters.getInitPeak());
@@ -257,7 +257,7 @@ public class AutoencoderNetwork {
           public void log(final String msg) {
             monitor.log(msg);
           }
-
+  
           @Override
           public void onStepComplete(final Step currentPoint) {
             inputNoise.shuffle();
@@ -427,7 +427,7 @@ public class AutoencoderNetwork {
    * The type Recursive builder.
    */
   public static class RecursiveBuilder {
-
+  
     private final List<int[]> dimensions = new ArrayList<>();
     private final List<AutoencoderNetwork> layers = new ArrayList<>();
     private final List<TensorList> representations = new ArrayList<>();
@@ -535,7 +535,7 @@ public class AutoencoderNetwork {
       final TensorList data = representations.get(representations.size() - 1);
       dimensions.add(dims);
       layers.add(newLayer);
-
+  
       if (pretrainingSize > 0 && pretrainIterations > 0 && pretrainingMinutes > 0) {
         final ArrayList<Tensor> list = new ArrayList<>(data.stream().collect(Collectors.toList()));
         Collections.shuffle(list);
@@ -545,7 +545,7 @@ public class AutoencoderNetwork {
       newLayer.decoderSynapse = ((FullyConnectedLayer) newLayer.decoderSynapse).getTranspose();
       newLayer.decoderSynapsePlaceholder.setInner(newLayer.decoderSynapse);
       configure(newLayer.train()).run(data);
-
+  
       runMode();
       representations.add(newLayer.encode(data));
       return newLayer;
@@ -585,7 +585,7 @@ public class AutoencoderNetwork {
             public void log(final String msg) {
               monitor.log(msg);
             }
-
+  
             @Override
             public void onStepComplete(final Step currentPoint) {
               layers.forEach(layer -> {

@@ -50,6 +50,18 @@ public class VGG16_HDF5 extends ImageClassifier {
   private final Hdf5Archive hdf5;
   
   
+  /**
+   * Instantiates a new Vgg 16 hdf 5.
+   *
+   * @param hdf5 the hdf 5
+   */
+  public VGG16_HDF5(Hdf5Archive hdf5) {this.hdf5 = hdf5;}
+  
+  /**
+   * From s 3 vgg 16 hdf 5.
+   *
+   * @return the vgg 16 hdf 5
+   */
   public static VGG16_HDF5 fromS3() {
     try {
       return new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5"))));
@@ -57,13 +69,6 @@ public class VGG16_HDF5 extends ImageClassifier {
       throw new RuntimeException(e);
     }
   }
-  
-  /**
-   * Instantiates a new Vgg 16 hdf 5.
-   *
-   * @param hdf5 the hdf 5
-   */
-  public VGG16_HDF5(Hdf5Archive hdf5) {this.hdf5 = hdf5;}
   
   @Override
   public Tensor prefilter(Tensor tensor) {
@@ -1308,6 +1313,11 @@ public class VGG16_HDF5 extends ImageClassifier {
                              "toilet tissue, toilet paper, bathroom tissue\n").split("\n")).map(x -> x.trim()).collect(Collectors.toList());
   }
   
+  /**
+   * Gets hdf 5.
+   *
+   * @return the hdf 5
+   */
   public Hdf5Archive getHDF5() {
     return hdf5;
   }

@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.test.data;
 
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.BinaryChunkIterator;
 import com.simiacryptus.util.io.DataLoader;
@@ -32,7 +33,6 @@ import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -42,11 +42,10 @@ import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
 /**
- * The type Cifar 10.
+ * Mirrored from https://www.cs.toronto.edu/~kriz/cifar.html For more information, and for citation, please see:
+ * Learning Multiple Layers of Features from Tiny Images, Alex Krizhevsky, 2009. https://www.cs.toronto.edu/~kriz/learning-features-2009-TR.pdf
  */
 public class CIFAR10 {
-  
-  private static final URI source = URI.create("https://www.cs.toronto.edu/~kriz/");
   
   private static final DataLoader<LabeledObject<Tensor>> training = new DataLoader<LabeledObject<Tensor>>() {
     @Override
@@ -54,7 +53,7 @@ public class CIFAR10 {
       try {
         InputStream stream = null;
         try {
-          stream = Util.cacheStream(CIFAR10.source.resolve("cifar-10-binary.tar.gz"));
+          stream = Util.cacheStream(TestUtil.S3_ROOT.resolve("cifar-10-binary.tar.gz"));
         } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
           throw new RuntimeException(e);
         }

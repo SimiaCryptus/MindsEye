@@ -65,7 +65,7 @@ public class StdDevMetaLayer extends PipelineNetwork {
    * Instantiates a new Std dev meta layer.
    *
    * @param json the json
-   * @param rs
+   * @param rs   the rs
    */
   protected StdDevMetaLayer(final JsonObject json, Map<String, byte[]> rs) {
     super(json, rs);
@@ -75,6 +75,7 @@ public class StdDevMetaLayer extends PipelineNetwork {
    * From json std dev meta layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the std dev meta layer
    */
   public static StdDevMetaLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

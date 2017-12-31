@@ -59,6 +59,7 @@ public class MaxMetaLayer extends NNLayer {
    * From json max meta layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the max meta layer
    */
   public static MaxMetaLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

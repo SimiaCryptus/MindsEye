@@ -64,6 +64,7 @@ public class PipelineNetwork extends DAGNetwork {
    * Instantiates a new Pipeline network.
    *
    * @param json the json
+   * @param rs   the rs
    */
   protected PipelineNetwork(final JsonObject json, Map<String, byte[]> rs) {
     super(json, rs);
@@ -94,6 +95,7 @@ public class PipelineNetwork extends DAGNetwork {
    * From json pipeline network.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the pipeline network
    */
   public static PipelineNetwork fromJson(final JsonObject json, Map<String, byte[]> rs) {

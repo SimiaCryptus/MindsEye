@@ -29,16 +29,10 @@ import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.data.MNIST;
 import com.simiacryptus.mindseye.test.integration.*;
 import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.test.TestCategories;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
-import java.io.IOException;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
@@ -151,29 +145,10 @@ public class MnistTests {
     };
   }
   
-  private abstract static class AllTests {
-
-    /**
-     * The Data.
-     */
-    protected final MnistProblemData data = new MnistProblemData();
-    /**
-     * The Fwd factory.
-     */
-    protected final FwdNetworkFactory fwdFactory;
-    /**
-     * The Optimization strategy.
-     */
-    protected final OptimizationStrategy optimizationStrategy;
-    /**
-     * The Rev factory.
-     */
-    protected final RevNetworkFactory revFactory;
-    /**
-     * The Timeout minutes.
-     */
-    protected int timeoutMinutes = 10;
-
+  /**
+   * The type All mnist tests.
+   */
+  public abstract static class All_MNIST_Tests extends AllTrainingTests {
     /**
      * Instantiates a new All tests.
      *
@@ -181,129 +156,30 @@ public class MnistTests {
      * @param revFactory           the rev factory
      * @param fwdFactory           the fwd factory
      */
-    public AllTests(final OptimizationStrategy optimizationStrategy, final RevNetworkFactory revFactory, final FwdNetworkFactory fwdFactory) {
-      this.revFactory = revFactory;
-      this.optimizationStrategy = optimizationStrategy;
-      this.fwdFactory = fwdFactory;
+    public All_MNIST_Tests(final OptimizationStrategy optimizationStrategy, final RevNetworkFactory revFactory, final FwdNetworkFactory fwdFactory) {
+      super(fwdFactory, revFactory, optimizationStrategy);
     }
-
-    /**
-     * Autoencoder run.
-     *
-     * @throws IOException the io exception
-     */
-    @Test
-    @Ignore
-    @Category(TestCategories.Report.class)
-    public void autoencoder_test() throws IOException {
-      new NotebookReportBase() {
-        @Override
-        protected void run(NotebookOutput log) {
-          log.h1("MNIST Denoising Autoencoder");
-          intro(log);
-          new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data, 100, 0.2).setTimeoutMinutes(5 * timeoutMinutes).run(log);
-        }
     
-        @Override
-        public void printHeader(NotebookOutput log) {
-          String fwdFactory_javadoc = printHeader(log, fwdFactory.getClass(), "fwd");
-          String optimizationStrategy_javadoc = printHeader(log, optimizationStrategy.getClass(), "opt");
-          String revFactory_javadoc = printHeader(log, revFactory.getClass(), "rev");
-          super.printHeader(log);
-          log.p("_Forward Strategy Javadoc_: " + fwdFactory_javadoc);
-          log.p("_Reverse Strategy Javadoc_: " + revFactory_javadoc);
-          log.p("_Optimization Strategy Javadoc_: " + optimizationStrategy_javadoc);
-        }
-    
-        @Override
-        protected Class<?> getTargetClass() {
-          return MNIST.class;
-        }
-      }.run();
+    @Override
+    protected Class<?> getTargetClass() {
+      return MNIST.class;
     }
-  
-    /**
-     * Classification run.
-     *
-     * @throws IOException the io exception
-     */
-    @Test
-    @Category(TestCategories.Report.class)
-    public void classification_test() throws IOException {
-      new NotebookReportBase() {
-        @Override
-        protected void run(NotebookOutput log) {
-          log.h1("MNIST Digit Classification");
-          intro(log);
-          new ClassifyProblem(fwdFactory, optimizationStrategy, data, 10).setTimeoutMinutes(timeoutMinutes).run(log);
-        }
     
-        @Override
-        public void printHeader(NotebookOutput log) {
-          String fwdFactory_javadoc = printHeader(log, fwdFactory.getClass(), "fwd");
-          String optimizationStrategy_javadoc = printHeader(log, optimizationStrategy.getClass(), "opt");
-          String revFactory_javadoc = printHeader(log, revFactory.getClass(), "rev");
-          super.printHeader(log);
-          log.p("_Forward Strategy Javadoc_: " + fwdFactory_javadoc);
-          log.p("_Reverse Strategy Javadoc_: " + revFactory_javadoc);
-          log.p("_Optimization Strategy Javadoc_: " + optimizationStrategy_javadoc);
-        }
-    
-        @Override
-        protected Class<?> getTargetClass() {
-          return MNIST.class;
-        }
-      }.run();
+    @Override
+    public ImageProblemData getData() {
+      return new MnistProblemData();
     }
-  
-    /**
-     * Encoding run.
-     *
-     * @throws IOException the io exception
-     */
-    @Test
-    @Ignore
-    @Category(TestCategories.Report.class)
-    public void encoding_test() throws IOException {
-      new NotebookReportBase() {
-        @Override
-        protected void run(NotebookOutput log) {
-          log.h1("MNIST Image-to-Vector Encoding");
-          intro(log);
-          new EncodingProblem(revFactory, optimizationStrategy, data, 20).setTimeoutMinutes(5 * timeoutMinutes).run(log);
-        }
     
-        @Override
-        public void printHeader(NotebookOutput log) {
-          String fwdFactory_javadoc = printHeader(log, fwdFactory.getClass(), "fwd");
-          String optimizationStrategy_javadoc = printHeader(log, optimizationStrategy.getClass(), "opt");
-          String revFactory_javadoc = printHeader(log, revFactory.getClass(), "rev");
-          super.printHeader(log);
-          log.p("_Forward Strategy Javadoc_: " + fwdFactory_javadoc);
-          log.p("_Reverse Strategy Javadoc_: " + revFactory_javadoc);
-          log.p("_Optimization Strategy Javadoc_: " + optimizationStrategy_javadoc);
-        }
-    
-        @Override
-        protected Class<?> getTargetClass() {
-          return MNIST.class;
-        }
-      }.run();
+    @Override
+    public String getDatasetName() {
+      return "MNIST";
     }
-  
-    /**
-     * Intro.
-     *
-     * @param log the log
-     */
-    protected abstract void intro(NotebookOutput log);
-  
   }
   
   /**
    * The type Owl qn.
    */
-  public static class OWL_QN extends AllTests {
+  public static class OWL_QN extends All_MNIST_Tests {
     /**
      * Instantiates a new Owl qn.
      */
@@ -320,7 +196,7 @@ public class MnistTests {
   /**
    * The type Qqn.
    */
-  public static class QQN extends AllTests {
+  public static class QQN extends All_MNIST_Tests {
     /**
      * Instantiates a new Qqn.
      */
@@ -338,7 +214,7 @@ public class MnistTests {
   /**
    * The type Sgd.
    */
-  public static class SGD extends AllTests {
+  public static class SGD extends All_MNIST_Tests {
     /**
      * Instantiates a new Sgd.
      */

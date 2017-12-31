@@ -72,8 +72,8 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
   /**
    * Instantiates a new Convolution layer.
    *
-   * @param json the json
-   * @param resources
+   * @param json      the json
+   * @param resources the resources
    */
   protected SimpleConvolutionLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
@@ -107,6 +107,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
    * From json convolution layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the convolution layer
    */
   public static SimpleConvolutionLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

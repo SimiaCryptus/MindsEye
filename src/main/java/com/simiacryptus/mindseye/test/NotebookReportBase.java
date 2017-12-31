@@ -25,7 +25,10 @@ import com.simiacryptus.util.io.HtmlNotebookOutput;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.lang.CodeUtil;
+import com.simiacryptus.util.lang.TimedResult;
 import com.simiacryptus.util.test.SysOutInterceptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.File;
@@ -33,11 +36,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.function.Consumer;
 
 /**
  * The type Notebook output run base.
  */
 public abstract class NotebookReportBase {
+  
+  /**
+   * The constant logger.
+   */
+  protected static final Logger logger = LoggerFactory.getLogger(NotebookReportBase.class);
   
   static {
     SysOutInterceptor.INSTANCE.init();
@@ -46,44 +55,86 @@ public abstract class NotebookReportBase {
   /**
    * The Use markdown.
    */
-  protected boolean useMarkdown = Boolean.parseBoolean(System.getProperty("useMarkdown", "false"));
+  protected boolean useMarkdown = Boolean.parseBoolean(System.getProperty("useMarkdown", "true"));
   /**
    * The Prefer static.
    */
   protected boolean preferStatic = Boolean.parseBoolean(System.getProperty("preferStatic", "true"));
   
+  /**
+   * Print header string.
+   *
+   * @param log          the log
+   * @param networkClass the network class
+   * @param prefix       the prefix
+   * @return the string
+   */
   public static String printHeader(NotebookOutput log, Class<?> networkClass, final String prefix) {
-    String appJavadoc = CodeUtil.getJavadoc(networkClass);
+    if (null == networkClass) return null;
+    String javadoc = CodeUtil.getJavadoc(networkClass);
     log.setFrontMatterProperty(prefix + "_class_short", networkClass.getSimpleName());
     log.setFrontMatterProperty(prefix + "_class_full", networkClass.getCanonicalName());
-    log.setFrontMatterProperty(prefix + "_class_doc", appJavadoc.replaceAll("\n", ""));
-    return appJavadoc;
+    log.setFrontMatterProperty(prefix + "_class_doc", javadoc.replaceAll("\n", ""));
+    return javadoc;
   }
   
   /**
-   * Test.
+   * Gets report type.
    *
-   * @throws Throwable the throwable
+   * @return the report type
    */
-  public void run() {
+  public abstract ReportType getReportType();
+  
+  /**
+   * Run.
+   *
+   * @param fn the fn
+   */
+  public void run(Consumer<NotebookOutput> fn) {
     try (NotebookOutput log = getLog()) {
       printHeader(log);
-      run(log);
+      TimedResult<Void> time = TimedResult.time(() -> {
+        try {
+          fn.accept(log);
+          log.setFrontMatterProperty("result", "OK");
+        } catch (Throwable e) {
+          log.setFrontMatterProperty("result", getExceptionString(e).toString().replaceAll("\n", "<br/>").trim());
+          throw new RuntimeException(e);
+        }
+      });
+      log.setFrontMatterProperty("execution_time", String.format("%.6f", time.timeNanos / 1e9));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
   
-  protected abstract void run(NotebookOutput log);
+  private String getExceptionString(Throwable e) {
+    if (e instanceof RuntimeException && e.getCause() != null && e.getCause() != e)
+      return getExceptionString(e.getCause());
+    if (e.getCause() != null && e.getCause() != e)
+      return e.getClass().getSimpleName() + " / " + getExceptionString(e.getCause());
+    return e.getClass().getSimpleName();
+  }
   
+  /**
+   * Print header.
+   *
+   * @param log the log
+   */
   public void printHeader(NotebookOutput log) {
     log.setFrontMatterProperty("created_on", new Date().toString());
+    log.setFrontMatterProperty("report_type", getReportType().name());
     String targetJavadoc = printHeader(log, getTargetClass(), "network");
     String reportJavadoc = printHeader(log, getReportClass(), "report");
     log.p("__Target Description:__ " + targetJavadoc);
     log.p("__Report Description:__ " + reportJavadoc);
   }
   
+  /**
+   * Gets report class.
+   *
+   * @return the report class
+   */
   public Class<? extends NotebookReportBase> getReportClass() {
     return getClass();
   }
@@ -128,4 +179,49 @@ public abstract class NotebookReportBase {
    * @return the target class
    */
   protected abstract Class<?> getTargetClass();
+  
+  /**
+   * The enum Report type.
+   */
+  public enum ReportType {
+    /**
+     * Demos report type.
+     */
+    Demos,
+    /**
+     * Components report type.
+     */
+    Components,
+    /**
+     * Models report type.
+     */
+    Models,
+    /**
+     * Data report type.
+     */
+    Data,
+    /**
+     * Training report type.
+     */
+    Training
+  }
+  
+  /**
+   * The type Simple notebook report base.
+   */
+  public abstract static class SimpleNotebookReportBase extends NotebookReportBase {
+    /**
+     * Run.
+     */
+    public void run() {
+      run(this::run);
+    }
+    
+    /**
+     * Run.
+     *
+     * @param notebookOutput the notebook output
+     */
+    protected abstract void run(NotebookOutput notebookOutput);
+  }
 }

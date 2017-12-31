@@ -38,8 +38,8 @@ public class ConstNNLayer extends NNLayer {
   /**
    * Instantiates a new Const nn layer.
    *
-   * @param json the json
-   * @param resources
+   * @param json      the json
+   * @param resources the resources
    */
   protected ConstNNLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
@@ -61,6 +61,7 @@ public class ConstNNLayer extends NNLayer {
    * From json const nn layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the const nn layer
    */
   public static ConstNNLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

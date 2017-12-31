@@ -61,6 +61,7 @@ public class Sparse01MetaLayer extends NNLayer {
    * From json sparse 01 meta layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the sparse 01 meta layer
    */
   public static Sparse01MetaLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

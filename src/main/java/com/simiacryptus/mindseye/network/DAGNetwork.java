@@ -87,7 +87,7 @@ public abstract class DAGNetwork extends NNLayer {
    * Instantiates a new Dag network.
    *
    * @param json the json
-   * @param rs
+   * @param rs   the rs
    */
   protected DAGNetwork(final JsonObject json, Map<String, byte[]> rs) {
     super(json);

@@ -52,7 +52,7 @@ public class MeanSqLossLayer extends PipelineNetwork {
    * Instantiates a new Mean sq loss layer.
    *
    * @param id the id
-   * @param rs
+   * @param rs the rs
    */
   protected MeanSqLossLayer(final JsonObject id, Map<String, byte[]> rs) {
     super(id, rs);
@@ -62,6 +62,7 @@ public class MeanSqLossLayer extends PipelineNetwork {
    * From json mean sq loss layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the mean sq loss layer
    */
   public static MeanSqLossLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

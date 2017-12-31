@@ -351,6 +351,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
         null == modelLearning ? null : modelLearning.value,
         null == completeLearning ? null : completeLearning.value);
     });
+    log.setFrontMatterProperty("training_analysis", result.toString());
     if (throwExceptions) {
       assert result.complete.map.values().stream().allMatch(x -> x.type == ResultType.Converged);
       assert result.input.map.values().stream().allMatch(x -> x.type == ResultType.Converged);
@@ -505,10 +506,10 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     log.h3("Experimental Optimizer");
     final List<StepRecord> magic = train(log, this::trainMagic, layer.copy(), copy(trainingInput), mask);
     final ProblemRun[] runs = {
-      new ProblemRun("GD", Color.GRAY, gd, ProblemRun.PlotType.Line),
-      new ProblemRun("CjGD", Color.CYAN, cjgd, ProblemRun.PlotType.Line),
-      new ProblemRun("LBFGS", Color.GREEN, lbfgs, ProblemRun.PlotType.Line),
-      new ProblemRun("Experimental", Color.MAGENTA, magic, ProblemRun.PlotType.Line)
+      new ProblemRun("GD", gd, Color.GRAY, ProblemRun.PlotType.Line),
+      new ProblemRun("CjGD", cjgd, Color.CYAN, ProblemRun.PlotType.Line),
+      new ProblemRun("LBFGS", lbfgs, Color.GREEN, ProblemRun.PlotType.Line),
+      new ProblemRun("Experimental", magic, Color.MAGENTA, ProblemRun.PlotType.Line)
     };
     ProblemResult result = new ProblemResult();
     result.put("GD", new TrainingResult(getResultType(gd), min(gd)));
@@ -818,7 +819,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
   
     @Override
     public String toString() {
-      return String.format("ComponentResult{input=%s, model=%s, complete=%s}", input, model, complete);
+      return String.format("{\"input\":%s, \"model\":%s, \"complete\":%s}", input, model, complete);
     }
   }
   
@@ -852,7 +853,9 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
   
     @Override
     public String toString() {
-      return map.toString();
+      return map.entrySet().stream().map(e -> {
+        return String.format("\"%s\": %s", e.getKey(), e.getValue().toString());
+      }).reduce((a, b) -> a + ", " + b).get();
     }
   }
   
@@ -913,7 +916,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     
     @Override
     public String toString() {
-      return String.format("TrainingResult{type=%s, value=%s}", type, value);
+      return String.format("{\"type\":\"%s\", value:%s}", type, value);
     }
   }
 }

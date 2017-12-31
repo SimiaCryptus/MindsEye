@@ -58,6 +58,7 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
    * From json sigmoid activation layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the sigmoid activation layer
    */
   public static SigmoidActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

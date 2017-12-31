@@ -50,6 +50,7 @@ public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
    * From json entropy layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the entropy layer
    */
   public static EntropyLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

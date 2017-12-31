@@ -62,6 +62,7 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
    * From json monitoring synapse.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the monitoring synapse
    */
   public static MonitoringSynapse fromJson(final JsonObject json, Map<String, byte[]> rs) {

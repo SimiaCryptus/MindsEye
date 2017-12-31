@@ -61,6 +61,9 @@ public class TestUtil {
    * The constant originalOut.
    */
   public static final PrintStream originalOut = System.out;
+  /**
+   * The constant S3_ROOT.
+   */
   public static final URI S3_ROOT = URI.create("https://s3-us-west-2.amazonaws.com/simiacryptus/");
   private static final Logger logger = LoggerFactory.getLogger(TestUtil.class);
   
@@ -223,7 +226,7 @@ public class TestUtil {
         final PercentileStatistics performanceB = e.getValue().getBackwardPerformance();
         return String.format("%s -> %.6fs +- %.6fs (%d)", e.getKey(), performanceF.getMean(), performanceF.getStdDev(), performanceF.getCount()) +
           (performanceB.getCount() == 0 ? "" : String.format("%n\tBack: %.6fs +- %.6fs (%s)", performanceB.getMean(), performanceB.getStdDev(), performanceB.getCount()));
-      }).reduce((a, b) -> a + "\n\t" + b));
+      }).reduce((a, b) -> a + "\n\t" + b).get());
     });
     network.visitNodes(node -> {
       if (node.getLayer() instanceof MonitoringWrapperLayer) {
@@ -472,12 +475,34 @@ public class TestUtil {
    * @param size   the size
    * @return the buffered image
    */
-  public static BufferedImage resize(final BufferedImage source, final int size) {
+  public static BufferedImage resize(final BufferedImage source, final int size) {return resize(source, size, false);}
+  
+  /**
+   * Resize buffered image.
+   *
+   * @param source         the source
+   * @param size           the size
+   * @param preserveAspect the preserve aspect
+   * @return the buffered image
+   */
+  public static BufferedImage resize(final BufferedImage source, final int size, boolean preserveAspect) {
     if (size < 0) return source;
-    final BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+    return resize(source, size, preserveAspect ? ((int) (size * (source.getHeight() * 1.0 / source.getWidth()))) : size);
+  }
+  
+  /**
+   * Resize buffered image.
+   *
+   * @param source the source
+   * @param width  the width
+   * @param height the height
+   * @return the buffered image
+   */
+  public static BufferedImage resize(BufferedImage source, int width, int height) {
+    final BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     final Graphics2D graphics = (Graphics2D) image.getGraphics();
     graphics.setRenderingHints(new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC));
-    graphics.drawImage(source, 0, 0, size, size, null);
+    graphics.drawImage(source, 0, 0, width, height, null);
     return image;
   }
   

@@ -57,6 +57,7 @@ public class AvgReducerLayer extends NNLayer {
    * From json avg reducer layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the avg reducer layer
    */
   public static AvgReducerLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

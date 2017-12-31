@@ -63,6 +63,7 @@ public class SoftmaxActivationLayer extends NNLayer {
    * From json softmax activation layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the softmax activation layer
    */
   public static SoftmaxActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

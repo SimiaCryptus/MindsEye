@@ -65,6 +65,7 @@ public class AssertDimensionsLayer extends NNLayer {
    * From json assert dimensions layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the assert dimensions layer
    */
   public static AssertDimensionsLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

@@ -85,6 +85,7 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
    * From json dropout noise layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the dropout noise layer
    */
   public static DropoutNoiseLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

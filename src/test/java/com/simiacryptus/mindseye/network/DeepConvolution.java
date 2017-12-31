@@ -42,7 +42,7 @@ public abstract class DeepConvolution extends NLayerTest {
    * The Radius.
    */
   int radius;
-
+  
   /**
    * Instantiates a new Linear depth.
    *
@@ -52,7 +52,7 @@ public abstract class DeepConvolution extends NLayerTest {
   public DeepConvolution(int radius, final int[]... dimList) {
     super(dimList);
     this.radius = radius;
-
+  
   }
   
   

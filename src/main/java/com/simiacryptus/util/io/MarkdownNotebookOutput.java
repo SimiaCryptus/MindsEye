@@ -38,7 +38,9 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The type Markdown notebook output.
@@ -55,12 +57,11 @@ public class MarkdownNotebookOutput implements NotebookOutput {
   private final String name;
   private final PrintStream primaryOut;
   private final List<String> buffer = new ArrayList<>();
-  private final List<String> frontMatter = new ArrayList<>();
+  private final Map<String, String> frontMatter = new HashMap<>();
   /**
    * The Toc.
    */
   public List<String> toc = new ArrayList<>();
-  
   /**
    * The Anchor.
    */
@@ -141,7 +142,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
       try (PrintWriter out = new PrintWriter(new FileOutputStream(fileName))) {
         if (!frontMatter.isEmpty()) {
           out.println("---");
-          frontMatter.forEach(out::println);
+          frontMatter.forEach((key, value) -> out.println(String.format("%s: %s", key, value)));
           out.println("---");
         }
         toc.forEach(out::println);
@@ -152,7 +153,12 @@ public class MarkdownNotebookOutput implements NotebookOutput {
   }
   
   public void setFrontMatterProperty(String key, String value) {
-    frontMatter.add(String.format("%s: %s", key, value));
+    frontMatter.put(key, value);
+  }
+  
+  @Override
+  public String getFrontMatterProperty(String key) {
+    return frontMatter.get(key);
   }
   
   @Override

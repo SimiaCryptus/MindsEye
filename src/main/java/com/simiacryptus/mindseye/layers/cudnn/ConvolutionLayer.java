@@ -81,8 +81,8 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   /**
    * Instantiates a new Convolution layer.
    *
-   * @param json the json
-   * @param resources
+   * @param json      the json
+   * @param resources the resources
    */
   protected ConvolutionLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
@@ -90,9 +90,9 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     this.setStrideX(json.get("strideX").getAsInt());
     this.setStrideY(json.get("strideY").getAsInt());
     JsonElement paddingX = json.get("paddingX");
-    if (null != paddingX) this.setPaddingX((paddingX.getAsInt()));
+    if (null != paddingX && paddingX.isJsonPrimitive()) this.setPaddingX((paddingX.getAsInt()));
     JsonElement paddingY = json.get("paddingY");
-    if (null != paddingY) this.setPaddingY((paddingY.getAsInt()));
+    if (null != paddingY && paddingY.isJsonPrimitive()) this.setPaddingY((paddingY.getAsInt()));
     this.precision = Precision.valueOf(json.get("precision").getAsString());
     this.inputBands = json.get("inputBands").getAsInt();
     this.outputBands = json.get("outputBands").getAsInt();
@@ -114,6 +114,7 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
    * From json convolution layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the convolution layer
    */
   public static ConvolutionLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

@@ -32,11 +32,14 @@ import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.TableOutput;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.LabeledObject;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 
+import javax.imageio.ImageIO;
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -157,7 +160,7 @@ public class ClassifyProblem implements Problem {
       return Graphviz.fromGraph(TestUtil.toGraph(network))
                      .height(400).width(600).render(Format.PNG).toImage();
     });
-
+  
     log.h3("Training");
     final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
     TestUtil.instrumentPerformance(log, supervisedNetwork);
@@ -176,10 +179,21 @@ public class ClassifyProblem implements Problem {
         return TestUtil.plotTime(history);
       });
     }
+  
+    try {
+      String filename = log.getName() + "_" + ClassifyProblem.modelNo++ + "_plot.png";
+      ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(filename));
+      File file = new File(log.getResourceDir(), filename);
+      log.appendFrontMatterProperty("result_plot", file.toString(), ";");
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    
     TestUtil.extractPerformance(log, supervisedNetwork);
-    final String modelName = "classification_model" + ClassifyProblem.modelNo++ + ".json";
+    final String modelName = "classification_model_" + ClassifyProblem.modelNo++ + ".json";
+    log.appendFrontMatterProperty("result_model", modelName, ";");
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
-
+  
     log.h3("Validation");
     log.p("If we run our model against the entire validation dataset, we get this accuracy:");
     log.code(() -> {

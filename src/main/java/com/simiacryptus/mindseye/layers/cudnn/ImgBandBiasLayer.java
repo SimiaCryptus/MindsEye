@@ -68,6 +68,7 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
    * From json img band bias layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the img band bias layer
    */
   public static ImgBandBiasLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

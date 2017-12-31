@@ -134,20 +134,20 @@ public class TextbookOptimizers extends OptimizerComparison {
   public void compare(final NotebookOutput log, final Function<OptimizationStrategy, List<StepRecord>> test) {
     log.h1("Textbook Optimizer Comparison");
     log.h2("GD");
-    final ProblemRun gd = new ProblemRun("GD", Color.BLACK,
-                                         test.apply(TextbookOptimizers.simple_gradient_descent), ProblemRun.PlotType.Line);
+    final ProblemRun gd = new ProblemRun("GD", test.apply(TextbookOptimizers.simple_gradient_descent),
+                                         Color.BLACK, ProblemRun.PlotType.Line);
     log.h2("SGD");
-    final ProblemRun sgd = new ProblemRun("SGD", Color.GREEN,
-                                          test.apply(TextbookOptimizers.stochastic_gradient_descent), ProblemRun.PlotType.Line);
+    final ProblemRun sgd = new ProblemRun("SGD", test.apply(TextbookOptimizers.stochastic_gradient_descent),
+                                          Color.GREEN, ProblemRun.PlotType.Line);
     log.h2("CGD");
-    final ProblemRun cgd = new ProblemRun("CjGD", Color.BLUE,
-                                          test.apply(TextbookOptimizers.conjugate_gradient_descent), ProblemRun.PlotType.Line);
+    final ProblemRun cgd = new ProblemRun("CjGD", test.apply(TextbookOptimizers.conjugate_gradient_descent),
+                                          Color.BLUE, ProblemRun.PlotType.Line);
     log.h2("L-BFGS");
-    final ProblemRun lbfgs = new ProblemRun("L-BFGS", Color.MAGENTA,
-                                            test.apply(TextbookOptimizers.limited_memory_bfgs), ProblemRun.PlotType.Line);
+    final ProblemRun lbfgs = new ProblemRun("L-BFGS", test.apply(TextbookOptimizers.limited_memory_bfgs),
+                                            Color.MAGENTA, ProblemRun.PlotType.Line);
     log.h2("OWL-QN");
-    final ProblemRun owlqn = new ProblemRun("OWL-QN", Color.ORANGE,
-                                            test.apply(TextbookOptimizers.orthantwise_quasi_newton), ProblemRun.PlotType.Line);
+    final ProblemRun owlqn = new ProblemRun("OWL-QN", test.apply(TextbookOptimizers.orthantwise_quasi_newton),
+                                            Color.ORANGE, ProblemRun.PlotType.Line);
     log.h2("Comparison");
     log.code(() -> {
       return TestUtil.compare("Convergence Plot", gd, sgd, cgd, lbfgs, owlqn);

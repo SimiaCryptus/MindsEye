@@ -19,19 +19,51 @@
 
 package com.simiacryptus.mindseye.lang;
 
+/**
+ * The interface Data serializer.
+ */
 public interface DataSerializer {
+  /**
+   * Copy.
+   *
+   * @param from the from
+   * @param to   the to
+   */
   void copy(double[] from, byte[] to);
   
+  /**
+   * Copy.
+   *
+   * @param from the from
+   * @param to   the to
+   */
   void copy(byte[] from, double[] to);
   
+  /**
+   * Gets element size.
+   *
+   * @return the element size
+   */
   int getElementSize();
   
+  /**
+   * To bytes byte [ ].
+   *
+   * @param from the from
+   * @return the byte [ ]
+   */
   default byte[] toBytes(double[] from) {
     byte[] to = new byte[from.length * getElementSize()];
     copy(from, to);
     return to;
   }
   
+  /**
+   * From bytes double [ ].
+   *
+   * @param from the from
+   * @return the double [ ]
+   */
   default double[] fromBytes(byte[] from) {
     double[] to = new double[from.length / getElementSize()];
     copy(from, to);

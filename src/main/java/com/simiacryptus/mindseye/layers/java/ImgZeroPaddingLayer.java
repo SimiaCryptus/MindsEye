@@ -67,6 +67,7 @@ public class ImgZeroPaddingLayer extends NNLayer {
    * From json img crop layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the img crop layer
    */
   public static ImgZeroPaddingLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

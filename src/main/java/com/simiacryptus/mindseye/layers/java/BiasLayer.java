@@ -78,6 +78,7 @@ public class BiasLayer extends NNLayer {
    * From json bias layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the bias layer
    */
   public static BiasLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

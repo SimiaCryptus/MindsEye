@@ -75,6 +75,7 @@ public class MaxDropoutNoiseLayer extends NNLayer {
    * From json max dropout noise layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the max dropout noise layer
    */
   public static MaxDropoutNoiseLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

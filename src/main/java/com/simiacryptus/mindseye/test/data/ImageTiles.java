@@ -206,7 +206,7 @@ public class ImageTiles {
      * The Tile width.
      */
     public final int tileWidth;
-
+  
     /**
      * Instantiates a new Image tensor loader.
      *
@@ -227,7 +227,7 @@ public class ImageTiles {
       this.maxTileRows = maxTileRows;
       this.maxTileCols = maxTileCols;
     }
-
+  
     @Override
     protected void read(final List<Tensor> queue) {
       final ArrayList<File> files = new ArrayList<>(ImageTiles.readFiles(parentDirectiory).collect(Collectors.toList()));

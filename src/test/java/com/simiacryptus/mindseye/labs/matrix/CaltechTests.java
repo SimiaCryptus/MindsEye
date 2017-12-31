@@ -19,20 +19,14 @@
 
 package com.simiacryptus.mindseye.labs.matrix;
 
-import com.simiacryptus.mindseye.eval.GpuTrainable;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.java.*;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
+import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.mindseye.test.integration.*;
-import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.test.TestCategories;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
-import java.io.IOException;
 import java.util.function.IntToDoubleFunction;
 
 /**
@@ -47,20 +41,20 @@ public class CaltechTests {
     log.p("The image-to-vector network is a single layer convolutional:");
     return log.code(() -> {
       final PipelineNetwork network = new PipelineNetwork();
-
+  
       IntToDoubleFunction weights = i -> 1e-8 * (Math.random() - 0.5);
       network.add(new ConvolutionLayer(3, 3, 3, 10).set(weights));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());
       network.add(new ImgCropLayer(126, 126));
       network.add(new NormalizationMetaLayer());
-
+  
       network.add(new ConvolutionLayer(3, 3, 10, 20).set(weights));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());
       network.add(new ImgCropLayer(62, 62));
       network.add(new NormalizationMetaLayer());
-
+  
       network.add(new ConvolutionLayer(5, 5, 20, 30).set(weights));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());
@@ -127,21 +121,10 @@ public class CaltechTests {
     });
   };
   
-  private abstract static class AllTests {
-    
-    private final CaltechProblemData data = new CaltechProblemData();
-    private final FwdNetworkFactory fwdFactory;
-    private final OptimizationStrategy optimizationStrategy;
-    private final RevNetworkFactory revFactory;
-    /**
-     * The Timeout minutes.
-     */
-    protected int timeoutMinutes = 1;
-    /**
-     * The Categories.
-     */
-    protected int categories = data.getLabels().size();
-  
+  /**
+   * The type All caltech tests.
+   */
+  public abstract static class All_Caltech_Tests extends AllTrainingTests {
     /**
      * Instantiates a new All tests.
      *
@@ -149,75 +132,30 @@ public class CaltechTests {
      * @param revFactory           the rev factory
      * @param fwdFactory           the fwd factory
      */
-    public AllTests(final OptimizationStrategy optimizationStrategy, final RevNetworkFactory revFactory, final FwdNetworkFactory fwdFactory) {
-      this.revFactory = revFactory;
-      this.optimizationStrategy = optimizationStrategy;
-      this.fwdFactory = fwdFactory;
+    public All_Caltech_Tests(final OptimizationStrategy optimizationStrategy, final RevNetworkFactory revFactory, final FwdNetworkFactory fwdFactory) {
+      super(fwdFactory, revFactory, optimizationStrategy);
     }
-  
-    /**
-     * Autoencoder run.
-     *
-     * @throws IOException the io exception
-     */
-    @Test
-    @Ignore
-    @Category(TestCategories.Report.class)
-    public void autoencoder_test() throws IOException {
-      try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
-
-        log.h1("Caltech101 Denoising Autoencoder");
-        intro(log);
-        new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data, 100, 0.8).setTimeoutMinutes(timeoutMinutes).run(log);
-      }
-    }
-  
-    /**
-     * Classification run.
-     *
-     * @throws IOException the io exception
-     */
-    @Test
-    @Category(TestCategories.Report.class)
-    public void classification_test() throws IOException {
-      try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
-
-        log.h1("Caltech101 Classification");
-        intro(log);
-        GpuTrainable.setVerbosity(2);
-        new ClassifyProblem(fwdFactory, optimizationStrategy, data, categories).setTimeoutMinutes(timeoutMinutes).setBatchSize(100).run(log);
-      }
-    }
-  
-    /**
-     * Encoding run.
-     *
-     * @throws IOException the io exception
-     */
-    @Test
-    @Category(TestCategories.Report.class)
-    public void encoding_test() throws IOException {
-      try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
-
-        log.h1("Caltech101 Image-to-Vector Encoding");
-        intro(log);
-        new EncodingProblem(revFactory, optimizationStrategy, data, categories).setTimeoutMinutes(timeoutMinutes).setBatchSize(100).run(log);
-      }
-    }
-  
-    /**
-     * Intro.
-     *
-     * @param log the log
-     */
-    protected abstract void intro(NotebookOutput log);
     
+    @Override
+    protected Class<?> getTargetClass() {
+      return Caltech101.class;
+    }
+    
+    @Override
+    public ImageProblemData getData() {
+      return new CIFARProblemData();
+    }
+    
+    @Override
+    public String getDatasetName() {
+      return "Caltech101";
+    }
   }
   
   /**
    * The type Qqn.
    */
-  public static class QQN extends AllTests {
+  public static class QQN extends All_Caltech_Tests {
     /**
      * Instantiates a new Qqn.
      */

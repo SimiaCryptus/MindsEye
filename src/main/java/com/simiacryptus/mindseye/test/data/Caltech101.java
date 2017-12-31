@@ -40,7 +40,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 /**
- * The type Caltech 101.
+ * Caltech 101 Images When using, please cite: L. Fei-Fei, R. Fergus and P. Perona. Learning generative visual models
+ * from few training examples: an incremental Bayesian approach tested on 101 object categories. IEEE. CVPR 2004,
+ * Workshop on Generative-Model Based Vision. 2004 For more information see http://www.vision.caltech.edu/Image_Datasets/Caltech101/
  */
 public class Caltech101 {
   

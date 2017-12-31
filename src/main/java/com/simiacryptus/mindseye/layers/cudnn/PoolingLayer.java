@@ -71,6 +71,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    * From json pooling layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the pooling layer
    */
   public static PoolingLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

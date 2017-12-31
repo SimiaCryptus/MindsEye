@@ -94,8 +94,8 @@ public class FullyConnectedLayer extends NNLayer {
   /**
    * Instantiates a new Fully connected layer.
    *
-   * @param json the json
-   * @param resources
+   * @param json      the json
+   * @param resources the resources
    */
   protected FullyConnectedLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
@@ -124,6 +124,7 @@ public class FullyConnectedLayer extends NNLayer {
    * From json fully connected layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the fully connected layer
    */
   public static FullyConnectedLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

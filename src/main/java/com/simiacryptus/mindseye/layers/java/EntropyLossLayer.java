@@ -58,6 +58,7 @@ public class EntropyLossLayer extends NNLayer {
    * From json entropy loss layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the entropy loss layer
    */
   public static EntropyLossLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

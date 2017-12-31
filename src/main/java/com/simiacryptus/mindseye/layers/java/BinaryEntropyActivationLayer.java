@@ -49,6 +49,7 @@ public final class BinaryEntropyActivationLayer extends SimpleActivationLayer<Bi
    * From json binary entropy activation layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the binary entropy activation layer
    */
   public static BinaryEntropyActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

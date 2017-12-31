@@ -149,7 +149,7 @@ public class AutoencodingProblem implements Problem {
     supervisedNetwork.add(new MeanSqLossLayer(),
                           supervisedNetwork.getHead(),
                           supervisedNetwork.getInput(0));
-
+  
     log.h3("Network Diagrams");
     log.code(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(fwdNetwork))
@@ -166,7 +166,7 @@ public class AutoencodingProblem implements Problem {
     
     final TrainingMonitor monitor = new TrainingMonitor() {
       TrainingMonitor inner = TestUtil.getMonitor(history);
-
+  
       @Override
       public void log(final String msg) {
         inner.log(msg);

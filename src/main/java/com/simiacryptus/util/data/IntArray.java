@@ -46,7 +46,7 @@ public class IntArray {
     if (o == null || getClass() != o.getClass()) return false;
   
     final IntArray intArray = (IntArray) o;
-
+  
     return Arrays.equals(data, intArray.data);
   }
   

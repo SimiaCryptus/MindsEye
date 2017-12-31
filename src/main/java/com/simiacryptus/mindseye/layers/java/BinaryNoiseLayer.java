@@ -82,6 +82,7 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
    * From json binary noise layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the binary noise layer
    */
   public static BinaryNoiseLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

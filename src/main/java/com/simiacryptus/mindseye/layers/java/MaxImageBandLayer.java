@@ -62,6 +62,7 @@ public class MaxImageBandLayer extends NNLayer {
    * From json max image band layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the max image band layer
    */
   public static MaxImageBandLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

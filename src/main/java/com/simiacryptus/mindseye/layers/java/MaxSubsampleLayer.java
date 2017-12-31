@@ -103,6 +103,7 @@ public class MaxSubsampleLayer extends NNLayer {
    * From json max subsample layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the max subsample layer
    */
   public static MaxSubsampleLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

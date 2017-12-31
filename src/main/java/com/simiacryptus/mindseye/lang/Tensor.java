@@ -171,8 +171,8 @@ public class Tensor implements Serializable {
   /**
    * From json tensor.
    *
-   * @param json the json
-   * @param resources
+   * @param json      the json
+   * @param resources the resources
    * @return the tensor
    */
   public static Tensor fromJson(final JsonElement json, Map<String, byte[]> resources) {
@@ -1265,9 +1265,9 @@ public class Tensor implements Serializable {
   /**
    * To json json element.
    *
+   * @param resources      the resources
+   * @param dataSerializer the data serializer
    * @return the json element
-   * @param resources
-   * @param dataSerializer
    */
   public JsonElement toJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     if (dim() > 64 * 1024) {

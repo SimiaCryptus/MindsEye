@@ -54,8 +54,8 @@ public class LinearActivationLayer extends NNLayer {
   /**
    * Instantiates a new Linear activation layer.
    *
-   * @param json the json
-   * @param resources
+   * @param json      the json
+   * @param resources the resources
    */
   protected LinearActivationLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
@@ -66,6 +66,7 @@ public class LinearActivationLayer extends NNLayer {
    * From json linear activation layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the linear activation layer
    */
   public static LinearActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

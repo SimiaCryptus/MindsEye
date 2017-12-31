@@ -99,7 +99,7 @@ public abstract class DeepLinear extends NLayerTest {
         new int[]{10}
            );
     }
-
+  
     @Override
     public NNLayer getActivation() {
       return new SigmoidActivationLayer();

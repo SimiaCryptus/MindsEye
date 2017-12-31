@@ -56,8 +56,8 @@ public class ReLuActivationLayer extends NNLayer {
   /**
    * Instantiates a new Re lu activation layer.
    *
-   * @param json the json
-   * @param resources
+   * @param json      the json
+   * @param resources the resources
    */
   protected ReLuActivationLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
@@ -68,6 +68,7 @@ public class ReLuActivationLayer extends NNLayer {
    * From json re lu activation layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the re lu activation layer
    */
   public static ReLuActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

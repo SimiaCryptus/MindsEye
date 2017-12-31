@@ -59,6 +59,7 @@ public class StaticScalarLossLayer extends NNLayer {
    * From json static scalar loss layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the static scalar loss layer
    */
   public static StaticScalarLossLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

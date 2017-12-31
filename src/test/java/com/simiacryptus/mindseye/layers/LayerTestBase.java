@@ -19,9 +19,7 @@
 
 package com.simiacryptus.mindseye.layers;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.test.unit.StandardLayerTests;
-import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Test;
 
 /**
@@ -36,10 +34,7 @@ public abstract class LayerTestBase extends StandardLayerTests {
    */
   @Test
   public void test() throws Throwable {
-    final NNLayer layer = getLayer(getInputDims());
-    try (NotebookOutput log = getLog()) {
-      run(log);
-    }
+    run(this::run);
   }
   
   

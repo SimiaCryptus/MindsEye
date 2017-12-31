@@ -55,8 +55,8 @@ public class AvgMetaLayer extends NNLayer {
   /**
    * Instantiates a new Avg meta layer.
    *
-   * @param json the json
-   * @param resources
+   * @param json      the json
+   * @param resources the resources
    */
   protected AvgMetaLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
@@ -68,6 +68,7 @@ public class AvgMetaLayer extends NNLayer {
    * From json avg meta layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the avg meta layer
    */
   public static AvgMetaLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

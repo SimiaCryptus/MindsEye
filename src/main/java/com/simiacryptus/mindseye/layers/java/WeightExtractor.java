@@ -71,6 +71,7 @@ public final class WeightExtractor extends NNLayer {
    * From json weight extractor.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the weight extractor
    */
   public static WeightExtractor fromJson(final JsonObject json, Map<String, byte[]> rs) {

@@ -52,6 +52,7 @@ public class SumInputsLayer extends NNLayer {
    * From json sum inputs layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the sum inputs layer
    */
   public static SumInputsLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

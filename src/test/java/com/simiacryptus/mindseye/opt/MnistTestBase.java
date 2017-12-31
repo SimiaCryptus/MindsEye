@@ -187,7 +187,7 @@ public abstract class MnistTestBase {
         return plot;
       });
     }
-
+  
     final String modelName = "model" + modelNo++ + ".json";
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
     
@@ -239,7 +239,7 @@ public abstract class MnistTestBase {
   @Category(TestCategories.Report.class)
   public void test() throws IOException {
     try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
-
+  
       final List<Step> history = new ArrayList<>();
       final MonitoredObject monitoringRoot = new MonitoredObject();
       final TrainingMonitor monitor = getMonitor(history);

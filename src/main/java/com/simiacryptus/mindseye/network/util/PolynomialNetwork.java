@@ -82,7 +82,7 @@ public class PolynomialNetwork extends DAGNetwork {
    * Instantiates a new Polynomial network.
    *
    * @param json the json
-   * @param rs
+   * @param rs   the rs
    */
   protected PolynomialNetwork(final JsonObject json, Map<String, byte[]> rs) {
     super(json, rs);
@@ -104,6 +104,7 @@ public class PolynomialNetwork extends DAGNetwork {
    * From json polynomial network.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the polynomial network
    */
   public static PolynomialNetwork fromJson(final JsonObject json, Map<String, byte[]> rs) {
@@ -253,7 +254,7 @@ public class PolynomialNetwork extends DAGNetwork {
      * The Power.
      */
     public final double power;
-
+  
     /**
      * Instantiates a new Correcton.
      *
@@ -266,7 +267,7 @@ public class PolynomialNetwork extends DAGNetwork {
       this.bias = bias;
       this.factor = factor;
     }
-
+  
     /**
      * Instantiates a new Correcton.
      *
@@ -277,7 +278,7 @@ public class PolynomialNetwork extends DAGNetwork {
       bias = layersById.get(UUID.fromString(json.get("bias").getAsString()));
       factor = layersById.get(UUID.fromString(json.get("factor").getAsString()));
     }
-
+  
     /**
      * Add dag node.
      *

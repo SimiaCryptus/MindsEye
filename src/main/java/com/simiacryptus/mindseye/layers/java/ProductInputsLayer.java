@@ -52,6 +52,7 @@ public class ProductInputsLayer extends NNLayer {
    * From json product inputs layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the product inputs layer
    */
   public static ProductInputsLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

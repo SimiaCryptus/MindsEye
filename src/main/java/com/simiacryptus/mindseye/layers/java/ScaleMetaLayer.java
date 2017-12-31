@@ -58,6 +58,7 @@ public class ScaleMetaLayer extends NNLayer {
    * From json scale meta layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the scale meta layer
    */
   public static ScaleMetaLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

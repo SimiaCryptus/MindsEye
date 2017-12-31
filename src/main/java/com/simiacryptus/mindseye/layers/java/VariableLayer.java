@@ -55,6 +55,7 @@ public class VariableLayer extends WrapperLayer {
    * From json variable layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the variable layer
    */
   public static VariableLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

@@ -52,6 +52,7 @@ public final class SinewaveActivationLayer extends SimpleActivationLayer<Sinewav
    * From json sinewave activation layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the sinewave activation layer
    */
   public static SinewaveActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

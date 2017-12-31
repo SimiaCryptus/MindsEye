@@ -128,6 +128,11 @@ public class NullNotebookOutput implements NotebookOutput {
   }
   
   @Override
+  public String getFrontMatterProperty(String key) {
+    return null;
+  }
+  
+  @Override
   public String getName() {
     return name;
   }

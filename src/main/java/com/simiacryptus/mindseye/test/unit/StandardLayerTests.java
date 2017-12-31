@@ -27,16 +27,13 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.lang.CodeUtil;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 /**
@@ -227,58 +224,29 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     return Arrays.stream(inputDims).map(dim -> new Tensor(dim).set(() -> random())).toArray(i -> new Tensor[i]);
   }
   
+  
   /**
    * Test.
    *
    * @param log the log
    */
   public void run(final NotebookOutput log) {
-  
     final NNLayer layer = getLayer(getInputDims());
-    String layerJavadoc = CodeUtil.getJavadoc(layer.getClass());
-    String testJavadoc = CodeUtil.getJavadoc(getClass());
-    log.setFrontMatterProperty("layer_class_short", layer.getClass().getSimpleName());
-    log.setFrontMatterProperty("test_class_short", getClass().getSimpleName());
-    log.setFrontMatterProperty("created_on", new Date().toString());
-    log.setFrontMatterProperty("layer_class_full", layer.getClass().getCanonicalName());
-    log.setFrontMatterProperty("test_class_full", getClass().getCanonicalName());
-    log.setFrontMatterProperty("layer_class_doc", layerJavadoc.replaceAll("\n", ""));
-    log.setFrontMatterProperty("test_class_doc", testJavadoc.replaceAll("\n", ""));
-    log.p("__Layer Description:__ " + layerJavadoc);
-    log.p("__Test Description:__ " + testJavadoc);
-    try {
-      if (layer instanceof DAGNetwork) {
-        log.h1("Network Diagram");
-        log.p("This is a network with the following layout:");
-        log.code(() -> {
-          return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
-                         .height(400).width(600).render(Format.PNG).toImage();
-        });
-      }
-      getLittleTests().stream().filter(x -> null != x).forEach(test -> {
-        test.test(log, layer.copy(), randomize(getInputDims()));
+    if (layer instanceof DAGNetwork) {
+      log.h1("Network Diagram");
+      log.p("This is a network with the following layout:");
+      log.code(() -> {
+        return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
+                       .height(400).width(600).render(Format.PNG).toImage();
       });
-      final NNLayer perfLayer = getLayer(getPerfDims());
-      getBigTests().stream().filter(x -> null != x).forEach(test -> {
-        test.test(log, perfLayer.copy(), randomize(getPerfDims()));
-      });
-      log.setFrontMatterProperty("status", "OK");
-    } catch (Throwable e) {
-      log.setFrontMatterProperty("status", describe(e));
-      throw new RuntimeException(e);
     }
-  }
-  
-  /**
-   * Describe string.
-   *
-   * @param e the e
-   * @return the string
-   */
-  public String describe(Throwable e) {
-    if (e instanceof RuntimeException && null != e.getCause() && e != e.getCause()) return describe(e.getCause());
-    if (e instanceof ExecutionException && null != e.getCause() && e != e.getCause()) return describe(e.getCause());
-    return e.getClass().getSimpleName().toString().replaceAll("\n", "").trim();
+    getLittleTests().stream().filter(x -> null != x).forEach(test -> {
+      test.test(log, layer.copy(), randomize(getInputDims()));
+    });
+    final NNLayer perfLayer = getLayer(getPerfDims());
+    getBigTests().stream().filter(x -> null != x).forEach(test -> {
+      test.test(log, perfLayer.copy(), randomize(getPerfDims()));
+    });
   }
   
   /**
@@ -306,5 +274,10 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   @Override
   protected Class<?> getTargetClass() {
     return getLayer(getInputDims()).getClass();
+  }
+  
+  @Override
+  public ReportType getReportType() {
+    return ReportType.Components;
   }
 }

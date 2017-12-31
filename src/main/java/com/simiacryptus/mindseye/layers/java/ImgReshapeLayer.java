@@ -138,6 +138,7 @@ public class ImgReshapeLayer extends NNLayer {
    * From json img reshape layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the img reshape layer
    */
   public static ImgReshapeLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

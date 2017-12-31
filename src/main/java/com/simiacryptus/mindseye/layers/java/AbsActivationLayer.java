@@ -49,6 +49,7 @@ public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivatio
    * From json abs activation layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the abs activation layer
    */
   public static AbsActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

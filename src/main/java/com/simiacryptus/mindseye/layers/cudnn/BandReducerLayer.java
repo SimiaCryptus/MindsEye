@@ -58,6 +58,7 @@ public class BandReducerLayer extends NNLayer implements LayerPrecision<BandRedu
    * From json pooling layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the pooling layer
    */
   public static BandReducerLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

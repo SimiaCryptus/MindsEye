@@ -17,21 +17,20 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.models;
+package com.simiacryptus.mindseye.demo;
 
-import com.simiacryptus.mindseye.labs.encoding.EncodingUtil;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
+import com.simiacryptus.mindseye.models.ImageClassifier;
+import com.simiacryptus.mindseye.models.VGG16_HDF5;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.mindseye.test.unit.JsonTest;
+import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.io.NotebookOutput;
-import guru.nidi.graphviz.engine.Format;
-import guru.nidi.graphviz.engine.Graphviz;
 import org.junit.Test;
 
-import java.util.Arrays;
+import java.awt.image.BufferedImage;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -39,7 +38,7 @@ import java.util.List;
 /**
  * The type Image classifier run base.
  */
-public abstract class ImageClassifierTestBase extends NotebookReportBase {
+public class ImageClassificationDemo extends NotebookReportBase {
   
   /**
    * Test.
@@ -52,45 +51,39 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
   }
   
   /**
-   * Gets image classifier.
-   *
-   * @param log the log
-   * @return the image classifier
-   */
-  public abstract ImageClassifier getImageClassifier(NotebookOutput log);
-  
-  /**
    * Test.
    *
    * @param log the log
    */
   public void run(NotebookOutput log) {
-    ImageClassifier vgg16 = getImageClassifier(log);
-    PipelineNetwork network = vgg16.build(log);
-  
-    log.h1("Network Diagram");
-    log.p("This is a diagram of the imported network:");
-    log.code(() -> {
-      return Graphviz.fromGraph(TestUtil.toGraph(network))
-                     .height(4000).width(800).render(Format.PNG).toImage();
+    
+    
+    log.h3("Model");
+    
+    ImageClassifier vgg16 = log.code(() -> {
+      return VGG16_HDF5.fromS3();
     });
-  
-    new JsonTest().test(log, network, (Tensor[]) null);
-  
-    log.h1("Predictions");
-    Tensor[][] images = EncodingUtil.getImages(log, 224, 10);
-    TestUtil.instrumentPerformance(log, network);
+    
+    log.h3("Data");
+    Tensor[] images = log.code(() -> {
+      return Caltech101.trainingDataStream().sorted(getShuffleComparator()).map(labeledObj -> {
+        BufferedImage img = labeledObj.data.get();
+        img = TestUtil.resize(img, 224);
+        return Tensor.fromRGB(img);
+      }).limit(10).toArray(i1 -> new Tensor[i1]);
+    });
+    
+    log.h3("Prediction");
     List<LinkedHashMap<String, Double>> predictions = log.code(() -> {
-      Tensor[] data = Arrays.stream(images).map(x -> x[1]).toArray(i -> new Tensor[i]);
-      return ImageClassifier.predict(
-        vgg16::prefilter, network, 5, vgg16.getCategories(), data);
+      return vgg16.predict(5, images);
     });
-    TestUtil.extractPerformance(log, network);
+    
+    log.h3("Results");
     log.code(() -> {
       TableOutput tableOutput = new TableOutput();
       for (int i = 0; i < images.length; i++) {
         HashMap<String, Object> row = new HashMap<>();
-        row.put("Image", log.image(images[i][1].toImage(), ""));
+        row.put("Image", log.image(images[i].toImage(), ""));
         row.put("Prediction", predictions.get(i).entrySet().stream()
                                          .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
                                          .reduce((a, b) -> a + "<br/>" + b).get());
@@ -98,6 +91,18 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
       }
       return tableOutput;
     }, 256 * 1024);
+    log.setFrontMatterProperty("status", "OK");
+  }
+  
+  /**
+   * Gets shuffle comparator.
+   *
+   * @param <T> the type parameter
+   * @return the shuffle comparator
+   */
+  public <T> Comparator<T> getShuffleComparator() {
+    final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
+    return Comparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);
   }
   
   /**
@@ -105,10 +110,12 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
    *
    * @return the target class
    */
-  protected abstract Class<?> getTargetClass();
+  protected Class<?> getTargetClass() {
+    return VGG16_HDF5.class;
+  }
   
   @Override
   public ReportType getReportType() {
-    return ReportType.Models;
+    return ReportType.Demos;
   }
 }

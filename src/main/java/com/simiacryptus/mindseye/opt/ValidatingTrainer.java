@@ -97,7 +97,7 @@ public class ValidatingTrainer {
         validatingMeasurementTime.addAndGet(time.timeNanos);
         return time.result;
       }
-
+  
       @Override
       public boolean reseed(final long seed) {
         return validationSubject.reseed(seed);

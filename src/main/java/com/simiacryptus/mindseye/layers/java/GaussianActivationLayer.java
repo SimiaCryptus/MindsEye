@@ -64,6 +64,7 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
    * From json gaussian activation layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the gaussian activation layer
    */
   public static GaussianActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

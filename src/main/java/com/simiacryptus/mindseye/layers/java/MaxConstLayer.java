@@ -52,6 +52,7 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
    * From json max const layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the max const layer
    */
   public static MaxConstLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

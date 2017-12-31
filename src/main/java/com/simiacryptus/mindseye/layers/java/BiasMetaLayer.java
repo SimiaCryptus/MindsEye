@@ -59,6 +59,7 @@ public class BiasMetaLayer extends NNLayer {
    * From json bias meta layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the bias meta layer
    */
   public static BiasMetaLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

@@ -52,6 +52,7 @@ public class CrossDifferenceLayer extends NNLayer {
    * From json cross difference layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the cross difference layer
    */
   public static CrossDifferenceLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

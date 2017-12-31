@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.test.data;
 
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.BinaryChunkIterator;
 import com.simiacryptus.util.io.DataLoader;
@@ -28,7 +29,6 @@ import com.simiacryptus.util.test.LabeledObject;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -38,11 +38,13 @@ import java.util.stream.StreamSupport;
 import java.util.zip.GZIPInputStream;
 
 /**
- * The type Mnist.
+ * References: [LeCun et al., 1998a] Y. LeCun, L. Bottou, Y. Bengio, and P. Haffner. "Gradient-based learning applied to
+ * document recognition." Proceedings of the IEEE, 86(11):2278-2324, November 1998.
+ * <p>
+ * See Also: http://yann.lecun.com/exdb/mnist/
  */
 public class MNIST {
   
-  private static final URI source = URI.create("http://yann.lecun.com/exdb/mnist/");
   /**
    * The constant training.
    */
@@ -111,7 +113,7 @@ public class MNIST {
   private static Stream<byte[]> binaryStream(final String name, final int skip, final int recordSize) throws IOException {
     InputStream stream = null;
     try {
-      stream = Util.cacheStream(MNIST.source.resolve(name));
+      stream = Util.cacheStream(TestUtil.S3_ROOT.resolve(name));
     } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
       throw new RuntimeException(e);
     }

@@ -33,11 +33,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * The type Code util.
  */
 public class CodeUtil {
+  private static final List<String> sourceFolders = Arrays.asList("src/main/java", "src/test/java", "src/main/scala", "src/test/scala");
   /**
    * The constant projectRoot.
    */
@@ -51,7 +53,10 @@ public class CodeUtil {
    * @return the file
    */
   public static File findFile(final Class<?> clazz) {
-    final String path = clazz.getName().replaceAll("\\.", "/").replaceAll("\\$.*", "");
+    if (null == clazz) return null;
+    String name = clazz.getName();
+    if (null == name) return null;
+    final String path = name.replaceAll("\\.", "/").replaceAll("\\$.*", "");
     return CodeUtil.findFile(path + ".java");
   }
   
@@ -79,7 +84,7 @@ public class CodeUtil {
       final File file = new File(root, path);
       if (file.exists()) return file;
     }
-    throw new RuntimeException(String.format("Not Found: %s; Project Root = %s", path, CodeUtil.projectRoot.getAbsolutePath()));
+    throw new RuntimeException(String.format("Not Found: %s; Project Roots = %s", path, CodeUtil.codeRoots));
   }
   
   /**
@@ -127,6 +132,7 @@ public class CodeUtil {
    */
   public static String getJavadoc(final Class<?> clazz) {
     try {
+      if (null == clazz) return null;
       final File source = CodeUtil.findFile(clazz);
       if (null == source) return clazz.getName() + " not found";
       final List<String> lines = IOUtils.readLines(new FileInputStream(source), Charset.forName("UTF-8"));
@@ -139,22 +145,24 @@ public class CodeUtil {
                                   .map(s -> s.replaceFirst("^[ \t]*[/\\*]+", "").trim())
                                   .filter(x -> !x.isEmpty()).reduce((a, b) -> a + "\n" + b).orElse("");
       return javadoc;
-    } catch (final IOException e) {
-      throw new RuntimeException(e);
+    } catch (final Throwable e) {
+      e.printStackTrace();
+      return "";
     }
   }
   
   private static List<File> loadCodeRoots() {
-    final List<String> folders = Arrays.asList(
-      "src/main/java", "src/run/java", "src/main/scala", "src/run/scala"
-                                              );
-    List<File> codeLocation = folders.stream().map(name -> new File(CodeUtil.projectRoot, name))
-                                     .filter(file -> file.exists() && file.isDirectory()).collect(Collectors.toList());
-    if (codeLocation.isEmpty()) {
-      codeLocation = Arrays.stream(CodeUtil.projectRoot.listFiles()).filter(x -> x.isDirectory()).flatMap(childRoot ->
-                                                                                                            folders.stream().map(name -> new File(childRoot, name)).filter(file -> file.exists() && file.isDirectory()))
-                           .collect(Collectors.toList());
-    }
-    return codeLocation;
+    return Stream.concat(
+      Stream.of(CodeUtil.projectRoot),
+      Arrays.stream(CodeUtil.projectRoot.listFiles())
+            .filter(file -> file.exists() && file.isDirectory())
+            .collect(Collectors.toList()).stream()).flatMap(x -> scanProject(x).stream())
+                 .distinct().collect(Collectors.toList());
+  }
+  
+  private static List<File> scanProject(File file) {
+    return sourceFolders.stream().map(name -> new File(file, name))
+                        .filter(f -> f.exists() && f.isDirectory())
+                        .collect(Collectors.toList());
   }
 }

@@ -58,7 +58,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
    * Instantiates a new Sigmoid tree network.
    *
    * @param json the json
-   * @param rs
+   * @param rs   the rs
    */
   protected SigmoidTreeNetwork(final JsonObject json, Map<String, byte[]> rs) {
     super(json, rs);
@@ -103,6 +103,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
    * From json sigmoid tree network.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the sigmoid tree network
    */
   public static SigmoidTreeNetwork fromJson(final JsonObject json, Map<String, byte[]> rs) {

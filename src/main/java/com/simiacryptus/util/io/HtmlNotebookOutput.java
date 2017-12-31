@@ -322,6 +322,11 @@ public class HtmlNotebookOutput implements NotebookOutput {
   }
   
   @Override
+  public String getFrontMatterProperty(String key) {
+    return null;
+  }
+  
+  @Override
   public String getName() {
     return "www";
   }

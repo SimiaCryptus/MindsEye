@@ -63,6 +63,13 @@ public class TimedResult<T> {
     return new TimedResult<T>(result, System.nanoTime() - start);
   }
   
+  /**
+   * Time timed result.
+   *
+   * @param <T> the type parameter
+   * @param fn  the fn
+   * @return the timed result
+   */
   public static <T> TimedResult<Void> time(final UncheckedRunnable<T> fn) {
     final long start = System.nanoTime();
     try {

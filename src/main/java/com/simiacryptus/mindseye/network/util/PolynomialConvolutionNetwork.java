@@ -52,7 +52,7 @@ public class PolynomialConvolutionNetwork extends PolynomialNetwork {
    * Instantiates a new Polynomial convolution network.
    *
    * @param json the json
-   * @param rs
+   * @param rs   the rs
    */
   protected PolynomialConvolutionNetwork(final JsonObject json, Map<String, byte[]> rs) {
     super(json, rs);
@@ -64,6 +64,7 @@ public class PolynomialConvolutionNetwork extends PolynomialNetwork {
    * From json polynomial convolution network.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the polynomial convolution network
    */
   public static PolynomialConvolutionNetwork fromJson(final JsonObject json, Map<String, byte[]> rs) {

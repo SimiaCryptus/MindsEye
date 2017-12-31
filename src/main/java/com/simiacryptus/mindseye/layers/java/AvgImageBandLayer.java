@@ -59,6 +59,7 @@ public class AvgImageBandLayer extends NNLayer {
    * From json avg image band layer.
    *
    * @param json the json
+   * @param rs   the rs
    * @return the avg image band layer
    */
   public static AvgImageBandLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {

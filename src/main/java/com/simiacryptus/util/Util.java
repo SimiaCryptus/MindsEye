@@ -139,6 +139,17 @@ public class Util {
     }
   }
   
+  /**
+   * Cache file file.
+   *
+   * @param url  the url
+   * @param file the file
+   * @return the file
+   * @throws IOException              the io exception
+   * @throws NoSuchAlgorithmException the no such algorithm exception
+   * @throws KeyStoreException        the key store exception
+   * @throws KeyManagementException   the key management exception
+   */
   public static File cacheFile(final String url, final String file) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
     if (!new File(file).exists()) {
       IOUtils.copy(get(url), new FileOutputStream(file));
@@ -146,6 +157,15 @@ public class Util {
     return new File(file);
   }
   
+  /**
+   * Get input stream.
+   *
+   * @param url the url
+   * @return the input stream
+   * @throws NoSuchAlgorithmException the no such algorithm exception
+   * @throws KeyManagementException   the key management exception
+   * @throws IOException              the io exception
+   */
   public static InputStream get(String url) throws NoSuchAlgorithmException, KeyManagementException, IOException {
     final TrustManager[] trustManagers = {
       new X509TrustManager() {
@@ -191,6 +211,16 @@ public class Util {
     return Util.cacheStream(url.toString(), new File(url.getPath()).getName());
   }
   
+  /**
+   * Cache file file.
+   *
+   * @param url the url
+   * @return the file
+   * @throws IOException              the io exception
+   * @throws NoSuchAlgorithmException the no such algorithm exception
+   * @throws KeyStoreException        the key store exception
+   * @throws KeyManagementException   the key management exception
+   */
   public static File cacheFile(final URI url) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
     return Util.cacheFile(url.toString(), new File(url.getPath()).getName());
   }
@@ -458,6 +488,11 @@ public class Util {
     return UUID.fromString(tempId);
   }
   
+  /**
+   * Sleep.
+   *
+   * @param i the
+   */
   public static void sleep(int i) {
     try {
       Thread.sleep(i);
