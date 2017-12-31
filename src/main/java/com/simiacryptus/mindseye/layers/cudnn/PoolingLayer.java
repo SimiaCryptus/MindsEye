@@ -78,8 +78,13 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
     return new PoolingLayer(json);
   }
   
+  public NNLayer getCompatibilityLayer() {
+    throw new RuntimeException("Not Implemented");
+  }
+  
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
     final int poolDims = 2;
     final int windowSize[] = {windowX, windowY};
     final int padding[] = {paddingX, paddingY};

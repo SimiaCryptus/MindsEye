@@ -64,10 +64,16 @@ public class CuDNN {
    */
   protected CuDNN(final int deviceNumber) {
     this.deviceNumber = deviceNumber;
-    cudnnHandle = new cudnnHandle();
-    initThread();
-    deviceName = CuDNN.getDeviceName(deviceNumber);
-    JCudnn.cudnnCreate(cudnnHandle);
+    if (0 <= this.deviceNumber) {
+      cudnnHandle = new cudnnHandle();
+      initThread();
+      deviceName = CuDNN.getDeviceName(deviceNumber);
+      JCudnn.cudnnCreate(cudnnHandle);
+    }
+    else {
+      cudnnHandle = null;
+      deviceName = null;
+    }
     //cudaSetDevice();
   }
   

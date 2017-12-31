@@ -82,6 +82,7 @@ public class StaticResourcePool<T> {
    * @return the u
    */
   public <U> U run(final Function<T, U> f) {
+    if (all.isEmpty()) throw new IllegalStateException();
     T poll = this.pool.poll();
     if (null == poll) {
       try {

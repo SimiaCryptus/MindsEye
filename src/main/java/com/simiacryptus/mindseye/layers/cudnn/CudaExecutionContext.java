@@ -61,11 +61,16 @@ public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
   }
   
   /**
-   * Load gpu contexts list.
+   * Load gpu contexts list. If the property disableCuDnn is set to true, no GPUs will be recognized. This is useful for
+   * testing CPU-only compatibility.
    *
    * @return the list
    */
   static List<CudaExecutionContext> loadGpuContexts() {
+    if (Boolean.parseBoolean(System.getProperty("disableCuDnn", "false"))) {
+      logger.warn("Disabled CuDNN");
+      return Arrays.asList();
+    }
     final int deviceCount = CuDNN.deviceCount();
     logger.info(String.format("Found %s devices", deviceCount));
     List<Integer> devices = new ArrayList<>();
@@ -81,7 +86,13 @@ public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
     }
     logger.info(String.format("Found %s devices; using devices %s", deviceCount, devices));
     return devices.stream()
-                  .map(i -> new CudaExecutionContext(i)).collect(Collectors.toList());
+                  .map(i -> {
+                    try {
+                      return new CudaExecutionContext(i);
+                    } catch (Throwable e) {
+                      return null;
+                    }
+                  }).filter(x -> x != null).collect(Collectors.toList());
   }
   
 }

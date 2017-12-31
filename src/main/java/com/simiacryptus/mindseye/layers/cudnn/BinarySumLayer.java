@@ -79,8 +79,13 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
     return new BinarySumLayer(json);
   }
   
+  public NNLayer getCompatibilityLayer() {
+    throw new RuntimeException("Not Implemented");
+  }
+  
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
     ((CudaExecutionContext) nncontext).initThread();
     if (inObj.length != 2) {
       throw new IllegalArgumentException("inObj.length=" + inObj.length);

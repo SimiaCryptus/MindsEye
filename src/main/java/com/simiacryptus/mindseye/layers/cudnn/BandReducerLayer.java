@@ -65,8 +65,13 @@ public class BandReducerLayer extends NNLayer implements LayerPrecision<BandRedu
     return new BandReducerLayer(json);
   }
   
+  public NNLayer getCompatibilityLayer() {
+    throw new RuntimeException("Not Implemented");
+  }
+  
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputSize = batch.getDimensions();

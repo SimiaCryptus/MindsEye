@@ -63,8 +63,13 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
     return new ProductLayer(json);
   }
   
+  public NNLayer getCompatibilityLayer() {
+    throw new RuntimeException("Not Implemented");
+  }
+  
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
     ((CudaExecutionContext) nncontext).initThread();
     if (inObj.length <= 1) {
       throw new IllegalArgumentException("inObj.length=" + inObj.length);

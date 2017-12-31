@@ -64,8 +64,13 @@ public class SubsampleLayer extends NNLayer implements LayerPrecision<SubsampleL
     return new SubsampleLayer(json);
   }
   
+  public NNLayer getCompatibilityLayer() {
+    throw new RuntimeException("Not Implemented");
+  }
+  
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     assert 3 == inObj[0].getData().getDimensions().length;

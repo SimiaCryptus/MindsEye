@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
+import com.simiacryptus.mindseye.lang.NNLayer;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnDataType;
@@ -163,6 +164,10 @@ public enum Precision {
     while (inBuffer.hasRemaining()) {
       outBuffer.put(inBuffer.get());
     }
+  }
+  
+  public NNLayer getCompatibilityLayer() {
+    throw new RuntimeException("Not Implemented");
   }
   
   /**

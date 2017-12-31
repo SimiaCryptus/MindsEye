@@ -77,13 +77,18 @@ public final class GpuController {
    * @return the t
    */
   public static <T> T call(final Function<CudaExecutionContext, T> fn) {
-    return CudaExecutionContext.gpuContexts.run(exe -> {
-      try {
-        return GpuController.INSTANCE.getGpuDriverThreads().get(exe).submit(() -> fn.apply(exe)).get();
-      } catch (final Exception e) {
-        throw new RuntimeException(e);
-      }
-    });
+    if (CudaExecutionContext.gpuContexts.getAll().isEmpty()) {
+      return fn.apply(new CudaExecutionContext(-1));
+    }
+    else {
+      return CudaExecutionContext.gpuContexts.run(exe -> {
+        try {
+          return GpuController.INSTANCE.getGpuDriverThreads().get(exe).submit(() -> fn.apply(exe)).get();
+        } catch (final Exception e) {
+          throw new RuntimeException(e);
+        }
+      });
+    }
   }
   
   /**

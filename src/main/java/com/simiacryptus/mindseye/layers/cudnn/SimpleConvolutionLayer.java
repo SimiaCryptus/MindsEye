@@ -149,6 +149,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
   
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+    if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     ((CudaExecutionContext) nncontext).initThread();
     final NNResult input = inObj[0];
@@ -252,6 +253,10 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
     } catch (final Throwable e) {
       throw new ComponentException(String.format("Error in convolution %s x %s", Arrays.toString(inputSize), Arrays.toString(kernelSize)), e);
     }
+  }
+  
+  public NNLayer getCompatibilityLayer() {
+    throw new RuntimeException("Not Implemented");
   }
   
   @Override
