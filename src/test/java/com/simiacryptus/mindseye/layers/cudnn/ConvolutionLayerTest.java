@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
- * The type Convolution layer test.
+ * The type Convolution layer run.
  */
 public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   
@@ -44,7 +44,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   ConvolutionLayer convolutionLayer;
   
   /**
-   * Instantiates a new Convolution layer test.
+   * Instantiates a new Convolution layer run.
    *
    * @param radius      the radius
    * @param inputBands  the input bands
@@ -91,7 +91,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   public static class BandExpand extends ConvolutionLayerTest {
   
     /**
-     * Instantiates a new Asymmetric test.
+     * Instantiates a new Asymmetric run.
      */
     public BandExpand() {
       super(3, 3, 6, Precision.Double);
@@ -105,7 +105,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   public static class BandReduceTest extends ConvolutionLayerTest {
   
     /**
-     * Instantiates a new Asymmetric test.
+     * Instantiates a new Asymmetric run.
      */
     public BandReduceTest() {
       super(3, 6, 3, Precision.Double);
@@ -143,7 +143,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   public static class IrregularTest extends ConvolutionLayerTest {
   
     /**
-     * Instantiates a new Irregular test.
+     * Instantiates a new Irregular run.
      */
     public IrregularTest() {
       super(3, 7, 5, Precision.Double);
@@ -156,7 +156,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   public static class IrregularTest_Float extends ConvolutionLayerTest {
   
     /**
-     * Instantiates a new Irregular test float.
+     * Instantiates a new Irregular run float.
      */
     public IrregularTest_Float() {
       super(3, 7, 5, Precision.Float);

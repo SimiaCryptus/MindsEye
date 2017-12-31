@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
- * The type Img concat layer test.
+ * The type Img concat layer run.
  */
 public abstract class SubsampleLayerTest extends CudnnLayerTestBase {
   
@@ -32,7 +32,7 @@ public abstract class SubsampleLayerTest extends CudnnLayerTestBase {
   final Precision precision;
   
   /**
-   * Instantiates a new Img concat layer test.
+   * Instantiates a new Img concat layer run.
    *
    * @param precision the precision
    */
@@ -53,7 +53,7 @@ public abstract class SubsampleLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * Basic 64-bit test
+   * Basic 64-bit run
    */
   public static class Double extends SubsampleLayerTest {
     /**
@@ -65,7 +65,7 @@ public abstract class SubsampleLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * Basic 32-bit test
+   * Basic 32-bit run
    */
   public static class Float extends SubsampleLayerTest {
     /**

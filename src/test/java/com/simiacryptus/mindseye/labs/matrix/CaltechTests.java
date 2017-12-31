@@ -156,7 +156,7 @@ public class CaltechTests {
     }
   
     /**
-     * Autoencoder test.
+     * Autoencoder run.
      *
      * @throws IOException the io exception
      */
@@ -173,7 +173,7 @@ public class CaltechTests {
     }
   
     /**
-     * Classification test.
+     * Classification run.
      *
      * @throws IOException the io exception
      */
@@ -190,7 +190,7 @@ public class CaltechTests {
     }
   
     /**
-     * Encoding test.
+     * Encoding run.
      *
      * @throws IOException the io exception
      */

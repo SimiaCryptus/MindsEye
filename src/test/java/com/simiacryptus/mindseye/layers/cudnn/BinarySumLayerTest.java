@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
 /**
- * The type BinarySumLayerTest layer test.
+ * The type BinarySumLayerTest layer run.
  */
 public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
   
@@ -33,7 +33,7 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
   final Precision precision;
   
   /**
-   * Instantiates a new Product layer test.
+   * Instantiates a new Product layer run.
    *
    * @param precision the precision
    */

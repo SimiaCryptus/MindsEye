@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Sum reducer layer test.
+ * The type Sum reducer layer run.
  */
 public abstract class SumReducerLayerTest extends LayerTestBase {
   

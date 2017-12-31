@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Monitoring wrapper test.
+ * The type Monitoring wrapper run.
  */
 public abstract class MonitoringWrapperTest extends LayerTestBase {
   

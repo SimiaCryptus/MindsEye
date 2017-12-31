@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 
 /**
- * The type Rascaled subnet layer test.
+ * The type Rascaled subnet layer run.
  */
 public abstract class RescaledSubnetLayerTest {
   /**

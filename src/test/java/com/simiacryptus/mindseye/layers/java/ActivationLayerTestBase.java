@@ -36,14 +36,14 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 /**
- * The type Activation layer test base.
+ * The type Activation layer run base.
  */
 public abstract class ActivationLayerTestBase extends LayerTestBase {
   
   private final NNLayer layer;
   
   /**
-   * Instantiates a new Activation layer test base.
+   * Instantiates a new Activation layer run base.
    *
    * @param layer the layer
    */
@@ -108,8 +108,8 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
   }
   
   @Override
-  public void test(final NotebookOutput log) {
-    super.test(log);
+  public void run(final NotebookOutput log) {
+    super.run(log);
     
     log.h3("Function Plots");
     final NNLayer layer = getLayer(new int[][]{{1}});

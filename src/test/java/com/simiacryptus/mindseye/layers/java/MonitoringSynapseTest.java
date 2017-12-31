@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Monitoring synapse test.
+ * The type Monitoring synapse run.
  */
 public abstract class MonitoringSynapseTest extends LayerTestBase {
   

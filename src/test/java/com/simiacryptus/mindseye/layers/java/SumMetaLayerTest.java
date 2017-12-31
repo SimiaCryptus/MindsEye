@@ -23,12 +23,12 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.MetaLayerTestBase;
 
 /**
- * The type Sum meta layer test.
+ * The type Sum meta layer run.
  */
 public abstract class SumMetaLayerTest extends MetaLayerTestBase {
   
   /**
-   * Instantiates a new Sum meta layer test.
+   * Instantiates a new Sum meta layer run.
    */
   public SumMetaLayerTest() {
     super();

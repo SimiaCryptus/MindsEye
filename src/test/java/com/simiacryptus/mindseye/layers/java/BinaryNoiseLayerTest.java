@@ -23,12 +23,12 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Binary noise layer test.
+ * The type Binary noise layer run.
  */
 public abstract class BinaryNoiseLayerTest extends LayerTestBase {
   
   /**
-   * Instantiates a new Binary noise layer test.
+   * Instantiates a new Binary noise layer run.
    */
   public BinaryNoiseLayerTest() {
     validateBatchExecution = false;

@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Assert dimensions layer test.
+ * The type Assert dimensions layer run.
  */
 public abstract class AssertDimensionsLayerTest extends LayerTestBase {
   

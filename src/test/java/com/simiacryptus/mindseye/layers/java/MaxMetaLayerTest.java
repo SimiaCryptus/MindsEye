@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.MetaLayerTestBase;
 
 /**
- * The type Max meta layer test.
+ * The type Max meta layer run.
  */
 public abstract class MaxMetaLayerTest extends MetaLayerTestBase {
   

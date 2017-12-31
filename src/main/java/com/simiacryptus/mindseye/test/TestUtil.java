@@ -54,7 +54,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * The type Image test util.
+ * The type Image run util.
  */
 public class TestUtil {
   /**
@@ -533,4 +533,5 @@ public class TestUtil {
     final LinkSource[] nodeArray = graphNodes.values().stream().map(x -> (LinkSource) x).toArray(i -> new LinkSource[i]);
     return Factory.graph().with(nodeArray).generalAttr().with(RankDir.TOP_TO_BOTTOM).directed();
   }
+  
 }

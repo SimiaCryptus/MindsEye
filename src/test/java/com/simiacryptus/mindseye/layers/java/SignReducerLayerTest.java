@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Sign reducer layer test.
+ * The type Sign reducer layer run.
  */
 public class SignReducerLayerTest {
   /**

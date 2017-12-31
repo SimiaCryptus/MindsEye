@@ -25,12 +25,12 @@ import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 /**
- * The type Weight extractor test.
+ * The type Weight extractor run.
  */
 public class WeightExtractorTest extends LayerTestBase {
   
   /**
-   * Instantiates a new Weight extractor test.
+   * Instantiates a new Weight extractor run.
    */
   public WeightExtractorTest() {
     validateDifferentials = false;

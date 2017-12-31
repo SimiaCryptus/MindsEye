@@ -22,27 +22,24 @@ package com.simiacryptus.mindseye.models;
 import com.simiacryptus.mindseye.labs.encoding.EncodingUtil;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.test.NotebookOutputTestBase;
+import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.unit.JsonTest;
 import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.lang.CodeUtil;
-import com.simiacryptus.util.test.SysOutInterceptor;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 /**
- * The type Image classifier test base.
+ * The type Image classifier run base.
  */
-public abstract class ImageClassifierTestBase extends NotebookOutputTestBase {
-  
-  static {
-    SysOutInterceptor.INSTANCE.init();
-  }
+public abstract class ImageClassifierTestBase extends NotebookReportBase {
   
   /**
    * Test.
@@ -50,12 +47,8 @@ public abstract class ImageClassifierTestBase extends NotebookOutputTestBase {
    * @throws Throwable the throwable
    */
   @Test
-  public void test() throws Throwable {
-    try (NotebookOutput log = getLog()) {
-      printHeader(log);
-      ImageClassifier imageClassifier = getImageClassifier(log);
-      test(log, imageClassifier);
-    }
+  public void run() {
+    super.run();
   }
   
   /**
@@ -68,11 +61,11 @@ public abstract class ImageClassifierTestBase extends NotebookOutputTestBase {
   
   /**
    * Test.
+   *  @param log   the log
    *
-   * @param log   the log
-   * @param vgg16 the vgg 16
    */
-  public void test(NotebookOutput log, ImageClassifier vgg16) {
+  public void run(NotebookOutput log) {
+    ImageClassifier vgg16 = getImageClassifier(log);
     PipelineNetwork network = vgg16.build(log);
 
     log.h1("Network Diagram");
@@ -106,27 +99,6 @@ public abstract class ImageClassifierTestBase extends NotebookOutputTestBase {
       return tableOutput;
     }, 256 * 1024);
     log.setFrontMatterProperty("status", "OK");
-  }
-  
-  /**
-   * Print header.
-   *
-   * @param log the log
-   */
-  public void printHeader(NotebookOutput log) {
-    Class<?> networkClass = getTargetClass();
-    Class<? extends NotebookOutputTestBase> selfClass = getClass();
-    String appJavadoc = CodeUtil.getJavadoc(networkClass);
-    String testJavadoc = CodeUtil.getJavadoc(selfClass);
-    log.setFrontMatterProperty("created_on", new Date().toString());
-    log.setFrontMatterProperty("application_class_short", networkClass.getSimpleName());
-    log.setFrontMatterProperty("application_class_full", networkClass.getCanonicalName());
-    log.setFrontMatterProperty("application_class_doc", appJavadoc.replaceAll("\n", ""));
-    log.setFrontMatterProperty("test_class_short", selfClass.getSimpleName());
-    log.setFrontMatterProperty("test_class_full", selfClass.getCanonicalName());
-    log.setFrontMatterProperty("test_class_doc", testJavadoc.replaceAll("\n", ""));
-    log.p("__Application Description:__ " + appJavadoc);
-    //log.p("__Test Description:__ " + testJavadoc);
   }
   
   /**

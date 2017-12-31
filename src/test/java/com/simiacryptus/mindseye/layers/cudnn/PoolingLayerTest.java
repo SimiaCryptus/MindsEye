@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
 /**
- * The type Pooling layer test.
+ * The type Pooling layer run.
  */
 public abstract class PoolingLayerTest extends CudnnLayerTestBase {
   
@@ -33,7 +33,7 @@ public abstract class PoolingLayerTest extends CudnnLayerTestBase {
   final Precision precision;
   
   /**
-   * Instantiates a new Pooling layer test.
+   * Instantiates a new Pooling layer run.
    *
    * @param precision the precision
    */
@@ -61,7 +61,7 @@ public abstract class PoolingLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * Basic 64-bit test.
+   * Basic 64-bit run.
    */
   public static class Double extends PoolingLayerTest {
     /**
@@ -91,7 +91,7 @@ public abstract class PoolingLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * Basic 32-bit test.
+   * Basic 32-bit run.
    */
   public static class Float extends PoolingLayerTest {
     /**

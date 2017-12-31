@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
 /**
- * The type Convolution network test.
+ * The type Convolution network run.
  */
 public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
   
@@ -34,7 +34,7 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
   final Precision precision;
   
   /**
-   * Instantiates a new Convolution network test.
+   * Instantiates a new Convolution network run.
    *
    * @param precision the precision
    */

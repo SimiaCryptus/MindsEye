@@ -24,12 +24,12 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 
 /**
- * The type Img crop layer test.
+ * The type Img crop layer run.
  */
 public abstract class ImgCropLayerTest extends LayerTestBase {
   
   /**
-   * Instantiates a new Img crop layer test.
+   * Instantiates a new Img crop layer run.
    */
   public ImgCropLayerTest() {
     validateBatchExecution = false;

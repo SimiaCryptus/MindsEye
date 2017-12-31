@@ -19,9 +19,9 @@
 
 package com.simiacryptus.mindseye.labs.matrix;
 
+import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.integration.*;
-import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.TestCategories;
 import org.junit.Ignore;
@@ -75,20 +75,36 @@ public abstract class OptimizerComparison {
   @Test
   @Category(TestCategories.Report.class)
   public void classification() throws IOException {
-    try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
-
-      compare(log, opt -> {
-        return new ClassifyProblem(fwdFactory, opt, data, 10)
-          .setTimeoutMinutes(timeoutMinutes).run(log).getHistory();
-      });
-    }
+    new NotebookReportBase() {
+      @Override
+      protected void run(NotebookOutput log) {
+        compare(log, opt -> {
+          return new ClassifyProblem(fwdFactory, opt, data, 10)
+            .setTimeoutMinutes(timeoutMinutes).run(log).getHistory();
+        });
+      }
+    
+      @Override
+      public void printHeader(NotebookOutput log) {
+        String fwdFactory_javadoc = printHeader(log, fwdFactory.getClass(), "fwd");
+        String revFactory_javadoc = printHeader(log, revFactory.getClass(), "rev");
+        super.printHeader(log);
+        log.p("_Forward Strategy Javadoc_: " + fwdFactory_javadoc);
+        log.p("_Reverse Strategy Javadoc_: " + revFactory_javadoc);
+      }
+    
+      @Override
+      protected Class<?> getTargetClass() {
+        return OptimizerComparison.this.getClass();
+      }
+    }.run();
   }
   
   /**
    * Compare.
    *
    * @param log  the log
-   * @param test the test
+   * @param test the run
    */
   public abstract void compare(NotebookOutput log, Function<OptimizationStrategy, List<StepRecord>> test);
   
@@ -101,13 +117,29 @@ public abstract class OptimizerComparison {
   @Ignore
   @Category(TestCategories.Report.class)
   public void encoding() throws IOException {
-    try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
-
-      compare(log, opt -> {
-        return new EncodingProblem(revFactory, opt, data, 10)
-          .setTimeoutMinutes(timeoutMinutes).setTrainingSize(5000).run(log).getHistory();
-      });
-    }
+    new NotebookReportBase() {
+      @Override
+      protected void run(NotebookOutput log) {
+        compare(log, opt -> {
+          return new EncodingProblem(revFactory, opt, data, 10)
+            .setTimeoutMinutes(timeoutMinutes).setTrainingSize(5000).run(log).getHistory();
+        });
+      }
+    
+      @Override
+      public void printHeader(NotebookOutput log) {
+        String fwdFactory_javadoc = printHeader(log, fwdFactory.getClass(), "fwd");
+        String revFactory_javadoc = printHeader(log, revFactory.getClass(), "rev");
+        super.printHeader(log);
+        log.p("_Forward Strategy Javadoc_: " + fwdFactory_javadoc);
+        log.p("_Reverse Strategy Javadoc_: " + revFactory_javadoc);
+      }
+    
+      @Override
+      protected Class<?> getTargetClass() {
+        return OptimizerComparison.this.getClass();
+      }
+    }.run();
   }
   
   /**

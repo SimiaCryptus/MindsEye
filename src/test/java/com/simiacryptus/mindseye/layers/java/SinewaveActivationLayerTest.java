@@ -20,11 +20,11 @@
 package com.simiacryptus.mindseye.layers.java;
 
 /**
- * The type Sinewave activation layer test.
+ * The type Sinewave activation layer run.
  */
 public abstract class SinewaveActivationLayerTest extends ActivationLayerTestBase {
   /**
-   * Instantiates a new Sinewave activation layer test.
+   * Instantiates a new Sinewave activation layer run.
    */
   public SinewaveActivationLayerTest() {
     super(new SinewaveActivationLayer());

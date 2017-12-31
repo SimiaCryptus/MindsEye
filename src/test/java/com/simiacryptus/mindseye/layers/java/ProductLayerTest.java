@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Product layer test.
+ * The type Product layer run.
  */
 public abstract class ProductLayerTest extends LayerTestBase {
   

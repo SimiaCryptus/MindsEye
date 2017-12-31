@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.util.Util;
 
 /**
- * The type Convolution network test.
+ * The type Convolution network run.
  */
 public abstract class DeepConvolution extends NLayerTest {
   

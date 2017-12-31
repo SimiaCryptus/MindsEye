@@ -24,6 +24,8 @@ import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.HtmlNotebookOutput;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.util.lang.CodeUtil;
+import com.simiacryptus.util.test.SysOutInterceptor;
 
 import java.awt.*;
 import java.io.File;
@@ -33,9 +35,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * The type Notebook output test base.
+ * The type Notebook output run base.
  */
-public abstract class NotebookOutputTestBase {
+public abstract class NotebookReportBase {
+  
+  static {
+    SysOutInterceptor.INSTANCE.init();
+  }
+  
   /**
    * The Use markdown.
    */
@@ -44,6 +51,42 @@ public abstract class NotebookOutputTestBase {
    * The Prefer static.
    */
   protected boolean preferStatic = Boolean.parseBoolean(System.getProperty("preferStatic", "true"));
+  
+  public static String printHeader(NotebookOutput log, Class<?> networkClass, final String prefix) {
+    String appJavadoc = CodeUtil.getJavadoc(networkClass);
+    log.setFrontMatterProperty(prefix + "_class_short", networkClass.getSimpleName());
+    log.setFrontMatterProperty(prefix + "_class_full", networkClass.getCanonicalName());
+    log.setFrontMatterProperty(prefix + "_class_doc", appJavadoc.replaceAll("\n", ""));
+    return appJavadoc;
+  }
+  
+  /**
+   * Test.
+   *
+   * @throws Throwable the throwable
+   */
+  public void run() {
+    try (NotebookOutput log = getLog()) {
+      printHeader(log);
+      run(log);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  protected abstract void run(NotebookOutput log);
+  
+  public void printHeader(NotebookOutput log) {
+    log.setFrontMatterProperty("created_on", new Date().toString());
+    String targetJavadoc = printHeader(log, getTargetClass(), "network");
+    String reportJavadoc = printHeader(log, getReportClass(), "report");
+    log.p("__Target Description:__ " + targetJavadoc);
+    log.p("__Report Description:__ " + reportJavadoc);
+  }
+  
+  public Class<? extends NotebookReportBase> getReportClass() {
+    return getClass();
+  }
   
   /**
    * Gets log.

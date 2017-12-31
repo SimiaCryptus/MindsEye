@@ -23,14 +23,14 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Bias layer test.
+ * The type Bias layer run.
  */
 public abstract class BiasLayerTest extends LayerTestBase {
   
   private final int dimension;
   
   /**
-   * Instantiates a new Bias layer test.
+   * Instantiates a new Bias layer run.
    *
    * @param dimension the dimension
    */

@@ -37,7 +37,7 @@ import java.util.List;
 
 
 /**
- * The type N layer test.
+ * The type N layer run.
  */
 public abstract class PipelineTest {
   
@@ -48,7 +48,7 @@ public abstract class PipelineTest {
   
   
   /**
-   * Instantiates a new N layer test.
+   * Instantiates a new N layer run.
    *
    * @param pipeline the pipeline
    */
@@ -57,7 +57,7 @@ public abstract class PipelineTest {
   }
   
   /**
-   * Instantiates a new Pipeline test.
+   * Instantiates a new Pipeline run.
    *
    * @param pipeline the pipeline
    */

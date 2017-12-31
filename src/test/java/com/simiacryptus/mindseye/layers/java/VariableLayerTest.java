@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Variable layer test.
+ * The type Variable layer run.
  */
 public abstract class VariableLayerTest extends LayerTestBase {
   

@@ -26,8 +26,9 @@ import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
+import com.simiacryptus.mindseye.test.NotebookReportBase;
+import com.simiacryptus.mindseye.test.data.CIFAR10;
 import com.simiacryptus.mindseye.test.integration.*;
-import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.TestCategories;
 import org.junit.Ignore;
@@ -128,7 +129,7 @@ public class CifarTests {
     }
 
     /**
-     * Autoencoder test.
+     * Autoencoder run.
      *
      * @throws IOException the io exception
      */
@@ -136,44 +137,101 @@ public class CifarTests {
     @Ignore
     @Category(TestCategories.Report.class)
     public void autoencoder_test() throws IOException {
-      try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
-
-        log.h1("CIFAR10 Denoising Autoencoder");
-        intro(log);
-        new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data, 100, 0.8).setTimeoutMinutes(timeoutMinutes).run(log);
-      }
+      new NotebookReportBase() {
+        @Override
+        protected void run(NotebookOutput log) {
+      
+          log.h1("CIFAR10 Denoising Autoencoder");
+          intro(log);
+          new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data, 100, 0.8).setTimeoutMinutes(timeoutMinutes).run(log);
+        }
+    
+        @Override
+        public void printHeader(NotebookOutput log) {
+          String fwdFactory_javadoc = printHeader(log, fwdFactory.getClass(), "fwd");
+          String optimizationStrategy_javadoc = printHeader(log, optimizationStrategy.getClass(), "opt");
+          String revFactory_javadoc = printHeader(log, revFactory.getClass(), "rev");
+          super.printHeader(log);
+          log.p("_Forward Strategy Javadoc_: " + fwdFactory_javadoc);
+          log.p("_Reverse Strategy Javadoc_: " + revFactory_javadoc);
+          log.p("_Optimization Strategy Javadoc_: " + optimizationStrategy_javadoc);
+        }
+    
+        @Override
+        protected Class<?> getTargetClass() {
+          return CIFAR10.class;
+        }
+      }.run();
     }
   
     /**
-     * Classification test.
+     * Classification run.
      *
      * @throws IOException the io exception
      */
     @Test
     @Category(TestCategories.Report.class)
     public void classification_test() throws IOException {
-      try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
-
-        log.h1("CIFAR10 Classification");
-        intro(log);
-        new ClassifyProblem(fwdFactory, optimizationStrategy, data, 10).setTimeoutMinutes(timeoutMinutes).run(log);
-      }
+      new NotebookReportBase() {
+        @Override
+        protected void run(NotebookOutput log) {
+      
+          log.h1("CIFAR10 Denoising Autoencoder");
+          intro(log);
+          new ClassifyProblem(fwdFactory, optimizationStrategy, data, 100).setTimeoutMinutes(timeoutMinutes).run(log);
+        }
+    
+        @Override
+        public void printHeader(NotebookOutput log) {
+          String fwdFactory_javadoc = printHeader(log, fwdFactory.getClass(), "fwd");
+          String optimizationStrategy_javadoc = printHeader(log, optimizationStrategy.getClass(), "opt");
+          String revFactory_javadoc = printHeader(log, revFactory.getClass(), "rev");
+          super.printHeader(log);
+          log.p("_Forward Strategy Javadoc_: " + fwdFactory_javadoc);
+          log.p("_Reverse Strategy Javadoc_: " + revFactory_javadoc);
+          log.p("_Optimization Strategy Javadoc_: " + optimizationStrategy_javadoc);
+        }
+    
+        @Override
+        protected Class<?> getTargetClass() {
+          return CIFAR10.class;
+        }
+      }.run();
     }
   
     /**
-     * Encoding test.
+     * Encoding run.
      *
      * @throws IOException the io exception
      */
     @Test
     @Category(TestCategories.Report.class)
     public void encoding_test() throws IOException {
-      try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
-
-        log.h1("CIFAR10 Image-to-Vector Encoding");
-        intro(log);
-        new EncodingProblem(revFactory, optimizationStrategy, data, 10).setTimeoutMinutes(timeoutMinutes).run(log);
-      }
+      new NotebookReportBase() {
+        @Override
+        protected void run(NotebookOutput log) {
+      
+          log.h1("CIFAR10 Image-to-Vector Encoding");
+          intro(log);
+          new EncodingProblem(revFactory, optimizationStrategy, data, 10).setTimeoutMinutes(timeoutMinutes).run(log);
+        }
+    
+        @Override
+        public void printHeader(NotebookOutput log) {
+          String fwdFactory_javadoc = printHeader(log, fwdFactory.getClass(), "fwd");
+          String optimizationStrategy_javadoc = printHeader(log, optimizationStrategy.getClass(), "opt");
+          String revFactory_javadoc = printHeader(log, revFactory.getClass(), "rev");
+          super.printHeader(log);
+          log.p("_Forward Strategy Javadoc_: " + fwdFactory_javadoc);
+          log.p("_Reverse Strategy Javadoc_: " + revFactory_javadoc);
+          log.p("_Optimization Strategy Javadoc_: " + optimizationStrategy_javadoc);
+        }
+    
+        @Override
+        protected Class<?> getTargetClass() {
+          return CIFAR10.class;
+        }
+      }.run();
     }
   
     /**

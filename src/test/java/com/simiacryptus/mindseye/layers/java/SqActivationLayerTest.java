@@ -20,11 +20,11 @@
 package com.simiacryptus.mindseye.layers.java;
 
 /**
- * The type Sq activation layer test.
+ * The type Sq activation layer run.
  */
 public abstract class SqActivationLayerTest extends ActivationLayerTestBase {
   /**
-   * Instantiates a new Sq activation layer test.
+   * Instantiates a new Sq activation layer run.
    */
   public SqActivationLayerTest() {
     super(new SqActivationLayer());

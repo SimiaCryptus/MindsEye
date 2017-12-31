@@ -23,12 +23,12 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Logging wrapper layer test.
+ * The type Logging wrapper layer run.
  */
 public abstract class LoggingWrapperLayerTest extends LayerTestBase {
   
   /**
-   * Instantiates a new Logging wrapper layer test.
+   * Instantiates a new Logging wrapper layer run.
    */
   public LoggingWrapperLayerTest() {
     validateBatchExecution = false;

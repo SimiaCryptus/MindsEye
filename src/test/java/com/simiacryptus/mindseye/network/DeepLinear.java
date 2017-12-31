@@ -27,7 +27,7 @@ import com.simiacryptus.mindseye.layers.java.SigmoidActivationLayer;
 import com.simiacryptus.util.Util;
 
 /**
- * The type Convolution network test.
+ * The type Convolution network run.
  */
 public abstract class DeepLinear extends NLayerTest {
   

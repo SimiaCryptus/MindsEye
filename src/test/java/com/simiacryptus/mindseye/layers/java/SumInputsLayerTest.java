@@ -23,11 +23,11 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Sum inputs layer test.
+ * The type Sum inputs layer run.
  */
 public class SumInputsLayerTest {
   /**
-   * The type N 1 test.
+   * The type N 1 run.
    */
   public static class N1Test extends LayerTestBase {
     
@@ -53,7 +53,7 @@ public class SumInputsLayerTest {
   }
   
   /**
-   * The type Nn test.
+   * The type Nn run.
    */
   public static class NNTest extends LayerTestBase {
     

@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.test.unit.BatchDerivativeTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 
 /**
- * The type Normalization meta layer test.
+ * The type Normalization meta layer run.
  */
 public abstract class NormalizationMetaLayerTest extends MetaLayerTestBase {
   

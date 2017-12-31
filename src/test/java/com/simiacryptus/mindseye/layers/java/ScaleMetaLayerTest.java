@@ -23,12 +23,12 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Scale meta layer test.
+ * The type Scale meta layer run.
  */
 public abstract class ScaleMetaLayerTest extends LayerTestBase {
   
   /**
-   * Instantiates a new Scale meta layer test.
+   * Instantiates a new Scale meta layer run.
    */
   public ScaleMetaLayerTest() {
     validateBatchExecution = false;

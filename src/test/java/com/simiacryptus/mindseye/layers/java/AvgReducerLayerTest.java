@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Avg reducer layer test.
+ * The type Avg reducer layer run.
  */
 public abstract class AvgReducerLayerTest extends LayerTestBase {
   

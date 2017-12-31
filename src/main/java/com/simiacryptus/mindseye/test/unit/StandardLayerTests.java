@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.test.unit;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.network.DAGNetwork;
-import com.simiacryptus.mindseye.test.NotebookOutputTestBase;
+import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.Util;
@@ -40,9 +40,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 /**
- * The type Layer test base.
+ * The type Layer run base.
  */
-public abstract class StandardLayerTests extends NotebookOutputTestBase {
+public abstract class StandardLayerTests extends NotebookReportBase {
   static {
     SysOutInterceptor.INSTANCE.init();
   }
@@ -232,7 +232,7 @@ public abstract class StandardLayerTests extends NotebookOutputTestBase {
    *
    * @param log the log
    */
-  public void test(final NotebookOutput log) {
+  public void run(final NotebookOutput log) {
   
     final NNLayer layer = getLayer(getInputDims());
     String layerJavadoc = CodeUtil.getJavadoc(layer.getClass());

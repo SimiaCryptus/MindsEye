@@ -23,12 +23,12 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.MetaLayerTestBase;
 
 /**
- * The type Std dev meta layer test.
+ * The type Std dev meta layer run.
  */
 public abstract class StdDevMetaLayerTest extends MetaLayerTestBase {
   
   /**
-   * Instantiates a new Std dev meta layer test.
+   * Instantiates a new Std dev meta layer run.
    */
   public StdDevMetaLayerTest() {
     super();

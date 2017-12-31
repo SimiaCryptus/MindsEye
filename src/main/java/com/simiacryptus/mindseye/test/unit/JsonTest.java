@@ -37,7 +37,7 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipFile;
 
 /**
- * The type Json test.
+ * The type Json run.
  */
 public class JsonTest implements ComponentTest<ToleranceStatistics> {
   /**
@@ -71,7 +71,7 @@ public class JsonTest implements ComponentTest<ToleranceStatistics> {
   @Override
   public ToleranceStatistics test(final NotebookOutput log, final NNLayer layer, final Tensor... inputPrototype) {
     log.h1("Json Serialization");
-    log.p("This test will demonstrate the layer's JSON serialization, and verify deserialization integrity.");
+    log.p("This run will demonstrate the layer's JSON serialization, and verify deserialization integrity.");
   
     log.h2("Raw Json");
     try {

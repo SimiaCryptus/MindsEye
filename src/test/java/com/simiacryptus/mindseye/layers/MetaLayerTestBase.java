@@ -24,12 +24,12 @@ import com.simiacryptus.mindseye.test.unit.BatchDerivativeTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 
 /**
- * The type Meta layer test base.
+ * The type Meta layer run base.
  */
 public abstract class MetaLayerTestBase extends LayerTestBase {
   
   /**
-   * Instantiates a new Meta layer test base.
+   * Instantiates a new Meta layer run base.
    */
   public MetaLayerTestBase() {
     validateBatchExecution = false;

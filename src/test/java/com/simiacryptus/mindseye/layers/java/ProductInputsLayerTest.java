@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.TrainingTester;
 
 /**
- * The type Product inputs layer test.
+ * The type Product inputs layer run.
  */
 public abstract class ProductInputsLayerTest extends LayerTestBase {
   @Override

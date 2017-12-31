@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The type Activation layer test.
+ * The type Activation layer run.
  */
 public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   
@@ -44,7 +44,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   private final Precision precision;
   
   /**
-   * Instantiates a new Activation layer test.
+   * Instantiates a new Activation layer run.
    *
    * @param mode      the mode
    * @param precision the precision
@@ -77,8 +77,8 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public void test(final NotebookOutput log) {
-    super.test(log);
+  public void run(final NotebookOutput log) {
+    super.run(log);
   
     log.h3("Function Plots");
     final NNLayer layer = getLayer(new int[][]{{1, 1, 1}});

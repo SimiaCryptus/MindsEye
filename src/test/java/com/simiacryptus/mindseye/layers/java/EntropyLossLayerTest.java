@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 import com.simiacryptus.util.Util;
 
 /**
- * The type Entropy loss layer test.
+ * The type Entropy loss layer run.
  */
 public abstract class EntropyLossLayerTest extends LayerTestBase {
   

@@ -23,12 +23,12 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Sparse 01 meta layer test.
+ * The type Sparse 01 meta layer run.
  */
 public abstract class Sparse01MetaLayerTest extends LayerTestBase {
   
   /**
-   * Instantiates a new Sparse 01 meta layer test.
+   * Instantiates a new Sparse 01 meta layer run.
    */
   public Sparse01MetaLayerTest() {
     validateBatchExecution = false;

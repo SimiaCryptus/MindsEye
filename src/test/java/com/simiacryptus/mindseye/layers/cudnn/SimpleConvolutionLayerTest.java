@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
 /**
- * The type Simple convolution layer test.
+ * The type Simple convolution layer run.
  */
 public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
   
@@ -38,7 +38,7 @@ public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
   
   
   /**
-   * Instantiates a new Simple convolution layer test.
+   * Instantiates a new Simple convolution layer run.
    *
    * @param radius    the radius
    * @param bands     the bands

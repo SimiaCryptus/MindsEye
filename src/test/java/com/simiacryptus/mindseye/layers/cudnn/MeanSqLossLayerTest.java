@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Mean sq loss layer test.
+ * The type Mean sq loss layer run.
  */
 public abstract class MeanSqLossLayerTest extends LayerTestBase {
   
@@ -52,7 +52,7 @@ public abstract class MeanSqLossLayerTest extends LayerTestBase {
   }
   
   /**
-   * Basic test.
+   * Basic run.
    */
   public class Basic extends MeanSqLossLayerTest {
   

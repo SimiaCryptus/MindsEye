@@ -26,12 +26,12 @@ import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import java.io.PrintStream;
 
 /**
- * The type Cudnn layer test base.
+ * The type Cudnn layer run base.
  */
 public abstract class CudnnLayerTestBase extends LayerTestBase {
   
   /**
-   * Instantiates a new Cudnn layer test base.
+   * Instantiates a new Cudnn layer run base.
    */
   public CudnnLayerTestBase() {
   }

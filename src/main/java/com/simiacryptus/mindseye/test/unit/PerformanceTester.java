@@ -97,7 +97,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
   }
   
   /**
-   * Is test evaluation boolean.
+   * Is run evaluation boolean.
    *
    * @return the boolean
    */
@@ -106,10 +106,10 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
   }
   
   /**
-   * Sets test evaluation.
+   * Sets run evaluation.
    *
-   * @param testEvaluation the test evaluation
-   * @return the test evaluation
+   * @param testEvaluation the run evaluation
+   * @return the run evaluation
    */
   public PerformanceTester setTestEvaluation(final boolean testEvaluation) {
     this.testEvaluation = testEvaluation;
@@ -117,7 +117,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
   }
   
   /**
-   * Is test learning boolean.
+   * Is run learning boolean.
    *
    * @return the boolean
    */
@@ -126,10 +126,10 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
   }
   
   /**
-   * Sets test learning.
+   * Sets run learning.
    *
-   * @param testLearning the test learning
-   * @return the test learning
+   * @param testLearning the run learning
+   * @return the run learning
    */
   public PerformanceTester setTestLearning(final boolean testLearning) {
     this.testLearning = testLearning;

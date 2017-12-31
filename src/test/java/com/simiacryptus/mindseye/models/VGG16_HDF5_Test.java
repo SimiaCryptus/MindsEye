@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.models;
 import com.simiacryptus.util.io.NotebookOutput;
 
 /**
- * The type Layer test base.
+ * The type Layer run base.
  */
 public class VGG16_HDF5_Test extends ImageClassifierTestBase {
   

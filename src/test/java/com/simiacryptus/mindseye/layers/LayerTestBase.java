@@ -25,7 +25,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Test;
 
 /**
- * The type Layer test base.
+ * The type Layer run base.
  */
 public abstract class LayerTestBase extends StandardLayerTests {
   
@@ -38,7 +38,7 @@ public abstract class LayerTestBase extends StandardLayerTests {
   public void test() throws Throwable {
     final NNLayer layer = getLayer(getInputDims());
     try (NotebookOutput log = getLog()) {
-      test(log);
+      run(log);
     }
   }
   

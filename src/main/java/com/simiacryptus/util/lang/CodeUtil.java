@@ -146,7 +146,7 @@ public class CodeUtil {
   
   private static List<File> loadCodeRoots() {
     final List<String> folders = Arrays.asList(
-      "src/main/java", "src/test/java", "src/main/scala", "src/test/scala"
+      "src/main/java", "src/run/java", "src/main/scala", "src/run/scala"
                                               );
     List<File> codeLocation = folders.stream().map(name -> new File(CodeUtil.projectRoot, name))
                                      .filter(file -> file.exists() && file.isDirectory()).collect(Collectors.toList());

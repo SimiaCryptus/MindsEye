@@ -23,11 +23,11 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Target value layer test.
+ * The type Target value layer run.
  */
 public class TargetValueLayerTest {
   /**
-   * Basic test.
+   * Basic run.
    */
   public static class Normal extends LayerTestBase {
     

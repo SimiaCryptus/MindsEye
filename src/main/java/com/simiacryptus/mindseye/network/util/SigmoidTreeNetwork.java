@@ -206,7 +206,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
     json.addProperty("mode", getMode().name());
     json.addProperty("skipChildStage", skipChildStage());
     json.addProperty("skipFuzzy", isSkipFuzzy());
-    assert null != NNLayer.fromJson(json) : "Smoke test deserialization";
+    assert null != NNLayer.fromJson(json) : "Smoke run deserialization";
     return json;
   }
   
