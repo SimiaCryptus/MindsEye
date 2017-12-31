@@ -48,8 +48,8 @@ public abstract class ImgCropLayerTest extends LayerTestBase {
   }
   
   @Override
-  public NNLayer getReferenceLayer() {
-    return new com.simiacryptus.mindseye.layers.java.ImgCropLayer(1, 1);
+  public Class<? extends NNLayer> getReferenceLayerClass() {
+    return com.simiacryptus.mindseye.layers.java.ImgCropLayer.class;
   }
   
   /**

@@ -79,10 +79,8 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public NNLayer getReferenceLayer() {
-    final com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer referenceLayer = new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(radius, radius, inputBands, outputBands, true);
-    referenceLayer.kernel.set(convolutionLayer.kernel);
-    return referenceLayer;
+  public Class<? extends NNLayer> getReferenceLayerClass() {
+    return com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class;
   }
   
   /**

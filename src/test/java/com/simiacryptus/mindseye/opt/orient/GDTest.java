@@ -51,4 +51,8 @@ public class GDTest extends MnistTestBase {
     });
   }
   
+  @Override
+  protected Class<?> getTargetClass() {
+    return GradientDescent.class;
+  }
 }

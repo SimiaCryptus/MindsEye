@@ -52,4 +52,8 @@ public class OWLQNTest extends MnistTestBase {
     });
   }
   
+  @Override
+  protected Class<?> getTargetClass() {
+    return OwlQn.class;
+  }
 }

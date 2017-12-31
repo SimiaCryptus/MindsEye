@@ -193,6 +193,14 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * @return the reference layer
    */
   public NNLayer getReferenceLayer() {
+    Class<? extends NNLayer> referenceLayerClass = getReferenceLayerClass();
+    if (null == referenceLayerClass) return null;
+    NNLayer layer = getLayer(getInputDims());
+    assert !referenceLayerClass.equals(layer.getClass()) : "Using self as equivalency layer?";
+    return layer.as(referenceLayerClass);
+  }
+  
+  public Class<? extends NNLayer> getReferenceLayerClass() {
     return null;
   }
   

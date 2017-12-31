@@ -53,4 +53,8 @@ public class BisectionLineSearchTest extends MnistTestBase {
     });
   }
   
+  @Override
+  protected Class<?> getTargetClass() {
+    return BisectionSearch.class;
+  }
 }

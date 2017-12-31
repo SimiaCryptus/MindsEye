@@ -51,4 +51,8 @@ public class MomentumTest extends MnistTestBase {
     });
   }
   
+  @Override
+  protected Class<?> getTargetClass() {
+    return MomentumStrategy.class;
+  }
 }

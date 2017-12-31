@@ -60,4 +60,8 @@ public class TrustSphereTest extends MnistTestBase {
     });
   }
   
+  @Override
+  protected Class<?> getTargetClass() {
+    return AdaptiveTrustSphere.class;
+  }
 }

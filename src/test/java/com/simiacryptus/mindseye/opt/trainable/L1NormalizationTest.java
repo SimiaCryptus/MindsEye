@@ -61,4 +61,8 @@ public class L1NormalizationTest extends MnistTestBase {
     });
   }
   
+  @Override
+  protected Class<?> getTargetClass() {
+    return L12Normalizer.class;
+  }
 }

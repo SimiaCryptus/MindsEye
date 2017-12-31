@@ -40,8 +40,8 @@ public abstract class MeanSqLossLayerTest extends LayerTestBase {
   }
   
   @Override
-  public NNLayer getReferenceLayer() {
-    return new com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer();
+  public Class<? extends NNLayer> getReferenceLayerClass() {
+    return com.simiacryptus.mindseye.layers.java.MeanSqLossLayer.class;
   }
   
   @Override

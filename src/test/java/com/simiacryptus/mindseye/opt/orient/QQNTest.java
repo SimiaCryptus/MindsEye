@@ -55,4 +55,8 @@ public class QQNTest extends MnistTestBase {
     });
   }
   
+  @Override
+  protected Class<?> getTargetClass() {
+    return QQN.class;
+  }
 }

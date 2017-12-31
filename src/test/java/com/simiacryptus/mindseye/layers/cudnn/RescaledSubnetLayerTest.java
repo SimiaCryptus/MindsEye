@@ -42,8 +42,8 @@ public abstract class RescaledSubnetLayerTest extends LayerTestBase {
   }
   
   @Override
-  public NNLayer getReferenceLayer() {
-    return new com.simiacryptus.mindseye.layers.java.RescaledSubnetLayer(2, convolutionLayer);
+  public Class<? extends NNLayer> getReferenceLayerClass() {
+    return com.simiacryptus.mindseye.layers.java.RescaledSubnetLayer.class;
   }
   
   /**

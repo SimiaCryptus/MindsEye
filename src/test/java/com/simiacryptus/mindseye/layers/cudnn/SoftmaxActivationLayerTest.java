@@ -38,8 +38,8 @@ public abstract class SoftmaxActivationLayerTest extends LayerTestBase {
   }
   
   @Override
-  public NNLayer getReferenceLayer() {
-    return new com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer();
+  public Class<? extends NNLayer> getReferenceLayerClass() {
+    return com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer.class;
   }
   
   /**

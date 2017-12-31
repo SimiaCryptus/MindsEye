@@ -60,4 +60,8 @@ public class SingleOrthantTrustRegionTest extends MnistTestBase {
     });
   }
   
+  @Override
+  protected Class<?> getTargetClass() {
+    return SingleOrthant.class;
+  }
 }

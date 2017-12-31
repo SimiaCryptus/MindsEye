@@ -47,6 +47,11 @@ import java.util.function.DoubleSupplier;
 public abstract class RecursiveSubspaceTest extends MnistTestBase {
   
   @Override
+  protected Class<?> getTargetClass() {
+    return RecursiveSubspace.class;
+  }
+  
+  @Override
   public DAGNetwork buildModel(NotebookOutput log) {
     log.h3("Model");
     log.p("We use a multi-level convolution network");
@@ -116,7 +121,7 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
     public OrientationStrategy<?> getOrientation() {
       return new LBFGS();
     }
-    
+  
   }
   
   /**

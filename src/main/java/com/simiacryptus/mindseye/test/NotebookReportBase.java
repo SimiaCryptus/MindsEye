@@ -203,7 +203,7 @@ public abstract class NotebookReportBase {
      * Data report type.
      */
     Data,
-    /**
+    Optimizers, /**
      * Training report type.
      */
     Training

@@ -60,4 +60,8 @@ public class LinearSumConstraintTest extends MnistTestBase {
     });
   }
   
+  @Override
+  protected Class<?> getTargetClass() {
+    return LinearSumConstraint.class;
+  }
 }

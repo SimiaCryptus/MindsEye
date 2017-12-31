@@ -53,4 +53,8 @@ public class StaticRateTest extends MnistTestBase {
     });
   }
   
+  @Override
+  protected Class<?> getTargetClass() {
+    return StaticLearningRate.class;
+  }
 }

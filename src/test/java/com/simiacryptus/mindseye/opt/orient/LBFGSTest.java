@@ -58,4 +58,8 @@ public class LBFGSTest extends MnistTestBase {
     });
   }
   
+  @Override
+  protected Class<?> getTargetClass() {
+    return LBFGS.class;
+  }
 }

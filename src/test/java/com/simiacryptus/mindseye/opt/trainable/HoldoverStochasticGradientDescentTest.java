@@ -56,4 +56,8 @@ public class HoldoverStochasticGradientDescentTest extends MnistTestBase {
     });
   }
   
+  @Override
+  protected Class<?> getTargetClass() {
+    return DeltaHoldoverArrayTrainable.class;
+  }
 }

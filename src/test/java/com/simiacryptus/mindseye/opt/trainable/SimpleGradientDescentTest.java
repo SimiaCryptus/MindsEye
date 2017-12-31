@@ -61,4 +61,8 @@ public class SimpleGradientDescentTest extends MnistTestBase {
     });
   }
   
+  @Override
+  protected Class<?> getTargetClass() {
+    return ArrayTrainable.class;
+  }
 }

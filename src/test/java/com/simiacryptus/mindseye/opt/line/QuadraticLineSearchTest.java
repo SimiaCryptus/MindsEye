@@ -53,4 +53,8 @@ public class QuadraticLineSearchTest extends MnistTestBase {
     });
   }
   
+  @Override
+  protected Class<?> getTargetClass() {
+    return QuadraticSearch.class;
+  }
 }

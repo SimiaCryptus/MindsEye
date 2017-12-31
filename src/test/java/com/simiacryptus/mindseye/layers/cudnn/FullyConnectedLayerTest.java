@@ -40,9 +40,10 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
   }
   
   @Override
-  public NNLayer getReferenceLayer() {
-    return new com.simiacryptus.mindseye.layers.java.FullyConnectedLayer(new int[]{3}, new int[]{3});
+  public Class<? extends NNLayer> getReferenceLayerClass() {
+    return com.simiacryptus.mindseye.layers.java.FullyConnectedLayer.class;
   }
+  
   
   /**
    * Basic Test

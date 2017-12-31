@@ -56,4 +56,8 @@ public class SimpleStochasticGradientDescentTest extends MnistTestBase {
     });
   }
   
+  @Override
+  protected Class<?> getTargetClass() {
+    return SampledArrayTrainable.class;
+  }
 }

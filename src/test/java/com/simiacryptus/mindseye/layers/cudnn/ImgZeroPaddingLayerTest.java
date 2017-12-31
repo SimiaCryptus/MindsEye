@@ -48,8 +48,8 @@ public abstract class ImgZeroPaddingLayerTest extends LayerTestBase {
   }
   
   @Override
-  public NNLayer getReferenceLayer() {
-    return new com.simiacryptus.mindseye.layers.java.ImgZeroPaddingLayer(1, 1);
+  public Class<? extends NNLayer> getReferenceLayerClass() {
+    return com.simiacryptus.mindseye.layers.java.ImgZeroPaddingLayer.class;
   }
   
   /**

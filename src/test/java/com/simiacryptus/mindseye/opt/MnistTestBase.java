@@ -28,11 +28,11 @@ import com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
+import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.data.MNIST;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.io.JsonUtil;
-import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.LabeledObject;
 import com.simiacryptus.util.test.TestCategories;
@@ -51,7 +51,7 @@ import java.util.stream.IntStream;
 /**
  * The type Mnist run base.
  */
-public abstract class MnistTestBase {
+public abstract class MnistTestBase extends NotebookReportBase {
   private static final Logger logger = LoggerFactory.getLogger(MnistTestBase.class);
   
   /**
@@ -60,23 +60,33 @@ public abstract class MnistTestBase {
   int modelNo = 0;
   
   /**
-   * Test nn layer.
+   * Test.
    *
-   * @param log            the log
-   * @param monitoringRoot the monitoring root
-   * @param monitor        the monitor
-   * @param trainingData   the training data
-   * @param history        the history
-   * @return the nn layer
+   * @throws IOException the io exception
    */
-  public NNLayer _test(final NotebookOutput log, final MonitoredObject monitoringRoot, final TrainingMonitor monitor, final Tensor[][] trainingData, final List<Step> history) {
+  @Test
+  @Category(TestCategories.Report.class)
+  public void test() throws IOException {
+    run(this::run);
+  }
+  
+  @Override
+  public ReportType getReportType() {
+    return ReportType.Optimizers;
+  }
+  
+  public void run(NotebookOutput log) {
+    final List<Step> history = new ArrayList<>();
+    final MonitoredObject monitoringRoot = new MonitoredObject();
+    final TrainingMonitor monitor = getMonitor(history);
+    final Tensor[][] trainingData = getTrainingData(log);
     final DAGNetwork network = buildModel(log);
     addMonitoring(network, monitoringRoot);
     log.h3("Training");
     train(log, network, trainingData, monitor);
     report(log, monitoringRoot, history, network);
     validate(log, network);
-    return network;
+    removeMonitoring(network);
   }
   
   /**
@@ -228,24 +238,6 @@ public abstract class MnistTestBase {
         super.onStepComplete(currentPoint);
       }
     };
-  }
-  
-  /**
-   * Test.
-   *
-   * @throws IOException the io exception
-   */
-  @Test
-  @Category(TestCategories.Report.class)
-  public void test() throws IOException {
-    try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
-  
-      final List<Step> history = new ArrayList<>();
-      final MonitoredObject monitoringRoot = new MonitoredObject();
-      final TrainingMonitor monitor = getMonitor(history);
-      final Tensor[][] trainingData = getTrainingData(log);
-      _test(log, monitoringRoot, monitor, trainingData, history);
-    }
   }
   
   /**
