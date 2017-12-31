@@ -17,40 +17,27 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.java;
+package com.simiacryptus.mindseye.models;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.util.io.NullNotebookOutput;
 
-/**
- * The type Avg subsample layer run.
- */
-public abstract class AvgSubsampleLayerTest extends LayerTestBase {
-  
-  @Override
-  public int[][] getInputDims() {
-    return new int[][]{
-      {2, 2, 3}
-    };
-  }
-  
-  @Override
-  public NNLayer getLayer(final int[][] inputSize) {
-    return new AvgSubsampleLayer(2, 2, 1);
-  }
-  
-  @Override
-  public int[][] getPerfDims() {
-    return new int[][]{
-      {100, 100, 3}
-    };
-  }
+public interface DemoableNetworkFactory {
   
   /**
-   * Basic Test
+   * Build pipeline network.
+   *
+   * @param output the output
+   * @return the pipeline network
    */
-  public static class Basic extends AvgSubsampleLayerTest {
+  NNLayer build(NotebookOutput output);
   
-  }
+  /**
+   * Build pipeline network.
+   *
+   * @return the pipeline network
+   */
+  default NNLayer build() {return build(new NullNotebookOutput());}
   
 }

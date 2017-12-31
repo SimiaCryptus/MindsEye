@@ -61,6 +61,8 @@ public abstract class NotebookReportBase {
    */
   protected boolean preferStatic = Boolean.parseBoolean(System.getProperty("preferStatic", "true"));
   
+  protected String absoluteUrl = "https://github.com/SimiaCryptus/MindsEye/tree/master/src/";
+  
   /**
    * Print header string.
    *
@@ -89,9 +91,10 @@ public abstract class NotebookReportBase {
    * Run.
    *
    * @param fn the fn
+   * @param logPath
    */
-  public void run(Consumer<NotebookOutput> fn) {
-    try (NotebookOutput log = getLog()) {
+  public void run(Consumer<NotebookOutput> fn, String... logPath) {
+    try (NotebookOutput log = getLog(logPath.length == 0 ? new String[]{getClass().getSimpleName()} : logPath)) {
       printHeader(log);
       TimedResult<Void> time = TimedResult.time(() -> {
         try {
@@ -143,14 +146,14 @@ public abstract class NotebookReportBase {
    * Gets log.
    *
    * @return the log
+   * @param logPath
    */
-  public NotebookOutput getLog() {
+  public NotebookOutput getLog(String... logPath) {
     try {
       if (useMarkdown) {
-        String absoluteUrl = "https://github.com/SimiaCryptus/MindsEye/tree/master/src/";
         return MarkdownNotebookOutput.get(getTargetClass(),
                                           absoluteUrl,
-                                          getClass().getSimpleName());
+                                          logPath);
       }
       else {
         final String directoryName = new SimpleDateFormat("YYYY-MM-dd-HH-mm").format(new Date());

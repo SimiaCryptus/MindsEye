@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Max subsample layer run.
  */
-public abstract class MaxSubsampleLayerTest extends LayerTestBase {
+public abstract class MaxPoolingLayerTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
@@ -36,13 +36,13 @@ public abstract class MaxSubsampleLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer(final int[][] inputSize) {
-    return new MaxSubsampleLayer(2, 2, 1);
+    return new MaxPoolingLayer(2, 2, 1);
   }
   
   /**
    * Basic Test
    */
-  public static class Basic extends MaxSubsampleLayerTest {
+  public static class Basic extends MaxPoolingLayerTest {
   }
   
 }

@@ -19,25 +19,6 @@
 
 package com.simiacryptus.mindseye.models;
 
-import com.simiacryptus.util.io.NotebookOutput;
-
-/**
- * The type Layer run base.
- */
-public class VGG16_HDF5_Test extends ImageClassifierTestBase {
-  
-  @Override
-  public ImageClassifier getImageClassifier(NotebookOutput log) {
-    return log.code(() -> {
-      VGG16 vgg16_hdf5 = VGG16.fromS3();
-      ((HasHDF5) vgg16_hdf5).getHDF5().print();
-      return vgg16_hdf5;
-    });
-  }
-  
-  @Override
-  protected Class<?> getTargetClass() {
-    return VGG16_HDF5.class;
-  }
-  
+public interface HasHDF5 {
+  Hdf5Archive getHDF5();
 }

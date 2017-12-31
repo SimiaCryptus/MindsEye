@@ -17,16 +17,17 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.java;
+package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 
 /**
- * The type Rascaled subnet layer run.
+ * The type Rescaled subnet layer run.
  */
 public abstract class RescaledSubnetLayerTest extends LayerTestBase {
+  
+  ConvolutionLayer convolutionLayer = new ConvolutionLayer(3, 3, 1, 1);
   
   @Override
   public int[][] getInputDims() {
@@ -37,7 +38,12 @@ public abstract class RescaledSubnetLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer(final int[][] inputSize) {
-    return new RescaledSubnetLayer(2, new ConvolutionLayer(3, 3, 1, 1).set(this::random));
+    return new RescaledSubnetLayer(2, convolutionLayer.set(this::random));
+  }
+  
+  @Override
+  public NNLayer getReferenceLayer() {
+    return new com.simiacryptus.mindseye.layers.java.RescaledSubnetLayer(2, convolutionLayer);
   }
   
   /**

@@ -125,6 +125,8 @@ public class CaltechTests {
    * The type All caltech tests.
    */
   public abstract static class All_Caltech_Tests extends AllTrainingTests {
+  
+  
     /**
      * Instantiates a new All tests.
      *
@@ -134,6 +136,7 @@ public class CaltechTests {
      */
     public All_Caltech_Tests(final OptimizationStrategy optimizationStrategy, final RevNetworkFactory revFactory, final FwdNetworkFactory fwdFactory) {
       super(fwdFactory, revFactory, optimizationStrategy);
+      batchSize = 10;
     }
     
     @Override

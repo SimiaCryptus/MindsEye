@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.test.data;
 
-import com.simiacryptus.mindseye.models.VGG16_HDF5;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -95,15 +94,6 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
   public <T> Comparator<T> getShuffleComparator() {
     final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
     return Comparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);
-  }
-  
-  /**
-   * Gets target class.
-   *
-   * @return the target class
-   */
-  protected Class<?> getTargetClass() {
-    return VGG16_HDF5.class;
   }
   
   @Override

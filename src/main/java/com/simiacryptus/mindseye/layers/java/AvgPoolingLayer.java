@@ -40,38 +40,22 @@ import java.util.stream.IntStream;
  * The type Avg subsample layer.
  */
 @SuppressWarnings("serial")
-public class AvgSubsampleLayer extends NNLayer {
+public class AvgPoolingLayer extends NNLayer {
   
   /**
    * The constant indexMapCache.
    */
-  public static final LoadingCache<AvgSubsampleLayer.IndexMapKey, Map<Coordinate, List<int[]>>> indexMapCache = CacheBuilder.newBuilder()
-                                                                                                                            .build(new CacheLoader<AvgSubsampleLayer.IndexMapKey, Map<Coordinate, List<int[]>>>() {
-                                                                                                                              @Override
-                                                                                                                              public Map<Coordinate, List<int[]>> load(final AvgSubsampleLayer.IndexMapKey key) throws Exception {
-                                                                                                                                final int[] ksize = key.kernel;
-                                                                                                                                final Map<Coordinate, List<int[]>> coordMap = new Tensor(key.output).coordStream().distinct().collect(Collectors.toMap(o -> o, o -> {
-                                                                                                                                  return new Tensor(ksize).coordStream().map(kernelCoord -> {
-                                                                                                                                    int[] coords = o.getCoords();
-                                                                                                                                    final int[] r = new int[coords.length];
-                                                                                                                                    for (int i = 0; i < coords.length; i++) {
-                                                                                                                                      r[i] = coords[i] * ksize[i] + kernelCoord.getCoords()[i];
-                                                                                                                                    }
-                                                                                                                                    return r;
-                                                                                                                                  }).collect(Collectors.toList());
-                                                                                                                                }));
-                                                                                                                                return coordMap;
-                                                                                                                              }
-                                                                                                                            });
+  public static final LoadingCache<AvgPoolingLayer.IndexMapKey, Map<Coordinate, List<int[]>>> indexMapCache = CacheBuilder.newBuilder()
+                                                                                                                          .build(new LayerCacheLoader());
   @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(AvgSubsampleLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(AvgPoolingLayer.class);
   private int[] kernelDims;
   
   
   /**
    * Instantiates a new Avg subsample layer.
    */
-  protected AvgSubsampleLayer() {
+  protected AvgPoolingLayer() {
     super();
   }
   
@@ -80,7 +64,7 @@ public class AvgSubsampleLayer extends NNLayer {
    *
    * @param kernelDims the kernel dims
    */
-  public AvgSubsampleLayer(final int... kernelDims) {
+  public AvgPoolingLayer(final int... kernelDims) {
     
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }
@@ -91,7 +75,7 @@ public class AvgSubsampleLayer extends NNLayer {
    * @param id         the id
    * @param kernelDims the kernel dims
    */
-  protected AvgSubsampleLayer(final JsonObject id, final int... kernelDims) {
+  protected AvgPoolingLayer(final JsonObject id, final int... kernelDims) {
     super(id);
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }
@@ -103,14 +87,14 @@ public class AvgSubsampleLayer extends NNLayer {
    * @param rs   the rs
    * @return the avg subsample layer
    */
-  public static AvgSubsampleLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
-    return new AvgSubsampleLayer(json,
-                                 JsonUtil.getIntArray(json.getAsJsonArray("inner")));
+  public static AvgPoolingLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    return new AvgPoolingLayer(json,
+                               JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
   
   private static synchronized Map<Coordinate, List<int[]>> getCoordMap(final int[] kernelDims, final int[] outDims) {
     try {
-      return AvgSubsampleLayer.indexMapCache.get(new AvgSubsampleLayer.IndexMapKey(kernelDims, outDims));
+      return AvgPoolingLayer.indexMapCache.get(new AvgPoolingLayer.IndexMapKey(kernelDims, outDims));
     } catch (final ExecutionException e) {
       throw new RuntimeException(e);
     }
@@ -126,7 +110,7 @@ public class AvgSubsampleLayer extends NNLayer {
       assert 0 == inputDims[i] % kernelDims[i] : inputDims[i] + ":" + kernelDims[i];
       return inputDims[i] / kernelDims[i];
     }).toArray();
-    final Map<Coordinate, List<int[]>> coordMap = AvgSubsampleLayer.getCoordMap(kernelDims, newDims);
+    final Map<Coordinate, List<int[]>> coordMap = AvgPoolingLayer.getCoordMap(kernelDims, newDims);
     final Tensor[] outputValues = IntStream.range(0, data.length()).mapToObj(dataIndex -> {
       final Tensor input = data.get(dataIndex);
       final Tensor output = new Tensor(newDims);
@@ -224,7 +208,7 @@ public class AvgSubsampleLayer extends NNLayer {
       if (getClass() != obj.getClass()) {
         return false;
       }
-      final AvgSubsampleLayer.IndexMapKey other = (AvgSubsampleLayer.IndexMapKey) obj;
+      final AvgPoolingLayer.IndexMapKey other = (AvgPoolingLayer.IndexMapKey) obj;
       if (!Arrays.equals(kernel, other.kernel)) {
         return false;
       }
@@ -238,6 +222,24 @@ public class AvgSubsampleLayer extends NNLayer {
       result = prime * result + Arrays.hashCode(kernel);
       result = prime * result + Arrays.hashCode(output);
       return result;
+    }
+  }
+  
+  private static class LayerCacheLoader extends CacheLoader<IndexMapKey, Map<Coordinate, List<int[]>>> {
+    @Override
+    public Map<Coordinate, List<int[]>> load(final IndexMapKey key) throws Exception {
+      final int[] ksize = key.kernel;
+      final Map<Coordinate, List<int[]>> coordMap = new Tensor(key.output).coordStream().distinct().collect(Collectors.toMap(o -> o, o -> {
+        return new Tensor(ksize).coordStream().map(kernelCoord -> {
+          int[] coords = o.getCoords();
+          final int[] r = new int[coords.length];
+          for (int i = 0; i < coords.length; i++) {
+            r[i] = coords[i] * ksize[i] + kernelCoord.getCoords()[i];
+          }
+          return r;
+        }).collect(Collectors.toList());
+      }));
+      return coordMap;
     }
   }
 }

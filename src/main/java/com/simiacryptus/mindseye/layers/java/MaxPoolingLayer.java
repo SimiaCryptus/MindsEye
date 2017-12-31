@@ -39,18 +39,18 @@ import java.util.stream.IntStream;
  * The type Max subsample layer.
  */
 @SuppressWarnings("serial")
-public class MaxSubsampleLayer extends NNLayer {
+public class MaxPoolingLayer extends NNLayer {
   
-  private static final Function<MaxSubsampleLayer.CalcRegionsParameter, List<Tuple2<Integer, int[]>>> calcRegionsCache = Util.cache(MaxSubsampleLayer::calcRegions);
+  private static final Function<MaxPoolingLayer.CalcRegionsParameter, List<Tuple2<Integer, int[]>>> calcRegionsCache = Util.cache(MaxPoolingLayer::calcRegions);
   @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(MaxSubsampleLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(MaxPoolingLayer.class);
   private int[] kernelDims;
   
   
   /**
    * Instantiates a new Max subsample layer.
    */
-  protected MaxSubsampleLayer() {
+  protected MaxPoolingLayer() {
     super();
   }
   
@@ -59,7 +59,7 @@ public class MaxSubsampleLayer extends NNLayer {
    *
    * @param kernelDims the kernel dims
    */
-  public MaxSubsampleLayer(final int... kernelDims) {
+  public MaxPoolingLayer(final int... kernelDims) {
     
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }
@@ -70,12 +70,12 @@ public class MaxSubsampleLayer extends NNLayer {
    * @param id         the id
    * @param kernelDims the kernel dims
    */
-  protected MaxSubsampleLayer(final JsonObject id, final int... kernelDims) {
+  protected MaxPoolingLayer(final JsonObject id, final int... kernelDims) {
     super(id);
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }
   
-  private static List<Tuple2<Integer, int[]>> calcRegions(final MaxSubsampleLayer.CalcRegionsParameter p) {
+  private static List<Tuple2<Integer, int[]>> calcRegions(final MaxPoolingLayer.CalcRegionsParameter p) {
     final Tensor input = new Tensor(p.inputDims);
     final int[] newDims = IntStream.range(0, p.inputDims.length).map(i -> {
       //assert 0 == p.inputDims[i] % p.kernelDims[i];
@@ -106,9 +106,9 @@ public class MaxSubsampleLayer extends NNLayer {
    * @param rs   the rs
    * @return the max subsample layer
    */
-  public static MaxSubsampleLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
-    return new MaxSubsampleLayer(json,
-                                 JsonUtil.getIntArray(json.getAsJsonArray("inner")));
+  public static MaxPoolingLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    return new MaxPoolingLayer(json,
+                               JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
   
   @Override
@@ -118,7 +118,7 @@ public class MaxSubsampleLayer extends NNLayer {
     in.getData().length();
     
     final int[] inputDims = in.getData().get(0).getDimensions();
-    final List<Tuple2<Integer, int[]>> regions = MaxSubsampleLayer.calcRegionsCache.apply(new MaxSubsampleLayer.CalcRegionsParameter(inputDims, kernelDims));
+    final List<Tuple2<Integer, int[]>> regions = MaxPoolingLayer.calcRegionsCache.apply(new MaxPoolingLayer.CalcRegionsParameter(inputDims, kernelDims));
     final Tensor[] outputA = IntStream.range(0, in.getData().length()).mapToObj(dataIndex -> {
       final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
         return (int) Math.ceil(inputDims[i] * 1.0 / kernelDims[i]);
@@ -221,7 +221,7 @@ public class MaxSubsampleLayer extends NNLayer {
       if (getClass() != obj.getClass()) {
         return false;
       }
-      final MaxSubsampleLayer.CalcRegionsParameter other = (MaxSubsampleLayer.CalcRegionsParameter) obj;
+      final MaxPoolingLayer.CalcRegionsParameter other = (MaxPoolingLayer.CalcRegionsParameter) obj;
       if (!Arrays.equals(inputDims, other.inputDims)) {
         return false;
       }

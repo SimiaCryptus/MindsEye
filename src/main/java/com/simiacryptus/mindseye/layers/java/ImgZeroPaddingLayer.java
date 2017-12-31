@@ -30,8 +30,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Reduces the resolution of the input by selecting a centered window. The output image will have the same number of
- * color bands.
+ * Increases the resolution of the input by selecting a larger centered window. The output image will have the same number of
+ * color bands, and the area outside the source image will be set to 0.
  */
 @SuppressWarnings("serial")
 public class ImgZeroPaddingLayer extends NNLayer {

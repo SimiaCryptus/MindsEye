@@ -17,33 +17,45 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.java;
+package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
+
 
 /**
- * The type Rascaled subnet layer run.
+ * The type Img crop layer run.
  */
-public abstract class RescaledSubnetLayerTest extends LayerTestBase {
+public abstract class ImgZeroPaddingLayerTest extends LayerTestBase {
+  
+  /**
+   * Instantiates a new Img crop layer run.
+   */
+  public ImgZeroPaddingLayerTest() {
+    validateBatchExecution = false;
+  }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {6, 6, 1}
+      {3, 3, 1}
     };
   }
   
   @Override
   public NNLayer getLayer(final int[][] inputSize) {
-    return new RescaledSubnetLayer(2, new ConvolutionLayer(3, 3, 1, 1).set(this::random));
+    return new ImgZeroPaddingLayer(1, 1);
+  }
+  
+  @Override
+  public NNLayer getReferenceLayer() {
+    return new com.simiacryptus.mindseye.layers.java.ImgZeroPaddingLayer(1, 1);
   }
   
   /**
    * Basic Test
    */
-  public static class Basic extends RescaledSubnetLayerTest {
+  public static class Basic extends ImgZeroPaddingLayerTest {
   }
   
 }

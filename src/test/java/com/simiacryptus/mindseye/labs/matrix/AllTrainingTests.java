@@ -49,6 +49,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
    * The Timeout minutes.
    */
   protected int timeoutMinutes = 10;
+  protected int batchSize = 1000;
   
   /**
    * Instantiates a new All training tests.
@@ -88,7 +89,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   @Ignore
   @Category(TestCategories.Report.class)
   public void autoencoder_test() throws IOException {
-    run(this::autoencoder_test);
+    run(this::autoencoder_test, getClass().getSimpleName(), "Autoencoder");
   }
   
   /**
@@ -99,7 +100,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   @Test
   @Category(TestCategories.Report.class)
   public void classification_test() throws IOException {
-    run(this::classification_test);
+    run(this::classification_test, getClass().getSimpleName(), "Classification");
   }
   
   /**
@@ -110,7 +111,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   public void classification_test(NotebookOutput log) {
     log.h1(getDatasetName() + " Denoising Autoencoder");
     intro(log);
-    new ClassifyProblem(fwdFactory, optimizationStrategy, getData(), 100).setTimeoutMinutes(timeoutMinutes).run(log);
+    new ClassifyProblem(fwdFactory, optimizationStrategy, getData(), 100).setBatchSize(batchSize).setTimeoutMinutes(timeoutMinutes).run(log);
   }
   
   /**
@@ -122,7 +123,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   @Ignore
   @Category(TestCategories.Report.class)
   public void encoding_test() throws IOException {
-    run(this::encoding_test);
+    run(this::encoding_test, getClass().getSimpleName(), "Encoding");
   }
   
   /**

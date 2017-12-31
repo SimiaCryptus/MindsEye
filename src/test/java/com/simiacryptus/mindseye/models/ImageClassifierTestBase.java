@@ -20,8 +20,9 @@
 package com.simiacryptus.mindseye.models;
 
 import com.simiacryptus.mindseye.labs.encoding.EncodingUtil;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.unit.JsonTest;
@@ -66,12 +67,12 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
    */
   public void run(NotebookOutput log) {
     ImageClassifier vgg16 = getImageClassifier(log);
-    PipelineNetwork network = vgg16.build(log);
+    NNLayer network = ((DemoableNetworkFactory) vgg16).build(log);
   
     log.h1("Network Diagram");
     log.p("This is a diagram of the imported network:");
     log.code(() -> {
-      return Graphviz.fromGraph(TestUtil.toGraph(network))
+      return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) network))
                      .height(4000).width(800).render(Format.PNG).toImage();
     });
   
@@ -79,13 +80,13 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
   
     log.h1("Predictions");
     Tensor[][] images = EncodingUtil.getImages(log, 224, 10);
-    TestUtil.instrumentPerformance(log, network);
+    TestUtil.instrumentPerformance(log, (DAGNetwork) network);
     List<LinkedHashMap<String, Double>> predictions = log.code(() -> {
       Tensor[] data = Arrays.stream(images).map(x -> x[1]).toArray(i -> new Tensor[i]);
       return ImageClassifier.predict(
         vgg16::prefilter, network, 5, vgg16.getCategories(), data);
     });
-    TestUtil.extractPerformance(log, network);
+    TestUtil.extractPerformance(log, (DAGNetwork) network);
     log.code(() -> {
       TableOutput tableOutput = new TableOutput();
       for (int i = 0; i < images.length; i++) {

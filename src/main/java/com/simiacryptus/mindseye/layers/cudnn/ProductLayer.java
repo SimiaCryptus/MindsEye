@@ -50,6 +50,7 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
    */
   protected ProductLayer(final JsonObject id) {
     super(id);
+    this.precision = Precision.valueOf(id.getAsJsonPrimitive("precision").getAsString());
   }
   
   /**
@@ -137,7 +138,9 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
   
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    return super.getJsonStub();
+    JsonObject json = super.getJsonStub();
+    json.addProperty("precision", precision.name());
+    return json;
   }
   
   @Override

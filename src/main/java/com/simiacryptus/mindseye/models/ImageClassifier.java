@@ -24,9 +24,6 @@ import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.io.NullNotebookOutput;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -80,22 +77,7 @@ public abstract class ImageClassifier {
    * @return the tensor
    */
   public abstract Tensor prefilter(Tensor tensor);
-  
-  /**
-   * Build pipeline network.
-   *
-   * @return the pipeline network
-   */
-  public PipelineNetwork build() {return build(new NullNotebookOutput());}
-  
-  /**
-   * Build pipeline network.
-   *
-   * @param output the output
-   * @return the pipeline network
-   */
-  public abstract PipelineNetwork build(NotebookOutput output);
-  
+
   /**
    * Gets categories.
    *
@@ -131,14 +113,5 @@ public abstract class ImageClassifier {
    *
    * @return the network
    */
-  public NNLayer getNetwork() {
-    if (null == network) {
-      synchronized (this) {
-        if (null == network) {
-          network = build();
-        }
-      }
-    }
-    return network;
-  }
+  public abstract NNLayer getNetwork();
 }

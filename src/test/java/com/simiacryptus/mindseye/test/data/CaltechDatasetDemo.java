@@ -39,4 +39,8 @@ public class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
     });
   }
   
+  @Override
+  protected Class<?> getTargetClass() {
+    return Caltech101.class;
+  }
 }

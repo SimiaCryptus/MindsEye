@@ -51,7 +51,7 @@ public abstract class OptimizerComparison extends NotebookReportBase {
   /**
    * The Timeout minutes.
    */
-  protected int timeoutMinutes = 15;
+  protected int timeoutMinutes = 10;
   
   /**
    * Instantiates a new Optimizer comparison.
@@ -74,7 +74,7 @@ public abstract class OptimizerComparison extends NotebookReportBase {
   @Test
   @Category(TestCategories.Report.class)
   public void classification() throws IOException {
-    run(this::classification);
+    run(this::classification, getClass().getSimpleName(), "Classification");
   }
   
   /**
@@ -106,7 +106,7 @@ public abstract class OptimizerComparison extends NotebookReportBase {
   @Test
   @Category(TestCategories.Report.class)
   public void encoding() throws IOException {
-    run(this::encoding);
+    run(this::encoding, getClass().getSimpleName(), "Encoding");
   }
   
   /**
@@ -116,8 +116,8 @@ public abstract class OptimizerComparison extends NotebookReportBase {
    */
   public void encoding(NotebookOutput log) {
     compare(log, opt -> {
-      return new EncodingProblem(revFactory, opt, data, 10)
-        .setTimeoutMinutes(timeoutMinutes).setTrainingSize(5000).run(log).getHistory();
+      return new EncodingProblem(revFactory, opt, data, 20)
+        .setTimeoutMinutes(timeoutMinutes).setTrainingSize(1000).run(log).getHistory();
     });
   }
   

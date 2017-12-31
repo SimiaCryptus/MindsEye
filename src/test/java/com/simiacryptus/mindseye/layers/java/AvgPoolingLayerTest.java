@@ -17,64 +17,40 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn;
+package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Img concat layer run.
+ * The type Avg subsample layer run.
  */
-public abstract class SubsampleLayerTest extends CudnnLayerTestBase {
-  
-  /**
-   * The Precision.
-   */
-  final Precision precision;
-  
-  /**
-   * Instantiates a new Img concat layer run.
-   *
-   * @param precision the precision
-   */
-  public SubsampleLayerTest(final Precision precision) {
-    this.precision = precision;
-  }
+public abstract class AvgPoolingLayerTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {2, 2, 1}, {2, 2, 1}
+      {2, 2, 3}
     };
   }
   
   @Override
   public NNLayer getLayer(final int[][] inputSize) {
-    return new SubsampleLayer();
+    return new AvgPoolingLayer(2, 2, 1);
+  }
+  
+  @Override
+  public int[][] getPerfDims() {
+    return new int[][]{
+      {100, 100, 3}
+    };
   }
   
   /**
-   * Basic 64-bit run
+   * Basic Test
    */
-  public static class Double extends SubsampleLayerTest {
-    /**
-     * Instantiates a new Double.
-     */
-    public Double() {
-      super(Precision.Double);
-    }
-  }
+  public static class Basic extends AvgPoolingLayerTest {
   
-  /**
-   * Basic 32-bit run
-   */
-  public static class Float extends SubsampleLayerTest {
-    /**
-     * Instantiates a new Float.
-     */
-    public Float() {
-      super(Precision.Float);
-    }
   }
-  
   
 }

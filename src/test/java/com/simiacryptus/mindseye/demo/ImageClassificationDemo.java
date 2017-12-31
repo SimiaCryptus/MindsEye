@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.demo;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.models.ImageClassifier;
-import com.simiacryptus.mindseye.models.VGG16_HDF5;
+import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
@@ -61,7 +61,7 @@ public class ImageClassificationDemo extends NotebookReportBase {
     log.h3("Model");
     
     ImageClassifier vgg16 = log.code(() -> {
-      return VGG16_HDF5.fromS3();
+      return VGG16.fromS3();
     });
     
     log.h3("Data");
@@ -111,7 +111,7 @@ public class ImageClassificationDemo extends NotebookReportBase {
    * @return the target class
    */
   protected Class<?> getTargetClass() {
-    return VGG16_HDF5.class;
+    return ImageClassifier.class;
   }
   
   @Override
