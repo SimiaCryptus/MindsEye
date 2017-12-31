@@ -20,11 +20,9 @@
 package com.simiacryptus.mindseye.models;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
-import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
-import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
-import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
-import com.simiacryptus.mindseye.layers.java.*;
+import com.simiacryptus.mindseye.layers.cudnn.*;
+import com.simiacryptus.mindseye.layers.java.AssertDimensionsLayer;
+import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.slf4j.Logger;
@@ -38,7 +36,6 @@ import org.slf4j.LoggerFactory;
  * Please cite the paper if you use the models.
  */
 class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
-  
   
   private volatile NNLayer network;
   

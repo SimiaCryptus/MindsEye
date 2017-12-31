@@ -39,7 +39,7 @@ public abstract class VGG16 extends ImageClassifier {
    *
    * @return the vgg 16 hdf 5
    */
-  public static VGG16 fromS3() {
+  public static VGG16 fromS3_HDF5() {
     try {
       return new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5"))));
     } catch (Throwable e) {

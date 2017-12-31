@@ -17,27 +17,34 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.models;
+package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Layer run base.
+ * The type Softmax activation layer run.
  */
-public class VGG16_HDF5_Test extends ImageClassifierTestBase {
+public abstract class SoftmaxActivationLayerTest extends LayerTestBase {
   
   @Override
-  public ImageClassifier getImageClassifier(NotebookOutput log) {
-    return log.code(() -> {
-      VGG16 vgg16_hdf5 = VGG16.fromS3_HDF5();
-      ((HasHDF5) vgg16_hdf5).getHDF5().print();
-      return vgg16_hdf5;
-    });
+  public int[][] getInputDims() {
+    return new int[][]{{4}};
   }
   
   @Override
-  protected Class<?> getTargetClass() {
-    return VGG16_HDF5.class;
+  public NNLayer getLayer(final int[][] inputSize) {
+    return new SoftmaxActivationLayer();
   }
   
+  @Override
+  public NNLayer getReferenceLayer() {
+    return new com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer();
+  }
+  
+  /**
+   * Basic Test
+   */
+  public static class Basic extends SoftmaxActivationLayerTest {
+  }
 }

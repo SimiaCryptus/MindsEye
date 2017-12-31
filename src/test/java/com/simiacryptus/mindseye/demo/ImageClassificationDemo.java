@@ -61,7 +61,7 @@ public class ImageClassificationDemo extends NotebookReportBase {
     log.h3("Model");
     
     ImageClassifier vgg16 = log.code(() -> {
-      return VGG16.fromS3();
+      return VGG16.fromS3_HDF5();
     });
     
     log.h3("Data");
