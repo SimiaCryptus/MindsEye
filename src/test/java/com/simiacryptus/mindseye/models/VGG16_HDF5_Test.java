@@ -19,7 +19,10 @@
 
 package com.simiacryptus.mindseye.models;
 
+import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.util.io.NotebookOutput;
+
+import java.io.PrintStream;
 
 /**
  * The type Layer run base.
@@ -28,6 +31,9 @@ public class VGG16_HDF5_Test extends ImageClassifierTestBase {
   
   @Override
   public ImageClassifier getImageClassifier(NotebookOutput log) {
+    CuDNN.apiLog = new PrintStream(log.file("cuda.log"));
+    log.p(log.file((String) null, "cuda.log", "GPU Log"));
+    
     return log.code(() -> {
       VGG16 vgg16_hdf5 = VGG16.fromS3_HDF5();
       ((HasHDF5) vgg16_hdf5).getHDF5().print();

@@ -42,9 +42,9 @@ public abstract class CudnnLayerTestBase extends LayerTestBase {
     return (log, component, inputPrototype) -> {
       try {
         CuDNN.apiLog = new PrintStream(log.file("cuda.log"));
+        log.p(log.file((String) null, "cuda.log", "GPU Log"));
         return inner.test(log, component, inputPrototype);
       } finally {
-        log.p(log.file((String) null, "cuda.log", "GPU Log"));
         CuDNN.apiLog.close();
         CuDNN.apiLog = null;
       }

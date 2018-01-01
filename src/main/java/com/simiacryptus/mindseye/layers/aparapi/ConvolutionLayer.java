@@ -19,7 +19,9 @@
 
 package com.simiacryptus.mindseye.layers.aparapi;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.Util;
 
@@ -43,21 +45,15 @@ public class ConvolutionLayer extends NNLayer {
    * The Kernel.
    */
   public final Tensor kernel;
-  /**
-   * The Simple.
-   */
-  public final boolean simple;
-  /**
-   * The Skip.
-   */
-  public final Tensor skip;
+  private Integer paddingX = null;
+  private Integer paddingY = null;
   
   
   /**
    * Instantiates a new Convolution layer.
    */
   protected ConvolutionLayer() {
-    this(null, null, true);
+    this(null, true);
   }
   
   /**
@@ -80,7 +76,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param simple the simple
    */
   public ConvolutionLayer(final int width, final int height, final int bands, final boolean simple) {
-    this(new Tensor(width, height, bands), new Tensor(1, 1), simple);
+    this(new Tensor(width, height, bands), simple);
     assert !simple || 0 == (width - 1) % 2 : "Simple kernels must have odd width";
     assert !simple || 0 == (height - 1) % 2 : "Simple kernels must have odd height";
   }
@@ -119,21 +115,18 @@ public class ConvolutionLayer extends NNLayer {
   protected ConvolutionLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
     kernel = Tensor.fromJson(json.get("filter"), resources);
-    skip = Tensor.fromJson(json.get("skip"), resources);
-    simple = json.getAsJsonPrimitive("simple").getAsBoolean();
+    JsonPrimitive simple = json.getAsJsonPrimitive("simple");
   }
   
   /**
    * Instantiates a new Convolution layer.
-   *
-   * @param kernel the kernel
-   * @param skip   the skip
+   *  @param kernel the kernel
    * @param simple the simple
    */
-  protected ConvolutionLayer(final Tensor kernel, final Tensor skip, final boolean simple) {
+  protected ConvolutionLayer(final Tensor kernel, final boolean simple) {
     super();
-    this.simple = simple;
-    this.skip = skip;
+    this.paddingX = simple ? null : 0;
+    this.paddingY = simple ? null : 0;
     if (kernel.getDimensions().length != 3) throw new IllegalArgumentException();
     if (kernel.getDimensions()[0] <= 0) throw new IllegalArgumentException();
     if (kernel.getDimensions()[1] <= 0) throw new IllegalArgumentException();
@@ -172,7 +165,7 @@ public class ConvolutionLayer extends NNLayer {
     final int[] inputDims = batch.get(0).getDimensions();
     final int[] kernelDims = kernel.getDimensions();
     final double[] kernelData = ConvolutionLayer.this.kernel.getData();
-    final ConvolutionController convolutionController = new ConvolutionController(inputDims, kernelDims, simple);
+    final ConvolutionController convolutionController = new ConvolutionController(inputDims, kernelDims, paddingX, paddingY);
     final Tensor[] output = IntStream.range(0, batch.length())
                                      .mapToObj(dataIndex -> new Tensor(convolutionController.getOutputDims()))
                                      .toArray(i -> new Tensor[i]);
@@ -223,8 +216,10 @@ public class ConvolutionLayer extends NNLayer {
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.add("filter", kernel.toJson(resources, dataSerializer));
-    json.add("skip", skip.toJson(resources, dataSerializer));
-    json.addProperty("simple", simple);
+    JsonElement paddingX = json.get("paddingX");
+    if (null != paddingX && paddingX.isJsonPrimitive()) this.setPaddingX((paddingX.getAsInt()));
+    JsonElement paddingY = json.get("paddingY");
+    if (null != paddingY && paddingY.isJsonPrimitive()) this.setPaddingY((paddingY.getAsInt()));
     return json;
   }
   
@@ -259,4 +254,21 @@ public class ConvolutionLayer extends NNLayer {
     return Arrays.asList(kernel.getData());
   }
   
+  public Integer getPaddingX() {
+    return paddingX;
+  }
+  
+  public ConvolutionLayer setPaddingX(Integer paddingX) {
+    this.paddingX = paddingX;
+    return this;
+  }
+  
+  public Integer getPaddingY() {
+    return paddingY;
+  }
+  
+  public ConvolutionLayer setPaddingY(Integer paddingY) {
+    this.paddingY = paddingY;
+    return this;
+  }
 }
