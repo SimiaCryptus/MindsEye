@@ -45,9 +45,9 @@ public class Rational32 implements DataSerializer {
    * @return the serial precision . rational
    */
   public static SerialPrecision.Rational toRational(double value, int maxScalar) {
-    SerialPrecision.Rational current = rationalRecursion2(value, 0);
+    SerialPrecision.Rational current = continuedFractions(value, 0);
     for (int i = 0; i < 10; i++) {
-      SerialPrecision.Rational next = rationalRecursion2(value, i);
+      SerialPrecision.Rational next = continuedFractions(value, i);
       if (next.numerator < maxScalar && next.denominator < maxScalar) {
         current = next;
       }
@@ -59,41 +59,15 @@ public class Rational32 implements DataSerializer {
   }
   
   /**
-   * Rational recursion serial precision . rational.
-   *
-   * @param value   the value
-   * @param maxSize the max size
-   * @return the serial precision . rational
-   */
-  public static SerialPrecision.Rational rationalRecursion(double value, int maxSize) {
-    if (value < 0) {
-      SerialPrecision.Rational rational = rationalRecursion(-value, maxSize);
-      return new SerialPrecision.Rational(-rational.numerator, rational.denominator);
-    }
-    else if (0 == value) {
-      return new SerialPrecision.Rational(0, 1);
-    }
-    else if (value >= 1) {
-      int scalar = (int) value;
-      SerialPrecision.Rational rational = rationalRecursion(value - scalar, maxSize);
-      return new SerialPrecision.Rational(rational.numerator + (scalar * rational.denominator), rational.denominator);
-    }
-    else {
-      SerialPrecision.Rational rational = rationalRecursion(1.0 / value, maxSize);
-      return new SerialPrecision.Rational(rational.denominator, rational.numerator);
-    }
-  }
-  
-  /**
    * Rational recursion 2 serial precision . rational.
    *
    * @param value      the value
    * @param recursions the recursions
    * @return the serial precision . rational
    */
-  public static SerialPrecision.Rational rationalRecursion2(double value, int recursions) {
+  public static SerialPrecision.Rational continuedFractions(double value, int recursions) {
     if (value < 0) {
-      SerialPrecision.Rational rational = rationalRecursion2(-value, recursions);
+      SerialPrecision.Rational rational = continuedFractions(-value, recursions);
       return new SerialPrecision.Rational(-rational.numerator, rational.denominator);
     }
     else if (0 == value) {
@@ -101,14 +75,14 @@ public class Rational32 implements DataSerializer {
     }
     else if (value >= 1) {
       int scalar = (int) value;
-      SerialPrecision.Rational rational = rationalRecursion2(value - scalar, recursions);
+      SerialPrecision.Rational rational = continuedFractions(value - scalar, recursions);
       return new SerialPrecision.Rational(rational.numerator + (scalar * rational.denominator), rational.denominator);
     }
     else if (recursions <= 0) {
       return new SerialPrecision.Rational((int) Math.round(value), 1);
     }
     else {
-      SerialPrecision.Rational rational = rationalRecursion2(1.0 / value, recursions - 1);
+      SerialPrecision.Rational rational = continuedFractions(1.0 / value, recursions - 1);
       return new SerialPrecision.Rational(rational.denominator, rational.numerator);
     }
   }

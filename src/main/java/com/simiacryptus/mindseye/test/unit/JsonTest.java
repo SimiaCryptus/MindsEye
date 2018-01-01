@@ -103,7 +103,7 @@ public class JsonTest implements ComponentTest<ToleranceStatistics> {
       log.h2(String.format("Zipfile %s", precision.name()));
       try {
         File file = log.code(() -> {
-          File zip = new File(log.getResourceDir(), layer.getClass().getSimpleName() + "_" + log.getName() + ".zip");
+          File zip = new File(log.getResourceDir(), log.getName() + "_" + precision.name() + ".zip");
           layer.writeZip(zip, precision);
           return zip;
         });

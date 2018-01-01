@@ -1270,7 +1270,7 @@ public class Tensor implements Serializable {
    * @return the json element
    */
   public JsonElement toJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    if (dim() > 64 * 1024) {
+    if (dim() > 1024) {
       JsonObject obj = new JsonObject();
       int[] dimensions = getDimensions();
       obj.add("dim", toJsonArray(dimensions));

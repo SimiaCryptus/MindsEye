@@ -121,7 +121,7 @@ public class DataSerializerTest {
   public void test(DataSerializer target, DoubleSupplier f, String name) {
     double[] source = random(1024, f);
     double[] result = target.fromBytes(target.toBytes(source));
-    double rms = IntStream.range(0, source.length).mapToDouble(i -> source[i] - result[i]).map(x -> x * x).average().getAsDouble();
+    double rms = IntStream.range(0, source.length).mapToDouble(i -> (source[i] - result[i]) / (source[i] + result[i])).map(x -> x * x).average().getAsDouble();
     log.info(String.format("%s RMS: %s", name, rms));
     //assert rms < 1e-4;
   }
