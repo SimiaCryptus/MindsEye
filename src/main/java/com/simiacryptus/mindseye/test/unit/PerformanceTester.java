@@ -71,7 +71,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
    * @param batches the batches
    * @return the batches
    */
-  public PerformanceTester setBatches(final int batches) {
+  public ComponentTest<ToleranceStatistics> setBatches(final int batches) {
     this.batches = batches;
     return this;
   }
@@ -91,7 +91,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
    * @param samples the samples
    * @return the samples
    */
-  public PerformanceTester setSamples(final int samples) {
+  public ComponentTest<ToleranceStatistics> setSamples(final int samples) {
     this.samples = samples;
     return this;
   }
@@ -111,7 +111,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
    * @param testEvaluation the run evaluation
    * @return the run evaluation
    */
-  public PerformanceTester setTestEvaluation(final boolean testEvaluation) {
+  public ComponentTest<ToleranceStatistics> setTestEvaluation(final boolean testEvaluation) {
     this.testEvaluation = testEvaluation;
     return this;
   }
@@ -131,7 +131,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
    * @param testLearning the run learning
    * @return the run learning
    */
-  public PerformanceTester setTestLearning(final boolean testLearning) {
+  public ComponentTest<ToleranceStatistics> setTestLearning(final boolean testLearning) {
     this.testLearning = testLearning;
     return this;
   }

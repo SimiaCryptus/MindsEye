@@ -20,13 +20,12 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 
 /**
  * The type Img crop layer run.
  */
-public abstract class ImgCropLayerTest extends LayerTestBase {
+public abstract class ImgCropLayerTest extends CudnnLayerTestBase {
   
   /**
    * Instantiates a new Img crop layer run.
@@ -39,6 +38,13 @@ public abstract class ImgCropLayerTest extends LayerTestBase {
   public int[][] getInputDims() {
     return new int[][]{
       {3, 3, 1}
+    };
+  }
+  
+  @Override
+  public int[][] getPerfDims() {
+    return new int[][]{
+      {1000, 3, 1}
     };
   }
   

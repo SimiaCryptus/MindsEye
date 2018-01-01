@@ -201,14 +201,16 @@ public class MarkdownNotebookOutput implements NotebookOutput {
       out(anchor(anchorId()) + "Code from [%s:%s](%s#L%s) executed in %.2f seconds: ",
           callingFrame.getFileName(), callingFrame.getLineNumber(),
           linkTo(CodeUtil.findFile(callingFrame)), callingFrame.getLineNumber(), result.obj.seconds());
+      String text = sourceCode.replaceAll("\n", "\n  ");
       out("```java");
-      out("  " + sourceCode.replaceAll("\n", "\n  "));
+      out("  " + text);
       out("```");
       
       if (!result.log.isEmpty()) {
+        String summary = summarize(result.log, maxLog).replaceAll("\n", "\n    ").replaceAll("    ~", "");
         out(anchor(anchorId()) + "Logging: ");
         out("```");
-        out("    " + summarize(result.log, maxLog).replaceAll("\n", "\n    ").replaceAll("    ~", ""));
+        out("    " + summary);
         out("```");
       }
       out("");
@@ -240,12 +242,14 @@ public class MarkdownNotebookOutput implements NotebookOutput {
           str = eval.toString();
           escape = true;
         }
+        String fmt = escape ? "    " + summarize(str, maxLog).replaceAll("\n", "\n    ").replaceAll("    ~", "") : str;
         if (escape) {
+          out("```");
+          out(fmt);
           out("```");
         }
-        out(escape ? "    " + summarize(str, maxLog).replaceAll("\n", "\n    ").replaceAll("    ~", "") : str);
-        if (escape) {
-          out("```");
+        else {
+          out(fmt);
         }
         out("\n\n");
         if (eval instanceof Throwable) {

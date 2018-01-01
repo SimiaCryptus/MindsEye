@@ -42,7 +42,7 @@ import java.util.zip.ZipFile;
 /**
  * The type Json run.
  */
-public class JsonTest implements ComponentTest<ToleranceStatistics> {
+public class SerializationTest implements ComponentTest<ToleranceStatistics> {
   private final HashMap<SerialPrecision, NNLayer> models = new HashMap<>();
   
   /**
@@ -75,12 +75,13 @@ public class JsonTest implements ComponentTest<ToleranceStatistics> {
   
   @Override
   public ToleranceStatistics test(final NotebookOutput log, final NNLayer layer, final Tensor... inputPrototype) {
-    log.h1("Json Serialization");
+    log.h1("Serialization");
     log.p("This run will demonstrate the layer's JSON serialization, and verify deserialization integrity.");
   
+    String prettyPrint = "";
     log.h2("Raw Json");
     try {
-      String prettyPrint = log.code(() -> {
+      prettyPrint = log.code(() -> {
         final JsonObject json = layer.getJson();
         final NNLayer echo = NNLayer.fromJson(json);
         if (echo == null) throw new AssertionError("Failed to deserialize");
@@ -99,30 +100,31 @@ public class JsonTest implements ComponentTest<ToleranceStatistics> {
     }
     log.p("");
   
-    Arrays.stream(SerialPrecision.values()).forEach(precision -> {
-      log.h2(String.format("Zipfile %s", precision.name()));
-      try {
-        File file = log.code(() -> {
-          File zip = new File(log.getResourceDir(), log.getName() + "_" + precision.name() + ".zip");
-          layer.writeZip(zip, precision);
-          return zip;
-        });
-        final NNLayer echo = NNLayer.fromZip(new ZipFile(file));
-        getModels().put(precision, echo);
-        log.p(log.link(file, String.format("Wrote Model with %s precision to %s; %.3fMiB bytes", precision, file.getName(), file.length() * 1.0 / (0x100000))));
-        if (echo == null) throw new AssertionError("Failed to deserialize");
-        if (layer == echo) throw new AssertionError("Serialization did not copy");
-        if (!layer.equals(echo)) throw new AssertionError("Serialization not equal");
-      } catch (RuntimeException e) {
-        e.printStackTrace();
-      } catch (OutOfMemoryError e) {
-        e.printStackTrace();
-      } catch (ZipException e) {
-        e.printStackTrace();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    });
+    if (prettyPrint.isEmpty() || prettyPrint.length() > 1024 * 64)
+      Arrays.stream(SerialPrecision.values()).forEach(precision -> {
+        log.h2(String.format("Zipfile %s", precision.name()));
+        try {
+          File file = log.code(() -> {
+            File zip = new File(log.getResourceDir(), log.getName() + "_" + precision.name() + ".zip");
+            layer.writeZip(zip, precision);
+            return zip;
+          });
+          final NNLayer echo = NNLayer.fromZip(new ZipFile(file));
+          getModels().put(precision, echo);
+          log.p(log.link(file, String.format("Wrote Model with %s precision to %s; %.3fMiB bytes", precision, file.getName(), file.length() * 1.0 / (0x100000))));
+          if (echo == null) throw new AssertionError("Failed to deserialize");
+          if (layer == echo) throw new AssertionError("Serialization did not copy");
+          if (!layer.equals(echo)) throw new AssertionError("Serialization not equal");
+        } catch (RuntimeException e) {
+          e.printStackTrace();
+        } catch (OutOfMemoryError e) {
+          e.printStackTrace();
+        } catch (ZipException e) {
+          e.printStackTrace();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      });
     
     return null;
   }

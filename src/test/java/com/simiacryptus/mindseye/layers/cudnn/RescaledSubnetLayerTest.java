@@ -20,12 +20,11 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
  * The type Rescaled subnet layer run.
  */
-public abstract class RescaledSubnetLayerTest extends LayerTestBase {
+public abstract class RescaledSubnetLayerTest extends CudnnLayerTestBase {
   
   /**
    * The Convolution layer.

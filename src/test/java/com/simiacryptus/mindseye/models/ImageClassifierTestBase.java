@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.mindseye.test.unit.JsonTest;
+import com.simiacryptus.mindseye.test.unit.SerializationTest;
 import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import guru.nidi.graphviz.engine.Format;
@@ -73,14 +73,14 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
                      .height(4000).width(800).render(Format.PNG).toImage();
     });
   
-    JsonTest jsonTest = new JsonTest();
-    jsonTest.test(log, network, (Tensor[]) null);
+    SerializationTest serializationTest = new SerializationTest();
+    serializationTest.test(log, network, (Tensor[]) null);
 
     log.h1("Predictions");
     Tensor[][] images = EncodingUtil.getImages(log, 224, 10);
     Map<String, List<LinkedHashMap<String, Double>>> modelPredictions = new HashMap<>();
     modelPredictions.put("Source", predict(log, vgg16, network, images));
-    jsonTest.getModels().forEach((precision, model) -> {
+    serializationTest.getModels().forEach((precision, model) -> {
       log.h2(precision.name());
       modelPredictions.put(precision.name(), predict(log, vgg16, model, images));
     });

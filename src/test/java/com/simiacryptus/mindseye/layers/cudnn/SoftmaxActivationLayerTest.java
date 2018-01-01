@@ -20,12 +20,11 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
  * The type Softmax activation layer run.
  */
-public abstract class SoftmaxActivationLayerTest extends LayerTestBase {
+public abstract class SoftmaxActivationLayerTest extends CudnnLayerTestBase {
   
   @Override
   public int[][] getInputDims() {

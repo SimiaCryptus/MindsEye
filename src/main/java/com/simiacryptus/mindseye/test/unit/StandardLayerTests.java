@@ -122,7 +122,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * @return the json tester
    */
   protected ComponentTest<ToleranceStatistics> getJsonTester() {
-    return new JsonTest();
+    return new SerializationTest();
   }
   
   /**
@@ -165,7 +165,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    *
    * @return the performance tester
    */
-  public PerformanceTester getPerformanceTester() {
+  public ComponentTest<ToleranceStatistics> getPerformanceTester() {
     return new PerformanceTester();
   }
   

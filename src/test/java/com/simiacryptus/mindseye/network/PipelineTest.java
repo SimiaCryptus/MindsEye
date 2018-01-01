@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.network;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.mindseye.test.unit.JsonTest;
+import com.simiacryptus.mindseye.test.unit.SerializationTest;
 import com.simiacryptus.mindseye.test.unit.TrainingTester;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
@@ -161,7 +161,7 @@ public abstract class PipelineTest {
   public TrainingTester.ComponentResult test(final NotebookOutput log, final NNLayer layer, final String header, final int[]... inputDims) {
     final NNLayer component = layer.copy();
     final Tensor[] randomize = randomize(inputDims);
-    new JsonTest().test(log, component, randomize);
+    new SerializationTest().test(log, component, randomize);
     return new TrainingTester() {
       @Override
       protected void printHeader(NotebookOutput log) {

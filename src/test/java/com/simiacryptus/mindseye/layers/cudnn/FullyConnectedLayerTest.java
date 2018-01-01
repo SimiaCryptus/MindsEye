@@ -20,12 +20,11 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
  * The type Fully connected layer run.
  */
-public abstract class FullyConnectedLayerTest extends LayerTestBase {
+public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
   
   @Override
   public int[][] getInputDims() {

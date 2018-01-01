@@ -20,13 +20,12 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 
 /**
  * The type Img crop layer run.
  */
-public abstract class ImgZeroPaddingLayerTest extends LayerTestBase {
+public abstract class ImgZeroPaddingLayerTest extends CudnnLayerTestBase {
   
   /**
    * Instantiates a new Img crop layer run.
@@ -39,6 +38,13 @@ public abstract class ImgZeroPaddingLayerTest extends LayerTestBase {
   public int[][] getInputDims() {
     return new int[][]{
       {3, 3, 1}
+    };
+  }
+  
+  @Override
+  public int[][] getPerfDims() {
+    return new int[][]{
+      {100, 100, 1}
     };
   }
   
@@ -57,5 +63,25 @@ public abstract class ImgZeroPaddingLayerTest extends LayerTestBase {
    */
   public static class Basic extends ImgZeroPaddingLayerTest {
   }
+
+//  /**
+//   * Basic Test
+//   */
+//  public static class Asymmetric extends ImgZeroPaddingLayerTest {
+//
+//    @Override
+//    public int[][] getInputDims() {
+//      return new int[][]{
+//        {5, 3, 2}
+//      };
+//    }
+//
+//    @Override
+//    public int[][] getPerfDims() {
+//      return new int[][]{
+//        {5, 5, 3}
+//      };
+//    }
+//  }
   
 }
