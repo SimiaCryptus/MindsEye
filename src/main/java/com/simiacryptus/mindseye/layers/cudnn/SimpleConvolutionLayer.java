@@ -224,6 +224,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
             }
             final Tensor weightGradient = CudaPtr.read(filterBuffer, precision, kernel.getDimensions());
             buffer.get(SimpleConvolutionLayer.this, kernel.getData()).addInPlace(weightGradient.getData());
+            filterBuffer.finalize();
           }
           if (input.isAlive()) {
             final CudaPtr inputBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), batch.get(0).dim() * 1l * length * precision.size);
@@ -237,12 +238,17 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
                                                               outputDescriptor.getPtr(), errorPtr.getPtr(),
                                                               convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, beta.getPtr(),
                                                               inputDescriptor.getPtr(), inputBuffer.getPtr()));
+              workSpace.finalize();
             } catch (final Throwable e) {
               throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
             }
             final TensorList inputBufferTensors = new GpuTensorList(inputBuffer, length, inputSize, cudnnHandle, precision);
             input.accumulate(buffer, inputBufferTensors);
+            inputBuffer.finalize();
           }
+          outputBuffer.finalize();
+          inputData.finalize();
+          errorPtr.finalize();
         }
         
         @Override

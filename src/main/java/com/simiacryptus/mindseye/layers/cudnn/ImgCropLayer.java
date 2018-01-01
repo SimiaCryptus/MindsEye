@@ -84,10 +84,8 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
-  
     assert 1 == inObj.length;
     assert 3 == inObj[0].getData().getDimensions().length;
-  
     final int length = inObj[0].getData().length();
     int[] dimIn = inObj[0].getData().getDimensions();
     final int[] dimOut = Arrays.copyOf(dimIn, 3);
@@ -96,11 +94,8 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
     final CudaPtr inputBuffer = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, inObj[0].getData());
     final CudaPtr outputBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(),
                                              length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size);
-  
     copy((CuDNN) nncontext, length, dimIn, inputBuffer, dimOut, outputBuffer);
-  
     final TensorList outputData = new GpuTensorList(outputBuffer, length, dimOut, ((CuDNN) nncontext).cudnnHandle, precision);
-    //assert outputData.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     return new NNResult(outputData) {
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
@@ -113,13 +108,14 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
           final CudaPtr errorPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, error);
           final CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(),
                                                      length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size);
-        
           copy((CuDNN) nncontext, length, dimOut, errorPtr, dimIn, passbackBuffer);
-        
           final TensorList passbackTensorList = new GpuTensorList(passbackBuffer, length, dimIn, ((CuDNN) nncontext).cudnnHandle, precision);
           inObj[0].accumulate(buffer, passbackTensorList);
           passbackBuffer.finalize();
+          errorPtr.finalize();
         }
+        outputBuffer.finalize();
+        inputBuffer.finalize();
       }
     
       @Override
@@ -133,11 +129,8 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
     int offsetX = (dimOut[0] - dimIn[0]) / 2;
     int offsetY = (dimOut[1] - dimIn[1]) / 2;
     //log.info(String.format("offset=%d,%d", offsetX, offsetY));
-    
     final int[] viewDim = new int[3];
     Arrays.parallelSetAll(viewDim, i -> Math.min(dimIn[i], dimOut[i]));
-    
-    
     for (int i = 0; i < length; i++) {
       final CudaResource<cudnnTensorDescriptor> inputViewDescriptor = CuDNN.newTensorDescriptor(
         precision.code, length,

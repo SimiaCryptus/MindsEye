@@ -82,7 +82,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
     final Tensor[][] trainingData = getTrainingData(log);
     final DAGNetwork network = buildModel(log);
     addMonitoring(network, monitoringRoot);
-    log.h3("Training");
+    log.h1("Training");
     train(log, network, trainingData, monitor);
     report(log, monitoringRoot, history, network);
     validate(log, network);
@@ -110,7 +110,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
    * @return the dag network
    */
   public DAGNetwork buildModel(final NotebookOutput log) {
-    log.h3("Model");
+    log.h1("Model");
     log.p("This is a very simple model that performs basic logistic regression. " +
             "It is expected to be trainable to about 91% accuracy on MNIST.");
     return log.code(() -> {
@@ -200,8 +200,8 @@ public abstract class MnistTestBase extends NotebookReportBase {
   
     final String modelName = "model" + modelNo++ + ".json";
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
-    
-    log.h3("Metrics");
+  
+    log.h1("Metrics");
     log.code(() -> {
       try {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -257,7 +257,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
    * @param network the network
    */
   public void validate(final NotebookOutput log, final NNLayer network) {
-    log.h3("Validation");
+    log.h1("Validation");
     log.p("If we run our model against the entire validation dataset, we get this accuracy:");
     log.code(() -> {
       return MNIST.validationDataStream().mapToDouble(labeledObject ->
