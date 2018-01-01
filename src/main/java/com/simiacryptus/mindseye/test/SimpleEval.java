@@ -71,6 +71,8 @@ public class SimpleEval implements Callable<SimpleEval> {
         public boolean isAlive() {
           return true;
         }
+  
+  
       };
     }).toArray(i -> new NNResult[i]);
     final NNResult result = GpuController.call(cudaExeCtx -> {

@@ -125,7 +125,7 @@ public class CuDNN {
   }
   
   /**
-   * Cuda free int.
+   * Cuda finalize int.
    *
    * @param devPtr the dev ptr
    * @return the int

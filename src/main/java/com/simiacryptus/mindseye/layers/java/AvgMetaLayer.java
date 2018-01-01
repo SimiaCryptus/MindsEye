@@ -109,12 +109,17 @@ public class AvgMetaLayer extends NNLayer {
           input.accumulate(buffer, new TensorArray(feedback));
         }
       }
-      
+    
       @Override
       public boolean isAlive() {
         return input.isAlive();
       }
-      
+    
+      @Override
+      public void finalize() {
+        input.finalize();
+      }
+    
     };
   }
   

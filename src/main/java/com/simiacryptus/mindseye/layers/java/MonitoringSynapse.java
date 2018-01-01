@@ -123,6 +123,11 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
       public boolean isAlive() {
         return input.isAlive();
       }
+  
+      @Override
+      public void finalize() {
+        input.finalize();
+      }
     };
   }
   

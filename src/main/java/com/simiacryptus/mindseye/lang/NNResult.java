@@ -19,9 +19,6 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import java.util.Arrays;
-import java.util.stream.IntStream;
-
 /**
  * This type holds the result from a NNLayer evaluation. It holds the result and a callback mechanism to evaluate the
  * derivatives.
@@ -50,39 +47,6 @@ public abstract class NNResult {
   public NNResult(final TensorList data) {
     super();
     this.data = data;
-  }
-  
-  /**
-   * Batch result array nn result [ ].
-   *
-   * @param batchData the batch data
-   * @return the nn result [ ]
-   */
-  public static NNResult[] batchResultArray(final Tensor[]... batchData) {
-    return IntStream.range(0, batchData[0].length).mapToObj(inputIndex ->
-                                                              new NNConstant(new TensorArray(IntStream.range(0, batchData.length).mapToObj(trainingExampleId ->
-                                                                                                                                             batchData[trainingExampleId][inputIndex]
-                                                                                                                                          ).toArray(i -> new Tensor[i])))).toArray(x -> new NNResult[x]);
-  }
-  
-  /**
-   * Single result array nn result [ ].
-   *
-   * @param input the input
-   * @return the nn result [ ]
-   */
-  public static NNResult[] singleResultArray(final Tensor[] input) {
-    return Arrays.stream(input).map((final Tensor x) -> new NNConstant(new TensorArray(x))).toArray(i -> new NNResult[i]);
-  }
-  
-  /**
-   * Single result array nn result [ ].
-   *
-   * @param input the input
-   * @return the nn result [ ]
-   */
-  public static NNResult[] singleResultArray(final Tensor[][] input) {
-    return Arrays.stream(input).map((final Tensor[] x) -> new NNConstant(new TensorArray(x))).toArray(i -> new NNResult[i]);
   }
   
   /**
@@ -122,6 +86,12 @@ public abstract class NNResult {
     return data;
   }
   
+  public TensorList getDataAndFree() {
+    TensorArray tensorArray = new TensorArray(data.stream().toArray(i -> new Tensor[i]));
+    finalize();
+    return tensorArray;
+  }
+  
   /**
    * Is alive boolean.
    *
@@ -129,4 +99,5 @@ public abstract class NNResult {
    */
   public abstract boolean isAlive();
   
+  public void finalize() {}
 }

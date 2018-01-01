@@ -80,6 +80,12 @@ public class L1NormalizationLayer extends NNLayer {
       return value.scale(1.0 / sum);
     }).toArray(i -> new Tensor[i]);
     return new NNResult(output) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(input).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList outDelta) {
         if (in.isAlive()) {

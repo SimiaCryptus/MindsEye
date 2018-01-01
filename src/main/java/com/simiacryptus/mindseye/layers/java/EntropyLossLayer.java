@@ -96,6 +96,12 @@ public class EntropyLossLayer extends NNLayer {
       return outValue;
     }).toArray(i -> new Tensor[i]);
     return new NNResult(output) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (inObj[1].isAlive()) {

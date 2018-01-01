@@ -77,6 +77,8 @@ public class SimpleListEval implements Callable<SimpleListEval> {
                                          ).toArray(i -> new TensorList[i]);
     final NNResult[] inputR = IntStream.range(0, input.length).mapToObj(i -> {
       return new NNResult(input[i]) {
+  
+  
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
           SimpleListEval.accumulate(derivative[i], data);

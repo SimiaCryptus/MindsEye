@@ -118,6 +118,12 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
                                              outputDescriptor.getPtr(), outputData.getPtr()));
       final TensorList output = new GpuTensorList(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, cudnnHandle, precision);
       return new NNResult(output) {
+  
+        @Override
+        public void finalize() {
+          Arrays.stream(inObj).forEach(NNResult::finalize);
+        }
+  
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
           ((CudaExecutionContext) nncontext).initThread();

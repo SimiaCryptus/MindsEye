@@ -30,6 +30,12 @@ import com.simiacryptus.mindseye.lang.TensorList;
  * backpropigating delta signals into a single signal before evaluating further backwards.
  */
 class CountingNNResult extends NNResult {
+  
+  /**
+   * The Queued.
+   */
+  int accumulations = 0;
+
   /**
    * The Inner.
    */
@@ -38,10 +44,25 @@ class CountingNNResult extends NNResult {
    * The Passback buffer.
    */
   TensorList passbackBuffer = null;
+  int finalizations = 0;
+
   /**
-   * The Queued.
+   * A flagrant abuse of Java's object finalization contract.
+   * Repeated calls to this class's finalize method will increment a counter,
+   * and when the counter cycles the call is chained.
    */
-  int queued = 0;
+  @Override
+  public void finalize() {
+    if (1 >= getCount()) {
+      inner.finalize();
+    }
+    else {
+      if (++finalizations == getCount()) {
+        inner.finalize();
+        finalizations = 0;
+      }
+    }
+  }
   private int count = 0;
   
   /**
@@ -66,12 +87,12 @@ class CountingNNResult extends NNResult {
       else {
         passbackBuffer.accum(data);
       }
-      if (++queued == getCount()) {
+      if (++accumulations == getCount()) {
         inner.accumulate(buffer, passbackBuffer);
         if (1 < getCount()) {
           passbackBuffer.recycle();
         }
-        queued = 0;
+        accumulations = 0;
       }
     }
   }
@@ -86,11 +107,6 @@ class CountingNNResult extends NNResult {
     this.count += count;
     //System.err.println("Count -> " + this.count);
     return this.count;
-  }
-  
-  @Override
-  protected void finalize() throws Throwable {
-    super.finalize();
   }
   
   /**

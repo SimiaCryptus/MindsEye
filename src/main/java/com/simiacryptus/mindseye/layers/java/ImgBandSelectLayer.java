@@ -25,6 +25,7 @@ import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.lang.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
@@ -83,6 +84,12 @@ public class ImgBandSelectLayer extends NNLayer {
     return new NNResult(IntStream.range(0, batch.length()).parallel()
                                  .mapToObj(dataIndex -> outputDims.mapCoords((c) -> batch.get(dataIndex).get(c.getCoords()[0], c.getCoords()[1], bands[c.getCoords()[2]])))
                                  .toArray(i -> new Tensor[i])) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
         if (input.isAlive()) {

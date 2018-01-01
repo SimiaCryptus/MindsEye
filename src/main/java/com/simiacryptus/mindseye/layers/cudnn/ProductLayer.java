@@ -101,6 +101,12 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
     }).get();
     
     return new NNResult(result) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
         ((CudaExecutionContext) nncontext).initThread();

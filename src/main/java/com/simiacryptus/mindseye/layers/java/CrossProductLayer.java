@@ -87,6 +87,12 @@ public class CrossProductLayer extends NNLayer {
       });
       return result;
     }).toArray(i -> new Tensor[i])) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         final NNResult input = inObj[0];

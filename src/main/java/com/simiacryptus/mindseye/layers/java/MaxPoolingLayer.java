@@ -151,6 +151,12 @@ public class MaxPoolingLayer extends NNLayer {
       gradientMapA[dataIndex] = gradientMap;
     });
     return new NNResult(outputA) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (in.isAlive()) {

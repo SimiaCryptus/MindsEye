@@ -105,6 +105,12 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
     final TensorList outputData = new GpuTensorList(outputBuffer, length, dimOut, ((CuDNN) nncontext).cudnnHandle, precision);
     //assert outputData.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     return new NNResult(outputData) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
         if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {

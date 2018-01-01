@@ -119,6 +119,12 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
       final TensorList output = new GpuTensorList(outputData, length, outputSize, ((CuDNN) nncontext).cudnnHandle, precision);
       //assert output.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       return new NNResult(output) {
+  
+        @Override
+        public void finalize() {
+          Arrays.stream(inObj).forEach(NNResult::finalize);
+        }
+  
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
           //assert (error.length() == batch.length());

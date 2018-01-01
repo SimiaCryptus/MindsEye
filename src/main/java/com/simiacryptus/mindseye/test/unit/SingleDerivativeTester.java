@@ -79,6 +79,8 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
         public boolean isAlive() {
           return false;
         }
+  
+  
       }).toArray(i -> new NNResult[i]);
       copyInput[inputIndex] = new NNResult(inputTensor) {
         @Override
@@ -101,6 +103,8 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
         public boolean isAlive() {
           return true;
         }
+  
+  
       };
       final Tensor[] data = {new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0)};
       GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
@@ -129,7 +133,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
       final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
       final Tensor[] data = {new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0)};
       GpuController.call(exe -> {
-        final NNResult eval = component.eval(exe, NNResult.batchResultArray(new Tensor[][]{inputPrototype}));
+        final NNResult eval = component.eval(exe, NNConstant.batchResultArray(new Tensor[][]{inputPrototype}));
         final Tensor tensor = eval.getData().get(0);
         eval.accumulate(buffer, new TensorArray(data));
         return tensor;
@@ -227,7 +231,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
   private Tensor measureFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor measuredGradient = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
     final Tensor baseOutput = GpuController.call(exe -> {
-      return component.eval(exe, NNResult.batchResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
+      return component.eval(exe, NNConstant.batchResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
     });
     outputPrototype.set(baseOutput);
     for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
@@ -236,7 +240,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
       final Tensor[] copyInput = Arrays.copyOf(inputPrototype, inputPrototype.length);
       copyInput[inputIndex] = inputProbe;
       final Tensor evalProbe = GpuController.call(exe -> {
-        return component.eval(exe, NNResult.batchResultArray(new Tensor[][]{copyInput})).getData().get(0);
+        return component.eval(exe, NNConstant.batchResultArray(new Tensor[][]{copyInput})).getData().get(0);
       });
       final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
       for (int j = 0; j < delta.dim(); j++) {
@@ -251,7 +255,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
     final Tensor gradient = new Tensor(stateLen, outputPrototype.dim());
     
     final Tensor baseOutput = GpuController.call(exe -> {
-      return component.eval(exe, NNResult.batchResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
+      return component.eval(exe, NNConstant.batchResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
     });
     
     for (int i = 0; i < stateLen; i++) {
@@ -259,7 +263,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
       copy.state().get(layerNum)[i] += probeSize;
       
       final Tensor evalProbe = GpuController.call(exe -> {
-        return copy.eval(exe, NNResult.batchResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
+        return copy.eval(exe, NNConstant.batchResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
       });
       
       final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
@@ -454,6 +458,8 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
         public boolean isAlive() {
           return true;
         }
+  
+  
       }).<NNResult>toArray(i -> new NNResult[i]));
       final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
       eval.accumulate(buffer, eval.getData().copy());
@@ -490,6 +496,8 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
         public boolean isAlive() {
           return true;
         }
+  
+  
       }).<NNResult>toArray(i -> new NNResult[i]));
       final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
       eval.accumulate(buffer, eval.getData());

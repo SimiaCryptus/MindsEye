@@ -146,7 +146,7 @@ public class SparkTrainable implements Trainable {
   protected DeltaSet<NNLayer> getDelta(final SparkTrainable.ReducableResult reduce) {
     final DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
     final Tensor[] prototype = dataRDD.toJavaRDD().take(1).get(0);
-    final NNResult result = GpuController.call(exe -> network.eval(exe, NNResult.batchResultArray(new Tensor[][]{prototype})));
+    final NNResult result = GpuController.call(exe -> network.eval(exe, NNConstant.batchResultArray(new Tensor[][]{prototype})));
     result.accumulate(xxx, 0);
     reduce.accumulate(xxx);
     return xxx;

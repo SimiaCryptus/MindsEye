@@ -121,6 +121,12 @@ public class ImgBandScaleLayer extends NNLayer {
                                   }).toArray(i -> new Tensor[i]);
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
     return new NNResult(outputA) {
+  
+      @Override
+      public void finalize() {
+        input.finalize();
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
         assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));

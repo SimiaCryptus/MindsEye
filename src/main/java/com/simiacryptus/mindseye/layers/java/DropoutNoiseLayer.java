@@ -154,6 +154,12 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
   }
   
   private final class Result extends NNResult {
+  
+    @Override
+    public void finalize() {
+      inObj.finalize();
+    }
+  
     private final NNResult inObj;
     private final Tensor[] mask;
   

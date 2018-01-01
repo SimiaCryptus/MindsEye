@@ -123,6 +123,12 @@ public class AvgPoolingLayer extends NNLayer {
       return output;
     }).toArray(i -> new Tensor[i]);
     return new NNResult(outputValues) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
         if (inObj[0].isAlive()) {

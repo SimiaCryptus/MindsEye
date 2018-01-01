@@ -79,6 +79,12 @@ public class ProductLayer extends NNLayer {
       return new Tensor(new double[]{sum}, 1);
     }).toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         for (final NNResult in_l : inObj) {

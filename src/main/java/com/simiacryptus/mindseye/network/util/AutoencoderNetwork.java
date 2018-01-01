@@ -115,7 +115,7 @@ public class AutoencoderNetwork {
   public TensorList encode(final TensorList data) {
     return encoder.getLayer()
                   .eval(new NNExecutionContext() {
-                  }, NNResult.batchResultArray(data.stream().map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
+                  }, NNConstant.batchResultArray(data.stream().map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
                   .getData();
   }
   

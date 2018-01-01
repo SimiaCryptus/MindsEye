@@ -88,6 +88,12 @@ public class ImgConcatLayer extends NNLayer {
       outputTensors.add(outputTensor);
     }
     return new NNResult(outputTensors.toArray(new Tensor[]{})) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         assert numBatches == data.length();

@@ -131,6 +131,12 @@ public class BiasLayer extends NNLayer {
                                   .map(r -> new Tensor(add(r.getData()), r.getDimensions()))
                                   .toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));

@@ -103,6 +103,12 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
     }
     final TensorArray mask = new TensorArray(maskList.stream().limit(length).toArray(i -> new Tensor[i]));
     return new NNResult(mask) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         input.accumulate(buffer, data);

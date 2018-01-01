@@ -83,6 +83,12 @@ public class AvgImageBandLayer extends NNLayer {
     }).toArray(i -> new Tensor[i]);
     
     return new NNResult(results) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (in.isAlive()) {

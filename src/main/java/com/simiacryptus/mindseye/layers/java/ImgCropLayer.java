@@ -120,6 +120,12 @@ public class ImgCropLayer extends NNLayer {
                                    return ImgCropLayer.copy(batch.get(dataIndex), outputDims);
                                  })
                                  .toArray(i -> new Tensor[i])) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
         assert error.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));

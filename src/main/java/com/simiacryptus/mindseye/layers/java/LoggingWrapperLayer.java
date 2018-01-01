@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.IntStream;
 
@@ -73,6 +74,12 @@ public final class LoggingWrapperLayer extends WrapperLayer {
     final NNResult[] wrappedInput = IntStream.range(0, inObj.length).mapToObj(i -> {
       final NNResult result = inObj[i];
       return new NNResult(result.getData()) {
+  
+        @Override
+        public void finalize() {
+          Arrays.stream(inObj).forEach(NNResult::finalize);
+        }
+  
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
           final String formatted = data.stream().map(x -> x.prettyPrint())
@@ -102,6 +109,12 @@ public final class LoggingWrapperLayer extends WrapperLayer {
     }
     
     return new NNResult(output.getData()) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         final String formatted = data.stream().map(x -> x.prettyPrint())

@@ -23,6 +23,7 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
@@ -171,6 +172,12 @@ public class ImgReshapeLayer extends NNLayer {
     return new NNResult(IntStream.range(0, batch.length()).parallel()
                                  .mapToObj(dataIndex -> expand ? ImgReshapeLayer.copyExpand(batch.get(dataIndex), outputDims.copy()) : ImgReshapeLayer.copyCondense(batch.get(dataIndex), outputDims.copy()))
                                  .toArray(i -> new Tensor[i])) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
         //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));

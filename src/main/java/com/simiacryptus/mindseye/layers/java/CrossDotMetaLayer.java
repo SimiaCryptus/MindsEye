@@ -83,6 +83,12 @@ public class CrossDotMetaLayer extends NNLayer {
       }
     }
     return new NNResult(results) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (input.isAlive()) {

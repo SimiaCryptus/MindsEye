@@ -204,7 +204,7 @@ public abstract class NNLayer implements Serializable {
    * @return the nn result
    */
   public final NNResult eval(final NNExecutionContext nncontext, final Tensor... array) {
-    return eval(nncontext, NNResult.singleResultArray(array));
+    return eval(nncontext, NNConstant.singleResultArray(array));
   }
   
   /**
@@ -215,7 +215,7 @@ public abstract class NNLayer implements Serializable {
    * @return the nn result
    */
   public final NNResult eval(final NNExecutionContext nncontext, final Tensor[][] array) {
-    return eval(nncontext, NNResult.singleResultArray(array));
+    return eval(nncontext, NNConstant.singleResultArray(array));
   }
   
   /**

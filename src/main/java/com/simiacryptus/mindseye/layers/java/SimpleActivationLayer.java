@@ -83,6 +83,12 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
       return output;
     }).toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (inObj[0].isAlive()) {

@@ -118,6 +118,12 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
     final TensorList result = new GpuTensorList(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle, precision);
     
     return new NNResult(result) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
         ((CudaExecutionContext) nncontext).initThread();

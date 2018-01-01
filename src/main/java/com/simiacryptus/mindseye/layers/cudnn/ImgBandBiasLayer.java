@@ -151,6 +151,12 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
       }
       final TensorList output = new GpuTensorList(inputData, length, outputSize, cudnnHandle, precision);
       return new NNResult(output) {
+  
+        @Override
+        public void finalize() {
+          Arrays.stream(inObj).forEach(NNResult::finalize);
+        }
+  
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
           ((CudaExecutionContext) nncontext).initThread();

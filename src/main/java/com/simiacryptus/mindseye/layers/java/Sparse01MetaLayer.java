@@ -88,6 +88,12 @@ public class Sparse01MetaLayer extends NNLayer {
       }
     });
     return new NNResult(divergenceArray) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (input.isAlive()) {

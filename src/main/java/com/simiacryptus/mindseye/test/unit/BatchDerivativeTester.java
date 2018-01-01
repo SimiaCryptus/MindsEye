@@ -93,6 +93,8 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
         public boolean isAlive() {
           return true;
         }
+  
+  
       };
       copyInput.getData().stream().map(s -> s.mapCoords(k -> k.getIndex() == j_ ? 1 : 0)).toArray(i -> new Tensor[i]);
       GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
@@ -121,7 +123,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
       final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
       final Tensor[] data = {new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0)};
       GpuController.call(exe -> {
-        final NNResult eval = component.eval(exe, NNResult.singleResultArray(new Tensor[][]{inputPrototype}));
+        final NNResult eval = component.eval(exe, NNConstant.singleResultArray(new Tensor[][]{inputPrototype}));
         final Tensor tensor = eval.getData().get(0);
         eval.accumulate(buffer, new TensorArray(data));
         return tensor;
@@ -219,7 +221,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
   private Tensor measureFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor measuredGradient = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
     final Tensor baseOutput = GpuController.call(exe -> {
-      return component.eval(exe, NNResult.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
+      return component.eval(exe, NNConstant.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
     });
     outputPrototype.set(baseOutput);
     for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
@@ -228,7 +230,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
       final Tensor[] copyInput = Arrays.copyOf(inputPrototype, inputPrototype.length);
       copyInput[inputIndex] = inputProbe;
       final Tensor evalProbe = GpuController.call(exe -> {
-        return component.eval(exe, NNResult.singleResultArray(new Tensor[][]{copyInput})).getData().get(0);
+        return component.eval(exe, NNConstant.singleResultArray(new Tensor[][]{copyInput})).getData().get(0);
       });
       final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
       for (int j = 0; j < delta.dim(); j++) {
@@ -243,7 +245,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
     final Tensor gradient = new Tensor(stateLen, outputPrototype.dim());
     
     final Tensor baseOutput = GpuController.call(exe -> {
-      return component.eval(exe, NNResult.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
+      return component.eval(exe, NNConstant.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
     });
     
     for (int i = 0; i < stateLen; i++) {
@@ -251,7 +253,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
       copy.state().get(layerNum)[i] += probeSize;
       
       final Tensor evalProbe = GpuController.call(exe -> {
-        return copy.eval(exe, NNResult.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
+        return copy.eval(exe, NNConstant.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
       });
       
       final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
@@ -449,6 +451,8 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
         public boolean isAlive() {
           return true;
         }
+  
+  
       });
       final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
       eval.accumulate(buffer, eval.getData().copy());
@@ -485,6 +489,8 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
         public boolean isAlive() {
           return true;
         }
+  
+  
       });
       final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
       eval.accumulate(buffer, eval.getData());

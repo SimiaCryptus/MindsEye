@@ -178,6 +178,11 @@ public class LinearActivationLayer extends NNLayer {
     public boolean isAlive() {
       return inObj.isAlive() || !isFrozen();
     }
-    
+  
+    @Override
+    public void finalize() {
+      inObj.finalize();
+    }
+  
   }
 }

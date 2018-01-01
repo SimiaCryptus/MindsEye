@@ -163,6 +163,12 @@ public class HyperbolicActivationLayer extends NNLayer {
   }
   
   private final class Result extends NNResult {
+  
+    @Override
+    public void finalize() {
+      inObj.finalize();
+    }
+  
     private final NNResult inObj;
     
     private Result(final Tensor[] outputA, final NNResult inObj) {

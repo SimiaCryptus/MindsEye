@@ -71,6 +71,12 @@ public class ConstNNLayer extends NNLayer {
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... array) {
     return new NNResult(data) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(array).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (!isFrozen()) {

@@ -97,6 +97,13 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
     copy((CuDNN) nncontext, length, dimIn, inputBuffer, dimOut, outputBuffer);
     final TensorList outputData = new GpuTensorList(outputBuffer, length, dimOut, ((CuDNN) nncontext).cudnnHandle, precision);
     return new NNResult(outputData) {
+  
+      @Override
+      public void finalize() {
+        inputBuffer.finalize();
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
         if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
@@ -114,8 +121,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
           passbackBuffer.finalize();
           errorPtr.finalize();
         }
-        outputBuffer.finalize();
-        inputBuffer.finalize();
+        finalize();
       }
     
       @Override

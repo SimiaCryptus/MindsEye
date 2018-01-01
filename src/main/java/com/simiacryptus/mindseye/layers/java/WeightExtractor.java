@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -82,7 +83,13 @@ public final class WeightExtractor extends NNLayer {
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     final double[] doubles = null == getInner() ? new double[]{} : getInner().state().get(index);
     return new NNResult(new Tensor(doubles)) {
-      
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         assert data.length() == 1;

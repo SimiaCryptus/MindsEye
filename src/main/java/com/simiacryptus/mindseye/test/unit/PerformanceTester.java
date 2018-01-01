@@ -201,7 +201,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
     statistics.accept(TimedResult.time(() -> GpuController.call(exe -> {
       final Stream<Tensor[]> stream = IntStream.range(0, batches).mapToObj(x -> inputPrototype);
       final Tensor[][] array = stream.toArray(i -> new Tensor[i][]);
-      return component.eval(exe, NNResult.batchResultArray(array));
+      return component.eval(exe, NNConstant.batchResultArray(array));
     })).timeNanos / 1e9);
     return statistics;
   }
@@ -218,7 +218,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
     final DoubleStatistics statistics = new DoubleStatistics();
     final TimedResult<DeltaSet<NNLayer>> time = GpuController.call(exe -> {
       final Tensor[][] data = IntStream.range(0, batches).mapToObj(x -> x).flatMap(x -> Stream.<Tensor[]>of(inputPrototype)).toArray(i -> new Tensor[i][]);
-      final NNResult result = component.eval(exe, NNResult.batchResultArray(data));
+      final NNResult result = component.eval(exe, NNConstant.batchResultArray(data));
       final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
       return TimedResult.time(() -> {
         final Tensor[] delta = result.getData().stream().map(x -> x.map(v -> 1.0)).toArray(i -> new Tensor[i]);

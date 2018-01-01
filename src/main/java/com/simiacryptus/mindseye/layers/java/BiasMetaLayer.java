@@ -74,6 +74,12 @@ public class BiasMetaLayer extends NNLayer {
                                       .mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).mapIndex((v, c) -> v + inObj[1].getData().get(0).get(c)))
                                       .toArray(i -> new Tensor[i]);
     return new NNResult(tensors) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (inObj[0].isAlive()) {

@@ -95,6 +95,8 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
       }
       else {
         return new NNResult(tensors) {
+  
+  
           @Override
           public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
             for (int index = 0; index < delta.length(); index++) {

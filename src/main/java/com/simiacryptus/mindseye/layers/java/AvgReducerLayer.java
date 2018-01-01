@@ -76,6 +76,12 @@ public class AvgReducerLayer extends NNLayer {
       }
       return sum;
     }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])) {
+  
+      @Override
+      public void finalize() {
+        Arrays.stream(inObj).forEach(NNResult::finalize);
+      }
+  
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         for (final NNResult in_l : inObj) {
