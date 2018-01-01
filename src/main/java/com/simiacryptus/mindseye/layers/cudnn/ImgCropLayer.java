@@ -132,7 +132,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
   public void copy(CuDNN nncontext, int length, int[] dimIn, CudaPtr inputBuffer, int[] dimOut, CudaPtr outputBuffer) {
     int offsetX = (dimOut[0] - dimIn[0]) / 2;
     int offsetY = (dimOut[1] - dimIn[1]) / 2;
-    log.info(String.format("offset=%d,%d", offsetX, offsetY));
+    //log.info(String.format("offset=%d,%d", offsetX, offsetY));
     
     final int[] viewDim = new int[3];
     Arrays.parallelSetAll(viewDim, i -> Math.min(dimIn[i], dimOut[i]));

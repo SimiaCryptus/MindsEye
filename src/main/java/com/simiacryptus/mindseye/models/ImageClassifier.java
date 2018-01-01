@@ -19,16 +19,19 @@
 
 package com.simiacryptus.mindseye.models;
 
+import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -49,25 +52,43 @@ public abstract class ImageClassifier {
    * @param data       the data
    * @return the list
    */
-  public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, NNLayer network, int count, List<String> categories, Tensor[] data) {
-    return GpuController.call(ctx -> {
-      TensorList evalResult = network.eval(ctx, NNResult.singleResultArray(new Tensor[][]{
-        Arrays.stream(data).map(prefilter).toArray(i -> new Tensor[i])
-      })).getData();
-      return evalResult.stream().collect(Collectors.toList());
-    }).stream().map(tensor -> {
-      double[] predictionSignal = tensor.getData();
-      int[] order = IntStream.range(0, 1000).mapToObj(x -> x)
-                             .sorted(Comparator.comparing(i -> -predictionSignal[i]))
-                             .mapToInt(x -> x).toArray();
-      assert categories.size() == predictionSignal.length;
-      LinkedHashMap<String, Double> topN = new LinkedHashMap<>();
-      for (int i = 0; i < count; i++) {
-        int index = order[i];
-        topN.put(categories.get(index), predictionSignal[index]);
-      }
-      return topN;
-    }).collect(Collectors.toList());
+  public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, NNLayer network, int count, List<String> categories, Tensor... data) {
+    return predict(prefilter, network, count, categories, data.length, data);
+  }
+  
+  public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, NNLayer network, int count, List<String> categories, int batchSize, Tensor... data) {
+    return predict(prefilter, network, count, categories, batchSize, true, false, data);
+  }
+  
+  public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, NNLayer network, int count, List<String> categories, int batchSize, boolean asyncGC, boolean nullGC, Tensor[] data) {
+    Executor garbageman = (!nullGC && asyncGC) ? Executors.newSingleThreadExecutor() : command -> {
+      if (!nullGC) command.run();
+    };
+    try {
+      return Lists.partition(Arrays.asList(data), batchSize).stream().flatMap(batch -> {
+        return GpuController.call(ctx -> {
+          List<Tensor> tensorList = network.eval(ctx, NNResult.singleResultArray(new Tensor[][]{
+            batch.stream().map(prefilter).toArray(i -> new Tensor[i])
+          })).getData().stream().collect(Collectors.toList());
+          garbageman.execute(GpuController.INSTANCE::cleanMemory);
+          return tensorList;
+        }).stream().map(tensor -> {
+          double[] predictionSignal = tensor.getData();
+          int[] order = IntStream.range(0, 1000).mapToObj(x -> x)
+                                 .sorted(Comparator.comparing(i -> -predictionSignal[i]))
+                                 .mapToInt(x -> x).toArray();
+          assert categories.size() == predictionSignal.length;
+          LinkedHashMap<String, Double> topN = new LinkedHashMap<>();
+          for (int i = 0; i < count; i++) {
+            int index = order[i];
+            topN.put(categories.get(index), predictionSignal[index]);
+          }
+          return topN;
+        });
+      }).collect(Collectors.toList());
+    } finally {
+      if (garbageman instanceof ExecutorService) {((ExecutorService) garbageman).shutdown();}
+    }
   }
   
   /**
@@ -77,7 +98,7 @@ public abstract class ImageClassifier {
    * @return the tensor
    */
   public abstract Tensor prefilter(Tensor tensor);
-
+  
   /**
    * Gets categories.
    *

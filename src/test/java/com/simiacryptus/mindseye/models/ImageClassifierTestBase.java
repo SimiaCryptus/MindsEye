@@ -84,7 +84,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
     List<LinkedHashMap<String, Double>> predictions = log.code(() -> {
       Tensor[] data = Arrays.stream(images).map(x -> x[1]).toArray(i -> new Tensor[i]);
       return ImageClassifier.predict(
-        vgg16::prefilter, network, 5, vgg16.getCategories(), data);
+        vgg16::prefilter, network, 5, vgg16.getCategories(), 1, data);
     });
     TestUtil.extractPerformance(log, (DAGNetwork) network);
     log.code(() -> {
