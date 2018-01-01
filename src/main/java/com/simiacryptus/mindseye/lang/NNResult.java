@@ -86,6 +86,11 @@ public abstract class NNResult {
     return data;
   }
   
+  /**
+   * Gets data and free.
+   *
+   * @return the data and free
+   */
   public TensorList getDataAndFree() {
     TensorArray tensorArray = new TensorArray(data.stream().toArray(i -> new Tensor[i]));
     finalize();

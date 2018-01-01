@@ -61,6 +61,9 @@ public abstract class NotebookReportBase {
    */
   protected boolean preferStatic = Boolean.parseBoolean(System.getProperty("preferStatic", "true"));
   
+  /**
+   * The Absolute url.
+   */
   protected String absoluteUrl = "https://github.com/SimiaCryptus/MindsEye/tree/master/src/";
   
   /**
@@ -90,8 +93,8 @@ public abstract class NotebookReportBase {
   /**
    * Run.
    *
-   * @param fn the fn
-   * @param logPath
+   * @param fn      the fn
+   * @param logPath the log path
    */
   public void run(Consumer<NotebookOutput> fn, String... logPath) {
     try (NotebookOutput log = getLog(logPath.length == 0 ? new String[]{getClass().getSimpleName()} : logPath)) {
@@ -145,8 +148,8 @@ public abstract class NotebookReportBase {
   /**
    * Gets log.
    *
+   * @param logPath the log path
    * @return the log
-   * @param logPath
    */
   public NotebookOutput getLog(String... logPath) {
     try {
@@ -203,6 +206,9 @@ public abstract class NotebookReportBase {
      * Data report type.
      */
     Data,
+    /**
+     * Optimizers report type.
+     */
     Optimizers, /**
      * Training report type.
      */

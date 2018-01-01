@@ -23,6 +23,9 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.io.NullNotebookOutput;
 
+/**
+ * The interface Demoable network factory.
+ */
 public interface DemoableNetworkFactory {
   
   /**

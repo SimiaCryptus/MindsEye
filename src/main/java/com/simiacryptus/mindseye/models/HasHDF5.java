@@ -19,6 +19,14 @@
 
 package com.simiacryptus.mindseye.models;
 
+/**
+ * The interface Has hdf 5.
+ */
 public interface HasHDF5 {
+  /**
+   * Gets hdf 5.
+   *
+   * @return the hdf 5
+   */
   Hdf5Archive getHDF5();
 }

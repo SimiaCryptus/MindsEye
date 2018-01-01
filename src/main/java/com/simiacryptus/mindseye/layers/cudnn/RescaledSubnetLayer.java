@@ -49,6 +49,12 @@ public class RescaledSubnetLayer extends NNLayer implements LayerPrecision<Resca
   private RescaledSubnetLayer() {
   }
   
+  /**
+   * Instantiates a new Rescaled subnet layer.
+   *
+   * @param scale the scale
+   * @param layer the layer
+   */
   public RescaledSubnetLayer(int scale, NNLayer layer) {
     this.scale = scale;
     this.layer = layer;
@@ -58,7 +64,7 @@ public class RescaledSubnetLayer extends NNLayer implements LayerPrecision<Resca
    * Instantiates a new Img concat layer.
    *
    * @param json the json
-   * @param rs
+   * @param rs   the rs
    */
   protected RescaledSubnetLayer(final JsonObject json, Map<String, byte[]> rs) {
     super(json);
@@ -78,6 +84,11 @@ public class RescaledSubnetLayer extends NNLayer implements LayerPrecision<Resca
     return new RescaledSubnetLayer(json, rs);
   }
   
+  /**
+   * Gets compatibility layer.
+   *
+   * @return the compatibility layer
+   */
   public NNLayer getCompatibilityLayer() {
     return new com.simiacryptus.mindseye.layers.java.RescaledSubnetLayer(scale, layer);
   }

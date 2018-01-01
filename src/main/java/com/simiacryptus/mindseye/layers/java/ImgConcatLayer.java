@@ -97,7 +97,7 @@ public class ImgConcatLayer extends NNLayer {
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         assert numBatches == data.length();
-  
+    
         final List<Tensor[]> splitBatches = new ArrayList<>();
         for (int b = 0; b < numBatches; b++) {
           final Tensor tensor = data.get(b);
@@ -111,7 +111,7 @@ public class ImgConcatLayer extends NNLayer {
           }
           splitBatches.add(outputTensors);
         }
-  
+    
         final Tensor[][] splitData = new Tensor[inObj.length][];
         for (int i = 0; i < splitData.length; i++) {
           splitData[i] = new Tensor[numBatches];

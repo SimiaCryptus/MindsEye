@@ -120,7 +120,8 @@ public class ConvolutionLayer extends NNLayer {
   
   /**
    * Instantiates a new Convolution layer.
-   *  @param kernel the kernel
+   *
+   * @param kernel the kernel
    * @param simple the simple
    */
   protected ConvolutionLayer(final Tensor kernel, final boolean simple) {
@@ -179,12 +180,12 @@ public class ConvolutionLayer extends NNLayer {
     assert Arrays.stream(output).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
     
     return new NNResult(output) {
-  
+
       @Override
       public void finalize() {
         Arrays.stream(inObj).forEach(NNResult::finalize);
       }
-  
+
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
         assert error.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
@@ -254,19 +255,41 @@ public class ConvolutionLayer extends NNLayer {
     return Arrays.asList(kernel.getData());
   }
   
+  /**
+   * Gets padding x.
+   *
+   * @return the padding x
+   */
   public Integer getPaddingX() {
     return paddingX;
   }
   
+  /**
+   * Sets padding x.
+   *
+   * @param paddingX the padding x
+   * @return the padding x
+   */
   public ConvolutionLayer setPaddingX(Integer paddingX) {
     this.paddingX = paddingX;
     return this;
   }
   
+  /**
+   * Gets padding y.
+   *
+   * @return the padding y
+   */
   public Integer getPaddingY() {
     return paddingY;
   }
   
+  /**
+   * Sets padding y.
+   *
+   * @param paddingY the padding y
+   * @return the padding y
+   */
   public ConvolutionLayer setPaddingY(Integer paddingY) {
     this.paddingY = paddingY;
     return this;

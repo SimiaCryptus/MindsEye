@@ -75,6 +75,11 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
     return new ImgBandBiasLayer(json);
   }
   
+  /**
+   * Gets compatibility layer.
+   *
+   * @return the compatibility layer
+   */
   public NNLayer getCompatibilityLayer() {
     throw new RuntimeException("Not Implemented");
   }

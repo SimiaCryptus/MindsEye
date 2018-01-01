@@ -151,16 +151,16 @@ public class ReLuActivationLayer extends NNLayer {
   
   private final class Result extends NNResult {
   
-    @Override
-    public void finalize() {
-      inObj.finalize();
-    }
-  
     private final NNResult inObj;
     
     private Result(final Tensor[] outputA, final NNResult inObj) {
       super(outputA);
       this.inObj = inObj;
+    }
+  
+    @Override
+    public void finalize() {
+      inObj.finalize();
     }
     
     @Override

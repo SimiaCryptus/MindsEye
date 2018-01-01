@@ -33,13 +33,18 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 /**
  * The type Json run.
  */
 public class JsonTest implements ComponentTest<ToleranceStatistics> {
+  private final HashMap<SerialPrecision, NNLayer> models = new HashMap<>();
+  
   /**
    * Compress gz byte [ ].
    *
@@ -92,25 +97,42 @@ public class JsonTest implements ComponentTest<ToleranceStatistics> {
       e.printStackTrace();
       Util.sleep(1000);
     }
+    log.p("");
   
-    log.h2("Json Zipfile");
-    try {
-      File file = log.code(() -> {
-        File zip = new File(log.getResourceDir(), layer.getClass().getSimpleName() + "_" + log.getName() + ".zip");
-        layer.writeZip(zip, SerialPrecision.Float);
-        final NNLayer echo = NNLayer.fromZip(new ZipFile(zip));
+    Arrays.stream(SerialPrecision.values()).forEach(precision -> {
+      log.h2(String.format("Zipfile %s", precision.name()));
+      try {
+        File file = log.code(() -> {
+          File zip = new File(log.getResourceDir(), layer.getClass().getSimpleName() + "_" + log.getName() + ".zip");
+          layer.writeZip(zip, precision);
+          return zip;
+        });
+        final NNLayer echo = NNLayer.fromZip(new ZipFile(file));
+        getModels().put(precision, echo);
+        log.p(log.link(file, String.format("Wrote Model with %s precision to %s; %.3fMiB bytes", precision, file.getName(), file.length() * 1.0 / (0x100000))));
         if (echo == null) throw new AssertionError("Failed to deserialize");
         if (layer == echo) throw new AssertionError("Serialization did not copy");
         if (!layer.equals(echo)) throw new AssertionError("Serialization not equal");
-        return zip;
-      });
-      log.p(log.link(file, String.format("Wrote Model to %s; %.3fMiB bytes", file.getName(), file.length() * 1.0 / (0x100000))));
-    } catch (RuntimeException e) {
-      e.printStackTrace();
-    } catch (OutOfMemoryError e) {
-      e.printStackTrace();
-    }
+      } catch (RuntimeException e) {
+        e.printStackTrace();
+      } catch (OutOfMemoryError e) {
+        e.printStackTrace();
+      } catch (ZipException e) {
+        e.printStackTrace();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
     
     return null;
+  }
+  
+  /**
+   * Gets models.
+   *
+   * @return the models
+   */
+  public HashMap<SerialPrecision, NNLayer> getModels() {
+    return models;
   }
 }

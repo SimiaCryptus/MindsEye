@@ -65,6 +65,11 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
     return new ImgConcatLayer(json);
   }
   
+  /**
+   * Gets compatibility layer.
+   *
+   * @return the compatibility layer
+   */
   public NNLayer getCompatibilityLayer() {
     throw new RuntimeException("Not Implemented");
   }

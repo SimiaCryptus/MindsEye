@@ -32,10 +32,7 @@ import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * The type Image classifier run base.
@@ -68,7 +65,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
   public void run(NotebookOutput log) {
     ImageClassifier vgg16 = getImageClassifier(log);
     NNLayer network = ((DemoableNetworkFactory) vgg16).build(log);
-  
+
     log.h1("Network Diagram");
     log.p("This is a diagram of the imported network:");
     log.code(() -> {
@@ -76,10 +73,48 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
                      .height(4000).width(800).render(Format.PNG).toImage();
     });
   
-    new JsonTest().test(log, network, (Tensor[]) null);
-  
+    JsonTest jsonTest = new JsonTest();
+    jsonTest.test(log, network, (Tensor[]) null);
+
     log.h1("Predictions");
     Tensor[][] images = EncodingUtil.getImages(log, 224, 10);
+    Map<String, List<LinkedHashMap<String, Double>>> modelPredictions = new HashMap<>();
+    modelPredictions.put("Source", predict(log, vgg16, network, images));
+    jsonTest.getModels().forEach((precision, model) -> {
+      log.h2(precision.name());
+      modelPredictions.put(precision.name(), predict(log, vgg16, model, images));
+    });
+  
+    log.h1("Result");
+
+    log.code(() -> {
+      TableOutput tableOutput = new TableOutput();
+      for (int i = 0; i < images.length; i++) {
+        int index = i;
+        HashMap<String, Object> row = new HashMap<>();
+        row.put("Image", log.image(images[i][1].toImage(), ""));
+        modelPredictions.forEach((model, predictions) -> {
+          row.put(model, predictions.get(index).entrySet().stream()
+                                    .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
+                                    .reduce((a, b) -> a + "<br/>" + b).get());
+    
+        });
+        tableOutput.putRow(row);
+      }
+      return tableOutput;
+    }, 256 * 1024);
+  }
+  
+  /**
+   * Predict list.
+   *
+   * @param log     the log
+   * @param vgg16   the vgg 16
+   * @param network the network
+   * @param images  the images
+   * @return the list
+   */
+  public List<LinkedHashMap<String, Double>> predict(NotebookOutput log, ImageClassifier vgg16, NNLayer network, Tensor[][] images) {
     TestUtil.instrumentPerformance(log, (DAGNetwork) network);
     List<LinkedHashMap<String, Double>> predictions = log.code(() -> {
       Tensor[] data = Arrays.stream(images).map(x -> x[1]).toArray(i -> new Tensor[i]);
@@ -87,18 +122,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
         vgg16::prefilter, network, 5, vgg16.getCategories(), 1, data);
     });
     TestUtil.extractPerformance(log, (DAGNetwork) network);
-    log.code(() -> {
-      TableOutput tableOutput = new TableOutput();
-      for (int i = 0; i < images.length; i++) {
-        HashMap<String, Object> row = new HashMap<>();
-        row.put("Image", log.image(images[i][1].toImage(), ""));
-        row.put("Prediction", predictions.get(i).entrySet().stream()
-                                         .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
-                                         .reduce((a, b) -> a + "<br/>" + b).get());
-        tableOutput.putRow(row);
-      }
-      return tableOutput;
-    }, 256 * 1024);
+    return predictions;
   }
   
   /**

@@ -75,6 +75,11 @@ public abstract class MnistTestBase extends NotebookReportBase {
     return ReportType.Optimizers;
   }
   
+  /**
+   * Run.
+   *
+   * @param log the log
+   */
   public void run(NotebookOutput log) {
     final List<Step> history = new ArrayList<>();
     final MonitoredObject monitoringRoot = new MonitoredObject();

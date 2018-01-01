@@ -166,6 +166,11 @@ public enum Precision {
     }
   }
   
+  /**
+   * Gets compatibility layer.
+   *
+   * @return the compatibility layer
+   */
   public NNLayer getCompatibilityLayer() {
     throw new RuntimeException("Not Implemented");
   }

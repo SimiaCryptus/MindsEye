@@ -32,6 +32,9 @@ import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 import java.util.zip.ZipFile;
 
+/**
+ * The type Vgg 16.
+ */
 public abstract class VGG16 extends ImageClassifier {
   
   /**
@@ -47,6 +50,12 @@ public abstract class VGG16 extends ImageClassifier {
     }
   }
   
+  /**
+   * From zip vgg 16.
+   *
+   * @param file the file
+   * @return the vgg 16
+   */
   public static VGG16 fromZip(File file) {
     try {
       return new VGG16_Zip(NNLayer.fromZip(new ZipFile(file)));
@@ -1097,6 +1106,9 @@ public abstract class VGG16 extends ImageClassifier {
                              "toilet tissue, toilet paper, bathroom tissue\n").split("\n")).map(x -> x.trim()).collect(Collectors.toList());
   }
   
+  /**
+   * The type Vgg 16 zip.
+   */
   static class VGG16_Zip extends VGG16 {
     
     private final NNLayer network;

@@ -134,18 +134,17 @@ public class MaxDropoutNoiseLayer extends NNLayer {
   
   private final class Result extends NNResult {
   
-    @Override
-    public void finalize() {
-      inObj.finalize();
-    }
-  
     private final NNResult inObj;
     private final Tensor[] mask;
-  
     private Result(final Tensor[] outputA, final NNResult inObj, final Tensor[] mask) {
       super(outputA);
       this.inObj = inObj;
       this.mask = mask;
+    }
+  
+    @Override
+    public void finalize() {
+      inObj.finalize();
     }
     
     @Override

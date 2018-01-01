@@ -32,24 +32,36 @@ import com.simiacryptus.mindseye.lang.TensorList;
 class CountingNNResult extends NNResult {
   
   /**
-   * The Queued.
-   */
-  int accumulations = 0;
-
-  /**
    * The Inner.
    */
   final NNResult inner;
   /**
+   * The Queued.
+   */
+  int accumulations = 0;
+  /**
    * The Passback buffer.
    */
   TensorList passbackBuffer = null;
+  /**
+   * The Finalizations.
+   */
   int finalizations = 0;
+  private int count = 0;
 
   /**
-   * A flagrant abuse of Java's object finalization contract.
-   * Repeated calls to this class's finalize method will increment a counter,
-   * and when the counter cycles the call is chained.
+   * Instantiates a new Counting nn result.
+   *
+   * @param inner the inner
+   */
+  protected CountingNNResult(final NNResult inner) {
+    super(inner.getData());
+    this.inner = inner;
+  }
+  
+  /**
+   * A flagrant abuse of Java's object finalization contract. Repeated calls to this class's finalize method will
+   * increment a counter, and when the counter cycles the call is chained.
    */
   @Override
   public void finalize() {
@@ -62,17 +74,6 @@ class CountingNNResult extends NNResult {
         finalizations = 0;
       }
     }
-  }
-  private int count = 0;
-  
-  /**
-   * Instantiates a new Counting nn result.
-   *
-   * @param inner the inner
-   */
-  protected CountingNNResult(final NNResult inner) {
-    super(inner.getData());
-    this.inner = inner;
   }
   
   @Override

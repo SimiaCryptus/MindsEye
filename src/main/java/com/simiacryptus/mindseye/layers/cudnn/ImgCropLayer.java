@@ -48,6 +48,12 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
   private ImgCropLayer() {
   }
   
+  /**
+   * Instantiates a new Img crop layer.
+   *
+   * @param sizeX the size x
+   * @param sizeY the size y
+   */
   public ImgCropLayer(int sizeX, int sizeY) {
     this.sizeX = sizeX;
     this.sizeY = sizeY;
@@ -57,7 +63,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
    * Instantiates a new Img concat layer.
    *
    * @param json the json
-   * @param rs
+   * @param rs   the rs
    */
   protected ImgCropLayer(final JsonObject json, Map<String, byte[]> rs) {
     super(json);
@@ -77,6 +83,11 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
     return new ImgCropLayer(json, rs);
   }
   
+  /**
+   * Gets compatibility layer.
+   *
+   * @return the compatibility layer
+   */
   public NNLayer getCompatibilityLayer() {
     return new com.simiacryptus.mindseye.layers.java.ImgCropLayer(sizeX, sizeY);
   }
@@ -123,7 +134,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
         }
         finalize();
       }
-    
+  
       @Override
       public boolean isAlive() {
         return Arrays.stream(inObj).anyMatch(x -> x.isAlive());
@@ -131,6 +142,16 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
     };
   }
   
+  /**
+   * Copy.
+   *
+   * @param nncontext    the nncontext
+   * @param length       the length
+   * @param dimIn        the dim in
+   * @param inputBuffer  the input buffer
+   * @param dimOut       the dim out
+   * @param outputBuffer the output buffer
+   */
   public void copy(CuDNN nncontext, int length, int[] dimIn, CudaPtr inputBuffer, int[] dimOut, CudaPtr outputBuffer) {
     int offsetX = (dimOut[0] - dimIn[0]) / 2;
     int offsetY = (dimOut[1] - dimIn[1]) / 2;

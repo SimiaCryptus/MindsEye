@@ -17,11 +17,10 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.test.data;
+package com.simiacryptus.mindseye.lang;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
-import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.test.TestCategories;
 import org.junit.Assert;
 import org.junit.Test;

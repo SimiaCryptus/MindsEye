@@ -218,14 +218,14 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
       // Recommended JVM flags: -XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC
       if (gcEachIteration && TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - lastGc) > gcPeriod) {
         lastGc = System.currentTimeMillis();
-        GpuController.INSTANCE.cleanMemory();
+        GpuController.cleanMemory();
       }
       return timedResult.result;
     } catch (final Exception e) {
       RecycleBin.DOUBLES.printNetProfiling(System.err);
       if (retries > 0) {
         lastGc = System.currentTimeMillis();
-        GpuController.INSTANCE.cleanMemory();
+        GpuController.cleanMemory();
         synchronized (CudaResource.gpuGeneration) {
           for (final Map.Entry<CudaExecutionContext, ExecutorService> entry : GpuController.INSTANCE.getGpuDriverThreads().asMap().entrySet()) {
             CudaResource.gpuGeneration.incrementAndGet();
@@ -244,7 +244,7 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
         CudaPtr.METRICS.invalidateAll();
         if (gcEachIteration && TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - lastGc) > gcPeriod) {
           lastGc = System.currentTimeMillis();
-          GpuController.INSTANCE.cleanMemory();
+          GpuController.cleanMemory();
         }
         return measure(retries - 1, monitor);
       }

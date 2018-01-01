@@ -200,6 +200,11 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     return layer.as(referenceLayerClass);
   }
   
+  /**
+   * Gets reference layer class.
+   *
+   * @return the reference layer class
+   */
   public Class<? extends NNLayer> getReferenceLayerClass() {
     return null;
   }

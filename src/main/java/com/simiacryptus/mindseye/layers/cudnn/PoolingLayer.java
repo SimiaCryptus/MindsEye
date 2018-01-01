@@ -78,6 +78,11 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
     return new PoolingLayer(json);
   }
   
+  /**
+   * Gets compatibility layer.
+   *
+   * @return the compatibility layer
+   */
   public NNLayer getCompatibilityLayer() {
     throw new RuntimeException("Not Implemented");
   }

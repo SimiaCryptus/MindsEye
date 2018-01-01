@@ -79,6 +79,11 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
     return new BinarySumLayer(json);
   }
   
+  /**
+   * Gets compatibility layer.
+   *
+   * @return the compatibility layer
+   */
   public NNLayer getCompatibilityLayer() {
     throw new RuntimeException("Not Implemented");
   }

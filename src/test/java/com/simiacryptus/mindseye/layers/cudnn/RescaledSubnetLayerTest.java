@@ -27,6 +27,9 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
  */
 public abstract class RescaledSubnetLayerTest extends LayerTestBase {
   
+  /**
+   * The Convolution layer.
+   */
   ConvolutionLayer convolutionLayer = new ConvolutionLayer(3, 3, 1, 1);
   
   @Override

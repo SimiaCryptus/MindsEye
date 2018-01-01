@@ -273,6 +273,11 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
     }
   }
   
+  /**
+   * Gets compatibility layer.
+   *
+   * @return the compatibility layer
+   */
   public NNLayer getCompatibilityLayer() {
     throw new RuntimeException("Not Implemented");
   }

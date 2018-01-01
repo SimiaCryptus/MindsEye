@@ -103,7 +103,7 @@ public class ProductInputsLayer extends NNLayer {
           }
         }
       }
-    
+  
       @Override
       public boolean isAlive() {
         for (final NNResult element : inObj)
@@ -112,12 +112,12 @@ public class ProductInputsLayer extends NNLayer {
           }
         return false;
       }
-    
+  
       @Override
       public void finalize() {
         Arrays.stream(inObj).forEach(NNResult::finalize);
       }
-    
+  
     };
   }
   

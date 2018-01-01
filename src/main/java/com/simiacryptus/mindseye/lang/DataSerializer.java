@@ -23,6 +23,7 @@ package com.simiacryptus.mindseye.lang;
  * The interface Data serializer.
  */
 public interface DataSerializer {
+  
   /**
    * Copy.
    *
@@ -53,9 +54,28 @@ public interface DataSerializer {
    * @return the byte [ ]
    */
   default byte[] toBytes(double[] from) {
-    byte[] to = new byte[from.length * getElementSize()];
+    byte[] to = new byte[encodedSize(from)];
     copy(from, to);
     return to;
+  }
+  
+  /**
+   * Encoded size int.
+   *
+   * @param from the from
+   * @return the int
+   */
+  default int encodedSize(double[] from) {
+    return from.length * getElementSize() + getHeaderSize();
+  }
+  
+  /**
+   * Gets header size.
+   *
+   * @return the header size
+   */
+  default int getHeaderSize() {
+    return 0;
   }
   
   /**
@@ -65,8 +85,18 @@ public interface DataSerializer {
    * @return the double [ ]
    */
   default double[] fromBytes(byte[] from) {
-    double[] to = new double[from.length / getElementSize()];
+    double[] to = new double[decodedSize(from)];
     copy(from, to);
     return to;
+  }
+  
+  /**
+   * Decoded size int.
+   *
+   * @param from the from
+   * @return the int
+   */
+  default int decodedSize(byte[] from) {
+    return (from.length - getHeaderSize()) / getElementSize();
   }
 }

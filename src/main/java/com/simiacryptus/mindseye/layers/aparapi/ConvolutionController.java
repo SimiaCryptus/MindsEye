@@ -53,6 +53,8 @@ public final class ConvolutionController {
    *
    * @param inputSize  the input size
    * @param kernelSize the kernel size
+   * @param paddingX   the padding x
+   * @param paddingY   the padding y
    */
   public ConvolutionController(final int[] inputSize, final int[] kernelSize, final Integer paddingX, Integer paddingY) {
     this.inputSize = inputSize;
@@ -360,18 +362,38 @@ public final class ConvolutionController {
     return builder.toString();
   }
   
+  /**
+   * Gets padding x.
+   *
+   * @return the padding x
+   */
   public Integer getPaddingX() {
     return paddingX;
   }
   
+  /**
+   * Sets padding x.
+   *
+   * @param paddingX the padding x
+   */
   public void setPaddingX(Integer paddingX) {
     this.paddingX = paddingX;
   }
   
+  /**
+   * Gets padding y.
+   *
+   * @return the padding y
+   */
   public Integer getPaddingY() {
     return paddingY;
   }
   
+  /**
+   * Sets padding y.
+   *
+   * @param paddingY the padding y
+   */
   public void setPaddingY(Integer paddingY) {
     this.paddingY = paddingY;
   }

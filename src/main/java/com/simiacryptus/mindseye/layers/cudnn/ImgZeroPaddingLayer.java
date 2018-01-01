@@ -49,6 +49,12 @@ public class ImgZeroPaddingLayer extends NNLayer implements LayerPrecision<ImgZe
   private ImgZeroPaddingLayer() {
   }
   
+  /**
+   * Instantiates a new Img zero padding layer.
+   *
+   * @param sizeX the size x
+   * @param sizeY the size y
+   */
   public ImgZeroPaddingLayer(int sizeX, int sizeY) {
     this.sizeX = sizeX;
     this.sizeY = sizeY;
@@ -58,7 +64,7 @@ public class ImgZeroPaddingLayer extends NNLayer implements LayerPrecision<ImgZe
    * Instantiates a new Img concat layer.
    *
    * @param json the json
-   * @param rs
+   * @param rs   the rs
    */
   protected ImgZeroPaddingLayer(final JsonObject json, Map<String, byte[]> rs) {
     super(json);
@@ -78,6 +84,11 @@ public class ImgZeroPaddingLayer extends NNLayer implements LayerPrecision<ImgZe
     return new ImgZeroPaddingLayer(json, rs);
   }
   
+  /**
+   * Gets compatibility layer.
+   *
+   * @return the compatibility layer
+   */
   public NNLayer getCompatibilityLayer() {
     return new com.simiacryptus.mindseye.layers.java.ImgZeroPaddingLayer(sizeX, sizeY);
   }

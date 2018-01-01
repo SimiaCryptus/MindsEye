@@ -83,7 +83,7 @@ public final class WeightExtractor extends NNLayer {
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     final double[] doubles = null == getInner() ? new double[]{} : getInner().state().get(index);
     return new NNResult(new Tensor(doubles)) {
-  
+
       @Override
       public void finalize() {
         Arrays.stream(inObj).forEach(NNResult::finalize);

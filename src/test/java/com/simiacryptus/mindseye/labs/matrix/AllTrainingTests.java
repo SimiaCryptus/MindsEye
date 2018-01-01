@@ -49,6 +49,9 @@ public abstract class AllTrainingTests extends NotebookReportBase {
    * The Timeout minutes.
    */
   protected int timeoutMinutes = 10;
+  /**
+   * The Batch size.
+   */
   protected int batchSize = 1000;
   
   /**

@@ -38,7 +38,16 @@ import org.slf4j.LoggerFactory;
  */
 class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
   
+  private static final Logger log = LoggerFactory.getLogger(Hdf5Archive.class);
+  private final Hdf5Archive hdf5;
   private volatile NNLayer network;
+  
+  /**
+   * Instantiates a new Vgg 16 hdf 5.
+   *
+   * @param hdf5 the hdf 5
+   */
+  public VGG16_HDF5(Hdf5Archive hdf5) {this.hdf5 = hdf5;}
   
   /**
    * Gets network.
@@ -55,18 +64,6 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
     }
     return network;
   }
-  
-  
-  
-  private static final Logger log = LoggerFactory.getLogger(Hdf5Archive.class);
-  private final Hdf5Archive hdf5;
-  
-  /**
-   * Instantiates a new Vgg 16 hdf 5.
-   *
-   * @param hdf5 the hdf 5
-   */
-  public VGG16_HDF5(Hdf5Archive hdf5) {this.hdf5 = hdf5;}
   
   @Override
   public NNLayer build(NotebookOutput output) {

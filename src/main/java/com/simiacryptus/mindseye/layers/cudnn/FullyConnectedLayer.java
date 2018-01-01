@@ -66,6 +66,12 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
     inputDims = null;
   }
   
+  /**
+   * Instantiates a new Fully connected layer.
+   *
+   * @param inputDims  the input dims
+   * @param outputDims the output dims
+   */
   public FullyConnectedLayer(final int[] inputDims, final int[] outputDims) {
     final int inputs = Tensor.dim(inputDims);
     this.inputDims = Arrays.copyOf(inputDims, inputDims.length);
@@ -84,7 +90,7 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
    * Instantiates a new Img concat layer.
    *
    * @param json the json
-   * @param rs
+   * @param rs   the rs
    */
   protected FullyConnectedLayer(final JsonObject json, Map<String, byte[]> rs) {
     super(json);
@@ -190,6 +196,11 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
     return this;
   }
   
+  /**
+   * Gets compatibility layer.
+   *
+   * @return the compatibility layer
+   */
   public NNLayer getCompatibilityLayer() {
     return new com.simiacryptus.mindseye.layers.java.FullyConnectedLayer(inputDims, outputDims).set(weights);
   }

@@ -56,10 +56,34 @@ public abstract class ImageClassifier {
     return predict(prefilter, network, count, categories, data.length, data);
   }
   
+  /**
+   * Predict list.
+   *
+   * @param prefilter  the prefilter
+   * @param network    the network
+   * @param count      the count
+   * @param categories the categories
+   * @param batchSize  the batch size
+   * @param data       the data
+   * @return the list
+   */
   public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, NNLayer network, int count, List<String> categories, int batchSize, Tensor... data) {
     return predict(prefilter, network, count, categories, batchSize, true, false, data);
   }
   
+  /**
+   * Predict list.
+   *
+   * @param prefilter  the prefilter
+   * @param network    the network
+   * @param count      the count
+   * @param categories the categories
+   * @param batchSize  the batch size
+   * @param asyncGC    the async gc
+   * @param nullGC     the null gc
+   * @param data       the data
+   * @return the list
+   */
   public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, NNLayer network, int count, List<String> categories, int batchSize, boolean asyncGC, boolean nullGC, Tensor[] data) {
     Executor garbageman = (!nullGC && asyncGC) ? Executors.newSingleThreadExecutor() : command -> {
       if (!nullGC) command.run();

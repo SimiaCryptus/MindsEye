@@ -23,6 +23,11 @@ import com.simiacryptus.mindseye.lang.ComponentException;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * The type Cuda resource base.
+ *
+ * @param <T> the type parameter
+ */
 public abstract class CudaResourceBase<T> {
   /**
    * The constant debugLifecycle.
@@ -40,13 +45,24 @@ public abstract class CudaResourceBase<T> {
    * The Obj generation.
    */
   public final int objGeneration = CudaResourceBase.gpuGeneration.get();
+  /**
+   * The Ptr.
+   */
   protected final T ptr;
   /**
    * The Finalized by.
    */
   public StackTraceElement[] finalizedBy = null;
+  /**
+   * The Finalized.
+   */
   protected volatile boolean finalized = false;
   
+  /**
+   * Instantiates a new Cuda resource base.
+   *
+   * @param obj the obj
+   */
   public CudaResourceBase(final T obj) {this.ptr = obj;}
   
   /**
@@ -73,6 +89,9 @@ public abstract class CudaResourceBase<T> {
     }
   }
   
+  /**
+   * Free.
+   */
   protected abstract void free();
   
   /**

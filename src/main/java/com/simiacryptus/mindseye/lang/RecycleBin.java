@@ -76,6 +76,9 @@ public abstract class RecycleBin<T> {
   private int profilingThreshold = 32 * 1024;
   private PersistanceMode persistanceMode = Soft;
   
+  /**
+   * Instantiates a new Recycle bin.
+   */
   protected RecycleBin() {
     super();
     RecycleBin.getGarbageTruck().scheduleAtFixedRate(() -> recycling.forEach((k, v) -> {
@@ -95,8 +98,6 @@ public abstract class RecycleBin<T> {
       }
     }), 10, 10, TimeUnit.SECONDS);
   }
-  
-  protected abstract void free(T obj);
   
   /**
    * Gets garbage truck.
@@ -128,6 +129,13 @@ public abstract class RecycleBin<T> {
   }
   
   /**
+   * Free.
+   *
+   * @param obj the obj
+   */
+  protected abstract void free(T obj);
+  
+  /**
    * Clear.
    */
   public synchronized void clear() {
@@ -139,7 +147,7 @@ public abstract class RecycleBin<T> {
    * Copy of double [ ].
    *
    * @param original the original
-   * @param size
+   * @param size     the size
    * @return the double [ ]
    */
   public T copyOf(final T original, long size) {
@@ -297,7 +305,7 @@ public abstract class RecycleBin<T> {
    * Recycle.
    *
    * @param data the data
-   * @param size
+   * @param size the size
    */
   public void recycle(final T data, long size) {
     if (null == data) return;
@@ -367,7 +375,7 @@ public abstract class RecycleBin<T> {
    * Reset.
    *
    * @param data the data
-   * @param size
+   * @param size the size
    */
   public abstract void reset(T data, long size);
   

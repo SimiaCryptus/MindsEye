@@ -46,15 +46,9 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
       return new GpuStats();
     }
   });
-  private static final boolean lockPci = Boolean.parseBoolean(System.getProperty("lockPci", "true"));
-  private static final long MAX = 4l * 1024 * 1024 * 1024;
-  private static final Object pciBusLock = new Object();
   /**
-   * The Size.
+   * The Buffers.
    */
-  public final long size;
-  private final int deviceId;
-  
   static final LoadingCache<Integer, RecycleBin<Pointer>> BUFFERS = CacheBuilder.newBuilder().build(new CacheLoader<Integer, RecycleBin<Pointer>>() {
     @Override
     public RecycleBin<Pointer> load(Integer key) throws Exception {
@@ -79,6 +73,14 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
       };
     }
   });
+  private static final boolean lockPci = Boolean.parseBoolean(System.getProperty("lockPci", "true"));
+  private static final long MAX = 4l * 1024 * 1024 * 1024;
+  private static final Object pciBusLock = new Object();
+  /**
+   * The Size.
+   */
+  public final long size;
+  private final int deviceId;
   
   /**
    * Instantiates a new Cuda ptr.
@@ -111,6 +113,9 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     this.deviceId = deviceId;
   }
   
+  /**
+   * Reset.
+   */
   public static void reset() {
     BUFFERS.asMap().values().forEach(x -> x.clear());
   }
