@@ -70,7 +70,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
         public void reset(final Pointer data, long size) {
           CuDNN.handle(CuDNN.cudaMemset(data, 0, size));
         }
-      };
+      }.setPersistanceMode(RecycleBin.PersistanceMode.Strong).setMaxItemsPerBuffer(1);
     }
   });
   private static final boolean lockPci = Boolean.parseBoolean(System.getProperty("lockPci", "true"));

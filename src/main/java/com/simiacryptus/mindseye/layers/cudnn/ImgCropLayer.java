@@ -153,6 +153,8 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
    * @param outputBuffer the output buffer
    */
   public void copy(CuDNN nncontext, int length, int[] dimIn, CudaPtr inputBuffer, int[] dimOut, CudaPtr outputBuffer) {
+    if (3 != dimIn.length) throw new IllegalArgumentException("dimIn.length");
+    if (3 != dimOut.length) throw new IllegalArgumentException("dimOut.length");
     int offsetX = (dimOut[0] - dimIn[0]) / 2;
     int offsetY = (dimOut[1] - dimIn[1]) / 2;
     //log.info(String.format("offset=%d,%d", offsetX, offsetY));
@@ -160,7 +162,8 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
     Arrays.parallelSetAll(viewDim, i -> Math.min(dimIn[i], dimOut[i]));
     for (int i = 0; i < length; i++) {
       final CudaResource<cudnnTensorDescriptor> inputViewDescriptor = CuDNN.newTensorDescriptor(
-        precision.code, length,
+        precision.code,
+        length,
         viewDim[2],
         viewDim[1],
         viewDim[0],
@@ -179,7 +182,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
         dimOut[0],
         1);
       int inOffset = i * dimIn[2] * dimIn[1] * dimIn[0] * precision.size;
-      int outputOffset = i * dimIn[2] * dimIn[1] * dimIn[0] * precision.size;
+      int outputOffset = i * dimOut[2] * dimOut[1] * dimOut[0] * precision.size;
       if (offsetX < 0) {
         inOffset -= offsetX * precision.size;
       }

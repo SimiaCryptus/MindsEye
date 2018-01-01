@@ -20,14 +20,14 @@
 package com.simiacryptus.mindseye.lang;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 
 import java.io.PrintStream;
-import java.lang.ref.PhantomReference;
-import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.concurrent.*;
+import java.util.function.Supplier;
 
 import static com.simiacryptus.mindseye.lang.RecycleBin.PersistanceMode.Soft;
 
@@ -72,9 +72,12 @@ public abstract class RecycleBin<T> {
   private final StackCounter frees = new StackCounter();
   private final StackCounter recycle_get = new StackCounter();
   private final StackCounter recycle_submit = new StackCounter();
-  private final ConcurrentHashMap<Long, ConcurrentLinkedDeque<Reference<T>>> recycling = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<Long, ConcurrentLinkedDeque<Supplier<T>>> recycling = new ConcurrentHashMap<>();
   private int profilingThreshold = 32 * 1024;
   private PersistanceMode persistanceMode = Soft;
+  private int minBytesPerBuffer = 256;
+  private double maxBytesPerBuffer = 1e8;
+  private int maxItemsPerBuffer = 100;
   
   /**
    * Instantiates a new Recycle bin.
@@ -84,7 +87,7 @@ public abstract class RecycleBin<T> {
     RecycleBin.getGarbageTruck().scheduleAtFixedRate(() -> recycling.forEach((k, v) -> {
       final StackCounter stackCounter = getRecycle_submit(k.intValue());
       if (null != stackCounter) {
-        Reference<T> poll;
+        Supplier<T> poll;
         while (null != (poll = v.poll())) {
           T obj = poll.get();
           if (obj != null) {
@@ -269,13 +272,13 @@ public abstract class RecycleBin<T> {
    * @return the double [ ]
    */
   public T obtain(final long length) {
-    final ConcurrentLinkedDeque<Reference<T>> bin = recycling.get(length);
+    final ConcurrentLinkedDeque<Supplier<T>> bin = recycling.get(length);
     StackCounter stackCounter = getRecycle_get(length);
     if (null != stackCounter) {
       stackCounter.increment(length);
     }
     if (null != bin) {
-      final Reference<T> ref = bin.poll();
+      final Supplier<T> ref = bin.poll();
       if (null != ref) {
         final T data = ref.get();
         if (null != data) {
@@ -293,7 +296,7 @@ public abstract class RecycleBin<T> {
     } catch (final java.lang.OutOfMemoryError e) {
       try {
         clear();
-        System.gc();
+        GpuController.cleanMemory();
         return create(length);
       } catch (final java.lang.OutOfMemoryError e2) {
         throw new OutOfMemoryError("Could not allocate " + length + " bytes", e2);
@@ -309,8 +312,8 @@ public abstract class RecycleBin<T> {
    */
   public void recycle(final T data, long size) {
     if (null == data) return;
-    if (size < 256) return;
-    ConcurrentLinkedDeque<Reference<T>> bin = recycling.get(size);
+    if (size < getMinBytesPerBuffer()) return;
+    ConcurrentLinkedDeque<Supplier<T>> bin = recycling.get(size);
     if (null == bin) {
       bin = new ConcurrentLinkedDeque<>();
       recycling.put(size, bin);
@@ -319,7 +322,7 @@ public abstract class RecycleBin<T> {
     if (null != stackCounter) {
       stackCounter.increment(size);
     }
-    if (bin.size() < Math.max(1, (int) (1e8 / size))) {
+    if (bin.size() < Math.min(Math.max(1, (int) (getMaxBytesPerBuffer() / size)), getMaxItemsPerBuffer())) {
       synchronized (bin) {
         if (!bin.stream().filter(x -> equals(x.get(), data)).findAny().isPresent()) {
           bin.add(newRef(data));
@@ -327,6 +330,7 @@ public abstract class RecycleBin<T> {
       }
     }
     else {
+      free(data);
       stackCounter = getFrees(size);
       if (null != stackCounter) {
         stackCounter.increment(size);
@@ -348,8 +352,9 @@ public abstract class RecycleBin<T> {
    *
    * @param persistanceMode the persistance mode
    */
-  public void setPersistanceMode(PersistanceMode persistanceMode) {
+  public RecycleBin<T> setPersistanceMode(PersistanceMode persistanceMode) {
     this.persistanceMode = persistanceMode;
+    return this;
   }
   
   /**
@@ -358,17 +363,8 @@ public abstract class RecycleBin<T> {
    * @param data the data
    * @return the reference
    */
-  protected Reference<T> newRef(T data) {
-    switch (persistanceMode) {
-      case Soft:
-        return new SoftReference<T>(data);
-      case Weak:
-        return new WeakReference<T>(data);
-      case Phantom:
-        return new PhantomReference<T>(data, null);
-      default:
-        throw new IllegalStateException(persistanceMode.toString());
-    }
+  protected Supplier<T> newRef(T data) {
+    return persistanceMode.wrap(data);
   }
   
   /**
@@ -390,6 +386,33 @@ public abstract class RecycleBin<T> {
     return this;
   }
   
+  public int getMinBytesPerBuffer() {
+    return minBytesPerBuffer;
+  }
+  
+  public RecycleBin<T> setMinBytesPerBuffer(int minBytesPerBuffer) {
+    this.minBytesPerBuffer = minBytesPerBuffer;
+    return this;
+  }
+  
+  public double getMaxBytesPerBuffer() {
+    return maxBytesPerBuffer;
+  }
+  
+  public RecycleBin<T> setMaxBytesPerBuffer(double maxBytesPerBuffer) {
+    this.maxBytesPerBuffer = maxBytesPerBuffer;
+    return this;
+  }
+  
+  public int getMaxItemsPerBuffer() {
+    return maxItemsPerBuffer;
+  }
+  
+  public RecycleBin<T> setMaxItemsPerBuffer(int maxItemsPerBuffer) {
+    this.maxItemsPerBuffer = maxItemsPerBuffer;
+    return this;
+  }
+  
   /**
    * The enum Persistance mode.
    */
@@ -397,14 +420,32 @@ public abstract class RecycleBin<T> {
     /**
      * Soft persistance mode.
      */
-    Soft,
+    Soft {
+      @Override
+      public <T> Supplier<T> wrap(T obj) {
+        return new SoftReference<>(obj)::get;
+      }
+    },
     /**
      * Weak persistance mode.
      */
-    Weak,
+    Weak {
+      @Override
+      public <T> Supplier<T> wrap(T obj) {
+        return new WeakReference<>(obj)::get;
+      }
+    },
     /**
-     * Phantom persistance mode.
+     * Strong persistance mode.
      */
-    Phantom
+    Strong {
+      @Override
+      public <T> Supplier<T> wrap(T obj) {
+        return () -> obj;
+      }
+    };
+  
+    public abstract <T> Supplier<T> wrap(T obj);
   }
+  
 }
