@@ -46,17 +46,15 @@ public abstract class RecycleBin<T> {
    */
   public static final RecycleBin<double[]> DOUBLES = new RecycleBin<double[]>() {
     @Override
-    public double[] create(final int length) {
-      return new double[length];
-    }
-    
+    protected void free(double[] obj) { }
+  
     @Override
-    protected int length(final double[] data) {
-      return data.length;
+    public double[] create(final long length) {
+      return new double[(int) length];
     }
   
     @Override
-    public void reset(final double[] data) {
+    public void reset(final double[] data, long size) {
       Arrays.fill(data, 0);
     }
   };
@@ -74,11 +72,11 @@ public abstract class RecycleBin<T> {
   private final StackCounter frees = new StackCounter();
   private final StackCounter recycle_get = new StackCounter();
   private final StackCounter recycle_submit = new StackCounter();
-  private final ConcurrentHashMap<Integer, ConcurrentLinkedDeque<Reference<T>>> recycling = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<Long, ConcurrentLinkedDeque<Reference<T>>> recycling = new ConcurrentHashMap<>();
   private int profilingThreshold = 32 * 1024;
   private PersistanceMode persistanceMode = Soft;
   
-  private RecycleBin() {
+  protected RecycleBin() {
     super();
     RecycleBin.getGarbageTruck().scheduleAtFixedRate(() -> recycling.forEach((k, v) -> {
       final StackCounter stackCounter = getRecycle_submit(k.intValue());
@@ -87,7 +85,8 @@ public abstract class RecycleBin<T> {
         while (null != (poll = v.poll())) {
           T obj = poll.get();
           if (obj != null) {
-            stackCounter.increment(length(obj));
+            stackCounter.increment(k);
+            free(obj);
           }
         }
       }
@@ -96,6 +95,8 @@ public abstract class RecycleBin<T> {
       }
     }), 10, 10, TimeUnit.SECONDS);
   }
+  
+  protected abstract void free(T obj);
   
   /**
    * Gets garbage truck.
@@ -129,7 +130,8 @@ public abstract class RecycleBin<T> {
   /**
    * Clear.
    */
-  public void clear() {
+  public synchronized void clear() {
+    recycling.values().stream().flatMap(x -> x.stream()).forEach(x -> free(x.get()));
     recycling.clear();
   }
   
@@ -137,12 +139,13 @@ public abstract class RecycleBin<T> {
    * Copy of double [ ].
    *
    * @param original the original
+   * @param size
    * @return the double [ ]
    */
-  public T copyOf(final T original) {
+  public T copyOf(final T original, long size) {
     if (null == original) return null;
-    final T copy = obtain(length(original));
-    System.arraycopy(original, 0, copy, 0, length(original));
+    final T copy = obtain(size);
+    System.arraycopy(original, 0, copy, 0, (int) size);
     return copy;
   }
   
@@ -152,7 +155,7 @@ public abstract class RecycleBin<T> {
    * @param length the length
    * @return the t
    */
-  public abstract T create(int length);
+  public abstract T create(long length);
   
   /**
    * Gets allocations.
@@ -160,7 +163,7 @@ public abstract class RecycleBin<T> {
    * @param length the length
    * @return the allocations
    */
-  public StackCounter getAllocations(final int length) {
+  public StackCounter getAllocations(final long length) {
     if (!isProfiling(length)) return null;
     return allocations;
   }
@@ -171,7 +174,7 @@ public abstract class RecycleBin<T> {
    * @param length the length
    * @return the frees
    */
-  public StackCounter getFrees(final int length) {
+  public StackCounter getFrees(final long length) {
     if (!isProfiling(length)) return null;
     return frees;
   }
@@ -182,7 +185,7 @@ public abstract class RecycleBin<T> {
    * @param length the length
    * @return the recycle get
    */
-  public StackCounter getRecycle_get(final int length) {
+  public StackCounter getRecycle_get(final long length) {
     if (!isProfiling(length)) return null;
     return recycle_get;
   }
@@ -193,7 +196,7 @@ public abstract class RecycleBin<T> {
    * @param length the length
    * @return the recycle submit
    */
-  public StackCounter getRecycle_submit(final int length) {
+  public StackCounter getRecycle_submit(final long length) {
     if (!isProfiling(length)) return null;
     return recycle_submit;
   }
@@ -204,17 +207,9 @@ public abstract class RecycleBin<T> {
    * @param length the length
    * @return the boolean
    */
-  public boolean isProfiling(final int length) {
+  public boolean isProfiling(final long length) {
     return length > profilingThreshold;
   }
-  
-  /**
-   * Length int.
-   *
-   * @param data the data
-   * @return the int
-   */
-  protected abstract int length(T data);
   
   /**
    * Print all profiling.
@@ -265,7 +260,7 @@ public abstract class RecycleBin<T> {
    * @param length the length
    * @return the double [ ]
    */
-  public T obtain(final int length) {
+  public T obtain(final long length) {
     final ConcurrentLinkedDeque<Reference<T>> bin = recycling.get(length);
     StackCounter stackCounter = getRecycle_get(length);
     if (null != stackCounter) {
@@ -276,7 +271,7 @@ public abstract class RecycleBin<T> {
       if (null != ref) {
         final T data = ref.get();
         if (null != data) {
-          reset(data);
+          reset(data, length);
           return data;
         }
       }
@@ -302,21 +297,21 @@ public abstract class RecycleBin<T> {
    * Recycle.
    *
    * @param data the data
+   * @param size
    */
-  public void recycle(final T data) {
+  public void recycle(final T data, long size) {
     if (null == data) return;
-    final int length = length(data);
-    if (length < 256) return;
-    ConcurrentLinkedDeque<Reference<T>> bin = recycling.get(length);
+    if (size < 256) return;
+    ConcurrentLinkedDeque<Reference<T>> bin = recycling.get(size);
     if (null == bin) {
       bin = new ConcurrentLinkedDeque<>();
-      recycling.put(length, bin);
+      recycling.put(size, bin);
     }
-    StackCounter stackCounter = getRecycle_submit(length);
+    StackCounter stackCounter = getRecycle_submit(size);
     if (null != stackCounter) {
-      stackCounter.increment(length);
+      stackCounter.increment(size);
     }
-    if (bin.size() < Math.max(1, (int) (1e8 / length))) {
+    if (bin.size() < Math.max(1, (int) (1e8 / size))) {
       synchronized (bin) {
         if (!bin.stream().filter(x -> equals(x.get(), data)).findAny().isPresent()) {
           bin.add(newRef(data));
@@ -324,9 +319,9 @@ public abstract class RecycleBin<T> {
       }
     }
     else {
-      stackCounter = getFrees(length);
+      stackCounter = getFrees(size);
       if (null != stackCounter) {
-        stackCounter.increment(length);
+        stackCounter.increment(size);
       }
     }
   }
@@ -372,8 +367,9 @@ public abstract class RecycleBin<T> {
    * Reset.
    *
    * @param data the data
+   * @param size
    */
-  public abstract void reset(T data);
+  public abstract void reset(T data, long size);
   
   /**
    * Sets profiling.

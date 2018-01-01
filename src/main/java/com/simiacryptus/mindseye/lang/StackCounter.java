@@ -66,7 +66,7 @@ public class StackCounter {
    *
    * @param length the length
    */
-  public void increment(final int length) {
+  public void increment(final long length) {
     final StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
     for (final StackTraceElement frame : stackTrace) {
       stats.computeIfAbsent(new StackFrame(frame), f -> new DoubleStatistics()).accept(length);

@@ -124,11 +124,11 @@ public final class ConvolutionController {
             final int currentIndexOffset = run * inputsPerRun;
             final int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
             if (null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
-              RecycleBin.DOUBLES.recycle(inputBuffer);
+              if (null != inputBuffer) RecycleBin.DOUBLES.recycle(inputBuffer, inputBuffer.length);
               inputBuffer = RecycleBin.DOUBLES.obtain(inLength * currentNumItems);
             }
             if (null == outputBuffer || outputBuffer.length != outLength * currentNumItems) {
-              RecycleBin.DOUBLES.recycle(outputBuffer);
+              if (null != outputBuffer) RecycleBin.DOUBLES.recycle(outputBuffer, outputBuffer.length);
               outputBuffer = RecycleBin.DOUBLES.obtain(outLength * currentNumItems);
             }
             for (int i = 0; i < currentNumItems; i++) {
@@ -155,8 +155,8 @@ public final class ConvolutionController {
               System.arraycopy(inputBuffer, i * inLength, input[currentIndexOffset + i], 0, inLength);
             }
           }
-          RecycleBin.DOUBLES.recycle(inputBuffer);
-          RecycleBin.DOUBLES.recycle(outputBuffer);
+          RecycleBin.DOUBLES.recycle(inputBuffer, inputBuffer.length);
+          RecycleBin.DOUBLES.recycle(outputBuffer, outputBuffer.length);
           ConvolutionController.backpropTask.kernelSize = null;
           ConvolutionController.backpropTask.weights = null;
         }
@@ -207,11 +207,11 @@ public final class ConvolutionController {
               continue;
             }
             if (null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
-              RecycleBin.DOUBLES.recycle(inputBuffer);
+              if (null != inputBuffer) RecycleBin.DOUBLES.recycle(inputBuffer, inputBuffer.length);
               inputBuffer = RecycleBin.DOUBLES.obtain(inLength * currentNumItems);
             }
             if (null == outputBuffer || outputBuffer.length != outLength * currentNumItems) {
-              RecycleBin.DOUBLES.recycle(outputBuffer);
+              if (null != outputBuffer) RecycleBin.DOUBLES.recycle(outputBuffer, outputBuffer.length);
               outputBuffer = RecycleBin.DOUBLES.obtain(outLength * currentNumItems);
             }
             for (int i = 0; i < currentNumItems; i++) {
@@ -238,8 +238,8 @@ public final class ConvolutionController {
               System.arraycopy(outputBuffer, i * outLength, output[currentIndexOffset + i], 0, outLength);
             }
           }
-          RecycleBin.DOUBLES.recycle(inputBuffer);
-          RecycleBin.DOUBLES.recycle(outputBuffer);
+          RecycleBin.DOUBLES.recycle(inputBuffer, inputBuffer.length);
+          RecycleBin.DOUBLES.recycle(outputBuffer, outputBuffer.length);
           ConvolutionController.convolveTask.kernelSize = null;
           ConvolutionController.convolveTask.weights = null;
         }
@@ -320,11 +320,11 @@ public final class ConvolutionController {
       final int currentIndexOffset = run * inputsPerRun;
       final int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
       if (null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
-        RecycleBin.DOUBLES.recycle(inputBuffer);
+        if (null != inputBuffer) RecycleBin.DOUBLES.recycle(inputBuffer, inputBuffer.length);
         inputBuffer = RecycleBin.DOUBLES.obtain(inLength * currentNumItems);
       }
       if (null == outputBuffer || outputBuffer.length != outLength * currentNumItems) {
-        RecycleBin.DOUBLES.recycle(outputBuffer);
+        if (null != outputBuffer) RecycleBin.DOUBLES.recycle(outputBuffer, outputBuffer.length);
         outputBuffer = RecycleBin.DOUBLES.obtain(outLength * currentNumItems);
       }
       for (int i = 0; i < currentNumItems; i++) {
@@ -341,10 +341,10 @@ public final class ConvolutionController {
           weights[weightIndex] += buffer[i];
         }
       });
-      RecycleBin.DOUBLES.recycle(buffer);
+      RecycleBin.DOUBLES.recycle(buffer, buffer.length);
     }
-    RecycleBin.DOUBLES.recycle(inputBuffer);
-    RecycleBin.DOUBLES.recycle(outputBuffer);
+    RecycleBin.DOUBLES.recycle(inputBuffer, inputBuffer.length);
+    RecycleBin.DOUBLES.recycle(outputBuffer, outputBuffer.length);
   }
   
   @Override

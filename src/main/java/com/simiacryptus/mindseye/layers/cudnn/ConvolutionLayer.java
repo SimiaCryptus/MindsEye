@@ -180,7 +180,7 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   
       @Override
       public void finalize() {
-        Arrays.stream(inObj).forEach(NNResult::finalize);
+        result.finalize();
       }
   
       @Override

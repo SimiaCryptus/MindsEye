@@ -65,7 +65,7 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
           statList.get(i * dimension + j).accept(array[i] * array[j]);
         }
       }
-      RecycleBin.DOUBLES.recycle(array);
+      RecycleBin.DOUBLES.recycle(array, array.length);
     });
     final RealMatrix covariance = new BlockRealMatrix(dimension, dimension);
     for (int i = 0; i < dimension; i++) {

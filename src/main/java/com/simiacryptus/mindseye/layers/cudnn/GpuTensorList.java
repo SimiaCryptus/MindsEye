@@ -160,7 +160,7 @@ public class GpuTensorList implements TensorList {
             System.arraycopy(outputBuffer, i * itemLength, outputBuffers[0 + i], 0, itemLength);
           }
           //assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-          RecycleBin.DOUBLES.recycle(outputBuffer);
+          RecycleBin.DOUBLES.recycle(outputBuffer, outputBuffer.length);
           _inner = new TensorArray(output);
         }
       }

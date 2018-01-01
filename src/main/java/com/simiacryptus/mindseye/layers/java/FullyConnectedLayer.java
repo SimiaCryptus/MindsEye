@@ -153,7 +153,7 @@ public class FullyConnectedLayer extends NNLayer {
   public static void multiplyT(final double[] matrix, final double[] in, final double[] out) {
     final DoubleMatrix matrixObj = FullyConnectedLayer.transpose(new DoubleMatrix(in.length, out.length, matrix));
     matrixObj.mmuli(new DoubleMatrix(in.length, 1, in), new DoubleMatrix(out.length, 1, out));
-    RecycleBin.DOUBLES.recycle(matrixObj.data);
+    RecycleBin.DOUBLES.recycle(matrixObj.data, matrixObj.data.length);
   }
 
 //  public static void multiplyT(final double[] data, final double[] in, double[] out) {

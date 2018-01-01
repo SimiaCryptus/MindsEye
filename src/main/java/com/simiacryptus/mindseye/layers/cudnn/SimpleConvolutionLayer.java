@@ -202,14 +202,18 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
       TensorList output = new GpuTensorList(outputBuffer, length, outputDims, cudnnHandle, precision);
       return new NNResult(output) {
   
+        public StackTraceElement[] finalizedBy = null;
+  
         @Override
         public void finalize() {
+          finalizedBy = Thread.currentThread().getStackTrace();
           inputData.finalize();
           Arrays.stream(inObj).forEach(NNResult::finalize);
         }
         
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
+          assert null == finalizedBy : Arrays.toString(finalizedBy);
           cuda.initThread();
           assert error.length() == batch.length();
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));

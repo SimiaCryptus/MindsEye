@@ -147,17 +147,17 @@ public class Delta<K> extends DoubleBuffer<K> {
   
   @Override
   public Delta<K> copy() {
-    return new Delta<K>(layer, target, RecycleBin.DOUBLES.copyOf(delta), RecycleBin.DOUBLES.copyOf(deltaCompensation));
+    return new Delta<K>(layer, target, RecycleBin.DOUBLES.copyOf(delta, length()), RecycleBin.DOUBLES.copyOf(deltaCompensation, length()));
   }
   
   @Override
   protected void finalize() throws Throwable {
     if (null != delta) {
-      RecycleBin.DOUBLES.recycle(delta);
+      RecycleBin.DOUBLES.recycle(delta, delta.length);
       delta = null;
     }
     if (null != deltaCompensation) {
-      RecycleBin.DOUBLES.recycle(deltaCompensation);
+      RecycleBin.DOUBLES.recycle(deltaCompensation, deltaCompensation.length);
       deltaCompensation = null;
     }
     super.finalize();

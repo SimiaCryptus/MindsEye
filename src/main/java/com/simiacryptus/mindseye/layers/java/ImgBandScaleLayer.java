@@ -148,7 +148,7 @@ public class ImgBandScaleLayer extends NNLayer {
             }
             assert Arrays.stream(array).allMatch(v -> Double.isFinite(v));
             deltaBuffer.addInPlace(array);
-            RecycleBin.DOUBLES.recycle(array);
+            RecycleBin.DOUBLES.recycle(array, array.length);
           });
         }
         if (input.isAlive()) {

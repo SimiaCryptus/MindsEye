@@ -569,7 +569,7 @@ public class Tensor implements Serializable {
   @Override
   public void finalize() throws Throwable {
     if (null != data) {
-      RecycleBin.DOUBLES.recycle(data);
+      RecycleBin.DOUBLES.recycle(data, data.length);
       data = null;
     }
     super.finalize();

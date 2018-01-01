@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.cudnn.*;
 import com.simiacryptus.mindseye.layers.java.AssertDimensionsLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
+import com.simiacryptus.mindseye.layers.java.ImgZeroPaddingLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.slf4j.Logger;

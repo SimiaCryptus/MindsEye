@@ -70,7 +70,7 @@ public abstract class ImageClassifier {
           List<Tensor> tensorList = network.eval(ctx, NNConstant.singleResultArray(new Tensor[][]{
             batch.stream().map(prefilter).toArray(i -> new Tensor[i])
           })).getDataAndFree().stream().collect(Collectors.toList());
-          garbageman.execute(GpuController.INSTANCE::cleanMemory);
+          garbageman.execute(GpuController::cleanMemory);
           return tensorList;
         }).stream().map(tensor -> {
           double[] predictionSignal = tensor.getData();

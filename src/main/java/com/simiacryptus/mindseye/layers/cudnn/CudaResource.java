@@ -19,9 +19,6 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.ComponentException;
-
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.ToIntFunction;
 
 /**
@@ -29,31 +26,9 @@ import java.util.function.ToIntFunction;
  *
  * @param <T> the type parameter
  */
-public class CudaResource<T> {
+public class CudaResource<T> extends CudaResourceBase<T> {
   
-  /**
-   * The constant debugLifecycle.
-   */
-  public static boolean debugLifecycle = false;
-  /**
-   * The constant gpuGeneration.
-   */
-  public static AtomicInteger gpuGeneration = new AtomicInteger(0);
-  /**
-   * The Created by.
-   */
-  public final StackTraceElement[] createdBy = CudaResource.debugLifecycle ? Thread.currentThread().getStackTrace() : null;
-  /**
-   * The Obj generation.
-   */
-  public final int objGeneration = CudaResource.gpuGeneration.get();
   private final ToIntFunction<T> destructor;
-  private final T ptr;
-  /**
-   * The Finalized by.
-   */
-  public StackTraceElement[] finalizedBy = null;
-  private volatile boolean finalized = false;
   
   /**
    * Instantiates a new Cuda resource.
@@ -62,24 +37,8 @@ public class CudaResource<T> {
    * @param destructor the destructor
    */
   protected CudaResource(final T obj, final ToIntFunction<T> destructor) {
-    this.ptr = obj;
+    super(obj);
     this.destructor = destructor;
-  }
-  
-  @Override
-  public synchronized void finalize() {
-    try {
-      if (!this.finalized && isActiveObj()) {
-        if (null != this.destructor) {
-          free();
-        }
-        finalizedBy = CudaResource.debugLifecycle ? Thread.currentThread().getStackTrace() : null;
-        this.finalized = true;
-      }
-      super.finalize();
-    } catch (final Throwable e) {
-      new ComponentException("Error freeing resource " + this, e).printStackTrace(System.err);
-    }
   }
   
   /**
@@ -95,31 +54,4 @@ public class CudaResource<T> {
     }
   }
   
-  /**
-   * Gets ptr.
-   *
-   * @return the ptr
-   */
-  public T getPtr() {
-    if (isFinalized()) return null;
-    return ptr;
-  }
-  
-  /**
-   * Is active obj boolean.
-   *
-   * @return the boolean
-   */
-  public boolean isActiveObj() {
-    return objGeneration == CudaResource.gpuGeneration.get();
-  }
-  
-  /**
-   * Is finalized boolean.
-   *
-   * @return the boolean
-   */
-  public boolean isFinalized() {
-    return finalized;
-  }
 }

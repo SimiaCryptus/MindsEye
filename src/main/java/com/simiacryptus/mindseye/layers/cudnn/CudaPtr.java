@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * A GPU memory segment
  */
-public class CudaPtr extends CudaResource<Pointer> {
+public class CudaPtr extends CudaResourceBase<Pointer> {
   
   /**
    * The constant METRICS.
@@ -55,6 +55,31 @@ public class CudaPtr extends CudaResource<Pointer> {
   public final long size;
   private final int deviceId;
   
+  static final LoadingCache<Integer, RecycleBin<Pointer>> BUFFERS = CacheBuilder.newBuilder().build(new CacheLoader<Integer, RecycleBin<Pointer>>() {
+    @Override
+    public RecycleBin<Pointer> load(Integer key) throws Exception {
+      return new RecycleBin<Pointer>() {
+        @Override
+        protected void free(Pointer obj) {
+          CuDNN.cudaFree(obj);
+        }
+        
+        @Override
+        public Pointer create(final long size) {
+          Pointer pointer = new Pointer();
+          CuDNN.handle(CuDNN.cudaMalloc(pointer, size));
+          CuDNN.handle(CuDNN.cudaMemset(pointer, 0, size));
+          return pointer;
+        }
+        
+        @Override
+        public void reset(final Pointer data, long size) {
+          CuDNN.handle(CuDNN.cudaMemset(data, 0, size));
+        }
+      };
+    }
+  });
+  
   /**
    * Instantiates a new Cuda ptr.
    *
@@ -62,34 +87,15 @@ public class CudaPtr extends CudaResource<Pointer> {
    * @param deviceId the device id
    */
   protected CudaPtr(final long size, final int deviceId) {
-    super(new Pointer(), CuDNN::cudaFree);
+    super(acquire(deviceId, size));
     this.size = size;
     this.deviceId = deviceId;
-    final GpuStats metrics = CudaPtr.getGpuStats(deviceId);
     if (size < 0) {
       throw new OutOfMemoryError("Allocated block is too large: " + size);
     }
     if (size > CudaPtr.MAX) {
       throw new OutOfMemoryError("Allocated block is too large: " + size);
     }
-    try {
-      CuDNN.handle(CuDNN.cudaMalloc(getPtr(), size));
-    } catch (final Exception e) {
-      try {
-        final long startMemory = metrics.usedMemory.get();
-        System.gc(); // Force any dead objects to be finalized
-        System.runFinalization();
-        final long freedMemory = startMemory - metrics.usedMemory.get();
-        CuDNN.handle(CuDNN.cudaMalloc(getPtr(), size));
-        System.err.println(String.format("Low GPU Memory while allocating %s bytes; %s freed resulting in %s total (triggered by %s)",
-                                         size, freedMemory, metrics.usedMemory.get() + size, e.getMessage()));
-      } catch (final Exception e2) {
-        throw new com.simiacryptus.mindseye.lang.OutOfMemoryError(String.format("Error allocating %s bytes; %s currently allocated to device %s", size, metrics.usedMemory.get(), deviceId), e2);
-      }
-    }
-    final long finalMemory = metrics.usedMemory.addAndGet(size);
-    metrics.peakMemory.updateAndGet(l -> Math.max(finalMemory, l));
-    CuDNN.handle(CuDNN.cudaMemset(getPtr(), 0, size));
   }
   
   /**
@@ -100,9 +106,65 @@ public class CudaPtr extends CudaResource<Pointer> {
    * @param deviceId the device id
    */
   protected CudaPtr(final Pointer ptr, final long size, final int deviceId) {
-    super(ptr, x -> 0);
+    super(ptr);
     this.size = size;
     this.deviceId = deviceId;
+  }
+  
+  public static void reset() {
+    BUFFERS.asMap().values().forEach(x -> x.clear());
+  }
+  
+  private static Pointer acquire(int deviceId, long size) {
+    final GpuStats metrics = CudaPtr.getGpuStats(deviceId);
+    Pointer pointer;
+    try {
+      pointer = BUFFERS.get(deviceId).obtain(size);
+    } catch (final Exception e) {
+      try {
+        final long startMemory = metrics.usedMemory.get();
+        GpuController.cleanMemory();
+        final long freedMemory = startMemory - metrics.usedMemory.get();
+        pointer = BUFFERS.get(deviceId).obtain(size);
+        System.err.println(String.format("Low GPU Memory while allocating %s bytes; %s freed resulting in %s total (triggered by %s)",
+                                         size, freedMemory, metrics.usedMemory.get() + size, e.getMessage()));
+      } catch (final Exception e2) {
+        throw new com.simiacryptus.mindseye.lang.OutOfMemoryError(String.format("Error allocating %s bytes; %s currently allocated to device %s", size, metrics.usedMemory.get(), deviceId), e2);
+      }
+    }
+    final long finalMemory = metrics.usedMemory.addAndGet(size);
+    metrics.peakMemory.updateAndGet(l -> Math.max(finalMemory, l));
+    return pointer;
+  }
+  
+  /**
+   * To device as double cuda ptr.
+   *
+   * @param deviceId  the device id
+   * @param precision the precision
+   * @param data      the data
+   * @return the cuda ptr
+   */
+  public static CudaPtr write(final int deviceId, final Precision precision, final TensorList data) {
+    if (data instanceof GpuTensorList && precision == ((GpuTensorList) data).getPrecision()) {
+      final CudaPtr ptr = ((GpuTensorList) data).ptr;
+      assert null != ptr;
+      assert null != ptr.getPtr() : null == ptr.finalizedBy ? "" : Arrays.stream(ptr.finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).get();
+      return ptr;
+    }
+    else {
+      final int listLength = data.length();
+      final int elementLength = data.get(0).dim();
+      final double[] inputBuffer = RecycleBin.DOUBLES.obtain(elementLength * listLength);
+      for (int i = 0; i < listLength; i++) {
+        final double[] doubles = data.get(i).getData();
+        assert elementLength == doubles.length;
+        System.arraycopy(doubles, 0, inputBuffer, i * elementLength, elementLength);
+      }
+      final CudaPtr ptr = new CudaPtr(inputBuffer.length * precision.size, deviceId).write(precision, inputBuffer);
+      RecycleBin.DOUBLES.recycle(inputBuffer, inputBuffer.length);
+      return ptr;
+    }
   }
   
   /**
@@ -154,33 +216,15 @@ public class CudaPtr extends CudaResource<Pointer> {
     return tensor;
   }
   
-  /**
-   * To device as double cuda ptr.
-   *
-   * @param deviceId  the device id
-   * @param precision the precision
-   * @param data      the data
-   * @return the cuda ptr
-   */
-  public static CudaPtr write(final int deviceId, final Precision precision, final TensorList data) {
-    if (data instanceof GpuTensorList && precision == ((GpuTensorList) data).getPrecision()) {
-      final CudaPtr ptr = ((GpuTensorList) data).ptr;
-      assert null != ptr;
-      assert null != ptr.getPtr() : null == ptr.finalizedBy ? "" : Arrays.stream(ptr.finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).get();
-      return ptr;
-    }
-    else {
-      final int listLength = data.length();
-      final int elementLength = data.get(0).dim();
-      final double[] inputBuffer = RecycleBin.DOUBLES.obtain(elementLength * listLength);
-      for (int i = 0; i < listLength; i++) {
-        final double[] doubles = data.get(i).getData();
-        assert elementLength == doubles.length;
-        System.arraycopy(doubles, 0, inputBuffer, i * elementLength, elementLength);
+  @Override
+  protected void free() {
+    if (isActiveObj()) {
+      try {
+        BUFFERS.get(deviceId).recycle(ptr, size);
+      } catch (ExecutionException e) {
+        throw new RuntimeException(e);
       }
-      final CudaPtr ptr = new CudaPtr(inputBuffer.length * precision.size, deviceId).write(precision, inputBuffer);
-      RecycleBin.DOUBLES.recycle(inputBuffer);
-      return ptr;
+      CudaPtr.getGpuStats(deviceId).usedMemory.addAndGet(-size);
     }
   }
   
@@ -193,14 +237,6 @@ public class CudaPtr extends CudaResource<Pointer> {
     final CudaPtr copy = new CudaPtr(size, deviceId);
     CuDNN.handle(CuDNN.cudaMemcpy(getPtr(), copy.getPtr(), size, cudaMemcpyKind.cudaMemcpyDeviceToDevice));
     return copy;
-  }
-  
-  @Override
-  protected void free() {
-    if (isActiveObj()) {
-      super.free();
-      CudaPtr.getGpuStats(deviceId).usedMemory.addAndGet(-size);
-    }
   }
   
   /**
