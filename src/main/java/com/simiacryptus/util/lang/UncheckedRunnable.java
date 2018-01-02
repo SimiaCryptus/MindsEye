@@ -29,7 +29,6 @@ public interface UncheckedRunnable<T> {
   /**
    * Gets a result.
    *
-   * @return a result
    * @throws Exception the exception
    */
   void get() throws Exception;

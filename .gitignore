@@ -12,3 +12,4 @@ logs/
 reports/
 logs/
 www/
+vgg16_weights.h5
