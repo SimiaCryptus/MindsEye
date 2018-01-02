@@ -63,7 +63,7 @@ public enum SerialPrecision implements DataSerializer {
       while (inBuffer.hasRemaining()) {
         outBuffer.put((float) inBuffer.get());
       }
-    
+  
     }
   
     @Override
@@ -282,7 +282,7 @@ public enum SerialPrecision implements DataSerializer {
      * The Denominator.
      */
     public final int denominator;
-    
+  
     /**
      * Instantiates a new Rational.
      *

@@ -30,7 +30,7 @@ public abstract class MaxPoolingLayerTest extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {2, 2, 3}
+      {8, 8, 1}
     };
   }
   

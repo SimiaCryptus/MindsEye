@@ -37,20 +37,20 @@ public abstract class ImgCropLayerTest extends CudnnLayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3, 3, 1}
+      {8, 8, 1}
     };
   }
   
   @Override
   public int[][] getPerfDims() {
     return new int[][]{
-      {1000, 3, 1}
+      {200, 200, 3}
     };
   }
   
   @Override
   public NNLayer getLayer(final int[][] inputSize) {
-    return new ImgCropLayer(1, 1);
+    return new ImgCropLayer(5, 5);
   }
   
   @Override

@@ -351,6 +351,7 @@ public abstract class RecycleBin<T> {
    * Sets persistance mode.
    *
    * @param persistanceMode the persistance mode
+   * @return the persistance mode
    */
   public RecycleBin<T> setPersistanceMode(PersistanceMode persistanceMode) {
     this.persistanceMode = persistanceMode;
@@ -386,28 +387,61 @@ public abstract class RecycleBin<T> {
     return this;
   }
   
+  /**
+   * Gets min bytes per buffer.
+   *
+   * @return the min bytes per buffer
+   */
   public int getMinBytesPerBuffer() {
     return minBytesPerBuffer;
   }
   
+  /**
+   * Sets min bytes per buffer.
+   *
+   * @param minBytesPerBuffer the min bytes per buffer
+   * @return the min bytes per buffer
+   */
   public RecycleBin<T> setMinBytesPerBuffer(int minBytesPerBuffer) {
     this.minBytesPerBuffer = minBytesPerBuffer;
     return this;
   }
   
+  /**
+   * Gets max bytes per buffer.
+   *
+   * @return the max bytes per buffer
+   */
   public double getMaxBytesPerBuffer() {
     return maxBytesPerBuffer;
   }
   
+  /**
+   * Sets max bytes per buffer.
+   *
+   * @param maxBytesPerBuffer the max bytes per buffer
+   * @return the max bytes per buffer
+   */
   public RecycleBin<T> setMaxBytesPerBuffer(double maxBytesPerBuffer) {
     this.maxBytesPerBuffer = maxBytesPerBuffer;
     return this;
   }
   
+  /**
+   * Gets max items per buffer.
+   *
+   * @return the max items per buffer
+   */
   public int getMaxItemsPerBuffer() {
     return maxItemsPerBuffer;
   }
   
+  /**
+   * Sets max items per buffer.
+   *
+   * @param maxItemsPerBuffer the max items per buffer
+   * @return the max items per buffer
+   */
   public RecycleBin<T> setMaxItemsPerBuffer(int maxItemsPerBuffer) {
     this.maxItemsPerBuffer = maxItemsPerBuffer;
     return this;
@@ -445,6 +479,13 @@ public abstract class RecycleBin<T> {
       }
     };
   
+    /**
+     * Wrap supplier.
+     *
+     * @param <T> the type parameter
+     * @param obj the obj
+     * @return the supplier
+     */
     public abstract <T> Supplier<T> wrap(T obj);
   }
   

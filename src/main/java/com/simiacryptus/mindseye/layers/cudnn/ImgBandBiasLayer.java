@@ -81,8 +81,9 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
    * @return the compatibility layer
    */
   public NNLayer getCompatibilityLayer() {
-    throw new RuntimeException("Not Implemented");
+    return this.as(com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer.class);
   }
+  
   
   /**
    * Add double [ ].

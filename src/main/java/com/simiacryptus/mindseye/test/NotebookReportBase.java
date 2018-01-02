@@ -225,7 +225,7 @@ public abstract class NotebookReportBase {
     public void run() {
       run(this::run);
     }
-    
+  
     /**
      * Run.
      *

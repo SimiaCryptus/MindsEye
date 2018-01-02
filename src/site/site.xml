@@ -38,6 +38,13 @@
     </custom>
     <body>
         <menu ref="reports"/>
+        <menu name="Documentation">
+            <item name="Components" href="https://simiacryptus.github.io/NetworkZoo/reports/index.html"/>
+            <item name="Optimizers" href="https://simiacryptus.github.io/NetworkZoo/reports/index.html"/>
+            <item name="Training" href="https://simiacryptus.github.io/NetworkZoo/reports/index.html"/>
+            <item name="Datasets" href="https://simiacryptus.github.io/NetworkZoo/reports/index.html"/>
+            <item name="Models" href="https://simiacryptus.github.io/NetworkZoo/reports/index.html"/>
+        </menu>
         <menu name="Simia Cryptus" position="right">
             <item name="Blog" href="http://simiacryptus.com"/>
             <item name="GitHub" href="https://github.com/SimiaCryptus/"/>

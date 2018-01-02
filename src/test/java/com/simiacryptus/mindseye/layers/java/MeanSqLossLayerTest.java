@@ -30,7 +30,7 @@ public abstract class MeanSqLossLayerTest extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {2, 3, 1}, {2, 3, 1}
+      {8, 8, 1}, {8, 8, 1}
     };
   }
   

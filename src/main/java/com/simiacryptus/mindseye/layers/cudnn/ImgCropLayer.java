@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import jcuda.Pointer;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +88,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
    * @return the compatibility layer
    */
   public NNLayer getCompatibilityLayer() {
-    return new com.simiacryptus.mindseye.layers.java.ImgCropLayer(sizeX, sizeY);
+    return this.as(com.simiacryptus.mindseye.layers.java.ImgCropLayer.class);
   }
   
   @Override
@@ -145,63 +144,63 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
   /**
    * Copy.
    *
-   * @param nncontext    the nncontext
-   * @param length       the length
-   * @param dimIn        the dim in
-   * @param inputBuffer  the input buffer
-   * @param dimOut       the dim out
-   * @param outputBuffer the output buffer
+   * @param nncontext   the nncontext
+   * @param length      the length
+   * @param dimIn       the dim in
+   * @param source      the input buffer
+   * @param dimOut      the dim out
+   * @param destination the output buffer
    */
-  public void copy(CuDNN nncontext, int length, int[] dimIn, CudaPtr inputBuffer, int[] dimOut, CudaPtr outputBuffer) {
+  public void copy(CuDNN nncontext, int length, int[] dimIn, CudaPtr source, int[] dimOut, CudaPtr destination) {
     if (3 != dimIn.length) throw new IllegalArgumentException("dimIn.length");
     if (3 != dimOut.length) throw new IllegalArgumentException("dimOut.length");
-    int offsetX = (dimOut[0] - dimIn[0]) / 2;
-    int offsetY = (dimOut[1] - dimIn[1]) / 2;
+    final double offsetX = ((dimOut[0] - dimIn[0]) / 2.0);
+    final double offsetY = ((dimOut[1] - dimIn[1]) / 2.0);
     //log.info(String.format("offset=%d,%d", offsetX, offsetY));
     final int[] viewDim = new int[3];
     Arrays.parallelSetAll(viewDim, i -> Math.min(dimIn[i], dimOut[i]));
     for (int i = 0; i < length; i++) {
-      final CudaResource<cudnnTensorDescriptor> inputViewDescriptor = CuDNN.newTensorDescriptor(
-        precision.code,
-        length,
-        viewDim[2],
-        viewDim[1],
-        viewDim[0],
-        dimIn[2] * dimIn[1] * dimIn[0],
-        dimIn[1] * dimIn[0],
-        dimIn[0],
-        1);
-      final CudaResource<cudnnTensorDescriptor> destinationViewDescriptor = CuDNN.newTensorDescriptor(
-        precision.code,
-        length,
-        viewDim[2],
-        viewDim[1],
-        viewDim[0],
-        dimOut[2] * dimOut[1] * dimOut[0],
-        dimOut[1] * dimOut[0],
-        dimOut[0],
-        1);
-      int inOffset = i * dimIn[2] * dimIn[1] * dimIn[0] * precision.size;
-      int outputOffset = i * dimOut[2] * dimOut[1] * dimOut[0] * precision.size;
-      if (offsetX < 0) {
-        inOffset -= offsetX * precision.size;
-      }
-      else {
-        outputOffset += offsetX * precision.size;
-      }
-      if (offsetY < 0) {
-        inOffset -= offsetY * dimIn[0] * precision.size;
-      }
-      else {
-        outputOffset += offsetY * dimOut[0] * precision.size;
-      }
-      final Pointer sourcePtr = inputBuffer.getPtr().withByteOffset(inOffset);
-      final Pointer destinationPtr = outputBuffer.getPtr().withByteOffset(outputOffset);
-      CuDNN.cudnnTransformTensor(nncontext.cudnnHandle,
-                                 precision.getPointer(1.0), inputViewDescriptor.getPtr(), sourcePtr,
-                                 precision.getPointer(0.0), destinationViewDescriptor.getPtr(), destinationPtr
-                                );
     }
+    final CudaResource<cudnnTensorDescriptor> sourceViewDescriptor = CuDNN.newTensorDescriptor(
+      precision.code,
+      length,
+      viewDim[2],
+      viewDim[1],
+      viewDim[0],
+      dimIn[2] * dimIn[1] * dimIn[0],
+      dimIn[1] * dimIn[0],
+      dimIn[0],
+      1);
+    final CudaResource<cudnnTensorDescriptor> destinationViewDescriptor = CuDNN.newTensorDescriptor(
+      precision.code,
+      length,
+      viewDim[2],
+      viewDim[1],
+      viewDim[0],
+      dimOut[2] * dimOut[1] * dimOut[0],
+      dimOut[1] * dimOut[0],
+      dimOut[0],
+      1);
+    int inOffset = 0;
+    int outputOffset = 0;
+    if (offsetX < 0) {
+      inOffset += Math.floor(-offsetX) * precision.size;
+    }
+    else {
+      outputOffset += Math.floor(offsetX) * precision.size;
+    }
+    if (offsetY < 0) {
+      inOffset += Math.floor(-offsetY) * dimIn[0] * precision.size;
+    }
+    else {
+      outputOffset += Math.floor(offsetY) * dimOut[0] * precision.size;
+    }
+    CuDNN.cudnnTransformTensor(nncontext.cudnnHandle,
+                               precision.getPointer(1.0),
+                               sourceViewDescriptor.getPtr(), source.getPtr().withByteOffset(inOffset),
+                               precision.getPointer(0.0),
+                               destinationViewDescriptor.getPtr(), destination.getPtr().withByteOffset(outputOffset)
+                              );
   }
   
   @Override

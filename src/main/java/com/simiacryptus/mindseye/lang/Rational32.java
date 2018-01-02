@@ -153,7 +153,7 @@ public class Rational32 implements DataSerializer {
      * The Denominator.
      */
     public final int denominator;
-    
+  
     /**
      * Instantiates a new Rational.
      *

@@ -132,11 +132,23 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     return this;
   }
   
+  /**
+   * Gets compatibility layer.
+   *
+   * @return the compatibility layer
+   */
+  public NNLayer getCompatibilityLayer() {
+    return this.as(com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class);
+  }
+  
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     assert 1 == inObj.length;
     assert 3 == inObj[0].getData().getDimensions().length;
     assert inputBands == inObj[0].getData().getDimensions()[2];
+    final CudaExecutionContext cuda = (CudaExecutionContext) nncontext;
+    final int deviceNumber = cuda.getDeviceNumber();
+    if (deviceNumber < 0) return getCompatibilityLayer().eval(nncontext, inObj);
     final PipelineNetwork network = new PipelineNetwork();
     final List<SimpleConvolutionLayer> subLayers = new ArrayList<>();
     // Extract Weights

@@ -32,7 +32,7 @@ public abstract class StdDevMetaLayerTest extends MetaLayerTestBase {
    */
   public StdDevMetaLayerTest() {
     super();
-    validateDifferentials = false;
+    //validateDifferentials = false;
   }
   
   @Override

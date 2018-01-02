@@ -26,6 +26,7 @@ import com.simiacryptus.util.lang.TimedResult;
 import com.simiacryptus.util.lang.UncheckedSupplier;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -142,7 +143,8 @@ public class MarkdownNotebookOutput implements NotebookOutput {
       try (PrintWriter out = new PrintWriter(new FileOutputStream(fileName))) {
         if (!frontMatter.isEmpty()) {
           out.println("---");
-          frontMatter.forEach((key, value) -> out.println(String.format("%s: %s", key, value)));
+  
+          frontMatter.forEach((key, value) -> out.println(String.format("%s: %s", key, StringEscapeUtils.escapeHtml4(value).replaceAll(":", "&#58;"))));
           out.println("---");
         }
         toc.forEach(out::println);

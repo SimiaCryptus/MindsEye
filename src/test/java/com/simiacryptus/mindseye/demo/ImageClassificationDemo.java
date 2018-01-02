@@ -56,15 +56,15 @@ public class ImageClassificationDemo extends NotebookReportBase {
    * @param log the log
    */
   public void run(NotebookOutput log) {
-    
-    
-    log.h3("Model");
+  
+  
+    log.h1("Model");
     
     ImageClassifier vgg16 = log.code(() -> {
       return VGG16.fromS3_HDF5();
     });
-    
-    log.h3("Data");
+  
+    log.h1("Data");
     Tensor[] images = log.code(() -> {
       return Caltech101.trainingDataStream().sorted(getShuffleComparator()).map(labeledObj -> {
         BufferedImage img = labeledObj.data.get();
@@ -72,13 +72,13 @@ public class ImageClassificationDemo extends NotebookReportBase {
         return Tensor.fromRGB(img);
       }).limit(10).toArray(i1 -> new Tensor[i1]);
     });
-    
-    log.h3("Prediction");
+  
+    log.h1("Prediction");
     List<LinkedHashMap<String, Double>> predictions = log.code(() -> {
       return vgg16.predict(5, images);
     });
-    
-    log.h3("Results");
+  
+    log.h1("Results");
     log.code(() -> {
       TableOutput tableOutput = new TableOutput();
       for (int i = 0; i < images.length; i++) {

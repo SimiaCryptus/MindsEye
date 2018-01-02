@@ -84,7 +84,9 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    * @return the compatibility layer
    */
   public NNLayer getCompatibilityLayer() {
-    throw new RuntimeException("Not Implemented");
+    if (mode == PoolingMode.Max) return this.as(com.simiacryptus.mindseye.layers.java.MaxPoolingLayer.class);
+    if (mode == PoolingMode.Avg) return this.as(com.simiacryptus.mindseye.layers.java.AvgPoolingLayer.class);
+    else throw new RuntimeException("Not Implemented");
   }
   
   @Override

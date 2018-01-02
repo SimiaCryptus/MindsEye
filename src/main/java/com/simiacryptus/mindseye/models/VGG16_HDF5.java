@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.cudnn.*;
 import com.simiacryptus.mindseye.layers.java.AssertDimensionsLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
+import com.simiacryptus.mindseye.layers.java.ImgZeroPaddingLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.slf4j.Logger;
@@ -30,9 +31,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Details about this network architecture can be found in the following arXiv paper:
- * <p>
  * Very Deep Convolutional Networks for Large-Scale Image Recognition K. Simonyan, A. Zisserman arXiv:1409.1556
- * <p>
  * Please cite the paper if you use the models.
  */
 class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {

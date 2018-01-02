@@ -97,7 +97,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
           row.put(model, predictions.get(index).entrySet().stream()
                                     .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
                                     .reduce((a, b) -> a + "<br/>" + b).get());
-    
+  
         });
         tableOutput.putRow(row);
       }

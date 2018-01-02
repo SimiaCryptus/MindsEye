@@ -781,7 +781,7 @@ public class ValidatingTrainer {
      * The Validation.
      */
     PointSample validation;
-  
+
     private EpochParams(final long timeoutMs, final int iterations, final int trainingSize, final PointSample validation) {
       this.timeoutMs = timeoutMs;
       this.iterations = iterations;

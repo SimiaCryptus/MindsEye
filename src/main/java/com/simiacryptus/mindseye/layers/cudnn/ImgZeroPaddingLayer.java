@@ -84,15 +84,6 @@ public class ImgZeroPaddingLayer extends NNLayer implements LayerPrecision<ImgZe
     return new ImgZeroPaddingLayer(json, rs);
   }
   
-  /**
-   * Gets compatibility layer.
-   *
-   * @return the compatibility layer
-   */
-  public NNLayer getCompatibilityLayer() {
-    return new com.simiacryptus.mindseye.layers.java.ImgZeroPaddingLayer(sizeX, sizeY);
-  }
-  
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     assert inObj.length == 1;

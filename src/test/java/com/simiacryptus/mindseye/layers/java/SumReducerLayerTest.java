@@ -42,7 +42,7 @@ public abstract class SumReducerLayerTest extends LayerTestBase {
   @Override
   public int[][] getPerfDims() {
     return new int[][]{
-      {100, 100, 1}
+      {200, 200, 3}
     };
   }
   

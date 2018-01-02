@@ -30,7 +30,7 @@ public abstract class ImgConcatLayerTest extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {2, 2, 1}, {2, 2, 1}
+      {8, 8, 1}, {8, 8, 1}
     };
   }
   

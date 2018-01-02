@@ -34,7 +34,7 @@ public abstract class RescaledSubnetLayerTest extends CudnnLayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {6, 6, 1}
+      {8, 8, 1}
     };
   }
   

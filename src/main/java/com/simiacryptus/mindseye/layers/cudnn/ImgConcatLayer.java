@@ -71,8 +71,9 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
    * @return the compatibility layer
    */
   public NNLayer getCompatibilityLayer() {
-    throw new RuntimeException("Not Implemented");
+    return this.as(com.simiacryptus.mindseye.layers.java.ImgConcatLayer.class);
   }
+  
   
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {

@@ -279,7 +279,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
    * @return the compatibility layer
    */
   public NNLayer getCompatibilityLayer() {
-    throw new RuntimeException("Not Implemented");
+    return this.as(com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class);
   }
   
   @Override

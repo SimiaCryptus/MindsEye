@@ -49,14 +49,14 @@ public abstract class PoolingLayerTest extends CudnnLayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {4, 4, 2}
+      {8, 8, 1}
     };
   }
   
   @Override
   public int[][] getPerfDims() {
     return new int[][]{
-      {100, 100, 2}
+      {200, 200, 3}
     };
   }
   

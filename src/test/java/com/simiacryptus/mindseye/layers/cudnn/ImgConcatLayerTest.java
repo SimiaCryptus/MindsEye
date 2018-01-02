@@ -43,7 +43,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {2, 2, 1}, {2, 2, 1}
+      {8, 8, 1}, {8, 8, 1}
     };
   }
   
@@ -55,7 +55,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
   @Override
   public int[][] getPerfDims() {
     return new int[][]{
-      {100, 100, 1}, {100, 100, 1}
+      {200, 200, 3}, {200, 200, 3}
     };
   }
   

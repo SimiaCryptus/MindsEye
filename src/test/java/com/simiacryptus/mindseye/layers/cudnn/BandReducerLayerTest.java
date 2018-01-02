@@ -44,7 +44,7 @@ public abstract class BandReducerLayerTest extends CudnnLayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3, 3, 2}
+      {8, 8, 1}
     };
   }
   
@@ -56,7 +56,7 @@ public abstract class BandReducerLayerTest extends CudnnLayerTestBase {
   @Override
   public int[][] getPerfDims() {
     return new int[][]{
-      {100, 100, 3}
+      {200, 200, 3}
     };
   }
   

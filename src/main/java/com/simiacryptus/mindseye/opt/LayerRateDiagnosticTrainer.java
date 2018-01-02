@@ -289,7 +289,7 @@ public class LayerRateDiagnosticTrainer {
         if (currentIteration.incrementAndGet() > maxIterations) {
           break;
         }
-  
+
         {
           final SimpleLineSearchCursor orient = (SimpleLineSearchCursor) getOrientation().orient(subject, measure, monitor);
           final double stepSize = 1e-12 * orient.origin.sum;

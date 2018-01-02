@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.lang;
 
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonWriter;
 import org.apache.commons.io.IOUtils;
@@ -126,7 +127,9 @@ public abstract class NNLayer implements Serializable {
    * @return the nn layer
    */
   public static NNLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
-    final String className = json.get("class").getAsString();
+    JsonElement classElement = json.get("class");
+    assert null != classElement : json.toString();
+    final String className = classElement.getAsString();
     try {
       final Class<?> clazz = Class.forName(className);
       if (null == clazz) throw new ClassNotFoundException(className);

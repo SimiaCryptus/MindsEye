@@ -75,8 +75,9 @@ public class SoftmaxActivationLayer extends NNLayer implements LayerPrecision<So
    * @return the compatibility layer
    */
   public NNLayer getCompatibilityLayer() {
-    return new com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer();
+    return this.as(com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer.class);
   }
+  
   
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {

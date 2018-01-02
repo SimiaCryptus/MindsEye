@@ -33,7 +33,7 @@ public abstract class MaxDropoutNoiseLayerTest extends ActivationLayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {4, 4, 1}
+      {8, 8, 1}
     };
   }
   

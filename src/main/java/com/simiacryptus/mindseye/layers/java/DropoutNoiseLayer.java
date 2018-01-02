@@ -157,6 +157,7 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
   
     private final NNResult inObj;
     private final Tensor[] mask;
+  
     private Result(final Tensor[] outputA, final NNResult inObj, final Tensor[] mask) {
       super(outputA);
       this.inObj = inObj;

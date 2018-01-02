@@ -37,14 +37,14 @@ public abstract class ImgZeroPaddingLayerTest extends CudnnLayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3, 3, 1}
+      {8, 8, 1}
     };
   }
   
   @Override
   public int[][] getPerfDims() {
     return new int[][]{
-      {100, 100, 1}
+      {200, 200, 3}
     };
   }
   

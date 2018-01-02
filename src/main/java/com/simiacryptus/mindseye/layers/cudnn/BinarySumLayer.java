@@ -21,6 +21,9 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
+import com.simiacryptus.mindseye.layers.java.SumInputsLayer;
+import com.simiacryptus.mindseye.network.PipelineNetwork;
 import jcuda.jcudnn.*;
 
 import java.util.Arrays;
@@ -85,7 +88,12 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
    * @return the compatibility layer
    */
   public NNLayer getCompatibilityLayer() {
-    throw new RuntimeException("Not Implemented");
+    PipelineNetwork network = new PipelineNetwork(2);
+    network.add(new SumInputsLayer(),
+                network.add(new LinearActivationLayer().setScale(this.leftFactor).freeze(), network.getInput(0)),
+                network.add(new LinearActivationLayer().setScale(this.rightFactor).freeze(), network.getInput(1)));
+    return network;
+    
   }
   
   @Override

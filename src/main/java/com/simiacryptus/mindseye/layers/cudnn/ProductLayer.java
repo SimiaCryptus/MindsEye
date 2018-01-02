@@ -70,8 +70,9 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
    * @return the compatibility layer
    */
   public NNLayer getCompatibilityLayer() {
-    throw new RuntimeException("Not Implemented");
+    return this.as(com.simiacryptus.mindseye.layers.java.ProductInputsLayer.class);
   }
+  
   
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {

@@ -61,7 +61,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   
   @Override
   public int[][] getInputDims() {
-    return new int[][]{{1, 1, 1}};
+    return new int[][]{{8, 8, 1}};
   }
   
   @Override
@@ -72,16 +72,16 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   @Override
   public int[][] getPerfDims() {
     return new int[][]{
-      {100, 100, 1}
+      {200, 200, 3}
     };
   }
   
   @Override
   public void run(final NotebookOutput log) {
     super.run(log);
-  
+
     log.h3("Function Plots");
-    final NNLayer layer = getLayer(new int[][]{{1, 1, 1}});
+    final NNLayer layer = getLayer(new int[][]{{8, 8, 1}});
     final List<double[]> plotData = IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0).mapToObj(x -> {
       final SimpleEval eval = SimpleEval.run(layer, new Tensor(new double[]{x}, 1, 1, 1));
       return new double[]{x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};

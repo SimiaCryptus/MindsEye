@@ -30,7 +30,7 @@ public abstract class MeanSqLossLayerTest extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3, 3, 1}, {3, 3, 1}
+      {8, 8, 1}, {8, 8, 1}
     };
   }
   
@@ -47,7 +47,7 @@ public abstract class MeanSqLossLayerTest extends LayerTestBase {
   @Override
   public int[][] getPerfDims() {
     return new int[][]{
-      {100, 100, 3}, {100, 100, 3}
+      {200, 200, 3}, {200, 200, 3}
     };
   }
   
@@ -55,11 +55,11 @@ public abstract class MeanSqLossLayerTest extends LayerTestBase {
    * Basic run.
    */
   public class Basic extends MeanSqLossLayerTest {
-  
+
     @Override
     public int[][] getInputDims() {
       return new int[][]{
-        {3, 3, 2}, {3, 3, 2}
+        {8, 8, 1}, {8, 8, 1}
       };
     }
   }

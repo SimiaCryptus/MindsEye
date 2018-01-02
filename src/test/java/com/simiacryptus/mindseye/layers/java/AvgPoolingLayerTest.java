@@ -30,7 +30,7 @@ public abstract class AvgPoolingLayerTest extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {2, 2, 3}
+      {8, 8, 1}
     };
   }
   
@@ -42,7 +42,7 @@ public abstract class AvgPoolingLayerTest extends LayerTestBase {
   @Override
   public int[][] getPerfDims() {
     return new int[][]{
-      {100, 100, 3}
+      {200, 200, 3}
     };
   }
   

@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
+import com.simiacryptus.mindseye.layers.java.SigmoidActivationLayer;
 import jcuda.jcudnn.*;
 
 import java.util.Arrays;
@@ -86,7 +88,15 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
    * @return the compatibility layer
    */
   public NNLayer getCompatibilityLayer() {
-    throw new RuntimeException("Not Implemented");
+    if (mode == Mode.SIGMOID.id) {
+      return new SigmoidActivationLayer().setBalanced(false);
+    }
+    else if (mode == Mode.RELU.id) {
+      return new ReLuActivationLayer();
+    }
+    else {
+      throw new RuntimeException("Not Implemented");
+    }
   }
   
   @Override

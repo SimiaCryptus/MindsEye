@@ -38,7 +38,7 @@ public abstract class ImgCropLayerTest extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3, 3, 1}
+      {8, 8, 1}
     };
   }
   

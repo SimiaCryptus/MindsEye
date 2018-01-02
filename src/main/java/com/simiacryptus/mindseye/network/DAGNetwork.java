@@ -27,7 +27,6 @@ import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
-import com.simiacryptus.mindseye.layers.java.WeightExtractor;
 import com.simiacryptus.mindseye.layers.java.WrapperLayer;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
@@ -133,12 +132,6 @@ public abstract class DAGNetwork extends NNLayer {
     initLinks(deserializedLinks, source_layersByNodeId, head);
     this.labels.putAll(labels);
     assertConsistent();
-    for (final NNLayer layer : source_layersByNodeId.values()) {
-      if (layer instanceof WeightExtractor) {
-        final WeightExtractor weightExtractor = (WeightExtractor) layer;
-        weightExtractor.setInner(source_layersByLayerId.get(weightExtractor.getInnerId()));
-      }
-    }
   }
   
   /**

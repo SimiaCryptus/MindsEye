@@ -48,7 +48,7 @@ class CountingNNResult extends NNResult {
    */
   int finalizations = 0;
   private int count = 0;
-
+  
   /**
    * Instantiates a new Counting nn result.
    *
