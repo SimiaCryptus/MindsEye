@@ -3,6 +3,7 @@ com.simiacryptus.mindseye.lang
 com.simiacryptus.mindseye.layers.aparapi
 com.simiacryptus.mindseye.layers.cudnn
 com.simiacryptus.mindseye.layers.java
+com.simiacryptus.mindseye.models
 com.simiacryptus.mindseye.network
 com.simiacryptus.mindseye.network.util
 com.simiacryptus.mindseye.opt
