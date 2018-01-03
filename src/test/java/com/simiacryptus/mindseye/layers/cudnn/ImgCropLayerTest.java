@@ -50,7 +50,7 @@ public abstract class ImgCropLayerTest extends CudnnLayerTestBase {
   @Override
   public int[][] getPerfDims() {
     return new int[][]{
-      {200, 200, 3}
+      {400, 400, 3}
     };
   }
   
@@ -67,7 +67,7 @@ public abstract class ImgCropLayerTest extends CudnnLayerTestBase {
   
   @Override
   public ComponentTest<ToleranceStatistics> getPerformanceTester() {
-    ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setSamples(100);
+    ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setSamples(100).setBatches(10);
     return (log1, component, inputPrototype) -> {
       try {
         CuDNN.apiLog = new PrintStream(log1.file("cuda_perf.log"));

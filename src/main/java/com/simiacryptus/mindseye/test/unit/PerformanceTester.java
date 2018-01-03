@@ -91,7 +91,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
    * @param samples the samples
    * @return the samples
    */
-  public ComponentTest<ToleranceStatistics> setSamples(final int samples) {
+  public PerformanceTester setSamples(final int samples) {
     this.samples = samples;
     return this;
   }
@@ -111,7 +111,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
    * @param testEvaluation the run evaluation
    * @return the run evaluation
    */
-  public ComponentTest<ToleranceStatistics> setTestEvaluation(final boolean testEvaluation) {
+  public PerformanceTester setTestEvaluation(final boolean testEvaluation) {
     this.testEvaluation = testEvaluation;
     return this;
   }
