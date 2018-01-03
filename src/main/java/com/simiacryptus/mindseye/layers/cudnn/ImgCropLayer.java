@@ -91,9 +91,10 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
     return this.as(com.simiacryptus.mindseye.layers.java.ImgCropLayer.class);
   }
   
+  public static boolean disable = true;
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
-    if (true || ((CudaExecutionContext) nncontext).getDeviceNumber() < 0)
+    if (disable || ((CudaExecutionContext) nncontext).getDeviceNumber() < 0)
       return getCompatibilityLayer().eval(nncontext, inObj);
     assert 1 == inObj.length;
     assert 3 == inObj[0].getData().getDimensions().length;
