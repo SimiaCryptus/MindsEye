@@ -174,6 +174,12 @@ public class MnistTests {
     public String getDatasetName() {
       return "MNIST";
     }
+  
+    @Override
+    public ReportType getReportType() {
+      return ReportType.Data;
+    }
+  
   }
   
   /**

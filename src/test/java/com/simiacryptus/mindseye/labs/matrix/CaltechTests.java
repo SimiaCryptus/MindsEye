@@ -153,6 +153,12 @@ public class CaltechTests {
     public String getDatasetName() {
       return "Caltech101";
     }
+  
+    @Override
+    public ReportType getReportType() {
+      return ReportType.Data;
+    }
+  
   }
   
   /**

@@ -116,7 +116,12 @@ public class CifarTests {
     protected Class<?> getTargetClass() {
       return CIFAR10.class;
     }
-    
+  
+    @Override
+    public ReportType getReportType() {
+      return ReportType.Data;
+    }
+  
     @Override
     public ImageProblemData getData() {
       return new CIFARProblemData();

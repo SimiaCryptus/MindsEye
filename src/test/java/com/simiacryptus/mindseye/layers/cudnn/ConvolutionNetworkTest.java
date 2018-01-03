@@ -45,7 +45,7 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {8, 8, 1}
+      {4, 4, 3}
     };
   }
   

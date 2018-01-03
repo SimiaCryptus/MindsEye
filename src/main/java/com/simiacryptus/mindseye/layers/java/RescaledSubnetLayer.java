@@ -56,11 +56,13 @@ public class RescaledSubnetLayer extends NNLayer {
    * Instantiates a new Rescaled subnet layer.
    *
    * @param json the json
+   * @param rs
    */
-  protected RescaledSubnetLayer(final JsonObject json) {
+  protected RescaledSubnetLayer(final JsonObject json, Map<String, byte[]> rs) {
     super(json);
     scale = json.getAsJsonPrimitive("scale").getAsInt();
-    subnetwork = NNLayer.fromJson(json.getAsJsonObject("subnetwork"));
+    JsonObject subnetwork = json.getAsJsonObject("subnetwork");
+    this.subnetwork = subnetwork == null ? null : NNLayer.fromJson(subnetwork, rs);
   }
   
   /**
@@ -71,7 +73,7 @@ public class RescaledSubnetLayer extends NNLayer {
    * @return the rescaled subnet layer
    */
   public static RescaledSubnetLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
-    return new RescaledSubnetLayer(json);
+    return new RescaledSubnetLayer(json, rs);
   }
   
   @Override

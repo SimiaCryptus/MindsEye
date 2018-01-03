@@ -78,11 +78,6 @@ public abstract class AllTrainingTests extends NotebookReportBase {
     new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, getData(), 100, 0.8).setTimeoutMinutes(timeoutMinutes).run(log);
   }
   
-  @Override
-  public ReportType getReportType() {
-    return ReportType.Training;
-  }
-  
   /**
    * Autoencoder run.
    *
