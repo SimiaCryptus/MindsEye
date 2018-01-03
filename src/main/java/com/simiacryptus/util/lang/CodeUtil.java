@@ -144,7 +144,7 @@ public class CodeUtil {
                                   .filter(s -> s.matches("\\s*[/\\*].*"))
                                   .map(s -> s.replaceFirst("^[ \t]*[/\\*]+", "").trim())
                                   .filter(x -> !x.isEmpty()).reduce((a, b) -> a + "\n" + b).orElse("");
-      return javadoc;
+      return javadoc.replaceAll("<p>", "\n");
     } catch (final Throwable e) {
       e.printStackTrace();
       return "";

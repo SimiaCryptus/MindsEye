@@ -64,7 +64,7 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
     });
     
     log.h3("Sample Data");
-    log.code(() -> {
+    log.p(log.code(() -> {
       return testData.stream().map(labeledObj -> {
         try {
           BufferedImage img = labeledObj.data.get();
@@ -74,7 +74,7 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
           throw new RuntimeException(e);
         }
       }).limit(20).reduce((a, b) -> a + b).get();
-    }, 256 * 1024);
+    }, 256 * 1024));
   }
   
   /**

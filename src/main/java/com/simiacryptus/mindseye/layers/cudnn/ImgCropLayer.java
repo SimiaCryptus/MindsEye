@@ -93,7 +93,8 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
   
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
-    if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
+    if (true || ((CudaExecutionContext) nncontext).getDeviceNumber() < 0)
+      return getCompatibilityLayer().eval(nncontext, inObj);
     assert 1 == inObj.length;
     assert 3 == inObj[0].getData().getDimensions().length;
     final int length = inObj[0].getData().length();

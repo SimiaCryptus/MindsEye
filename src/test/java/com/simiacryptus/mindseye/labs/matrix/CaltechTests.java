@@ -146,7 +146,7 @@ public class CaltechTests {
     
     @Override
     public ImageProblemData getData() {
-      return new CIFARProblemData();
+      return new CaltechProblemData();
     }
     
     @Override
@@ -156,7 +156,7 @@ public class CaltechTests {
   
     @Override
     public ReportType getReportType() {
-      return ReportType.Data;
+      return ReportType.Training;
     }
   
   }

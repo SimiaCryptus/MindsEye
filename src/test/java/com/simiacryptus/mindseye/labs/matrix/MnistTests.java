@@ -177,7 +177,7 @@ public class MnistTests {
   
     @Override
     public ReportType getReportType() {
-      return ReportType.Data;
+      return ReportType.Training;
     }
   
   }

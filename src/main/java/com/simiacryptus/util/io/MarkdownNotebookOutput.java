@@ -144,7 +144,14 @@ public class MarkdownNotebookOutput implements NotebookOutput {
         if (!frontMatter.isEmpty()) {
           out.println("---");
   
-          frontMatter.forEach((key, value) -> out.println(String.format("%s: %s", key, StringEscapeUtils.escapeHtml4(value).replaceAll(":", "&#58;"))));
+          frontMatter.forEach((key, value) -> {
+            String escaped = StringEscapeUtils.escapeJson(value)
+                                              .replaceAll("\n", " ")
+                                              .replaceAll(":", "&#58;")
+                                              .replaceAll("\\{", "\\{")
+                                              .replaceAll("\\}", "\\}");
+            out.println(String.format("%s: %s", key, escaped));
+          });
           out.println("---");
         }
         toc.forEach(out::println);

@@ -125,7 +125,6 @@ public final class GpuController {
    */
   public static void cleanMemory() {
     GpuController.singleThreadExecutor.submit(() -> {
-      CudaPtr.reset();
       RecycleBin.DOUBLES.clear();
       System.gc();
       System.runFinalization();

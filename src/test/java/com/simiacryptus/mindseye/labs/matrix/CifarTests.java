@@ -119,7 +119,7 @@ public class CifarTests {
   
     @Override
     public ReportType getReportType() {
-      return ReportType.Data;
+      return ReportType.Training;
     }
   
     @Override

@@ -46,33 +46,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
       return new GpuStats();
     }
   });
-  /**
-   * The Buffers.
-   */
-  static final LoadingCache<Integer, RecycleBin<Pointer>> BUFFERS = CacheBuilder.newBuilder().build(new CacheLoader<Integer, RecycleBin<Pointer>>() {
-    @Override
-    public RecycleBin<Pointer> load(Integer key) throws Exception {
-      return new RecycleBin<Pointer>() {
-        @Override
-        protected void free(Pointer obj) {
-          CuDNN.cudaFree(obj);
-        }
-        
-        @Override
-        public Pointer create(final long size) {
-          Pointer pointer = new Pointer();
-          CuDNN.handle(CuDNN.cudaMalloc(pointer, size));
-          CuDNN.handle(CuDNN.cudaMemset(pointer, 0, size));
-          return pointer;
-        }
-        
-        @Override
-        public void reset(final Pointer data, long size) {
-          CuDNN.handle(CuDNN.cudaMemset(data, 0, size));
-        }
-      }.setPersistanceMode(RecycleBin.PersistanceMode.Strong).setMaxItemsPerBuffer(1);
-    }
-  });
+
   private static final boolean lockPci = Boolean.parseBoolean(System.getProperty("lockPci", "true"));
   private static final long MAX = 4l * 1024 * 1024 * 1024;
   private static final Object pciBusLock = new Object();
@@ -113,24 +87,21 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     this.deviceId = deviceId;
   }
   
-  /**
-   * Reset.
-   */
-  public static void reset() {
-    BUFFERS.asMap().values().forEach(x -> x.clear());
-  }
-  
   private static Pointer acquire(int deviceId, long size) {
     final GpuStats metrics = CudaPtr.getGpuStats(deviceId);
     Pointer pointer;
     try {
-      pointer = BUFFERS.get(deviceId).obtain(size);
+      pointer = new Pointer();
+      CuDNN.handle(CuDNN.cudaMalloc(pointer, size));
+      CuDNN.handle(CuDNN.cudaMemset(pointer, 0, size));
     } catch (final Exception e) {
       try {
         final long startMemory = metrics.usedMemory.get();
         GpuController.cleanMemory();
         final long freedMemory = startMemory - metrics.usedMemory.get();
-        pointer = BUFFERS.get(deviceId).obtain(size);
+        pointer = new Pointer();
+        CuDNN.handle(CuDNN.cudaMalloc(pointer, size));
+        CuDNN.handle(CuDNN.cudaMemset(pointer, 0, size));
         System.err.println(String.format("Low GPU Memory while allocating %s bytes; %s freed resulting in %s total (triggered by %s)",
                                          size, freedMemory, metrics.usedMemory.get() + size, e.getMessage()));
       } catch (final Exception e2) {
@@ -224,11 +195,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   @Override
   protected void free() {
     if (isActiveObj()) {
-      try {
-        BUFFERS.get(deviceId).recycle(ptr, size);
-      } catch (ExecutionException e) {
-        throw new RuntimeException(e);
-      }
+      CuDNN.cudaFree(ptr);
       CudaPtr.getGpuStats(deviceId).usedMemory.addAndGet(-size);
     }
   }
