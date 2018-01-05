@@ -47,7 +47,7 @@ public class BugReproduction extends CudnnLayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {28, 28, 512}
+      {30, 30, 512}
     };
   }
   
