@@ -88,6 +88,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   }
   
   private static Pointer acquire(int deviceId, long size) {
+    if (CuDNN.getDevice() != deviceId) throw new IllegalArgumentException();
     final GpuStats metrics = CudaPtr.getGpuStats(deviceId);
     Pointer pointer;
     try {
@@ -195,7 +196,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   @Override
   protected void free() {
     if (isActiveObj()) {
-      CuDNN.cudaFree(ptr);
+      CuDNN.cudaFree(ptr, deviceId);
       CudaPtr.getGpuStats(deviceId).usedMemory.addAndGet(-size);
     }
   }
@@ -282,6 +283,10 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
       CudaPtr.getGpuStats(deviceId).memoryWrites.addAndGet(size);
       return this;
     }
+  }
+  
+  public int getDeviceId() {
+    return deviceId;
   }
   
   /**

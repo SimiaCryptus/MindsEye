@@ -83,7 +83,7 @@ public class SoftmaxActivationLayer extends NNLayer implements LayerPrecision<So
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
   
-    log.warn("Not Implemented: " + getClass().getCanonicalName());
+    log.debug("Not Implemented: " + getClass().getCanonicalName());
     return getCompatibilityLayer().eval(nncontext, inObj);
   }
   

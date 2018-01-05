@@ -23,10 +23,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.NNExecutionContext;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.java.WrapperLayer;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
@@ -225,7 +222,7 @@ public abstract class DAGNetwork extends NNLayer {
   }
   
   @Override
-  public DAGNetwork copy() {
+  public DAGNetwork copy(SerialPrecision precision) {
     return (DAGNetwork) super.copy();
   }
   

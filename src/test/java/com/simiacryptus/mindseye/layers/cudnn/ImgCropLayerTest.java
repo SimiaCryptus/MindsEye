@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.PerformanceTester;
@@ -37,7 +38,6 @@ public abstract class ImgCropLayerTest extends CudnnLayerTestBase {
    */
   public ImgCropLayerTest() {
     validateBatchExecution = false;
-    ImgCropLayer.disable = false;
   }
   
   @Override
@@ -50,7 +50,7 @@ public abstract class ImgCropLayerTest extends CudnnLayerTestBase {
   @Override
   public int[][] getPerfDims() {
     return new int[][]{
-      {400, 400, 3}
+      {200, 200, 3}
     };
   }
   
@@ -78,6 +78,32 @@ public abstract class ImgCropLayerTest extends CudnnLayerTestBase {
         CuDNN.apiLog = null;
       }
     };
+  }
+  
+  public static class Chained extends ImgCropLayerTest {
+    
+    public Chained() {
+      validateDifferentials = false;
+    }
+    
+    @Override
+    public NNLayer getLayer(int[][] inputSize) {
+      ImgCropLayer imgCropLayer = new ImgCropLayer(4, 5);
+      //return wrap(imgCropLayer);
+      return imgCropLayer;
+    }
+    
+    public NNLayer wrap(ImgCropLayer imgCropLayer) {
+      PipelineNetwork network = new PipelineNetwork();
+      network.add(imgCropLayer);
+      return network;
+    }
+    
+    @Override
+    public Class<? extends NNLayer> getTestClass() {
+      return ImgCropLayer.class;
+    }
+    
   }
   
   /**

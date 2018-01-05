@@ -128,9 +128,11 @@ public class CuDNN {
    * Cuda finalize int.
    *
    * @param devPtr the dev ptr
+   * @param deviceId
    * @return the int
    */
-  public static int cudaFree(final Pointer devPtr) {
+  public static int cudaFree(final Pointer devPtr, int deviceId) {
+    if (currentDevice.get() != deviceId) setDevice(deviceId);
     final int result = JCuda.cudaFree(devPtr);
     CuDNN.log("cudaFree", result, devPtr);
     return result;
@@ -716,10 +718,12 @@ public class CuDNN {
    * @param cudaDeviceId the cuda device id
    */
   public static void setDevice(final int cudaDeviceId) {
-    final int result = JCuda.cudaSetDevice(cudaDeviceId);
-    CuDNN.log("cudaSetDevice", result, cudaDeviceId);
-    CuDNN.handle(result);
-    CuDNN.currentDevice.set(cudaDeviceId);
+    if (cudaDeviceId != getDevice()) {
+      final int result = JCuda.cudaSetDevice(cudaDeviceId);
+      CuDNN.log("cudaSetDevice", result, cudaDeviceId);
+      CuDNN.handle(result);
+      CuDNN.currentDevice.set(cudaDeviceId);
+    }
   }
   
   /**
@@ -793,7 +797,7 @@ public class CuDNN {
     final PrintStream apiLog = CuDNN.apiLog;
     if (null != apiLog) {
       final String paramString = Arrays.stream(args).map(CuDNN::renderToLog).reduce((a, b) -> a + ", " + b).get();
-      final String message = String.format("%.6f: %s(%s) = %s", (System.nanoTime() - CuDNN.start) / 1e9, method, paramString, result);
+      final String message = String.format("%.6f @ %s: %s(%s) = %s", (System.nanoTime() - CuDNN.start) / 1e9, Thread.currentThread().getName(), method, paramString, result);
       CuDNN.logThread.submit(() -> apiLog.println(message));
     }
   }

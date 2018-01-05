@@ -152,10 +152,11 @@ public abstract class NNLayer implements Serializable {
    */
   @SuppressWarnings("unchecked")
   public <T extends NNLayer> T as(final Class<T> targetClass) {
-    final JsonObject json = getJson();
+    HashMap<String, byte[]> resources = new HashMap<>();
+    final JsonObject json = getJson(resources, SerialPrecision.Double);
     json.remove("class");
     json.addProperty("class", targetClass.getCanonicalName());
-    return (T) NNLayer.fromJson(json);
+    return (T) NNLayer.fromJson(json, resources);
   }
   
   /**
@@ -163,8 +164,18 @@ public abstract class NNLayer implements Serializable {
    *
    * @return the nn layer
    */
-  public NNLayer copy() {
-    return NNLayer.fromJson(getJson());
+  public NNLayer copy() {return copy(SerialPrecision.Double);}
+  
+  /**
+   * Copy nn layer.
+   *
+   * @param precision
+   * @return the nn layer
+   */
+  public NNLayer copy(SerialPrecision precision) {
+    HashMap<String, byte[]> resources = new HashMap<>();
+    final JsonObject json = getJson(resources, precision);
+    return NNLayer.fromJson(json, resources);
   }
   
   @Override

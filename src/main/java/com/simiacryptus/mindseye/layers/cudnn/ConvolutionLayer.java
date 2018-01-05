@@ -141,6 +141,10 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     return this.as(com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class);
   }
   
+  public NNLayer explode() {
+    return new ExplodedNetwork().getNetwork();
+  }
+  
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     assert 1 == inObj.length;
@@ -149,41 +153,8 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     final CudaExecutionContext cuda = (CudaExecutionContext) nncontext;
     final int deviceNumber = cuda.getDeviceNumber();
     if (deviceNumber < 0) return getCompatibilityLayer().eval(nncontext, inObj);
-    final PipelineNetwork network = new PipelineNetwork();
-    final List<SimpleConvolutionLayer> subLayers = new ArrayList<>();
-    // Extract Weights
-    final int[] filterDimensions = kernel.getDimensions();
-    final int[] inputDimensions = inObj[0].getData().getDimensions();
-    final int inputBands = inputDimensions[2];
-    final int outputBands = filterDimensions[2] / inputBands;
-    final int inputBandsSq = inputBands * inputBands;
-    for (int offset = 0; offset < filterDimensions[2]; offset += inputBandsSq) {
-      final Tensor batchKernel = new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq);
-      final int _offset = offset;
-      batchKernel.setByCoord(batchCoord -> {
-        final int filterBandT = getFilterBand(inputBands, outputBands, _offset, batchCoord);
-        if (_offset + batchCoord.getCoords()[2] < filterDimensions[2]) {
-          return kernel.get(batchCoord.getCoords()[0], batchCoord.getCoords()[1], filterBandT);
-        }
-        else {
-          return 0;
-        }
-      });
-      SimpleConvolutionLayer simpleConvolutionLayer = new SimpleConvolutionLayer(batchKernel)
-        .setStrideX(getStrideX()).setStrideY(getStrideY()).setPrecision(precision);
-      if (paddingX != null) simpleConvolutionLayer.setPaddingX(paddingX);
-      if (paddingY != null) simpleConvolutionLayer.setPaddingY(paddingY);
-      subLayers.add(simpleConvolutionLayer);
-    }
-    final DAGNode input = network.getHead();
-    network.add(new ImgConcatLayer().setMaxBands(outputBands).setPrecision(precision),
-                subLayers.stream().map(l -> {
-                  return network.add(l, input);
-                }).toArray(i -> new DAGNode[i]));
-    if (isFrozen()) {
-      network.freeze();
-    }
-    final NNResult result = network.eval(nncontext, inObj);
+    ExplodedNetwork explodedNetwork = new ExplodedNetwork();
+    final NNResult result = explodedNetwork.getNetwork().eval(nncontext, inObj);
     assert 1 == inObj.length;
     assert inObj[0].getData().length() == result.getData().length();
     assert 3 == result.getData().getDimensions().length;
@@ -198,10 +169,12 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
       @Override
       public void accumulate(final DeltaSet<NNLayer> xxx, final TensorList data) {
         result.accumulate(xxx, data);
+        final int inputBandsSq = inputBands * inputBands;
+        final int[] filterDimensions = kernel.getDimensions();
         // Extract Deltas
         final Tensor filterDelta = new Tensor(filterDimensions);
-        for (int batchNumber = 0; batchNumber < subLayers.size(); batchNumber++) {
-          final SimpleConvolutionLayer batchLayer = subLayers.get(batchNumber);
+        for (int batchNumber = 0; batchNumber < explodedNetwork.getSubLayers().size(); batchNumber++) {
+          final SimpleConvolutionLayer batchLayer = explodedNetwork.getSubLayers().get(batchNumber);
           final Delta<NNLayer> subnetDelta = xxx.getMap().remove(batchLayer);
           if (null != subnetDelta) {
             final int[] batchDimensions = batchLayer.kernel.getDimensions();
@@ -414,5 +387,53 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   public ConvolutionLayer setPaddingY(Integer paddingY) {
     this.paddingY = paddingY;
     return this;
+  }
+  
+  public class ExplodedNetwork {
+    public final PipelineNetwork network;
+    public final List<SimpleConvolutionLayer> subLayers;
+    
+    ExplodedNetwork() {
+      network = new PipelineNetwork();
+      subLayers = new ArrayList<>();
+      // Extract Weights
+      final int[] filterDimensions = kernel.getDimensions();
+      final int inputBandsSq = inputBands * inputBands;
+      for (int offset = 0; offset < filterDimensions[2]; offset += inputBandsSq) {
+        final Tensor batchKernel = new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq);
+        final int _offset = offset;
+        batchKernel.setByCoord(batchCoord -> {
+          final int filterBandT = getFilterBand(inputBands, outputBands, _offset, batchCoord);
+          if (_offset + batchCoord.getCoords()[2] < filterDimensions[2]) {
+            return kernel.get(batchCoord.getCoords()[0], batchCoord.getCoords()[1], filterBandT);
+          }
+          else {
+            return 0;
+          }
+        });
+        SimpleConvolutionLayer simpleConvolutionLayer = new SimpleConvolutionLayer(batchKernel)
+          .setStrideX(getStrideX()).setStrideY(getStrideY()).setPrecision(precision);
+        if (paddingX != null) simpleConvolutionLayer.setPaddingX(paddingX);
+        if (paddingY != null) simpleConvolutionLayer.setPaddingY(paddingY);
+        subLayers.add(simpleConvolutionLayer);
+      }
+      final DAGNode input = network.getHead();
+      network.add(new ImgConcatLayer().setMaxBands(outputBands).setPrecision(precision),
+                  subLayers.stream().map(l -> {
+                    return network.add(l, input);
+                  }).toArray(i -> new DAGNode[i]));
+      if (isFrozen()) {
+        network.freeze();
+      }
+    }
+    
+    public PipelineNetwork getNetwork() {
+      return network;
+    }
+    
+    public List<SimpleConvolutionLayer> getSubLayers() {
+      return subLayers;
+    }
+    
   }
 }
