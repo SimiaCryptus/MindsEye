@@ -29,6 +29,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static jcuda.runtime.JCuda.cudaDeviceScheduleAuto;
+import static jcuda.runtime.JCuda.cudaSetDeviceFlags;
+
 /**
  * An execution context subtype that communicates CuDNN-related GPU information. Used in combination with the layers in
  * this package and the GPUTrainable component.
@@ -71,6 +74,7 @@ public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
       log.warn("Disabled CuDNN");
       return Arrays.asList();
     }
+    CuDNN.handle(cudaSetDeviceFlags(cudaDeviceScheduleAuto));
     final int deviceCount = CuDNN.deviceCount();
     log.info(String.format("Found %s devices", deviceCount));
     List<Integer> devices = new ArrayList<>();

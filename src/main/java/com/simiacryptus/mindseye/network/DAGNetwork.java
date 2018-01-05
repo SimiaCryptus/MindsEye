@@ -223,15 +223,12 @@ public abstract class DAGNetwork extends NNLayer {
   
   @Override
   public DAGNetwork copy(SerialPrecision precision) {
-    return (DAGNetwork) super.copy();
+    return (DAGNetwork) super.copy(precision);
   }
   
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... input) {
-    final GraphEvaluationContext exeCtx = buildExeCtx(input);
-    final NNResult result = get(nncontext, exeCtx);
-    //exeCtx.finalize();
-    return result;
+    return get(nncontext, buildExeCtx(input));
   }
   
   /**

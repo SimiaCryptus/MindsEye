@@ -28,10 +28,13 @@ import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.lang.TimedResult;
+import com.simiacryptus.util.lang.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -143,22 +146,22 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
    * @param inputPrototype the input prototype
    */
   public void test(final NNLayer component, final Tensor[] inputPrototype) {
-    log.info(String.format("%s batches", batches));
+    log.info(String.format("%s batch length, %s trials", batches, samples));
     log.info("Input Dimensions:");
     final Tensor outputPrototype = SimpleEval.run(component, inputPrototype).getOutput();
     Arrays.stream(inputPrototype).map(t -> "\t" + Arrays.toString(t.getDimensions())).forEach(System.out::println);
     log.info("Performance:");
+  
+    List<Tuple2<Double, Double>> performance = IntStream.range(0, samples).mapToObj(i -> {
+      return testPerformance(component, inputPrototype);
+    }).collect(Collectors.toList());
     if (isTestEvaluation()) {
-      final DoubleStatistics statistics = IntStream.range(0, samples).mapToObj(i -> {
-        return testEvaluationPerformance(component, inputPrototype);
-      }).reduce((a, b) -> a.combine(b)).get();
+      final DoubleStatistics statistics = new DoubleStatistics().accept(performance.stream().mapToDouble(x -> x._1).toArray());
       log.info(String.format("\tEvaluation performance: %.6fs +- %.6fs [%.6fs - %.6fs]",
                              statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
     }
     if (isTestLearning()) {
-      final DoubleStatistics statistics = IntStream.range(0, samples).mapToObj(i -> {
-        return testLearningPerformance(component, outputPrototype, inputPrototype);
-      }).reduce((a, b) -> a.combine(b)).orElseGet(() -> null);
+      final DoubleStatistics statistics = new DoubleStatistics().accept(performance.stream().mapToDouble(x -> x._2).toArray());
       if (null != statistics) {
         log.info(String.format("\tLearning performance: %.6fs +- %.6fs [%.6fs - %.6fs]",
                                statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
@@ -190,43 +193,26 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
   }
   
   /**
-   * Test evaluation performance double statistics.
-   *
-   * @param component      the component
-   * @param inputPrototype the input prototype
-   * @return the double statistics
-   */
-  protected DoubleStatistics testEvaluationPerformance(final NNLayer component, final Tensor... inputPrototype) {
-    final DoubleStatistics statistics = new DoubleStatistics();
-    statistics.accept(TimedResult.time(() -> GpuController.call(exe -> {
-      final Stream<Tensor[]> stream = IntStream.range(0, batches).mapToObj(x -> inputPrototype);
-      final Tensor[][] array = stream.toArray(i -> new Tensor[i][]);
-      return component.eval(exe, NNConstant.batchResultArray(array));
-    })).timeNanos / 1e9);
-    return statistics;
-  }
-  
-  /**
    * Test learning performance double statistics.
    *
    * @param component       the component
-   * @param outputPrototype the output prototype
    * @param inputPrototype  the input prototype
    * @return the double statistics
    */
-  protected DoubleStatistics testLearningPerformance(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) {
-    final DoubleStatistics statistics = new DoubleStatistics();
-    final TimedResult<DeltaSet<NNLayer>> time = GpuController.call(exe -> {
+  protected Tuple2<Double, Double> testPerformance(final NNLayer component, final Tensor... inputPrototype) {
+    return GpuController.call(exe -> {
       final Tensor[][] data = IntStream.range(0, batches).mapToObj(x -> x).flatMap(x -> Stream.<Tensor[]>of(inputPrototype)).toArray(i -> new Tensor[i][]);
-      final NNResult result = component.eval(exe, NNConstant.batchResultArray(data));
+      TimedResult<NNResult> timedEval = TimedResult.time(() -> {
+        return component.eval(exe, NNConstant.batchResultArray(data));
+      });
+      final NNResult result = timedEval.result;
       final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
-      return TimedResult.time(() -> {
+      TimedResult<DeltaSet<NNLayer>> timedBackprop = TimedResult.time(() -> {
         final Tensor[] delta = result.getData().stream().map(x -> x.map(v -> 1.0)).toArray(i -> new Tensor[i]);
         result.accumulate(buffer, new TensorArray(delta));
         return buffer;
       });
+      return new Tuple2<>(timedEval.timeNanos / 1e9, timedBackprop.timeNanos / 1e9);
     });
-    statistics.accept(time.timeNanos / 1e9);
-    return statistics;
   }
 }

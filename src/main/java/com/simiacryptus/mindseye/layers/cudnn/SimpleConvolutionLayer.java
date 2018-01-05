@@ -156,7 +156,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
     cuda.initThread();
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
-    final int[] inputSize = batch.get(0).getDimensions();
+    final int[] inputSize = batch.getDimensions();
     final int[] kernelSize = kernel.getDimensions();
     final int[] outputSize = getOutputSize(inputSize, kernelSize);
     final int length = batch.length();
@@ -240,7 +240,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
             filterBuffer.finalize();
           }
           if (input.isAlive()) {
-            final CudaPtr inputBuffer = CuDNN.alloc(deviceNumber, batch.get(0).dim() * 1l * length * precision.size);
+            final CudaPtr inputBuffer = CuDNN.alloc(deviceNumber, Tensor.dim(batch.getDimensions()) * 1l * length * precision.size);
             try {
               final int algorithm = cuda.getBackwardDataAlgorithm(
                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());

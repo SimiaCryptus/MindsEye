@@ -40,12 +40,12 @@ public abstract class CudnnLayerTestBase extends LayerTestBase {
   protected ComponentTest<ToleranceStatistics> getReferenceIOTester() {
     final ComponentTest<ToleranceStatistics> inner = super.getReferenceIOTester();
     return (log, component, inputPrototype) -> {
-      String logName = "cuda_" + log.getName() + "_io.log";
       try {
+        String logName = "cuda_" + log.getName() + "_io.log";
+        log.p(log.file((String) null, logName, "GPU Log"));
         CuDNN.apiLog = new PrintStream(log.file(logName));
         return inner.test(log, component, inputPrototype);
       } finally {
-        log.p(log.file((String) null, logName, "GPU Log"));
         CuDNN.apiLog.close();
         CuDNN.apiLog = null;
       }

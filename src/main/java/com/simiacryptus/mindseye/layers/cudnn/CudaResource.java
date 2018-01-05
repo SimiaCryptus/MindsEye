@@ -29,6 +29,7 @@ import java.util.function.ToIntFunction;
 public class CudaResource<T> extends CudaResourceBase<T> {
   
   private final ToIntFunction<T> destructor;
+  public final int deviceId;
   
   /**
    * Instantiates a new Cuda resource.
@@ -36,9 +37,10 @@ public class CudaResource<T> extends CudaResourceBase<T> {
    * @param obj        the obj
    * @param destructor the destructor
    */
-  protected CudaResource(final T obj, final ToIntFunction<T> destructor) {
+  protected CudaResource(final T obj, final ToIntFunction<T> destructor, int deviceId) {
     super(obj);
     this.destructor = destructor;
+    this.deviceId = deviceId;
   }
   
   /**
@@ -46,6 +48,7 @@ public class CudaResource<T> extends CudaResourceBase<T> {
    */
   protected void free() {
     try {
+      CuDNN.setDevice(deviceId);
       if (isActiveObj()) {
         CuDNN.handle(this.destructor.applyAsInt(ptr));
       }
