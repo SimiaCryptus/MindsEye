@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.java.AssertDimensionsLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
@@ -48,15 +47,13 @@ public class BugReproduction extends CudnnLayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {1, 1, 512}
+      {28, 28, 512}
     };
   }
   
   @Override
   public int[][] getPerfDims() {
-    return new int[][]{
-      {224, 224, 3}
-    };
+    return getInputDims();
   }
   
   @Override
@@ -67,108 +64,113 @@ public class BugReproduction extends CudnnLayerTestBase {
   @Override
   public NNLayer getLayer(int[][] inputSize) {
     PipelineNetwork model = new PipelineNetwork();
-    //  model.add(ZeroPadding2D((1,1),input_shape=(3,224,224)))
-    model.add(new AssertDimensionsLayer(224, 224, 3));
-    model.add(new ImgZeroPaddingLayer(1, 1));
-    //  model.add(Convolution2D(64, 3, 3, activation='relu'))
-    model.add(new ConvolutionLayer(3, 3, 3, 64)
-                .setPaddingXY(0, 0)
-                .setWeightsLog(-2)
-                .explode());
-    model.add(new ImgBandBiasLayer(64)
-                .setWeightsLog(-2));
-    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    //  model.add(ZeroPadding2D((1,1)))
-    model.add(new ImgZeroPaddingLayer(1, 1));
-    //  model.add(Convolution2D(64, 3, 3, activation='relu'))
-    model.add(new ConvolutionLayer(3, 3, 64, 64)
-                .setPaddingXY(0, 0)
-                .setWeightsLog(-2)
-                .explode());
-    model.add(new ImgBandBiasLayer(64)
-                .setWeightsLog(-2));
-    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    //  model.add(MaxPooling2D((2,2), strides=(2,2)))
-    model.add(new PoolingLayer()
-                .setMode(PoolingLayer.PoolingMode.Max)
-                .setWindowXY(2, 2)
-                .setStrideXY(2, 2));
-  
-    //  model.add(ZeroPadding2D((1,1)))
-    model.add(new ImgZeroPaddingLayer(1, 1));
-    //  model.add(Convolution2D(128, 3, 3, activation='relu'))
-    model.add(new ConvolutionLayer(3, 3, 64, 128)
-                .setPaddingXY(0, 0)
-                .setWeightsLog(-2)
-                .explode());
-    model.add(new ImgBandBiasLayer(128)
-                .setWeightsLog(-2));
-    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    //  model.add(ZeroPadding2D((1,1)))
-    model.add(new ImgZeroPaddingLayer(1, 1));
-    //  model.add(Convolution2D(128, 3, 3, activation='relu'))
-    model.add(new ConvolutionLayer(3, 3, 128, 128)
-                .setPaddingXY(0, 0)
-                .setWeightsLog(-2)
-                .explode());
-    model.add(new ImgBandBiasLayer(128)
-                .setWeightsLog(-2));
-    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    //  model.add(MaxPooling2D((2,2), strides=(2,2)))
-    model.add(new PoolingLayer()
-                .setMode(PoolingLayer.PoolingMode.Max)
-                .setWindowXY(2, 2)
-                .setStrideXY(2, 2));
-    //
-    //  model.add(ZeroPadding2D((1,1)))
-    model.add(new ImgZeroPaddingLayer(1, 1));
-    //  model.add(Convolution2D(256, 3, 3, activation='relu'))
-    model.add(new ConvolutionLayer(3, 3, 128, 256)
-                .setPaddingXY(0, 0)
-                .setWeightsLog(-2)
-                .explode());
-    model.add(new ImgBandBiasLayer(256)
-                .setWeightsLog(-2));
-    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    //  model.add(ZeroPadding2D((1,1)))
-    model.add(new ImgZeroPaddingLayer(1, 1));
-    //  model.add(Convolution2D(256, 3, 3, activation='relu'))
-    model.add(new ConvolutionLayer(3, 3, 256, 256)
-                .setPaddingXY(0, 0)
-                .setWeightsLog(-2)
-                .explode());
-    model.add(new ImgBandBiasLayer(256)
-                .setWeightsLog(-2));
-    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    //  model.add(ZeroPadding2D((1,1)))
-    model.add(new ImgZeroPaddingLayer(1, 1));
-    //  model.add(Convolution2D(256, 3, 3, activation='relu'))
-    model.add(new ConvolutionLayer(3, 3, 256, 256)
-                .setPaddingXY(0, 0)
-                .setWeightsLog(-2)
-                .explode());
-    model.add(new ImgBandBiasLayer(256)
-                .setWeightsLog(-2));
-    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    //  model.add(MaxPooling2D((2,2), strides=(2,2)))
-    model.add(new PoolingLayer()
-                .setMode(PoolingLayer.PoolingMode.Max)
-                .setWindowXY(2, 2)
-                .setStrideXY(2, 2));
-    //
-    //  model.add(ZeroPadding2D((1,1)))
-    model.add(new ImgZeroPaddingLayer(1, 1));
-    //  model.add(Convolution2D(512, 3, 3, activation='relu'))
-    model.add(new ConvolutionLayer(3, 3, 256, 512)
-                .setPaddingXY(0, 0)
-                .setWeightsLog(-2)
-                .explode());
-    model.add(new ImgBandBiasLayer(512)
-                .setWeightsLog(-2));
-    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    //  model.add(ZeroPadding2D((1,1)))
-    model.add(new ImgZeroPaddingLayer(1, 1));
-    //  model.add(Convolution2D(512, 3, 3, activation='relu'))
+
+
+//    //  model.add(ZeroPadding2D((1,1),input_shape=(3,224,224)))
+//    model.add(new AssertDimensionsLayer(224, 224, 3));
+//    model.add(new ImgZeroPaddingLayer(1, 1));
+//    //  model.add(Convolution2D(64, 3, 3, activation='relu'))
+//    model.add(new ConvolutionLayer(3, 3, 3, 64)
+//                .setPaddingXY(0, 0)
+//                .setWeightsLog(-2)
+//                .explode());
+//    model.add(new ImgBandBiasLayer(64)
+//                .setWeightsLog(-2));
+//    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+//    //  model.add(ZeroPadding2D((1,1)))
+//    model.add(new ImgZeroPaddingLayer(1, 1));
+//    //  model.add(Convolution2D(64, 3, 3, activation='relu'))
+//    model.add(new ConvolutionLayer(3, 3, 64, 64)
+//                .setPaddingXY(0, 0)
+//                .setWeightsLog(-2)
+//                .explode());
+//    model.add(new ImgBandBiasLayer(64)
+//                .setWeightsLog(-2));
+//    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+//    //  model.add(MaxPooling2D((2,2), strides=(2,2)))
+//    model.add(new PoolingLayer()
+//                .setMode(PoolingLayer.PoolingMode.Max)
+//                .setWindowXY(2, 2)
+//                .setStrideXY(2, 2));
+//
+//    //  model.add(ZeroPadding2D((1,1)))
+//    model.add(new ImgZeroPaddingLayer(1, 1));
+//    //  model.add(Convolution2D(128, 3, 3, activation='relu'))
+//    model.add(new ConvolutionLayer(3, 3, 64, 128)
+//                .setPaddingXY(0, 0)
+//                .setWeightsLog(-2)
+//                .explode());
+//    model.add(new ImgBandBiasLayer(128)
+//                .setWeightsLog(-2));
+//    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+//    //  model.add(ZeroPadding2D((1,1)))
+//    model.add(new ImgZeroPaddingLayer(1, 1));
+//    //  model.add(Convolution2D(128, 3, 3, activation='relu'))
+//    model.add(new ConvolutionLayer(3, 3, 128, 128)
+//                .setPaddingXY(0, 0)
+//                .setWeightsLog(-2)
+//                .explode());
+//    model.add(new ImgBandBiasLayer(128)
+//                .setWeightsLog(-2));
+//    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+//    //  model.add(MaxPooling2D((2,2), strides=(2,2)))
+//    model.add(new PoolingLayer()
+//                .setMode(PoolingLayer.PoolingMode.Max)
+//                .setWindowXY(2, 2)
+//                .setStrideXY(2, 2));
+//    //
+//    //  model.add(ZeroPadding2D((1,1)))
+//    model.add(new ImgZeroPaddingLayer(1, 1));
+//    //  model.add(Convolution2D(256, 3, 3, activation='relu'))
+//    model.add(new ConvolutionLayer(3, 3, 128, 256)
+//                .setPaddingXY(0, 0)
+//                .setWeightsLog(-2)
+//                .explode());
+//    model.add(new ImgBandBiasLayer(256)
+//                .setWeightsLog(-2));
+//    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+//    //  model.add(ZeroPadding2D((1,1)))
+//    model.add(new ImgZeroPaddingLayer(1, 1));
+//    //  model.add(Convolution2D(256, 3, 3, activation='relu'))
+//    model.add(new ConvolutionLayer(3, 3, 256, 256)
+//                .setPaddingXY(0, 0)
+//                .setWeightsLog(-2)
+//                .explode());
+//    model.add(new ImgBandBiasLayer(256)
+//                .setWeightsLog(-2));
+//    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+//    //  model.add(ZeroPadding2D((1,1)))
+//    model.add(new ImgZeroPaddingLayer(1, 1));
+//    //  model.add(Convolution2D(256, 3, 3, activation='relu'))
+//    model.add(new ConvolutionLayer(3, 3, 256, 256)
+//                .setPaddingXY(0, 0)
+//                .setWeightsLog(-2)
+//                .explode());
+//    model.add(new ImgBandBiasLayer(256)
+//                .setWeightsLog(-2));
+//    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+//    //  model.add(MaxPooling2D((2,2), strides=(2,2)))
+//    model.add(new PoolingLayer()
+//                .setMode(PoolingLayer.PoolingMode.Max)
+//                .setWindowXY(2, 2)
+//                .setStrideXY(2, 2));
+//    //
+//    //  model.add(ZeroPadding2D((1,1)))
+//    model.add(new ImgZeroPaddingLayer(1, 1));
+//    //  model.add(Convolution2D(512, 3, 3, activation='relu'))
+//    model.add(new ConvolutionLayer(3, 3, 256, 512)
+//                .setPaddingXY(0, 0)
+//                .setWeightsLog(-2)
+//                .explode());
+//    model.add(new ImgBandBiasLayer(512)
+//                .setWeightsLog(-2));
+//    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+//    //  model.add(ZeroPadding2D((1,1)))
+//    model.add(new ImgZeroPaddingLayer(1, 1));
+//    //  model.add(Convolution2D(512, 3, 3, activation='relu'))
+
+
+
     model.add(new ConvolutionLayer(3, 3, 512, 512)
                 .setPaddingXY(0, 0)
                 .setWeightsLog(-2)
