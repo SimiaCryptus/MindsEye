@@ -165,7 +165,7 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
    * @return the weights
    */
   public FullyConnectedLayer setByCoord(final ToDoubleFunction<Coordinate> f) {
-    getWeights().coordStream().parallel().forEach(c -> {
+    getWeights().coordStream(true).parallel().forEach(c -> {
       getWeights().set(c, f.applyAsDouble(c));
     });
     return this;
@@ -200,8 +200,8 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
    * @return the weights
    */
   public FullyConnectedLayer setByCoord(final ToDoubleBiFunction<Coordinate, Coordinate> f) {
-    new Tensor(inputDims).coordStream().parallel().forEach(in -> {
-      new Tensor(outputDims).coordStream().parallel().forEach(out -> {
+    new Tensor(inputDims).coordStream(true).parallel().forEach(in -> {
+      new Tensor(outputDims).coordStream(true).parallel().forEach(out -> {
         getWeights().set(new int[]{in.getIndex(), out.getIndex()}, f.applyAsDouble(in, out));
       });
     });
@@ -215,7 +215,7 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
    * @return the weights log
    */
   public FullyConnectedLayer setWeightsLog(final double value) {
-    getWeights().coordStream().parallel().forEach(c -> {
+    getWeights().coordStream(true).parallel().forEach(c -> {
       getWeights().set(c, (FastRandom.random() - 0.5) * Math.pow(10, value));
     });
     return this;

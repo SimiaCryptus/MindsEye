@@ -180,7 +180,7 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
             final int[] batchDimensions = batchLayer.kernel.getDimensions();
             final Tensor batchDelta = new Tensor(null == subnetDelta ? null : subnetDelta.getDelta(), batchDimensions);
             final int offset = batchNumber * inputBandsSq;
-            batchDelta.coordStream().forEach(batchCoord -> {
+            batchDelta.coordStream(true).forEach(batchCoord -> {
               if (offset + batchCoord.getCoords()[2] < filterDimensions[2]) {
                 final int bandT = getFilterBand(inputBands, outputBands, offset, batchCoord);
                 filterDelta.set(batchCoord.getCoords()[0], batchCoord.getCoords()[1], bandT, batchDelta.get(batchCoord));

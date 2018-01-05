@@ -433,7 +433,7 @@ public class TestUtil {
    */
   public static Stream<BufferedImage> renderToImages(final Tensor tensor, final boolean normalize) {
     final DoubleStatistics[] statistics = IntStream.range(0, tensor.getDimensions()[2]).mapToObj(band -> {
-      return new DoubleStatistics().accept(tensor.coordStream()
+      return new DoubleStatistics().accept(tensor.coordStream(true)
                                                  .filter(x -> x.getCoords()[2] == band)
                                                  .mapToDouble(c -> tensor.get(c)).toArray());
     }).toArray(i -> new DoubleStatistics[i]);
@@ -462,7 +462,7 @@ public class TestUtil {
       }
       return 0xFF * unitValue;
     };
-    tensor.coordStream().collect(Collectors.groupingBy(x -> x.getCoords()[2], Collectors.toList()));
+    tensor.coordStream(true).collect(Collectors.groupingBy(x -> x.getCoords()[2], Collectors.toList()));
     final Tensor normal = tensor.mapCoords((c) -> transform.apply(tensor.get(c), statistics[c.getCoords()[2]]))
                                 .map(v -> Math.min(0xFF, Math.max(0, v)));
     return (normalize ? normal : tensor).toImages().stream();

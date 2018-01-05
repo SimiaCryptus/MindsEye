@@ -376,7 +376,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
    * @return the weights
    */
   public SimpleConvolutionLayer setWeights(final DoubleSupplier f) {
-    kernel.coordStream().parallel().forEach(c -> {
+    kernel.coordStream(true).parallel().forEach(c -> {
       kernel.set(c, f.getAsDouble());
     });
     return this;
@@ -389,7 +389,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
    * @return the weights
    */
   public SimpleConvolutionLayer setWeights(final ToDoubleFunction<Coordinate> f) {
-    kernel.coordStream().parallel().forEach(c -> {
+    kernel.coordStream(true).parallel().forEach(c -> {
       kernel.set(c, f.applyAsDouble(c));
     });
     return this;

@@ -24,6 +24,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.ArrayUtils;
+import org.spark_project.jetty.util.ConcurrentHashSet;
 
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
@@ -397,7 +398,7 @@ public class Tensor implements Serializable {
    */
   public static Tensor reorderDimensions(Tensor tensor, UnaryOperator<int[]> fn) {
     Tensor result = new Tensor(fn.apply(tensor.getDimensions()));
-    tensor.coordStream().forEach(c -> {
+    tensor.coordStream(true).forEach(c -> {
       result.set(fn.apply(c.getCoords()), tensor.get(c));
     });
     return result;
@@ -487,9 +488,10 @@ public class Tensor implements Serializable {
    * Coord stream stream.
    *
    * @return the stream
+   * @param safe
    */
-  public Stream<Coordinate> coordStream() {
-    HashSet<Object> distinctBuffer = new HashSet<>();
+  public Stream<Coordinate> coordStream(boolean safe) {
+    ConcurrentHashSet<Object> distinctBuffer = new ConcurrentHashSet<>();
     return StreamSupport.stream(Spliterators.spliterator(new Iterator<Coordinate>() {
       
       int cnt = 0;
@@ -513,14 +515,13 @@ public class Tensor implements Serializable {
             }
           }
         }
-        // assert index(last) == index;
         coordinate.setIndex(cnt++);
         coordinate.setCoords(val);
-        return coordinate;
+        // assert index(last) == index;
+        return safe ? coordinate.copy() : coordinate;
       }
     }, dim(), Spliterator.ORDERED), false).map(coordinate -> {
-      coordinate = coordinate.copy();
-      assert distinctBuffer.add(coordinate) : String.format("Duplicate: %s in %s", coordinate, distinctBuffer);
+      assert distinctBuffer.add(coordinate.copy()) : String.format("Duplicate: %s in %s", coordinate, distinctBuffer);
       return coordinate;
     });
   }
@@ -838,7 +839,7 @@ public class Tensor implements Serializable {
    * @return the tensor
    */
   public Tensor mapCoords(final ToDoubleFunction<Coordinate> f) {
-    return new Tensor(Tensor.getDoubles(coordStream().mapToDouble(i -> f.applyAsDouble(i)), dim()), dimensions);
+    return new Tensor(Tensor.getDoubles(coordStream(true).mapToDouble(i -> f.applyAsDouble(i)), dim()), dimensions);
   }
   
   /**
@@ -1127,7 +1128,7 @@ public class Tensor implements Serializable {
    * @return the tensor
    */
   public Tensor setByCoord(final ToDoubleFunction<Coordinate> f) {
-    coordStream().forEach(c -> set(c, f.applyAsDouble(c)));
+    coordStream(true).forEach(c -> set(c, f.applyAsDouble(c)));
     return this;
   }
   

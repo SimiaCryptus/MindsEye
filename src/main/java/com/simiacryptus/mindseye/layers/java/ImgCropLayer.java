@@ -79,7 +79,7 @@ public class ImgCropLayer extends NNLayer {
     double fy = (inDim[1] - outDim[1]) / 2.0;
     final int paddingX = (int) (fx < 0 ? Math.ceil(fx) : Math.floor(fx));
     final int paddingY = (int) (fy < 0 ? Math.ceil(fy) : Math.floor(fy));
-    outputData.coordStream().forEach((c) -> {
+    outputData.coordStream(true).forEach((c) -> {
       int x = c.getCoords()[0] + paddingX;
       int y = c.getCoords()[1] + paddingY;
       int z = c.getCoords()[2];

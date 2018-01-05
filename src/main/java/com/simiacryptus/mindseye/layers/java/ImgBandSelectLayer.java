@@ -97,7 +97,7 @@ public class ImgBandSelectLayer extends NNLayer {
                                           .mapToObj(dataIndex -> {
                                             final Tensor passback = new Tensor(inputDims);
                                             final Tensor err = error.get(dataIndex);
-                                            err.coordStream().forEach(c -> {
+                                            err.coordStream(true).forEach(c -> {
                                               passback.set(c.getCoords()[0], c.getCoords()[1], bands[c.getCoords()[2]], err.get(c));
                                             });
                                             return passback;

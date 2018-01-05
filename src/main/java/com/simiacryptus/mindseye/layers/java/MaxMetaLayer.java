@@ -86,7 +86,7 @@ public class MaxMetaLayer extends NNLayer {
           final Tensor delta = data.get(0);
           final Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
-          input.getData().get(0).coordStream().forEach((inputCoord) -> {
+          input.getData().get(0).coordStream(true).forEach((inputCoord) -> {
             feedback[indicies[inputCoord.getIndex()]].add(inputCoord, delta.get(inputCoord));
           });
           input.accumulate(buffer, new TensorArray(feedback));
