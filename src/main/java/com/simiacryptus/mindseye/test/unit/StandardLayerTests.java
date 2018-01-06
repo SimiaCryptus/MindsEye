@@ -80,7 +80,11 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       synchronized (this) {
         if (null == bigTests) {
           bigTests = new ArrayList<>(Arrays.asList(
-            getPerformanceTester(), getTrainingTester()
+            getPerformanceTester(),
+            getBatchingTester(),
+            getReferenceIOTester(),
+            getEquivalencyTester(),
+            getTrainingTester()
                                                   ));
         }
       }
@@ -143,7 +147,8 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       synchronized (this) {
         if (null == littleTests) {
           littleTests = new ArrayList<>(Arrays.asList(
-            getJsonTester(), getReferenceIOTester(), getBatchingTester(), getDerivativeTester(), getEquivalencyTester()
+            getJsonTester(),
+            getDerivativeTester()
                                                      ));
         }
       }
@@ -193,11 +198,29 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * @return the reference layer
    */
   public NNLayer getReferenceLayer() {
-    Class<? extends NNLayer> referenceLayerClass = getReferenceLayerClass();
-    if (null == referenceLayerClass) return null;
-    NNLayer layer = getLayer(getInputDims());
-    assert !referenceLayerClass.equals(layer.getClass()) : "Using self as equivalency layer?";
-    return layer.as(referenceLayerClass);
+    return cvt(getLayer(getInputDims()));
+  }
+  
+  public Class<? extends NNLayer> getTestClass() {
+    return getLayer(getInputDims()).getClass();
+  }
+  
+  private NNLayer cvt(NNLayer layer) {
+    if (layer instanceof DAGNetwork) {
+      ((DAGNetwork) layer).visitNodes(node -> {
+        NNLayer from = node.getLayer();
+        node.setLayer(cvt(from));
+      });
+      return layer;
+    }
+    else if (getTestClass().isAssignableFrom(layer.getClass())) {
+      Class<? extends NNLayer> referenceLayerClass = getReferenceLayerClass();
+      if (null == referenceLayerClass) return null;
+      return layer.as(referenceLayerClass);
+    }
+    else {
+      return layer;
+    }
   }
   
   /**

@@ -77,7 +77,7 @@ public class AvgImageBandLayer extends NNLayer {
   
     final Tensor[] results = inData.stream().map(data -> {
       final DoubleStream doubleStream = IntStream.range(0, inputDims[2]).parallel().mapToDouble(band -> {
-        return data.coordStream().filter(e -> e.getCoords()[2] == band).mapToDouble(c -> data.get(c)).average().getAsDouble();
+        return data.coordStream(true).filter(e -> e.getCoords()[2] == band).mapToDouble(c -> data.get(c)).average().getAsDouble();
       });
       return new Tensor(1, 1, inputDims[2]).set(Tensor.getDoubles(doubleStream, inputDims[2]));
     }).toArray(i -> new Tensor[i]);

@@ -106,7 +106,7 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
-    final int[] inputSize = batch.get(0).getDimensions();
+    final int[] inputSize = batch.getDimensions();
     final int[] outputSize = inputSize;
     final int length = batch.length();
     final int inputDims = Tensor.dim(inputSize);

@@ -101,7 +101,7 @@ public class AvgMetaLayer extends NNLayer {
           final Tensor delta = data.get(0);
           final Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
-          thisResult.coordStream().forEach((inputCoord) -> {
+          thisResult.coordStream(true).forEach((inputCoord) -> {
             for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
               feedback[inputItem].add(inputCoord, delta.get(inputCoord) / itemCnt);
             }

@@ -81,7 +81,7 @@ public class MaxImageBandLayer extends NNLayer {
   
     final Coordinate[][] maxCoords = in.getData().stream().map(data -> {
       return IntStream.range(0, inputDims[2]).mapToObj(band -> {
-        return data.coordStream().filter(e -> e.getCoords()[2] == band).max(Comparator.comparing(c -> data.get(c))).get();
+        return data.coordStream(true).filter(e -> e.getCoords()[2] == band).max(Comparator.comparing(c -> data.get(c))).get();
       }).toArray(i -> new Coordinate[i]);
     }).toArray(i -> new Coordinate[i][]);
   

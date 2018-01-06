@@ -87,7 +87,7 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
     final int outputBands = getFeatures().findAny().get()[1].getDimensions()[2];
     return IntStream.range(0, outputBands).parallel().mapToDouble(b -> {
       return getFeatures().mapToDouble(tensor -> {
-        return tensor[1].coordStream().filter((c) -> c.getCoords()[2] == b).mapToDouble((c) -> tensor[1].get(c)).average().getAsDouble();
+        return tensor[1].coordStream(false).filter((c) -> c.getCoords()[2] == b).mapToDouble((c) -> tensor[1].get(c)).average().getAsDouble();
       }).average().getAsDouble();
     }).toArray();
   }

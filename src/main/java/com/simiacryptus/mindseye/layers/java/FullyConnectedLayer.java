@@ -253,7 +253,7 @@ public class FullyConnectedLayer extends NNLayer {
    * @return the weights
    */
   public FullyConnectedLayer setByCoord(final ToDoubleFunction<Coordinate> f) {
-    weights.coordStream().parallel().forEach(c -> {
+    weights.coordStream(true).parallel().forEach(c -> {
       weights.set(c, f.applyAsDouble(c));
     });
     return this;
@@ -314,8 +314,8 @@ public class FullyConnectedLayer extends NNLayer {
    * @return the weights
    */
   public FullyConnectedLayer setByCoord(final ToDoubleBiFunction<Coordinate, Coordinate> f) {
-    new Tensor(inputDims).coordStream().parallel().forEach(in -> {
-      new Tensor(outputDims).coordStream().parallel().forEach(out -> {
+    new Tensor(inputDims).coordStream(true).parallel().forEach(in -> {
+      new Tensor(outputDims).coordStream(true).parallel().forEach(out -> {
         weights.set(new int[]{in.getIndex(), out.getIndex()}, f.applyAsDouble(in, out));
       });
     });
@@ -329,7 +329,7 @@ public class FullyConnectedLayer extends NNLayer {
    * @return the weights log
    */
   public FullyConnectedLayer setWeightsLog(final double value) {
-    weights.coordStream().parallel().forEach(c -> {
+    weights.coordStream(false).forEach(c -> {
       weights.set(c, (FastRandom.random() - 0.5) * Math.pow(10, value));
     });
     return this;

@@ -90,7 +90,7 @@ public class SupplementedProblemData implements ImageProblemData {
   protected static Tensor translate(final int dx, final int dy, final Tensor tensor) {
     final int sx = tensor.getDimensions()[0];
     final int sy = tensor.getDimensions()[1];
-    return new Tensor(tensor.coordStream().mapToDouble(c -> {
+    return new Tensor(tensor.coordStream(true).mapToDouble(c -> {
       final int x = c.getCoords()[0] + dx;
       final int y = c.getCoords()[1] + dy;
       if (x < 0 || x >= sx) {

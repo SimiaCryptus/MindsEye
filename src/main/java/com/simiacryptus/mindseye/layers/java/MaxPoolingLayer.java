@@ -82,9 +82,9 @@ public class MaxPoolingLayer extends NNLayer {
       return (int) Math.ceil(p.inputDims[i] * 1.0 / p.kernelDims[i]);
     }).toArray();
     final Tensor output = new Tensor(newDims);
-    
-    return output.coordStream().map(o -> {
-      final int[] inCoords = new Tensor(p.kernelDims).coordStream().mapToInt(kernelCoord -> {
+  
+    return output.coordStream(true).map(o -> {
+      final int[] inCoords = new Tensor(p.kernelDims).coordStream(true).mapToInt(kernelCoord -> {
         final int[] result = new int[o.getCoords().length];
         for (int index = 0; index < o.getCoords().length; index++) {
           final int outputCoordinate = o.getCoords()[index];

@@ -38,7 +38,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
    * @param inner        the inner
    * @param trainingData the training data
    */
-  public ArrayTrainable(DataTrainable inner, Tensor[][] trainingData) {
+  public ArrayTrainable(DataTrainable inner, Tensor[]... trainingData) {
     this(inner, trainingData, trainingData.length);
   }
   
@@ -104,5 +104,10 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
    */
   public void setTrainingData(final Tensor[][] trainingData) {
     this.trainingData = trainingData;
+  }
+  
+  @Override
+  public ArrayTrainable setMask(boolean... mask) {
+    return (ArrayTrainable) super.setMask(mask);
   }
 }

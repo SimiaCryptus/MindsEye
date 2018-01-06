@@ -108,7 +108,7 @@ public class MaxDropoutNoiseLayer extends NNLayer {
   }
   
   private List<List<Coordinate>> getCellMap(final IntArray dims) {
-    return new ArrayList<>(new Tensor(dims.data).coordStream().collect(Collectors.groupingBy((final Coordinate c) -> {
+    return new ArrayList<>(new Tensor(dims.data).coordStream(true).collect(Collectors.groupingBy((final Coordinate c) -> {
       int cellId = 0;
       int max = 0;
       for (int dim = 0; dim < dims.size(); dim++) {

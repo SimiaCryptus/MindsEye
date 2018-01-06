@@ -93,8 +93,9 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
   
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
-    if (true || ((CudaExecutionContext) nncontext).getDeviceNumber() < 0)
+    if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0)
       return getCompatibilityLayer().eval(nncontext, inObj);
+    ((CudaExecutionContext) nncontext).initThread();
     assert 1 == inObj.length;
     assert 3 == inObj[0].getData().getDimensions().length;
     final int length = inObj[0].getData().length();
@@ -120,6 +121,10 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
         if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
           throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
         }
+        if (error.length() != outputData.length()) {
+          throw new AssertionError(error.length() + " != " + outputData.length());
+        }
+  
         assert error.length() == inObj[0].getData().length();
         if (inObj[0].isAlive()) {
           ((CudaExecutionContext) nncontext).initThread();
@@ -153,6 +158,9 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
    * @param destination the output buffer
    */
   public void copy(CuDNN nncontext, int length, int[] dimIn, CudaPtr source, int[] dimOut, CudaPtr destination) {
+    if (source.getDeviceId() != destination.getDeviceId()) throw new IllegalArgumentException("device id mismatch");
+    if (source.getDeviceId() != nncontext.getDeviceNumber())
+      throw new IllegalArgumentException(String.format("device id mismatch: %d != %d", source.getDeviceId(), nncontext.getDeviceNumber()));
     if (3 != dimIn.length) throw new IllegalArgumentException("dimIn.length");
     if (3 != dimOut.length) throw new IllegalArgumentException("dimOut.length");
     final double offsetX = ((dimOut[0] - dimIn[0]) / 2.0);
@@ -160,8 +168,6 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
     //log.info(String.format("offset=%d,%d", offsetX, offsetY));
     final int[] viewDim = new int[3];
     Arrays.parallelSetAll(viewDim, i -> Math.min(dimIn[i], dimOut[i]));
-    for (int i = 0; i < length; i++) {
-    }
     final CudaResource<cudnnTensorDescriptor> sourceViewDescriptor = CuDNN.newTensorDescriptor(
       precision.code,
       length,
