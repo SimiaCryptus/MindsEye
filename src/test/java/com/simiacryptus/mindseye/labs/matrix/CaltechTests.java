@@ -122,7 +122,7 @@ public class CaltechTests {
   };
   
   /**
-   * The type All caltech tests.
+   * Basic demonstratin problems involving the Caltech101 image dataset.
    */
   public abstract static class All_Caltech_Tests extends AllTrainingTests {
   
@@ -162,7 +162,8 @@ public class CaltechTests {
   }
   
   /**
-   * The type Qqn.
+   * Basic demonstration problems involving the Caltech101 
+   * image dataset and Quadratic Quasi-Newton optimizer
    */
   public static class QQN extends All_Caltech_Tests {
     /**

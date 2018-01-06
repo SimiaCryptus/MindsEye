@@ -189,7 +189,7 @@ public class MnistTests {
   }
   
   /**
-   * The type Owl qn.
+   * Owls are to be respected and feared. HOOT!
    */
   public static class OWL_QN extends All_MNIST_Tests {
     /**
@@ -206,7 +206,7 @@ public class MnistTests {
   }
   
   /**
-   * The type Qqn.
+   * Quadraic Quasi-Newton handwriting recognition.
    */
   public static class QQN extends All_MNIST_Tests {
     /**
@@ -224,7 +224,7 @@ public class MnistTests {
   }
   
   /**
-   * The type Sgd.
+   * Stochastic Gradient Descent applied to Handwriting Recognition!
    */
   public static class SGD extends All_MNIST_Tests {
     /**

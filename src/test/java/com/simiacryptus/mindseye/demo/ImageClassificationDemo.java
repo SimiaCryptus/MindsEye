@@ -36,7 +36,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
- * The type Image classifier run base.
+ * We load a pretrained convolutional neural network (VGG16) along with 
+ * the CalTech101 image dataset to perform a demonstration of Image Recognition.
  */
 public class ImageClassificationDemo extends NotebookReportBase {
   
