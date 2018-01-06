@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
- * The type Compare qqn.
+ * We compare some traditional baseline optimizers against proprietary MindsEye optimization components.
  */
 public class Research extends OptimizerComparison {
   

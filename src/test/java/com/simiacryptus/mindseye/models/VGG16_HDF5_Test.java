@@ -25,7 +25,8 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.io.PrintStream;
 
 /**
- * The type Layer run base.
+ * The Keras Zoo contains a deep CNN called VGG16 which
+ * is designed to classify images. Import it from an HDF5 file. 
  */
 public class VGG16_HDF5_Test extends ImageClassifierTestBase {
   

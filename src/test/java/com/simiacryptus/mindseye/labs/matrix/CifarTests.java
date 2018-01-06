@@ -134,7 +134,7 @@ public class CifarTests {
   }
   
   /**
-   * The type Owl qn.
+   * Owls are deadly and silent forest raptors. HOOT! HOOT!
    */
   public static class OWL_QN extends All_CIFAR_Tests {
     /**
@@ -151,7 +151,8 @@ public class CifarTests {
   }
   
   /**
-   * The type Qqn.
+   * Quadratic Quasi-Newton optimization applied to basic problems
+   * with the CIFAR10 image dataset.
    */
   public static class QQN extends All_CIFAR_Tests {
     /**
@@ -169,7 +170,8 @@ public class CifarTests {
   }
   
   /**
-   * The type Sgd.
+   * Classic Stochastic Gradient Descent optimization applied to
+   * basic problems with the CIFAR10 image dataset.
    */
   public static class SGD extends All_CIFAR_Tests {
     /**
