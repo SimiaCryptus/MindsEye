@@ -73,8 +73,8 @@ public class ConstNNLayer extends NNLayer {
     return new NNResult(data) {
   
       @Override
-      public void finalize() {
-        Arrays.stream(array).forEach(NNResult::finalize);
+      public void free() {
+        Arrays.stream(array).forEach(NNResult::free);
       }
   
       @Override

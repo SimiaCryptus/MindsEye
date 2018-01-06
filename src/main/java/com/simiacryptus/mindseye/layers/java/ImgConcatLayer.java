@@ -90,8 +90,8 @@ public class ImgConcatLayer extends NNLayer {
     return new NNResult(outputTensors.toArray(new Tensor[]{})) {
   
       @Override
-      public void finalize() {
-        Arrays.stream(inObj).forEach(NNResult::finalize);
+      public void free() {
+        Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override

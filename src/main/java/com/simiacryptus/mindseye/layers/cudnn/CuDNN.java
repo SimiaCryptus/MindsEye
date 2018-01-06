@@ -126,7 +126,7 @@ public class CuDNN {
   }
   
   /**
-   * Cuda finalize int.
+   * Cuda free int.
    *
    * @param devPtr the dev ptr
    * @param deviceId
@@ -833,11 +833,17 @@ public class CuDNN {
    * @return the cuda resource
    */
   public static CudaResource<cudnnConvolutionDescriptor> newConvolutionNdDescriptor(final int mode, final int dataType, final int[] padding, final int[] stride, final int[] dilation) {
+    assert padding.length == stride.length;
+    assert padding.length == dilation.length;
+    assert Arrays.stream(padding).allMatch(x -> x >= 0);
+    assert Arrays.stream(stride).allMatch(x -> x > 0);
+    assert Arrays.stream(dilation).allMatch(x -> x > 0);
     final cudnnConvolutionDescriptor convDesc = new cudnnConvolutionDescriptor();
     int result = JCudnn.cudnnCreateConvolutionDescriptor(convDesc);
     CuDNN.log("cudnnCreateConvolutionDescriptor", result, convDesc);
     CuDNN.handle(result);
-    result = JCudnn.cudnnSetConvolutionNdDescriptor(convDesc, padding.length,
+    result = JCudnn.cudnnSetConvolutionNdDescriptor(convDesc,
+                                                    3,
                                                     padding,
                                                     stride,
                                                     dilation,
@@ -866,15 +872,17 @@ public class CuDNN {
   /**
    * New convolutions 2 d descriptor cuda resource.
    *
-   * @param paddingX     the padding x
-   * @param paddingY     the padding y
-   * @param strideHeight the stride height
-   * @param strideWidth  the stride width
    * @param mode         the mode
    * @param dataType     the data type
+   * @param paddingY     the padding y
+   * @param paddingX     the padding x
+   * @param strideHeight the stride height
+   * @param strideWidth  the stride width
+   * @param dilationY
+   * @param dilationX
    * @return the cuda resource
    */
-  public static CudaResource<cudnnConvolutionDescriptor> newConvolutions2dDescriptor(final int paddingX, final int paddingY, final int strideHeight, final int strideWidth, final int mode, final int dataType) {
+  public static CudaResource<cudnnConvolutionDescriptor> newConvolutions2dDescriptor(final int mode, final int dataType, final int paddingY, final int paddingX, final int strideHeight, final int strideWidth, int dilationY, int dilationX) {
     final cudnnConvolutionDescriptor convDesc = new cudnnConvolutionDescriptor();
     int result = JCudnn.cudnnCreateConvolutionDescriptor(convDesc);
     CuDNN.log("cudnnCreateConvolutionDescriptor", result, convDesc);
@@ -885,8 +893,8 @@ public class CuDNN {
       paddingX, // zero-padding width
       strideHeight, // vertical filter stride
       strideWidth, // horizontal filter stride
-      1, // upscale the input in x-direction
-      1, // upscale the input in y-direction
+      dilationY, // upscale the input in x-direction
+      dilationX, // upscale the input in y-direction
       mode
       , dataType
                                                    );

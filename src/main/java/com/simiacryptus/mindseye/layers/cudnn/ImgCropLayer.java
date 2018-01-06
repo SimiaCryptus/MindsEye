@@ -111,9 +111,9 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
     return new NNResult(outputData) {
   
       @Override
-      public void finalize() {
+      public void free() {
         inputBuffer.finalize();
-        Arrays.stream(inObj).forEach(NNResult::finalize);
+        Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override
@@ -137,7 +137,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
           passbackBuffer.finalize();
           errorPtr.finalize();
         }
-        finalize();
+        free();
       }
   
       @Override

@@ -24,6 +24,8 @@ import com.simiacryptus.mindseye.eval.SampledTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.eval.TrainableWrapper;
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.layers.java.StochasticComponent;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.line.FailsafeLineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
@@ -101,6 +103,11 @@ public class ValidatingTrainer {
       @Override
       public boolean reseed(final long seed) {
         return validationSubject.reseed(seed);
+      }
+  
+      @Override
+      public NNLayer getLayer() {
+        return validationSubject.getLayer();
       }
     };
     trainingSize = trainingSubject.getTrainingSize();
@@ -511,8 +518,8 @@ public class ValidatingTrainer {
     do {
       if (10 < retries++) throw new IterativeStopException();
       final PointSample currentPoint = phase.trainingSubject.measure(monitor);
-      phase.orientation.reset();
       if (Double.isFinite(currentPoint.getMean())) return currentPoint;
+      phase.orientation.reset();
     } while (true);
   }
   
@@ -520,6 +527,11 @@ public class ValidatingTrainer {
     if (!phase.trainingSubject.reseed(seed)) throw new IterativeStopException();
     phase.orientation.reset();
     phase.trainingSubject.reseed(seed);
+    if (phase.trainingSubject.getLayer() instanceof DAGNetwork) {
+      ((DAGNetwork) phase.trainingSubject.getLayer()).visitLayers(layer -> {
+        if (layer instanceof StochasticComponent) ((StochasticComponent) layer).shuffle();
+      });
+    }
     return this;
   }
   
@@ -531,6 +543,11 @@ public class ValidatingTrainer {
   public double run() {
     try {
       final long timeoutAt = System.currentTimeMillis() + timeout.toMillis();
+      if (validationSubject.getLayer() instanceof DAGNetwork) {
+        ((DAGNetwork) validationSubject.getLayer()).visitLayers(layer -> {
+          if (layer instanceof StochasticComponent) ((StochasticComponent) layer).clearNoise();
+        });
+      }
       final EpochParams epochParams = new EpochParams(timeoutAt, epochIterations, getTrainingSize(), validationSubject.measure(monitor));
       int epochNumber = 0;
       int iterationNumber = 0;
@@ -551,6 +568,11 @@ public class ValidatingTrainer {
         final EpochResult primaryPhase = epochResults.get(0);
         iterationNumber += primaryPhase.iterations;
         final double trainingDelta = primaryPhase.currentPoint.getMean() / primaryPhase.priorMean;
+        if (validationSubject.getLayer() instanceof DAGNetwork) {
+          ((DAGNetwork) validationSubject.getLayer()).visitLayers(layer -> {
+            if (layer instanceof StochasticComponent) ((StochasticComponent) layer).clearNoise();
+          });
+        }
         final PointSample currentValidation = validationSubject.measure(monitor);
         final double overtraining = Math.log(trainingDelta) / Math.log(currentValidation.getMean() / epochParams.validation.getMean());
         final double validationDelta = currentValidation.getMean() / epochParams.validation.getMean();
@@ -604,6 +626,11 @@ public class ValidatingTrainer {
           epochParams.iterations = 1;
         }
         epochParams.validation = currentValidation;
+      }
+      if (validationSubject.getLayer() instanceof DAGNetwork) {
+        ((DAGNetwork) validationSubject.getLayer()).visitLayers(layer -> {
+          if (layer instanceof StochasticComponent) ((StochasticComponent) layer).clearNoise();
+        });
       }
       return epochParams.validation.getMean();
     } catch (final Throwable e) {

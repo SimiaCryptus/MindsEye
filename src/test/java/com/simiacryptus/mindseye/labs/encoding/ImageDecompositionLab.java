@@ -99,7 +99,7 @@ public class ImageDecompositionLab {
   protected void initialize(final NotebookOutput log, final Supplier<Stream<Tensor[]>> features, final ConvolutionLayer convolutionLayer, final ImgBandBiasLayer biasLayer) {
     final Tensor prototype = features.get().findAny().get()[1];
     final int[] dimensions = prototype.getDimensions();
-    final int[] filterDimensions = convolutionLayer.kernel.getDimensions();
+    final int[] filterDimensions = convolutionLayer.getKernel().getDimensions();
     assert filterDimensions[0] == dimensions[0];
     assert filterDimensions[1] == dimensions[1];
     final int outputBands = dimensions[2];

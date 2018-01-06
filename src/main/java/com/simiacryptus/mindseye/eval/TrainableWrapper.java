@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.eval;
 
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
@@ -62,6 +63,11 @@ public class TrainableWrapper<T extends Trainable> implements TrainableDataMask 
   @Override
   public boolean reseed(final long seed) {
     return getInner().reseed(seed);
+  }
+  
+  @Override
+  public NNLayer getLayer() {
+    return inner.getLayer();
   }
   
   @Override

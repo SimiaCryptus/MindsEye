@@ -44,6 +44,7 @@ import java.util.zip.ZipFile;
  */
 public class SerializationTest implements ComponentTest<ToleranceStatistics> {
   private final HashMap<SerialPrecision, NNLayer> models = new HashMap<>();
+  private boolean persist = false;
   
   /**
    * Compress gz byte [ ].
@@ -111,6 +112,7 @@ public class SerializationTest implements ComponentTest<ToleranceStatistics> {
             log.h2(String.format("Zipfile %s", precision.name()));
             log.p(log.link(file, String.format("Wrote Model with %s precision to %s; %.3fMiB bytes", precision, file.getName(), file.length() * 1.0 / (0x100000))));
           }
+          if (!isPersist()) file.delete();
           if (echo == null) throw new AssertionError("Failed to deserialize");
           if (layer == echo) throw new AssertionError("Serialization did not copy");
           if (!layer.equals(echo)) throw new AssertionError("Serialization not equal");
@@ -135,5 +137,14 @@ public class SerializationTest implements ComponentTest<ToleranceStatistics> {
    */
   public HashMap<SerialPrecision, NNLayer> getModels() {
     return models;
+  }
+  
+  public boolean isPersist() {
+    return persist;
+  }
+  
+  public SerializationTest setPersist(boolean persist) {
+    this.persist = persist;
+    return this;
   }
 }

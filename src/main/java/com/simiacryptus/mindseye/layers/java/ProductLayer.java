@@ -81,8 +81,8 @@ public class ProductLayer extends NNLayer {
     return new NNResult(outputA) {
   
       @Override
-      public void finalize() {
-        Arrays.stream(inObj).forEach(NNResult::finalize);
+      public void free() {
+        Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override

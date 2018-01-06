@@ -434,7 +434,7 @@ public class EncodingUtil {
    * @param featureSpace     the feature space
    */
   public static void setInitialFeatureSpace(final ConvolutionLayer convolutionLayer, final ImgBandBiasLayer biasLayer, final FindFeatureSpace featureSpace) {
-    final int[] filterDimensions = convolutionLayer.kernel.getDimensions();
+    final int[] filterDimensions = convolutionLayer.getKernel().getDimensions();
     final int outputBands = biasLayer.getBias().length;
     assert outputBands == biasLayer.getBias().length;
     final int inputBands = filterDimensions[2] / outputBands;
@@ -446,7 +446,7 @@ public class EncodingUtil {
     for (final Tensor t : featureSpaceVectors) {
       log.info(String.format("Feature Vector %s%n", t.prettyPrint()));
     }
-    convolutionLayer.kernel.setByCoord(c -> {
+    convolutionLayer.getKernel().setByCoord(c -> {
       final int kband = c.getCoords()[2];
       final int outband = kband % outputBands;
       final int inband = (kband - outband) / outputBands;
@@ -457,10 +457,10 @@ public class EncodingUtil {
       x = filterDimensions[0] - (x + 1);
       y = filterDimensions[1] - (y + 1);
       final double v = featureSpaceVectors[inband].get(x, y, outband);
-      return Double.isFinite(v) ? v : convolutionLayer.kernel.get(c);
+      return Double.isFinite(v) ? v : convolutionLayer.getKernel().get(c);
     });
     log.info(String.format("Bias: %s%n", Arrays.toString(biasLayer.getBias())));
-    log.info(String.format("Kernel: %s%n", convolutionLayer.kernel.prettyPrint()));
+    log.info(String.format("Kernel: %s%n", convolutionLayer.getKernel().prettyPrint()));
   }
   
   /**

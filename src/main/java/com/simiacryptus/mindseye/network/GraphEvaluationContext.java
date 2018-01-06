@@ -35,16 +35,16 @@ class GraphEvaluationContext {
   public final Map<UUID, CountingNNResult> cache = new HashMap<>();
 
 //  @Override
-//  protected void finalize() {
+//  protected void free() {
 //    cache.values().forEach(r -> {
 //      try {
-//        r.finalize();
+//        r.free();
 //      } catch (final Throwable e) {
 //        throw new RuntimeException(e);
 //      }
 //    });
 //    try {
-//      super.finalize();
+//      super.free();
 //    } catch (final Throwable e) {
 //      throw new RuntimeException(e);
 //    }

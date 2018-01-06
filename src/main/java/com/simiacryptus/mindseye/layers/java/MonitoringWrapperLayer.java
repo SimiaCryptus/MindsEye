@@ -122,8 +122,8 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     final NNResult[] wrappedInput = Arrays.stream(inObj).map(result -> new NNResult(result.getData()) {
   
       @Override
-      public void finalize() {
-        Arrays.stream(inObj).forEach(NNResult::finalize);
+      public void free() {
+        Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override
@@ -151,8 +151,8 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     return new NNResult(output.getData()) {
   
       @Override
-      public void finalize() {
-        Arrays.stream(inObj).forEach(NNResult::finalize);
+      public void free() {
+        Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override

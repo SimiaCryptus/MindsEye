@@ -133,8 +133,8 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
     return new NNResult(result) {
   
       @Override
-      public void finalize() {
-        Arrays.stream(inObj).forEach(NNResult::finalize);
+      public void free() {
+        Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override

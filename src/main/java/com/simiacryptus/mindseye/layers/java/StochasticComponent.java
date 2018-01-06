@@ -29,4 +29,6 @@ public interface StochasticComponent {
    * Shuffle.
    */
   void shuffle();
+  
+  void clearNoise();
 }

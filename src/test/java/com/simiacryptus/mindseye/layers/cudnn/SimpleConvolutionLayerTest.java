@@ -22,15 +22,19 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
-import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
+import com.simiacryptus.mindseye.test.ToleranceStatistics;
+import com.simiacryptus.mindseye.test.unit.*;
+import com.simiacryptus.util.io.NotebookOutput;
+
+import java.io.PrintStream;
 
 /**
  * The type Simple convolution layer run.
  */
 public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
   
-  private final int bands;
-  private final int radius;
+  public final int radius;
+  public final int bands;
   /**
    * The Layer.
    */
@@ -150,6 +154,100 @@ public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
     public MultiBand() {
       super(1, 3, Precision.Double);
     }
+  }
+  
+  /**
+   * Base test configuration demonstrating the absence of failure in this case.
+   */
+  public static class Bug_Control extends SimpleConvolutionLayerTest {
+    /**
+     * Instantiates a new Multi band.
+     */
+    public Bug_Control() {
+      super(3, 8, Precision.Double);
+      validateDifferentials = false;
+    }
+    
+    @Override
+    public void run(NotebookOutput log) {
+      String logName = "cuda_" + log.getName() + "_all.log";
+      log.p(log.file((String) null, logName, "GPU Log"));
+      CuDNN.apiLog = new PrintStream(log.file(logName));
+      super.run(log);
+    }
+    
+    
+    @Override
+    public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
+      return null;
+    }
+    
+    public ComponentTest<ToleranceStatistics> getPerformanceTester() {
+      return new PerformanceTester().setBatches(10).setSamples(1);
+    }
+    
+    protected ComponentTest<ToleranceStatistics> getReferenceIOTester() {
+      return new ReferenceIO(getReferenceIO());
+    }
+    
+  }
+  
+  public static class Bug extends Bug_Control {
+    /**
+     * Instantiates a new Multi band.
+     */
+    public Bug() {
+      super();
+      layer.setPaddingXY(0, 0);
+    }
+    
+  }
+  
+  /**
+   * Simple 256x256 band 1-pixel "convolution"
+   */
+  public static class Big extends SimpleConvolutionLayerTest {
+    /**
+     * Instantiates a new Multi band.
+     */
+    public Big() {
+      super(3, 1024, Precision.Double);
+      validateDifferentials = false;
+    }
+    
+    @Override
+    public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
+//      return null;
+      return super.getTrainingTester();
+    }
+    
+    @Override
+    public NNLayer getReferenceLayer() {
+      return null;
+    }
+    
+    @Override
+    public int[][] getPerfDims() {
+      return new int[][]{
+        {30, 30, bands}
+      };
+    }
+    
+    public ComponentTest<ToleranceStatistics> getPerformanceTester() {
+      ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setBatches(10);
+      return (log1, component, inputPrototype) -> {
+        String logName = "cuda_" + log1.getName() + "_perf.log";
+        try {
+          CuDNN.apiLog = new PrintStream(log1.file(logName));
+          return inner.test(log1, component, inputPrototype);
+        } finally {
+          log1.p(log1.file((String) null, logName, "GPU Log"));
+          CuDNN.apiLog.close();
+          CuDNN.apiLog = null;
+        }
+      };
+    }
+    
   }
   
 }

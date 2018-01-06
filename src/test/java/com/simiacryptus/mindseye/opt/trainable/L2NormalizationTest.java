@@ -48,6 +48,11 @@ public class L2NormalizationTest extends MnistTestBase {
       final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       final Trainable trainable = new L12Normalizer(new SampledArrayTrainable(trainingData, supervisedNetwork, 1000)) {
         @Override
+        public NNLayer getLayer() {
+          return inner.getLayer();
+        }
+  
+        @Override
         protected double getL1(final NNLayer layer) {
           return 0.0;
         }

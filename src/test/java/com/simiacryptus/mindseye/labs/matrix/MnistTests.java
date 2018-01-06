@@ -24,10 +24,7 @@ import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
-import com.simiacryptus.mindseye.layers.java.BiasLayer;
-import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
-import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
-import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.layers.java.*;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.data.MNIST;
 import com.simiacryptus.mindseye.test.integration.*;
@@ -47,12 +44,21 @@ public class MnistTests {
     log.p("The image-to-vector network is a single layer convolutional:");
     return log.code(() -> {
       final PipelineNetwork network = new PipelineNetwork();
-      network.add(new ConvolutionLayer(3, 3, 1, 5).set(i -> 1e-8 * (Math.random() - 0.5)));
+      network.add(new ConvolutionLayer(5, 5, 1, 32).set(i -> 1e-8 * (Math.random() - 0.5)));
+      network.add(new ImgBandBiasLayer(32));
+      network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
+      network.add(new ConvolutionLayer(5, 5, 32, 64).set(i -> 1e-8 * (Math.random() - 0.5)));
+      network.add(new ImgBandBiasLayer(64));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());
-      network.add(new BiasLayer(14, 14, 5));
-      network.add(new FullyConnectedLayer(new int[]{14, 14, 5}, new int[]{features})
+      network.add(new FullyConnectedLayer(new int[]{4, 4, 64}, new int[]{1024})
                     .set(() -> 0.001 * (Math.random() - 0.45)));
+      network.add(new BiasLayer(1024));
+      network.add(new ReLuActivationLayer());
+      network.add(new DropoutNoiseLayer(0.5));
+      network.add(new FullyConnectedLayer(new int[]{1024}, new int[]{features})
+                    .set(() -> 0.001 * (Math.random() - 0.45)));
+      network.add(new BiasLayer(features));
       network.add(new SoftmaxActivationLayer());
       return network;
     });

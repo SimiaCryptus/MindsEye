@@ -82,8 +82,8 @@ public class L1NormalizationLayer extends NNLayer {
     return new NNResult(output) {
   
       @Override
-      public void finalize() {
-        Arrays.stream(input).forEach(NNResult::finalize);
+      public void free() {
+        Arrays.stream(input).forEach(NNResult::free);
       }
   
       @Override

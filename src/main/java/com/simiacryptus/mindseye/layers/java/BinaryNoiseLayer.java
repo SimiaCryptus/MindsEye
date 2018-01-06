@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.FastRandom;
@@ -50,6 +51,7 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
    */
   List<Tensor> maskList = new ArrayList<>();
   private double value;
+  private boolean enabled = true;
   
   /**
    * Instantiates a new Binary noise layer.
@@ -76,6 +78,8 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
   protected BinaryNoiseLayer(final JsonObject json) {
     super(json);
     value = json.get("value").getAsDouble();
+    JsonElement enabled = json.get("enabled");
+    this.enabled = enabled == null || enabled.getAsBoolean();
   }
   
   /**
@@ -92,21 +96,22 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     final NNResult input = inObj[0];
+    if (!enabled) return input;
     final int[] dimensions = input.getData().getDimensions();
-    final int length = input.getData().length();
     if (maskList.size() > 1 && !Arrays.equals(maskList.get(0).getDimensions(), dimensions)) {
       maskList.clear();
     }
+    final int length = input.getData().length();
     final Tensor tensorPrototype = new Tensor(dimensions);
     while (length > maskList.size()) {
-      maskList.add(tensorPrototype.map(v -> FastRandom.random() < getValue() ? 0 : 1));
+      maskList.add(tensorPrototype.map(v -> FastRandom.random() < getValue() ? 0 : (1.0 / getValue())));
     }
     final TensorArray mask = new TensorArray(maskList.stream().limit(length).toArray(i -> new Tensor[i]));
     return new NNResult(mask) {
   
       @Override
-      public void finalize() {
-        Arrays.stream(inObj).forEach(NNResult::finalize);
+      public void free() {
+        Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override
@@ -125,6 +130,7 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.addProperty("value", value);
+    json.addProperty("enabled", enabled);
     return json;
   }
   
@@ -152,6 +158,12 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
   @Override
   public void shuffle() {
     maskList.clear();
+  }
+  
+  @Override
+  public void clearNoise() {
+    maskList.clear();
+    this.enabled = false;
   }
   
   @Override

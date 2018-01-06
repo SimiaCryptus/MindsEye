@@ -196,6 +196,11 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
     return measure(3, monitor);
   }
   
+  @Override
+  public NNLayer getLayer() {
+    return network;
+  }
+  
   /**
    * Measure point sample.
    *

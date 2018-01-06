@@ -41,7 +41,7 @@ public class ImgReshapeLayer extends NNLayer {
   private final int kernelSizeY;
   
   /**
-   * Instantiates a new Img reshape layer.
+   * Instantiates a new Img reshapeCast layer.
    *
    * @param kernelSizeX the kernel size x
    * @param kernelSizeY the kernel size y
@@ -55,7 +55,7 @@ public class ImgReshapeLayer extends NNLayer {
   }
   
   /**
-   * Instantiates a new Img reshape layer.
+   * Instantiates a new Img reshapeCast layer.
    *
    * @param json the json
    */
@@ -136,11 +136,11 @@ public class ImgReshapeLayer extends NNLayer {
   }
   
   /**
-   * From json img reshape layer.
+   * From json img reshapeCast layer.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img reshape layer
+   * @return the img reshapeCast layer
    */
   public static ImgReshapeLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new ImgReshapeLayer(json);
@@ -174,8 +174,8 @@ public class ImgReshapeLayer extends NNLayer {
                                  .toArray(i -> new Tensor[i])) {
   
       @Override
-      public void finalize() {
-        Arrays.stream(inObj).forEach(NNResult::finalize);
+      public void free() {
+        Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override

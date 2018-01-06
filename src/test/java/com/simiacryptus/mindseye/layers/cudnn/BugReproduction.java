@@ -20,23 +20,33 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.java.BiasLayer;
-import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
-import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
+import com.simiacryptus.mindseye.test.unit.PerformanceTester;
+import com.simiacryptus.util.io.NotebookOutput;
+
+import java.io.PrintStream;
 
 /**
  * Attempt to trigger software bug
  */
-public class BugReproduction extends CudnnLayerTestBase {
+public class BugReproduction extends LayerTestBase {
   
   /**
    * Instantiates a new Irregular run float.
    */
   public BugReproduction() {
     this.validateDifferentials = false;
+  }
+  
+  @Override
+  public void run(NotebookOutput log) {
+    String logName = "cuda_" + log.getName() + "_all.log";
+    log.p(log.file((String) null, logName, "GPU Log"));
+    CuDNN.apiLog = new PrintStream(log.file(logName));
+    super.run(log);
   }
   
   @Override
@@ -170,90 +180,100 @@ public class BugReproduction extends CudnnLayerTestBase {
 //    //  model.add(Convolution2D(512, 3, 3, activation='relu'))
 
 
+//    model.add(new ConvolutionLayer(3, 3, 512, 512)
+//                .setPaddingXY(0, 0)
+//                .setWeightsLog(-2)
+//                .explode());
+    model.add(new SimpleConvolutionLayer(3, 3, 512 * 512)
+                .setPaddingXY(0, 0)
+                .setWeightsLog(-2));
 
-    model.add(new ConvolutionLayer(3, 3, 512, 512)
-                .setPaddingXY(0, 0)
-                .setWeightsLog(-2)
-                .explode());
-    model.add(new ImgBandBiasLayer(512)
-                .setWeightsLog(-2));
-    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    //  model.add(ZeroPadding2D((1,1)))
-    model.add(new ImgZeroPaddingLayer(1, 1));
-    //  model.add(Convolution2D(512, 3, 3, activation='relu'))
-    model.add(new ConvolutionLayer(3, 3, 512, 512)
-                .setPaddingXY(0, 0)
-                .setWeightsLog(-2)
-                .explode());
-    model.add(new ImgBandBiasLayer(512)
-                .setWeightsLog(-2));
-    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    //  model.add(MaxPooling2D((2,2), strides=(2,2)))
-    model.add(new PoolingLayer()
-                .setMode(PoolingLayer.PoolingMode.Max)
-                .setWindowXY(2, 2)
-                .setStrideXY(2, 2));
-    //
-    //  model.add(ZeroPadding2D((1,1)))
-    model.add(new ImgZeroPaddingLayer(1, 1));
-    //  model.add(Convolution2D(512, 3, 3, activation='relu'))
-    model.add(new ConvolutionLayer(3, 3, 512, 512)
-                .setPaddingXY(0, 0)
-                .setWeightsLog(-2)
-                .explode());
-    model.add(new ImgBandBiasLayer(512)
-                .setWeightsLog(-2));
-    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    //  model.add(ZeroPadding2D((1,1)))
-    model.add(new ImgZeroPaddingLayer(1, 1));
-    //  model.add(Convolution2D(512, 3, 3, activation='relu'))
-    model.add(new ConvolutionLayer(3, 3, 512, 512)
-                .setPaddingXY(0, 0)
-                .setWeightsLog(-2)
-                .explode());
-    model.add(new ImgBandBiasLayer(512)
-                .setWeightsLog(-2));
-    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    //  model.add(ZeroPadding2D((1,1)))
-    model.add(new ImgZeroPaddingLayer(1, 1));
-    //  model.add(Convolution2D(512, 3, 3, activation='relu'))
-    model.add(new ConvolutionLayer(3, 3, 512, 512)
-                .setPaddingXY(0, 0)
-                .setWeightsLog(-2)
-                .explode());
-    model.add(new ImgBandBiasLayer(512)
-                .setWeightsLog(-2));
-    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    //  model.add(MaxPooling2D((2,2), strides=(2,2)))
-    model.add(new PoolingLayer()
-                .setMode(PoolingLayer.PoolingMode.Max)
-                .setWindowXY(2, 2)
-                .setStrideXY(2, 2));
-    //
-    //  model.add(Flatten())
-    //  model.add(Dense(4096, activation='relu'))
-    model.add(new com.simiacryptus.mindseye.layers.java.FullyConnectedLayer(new int[]{25088}, new int[]{4096})
-                .setWeightsLog(-2)
-                .setName("fullyconnected_32"));
-    model.add(new BiasLayer(4096)
-                .setWeightsLog(-2));
-    //  model.add(Dropout(0.5))
-    //model.add(new DropoutNoiseLayer(0.5));
-    //  model.add(Dense(4096, activation='relu'))
-    model.add(new com.simiacryptus.mindseye.layers.java.FullyConnectedLayer(new int[]{4096}, new int[]{4096})
-                .setWeightsLog(-2));
-    model.add(new BiasLayer(4096)
-                .setWeightsLog(-2));
-    //  model.add(Dropout(0.5))
-    //model.add(new DropoutNoiseLayer(0.5));
-    //  model.add(Dense(1000, activation='softmax'))
-    model.add(new FullyConnectedLayer(new int[]{4096}, new int[]{1000})
-                .setWeightsLog(-2)
-                .setName("fullyconnected_36"));
-    model.add(new BiasLayer(1000)
-                .setWeightsLog(-2)
-                .setName("bias_36"));
-    model.add(new SoftmaxActivationLayer());
+
+//    model.add(new ImgBandBiasLayer(512)
+//                .setWeightsLog(-2));
+//    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+//    //  model.add(ZeroPadding2D((1,1)))
+//    model.add(new ImgZeroPaddingLayer(1, 1));
+//    //  model.add(Convolution2D(512, 3, 3, activation='relu'))
+//    model.add(new ConvolutionLayer(3, 3, 512, 512)
+//                .setPaddingXY(0, 0)
+//                .setWeightsLog(-2)
+//                .explode());
+//    model.add(new ImgBandBiasLayer(512)
+//                .setWeightsLog(-2));
+//    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+//    //  model.add(MaxPooling2D((2,2), strides=(2,2)))
+//    model.add(new PoolingLayer()
+//                .setMode(PoolingLayer.PoolingMode.Max)
+//                .setWindowXY(2, 2)
+//                .setStrideXY(2, 2));
+
+
+//    //
+//    //  model.add(ZeroPadding2D((1,1)))
+//    model.add(new ImgZeroPaddingLayer(1, 1));
+//    //  model.add(Convolution2D(512, 3, 3, activation='relu'))
+//    model.add(new ConvolutionLayer(3, 3, 512, 512)
+//                .setPaddingXY(0, 0)
+//                .setWeightsLog(-2)
+//                .explode());
+//    model.add(new ImgBandBiasLayer(512)
+//                .setWeightsLog(-2));
+//    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+//    //  model.add(ZeroPadding2D((1,1)))
+//    model.add(new ImgZeroPaddingLayer(1, 1));
+//    //  model.add(Convolution2D(512, 3, 3, activation='relu'))
+//    model.add(new ConvolutionLayer(3, 3, 512, 512)
+//                .setPaddingXY(0, 0)
+//                .setWeightsLog(-2)
+//                .explode());
+
+
+//    model.add(new ImgBandBiasLayer(512)
+//                .setWeightsLog(-2));
+//    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+//    //  model.add(ZeroPadding2D((1,1)))
+//    model.add(new ImgZeroPaddingLayer(1, 1));
+//    //  model.add(Convolution2D(512, 3, 3, activation='relu'))
+//    model.add(new ConvolutionLayer(3, 3, 512, 512)
+//                .setPaddingXY(0, 0)
+//                .setWeightsLog(-2)
+//                .explode());
+//    model.add(new ImgBandBiasLayer(512)
+//                .setWeightsLog(-2));
+//    model.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+//    //  model.add(MaxPooling2D((2,2), strides=(2,2)))
+//    model.add(new PoolingLayer()
+//                .setMode(PoolingLayer.PoolingMode.Max)
+//                .setWindowXY(2, 2)
+//                .setStrideXY(2, 2));
+
+
+//    //
+//    //  model.add(Flatten())
+//    //  model.add(Dense(4096, activation='relu'))
+//    model.add(new com.simiacryptus.mindseye.layers.java.FullyConnectedLayer(new int[]{25088}, new int[]{4096})
+//                .setWeightsLog(-2)
+//                .setName("fullyconnected_32"));
+//    model.add(new BiasLayer(4096)
+//                .setWeightsLog(-2));
+//    //  model.add(Dropout(0.5))
+//    //model.add(new DropoutNoiseLayer(0.5));
+//    //  model.add(Dense(4096, activation='relu'))
+//    model.add(new com.simiacryptus.mindseye.layers.java.FullyConnectedLayer(new int[]{4096}, new int[]{4096})
+//                .setWeightsLog(-2));
+//    model.add(new BiasLayer(4096)
+//                .setWeightsLog(-2));
+//    //  model.add(Dropout(0.5))
+//    //model.add(new DropoutNoiseLayer(0.5));
+//    //  model.add(Dense(1000, activation='softmax'))
+//    model.add(new FullyConnectedLayer(new int[]{4096}, new int[]{1000})
+//                .setWeightsLog(-2)
+//                .setName("fullyconnected_36"));
+//    model.add(new BiasLayer(1000)
+//                .setWeightsLog(-2)
+//                .setName("bias_36"));
+//    model.add(new SoftmaxActivationLayer());
 
     return model;
   }
@@ -261,5 +281,10 @@ public class BugReproduction extends CudnnLayerTestBase {
   @Override
   protected Class<?> getTargetClass() {
     return ConvolutionLayer.class;
+  }
+  
+  @Override
+  public ComponentTest<ToleranceStatistics> getPerformanceTester() {
+    return new PerformanceTester().setBatches(1);
   }
 }

@@ -362,5 +362,9 @@ public class SparkTrainable implements Trainable {
     
   }
   
+  @Override
+  public NNLayer getLayer() {
+    return network;
+  }
   
 }

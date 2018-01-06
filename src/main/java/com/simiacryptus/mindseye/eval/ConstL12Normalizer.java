@@ -45,6 +45,11 @@ public class ConstL12Normalizer extends L12Normalizer implements SampledTrainabl
     return new SampledCachedTrainable<>(this);
   }
   
+  @Override
+  public NNLayer getLayer() {
+    return inner.getLayer();
+  }
+  
   /**
    * Gets factor l 1.
    *

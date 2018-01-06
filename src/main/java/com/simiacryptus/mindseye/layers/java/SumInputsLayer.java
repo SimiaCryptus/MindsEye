@@ -79,8 +79,8 @@ public class SumInputsLayer extends NNLayer {
     return new NNResult(data) {
   
       @Override
-      public void finalize() {
-        Arrays.stream(inObj).forEach(NNResult::finalize);
+      public void free() {
+        Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override

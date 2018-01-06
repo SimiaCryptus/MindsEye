@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Img reshape layer run.
+ * The type Img reshapeCast layer run.
  */
 public abstract class ImgReshapeLayerTest extends LayerTestBase {
   

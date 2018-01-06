@@ -99,7 +99,8 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
       final Random random = new Random(seed);
       final Tensor input = inObj[0].getData().get(dataIndex);
       final Tensor output = input.map(x -> {
-        return random.nextDouble() < getValue() ? 0 : 1;
+        if (seed == -1) return 1;
+        return random.nextDouble() < getValue() ? 0 : (1.0 / getValue());
       });
       return output;
     }).toArray(i -> new Tensor[i]);
@@ -149,6 +150,11 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
   }
   
   @Override
+  public void clearNoise() {
+    seed = -1;
+  }
+  
+  @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
@@ -165,8 +171,8 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
     }
   
     @Override
-    public void finalize() {
-      inObj.finalize();
+    public void free() {
+      inObj.free();
     }
     
     @Override

@@ -172,8 +172,8 @@ public class HyperbolicActivationLayer extends NNLayer {
     }
   
     @Override
-    public void finalize() {
-      inObj.finalize();
+    public void free() {
+      inObj.free();
     }
     
     @Override

@@ -76,8 +76,8 @@ public final class LoggingWrapperLayer extends WrapperLayer {
       return new NNResult(result.getData()) {
   
         @Override
-        public void finalize() {
-          Arrays.stream(inObj).forEach(NNResult::finalize);
+        public void free() {
+          Arrays.stream(inObj).forEach(NNResult::free);
         }
   
         @Override
@@ -111,8 +111,8 @@ public final class LoggingWrapperLayer extends WrapperLayer {
     return new NNResult(output.getData()) {
   
       @Override
-      public void finalize() {
-        Arrays.stream(inObj).forEach(NNResult::finalize);
+      public void free() {
+        Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override

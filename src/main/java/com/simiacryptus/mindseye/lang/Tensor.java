@@ -92,6 +92,12 @@ public class Tensor implements Serializable {
     //assert (null == data || Tensor.dim(dims) == data.length);
   }
   
+  private Tensor(int[] dimensions, int[] strides, double[] data) {
+    this.dimensions = dimensions;
+    this.strides = strides;
+    this.data = data;
+  }
+  
   /**
    * Instantiates a new Tensor.
    *
@@ -1441,6 +1447,12 @@ public class Tensor implements Serializable {
    */
   public Tensor reorderDimensions(UnaryOperator<int[]> fn) {
     return reorderDimensions(this, fn);
+  }
+  
+  public Tensor reshapeCast(int... dims) {
+    if (0 == dims.length) throw new IllegalArgumentException();
+    if (dim(dims) != dim()) throw new IllegalArgumentException();
+    return new Tensor(dims, Tensor.getSkips(dims), getData());
   }
   
   /**

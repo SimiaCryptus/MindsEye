@@ -114,8 +114,8 @@ public class ProductInputsLayer extends NNLayer {
       }
   
       @Override
-      public void finalize() {
-        Arrays.stream(inObj).forEach(NNResult::finalize);
+      public void free() {
+        Arrays.stream(inObj).forEach(NNResult::free);
       }
   
     };

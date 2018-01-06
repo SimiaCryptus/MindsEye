@@ -60,17 +60,17 @@ class CountingNNResult extends NNResult {
   }
   
   /**
-   * A flagrant abuse of Java's object finalization contract. Repeated calls to this class's finalize method will
+   * A flagrant abuse of Java's object finalization contract. Repeated calls to this class's free method will
    * increment a counter, and when the counter cycles the call is chained.
    */
   @Override
-  public void finalize() {
+  public void free() {
     if (1 >= getCount()) {
-      inner.finalize();
+      inner.free();
     }
     else {
       if (++finalizations == getCount()) {
-        inner.finalize();
+        inner.free();
         finalizations = 0;
       }
     }
@@ -78,6 +78,7 @@ class CountingNNResult extends NNResult {
   
   @Override
   public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+    assert 0 == finalizations;
     if (1 >= getCount()) {
       inner.accumulate(buffer, data);
     }

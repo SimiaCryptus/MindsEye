@@ -17,13 +17,13 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn;
+package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.NNExecutionContext;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.layers.cudnn.LayerPrecision;
+import com.simiacryptus.mindseye.layers.cudnn.Precision;
+import com.simiacryptus.util.io.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,32 +32,32 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Increases the resolution of the input by selecting a larger centered window. The output image will have the same
- * number of color bands, and the area outside the source image will be setWeights to 0.
+ * A dense matrix operator using vector-matrix multiplication. Represents a fully connected layer of synapses, where all
+ * inputs are connected to all outputs via seperate coefficients.
  */
 @SuppressWarnings("serial")
-public class ImgZeroPaddingLayer extends NNLayer implements LayerPrecision<ImgZeroPaddingLayer> {
-  private static final Logger log = LoggerFactory.getLogger(ImgZeroPaddingLayer.class);
-  
-  private int sizeX;
-  private int sizeY;
+public class ReshapeLayer extends NNLayer implements LayerPrecision<ReshapeLayer> {
+  private static final Logger log = LoggerFactory.getLogger(ReshapeLayer.class);
+  /**
+   * The Output dims.
+   */
+  public final int[] outputDims;
   private Precision precision = Precision.Double;
   
   /**
    * Instantiates a new Img concat layer.
    */
-  private ImgZeroPaddingLayer() {
+  private ReshapeLayer() {
+    outputDims = null;
   }
   
   /**
-   * Instantiates a new Img zero padding layer.
+   * Instantiates a new Fully connected layer.
    *
-   * @param sizeX the size x
-   * @param sizeY the size y
+   * @param outputDims the output dims
    */
-  public ImgZeroPaddingLayer(int sizeX, int sizeY) {
-    this.sizeX = sizeX;
-    this.sizeY = sizeY;
+  public ReshapeLayer(final int... outputDims) {
+    this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
   }
   
   /**
@@ -66,10 +66,9 @@ public class ImgZeroPaddingLayer extends NNLayer implements LayerPrecision<ImgZe
    * @param json the json
    * @param rs   the rs
    */
-  protected ImgZeroPaddingLayer(final JsonObject json, Map<String, byte[]> rs) {
+  protected ReshapeLayer(final JsonObject json, Map<String, byte[]> rs) {
     super(json);
-    sizeX = json.get("sizeX").getAsInt();
-    sizeY = json.get("sizeY").getAsInt();
+    outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
   }
   
@@ -80,22 +79,33 @@ public class ImgZeroPaddingLayer extends NNLayer implements LayerPrecision<ImgZe
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static ImgZeroPaddingLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
-    return new ImgZeroPaddingLayer(json, rs);
+  public static ReshapeLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    return new ReshapeLayer(json, rs);
   }
   
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
-    assert inObj.length == 1;
-    int[] dimensions = inObj[0].getData().getDimensions();
-    return new ImgCropLayer(dimensions[0] + 2 * this.sizeX, dimensions[1] + 2 * this.sizeY).eval(nncontext, inObj);
+    assert 1 == inObj.length;
+    TensorList data = inObj[0].getData();
+    int[] inputDims = data.getDimensions();
+    return new NNResult(new ReshapedTensorList(data, outputDims)) {
+      @Override
+      public void accumulate(DeltaSet<NNLayer> buffer, TensorList delta) {
+        inObj[0].accumulate(buffer, new ReshapedTensorList(delta, inputDims));
+      }
+      
+      @Override
+      public boolean isAlive() {
+        return inObj[0].isAlive();
+      }
+    };
+    
   }
   
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
-    json.addProperty("sizeY", sizeY);
-    json.addProperty("sizeX", sizeX);
+    json.add("outputDims", JsonUtil.getJson(outputDims));
     json.addProperty("precision", precision.name());
     return json;
   }
@@ -111,7 +121,7 @@ public class ImgZeroPaddingLayer extends NNLayer implements LayerPrecision<ImgZe
   }
   
   @Override
-  public ImgZeroPaddingLayer setPrecision(final Precision precision) {
+  public ReshapeLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }

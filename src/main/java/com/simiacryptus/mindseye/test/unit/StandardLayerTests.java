@@ -166,15 +166,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   }
   
   /**
-   * Gets performance tester.
-   *
-   * @return the performance tester
-   */
-  public ComponentTest<ToleranceStatistics> getPerformanceTester() {
-    return new PerformanceTester();
-  }
-  
-  /**
    * Gets reference io.
    *
    * @return the reference io
@@ -183,6 +174,15 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     return new HashMap<>();
   }
   
+  /**
+   * Gets performance tester.
+   *
+   * @return the performance tester
+   */
+  public ComponentTest<ToleranceStatistics> getPerformanceTester() {
+    return new PerformanceTester();
+  }
+
   /**
    * Gets reference io tester.
    *

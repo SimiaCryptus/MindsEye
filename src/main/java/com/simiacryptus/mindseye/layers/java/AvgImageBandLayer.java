@@ -85,8 +85,8 @@ public class AvgImageBandLayer extends NNLayer {
     return new NNResult(results) {
   
       @Override
-      public void finalize() {
-        Arrays.stream(inObj).forEach(NNResult::finalize);
+      public void free() {
+        Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override

@@ -125,8 +125,8 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
       }
   
       @Override
-      public void finalize() {
-        input.finalize();
+      public void free() {
+        input.free();
       }
     };
   }

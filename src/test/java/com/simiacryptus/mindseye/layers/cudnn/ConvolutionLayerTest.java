@@ -56,7 +56,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
     this.inputBands = inputBands;
     this.outputBands = outputBands;
     convolutionLayer = new ConvolutionLayer(radius, radius, inputBands, outputBands).setPrecision(precision);
-    convolutionLayer.kernel.set(() -> random());
+    convolutionLayer.getKernel().set(() -> random());
   }
   
   @Override
@@ -121,6 +121,21 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
     public Double() {
       super(1, 2, 2, Precision.Double);
     }
+  }
+  
+  /**
+   * Tests with no zero-padding; the output will be radius-1 smaller than the input. This currently tests a workaround
+   * where CuDNN does not seem to support convolutions that change resolution.
+   */
+  public static class NoPadding extends ConvolutionLayerTest {
+    /**
+     * Instantiates a new Double.
+     */
+    public NoPadding() {
+      super(3, 2, 2, Precision.Double);
+      convolutionLayer.setPaddingXY(0, 0);
+    }
+    
   }
   
   /**

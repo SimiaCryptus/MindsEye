@@ -26,16 +26,29 @@ import com.simiacryptus.mindseye.lang.NNLayer;
  */
 public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
   
+  private final int inputDim;
+  private final int outputDim;
+  
+  public FullyConnectedLayerTest(int dim) {
+    this.inputDim = dim;
+    this.outputDim = dim;
+  }
+  
+  public FullyConnectedLayerTest(int inputDim, int outputDim) {
+    this.inputDim = inputDim;
+    this.outputDim = outputDim;
+  }
+  
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3}
+      {inputDim}
     };
   }
   
   @Override
   public NNLayer getLayer(final int[][] inputSize) {
-    return new FullyConnectedLayer(new int[]{3}, new int[]{3});
+    return new FullyConnectedLayer(new int[]{inputDim}, new int[]{outputDim}).setWeightsLog(-2);
   }
   
   @Override
@@ -43,10 +56,22 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
     return com.simiacryptus.mindseye.layers.java.FullyConnectedLayer.class;
   }
   
-  
   /**
    * Basic Test
    */
   public static class Basic extends FullyConnectedLayerTest {
+    public Basic() {
+      super(8);
+    }
+  }
+  
+  /**
+   * Basic Test
+   */
+  public static class Big extends FullyConnectedLayerTest {
+    public Big() {
+      super(128);
+      validateDifferentials = false;
+    }
   }
 }

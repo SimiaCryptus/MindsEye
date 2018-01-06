@@ -74,7 +74,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
    * @param batches the batches
    * @return the batches
    */
-  public ComponentTest<ToleranceStatistics> setBatches(final int batches) {
+  public PerformanceTester setBatches(final int batches) {
     this.batches = batches;
     return this;
   }

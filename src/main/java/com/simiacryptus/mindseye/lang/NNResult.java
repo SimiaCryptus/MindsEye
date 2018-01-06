@@ -93,7 +93,7 @@ public abstract class NNResult {
    */
   public TensorList getDataAndFree() {
     TensorArray tensorArray = new TensorArray(data.stream().toArray(i -> new Tensor[i]));
-    finalize();
+    free();
     return tensorArray;
   }
   
@@ -104,5 +104,5 @@ public abstract class NNResult {
    */
   public abstract boolean isAlive();
   
-  public void finalize() {}
+  public void free() {}
 }

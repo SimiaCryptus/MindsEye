@@ -113,8 +113,8 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
     return new NNResult(outputData) {
   
       @Override
-      public void finalize() {
-        Arrays.stream(inObj).forEach(NNResult::finalize);
+      public void free() {
+        Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override
@@ -122,7 +122,7 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
         if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
           throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
         }
-        //outputBuffer.finalize();
+        //outputBuffer.free();
         ((CudaExecutionContext) nncontext).initThread();
         assert error.length() == inObj[0].getData().length();
         //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);

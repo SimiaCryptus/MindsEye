@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.eval;
 
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
@@ -54,5 +55,7 @@ public interface Trainable {
   default boolean reseed(final long seed) {
     return false;
   }
+  
+  NNLayer getLayer();
   
 }

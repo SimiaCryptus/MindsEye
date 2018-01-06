@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.opt;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.IterativeStopException;
 import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.layers.java.StochasticComponent;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.line.FailsafeLineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
@@ -242,6 +244,11 @@ public class IterativeTrainer {
     do {
       if (reset) {
         orientation.reset();
+        if (subject.getLayer() instanceof DAGNetwork) {
+          ((DAGNetwork) subject.getLayer()).visitLayers(layer -> {
+            if (layer instanceof StochasticComponent) ((StochasticComponent) layer).shuffle();
+          });
+        }
         if (!subject.reseed(System.nanoTime())) {
           if (retries > 0) throw new IterativeStopException("Failed to reset training subject");
         }
@@ -320,6 +327,11 @@ public class IterativeTrainer {
         }
         monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
       }
+    }
+    if (subject.getLayer() instanceof DAGNetwork) {
+      ((DAGNetwork) subject.getLayer()).visitLayers(layer -> {
+        if (layer instanceof StochasticComponent) ((StochasticComponent) layer).clearNoise();
+      });
     }
     return null == currentPoint ? Double.NaN : currentPoint.getMean();
   }

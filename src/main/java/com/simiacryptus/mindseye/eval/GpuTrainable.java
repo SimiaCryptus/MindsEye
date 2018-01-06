@@ -186,6 +186,11 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
     return measure(3, monitor);
   }
   
+  @Override
+  public NNLayer getLayer() {
+    return network;
+  }
+  
   /**
    * Eval point sample.
    *

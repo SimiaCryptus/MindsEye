@@ -180,8 +180,8 @@ public class LinearActivationLayer extends NNLayer {
     }
   
     @Override
-    public void finalize() {
-      inObj.finalize();
+    public void free() {
+      inObj.free();
     }
   
   }

@@ -64,7 +64,7 @@ public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
   }
   
   /**
-   * Load gpu contexts list. If the property disableCuDnn is set to true, no GPUs will be recognized. This is useful for
+   * Load gpu contexts list. If the property disableCuDnn is setWeights to true, no GPUs will be recognized. This is useful for
    * testing CPU-only compatibility.
    *
    * @return the list

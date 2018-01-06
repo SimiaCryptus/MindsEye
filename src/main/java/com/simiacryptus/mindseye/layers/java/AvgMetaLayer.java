@@ -116,8 +116,8 @@ public class AvgMetaLayer extends NNLayer {
       }
   
       @Override
-      public void finalize() {
-        input.finalize();
+      public void free() {
+        input.free();
       }
   
     };

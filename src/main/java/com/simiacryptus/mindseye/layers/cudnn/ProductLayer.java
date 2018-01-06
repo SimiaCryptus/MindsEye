@@ -109,8 +109,8 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
     return new NNResult(result) {
   
       @Override
-      public void finalize() {
-        Arrays.stream(inObj).forEach(NNResult::finalize);
+      public void free() {
+        Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override
