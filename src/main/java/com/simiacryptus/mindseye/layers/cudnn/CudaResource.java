@@ -28,14 +28,18 @@ import java.util.function.ToIntFunction;
  */
 public class CudaResource<T> extends CudaResourceBase<T> {
   
-  private final ToIntFunction<T> destructor;
+  /**
+   * The Device id.
+   */
   public final int deviceId;
+  private final ToIntFunction<T> destructor;
   
   /**
    * Instantiates a new Cuda resource.
    *
    * @param obj        the obj
    * @param destructor the destructor
+   * @param deviceId   the device id
    */
   protected CudaResource(final T obj, final ToIntFunction<T> destructor, int deviceId) {
     super(obj);

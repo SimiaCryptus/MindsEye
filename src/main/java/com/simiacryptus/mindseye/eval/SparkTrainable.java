@@ -242,6 +242,11 @@ public class SparkTrainable implements Trainable {
     return true;
   }
   
+  @Override
+  public NNLayer getLayer() {
+    return network;
+  }
+  
   /**
    * The type Partition task.
    */
@@ -360,11 +365,6 @@ public class SparkTrainable implements Trainable {
       return new SparkTrainable.ReducableResult(map, count + right.count, sum + right.sum);
     }
     
-  }
-  
-  @Override
-  public NNLayer getLayer() {
-    return network;
   }
   
 }

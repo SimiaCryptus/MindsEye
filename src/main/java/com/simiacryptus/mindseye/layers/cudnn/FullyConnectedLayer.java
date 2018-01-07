@@ -33,7 +33,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.DoubleSupplier;
-import java.util.stream.IntStream;
 
 /**
  * A dense matrix operator using vector-matrix multiplication. Represents a fully connected layer of synapses, where all
@@ -53,7 +52,6 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
   private final Tensor weights;
   
   private Precision precision = Precision.Double;
-  public static boolean invert = false;
   
   /**
    * Instantiates a new Img concat layer.
@@ -95,8 +93,7 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
     outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
     inputDims = JsonUtil.getIntArray(json.getAsJsonArray("inputDims"));
     final Tensor data = Tensor.fromJson(json.get("weights"), rs);
-    assert !invert || isInvertedSchema(data);
-    weights = invert ? invertSchema(data) : data;
+    weights = data;
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
   }
   
@@ -109,51 +106,6 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
    */
   public static FullyConnectedLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new FullyConnectedLayer(json, rs);
-  }
-  
-  /**
-   * Sets weights.
-   *
-   * @param f the f
-   * @return the weights
-   */
-  public FullyConnectedLayer setWeights(final DoubleSupplier f) {
-    Arrays.parallelSetAll(getWeights().getData(), i -> f.getAsDouble());
-    return this;
-  }
-  
-  public Tensor getInvertedWeights() {
-    return invertSchema(getWeights());
-  }
-  
-  /**
-   * Set fully connected layer.
-   *
-   * @param data the data
-   * @return the fully connected layer
-   */
-  public FullyConnectedLayer setInvertedWeights(final Tensor data) {
-    assert isInvertedSchema(data);
-    getWeights().set(invertSchema(data));
-    return this;
-  }
-  
-  public Tensor invertSchema(Tensor data) {
-    int[] key = IntStream.range(0, data.getDimensions().length).map(x -> -x).sorted().map(x -> -x).toArray();
-    Tensor tensor = data.permuteDimensions(key);
-    return tensor;
-  }
-  
-  public boolean isInvertedSchema(Tensor data) {
-    assert (inputDims.length + outputDims.length) == data.getDimensions().length;
-    int i = 0;
-    for (; i < outputDims.length; i++) {
-      if (outputDims[outputDims.length - (i + 1)] != data.getDimensions()[i]) return false;
-    }
-    for (; i < inputDims.length + outputDims.length; i++)
-      if (inputDims[inputDims.length - (i - outputDims.length + 1)] != data.getDimensions()[i])
-        return false;
-    return true;
   }
   
   /**
@@ -175,19 +127,20 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
    * @return the compatibility layer
    */
   public NNLayer getCompatibilityLayer() {
-    return new com.simiacryptus.mindseye.layers.java.FullyConnectedLayer(inputDims, outputDims).set(getWeights());
+    return new com.simiacryptus.mindseye.layers.java.FullyConnectedReferenceLayer(inputDims, outputDims).set(getWeights());
   }
   
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
-    PipelineNetwork network = new PipelineNetwork(1);
     int inputVol = Tensor.dim(inputDims);
     int outVol = Tensor.dim(outputDims);
+    PipelineNetwork network = new PipelineNetwork(1);
     network.add(new ReshapeLayer(1, 1, inputVol));
+    Tensor tensor = this.weights.reshapeCast(1, 1, inputVol * outVol);
     network.add(new ConvolutionLayer(1, 1, inputVol, outVol) {
       public Tensor getKernel() {
-        return FullyConnectedLayer.this.weights.reshapeCast(1, 1, inputVol * outVol);
+        return tensor;
       }
     });
     network.add(new ReshapeLayer(outputDims));
@@ -199,7 +152,7 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
     final JsonObject json = super.getJsonStub();
     json.add("outputDims", JsonUtil.getJson(outputDims));
     json.add("inputDims", JsonUtil.getJson(inputDims));
-    Tensor tensor = invert ? getInvertedWeights() : getWeights();
+    Tensor tensor = getWeights();
     json.add("weights", tensor.toJson(resources, dataSerializer));
     json.addProperty("precision", precision.name());
     return json;
@@ -223,8 +176,21 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
   
   /**
    * The Weights.
+   *
+   * @return the weights
    */
   public Tensor getWeights() {
     return weights;
+  }
+  
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
+  public FullyConnectedLayer setWeights(final DoubleSupplier f) {
+    Arrays.parallelSetAll(getWeights().getData(), i -> f.getAsDouble());
+    return this;
   }
 }

@@ -169,7 +169,7 @@ public abstract class NNLayer implements Serializable {
   /**
    * Copy nn layer.
    *
-   * @param precision
+   * @param precision the precision
    * @return the nn layer
    */
   public NNLayer copy(SerialPrecision precision) {

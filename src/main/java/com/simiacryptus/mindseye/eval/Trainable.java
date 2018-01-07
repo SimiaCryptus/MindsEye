@@ -56,6 +56,11 @@ public interface Trainable {
     return false;
   }
   
+  /**
+   * Gets layer.
+   *
+   * @return the layer
+   */
   NNLayer getLayer();
   
 }

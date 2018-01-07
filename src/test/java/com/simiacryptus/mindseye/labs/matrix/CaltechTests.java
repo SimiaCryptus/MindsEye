@@ -54,13 +54,13 @@ public class CaltechTests {
       network.add(new ReLuActivationLayer());
       network.add(new ImgCropLayer(62, 62));
       network.add(new NormalizationMetaLayer());
-  
+
       network.add(new ConvolutionLayer(5, 5, 20, 30).set(weights));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());
       network.add(new ImgCropLayer(18, 18));
       network.add(new NormalizationMetaLayer());
-  
+
       network.add(new ConvolutionLayer(3, 3, 30, 40).set(weights));
       network.add(new PoolingLayer().setWindowX(4).setWindowY(4).setMode(PoolingLayer.PoolingMode.Avg));
       network.add(new ReLuActivationLayer());
@@ -162,8 +162,7 @@ public class CaltechTests {
   }
   
   /**
-   * Basic demonstration problems involving the Caltech101 
-   * image dataset and Quadratic Quasi-Newton optimizer
+   * Basic demonstration problems involving the Caltech101 image dataset and Quadratic Quasi-Newton optimizer
    */
   public static class QQN extends All_Caltech_Tests {
     /**

@@ -28,11 +28,19 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 public abstract class FullyConnectedReferenceLayerTest extends LayerTestBase {
   private final int[] outputDims;
   private final int[] inputDims;
+  private final FullyConnectedReferenceLayer layer;
   
   
+  /**
+   * Instantiates a new Fully connected reference layer test.
+   *
+   * @param inputDims  the input dims
+   * @param outputDims the output dims
+   */
   public FullyConnectedReferenceLayerTest(int[] inputDims, int[] outputDims) {
     this.outputDims = outputDims;
     this.inputDims = inputDims;
+    this.layer = new FullyConnectedReferenceLayer(getInputDims()[0], outputDims).set(i -> random());
   }
   
   @Override
@@ -44,15 +52,30 @@ public abstract class FullyConnectedReferenceLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer(final int[][] inputSize) {
-    return new FullyConnectedReferenceLayer(getInputDims()[0], outputDims);
+    return layer;
   }
   
   /**
    * Basic Test
    */
   public static class Basic extends FullyConnectedReferenceLayerTest {
+    /**
+     * Instantiates a new Basic.
+     */
     public Basic() {
-      super(new int[]{3}, new int[]{3});
+      super(new int[]{2}, new int[]{2});
+    }
+  }
+  
+  /**
+   * Basic Test
+   */
+  public static class Image extends FullyConnectedReferenceLayerTest {
+    /**
+     * Instantiates a new Image.
+     */
+    public Image() {
+      super(new int[]{3, 3, 3}, new int[]{2, 2, 4});
     }
   }
   

@@ -38,6 +38,9 @@ public class CudnnTest extends NotebookReportBase {
   public CudnnTest() {
   }
   
+  /**
+   * Test.
+   */
   @Test
   public void test() {
     run(this::test);

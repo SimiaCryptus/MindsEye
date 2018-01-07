@@ -163,6 +163,12 @@ public class DeepDreamDemo extends NotebookReportBase {
     log.setFrontMatterProperty("status", "OK");
   }
   
+  /**
+   * Gets training monitor.
+   *
+   * @param history the history
+   * @return the training monitor
+   */
   public TrainingMonitor getTrainingMonitor(ArrayList<StepRecord> history) {
     TrainingMonitor monitor1 = TestUtil.getMonitor(history);
     return new TrainingMonitor() {

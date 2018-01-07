@@ -38,8 +38,8 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
- * We compare a variety of conventional "textbook" optimizer 
- * configurations against a standard optimization benchmarking suite.
+ * We compare a variety of conventional "textbook" optimizer configurations against a standard optimization benchmarking
+ * suite.
  */
 public class TextbookOptimizers extends OptimizerComparison {
   

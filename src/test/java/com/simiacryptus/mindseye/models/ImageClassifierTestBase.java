@@ -65,7 +65,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
   public void run(NotebookOutput log) {
     ImageClassifier vgg16 = getImageClassifier(log);
     NNLayer network = ((DemoableNetworkFactory) vgg16).build(log);
-
+  
     log.h1("Network Diagram");
     log.p("This is a diagram of the imported network:");
     log.code(() -> {
@@ -75,7 +75,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
   
     SerializationTest serializationTest = new SerializationTest();
     serializationTest.test(log, network, (Tensor[]) null);
-
+  
     log.h1("Predictions");
     Tensor[][] images = EncodingUtil.getImages(log, 224, 10);
     Map<String, List<LinkedHashMap<String, Double>>> modelPredictions = new HashMap<>();
@@ -86,7 +86,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
     });
   
     log.h1("Result");
-
+  
     log.code(() -> {
       TableOutput tableOutput = new TableOutput();
       for (int i = 0; i < images.length; i++) {

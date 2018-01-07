@@ -223,7 +223,7 @@ public enum Precision {
    * Java ptr cuda ptr.
    *
    * @param deviceNumber the device number
-   * @param type
+   * @param type         the type
    * @param data         the data
    * @return the cuda ptr
    */

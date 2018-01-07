@@ -139,10 +139,21 @@ public class SerializationTest implements ComponentTest<ToleranceStatistics> {
     return models;
   }
   
+  /**
+   * Is persist boolean.
+   *
+   * @return the boolean
+   */
   public boolean isPersist() {
     return persist;
   }
   
+  /**
+   * Sets persist.
+   *
+   * @param persist the persist
+   * @return the persist
+   */
   public SerializationTest setPersist(boolean persist) {
     this.persist = persist;
     return this;

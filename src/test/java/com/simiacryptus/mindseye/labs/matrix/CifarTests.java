@@ -116,12 +116,12 @@ public class CifarTests {
     protected Class<?> getTargetClass() {
       return CIFAR10.class;
     }
-  
+
     @Override
     public ReportType getReportType() {
       return ReportType.Training;
     }
-  
+
     @Override
     public ImageProblemData getData() {
       return new CIFARProblemData();
@@ -151,8 +151,7 @@ public class CifarTests {
   }
   
   /**
-   * Quadratic Quasi-Newton optimization applied to basic problems
-   * with the CIFAR10 image dataset.
+   * Quadratic Quasi-Newton optimization applied to basic problems with the CIFAR10 image dataset.
    */
   public static class QQN extends All_CIFAR_Tests {
     /**
@@ -170,8 +169,7 @@ public class CifarTests {
   }
   
   /**
-   * Classic Stochastic Gradient Descent optimization applied to
-   * basic problems with the CIFAR10 image dataset.
+   * Classic Stochastic Gradient Descent optimization applied to basic problems with the CIFAR10 image dataset.
    */
   public static class SGD extends All_CIFAR_Tests {
     /**

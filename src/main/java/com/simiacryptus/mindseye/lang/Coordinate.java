@@ -26,7 +26,13 @@ import java.util.Arrays;
  * physical (1-d) and logical (N-d) indicies of the element.
  */
 public final class Coordinate {
+  /**
+   * The Coords.
+   */
   protected int[] coords;
+  /**
+   * The Index.
+   */
   protected int index;
   
   /**

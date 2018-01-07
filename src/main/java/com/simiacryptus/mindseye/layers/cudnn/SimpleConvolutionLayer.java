@@ -200,6 +200,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
       return new NNResult(output) {
   
         public StackTraceElement[] freedBy = null;
+        AtomicBoolean hasAccumulated = new AtomicBoolean(false);
         
         @Override
         public void free() {
@@ -207,8 +208,6 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
           Arrays.stream(inObj).forEach(NNResult::free);
         }
   
-        AtomicBoolean hasAccumulated = new AtomicBoolean(false);
-
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
           if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
@@ -272,6 +271,11 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
     }
   }
   
+  /**
+   * Gets convolution descriptor.
+   *
+   * @return the convolution descriptor
+   */
   public CudaResource<cudnnConvolutionDescriptor> getConvolutionDescriptor() {
     return CuDNN.newConvolutions2dDescriptor(cudnnConvolutionMode.CUDNN_CONVOLUTION, precision.code,
                                              paddingY, paddingX,
@@ -456,10 +460,23 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
     return this;
   }
   
+  /**
+   * Sets padding xy.
+   *
+   * @param x the x
+   * @param y the y
+   * @return the padding xy
+   */
   public SimpleConvolutionLayer setPaddingXY(int x, int y) {
     return setPaddingX(x).setPaddingY(y);
   }
   
+  /**
+   * Sets weights log.
+   *
+   * @param f the f
+   * @return the weights log
+   */
   public SimpleConvolutionLayer setWeightsLog(double f) {
     return set(() -> Math.pow(10, f) * (Math.random() - 0.5));
   }

@@ -49,7 +49,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
       return new GpuStats();
     }
   });
-
+  
   private static final boolean lockPci = Boolean.parseBoolean(System.getProperty("lockPci", "true"));
   private static final int K = 1024;
   private static final int MiB = K * 1024;
@@ -65,9 +65,10 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   
   /**
    * Instantiates a new Cuda ptr.
-   *  @param size     the size
+   *
+   * @param size     the size
    * @param deviceId the device id
-   * @param type
+   * @param type     the type
    */
   protected CudaPtr(final long size, final int deviceId, MemoryType type) {this(size, deviceId, type, false);}
   
@@ -76,8 +77,8 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    *
    * @param size     the size
    * @param deviceId the device id
-   * @param type
-   * @param dirty
+   * @param type     the type
+   * @param dirty    the dirty
    */
   protected CudaPtr(final long size, final int deviceId, MemoryType type, boolean dirty) {
     super(acquire(deviceId, size, type, dirty));
@@ -88,10 +89,11 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   
   /**
    * Instantiates a new Cuda ptr.
-   *  @param ptr      the ptr
+   *
+   * @param ptr      the ptr
    * @param size     the size
    * @param deviceId the device id
-   * @param type
+   * @param type     the type
    */
   protected CudaPtr(final Pointer ptr, final long size, final int deviceId, MemoryType type) {
     super(ptr);
@@ -161,7 +163,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    * @param deviceId  the device id
    * @param precision the precision
    * @param data      the data
-   * @param type
+   * @param type      the type
    * @return the cuda ptr
    */
   public static CudaPtr write(final int deviceId, final Precision precision, final TensorList data, MemoryType type) {
@@ -254,93 +256,6 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     return copy;
   }
   
-  public enum MemoryType {
-    Device {
-      @Override
-      void alloc(long size, Pointer pointer) {
-        if (size < 0) {
-          throw new OutOfMemoryError("Allocated block is too large: " + size);
-        }
-        if (size > CudaPtr.MAX) {
-          throw new OutOfMemoryError("Allocated block is too large: " + size);
-        }
-        cudaDeviceProp properties = getCurrentDeviceProperties();
-        if (properties.managedMemory == 1) {
-          CuDNN.handle(CuDNN.cudaMallocManaged(pointer, size, cudaMemAttachGlobal));
-        }
-        else {
-          CuDNN.handle(CuDNN.cudaMalloc(pointer, size));
-        }
-      }
-      
-      @Override
-      void free(Pointer ptr, int deviceId) {
-        CuDNN.cudaFree(ptr, deviceId);
-      }
-    },
-    DeviceDirect {
-      @Override
-      void alloc(long size, Pointer pointer) {
-        CuDNN.handle(CuDNN.cudaMalloc(pointer, size));
-      }
-      
-      @Override
-      void free(Pointer ptr, int deviceId) {
-        CuDNN.cudaFree(ptr, deviceId);
-      }
-    },
-    Host {
-      @Override
-      void alloc(long size, Pointer pointer) {
-        if (size < 0) {
-          throw new OutOfMemoryError("Allocated block is too large: " + size);
-        }
-        if (size > CudaPtr.MAX) {
-          throw new OutOfMemoryError("Allocated block is too large: " + size);
-        }
-        cudaDeviceProp properties = getCurrentDeviceProperties();
-        if (properties.canMapHostMemory == 1) {
-          CuDNN.handle(CuDNN.cudaHostAlloc(pointer, size, cudaHostAllocDefault));
-        }
-        else {
-          throw new UnsupportedOperationException();
-        }
-      }
-      
-      @Override
-      void free(Pointer ptr, int deviceId) {
-        CuDNN.cudaFreeHost(ptr);
-      }
-    },
-    HostWriteable {
-      @Override
-      void alloc(long size, Pointer pointer) {
-        if (size < 0) {
-          throw new OutOfMemoryError("Allocated block is too large: " + size);
-        }
-        if (size > CudaPtr.MAX) {
-          throw new OutOfMemoryError("Allocated block is too large: " + size);
-        }
-        cudaDeviceProp properties = getCurrentDeviceProperties();
-        if (properties.canMapHostMemory == 1) {
-          CuDNN.handle(CuDNN.cudaHostAlloc(pointer, size, cudaHostAllocWriteCombined));
-        }
-        else {
-          throw new UnsupportedOperationException();
-        }
-      }
-      
-      @Override
-      void free(Pointer ptr, int deviceId) {
-        CuDNN.cudaFreeHost(ptr);
-      }
-    };
-    
-    abstract void alloc(long size, Pointer pointer);
-    
-    abstract void free(Pointer ptr, int deviceId);
-  }
-  
   /**
    * Read cuda ptr.
    *
@@ -377,7 +292,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
       CudaPtr.getGpuStats(deviceId).memoryReads.addAndGet(size);
       return this;
     }
-  
+    
   }
   
   /**
@@ -414,8 +329,127 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     }
   }
   
+  /**
+   * Gets device id.
+   *
+   * @return the device id
+   */
   public int getDeviceId() {
     return deviceId;
+  }
+  
+  /**
+   * The enum Memory type.
+   */
+  public enum MemoryType {
+    /**
+     * The Device.
+     */
+    Device {
+      @Override
+      void alloc(long size, Pointer pointer) {
+        if (size < 0) {
+          throw new OutOfMemoryError("Allocated block is too large: " + size);
+        }
+        if (size > CudaPtr.MAX) {
+          throw new OutOfMemoryError("Allocated block is too large: " + size);
+        }
+        cudaDeviceProp properties = getCurrentDeviceProperties();
+        if (properties.managedMemory == 1) {
+          CuDNN.handle(CuDNN.cudaMallocManaged(pointer, size, cudaMemAttachGlobal));
+        }
+        else {
+          CuDNN.handle(CuDNN.cudaMalloc(pointer, size));
+        }
+      }
+      
+      @Override
+      void free(Pointer ptr, int deviceId) {
+        CuDNN.cudaFree(ptr, deviceId);
+      }
+    },
+    /**
+     * The Device direct.
+     */
+    DeviceDirect {
+      @Override
+      void alloc(long size, Pointer pointer) {
+        CuDNN.handle(CuDNN.cudaMalloc(pointer, size));
+      }
+      
+      @Override
+      void free(Pointer ptr, int deviceId) {
+        CuDNN.cudaFree(ptr, deviceId);
+      }
+    },
+    /**
+     * The Host.
+     */
+    Host {
+      @Override
+      void alloc(long size, Pointer pointer) {
+        if (size < 0) {
+          throw new OutOfMemoryError("Allocated block is too large: " + size);
+        }
+        if (size > CudaPtr.MAX) {
+          throw new OutOfMemoryError("Allocated block is too large: " + size);
+        }
+        cudaDeviceProp properties = getCurrentDeviceProperties();
+        if (properties.canMapHostMemory == 1) {
+          CuDNN.handle(CuDNN.cudaHostAlloc(pointer, size, cudaHostAllocDefault));
+        }
+        else {
+          throw new UnsupportedOperationException();
+        }
+      }
+      
+      @Override
+      void free(Pointer ptr, int deviceId) {
+        CuDNN.cudaFreeHost(ptr);
+      }
+    },
+    /**
+     * The Host writeable.
+     */
+    HostWriteable {
+      @Override
+      void alloc(long size, Pointer pointer) {
+        if (size < 0) {
+          throw new OutOfMemoryError("Allocated block is too large: " + size);
+        }
+        if (size > CudaPtr.MAX) {
+          throw new OutOfMemoryError("Allocated block is too large: " + size);
+        }
+        cudaDeviceProp properties = getCurrentDeviceProperties();
+        if (properties.canMapHostMemory == 1) {
+          CuDNN.handle(CuDNN.cudaHostAlloc(pointer, size, cudaHostAllocWriteCombined));
+        }
+        else {
+          throw new UnsupportedOperationException();
+        }
+      }
+      
+      @Override
+      void free(Pointer ptr, int deviceId) {
+        CuDNN.cudaFreeHost(ptr);
+      }
+    };
+    
+    /**
+     * Alloc.
+     *
+     * @param size    the size
+     * @param pointer the pointer
+     */
+    abstract void alloc(long size, Pointer pointer);
+    
+    /**
+     * Free.
+     *
+     * @param ptr      the ptr
+     * @param deviceId the device id
+     */
+    abstract void free(Pointer ptr, int deviceId);
   }
   
   /**

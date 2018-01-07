@@ -22,10 +22,19 @@ package com.simiacryptus.mindseye.lang;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+/**
+ * The type Reshaped tensor list.
+ */
 public class ReshapedTensorList implements TensorList {
   private final TensorList data;
   private final int[] dims;
   
+  /**
+   * Instantiates a new Reshaped tensor list.
+   *
+   * @param data  the data
+   * @param toDim the to dim
+   */
   public ReshapedTensorList(TensorList data, int[] toDim) {
     if (Tensor.dim(data.getDimensions()) != Tensor.dim(toDim))
       throw new IllegalArgumentException(Arrays.toString(data.getDimensions()) + " != " + Arrays.toString(toDim));

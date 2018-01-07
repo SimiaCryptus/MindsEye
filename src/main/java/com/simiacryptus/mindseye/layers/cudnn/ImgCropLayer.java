@@ -124,7 +124,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
         if (error.length() != outputData.length()) {
           throw new AssertionError(error.length() + " != " + outputData.length());
         }
-  
+    
         assert error.length() == inObj[0].getData().length();
         if (inObj[0].isAlive()) {
           ((CudaExecutionContext) nncontext).initThread();

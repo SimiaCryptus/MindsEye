@@ -195,8 +195,8 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
   /**
    * Test learning performance double statistics.
    *
-   * @param component       the component
-   * @param inputPrototype  the input prototype
+   * @param component      the component
+   * @param inputPrototype the input prototype
    * @return the double statistics
    */
   protected Tuple2<Double, Double> testPerformance(final NNLayer component, final Tensor... inputPrototype) {

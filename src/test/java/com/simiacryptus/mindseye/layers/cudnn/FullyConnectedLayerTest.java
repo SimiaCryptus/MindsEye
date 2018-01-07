@@ -26,24 +26,43 @@ import com.simiacryptus.mindseye.lang.NNLayer;
  */
 public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
   
-  private final int inputDim;
-  private final int outputDim;
+  private final int[] inputDim;
   private final FullyConnectedLayer fullyConnectedLayer;
   
+  /**
+   * Instantiates a new Fully connected layer test.
+   *
+   * @param dim the dim
+   */
   public FullyConnectedLayerTest(int dim) {
     this(dim, dim);
   }
   
+  /**
+   * Instantiates a new Fully connected layer test.
+   *
+   * @param inputDim  the input dim
+   * @param outputDim the output dim
+   */
   public FullyConnectedLayerTest(int inputDim, int outputDim) {
-    this.inputDim = inputDim;
-    this.outputDim = outputDim;
-    this.fullyConnectedLayer = new FullyConnectedLayer(new int[]{inputDim}, new int[]{outputDim}).setWeightsLog(-2);
+    this(new int[]{inputDim}, new int[]{outputDim});
+  }
+  
+  /**
+   * Instantiates a new Fully connected layer test.
+   *
+   * @param inputDims  the input dims
+   * @param outputDims the output dims
+   */
+  public FullyConnectedLayerTest(int[] inputDims, int[] outputDims) {
+    this.inputDim = inputDims;
+    this.fullyConnectedLayer = new FullyConnectedLayer(inputDims, outputDims).setWeightsLog(-2);
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {inputDim}
+      inputDim
     };
   }
   
@@ -61,8 +80,11 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
    * Basic Test
    */
   public static class Basic extends FullyConnectedLayerTest {
+    /**
+     * Instantiates a new Basic.
+     */
     public Basic() {
-      super(8);
+      super(2);
     }
   }
   
@@ -70,6 +92,9 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
    * Basic Test
    */
   public static class Big extends FullyConnectedLayerTest {
+    /**
+     * Instantiates a new Big.
+     */
     public Big() {
       super(128);
       validateDifferentials = false;

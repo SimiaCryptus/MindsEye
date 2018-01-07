@@ -21,23 +21,54 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import static jcuda.runtime.cudaLimit.*;
 
+/**
+ * The enum Device limits.
+ */
 public enum DeviceLimits {
+  /**
+   * Stack size device limits.
+   */
   StackSize(cudaLimitStackSize),
+  /**
+   * Fifo size device limits.
+   */
   FifoSize(cudaLimitPrintfFifoSize),
+  /**
+   * Heap size device limits.
+   */
   HeapSize(cudaLimitMallocHeapSize),
+  /**
+   * Sync depth device limits.
+   */
   SyncDepth(cudaLimitDevRuntimeSyncDepth),
+  /**
+   * Pending launch device limits.
+   */
   PendingLaunch(cudaLimitDevRuntimePendingLaunchCount);
   
+  /**
+   * The Id.
+   */
   public final int id;
   
   DeviceLimits(int id) {
     this.id = id;
   }
   
+  /**
+   * Get long.
+   *
+   * @return the long
+   */
   public long get() {
     return CuDNN.cudaDeviceGetLimit(id);
   }
   
+  /**
+   * Set.
+   *
+   * @param value the value
+   */
   public void set(long value) {
     CuDNN.handle(CuDNN.cudaDeviceSetLimit(id, value));
   }

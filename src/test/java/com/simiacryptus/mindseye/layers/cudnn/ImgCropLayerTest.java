@@ -80,8 +80,14 @@ public abstract class ImgCropLayerTest extends CudnnLayerTestBase {
     };
   }
   
+  /**
+   * The type Chained.
+   */
   public static class Chained extends ImgCropLayerTest {
     
+    /**
+     * Instantiates a new Chained.
+     */
     public Chained() {
       validateDifferentials = false;
     }
@@ -93,6 +99,12 @@ public abstract class ImgCropLayerTest extends CudnnLayerTestBase {
       return imgCropLayer;
     }
     
+    /**
+     * Wrap nn layer.
+     *
+     * @param imgCropLayer the img crop layer
+     * @return the nn layer
+     */
     public NNLayer wrap(ImgCropLayer imgCropLayer) {
       PipelineNetwork network = new PipelineNetwork();
       network.add(imgCropLayer);

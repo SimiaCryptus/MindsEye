@@ -48,17 +48,20 @@ class CountingNNResult extends NNResult {
    */
   private final AtomicInteger accumulations = new AtomicInteger(0);
   /**
-   * The Passback buffer.
-   */
-  TensorList passbackBuffer = null;
-  /**
    * The Finalizations.
    */
   private final AtomicInteger finalizations = new AtomicInteger(0);
   private final AtomicInteger references = new AtomicInteger(0);
   private final AtomicBoolean hasAccumulated = new AtomicBoolean(false);
   private final AtomicBoolean hasFinalized = new AtomicBoolean(false);
+  /**
+   * The Finalized by.
+   */
   public StackTraceElement[] finalizedBy = null;
+  /**
+   * The Passback buffer.
+   */
+  TensorList passbackBuffer = null;
   
   /**
    * Instantiates a new Counting nn result.
@@ -71,8 +74,8 @@ class CountingNNResult extends NNResult {
   }
   
   /**
-   * A flagrant abuse of Java's object finalization contract. Repeated calls to this class's free method will
-   * increment a counter, and when the counter cycles the call is chained.
+   * A flagrant abuse of Java's object finalization contract. Repeated calls to this class's free method will increment
+   * a counter, and when the counter cycles the call is chained.
    */
   @Override
   public void free() {
@@ -118,6 +121,11 @@ class CountingNNResult extends NNResult {
     }
   }
   
+  /**
+   * Finalized by str string.
+   *
+   * @return the string
+   */
   public String finalizedByStr() {
     return null == finalizedBy ? "" : Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).get();
   }

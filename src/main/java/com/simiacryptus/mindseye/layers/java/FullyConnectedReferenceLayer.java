@@ -120,16 +120,21 @@ public class FullyConnectedReferenceLayer extends NNLayer {
     int[] inputDimensions = inputResult.getData().getDimensions();
     assert Tensor.dim(inputDimensions) == Tensor.dim(this.inputDims) : Arrays.toString(inputDimensions) + " == " + Arrays.toString(this.inputDims);
     assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
-    
-    return new NNResult(IntStream.range(0, inputResult.getData().length()).mapToObj(i -> {
-      final Tensor input = inputResult.getData().get(i);
+  
+    Tensor[] data = IntStream.range(0, inputResult.getData().length()).mapToObj(index -> {
+      final Tensor input = inputResult.getData().get(index);
       final Tensor output = new Tensor(outputDims);
       weights.coordStream(false).forEach(c -> {
         int[] coords = c.getCoords();
-        output.set(coords[1], output.get(coords[1]) + weights.get(c) * input.get(coords[0]));
+        double prev = output.get(coords[1]);
+        double w = weights.get(c);
+        double i = input.get(coords[0]);
+        double value = prev + w * i;
+        output.set(coords[1], value);
       });
       return output;
-    }).toArray(i -> new Tensor[i])) {
+    }).toArray(i -> new Tensor[i]);
+    return new NNResult(data) {
       
       @Override
       public void free() {

@@ -104,5 +104,8 @@ public abstract class NNResult {
    */
   public abstract boolean isAlive();
   
+  /**
+   * Free.
+   */
   public void free() {}
 }

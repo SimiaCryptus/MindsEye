@@ -55,7 +55,7 @@ public abstract class MeanSqLossLayerTest extends LayerTestBase {
    * Basic run.
    */
   public class Basic extends MeanSqLossLayerTest {
-
+  
     @Override
     public int[][] getInputDims() {
       return new int[][]{

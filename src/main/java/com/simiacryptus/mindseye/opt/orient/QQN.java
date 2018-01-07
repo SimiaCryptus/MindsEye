@@ -30,7 +30,7 @@ import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 
 /**
  * Quadratic Quasi-Newton optimization
- *
+ * <p>
  * This method hybridizes pure gradient descent with higher-order quasinewton implementations such as L-BFGS. During
  * each iteration, a quadratic curve is interpolated which aligns with the gradient's direction prediction and
  * intersects with the quasinewton's optimal point prediction. A simple parameteric quadratic function blends both inner

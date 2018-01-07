@@ -92,7 +92,7 @@ public class CuDNN {
    *
    * @param deviceId the device id
    * @param size     the size
-   * @param dirty
+   * @param dirty    the dirty
    * @return the cuda ptr
    */
   public static CudaPtr alloc(final int deviceId, final long size, boolean dirty) {return alloc(deviceId, size, CudaPtr.MemoryType.Device, dirty);}
@@ -102,7 +102,7 @@ public class CuDNN {
    *
    * @param deviceId the device id
    * @param size     the size
-   * @param type
+   * @param type     the type
    * @return the cuda ptr
    */
   public static CudaPtr alloc(final int deviceId, final long size, CudaPtr.MemoryType type) {return alloc(deviceId, size, type, false);}
@@ -112,8 +112,8 @@ public class CuDNN {
    *
    * @param deviceId the device id
    * @param size     the size
-   * @param type
-   * @param dirty
+   * @param type     the type
+   * @param dirty    the dirty
    * @return the cuda ptr
    */
   public static CudaPtr alloc(final int deviceId, final long size, CudaPtr.MemoryType type, boolean dirty) {
@@ -159,8 +159,8 @@ public class CuDNN {
   /**
    * Cuda free int.
    *
-   * @param devPtr the dev ptr
-   * @param deviceId
+   * @param devPtr   the dev ptr
+   * @param deviceId the device id
    * @return the int
    */
   public static int cudaFree(final Pointer devPtr, int deviceId) {
@@ -183,24 +183,52 @@ public class CuDNN {
     return result;
   }
   
+  /**
+   * Cuda malloc managed int.
+   *
+   * @param devPtr the dev ptr
+   * @param size   the size
+   * @param flags  the flags
+   * @return the int
+   */
   public static int cudaMallocManaged(final Pointer devPtr, final long size, int flags) {
     final int result = JCuda.cudaMallocManaged(devPtr, size, flags);
     CuDNN.log("cudaMallocManaged", result, devPtr, size, flags);
     return result;
   }
   
+  /**
+   * Cuda host alloc int.
+   *
+   * @param devPtr the dev ptr
+   * @param size   the size
+   * @param flags  the flags
+   * @return the int
+   */
   public static int cudaHostAlloc(final Pointer devPtr, final long size, int flags) {
     final int result = JCuda.cudaHostAlloc(devPtr, size, flags);
     CuDNN.log("cudaHostAlloc", result, devPtr, size, flags);
     return result;
   }
   
+  /**
+   * Cuda free host int.
+   *
+   * @param devPtr the dev ptr
+   * @return the int
+   */
   public static int cudaFreeHost(final Pointer devPtr) {
     final int result = JCuda.cudaFreeHost(devPtr);
     CuDNN.log("cudaFreeHost", result, devPtr);
     return result;
   }
   
+  /**
+   * Cuda device get limit long.
+   *
+   * @param limit the limit
+   * @return the long
+   */
   public static long cudaDeviceGetLimit(final int limit) {
     long[] pValue = new long[1];
     final int result = JCuda.cudaDeviceGetLimit(pValue, limit);
@@ -210,6 +238,13 @@ public class CuDNN {
   }
   
   
+  /**
+   * Cuda device set limit int.
+   *
+   * @param limit the limit
+   * @param value the value
+   * @return the int
+   */
   public static int cudaDeviceSetLimit(final int limit, long value) {
     final int result = JCuda.cudaDeviceSetLimit(limit, value);
     CuDNN.log("cudaDeviceSetLimit(", result, limit, value);
@@ -942,8 +977,8 @@ public class CuDNN {
    * @param paddingX     the padding x
    * @param strideHeight the stride height
    * @param strideWidth  the stride width
-   * @param dilationY
-   * @param dilationX
+   * @param dilationY    the dilation y
+   * @param dilationX    the dilation x
    * @return the cuda resource
    */
   public static CudaResource<cudnnConvolutionDescriptor> newConvolutions2dDescriptor(final int mode, final int dataType, final int paddingY, final int paddingX, final int strideHeight, final int strideWidth, int dilationY, int dilationX) {
@@ -1217,10 +1252,10 @@ public class CuDNN {
   /**
    * Gets backward data algorithm.
    *
-   * @param inputDesc the src tensor desc
-   * @param filterDesc    the filter desc
-   * @param convDesc      the conv desc
-   * @param outputDesc    the weight desc
+   * @param inputDesc  the src tensor desc
+   * @param filterDesc the filter desc
+   * @param convDesc   the conv desc
+   * @param outputDesc the weight desc
    * @return the backward data algorithm
    */
   public int getBackwardDataAlgorithm(final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc) {

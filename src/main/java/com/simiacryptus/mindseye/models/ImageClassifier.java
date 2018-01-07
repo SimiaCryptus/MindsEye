@@ -50,20 +50,6 @@ public abstract class ImageClassifier {
    * @param network    the network
    * @param count      the count
    * @param categories the categories
-   * @param data       the data
-   * @return the list
-   */
-  public List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, NNLayer network, int count, List<String> categories, Tensor... data) {
-    return predict(prefilter, network, count, categories, Math.max(data.length, getBatchSize()), data);
-  }
-  
-  /**
-   * Predict list.
-   *
-   * @param prefilter  the prefilter
-   * @param network    the network
-   * @param count      the count
-   * @param categories the categories
    * @param batchSize  the batch size
    * @param data       the data
    * @return the list
@@ -117,6 +103,20 @@ public abstract class ImageClassifier {
   }
   
   /**
+   * Predict list.
+   *
+   * @param prefilter  the prefilter
+   * @param network    the network
+   * @param count      the count
+   * @param categories the categories
+   * @param data       the data
+   * @return the list
+   */
+  public List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, NNLayer network, int count, List<String> categories, Tensor... data) {
+    return predict(prefilter, network, count, categories, Math.max(data.length, getBatchSize()), data);
+  }
+  
+  /**
    * Prefilter tensor.
    *
    * @param tensor the tensor
@@ -161,10 +161,21 @@ public abstract class ImageClassifier {
    */
   public abstract NNLayer getNetwork();
   
+  /**
+   * Gets batch size.
+   *
+   * @return the batch size
+   */
   public int getBatchSize() {
     return batchSize;
   }
   
+  /**
+   * Sets batch size.
+   *
+   * @param batchSize the batch size
+   * @return the batch size
+   */
   public ImageClassifier setBatchSize(int batchSize) {
     this.batchSize = batchSize;
     return this;

@@ -285,6 +285,12 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
     return Arrays.asList(getBias());
   }
   
+  /**
+   * Sets weights log.
+   *
+   * @param mag the mag
+   * @return the weights log
+   */
   public ImgBandBiasLayer setWeightsLog(int mag) {
     setWeights(i -> Math.pow(10, mag) * Math.random());
     return this;

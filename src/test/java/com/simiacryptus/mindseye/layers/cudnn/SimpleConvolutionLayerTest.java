@@ -33,7 +33,13 @@ import java.io.PrintStream;
  */
 public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
   
+  /**
+   * The Radius.
+   */
   public final int radius;
+  /**
+   * The Bands.
+   */
   public final int bands;
   /**
    * The Layer.
@@ -192,6 +198,9 @@ public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
     
   }
   
+  /**
+   * The type Bug.
+   */
   public static class Bug extends Bug_Control {
     /**
      * Instantiates a new Multi band.

@@ -493,8 +493,8 @@ public class Tensor implements Serializable {
   /**
    * Coord stream stream.
    *
+   * @param safe the safe
    * @return the stream
-   * @param safe
    */
   public Stream<Coordinate> coordStream(boolean safe) {
     ConcurrentHashSet<Object> distinctBuffer = new ConcurrentHashSet<>();
@@ -1449,6 +1449,12 @@ public class Tensor implements Serializable {
     return reorderDimensions(this, fn);
   }
   
+  /**
+   * Reshape cast tensor.
+   *
+   * @param dims the dims
+   * @return the tensor
+   */
   public Tensor reshapeCast(int... dims) {
     if (0 == dims.length) throw new IllegalArgumentException();
     if (dim(dims) != dim()) throw new IllegalArgumentException();

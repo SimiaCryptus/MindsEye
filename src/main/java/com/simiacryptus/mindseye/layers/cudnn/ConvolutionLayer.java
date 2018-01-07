@@ -138,6 +138,11 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     return this.as(com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class);
   }
   
+  /**
+   * Explode nn layer.
+   *
+   * @return the nn layer
+   */
   public NNLayer explode() {
     return new ExplodedNetwork().getNetwork();
   }
@@ -388,17 +393,31 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   
   /**
    * The Filter.
+   *
+   * @return the kernel
    */
   public Tensor getKernel() {
     return kernel;
   }
   
+  /**
+   * The type Exploded network.
+   */
   public class ExplodedNetwork {
+    /**
+     * The Network.
+     */
     public final PipelineNetwork network;
+    /**
+     * The Sub layers.
+     */
     public final List<SimpleConvolutionLayer> subLayers;
     
+    /**
+     * Instantiates a new Exploded network.
+     */
     ExplodedNetwork() {
-      network = new PipelineNetwork();
+      network = new PipelineNetwork(1);
       subLayers = new ArrayList<>();
       // Extract Weights
       final int[] filterDimensions = getKernel().getDimensions();
@@ -423,8 +442,12 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
       if (inputBands != outputBands) {
         network.add(new ImgConcatLayer().setMaxBands(outputBands).setPrecision(precision),
                     subLayers.stream().map(l -> {
-                      return network.add(l, input);
+                      return network.add(l, network.getInput(0));
                     }).toArray(i -> new DAGNode[i]));
+      }
+      else {
+        assert 1 == subLayers.size();
+        network.add(subLayers.get(0));
       }
       if (paddingX != null || paddingY != null) {
         int x = ((filterDimensions[0] - 1) / 2);
@@ -438,10 +461,20 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
       }
     }
     
+    /**
+     * Gets network.
+     *
+     * @return the network
+     */
     public PipelineNetwork getNetwork() {
       return network;
     }
     
+    /**
+     * Gets sub layers.
+     *
+     * @return the sub layers
+     */
     public List<SimpleConvolutionLayer> getSubLayers() {
       return subLayers;
     }

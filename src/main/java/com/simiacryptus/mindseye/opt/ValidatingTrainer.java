@@ -104,7 +104,7 @@ public class ValidatingTrainer {
       public boolean reseed(final long seed) {
         return validationSubject.reseed(seed);
       }
-  
+
       @Override
       public NNLayer getLayer() {
         return validationSubject.getLayer();

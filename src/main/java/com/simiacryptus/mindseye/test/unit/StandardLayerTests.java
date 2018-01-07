@@ -182,7 +182,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   public ComponentTest<ToleranceStatistics> getPerformanceTester() {
     return new PerformanceTester();
   }
-
+  
   /**
    * Gets reference io tester.
    *
@@ -201,6 +201,11 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     return cvt(getLayer(getInputDims()));
   }
   
+  /**
+   * Gets test class.
+   *
+   * @return the test class
+   */
   public Class<? extends NNLayer> getTestClass() {
     return getLayer(getInputDims()).getClass();
   }

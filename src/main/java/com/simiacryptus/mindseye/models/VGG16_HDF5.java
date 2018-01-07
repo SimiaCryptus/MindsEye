@@ -35,9 +35,9 @@ import java.util.Arrays;
 import java.util.concurrent.Callable;
 
 /**
- * Details about this network architecture can be found in the following arXiv paper:
- * Very Deep Convolutional Networks for Large-Scale Image Recognition K. Simonyan, A. Zisserman arXiv:1409.1556
- * Please cite the paper if you use the models.
+ * Details about this network architecture can be found in the following arXiv paper: Very Deep Convolutional Networks
+ * for Large-Scale Image Recognition K. Simonyan, A. Zisserman arXiv:1409.1556 Please cite the paper if you use the
+ * models.
  */
 class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
   
@@ -77,11 +77,11 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
         int[] convolutionOrder = {2, 3, 0, 1};
         int[] fullyconnectedOrder = {1, 0};
         PipelineNetwork model = new PipelineNetwork();
-      
+  
         @Override
         public NNLayer call() throws Exception {
-        
-        
+    
+    
           //  model.add(ZeroPadding2D((1,1),input_shape=(3,224,224)))
           output.code(() -> {
             add(new AssertDimensionsLayer(224, 224, 3));
@@ -89,7 +89,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           output.code(() -> {
             add(new ImgZeroPaddingLayer(1, 1));
           });
-        
+    
           //  model.add(Convolution2D(64, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 3, 64)
@@ -105,12 +105,12 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
-        
+    
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
             add(new ImgZeroPaddingLayer(1, 1));
           });
-        
+    
           //  model.add(Convolution2D(64, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 64, 64)
@@ -126,7 +126,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
-        
+    
           //  model.add(MaxPooling2D((2,2), strides=(2,2)))
           output.code(() -> {
             add(new PoolingLayer()
@@ -134,12 +134,12 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
                   .setWindowXY(2, 2)
                   .setStrideXY(2, 2));
           });
-        
+    
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
             add(new ImgZeroPaddingLayer(1, 1));
           });
-        
+    
           //  model.add(Convolution2D(128, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 64, 128)
@@ -155,12 +155,12 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
-        
+    
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
             add(new ImgZeroPaddingLayer(1, 1));
           });
-        
+    
           //  model.add(Convolution2D(128, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 128, 128)
@@ -176,7 +176,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
-        
+    
           //  model.add(MaxPooling2D((2,2), strides=(2,2)))
           output.code(() -> {
             add(new PoolingLayer()
@@ -184,12 +184,12 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
                   .setWindowXY(2, 2)
                   .setStrideXY(2, 2));
           });
-        
+    
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
             add(new ImgZeroPaddingLayer(1, 1));
           });
-        
+    
           //  model.add(Convolution2D(256, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 128, 256)
@@ -205,12 +205,12 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
-        
+    
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
             add(new ImgZeroPaddingLayer(1, 1));
           });
-        
+    
           //  model.add(Convolution2D(256, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 256, 256)
@@ -226,12 +226,12 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
-        
+    
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
             add(new ImgZeroPaddingLayer(1, 1));
           });
-        
+    
           //  model.add(Convolution2D(256, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 256, 256)
@@ -247,7 +247,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
-        
+    
           //  model.add(MaxPooling2D((2,2), strides=(2,2)))
           output.code(() -> {
             add(new PoolingLayer()
@@ -255,12 +255,12 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
                   .setWindowXY(2, 2)
                   .setStrideXY(2, 2));
           });
-        
+    
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
             add(new ImgZeroPaddingLayer(1, 1));
           });
-        
+    
           //  model.add(Convolution2D(512, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 256, 512)
@@ -276,12 +276,12 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
-        
+    
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
             add(new ImgZeroPaddingLayer(1, 1));
           });
-        
+    
           //  model.add(Convolution2D(512, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 512, 512)
@@ -297,12 +297,12 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
-        
+    
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
             add(new ImgZeroPaddingLayer(1, 1));
           });
-        
+    
           //  model.add(Convolution2D(512, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 512, 512)
@@ -318,7 +318,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
-        
+    
           //  model.add(MaxPooling2D((2,2), strides=(2,2)))
           output.code(() -> {
             add(new PoolingLayer()
@@ -326,12 +326,12 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
                   .setWindowXY(2, 2)
                   .setStrideXY(2, 2));
           });
-        
+    
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
             add(new ImgZeroPaddingLayer(1, 1));
           });
-        
+    
           //  model.add(Convolution2D(512, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 512, 512)
@@ -347,12 +347,12 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
-        
+    
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
             add(new ImgZeroPaddingLayer(1, 1));
           });
-        
+    
           //  model.add(Convolution2D(512, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 512, 512)
@@ -368,12 +368,12 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
-        
+    
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
             add(new ImgZeroPaddingLayer(1, 1));
           });
-        
+    
           //  model.add(Convolution2D(512, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 512, 512)
@@ -389,7 +389,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
-        
+    
           //  model.add(MaxPooling2D((2,2), strides=(2,2)))
           output.code(() -> {
             add(new PoolingLayer()
@@ -397,9 +397,9 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
                   .setWindowXY(2, 2)
                   .setStrideXY(2, 2));
           });
-        
+    
           //  model.add(Flatten())
-        
+    
           //  model.add(Dense(4096, activation='relu'))
           output.code(() -> {
             add(new FullyConnectedLayer(new int[]{25088}, new int[]{4096})
@@ -411,7 +411,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
             add(new BiasLayer(4096)
                   .set((hdf5.readDataSet("param_1", "layer_32"))));
           });
-        
+    
           //  model.add(Dropout(0.5))
           //model.add(new DropoutNoiseLayer(0.5));
           //  model.add(Dense(4096, activation='relu'))
@@ -424,7 +424,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
             add(new BiasLayer(4096)
                   .set((hdf5.readDataSet("param_1", "layer_34"))));
           });
-        
+    
           //  model.add(Dropout(0.5))
           //model.add(new DropoutNoiseLayer(0.5));
           //  model.add(Dense(1000, activation='softmax'))
@@ -442,10 +442,10 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           output.code(() -> {
             add(new SoftmaxActivationLayer());
           });
-        
+    
           return model;
         }
-      
+  
         private void add(NNLayer layer) {
           model.add(layer);
           int[] prev_dimensions = prototype.getDimensions();
@@ -455,7 +455,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           int[] new_dimensions = prototype.getDimensions();
           log.info(String.format("Added layer #%d: %s; dimensions %s -> %s", cnt++, layer, Arrays.toString(prev_dimensions), Arrays.toString(new_dimensions)));
         }
-      
+  
       }.call();
     } catch (Exception e) {
       throw new RuntimeException(e);

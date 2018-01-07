@@ -56,7 +56,7 @@ public class RescaledSubnetLayer extends NNLayer {
    * Instantiates a new Rescaled subnet layer.
    *
    * @param json the json
-   * @param rs
+   * @param rs   the rs
    */
   protected RescaledSubnetLayer(final JsonObject json, Map<String, byte[]> rs) {
     super(json);

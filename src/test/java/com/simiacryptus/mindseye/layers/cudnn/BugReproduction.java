@@ -273,7 +273,7 @@ public class BugReproduction extends LayerTestBase {
                 .setWeightsLog(-2)
                 .setName("bias_36"));
     model.add(new SoftmaxActivationLayer());
-
+  
     return model;
   }
   

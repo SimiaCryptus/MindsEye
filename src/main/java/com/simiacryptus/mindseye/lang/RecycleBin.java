@@ -130,7 +130,7 @@ public abstract class RecycleBin<T> {
    * Free.
    *
    * @param obj  the obj
-   * @param size
+   * @param size the size
    */
   protected void free2(T obj, long size) {
     StackCounter stackCounter = getFrees(size);
@@ -314,6 +314,12 @@ public abstract class RecycleBin<T> {
     }
   }
   
+  /**
+   * Create 2 t.
+   *
+   * @param length the length
+   * @return the t
+   */
   public T create2(long length) {
     StackCounter stackCounter = getAllocations(length);
     if (null != stackCounter) {
