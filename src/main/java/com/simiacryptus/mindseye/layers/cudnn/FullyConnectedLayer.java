@@ -53,7 +53,7 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
   private final Tensor weights;
   
   private Precision precision = Precision.Double;
-  public static boolean invert = true;
+  public static boolean invert = false;
   
   /**
    * Instantiates a new Img concat layer.

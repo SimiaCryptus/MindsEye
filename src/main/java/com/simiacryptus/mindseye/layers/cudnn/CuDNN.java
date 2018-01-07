@@ -85,7 +85,17 @@ public class CuDNN {
    * @param size     the size
    * @return the cuda ptr
    */
-  public static CudaPtr alloc(final int deviceId, final long size) {return alloc(deviceId, size, CudaPtr.MemoryType.Device);}
+  public static CudaPtr alloc(final int deviceId, final long size) {return alloc(deviceId, size, false);}
+  
+  /**
+   * Alloc cuda ptr.
+   *
+   * @param deviceId the device id
+   * @param size     the size
+   * @param dirty
+   * @return the cuda ptr
+   */
+  public static CudaPtr alloc(final int deviceId, final long size, boolean dirty) {return alloc(deviceId, size, CudaPtr.MemoryType.Device, dirty);}
   
   /**
    * Alloc cuda ptr.
@@ -95,8 +105,19 @@ public class CuDNN {
    * @param type
    * @return the cuda ptr
    */
-  public static CudaPtr alloc(final int deviceId, final long size, CudaPtr.MemoryType type) {
-    return new CudaPtr(size, deviceId, type);
+  public static CudaPtr alloc(final int deviceId, final long size, CudaPtr.MemoryType type) {return alloc(deviceId, size, type, false);}
+  
+  /**
+   * Alloc cuda ptr.
+   *
+   * @param deviceId the device id
+   * @param size     the size
+   * @param type
+   * @param dirty
+   * @return the cuda ptr
+   */
+  public static CudaPtr alloc(final int deviceId, final long size, CudaPtr.MemoryType type, boolean dirty) {
+    return new CudaPtr(size, deviceId, type, dirty);
   }
   
   /**

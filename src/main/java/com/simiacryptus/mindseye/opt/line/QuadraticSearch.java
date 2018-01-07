@@ -358,7 +358,7 @@ public class QuadraticSearch implements LineSearchStrategy {
         }
         lastPoint = thisPoint;
         monitor.log(String.format("F(%s) = %s, delta = %s", thisX, thisPoint, thisPoint.point.getMean() - initialPoint.point.getMean()));
-        if (loops++ > 10) {
+        if (loops++ > 50) {
           monitor.log(String.format("Loops = %s", loops));
           return this;
         }

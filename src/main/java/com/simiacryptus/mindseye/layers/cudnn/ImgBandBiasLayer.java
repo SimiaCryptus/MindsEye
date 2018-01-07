@@ -170,7 +170,7 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
           final CudaPtr errorPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, error);
           if (!isFrozen()) {
-            final CudaPtr filterBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), bias.length * 1l * precision.size);
+            final CudaPtr filterBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), bias.length * 1l * precision.size, false);
             try {
               CuDNN.handle(CuDNN.cudnnConvolutionBackwardBias(cudnnHandle, alpha.getPtr(),
                                                               inputDescriptor.getPtr(), errorPtr.getPtr(),

@@ -69,7 +69,7 @@ public class IterativeTrainer {
   public IterativeTrainer(final Trainable subject) {
     this.subject = subject;
     timeout = Duration.of(5, ChronoUnit.MINUTES);
-    terminateThreshold = Double.NEGATIVE_INFINITY;
+    terminateThreshold = 0;
   }
   
   /**

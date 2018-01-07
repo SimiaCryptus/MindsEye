@@ -183,7 +183,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
       final CudaPtr filterPtr = new CudaPtr(kernel.getData().length * precision.size, deviceNumber, filterMemoryType).write(precision, kernel.getData());
       final CudaPtr inputData = CudaPtr.write(deviceNumber, precision, batch);
   
-      final CudaPtr outputBuffer = CuDNN.alloc(deviceNumber, Tensor.dim(outputDims) * 1l * length * precision.size);
+      final CudaPtr outputBuffer = CuDNN.alloc(deviceNumber, Tensor.dim(outputDims) * 1l * length * precision.size, true);
       final cudnnHandle cudnnHandle = ((CuDNN) nncontext).cudnnHandle;
       final int algorithm = cuda.getForwardAlgorithm(
         inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
@@ -219,7 +219,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
           final int length = error.length();
           final CudaPtr errorPtr = CudaPtr.write(deviceNumber, precision, error);
           if (!isFrozen()) {
-            final CudaPtr filterBuffer = CuDNN.alloc(deviceNumber, kernel.getData().length * 1l * precision.size);
+            final CudaPtr filterBuffer = CuDNN.alloc(deviceNumber, kernel.getData().length * 1l * precision.size, true);
             try {
               final int backwardAlgorithm = cuda.getBackwardFilterAlgorithm(
                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
@@ -239,7 +239,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
             filterBuffer.finalize();
           }
           if (input.isAlive()) {
-            final CudaPtr inputBuffer = CuDNN.alloc(deviceNumber, Tensor.dim(batch.getDimensions()) * 1l * length * precision.size);
+            final CudaPtr inputBuffer = CuDNN.alloc(deviceNumber, Tensor.dim(batch.getDimensions()) * 1l * length * precision.size, true);
             try {
               final int algorithm = cuda.getBackwardDataAlgorithm(
                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());

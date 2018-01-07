@@ -25,35 +25,34 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Fully connected layer run.
  */
-public abstract class FullyConnectedLayerTest extends LayerTestBase {
+public abstract class FullyConnectedReferenceLayerTest extends LayerTestBase {
+  private final int[] outputDims;
+  private final int[] inputDims;
   
-  private final FullyConnectedLayer fullyConnectedLayer = new FullyConnectedLayer(new int[]{3}, new int[]{3});
+  
+  public FullyConnectedReferenceLayerTest(int[] inputDims, int[] outputDims) {
+    this.outputDims = outputDims;
+    this.inputDims = inputDims;
+  }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3}
+      inputDims
     };
   }
   
   @Override
   public NNLayer getLayer(final int[][] inputSize) {
-    return fullyConnectedLayer;
+    return new FullyConnectedReferenceLayer(getInputDims()[0], outputDims);
   }
   
   /**
    * Basic Test
    */
-  public static class Basic extends FullyConnectedLayerTest {
-  }
-  
-  /**
-   * Demonstration of bug
-   */
-  public static class Bug extends FullyConnectedLayerTest {
-    @Override
-    public Class<? extends NNLayer> getReferenceLayerClass() {
-      return FullyConnectedReferenceLayer.class;
+  public static class Basic extends FullyConnectedReferenceLayerTest {
+    public Basic() {
+      super(new int[]{3}, new int[]{3});
     }
   }
   

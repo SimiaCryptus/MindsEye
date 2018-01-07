@@ -22,8 +22,10 @@ package com.simiacryptus.mindseye.demo;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
+import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.models.ImageClassifier;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -116,9 +118,15 @@ public class DeepDreamDemo extends NotebookReportBase {
       });
       ArrayList<StepRecord> history = new ArrayList<>();
       log.code(() -> {
+        PipelineNetwork clamp = new PipelineNetwork(1);
+        clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+        clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+        clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+        clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
         PipelineNetwork supervised = new PipelineNetwork(2);
         supervised.add(new EntropyLossLayer(),
-                       supervised.add(vgg16.getNetwork().freeze(), supervised.getInput(0)),
+                       supervised.add(vgg16.getNetwork().freeze(),
+                                      supervised.add(clamp, supervised.getInput(0))),
                        supervised.getInput(1));
         Trainable trainable = new ArrayTrainable(supervised, 1).setMask(true, false).setData(data);
         new IterativeTrainer(trainable)

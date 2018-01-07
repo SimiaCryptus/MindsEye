@@ -28,15 +28,16 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
   
   private final int inputDim;
   private final int outputDim;
+  private final FullyConnectedLayer fullyConnectedLayer;
   
   public FullyConnectedLayerTest(int dim) {
-    this.inputDim = dim;
-    this.outputDim = dim;
+    this(dim, dim);
   }
   
   public FullyConnectedLayerTest(int inputDim, int outputDim) {
     this.inputDim = inputDim;
     this.outputDim = outputDim;
+    this.fullyConnectedLayer = new FullyConnectedLayer(new int[]{inputDim}, new int[]{outputDim}).setWeightsLog(-2);
   }
   
   @Override
@@ -48,12 +49,12 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
   
   @Override
   public NNLayer getLayer(final int[][] inputSize) {
-    return new FullyConnectedLayer(new int[]{inputDim}, new int[]{outputDim}).setWeightsLog(-2);
+    return fullyConnectedLayer;
   }
   
   @Override
   public Class<? extends NNLayer> getReferenceLayerClass() {
-    return com.simiacryptus.mindseye.layers.java.FullyConnectedLayer.class;
+    return com.simiacryptus.mindseye.layers.java.FullyConnectedReferenceLayer.class;
   }
   
   /**

@@ -123,7 +123,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
     final CudaPtr lPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, leftData);
     final CudaPtr rPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, rightData);
     assert lPtr.size == rPtr.size;
-    final CudaPtr outputPtr = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), lPtr.size);
+    final CudaPtr outputPtr = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), lPtr.size, true);
     CuDNN.handle(JCudnn.cudnnOpTensor(((CuDNN) nncontext).cudnnHandle, opDescriptor.getPtr(),
                                       precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                       precision.getPointer(rightFactor), sizeDescriptor.getPtr(), rPtr.getPtr(),
@@ -144,7 +144,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
         
         if (inObj[0].isAlive()) {
           final CudaPtr lPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, delta);
-          final CudaPtr outputPtr = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), lPtr.size);
+          final CudaPtr outputPtr = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), lPtr.size, true);
           CuDNN.handle(JCudnn.cudnnAddTensor(((CuDNN) nncontext).cudnnHandle,
                                              precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                              precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
@@ -154,7 +154,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
         
         if (inObj[1].isAlive()) {
           final CudaPtr lPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, delta);
-          final CudaPtr outputPtr = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), lPtr.size);
+          final CudaPtr outputPtr = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), lPtr.size, true);
           CuDNN.handle(JCudnn.cudnnAddTensor(((CuDNN) nncontext).cudnnHandle,
                                              precision.getPointer(rightFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                              precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));

@@ -116,7 +116,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
       final CudaPtr alpha = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
       final CudaPtr beta = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 0.0);
       final CudaPtr inputData = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, batch);
-      final CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), precision.size * 1l * Tensor.dim(outputSize));
+      final CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), precision.size * 1l * Tensor.dim(outputSize), true);
       final cudnnHandle cudnnHandle = ((CuDNN) nncontext).cudnnHandle;
       CuDNN.handle(CuDNN.cudnnPoolingForward(cudnnHandle, poolingDesc.getPtr(),
                                              alpha.getPtr(),
@@ -138,7 +138,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           final CudaPtr errorPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, error);
           if (input.isAlive()) {
-            final CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * precision.size * length);
+            final CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * precision.size * length, true);
             CuDNN.handle(CuDNN.cudnnPoolingBackward(cudnnHandle, poolingDesc.getPtr(),
                                                     alpha.getPtr(),
                                                     outputDescriptor.getPtr(), outputData.getPtr(),
