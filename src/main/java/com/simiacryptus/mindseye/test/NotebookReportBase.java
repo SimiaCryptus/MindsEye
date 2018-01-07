@@ -47,7 +47,7 @@ public abstract class NotebookReportBase {
   /**
    * The constant log.
    */
-  protected static final Logger log = LoggerFactory.getLogger(NotebookReportBase.class);
+  protected static final Logger logger = LoggerFactory.getLogger(NotebookReportBase.class);
   
   static {
     SysOutInterceptor.INSTANCE.init();

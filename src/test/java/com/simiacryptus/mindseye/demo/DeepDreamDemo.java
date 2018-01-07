@@ -26,10 +26,11 @@ import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
 import com.simiacryptus.mindseye.models.ImageClassifier;
 import com.simiacryptus.mindseye.models.VGG16;
-import com.simiacryptus.mindseye.network.SimpleLossNetwork;
+import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.StepRecord;
@@ -37,6 +38,7 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.util.test.SysOutInterceptor;
 import org.junit.Test;
 
 import java.awt.image.BufferedImage;
@@ -96,17 +98,33 @@ public class DeepDreamDemo extends NotebookReportBase {
     for (int itemNumber = 0; itemNumber < images.length; itemNumber++) {
       log.h1("Image " + itemNumber);
       List<String> categories = predictions.get(itemNumber).keySet().stream().collect(Collectors.toList());
+      log.p("Predictions: %s", categories);
       log.p("Evolve from %s to %s", categories.get(0), categories.get(1));
       int targetCategoryIndex = vgg16Categories.indexOf(categories.get(1));
-      SimpleLossNetwork supervised = new SimpleLossNetwork(vgg16.getNetwork().freeze(), new EntropyLossLayer());
-      Trainable trainable = new ArrayTrainable(supervised, 1).setMask(true, false).setData(Arrays.<Tensor[]>asList(new Tensor[]{
-        images[itemNumber], new Tensor(vgg16Categories.size()).set(targetCategoryIndex, 1.0)
-      }));
+      Tensor image = images[itemNumber];
+      List<Tensor[]> data = Arrays.<Tensor[]>asList(new Tensor[]{
+        image, new Tensor(vgg16Categories.size()).set(targetCategoryIndex, 1.0)
+      });
+      log.code(() -> {
+        for (Tensor[] tensors : data) {
+          try {
+            logger.info(log.image(tensors[0].toImage(), "") + tensors[1]);
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      });
       ArrayList<StepRecord> history = new ArrayList<>();
       log.code(() -> {
+        PipelineNetwork supervised = new PipelineNetwork(2);
+        supervised.add(new EntropyLossLayer(),
+                       supervised.add(vgg16.getNetwork().freeze(), supervised.getInput(0)),
+                       supervised.getInput(1));
+        Trainable trainable = new ArrayTrainable(supervised, 1).setMask(true, false).setData(data);
         new IterativeTrainer(trainable)
           .setMonitor(getTrainingMonitor(history))
           .setOrientation(new QQN())
+          .setLineSearchFactory(name -> new QuadraticSearch().setCurrentRate(1))
           .setTimeout(15, TimeUnit.MINUTES)
           .run();
       });
@@ -114,7 +132,7 @@ public class DeepDreamDemo extends NotebookReportBase {
         return TestUtil.plot(history);
       });
       try {
-        log.p(log.image(images[itemNumber].toImage(), "result"));
+        log.p(log.image(image.toImage(), "result"));
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -147,7 +165,7 @@ public class DeepDreamDemo extends NotebookReportBase {
       
       @Override
       public void log(String msg) {
-        TestUtil.originalOut.println(msg);
+        SysOutInterceptor.ORIGINAL_OUT.println(msg);
         monitor1.log(msg);
       }
       

@@ -214,11 +214,11 @@ public abstract class DAGNetwork extends NNLayer {
    */
   public GraphEvaluationContext buildExeCtx(final NNResult... inputs) {
     assert inputs.length == inputHandles.size() : inputs.length + " != " + inputHandles.size();
-    final GraphEvaluationContext graphEvaluationContext = new GraphEvaluationContext();
+    final GraphEvaluationContext context = new GraphEvaluationContext();
     for (int i = 0; i < inputs.length; i++) {
-      graphEvaluationContext.cache.put(inputHandles.get(i), new CountingNNResult(inputs[i]));
+      context.cache.put(inputHandles.get(i), new CountingNNResult(inputs[i]));
     }
-    return graphEvaluationContext;
+    return context;
   }
   
   @Override

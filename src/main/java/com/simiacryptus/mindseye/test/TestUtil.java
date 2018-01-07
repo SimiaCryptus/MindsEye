@@ -44,7 +44,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.net.URI;
 import java.util.*;
 import java.util.List;
@@ -57,10 +56,6 @@ import java.util.stream.Stream;
  * The type Image run util.
  */
 public class TestUtil {
-  /**
-   * The constant originalOut.
-   */
-  public static final PrintStream originalOut = System.out;
   /**
    * The constant S3_ROOT.
    */

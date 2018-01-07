@@ -43,6 +43,7 @@ import com.simiacryptus.mindseye.test.ProblemRun;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.util.test.SysOutInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import smile.plot.PlotCanvas;
@@ -88,7 +89,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     return new TrainingMonitor() {
       @Override
       public void log(final String msg) {
-        TestUtil.originalOut.println(msg);
+        SysOutInterceptor.ORIGINAL_OUT.println(msg);
         log.info(msg);
       }
   

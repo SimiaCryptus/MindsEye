@@ -77,15 +77,17 @@ class CountingNNResult extends NNResult {
   @Override
   public void free() {
     if (1 >= references.get()) {
-      if (hasFinalized.getAndSet(true)) throw new IllegalStateException(finalizedByStr());
-      finalizedBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
-      inner.free();
+      if (!hasFinalized.getAndSet(true)) {
+        finalizedBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
+        inner.free();
+      }
     }
     else {
       if (finalizations.incrementAndGet() == references.get()) {
-        if (hasFinalized.getAndSet(true)) throw new IllegalStateException(finalizedByStr());
-        finalizedBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
-        inner.free();
+        if (!hasFinalized.getAndSet(true)) {
+          finalizedBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
+          inner.free();
+        }
         finalizations.set(0);
       }
     }

@@ -60,7 +60,7 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
     log.h3("Categories");
     log.code(() -> {
       testData.stream().collect(Collectors.groupingBy(x -> x.label, Collectors.counting()))
-              .forEach((k, v) -> ImageCategoryDatasetDemo.log.info(String.format("%s -> %d", k, v)));
+              .forEach((k, v) -> ImageCategoryDatasetDemo.logger.info(String.format("%s -> %d", k, v)));
     });
     
     log.h3("Sample Data");

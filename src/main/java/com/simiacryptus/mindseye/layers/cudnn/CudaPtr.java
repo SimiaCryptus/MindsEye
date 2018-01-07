@@ -69,8 +69,18 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    * @param deviceId the device id
    * @param type
    */
-  protected CudaPtr(final long size, final int deviceId, MemoryType type) {
-    super(acquire(deviceId, size, type));
+  protected CudaPtr(final long size, final int deviceId, MemoryType type) {this(size, deviceId, type, false);}
+  
+  /**
+   * Instantiates a new Cuda ptr.
+   *
+   * @param size     the size
+   * @param deviceId the device id
+   * @param type
+   * @param dirty
+   */
+  protected CudaPtr(final long size, final int deviceId, MemoryType type, boolean dirty) {
+    super(acquire(deviceId, size, type, dirty));
     this.size = size;
     this.deviceId = deviceId;
     this.type = type;
@@ -90,7 +100,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     this.type = type;
   }
   
-  private static Pointer acquire(int deviceId, long size, MemoryType type) {
+  private static Pointer acquire(int deviceId, long size, MemoryType type, boolean dirty) {
     if (size < 0) {
       throw new OutOfMemoryError("Allocated block is too large: " + size);
     }
@@ -103,7 +113,9 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     try {
       pointer = new Pointer();
       type.alloc(size, pointer);
-      CuDNN.handle(CuDNN.cudaMemset(pointer, 0, size));
+      if (!dirty) {
+        CuDNN.handle(CuDNN.cudaMemset(pointer, 0, size));
+      }
     } catch (final Exception e) {
       try {
         final long startMemory = metrics.usedMemory.get();
@@ -111,7 +123,9 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
         final long freedMemory = startMemory - metrics.usedMemory.get();
         pointer = new Pointer();
         type.alloc(size, pointer);
-        CuDNN.handle(CuDNN.cudaMemset(pointer, 0, size));
+        if (!dirty) {
+          CuDNN.handle(CuDNN.cudaMemset(pointer, 0, size));
+        }
         String msg = String.format("Low GPU Memory while allocating %s bytes; %s freed resulting in %s total (triggered by %s)",
                                    size, freedMemory, metrics.usedMemory.get() + size, e.getMessage());
         System.err.println(msg);
@@ -159,14 +173,14 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     }
     else {
       final int listLength = data.length();
-      final int elementLength = data.get(0).dim();
+      final int elementLength = Tensor.dim(data.getDimensions());
       final double[] inputBuffer = RecycleBin.DOUBLES.obtain(elementLength * listLength);
       for (int i = 0; i < listLength; i++) {
         final double[] doubles = data.get(i).getData();
         assert elementLength == doubles.length;
         System.arraycopy(doubles, 0, inputBuffer, i * elementLength, elementLength);
       }
-      final CudaPtr ptr = new CudaPtr(inputBuffer.length * precision.size, deviceId, type).write(precision, inputBuffer);
+      final CudaPtr ptr = new CudaPtr(inputBuffer.length * precision.size, deviceId, type, true).write(precision, inputBuffer);
       RecycleBin.DOUBLES.recycle(inputBuffer, inputBuffer.length);
       return ptr;
     }

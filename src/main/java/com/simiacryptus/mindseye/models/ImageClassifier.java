@@ -40,6 +40,7 @@ import java.util.stream.IntStream;
  * The type Image classifier.
  */
 public abstract class ImageClassifier {
+  private int batchSize;
   private volatile NNLayer network;
   
   /**
@@ -52,8 +53,8 @@ public abstract class ImageClassifier {
    * @param data       the data
    * @return the list
    */
-  public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, NNLayer network, int count, List<String> categories, Tensor... data) {
-    return predict(prefilter, network, count, categories, data.length, data);
+  public List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, NNLayer network, int count, List<String> categories, Tensor... data) {
+    return predict(prefilter, network, count, categories, Math.max(data.length, getBatchSize()), data);
   }
   
   /**
@@ -159,4 +160,13 @@ public abstract class ImageClassifier {
    * @return the network
    */
   public abstract NNLayer getNetwork();
+  
+  public int getBatchSize() {
+    return batchSize;
+  }
+  
+  public ImageClassifier setBatchSize(int batchSize) {
+    this.batchSize = batchSize;
+    return this;
+  }
 }
