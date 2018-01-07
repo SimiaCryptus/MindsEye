@@ -80,7 +80,7 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
       monitor.log(String.format("Low gradient: %s", magnitude));
     }
     boolean hasPlaceholders = direction.getMap().entrySet().stream().filter(x -> x.getKey() instanceof PlaceholderLayer).findAny().isPresent();
-  
+
     List<NNLayer> deltaLayers = direction.getMap().entrySet().stream().map(x -> x.getKey())
                                          .filter(x -> !(x instanceof PlaceholderLayer))
                                          .collect(Collectors.toList());

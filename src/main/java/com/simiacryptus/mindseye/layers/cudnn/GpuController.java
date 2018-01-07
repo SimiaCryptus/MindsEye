@@ -135,26 +135,30 @@ public final class GpuController {
    * Reset all GPUs and Heap Memory
    */
   public static void reset() {
-    cleanMemory();
-    try {
-      Thread.sleep(1000);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    }
-    for (CudaExecutionContext exe : CudaExecutionContext.gpuContexts.getAll()) {
+    synchronized (GpuController.class) {
+      cleanMemory();
       try {
-        GpuController.INSTANCE.getGpuDriverThreads().get(exe).submit(() -> {
-          exe.initThread();
-          CuDNN.cudaDeviceReset();
-        }).get();
-      } catch (Exception e) {
-        throw new RuntimeException(e);
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
       }
-    }
-    try {
-      Thread.sleep(1000);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
+      for (CudaExecutionContext exe : CudaExecutionContext.gpuContexts.getAll()) {
+        try {
+          GpuController.INSTANCE.getGpuDriverThreads().get(exe).submit(() -> {
+            exe.initThread();
+            CudaPtr.getGpuStats(exe.getDeviceNumber()).usedMemory.set(0);
+            CuDNN.cudaDeviceReset();
+          }).get();
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
+      CudaResource.gpuGeneration.incrementAndGet();
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
     }
   }
   

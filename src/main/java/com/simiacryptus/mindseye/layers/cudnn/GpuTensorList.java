@@ -165,6 +165,12 @@ public class GpuTensorList implements TensorList {
     return _inner;
   }
   
+  /**
+   * Sets gpu persistance.
+   *
+   * @param persistanceMode the persistance mode
+   * @return the gpu persistance
+   */
   public GpuTensorList setGpuPersistance(PersistanceMode persistanceMode) {
     ptr.setGpuPersistance(persistanceMode);
     return this;

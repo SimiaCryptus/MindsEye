@@ -39,6 +39,9 @@ public abstract class LayerTestBase extends StandardLayerTests {
     run(this::run);
   }
   
+  /**
+   * Clean all.
+   */
   @Before
   public void cleanAll() {
     GpuController.reset();

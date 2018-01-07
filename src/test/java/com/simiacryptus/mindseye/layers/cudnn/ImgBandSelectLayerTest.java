@@ -34,6 +34,9 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
    * The Precision.
    */
   final Precision precision;
+  /**
+   * The Layer.
+   */
   ImgBandSelectLayer layer = new ImgBandSelectLayer(3, 6);
   
   /**

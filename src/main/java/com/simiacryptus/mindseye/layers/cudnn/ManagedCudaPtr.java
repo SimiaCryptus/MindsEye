@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.layers.cudnn.CudaPtr.MemoryType;
 import jcuda.Pointer;
 import scala.reflect.internal.util.WeakHashSet;
 
+import java.util.Arrays;
 import java.util.function.Supplier;
 
 /**
@@ -31,6 +32,9 @@ import java.util.function.Supplier;
  */
 public class ManagedCudaPtr {
   
+  /**
+   * The constant INSTANCES.
+   */
   public static final WeakHashSet<ManagedCudaPtr> INSTANCES = new WeakHashSet<>();
   
   private static final int K = 1024;
@@ -47,7 +51,8 @@ public class ManagedCudaPtr {
   private final boolean dirty;
   private PersistanceMode persistanceMode;
   private volatile Supplier<CudaPtr> ptrRef;
-  private volatile byte[] bytes;
+  private final Precision precision;
+  private volatile double[] values;
   
   /**
    * Instantiates a new Cuda ptr.
@@ -60,9 +65,26 @@ public class ManagedCudaPtr {
    * Instantiates a new Cuda ptr.
    *
    * @param ptr             the ptr
-   * @param persistanceMode
+   * @param persistanceMode the persistance mode
    */
-  protected ManagedCudaPtr(final CudaPtr ptr, PersistanceMode persistanceMode) {
+  protected ManagedCudaPtr(final CudaPtr ptr, PersistanceMode persistanceMode) {this(ptr, persistanceMode, Precision.Double);}
+  
+  /**
+   * Instantiates a new Cuda ptr.
+   *
+   * @param ptr       the ptr
+   * @param precision the precision
+   */
+  protected ManagedCudaPtr(final CudaPtr ptr, Precision precision) {this(ptr, PersistanceMode.Strong, precision);}
+  
+  /**
+   * Instantiates a new Cuda ptr.
+   *
+   * @param ptr             the ptr
+   * @param persistanceMode the persistance mode
+   * @param precision       the precision
+   */
+  protected ManagedCudaPtr(final CudaPtr ptr, PersistanceMode persistanceMode, Precision precision) {
     super();
     this.size = ptr.size;
     this.deviceId = ptr.getDeviceId();
@@ -71,19 +93,29 @@ public class ManagedCudaPtr {
     this.ptrRef = this.persistanceMode.wrap(ptr);
     this.dirty = false;
     ManagedCudaPtr.INSTANCES.add(this);
+    this.precision = precision;
   }
   
+  /**
+   * Free.
+   */
   protected void free() {
     Supplier<CudaPtr> ptr = this.ptrRef;
     if (ptr != null) {
       CudaPtr cudaPtr = ptr.get();
       if (null != cudaPtr) cudaPtr.free();
     }
-    bytes = null;
+    values = null;
   }
   
+  /**
+   * Sets gpu persistance.
+   *
+   * @param persistanceMode the persistance mode
+   * @return the gpu persistance
+   */
   public ManagedCudaPtr setGpuPersistance(PersistanceMode persistanceMode) {
-    if (persistanceMode != PersistanceMode.Strong && null == getBytes()) throw new IllegalStateException();
+    if (persistanceMode != PersistanceMode.Strong && null == getValues()) throw new IllegalStateException();
     if (persistanceMode == PersistanceMode.Strong && null == getPtr()) throw new IllegalStateException();
     if (ptrRef != null) {
       CudaPtr cudaPtr = ptrRef.get();
@@ -153,10 +185,20 @@ public class ManagedCudaPtr {
   }
   
   
+  /**
+   * Gets ptr.
+   *
+   * @return the ptr
+   */
   public Pointer getPtr() {
     return getCudaPtr().getPtr();
   }
   
+  /**
+   * Gets cuda ptr.
+   *
+   * @return the cuda ptr
+   */
   public CudaPtr getCudaPtr() {
     CudaPtr cudaPtr;
     cudaPtr = null == ptrRef ? null : ptrRef.get();
@@ -164,24 +206,34 @@ public class ManagedCudaPtr {
       synchronized (this) {
         cudaPtr = null == ptrRef ? null : ptrRef.get();
         if (null == cudaPtr) {
+          CuDNN.setDevice(deviceId);
           cudaPtr = new CudaPtr(size, deviceId, type, dirty);
           ptrRef = persistanceMode.wrap(cudaPtr);
+          assert Arrays.stream(values).allMatch(Double::isFinite);
+          cudaPtr.write(precision, values);
         }
       }
     }
     return cudaPtr;
   }
   
-  public byte[] getBytes() {
-    if (null == bytes) {
+  /**
+   * Get values double [ ].
+   *
+   * @return the double [ ]
+   */
+  public double[] getValues() {
+    if (null == values) {
       synchronized (this) {
-        if (null == bytes) {
-          double[] bytes = new double[(int) (size / Precision.Double.size)];
-          getCudaPtr().read(Precision.Double, bytes);
+        if (null == values) {
+          CuDNN.setDevice(deviceId);
+          values = new double[(int) (size / precision.size)];
+          getCudaPtr().read(precision, values);
+          assert Arrays.stream(values).allMatch(Double::isFinite);
         }
       }
     }
-    return bytes;
+    return values;
   }
   
 }

@@ -179,7 +179,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
   
       assert 0 < kernel.getData().length;
       assert kernelSize[0] * kernelSize[1] * kernelSize[2] == kernel.getData().length;
-      CudaPtr.MemoryType filterMemoryType = CudaPtr.MemoryType.Device;
+      CudaPtr.MemoryType filterMemoryType = CudaPtr.MemoryType.DeviceDirect;
       final ManagedCudaPtr filterPtr = new CudaPtr(kernel.getData().length * precision.size, deviceNumber, filterMemoryType).write(precision, kernel.getData()).managed();
       final CudaPtr inputData = CudaPtr.write(deviceNumber, precision, batch);
   

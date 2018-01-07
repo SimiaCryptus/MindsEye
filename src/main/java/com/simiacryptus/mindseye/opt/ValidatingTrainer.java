@@ -99,12 +99,12 @@ public class ValidatingTrainer {
         validatingMeasurementTime.addAndGet(time.timeNanos);
         return time.result;
       }
-
+  
       @Override
       public boolean reseed(final long seed) {
         return validationSubject.reseed(seed);
       }
-
+  
       @Override
       public NNLayer getLayer() {
         return validationSubject.getLayer();
@@ -808,7 +808,7 @@ public class ValidatingTrainer {
      * The Validation.
      */
     PointSample validation;
-
+  
     private EpochParams(final long timeoutMs, final int iterations, final int trainingSize, final PointSample validation) {
       this.timeoutMs = timeoutMs;
       this.iterations = iterations;

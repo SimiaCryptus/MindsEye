@@ -287,7 +287,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
     output.h1("Differential Validation");
     ToleranceStatistics _statistics = new ToleranceStatistics();
     final Tensor outputPrototype = SimpleEval.run(component, inputPrototype).getOutput();
-  
+
     if (verbose) {
       output.code(() -> {
         log.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));
@@ -312,7 +312,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
         return testLearning(statistics, component, inputPrototype, outputPrototype);
       });
     }
-  
+
     output.h2("Total Accuracy");
     output.p("The overall agreement accuracy between the implemented derivative and the finite difference estimations:");
     final ToleranceStatistics statistics = _statistics;

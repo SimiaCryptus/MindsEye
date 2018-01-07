@@ -82,7 +82,7 @@ public class CaltechTests {
     log.p("The vector-to-image network uses a fully connected layer then a single convolutional layer:");
     return log.code(() -> {
       final PipelineNetwork network = new PipelineNetwork();
-  
+
       IntToDoubleFunction weights = i -> 1e-8 * (Math.random() - 0.5);
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{4, 4, 40}).set(weights));
       network.add(new ImgBandBiasLayer(40));

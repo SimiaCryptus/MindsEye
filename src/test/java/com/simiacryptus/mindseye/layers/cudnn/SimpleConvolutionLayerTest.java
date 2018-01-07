@@ -220,7 +220,7 @@ public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Multi band.
      */
     public Big() {
-      super(3, 1024, Precision.Double);
+      super(3, 512, Precision.Double);
       validateDifferentials = false;
     }
     

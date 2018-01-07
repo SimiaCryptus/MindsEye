@@ -287,7 +287,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
         else {
           //log.info(String.format("Component: %s", component));
           if (verbose) {
-  
+
             log.info(String.format("Learning Gradient for weight setByCoord %s", i));
             log.info(String.format("Weights: %s", new Tensor(component.state().get(i)).prettyPrint()));
             log.info(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
@@ -383,7 +383,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
   public ToleranceStatistics test(final NotebookOutput log, final NNLayer component, final Tensor... inputPrototype) {
     log.h1("Differential Validation");
     IOPair ioPair = new IOPair(component, inputPrototype[0]).invoke();
-  
+
     if (verbose) {
       log.code(() -> {
         BatchDerivativeTester.log.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));

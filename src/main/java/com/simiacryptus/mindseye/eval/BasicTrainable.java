@@ -20,7 +20,8 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.*;
+import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
+import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.lang.TimedResult;
@@ -28,9 +29,6 @@ import com.simiacryptus.util.lang.TimedResult;
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
@@ -230,22 +228,7 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
       RecycleBin.DOUBLES.printNetProfiling(System.err);
       if (retries > 0) {
         lastGc = System.currentTimeMillis();
-        GpuController.cleanMemory();
-        synchronized (CudaResource.gpuGeneration) {
-          for (final Map.Entry<CudaExecutionContext, ExecutorService> entry : GpuController.INSTANCE.getGpuDriverThreads().asMap().entrySet()) {
-            CudaResource.gpuGeneration.incrementAndGet();
-            try {
-              entry.getValue().submit(() -> {
-                CudaPtr.getGpuStats(entry.getKey().getDeviceNumber()).usedMemory.set(0);
-                return CuDNN.cudaDeviceReset();
-              }).get();
-            } catch (final InterruptedException e1) {
-              throw new GpuError(e1);
-            } catch (final ExecutionException e1) {
-              throw new GpuError(e1);
-            }
-          }
-        }
+        GpuController.reset();
         CudaPtr.METRICS.invalidateAll();
         if (gcEachIteration && TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - lastGc) > gcPeriod) {
           lastGc = System.currentTimeMillis();

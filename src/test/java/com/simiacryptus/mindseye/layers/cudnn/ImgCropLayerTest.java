@@ -84,7 +84,7 @@ public abstract class ImgCropLayerTest extends CudnnLayerTestBase {
    * The type Chained.
    */
   public static class Chained extends ImgCropLayerTest {
-    
+  
     /**
      * Instantiates a new Chained.
      */
@@ -98,7 +98,7 @@ public abstract class ImgCropLayerTest extends CudnnLayerTestBase {
       //return wrap(imgCropLayer);
       return imgCropLayer;
     }
-    
+  
     /**
      * Wrap nn layer.
      *

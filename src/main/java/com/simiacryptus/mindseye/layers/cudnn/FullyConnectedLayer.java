@@ -98,6 +98,17 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
   }
   
   /**
+   * From json img concat layer.
+   *
+   * @param json the json
+   * @param rs   the rs
+   * @return the img concat layer
+   */
+  public static FullyConnectedLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+    return new FullyConnectedLayer(json, rs);
+  }
+  
+  /**
    * Sets weights.
    *
    * @param data the data
@@ -117,17 +128,6 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
   public FullyConnectedLayer set(final Tensor data) {
     weights.set(data);
     return this;
-  }
-  
-  /**
-   * From json img concat layer.
-   *
-   * @param json the json
-   * @param rs   the rs
-   * @return the img concat layer
-   */
-  public static FullyConnectedLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
-    return new FullyConnectedLayer(json, rs);
   }
   
   /**
@@ -158,6 +158,11 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
     return explode().eval(nncontext, inObj);
   }
   
+  /**
+   * Explode pipeline network.
+   *
+   * @return the pipeline network
+   */
   public PipelineNetwork explode() {
     int inputVol = Tensor.dim(inputDims);
     int outVol = Tensor.dim(outputDims);

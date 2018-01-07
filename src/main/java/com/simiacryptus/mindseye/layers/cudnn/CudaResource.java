@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.ToIntFunction;
 
 /**
@@ -33,6 +34,7 @@ public class CudaResource<T> extends CudaResourceBase<T> {
    */
   public final int deviceId;
   private final ToIntFunction<T> destructor;
+  private final AtomicBoolean isFinalized = new AtomicBoolean(false);
   
   /**
    * Instantiates a new Cuda resource.
@@ -53,7 +55,7 @@ public class CudaResource<T> extends CudaResourceBase<T> {
   protected void free() {
     try {
       CuDNN.setDevice(deviceId);
-      if (isActiveObj()) {
+      if (isActiveObj() && !isFinalized.getAndSet(true)) {
         CuDNN.handle(this.destructor.applyAsInt(ptr));
       }
     } catch (final Throwable e) {

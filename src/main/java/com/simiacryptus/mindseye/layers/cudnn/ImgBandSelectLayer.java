@@ -39,6 +39,12 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
   private int to;
   private Precision precision = Precision.Double;
   
+  /**
+   * Instantiates a new Img band select layer.
+   *
+   * @param from the from
+   * @param to   the to
+   */
   public ImgBandSelectLayer(int from, int to) {
     this.setFrom(from);
     this.setTo(to);
@@ -136,7 +142,7 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
           final CudaPtr errorPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, error);
           final CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), //
                                                      (long) (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size), //
-                                                     CudaPtr.MemoryType.DeviceDirect, true);
+                                                     true);
           CuDNN.cudnnTransformTensor(((CuDNN) nncontext).cudnnHandle,
                                      precision.getPointer(1.0), outputDescriptor.getPtr(), errorPtr.getPtr(),
                                      precision.getPointer(0.0), inputDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
@@ -200,10 +206,21 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
     return Arrays.asList();
   }
   
+  /**
+   * Gets to.
+   *
+   * @return the to
+   */
   public int getTo() {
     return to;
   }
   
+  /**
+   * Sets to.
+   *
+   * @param to the to
+   * @return the to
+   */
   public ImgBandSelectLayer setTo(int to) {
     this.to = to;
     return this;
