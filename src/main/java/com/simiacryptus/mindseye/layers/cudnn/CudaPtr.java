@@ -149,34 +149,36 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     if (CuDNN.getDevice() != deviceId) throw new IllegalArgumentException();
     final GpuStats metrics = CudaPtr.getGpuStats(deviceId);
     Pointer pointer;
-    try {
-      pointer = new Pointer();
-      type.alloc(size, pointer);
-      if (!dirty) {
-        CuDNN.handle(CuDNN.cudaMemset(pointer, 0, size));
-      }
-    } catch (final Exception e) {
+    synchronized (CudaPtr.getPciBusLock()) {
       try {
-        final long startMemory = metrics.usedMemory.get();
-        GpuController.cleanMemory();
-        final long freedMemory = startMemory - metrics.usedMemory.get();
         pointer = new Pointer();
         type.alloc(size, pointer);
         if (!dirty) {
           CuDNN.handle(CuDNN.cudaMemset(pointer, 0, size));
         }
-        String msg = String.format("Low GPU Memory while allocating %s bytes; %s freed resulting in %s total (triggered by %s)",
-                                   size, freedMemory, metrics.usedMemory.get() + size, e.getMessage());
-        System.err.println(msg);
-      } catch (final Exception e2) {
-        cudaDeviceProp properties = getCurrentDeviceProperties();
-        String msg = String.format("Error allocating %s bytes; %s currently allocated to device %s; device properties = %s", size, metrics.usedMemory.get(), deviceId, properties);
-        throw new com.simiacryptus.mindseye.lang.OutOfMemoryError(msg, e2);
+      } catch (final Exception e) {
+        try {
+          final long startMemory = metrics.usedMemory.get();
+          GpuController.cleanMemory();
+          final long freedMemory = startMemory - metrics.usedMemory.get();
+          pointer = new Pointer();
+          type.alloc(size, pointer);
+          if (!dirty) {
+            CuDNN.handle(CuDNN.cudaMemset(pointer, 0, size));
+          }
+          String msg = String.format("Low GPU Memory while allocating %s bytes; %s freed resulting in %s total (triggered by %s)",
+                                     size, freedMemory, metrics.usedMemory.get() + size, e.getMessage());
+          System.err.println(msg);
+        } catch (final Exception e2) {
+          cudaDeviceProp properties = getCurrentDeviceProperties();
+          String msg = String.format("Error allocating %s bytes; %s currently allocated to device %s; device properties = %s", size, metrics.usedMemory.get(), deviceId, properties);
+          throw new com.simiacryptus.mindseye.lang.OutOfMemoryError(msg, e2);
+        }
       }
+      final long finalMemory = metrics.usedMemory.addAndGet(size);
+      metrics.peakMemory.updateAndGet(l -> Math.max(finalMemory, l));
+      return pointer;
     }
-    final long finalMemory = metrics.usedMemory.addAndGet(size);
-    metrics.peakMemory.updateAndGet(l -> Math.max(finalMemory, l));
-    return pointer;
   }
   
   
@@ -250,8 +252,10 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   @Override
   protected void free() {
     if (isActiveObj()) {
-      getType().free(ptr, deviceId);
-      CudaPtr.getGpuStats(deviceId).usedMemory.addAndGet(-size);
+      synchronized (CudaPtr.getPciBusLock()) {
+        getType().free(ptr, deviceId);
+        CudaPtr.getGpuStats(deviceId).usedMemory.addAndGet(-size);
+      }
     }
   }
   
@@ -261,9 +265,11 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    * @return the cuda ptr
    */
   public CudaPtr copy() {
-    final CudaPtr copy = new CudaPtr(size, deviceId, getType());
-    CuDNN.handle(CuDNN.cudaMemcpy(getPtr(), copy.getPtr(), size, cudaMemcpyKind.cudaMemcpyDeviceToDevice));
-    return copy;
+    synchronized (CudaPtr.getPciBusLock()) {
+      final CudaPtr copy = new CudaPtr(size, deviceId, getType());
+      CuDNN.handle(CuDNN.cudaMemcpy(getPtr(), copy.getPtr(), size, cudaMemcpyKind.cudaMemcpyDeviceToDevice));
+      return copy;
+    }
   }
   
   /**

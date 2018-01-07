@@ -136,6 +136,11 @@ public final class GpuController {
    */
   public static void reset() {
     cleanMemory();
+    try {
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
     for (CudaExecutionContext exe : CudaExecutionContext.gpuContexts.getAll()) {
       try {
         GpuController.INSTANCE.getGpuDriverThreads().get(exe).submit(() -> {
@@ -145,6 +150,11 @@ public final class GpuController {
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
+    }
+    try {
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
     }
   }
   
