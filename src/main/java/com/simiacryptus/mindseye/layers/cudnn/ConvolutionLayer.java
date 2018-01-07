@@ -417,15 +417,22 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
         });
         SimpleConvolutionLayer simpleConvolutionLayer = new SimpleConvolutionLayer(batchKernel)
           .setStrideX(getStrideX()).setStrideY(getStrideY()).setPrecision(precision);
-        if (paddingX != null) simpleConvolutionLayer.setPaddingX(paddingX);
-        if (paddingY != null) simpleConvolutionLayer.setPaddingY(paddingY);
         subLayers.add(simpleConvolutionLayer);
       }
       final DAGNode input = network.getHead();
-      network.add(new ImgConcatLayer().setMaxBands(outputBands).setPrecision(precision),
-                  subLayers.stream().map(l -> {
-                    return network.add(l, input);
-                  }).toArray(i -> new DAGNode[i]));
+      if (inputBands != outputBands) {
+        network.add(new ImgConcatLayer().setMaxBands(outputBands).setPrecision(precision),
+                    subLayers.stream().map(l -> {
+                      return network.add(l, input);
+                    }).toArray(i -> new DAGNode[i]));
+      }
+      if (paddingX != null || paddingY != null) {
+        int x = ((filterDimensions[0] - 1) / 2);
+        if (paddingX != null) x = paddingX - x;
+        int y = ((filterDimensions[1] - 1) / 2);
+        if (paddingY != null) y = paddingY - y;
+        network.add(new ImgZeroPaddingLayer(x, y));
+      }
       if (isFrozen()) {
         network.freeze();
       }

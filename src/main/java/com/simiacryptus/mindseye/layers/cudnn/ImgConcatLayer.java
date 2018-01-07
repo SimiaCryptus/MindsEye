@@ -115,6 +115,7 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
       @Override
       public void free() {
         Arrays.stream(inObj).forEach(NNResult::free);
+        outputBuffer.finalize();
       }
   
       @Override

@@ -85,8 +85,18 @@ public class CuDNN {
    * @param size     the size
    * @return the cuda ptr
    */
-  public static CudaPtr alloc(final int deviceId, final long size) {
-    return new CudaPtr(size, deviceId);
+  public static CudaPtr alloc(final int deviceId, final long size) {return alloc(deviceId, size, CudaPtr.MemoryType.Device);}
+  
+  /**
+   * Alloc cuda ptr.
+   *
+   * @param deviceId the device id
+   * @param size     the size
+   * @param type
+   * @return the cuda ptr
+   */
+  public static CudaPtr alloc(final int deviceId, final long size, CudaPtr.MemoryType type) {
+    return new CudaPtr(size, deviceId, type);
   }
   
   /**
@@ -149,6 +159,39 @@ public class CuDNN {
   public static int cudaMalloc(final Pointer devPtr, final long size) {
     final int result = JCuda.cudaMalloc(devPtr, size);
     CuDNN.log("cudaMalloc", result, devPtr, size);
+    return result;
+  }
+  
+  public static int cudaMallocManaged(final Pointer devPtr, final long size, int flags) {
+    final int result = JCuda.cudaMallocManaged(devPtr, size, flags);
+    CuDNN.log("cudaMallocManaged", result, devPtr, size, flags);
+    return result;
+  }
+  
+  public static int cudaHostAlloc(final Pointer devPtr, final long size, int flags) {
+    final int result = JCuda.cudaHostAlloc(devPtr, size, flags);
+    CuDNN.log("cudaHostAlloc", result, devPtr, size, flags);
+    return result;
+  }
+  
+  public static int cudaFreeHost(final Pointer devPtr) {
+    final int result = JCuda.cudaFreeHost(devPtr);
+    CuDNN.log("cudaFreeHost", result, devPtr);
+    return result;
+  }
+  
+  public static long cudaDeviceGetLimit(final int limit) {
+    long[] pValue = new long[1];
+    final int result = JCuda.cudaDeviceGetLimit(pValue, limit);
+    CuDNN.log("cudaDeviceGetLimit(", result, pValue, limit);
+    handle(result);
+    return pValue[0];
+  }
+  
+  
+  public static int cudaDeviceSetLimit(final int limit, long value) {
+    final int result = JCuda.cudaDeviceSetLimit(limit, value);
+    CuDNN.log("cudaDeviceSetLimit(", result, limit, value);
     return result;
   }
   

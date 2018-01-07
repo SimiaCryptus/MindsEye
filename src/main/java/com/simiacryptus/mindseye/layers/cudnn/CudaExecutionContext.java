@@ -74,14 +74,19 @@ public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
       log.warn("Disabled CuDNN");
       return Arrays.asList();
     }
-    CuDNN.handle(cudaSetDeviceFlags(cudaDeviceScheduleAuto));
     final int deviceCount = CuDNN.deviceCount();
     log.info(String.format("Found %s devices", deviceCount));
     List<Integer> devices = new ArrayList<>();
     for (int device = 0; device < deviceCount; device++) {
       //if(device>0) System.err.println(String.format("IGNORING Device %s - %s", device, getDeviceName(device)));
+      CuDNN.setDevice(device);
       log.info(String.format("Device %s - %s", device, CuDNN.getDeviceName(device)));
       devices.add(device);
+      CuDNN.handle(cudaSetDeviceFlags(cudaDeviceScheduleAuto));
+      for (DeviceLimits limit : DeviceLimits.values()) {
+        log.info(String.format("Limit %s = %s", limit, limit.get()));
+      }
+      DeviceLimits.HeapSize.set(4 * 1024 * 1024 * 1024);
     }
     if (System.getProperties().containsKey("gpus")) {
       devices = Arrays.stream(System.getProperty("gpus").split(","))

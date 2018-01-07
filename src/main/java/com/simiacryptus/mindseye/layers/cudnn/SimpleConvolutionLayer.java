@@ -27,6 +27,7 @@ import jcuda.jcudnn.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.DoubleSupplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
@@ -178,7 +179,8 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
   
       assert 0 < kernel.getData().length;
       assert kernelSize[0] * kernelSize[1] * kernelSize[2] == kernel.getData().length;
-      final CudaPtr filterPtr = new CudaPtr(kernel.getData().length * precision.size, deviceNumber).write(precision, kernel.getData());
+      CudaPtr.MemoryType filterMemoryType = CudaPtr.MemoryType.Device;
+      final CudaPtr filterPtr = new CudaPtr(kernel.getData().length * precision.size, deviceNumber, filterMemoryType).write(precision, kernel.getData());
       final CudaPtr inputData = CudaPtr.write(deviceNumber, precision, batch);
   
       final CudaPtr outputBuffer = CuDNN.alloc(deviceNumber, Tensor.dim(outputDims) * 1l * length * precision.size);
@@ -202,12 +204,14 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
         @Override
         public void free() {
           freedBy = Thread.currentThread().getStackTrace();
-          inputData.finalize();
           Arrays.stream(inObj).forEach(NNResult::free);
         }
-        
+  
+        AtomicBoolean hasAccumulated = new AtomicBoolean(false);
+
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
+          if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
           assert null == freedBy : Arrays.toString(freedBy);
           cuda.initThread();
           assert error.length() == batch.length();

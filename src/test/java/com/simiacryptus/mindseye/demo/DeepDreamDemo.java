@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.models.ImageClassifier;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
+import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
@@ -102,10 +103,9 @@ public class DeepDreamDemo extends NotebookReportBase {
         images[itemNumber], new Tensor(vgg16Categories.size()).set(targetCategoryIndex, 1.0)
       }));
       ArrayList<StepRecord> history = new ArrayList<>();
-      TrainingMonitor monitor = TestUtil.getMonitor(history);
       log.code(() -> {
         new IterativeTrainer(trainable)
-          .setMonitor(monitor)
+          .setMonitor(getTrainingMonitor(history))
           .setOrientation(new QQN())
           .setTimeout(15, TimeUnit.MINUTES)
           .run();
@@ -135,6 +135,27 @@ public class DeepDreamDemo extends NotebookReportBase {
       return tableOutput;
     }, 256 * 1024);
     log.setFrontMatterProperty("status", "OK");
+  }
+  
+  public TrainingMonitor getTrainingMonitor(ArrayList<StepRecord> history) {
+    TrainingMonitor monitor1 = TestUtil.getMonitor(history);
+    return new TrainingMonitor() {
+      @Override
+      public void clear() {
+        monitor1.clear();
+      }
+      
+      @Override
+      public void log(String msg) {
+        TestUtil.originalOut.println(msg);
+        monitor1.log(msg);
+      }
+      
+      @Override
+      public void onStepComplete(Step currentPoint) {
+        monitor1.onStepComplete(currentPoint);
+      }
+    };
   }
   
   /**

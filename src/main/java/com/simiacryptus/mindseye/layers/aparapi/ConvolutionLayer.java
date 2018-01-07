@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.aparapi;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.Util;
 
@@ -115,7 +114,10 @@ public class ConvolutionLayer extends NNLayer {
   protected ConvolutionLayer(final JsonObject json, Map<String, byte[]> resources) {
     super(json);
     kernel = Tensor.fromJson(json.get("filter"), resources);
-    JsonPrimitive simple = json.getAsJsonPrimitive("simple");
+    JsonElement paddingX = json.get("paddingX");
+    if (null != paddingX && paddingX.isJsonPrimitive()) this.setPaddingX((paddingX.getAsInt()));
+    JsonElement paddingY = json.get("paddingY");
+    if (null != paddingY && paddingY.isJsonPrimitive()) this.setPaddingY((paddingY.getAsInt()));
   }
   
   /**

@@ -24,21 +24,29 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.TensorList;
 
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * A result type for evaluating the backpropigation phase of an Acyclic Directed Graph. Since the result of a given
  * compoent in a network can be used multiple times, we can improve efficiency of backprop by accumulating all the
  * backpropigating delta signals into a single signal before evaluating further backwards.
  */
 class CountingNNResult extends NNResult {
+  /**
+   * The constant debugLifecycle.
+   */
+  public static boolean debugLifecycle = true;
   
   /**
    * The Inner.
    */
-  final NNResult inner;
+  private final NNResult inner;
   /**
    * The Queued.
    */
-  int accumulations = 0;
+  private final AtomicInteger accumulations = new AtomicInteger(0);
   /**
    * The Passback buffer.
    */
@@ -46,8 +54,11 @@ class CountingNNResult extends NNResult {
   /**
    * The Finalizations.
    */
-  int finalizations = 0;
-  private int count = 0;
+  private final AtomicInteger finalizations = new AtomicInteger(0);
+  private final AtomicInteger references = new AtomicInteger(0);
+  private final AtomicBoolean hasAccumulated = new AtomicBoolean(false);
+  private final AtomicBoolean hasFinalized = new AtomicBoolean(false);
+  public StackTraceElement[] finalizedBy = null;
   
   /**
    * Instantiates a new Counting nn result.
@@ -65,21 +76,26 @@ class CountingNNResult extends NNResult {
    */
   @Override
   public void free() {
-    if (1 >= getCount()) {
+    if (1 >= references.get()) {
+      if (hasFinalized.getAndSet(true)) throw new IllegalStateException(finalizedByStr());
+      finalizedBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
       inner.free();
     }
     else {
-      if (++finalizations == getCount()) {
+      if (finalizations.incrementAndGet() == references.get()) {
+        if (hasFinalized.getAndSet(true)) throw new IllegalStateException(finalizedByStr());
+        finalizedBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
         inner.free();
-        finalizations = 0;
+        finalizations.set(0);
       }
     }
   }
   
   @Override
   public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-    assert 0 == finalizations;
-    if (1 >= getCount()) {
+    if (hasFinalized.get()) throw new IllegalStateException(finalizedByStr());
+    if (1 >= references.get()) {
+      if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
       inner.accumulate(buffer, data);
     }
     else {
@@ -89,35 +105,19 @@ class CountingNNResult extends NNResult {
       else {
         passbackBuffer.accum(data);
       }
-      if (++accumulations == getCount()) {
+      if (accumulations.incrementAndGet() == references.get()) {
+        if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
         inner.accumulate(buffer, passbackBuffer);
-        if (1 < getCount()) {
+        if (1 < references.get()) {
           passbackBuffer.recycle();
         }
-        accumulations = 0;
+        accumulations.set(0);
       }
     }
   }
   
-  /**
-   * Add int.
-   *
-   * @param count the count
-   * @return the int
-   */
-  public synchronized int add(final int count) {
-    this.count += count;
-    //System.err.println("Count -> " + this.count);
-    return this.count;
-  }
-  
-  /**
-   * Gets count.
-   *
-   * @return the count
-   */
-  public int getCount() {
-    return count;
+  public String finalizedByStr() {
+    return null == finalizedBy ? "" : Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).get();
   }
   
   /**
@@ -126,7 +126,7 @@ class CountingNNResult extends NNResult {
    * @return the counting nn result
    */
   public CountingNNResult increment() {
-    add(1);
+    this.references.incrementAndGet();
     return this;
   }
   

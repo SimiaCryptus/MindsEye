@@ -144,7 +144,7 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
       final CudaPtr beta = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
   
       assert 0 < bias.length;
-      final CudaPtr filterPtr = new CudaPtr(bias.length * precision.size, ((CudaExecutionContext) nncontext).getDeviceNumber()).write(precision, bias);
+      final CudaPtr filterPtr = new CudaPtr(bias.length * precision.size, ((CudaExecutionContext) nncontext).getDeviceNumber(), CudaPtr.MemoryType.Device).write(precision, bias);
       final CudaPtr inputData = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, batch);
       final cudnnHandle cudnnHandle = ((CuDNN) nncontext).cudnnHandle;
       try {
@@ -286,7 +286,7 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
   }
   
   public ImgBandBiasLayer setWeightsLog(int mag) {
-    setWeights(i -> Math.log(mag) * Math.random());
+    setWeights(i -> Math.pow(10, mag) * Math.random());
     return this;
   }
 }

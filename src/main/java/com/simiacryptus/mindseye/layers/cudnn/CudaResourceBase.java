@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.ComponentException;
 
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -32,7 +33,7 @@ public abstract class CudaResourceBase<T> {
   /**
    * The constant debugLifecycle.
    */
-  public static boolean debugLifecycle = false;
+  public static boolean debugLifecycle = true;
   /**
    * The constant gpuGeneration.
    */
@@ -71,7 +72,8 @@ public abstract class CudaResourceBase<T> {
    * @return the ptr
    */
   public T getPtr() {
-    if (isFinalized()) return null;
+    if (isFinalized())
+      throw new IllegalStateException(Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).orElse(""));
     return ptr;
   }
   
