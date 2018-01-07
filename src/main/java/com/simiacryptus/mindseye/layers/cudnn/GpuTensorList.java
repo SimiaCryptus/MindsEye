@@ -19,10 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.RecycleBin;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 import jcuda.jcudnn.cudnnTensorFormat;
 
@@ -46,7 +43,7 @@ public class GpuTensorList implements TensorList {
   /**
    * The Ptr.
    */
-  public final CudaPtr ptr;
+  public final ManagedCudaPtr ptr;
   /**
    * The Cudnn handle.
    */
@@ -67,7 +64,7 @@ public class GpuTensorList implements TensorList {
     this.precision = precision;
     if (null == ptr) throw new IllegalArgumentException("ptr");
     if (null == ptr.getPtr()) throw new IllegalArgumentException("ptr.getPtr()");
-    this.ptr = ptr;
+    this.ptr = ptr.managed();
     this.length = length;
     this.dimensions = dimensions;
     this.cudnnHandle = cudnnHandle;
@@ -88,7 +85,7 @@ public class GpuTensorList implements TensorList {
                                         precision.getPointer(1.0), size.getPtr(), nativeRight.ptr.getPtr(),
                                         precision.getPointer(1.0), size.getPtr(), GpuTensorList.this.ptr.getPtr()));
       size.finalize();
-      nativeRight.ptr.finalize(); // Make this function destructive to both arguments
+      nativeRight.ptr.free(); // Make this function destructive to both arguments
     }
     else {
       IntStream.range(0, length()).forEach(i -> {
@@ -108,7 +105,7 @@ public class GpuTensorList implements TensorList {
                                         precision.getPointer(1.0), size.getPtr(), nativeRight.ptr.getPtr(),
                                         precision.getPointer(1.0), size.getPtr(), GpuTensorList.this.ptr.getPtr()));
       size.finalize();
-      nativeRight.ptr.finalize(); // Make this function destructive to both arguments
+      nativeRight.ptr.free(); // Make this function destructive to both arguments
       return this;
     }
     return new TensorArray(
@@ -168,6 +165,11 @@ public class GpuTensorList implements TensorList {
     return _inner;
   }
   
+  public GpuTensorList setGpuPersistance(PersistanceMode persistanceMode) {
+    ptr.setGpuPersistance(persistanceMode);
+    return this;
+  }
+  
   @Override
   public int length() {
     return length;
@@ -175,7 +177,7 @@ public class GpuTensorList implements TensorList {
   
   @Override
   public void recycle() {
-    ptr.finalize();
+    ptr.free();
     if (null != _inner) {
       _inner.recycle();
     }

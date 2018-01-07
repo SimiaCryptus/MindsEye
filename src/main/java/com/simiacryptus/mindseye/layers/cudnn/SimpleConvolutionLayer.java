@@ -180,7 +180,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
       assert 0 < kernel.getData().length;
       assert kernelSize[0] * kernelSize[1] * kernelSize[2] == kernel.getData().length;
       CudaPtr.MemoryType filterMemoryType = CudaPtr.MemoryType.Device;
-      final CudaPtr filterPtr = new CudaPtr(kernel.getData().length * precision.size, deviceNumber, filterMemoryType).write(precision, kernel.getData());
+      final ManagedCudaPtr filterPtr = new CudaPtr(kernel.getData().length * precision.size, deviceNumber, filterMemoryType).write(precision, kernel.getData()).managed();
       final CudaPtr inputData = CudaPtr.write(deviceNumber, precision, batch);
   
       final CudaPtr outputBuffer = CuDNN.alloc(deviceNumber, Tensor.dim(outputDims) * 1l * length * precision.size, true);
@@ -194,8 +194,8 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
                                                  filterDescriptor.getPtr(), filterPtr.getPtr(),
                                                  convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, beta.getPtr(),
                                                  outputDescriptor.getPtr(), outputBuffer.getPtr()));
-      workSpace.finalize();
-  
+      ManagedCudaPtr workspacePtr = workSpace.managed(PersistanceMode.Weak);
+      filterPtr.setGpuPersistance(PersistanceMode.Weak);
       TensorList output = new GpuTensorList(outputBuffer, length, outputDims, cudnnHandle, precision);
       return new NNResult(output) {
   
@@ -204,8 +204,10 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
         
         @Override
         public void free() {
+          workspacePtr.free();
           freedBy = Thread.currentThread().getStackTrace();
           Arrays.stream(inObj).forEach(NNResult::free);
+          filterPtr.free();
         }
   
         @Override

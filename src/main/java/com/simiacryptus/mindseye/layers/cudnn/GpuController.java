@@ -132,6 +132,24 @@ public final class GpuController {
   }
   
   /**
+   * Reset all GPUs and Heap Memory
+   */
+  public static void reset() {
+    cleanMemory();
+    for (CudaExecutionContext exe : CudaExecutionContext.gpuContexts.getAll()) {
+      try {
+        GpuController.INSTANCE.getGpuDriverThreads().get(exe).submit(() -> {
+          exe.initThread();
+          CuDNN.cudaDeviceReset();
+        }).get();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+  
+  
+  /**
    * Distribute t.
    *
    * @param <T>     the type parameter

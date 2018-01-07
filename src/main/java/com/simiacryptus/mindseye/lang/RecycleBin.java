@@ -23,13 +23,11 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 
 import java.io.PrintStream;
-import java.lang.ref.SoftReference;
-import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
 
-import static com.simiacryptus.mindseye.lang.RecycleBin.PersistanceMode.Soft;
+import static com.simiacryptus.mindseye.lang.PersistanceMode.Soft;
 
 /**
  * This is a recycling mechanism to reuse short-term-lifecycle T objects of regular length. It is a convenience
@@ -471,48 +469,6 @@ public abstract class RecycleBin<T> {
   public RecycleBin<T> setMaxItemsPerBuffer(int maxItemsPerBuffer) {
     this.maxItemsPerBuffer = maxItemsPerBuffer;
     return this;
-  }
-  
-  /**
-   * The enum Persistance mode.
-   */
-  public enum PersistanceMode {
-    /**
-     * Soft persistance mode.
-     */
-    Soft {
-      @Override
-      public <T> Supplier<T> wrap(T obj) {
-        return new SoftReference<>(obj)::get;
-      }
-    },
-    /**
-     * Weak persistance mode.
-     */
-    Weak {
-      @Override
-      public <T> Supplier<T> wrap(T obj) {
-        return new WeakReference<>(obj)::get;
-      }
-    },
-    /**
-     * Strong persistance mode.
-     */
-    Strong {
-      @Override
-      public <T> Supplier<T> wrap(T obj) {
-        return () -> obj;
-      }
-    };
-  
-    /**
-     * Wrap supplier.
-     *
-     * @param <T> the type parameter
-     * @param obj the obj
-     * @return the supplier
-     */
-    public abstract <T> Supplier<T> wrap(T obj);
   }
   
 }

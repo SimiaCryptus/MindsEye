@@ -96,8 +96,14 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Big.
      */
     public Big() {
-      super(128);
+      super(new int[]{25088}, new int[]{4096});
       validateDifferentials = false;
     }
+  
+    @Override
+    public Class<? extends NNLayer> getReferenceLayerClass() {
+      return null;
+    }
+  
   }
 }

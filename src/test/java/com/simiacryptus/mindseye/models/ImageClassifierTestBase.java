@@ -74,6 +74,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
     });
   
     SerializationTest serializationTest = new SerializationTest();
+    serializationTest.setPersist(true);
     serializationTest.test(log, network, (Tensor[]) null);
   
     log.h1("Predictions");

@@ -84,9 +84,13 @@ public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
       devices.add(device);
       CuDNN.handle(cudaSetDeviceFlags(cudaDeviceScheduleAuto));
       for (DeviceLimits limit : DeviceLimits.values()) {
-        log.info(String.format("Limit %s = %s", limit, limit.get()));
+        log.info(String.format("Default Limit %s = %s", limit, limit.get()));
       }
-      DeviceLimits.HeapSize.set(4 * 1024 * 1024 * 1024);
+      DeviceLimits.HeapSize.set(16 * 1024 * 1024 * 1024);
+      DeviceLimits.FifoSize.set(8 * 1024 * 1024);
+      for (DeviceLimits limit : DeviceLimits.values()) {
+        log.info(String.format("Configured Limit %s = %s", limit, limit.get()));
+      }
     }
     if (System.getProperties().containsKey("gpus")) {
       devices = Arrays.stream(System.getProperty("gpus").split(","))

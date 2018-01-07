@@ -24,7 +24,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.ArrayUtils;
-import org.spark_project.jetty.util.ConcurrentHashSet;
 
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
@@ -497,7 +496,7 @@ public class Tensor implements Serializable {
    * @return the stream
    */
   public Stream<Coordinate> coordStream(boolean safe) {
-    ConcurrentHashSet<Object> distinctBuffer = new ConcurrentHashSet<>();
+    //ConcurrentHashSet<Object> distinctBuffer = new ConcurrentHashSet<>();
     return StreamSupport.stream(Spliterators.spliterator(new Iterator<Coordinate>() {
       
       int cnt = 0;
@@ -527,7 +526,7 @@ public class Tensor implements Serializable {
         return safe ? coordinate.copy() : coordinate;
       }
     }, dim(), Spliterator.ORDERED), false).map(coordinate -> {
-      assert distinctBuffer.add(coordinate.copy()) : String.format("Duplicate: %s in %s", coordinate, distinctBuffer);
+      //assert distinctBuffer.add(coordinate.copy()) : String.format("Duplicate: %s in %s", coordinate, distinctBuffer);
       return coordinate;
     });
   }
@@ -1134,7 +1133,7 @@ public class Tensor implements Serializable {
    * @return the tensor
    */
   public Tensor setByCoord(final ToDoubleFunction<Coordinate> f) {
-    coordStream(true).forEach(c -> set(c, f.applyAsDouble(c)));
+    coordStream(true).parallel().forEach(c -> set(c, f.applyAsDouble(c)));
     return this;
   }
   

@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.simiacryptus.mindseye.lang.PersistanceMode;
 import com.simiacryptus.mindseye.lang.RecycleBin;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
@@ -62,6 +63,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   public final long size;
   private final int deviceId;
   private final MemoryType type;
+  private final boolean dirty;
   
   /**
    * Instantiates a new Cuda ptr.
@@ -83,6 +85,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   protected CudaPtr(final long size, final int deviceId, MemoryType type, boolean dirty) {
     super(acquire(deviceId, size, type, dirty));
     this.size = size;
+    this.dirty = dirty;
     this.deviceId = deviceId;
     this.type = type;
   }
@@ -99,8 +102,42 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     super(ptr);
     this.size = size;
     this.deviceId = deviceId;
+    this.dirty = false;
     this.type = type;
   }
+  
+  /**
+   * To device as double cuda ptr.
+   *
+   * @param deviceId  the device id
+   * @param precision the precision
+   * @param data      the data
+   * @param type      the type
+   * @return the cuda ptr
+   */
+  public static CudaPtr write(final int deviceId, final Precision precision, final TensorList data, MemoryType type) {
+    if (data instanceof GpuTensorList && precision == ((GpuTensorList) data).getPrecision()) {
+      final CudaPtr ptr = ((GpuTensorList) data).ptr.getCudaPtr();
+      assert null != ptr;
+      assert null != ptr.getPtr() : null == ptr.finalizedBy ? "" : Arrays.stream(ptr.finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).get();
+      return ptr;
+    }
+    else {
+      final int listLength = data.length();
+      final int elementLength = Tensor.dim(data.getDimensions());
+      final double[] inputBuffer = RecycleBin.DOUBLES.obtain(elementLength * listLength);
+      for (int i = 0; i < listLength; i++) {
+        final double[] doubles = data.get(i).getData();
+        assert elementLength == doubles.length;
+        System.arraycopy(doubles, 0, inputBuffer, i * elementLength, elementLength);
+      }
+      final CudaPtr ptr = new CudaPtr(inputBuffer.length * precision.size, deviceId, type, true).write(precision, inputBuffer);
+      RecycleBin.DOUBLES.recycle(inputBuffer, inputBuffer.length);
+      return ptr;
+    }
+  }
+  
+  public ManagedCudaPtr managed() {return managed(PersistanceMode.Strong);}
   
   private static Pointer acquire(int deviceId, long size, MemoryType type, boolean dirty) {
     if (size < 0) {
@@ -157,35 +194,8 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    */
   public static CudaPtr write(final int deviceId, final Precision precision, final TensorList data) {return write(deviceId, precision, data, MemoryType.Device);}
   
-  /**
-   * To device as double cuda ptr.
-   *
-   * @param deviceId  the device id
-   * @param precision the precision
-   * @param data      the data
-   * @param type      the type
-   * @return the cuda ptr
-   */
-  public static CudaPtr write(final int deviceId, final Precision precision, final TensorList data, MemoryType type) {
-    if (data instanceof GpuTensorList && precision == ((GpuTensorList) data).getPrecision()) {
-      final CudaPtr ptr = ((GpuTensorList) data).ptr;
-      assert null != ptr;
-      assert null != ptr.getPtr() : null == ptr.finalizedBy ? "" : Arrays.stream(ptr.finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).get();
-      return ptr;
-    }
-    else {
-      final int listLength = data.length();
-      final int elementLength = Tensor.dim(data.getDimensions());
-      final double[] inputBuffer = RecycleBin.DOUBLES.obtain(elementLength * listLength);
-      for (int i = 0; i < listLength; i++) {
-        final double[] doubles = data.get(i).getData();
-        assert elementLength == doubles.length;
-        System.arraycopy(doubles, 0, inputBuffer, i * elementLength, elementLength);
-      }
-      final CudaPtr ptr = new CudaPtr(inputBuffer.length * precision.size, deviceId, type, true).write(precision, inputBuffer);
-      RecycleBin.DOUBLES.recycle(inputBuffer, inputBuffer.length);
-      return ptr;
-    }
+  public ManagedCudaPtr managed(PersistanceMode persistanceMode) {
+    return new ManagedCudaPtr(this, persistanceMode);
   }
   
   /**
@@ -240,7 +250,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   @Override
   protected void free() {
     if (isActiveObj()) {
-      type.free(ptr, deviceId);
+      getType().free(ptr, deviceId);
       CudaPtr.getGpuStats(deviceId).usedMemory.addAndGet(-size);
     }
   }
@@ -251,7 +261,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    * @return the cuda ptr
    */
   public CudaPtr copy() {
-    final CudaPtr copy = new CudaPtr(size, deviceId, type);
+    final CudaPtr copy = new CudaPtr(size, deviceId, getType());
     CuDNN.handle(CuDNN.cudaMemcpy(getPtr(), copy.getPtr(), size, cudaMemcpyKind.cudaMemcpyDeviceToDevice));
     return copy;
   }
@@ -336,6 +346,14 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    */
   public int getDeviceId() {
     return deviceId;
+  }
+  
+  public MemoryType getType() {
+    return type;
+  }
+  
+  public boolean isDirty() {
+    return dirty;
   }
   
   /**

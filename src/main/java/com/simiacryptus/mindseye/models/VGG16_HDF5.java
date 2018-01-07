@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.*;
 import com.simiacryptus.mindseye.layers.java.AssertDimensionsLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
-import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -405,6 +404,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
             add(new FullyConnectedLayer(new int[]{25088}, new int[]{4096})
                   .set(hdf5.readDataSet("param_0", "layer_32")
                            .permuteDimensions(fullyconnectedOrder))
+                  .explode()
                   .setName("fullyconnected_32"));
           });
           output.code(() -> {
@@ -418,7 +418,8 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           output.code(() -> {
             add(new FullyConnectedLayer(new int[]{4096}, new int[]{4096})
                   .set(hdf5.readDataSet("param_0", "layer_34")
-                           .permuteDimensions(fullyconnectedOrder)));
+                           .permuteDimensions(fullyconnectedOrder))
+                  .explode());
           });
           output.code(() -> {
             add(new BiasLayer(4096)
@@ -432,6 +433,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
             add(new FullyConnectedLayer(new int[]{4096}, new int[]{1000})
                   .set(hdf5.readDataSet("param_0", "layer_36")
                            .permuteDimensions(fullyconnectedOrder))
+                  .explode()
                   .setName("fullyconnected_36"));
           });
           output.code(() -> {
@@ -446,14 +448,15 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           return model;
         }
   
-        private void add(NNLayer layer) {
+        protected void add(NNLayer layer) {
+          int numberOfParameters = layer.state().stream().mapToInt(x -> x.length).sum();
           model.add(layer);
           int[] prev_dimensions = prototype.getDimensions();
           prototype = GpuController.call(ctx -> {
             return layer.eval(ctx, prototype).getData().get(0);
           });
           int[] new_dimensions = prototype.getDimensions();
-          log.info(String.format("Added layer #%d: %s; dimensions %s -> %s", cnt++, layer, Arrays.toString(prev_dimensions), Arrays.toString(new_dimensions)));
+          log.info(String.format("Added layer #%d: %s; %s params, dimensions %s -> %s", cnt++, layer, numberOfParameters, Arrays.toString(prev_dimensions), Arrays.toString(new_dimensions)));
         }
   
       }.call();

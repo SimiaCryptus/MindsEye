@@ -1239,7 +1239,7 @@ public class CuDNN {
               algorithm, sizeInBytesArray);
     CuDNN.handle(result);
     final long workspaceSize = sizeInBytesArray[0];
-    return CuDNN.alloc(deviceId, 0 < workspaceSize ? workspaceSize : 0);
+    return CuDNN.alloc(deviceId, 0 < workspaceSize ? workspaceSize : 0, true);
   }
   
   @Override

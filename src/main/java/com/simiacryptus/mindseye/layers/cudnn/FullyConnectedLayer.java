@@ -98,6 +98,28 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
   }
   
   /**
+   * Sets weights.
+   *
+   * @param data the data
+   * @return the weights
+   */
+  public FullyConnectedLayer set(final double[] data) {
+    weights.set(data);
+    return this;
+  }
+  
+  /**
+   * Set fully connected layer.
+   *
+   * @param data the data
+   * @return the fully connected layer
+   */
+  public FullyConnectedLayer set(final Tensor data) {
+    weights.set(data);
+    return this;
+  }
+  
+  /**
    * From json img concat layer.
    *
    * @param json the json
@@ -133,18 +155,23 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
   @Override
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
+    return explode().eval(nncontext, inObj);
+  }
+  
+  public PipelineNetwork explode() {
     int inputVol = Tensor.dim(inputDims);
     int outVol = Tensor.dim(outputDims);
     PipelineNetwork network = new PipelineNetwork(1);
     network.add(new ReshapeLayer(1, 1, inputVol));
     Tensor tensor = this.weights.reshapeCast(1, 1, inputVol * outVol);
-    network.add(new ConvolutionLayer(1, 1, inputVol, outVol) {
+    ConvolutionLayer convolutionLayer = new ConvolutionLayer(1, 1, inputVol, outVol) {
       public Tensor getKernel() {
         return tensor;
       }
-    });
+    };
+    network.add(convolutionLayer.explode());
     network.add(new ReshapeLayer(outputDims));
-    return network.eval(nncontext, inObj);
+    return network;
   }
   
   @Override
