@@ -48,31 +48,43 @@ public class ExplodedConvolutionGrid {
   }
   
   public ExplodedConvolutionGrid write(Tensor kernel) {
-    for (ExplodedConvolutionLeg leg : subLayers) {
-      leg.write(new Tensor(convolutionParams.filterDimensions[0], convolutionParams.filterDimensions[1], (leg.toBand - leg.fromBand) * convolutionParams.outputBands).mapCoords(c -> {
-        int[] coords = c.getCoords();
-        return kernel.get(coords[0], coords[1], leg.fromBand * convolutionParams.outputBands + coords[2]);
-      }));
+    if (1 == subLayers.size()) {
+      subLayers.get(0).write(kernel);
+    }
+    else {
+      for (ExplodedConvolutionLeg leg : subLayers) {
+        leg.write(new Tensor(convolutionParams.masterFilterDimensions[0], convolutionParams.masterFilterDimensions[1], (leg.toBand - leg.fromBand) * convolutionParams.outputBands).mapCoords(c -> {
+          int[] coords = c.getCoords();
+          return kernel.get(coords[0], coords[1], leg.fromBand * convolutionParams.outputBands + coords[2]);
+        }));
+      }
     }
     return this;
   }
   
   public Tensor extractDelta(DeltaSet<NNLayer> deltaSet, boolean remove) {
-    final Tensor filterDelta = new Tensor(convolutionParams.filterDimensions);
-    for (int legNumber = 0; legNumber < subLayers.size(); legNumber++) {
-      final ExplodedConvolutionLeg leg = subLayers.get(legNumber);
-      Tensor subTensor = leg.extractDelta(deltaSet, remove);
-      subTensor.forEach((v, c) -> {
-        int[] coords = c.getCoords();
-        filterDelta.set(coords[0], coords[1], leg.fromBand * convolutionParams.outputBands + coords[2], v);
-      }, false);
+    if (1 == subLayers.size()) {
+      return subLayers.get(0).extractDelta(deltaSet, remove);
     }
-    return filterDelta;
+    else {
+      final Tensor filterDelta = new Tensor(convolutionParams.masterFilterDimensions);
+      for (int legNumber = 0; legNumber < subLayers.size(); legNumber++) {
+        final ExplodedConvolutionLeg leg = subLayers.get(legNumber);
+        leg.extractDelta(deltaSet, remove).forEach((v, c) -> {
+          int[] coords = c.getCoords();
+          filterDelta.set(coords[0], coords[1], leg.fromBand * convolutionParams.outputBands + coords[2], v);
+        }, false);
+      }
+      return filterDelta;
+    }
   }
   
   public PipelineNetwork getNetwork() {
     PipelineNetwork network = new PipelineNetwork(1);
-    if (convolutionParams.inputBands != convolutionParams.outputBands) {
+    if (1 == subLayers.size()) {
+      network.add(subLayers.get(0).getNetwork());
+    }
+    else {
       network.add(new BinarySumLayer(),
                   subLayers.stream().map(l -> {
                     DAGNode node = network.getInput(0);
@@ -81,10 +93,6 @@ public class ExplodedConvolutionGrid {
                     }
                     return network.add(l.getNetwork(), node);
                   }).toArray(i -> new DAGNode[i]));
-    }
-    else {
-      assert 1 == subLayers.size();
-      network.add(subLayers.get(0).getNetwork());
     }
     return network;
   }

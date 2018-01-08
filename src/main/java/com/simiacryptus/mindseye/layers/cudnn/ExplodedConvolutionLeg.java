@@ -44,9 +44,9 @@ public class ExplodedConvolutionLeg {
     this.toBand = toBand;
     this.convolutionParams = convolutionParams;
     this.subLayers = new ArrayList<>();
-    final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.filterDimensions, this.convolutionParams.filterDimensions.length);
-    int inputBands = this.toBand - this.fromBand;
+    int inputBands = getInputBands();
     final int inputBandsSq = inputBands * inputBands;
+    final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
     filterDimensions[2] = inputBands * this.convolutionParams.outputBands;
     for (int offset = 0; offset < filterDimensions[2]; offset += inputBandsSq) {
       final Tensor cellKernel = new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq);
@@ -58,15 +58,17 @@ public class ExplodedConvolutionLeg {
   
   
   public ExplodedConvolutionLeg write(Tensor kernel) {
-    int[] filterDimensions = this.convolutionParams.filterDimensions;
-    int inputBands = this.toBand - this.fromBand;
+    int inputBands = getInputBands();
+    final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
+    filterDimensions[2] = inputBands * this.convolutionParams.outputBands;
     final int inputBandsSq = inputBands * inputBands;
     for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
       final int bandOffset = layerNumber * inputBandsSq;
       subLayers.get(layerNumber).set(new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq).setByCoord(c -> {
         int[] coords = c.getCoords();
-        final int band = ConvolutionLayer.transposeCoordinates(inputBands, this.convolutionParams.outputBands, bandOffset + coords[2]);
-        if (bandOffset + coords[2] < filterDimensions[2]) {
+        int band = bandOffset + coords[2];
+        band = ConvolutionLayer.transposeCoordinates(inputBands, this.convolutionParams.outputBands, band);
+        if (band < filterDimensions[2]) {
           return kernel.get(coords[0], coords[1], band);
         }
         else {
@@ -77,10 +79,15 @@ public class ExplodedConvolutionLeg {
     return this;
   }
   
+  public int getInputBands() {
+    return this.toBand - this.fromBand;
+  }
+  
   public Tensor extractDelta(DeltaSet<NNLayer> deltaSet, boolean remove) {
-    int[] filterDimensions = this.convolutionParams.filterDimensions;
-    int inputBands = this.toBand - this.fromBand;
+    int inputBands = getInputBands();
     int inputBandsSq = inputBands * inputBands;
+    final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
+    filterDimensions[2] = inputBands * this.convolutionParams.outputBands;
     int outputBands = convolutionParams.outputBands;
     Tensor resultDelta = new Tensor(filterDimensions[0], filterDimensions[1], inputBands * outputBands);
     for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
@@ -91,8 +98,9 @@ public class ExplodedConvolutionLeg {
         final Tensor deltaTensor = new Tensor(subnetDelta.getDelta(), subLayer.kernel.getDimensions());
         deltaTensor.forEach((v, c) -> {
           int[] coords = c.getCoords();
-          final int band = ConvolutionLayer.transposeCoordinates(inputBands, outputBands, bandOffset + coords[2]);
-          if (bandOffset + band < inputBands * outputBands) {
+          int band = bandOffset + coords[2];
+          band = ConvolutionLayer.transposeCoordinates(inputBands, outputBands, band);
+          if (band < filterDimensions[2]) {
             resultDelta.set(coords[0], coords[1], band, v);
           }
         }, false);
@@ -105,9 +113,9 @@ public class ExplodedConvolutionLeg {
    * The Network.
    */
   public PipelineNetwork getNetwork() {
-    final int[] filterDimensions = this.convolutionParams.filterDimensions;
+    final int[] filterDimensions = this.convolutionParams.masterFilterDimensions;
     PipelineNetwork network = new PipelineNetwork(1);
-    if (this.toBand - this.fromBand == this.convolutionParams.outputBands) {
+    if (getInputBands() == this.convolutionParams.outputBands) {
       assert 1 == subLayers.size();
       network.add(subLayers.get(0));
     }

@@ -46,7 +46,7 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   private Integer paddingX = null;
   private Integer paddingY = null;
   private Precision precision = Precision.Double;
-  private int batchBands = 16;
+  private int batchBands = 128;
   
   /**
    * Instantiates a new Convolution layer.

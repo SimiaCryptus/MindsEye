@@ -50,12 +50,13 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
    * @param inputBands  the input bands
    * @param outputBands the output bands
    * @param precision   the precision
+   * @param batchBands
    */
-  protected ConvolutionLayerTest(final int radius, final int inputBands, final int outputBands, final Precision precision) {
+  protected ConvolutionLayerTest(final int radius, final int inputBands, final int outputBands, final Precision precision, int batchBands) {
     this.radius = radius;
     this.inputBands = inputBands;
     this.outputBands = outputBands;
-    convolutionLayer = new ConvolutionLayer(radius, radius, inputBands, outputBands).setPrecision(precision);
+    convolutionLayer = new ConvolutionLayer(radius, radius, inputBands, outputBands).setPrecision(precision).setBatchBands(batchBands);
     convolutionLayer.getKernel().set(() -> random());
   }
   
@@ -92,7 +93,35 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Asymmetric run.
      */
     public BandExpand() {
-      super(3, 3, 6, Precision.Double);
+      super(3, 3, 6, Precision.Double, 16);
+    }
+    
+  }
+  
+  /**
+   * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
+   */
+  public static class SqGrid extends ConvolutionLayerTest {
+    
+    /**
+     * Instantiates a new Asymmetric run.
+     */
+    public SqGrid() {
+      super(3, 4, 4, Precision.Double, 2);
+    }
+    
+  }
+  
+  /**
+   * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
+   */
+  public static class IrregularGrid extends ConvolutionLayerTest {
+    
+    /**
+     * Instantiates a new Asymmetric run.
+     */
+    public IrregularGrid() {
+      super(3, 5, 3, Precision.Double, 2);
     }
     
   }
@@ -106,7 +135,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Asymmetric run.
      */
     public BandReduceTest() {
-      super(3, 6, 3, Precision.Double);
+      super(3, 6, 3, Precision.Double, 16);
     }
     
   }
@@ -119,7 +148,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Double.
      */
     public Double() {
-      super(1, 2, 2, Precision.Double);
+      super(1, 2, 2, Precision.Double, 16);
     }
   }
   
@@ -132,7 +161,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Double.
      */
     public NoPadding() {
-      super(3, 3, 3, Precision.Double);
+      super(3, 3, 3, Precision.Double, 16);
       convolutionLayer.setPaddingXY(0, 0);
     }
   
@@ -156,7 +185,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Float.
      */
     public Float() {
-      super(1, 2, 2, Precision.Float);
+      super(1, 2, 2, Precision.Float, 16);
     }
   }
   
@@ -169,7 +198,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Irregular run.
      */
     public IrregularTest() {
-      super(3, 7, 5, Precision.Double);
+      super(3, 7, 5, Precision.Double, 16);
     }
   }
   
@@ -182,7 +211,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Irregular run float.
      */
     public IrregularTest_Float() {
-      super(3, 7, 5, Precision.Float);
+      super(3, 7, 5, Precision.Float, 16);
     }
   }
   

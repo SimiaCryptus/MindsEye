@@ -27,11 +27,11 @@ public class ConvolutionParams {
   public final int strideY;
   public final Integer paddingX;
   public final Integer paddingY;
-  public final int[] filterDimensions;
+  public final int[] masterFilterDimensions;
   
   /**
    */
-  public ConvolutionParams(int inputBands, int outputBands, Precision precision, int strideX, int strideY, Integer paddingX, Integer paddingY, int[] filterDimensions) {
+  public ConvolutionParams(int inputBands, int outputBands, Precision precision, int strideX, int strideY, Integer paddingX, Integer paddingY, int[] masterFilterDimensions) {
     this.inputBands = inputBands;
     this.outputBands = outputBands;
     this.precision = precision;
@@ -39,7 +39,7 @@ public class ConvolutionParams {
     this.strideY = strideY;
     this.paddingX = paddingX;
     this.paddingY = paddingY;
-    this.filterDimensions = filterDimensions;
+    this.masterFilterDimensions = masterFilterDimensions;
   }
   
 }
