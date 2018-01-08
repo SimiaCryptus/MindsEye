@@ -66,6 +66,7 @@ public class Delta<K> extends DoubleBuffer<K> {
   protected Delta(final K layer, final double[] target, final double[] doubles, final double[] deltaCompensation) {
     super(layer, target, doubles);
     if (null == target) throw new IllegalArgumentException();
+    assert null == doubles || target.length == doubles.length;
     //if(null == array) throw new IllegalArgumentException();
     this.deltaCompensation = deltaCompensation;
   }
@@ -138,9 +139,10 @@ public class Delta<K> extends DoubleBuffer<K> {
    * @return the delta
    */
   public Delta<K> addInPlace(final double[] data) {
+    assert data.length == this.target.length;
     //assert Arrays.stream(data).allMatch(Double::isFinite);
     Delta.accumulate(getDelta(), data, deltaCompensation);
-    //assert Arrays.stream(getDelta()).allMatch(Double::isFinite);
+    //assert Arrays.stream(extractDelta()).allMatch(Double::isFinite);
     return this;
   }
   

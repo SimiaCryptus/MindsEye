@@ -100,11 +100,18 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
   public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
     if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
     ((CudaExecutionContext) nncontext).initThread();
-    if (inObj.length != 2) {
-      throw new IllegalArgumentException("inObj.length=" + inObj.length);
+    if (inObj.length == 1) {
+      if (rightFactor != 1) throw new IllegalStateException();
+      if (leftFactor != 1) throw new IllegalStateException();
+      return inObj[0];
     }
-    final NNResult l = inObj[0];
-    final TensorList leftData = l.getData();
+    if (inObj.length > 2) {
+      if (rightFactor != 1) throw new IllegalStateException();
+      if (leftFactor != 1) throw new IllegalStateException();
+      return Arrays.stream(inObj).reduce((a, b) -> eval(nncontext, a, b)).get();
+    }
+    assert (inObj.length == 2);
+    final TensorList leftData = inObj[0].getData();
     final TensorList rightData = inObj[1].getData();
     final int[] dimensions = leftData.getDimensions();
     final int length = leftData.length();

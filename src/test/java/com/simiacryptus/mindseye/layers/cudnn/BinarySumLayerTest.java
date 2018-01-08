@@ -60,6 +60,31 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
     };
   }
   
+  public static class Double_List extends BinarySumLayerTest {
+    /**
+     * Instantiates a new Double.
+     */
+    public Double_List() {
+      super(Precision.Double);
+    }
+    
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {2, 2, 1}, {2, 2, 1}, {2, 2, 1}, {2, 2, 1}, {2, 2, 1}
+      };
+    }
+    
+    @Override
+    public int[][] getPerfDims() {
+      return new int[][]{
+        {200, 200, 3}, {200, 200, 3}, {200, 200, 3}, {200, 200, 3}, {200, 200, 3}
+      };
+    }
+    
+  }
+  
+  
   /**
    * Adds using double (64-bit) precision, C = A + B
    */

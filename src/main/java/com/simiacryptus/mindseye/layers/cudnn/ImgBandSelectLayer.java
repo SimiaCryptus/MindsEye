@@ -88,7 +88,7 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     assert getFrom() < getTo();
-    assert getFrom() > 0;
+    assert getFrom() >= 0;
     assert getTo() > 0;
     assert 1 == inObj.length;
     assert 3 == inObj[0].getData().getDimensions().length;

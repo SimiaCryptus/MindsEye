@@ -53,6 +53,7 @@ public abstract class RecycleBin<T> {
   
     @Override
     public void reset(final double[] data, long size) {
+      assert data.length == size;
       Arrays.fill(data, 0);
     }
   };
@@ -284,6 +285,7 @@ public abstract class RecycleBin<T> {
     final ConcurrentLinkedDeque<Supplier<T>> bin;
     synchronized (recycling) {
       bin = recycling.get(length);
+  
     }
     StackCounter stackCounter = getRecycle_get(length);
     if (null != stackCounter) {

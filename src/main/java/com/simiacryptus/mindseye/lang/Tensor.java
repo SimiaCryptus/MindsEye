@@ -88,13 +88,16 @@ public class Tensor implements Serializable {
       this.data = RecycleBin.DOUBLES.obtain(data.length);// Arrays.copyOf(data, data.length);
       System.arraycopy(data, 0, this.data, 0, data.length);
     }
+    assert isValid();
     //assert (null == data || Tensor.dim(dims) == data.length);
   }
   
   private Tensor(int[] dimensions, int[] strides, double[] data) {
+    assert null == data || data.length == Tensor.dim(dimensions);
     this.dimensions = dimensions;
     this.strides = strides;
     this.data = data;
+    assert isValid();
   }
   
   /**
@@ -114,7 +117,76 @@ public class Tensor implements Serializable {
       });
       assert Arrays.stream(this.data).allMatch(v -> Double.isFinite(v));
     }
+    assert isValid();
     //assert (null == data || Tensor.dim(dims) == data.length);
+  }
+  
+  /**
+   * From json tensor.
+   *
+   * @param json      the json
+   * @param resources the resources
+   * @return the tensor
+   */
+  public static Tensor fromJson(final JsonElement json, Map<String, byte[]> resources) {
+    if (null == json) return null;
+    if (json.isJsonArray()) {
+      final JsonArray array = json.getAsJsonArray();
+      final int size = array.size();
+      if (array.get(0).isJsonPrimitive()) {
+        final double[] doubles = IntStream.range(0, size).mapToObj(i -> {
+          return array.get(i);
+        }).mapToDouble(element -> {
+          return element.getAsDouble();
+        }).toArray();
+        Tensor tensor = new Tensor(doubles);
+        assert tensor.isValid();
+        return tensor;
+      }
+      else {
+        final List<Tensor> elements = IntStream.range(0, size).mapToObj(i -> {
+          return array.get(i);
+        }).map(element -> {
+          return Tensor.fromJson(element, resources);
+        }).collect(Collectors.toList());
+        final int[] dimensions = elements.get(0).getDimensions();
+        if (!elements.stream().allMatch(t -> Arrays.equals(dimensions, t.getDimensions()))) {
+          throw new IllegalArgumentException();
+        }
+        final int[] newDdimensions = Arrays.copyOf(dimensions, dimensions.length + 1);
+        newDdimensions[dimensions.length] = size;
+        final Tensor tensor = new Tensor(newDdimensions);
+        final double[] data = tensor.getData();
+        for (int i = 0; i < size; i++) {
+          final double[] e = elements.get(i).getData();
+          System.arraycopy(e, 0, data, i * e.length, e.length);
+        }
+        assert tensor.isValid();
+        return tensor;
+      }
+    }
+    else if (json.isJsonObject()) {
+      JsonObject jsonObject = json.getAsJsonObject();
+      int[] dims = fromJsonArray(jsonObject.getAsJsonArray("dim"));
+      Tensor tensor = new Tensor(dims);
+      SerialPrecision precision = SerialPrecision.valueOf(jsonObject.getAsJsonPrimitive("precision").getAsString());
+      JsonElement base64 = jsonObject.get("base64");
+      if (null == base64) {
+        if (null == resources) throw new IllegalArgumentException("No Data Resources");
+        String resourceId = jsonObject.getAsJsonPrimitive("resource").getAsString();
+        tensor.setBytes(resources.get(resourceId), precision);
+      }
+      else {
+        tensor.setBytes(Base64.getDecoder().decode(base64.getAsString()), precision);
+      }
+      assert tensor.isValid();
+      return tensor;
+    }
+    else {
+      Tensor tensor = new Tensor(json.getAsJsonPrimitive().getAsDouble());
+      assert tensor.isValid();
+      return tensor;
+    }
   }
   
   /**
@@ -174,66 +246,8 @@ public class Tensor implements Serializable {
     return total;
   }
   
-  /**
-   * From json tensor.
-   *
-   * @param json      the json
-   * @param resources the resources
-   * @return the tensor
-   */
-  public static Tensor fromJson(final JsonElement json, Map<String, byte[]> resources) {
-    if (null == json) return null;
-    if (json.isJsonArray()) {
-      final JsonArray array = json.getAsJsonArray();
-      final int size = array.size();
-      if (array.get(0).isJsonPrimitive()) {
-        final double[] doubles = IntStream.range(0, size).mapToObj(i -> {
-          return array.get(i);
-        }).mapToDouble(element -> {
-          return element.getAsDouble();
-        }).toArray();
-        return new Tensor(doubles);
-      }
-      else {
-        final List<Tensor> elements = IntStream.range(0, size).mapToObj(i -> {
-          return array.get(i);
-        }).map(element -> {
-          return Tensor.fromJson(element, resources);
-        }).collect(Collectors.toList());
-        final int[] dimensions = elements.get(0).getDimensions();
-        if (!elements.stream().allMatch(t -> Arrays.equals(dimensions, t.getDimensions()))) {
-          throw new IllegalArgumentException();
-        }
-        final int[] newDdimensions = Arrays.copyOf(dimensions, dimensions.length + 1);
-        newDdimensions[dimensions.length] = size;
-        final Tensor tensor = new Tensor(newDdimensions);
-        final double[] data = tensor.getData();
-        for (int i = 0; i < size; i++) {
-          final double[] e = elements.get(i).getData();
-          System.arraycopy(e, 0, data, i * e.length, e.length);
-        }
-        return tensor;
-      }
-    }
-    else if (json.isJsonObject()) {
-      JsonObject jsonObject = json.getAsJsonObject();
-      int[] dims = fromJsonArray(jsonObject.getAsJsonArray("dim"));
-      Tensor tensor = new Tensor(dims);
-      SerialPrecision precision = SerialPrecision.valueOf(jsonObject.getAsJsonPrimitive("precision").getAsString());
-      JsonElement base64 = jsonObject.get("base64");
-      if (null == base64) {
-        if (null == resources) throw new IllegalArgumentException("No Data Resources");
-        String resourceId = jsonObject.getAsJsonPrimitive("resource").getAsString();
-        tensor.setBytes(resources.get(resourceId), precision);
-      }
-      else {
-        tensor.setBytes(Base64.getDecoder().decode(base64.getAsString()), precision);
-      }
-      return tensor;
-    }
-    else {
-      return new Tensor(json.getAsJsonPrimitive().getAsDouble());
-    }
+  public boolean isValid() {
+    return null == this.data || this.data.length == Tensor.dim(dimensions);
   }
   
   /**
@@ -670,11 +684,12 @@ public class Tensor implements Serializable {
           final int length = Tensor.dim(dimensions);
           data = RecycleBin.DOUBLES.obtain(length);
           assert null != data;
+          assert length == data.length;
         }
       }
     }
+    assert isValid();
     assert null != data;
-    assert dim() == data.length;
     return data;
   }
   
@@ -693,7 +708,7 @@ public class Tensor implements Serializable {
    * @return the int [ ]
    */
   public final int[] getDimensions() {
-    return dimensions;
+    return Arrays.copyOf(dimensions, dimensions.length);
   }
   
   @Override

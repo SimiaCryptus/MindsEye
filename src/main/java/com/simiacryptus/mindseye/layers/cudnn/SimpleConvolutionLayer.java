@@ -483,4 +483,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
     return set(() -> Math.pow(10, f) * (Math.random() - 0.5));
   }
   
+  public void set(Tensor kernel) {
+    this.kernel.set(kernel);
+  }
 }
