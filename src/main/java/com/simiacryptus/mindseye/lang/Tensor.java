@@ -1475,6 +1475,26 @@ public class Tensor implements Serializable {
     return new Tensor(dims, Tensor.getSkips(dims), getData());
   }
   
+  public void forEach(CoordOperator fn) {forEach(fn, true);}
+  
+  public void forEach(CoordOperator fn, boolean safe) {
+    coordStream(safe).forEach(c -> {
+      fn.eval(get(c), c);
+    });
+  }
+  
+  public interface CoordOperator {
+    /**
+     * Eval double.
+     *
+     * @param value the value
+     * @param index the index
+     * @return the double
+     */
+    void eval(double value, Coordinate index);
+  }
+  
+  
   /**
    * The interface Tuple operator.
    */

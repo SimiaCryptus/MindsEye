@@ -41,17 +41,18 @@ public class ExplodedConvolutionGrid {
   public ExplodedConvolutionGrid(ConvolutionParams convolutionParams, int maxBandBatch) {
     this.convolutionParams = convolutionParams;
     subLayers = new ArrayList<>();
-    for (int inputBandOffset = 0; inputBandOffset < convolutionParams.inputBands; inputBandOffset += maxBandBatch) {
-      int toBand = Math.min(convolutionParams.inputBands, inputBandOffset + maxBandBatch);
-      int kernelBandOffset = inputBandOffset * convolutionParams.outputBands;
-      int kernelBandSkip = 1;
-      subLayers.add(new ExplodedConvolutionLeg(convolutionParams, inputBandOffset, toBand, kernelBandOffset, kernelBandSkip));
+    for (int fromBand = 0; fromBand < convolutionParams.inputBands; fromBand += maxBandBatch) {
+      int toBand = Math.min(convolutionParams.inputBands, fromBand + maxBandBatch);
+      subLayers.add(new ExplodedConvolutionLeg(convolutionParams, fromBand, toBand));
     }
   }
   
   public ExplodedConvolutionGrid write(Tensor kernel) {
     for (ExplodedConvolutionLeg leg : subLayers) {
-      leg.write(kernel);
+      leg.write(new Tensor(convolutionParams.filterDimensions[0], convolutionParams.filterDimensions[1], (leg.toBand - leg.fromBand) * convolutionParams.outputBands).mapCoords(c -> {
+        int[] coords = c.getCoords();
+        return kernel.get(coords[0], coords[1], leg.fromBand * convolutionParams.outputBands + coords[2]);
+      }));
     }
     return this;
   }
@@ -60,7 +61,11 @@ public class ExplodedConvolutionGrid {
     final Tensor filterDelta = new Tensor(convolutionParams.filterDimensions);
     for (int legNumber = 0; legNumber < subLayers.size(); legNumber++) {
       final ExplodedConvolutionLeg leg = subLayers.get(legNumber);
-      leg.extractDelta(deltaSet, filterDelta, remove);
+      Tensor subTensor = leg.extractDelta(deltaSet, remove);
+      subTensor.forEach((v, c) -> {
+        int[] coords = c.getCoords();
+        filterDelta.set(coords[0], coords[1], leg.fromBand * convolutionParams.outputBands + coords[2], v);
+      }, false);
     }
     return filterDelta;
   }
@@ -70,7 +75,11 @@ public class ExplodedConvolutionGrid {
     if (convolutionParams.inputBands != convolutionParams.outputBands) {
       network.add(new BinarySumLayer(),
                   subLayers.stream().map(l -> {
-                    return network.add(l.getNetwork(), network.getInput(0));
+                    DAGNode node = network.getInput(0);
+                    if (l.fromBand != 0 || l.toBand != this.convolutionParams.inputBands) {
+                      node = network.add(new ImgBandSelectLayer(l.fromBand, l.toBand), node);
+                    }
+                    return network.add(l.getNetwork(), node);
                   }).toArray(i -> new DAGNode[i]));
     }
     else {

@@ -27,38 +27,29 @@ import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * The type Exploded network.
  */
 public class ExplodedConvolutionLeg {
-  /**
-   * The Sub layers.
-   */
+  public final ConvolutionParams convolutionParams;
   public final List<SimpleConvolutionLayer> subLayers;
   public final int fromBand;
   public final int toBand;
-  public final int kernelBandOffset;
-  public final int kernelBandSkip;
-  public final int legBands;
-  public final int outputBands;
-  public final ConvolutionParams convolutionParams;
   
-  public ExplodedConvolutionLeg(ConvolutionParams convolutionParams, int fromBand, int toBand, int kernelBandOffset, int kernelBandSkip) {
+  public ExplodedConvolutionLeg(ConvolutionParams convolutionParams, int fromBand, int toBand) {
     this.fromBand = fromBand;
     this.toBand = toBand;
-    this.kernelBandOffset = kernelBandOffset;
-    this.kernelBandSkip = kernelBandSkip;
-    this.legBands = this.toBand - this.fromBand;
-    this.outputBands = convolutionParams.outputBands;
     this.convolutionParams = convolutionParams;
     this.subLayers = new ArrayList<>();
-    final int[] filterDimensions = this.convolutionParams.filterDimensions;
-    final int legBandsSq = legBands * legBands;
-    filterDimensions[2] = legBands * this.convolutionParams.outputBands;
-    for (int offset = 0; offset < filterDimensions[2]; offset += legBandsSq) {
-      final Tensor cellKernel = new Tensor(filterDimensions[0], filterDimensions[1], legBandsSq);
+    final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.filterDimensions, this.convolutionParams.filterDimensions.length);
+    int inputBands = this.toBand - this.fromBand;
+    final int inputBandsSq = inputBands * inputBands;
+    filterDimensions[2] = inputBands * this.convolutionParams.outputBands;
+    for (int offset = 0; offset < filterDimensions[2]; offset += inputBandsSq) {
+      final Tensor cellKernel = new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq);
       this.subLayers.add(new SimpleConvolutionLayer(cellKernel).setStrideX(this.convolutionParams.strideX) //
                                                                .setStrideY(this.convolutionParams.strideY) //
                                                                .setPrecision(this.convolutionParams.precision));
@@ -68,42 +59,46 @@ public class ExplodedConvolutionLeg {
   
   public ExplodedConvolutionLeg write(Tensor kernel) {
     int[] filterDimensions = this.convolutionParams.filterDimensions;
-    final int legBandsSq = legBands * legBands;
-    for (int index = 0; index < subLayers.size(); index++) {
-      final int legBandOffset = index * legBandsSq;
-      final Tensor cellKernel = new Tensor(filterDimensions[0], filterDimensions[1], legBandsSq);
-      cellKernel.setByCoord(cellCoord -> {
-        int[] coords = cellCoord.getCoords();
-        final int band = ConvolutionLayer.transposeCoordinates(legBands, this.convolutionParams.outputBands, legBandOffset + coords[2]);
-        if (legBandOffset + coords[2] < filterDimensions[2]) {
-          return kernel.get(coords[0], coords[1], band * this.kernelBandSkip + this.kernelBandOffset);
+    int inputBands = this.toBand - this.fromBand;
+    final int inputBandsSq = inputBands * inputBands;
+    for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
+      final int bandOffset = layerNumber * inputBandsSq;
+      subLayers.get(layerNumber).set(new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq).setByCoord(c -> {
+        int[] coords = c.getCoords();
+        final int band = ConvolutionLayer.transposeCoordinates(inputBands, this.convolutionParams.outputBands, bandOffset + coords[2]);
+        if (bandOffset + coords[2] < filterDimensions[2]) {
+          return kernel.get(coords[0], coords[1], band);
         }
         else {
           return 0;
         }
-      });
-      subLayers.get(index).set(cellKernel);
+      }));
     }
     return this;
   }
   
-  public void extractDelta(DeltaSet<NNLayer> deltaSet, Tensor filterDelta, boolean remove) {
+  public Tensor extractDelta(DeltaSet<NNLayer> deltaSet, boolean remove) {
+    int[] filterDimensions = this.convolutionParams.filterDimensions;
+    int inputBands = this.toBand - this.fromBand;
+    int inputBandsSq = inputBands * inputBands;
+    int outputBands = convolutionParams.outputBands;
+    Tensor resultDelta = new Tensor(filterDimensions[0], filterDimensions[1], inputBands * outputBands);
     for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
-      final int legBandOffset = layerNumber * this.legBands * this.legBands;
+      final int bandOffset = layerNumber * inputBandsSq;
       final SimpleConvolutionLayer subLayer = subLayers.get(layerNumber);
       final Delta<NNLayer> subnetDelta = remove ? deltaSet.getMap().remove(subLayer) : deltaSet.getMap().get(subLayer);
       if (null != subnetDelta) {
-        final int[] cellDimensions = subLayer.kernel.getDimensions();
-        final Tensor cellDelta = new Tensor(subnetDelta.getDelta(), cellDimensions);
-        cellDelta.coordStream(false).forEach(cellCoord -> {
-          int[] coords = cellCoord.getCoords();
-          final int cellBand = ConvolutionLayer.transposeCoordinates(this.legBands, outputBands, legBandOffset + coords[2]);
-          if (legBandOffset + cellBand < this.legBands * outputBands) {
-            filterDelta.set(coords[0], coords[1], this.kernelBandOffset + this.kernelBandSkip * cellBand, cellDelta.get(cellCoord));
+        final Tensor deltaTensor = new Tensor(subnetDelta.getDelta(), subLayer.kernel.getDimensions());
+        deltaTensor.forEach((v, c) -> {
+          int[] coords = c.getCoords();
+          final int band = ConvolutionLayer.transposeCoordinates(inputBands, outputBands, bandOffset + coords[2]);
+          if (bandOffset + band < inputBands * outputBands) {
+            resultDelta.set(coords[0], coords[1], band, v);
           }
-        });
+        }, false);
       }
     }
+    return resultDelta;
   }
   
   /**
@@ -112,19 +107,16 @@ public class ExplodedConvolutionLeg {
   public PipelineNetwork getNetwork() {
     final int[] filterDimensions = this.convolutionParams.filterDimensions;
     PipelineNetwork network = new PipelineNetwork(1);
-    if (this.fromBand != 0 || this.toBand != this.convolutionParams.inputBands) {
-      network.add(new ImgBandSelectLayer(this.fromBand, this.toBand));
+    if (this.toBand - this.fromBand == this.convolutionParams.outputBands) {
+      assert 1 == subLayers.size();
+      network.add(subLayers.get(0));
     }
-    if (legBands != this.convolutionParams.outputBands) {
+    else {
       DAGNode input = network.getHead();
       network.add(new ImgConcatLayer().setMaxBands(this.convolutionParams.outputBands).setPrecision(this.convolutionParams.precision),
                   subLayers.stream().map(l -> {
                     return network.add(l, input);
                   }).toArray(i -> new DAGNode[i]));
-    }
-    else {
-      assert 1 == subLayers.size();
-      network.add(subLayers.get(0));
     }
     if (this.convolutionParams.paddingX != null || this.convolutionParams.paddingY != null) {
       int x = ((filterDimensions[0] - 1) / 2);

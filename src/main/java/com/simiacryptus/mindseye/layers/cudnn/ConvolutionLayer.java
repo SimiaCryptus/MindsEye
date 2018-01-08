@@ -46,7 +46,7 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   private Integer paddingX = null;
   private Integer paddingY = null;
   private Precision precision = Precision.Double;
-  private final int maxBandBatch = 16;
+  private int batchBands = 16;
   
   /**
    * Instantiates a new Convolution layer.
@@ -84,6 +84,7 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     super(json);
     this.kernel = Tensor.fromJson(json.get("filter"), resources);
     assert getKernel().isValid();
+    this.setBatchBands(json.get("batchBands").getAsInt());
     this.setStrideX(json.get("strideX").getAsInt());
     this.setStrideY(json.get("strideY").getAsInt());
     JsonElement paddingX = json.get("paddingX");
@@ -155,7 +156,7 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   }
   
   public ExplodedConvolutionGrid getExplodedNetwork() {
-    return new ExplodedConvolutionGrid(getConvolutionParams(), maxBandBatch).write(kernel);
+    return new ExplodedConvolutionGrid(getConvolutionParams(), getBatchBands()).write(kernel);
   }
   
   public ConvolutionParams getConvolutionParams() {
@@ -206,6 +207,7 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
     json.add("filter", getKernel().toJson(resources, dataSerializer));
+    json.addProperty("batchBands", getBatchBands());
     json.addProperty("strideX", getStrideX());
     json.addProperty("strideY", getStrideY());
     json.addProperty("paddingX", getPaddingX());
@@ -386,4 +388,12 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   }
   
   
+  public int getBatchBands() {
+    return batchBands;
+  }
+  
+  public ConvolutionLayer setBatchBands(int batchBands) {
+    this.batchBands = batchBands;
+    return this;
+  }
 }
