@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Test;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 
 /**
@@ -47,11 +48,21 @@ public class CudnnTest extends NotebookReportBase {
   }
   
   private void test(NotebookOutput log) {
-    
-    log.code(() -> {
-      ArrayList<Object> list = new ArrayList<>();
-      while (true) {
-        list.add(CudaPtr.write(1, Precision.Double, new TensorArray(new Tensor(1024))));
+    String logName = "cuda_" + log.getName() + ".log";
+    log.p(log.file((String) null, logName, "GPU Log"));
+    CuDNN.apiLog = new PrintStream(log.file(logName));
+    CudaExecutionContext.gpuContexts.getAll().forEach(ctx -> {
+      log.h1("Device " + ctx.getDeviceNumber());
+      try {
+        log.code(() -> {
+          ArrayList<Object> list = new ArrayList<>();
+          CuDNN.setDevice(ctx.getDeviceNumber());
+          while (true) {
+            list.add(CudaPtr.write(ctx.getDeviceNumber(), Precision.Double, new TensorArray(new Tensor(128 * 1024 * 1024))));
+          }
+        });
+      } catch (Exception e) {
+        GpuController.reset();
       }
     });
   }

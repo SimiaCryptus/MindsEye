@@ -40,14 +40,14 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
     @Override
     public int[][] getInputDims() {
       return new int[][]{
-        {8, 8, 1}
+        {8, 8, 2}
       };
     }
     
     @Override
     public int[][] getPerfDims() {
       return new int[][]{
-        {200, 200, 3}
+        {200, 200, 2}
       };
     }
     

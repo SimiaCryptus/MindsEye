@@ -23,7 +23,6 @@ import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.BasicTrainable;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.java.NormalizationMetaLayer;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
@@ -136,7 +135,7 @@ public class Research extends OptimizerComparison {
    * Instantiates a new Compare qqn.
    */
   public Research() {
-    super(MnistTests.fwd_conv_2(), MnistTests.rev_conv_1, new MnistProblemData());
+    super(MnistTests.fwd_conv_1, MnistTests.rev_conv_1, new MnistProblemData());
   }
   
   @Override
@@ -144,32 +143,32 @@ public class Research extends OptimizerComparison {
     log.h1("Research Optimizer Comparison");
     
     log.h2("Recursive Subspace (Un-Normalized)");
-    fwdFactory = MnistTests.fwd_conv_2();
+    fwdFactory = MnistTests.fwd_conv_1;
     final ProblemRun subspace_1 = new ProblemRun("SS", test.apply(Research.recursive_subspace), Color.LIGHT_GRAY,
                                                  ProblemRun.PlotType.Line);
     
     log.h2("Recursive Subspace (Un-Normalized)");
-    fwdFactory = MnistTests.fwd_conv_2();
+    fwdFactory = MnistTests.fwd_conv_1;
     final ProblemRun subspace_2 = new ProblemRun("SS+QQN", test.apply(Research.recursive_subspace_2), Color.RED,
                                                  ProblemRun.PlotType.Line);
     
     log.h2("QQN (Normalized)");
-    fwdFactory = MnistTests.fwd_conv_2(() -> new NormalizationMetaLayer());
+    fwdFactory = MnistTests.fwd_conv_1_n;
     final ProblemRun qqn1 = new ProblemRun("QQN", test.apply(Research.quadratic_quasi_newton), Color.DARK_GRAY,
                                            ProblemRun.PlotType.Line);
     
     log.h2("L-BFGS (Strong Line Search) (Normalized)");
-    fwdFactory = MnistTests.fwd_conv_2(() -> new NormalizationMetaLayer());
+    fwdFactory = MnistTests.fwd_conv_1_n;
     final ProblemRun lbfgs_2 = new ProblemRun("LB-2", test.apply(Research.limited_memory_bfgs), Color.MAGENTA,
                                               ProblemRun.PlotType.Line);
     
     log.h2("L-BFGS (Normalized)");
-    fwdFactory = MnistTests.fwd_conv_2(() -> new NormalizationMetaLayer());
+    fwdFactory = MnistTests.fwd_conv_1_n;
     final ProblemRun lbfgs_1 = new ProblemRun("LB-1", test.apply(TextbookOptimizers.limited_memory_bfgs), Color.GREEN,
                                               ProblemRun.PlotType.Line);
     
     log.h2("L-BFGS-0 (Un-Normalized)");
-    fwdFactory = MnistTests.fwd_conv_2();
+    fwdFactory = MnistTests.fwd_conv_1;
     final ProblemRun rawlbfgs = new ProblemRun("LBFGS-0", test.apply(TextbookOptimizers.limited_memory_bfgs), Color.CYAN,
                                                ProblemRun.PlotType.Line);
     

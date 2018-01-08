@@ -128,7 +128,7 @@ public class TextbookOptimizers extends OptimizerComparison {
    * Instantiates a new Compare textbook.
    */
   public TextbookOptimizers() {
-    super(MnistTests.fwd_linear_1, MnistTests.rev_linear_1, new MnistProblemData());
+    super(MnistTests.fwd_conv_1, MnistTests.rev_conv_1, new MnistProblemData());
   }
   
   @Override

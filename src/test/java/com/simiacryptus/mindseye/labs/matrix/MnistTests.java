@@ -19,8 +19,6 @@
 
 package com.simiacryptus.mindseye.labs.matrix;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
@@ -31,7 +29,6 @@ import com.simiacryptus.mindseye.test.integration.*;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
 
 /**
  * The type Mnist run base.
@@ -63,6 +60,39 @@ public class MnistTests {
       return network;
     });
   };
+  
+  public static FwdNetworkFactory fwd_conv_1_n = (log, features) -> {
+    log.p("The image-to-vector network is a single layer convolutional:");
+    return log.code(() -> {
+      final PipelineNetwork network = new PipelineNetwork();
+      double weight = 1e-3;
+      
+      network.add(new NormalizationMetaLayer());
+      DoubleSupplier init = () -> weight * (Math.random() - 0.5);
+      
+      
+      network.add(new ConvolutionLayer(5, 5, 1, 32).set(init));
+      network.add(new ImgBandBiasLayer(32));
+      network.add(new NormalizationMetaLayer());
+      network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
+      network.add(new ConvolutionLayer(5, 5, 32, 64).set(init));
+      network.add(new ImgBandBiasLayer(64));
+      network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
+      network.add(new ReLuActivationLayer());
+      network.add(new NormalizationMetaLayer());
+      network.add(new FullyConnectedLayer(new int[]{4, 4, 64}, new int[]{1024}).set(init));
+      network.add(new BiasLayer(1024));
+      network.add(new ReLuActivationLayer());
+      network.add(new NormalizationMetaLayer());
+      network.add(new DropoutNoiseLayer(0.5));
+      network.add(new FullyConnectedLayer(new int[]{1024}, new int[]{features}).set(init));
+      network.add(new BiasLayer(features));
+      network.add(new SoftmaxActivationLayer());
+      
+      return network;
+    });
+  };
+  
   /**
    * The constant fwd_linear_1.
    */
@@ -84,13 +114,25 @@ public class MnistTests {
     log.p("The vector-to-image network uses a fully connected layer then a single convolutional layer:");
     return log.code(() -> {
       final PipelineNetwork network = new PipelineNetwork();
-      network.add(new FullyConnectedLayer(new int[]{features}, new int[]{28, 28, 5})
+      network.add(new FullyConnectedLayer(new int[]{features}, new int[]{1024})
                     .set(() -> 0.25 * (Math.random() - 0.5)));
+      network.add(new DropoutNoiseLayer(0.5));
       network.add(new ReLuActivationLayer());
-      network.add(new ConvolutionLayer(3, 3, 5, 1)
-                    .set(i -> 1e-8 * (Math.random() - 0.5)));
-      network.add(new BiasLayer(28, 28, 1));
+      network.add(new BiasLayer(1024));
+      network.add(new FullyConnectedLayer(new int[]{1024}, new int[]{4, 4, 64})
+                    .set(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new ReLuActivationLayer());
+  
+      network.add(new ConvolutionLayer(1, 1, 64, 4 * 64).set(i -> 1e-8 * (Math.random() - 0.5)));
+      network.add(new ImgReshapeLayer(2, 2, true));
+      network.add(new ImgBandBiasLayer(64));
+      network.add(new ConvolutionLayer(5, 5, 64, 32).set(i -> 1e-8 * (Math.random() - 0.5)));
+  
+      network.add(new ConvolutionLayer(1, 1, 32, 4 * 32).set(i -> 1e-8 * (Math.random() - 0.5)));
+      network.add(new ImgReshapeLayer(2, 2, true));
+      network.add(new ImgBandBiasLayer(32));
+      network.add(new ConvolutionLayer(5, 5, 32, 1).set(i -> 1e-8 * (Math.random() - 0.5)));
+
       return network;
     });
   };
@@ -108,48 +150,7 @@ public class MnistTests {
     });
   };
   
-  /**
-   * Fwd conv 2 fwd network factory.
-   *
-   * @return the fwd network factory
-   */
-  public static FwdNetworkFactory fwd_conv_2() {
-    return fwd_conv_2(() -> null);
-  }
   
-  /**
-   * Fwd conv 2 fwd network factory.
-   *
-   * @param newNormalizationLayer the new normalization layer
-   * @return the fwd network factory
-   */
-  public static FwdNetworkFactory fwd_conv_2(Supplier<NNLayer> newNormalizationLayer) {
-    return (log, features) -> {
-      log.p("The image-to-vector network is a single layer convolutional:");
-      return log.code(() -> {
-        final PipelineNetwork network = new PipelineNetwork();
-        double weight = 1e-3;
-        
-        DoubleSupplier init = () -> weight * (Math.random() - 0.5);
-        network.add(new ConvolutionLayer(3, 3, 1, 5).set(init));
-        network.add(new ImgBandBiasLayer(5));
-        network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
-        network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-        network.add(newNormalizationLayer.get());
-        
-        network.add(new ConvolutionLayer(3, 3, 5, 5).set(init));
-        network.add(new ImgBandBiasLayer(5));
-        network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
-        network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-        network.add(newNormalizationLayer.get());
-        
-        network.add(new BiasLayer(7, 7, 5));
-        network.add(new FullyConnectedLayer(new int[]{7, 7, 5}, new int[]{10}).set(init));
-        network.add(new SoftmaxActivationLayer());
-        return network;
-      });
-    };
-  }
   
   /**
    * The type All mnist tests.
