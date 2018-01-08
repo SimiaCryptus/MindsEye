@@ -34,20 +34,16 @@ import java.util.List;
  */
 public class ExplodedConvolutionLeg {
   /**
-   * The Network.
-   */
-  public final PipelineNetwork network;
-  /**
    * The Sub layers.
    */
   public final List<SimpleConvolutionLayer> subLayers;
-  private final int fromBand;
-  private final int toBand;
-  private final int kernelBandOffset;
-  private final int kernelBandSkip;
-  private final int legBands;
-  private final int outputBands;
-  private final ConvolutionParams convolutionParams;
+  public final int fromBand;
+  public final int toBand;
+  public final int kernelBandOffset;
+  public final int kernelBandSkip;
+  public final int legBands;
+  public final int outputBands;
+  public final ConvolutionParams convolutionParams;
   
   public ExplodedConvolutionLeg(ConvolutionParams convolutionParams, int fromBand, int toBand, int kernelBandOffset, int kernelBandSkip) {
     this.fromBand = fromBand;
@@ -57,21 +53,63 @@ public class ExplodedConvolutionLeg {
     this.legBands = this.toBand - this.fromBand;
     this.outputBands = convolutionParams.outputBands;
     this.convolutionParams = convolutionParams;
-    subLayers = new ArrayList<>();
-    // Extract Weights
+    this.subLayers = new ArrayList<>();
     final int[] filterDimensions = this.convolutionParams.filterDimensions;
     final int legBandsSq = legBands * legBands;
     filterDimensions[2] = legBands * this.convolutionParams.outputBands;
     for (int offset = 0; offset < filterDimensions[2]; offset += legBandsSq) {
       final Tensor cellKernel = new Tensor(filterDimensions[0], filterDimensions[1], legBandsSq);
-      SimpleConvolutionLayer simpleConvolutionLayer = new SimpleConvolutionLayer(cellKernel)
-        .setStrideX(this.convolutionParams.strideX).setStrideY(this.convolutionParams.strideY).setPrecision(this.convolutionParams.precision);
-      subLayers.add(simpleConvolutionLayer);
+      this.subLayers.add(new SimpleConvolutionLayer(cellKernel).setStrideX(this.convolutionParams.strideX) //
+                                                               .setStrideY(this.convolutionParams.strideY) //
+                                                               .setPrecision(this.convolutionParams.precision));
     }
-    this.network = buildNetwork();
   }
   
-  public PipelineNetwork buildNetwork() {
+  
+  public ExplodedConvolutionLeg write(Tensor kernel) {
+    int[] filterDimensions = this.convolutionParams.filterDimensions;
+    final int legBandsSq = legBands * legBands;
+    for (int index = 0; index < subLayers.size(); index++) {
+      final int legBandOffset = index * legBandsSq;
+      final Tensor cellKernel = new Tensor(filterDimensions[0], filterDimensions[1], legBandsSq);
+      cellKernel.setByCoord(cellCoord -> {
+        int[] coords = cellCoord.getCoords();
+        final int band = ConvolutionLayer.transposeCoordinates(legBands, this.convolutionParams.outputBands, legBandOffset + coords[2]);
+        if (legBandOffset + coords[2] < filterDimensions[2]) {
+          return kernel.get(coords[0], coords[1], band * this.kernelBandSkip + this.kernelBandOffset);
+        }
+        else {
+          return 0;
+        }
+      });
+      subLayers.get(index).set(cellKernel);
+    }
+    return this;
+  }
+  
+  public void extractDelta(DeltaSet<NNLayer> deltaSet, Tensor filterDelta, boolean remove) {
+    for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
+      final int legBandOffset = layerNumber * this.legBands * this.legBands;
+      final SimpleConvolutionLayer subLayer = subLayers.get(layerNumber);
+      final Delta<NNLayer> subnetDelta = remove ? deltaSet.getMap().remove(subLayer) : deltaSet.getMap().get(subLayer);
+      if (null != subnetDelta) {
+        final int[] cellDimensions = subLayer.kernel.getDimensions();
+        final Tensor cellDelta = new Tensor(subnetDelta.getDelta(), cellDimensions);
+        cellDelta.coordStream(false).forEach(cellCoord -> {
+          int[] coords = cellCoord.getCoords();
+          final int cellBand = ConvolutionLayer.transposeCoordinates(this.legBands, outputBands, legBandOffset + coords[2]);
+          if (legBandOffset + cellBand < this.legBands * outputBands) {
+            filterDelta.set(coords[0], coords[1], this.kernelBandOffset + this.kernelBandSkip * cellBand, cellDelta.get(cellCoord));
+          }
+        });
+      }
+    }
+  }
+  
+  /**
+   * The Network.
+   */
+  public PipelineNetwork getNetwork() {
     final int[] filterDimensions = this.convolutionParams.filterDimensions;
     PipelineNetwork network = new PipelineNetwork(1);
     if (this.fromBand != 0 || this.toBand != this.convolutionParams.inputBands) {
@@ -96,63 +134,5 @@ public class ExplodedConvolutionLeg {
       network.add(new ImgZeroPaddingLayer(x, y));
     }
     return network;
-  }
-  
-  public ExplodedConvolutionLeg write(Tensor kernel) {
-    int[] filterDimensions = this.convolutionParams.filterDimensions;
-    final int legBandsSq = legBands * legBands;
-    for (int index = 0; index < subLayers.size(); index++) {
-      final int legBandOffset = index * legBandsSq;
-      final Tensor cellKernel = new Tensor(filterDimensions[0], filterDimensions[1], legBandsSq);
-      cellKernel.setByCoord(cellCoord -> {
-        int[] coords = cellCoord.getCoords();
-        final int band = ConvolutionLayer.transposeCoordinates(legBands, this.convolutionParams.outputBands, legBandOffset + coords[2]);
-        if (legBandOffset + coords[2] < filterDimensions[2]) {
-          return kernel.get(coords[0], coords[1], band * this.kernelBandSkip + this.kernelBandOffset);
-        }
-        else {
-          return 0;
-        }
-      });
-      subLayers.get(index).set(cellKernel);
-    }
-    return this;
-  }
-  
-  /**
-   * Gets network.
-   *
-   * @return the network
-   */
-  public PipelineNetwork getNetwork() {
-    return network;
-  }
-  
-  /**
-   * Gets sub layers.
-   *
-   * @return the sub layers
-   */
-  public List<SimpleConvolutionLayer> getSubLayers() {
-    return subLayers;
-  }
-  
-  public void extractDelta(DeltaSet<NNLayer> deltaSet, Tensor filterDelta, boolean remove) {
-    for (int layerNumber = 0; layerNumber < this.getSubLayers().size(); layerNumber++) {
-      final int legBandOffset = layerNumber * this.legBands * this.legBands;
-      final SimpleConvolutionLayer subLayer = this.getSubLayers().get(layerNumber);
-      final Delta<NNLayer> subnetDelta = remove ? deltaSet.getMap().remove(subLayer) : deltaSet.getMap().get(subLayer);
-      if (null != subnetDelta) {
-        final int[] cellDimensions = subLayer.kernel.getDimensions();
-        final Tensor cellDelta = new Tensor(subnetDelta.getDelta(), cellDimensions);
-        cellDelta.coordStream(false).forEach(cellCoord -> {
-          int[] coords = cellCoord.getCoords();
-          final int cellBand = ConvolutionLayer.transposeCoordinates(this.legBands, outputBands, legBandOffset + coords[2]);
-          if (legBandOffset + cellBand < this.legBands * outputBands) {
-            filterDelta.set(coords[0], coords[1], this.kernelBandOffset + this.kernelBandSkip * cellBand, cellDelta.get(cellCoord));
-          }
-        });
-      }
-    }
   }
 }

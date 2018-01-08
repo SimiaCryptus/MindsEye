@@ -30,14 +30,10 @@ import java.util.List;
 
 public class ExplodedConvolutionGrid {
   /**
-   * The Network.
-   */
-  public final PipelineNetwork network;
-  /**
    * The Sub layers.
    */
   public final List<ExplodedConvolutionLeg> subLayers;
-  private final ConvolutionParams convolutionParams;
+  public final ConvolutionParams convolutionParams;
   
   /**
    * Instantiates a new Exploded network.
@@ -51,7 +47,26 @@ public class ExplodedConvolutionGrid {
       int kernelBandSkip = 1;
       subLayers.add(new ExplodedConvolutionLeg(convolutionParams, inputBandOffset, toBand, kernelBandOffset, kernelBandSkip));
     }
-    network = new PipelineNetwork(1);
+  }
+  
+  public ExplodedConvolutionGrid write(Tensor kernel) {
+    for (ExplodedConvolutionLeg leg : subLayers) {
+      leg.write(kernel);
+    }
+    return this;
+  }
+  
+  public Tensor extractDelta(DeltaSet<NNLayer> deltaSet, boolean remove) {
+    final Tensor filterDelta = new Tensor(convolutionParams.filterDimensions);
+    for (int legNumber = 0; legNumber < subLayers.size(); legNumber++) {
+      final ExplodedConvolutionLeg leg = subLayers.get(legNumber);
+      leg.extractDelta(deltaSet, filterDelta, remove);
+    }
+    return filterDelta;
+  }
+  
+  public PipelineNetwork getNetwork() {
+    PipelineNetwork network = new PipelineNetwork(1);
     if (convolutionParams.inputBands != convolutionParams.outputBands) {
       network.add(new BinarySumLayer(),
                   subLayers.stream().map(l -> {
@@ -62,40 +77,7 @@ public class ExplodedConvolutionGrid {
       assert 1 == subLayers.size();
       network.add(subLayers.get(0).getNetwork());
     }
-  }
-  
-  public ExplodedConvolutionGrid write(Tensor kernel) {
-    for (ExplodedConvolutionLeg leg : subLayers) {
-      leg.write(kernel);
-    }
-    return this;
-  }
-  
-  /**
-   * Gets network.
-   *
-   * @return the network
-   */
-  public PipelineNetwork getNetwork() {
     return network;
-  }
-  
-  /**
-   * Gets sub layers.
-   *
-   * @return the sub layers
-   */
-  public List<ExplodedConvolutionLeg> getSubLayers() {
-    return subLayers;
-  }
-  
-  public Tensor extractDelta(DeltaSet<NNLayer> deltaSet, boolean remove) {
-    final Tensor filterDelta = new Tensor(convolutionParams.filterDimensions);
-    for (int legNumber = 0; legNumber < getSubLayers().size(); legNumber++) {
-      final ExplodedConvolutionLeg leg = getSubLayers().get(legNumber);
-      leg.extractDelta(deltaSet, filterDelta, remove);
-    }
-    return filterDelta;
   }
   
 }

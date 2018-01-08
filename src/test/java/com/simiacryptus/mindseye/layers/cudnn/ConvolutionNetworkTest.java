@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
 /**
@@ -28,19 +27,33 @@ import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
  */
 public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
   
+  private final int radius;
+  private final int inputBands;
+  private final int outputBands;
   /**
    * The Precision.
    */
   final Precision precision;
+  private final NNLayer layer;
   
   /**
-   * Instantiates a new Convolution network run.
+   * Instantiates a new Convolution layer run.
    *
-   * @param precision the precision
+   * @param radius      the radius
+   * @param inputBands  the input bands
+   * @param outputBands the output bands
+   * @param precision   the precision
    */
-  public ConvolutionNetworkTest(final Precision precision) {
+  protected ConvolutionNetworkTest(final int radius, final int inputBands, final int outputBands, final Precision precision) {
+    this.radius = radius;
+    this.inputBands = inputBands;
+    this.outputBands = outputBands;
+    ConvolutionLayer convolutionLayer = new ConvolutionLayer(radius, radius, inputBands, outputBands).setPrecision(precision);
+    convolutionLayer.getKernel().set(() -> random());
     this.precision = precision;
+    this.layer = convolutionLayer.explode();
   }
+  
   
   @Override
   public int[][] getInputDims() {
@@ -51,11 +64,7 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
   
   @Override
   public NNLayer getLayer(final int[][] inputSize) {
-    final PipelineNetwork network = new PipelineNetwork(1);
-    network.add(new ImgConcatLayer().setPrecision(precision));
-    network.add(new ImgBandBiasLayer(3).setPrecision(precision).addWeights(this::random));
-    network.add(new ActivationLayer(ActivationLayer.Mode.RELU).setPrecision(precision));
-    return network;
+    return this.layer;
     
     
   }
@@ -75,7 +84,7 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
      * Instantiates a new Double.
      */
     public DoubleConvolutionNetwork() {
-      super(Precision.Double);
+      super(3, 4, 8, Precision.Double);
     }
   }
   
@@ -87,7 +96,7 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
      * Instantiates a new Float.
      */
     public FloatConvolutionNetwork() {
-      super(Precision.Float);
+      super(3, 4, 8, Precision.Float);
     }
   
     @Override

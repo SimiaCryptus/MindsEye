@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 import java.util.Arrays;
 import java.util.List;
@@ -154,7 +155,11 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   }
   
   public ExplodedConvolutionGrid getExplodedNetwork() {
-    return new ExplodedConvolutionGrid(new ConvolutionParams(inputBands, outputBands, precision, strideX, strideY, paddingX, paddingY, kernel.getDimensions()), maxBandBatch).write(kernel);
+    return new ExplodedConvolutionGrid(getConvolutionParams(), maxBandBatch).write(kernel);
+  }
+  
+  public ConvolutionParams getConvolutionParams() {
+    return new ConvolutionParams(inputBands, outputBands, precision, strideX, strideY, paddingX, paddingY, kernel.getDimensions());
   }
   
   @Override
@@ -167,10 +172,11 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     final int deviceNumber = cuda.getDeviceNumber();
     if (deviceNumber < 0) return getCompatibilityLayer().eval(nncontext, inObj);
     ExplodedConvolutionGrid grid = getExplodedNetwork();
+    PipelineNetwork network = grid.getNetwork();
     if (isFrozen()) {
-      grid.getNetwork().freeze();
+      network.freeze();
     }
-    final NNResult result = grid.getNetwork().eval(nncontext, inObj);
+    final NNResult result = network.eval(nncontext, inObj);
     assert 1 == inObj.length;
     final TensorList resultData = result.getData();
     assert inObj[0].getData().length() == resultData.length();
