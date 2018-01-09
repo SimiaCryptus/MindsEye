@@ -23,12 +23,14 @@ import com.simiacryptus.mindseye.lang.Delta;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * The type Exploded network.
@@ -84,6 +86,24 @@ public class ExplodedConvolutionLeg {
   }
   
   public Tensor extractDelta(DeltaSet<NNLayer> deltaSet, boolean remove) {
+    return extract((sublayer) -> {
+      final Delta<NNLayer> subnetDelta = remove ? deltaSet.getMap().remove(sublayer) : deltaSet.getMap().get(sublayer);
+      Tensor deltaTensor = null;
+      if (null != subnetDelta) {
+        int[] dimensions = sublayer.kernel.getDimensions();
+        deltaTensor = new Tensor(subnetDelta.getDelta(), dimensions);
+      }
+      return deltaTensor;
+    });
+  }
+  
+  public Tensor extractKernel() {
+    return extract((sublayer) -> {
+      return sublayer.kernel;
+    });
+  }
+  
+  public Tensor extract(Function<SimpleConvolutionLayer, Tensor> extractor) {
     int inputBands = getInputBands();
     int inputBandsSq = inputBands * inputBands;
     final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
@@ -93,9 +113,8 @@ public class ExplodedConvolutionLeg {
     for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
       final int bandOffset = layerNumber * inputBandsSq;
       final SimpleConvolutionLayer subLayer = subLayers.get(layerNumber);
-      final Delta<NNLayer> subnetDelta = remove ? deltaSet.getMap().remove(subLayer) : deltaSet.getMap().get(subLayer);
-      if (null != subnetDelta) {
-        final Tensor deltaTensor = new Tensor(subnetDelta.getDelta(), subLayer.kernel.getDimensions());
+      Tensor deltaTensor = extractor.apply(subLayer);
+      if (null != deltaTensor) {
         deltaTensor.forEach((v, c) -> {
           int[] coords = c.getCoords();
           int band = bandOffset + coords[2];
@@ -113,26 +132,31 @@ public class ExplodedConvolutionLeg {
    * The Network.
    */
   public PipelineNetwork getNetwork() {
-    final int[] filterDimensions = this.convolutionParams.masterFilterDimensions;
     PipelineNetwork network = new PipelineNetwork(1);
+    buildNetwork(network, network.getHead());
+    return network;
+  }
+  
+  public DAGNode buildNetwork(DAGNetwork network, final DAGNode input) {
+    DAGNode head = input;
+    final int[] filterDimensions = this.convolutionParams.masterFilterDimensions;
     if (getInputBands() == this.convolutionParams.outputBands) {
       assert 1 == subLayers.size();
-      network.add(subLayers.get(0));
+      head = network.add(subLayers.get(0), head);
     }
     else {
-      DAGNode input = network.getHead();
-      network.add(new ImgConcatLayer().setMaxBands(this.convolutionParams.outputBands).setPrecision(this.convolutionParams.precision),
-                  subLayers.stream().map(l -> {
-                    return network.add(l, input);
-                  }).toArray(i -> new DAGNode[i]));
+      head = network.add(new ImgConcatLayer().setMaxBands(this.convolutionParams.outputBands).setPrecision(this.convolutionParams.precision),
+                         subLayers.stream().map(l -> {
+                           return network.add(l, input);
+                         }).toArray(i -> new DAGNode[i]));
     }
     if (this.convolutionParams.paddingX != null || this.convolutionParams.paddingY != null) {
       int x = ((filterDimensions[0] - 1) / 2);
       if (this.convolutionParams.paddingX != null) x = this.convolutionParams.paddingX - x;
       int y = ((filterDimensions[1] - 1) / 2);
       if (this.convolutionParams.paddingY != null) y = this.convolutionParams.paddingY - y;
-      network.add(new ImgZeroPaddingLayer(x, y));
+      head = network.add(new ImgZeroPaddingLayer(x, y));
     }
-    return network;
+    return head;
   }
 }

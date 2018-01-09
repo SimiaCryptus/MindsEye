@@ -20,21 +20,25 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * The type Convolution network run.
  */
 public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
   
-  private final int radius;
-  private final int inputBands;
-  private final int outputBands;
+  final int radius;
+  final int inputBands;
+  final int outputBands;
   /**
    * The Precision.
    */
   final Precision precision;
-  private final NNLayer layer;
+  final ConvolutionLayer convolutionLayer;
+  NNLayer layer;
   
   /**
    * Instantiates a new Convolution layer run.
@@ -48,17 +52,27 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
     this.radius = radius;
     this.inputBands = inputBands;
     this.outputBands = outputBands;
-    ConvolutionLayer convolutionLayer = new ConvolutionLayer(radius, radius, inputBands, outputBands).setPrecision(precision);
+    this.convolutionLayer = new ConvolutionLayer(radius, radius, inputBands, outputBands).setPrecision(precision);
     convolutionLayer.getKernel().set(() -> random());
     this.precision = precision;
     this.layer = convolutionLayer.explode();
+  }
+  
+  @Test
+  public void verifyWeights() {
+    ExplodedConvolutionGrid explodedNetwork = this.convolutionLayer.getExplodedNetwork();
+    int[] kernelDims = this.convolutionLayer.getKernel().getDimensions();
+    Tensor testData = new Tensor(kernelDims).map(x -> Math.random());
+    explodedNetwork.write(testData);
+    Tensor echo = explodedNetwork.extractKernel();
+    Assert.assertEquals(testData, echo);
   }
   
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {4, 4, 3}
+      {4, 4, inputBands}
     };
   }
   
@@ -72,7 +86,7 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
   @Override
   public int[][] getPerfDims() {
     return new int[][]{
-      {200, 200, 3}
+      {200, 200, inputBands}
     };
   }
   
@@ -85,6 +99,20 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
      */
     public DoubleConvolutionNetwork() {
       super(3, 4, 8, Precision.Double);
+    }
+  }
+  
+  /**
+   * Expands the an example low-level network implementing general convolutions. (64-bit)
+   */
+  public static class BigDoubleConvolutionNetwork extends ConvolutionNetworkTest {
+    /**
+     * Instantiates a new Double.
+     */
+    public BigDoubleConvolutionNetwork() {
+      super(5, 128, 128, Precision.Double);
+      convolutionLayer.setBatchBands(16);
+      layer = convolutionLayer.explode();
     }
   }
   

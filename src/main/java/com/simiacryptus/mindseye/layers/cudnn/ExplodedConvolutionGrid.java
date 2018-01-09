@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 public class ExplodedConvolutionGrid {
   /**
@@ -62,15 +63,23 @@ public class ExplodedConvolutionGrid {
     return this;
   }
   
+  public Tensor extractKernel() {
+    return extract(l -> l.extractKernel());
+  }
+  
   public Tensor extractDelta(DeltaSet<NNLayer> deltaSet, boolean remove) {
+    return extract(l -> l.extractDelta(deltaSet, remove));
+  }
+  
+  public Tensor extract(Function<ExplodedConvolutionLeg, Tensor> extractor) {
     if (1 == subLayers.size()) {
-      return subLayers.get(0).extractDelta(deltaSet, remove);
+      return extractor.apply(subLayers.get(0));
     }
     else {
       final Tensor filterDelta = new Tensor(convolutionParams.masterFilterDimensions);
       for (int legNumber = 0; legNumber < subLayers.size(); legNumber++) {
         final ExplodedConvolutionLeg leg = subLayers.get(legNumber);
-        leg.extractDelta(deltaSet, remove).forEach((v, c) -> {
+        extractor.apply(leg).forEach((v, c) -> {
           int[] coords = c.getCoords();
           filterDelta.set(coords[0], coords[1], leg.fromBand * convolutionParams.outputBands + coords[2], v);
         }, false);
@@ -82,7 +91,7 @@ public class ExplodedConvolutionGrid {
   public PipelineNetwork getNetwork() {
     PipelineNetwork network = new PipelineNetwork(1);
     if (1 == subLayers.size()) {
-      network.add(subLayers.get(0).getNetwork());
+      subLayers.get(0).buildNetwork(network, network.getInput(0));
     }
     else {
       network.add(new BinarySumLayer(),
@@ -91,7 +100,7 @@ public class ExplodedConvolutionGrid {
                     if (l.fromBand != 0 || l.toBand != this.convolutionParams.inputBands) {
                       node = network.add(new ImgBandSelectLayer(l.fromBand, l.toBand), node);
                     }
-                    return network.add(l.getNetwork(), node);
+                    return l.buildNetwork(network, node);
                   }).toArray(i -> new DAGNode[i]));
     }
     return network;
