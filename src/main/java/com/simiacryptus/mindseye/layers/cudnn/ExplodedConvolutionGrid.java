@@ -64,11 +64,11 @@ public class ExplodedConvolutionGrid {
   }
   
   public Tensor extractKernel() {
-    return extract(l -> l.extractKernel());
+    return extract(l -> l.writeKernel());
   }
   
   public Tensor extractDelta(DeltaSet<NNLayer> deltaSet, boolean remove) {
-    return extract(l -> l.extractDelta(deltaSet, remove));
+    return extract(l -> l.readDelta(deltaSet, remove));
   }
   
   public Tensor extract(Function<ExplodedConvolutionLeg, Tensor> extractor) {
@@ -94,13 +94,16 @@ public class ExplodedConvolutionGrid {
       subLayers.get(0).buildNetwork(network, network.getInput(0));
     }
     else {
+      DAGNode input = network.getInput(0);
       network.add(new BinarySumLayer(),
                   subLayers.stream().map(l -> {
-                    DAGNode node = network.getInput(0);
                     if (l.fromBand != 0 || l.toBand != this.convolutionParams.inputBands) {
-                      node = network.add(new ImgBandSelectLayer(l.fromBand, l.toBand), node);
+                      DAGNode select = network.add(new ImgBandSelectLayer(l.fromBand, l.toBand), input);
+                      return l.buildNetwork(network, select);
                     }
-                    return l.buildNetwork(network, node);
+                    else {
+                      return l.buildNetwork(network, input);
+                    }
                   }).toArray(i -> new DAGNode[i]));
     }
     return network;

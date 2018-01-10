@@ -49,7 +49,7 @@ public class ReshapedTensorList implements TensorList {
   
   @Override
   public int[] getDimensions() {
-    return dims;
+    return Arrays.copyOf(dims, dims.length);
   }
   
   @Override

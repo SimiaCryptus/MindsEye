@@ -58,6 +58,17 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
     this.layer = convolutionLayer.explode();
   }
   
+  //
+//  @Override
+//  public void run(NotebookOutput log) {
+//    String logName = "cuda_" + log.getName() + "_all.log";
+//    log.p(log.file((String) null, logName, "GPU Log"));
+//    PrintStream added = new PrintStream(log.file(logName));
+//    CuDNN.apiLog.add(added);
+//    super.run(log);
+//    CuDNN.apiLog.remove(added);
+//  }
+//
   @Test
   public void verifyWeights() {
     ExplodedConvolutionGrid explodedNetwork = this.convolutionLayer.getExplodedNetwork();
@@ -72,21 +83,19 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {4, 4, inputBands}
+      {5, 5, inputBands}
     };
   }
   
   @Override
   public NNLayer getLayer(final int[][] inputSize) {
     return this.layer;
-    
-    
   }
   
   @Override
   public int[][] getPerfDims() {
     return new int[][]{
-      {200, 200, inputBands}
+      {100, 100, inputBands}
     };
   }
   
@@ -98,7 +107,36 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
      * Instantiates a new Double.
      */
     public DoubleConvolutionNetwork() {
-      super(3, 4, 8, Precision.Double);
+      super(1, 2, 1, Precision.Double);
+      convolutionLayer.setBatchBands(1);
+      this.layer = convolutionLayer.explode();
+    }
+  
+  
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {1, 1, inputBands}
+      };
+    }
+  
+    @Override
+    public int[][] getPerfDims() {
+      return getInputDims();
+    }
+  
+  }
+  
+  /**
+   * Expands the an example low-level network implementing general convolutions. (64-bit)
+   */
+  public static class Tree extends ConvolutionNetworkTest {
+    /**
+     * Instantiates a new Double.
+     */
+    public Tree() {
+      super(1, 4, 4, Precision.Double);
+      convolutionLayer.setBatchBands(2);
     }
   }
   
@@ -110,9 +148,16 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
      * Instantiates a new Double.
      */
     public BigDoubleConvolutionNetwork() {
-      super(5, 128, 128, Precision.Double);
-      convolutionLayer.setBatchBands(16);
+      super(3, 4, 20, Precision.Double);
+      convolutionLayer.setBatchBands(2);
       layer = convolutionLayer.explode();
+      validateDifferentials = false;
+  
+    }
+  
+    @Override
+    public NNLayer getReferenceLayer() {
+      return null;
     }
   }
   

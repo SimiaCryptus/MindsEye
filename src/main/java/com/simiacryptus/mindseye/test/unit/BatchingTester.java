@@ -83,7 +83,8 @@ public class BatchingTester implements ComponentTest<ToleranceStatistics> {
                                                                                            asABatch.getOutput().get(batch).getData(),
                                                                                            oneAtATime.get(batch).getOutput().getData())
                                                                                       ).reduce((a, b) -> a.combine(b)).get();
-    if (!(outputAgreement.absoluteTol.getMax() < tolerance)) throw new AssertionError(outputAgreement.toString());
+    if (!(outputAgreement.absoluteTol.getMax() < tolerance))
+      throw new AssertionError("Output Corrupt: " + outputAgreement);
   
     final ToleranceStatistics derivativeAgreement = IntStream.range(0, batchSize).mapToObj(batch ->
                                                                                              IntStream.range(0, inputTensorLists.length).mapToObj(input ->
@@ -92,7 +93,7 @@ public class BatchingTester implements ComponentTest<ToleranceStatistics> {
                                                                                                                                                       oneAtATime.get(batch).getDerivative()[input].getData())
                                                                                                                                                  ).reduce((a, b) -> a.combine(b)).get()).reduce((a, b) -> a.combine(b)).get();
     if (!(derivativeAgreement.absoluteTol.getMax() < tolerance)) {
-      throw new AssertionError(derivativeAgreement.toString());
+      throw new AssertionError("Derivatives Corrupt: " + derivativeAgreement);
     }
     
     return derivativeAgreement.combine(outputAgreement);

@@ -40,14 +40,18 @@ public abstract class CudnnLayerTestBase extends LayerTestBase {
   protected ComponentTest<ToleranceStatistics> getReferenceIOTester() {
     final ComponentTest<ToleranceStatistics> inner = super.getReferenceIOTester();
     return (log, component, inputPrototype) -> {
+      PrintStream apiLog = null;
       try {
         String logName = "cuda_" + log.getName() + "_io.log";
         log.p(log.file((String) null, logName, "GPU Log"));
-        CuDNN.apiLog = new PrintStream(log.file(logName));
+        apiLog = new PrintStream(log.file(logName));
+        CuDNN.apiLog.add(apiLog);
         return inner.test(log, component, inputPrototype);
       } finally {
-        CuDNN.apiLog.close();
-        CuDNN.apiLog = null;
+        if (null != apiLog) {
+          apiLog.close();
+          CuDNN.apiLog.remove(apiLog);
+        }
       }
     };
   }
@@ -56,14 +60,18 @@ public abstract class CudnnLayerTestBase extends LayerTestBase {
   public ComponentTest<ToleranceStatistics> getPerformanceTester() {
     ComponentTest<ToleranceStatistics> inner = super.getPerformanceTester();
     return (log, component, inputPrototype) -> {
-      String logName = "cuda_" + log.getName() + "_perf.log";
+      PrintStream apiLog = null;
       try {
-        CuDNN.apiLog = new PrintStream(log.file(logName));
+        String logName = "cuda_" + log.getName() + "_perf.log";
+        log.p(log.file((String) null, logName, "GPU Log"));
+        apiLog = new PrintStream(log.file(logName));
+        CuDNN.apiLog.add(apiLog);
         return inner.test(log, component, inputPrototype);
       } finally {
-        log.p(log.file((String) null, logName, "GPU Log"));
-        CuDNN.apiLog.close();
-        CuDNN.apiLog = null;
+        if (null != apiLog) {
+          apiLog.close();
+          CuDNN.apiLog.remove(apiLog);
+        }
       }
     };
   }

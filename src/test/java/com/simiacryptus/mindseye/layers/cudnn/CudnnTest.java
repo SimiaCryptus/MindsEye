@@ -49,8 +49,9 @@ public class CudnnTest extends NotebookReportBase {
   
   private void test(NotebookOutput log) {
     String logName = "cuda_" + log.getName() + ".log";
+    PrintStream apiLog = new PrintStream(log.file(logName));
+    CuDNN.apiLog.add(apiLog);
     log.p(log.file((String) null, logName, "GPU Log"));
-    CuDNN.apiLog = new PrintStream(log.file(logName));
     CudaExecutionContext.gpuContexts.getAll().forEach(ctx -> {
       log.h1("Device " + ctx.getDeviceNumber());
       try {

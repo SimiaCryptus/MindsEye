@@ -56,7 +56,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   private static final int K = 1024;
   private static final int MiB = K * 1024;
   private static final long GiB = 1024 * MiB;
-  private static final long MAX = 1 * GiB;
+  private static final long MAX = 4 * GiB;
   private static final Object pciBusLock = new Object();
   private static final boolean useDefaultDir = false;
   /**

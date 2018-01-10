@@ -75,7 +75,8 @@ public class DeepDreamDemo extends NotebookReportBase {
     
     String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
-    CuDNN.apiLog = new PrintStream(log.file(logName));
+    PrintStream apiLog = new PrintStream(log.file(logName));
+    CuDNN.apiLog.add(apiLog);
     
     log.h1("Model");
     ImageClassifier vgg16 = log.code(() -> {

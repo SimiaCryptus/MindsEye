@@ -20,6 +20,9 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Tensor;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * The type Convolution layer run.
@@ -58,6 +61,16 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
     this.outputBands = outputBands;
     convolutionLayer = new ConvolutionLayer(radius, radius, inputBands, outputBands).setPrecision(precision).setBatchBands(batchBands);
     convolutionLayer.getKernel().set(() -> random());
+  }
+  
+  @Test
+  public void verifyWeights() {
+    ExplodedConvolutionGrid explodedNetwork = this.convolutionLayer.getExplodedNetwork();
+    int[] kernelDims = this.convolutionLayer.getKernel().getDimensions();
+    Tensor testData = new Tensor(kernelDims).map(x -> Math.random());
+    explodedNetwork.write(testData);
+    Tensor echo = explodedNetwork.extractKernel();
+    Assert.assertEquals(testData, echo);
   }
   
   @Override

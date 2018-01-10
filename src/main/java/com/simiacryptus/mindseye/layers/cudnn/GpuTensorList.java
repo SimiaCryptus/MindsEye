@@ -122,7 +122,7 @@ public class GpuTensorList implements TensorList {
   
   @Override
   public int[] getDimensions() {
-    return dimensions;
+    return Arrays.copyOf(dimensions, dimensions.length);
   }
   
   /**

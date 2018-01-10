@@ -178,8 +178,11 @@ public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
     public void run(NotebookOutput log) {
       String logName = "cuda_" + log.getName() + "_all.log";
       log.p(log.file((String) null, logName, "GPU Log"));
-      CuDNN.apiLog = new PrintStream(log.file(logName));
+      PrintStream apiLog = new PrintStream(log.file(logName));
+      CuDNN.apiLog.add(apiLog);
       super.run(log);
+      apiLog.close();
+      CuDNN.apiLog.remove(apiLog);
     }
     
     
@@ -220,7 +223,7 @@ public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Multi band.
      */
     public Big() {
-      super(3, 512, Precision.Double);
+      super(3, 128, Precision.Double);
       validateDifferentials = false;
     }
     
@@ -246,13 +249,18 @@ public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
       ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setBatches(10);
       return (log1, component, inputPrototype) -> {
         String logName = "cuda_" + log1.getName() + "_perf.log";
+        PrintStream apiLog = null;
         try {
-          CuDNN.apiLog = new PrintStream(log1.file(logName));
+          apiLog = new PrintStream(log1.file(logName));
+          CuDNN.apiLog.add(apiLog);
           return inner.test(log1, component, inputPrototype);
         } finally {
           log1.p(log1.file((String) null, logName, "GPU Log"));
-          CuDNN.apiLog.close();
-          CuDNN.apiLog = null;
+          if (null != apiLog) {
+    
+            apiLog.close();
+            CuDNN.apiLog.add(apiLog);
+          }
         }
       };
     }

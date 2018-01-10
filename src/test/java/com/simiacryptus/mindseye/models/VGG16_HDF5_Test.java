@@ -31,7 +31,8 @@ public class VGG16_HDF5_Test extends ImageClassifierTestBase {
   
   @Override
   public ImageClassifier getImageClassifier(NotebookOutput log) {
-    CuDNN.apiLog = new PrintStream(log.file("cuda.log"));
+    PrintStream apiLog = new PrintStream(log.file("cuda.log"));
+    CuDNN.apiLog.add(apiLog);
     log.p(log.file((String) null, "cuda.log", "GPU Log"));
     
     return log.code(() -> {

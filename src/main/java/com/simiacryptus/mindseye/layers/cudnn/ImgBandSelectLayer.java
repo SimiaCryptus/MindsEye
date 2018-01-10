@@ -142,7 +142,7 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
           final CudaPtr errorPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, error);
           final CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), //
                                                      (long) (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size), //
-                                                     true);
+                                                     false);
           CuDNN.cudnnTransformTensor(((CuDNN) nncontext).cudnnHandle,
                                      precision.getPointer(1.0), outputDescriptor.getPtr(), errorPtr.getPtr(),
                                      precision.getPointer(0.0), inputDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)

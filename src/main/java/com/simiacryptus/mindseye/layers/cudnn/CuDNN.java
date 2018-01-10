@@ -29,6 +29,7 @@ import jcuda.runtime.cudaDeviceProp;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
@@ -49,7 +50,7 @@ public class CuDNN {
   /**
    * The constant apiLog.
    */
-  public static PrintStream apiLog = null;
+  public static final HashSet<PrintStream> apiLog = new HashSet<>();
   /**
    * The Cudnn handle.
    */
@@ -894,8 +895,7 @@ public class CuDNN {
    * @param args   the args
    */
   protected static void log(final String method, final Object result, final Object... args) {
-    final PrintStream apiLog = CuDNN.apiLog;
-    if (null != apiLog) {
+    for (PrintStream apiLog : CuDNN.apiLog) {
       final String paramString = null == args ? "" : Arrays.stream(args).map(CuDNN::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
       final String message = String.format("%.6f @ %s: %s(%s) = %s", (System.nanoTime() - CuDNN.start) / 1e9, Thread.currentThread().getName(), method, paramString, result);
       CuDNN.logThread.submit(() -> apiLog.println(message));

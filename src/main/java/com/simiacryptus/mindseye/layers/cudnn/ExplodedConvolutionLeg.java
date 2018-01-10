@@ -62,16 +62,29 @@ public class ExplodedConvolutionLeg {
   public ExplodedConvolutionLeg write(Tensor kernel) {
     int inputBands = getInputBands();
     final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
-    filterDimensions[2] = inputBands * this.convolutionParams.outputBands;
+    int outputBands = this.convolutionParams.outputBands;
+    filterDimensions[2] = inputBands * outputBands;
+    assert Arrays.equals(kernel.getDimensions(), filterDimensions) : Arrays.toString(kernel.getDimensions()) + " != " + Arrays.toString(filterDimensions);
     final int inputBandsSq = inputBands * inputBands;
     for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
-      final int bandOffset = layerNumber * inputBandsSq;
+      final int filterBandOffset = layerNumber * inputBandsSq;
       subLayers.get(layerNumber).set(new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq).setByCoord(c -> {
         int[] coords = c.getCoords();
-        int band = bandOffset + coords[2];
-        band = ConvolutionLayer.transposeCoordinates(inputBands, this.convolutionParams.outputBands, band);
-        if (band < filterDimensions[2]) {
-          return kernel.get(coords[0], coords[1], band);
+        int filterBand = coords[2];
+        int thisOutputBands = Math.min(inputBands, filterDimensions[2] - filterBandOffset);
+        int thisKernelBands = inputBands * thisOutputBands;
+        //filterBand = ConvolutionLayer.transposeCoordinates(inputBands, thisOutputBands, filterBand);
+        if (true || filterBand < thisKernelBands) {
+//          filterBand = ConvolutionLayer.transposeCoordinates(inputBands, thisOutputBands, filterBand);
+          filterBand = filterBandOffset + filterBand;
+          //filterBand = ConvolutionLayer.transposeCoordinates(inputBands, outputBands, filterBand);
+          filterBand = ConvolutionLayer.transposeCoordinates(outputBands, inputBands, filterBand);
+          if (filterBand < filterDimensions[2]) {
+            return kernel.get(coords[0], coords[1], filterBand);
+          }
+          else {
+            return 0;
+          }
         }
         else {
           return 0;
@@ -81,12 +94,44 @@ public class ExplodedConvolutionLeg {
     return this;
   }
   
+  public Tensor read(Function<SimpleConvolutionLayer, Tensor> extractor) {
+    int inputBands = getInputBands();
+    int inputBandsSq = inputBands * inputBands;
+    final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
+    filterDimensions[2] = inputBands * this.convolutionParams.outputBands;
+    int outputBands = convolutionParams.outputBands;
+    Tensor resultDelta = new Tensor(filterDimensions[0], filterDimensions[1], inputBands * outputBands);
+    for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
+      final int filterBandOffset = layerNumber * inputBandsSq;
+      final SimpleConvolutionLayer subLayer = subLayers.get(layerNumber);
+      Tensor deltaTensor = extractor.apply(subLayer);
+      if (null != deltaTensor) {
+        deltaTensor.forEach((v, c) -> {
+          int[] coords = c.getCoords();
+          int filterBand = coords[2];
+          int thisOutputBands = Math.min(inputBands, filterDimensions[2] - filterBandOffset);
+          int thisKernelBands = inputBands * thisOutputBands;
+          //filterBand = ConvolutionLayer.transposeCoordinates(inputBands, thisOutputBands, filterBand);
+          if (true || filterBand < thisKernelBands) {
+            //filterBand = ConvolutionLayer.transposeCoordinates(inputBands, thisOutputBands, filterBand);
+            filterBand = filterBandOffset + filterBand;
+            filterBand = ConvolutionLayer.transposeCoordinates(outputBands, inputBands, filterBand);
+            if (filterBand < filterDimensions[2]) {
+              resultDelta.set(coords[0], coords[1], filterBand, v);
+            }
+          }
+        }, false);
+      }
+    }
+    return resultDelta;
+  }
+  
   public int getInputBands() {
     return this.toBand - this.fromBand;
   }
   
-  public Tensor extractDelta(DeltaSet<NNLayer> deltaSet, boolean remove) {
-    return extract((sublayer) -> {
+  public Tensor readDelta(DeltaSet<NNLayer> deltaSet, boolean remove) {
+    return read((sublayer) -> {
       final Delta<NNLayer> subnetDelta = remove ? deltaSet.getMap().remove(sublayer) : deltaSet.getMap().get(sublayer);
       Tensor deltaTensor = null;
       if (null != subnetDelta) {
@@ -97,35 +142,10 @@ public class ExplodedConvolutionLeg {
     });
   }
   
-  public Tensor extractKernel() {
-    return extract((sublayer) -> {
+  public Tensor writeKernel() {
+    return read((sublayer) -> {
       return sublayer.kernel;
     });
-  }
-  
-  public Tensor extract(Function<SimpleConvolutionLayer, Tensor> extractor) {
-    int inputBands = getInputBands();
-    int inputBandsSq = inputBands * inputBands;
-    final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
-    filterDimensions[2] = inputBands * this.convolutionParams.outputBands;
-    int outputBands = convolutionParams.outputBands;
-    Tensor resultDelta = new Tensor(filterDimensions[0], filterDimensions[1], inputBands * outputBands);
-    for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
-      final int bandOffset = layerNumber * inputBandsSq;
-      final SimpleConvolutionLayer subLayer = subLayers.get(layerNumber);
-      Tensor deltaTensor = extractor.apply(subLayer);
-      if (null != deltaTensor) {
-        deltaTensor.forEach((v, c) -> {
-          int[] coords = c.getCoords();
-          int band = bandOffset + coords[2];
-          band = ConvolutionLayer.transposeCoordinates(inputBands, outputBands, band);
-          if (band < filterDimensions[2]) {
-            resultDelta.set(coords[0], coords[1], band, v);
-          }
-        }, false);
-      }
-    }
-    return resultDelta;
   }
   
   /**
@@ -155,7 +175,7 @@ public class ExplodedConvolutionLeg {
       if (this.convolutionParams.paddingX != null) x = this.convolutionParams.paddingX - x;
       int y = ((filterDimensions[1] - 1) / 2);
       if (this.convolutionParams.paddingY != null) y = this.convolutionParams.paddingY - y;
-      head = network.add(new ImgZeroPaddingLayer(x, y));
+      head = network.add(new ImgZeroPaddingLayer(x, y), head);
     }
     return head;
   }

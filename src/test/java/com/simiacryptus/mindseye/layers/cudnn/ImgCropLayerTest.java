@@ -69,13 +69,17 @@ public abstract class ImgCropLayerTest extends CudnnLayerTestBase {
   public ComponentTest<ToleranceStatistics> getPerformanceTester() {
     ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setSamples(100).setBatches(10);
     return (log1, component, inputPrototype) -> {
+      PrintStream apiLog = null;
       try {
-        CuDNN.apiLog = new PrintStream(log1.file("cuda_perf.log"));
+        apiLog = new PrintStream(log1.file("cuda_perf.log"));
+        CuDNN.apiLog.add(apiLog);
         return inner.test(log1, component, inputPrototype);
       } finally {
         log1.p(log1.file((String) null, "cuda_perf.log", "GPU Log"));
-        CuDNN.apiLog.close();
-        CuDNN.apiLog = null;
+        if (null != apiLog) {
+          apiLog.close();
+          CuDNN.apiLog.remove(apiLog);
+        }
       }
     };
   }

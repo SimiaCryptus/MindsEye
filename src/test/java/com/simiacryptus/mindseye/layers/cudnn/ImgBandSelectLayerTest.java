@@ -37,7 +37,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
   /**
    * The Layer.
    */
-  ImgBandSelectLayer layer = new ImgBandSelectLayer(3, 6);
+  ImgBandSelectLayer layer = new ImgBandSelectLayer(1, 2);
   
   /**
    * Instantiates a new Img concat layer run.
@@ -52,14 +52,17 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
   public void run(NotebookOutput log) {
     String logName = "cuda_" + log.getName() + "_all.log";
     log.p(log.file((String) null, logName, "GPU Log"));
-    CuDNN.apiLog = new PrintStream(log.file(logName));
+    PrintStream apiLog = new PrintStream(log.file(logName));
+    CuDNN.apiLog.add(apiLog);
     super.run(log);
+    apiLog.close();
+    CuDNN.apiLog.remove(apiLog);
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {1, 1, 8}
+      {1, 1, 2}
     };
   }
   
@@ -71,7 +74,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
   @Override
   public int[][] getPerfDims() {
     return new int[][]{
-      {64, 64, 64}
+      {64, 64, 2}
     };
   }
   
