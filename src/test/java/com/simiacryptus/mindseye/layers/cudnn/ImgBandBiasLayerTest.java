@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
+import java.util.Random;
+
 /**
  * The type Img band bias layer run.
  */
@@ -42,19 +44,19 @@ public abstract class ImgBandBiasLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{
       {8, 8, 3}
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return new ImgBandBiasLayer(3).setPrecision(precision).addWeights(this::random);
   }
   
   @Override
-  public int[][] getPerfDims() {
+  public int[][] getPerfDims(Random random) {
     return new int[][]{
       {200, 200, 3}
     };

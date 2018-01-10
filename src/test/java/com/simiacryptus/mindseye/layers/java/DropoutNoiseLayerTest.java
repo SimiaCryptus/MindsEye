@@ -22,20 +22,22 @@ package com.simiacryptus.mindseye.layers.java;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
+import java.util.Random;
+
 /**
  * The type Dropout noise layer run.
  */
 public abstract class DropoutNoiseLayerTest extends LayerTestBase {
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{
       {3}
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return new DropoutNoiseLayer();
   }
   

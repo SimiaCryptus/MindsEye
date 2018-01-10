@@ -26,6 +26,7 @@ import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.PerformanceTester;
 
 import java.io.PrintStream;
+import java.util.Random;
 
 
 /**
@@ -41,21 +42,21 @@ public abstract class ImgCropLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{
       {8, 8, 1}
     };
   }
   
   @Override
-  public int[][] getPerfDims() {
+  public int[][] getPerfDims(Random random) {
     return new int[][]{
       {200, 200, 3}
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return new ImgCropLayer(5, 5);
   }
   
@@ -97,7 +98,7 @@ public abstract class ImgCropLayerTest extends CudnnLayerTestBase {
     }
     
     @Override
-    public NNLayer getLayer(int[][] inputSize) {
+    public NNLayer getLayer(int[][] inputSize, Random random) {
       ImgCropLayer imgCropLayer = new ImgCropLayer(4, 5);
       //return wrap(imgCropLayer);
       return imgCropLayer;

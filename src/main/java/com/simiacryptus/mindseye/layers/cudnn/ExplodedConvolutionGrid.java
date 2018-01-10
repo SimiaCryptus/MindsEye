@@ -54,9 +54,11 @@ public class ExplodedConvolutionGrid {
     }
     else {
       for (ExplodedConvolutionLeg leg : subLayers) {
-        leg.write(new Tensor(convolutionParams.masterFilterDimensions[0], convolutionParams.masterFilterDimensions[1], (leg.toBand - leg.fromBand) * convolutionParams.outputBands).mapCoords(c -> {
+        int[] legDims = {convolutionParams.masterFilterDimensions[0], convolutionParams.masterFilterDimensions[1], (leg.toBand - leg.fromBand) * convolutionParams.outputBands};
+        leg.write(new Tensor(legDims).mapCoords(c -> {
           int[] coords = c.getCoords();
-          return kernel.get(coords[0], coords[1], leg.fromBand * convolutionParams.outputBands + coords[2]);
+          int kernelBand = getBand(leg, convolutionParams, coords);
+          return kernel.get(coords[0], coords[1], kernelBand);
         }));
       }
     }
@@ -81,32 +83,50 @@ public class ExplodedConvolutionGrid {
         final ExplodedConvolutionLeg leg = subLayers.get(legNumber);
         extractor.apply(leg).forEach((v, c) -> {
           int[] coords = c.getCoords();
-          filterDelta.set(coords[0], coords[1], leg.fromBand * convolutionParams.outputBands + coords[2], v);
+          int kernelBand = getBand(leg, convolutionParams, coords);
+          filterDelta.set(coords[0], coords[1], kernelBand, v);
         }, false);
       }
       return filterDelta;
     }
   }
   
-  public PipelineNetwork getNetwork() {
-    PipelineNetwork network = new PipelineNetwork(1);
-    if (1 == subLayers.size()) {
-      subLayers.get(0).buildNetwork(network, network.getInput(0));
+  private int getBand(ExplodedConvolutionLeg leg, ConvolutionParams convolutionParams, int[] coords) {
+    int legKernelBand = coords[2];
+    int legKernelBandI;
+    int legKernelBandO;
+    if (false) {
+      legKernelBandI = legKernelBand % (leg.toBand - leg.fromBand);
+      legKernelBandO = (legKernelBand - legKernelBandI) / (leg.toBand - leg.fromBand);
     }
     else {
+      legKernelBandO = legKernelBand % (convolutionParams.outputBands);
+      legKernelBandI = (legKernelBand - legKernelBandO) / (convolutionParams.outputBands);
+    }
+    int offsetI = leg.fromBand;
+    int filterBand;
+    if (false) {
+      filterBand = (offsetI + legKernelBandI) * convolutionParams.outputBands + legKernelBandO;
+    }
+    else {
+      filterBand = (offsetI + legKernelBandI) + convolutionParams.inputBands * legKernelBandO;
+    }
+    return filterBand;
+  }
+  
+  public PipelineNetwork getNetwork() {
+    if (1 == subLayers.size()) {
+      return subLayers.get(0).getNetwork();
+    }
+    else {
+      PipelineNetwork network = new PipelineNetwork(1);
       DAGNode input = network.getInput(0);
       network.add(new BinarySumLayer(),
                   subLayers.stream().map(l -> {
-                    if (l.fromBand != 0 || l.toBand != this.convolutionParams.inputBands) {
-                      DAGNode select = network.add(new ImgBandSelectLayer(l.fromBand, l.toBand), input);
-                      return l.buildNetwork(network, select);
-                    }
-                    else {
-                      return l.buildNetwork(network, input);
-                    }
+                    return l.buildNetwork(network, network.add(new ImgBandSelectLayer(l.fromBand, l.toBand), input));
                   }).toArray(i -> new DAGNode[i]));
+      return network;
     }
-    return network;
   }
   
 }

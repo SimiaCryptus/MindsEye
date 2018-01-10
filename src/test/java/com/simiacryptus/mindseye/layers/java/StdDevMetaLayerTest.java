@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.layers.java;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.MetaLayerTestBase;
 
+import java.util.Random;
+
 /**
  * The type Std dev meta layer run.
  */
@@ -36,19 +38,19 @@ public abstract class StdDevMetaLayerTest extends MetaLayerTestBase {
   }
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{
       {3}
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return new StdDevMetaLayer(0);
   }
   
   @Override
-  public int[][] getPerfDims() {
+  public int[][] getPerfDims(Random random) {
     return new int[][]{
       {100}
     };

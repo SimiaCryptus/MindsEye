@@ -24,6 +24,8 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Random;
+
 /**
  * The type Convolution layer run.
  */
@@ -74,19 +76,19 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{
       {5, 5, inputBands}
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return convolutionLayer;
   }
   
   @Override
-  public int[][] getPerfDims() {
+  public int[][] getPerfDims(Random random) {
     return new int[][]{
       {100, 100, inputBands}
     };
@@ -161,7 +163,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Double.
      */
     public Double() {
-      super(1, 2, 2, Precision.Double, 16);
+      super(3, 2, 3, Precision.Double, 16);
     }
   }
   

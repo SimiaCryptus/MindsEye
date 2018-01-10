@@ -30,6 +30,7 @@ import smile.plot.PlotCanvas;
 import smile.plot.ScatterPlot;
 
 import java.util.List;
+import java.util.Random;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
@@ -80,19 +81,19 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
   }
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{
       {2, 3, 1}
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return layer;
   }
   
   @Override
-  public int[][] getPerfDims() {
+  public int[][] getPerfDims(Random random) {
     return new int[][]{
       {100, 100, 1}
     };
@@ -112,7 +113,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     super.run(log);
     
     log.h3("Function Plots");
-    final NNLayer layer = getLayer(new int[][]{{1}});
+    final NNLayer layer = getLayer(new int[][]{{1}}, new Random());
     final List<double[]> plotData = scan().mapToObj(x -> {
       final SimpleEval eval = SimpleEval.run(layer, new Tensor(x));
       return new double[]{x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};

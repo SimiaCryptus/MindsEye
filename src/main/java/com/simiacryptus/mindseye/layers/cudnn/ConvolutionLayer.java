@@ -36,7 +36,7 @@ import java.util.function.IntToDoubleFunction;
  * more general layer contract.
  */
 @SuppressWarnings("serial")
-public class ConvolutionLayer extends NNLayer implements LayerPrecision<ConvolutionLayer> {
+public class ConvolutionLayer extends NNLayer implements LayerPrecision<ConvolutionLayer>, Explodable {
   
   private final Tensor kernel;
   private final int inputBands;
@@ -151,6 +151,7 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
    *
    * @return the nn layer
    */
+  @Override
   public NNLayer explode() {
     return getExplodedNetwork().getNetwork();
   }

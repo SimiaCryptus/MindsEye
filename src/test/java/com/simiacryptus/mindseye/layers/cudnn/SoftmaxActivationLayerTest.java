@@ -21,18 +21,20 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 
+import java.util.Random;
+
 /**
  * The type Softmax activation layer run.
  */
 public abstract class SoftmaxActivationLayerTest extends CudnnLayerTestBase {
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{{4}};
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return new SoftmaxActivationLayer();
   }
   

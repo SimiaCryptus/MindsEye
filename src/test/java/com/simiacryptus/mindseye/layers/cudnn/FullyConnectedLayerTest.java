@@ -20,6 +20,9 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.network.PipelineNetwork;
+
+import java.util.Random;
 
 /**
  * The type Fully connected layer run.
@@ -28,6 +31,7 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
   
   private final int[] inputDim;
   private final FullyConnectedLayer fullyConnectedLayer;
+  private final PipelineNetwork layer;
   
   /**
    * Instantiates a new Fully connected layer test.
@@ -57,18 +61,19 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
   public FullyConnectedLayerTest(int[] inputDims, int[] outputDims) {
     this.inputDim = inputDims;
     this.fullyConnectedLayer = new FullyConnectedLayer(inputDims, outputDims).setWeightsLog(-2);
+    this.layer = this.fullyConnectedLayer.explode();
   }
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{
       inputDim
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
-    return fullyConnectedLayer;
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
+    return layer;
   }
   
   @Override

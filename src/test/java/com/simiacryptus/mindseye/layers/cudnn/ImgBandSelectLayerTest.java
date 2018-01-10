@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import java.io.PrintStream;
+import java.util.Random;
 
 /**
  * The type Img concat layer run.
@@ -60,19 +61,19 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
   }
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{
       {1, 1, 2}
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return layer;
   }
   
   @Override
-  public int[][] getPerfDims() {
+  public int[][] getPerfDims(Random random) {
     return new int[][]{
       {64, 64, 2}
     };

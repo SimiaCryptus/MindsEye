@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.layers.java;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
+import java.util.Random;
+
 /**
  * The type Sum inputs layer run.
  */
@@ -32,19 +34,19 @@ public class SumInputsLayerTest {
   public static class N1Test extends LayerTestBase {
     
     @Override
-    public int[][] getInputDims() {
+    public int[][] getInputDims(Random random) {
       return new int[][]{
         {3}, {1}
       };
     }
   
     @Override
-    public NNLayer getLayer(final int[][] inputSize) {
+    public NNLayer getLayer(final int[][] inputSize, Random random) {
       return new SumInputsLayer();
     }
     
     @Override
-    public int[][] getPerfDims() {
+    public int[][] getPerfDims(Random random) {
       return new int[][]{
         {100}, {1}
       };
@@ -58,19 +60,19 @@ public class SumInputsLayerTest {
   public static class NNTest extends LayerTestBase {
     
     @Override
-    public int[][] getInputDims() {
+    public int[][] getInputDims(Random random) {
       return new int[][]{
         {3}, {3}
       };
     }
   
     @Override
-    public NNLayer getLayer(final int[][] inputSize) {
+    public NNLayer getLayer(final int[][] inputSize, Random random) {
       return new SumInputsLayer();
     }
     
     @Override
-    public int[][] getPerfDims() {
+    public int[][] getPerfDims(Random random) {
       return new int[][]{
         {100}, {100}
       };

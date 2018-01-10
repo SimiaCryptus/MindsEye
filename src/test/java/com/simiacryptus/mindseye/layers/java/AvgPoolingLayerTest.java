@@ -22,25 +22,27 @@ package com.simiacryptus.mindseye.layers.java;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
+import java.util.Random;
+
 /**
  * The type Avg subsample layer run.
  */
 public abstract class AvgPoolingLayerTest extends LayerTestBase {
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{
       {8, 8, 1}
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return new AvgPoolingLayer(2, 2, 1);
   }
   
   @Override
-  public int[][] getPerfDims() {
+  public int[][] getPerfDims(Random random) {
     return new int[][]{
       {200, 200, 3}
     };

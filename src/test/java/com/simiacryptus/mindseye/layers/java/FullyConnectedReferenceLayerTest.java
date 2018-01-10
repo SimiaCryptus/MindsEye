@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.layers.java;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
+import java.util.Random;
+
 /**
  * The type Fully connected layer run.
  */
@@ -40,18 +42,18 @@ public abstract class FullyConnectedReferenceLayerTest extends LayerTestBase {
   public FullyConnectedReferenceLayerTest(int[] inputDims, int[] outputDims) {
     this.outputDims = outputDims;
     this.inputDims = inputDims;
-    this.layer = new FullyConnectedReferenceLayer(getInputDims()[0], outputDims).set(i -> random());
+    this.layer = new FullyConnectedReferenceLayer(getInputDims(new Random())[0], outputDims).set(i -> random());
   }
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{
       inputDims
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return layer;
   }
   

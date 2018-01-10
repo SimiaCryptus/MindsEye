@@ -17,34 +17,10 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.java;
+package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 
-import java.util.Random;
-
-/**
- * The type Product layer run.
- */
-public abstract class ProductLayerTest extends LayerTestBase {
-  
-  @Override
-  public int[][] getInputDims(Random random) {
-    return new int[][]{
-      {3}
-    };
-  }
-  
-  @Override
-  public NNLayer getLayer(final int[][] inputSize, Random random) {
-    return new ProductLayer();
-  }
-  
-  /**
-   * Basic Test
-   */
-  public static class Basic extends ProductLayerTest {
-  }
-  
+public interface Explodable {
+  NNLayer explode();
 }

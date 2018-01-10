@@ -23,20 +23,22 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 
+import java.util.Random;
+
 /**
  * The type Rascaled subnet layer run.
  */
 public abstract class RescaledSubnetLayerTest extends LayerTestBase {
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{
       {6, 6, 1}
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return new RescaledSubnetLayer(2, new ConvolutionLayer(3, 3, 1, 1).set(this::random));
   }
   

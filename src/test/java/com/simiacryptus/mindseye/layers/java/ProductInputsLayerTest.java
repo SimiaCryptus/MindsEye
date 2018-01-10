@@ -24,12 +24,14 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.TrainingTester;
 
+import java.util.Random;
+
 /**
  * The type Product inputs layer run.
  */
 public abstract class ProductInputsLayerTest extends LayerTestBase {
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return new ProductInputsLayer();
   }
   
@@ -43,7 +45,7 @@ public abstract class ProductInputsLayerTest extends LayerTestBase {
    */
   public static class N1Test extends ProductInputsLayerTest {
     @Override
-    public int[][] getInputDims() {
+    public int[][] getInputDims(Random random) {
       return new int[][]{
         {3}, {1}
       };
@@ -56,7 +58,7 @@ public abstract class ProductInputsLayerTest extends LayerTestBase {
   public static class NNNTest extends ProductInputsLayerTest {
   
     @Override
-    public int[][] getInputDims() {
+    public int[][] getInputDims(Random random) {
       return new int[][]{
         {3}, {3}, {3}
       };
@@ -69,7 +71,7 @@ public abstract class ProductInputsLayerTest extends LayerTestBase {
   public static class NNTest extends ProductInputsLayerTest {
   
     @Override
-    public int[][] getInputDims() {
+    public int[][] getInputDims(Random random) {
       return new int[][]{
         {3}, {3}
       };

@@ -23,8 +23,10 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Ignore;
+import org.junit.Test;
 
 import java.io.PrintStream;
+import java.util.Random;
 
 /**
  * The type Rescaled subnet layer run.
@@ -53,14 +55,14 @@ public abstract class RescaledSubnetLayerTest extends LayerTestBase // CudnnLaye
   }
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{
       {8, 8, 1}
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return new RescaledSubnetLayer(2, convolutionLayer.set(this::random));
   }
   
@@ -72,10 +74,13 @@ public abstract class RescaledSubnetLayerTest extends LayerTestBase // CudnnLaye
   /**
    * Basic Test
    */
-  @Ignore // Crashing Bug!?!?
   public static class Basic extends RescaledSubnetLayerTest {
-  
-  
+    @Override
+    @Test(timeout = 15 * 60 * 1000)
+    @Ignore // Crashing Bug!?!?
+    public void test() throws Throwable {
+      super.test();
+    }
   }
   
 }

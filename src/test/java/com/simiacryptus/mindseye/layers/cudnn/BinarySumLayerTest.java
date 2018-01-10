@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
+import java.util.Random;
+
 /**
  * The type BinarySumLayerTest layer run.
  */
@@ -42,19 +44,19 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{
       {8, 8, 1}, {8, 8, 1}
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return new BinarySumLayer().setPrecision(precision);
   }
   
   @Override
-  public int[][] getPerfDims() {
+  public int[][] getPerfDims(Random random) {
     return new int[][]{
       {200, 200, 3}, {200, 200, 3}
     };
@@ -69,14 +71,14 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
     }
     
     @Override
-    public int[][] getInputDims() {
+    public int[][] getInputDims(Random random) {
       return new int[][]{
         {2, 2, 1}, {2, 2, 1}, {2, 2, 1}, {2, 2, 1}, {2, 2, 1}
       };
     }
     
     @Override
-    public int[][] getPerfDims() {
+    public int[][] getPerfDims(Random random) {
       return new int[][]{
         {200, 200, 3}, {200, 200, 3}, {200, 200, 3}, {200, 200, 3}, {200, 200, 3}
       };
@@ -109,7 +111,7 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
     }
   
     @Override
-    public NNLayer getLayer(final int[][] inputSize) {
+    public NNLayer getLayer(final int[][] inputSize, Random random) {
       return new BinarySumLayer(1.0, -1.0).setPrecision(precision);
     }
   
@@ -150,7 +152,7 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
     }
   
     @Override
-    public NNLayer getLayer(final int[][] inputSize) {
+    public NNLayer getLayer(final int[][] inputSize, Random random) {
       return new BinarySumLayer(0.5, 0.5).setPrecision(precision);
     }
   

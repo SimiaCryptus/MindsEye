@@ -71,20 +71,13 @@ public class ExplodedConvolutionLeg {
       subLayers.get(layerNumber).set(new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq).setByCoord(c -> {
         int[] coords = c.getCoords();
         int filterBand = coords[2];
-        int thisOutputBands = Math.min(inputBands, filterDimensions[2] - filterBandOffset);
-        int thisKernelBands = inputBands * thisOutputBands;
+        //int thisOutputBands = Math.min(inputBands, filterDimensions[2] - filterBandOffset);
         //filterBand = ConvolutionLayer.transposeCoordinates(inputBands, thisOutputBands, filterBand);
-        if (true || filterBand < thisKernelBands) {
-//          filterBand = ConvolutionLayer.transposeCoordinates(inputBands, thisOutputBands, filterBand);
-          filterBand = filterBandOffset + filterBand;
-          //filterBand = ConvolutionLayer.transposeCoordinates(inputBands, outputBands, filterBand);
-          filterBand = ConvolutionLayer.transposeCoordinates(outputBands, inputBands, filterBand);
-          if (filterBand < filterDimensions[2]) {
-            return kernel.get(coords[0], coords[1], filterBand);
-          }
-          else {
-            return 0;
-          }
+        filterBand = filterBandOffset + filterBand;
+        //filterBand = ConvolutionLayer.transposeCoordinates(inputBands, outputBands, filterBand);
+        filterBand = ConvolutionLayer.transposeCoordinates(outputBands, inputBands, filterBand);
+        if (filterBand < filterDimensions[2]) {
+          return kernel.get(coords[0], coords[1], filterBand);
         }
         else {
           return 0;
@@ -109,16 +102,13 @@ public class ExplodedConvolutionLeg {
         deltaTensor.forEach((v, c) -> {
           int[] coords = c.getCoords();
           int filterBand = coords[2];
-          int thisOutputBands = Math.min(inputBands, filterDimensions[2] - filterBandOffset);
-          int thisKernelBands = inputBands * thisOutputBands;
+          //int thisOutputBands = Math.min(inputBands, filterDimensions[2] - filterBandOffset);
           //filterBand = ConvolutionLayer.transposeCoordinates(inputBands, thisOutputBands, filterBand);
-          if (true || filterBand < thisKernelBands) {
-            //filterBand = ConvolutionLayer.transposeCoordinates(inputBands, thisOutputBands, filterBand);
-            filterBand = filterBandOffset + filterBand;
-            filterBand = ConvolutionLayer.transposeCoordinates(outputBands, inputBands, filterBand);
-            if (filterBand < filterDimensions[2]) {
-              resultDelta.set(coords[0], coords[1], filterBand, v);
-            }
+          filterBand = filterBandOffset + filterBand;
+          //filterBand = ConvolutionLayer.transposeCoordinates(inputBands, outputBands, filterBand);
+          filterBand = ConvolutionLayer.transposeCoordinates(outputBands, inputBands, filterBand);
+          if (filterBand < filterDimensions[2]) {
+            resultDelta.set(coords[0], coords[1], filterBand, v);
           }
         }, false);
       }

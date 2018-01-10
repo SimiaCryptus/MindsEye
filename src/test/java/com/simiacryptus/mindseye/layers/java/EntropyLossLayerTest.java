@@ -24,6 +24,8 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 import com.simiacryptus.util.Util;
 
+import java.util.Random;
+
 /**
  * The type Entropy loss layer run.
  */
@@ -35,14 +37,14 @@ public abstract class EntropyLossLayerTest extends LayerTestBase {
   }
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{
       {4}, {4}
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return new EntropyLossLayer();
   }
   

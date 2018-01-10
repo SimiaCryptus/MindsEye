@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 
+import java.util.Random;
+
 /**
  * The type Img concat layer run.
  */
@@ -41,19 +43,19 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{
       {8, 8, 1}, {8, 8, 1}
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return new ImgConcatLayer();
   }
   
   @Override
-  public int[][] getPerfDims() {
+  public int[][] getPerfDims(Random random) {
     return new int[][]{
       {200, 200, 3}, {200, 200, 3}
     };
@@ -72,19 +74,19 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
     }
     
     @Override
-    public int[][] getInputDims() {
+    public int[][] getInputDims(Random random) {
       return new int[][]{
         {1, 1, 1}, {1, 1, 2}
       };
     }
   
     @Override
-    public int[][] getPerfDims() {
-      return getInputDims();
+    public int[][] getPerfDims(Random random) {
+      return getInputDims(new Random());
     }
   
     @Override
-    public NNLayer getLayer(final int[][] inputSize) {
+    public NNLayer getLayer(final int[][] inputSize, Random random) {
       return new ImgConcatLayer().setMaxBands(2);
     }
   }

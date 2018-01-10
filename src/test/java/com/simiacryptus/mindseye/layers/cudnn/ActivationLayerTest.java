@@ -29,6 +29,7 @@ import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -60,17 +61,17 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{{8, 8, 1}};
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return new ActivationLayer(mode).setPrecision(precision);
   }
   
   @Override
-  public int[][] getPerfDims() {
+  public int[][] getPerfDims(Random random) {
     return new int[][]{
       {200, 200, 3}
     };
@@ -81,7 +82,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
     super.run(log);
   
     log.h3("Function Plots");
-    final NNLayer layer = getLayer(new int[][]{{8, 8, 1}});
+    final NNLayer layer = getLayer(new int[][]{{8, 8, 1}}, new Random());
     final List<double[]> plotData = IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0).mapToObj(x -> {
       final SimpleEval eval = SimpleEval.run(layer, new Tensor(new double[]{x}, 1, 1, 1));
       return new double[]{x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};

@@ -25,25 +25,27 @@ import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.BatchDerivativeTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 
+import java.util.Random;
+
 /**
  * The type Normalization meta layer run.
  */
 public abstract class NormalizationMetaLayerTest extends MetaLayerTestBase {
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{
       {3}
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return new NormalizationMetaLayer();
   }
   
   @Override
-  public int[][] getPerfDims() {
+  public int[][] getPerfDims(Random random) {
     return new int[][]{
       {10}
     };

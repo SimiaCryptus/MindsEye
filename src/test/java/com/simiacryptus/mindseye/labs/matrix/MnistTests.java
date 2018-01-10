@@ -48,7 +48,7 @@ public class MnistTests {
       network.add(new ImgBandBiasLayer(64));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());
-      network.add(new FullyConnectedLayer(new int[]{4, 4, 64}, new int[]{1024})
+      network.add(new FullyConnectedLayer(new int[]{7, 7, 64}, new int[]{1024})
                     .set(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new BiasLayer(1024));
       network.add(new ReLuActivationLayer());

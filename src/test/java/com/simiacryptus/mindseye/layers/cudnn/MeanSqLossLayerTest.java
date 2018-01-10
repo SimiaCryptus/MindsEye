@@ -22,20 +22,22 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
+import java.util.Random;
+
 /**
  * The type Mean sq loss layer run.
  */
 public abstract class MeanSqLossLayerTest extends LayerTestBase {
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{
       {8, 8, 1}, {8, 8, 1}
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return new MeanSqLossLayer();
   }
   
@@ -45,7 +47,7 @@ public abstract class MeanSqLossLayerTest extends LayerTestBase {
   }
   
   @Override
-  public int[][] getPerfDims() {
+  public int[][] getPerfDims(Random random) {
     return new int[][]{
       {200, 200, 3}, {200, 200, 3}
     };
@@ -57,7 +59,7 @@ public abstract class MeanSqLossLayerTest extends LayerTestBase {
   public class Basic extends MeanSqLossLayerTest {
   
     @Override
-    public int[][] getInputDims() {
+    public int[][] getInputDims(Random random) {
       return new int[][]{
         {8, 8, 1}, {8, 8, 1}
       };
@@ -70,7 +72,7 @@ public abstract class MeanSqLossLayerTest extends LayerTestBase {
   public class Asymetric extends MeanSqLossLayerTest {
   
     @Override
-    public int[][] getInputDims() {
+    public int[][] getInputDims(Random random) {
       return new int[][]{
         {2, 3, 1}, {2, 3, 1}
       };

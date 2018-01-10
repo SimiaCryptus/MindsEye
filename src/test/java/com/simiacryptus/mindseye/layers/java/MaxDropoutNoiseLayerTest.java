@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
+import java.util.Random;
+
 /**
  * The type Max dropout noise layer run.
  */
@@ -31,7 +33,7 @@ public abstract class MaxDropoutNoiseLayerTest extends ActivationLayerTestBase {
   }
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{
       {8, 8, 1}
     };

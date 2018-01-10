@@ -28,15 +28,21 @@ import org.junit.Test;
  */
 public abstract class LayerTestBase extends StandardLayerTests {
   
+  
   /**
    * Test.
    *
    * @throws Throwable the throwable
    */
-  @Test
+  @Test(timeout = 15 * 60 * 1000)
   public void test() throws Throwable {
     run(this::run);
   }
+
+//  @Test(timeout = 15 * 60 * 1000)
+//  public void testMonteCarlo() throws Throwable {
+//    run(this::monteCarlo);
+//  }
   
   /**
    * Clean all.

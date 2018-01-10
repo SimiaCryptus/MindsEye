@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.test.unit.*;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import java.io.PrintStream;
+import java.util.Random;
 
 /**
  * The type Simple convolution layer run.
@@ -62,19 +63,19 @@ public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public int[][] getInputDims() {
+  public int[][] getInputDims(Random random) {
     return new int[][]{
       {radius, radius, bands}
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return layer;
   }
   
   @Override
-  public int[][] getPerfDims() {
+  public int[][] getPerfDims(Random random) {
     return new int[][]{
       {100, 100, bands}
     };
@@ -239,7 +240,7 @@ public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
     }
     
     @Override
-    public int[][] getPerfDims() {
+    public int[][] getPerfDims(Random random) {
       return new int[][]{
         {30, 30, bands}
       };
