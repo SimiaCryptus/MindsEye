@@ -113,4 +113,9 @@ final class InnerNode extends LazyResult {
     this.layer = layer;
     dagNetwork.assertConsistent();
   }
+  
+  @Override
+  public DAGNetwork getNetwork() {
+    return dagNetwork;
+  }
 }

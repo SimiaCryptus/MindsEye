@@ -25,7 +25,6 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -70,12 +69,7 @@ public class ExplodedConvolutionLeg {
       final int filterBandOffset = layerNumber * inputBandsSq;
       subLayers.get(layerNumber).set(new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq).setByCoord(c -> {
         int[] coords = c.getCoords();
-        int filterBand = coords[2];
-        //int thisOutputBands = Math.min(inputBands, filterDimensions[2] - filterBandOffset);
-        //filterBand = ConvolutionLayer.transposeCoordinates(inputBands, thisOutputBands, filterBand);
-        filterBand = filterBandOffset + filterBand;
-        //filterBand = ConvolutionLayer.transposeCoordinates(inputBands, outputBands, filterBand);
-        filterBand = ConvolutionLayer.transposeCoordinates(outputBands, inputBands, filterBand);
+        int filterBand = getFilterBand(filterBandOffset, coords[2]);
         if (filterBand < filterDimensions[2]) {
           return kernel.get(coords[0], coords[1], filterBand);
         }
@@ -89,24 +83,17 @@ public class ExplodedConvolutionLeg {
   
   public Tensor read(Function<SimpleConvolutionLayer, Tensor> extractor) {
     int inputBands = getInputBands();
-    int inputBandsSq = inputBands * inputBands;
     final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
     filterDimensions[2] = inputBands * this.convolutionParams.outputBands;
     int outputBands = convolutionParams.outputBands;
     Tensor resultDelta = new Tensor(filterDimensions[0], filterDimensions[1], inputBands * outputBands);
     for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
-      final int filterBandOffset = layerNumber * inputBandsSq;
-      final SimpleConvolutionLayer subLayer = subLayers.get(layerNumber);
-      Tensor deltaTensor = extractor.apply(subLayer);
+      final int filterBandOffset = layerNumber * inputBands * inputBands;
+      Tensor deltaTensor = extractor.apply(subLayers.get(layerNumber));
       if (null != deltaTensor) {
         deltaTensor.forEach((v, c) -> {
           int[] coords = c.getCoords();
-          int filterBand = coords[2];
-          //int thisOutputBands = Math.min(inputBands, filterDimensions[2] - filterBandOffset);
-          //filterBand = ConvolutionLayer.transposeCoordinates(inputBands, thisOutputBands, filterBand);
-          filterBand = filterBandOffset + filterBand;
-          //filterBand = ConvolutionLayer.transposeCoordinates(inputBands, outputBands, filterBand);
-          filterBand = ConvolutionLayer.transposeCoordinates(outputBands, inputBands, filterBand);
+          int filterBand = getFilterBand(filterBandOffset, coords[2]);
           if (filterBand < filterDimensions[2]) {
             resultDelta.set(coords[0], coords[1], filterBand, v);
           }
@@ -116,38 +103,32 @@ public class ExplodedConvolutionLeg {
     return resultDelta;
   }
   
+  public int getFilterBand(int filterBandOffset, int filterBand) {
+    filterBand = filterBandOffset + filterBand;
+    filterBand = ConvolutionLayer.transposeCoordinates(getInputBands(), convolutionParams.outputBands, filterBand);
+    return filterBand;
+  }
+  
   public int getInputBands() {
     return this.toBand - this.fromBand;
   }
   
-  public Tensor readDelta(DeltaSet<NNLayer> deltaSet, boolean remove) {
+  public Tensor read(DeltaSet<NNLayer> deltaSet, boolean remove) {
     return read((sublayer) -> {
       final Delta<NNLayer> subnetDelta = remove ? deltaSet.getMap().remove(sublayer) : deltaSet.getMap().get(sublayer);
-      Tensor deltaTensor = null;
-      if (null != subnetDelta) {
-        int[] dimensions = sublayer.kernel.getDimensions();
-        deltaTensor = new Tensor(subnetDelta.getDelta(), dimensions);
-      }
-      return deltaTensor;
+      if (null == subnetDelta) throw new RuntimeException("No Delta for " + sublayer);
+      return new Tensor(subnetDelta.getDelta(), sublayer.kernel.getDimensions());
     });
   }
   
-  public Tensor writeKernel() {
+  public Tensor read() {
     return read((sublayer) -> {
       return sublayer.kernel;
     });
   }
   
-  /**
-   * The Network.
-   */
-  public PipelineNetwork getNetwork() {
-    PipelineNetwork network = new PipelineNetwork(1);
-    buildNetwork(network, network.getHead());
-    return network;
-  }
-  
-  public DAGNode buildNetwork(DAGNetwork network, final DAGNode input) {
+  public DAGNode add(final DAGNode input) {
+    DAGNetwork network = input.getNetwork();
     DAGNode head = input;
     final int[] filterDimensions = this.convolutionParams.masterFilterDimensions;
     if (getInputBands() == this.convolutionParams.outputBands) {

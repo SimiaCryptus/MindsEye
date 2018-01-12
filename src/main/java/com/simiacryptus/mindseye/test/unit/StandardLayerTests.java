@@ -26,7 +26,6 @@ import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
-import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import guru.nidi.graphviz.engine.Format;
@@ -58,6 +57,13 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   private ArrayList<ComponentTest<?>> finalTests;
   private ArrayList<ComponentTest<?>> bigTests;
   private ArrayList<ComponentTest<?>> littleTests;
+  
+  public static final long seed = 51389; //System.nanoTime();
+  private final Random random = new Random(seed);
+  
+  public StandardLayerTests() {
+    logger.info("Seed: " + seed);
+  }
   
   /**
    * Gets batching tester.
@@ -276,7 +282,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * @return the double
    */
   public double random() {
-    return Math.round(1000.0 * (Util.R.get().nextDouble() - 0.5)) / 250.0;
+    return Math.round(1000.0 * (random.nextDouble() - 0.5)) / 250.0;
   }
   
   /**

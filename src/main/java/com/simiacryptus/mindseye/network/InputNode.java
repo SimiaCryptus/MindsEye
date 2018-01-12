@@ -76,4 +76,9 @@ final class InputNode extends LazyResult {
   public void setLayer(final NNLayer layer) {
     throw new IllegalStateException();
   }
+  
+  @Override
+  public DAGNetwork getNetwork() {
+    return this.dagNetwork;
+  }
 }

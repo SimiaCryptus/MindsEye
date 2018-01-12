@@ -170,16 +170,13 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     assert 1 == inObj.length;
     assert 3 == inObj[0].getData().getDimensions().length;
     assert inputBands == inObj[0].getData().getDimensions()[2];
-    final CudaExecutionContext cuda = (CudaExecutionContext) nncontext;
-    final int deviceNumber = cuda.getDeviceNumber();
-    if (deviceNumber < 0) return getCompatibilityLayer().eval(nncontext, inObj);
+    if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
     ExplodedConvolutionGrid grid = getExplodedNetwork();
     PipelineNetwork network = grid.getNetwork();
     if (isFrozen()) {
       network.freeze();
     }
     final NNResult result = network.eval(nncontext, inObj);
-    assert 1 == inObj.length;
     final TensorList resultData = result.getData();
     assert inObj[0].getData().length() == resultData.length();
     assert 3 == resultData.getDimensions().length;
@@ -194,12 +191,14 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
       @Override
       public void accumulate(final DeltaSet<NNLayer> deltaSet, final TensorList data) {
         result.accumulate(deltaSet, data);
-        deltaSet.get(ConvolutionLayer.this, getKernel().getData()).addInPlace(grid.extractDelta(deltaSet, true).getData());
+        if (!isFrozen()) {
+          deltaSet.get(ConvolutionLayer.this, getKernel().getData()).addInPlace(grid.read(deltaSet, true).getData());
+        }
       }
       
       @Override
       public boolean isAlive() {
-        return inObj[0].isAlive() || !isFrozen();
+        return result.isAlive();
       }
     };
   }

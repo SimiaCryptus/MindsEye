@@ -57,7 +57,7 @@ public class ExplodedConvolutionGrid {
         int[] legDims = {convolutionParams.masterFilterDimensions[0], convolutionParams.masterFilterDimensions[1], (leg.toBand - leg.fromBand) * convolutionParams.outputBands};
         leg.write(new Tensor(legDims).mapCoords(c -> {
           int[] coords = c.getCoords();
-          int kernelBand = getBand(leg, convolutionParams, coords);
+          int kernelBand = getFilterBand(leg, coords[2]);
           return kernel.get(coords[0], coords[1], kernelBand);
         }));
       }
@@ -65,68 +65,51 @@ public class ExplodedConvolutionGrid {
     return this;
   }
   
-  public Tensor extractKernel() {
-    return extract(l -> l.writeKernel());
-  }
-  
-  public Tensor extractDelta(DeltaSet<NNLayer> deltaSet, boolean remove) {
-    return extract(l -> l.readDelta(deltaSet, remove));
-  }
-  
-  public Tensor extract(Function<ExplodedConvolutionLeg, Tensor> extractor) {
+  public Tensor read(Function<ExplodedConvolutionLeg, Tensor> extractor) {
     if (1 == subLayers.size()) {
       return extractor.apply(subLayers.get(0));
     }
     else {
       final Tensor filterDelta = new Tensor(convolutionParams.masterFilterDimensions);
-      for (int legNumber = 0; legNumber < subLayers.size(); legNumber++) {
-        final ExplodedConvolutionLeg leg = subLayers.get(legNumber);
+      for (ExplodedConvolutionLeg leg : subLayers) {
         extractor.apply(leg).forEach((v, c) -> {
           int[] coords = c.getCoords();
-          int kernelBand = getBand(leg, convolutionParams, coords);
-          filterDelta.set(coords[0], coords[1], kernelBand, v);
+          filterDelta.set(coords[0], coords[1], getFilterBand(leg, coords[2]), v);
         }, false);
       }
       return filterDelta;
     }
   }
   
-  private int getBand(ExplodedConvolutionLeg leg, ConvolutionParams convolutionParams, int[] coords) {
-    int legKernelBand = coords[2];
-    int legKernelBandI;
-    int legKernelBandO;
-    if (false) {
-      legKernelBandI = legKernelBand % (leg.toBand - leg.fromBand);
-      legKernelBandO = (legKernelBand - legKernelBandI) / (leg.toBand - leg.fromBand);
-    }
-    else {
-      legKernelBandO = legKernelBand % (convolutionParams.outputBands);
-      legKernelBandI = (legKernelBand - legKernelBandO) / (convolutionParams.outputBands);
-    }
-    int offsetI = leg.fromBand;
-    int filterBand;
-    if (false) {
-      filterBand = (offsetI + legKernelBandI) * convolutionParams.outputBands + legKernelBandO;
-    }
-    else {
-      filterBand = (offsetI + legKernelBandI) + convolutionParams.inputBands * legKernelBandO;
-    }
+  public Tensor read() {
+    return read(l -> l.read());
+  }
+  
+  public Tensor read(DeltaSet<NNLayer> deltaSet, boolean remove) {
+    return read(l -> l.read(deltaSet, remove));
+  }
+  
+  private int getFilterBand(ExplodedConvolutionLeg leg, int legFilterBand) {
+    int filterBand = legFilterBand + leg.fromBand * convolutionParams.outputBands;
+    //filterBand = ConvolutionLayer.transposeCoordinates(convolutionParams.inputBands, convolutionParams.outputBands, filterBand);
     return filterBand;
   }
   
   public PipelineNetwork getNetwork() {
-    if (1 == subLayers.size()) {
-      return subLayers.get(0).getNetwork();
+    PipelineNetwork network = new PipelineNetwork(1);
+    add(network.getInput(0));
+    return network;
+  }
+  
+  public DAGNode add(DAGNode input) {
+    if (subLayers.size() == 1) {
+      return subLayers.get(0).add(input);
     }
-    else {
-      PipelineNetwork network = new PipelineNetwork(1);
-      DAGNode input = network.getInput(0);
-      network.add(new BinarySumLayer(),
-                  subLayers.stream().map(l -> {
-                    return l.buildNetwork(network, network.add(new ImgBandSelectLayer(l.fromBand, l.toBand), input));
-                  }).toArray(i -> new DAGNode[i]));
-      return network;
-    }
+    DAGNode[] nodes = subLayers.stream().map(l -> {
+      return l.add(input.getNetwork().add(new ImgBandSelectLayer(l.fromBand, l.toBand), input));
+    }).toArray(i -> new DAGNode[i]);
+    if (nodes.length > 1) return input.getNetwork().add(new BinarySumLayer(), nodes);
+    return nodes[0];
   }
   
 }

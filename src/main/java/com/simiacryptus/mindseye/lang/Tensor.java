@@ -506,16 +506,18 @@ public class Tensor implements Serializable {
   /**
    * Coord stream stream.
    *
-   * @param safe the safe
+   * @param parallel the safe
    * @return the stream
    */
-  public Stream<Coordinate> coordStream(boolean safe) {
+  public Stream<Coordinate> coordStream(boolean parallel) {
     //ConcurrentHashSet<Object> distinctBuffer = new ConcurrentHashSet<>();
+    //assert distinctBuffer.add(coordinate.copy()) : String.format("Duplicate: %s in %s", coordinate, distinctBuffer);
     return StreamSupport.stream(Spliterators.spliterator(new Iterator<Coordinate>() {
       
       int cnt = 0;
       Coordinate coordinate = new Coordinate();
       int[] val = new int[dimensions.length];
+      int[] safeCopy = new int[dimensions.length];
       
       @Override
       public boolean hasNext() {
@@ -534,15 +536,12 @@ public class Tensor implements Serializable {
             }
           }
         }
+        System.arraycopy(val, 0, safeCopy, 0, val.length);
         coordinate.setIndex(cnt++);
-        coordinate.setCoords(val);
-        // assert index(last) == index;
-        return safe ? coordinate.copy() : coordinate;
+        coordinate.setCoords(safeCopy);
+        return parallel ? coordinate.copy() : coordinate;
       }
-    }, dim(), Spliterator.ORDERED), false).map(coordinate -> {
-      //assert distinctBuffer.add(coordinate.copy()) : String.format("Duplicate: %s in %s", coordinate, distinctBuffer);
-      return coordinate;
-    });
+    }, dim(), Spliterator.ORDERED), parallel);
   }
   
   /**
@@ -1477,8 +1476,8 @@ public class Tensor implements Serializable {
   
   public void forEach(CoordOperator fn) {forEach(fn, true);}
   
-  public void forEach(CoordOperator fn, boolean safe) {
-    coordStream(safe).forEach(c -> {
+  public void forEach(CoordOperator fn, boolean parallel) {
+    coordStream(parallel).forEach(c -> {
       fn.eval(get(c), c);
     });
   }

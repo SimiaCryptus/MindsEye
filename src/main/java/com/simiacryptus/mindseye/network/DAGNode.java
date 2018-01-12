@@ -75,5 +75,6 @@ public interface DAGNode extends Serializable {
    */
   void setLayer(NNLayer layer);
   
+  DAGNetwork getNetwork();
   
 }

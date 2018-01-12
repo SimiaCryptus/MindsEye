@@ -71,7 +71,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
     int[] kernelDims = this.convolutionLayer.getKernel().getDimensions();
     Tensor testData = new Tensor(kernelDims).map(x -> Math.random());
     explodedNetwork.write(testData);
-    Tensor echo = explodedNetwork.extractKernel();
+    Tensor echo = explodedNetwork.read();
     Assert.assertEquals(testData, echo);
   }
   
@@ -84,7 +84,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   
   @Override
   public NNLayer getLayer(final int[][] inputSize, Random random) {
-    return convolutionLayer;
+    return convolutionLayer.explode();
   }
   
   @Override
@@ -159,12 +159,38 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
    * Test using 64-bit precision with a radius of 1
    */
   public static class Double extends ConvolutionLayerTest {
+  
     /**
      * Instantiates a new Double.
      */
     public Double() {
-      super(3, 2, 3, Precision.Double, 16);
+      super(1, 3, 2, Precision.Double, 16);
     }
+  
+    @Override
+    public NNLayer getLayer(int[][] inputSize, Random random) {
+      return convolutionLayer.explode();
+    }
+  
+    @Override
+    public NNLayer getReferenceLayer() {
+      return convolutionLayer.as(com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class);
+    }
+  
+    @Override
+    public int[][] getInputDims(Random random) {
+      return new int[][]{
+        {1, 1, inputBands}
+      };
+    }
+  
+    @Override
+    public int[][] getPerfDims(Random random) {
+      return new int[][]{
+        {1, 1, inputBands}
+      };
+    }
+    
   }
   
   /**
