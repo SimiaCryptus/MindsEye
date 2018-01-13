@@ -186,7 +186,7 @@ public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
       String logName = "cuda_" + log.getName() + "_all.log";
       log.p(log.file((String) null, logName, "GPU Log"));
       PrintStream apiLog = new PrintStream(log.file(logName));
-      CuDNN.apiLog.add(apiLog);
+      CuDNN.addLog(apiLog);
       super.run(log);
       apiLog.close();
       CuDNN.apiLog.remove(apiLog);
@@ -259,14 +259,14 @@ public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
         PrintStream apiLog = null;
         try {
           apiLog = new PrintStream(log1.file(logName));
-          CuDNN.apiLog.add(apiLog);
+          CuDNN.addLog(apiLog);
           return inner.test(log1, component, inputPrototype);
         } finally {
           log1.p(log1.file((String) null, logName, "GPU Log"));
           if (null != apiLog) {
     
             apiLog.close();
-            CuDNN.apiLog.add(apiLog);
+            CuDNN.apiLog.remove(apiLog);
           }
         }
       };

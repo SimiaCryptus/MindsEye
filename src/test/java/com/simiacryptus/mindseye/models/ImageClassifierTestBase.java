@@ -44,7 +44,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
    *
    * @throws Throwable the throwable
    */
-  @Test
+  @Test(timeout = 30 * 60 * 60 * 1000)
   public void run() {
     run(this::run);
   }

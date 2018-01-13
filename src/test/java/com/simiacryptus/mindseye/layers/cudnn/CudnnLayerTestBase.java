@@ -45,7 +45,7 @@ public abstract class CudnnLayerTestBase extends LayerTestBase {
         String logName = "cuda_" + log.getName() + "_io.log";
         log.p(log.file((String) null, logName, "GPU Log"));
         apiLog = new PrintStream(log.file(logName));
-        CuDNN.apiLog.add(apiLog);
+        CuDNN.addLog(apiLog);
         return inner.test(log, component, inputPrototype);
       } finally {
         if (null != apiLog) {
@@ -65,7 +65,7 @@ public abstract class CudnnLayerTestBase extends LayerTestBase {
         String logName = "cuda_" + log.getName() + "_perf.log";
         log.p(log.file((String) null, logName, "GPU Log"));
         apiLog = new PrintStream(log.file(logName));
-        CuDNN.apiLog.add(apiLog);
+        CuDNN.addLog(apiLog);
         return inner.test(log, component, inputPrototype);
       } finally {
         if (null != apiLog) {

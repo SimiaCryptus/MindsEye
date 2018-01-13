@@ -54,7 +54,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
     String logName = "cuda_" + log.getName() + "_all.log";
     log.p(log.file((String) null, logName, "GPU Log"));
     PrintStream apiLog = new PrintStream(log.file(logName));
-    CuDNN.apiLog.add(apiLog);
+    CuDNN.addLog(apiLog);
     super.run(log);
     apiLog.close();
     CuDNN.apiLog.remove(apiLog);

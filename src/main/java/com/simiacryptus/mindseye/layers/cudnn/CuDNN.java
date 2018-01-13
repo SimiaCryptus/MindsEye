@@ -21,14 +21,18 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.simiacryptus.mindseye.lang.GpuError;
+import com.simiacryptus.mindseye.test.TestUtil;
 import jcuda.Pointer;
 import jcuda.jcudnn.*;
 import jcuda.runtime.JCuda;
 import jcuda.runtime.cudaDeviceProp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -38,6 +42,7 @@ import java.util.stream.IntStream;
  * Main library wrapper class around the CuDNN API, providing logging and managed wrappers.
  */
 public class CuDNN {
+  private static final Logger logger = LoggerFactory.getLogger(CudaExecutionContext.class);
   
   private static final ThreadLocal<Integer> currentDevice = new ThreadLocal<Integer>() {
     @Override
@@ -77,6 +82,38 @@ public class CuDNN {
       deviceName = null;
     }
     //cudaSetDevice();
+  }
+  
+  static {
+    logger.info(getHeader());
+  }
+  
+  public static String getHeader() {
+    return TestUtil.toString(CuDNN::printHeader);
+  }
+  
+  public static void printHeader(PrintStream out) {
+    int[] runtimeVersion = {0};
+    int[] driverVersion = {0};
+    JCuda.cudaRuntimeGetVersion(runtimeVersion);
+    JCuda.cudaDriverGetVersion(driverVersion);
+    String jCudaVersion = JCuda.getJCudaVersion();
+    out.printf("Time: %s; Driver %s; Runtime %s; Lib %s%n", new Date(), driverVersion[0], runtimeVersion[0], jCudaVersion);
+    long[] free = {0};
+    long[] total = {0};
+    JCuda.cudaMemGetInfo(free, total);
+    out.printf("Cuda Memory: %.1f free, %.1f total%n", free[0] * 1.0 / (1024 * 1024), total[0] * 1.0 / (1024 * 1024));
+    IntStream.range(0, deviceCount()).forEach(device -> {
+      cudaDeviceProp deviceProperties = getDeviceProperties(device);
+      out.printf("Device %d = %s%n", device, deviceProperties, free[0], total[0]);
+    });
+    System.getProperties().forEach((k, v) -> {
+      boolean display = false;
+      if (k.toString().endsWith(".version")) display = true;
+      if (k.toString().startsWith("os.")) display = true;
+      if (k.toString().contains("arch")) display = true;
+      if (display) out.printf("%s = %s%n", k, v);
+    });
   }
   
   /**
@@ -1331,5 +1368,10 @@ public class CuDNN {
   @Override
   public String toString() {
     return getClass().getSimpleName() + "{" + deviceNumber + "; " + deviceName + "}@" + Long.toHexString(System.identityHashCode(this));
+  }
+  
+  public static void addLog(PrintStream log) {
+    printHeader(log);
+    apiLog.add(log);
   }
 }

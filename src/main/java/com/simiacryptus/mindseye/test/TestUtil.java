@@ -44,13 +44,12 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.List;
-import java.util.function.BiFunction;
-import java.util.function.IntToLongFunction;
-import java.util.function.IntUnaryOperator;
-import java.util.function.LongToIntFunction;
+import java.util.function.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -144,6 +143,14 @@ public class TestUtil {
       e.printStackTrace(System.out);
       return null;
     }
+  }
+  
+  public static String toString(Consumer<PrintStream> fn) {
+    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    try (PrintStream out = new PrintStream(buffer)) {
+      fn.accept(out);
+    }
+    return new String(buffer.toByteArray(), Charset.forName("UTF-8"));
   }
   
   /**
