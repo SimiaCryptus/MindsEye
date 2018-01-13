@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.lang;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.test.TestCategories;
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,8 +30,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * The type Tensor run.
@@ -75,6 +78,17 @@ public class TensorTest {
     for (final String c : coordinates) {
       log.info(c);
     }
+  }
+  
+  @Test
+  @Category(TestCategories.UnitTest.class)
+  public void testShuffleStream() throws Exception {
+    HashSet<Object> ids = new HashSet<>();
+    int max = 10000;
+    TestUtil.shuffle(IntStream.range(0, max)).forEach((int i) -> {
+      if (i >= 0 && i >= max) throw new AssertionError(i);
+      if (!ids.add(i)) throw new AssertionError(i);
+    });
   }
   
   /**

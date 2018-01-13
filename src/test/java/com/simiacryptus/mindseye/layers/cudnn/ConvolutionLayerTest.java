@@ -55,7 +55,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
    * @param inputBands  the input bands
    * @param outputBands the output bands
    * @param precision   the precision
-   * @param batchBands
+   * @param batchBands  the batch bands
    */
   protected ConvolutionLayerTest(final int radius, final int inputBands, final int outputBands, final Precision precision, int batchBands) {
     this.radius = radius;
@@ -65,6 +65,9 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
     convolutionLayer.getKernel().set(() -> random());
   }
   
+  /**
+   * Verify weights.
+   */
   @Test
   public void verifyWeights() {
     ExplodedConvolutionGrid explodedNetwork = this.convolutionLayer.getExplodedNetwork();
@@ -78,7 +81,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   @Override
   public int[][] getInputDims(Random random) {
     return new int[][]{
-      {5, 5, inputBands}
+      {3, 3, inputBands}
     };
   }
   
@@ -117,7 +120,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
    * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
    */
   public static class SqGrid extends ConvolutionLayerTest {
-    
+  
     /**
      * Instantiates a new Asymmetric run.
      */
@@ -131,7 +134,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
    * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
    */
   public static class IrregularGrid extends ConvolutionLayerTest {
-    
+  
     /**
      * Instantiates a new Asymmetric run.
      */

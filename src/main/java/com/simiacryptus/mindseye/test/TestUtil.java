@@ -48,6 +48,9 @@ import java.net.URI;
 import java.util.*;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.IntToLongFunction;
+import java.util.function.IntUnaryOperator;
+import java.util.function.LongToIntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -428,7 +431,7 @@ public class TestUtil {
    */
   public static Stream<BufferedImage> renderToImages(final Tensor tensor, final boolean normalize) {
     final DoubleStatistics[] statistics = IntStream.range(0, tensor.getDimensions()[2]).mapToObj(band -> {
-      return new DoubleStatistics().accept(tensor.coordStream(true)
+      return new DoubleStatistics().accept(tensor.coordStream(false)
                                                  .filter(x -> x.getCoords()[2] == band)
                                                  .mapToDouble(c -> tensor.get(c)).toArray());
     }).toArray(i -> new DoubleStatistics[i]);
@@ -554,4 +557,18 @@ public class TestUtil {
     return Factory.graph().with(nodeArray).generalAttr().with(RankDir.TOP_TO_BOTTOM).directed();
   }
   
+  public static IntStream shuffle(IntStream stream) {
+    // http://primes.utm.edu/lists/small/10000.txt
+    long coprimeA = 41387;
+    long coprimeB = 9967;
+    long ringSize = coprimeA * coprimeB - 1;
+    IntToLongFunction fn = x -> (x * coprimeA * coprimeA) % ringSize;
+    LongToIntFunction inv = x -> (int) ((x * coprimeB * coprimeB) % ringSize);
+    IntUnaryOperator conditions = x -> {
+      assert x < ringSize;
+      assert x >= 0;
+      return x;
+    };
+    return stream.map(conditions).mapToLong(fn).sorted().mapToInt(inv);
+  }
 }

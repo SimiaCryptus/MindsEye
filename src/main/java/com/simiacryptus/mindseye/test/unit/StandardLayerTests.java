@@ -58,9 +58,15 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   private ArrayList<ComponentTest<?>> bigTests;
   private ArrayList<ComponentTest<?>> littleTests;
   
+  /**
+   * The constant seed.
+   */
   public static final long seed = 51389; //System.nanoTime();
   private final Random random = new Random(seed);
   
+  /**
+   * Instantiates a new Standard layer tests.
+   */
   public StandardLayerTests() {
     logger.info("Seed: " + seed);
   }
@@ -143,8 +149,8 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   /**
    * Get input dims int [ ] [ ].
    *
+   * @param random the random
    * @return the int [ ] [ ]
-   * @param random
    */
   public abstract int[][] getInputDims(Random random);
   
@@ -161,7 +167,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * Gets layer.
    *
    * @param inputSize the input size
-   * @param random
+   * @param random    the random
    * @return the layer
    */
   public abstract NNLayer getLayer(int[][] inputSize, Random random);
@@ -188,8 +194,8 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   /**
    * Get perf dims int [ ] [ ].
    *
+   * @param random the random
    * @return the int [ ] [ ]
-   * @param random
    */
   public int[][] getPerfDims(Random random) {
     return getInputDims(new Random());
@@ -339,6 +345,11 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     });
   }
   
+  /**
+   * Monte carlo.
+   *
+   * @param log the log
+   */
   public void monteCarlo(final NotebookOutput log) {
     long timeout = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(3);
     while (System.currentTimeMillis() < timeout) {
@@ -348,12 +359,24 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     }
   }
   
+  /**
+   * Throw exception.
+   *
+   * @param exceptions the exceptions
+   */
   public void throwException(ArrayList<Throwable> exceptions) {
     for (Throwable exception : exceptions) {
       throw new RuntimeException(exception);
     }
   }
   
+  /**
+   * Standard tests array list.
+   *
+   * @param log  the log
+   * @param seed the seed
+   * @return the array list
+   */
   public ArrayList<Throwable> standardTests(NotebookOutput log, long seed) {
     final NNLayer layer = getLayer(getInputDims(new Random(seed)), new Random(seed));
     ArrayList<Throwable> exceptions = new ArrayList<>();

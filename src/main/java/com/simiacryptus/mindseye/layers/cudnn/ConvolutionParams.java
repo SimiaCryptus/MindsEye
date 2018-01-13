@@ -19,17 +19,54 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
+/**
+ * The type Convolution params.
+ */
 public class ConvolutionParams {
+  /**
+   * The Input bands.
+   */
   public final int inputBands;
+  /**
+   * The Output bands.
+   */
   public final int outputBands;
+  /**
+   * The Precision.
+   */
   public final Precision precision;
+  /**
+   * The Stride x.
+   */
   public final int strideX;
+  /**
+   * The Stride y.
+   */
   public final int strideY;
+  /**
+   * The Padding x.
+   */
   public final Integer paddingX;
+  /**
+   * The Padding y.
+   */
   public final Integer paddingY;
+  /**
+   * The Master filter dimensions.
+   */
   public final int[] masterFilterDimensions;
   
   /**
+   * Instantiates a new Convolution params.
+   *
+   * @param inputBands             the input bands
+   * @param outputBands            the output bands
+   * @param precision              the precision
+   * @param strideX                the stride x
+   * @param strideY                the stride y
+   * @param paddingX               the padding x
+   * @param paddingY               the padding y
+   * @param masterFilterDimensions the master filter dimensions
    */
   public ConvolutionParams(int inputBands, int outputBands, Precision precision, int strideX, int strideY, Integer paddingX, Integer paddingY, int[] masterFilterDimensions) {
     this.inputBands = inputBands;

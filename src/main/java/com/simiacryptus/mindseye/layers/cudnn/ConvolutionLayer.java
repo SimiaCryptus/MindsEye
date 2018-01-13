@@ -139,6 +139,14 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     return this.as(com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class);
   }
   
+  /**
+   * Transpose coordinates int.
+   *
+   * @param rows  the rows
+   * @param cols  the cols
+   * @param index the index
+   * @return the int
+   */
   public static int transposeCoordinates(int rows, int cols, int index) {
     final int filterBandX = index % rows;
     final int filterBandY = (index - filterBandX) / rows;
@@ -156,10 +164,20 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     return getExplodedNetwork().getNetwork();
   }
   
+  /**
+   * Gets exploded network.
+   *
+   * @return the exploded network
+   */
   public ExplodedConvolutionGrid getExplodedNetwork() {
     return new ExplodedConvolutionGrid(getConvolutionParams(), getBatchBands()).write(kernel);
   }
   
+  /**
+   * Gets convolution params.
+   *
+   * @return the convolution params
+   */
   public ConvolutionParams getConvolutionParams() {
     return new ConvolutionParams(inputBands, outputBands, precision, strideX, strideY, paddingX, paddingY, kernel.getDimensions());
   }
@@ -388,10 +406,21 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   }
   
   
+  /**
+   * Gets batch bands.
+   *
+   * @return the batch bands
+   */
   public int getBatchBands() {
     return batchBands;
   }
   
+  /**
+   * Sets batch bands.
+   *
+   * @param batchBands the batch bands
+   * @return the batch bands
+   */
   public ConvolutionLayer setBatchBands(int batchBands) {
     this.batchBands = batchBands;
     return this;

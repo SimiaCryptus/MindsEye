@@ -246,8 +246,19 @@ public class Tensor implements Serializable {
     return total;
   }
   
-  public boolean isValid() {
-    return null == this.data || this.data.length == Tensor.dim(dimensions);
+  /**
+   * Reorder dimensions tensor.
+   *
+   * @param tensor the tensor
+   * @param fn     the fn
+   * @return the tensor
+   */
+  public static Tensor reorderDimensions(Tensor tensor, UnaryOperator<int[]> fn) {
+    Tensor result = new Tensor(fn.apply(tensor.getDimensions()));
+    tensor.coordStream(false).forEach(c -> {
+      result.set(fn.apply(c.getCoords()), tensor.get(c));
+    });
+    return result;
   }
   
   /**
@@ -409,18 +420,12 @@ public class Tensor implements Serializable {
   }
   
   /**
-   * Reorder dimensions tensor.
+   * Is valid boolean.
    *
-   * @param tensor the tensor
-   * @param fn     the fn
-   * @return the tensor
+   * @return the boolean
    */
-  public static Tensor reorderDimensions(Tensor tensor, UnaryOperator<int[]> fn) {
-    Tensor result = new Tensor(fn.apply(tensor.getDimensions()));
-    tensor.coordStream(true).forEach(c -> {
-      result.set(fn.apply(c.getCoords()), tensor.get(c));
-    });
-    return result;
+  public boolean isValid() {
+    return null == this.data || this.data.length == Tensor.dim(dimensions);
   }
   
   /**
@@ -857,8 +862,17 @@ public class Tensor implements Serializable {
    * @param f the f
    * @return the tensor
    */
-  public Tensor mapCoords(final ToDoubleFunction<Coordinate> f) {
-    return new Tensor(Tensor.getDoubles(coordStream(true).mapToDouble(i -> f.applyAsDouble(i)), dim()), dimensions);
+  public Tensor mapCoords(final ToDoubleFunction<Coordinate> f) {return mapCoords(f, true);}
+  
+  /**
+   * Map coords tensor.
+   *
+   * @param f        the f
+   * @param parallel
+   * @return the tensor
+   */
+  public Tensor mapCoords(final ToDoubleFunction<Coordinate> f, boolean parallel) {
+    return new Tensor(Tensor.getDoubles(coordStream(parallel).mapToDouble(i -> f.applyAsDouble(i)), dim()), dimensions);
   }
   
   /**
@@ -1146,8 +1160,17 @@ public class Tensor implements Serializable {
    * @param f the f
    * @return the tensor
    */
-  public Tensor setByCoord(final ToDoubleFunction<Coordinate> f) {
-    coordStream(true).parallel().forEach(c -> set(c, f.applyAsDouble(c)));
+  public Tensor setByCoord(final ToDoubleFunction<Coordinate> f) {return setByCoord(f, true);}
+  
+  /**
+   * Fill by coord tensor.
+   *
+   * @param f        the f
+   * @param parallel
+   * @return the tensor
+   */
+  public Tensor setByCoord(final ToDoubleFunction<Coordinate> f, boolean parallel) {
+    coordStream(parallel).forEach(c -> set(c, f.applyAsDouble(c)));
     return this;
   }
   
@@ -1474,14 +1497,28 @@ public class Tensor implements Serializable {
     return new Tensor(dims, Tensor.getSkips(dims), getData());
   }
   
+  /**
+   * For each.
+   *
+   * @param fn the fn
+   */
   public void forEach(CoordOperator fn) {forEach(fn, true);}
   
+  /**
+   * For each.
+   *
+   * @param fn       the fn
+   * @param parallel the parallel
+   */
   public void forEach(CoordOperator fn, boolean parallel) {
     coordStream(parallel).forEach(c -> {
       fn.eval(get(c), c);
     });
   }
   
+  /**
+   * The interface Coord operator.
+   */
   public interface CoordOperator {
     /**
      * Eval double.

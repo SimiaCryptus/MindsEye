@@ -39,6 +39,9 @@ public abstract class RescaledSubnetLayerTest extends LayerTestBase // CudnnLaye
    */
   ConvolutionLayer convolutionLayer = new ConvolutionLayer(3, 3, 1, 1);
   
+  /**
+   * Instantiates a new Rescaled subnet layer test.
+   */
   public RescaledSubnetLayerTest() {
   
   }

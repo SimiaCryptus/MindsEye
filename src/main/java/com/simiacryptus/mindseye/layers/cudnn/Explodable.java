@@ -21,6 +21,14 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 
+/**
+ * The interface Explodable.
+ */
 public interface Explodable {
+  /**
+   * Explode nn layer.
+   *
+   * @return the nn layer
+   */
   NNLayer explode();
 }

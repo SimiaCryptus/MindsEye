@@ -62,6 +62,9 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
     };
   }
   
+  /**
+   * The type Double list.
+   */
   public static class Double_List extends BinarySumLayerTest {
     /**
      * Instantiates a new Double.

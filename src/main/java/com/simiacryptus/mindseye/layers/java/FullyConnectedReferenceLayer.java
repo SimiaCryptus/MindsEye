@@ -229,7 +229,7 @@ public class FullyConnectedReferenceLayer extends NNLayer {
    * @return the weights
    */
   public FullyConnectedReferenceLayer setByCoord(final ToDoubleFunction<Coordinate> f) {
-    weights.coordStream(true).parallel().forEach(c -> {
+    weights.coordStream(true).forEach(c -> {
       weights.set(c, f.applyAsDouble(c));
     });
     return this;
@@ -264,8 +264,8 @@ public class FullyConnectedReferenceLayer extends NNLayer {
    * @return the weights
    */
   public FullyConnectedReferenceLayer setByCoord(final ToDoubleBiFunction<Coordinate, Coordinate> f) {
-    new Tensor(inputDims).coordStream(true).parallel().forEach(in -> {
-      new Tensor(outputDims).coordStream(true).parallel().forEach(out -> {
+    new Tensor(inputDims).coordStream(true).forEach(in -> {
+      new Tensor(outputDims).coordStream(true).forEach(out -> {
         weights.set(new int[]{in.getIndex(), out.getIndex()}, f.applyAsDouble(in, out));
       });
     });

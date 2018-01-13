@@ -25,6 +25,8 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,11 +37,32 @@ import java.util.function.Function;
  * The type Exploded network.
  */
 public class ExplodedConvolutionLeg {
+  private static final Logger log = LoggerFactory.getLogger(ExplodedConvolutionLeg.class);
+  
+  /**
+   * The Convolution params.
+   */
   public final ConvolutionParams convolutionParams;
+  /**
+   * The Sub layers.
+   */
   public final List<SimpleConvolutionLayer> subLayers;
+  /**
+   * The From band.
+   */
   public final int fromBand;
+  /**
+   * The To band.
+   */
   public final int toBand;
   
+  /**
+   * Instantiates a new Exploded convolution leg.
+   *
+   * @param convolutionParams the convolution params
+   * @param fromBand          the from band
+   * @param toBand            the to band
+   */
   public ExplodedConvolutionLeg(ConvolutionParams convolutionParams, int fromBand, int toBand) {
     this.fromBand = fromBand;
     this.toBand = toBand;
@@ -58,12 +81,18 @@ public class ExplodedConvolutionLeg {
   }
   
   
-  public ExplodedConvolutionLeg write(Tensor kernel) {
+  /**
+   * Write exploded convolution leg.
+   *
+   * @param filter the kernel
+   * @return the exploded convolution leg
+   */
+  public ExplodedConvolutionLeg write(Tensor filter) {
     int inputBands = getInputBands();
     final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
     int outputBands = this.convolutionParams.outputBands;
     filterDimensions[2] = inputBands * outputBands;
-    assert Arrays.equals(kernel.getDimensions(), filterDimensions) : Arrays.toString(kernel.getDimensions()) + " != " + Arrays.toString(filterDimensions);
+    assert Arrays.equals(filter.getDimensions(), filterDimensions) : Arrays.toString(filter.getDimensions()) + " != " + Arrays.toString(filterDimensions);
     final int inputBandsSq = inputBands * inputBands;
     for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
       final int filterBandOffset = layerNumber * inputBandsSq;
@@ -71,16 +100,22 @@ public class ExplodedConvolutionLeg {
         int[] coords = c.getCoords();
         int filterBand = getFilterBand(filterBandOffset, coords[2]);
         if (filterBand < filterDimensions[2]) {
-          return kernel.get(coords[0], coords[1], filterBand);
+          return filter.get(coords[0], coords[1], filterBand);
         }
         else {
           return 0;
         }
-      }));
+      }, false));
     }
     return this;
   }
   
+  /**
+   * Read tensor.
+   *
+   * @param extractor the extractor
+   * @return the tensor
+   */
   public Tensor read(Function<SimpleConvolutionLayer, Tensor> extractor) {
     int inputBands = getInputBands();
     final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
@@ -103,16 +138,36 @@ public class ExplodedConvolutionLeg {
     return resultDelta;
   }
   
-  public int getFilterBand(int filterBandOffset, int filterBand) {
-    filterBand = filterBandOffset + filterBand;
+  /**
+   * Gets filter band.
+   *
+   * @param filterBandOffset the filter band offset
+   * @param cellFilterBand   the filter band
+   * @return the filter band
+   */
+  public int getFilterBand(int filterBandOffset, int cellFilterBand) {
+    int filterBand = filterBandOffset + cellFilterBand;
     filterBand = ConvolutionLayer.transposeCoordinates(getInputBands(), convolutionParams.outputBands, filterBand);
+    //log.info(String.format("%s.getFilterBand(%d,%d) = %d", this, filterBandOffset, cellFilterBand, filterBand));
     return filterBand;
   }
   
+  /**
+   * Gets input bands.
+   *
+   * @return the input bands
+   */
   public int getInputBands() {
     return this.toBand - this.fromBand;
   }
   
+  /**
+   * Read tensor.
+   *
+   * @param deltaSet the delta set
+   * @param remove   the remove
+   * @return the tensor
+   */
   public Tensor read(DeltaSet<NNLayer> deltaSet, boolean remove) {
     return read((sublayer) -> {
       final Delta<NNLayer> subnetDelta = remove ? deltaSet.getMap().remove(sublayer) : deltaSet.getMap().get(sublayer);
@@ -121,12 +176,23 @@ public class ExplodedConvolutionLeg {
     });
   }
   
+  /**
+   * Read tensor.
+   *
+   * @return the tensor
+   */
   public Tensor read() {
     return read((sublayer) -> {
       return sublayer.kernel;
     });
   }
   
+  /**
+   * Add dag node.
+   *
+   * @param input the input
+   * @return the dag node
+   */
   public DAGNode add(final DAGNode input) {
     DAGNetwork network = input.getNetwork();
     DAGNode head = input;
@@ -149,5 +215,13 @@ public class ExplodedConvolutionLeg {
       head = network.add(new ImgZeroPaddingLayer(x, y), head);
     }
     return head;
+  }
+  
+  @Override
+  public String toString() {
+    return "ExplodedConvolutionLeg{" +
+      "fromBand=" + fromBand +
+      ", toBand=" + toBand +
+      '}';
   }
 }

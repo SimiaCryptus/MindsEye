@@ -504,7 +504,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
         CuDNN.cudaFreeHost(ptr);
       }
     };
-    
+  
     /**
      * Alloc.
      *
@@ -512,7 +512,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
      * @param pointer the pointer
      */
     abstract void alloc(long size, Pointer pointer);
-    
+  
     /**
      * Free.
      *

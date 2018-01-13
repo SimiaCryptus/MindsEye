@@ -61,6 +61,9 @@ public class MnistTests {
     });
   };
   
+  /**
+   * The constant fwd_conv_1_n.
+   */
   public static FwdNetworkFactory fwd_conv_1_n = (log, features) -> {
     log.p("The image-to-vector network is a single layer convolutional:");
     return log.code(() -> {
@@ -149,7 +152,6 @@ public class MnistTests {
       return network;
     });
   };
-  
   
   
   /**

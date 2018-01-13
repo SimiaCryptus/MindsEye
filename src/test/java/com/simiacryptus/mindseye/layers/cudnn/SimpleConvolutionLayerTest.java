@@ -47,6 +47,12 @@ public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
    */
   SimpleConvolutionLayer layer;
   
+  @Override
+  public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
+    return null;
+    //return super.getTrainingTester();
+  }
+  
   
   /**
    * Instantiates a new Simple convolution layer run.
@@ -203,7 +209,7 @@ public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Bug.
+   * Demonstration of a suspected CuDNN bug when using 0 padding with the GPU convolution operation.
    */
   public static class Bug extends Bug_Control {
     /**
