@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.lang;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.simiacryptus.mindseye.layers.cudnn.lang.GpuController;
+import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
 
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -306,7 +306,7 @@ public abstract class RecycleBin<T> {
     } catch (final java.lang.OutOfMemoryError e) {
       try {
         clear();
-        GpuController.cleanMemory();
+        CuDNN.cleanMemory();
         return create2(length);
       } catch (final java.lang.OutOfMemoryError e2) {
         throw new OutOfMemoryError("Could not allocate " + length + " bytes", e2);

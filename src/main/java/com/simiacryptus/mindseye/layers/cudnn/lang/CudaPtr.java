@@ -160,7 +160,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
       } catch (final Exception e) {
         try {
           final long startMemory = metrics.usedMemory.get();
-          GpuController.cleanMemory();
+          CuDNN.cleanMemory();
           final long freedMemory = startMemory - metrics.usedMemory.get();
           pointer = new Pointer();
           type.alloc(size, pointer);

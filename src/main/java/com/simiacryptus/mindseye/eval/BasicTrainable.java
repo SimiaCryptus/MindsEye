@@ -20,8 +20,8 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.lang.CudaPtr;
-import com.simiacryptus.mindseye.layers.cudnn.lang.GpuController;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.lang.TimedResult;
@@ -210,7 +210,7 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
       assert !data.isEmpty();
   
       final TimedResult<PointSample> timedResult = TimedResult.time(() -> eval(data, monitor));
-      //          log.info(String.format("Evaluated to %s delta arrays", DeltaSet<NNLayer>.run.size()));
+      //          log.info(String.format("Evaluated to %s delta arrays", DeltaSet<NNLayer>.apply.size()));
       if (null != monitor && verbosity() > 1) {
         monitor.log(String.format("Evaluated %s items in %.4fs (%s/%s)", data.size(), timedResult.timeNanos / 1e9, timedResult.result.getMean(), timedResult.result.delta.getMagnitude()));
       }
@@ -219,18 +219,18 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
       // Recommended JVM flags: -XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC
       if (gcEachIteration && TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - lastGc) > gcPeriod) {
         lastGc = System.currentTimeMillis();
-        GpuController.cleanMemory();
+        CuDNN.cleanMemory();
       }
       return timedResult.result;
     } catch (final Exception e) {
       RecycleBin.DOUBLES.printNetProfiling(System.err);
       if (retries > 0) {
         lastGc = System.currentTimeMillis();
-        GpuController.reset();
+        CuDNN.reset();
         CudaPtr.METRICS.invalidateAll();
         if (gcEachIteration && TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - lastGc) > gcPeriod) {
           lastGc = System.currentTimeMillis();
-          GpuController.cleanMemory();
+          CuDNN.cleanMemory();
         }
         return measure(retries - 1, monitor);
       }

@@ -96,7 +96,7 @@ public class RescaledSubnetLayer extends NNLayer implements LayerPrecision<Resca
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    if (0 == CuDNN.gpuContexts.size()) return getCompatibilityLayer().eval(inObj);
+    if (CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
     
     log.warn("Not Implemented: " + getClass().getCanonicalName());
     return getCompatibilityLayer().eval(inObj);

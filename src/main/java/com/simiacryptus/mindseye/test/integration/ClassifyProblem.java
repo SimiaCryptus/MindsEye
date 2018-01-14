@@ -23,7 +23,7 @@ import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.lang.GpuController;
+import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
@@ -48,7 +48,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * The type Mnist run base.
+ * The type Mnist apply base.
  */
 public class ClassifyProblem implements Problem {
   
@@ -145,7 +145,7 @@ public class ClassifyProblem implements Problem {
    * @return the int [ ]
    */
   public int[] predict(final NNLayer network, final LabeledObject<Tensor> labeledObject) {
-    final double[] predictionSignal = GpuController.call(ctx -> network.eval(labeledObject.data).getData().get(0).getData());
+    final double[] predictionSignal = CuDNN.run(ctx -> network.eval(labeledObject.data).getData().get(0).getData());
     return IntStream.range(0, categories).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
   }
   
@@ -195,7 +195,7 @@ public class ClassifyProblem implements Problem {
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
   
     log.h3("Validation");
-    log.p("If we run our model against the entire validation dataset, we get this accuracy:");
+    log.p("If we apply our model against the entire validation dataset, we get this accuracy:");
     log.code(() -> {
       return data.validationData().mapToDouble(labeledObject ->
                                                  predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
@@ -208,7 +208,7 @@ public class ClassifyProblem implements Problem {
         final TableOutput table = new TableOutput();
         Lists.partition(data.validationData().collect(Collectors.toList()), 100).stream().flatMap(batch -> {
           TensorArray batchIn = new TensorArray(batch.stream().map(x -> x.data).toArray(i -> new Tensor[i]));
-          TensorList batchOut = GpuController.call(ctx -> network.eval(new NNConstant(batchIn))).getData();
+          TensorList batchOut = CuDNN.run(ctx -> network.eval(new NNConstant(batchIn))).getData();
           return IntStream.range(0, batchOut.length())
                           .mapToObj(i -> toRow(log, batch.get(i), batchOut.get(i).getData()));
         }).filter(x -> null != x).limit(10).forEach(table::putRow);

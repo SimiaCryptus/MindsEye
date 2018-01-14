@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.network;
 import com.simiacryptus.mindseye.lang.NNResult;
 
 import java.util.UUID;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * A base class for a network node providing cached lazy evaluation; It gaurantees a node is only evaluated once, and
@@ -63,7 +65,26 @@ abstract class LazyResult implements DAGNode {
   
   @Override
   public synchronized CountingNNResult get(final GraphEvaluationContext context) {
-    return context.cache.computeIfAbsent(id, id -> new CountingNNResult(eval(context))).increment();
+    if (!context.calculated.containsKey(id)) {
+      boolean run = false;
+      BlockingDeque<CountingNNResult> deque = new LinkedBlockingDeque<>();
+      synchronized (context) {
+        if (!context.calculated.containsKey(id)) {
+          run = true;
+          context.calculated.put(id, () -> {
+            try {
+              CountingNNResult take = deque.take();
+              deque.add(take);
+              return take;
+            } catch (InterruptedException e) {
+              throw new RuntimeException(e);
+            }
+          });
+        }
+      }
+      if (run) deque.add(new CountingNNResult(eval(context)).increment());
+    }
+    return context.calculated.get(id).get().increment();
   }
   
   @Override

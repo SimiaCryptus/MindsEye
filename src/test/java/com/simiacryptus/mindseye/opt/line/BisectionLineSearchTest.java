@@ -34,7 +34,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Bisection line search run.
+ * The type Bisection line search apply.
  */
 public class BisectionLineSearchTest extends MnistTestBase {
   

@@ -93,8 +93,8 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
     assert getTo() > 0;
     assert 1 == inObj.length;
     assert 3 == inObj[0].getData().getDimensions().length;
-    if (0 == CuDNN.gpuContexts.size()) return getCompatibilityLayer().eval(inObj);
-    return CuDNN.gpuContexts.run(nncontext -> {
+    if (CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    return CuDNN.run(nncontext -> {
       final TensorList inputData = inObj[0].getData();
       final int[] inputDimensions = inputData.getDimensions();
       final int length = inputData.length();
@@ -134,7 +134,7 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
       
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
-          CuDNN.gpuContexts.apply(nncontext -> {
+          CuDNN.apply(nncontext -> {
             if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
               throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
             }

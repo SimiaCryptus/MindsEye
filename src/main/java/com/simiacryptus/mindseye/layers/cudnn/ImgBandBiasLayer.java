@@ -124,8 +124,8 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    if (0 == CuDNN.gpuContexts.size()) return getCompatibilityLayer().eval(inObj);
-    return CuDNN.gpuContexts.run(nncontext -> {
+    if (CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    return CuDNN.run(nncontext -> {
       if (nncontext.getDeviceNumber() < 0) return getCompatibilityLayer().eval(inObj);
       nncontext.initThread();
       final NNResult input = inObj[0];
@@ -165,7 +165,7 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
         
           @Override
           public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
-            CuDNN.gpuContexts.apply(nncontext -> {
+            CuDNN.apply(nncontext -> {
               nncontext.initThread();
               assert error.length() == batch.length();
               //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);

@@ -58,7 +58,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
- * The type Image encoding pca run.
+ * The type Image encoding pca apply.
  */
 public class ImageDecompositionLab {
   

@@ -33,7 +33,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Momentum run.
+ * The type Momentum apply.
  */
 public class MomentumTest extends MnistTestBase {
   

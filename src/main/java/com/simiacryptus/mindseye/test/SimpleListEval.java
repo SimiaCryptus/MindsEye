@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.lang.GpuController;
+import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
 
 import java.util.Arrays;
 import java.util.concurrent.Callable;
@@ -90,7 +90,7 @@ public class SimpleListEval implements Callable<SimpleListEval> {
         }
       };
     }).toArray(i -> new NNResult[i]);
-    output = GpuController.call(cudaExeCtx -> {
+    output = CuDNN.run(cudaExeCtx -> {
       final NNResult eval = layer.eval(inputR);
       eval.accumulate(new DeltaSet<NNLayer>(), getFeedback(eval.getData()));
       return eval;

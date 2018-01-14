@@ -79,7 +79,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   }
   
   /**
-   * Autoencoder run.
+   * Autoencoder apply.
    *
    * @throws IOException the io exception
    */

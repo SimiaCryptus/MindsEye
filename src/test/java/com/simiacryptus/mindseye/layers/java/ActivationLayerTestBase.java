@@ -37,14 +37,14 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 /**
- * The type Activation layer run base.
+ * The type Activation layer apply base.
  */
 public abstract class ActivationLayerTestBase extends LayerTestBase {
   
   private final NNLayer layer;
   
   /**
-   * Instantiates a new Activation layer run base.
+   * Instantiates a new Activation layer apply base.
    *
    * @param layer the layer
    */

@@ -19,9 +19,10 @@
 
 package com.simiacryptus.mindseye.network;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * This class provides the index for re-using the output of any given node during a single network evaluation, such that
@@ -32,21 +33,8 @@ class GraphEvaluationContext {
   /**
    * The Cache.
    */
-  final Map<UUID, CountingNNResult> cache = new ConcurrentHashMap<>();
-
-//  @Override
-//  protected void free() {
-//    cache.values().forEach(r -> {
-//      try {
-//        r.free();
-//      } catch (final Throwable e) {
-//        throw new RuntimeException(e);
-//      }
-//    });
-//    try {
-//      super.free();
-//    } catch (final Throwable e) {
-//      throw new RuntimeException(e);
-//    }
-//  }
+  final Map<UUID, CountingNNResult> inputs = new HashMap<>();
+  
+  final Map<UUID, Supplier<CountingNNResult>> calculated = new HashMap<>();
+  
 }

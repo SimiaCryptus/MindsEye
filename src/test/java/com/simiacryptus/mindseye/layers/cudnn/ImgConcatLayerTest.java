@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.cudnn.lang.Precision;
 import java.util.Random;
 
 /**
- * The type Img concat layer run.
+ * The type Img concat layer apply.
  */
 public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
   
@@ -35,7 +35,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
   final Precision precision;
   
   /**
-   * Instantiates a new Img concat layer run.
+   * Instantiates a new Img concat layer apply.
    *
    * @param precision the precision
    */
@@ -68,7 +68,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
   public static class BandLimitTest extends ImgConcatLayerTest {
   
     /**
-     * Instantiates a new Band limit run.
+     * Instantiates a new Band limit apply.
      */
     public BandLimitTest() {
       super(Precision.Double);
@@ -93,7 +93,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * Basic 64-bit run
+   * Basic 64-bit apply
    */
   public static class Double extends ImgConcatLayerTest {
     /**
@@ -105,7 +105,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * Basic 32-bit run
+   * Basic 32-bit apply
    */
   public static class Float extends ImgConcatLayerTest {
     /**

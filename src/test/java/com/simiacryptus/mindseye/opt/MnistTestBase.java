@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.opt;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.cudnn.lang.GpuController;
+import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer;
@@ -49,7 +49,7 @@ import java.util.*;
 import java.util.stream.IntStream;
 
 /**
- * The type Mnist run base.
+ * The type Mnist apply base.
  */
 public abstract class MnistTestBase extends NotebookReportBase {
   private static final Logger log = LoggerFactory.getLogger(MnistTestBase.class);
@@ -166,7 +166,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
    * @return the int [ ]
    */
   public int[] predict(final NNLayer network, final LabeledObject<Tensor> labeledObject) {
-    final double[] predictionSignal = GpuController.call(ctx -> network.eval(labeledObject.data).getData().get(0).getData());
+    final double[] predictionSignal = CuDNN.run(ctx -> network.eval(labeledObject.data).getData().get(0).getData());
     return IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
   }
   
@@ -263,7 +263,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
    */
   public void validate(final NotebookOutput log, final NNLayer network) {
     log.h1("Validation");
-    log.p("If we run our model against the entire validation dataset, we get this accuracy:");
+    log.p("If we apply our model against the entire validation dataset, we get this accuracy:");
     log.code(() -> {
       return MNIST.validationDataStream().mapToDouble(labeledObject ->
                                                         predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
@@ -277,7 +277,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
         MNIST.validationDataStream().map(labeledObject -> {
           try {
             final int actualCategory = parse(labeledObject.label);
-            final double[] predictionSignal = GpuController.call(ctx -> network.eval(labeledObject.data).getData().get(0).getData());
+            final double[] predictionSignal = CuDNN.run(ctx -> network.eval(labeledObject.data).getData().get(0).getData());
             final int[] predictionList = IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
             if (predictionList[0] == actualCategory) return null; // We will only examine mispredicted rows
             final LinkedHashMap<String, Object> row = new LinkedHashMap<>();

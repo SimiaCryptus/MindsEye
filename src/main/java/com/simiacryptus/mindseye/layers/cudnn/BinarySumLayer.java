@@ -100,8 +100,8 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    if (0 == CuDNN.gpuContexts.size()) return getCompatibilityLayer().eval(inObj);
-    return CuDNN.gpuContexts.run(nncontext -> {
+    if (CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    return CuDNN.run(nncontext -> {
       nncontext.initThread();
       if (inObj.length == 1) {
         if (rightFactor != 1) throw new IllegalStateException();
@@ -149,7 +149,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
           TestUtil.runAll(() -> {
-            CuDNN.gpuContexts.apply(nncontext -> {
+            CuDNN.apply(nncontext -> {
               nncontext.initThread();
               if (inObj[0].isAlive()) {
                 final CudaPtr lPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, delta);
@@ -162,7 +162,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
               }
             });
           }, () -> {
-            CuDNN.gpuContexts.apply(nncontext -> {
+            CuDNN.apply(nncontext -> {
               nncontext.initThread();
               if (inObj[1].isAlive()) {
                 final CudaPtr lPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, delta);

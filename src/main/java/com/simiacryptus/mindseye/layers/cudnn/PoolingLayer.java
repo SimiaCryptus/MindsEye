@@ -95,8 +95,8 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    if (0 == CuDNN.gpuContexts.size()) return getCompatibilityLayer().eval(inObj);
-    return CuDNN.gpuContexts.run(nncontext -> {
+    if (CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    return CuDNN.run(nncontext -> {
       final int poolDims = 2;
       final int windowSize[] = {windowX, windowY};
       final int padding[] = {paddingX, paddingY};
@@ -136,7 +136,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
         
           @Override
           public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
-            CuDNN.gpuContexts.apply(nncontext -> {
+            CuDNN.apply(nncontext -> {
               nncontext.initThread();
               assert error.length() == batch.length();
               final CudaPtr errorPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, error);

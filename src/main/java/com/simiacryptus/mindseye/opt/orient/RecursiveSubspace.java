@@ -39,7 +39,7 @@ import java.util.stream.IntStream;
 
 /**
  * An recursive optimization strategy which projects the current space into a reduced-dimensional subspace for a
- * sub-optimization batch run.
+ * sub-optimization batch apply.
  */
 public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCursor> {
   

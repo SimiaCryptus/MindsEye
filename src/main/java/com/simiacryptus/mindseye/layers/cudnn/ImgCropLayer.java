@@ -94,8 +94,8 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    if (0 == CuDNN.gpuContexts.size()) return getCompatibilityLayer().eval(inObj);
-    return CuDNN.gpuContexts.run(nncontext -> {
+    if (CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    return CuDNN.run(nncontext -> {
       if (nncontext.getDeviceNumber() < 0)
         return getCompatibilityLayer().eval(inObj);
       nncontext.initThread();
@@ -121,7 +121,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
       
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
-          CuDNN.gpuContexts.apply(nncontext -> {
+          CuDNN.apply(nncontext -> {
             if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
               throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
             }

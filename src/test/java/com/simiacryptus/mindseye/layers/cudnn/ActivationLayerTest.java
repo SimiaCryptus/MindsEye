@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The type Activation layer run.
+ * The type Activation layer apply.
  */
 public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   
@@ -46,7 +46,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   private final Precision precision;
   
   /**
-   * Instantiates a new Activation layer run.
+   * Instantiates a new Activation layer apply.
    *
    * @param mode      the mode
    * @param precision the precision

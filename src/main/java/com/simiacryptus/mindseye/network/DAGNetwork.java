@@ -219,7 +219,11 @@ public abstract class DAGNetwork extends NNLayer {
     assert inputs.length == inputHandles.size() : inputs.length + " != " + inputHandles.size();
     final GraphEvaluationContext context = new GraphEvaluationContext();
     for (int i = 0; i < inputs.length; i++) {
-      context.cache.put(inputHandles.get(i), new CountingNNResult(inputs[i]));
+      UUID key = inputHandles.get(i);
+      CountingNNResult value = new CountingNNResult(inputs[i]);
+      synchronized (context) {
+        context.inputs.put(key, value);
+      }
     }
     return context;
   }

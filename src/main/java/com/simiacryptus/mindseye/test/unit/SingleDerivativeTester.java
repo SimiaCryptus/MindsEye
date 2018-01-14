@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.lang.GpuController;
+import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
@@ -107,18 +107,17 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
   
       };
       final Tensor[] data = {new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0)};
-      GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
-                                        (d, exe) -> {
-                                          final NNResult eval = component.eval(copyInput);
-                                          final Tensor tensor = eval.getData().get(0);
-                                          final DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
-                                          eval.accumulate(xxx, new TensorArray(data));
-                                          final Delta<NNLayer> inputDelta = xxx.getMap().get(inputKey);
-                                          if (null != inputDelta) {
-                                            result.accumulate(new Tensor(inputDelta.getDelta(), result.getDimensions()));
-                                          }
-                                          return tensor;
-                                        }, (a, b) -> a.add(b));
+      CuDNN.run(exe -> {
+        final NNResult eval = component.eval(copyInput);
+        final Tensor tensor = eval.getData().get(0);
+        final DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
+        eval.accumulate(xxx, new TensorArray(data));
+        final Delta<NNLayer> inputDelta = xxx.getMap().get(inputKey);
+        if (null != inputDelta) {
+          result.accumulate(new Tensor(inputDelta.getDelta(), result.getDimensions()));
+        }
+        return tensor;
+      });
     }
     return result;
   }
@@ -132,7 +131,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
       final int j_ = j;
       final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
       final Tensor[] data = {new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0)};
-      GpuController.call(exe -> {
+      CuDNN.run(exe -> {
         final NNResult eval = component.eval(NNConstant.batchResultArray(new Tensor[][]{inputPrototype}));
         final Tensor tensor = eval.getData().get(0);
         eval.accumulate(buffer, new TensorArray(data));
@@ -149,7 +148,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
   }
   
   /**
-   * Is run feedback boolean.
+   * Is apply feedback boolean.
    *
    * @return the boolean
    */
@@ -158,10 +157,10 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
   }
   
   /**
-   * Sets run feedback.
+   * Sets apply feedback.
    *
-   * @param testFeedback the run feedback
-   * @return the run feedback
+   * @param testFeedback the apply feedback
+   * @return the apply feedback
    */
   public SingleDerivativeTester setTestFeedback(final boolean testFeedback) {
     this.testFeedback = testFeedback;
@@ -169,7 +168,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
   }
   
   /**
-   * Is run learning boolean.
+   * Is apply learning boolean.
    *
    * @return the boolean
    */
@@ -178,10 +177,10 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
   }
   
   /**
-   * Sets run learning.
+   * Sets apply learning.
    *
-   * @param testLearning the run learning
-   * @return the run learning
+   * @param testLearning the apply learning
+   * @return the apply learning
    */
   public SingleDerivativeTester setTestLearning(final boolean testLearning) {
     this.testLearning = testLearning;
@@ -230,7 +229,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
   
   private Tensor measureFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor measuredGradient = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
-    final Tensor baseOutput = GpuController.call(exe -> {
+    final Tensor baseOutput = CuDNN.run(exe -> {
       return component.eval(NNConstant.batchResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
     });
     outputPrototype.set(baseOutput);
@@ -239,7 +238,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
       inputProbe.add(i, probeSize * 1);
       final Tensor[] copyInput = Arrays.copyOf(inputPrototype, inputPrototype.length);
       copyInput[inputIndex] = inputProbe;
-      final Tensor evalProbe = GpuController.call(exe -> {
+      final Tensor evalProbe = CuDNN.run(exe -> {
         return component.eval(NNConstant.batchResultArray(new Tensor[][]{copyInput})).getData().get(0);
       });
       final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
@@ -253,16 +252,16 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
   private Tensor measureLearningGradient(final NNLayer component, final int layerNum, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final int stateLen = component.state().get(layerNum).length;
     final Tensor gradient = new Tensor(stateLen, outputPrototype.dim());
-    
-    final Tensor baseOutput = GpuController.call(exe -> {
+  
+    final Tensor baseOutput = CuDNN.run(exe -> {
       return component.eval(NNConstant.batchResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
     });
     
     for (int i = 0; i < stateLen; i++) {
       final NNLayer copy = KryoUtil.kryo().copy(component);
       copy.state().get(layerNum)[i] += probeSize;
-      
-      final Tensor evalProbe = GpuController.call(exe -> {
+  
+      final Tensor evalProbe = CuDNN.run(exe -> {
         return copy.eval(NNConstant.batchResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
       });
       
@@ -447,7 +446,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
   public void testFrozen(final NNLayer component, final Tensor[] inputPrototype) {
     final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     final NNLayer frozen = component.copy().freeze();
-    GpuController.run(exe -> {
+    CuDNN.apply(exe -> {
       final NNResult eval = frozen.eval(Arrays.stream(inputPrototype).map((final Tensor x) -> new NNResult(x) {
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
@@ -485,7 +484,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
   public void testUnFrozen(final NNLayer component, final Tensor[] inputPrototype) {
     final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     final NNLayer frozen = component.copy().setFrozen(false);
-    GpuController.run(exe -> {
+    CuDNN.apply(exe -> {
       final NNResult eval = frozen.eval(Arrays.stream(inputPrototype).map((final Tensor x) -> new NNResult(x) {
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {

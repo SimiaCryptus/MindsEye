@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.lang.GpuController;
+import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.TestUtil;
@@ -100,7 +100,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
   }
   
   /**
-   * Is run evaluation boolean.
+   * Is apply evaluation boolean.
    *
    * @return the boolean
    */
@@ -109,10 +109,10 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
   }
   
   /**
-   * Sets run evaluation.
+   * Sets apply evaluation.
    *
-   * @param testEvaluation the run evaluation
-   * @return the run evaluation
+   * @param testEvaluation the apply evaluation
+   * @return the apply evaluation
    */
   public PerformanceTester setTestEvaluation(final boolean testEvaluation) {
     this.testEvaluation = testEvaluation;
@@ -120,7 +120,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
   }
   
   /**
-   * Is run learning boolean.
+   * Is apply learning boolean.
    *
    * @return the boolean
    */
@@ -129,10 +129,10 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
   }
   
   /**
-   * Sets run learning.
+   * Sets apply learning.
    *
-   * @param testLearning the run learning
-   * @return the run learning
+   * @param testLearning the apply learning
+   * @return the apply learning
    */
   public ComponentTest<ToleranceStatistics> setTestLearning(final boolean testLearning) {
     this.testLearning = testLearning;
@@ -200,7 +200,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
    * @return the double statistics
    */
   protected Tuple2<Double, Double> testPerformance(final NNLayer component, final Tensor... inputPrototype) {
-    return GpuController.call(exe -> {
+    return CuDNN.run(exe -> {
       final Tensor[][] data = IntStream.range(0, batches).mapToObj(x -> x).flatMap(x -> Stream.<Tensor[]>of(inputPrototype)).toArray(i -> new Tensor[i][]);
       TimedResult<NNResult> timedEval = TimedResult.time(() -> {
         return component.eval(NNConstant.batchResultArray(data));

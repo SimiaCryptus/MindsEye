@@ -24,7 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * The type Layer run base.
+ * The type Layer apply base.
  */
 public abstract class LayerTestBase extends StandardLayerTests {
   
@@ -41,7 +41,7 @@ public abstract class LayerTestBase extends StandardLayerTests {
 
 //  @Test(timeout = 15 * 60 * 1000)
 //  public void testMonteCarlo() throws Throwable {
-//    run(this::monteCarlo);
+//    apply(this::monteCarlo);
 //  }
   
   /**

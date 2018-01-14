@@ -23,7 +23,6 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.lang.CudaPtr;
-import com.simiacryptus.mindseye.layers.cudnn.lang.GpuController;
 import com.simiacryptus.mindseye.layers.cudnn.lang.Precision;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -33,12 +32,12 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 
 /**
- * The type Cudnn layer run base.
+ * The type Cudnn layer apply base.
  */
 public class CudnnTest extends NotebookReportBase {
   
   /**
-   * Instantiates a new Cudnn layer run base.
+   * Instantiates a new Cudnn layer apply base.
    */
   public CudnnTest() {
   }
@@ -56,7 +55,7 @@ public class CudnnTest extends NotebookReportBase {
     PrintStream apiLog = new PrintStream(log.file(logName));
     CuDNN.addLog(apiLog);
     log.p(log.file((String) null, logName, "GPU Log"));
-    CuDNN.gpuContexts.getAll().forEach(ctx -> {
+    CuDNN.contexts.getAll().forEach(ctx -> {
       log.h1("Device " + ctx.getDeviceNumber());
       try {
         log.code(() -> {
@@ -67,7 +66,7 @@ public class CudnnTest extends NotebookReportBase {
           }
         });
       } catch (Exception e) {
-        GpuController.reset();
+        CuDNN.reset();
       }
     });
   }

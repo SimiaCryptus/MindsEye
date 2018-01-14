@@ -191,7 +191,7 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     assert 1 == inObj.length;
     assert 3 == inObj[0].getData().getDimensions().length;
     assert inputBands == inObj[0].getData().getDimensions()[2];
-    if (0 == CuDNN.gpuContexts.size()) return getCompatibilityLayer().eval(inObj);
+    if (CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
     ExplodedConvolutionGrid grid = getExplodedNetwork();
     PipelineNetwork network = grid.getNetwork();
     if (isFrozen()) {

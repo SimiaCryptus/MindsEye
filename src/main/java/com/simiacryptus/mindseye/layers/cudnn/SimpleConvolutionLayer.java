@@ -151,8 +151,8 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    if (0 == CuDNN.gpuContexts.size()) return getCompatibilityLayer().eval(inObj);
-    return CuDNN.gpuContexts.run(nncontext -> {
+    if (CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    return CuDNN.run(nncontext -> {
       final int deviceNumber = nncontext.getDeviceNumber();
       if (deviceNumber < 0) return getCompatibilityLayer().eval(inObj);
       //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
@@ -214,7 +214,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
         
           @Override
           public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
-            CuDNN.gpuContexts.apply(nncontext -> {
+            CuDNN.apply(nncontext -> {
               if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
               assert null == freedBy : Arrays.toString(freedBy);
               nncontext.initThread();

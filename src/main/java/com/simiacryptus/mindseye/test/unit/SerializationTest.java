@@ -40,7 +40,7 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 /**
- * The type Json run.
+ * The type Json apply.
  */
 public class SerializationTest implements ComponentTest<ToleranceStatistics> {
   private final HashMap<SerialPrecision, NNLayer> models = new HashMap<>();
@@ -77,7 +77,7 @@ public class SerializationTest implements ComponentTest<ToleranceStatistics> {
   @Override
   public ToleranceStatistics test(final NotebookOutput log, final NNLayer layer, final Tensor... inputPrototype) {
     log.h1("Serialization");
-    log.p("This run will demonstrate the layer's JSON serialization, and verify deserialization integrity.");
+    log.p("This apply will demonstrate the layer's JSON serialization, and verify deserialization integrity.");
   
     String prettyPrint = "";
     log.h2("Raw Json");

@@ -77,8 +77,8 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    if (0 == CuDNN.gpuContexts.size()) return getCompatibilityLayer().eval(inObj);
-    return CuDNN.gpuContexts.run(nncontext -> {
+    if (CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    return CuDNN.run(nncontext -> {
       nncontext.initThread();
       if (inObj.length <= 1) {
         throw new IllegalArgumentException("inObj.length=" + inObj.length);
@@ -117,7 +117,7 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
       
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
-          CuDNN.gpuContexts.apply(nncontext -> {
+          CuDNN.apply(nncontext -> {
             nncontext.initThread();
             assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
             for (int index = 0; index < inObj.length; index++) {

@@ -79,8 +79,8 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    if (0 == CuDNN.gpuContexts.size()) return getCompatibilityLayer().eval(inObj);
-    return CuDNN.gpuContexts.run(nncontext -> {
+    if (CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    return CuDNN.run(nncontext -> {
       if (nncontext.getDeviceNumber() < 0) return getCompatibilityLayer().eval(inObj);
       //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
       //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
@@ -148,7 +148,7 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
           assert delta.length() == inObj[0].getData().length();
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
           IntStream.range(0, inObj.length).parallel().forEach(i -> {
-            CuDNN.gpuContexts.apply(nncontext -> {
+            CuDNN.apply(nncontext -> {
               nncontext.initThread();
               final NNResult input = inObj[i];
               assert 3 == input.getData().getDimensions().length;

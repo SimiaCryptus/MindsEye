@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 import java.util.Random;
 
 /**
- * The type BinarySumLayerTest layer run.
+ * The type BinarySumLayerTest layer apply.
  */
 public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
   
@@ -36,7 +36,7 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
   final Precision precision;
   
   /**
-   * Instantiates a new Product layer run.
+   * Instantiates a new Product layer apply.
    *
    * @param precision the precision
    */

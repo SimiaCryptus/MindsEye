@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn.lang;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.simiacryptus.mindseye.lang.RecycleBin;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.lang.StaticResourcePool;
 import jcuda.Pointer;
@@ -34,6 +35,8 @@ import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -41,6 +44,10 @@ import java.util.stream.IntStream;
  * Main library wrapper class around the CuDNN API, providing logging and managed wrappers.
  */
 public class CuDNN {
+  /**
+   * The constant INSTANCE.
+   */
+  public static final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
   protected static final Logger logger = LoggerFactory.getLogger(CuDNN.class);
   
   private static final ThreadLocal<Integer> currentDevice = new ThreadLocal<Integer>() {
@@ -58,7 +65,7 @@ public class CuDNN {
   /**
    * The constant gpuContexts.
    */
-  public static StaticResourcePool<CuDNN> gpuContexts = new StaticResourcePool<>(loadGpuContexts());
+  public static StaticResourcePool<CuDNN> contexts = new StaticResourcePool<>(loadGpuContexts());
   /**
    * The Cudnn handle.
    */
@@ -1256,6 +1263,101 @@ public class CuDNN {
                       return null;
                     }
                   }).filter(x -> x != null).collect(Collectors.toList());
+  }
+  
+  /**
+   * Is oom boolean.
+   *
+   * @param t the t
+   * @return the boolean
+   */
+  public static boolean isOom(final Throwable t) {
+    if (t instanceof OutOfMemoryError) return true;
+    if (t instanceof com.simiacryptus.mindseye.lang.OutOfMemoryError) return true;
+    //if (t instanceof com.simiacryptus.mindseye.layers.cudnn.lang.GpuError) return true;
+    if (null != t.getCause() && t != t.getCause()) return isOom(t.getCause());
+    return false;
+  }
+  
+  /**
+   * Clean memory.
+   */
+  public static void cleanMemory() {
+    singleThreadExecutor.submit(() -> {
+      RecycleBin.DOUBLES.clear();
+      System.gc();
+      System.runFinalization();
+    });
+  }
+  
+  /**
+   * Reset all GPUs and Heap Memory
+   */
+  public static void reset() {
+    synchronized (CuDNN.class) {
+      cleanMemory();
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+      try {
+        IntStream.range(0, CuDNN.deviceCount()).forEach(deviceNumber -> {
+          CudaPtr.getGpuStats(deviceNumber).usedMemory.set(0);
+          setDevice(deviceNumber);
+          cudaDeviceReset();
+        });
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      CudaResource.gpuGeneration.incrementAndGet();
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+    }
+  }
+  
+  /**
+   * Call t.
+   *
+   * @param <T> the type parameter
+   * @param fn  the fn
+   * @return the t
+   */
+  public static <T> T run(final Function<CuDNN, T> fn) {
+    if (contexts.getAll().isEmpty()) {
+      return fn.apply(new CuDNN(-1));
+    }
+    else {
+      return contexts.run(exe -> {
+        try {
+          return fn.apply(exe);
+        } catch (final Exception e) {
+          throw new RuntimeException(e);
+        }
+      });
+    }
+  }
+  
+  /**
+   * Run.
+   *
+   * @param fn the fn
+   */
+  public static void apply(final Consumer<CuDNN> fn) {
+    contexts.apply(exe -> {
+      try {
+        fn.accept(exe);
+      } catch (final Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
+  }
+  
+  public static boolean isEnabled() {
+    return 0 == CuDNN.contexts.size();
   }
   
   /**

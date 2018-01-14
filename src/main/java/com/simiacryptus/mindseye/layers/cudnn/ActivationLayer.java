@@ -102,8 +102,8 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    if (0 == CuDNN.gpuContexts.size()) return getCompatibilityLayer().eval(inObj);
-    return CuDNN.gpuContexts.run((CuDNN nncontext) -> {
+    if (CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    return CuDNN.run((CuDNN nncontext) -> {
       nncontext.initThread();
       //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
       final NNResult input = inObj[0];
@@ -142,7 +142,7 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
         
           @Override
           public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
-            CuDNN.gpuContexts.apply(nncontext -> {
+            CuDNN.apply(nncontext -> {
               //assert (error.length() == batch.length());
               //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
               nncontext.initThread();

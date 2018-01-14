@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
- * The type Layer run base.
+ * The type Layer apply base.
  */
 public abstract class StandardLayerTests extends NotebookReportBase {
   static {
