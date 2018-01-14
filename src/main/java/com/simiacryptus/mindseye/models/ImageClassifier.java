@@ -77,13 +77,11 @@ public abstract class ImageClassifier {
     };
     try {
       return Lists.partition(Arrays.asList(data), batchSize).stream().flatMap(batch -> {
-        return CuDNN.run(ctx -> {
-          List<Tensor> tensorList = network.eval(NNConstant.singleResultArray(new Tensor[][]{
-            batch.stream().map(prefilter).toArray(i -> new Tensor[i])
-          })).getDataAndFree().stream().collect(Collectors.toList());
-          garbageman.execute(CuDNN::cleanMemory);
-          return tensorList;
-        }).stream().map(tensor -> {
+        List<Tensor> tensorList = network.eval(NNConstant.singleResultArray(new Tensor[][]{
+          batch.stream().map(prefilter).toArray(i -> new Tensor[i])
+        })).getDataAndFree().stream().collect(Collectors.toList());
+        garbageman.execute(CuDNN::cleanMemory);
+        return tensorList.stream().map(tensor -> {
           double[] predictionSignal = tensor.getData();
           int[] order = IntStream.range(0, 1000).mapToObj(x -> x)
                                  .sorted(Comparator.comparing(i -> -predictionSignal[i]))

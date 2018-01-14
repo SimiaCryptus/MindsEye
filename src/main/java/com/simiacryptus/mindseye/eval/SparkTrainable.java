@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
@@ -146,7 +145,7 @@ public class SparkTrainable implements Trainable {
   protected DeltaSet<NNLayer> getDelta(final SparkTrainable.ReducableResult reduce) {
     final DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
     final Tensor[] prototype = dataRDD.toJavaRDD().take(1).get(0);
-    final NNResult result = CuDNN.run(exe -> network.eval(NNConstant.batchResultArray(new Tensor[][]{prototype})));
+    final NNResult result = network.eval(NNConstant.batchResultArray(new Tensor[][]{prototype}));
     result.accumulate(xxx, 0);
     reduce.accumulate(xxx);
     return xxx;

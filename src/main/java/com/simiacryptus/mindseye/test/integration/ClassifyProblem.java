@@ -23,7 +23,6 @@ import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
@@ -145,7 +144,7 @@ public class ClassifyProblem implements Problem {
    * @return the int [ ]
    */
   public int[] predict(final NNLayer network, final LabeledObject<Tensor> labeledObject) {
-    final double[] predictionSignal = CuDNN.run(ctx -> network.eval(labeledObject.data).getData().get(0).getData());
+    final double[] predictionSignal = network.eval(labeledObject.data).getData().get(0).getData();
     return IntStream.range(0, categories).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
   }
   
@@ -208,7 +207,7 @@ public class ClassifyProblem implements Problem {
         final TableOutput table = new TableOutput();
         Lists.partition(data.validationData().collect(Collectors.toList()), 100).stream().flatMap(batch -> {
           TensorArray batchIn = new TensorArray(batch.stream().map(x -> x.data).toArray(i -> new Tensor[i]));
-          TensorList batchOut = CuDNN.run(ctx -> network.eval(new NNConstant(batchIn))).getData();
+          TensorList batchOut = network.eval(new NNConstant(batchIn)).getData();
           return IntStream.range(0, batchOut.length())
                           .mapToObj(i -> toRow(log, batch.get(i), batchOut.get(i).getData()));
         }).filter(x -> null != x).limit(10).forEach(table::putRow);

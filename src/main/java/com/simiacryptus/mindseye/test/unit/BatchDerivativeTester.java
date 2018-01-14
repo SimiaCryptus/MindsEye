@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
@@ -97,17 +96,14 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
   
       };
       copyInput.getData().stream().map(s -> s.mapCoords(k -> k.getIndex() == j_ ? 1 : 0)).toArray(i -> new Tensor[i]);
-      CuDNN.run(exe -> {
-        final NNResult eval = component.eval(copyInput);
-        final Tensor tensor = eval.getData().get(0);
-        final DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
-        eval.accumulate(xxx, new TensorArray(eval.getData().stream().map(x -> x.map(v -> 1)).toArray(i -> new Tensor[i])));
-        final Delta<NNLayer> inputDelta = xxx.getMap().get(inputKey);
-        if (null != inputDelta) {
-          result.accumulate(new Tensor(inputDelta.getDelta(), result.getDimensions()));
-        }
-        return tensor;
-      });
+      final NNResult eval = component.eval(copyInput);
+      final Tensor tensor = eval.getData().get(0);
+      final DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
+      eval.accumulate(xxx, new TensorArray(eval.getData().stream().map(x -> x.map(v -> 1)).toArray(i -> new Tensor[i])));
+      final Delta<NNLayer> inputDelta = xxx.getMap().get(inputKey);
+      if (null != inputDelta) {
+        result.accumulate(new Tensor(inputDelta.getDelta(), result.getDimensions()));
+      }
     }
     return result;
   }
@@ -121,12 +117,9 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
       final int j_ = j;
       final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
       final Tensor[] data = {new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0)};
-      CuDNN.run(exe -> {
-        final NNResult eval = component.eval(NNConstant.singleResultArray(new Tensor[][]{inputPrototype}));
-        final Tensor tensor = eval.getData().get(0);
-        eval.accumulate(buffer, new TensorArray(data));
-        return tensor;
-      });
+      final NNResult eval = component.eval(NNConstant.singleResultArray(new Tensor[][]{inputPrototype}));
+      eval.getData().get(0);
+      eval.accumulate(buffer, new TensorArray(data));
       final DoubleBuffer<NNLayer> deltaFlushBuffer = buffer.getMap().values().stream().filter(x -> x.target == stateArray).findFirst().orElse(null);
       if (null != deltaFlushBuffer) {
         for (int i = 0; i < stateLen; i++) {
@@ -219,18 +212,14 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
   
   private Tensor measureFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor measuredGradient = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
-    final Tensor baseOutput = CuDNN.run(exe -> {
-      return component.eval(NNConstant.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
-    });
+    final Tensor baseOutput = component.eval(NNConstant.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
     outputPrototype.set(baseOutput);
     for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
       final Tensor inputProbe = inputPrototype[inputIndex].copy();
       inputProbe.add(i, probeSize * 1);
       final Tensor[] copyInput = Arrays.copyOf(inputPrototype, inputPrototype.length);
       copyInput[inputIndex] = inputProbe;
-      final Tensor evalProbe = CuDNN.run(exe -> {
-        return component.eval(NNConstant.singleResultArray(new Tensor[][]{copyInput})).getData().get(0);
-      });
+      final Tensor evalProbe = component.eval(NNConstant.singleResultArray(new Tensor[][]{copyInput})).getData().get(0);
       final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
       for (int j = 0; j < delta.dim(); j++) {
         measuredGradient.set(new int[]{i, j}, delta.getData()[j]);
@@ -243,17 +232,13 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
     final int stateLen = component.state().get(layerNum).length;
     final Tensor gradient = new Tensor(stateLen, outputPrototype.dim());
   
-    final Tensor baseOutput = CuDNN.run(exe -> {
-      return component.eval(NNConstant.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
-    });
+    final Tensor baseOutput = component.eval(NNConstant.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
     
     for (int i = 0; i < stateLen; i++) {
       final NNLayer copy = KryoUtil.kryo().copy(component);
       copy.state().get(layerNum)[i] += probeSize;
   
-      final Tensor evalProbe = CuDNN.run(exe -> {
-        return copy.eval(NNConstant.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
-      });
+      final Tensor evalProbe = copy.eval(NNConstant.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
       
       final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
       for (int j = 0; j < delta.dim(); j++) {
@@ -439,33 +424,31 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
   public void testFrozen(final NNLayer component, final Tensor[] inputPrototype) {
     final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     final NNLayer frozen = component.copy().freeze();
-    CuDNN.apply(exe -> {
-      final NNResult eval = frozen.eval(new NNResult(new TensorArray(inputPrototype)) {
-        @Override
-        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-          reachedInputFeedback.set(true);
-        }
-  
-        @Override
-        public boolean isAlive() {
-          return true;
-        }
-  
-  
-      });
-      final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
-      eval.accumulate(buffer, eval.getData().copy());
-      final List<Delta<NNLayer>> deltas = component.state().stream().map(doubles -> {
-        return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
-      }).filter(x -> x != null).collect(Collectors.toList());
-      if (!deltas.isEmpty() && !component.state().isEmpty()) {
-        throw new AssertionError("Frozen component listed in delta. Deltas: " + deltas);
+    final NNResult eval = frozen.eval(new NNResult(new TensorArray(inputPrototype)) {
+      @Override
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+        reachedInputFeedback.set(true);
       }
-      final int inElements = Arrays.stream(inputPrototype).mapToInt(x -> x.dim()).sum();
-      if (!reachedInputFeedback.get() && 0 < inElements) {
-        throw new RuntimeException("Frozen component did not pass input backwards");
+    
+      @Override
+      public boolean isAlive() {
+        return true;
       }
+    
+    
     });
+    final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
+    eval.accumulate(buffer, eval.getData().copy());
+    final List<Delta<NNLayer>> deltas = component.state().stream().map(doubles -> {
+      return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
+    }).filter(x -> x != null).collect(Collectors.toList());
+    if (!deltas.isEmpty() && !component.state().isEmpty()) {
+      throw new AssertionError("Frozen component listed in delta. Deltas: " + deltas);
+    }
+    final int inElements = Arrays.stream(inputPrototype).mapToInt(x -> x.dim()).sum();
+    if (!reachedInputFeedback.get() && 0 < inElements) {
+      throw new RuntimeException("Frozen component did not pass input backwards");
+    }
   }
   
   /**
@@ -477,33 +460,31 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
   public void testUnFrozen(final NNLayer component, final Tensor[] inputPrototype) {
     final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     final NNLayer frozen = component.copy().setFrozen(false);
-    CuDNN.apply(exe -> {
-      final NNResult eval = frozen.eval(new NNResult(new TensorArray(inputPrototype)) {
-        @Override
-        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-          reachedInputFeedback.set(true);
-        }
-  
-        @Override
-        public boolean isAlive() {
-          return true;
-        }
-  
-  
-      });
-      final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
-      eval.accumulate(buffer, eval.getData());
-      final List<double[]> stateList = frozen.state();
-      final List<Delta<NNLayer>> deltas = stateList.stream().map(doubles -> {
-        return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
-      }).filter(x -> x != null).collect(Collectors.toList());
-      if (deltas.isEmpty() && !stateList.isEmpty()) {
-        throw new AssertionError("Nonfrozen component not listed in delta. Deltas: " + deltas);
+    final NNResult eval = frozen.eval(new NNResult(new TensorArray(inputPrototype)) {
+      @Override
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+        reachedInputFeedback.set(true);
       }
-      if (!reachedInputFeedback.get()) {
-        throw new RuntimeException("Nonfrozen component did not pass input backwards");
+    
+      @Override
+      public boolean isAlive() {
+        return true;
       }
+    
+    
     });
+    final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
+    eval.accumulate(buffer, eval.getData());
+    final List<double[]> stateList = frozen.state();
+    final List<Delta<NNLayer>> deltas = stateList.stream().map(doubles -> {
+      return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
+    }).filter(x -> x != null).collect(Collectors.toList());
+    if (deltas.isEmpty() && !stateList.isEmpty()) {
+      throw new AssertionError("Nonfrozen component not listed in delta. Deltas: " + deltas);
+    }
+    if (!reachedInputFeedback.get()) {
+      throw new RuntimeException("Nonfrozen component did not pass input backwards");
+    }
   }
   
   private class IOPair {

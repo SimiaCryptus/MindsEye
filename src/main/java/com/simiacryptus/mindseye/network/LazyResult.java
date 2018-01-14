@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.NNResult;
 import java.util.UUID;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.function.Supplier;
 
 /**
  * A base class for a network node providing cached lazy evaluation; It gaurantees a node is only evaluated once, and
@@ -71,7 +72,7 @@ abstract class LazyResult implements DAGNode {
       synchronized (context) {
         if (!context.calculated.containsKey(id)) {
           run = true;
-          context.calculated.put(id, () -> {
+          Supplier<CountingNNResult> singleton = () -> {
             try {
               CountingNNResult take = deque.take();
               deque.add(take);
@@ -79,10 +80,11 @@ abstract class LazyResult implements DAGNode {
             } catch (InterruptedException e) {
               throw new RuntimeException(e);
             }
-          });
+          };
+          context.calculated.put(id, singleton);
         }
       }
-      if (run) deque.add(new CountingNNResult(eval(context)).increment());
+      if (run) deque.add(new CountingNNResult(eval(context)));
     }
     return context.calculated.get(id).get().increment();
   }

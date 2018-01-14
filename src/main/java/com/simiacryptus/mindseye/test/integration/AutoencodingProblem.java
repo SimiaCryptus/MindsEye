@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.test.integration;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
 import com.simiacryptus.mindseye.layers.java.DropoutNoiseLayer;
 import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
@@ -221,7 +220,7 @@ public class AutoencodingProblem implements Problem {
     log.code(() -> {
       final TableOutput table = new TableOutput();
       data.validationData().map(labeledObject -> {
-        return toRow(log, labeledObject, CuDNN.run(ctx -> echoNetwork.eval(labeledObject.data)).getData().get(0).getData());
+        return toRow(log, labeledObject, echoNetwork.eval(labeledObject.data).getData().get(0).getData());
       }).filter(x -> null != x).limit(10).forEach(table::putRow);
       return table;
     });
@@ -230,7 +229,7 @@ public class AutoencodingProblem implements Problem {
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
       try {
         final Tensor input = new Tensor(features).set(featureNumber, 1);
-        final Tensor tensor = CuDNN.run(ctx -> revNetwork.eval(input)).getData().get(0);
+        final Tensor tensor = revNetwork.eval(input).getData().get(0);
         log.out(log.image(tensor.toImage(), ""));
       } catch (final IOException e) {
         throw new RuntimeException(e);

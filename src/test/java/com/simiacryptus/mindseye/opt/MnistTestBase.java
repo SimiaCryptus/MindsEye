@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.opt;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer;
@@ -166,7 +165,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
    * @return the int [ ]
    */
   public int[] predict(final NNLayer network, final LabeledObject<Tensor> labeledObject) {
-    final double[] predictionSignal = CuDNN.run(ctx -> network.eval(labeledObject.data).getData().get(0).getData());
+    final double[] predictionSignal = network.eval(labeledObject.data).getData().get(0).getData();
     return IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
   }
   
@@ -277,7 +276,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
         MNIST.validationDataStream().map(labeledObject -> {
           try {
             final int actualCategory = parse(labeledObject.label);
-            final double[] predictionSignal = CuDNN.run(ctx -> network.eval(labeledObject.data).getData().get(0).getData());
+            final double[] predictionSignal = network.eval(labeledObject.data).getData().get(0).getData();
             final int[] predictionList = IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
             if (predictionList[0] == actualCategory) return null; // We will only examine mispredicted rows
             final LinkedHashMap<String, Object> row = new LinkedHashMap<>();

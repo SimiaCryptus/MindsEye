@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
 
 import java.util.Arrays;
 import java.util.concurrent.Callable;
@@ -75,12 +74,9 @@ public class SimpleEval implements Callable<SimpleEval> {
   
       };
     }).toArray(i -> new NNResult[i]);
-    final NNResult result = CuDNN.run(cudaExeCtx -> {
-      final NNResult eval = layer.eval(inputR);
-      eval.accumulate(new DeltaSet<NNLayer>(), getFeedback(eval.getData()));
-      return eval;
-    });
-    output = result.getData().get(0);
+    final NNResult eval = layer.eval(inputR);
+    eval.accumulate(new DeltaSet<NNLayer>(), getFeedback(eval.getData()));
+    output = eval.getData().get(0);
     return this;
   }
   

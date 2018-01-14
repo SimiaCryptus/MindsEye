@@ -77,7 +77,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
     @Override
     public int[][] getInputDims(Random random) {
       return new int[][]{
-        {1, 1, 1}, {1, 1, 2}
+        {1, 1, 2}, {1, 1, 2}, {1, 1, 2}
       };
     }
   
@@ -88,7 +88,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
   
     @Override
     public NNLayer getLayer(final int[][] inputSize, Random random) {
-      return new ImgConcatLayer().setMaxBands(2);
+      return new ImgConcatLayer().setMaxBands(5);
     }
   }
   

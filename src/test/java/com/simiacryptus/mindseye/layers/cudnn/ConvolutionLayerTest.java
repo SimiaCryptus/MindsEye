@@ -103,6 +103,11 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
     return com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class;
   }
   
+  @Override
+  protected Class<?> getTargetClass() {
+    return ConvolutionLayer.class;
+  }
+  
   /**
    * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
    */
@@ -168,7 +173,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Double.
      */
     public Double() {
-      super(1, 3, 2, Precision.Double, 16);
+      super(1, 2, 2, Precision.Double, 16);
     }
   
     @Override

@@ -97,17 +97,22 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
       }
       nncontext.initThread();
       final CudaPtr cudaOutput = CuDNN.alloc(nncontext.getDeviceNumber(), length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size, true);
-      int bandOffset = 0;
       for (int i = 0; i < inObj.length; i++) {
         final TensorList input = inObj[i].getData();
         final CudaPtr cudaInput = CudaPtr.write(nncontext.getDeviceNumber(), precision, input);
         final int[] inputDimensions = input.getDimensions();
         assert inputDimensions[0] == outputDimensions[0];
         assert inputDimensions[1] == outputDimensions[1];
-        final int inputBands = maxBands <= 0 ? inputDimensions[2] : Math.min(inputDimensions[2], maxBands - bandOffset);
+  
+  
+        int bandOffset = IntStream.range(0, i).map(j -> inObj[j].getData().getDimensions()[2]).sum();
+        int inputBands = maxBands <= 0 ? inputDimensions[2] : Math.min(inputDimensions[2], maxBands - bandOffset);
+        //final int inputBands = maxBands <= 0 ? inputDimensions[2] : Math.min(inputDimensions[2], maxBands - bandOffset);
+
+
         if (inputBands > 0) {
           assert inputBands > 0;
-          assert inputBands <= maxBands;
+          assert maxBands <= 0 || inputBands <= maxBands;
           assert inputBands <= inputDimensions[2];
         
           final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(

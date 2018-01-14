@@ -218,6 +218,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
               if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
               assert null == freedBy : Arrays.toString(freedBy);
               nncontext.initThread();
+              int deviceNumber = nncontext.getDeviceNumber();
               assert error.length() == batch.length();
               //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
               final int length = error.length();
@@ -307,7 +308,6 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
     json.addProperty("strideY", strideY);
     json.addProperty("paddingX", getPaddingX());
     json.addProperty("paddingY", getPaddingY());
-    json.addProperty("simple", false);
     json.addProperty("precision", precision.name());
     return json;
   }
