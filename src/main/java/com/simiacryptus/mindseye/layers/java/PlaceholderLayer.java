@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 
@@ -50,7 +49,7 @@ public final class PlaceholderLayer<T> extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... array) {
+  public NNResult eval(final NNResult... array) {
     throw new UnsupportedOperationException();
   }
   

@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.GpuController;
+import com.simiacryptus.mindseye.layers.cudnn.lang.GpuController;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.TestUtil;
@@ -203,7 +203,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
     return GpuController.call(exe -> {
       final Tensor[][] data = IntStream.range(0, batches).mapToObj(x -> x).flatMap(x -> Stream.<Tensor[]>of(inputPrototype)).toArray(i -> new Tensor[i][]);
       TimedResult<NNResult> timedEval = TimedResult.time(() -> {
-        return component.eval(exe, NNConstant.batchResultArray(data));
+        return component.eval(NNConstant.batchResultArray(data));
       });
       final NNResult result = timedEval.result;
       final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();

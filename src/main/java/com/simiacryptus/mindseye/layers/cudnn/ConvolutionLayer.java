@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
+import com.simiacryptus.mindseye.layers.cudnn.lang.Precision;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 import java.util.Arrays;
@@ -184,18 +186,18 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     assert getKernel().isValid();
     assert 1 == inObj.length;
     assert 3 == inObj[0].getData().getDimensions().length;
     assert inputBands == inObj[0].getData().getDimensions()[2];
-    if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
+    if (0 == CuDNN.gpuContexts.size()) return getCompatibilityLayer().eval(inObj);
     ExplodedConvolutionGrid grid = getExplodedNetwork();
     PipelineNetwork network = grid.getNetwork();
     if (isFrozen()) {
       network.freeze();
     }
-    final NNResult result = network.eval(nncontext, inObj);
+    final NNResult result = network.eval(inObj);
     final TensorList resultData = result.getData();
     assert inObj[0].getData().length() == resultData.length();
     assert 3 == resultData.getDimensions().length;

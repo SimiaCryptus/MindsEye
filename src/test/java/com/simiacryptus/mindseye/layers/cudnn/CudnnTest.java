@@ -21,6 +21,10 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
+import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
+import com.simiacryptus.mindseye.layers.cudnn.lang.CudaPtr;
+import com.simiacryptus.mindseye.layers.cudnn.lang.GpuController;
+import com.simiacryptus.mindseye.layers.cudnn.lang.Precision;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Test;
@@ -52,7 +56,7 @@ public class CudnnTest extends NotebookReportBase {
     PrintStream apiLog = new PrintStream(log.file(logName));
     CuDNN.addLog(apiLog);
     log.p(log.file((String) null, logName, "GPU Log"));
-    CudaExecutionContext.gpuContexts.getAll().forEach(ctx -> {
+    CuDNN.gpuContexts.getAll().forEach(ctx -> {
       log.h1("Device " + ctx.getDeviceNumber());
       try {
         log.code(() -> {

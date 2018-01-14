@@ -67,7 +67,7 @@ public class AvgImageBandLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
   
     assert 1 == inObj.length;
     final NNResult in = inObj[0];

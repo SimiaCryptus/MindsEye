@@ -69,7 +69,7 @@ public class ConstNNLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... array) {
+  public NNResult eval(final NNResult... array) {
     return new NNResult(data) {
   
       @Override

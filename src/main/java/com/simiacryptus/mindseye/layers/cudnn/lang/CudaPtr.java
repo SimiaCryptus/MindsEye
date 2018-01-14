@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn;
+package com.simiacryptus.mindseye.layers.cudnn.lang;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -75,7 +75,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    * @param deviceId the device id
    * @param type     the type
    */
-  protected CudaPtr(final long size, final int deviceId, MemoryType type) {this(size, deviceId, type, false);}
+  public CudaPtr(final long size, final int deviceId, MemoryType type) {this(size, deviceId, type, false);}
   
   /**
    * Instantiates a new Cuda ptr.

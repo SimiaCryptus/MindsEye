@@ -20,8 +20,13 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer.PoolingMode;
+import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
+import com.simiacryptus.mindseye.layers.cudnn.lang.Precision;
 
 import java.util.Arrays;
 import java.util.List;
@@ -75,15 +80,15 @@ public class BandReducerLayer extends NNLayer implements LayerPrecision<BandRedu
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
-    if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
+  public NNResult eval(final NNResult... inObj) {
+    if (0 == CuDNN.gpuContexts.size()) return getCompatibilityLayer().eval(inObj);
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputSize = batch.getDimensions();
     return new PoolingLayer().setMode(mode).setPrecision(precision)
                              .setWindowX(inputSize[1])
                              .setWindowY(inputSize[0])
-                             .eval(nncontext, inObj);
+                             .eval(inObj);
   }
   
   @Override

@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.layers.cudnn.lang.*;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,59 +93,64 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
-    if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0)
-      return getCompatibilityLayer().eval(nncontext, inObj);
-    ((CudaExecutionContext) nncontext).initThread();
-    assert 1 == inObj.length;
-    assert 3 == inObj[0].getData().getDimensions().length;
-    final int length = inObj[0].getData().length();
-    int[] dimIn = inObj[0].getData().getDimensions();
-    final int[] dimOut = Arrays.copyOf(dimIn, 3);
-    dimOut[0] = sizeX;
-    dimOut[1] = sizeY;
-    final CudaPtr inputBuffer = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, inObj[0].getData());
-    final CudaPtr outputBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(),
-                                             length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size, true);
-    copy((CuDNN) nncontext, length, dimIn, inputBuffer, dimOut, outputBuffer);
-    final TensorList outputData = new GpuTensorList(outputBuffer, length, dimOut, ((CuDNN) nncontext).cudnnHandle, precision);
-    return new NNResult(outputData) {
-  
-      @Override
-      public void free() {
-        inputBuffer.finalize();
-        Arrays.stream(inObj).forEach(NNResult::free);
-      }
-  
-      @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
-        if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
-          throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
+  public NNResult eval(final NNResult... inObj) {
+    if (0 == CuDNN.gpuContexts.size()) return getCompatibilityLayer().eval(inObj);
+    return CuDNN.gpuContexts.run(nncontext -> {
+      if (nncontext.getDeviceNumber() < 0)
+        return getCompatibilityLayer().eval(inObj);
+      nncontext.initThread();
+      assert 1 == inObj.length;
+      assert 3 == inObj[0].getData().getDimensions().length;
+      final int length = inObj[0].getData().length();
+      int[] dimIn = inObj[0].getData().getDimensions();
+      final int[] dimOut = Arrays.copyOf(dimIn, 3);
+      dimOut[0] = sizeX;
+      dimOut[1] = sizeY;
+      final CudaPtr inputBuffer = CudaPtr.write(nncontext.getDeviceNumber(), precision, inObj[0].getData());
+      final CudaPtr outputBuffer = CuDNN.alloc(nncontext.getDeviceNumber(),
+                                               length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size, true);
+      copy(nncontext, length, dimIn, inputBuffer, dimOut, outputBuffer);
+      final TensorList outputData = new GpuTensorList(outputBuffer, length, dimOut, nncontext.cudnnHandle, precision);
+      return new NNResult(outputData) {
+      
+        @Override
+        public void free() {
+          inputBuffer.finalize();
+          Arrays.stream(inObj).forEach(NNResult::free);
         }
-        if (error.length() != outputData.length()) {
-          throw new AssertionError(error.length() + " != " + outputData.length());
+      
+        @Override
+        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
+          CuDNN.gpuContexts.apply(nncontext -> {
+            if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
+              throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
+            }
+            if (error.length() != outputData.length()) {
+              throw new AssertionError(error.length() + " != " + outputData.length());
+            }
+          
+            assert error.length() == inObj[0].getData().length();
+            if (inObj[0].isAlive()) {
+              nncontext.initThread();
+              final CudaPtr errorPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, error);
+              final CudaPtr passbackBuffer = CuDNN.alloc(nncontext.getDeviceNumber(),
+                                                         length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size, true);
+              copy(nncontext, length, dimOut, errorPtr, dimIn, passbackBuffer);
+              final TensorList passbackTensorList = new GpuTensorList(passbackBuffer, length, dimIn, nncontext.cudnnHandle, precision);
+              inObj[0].accumulate(buffer, passbackTensorList);
+              passbackBuffer.finalize();
+              errorPtr.finalize();
+            }
+            free();
+          });
         }
-    
-        assert error.length() == inObj[0].getData().length();
-        if (inObj[0].isAlive()) {
-          ((CudaExecutionContext) nncontext).initThread();
-          final CudaPtr errorPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, error);
-          final CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(),
-                                                     length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size, true);
-          copy((CuDNN) nncontext, length, dimOut, errorPtr, dimIn, passbackBuffer);
-          final TensorList passbackTensorList = new GpuTensorList(passbackBuffer, length, dimIn, ((CuDNN) nncontext).cudnnHandle, precision);
-          inObj[0].accumulate(buffer, passbackTensorList);
-          passbackBuffer.finalize();
-          errorPtr.finalize();
+      
+        @Override
+        public boolean isAlive() {
+          return Arrays.stream(inObj).anyMatch(x -> x.isAlive());
         }
-        free();
-      }
-  
-      @Override
-      public boolean isAlive() {
-        return Arrays.stream(inObj).anyMatch(x -> x.isAlive());
-      }
-    };
+      };
+    });
   }
   
   /**

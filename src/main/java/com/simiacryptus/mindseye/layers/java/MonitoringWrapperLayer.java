@@ -117,7 +117,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final AtomicLong passbackNanos = new AtomicLong(0);
     final NNResult[] wrappedInput = Arrays.stream(inObj).map(result -> new NNResult(result.getData()) {
   
@@ -136,7 +136,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
         return result.isAlive();
       }
     }).toArray(i -> new NNResult[i]);
-    TimedResult<NNResult> timedResult = TimedResult.time(() -> getInner().eval(nncontext, wrappedInput));
+    TimedResult<NNResult> timedResult = TimedResult.time(() -> getInner().eval(wrappedInput));
     final NNResult output = timedResult.result;
     forwardPerformance.add((timedResult.timeNanos) / 1000000000.0);
     totalBatches++;

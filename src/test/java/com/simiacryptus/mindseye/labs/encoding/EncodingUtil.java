@@ -23,8 +23,8 @@ import com.simiacryptus.mindseye.lang.Coordinate;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
-import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
+import com.simiacryptus.mindseye.layers.cudnn.lang.GpuController;
 import com.simiacryptus.mindseye.layers.java.ImgBandScaleLayer;
 import com.simiacryptus.mindseye.layers.java.ImgBandSelectLayer;
 import com.simiacryptus.mindseye.layers.java.ImgReshapeLayer;
@@ -246,7 +246,7 @@ public class EncodingUtil {
       network.add(new ImgReshapeLayer(factor, factor, false));
       network.add(new ImgBandSelectLayer(select));
       final Tensor result = GpuController.call(ctx ->
-                                                 network.eval(ctx, new Tensor[]{tensor[1]})).getData().get(0);
+                                                 network.eval(tensor[1])).getData().get(0);
       return new Tensor[]{tensor[0], result};
     }));
   }
@@ -265,7 +265,7 @@ public class EncodingUtil {
       return GpuController.call(ctx -> {
         final boolean expand = factor < 0;
         final int abs = expand ? -factor : factor;
-        return new ImgReshapeLayer(abs, abs, expand).eval(ctx, tensor);
+        return new ImgReshapeLayer(abs, abs, expand).eval(tensor);
       }).getData().get(0);
     });
   }
@@ -280,7 +280,7 @@ public class EncodingUtil {
   public static Tensor findBaseline(final PipelineNetwork decoder, final Tensor tensor) {
     try {
       return GpuController.call(ctx -> {
-        return decoder.eval(ctx, tensor.map(x -> 0));
+        return decoder.eval(tensor.map(x -> 0));
       }).getData().get(0);
     } catch (final Exception e) {
       throw new RuntimeException(e);
@@ -303,7 +303,7 @@ public class EncodingUtil {
     decoderBand.add(decoder);
     try {
       return GpuController.call(ctx -> {
-        return decoderBand.eval(ctx, tensor);
+        return decoderBand.eval(tensor);
       }).getData().get(0);
       //return log.image(t.toImage(), "");
     } catch (final Exception e) {
@@ -404,7 +404,7 @@ public class EncodingUtil {
         decoder.add(dataPipeline.get(i));
       }
       final Tensor decoded = GpuController.call(ctx -> {
-        return decoder.eval(ctx, tensor);
+        return decoder.eval(tensor);
       }).getData().get(0);
       row.put("Decode_" + col, com.simiacryptus.mindseye.test.TestUtil.render(log, decoded, false));
       

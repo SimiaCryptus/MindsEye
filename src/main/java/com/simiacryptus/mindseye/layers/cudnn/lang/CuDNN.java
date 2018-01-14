@@ -17,11 +17,11 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn;
+package com.simiacryptus.mindseye.layers.cudnn.lang;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.simiacryptus.mindseye.lang.GpuError;
 import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.util.lang.StaticResourcePool;
 import jcuda.Pointer;
 import jcuda.jcudnn.*;
 import jcuda.runtime.JCuda;
@@ -31,18 +31,17 @@ import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;
 import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
  * Main library wrapper class around the CuDNN API, providing logging and managed wrappers.
  */
 public class CuDNN {
-  private static final Logger logger = LoggerFactory.getLogger(CudaExecutionContext.class);
+  protected static final Logger logger = LoggerFactory.getLogger(CuDNN.class);
   
   private static final ThreadLocal<Integer> currentDevice = new ThreadLocal<Integer>() {
     @Override
@@ -56,6 +55,10 @@ public class CuDNN {
    * The constant apiLog.
    */
   public static final HashSet<PrintStream> apiLog = new HashSet<>();
+  /**
+   * The constant gpuContexts.
+   */
+  public static StaticResourcePool<CuDNN> gpuContexts = new StaticResourcePool<>(loadGpuContexts());
   /**
    * The Cudnn handle.
    */
@@ -1208,6 +1211,51 @@ public class CuDNN {
       }
     }
     return obj.toString();
+  }
+  
+  /**
+   * Load gpu contexts list. If the property disableCuDnn is setWeights to true, no GPUs will be recognized. This is
+   * useful for testing CPU-only compatibility.
+   *
+   * @return the list
+   */
+  static List<CuDNN> loadGpuContexts() {
+    if (Boolean.parseBoolean(System.getProperty("disableCuDnn", "false"))) {
+      logger.warn("Disabled CuDNN");
+      return Arrays.asList();
+    }
+    final int deviceCount = CuDNN.deviceCount();
+    logger.info(String.format("Found %s devices", deviceCount));
+    List<Integer> devices = new ArrayList<>();
+    for (int device = 0; device < deviceCount; device++) {
+      //if(device>0) System.err.println(String.format("IGNORING Device %s - %s", device, getDeviceName(device)));
+      CuDNN.setDevice(device);
+      logger.info(String.format("Device %s - %s", device, CuDNN.getDeviceName(device)));
+      devices.add(device);
+      //CuDNN.handle(cudaSetDeviceFlags(cudaDeviceScheduleAuto));
+      for (DeviceLimits limit : DeviceLimits.values()) {
+        logger.info(String.format("Default Limit %s = %s", limit, limit.get()));
+      }
+      DeviceLimits.HeapSize.set(16 * 1024 * 1024 * 1024);
+      DeviceLimits.FifoSize.set(8 * 1024 * 1024);
+      for (DeviceLimits limit : DeviceLimits.values()) {
+        logger.info(String.format("Configured Limit %s = %s", limit, limit.get()));
+      }
+    }
+    if (System.getProperties().containsKey("gpus")) {
+      devices = Arrays.stream(System.getProperty("gpus").split(","))
+                      .map(Integer::parseInt).collect(Collectors.toList());
+      
+    }
+    logger.info(String.format("Found %s devices; using devices %s", deviceCount, devices));
+    return devices.stream()
+                  .map(i -> {
+                    try {
+                      return new CuDNN(i);
+                    } catch (Throwable e) {
+                      return null;
+                    }
+                  }).filter(x -> x != null).collect(Collectors.toList());
   }
   
   /**

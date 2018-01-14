@@ -23,7 +23,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.SerialPrecision;
 import com.simiacryptus.mindseye.layers.java.WrapperLayer;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
@@ -227,19 +230,18 @@ public abstract class DAGNetwork extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... input) {
-    return get(nncontext, buildExeCtx(input));
+  public NNResult eval(final NNResult... input) {
+    return get(buildExeCtx(input));
   }
   
   /**
    * Get nn result.
    *
-   * @param nncontext   the nncontext
    * @param buildExeCtx the build exe ctx
    * @return the nn result
    */
-  public NNResult get(final NNExecutionContext nncontext, final GraphEvaluationContext buildExeCtx) {
-    return getHead().get(nncontext, buildExeCtx);
+  public NNResult get(final GraphEvaluationContext buildExeCtx) {
+    return getHead().get(buildExeCtx);
   }
   
   /**

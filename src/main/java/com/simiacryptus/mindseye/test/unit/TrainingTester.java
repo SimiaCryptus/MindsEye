@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.NNConstant;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.cudnn.GpuController;
+import com.simiacryptus.mindseye.layers.cudnn.lang.GpuController;
 import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -396,7 +396,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     });
     log.p("Which produces the following output:");
     final Tensor[] output_target = GpuController.call(ctx -> {
-      return network_target.eval(ctx, NNConstant.batchResultArray(input_target)).getData();
+      return network_target.eval(NNConstant.batchResultArray(input_target)).getData();
     }).stream().toArray(i -> new Tensor[i]);
     log.code(() -> {
       return Stream.of(output_target).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
@@ -429,7 +429,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
                    .orElse("");
     });
     final Tensor[] output_target = GpuController.call(ctx -> {
-      return network.eval(ctx, NNConstant.batchResultArray(input_target)).getData();
+      return network.eval(NNConstant.batchResultArray(input_target)).getData();
     }).stream().toArray(i -> new Tensor[i]);
     //if (output_target.length != inputPrototype.length) return null;
     return trainAll("Input Convergence", log,
@@ -455,7 +455,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
       return network_target.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
     });
     final Tensor[] output_target = GpuController.call(ctx -> {
-      return network_target.eval(ctx, NNConstant.batchResultArray(input_target)).getData();
+      return network_target.eval(NNConstant.batchResultArray(input_target)).getData();
     }).stream().toArray(i -> new Tensor[i]);
     //if (output_target.length != input_target.length) return null;
     return trainAll("Model Convergence", log,
@@ -563,7 +563,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
       log.p("To produce the following output:");
       log.code(() -> {
         return GpuController.call(ctx -> {
-          return layer.eval(ctx, NNConstant.batchResultArray(pop(data))).getData().stream().collect(Collectors.toList());
+          return layer.eval(NNConstant.batchResultArray(pop(data))).getData().stream().collect(Collectors.toList());
         }).stream()
                             .limit(1)
                             .map(x -> x.prettyPrint())

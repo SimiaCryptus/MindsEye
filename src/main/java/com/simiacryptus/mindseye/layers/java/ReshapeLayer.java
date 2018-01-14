@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.LayerPrecision;
-import com.simiacryptus.mindseye.layers.cudnn.Precision;
+import com.simiacryptus.mindseye.layers.cudnn.lang.Precision;
 import com.simiacryptus.util.io.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,7 +84,7 @@ public class ReshapeLayer extends NNLayer implements LayerPrecision<ReshapeLayer
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     assert 1 == inObj.length;
     TensorList data = inObj[0].getData();
     int[] inputDims = data.getDimensions();

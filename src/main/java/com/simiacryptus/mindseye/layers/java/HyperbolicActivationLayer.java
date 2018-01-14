@@ -76,7 +76,7 @@ public class HyperbolicActivationLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
     final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);

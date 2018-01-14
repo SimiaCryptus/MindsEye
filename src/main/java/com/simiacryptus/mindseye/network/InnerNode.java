@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.util.Util;
@@ -81,17 +80,17 @@ final class InnerNode extends LazyResult {
   }
   
   @Override
-  protected NNResult eval(final GraphEvaluationContext ctx, final NNExecutionContext nncontext) {
+  protected NNResult eval(final GraphEvaluationContext ctx) {
     final NNLayer innerLayer = getLayer();
     if (1 == inputNodes.length) {
       final DAGNode inputNode = inputNodes[0];
-      final NNResult in = null == inputNode ? null : inputNode.get(nncontext, ctx);
-      final NNResult output = innerLayer.eval(nncontext, in);
+      final NNResult in = null == inputNode ? null : inputNode.get(ctx);
+      final NNResult output = innerLayer.eval(in);
       return output;
     }
     else {
-      final NNResult[] in = Arrays.stream(inputNodes).map(x -> x == null ? null : x.get(nncontext, ctx)).toArray(i -> new NNResult[i]);
-      final NNResult output = innerLayer.eval(nncontext, in);
+      final NNResult[] in = Arrays.stream(inputNodes).map(x -> x == null ? null : x.get(ctx)).toArray(i -> new NNResult[i]);
+      final NNResult output = innerLayer.eval(in);
       return output;
     }
   }

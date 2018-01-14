@@ -55,7 +55,7 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
     PointSample origin = measurement.copyFull().backup();
     NNLayer macroLayer = buildSubspace(subject, measurement, monitor);
     train(monitor, macroLayer);
-    macroLayer.eval(null, (NNResult) null);
+    macroLayer.eval((NNResult) null);
     DeltaSet<NNLayer> delta = origin.weights.backupCopy().subtract(origin.weights);
     origin.restore();
     return new SimpleLineSearchCursor(subject, origin, delta).setDirectionType(CURSOR_LABEL);
@@ -90,7 +90,7 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
       NNLayer self = this;
       
       @Override
-      public NNResult eval(NNExecutionContext nncontext, NNResult... array) {
+      public NNResult eval(NNResult... array) {
         origin.restore();
         IntStream.range(0, deltaLayers.size()).forEach(i -> {
           direction.getMap().get(deltaLayers.get(i)).accumulate(weights[hasPlaceholders ? (i + 1) : i]);

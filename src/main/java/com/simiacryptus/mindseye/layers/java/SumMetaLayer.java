@@ -72,7 +72,7 @@ public class SumMetaLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final NNResult input = inObj[0];
     final int itemCnt = input.getData().length();
     if (null == lastResult || minBatches < itemCnt) {

@@ -20,8 +20,8 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
-import com.simiacryptus.mindseye.layers.cudnn.GpuController;
+import com.simiacryptus.mindseye.layers.cudnn.lang.CudaPtr;
+import com.simiacryptus.mindseye.layers.cudnn.lang.GpuController;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.lang.TimedResult;
@@ -119,14 +119,13 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
    * Eval point sample.
    *
    * @param list      the list
-   * @param nncontext the nncontext
    * @param monitor   the monitor
    * @return the point sample
    */
-  protected PointSample eval(final List<Tensor[]> list, final NNExecutionContext nncontext, final TrainingMonitor monitor) {
+  protected PointSample eval(final List<Tensor[]> list, final TrainingMonitor monitor) {
     final TimedResult<PointSample> timedResult = TimedResult.time(() -> {
       final NNResult[] nnContext = BasicTrainable.getNNContext(list, mask);
-      final NNResult result = network.eval(nncontext, nnContext);
+      final NNResult result = network.eval(nnContext);
       final TensorList resultData = result.getData();
       assert resultData.stream().allMatch(x -> x.dim() == 1);
       assert resultData.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite));
@@ -138,7 +137,7 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
       return new PointSample(xxx, new StateSet<NNLayer>(xxx), sum, 0.0, list.size());
     });
     if (null != monitor && verbosity() > 0) {
-      monitor.log(String.format("Device %s completed %s items in %.3f sec", nncontext.toString(), list.size(), timedResult.timeNanos / 1e9));
+      monitor.log(String.format("Device completed %s items in %.3f sec", list.size(), timedResult.timeNanos / 1e9));
     }
     return timedResult.result.normalize();
   }
@@ -209,9 +208,8 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
   public PointSample measure(final int retries, final TrainingMonitor monitor) {
     try {
       assert !data.isEmpty();
-      
-      final TimedResult<PointSample> timedResult = TimedResult.time(() -> eval(data, new NNExecutionContext() {
-      }, monitor));
+  
+      final TimedResult<PointSample> timedResult = TimedResult.time(() -> eval(data, monitor));
       //          log.info(String.format("Evaluated to %s delta arrays", DeltaSet<NNLayer>.run.size()));
       if (null != monitor && verbosity() > 1) {
         monitor.log(String.format("Evaluated %s items in %.4fs (%s/%s)", data.size(), timedResult.timeNanos / 1e9, timedResult.result.getMean(), timedResult.result.delta.getMagnitude()));

@@ -115,7 +115,7 @@ public final class NthPowerActivationLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
     assert 0 < itemCnt;
     final Tensor inputGradientA[] = new Tensor[itemCnt];

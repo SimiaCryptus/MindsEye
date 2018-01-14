@@ -70,7 +70,7 @@ public class L1NormalizationLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... input) {
+  public NNResult eval(final NNResult... input) {
     final NNResult in = input[0];
     final TensorList inData = in.getData();
     final Tensor[] output = IntStream.range(0, inData.length()).mapToObj(dataIndex -> {

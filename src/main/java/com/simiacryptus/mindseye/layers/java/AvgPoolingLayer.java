@@ -102,7 +102,7 @@ public class AvgPoolingLayer extends NNLayer {
   
   @SuppressWarnings("unchecked")
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final int kernelSize = new Tensor(kernelDims).dim();
     final TensorList data = inObj[0].getData();
     final int[] inputDims = data.get(0).getDimensions();

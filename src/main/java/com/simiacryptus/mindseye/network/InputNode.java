@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 
@@ -63,7 +62,7 @@ final class InputNode extends LazyResult {
   }
   
   @Override
-  protected NNResult eval(final GraphEvaluationContext context, final NNExecutionContext nncontext) {
+  protected NNResult eval(final GraphEvaluationContext context) {
     return context.cache.get(id);
   }
   

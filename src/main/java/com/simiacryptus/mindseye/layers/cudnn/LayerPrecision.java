@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
+import com.simiacryptus.mindseye.layers.cudnn.lang.Precision;
+
 /**
  * An interface for CuDNN layers supporting any CuDNN numeric resolution type.
  *

@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 
@@ -65,8 +64,8 @@ public abstract class WrapperLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... array) {
-    return inner.eval(nncontext, array);
+  public NNResult eval(final NNResult... array) {
+    return inner.eval(array);
   }
   
   /**

@@ -57,7 +57,7 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
    * @param batchSize the batch size
    */
   public BatchedTrainable(final NNLayer network, final int batchSize) {
-    this(new GpuTrainable(network), batchSize);
+    this(new BasicTrainable(network), batchSize);
   }
   
   /**

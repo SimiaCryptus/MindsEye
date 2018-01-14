@@ -98,7 +98,7 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     assert 1 == inObj.length;
     final NNResult input = inObj[0];
     System.nanoTime();

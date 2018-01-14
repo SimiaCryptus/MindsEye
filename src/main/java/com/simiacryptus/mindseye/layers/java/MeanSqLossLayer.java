@@ -66,7 +66,7 @@ public class MeanSqLossLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     if (2 != inObj.length) throw new IllegalArgumentException();
     final int leftLength = inObj[0].getData().length();
     final int rightLength = inObj[1].getData().length();

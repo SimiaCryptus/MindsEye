@@ -65,7 +65,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
   protected abstract void eval(final double x, double[] results);
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
     assert 0 < itemCnt;
     final Tensor inputGradientA[] = new Tensor[itemCnt];

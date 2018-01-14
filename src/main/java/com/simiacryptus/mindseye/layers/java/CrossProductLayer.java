@@ -72,7 +72,7 @@ public class CrossProductLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     assert 1 == inObj.length;
     return new NNResult(inObj[0].getData().stream().parallel().map(tensor -> {
       final int inputDim = tensor.dim();

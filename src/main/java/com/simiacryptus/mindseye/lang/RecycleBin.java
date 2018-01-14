@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.lang;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.simiacryptus.mindseye.layers.cudnn.GpuController;
+import com.simiacryptus.mindseye.layers.cudnn.lang.GpuController;
 
 import java.io.PrintStream;
 import java.util.Arrays;

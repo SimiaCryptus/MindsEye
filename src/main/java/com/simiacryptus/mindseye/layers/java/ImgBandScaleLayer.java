@@ -95,7 +95,7 @@ public class ImgBandScaleLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     return eval(inObj[0]);
   }
   

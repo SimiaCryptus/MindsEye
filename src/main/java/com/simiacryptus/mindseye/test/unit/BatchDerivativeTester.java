@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.GpuController;
+import com.simiacryptus.mindseye.layers.cudnn.lang.GpuController;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
@@ -99,7 +99,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
       copyInput.getData().stream().map(s -> s.mapCoords(k -> k.getIndex() == j_ ? 1 : 0)).toArray(i -> new Tensor[i]);
       GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
                                         (d, exe) -> {
-                                          final NNResult eval = component.eval(exe, copyInput);
+                                          final NNResult eval = component.eval(copyInput);
                                           final Tensor tensor = eval.getData().get(0);
                                           final DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
                                           eval.accumulate(xxx, new TensorArray(eval.getData().stream().map(x -> x.map(v -> 1)).toArray(i -> new Tensor[i])));
@@ -123,7 +123,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
       final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
       final Tensor[] data = {new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0)};
       GpuController.call(exe -> {
-        final NNResult eval = component.eval(exe, NNConstant.singleResultArray(new Tensor[][]{inputPrototype}));
+        final NNResult eval = component.eval(NNConstant.singleResultArray(new Tensor[][]{inputPrototype}));
         final Tensor tensor = eval.getData().get(0);
         eval.accumulate(buffer, new TensorArray(data));
         return tensor;
@@ -221,7 +221,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
   private Tensor measureFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor measuredGradient = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
     final Tensor baseOutput = GpuController.call(exe -> {
-      return component.eval(exe, NNConstant.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
+      return component.eval(NNConstant.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
     });
     outputPrototype.set(baseOutput);
     for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
@@ -230,7 +230,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
       final Tensor[] copyInput = Arrays.copyOf(inputPrototype, inputPrototype.length);
       copyInput[inputIndex] = inputProbe;
       final Tensor evalProbe = GpuController.call(exe -> {
-        return component.eval(exe, NNConstant.singleResultArray(new Tensor[][]{copyInput})).getData().get(0);
+        return component.eval(NNConstant.singleResultArray(new Tensor[][]{copyInput})).getData().get(0);
       });
       final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
       for (int j = 0; j < delta.dim(); j++) {
@@ -245,7 +245,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
     final Tensor gradient = new Tensor(stateLen, outputPrototype.dim());
     
     final Tensor baseOutput = GpuController.call(exe -> {
-      return component.eval(exe, NNConstant.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
+      return component.eval(NNConstant.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
     });
     
     for (int i = 0; i < stateLen; i++) {
@@ -253,7 +253,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
       copy.state().get(layerNum)[i] += probeSize;
       
       final Tensor evalProbe = GpuController.call(exe -> {
-        return copy.eval(exe, NNConstant.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
+        return copy.eval(NNConstant.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
       });
       
       final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
@@ -441,7 +441,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
     final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     final NNLayer frozen = component.copy().freeze();
     GpuController.run(exe -> {
-      final NNResult eval = frozen.eval(exe, new NNResult(new TensorArray(inputPrototype)) {
+      final NNResult eval = frozen.eval(new NNResult(new TensorArray(inputPrototype)) {
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
           reachedInputFeedback.set(true);
@@ -479,7 +479,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
     final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     final NNLayer frozen = component.copy().setFrozen(false);
     GpuController.run(exe -> {
-      final NNResult eval = frozen.eval(exe, new NNResult(new TensorArray(inputPrototype)) {
+      final NNResult eval = frozen.eval(new NNResult(new TensorArray(inputPrototype)) {
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
           reachedInputFeedback.set(true);

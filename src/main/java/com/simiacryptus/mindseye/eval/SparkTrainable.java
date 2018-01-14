@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.GpuController;
+import com.simiacryptus.mindseye.layers.cudnn.lang.GpuController;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
@@ -146,7 +146,7 @@ public class SparkTrainable implements Trainable {
   protected DeltaSet<NNLayer> getDelta(final SparkTrainable.ReducableResult reduce) {
     final DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
     final Tensor[] prototype = dataRDD.toJavaRDD().take(1).get(0);
-    final NNResult result = GpuController.call(exe -> network.eval(exe, NNConstant.batchResultArray(new Tensor[][]{prototype})));
+    final NNResult result = GpuController.call(exe -> network.eval(NNConstant.batchResultArray(new Tensor[][]{prototype})));
     result.accumulate(xxx, 0);
     reduce.accumulate(xxx);
     return xxx;
@@ -273,7 +273,7 @@ public class SparkTrainable implements Trainable {
     @Override
     public Iterator<SparkTrainable.ReducableResult> call(final Iterator<Tensor[]> partition) throws Exception {
       final long startTime = System.nanoTime();
-      final GpuTrainable trainable = new GpuTrainable(network);
+      final DataTrainable trainable = new BasicTrainable(network);
       final Tensor[][] tensors = SparkTrainable.getStream(partition).toArray(i -> new Tensor[i][]);
       if (verbose) {
         SparkTrainable.debug("Materialized %s records in %4f sec", tensors.length, (System.nanoTime() - startTime) * 1e-9);

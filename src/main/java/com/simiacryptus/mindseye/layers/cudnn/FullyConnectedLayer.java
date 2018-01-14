@@ -20,7 +20,12 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
+import com.simiacryptus.mindseye.layers.cudnn.lang.Precision;
 import com.simiacryptus.mindseye.layers.java.ReshapeLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.util.FastRandom;
@@ -151,9 +156,9 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
-    if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
-    return explode().eval(nncontext, inObj);
+  public NNResult eval(final NNResult... inObj) {
+    if (0 == CuDNN.gpuContexts.size()) return getCompatibilityLayer().eval(inObj);
+    return explode().eval(inObj);
   }
   
   /**

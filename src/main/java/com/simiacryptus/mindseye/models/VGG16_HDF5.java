@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.models;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.*;
+import com.simiacryptus.mindseye.layers.cudnn.lang.GpuController;
 import com.simiacryptus.mindseye.layers.java.AssertDimensionsLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
@@ -453,7 +454,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           model.add(layer);
           int[] prev_dimensions = prototype.getDimensions();
           prototype = GpuController.call(ctx -> {
-            return layer.eval(ctx, prototype).getData().get(0);
+            return layer.eval(prototype).getData().get(0);
           });
           int[] new_dimensions = prototype.getDimensions();
           log.info(String.format("Added layer #%d: %s; %s params, dimensions %s -> %s", cnt++, layer, numberOfParameters, Arrays.toString(prev_dimensions), Arrays.toString(new_dimensions)));

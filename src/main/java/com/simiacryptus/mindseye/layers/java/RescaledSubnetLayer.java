@@ -20,7 +20,10 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.ImgConcatLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -77,13 +80,13 @@ public class RescaledSubnetLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     assert 1 == inObj.length;
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputDims = batch.get(0).getDimensions();
     assert 3 == inputDims.length;
-    if (1 == scale) return subnetwork.eval(nncontext, inObj);
+    if (1 == scale) return subnetwork.eval(inObj);
   
     final PipelineNetwork network = new PipelineNetwork();
     final DAGNode condensed = network.add(new ImgReshapeLayer(scale, scale, false));
@@ -97,8 +100,8 @@ public class RescaledSubnetLayer extends NNLayer {
                                      condensed));
     }).toArray(i -> new DAGNode[i]));
     network.add(new ImgReshapeLayer(scale, scale, true));
-    
-    return network.eval(nncontext, inObj);
+  
+    return network.eval(inObj);
   }
   
   @Override

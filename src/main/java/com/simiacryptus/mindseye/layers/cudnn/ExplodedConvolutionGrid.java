@@ -34,7 +34,7 @@ import java.util.function.Function;
 /**
  * The type Exploded convolution grid.
  */
-public class ExplodedConvolutionGrid {
+class ExplodedConvolutionGrid {
   private static final Logger log = LoggerFactory.getLogger(ExplodedConvolutionGrid.class);
   
   /**

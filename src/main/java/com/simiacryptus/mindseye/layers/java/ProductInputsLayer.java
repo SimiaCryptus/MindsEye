@@ -60,7 +60,7 @@ public class ProductInputsLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     assert inObj.length > 1;
     for (int i = 1; i < inObj.length; i++) {
       final int dim0 = Tensor.dim(inObj[0].getData().get(0).getDimensions());

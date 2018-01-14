@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.mindseye.lang.NNResult;
 
 import java.util.UUID;
@@ -58,17 +57,16 @@ abstract class LazyResult implements DAGNode {
    * Eval nn result.
    *
    * @param t         the t
-   * @param nncontext the nncontext
    * @return the nn result
    */
-  protected abstract NNResult eval(GraphEvaluationContext t, NNExecutionContext nncontext);
+  protected abstract NNResult eval(GraphEvaluationContext t);
   
   @Override
-  public CountingNNResult get(final NNExecutionContext nncontext, final GraphEvaluationContext context) {
+  public CountingNNResult get(final GraphEvaluationContext context) {
     if (!context.cache.containsKey(id)) {
       synchronized (context.cache) {
         if (!context.cache.containsKey(id)) {
-          CountingNNResult result = new CountingNNResult(eval(context, nncontext));
+          CountingNNResult result = new CountingNNResult(eval(context));
           context.cache.put(id, result);
         }
       }

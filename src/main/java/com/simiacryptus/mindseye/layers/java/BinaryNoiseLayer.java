@@ -94,7 +94,7 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final NNResult input = inObj[0];
     if (!enabled) return input;
     final int[] dimensions = input.getData().getDimensions();

@@ -21,7 +21,11 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import jcuda.jcudnn.*;
+import com.simiacryptus.mindseye.layers.cudnn.lang.*;
+import jcuda.jcudnn.cudnnPoolingDescriptor;
+import jcuda.jcudnn.cudnnPoolingMode;
+import jcuda.jcudnn.cudnnTensorDescriptor;
+import jcuda.jcudnn.cudnnTensorFormat;
 
 import java.util.Arrays;
 import java.util.List;
@@ -90,74 +94,75 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
-    if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
-    final int poolDims = 2;
-    final int windowSize[] = {windowX, windowY};
-    final int padding[] = {paddingX, paddingY};
-    final int stride[] = {strideX, strideY};
-    try {
-      ((CudaExecutionContext) nncontext).initThread();
-      //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
-      final NNResult input = inObj[0];
-      final TensorList batch = input.getData();
-      final int[] inputSize = batch.get(0).getDimensions();
-      final int length = batch.length();
-      final int inputDims = Tensor.dim(inputSize);
-      final CudaResource<cudnnPoolingDescriptor> poolingDesc = CuDNN.createPoolingDescriptor(
-        mode.id, poolDims, windowSize, padding, stride);
-      final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-        precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-      final int[] outputSize = new int[4];
-      CuDNN.handle(CuDNN.cudnnGetPoolingNdForwardOutputDim(poolingDesc.getPtr(), inputDescriptor.getPtr(), 4, outputSize));
-      assert inputSize[2] == outputSize[1];
-      final CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
-        precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[0], outputSize[1], outputSize[2], outputSize[3]);
-      final CudaPtr alpha = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
-      final CudaPtr beta = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 0.0);
-      final CudaPtr inputData = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, batch);
-      final CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), precision.size * 1l * Tensor.dim(outputSize), true);
-      final cudnnHandle cudnnHandle = ((CuDNN) nncontext).cudnnHandle;
-      CuDNN.handle(CuDNN.cudnnPoolingForward(cudnnHandle, poolingDesc.getPtr(),
-                                             alpha.getPtr(),
-                                             inputDescriptor.getPtr(), inputData.getPtr(),
-                                             beta.getPtr(),
-                                             outputDescriptor.getPtr(), outputData.getPtr()));
-      final TensorList output = new GpuTensorList(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, cudnnHandle, precision);
-      return new NNResult(output) {
-  
-        @Override
-        public void free() {
-          Arrays.stream(inObj).forEach(NNResult::free);
-        }
-  
-        @Override
-        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
-          ((CudaExecutionContext) nncontext).initThread();
-          assert error.length() == batch.length();
-          //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-          final CudaPtr errorPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, error);
-          if (input.isAlive()) {
-            final CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * precision.size * length, true);
-            CuDNN.handle(CuDNN.cudnnPoolingBackward(cudnnHandle, poolingDesc.getPtr(),
-                                                    alpha.getPtr(),
-                                                    outputDescriptor.getPtr(), outputData.getPtr(),
-                                                    outputDescriptor.getPtr(), errorPtr.getPtr(),
-                                                    inputDescriptor.getPtr(), inputData.getPtr(),
-                                                    beta.getPtr(),
-                                                    inputDescriptor.getPtr(), passbackBuffer.getPtr()));
-            input.accumulate(buffer, new GpuTensorList(passbackBuffer, length, inputSize, cudnnHandle, precision));
+  public NNResult eval(final NNResult... inObj) {
+    if (0 == CuDNN.gpuContexts.size()) return getCompatibilityLayer().eval(inObj);
+    return CuDNN.gpuContexts.run(nncontext -> {
+      final int poolDims = 2;
+      final int windowSize[] = {windowX, windowY};
+      final int padding[] = {paddingX, paddingY};
+      final int stride[] = {strideX, strideY};
+      try {
+        nncontext.initThread();
+        final NNResult input = inObj[0];
+        final TensorList batch = input.getData();
+        final int[] inputSize = batch.get(0).getDimensions();
+        final int length = batch.length();
+        final int inputDims = Tensor.dim(inputSize);
+        final CudaResource<cudnnPoolingDescriptor> poolingDesc = CuDNN.createPoolingDescriptor(
+          mode.id, poolDims, windowSize, padding, stride);
+        final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+          precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+        final int[] outputSize = new int[4];
+        CuDNN.handle(CuDNN.cudnnGetPoolingNdForwardOutputDim(poolingDesc.getPtr(), inputDescriptor.getPtr(), 4, outputSize));
+        assert inputSize[2] == outputSize[1];
+        final CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
+          precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[0], outputSize[1], outputSize[2], outputSize[3]);
+        final CudaPtr alpha = precision.javaPtr(nncontext.getDeviceNumber(), 1.0);
+        final CudaPtr beta = precision.javaPtr(nncontext.getDeviceNumber(), 0.0);
+        final CudaPtr inputData = CudaPtr.write(nncontext.getDeviceNumber(), precision, batch);
+        final CudaPtr outputData = CuDNN.alloc(nncontext.getDeviceNumber(), precision.size * 1l * Tensor.dim(outputSize), true);
+        CuDNN.handle(CuDNN.cudnnPoolingForward(nncontext.cudnnHandle, poolingDesc.getPtr(),
+                                               alpha.getPtr(),
+                                               inputDescriptor.getPtr(), inputData.getPtr(),
+                                               beta.getPtr(),
+                                               outputDescriptor.getPtr(), outputData.getPtr()));
+        final TensorList output = new GpuTensorList(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, nncontext.cudnnHandle, precision);
+        return new NNResult(output) {
+        
+          @Override
+          public void free() {
+            Arrays.stream(inObj).forEach(NNResult::free);
           }
-        }
-  
-        @Override
-        public boolean isAlive() {
-          return input.isAlive() || !isFrozen();
-        }
-      };
-    } catch (final Throwable e) {
-      throw new ComponentException("Error", e);
-    }
+        
+          @Override
+          public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
+            CuDNN.gpuContexts.apply(nncontext -> {
+              nncontext.initThread();
+              assert error.length() == batch.length();
+              final CudaPtr errorPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, error);
+              if (input.isAlive()) {
+                final CudaPtr passbackBuffer = CuDNN.alloc(nncontext.getDeviceNumber(), inputDims * 1l * precision.size * length, true);
+                CuDNN.handle(CuDNN.cudnnPoolingBackward(nncontext.cudnnHandle, poolingDesc.getPtr(),
+                                                        alpha.getPtr(),
+                                                        outputDescriptor.getPtr(), outputData.getPtr(),
+                                                        outputDescriptor.getPtr(), errorPtr.getPtr(),
+                                                        inputDescriptor.getPtr(), inputData.getPtr(),
+                                                        beta.getPtr(),
+                                                        inputDescriptor.getPtr(), passbackBuffer.getPtr()));
+                input.accumulate(buffer, new GpuTensorList(passbackBuffer, length, inputSize, nncontext.cudnnHandle, precision));
+              }
+            });
+          }
+        
+          @Override
+          public boolean isAlive() {
+            return input.isAlive() || !isFrozen();
+          }
+        };
+      } catch (final Throwable e) {
+        throw new ComponentException("Error", e);
+      }
+    });
   }
   
   @Override

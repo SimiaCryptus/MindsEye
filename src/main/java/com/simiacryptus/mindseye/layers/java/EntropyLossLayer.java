@@ -66,7 +66,7 @@ public class EntropyLossLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final double zero_tol = 1e-12;
     final Tensor gradient[] = new Tensor[inObj[0].getData().length()];
     final double max_prob = 1.;

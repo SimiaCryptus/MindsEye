@@ -17,10 +17,10 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn;
+package com.simiacryptus.mindseye.layers.cudnn.lang;
 
 import com.simiacryptus.mindseye.lang.PersistanceMode;
-import com.simiacryptus.mindseye.layers.cudnn.CudaPtr.MemoryType;
+import com.simiacryptus.mindseye.layers.cudnn.lang.CudaPtr.MemoryType;
 import jcuda.Pointer;
 import scala.reflect.internal.util.WeakHashSet;
 
@@ -101,7 +101,7 @@ public class ManagedCudaPtr {
   /**
    * Free.
    */
-  protected void free() {
+  public void free() {
     Supplier<CudaPtr> ptr = this.ptrRef;
     if (ptr != null) {
       CudaPtr cudaPtr = ptr.get();

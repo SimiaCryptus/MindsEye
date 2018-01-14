@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.eval.SampledTrainable;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.cudnn.GpuController;
+import com.simiacryptus.mindseye.layers.cudnn.lang.GpuController;
 import com.simiacryptus.mindseye.layers.java.*;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
@@ -252,7 +252,7 @@ public class EncodingProblem implements Problem {
       final TableOutput table = new TableOutput();
       Arrays.stream(trainingData).map(tensorArray -> {
         try {
-          final Tensor predictionSignal = GpuController.call(ctx -> testNetwork.eval(ctx, tensorArray)).getData().get(0);
+          final Tensor predictionSignal = GpuController.call(ctx -> testNetwork.eval(tensorArray)).getData().get(0);
           final LinkedHashMap<String, Object> row = new LinkedHashMap<>();
           row.put("Source", log.image(tensorArray[1].toImage(), ""));
           row.put("Echo", log.image(predictionSignal.toImage(), ""));
@@ -284,7 +284,7 @@ public class EncodingProblem implements Problem {
     log.p("Some rendered unit vectors:");
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
       final Tensor input = new Tensor(features).set(featureNumber, 1);
-      final Tensor tensor = GpuController.call(ctx -> imageNetwork.eval(ctx, input)).getData().get(0);
+      final Tensor tensor = GpuController.call(ctx -> imageNetwork.eval(input)).getData().get(0);
       TestUtil.renderToImages(tensor, true).forEach(img -> {
         try {
           log.out(log.image(img, ""));

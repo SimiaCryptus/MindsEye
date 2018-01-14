@@ -17,14 +17,13 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn;
+package com.simiacryptus.mindseye.layers.cudnn.lang;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.simiacryptus.mindseye.lang.GpuError;
 import com.simiacryptus.mindseye.lang.RecycleBin;
 import com.simiacryptus.util.test.SysOutInterceptor;
 
@@ -57,7 +56,7 @@ public final class GpuController {
    * The Device weight.
    */
   Map<String, Double> deviceWeight = new HashMap<>();
-  private LoadingCache<CudaExecutionContext, ExecutorService> gpuDriverThreads = CacheBuilder.newBuilder().build(new CacheLoader<CuDNN, ExecutorService>() {
+  private LoadingCache<CuDNN, ExecutorService> gpuDriverThreads = CacheBuilder.newBuilder().build(new CacheLoader<CuDNN, ExecutorService>() {
     @Override
     public ExecutorService load(final CuDNN gpu) throws Exception {
       return Executors.newSingleThreadExecutor(r -> {
@@ -76,12 +75,12 @@ public final class GpuController {
    * @param fn  the fn
    * @return the t
    */
-  public static <T> T call(final Function<CudaExecutionContext, T> fn) {
-    if (CudaExecutionContext.gpuContexts.getAll().isEmpty()) {
-      return fn.apply(new CudaExecutionContext(-1));
+  public static <T> T call(final Function<CuDNN, T> fn) {
+    if (CuDNN.gpuContexts.getAll().isEmpty()) {
+      return fn.apply(new CuDNN(-1));
     }
     else {
-      return CudaExecutionContext.gpuContexts.run(exe -> {
+      return CuDNN.gpuContexts.run(exe -> {
         try {
           return GpuController.INSTANCE.getGpuDriverThreads().get(exe).submit(() -> fn.apply(exe)).get();
         } catch (final Exception e) {
@@ -100,7 +99,7 @@ public final class GpuController {
   public static boolean isOom(final Throwable t) {
     if (t instanceof java.lang.OutOfMemoryError) return true;
     if (t instanceof com.simiacryptus.mindseye.lang.OutOfMemoryError) return true;
-    //if (t instanceof com.simiacryptus.mindseye.lang.GpuError) return true;
+    //if (t instanceof com.simiacryptus.mindseye.layers.cudnn.lang.GpuError) return true;
     if (null != t.getCause() && t != t.getCause()) return GpuController.isOom(t.getCause());
     return false;
   }
@@ -110,8 +109,8 @@ public final class GpuController {
    *
    * @param fn the fn
    */
-  public static void run(final Consumer<CudaExecutionContext> fn) {
-    CudaExecutionContext.gpuContexts.apply(exe -> {
+  public static void run(final Consumer<CuDNN> fn) {
+    CuDNN.gpuContexts.apply(exe -> {
       try {
         GpuController.INSTANCE.getGpuDriverThreads().get(exe).submit(() -> fn.accept(exe)).get();
       } catch (final Exception e) {
@@ -142,7 +141,7 @@ public final class GpuController {
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
       }
-      for (CudaExecutionContext exe : CudaExecutionContext.gpuContexts.getAll()) {
+      for (CuDNN exe : CuDNN.gpuContexts.getAll()) {
         try {
           GpuController.INSTANCE.getGpuDriverThreads().get(exe).submit(() -> {
             exe.initThread();
@@ -173,15 +172,15 @@ public final class GpuController {
    * @param reducer the reducer
    * @return the t
    */
-  public <T, U> T distribute(final List<U> data, final BiFunction<List<U>, CudaExecutionContext, T> mapper, final BinaryOperator<T> reducer) {
+  public <T, U> T distribute(final List<U> data, final BiFunction<List<U>, CuDNN, T> mapper, final BinaryOperator<T> reducer) {
     if (data.isEmpty()) return null;
-    final List<CudaExecutionContext> devices = CudaExecutionContext.gpuContexts.getAll();
+    final List<CuDNN> devices = CuDNN.gpuContexts.getAll();
     final double weightSum = devices.stream().mapToDouble(d -> getDeviceWeight(d)).sum();
     final List<Future<T>> results = new ArrayList<>();
     int start = 0;
     assert !devices.isEmpty();
     for (int i = 0; i < devices.size(); i++) {
-      final CudaExecutionContext dev = devices.get(i);
+      final CuDNN dev = devices.get(i);
       final int sampleSize = (int) Math.max(1, data.size() / weightSum * getDeviceWeight(dev));
       int end = start + sampleSize;
       if (i == devices.size() - 1) {
@@ -219,7 +218,7 @@ public final class GpuController {
     }).reduce(reducer).orElse(null);
   }
   
-  private <T, U> T evaluate(final CudaExecutionContext gpu, final List<U> data, final BiFunction<List<U>, CudaExecutionContext, T> mapper, final BinaryOperator<T> reducer) {
+  private <T, U> T evaluate(final CuDNN gpu, final List<U> data, final BiFunction<List<U>, CuDNN, T> mapper, final BinaryOperator<T> reducer) {
     Integer batchSize = deviceBatchSizes.getOrDefault(gpu.toString(), data.size());
     try {
       final long startNanos = System.nanoTime();
@@ -250,7 +249,7 @@ public final class GpuController {
    * @param d the d
    * @return the device weight
    */
-  public double getDeviceWeight(final CudaExecutionContext d) {
+  public double getDeviceWeight(final CuDNN d) {
     return 1.0;
     //return deviceWeight.getOrDefault(d.toString(), 1.0);
   }
@@ -260,7 +259,7 @@ public final class GpuController {
    *
    * @return the gpu driver threads
    */
-  public LoadingCache<CudaExecutionContext, ExecutorService> getGpuDriverThreads() {
+  public LoadingCache<CuDNN, ExecutorService> getGpuDriverThreads() {
     return gpuDriverThreads;
   }
   
@@ -269,7 +268,7 @@ public final class GpuController {
    *
    * @param gpuDriverThreads the gpu driver threads
    */
-  public void setGpuDriverThreads(final LoadingCache<CudaExecutionContext, ExecutorService> gpuDriverThreads) {
+  public void setGpuDriverThreads(final LoadingCache<CuDNN, ExecutorService> gpuDriverThreads) {
     this.gpuDriverThreads = gpuDriverThreads;
   }
 }

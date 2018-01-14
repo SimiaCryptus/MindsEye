@@ -21,9 +21,10 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
+import com.simiacryptus.mindseye.layers.cudnn.lang.Precision;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,11 +81,11 @@ public class SoftmaxActivationLayer extends NNLayer implements LayerPrecision<So
   
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
-    if (((CudaExecutionContext) nncontext).getDeviceNumber() < 0) return getCompatibilityLayer().eval(nncontext, inObj);
+  public NNResult eval(final NNResult... inObj) {
+    if (0 == CuDNN.gpuContexts.size()) return getCompatibilityLayer().eval(inObj);
   
     log.debug("Not Implemented: " + getClass().getCanonicalName());
-    return getCompatibilityLayer().eval(nncontext, inObj);
+    return getCompatibilityLayer().eval(inObj);
   }
   
   @Override

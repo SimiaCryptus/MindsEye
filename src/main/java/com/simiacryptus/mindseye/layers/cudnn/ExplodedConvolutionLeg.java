@@ -36,7 +36,7 @@ import java.util.function.Function;
 /**
  * The type Exploded network.
  */
-public class ExplodedConvolutionLeg {
+class ExplodedConvolutionLeg {
   private static final Logger log = LoggerFactory.getLogger(ExplodedConvolutionLeg.class);
   
   /**

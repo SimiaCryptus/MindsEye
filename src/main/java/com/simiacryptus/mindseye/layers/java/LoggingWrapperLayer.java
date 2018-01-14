@@ -20,7 +20,10 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.TensorList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,7 +73,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final NNResult[] wrappedInput = IntStream.range(0, inObj.length).mapToObj(i -> {
       final NNResult result = inObj[i];
       return new NNResult(result.getData()) {
@@ -99,7 +102,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
       final String formatted = tensorList.stream().map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).get();
       log.info(String.format("Input %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
     }
-    final NNResult output = getInner().eval(nncontext, wrappedInput);
+    final NNResult output = getInner().eval(wrappedInput);
     
     {
       final TensorList tensorList = output.getData();

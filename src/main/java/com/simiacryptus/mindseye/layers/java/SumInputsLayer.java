@@ -60,7 +60,7 @@ public class SumInputsLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final TensorList data = Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
       assert l.length() == r.length() || 1 == l.length() || 1 == r.length();
       return new TensorArray(IntStream.range(0, l.length()).parallel()

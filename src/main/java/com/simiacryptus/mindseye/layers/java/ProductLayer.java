@@ -65,7 +65,7 @@ public class ProductLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final double[] sum_A = new double[inObj[0].getData().length()];
     final Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
       double sum = 1;

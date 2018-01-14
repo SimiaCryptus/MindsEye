@@ -71,7 +71,7 @@ public class SoftmaxActivationLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
     final double[] sumA = new double[itemCnt];
     final Tensor expA[] = new Tensor[itemCnt];

@@ -115,7 +115,7 @@ public class FullyConnectedReferenceLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNExecutionContext nncontext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final NNResult inputResult = inObj[0];
     int[] inputDimensions = inputResult.getData().getDimensions();
     assert Tensor.dim(inputDimensions) == Tensor.dim(this.inputDims) : Arrays.toString(inputDimensions) + " == " + Arrays.toString(this.inputDims);
