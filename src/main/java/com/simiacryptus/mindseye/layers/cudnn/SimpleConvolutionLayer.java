@@ -195,7 +195,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
                                                  convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, beta.getPtr(),
                                                  outputDescriptor.getPtr(), outputBuffer.getPtr()));
       ManagedCudaPtr workspacePtr = workSpace.managed(PersistanceMode.Weak);
-      filterPtr.setGpuPersistance(PersistanceMode.Weak);
+      //filterPtr.setGpuPersistance(PersistanceMode.Weak);
       TensorList output = new GpuTensorList(outputBuffer, length, outputDims, cudnnHandle, precision);
       return new NNResult(output) {
   

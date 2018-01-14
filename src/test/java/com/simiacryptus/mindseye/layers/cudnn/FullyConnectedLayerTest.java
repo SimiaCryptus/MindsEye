@@ -21,7 +21,9 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
+import com.simiacryptus.util.io.NotebookOutput;
 
+import java.io.PrintStream;
 import java.util.Random;
 
 /**
@@ -72,8 +74,19 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
+  protected Class<?> getTargetClass() {
+    return FullyConnectedLayer.class;
+  }
+  
+  @Override
   public NNLayer getLayer(final int[][] inputSize, Random random) {
     return layer;
+  }
+  
+  @Override
+  public NNLayer getReferenceLayer() {
+    Class<? extends NNLayer> referenceLayerClass = getReferenceLayerClass();
+    return null == referenceLayerClass ? null : this.fullyConnectedLayer.as(referenceLayerClass);
   }
   
   @Override
@@ -96,6 +109,33 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
   /**
    * Basic Test
    */
+  public static class Big1 extends FullyConnectedLayerTest {
+    /**
+     * Instantiates a new Big.
+     */
+    public Big1() {
+      super(new int[]{2 * 1024}, new int[]{2 * 1024});
+      validateDifferentials = false;
+    }
+  
+    @Override
+    public void run(NotebookOutput log) {
+      String logName = "cuda_" + log.getName() + "_all.log";
+      log.p(log.file((String) null, logName, "GPU Log"));
+      CuDNN.addLog(new PrintStream(log.file(logName)));
+      super.run(log);
+    }
+  
+    @Override
+    public Class<? extends NNLayer> getReferenceLayerClass() {
+      return null;
+    }
+  
+  }
+  
+  /**
+   * Basic Test
+   */
   public static class Big extends FullyConnectedLayerTest {
     /**
      * Instantiates a new Big.
@@ -104,11 +144,11 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
       super(new int[]{25088}, new int[]{4096});
       validateDifferentials = false;
     }
-  
+    
     @Override
     public Class<? extends NNLayer> getReferenceLayerClass() {
       return null;
     }
-  
+    
   }
 }

@@ -92,7 +92,9 @@ public class ManagedCudaPtr {
     this.persistanceMode = persistanceMode;
     this.ptrRef = this.persistanceMode.wrap(ptr);
     this.dirty = false;
-    ManagedCudaPtr.INSTANCES.add(this);
+    synchronized (ManagedCudaPtr.INSTANCES) {
+      ManagedCudaPtr.INSTANCES.add(this);
+    }
     this.precision = precision;
   }
   

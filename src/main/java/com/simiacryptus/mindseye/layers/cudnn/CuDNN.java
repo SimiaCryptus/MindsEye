@@ -84,7 +84,7 @@ public class CuDNN {
     //cudaSetDevice();
   }
   
-  static {
+  public static void logHeader() {
     logger.info(getHeader());
   }
   
@@ -103,9 +103,12 @@ public class CuDNN {
     long[] total = {0};
     JCuda.cudaMemGetInfo(free, total);
     out.printf("Cuda Memory: %.1f free, %.1f total%n", free[0] * 1.0 / (1024 * 1024), total[0] * 1.0 / (1024 * 1024));
-    IntStream.range(0, deviceCount()).forEach(device -> {
-      cudaDeviceProp deviceProperties = getDeviceProperties(device);
-      out.printf("Device %d = %s%n", device, deviceProperties, free[0], total[0]);
+    final int[] deviceCount = new int[1];
+    jcuda.runtime.JCuda.cudaGetDeviceCount(deviceCount);
+    IntStream.range(0, deviceCount[0]).forEach(device -> {
+      final cudaDeviceProp deviceProp = new cudaDeviceProp();
+      JCuda.cudaGetDeviceProperties(deviceProp, device);
+      out.printf("Device %d = %s%n", device, deviceProp, free[0], total[0]);
     });
     System.getProperties().forEach((k, v) -> {
       boolean display = false;

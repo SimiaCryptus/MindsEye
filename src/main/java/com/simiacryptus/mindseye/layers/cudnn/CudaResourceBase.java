@@ -33,7 +33,7 @@ public abstract class CudaResourceBase<T> {
   /**
    * The constant debugLifecycle.
    */
-  public static boolean debugLifecycle = true;
+  public static boolean debugLifecycle = false;
   /**
    * The constant gpuGeneration.
    */

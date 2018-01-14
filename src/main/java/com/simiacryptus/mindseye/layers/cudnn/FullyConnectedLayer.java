@@ -137,9 +137,7 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
    * @return the weights log
    */
   public FullyConnectedLayer setWeightsLog(final double value) {
-    getWeights().coordStream(true).parallel().forEach(c -> {
-      getWeights().set(c, (FastRandom.random() - 0.5) * Math.pow(10, value));
-    });
+    getWeights().setByCoord(c -> (FastRandom.random() - 0.5) * Math.pow(10, value));
     return this;
   }
   
@@ -168,13 +166,10 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
     int outVol = Tensor.dim(outputDims);
     PipelineNetwork network = new PipelineNetwork(1);
     network.add(new ReshapeLayer(1, 1, inputVol));
-    Tensor tensor = this.weights.reshapeCast(1, 1, inputVol * outVol);
-    ConvolutionLayer convolutionLayer = new ConvolutionLayer(1, 1, inputVol, outVol) {
-      public Tensor getKernel() {
-        return tensor;
-      }
-    };
-    network.add(convolutionLayer.explode());
+    ExplodedConvolutionGrid grid = new ConvolutionLayer(1, 1, inputVol, outVol)
+      .set(this.weights.reshapeCast(1, 1, inputVol * outVol))
+      .getExplodedNetwork();
+    grid.add(network.getHead());
     network.add(new ReshapeLayer(outputDims));
     return network;
   }

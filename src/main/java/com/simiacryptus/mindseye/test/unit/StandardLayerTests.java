@@ -246,7 +246,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     return getLayer(getInputDims(new Random()), new Random()).getClass();
   }
   
-  private NNLayer cvt(NNLayer layer) {
+  protected NNLayer cvt(NNLayer layer) {
     if (layer instanceof DAGNetwork) {
       ((DAGNetwork) layer).visitNodes(node -> {
         NNLayer from = node.getLayer();
