@@ -82,17 +82,15 @@ final class InnerNode extends LazyResult {
   @Override
   protected NNResult eval(final GraphEvaluationContext ctx) {
     final NNLayer innerLayer = getLayer();
+    final NNResult[] in;
     if (1 == inputNodes.length) {
       final DAGNode inputNode = inputNodes[0];
-      final NNResult in = null == inputNode ? null : inputNode.get(ctx);
-      final NNResult output = innerLayer.eval(in);
-      return output;
+      in = new NNResult[]{null == inputNode ? null : inputNode.get(ctx)};
     }
     else {
-      final NNResult[] in = Arrays.stream(inputNodes).map(x -> x == null ? null : x.get(ctx)).toArray(i -> new NNResult[i]);
-      final NNResult output = innerLayer.eval(in);
-      return output;
+      in = Arrays.stream(inputNodes).parallel().map(x -> x == null ? null : x.get(ctx)).toArray(i -> new NNResult[i]);
     }
+    return innerLayer.eval(in);
   }
   
   @Override

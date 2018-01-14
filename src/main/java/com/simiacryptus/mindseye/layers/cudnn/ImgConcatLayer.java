@@ -27,6 +27,7 @@ import jcuda.jcudnn.cudnnTensorDescriptor;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 /**
  * Concatenates two or more inputs, assuming they have the same width and height, to produce an image with both inputs'
@@ -140,36 +141,35 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
       
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
-          CuDNN.gpuContexts.apply(nncontext -> {
-            if (!Arrays.equals(delta.getDimensions(), outputData.getDimensions())) {
-              throw new AssertionError(Arrays.toString(delta.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
-            }
-            //outputBuffer.free();
-            nncontext.initThread();
-            assert delta.length() == inObj[0].getData().length();
-            //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
-            int deviceNumber = nncontext.getDeviceNumber();
-            final CudaPtr cudaDelta = CudaPtr.write(deviceNumber, precision, delta);
-            int bandOffset = 0;
-            for (int i = 0; i < inObj.length; i++) {
+          if (!Arrays.equals(delta.getDimensions(), outputData.getDimensions())) {
+            throw new AssertionError(Arrays.toString(delta.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
+          }
+          //outputBuffer.free();
+          assert delta.length() == inObj[0].getData().length();
+          //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
+          IntStream.range(0, inObj.length).parallel().forEach(i -> {
+            CuDNN.gpuContexts.apply(nncontext -> {
+              nncontext.initThread();
               final NNResult input = inObj[i];
               assert 3 == input.getData().getDimensions().length;
               assert delta.length() == input.getData().length();
-              final int[] inputDimensions = input.getData().getDimensions();
-              assert inputDimensions[0] == outputDimensions[0];
-              assert inputDimensions[1] == outputDimensions[1];
-              final int inputBands = maxBands <= 0 ? inputDimensions[2] : Math.min(inputDimensions[2], maxBands - bandOffset);
+              assert input.getData().getDimensions()[0] == outputDimensions[0];
+              assert input.getData().getDimensions()[1] == outputDimensions[1];
+              int deviceNumber = nncontext.getDeviceNumber();
+              final CudaPtr cudaDelta = CudaPtr.write(deviceNumber, precision, delta);
+              int bandOffset = IntStream.range(0, i).map(j -> inObj[j].getData().getDimensions()[2]).sum();
+              int inputBands = maxBands <= 0 ? input.getData().getDimensions()[2] : Math.min(input.getData().getDimensions()[2], maxBands - bandOffset);
               if (inputBands > 0 && input.isAlive()) {
-                assert inputBands <= inputDimensions[2];
-                final CudaPtr cudaBackprop = CuDNN.alloc(deviceNumber, length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size, false);
+                assert inputBands <= input.getData().getDimensions()[2];
+                final CudaPtr cudaBackprop = CuDNN.alloc(deviceNumber, length * input.getData().getDimensions()[2] * input.getData().getDimensions()[1] * input.getData().getDimensions()[0] * precision.size, false);
                 final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-                  precision.code, length, inputBands, inputDimensions[1], inputDimensions[0], //
-                  inputDimensions[2] * inputDimensions[1] * inputDimensions[0], //
-                  inputDimensions[1] * inputDimensions[0], //
-                  inputDimensions[0], //
+                  precision.code, length, inputBands, input.getData().getDimensions()[1], input.getData().getDimensions()[0], //
+                  input.getData().getDimensions()[2] * input.getData().getDimensions()[1] * input.getData().getDimensions()[0], //
+                  input.getData().getDimensions()[1] * input.getData().getDimensions()[0], //
+                  input.getData().getDimensions()[0], //
                   1);
                 final CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
-                  precision.code, length, inputBands, inputDimensions[1], inputDimensions[0], //
+                  precision.code, length, inputBands, input.getData().getDimensions()[1], input.getData().getDimensions()[0], //
                   outputDimensions[2] * outputDimensions[1] * outputDimensions[0], //
                   outputDimensions[1] * outputDimensions[0], //
                   outputDimensions[0], //
@@ -178,16 +178,15 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
                                            precision.getPointer(1.0), outputDescriptor.getPtr(), cudaDelta.getPtr().withByteOffset(outputDimensions[1] * outputDimensions[0] * bandOffset * precision.size),
                                            precision.getPointer(0.0), inputDescriptor.getPtr(), cudaBackprop.getPtr()
                                           );
-                final TensorList passbackTensorList = new GpuTensorList(cudaBackprop, length, inputDimensions, nncontext.cudnnHandle, precision);
+                final TensorList passbackTensorList = new GpuTensorList(cudaBackprop, length, input.getData().getDimensions(), nncontext.cudnnHandle, precision);
                 //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
                 input.accumulate(buffer, passbackTensorList);
                 cudaBackprop.finalize();
               }
-              bandOffset += inputBands;
-            }
+            });
           });
         }
-      
+  
         @Override
         public boolean isAlive() {
           return Arrays.stream(inObj).anyMatch(x -> x.isAlive());

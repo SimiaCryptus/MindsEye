@@ -62,16 +62,8 @@ abstract class LazyResult implements DAGNode {
   protected abstract NNResult eval(GraphEvaluationContext t);
   
   @Override
-  public CountingNNResult get(final GraphEvaluationContext context) {
-    if (!context.cache.containsKey(id)) {
-      synchronized (context.cache) {
-        if (!context.cache.containsKey(id)) {
-          CountingNNResult result = new CountingNNResult(eval(context));
-          context.cache.put(id, result);
-        }
-      }
-    }
-    return context.cache.get(id).increment();
+  public synchronized CountingNNResult get(final GraphEvaluationContext context) {
+    return context.cache.computeIfAbsent(id, id -> new CountingNNResult(eval(context))).increment();
   }
   
   @Override

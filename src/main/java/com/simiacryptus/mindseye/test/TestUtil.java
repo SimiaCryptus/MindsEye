@@ -578,4 +578,8 @@ public class TestUtil {
     };
     return stream.map(conditions).mapToLong(fn).sorted().mapToInt(inv);
   }
+  
+  public static void runAll(Runnable... runnables) {
+    Arrays.stream(runnables).parallel().forEach(Runnable::run);
+  }
 }

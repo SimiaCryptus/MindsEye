@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.layers.cudnn.lang.*;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.java.SumInputsLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
+import com.simiacryptus.mindseye.test.TestUtil;
 import jcuda.jcudnn.*;
 
 import java.util.Arrays;
@@ -147,29 +148,32 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
       
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
-          CuDNN.gpuContexts.apply(nncontext -> {
-            nncontext.initThread();
-            assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-          
-            if (inObj[0].isAlive()) {
-              final CudaPtr lPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, delta);
-              final CudaPtr outputPtr = CuDNN.alloc(nncontext.getDeviceNumber(), lPtr.size, true);
-              CuDNN.handle(JCudnn.cudnnAddTensor(nncontext.cudnnHandle,
-                                                 precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
-                                                 precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-              final TensorList data = new GpuTensorList(outputPtr, length, dimensions, nncontext.cudnnHandle, precision);
-              inObj[0].accumulate(buffer, data);
-            }
-          
-            if (inObj[1].isAlive()) {
-              final CudaPtr lPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, delta);
-              final CudaPtr outputPtr = CuDNN.alloc(nncontext.getDeviceNumber(), lPtr.size, true);
-              CuDNN.handle(JCudnn.cudnnAddTensor(nncontext.cudnnHandle,
-                                                 precision.getPointer(rightFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
-                                                 precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-              final TensorList data = new GpuTensorList(outputPtr, length, dimensions, nncontext.cudnnHandle, precision);
-              inObj[1].accumulate(buffer, data);
-            }
+          TestUtil.runAll(() -> {
+            CuDNN.gpuContexts.apply(nncontext -> {
+              nncontext.initThread();
+              if (inObj[0].isAlive()) {
+                final CudaPtr lPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, delta);
+                final CudaPtr outputPtr = CuDNN.alloc(nncontext.getDeviceNumber(), lPtr.size, true);
+                CuDNN.handle(JCudnn.cudnnAddTensor(nncontext.cudnnHandle,
+                                                   precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
+                                                   precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
+                final TensorList data = new GpuTensorList(outputPtr, length, dimensions, nncontext.cudnnHandle, precision);
+                inObj[0].accumulate(buffer, data);
+              }
+            });
+          }, () -> {
+            CuDNN.gpuContexts.apply(nncontext -> {
+              nncontext.initThread();
+              if (inObj[1].isAlive()) {
+                final CudaPtr lPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, delta);
+                final CudaPtr outputPtr = CuDNN.alloc(nncontext.getDeviceNumber(), lPtr.size, true);
+                CuDNN.handle(JCudnn.cudnnAddTensor(nncontext.cudnnHandle,
+                                                   precision.getPointer(rightFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
+                                                   precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
+                final TensorList data = new GpuTensorList(outputPtr, length, dimensions, nncontext.cudnnHandle, precision);
+                inObj[1].accumulate(buffer, data);
+              }
+            });
           });
         }
       
