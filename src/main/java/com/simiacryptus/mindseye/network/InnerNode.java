@@ -67,6 +67,7 @@ final class InnerNode extends LazyResult {
     assert null != inputNodes;
     setLayer(layer);
     this.inputNodes = inputNodes;
+    assert Arrays.stream(inputNodes).allMatch(x -> x != null);
   }
   
   /**
@@ -83,6 +84,7 @@ final class InnerNode extends LazyResult {
   protected NNResult eval(final GraphEvaluationContext ctx) {
     final NNLayer innerLayer = getLayer();
     final NNResult[] in;
+    assert Arrays.stream(inputNodes).allMatch(x -> x != null);
     if (1 == inputNodes.length) {
       final DAGNode inputNode = inputNodes[0];
       in = new NNResult[]{null == inputNode ? null : inputNode.get(ctx)};

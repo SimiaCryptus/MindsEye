@@ -66,4 +66,5 @@ public class ReshapedTensorList implements TensorList {
   public Stream<Tensor> stream() {
     return data.stream().map(t -> t.reshapeCast(dims));
   }
+  
 }

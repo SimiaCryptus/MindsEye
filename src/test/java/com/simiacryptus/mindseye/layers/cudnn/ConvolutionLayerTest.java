@@ -173,32 +173,32 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Double.
      */
     public Double() {
-      super(1, 2, 2, Precision.Double, 16);
+      super(3, 2, 2, Precision.Double, 16);
     }
-  
-    @Override
-    public NNLayer getLayer(int[][] inputSize, Random random) {
-      return convolutionLayer.explode();
-    }
-  
-    @Override
-    public NNLayer getReferenceLayer() {
-      return convolutionLayer.as(com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class);
-    }
-  
-    @Override
-    public int[][] getInputDims(Random random) {
-      return new int[][]{
-        {1, 1, inputBands}
-      };
-    }
-  
-    @Override
-    public int[][] getPerfDims(Random random) {
-      return new int[][]{
-        {1, 1, inputBands}
-      };
-    }
+
+//    @Override
+//    public NNLayer getLayer(int[][] inputSize, Random random) {
+//      return convolutionLayer.explode();
+//    }
+//
+//    @Override
+//    public NNLayer getReferenceLayer() {
+//      return convolutionLayer.as(com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class);
+//    }
+//
+//    @Override
+//    public int[][] getInputDims(Random random) {
+//      return new int[][]{
+//        {1, 1, inputBands}
+//      };
+//    }
+//
+//    @Override
+//    public int[][] getPerfDims(Random random) {
+//      return new int[][]{
+//        {1, 1, inputBands}
+//      };
+//    }
     
   }
   

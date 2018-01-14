@@ -165,12 +165,12 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
         
           @Override
           public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
-            CuDNN.apply(nncontext -> {
-              nncontext.initThread();
-              assert error.length() == batch.length();
-              //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
-              final CudaPtr errorPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, error);
-              if (!isFrozen()) {
+            assert error.length() == batch.length();
+            //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
+            if (!isFrozen()) {
+              CuDNN.apply(nncontext -> {
+                nncontext.initThread();
+                final CudaPtr errorPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, error);
                 final CudaPtr filterBuffer = CuDNN.alloc(nncontext.getDeviceNumber(), bias.length * 1l * precision.size, false);
                 try {
                   CuDNN.handle(CuDNN.cudnnConvolutionBackwardBias(cudnnHandle, alpha.getPtr(),
@@ -185,11 +185,11 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
                 final Delta<NNLayer> deltaBuffer = buffer.get(ImgBandBiasLayer.this, bias);
                 deltaBuffer.addInPlace(weightGradient.getData());
                 //assert Arrays.stream(deltaBuffer.delta).allMatch(Double::isFinite);
-              }
-              if (input.isAlive()) {
-                input.accumulate(buffer, error);
-              }
-            });
+              });
+            }
+            if (input.isAlive()) {
+              input.accumulate(buffer, error);
+            }
           }
         
           @Override

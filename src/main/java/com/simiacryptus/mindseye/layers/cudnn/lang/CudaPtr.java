@@ -251,16 +251,8 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    *
    * @return the managed cuda ptr
    */
-  public ManagedCudaPtr managed() {return managed(PersistanceMode.Strong);}
-  
-  /**
-   * Managed managed cuda ptr.
-   *
-   * @param persistanceMode the persistance mode
-   * @return the managed cuda ptr
-   */
-  public ManagedCudaPtr managed(PersistanceMode persistanceMode) {
-    return new ManagedCudaPtr(this, persistanceMode);
+  public ManagedCudaPtr managed() {
+    return new ManagedCudaPtr(this, PersistanceMode.Strong);
   }
   
   @Override

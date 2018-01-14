@@ -136,11 +136,11 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
         
           @Override
           public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
-            CuDNN.apply(nncontext -> {
-              nncontext.initThread();
-              assert error.length() == batch.length();
-              final CudaPtr errorPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, error);
-              if (input.isAlive()) {
+            assert error.length() == batch.length();
+            if (input.isAlive()) {
+              GpuTensorList data = CuDNN.run(nncontext -> {
+                nncontext.initThread();
+                final CudaPtr errorPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, error);
                 final CudaPtr passbackBuffer = CuDNN.alloc(nncontext.getDeviceNumber(), inputDims * 1l * precision.size * length, true);
                 CuDNN.handle(CuDNN.cudnnPoolingBackward(nncontext.cudnnHandle, poolingDesc.getPtr(),
                                                         alpha.getPtr(),
@@ -149,9 +149,10 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
                                                         inputDescriptor.getPtr(), inputData.getPtr(),
                                                         beta.getPtr(),
                                                         inputDescriptor.getPtr(), passbackBuffer.getPtr()));
-                input.accumulate(buffer, new GpuTensorList(passbackBuffer, length, inputSize, nncontext.cudnnHandle, precision));
-              }
-            });
+                return new GpuTensorList(passbackBuffer, length, inputSize, nncontext.cudnnHandle, precision);
+              });
+              input.accumulate(buffer, data);
+            }
           }
         
           @Override

@@ -103,7 +103,7 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
   @Override
   public NNResult eval(final NNResult... inObj) {
     if (CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
-    return CuDNN.run((CuDNN nncontext) -> {
+    return CuDNN.run(nncontext -> {
       nncontext.initThread();
       //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
       final NNResult input = inObj[0];
@@ -142,7 +142,7 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
         
           @Override
           public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
-            CuDNN.apply(nncontext -> {
+            final GpuTensorList data = CuDNN.run(nncontext -> {
               //assert (error.length() == batch.length());
               //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
               nncontext.initThread();
@@ -160,11 +160,14 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
                 } catch (final Throwable e) {
                   throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
                 }
-                final GpuTensorList data = new GpuTensorList(passbackBuffer, length, inputSize, cudnnHandle, precision);
-                input.accumulate(buffer, data);
-                data.recycle();
+                return new GpuTensorList(passbackBuffer, length, inputSize, cudnnHandle, precision);
               }
+              else return null;
             });
+            if (null != data) {
+              input.accumulate(buffer, data);
+              data.recycle();
+            }
           }
         
           @Override

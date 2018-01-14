@@ -27,6 +27,7 @@ import jcuda.jcudnn.cudnnTensorDescriptor;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 /**
@@ -123,22 +124,26 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
                                 );
       final TensorList outputData = new GpuTensorList(cudaOutput, length, outputDimensions, nncontext.cudnnHandle, precision);
       //assert outputData.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-      ManagedCudaPtr cleanupPtr = cudaOutput.managed(PersistanceMode.Weak);
+      Supplier<CudaPtr> cleanupPtr = PersistanceMode.Weak.wrap(cudaOutput);
       return new NNResult(outputData) {
       
         @Override
         public void free() {
           Arrays.stream(inObj).forEach(NNResult::free);
-          cleanupPtr.free();
+          free(cleanupPtr.get());
         }
-      
+  
+        public void free(CudaPtr cudaPtr) {
+          if (null != cudaPtr) cudaPtr.finalize();
+        }
+  
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
-          CuDNN.apply(nncontext -> {
-            if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
-              throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
-            }
-            if (inObj[0].isAlive()) {
+          if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
+            throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
+          }
+          if (inObj[0].isAlive()) {
+            final TensorList passbackTensorList = CuDNN.run(nncontext -> {
               nncontext.initThread();
               assert error.length() == inputData.length();
               //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
@@ -150,12 +155,12 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
                                          precision.getPointer(1.0), outputDescriptor.getPtr(), errorPtr.getPtr(),
                                          precision.getPointer(0.0), inputDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
                                         );
-              final TensorList passbackTensorList = new GpuTensorList(passbackBuffer, length, inputDimensions, nncontext.cudnnHandle, precision);
+              return new GpuTensorList(passbackBuffer, length, inputDimensions, nncontext.cudnnHandle, precision);
               //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-              inObj[0].accumulate(buffer, passbackTensorList);
-              passbackBuffer.finalize();
-            }
-          });
+            });
+            inObj[0].accumulate(buffer, passbackTensorList);
+            passbackTensorList.recycle();
+          }
         }
       
         @Override

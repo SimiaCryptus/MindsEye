@@ -105,7 +105,7 @@ class CountingNNResult extends NNResult {
     }
     else {
       if (null == passbackBuffer) {
-        passbackBuffer = data.copy();
+        passbackBuffer = null == data ? null : data.copy();
       }
       else {
         passbackBuffer.accum(data);

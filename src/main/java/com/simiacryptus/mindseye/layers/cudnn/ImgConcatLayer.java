@@ -104,12 +104,10 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
         assert inputDimensions[0] == outputDimensions[0];
         assert inputDimensions[1] == outputDimensions[1];
   
-  
-        int bandOffset = IntStream.range(0, i).map(j -> inObj[j].getData().getDimensions()[2]).sum();
+        int bandOffset = Math.max(IntStream.range(0, i).map(j -> inObj[j].getData().getDimensions()[2]).sum(), maxBands);
         int inputBands = maxBands <= 0 ? inputDimensions[2] : Math.min(inputDimensions[2], maxBands - bandOffset);
         //final int inputBands = maxBands <= 0 ? inputDimensions[2] : Math.min(inputDimensions[2], maxBands - bandOffset);
-
-
+  
         if (inputBands > 0) {
           assert inputBands > 0;
           assert maxBands <= 0 || inputBands <= maxBands;
@@ -131,7 +129,6 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
                                      precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.getPtr(),
                                      precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr().withByteOffset(inputDimensions[1] * inputDimensions[0] * bandOffset * precision.size)
                                     );
-          bandOffset += inputBands;
         }
       }
       final TensorList outputData = new GpuTensorList(cudaOutput, length, outputDimensions, nncontext.cudnnHandle, precision);
@@ -153,18 +150,18 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
           assert delta.length() == inObj[0].getData().length();
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
           IntStream.range(0, inObj.length).parallel().forEach(i -> {
-            CuDNN.apply(nncontext -> {
-              nncontext.initThread();
-              final NNResult input = inObj[i];
-              assert 3 == input.getData().getDimensions().length;
-              assert delta.length() == input.getData().length();
-              assert input.getData().getDimensions()[0] == outputDimensions[0];
-              assert input.getData().getDimensions()[1] == outputDimensions[1];
-              int deviceNumber = nncontext.getDeviceNumber();
-              final CudaPtr cudaDelta = CudaPtr.write(deviceNumber, precision, delta);
-              int bandOffset = IntStream.range(0, i).map(j -> inObj[j].getData().getDimensions()[2]).sum();
-              int inputBands = maxBands <= 0 ? input.getData().getDimensions()[2] : Math.min(input.getData().getDimensions()[2], maxBands - bandOffset);
-              if (inputBands > 0 && input.isAlive()) {
+            final NNResult input = inObj[i];
+            assert 3 == input.getData().getDimensions().length;
+            assert delta.length() == input.getData().length();
+            assert input.getData().getDimensions()[0] == outputDimensions[0];
+            assert input.getData().getDimensions()[1] == outputDimensions[1];
+            int bandOffset = IntStream.range(0, i).map(j -> inObj[j].getData().getDimensions()[2]).sum();
+            int inputBands = maxBands <= 0 ? input.getData().getDimensions()[2] : Math.min(input.getData().getDimensions()[2], maxBands - bandOffset);
+            if (inputBands > 0 && input.isAlive()) {
+              final TensorList passbackTensorList = CuDNN.run(nncontext -> {
+                nncontext.initThread();
+                int deviceNumber = nncontext.getDeviceNumber();
+                final CudaPtr cudaDelta = CudaPtr.write(deviceNumber, precision, delta);
                 assert inputBands <= input.getData().getDimensions()[2];
                 final CudaPtr cudaBackprop = CuDNN.alloc(deviceNumber, length * input.getData().getDimensions()[2] * input.getData().getDimensions()[1] * input.getData().getDimensions()[0] * precision.size, false);
                 final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
@@ -183,12 +180,12 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
                                            precision.getPointer(1.0), outputDescriptor.getPtr(), cudaDelta.getPtr().withByteOffset(outputDimensions[1] * outputDimensions[0] * bandOffset * precision.size),
                                            precision.getPointer(0.0), inputDescriptor.getPtr(), cudaBackprop.getPtr()
                                           );
-                final TensorList passbackTensorList = new GpuTensorList(cudaBackprop, length, input.getData().getDimensions(), nncontext.cudnnHandle, precision);
-                //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-                input.accumulate(buffer, passbackTensorList);
-                cudaBackprop.finalize();
-              }
-            });
+                return new GpuTensorList(cudaBackprop, length, input.getData().getDimensions(), nncontext.cudnnHandle, precision);
+              });
+              input.accumulate(buffer, passbackTensorList);
+              passbackTensorList.recycle();
+            }
+            //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           });
         }
   

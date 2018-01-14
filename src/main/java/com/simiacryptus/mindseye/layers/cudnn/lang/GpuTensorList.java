@@ -193,4 +193,5 @@ public class GpuTensorList implements TensorList {
   public Stream<Tensor> stream() {
     return inner().stream();
   }
+  
 }

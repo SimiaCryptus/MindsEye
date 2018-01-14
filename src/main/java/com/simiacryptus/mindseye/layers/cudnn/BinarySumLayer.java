@@ -149,31 +149,35 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
           TestUtil.runAll(() -> {
-            CuDNN.apply(nncontext -> {
-              nncontext.initThread();
-              if (inObj[0].isAlive()) {
+            if (inObj[0].isAlive()) {
+              final TensorList data = CuDNN.run(nncontext -> {
+                nncontext.initThread();
                 final CudaPtr lPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, delta);
                 final CudaPtr outputPtr = CuDNN.alloc(nncontext.getDeviceNumber(), lPtr.size, true);
+                final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
+                  precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
                 CuDNN.handle(JCudnn.cudnnAddTensor(nncontext.cudnnHandle,
                                                    precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                                    precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-                final TensorList data = new GpuTensorList(outputPtr, length, dimensions, nncontext.cudnnHandle, precision);
-                inObj[0].accumulate(buffer, data);
-              }
-            });
+                return new GpuTensorList(outputPtr, length, dimensions, nncontext.cudnnHandle, precision);
+              });
+              inObj[0].accumulate(buffer, data);
+            }
           }, () -> {
-            CuDNN.apply(nncontext -> {
-              nncontext.initThread();
-              if (inObj[1].isAlive()) {
+            if (inObj[1].isAlive()) {
+              final TensorList data = CuDNN.run(nncontext -> {
+                nncontext.initThread();
                 final CudaPtr lPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, delta);
                 final CudaPtr outputPtr = CuDNN.alloc(nncontext.getDeviceNumber(), lPtr.size, true);
+                final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
+                  precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
                 CuDNN.handle(JCudnn.cudnnAddTensor(nncontext.cudnnHandle,
                                                    precision.getPointer(rightFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                                    precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-                final TensorList data = new GpuTensorList(outputPtr, length, dimensions, nncontext.cudnnHandle, precision);
-                inObj[1].accumulate(buffer, data);
-              }
-            });
+                return new GpuTensorList(outputPtr, length, dimensions, nncontext.cudnnHandle, precision);
+              });
+              inObj[1].accumulate(buffer, data);
+            }
           });
         }
       

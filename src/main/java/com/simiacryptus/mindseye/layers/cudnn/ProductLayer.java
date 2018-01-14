@@ -117,14 +117,14 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
       
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
-          CuDNN.apply(nncontext -> {
-            nncontext.initThread();
-            assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-            for (int index = 0; index < inObj.length; index++) {
-              final NNResult input = inObj[index];
-              if (input.isAlive()) {
-                final int _index = index;
-                input.accumulate(buffer, IntStream.range(0, inObj.length).mapToObj(i -> i == _index ? delta : inObj[i].getData()).reduce((l, r) -> {
+          assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+          for (int index = 0; index < inObj.length; index++) {
+            final NNResult input = inObj[index];
+            if (input.isAlive()) {
+              final int _index = index;
+              TensorList data = IntStream.range(0, inObj.length).mapToObj(i -> i == _index ? delta : inObj[i].getData()).reduce((l, r) -> {
+                return CuDNN.run(nncontext -> {
+                  nncontext.initThread();
                   final CudaPtr lPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, l);
                   final CudaPtr rPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, r);
                   assert lPtr.size == rPtr.size;
@@ -134,10 +134,11 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
                                                     precision.getPointer(1.0f), sizeDescriptor.getPtr(), rPtr.getPtr(),
                                                     precision.getPointer(0.0f), sizeDescriptor.getPtr(), outputPtr.getPtr()));
                   return new GpuTensorList(outputPtr, length, dimensions, nncontext.cudnnHandle, precision);
-                }).get());
-              }
+                });
+              }).get();
+              input.accumulate(buffer, data);
             }
-          });
+          }
         }
       
         @Override

@@ -121,28 +121,28 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
       
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
-          CuDNN.apply(nncontext -> {
-            if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
-              throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
-            }
-            if (error.length() != outputData.length()) {
-              throw new AssertionError(error.length() + " != " + outputData.length());
-            }
-          
-            assert error.length() == inObj[0].getData().length();
-            if (inObj[0].isAlive()) {
+          if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
+            throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
+          }
+          if (error.length() != outputData.length()) {
+            throw new AssertionError(error.length() + " != " + outputData.length());
+          }
+          assert error.length() == inObj[0].getData().length();
+          if (inObj[0].isAlive()) {
+            final TensorList passbackTensorList = CuDNN.run(nncontext -> {
               nncontext.initThread();
               final CudaPtr errorPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, error);
               final CudaPtr passbackBuffer = CuDNN.alloc(nncontext.getDeviceNumber(),
                                                          length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size, true);
               copy(nncontext, length, dimOut, errorPtr, dimIn, passbackBuffer);
-              final TensorList passbackTensorList = new GpuTensorList(passbackBuffer, length, dimIn, nncontext.cudnnHandle, precision);
-              inObj[0].accumulate(buffer, passbackTensorList);
-              passbackBuffer.finalize();
+              GpuTensorList gpuTensorList = new GpuTensorList(passbackBuffer, length, dimIn, nncontext.cudnnHandle, precision);
               errorPtr.finalize();
-            }
-            free();
-          });
+              return gpuTensorList;
+            });
+            inObj[0].accumulate(buffer, passbackTensorList);
+            passbackTensorList.recycle();
+          }
+          free();
         }
       
         @Override

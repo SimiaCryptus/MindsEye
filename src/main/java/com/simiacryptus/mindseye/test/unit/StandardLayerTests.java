@@ -63,6 +63,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    */
   public static final long seed = 51389; //System.nanoTime();
   private final Random random = new Random(seed);
+  private boolean testTraining = false;
   
   /**
    * Instantiates a new Standard layer tests.
@@ -279,7 +280,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * @return the learning tester
    */
   public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
-    return new TrainingTester();
+    return isTestTraining() ? new TrainingTester() : null;
   }
   
   /**
@@ -425,5 +426,14 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   @Override
   public ReportType getReportType() {
     return ReportType.Components;
+  }
+  
+  public boolean isTestTraining() {
+    return testTraining;
+  }
+  
+  public StandardLayerTests setTestTraining(boolean testTraining) {
+    this.testTraining = testTraining;
+    return this;
   }
 }
