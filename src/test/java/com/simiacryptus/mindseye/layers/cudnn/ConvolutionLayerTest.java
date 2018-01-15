@@ -21,13 +21,16 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.lang.Precision;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
+import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.PrintStream;
 import java.util.Random;
 
 /**
@@ -51,6 +54,17 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
    * The Convolution layer.
    */
   ConvolutionLayer convolutionLayer;
+  
+  @Override
+  public void run(NotebookOutput log) {
+    String logName = "cuda_" + log.getName() + "_all.log";
+    log.p(log.file((String) null, logName, "GPU Log"));
+    PrintStream apiLog = new PrintStream(log.file(logName));
+    CuDNN.addLog(apiLog);
+    super.run(log);
+    apiLog.close();
+    CuDNN.apiLog.remove(apiLog);
+  }
   
   /**
    * Instantiates a new Convolution layer apply.
@@ -234,16 +248,25 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
       super(3, 3, 3, Precision.Double, 16);
       convolutionLayer.setPaddingXY(0, 0);
     }
-  
-    @Override
-    public Class<? extends NNLayer> getReferenceLayerClass() {
-      // BUG: Reference aparapi implementation does not seem to implement nonstandard padding correctly
-      return null;
-    }
+
+//
+//    @Override
+//    public int[][] getInputDims(Random random) {
+//      return new int[][]{
+//        {50, 50, inputBands}
+//      };
+//    }
+//
+//    @Override
+//    public int[][] getPerfDims(Random random) {
+//      return getInputDims(random);
+//    }
+//
   
     @Override
     public NNLayer getReferenceLayer() {
-      return super.getReferenceLayer();
+      // BUG: Reference aparapi implementation does not seem to implement nonstandard padding correctly
+      return null;
     }
   }
   

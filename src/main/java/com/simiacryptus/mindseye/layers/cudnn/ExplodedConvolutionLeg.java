@@ -218,7 +218,8 @@ class ExplodedConvolutionLeg {
     else {
       head = network.add(new ImgConcatLayer().setMaxBands(this.convolutionParams.outputBands).setPrecision(this.convolutionParams.precision),
                          subLayers.stream().map(l -> {
-                           return network.add(new LinearActivationLayer().freeze(), network.add(l, input));
+                           return network.add(new LinearActivationLayer().freeze(),  // GPU Interlink bug hack
+                                              network.add(l, input));
                          }).toArray(i -> new DAGNode[i]));
     }
     if (this.convolutionParams.paddingX != null || this.convolutionParams.paddingY != null) {
@@ -226,7 +227,9 @@ class ExplodedConvolutionLeg {
       if (this.convolutionParams.paddingX != null) x = this.convolutionParams.paddingX - x;
       int y = ((filterDimensions[1] - 1) / 2);
       if (this.convolutionParams.paddingY != null) y = this.convolutionParams.paddingY - y;
-      head = network.add(new ImgZeroPaddingLayer(x, y), head);
+      head = network.add(new ImgZeroPaddingLayer(x, y),
+                         network.add(new LinearActivationLayer().freeze(),
+                                     head));
     }
     return head;
   }
