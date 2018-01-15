@@ -19,10 +19,8 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.Delta;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import org.slf4j.Logger;
@@ -91,6 +89,9 @@ class ExplodedConvolutionLeg {
     int inputBands = getInputBands();
     final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
     int outputBands = this.convolutionParams.outputBands;
+    int squareOutputBands = (int) (Math.ceil(convolutionParams.outputBands * 1.0 / inputBands) * inputBands);
+    assert squareOutputBands >= convolutionParams.outputBands : String.format("%d >= %d", squareOutputBands, convolutionParams.outputBands);
+    assert squareOutputBands % inputBands == 0 : String.format("%d %% %d", squareOutputBands, inputBands);
     filterDimensions[2] = inputBands * outputBands;
     assert Arrays.equals(filter.getDimensions(), filterDimensions) : Arrays.toString(filter.getDimensions()) + " != " + Arrays.toString(filterDimensions);
     final int inputBandsSq = inputBands * inputBands;
@@ -98,7 +99,7 @@ class ExplodedConvolutionLeg {
       final int filterBandOffset = layerNumber * inputBandsSq;
       subLayers.get(layerNumber).set(new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq).setByCoord(c -> {
         int[] coords = c.getCoords();
-        int filterBand = getFilterBand(filterBandOffset, coords[2]);
+        int filterBand = getFilterBand(filterBandOffset, coords[2], squareOutputBands);
         if (filterBand < filterDimensions[2]) {
           return filter.get(coords[0], coords[1], filterBand);
         }
@@ -121,14 +122,18 @@ class ExplodedConvolutionLeg {
     final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
     filterDimensions[2] = inputBands * this.convolutionParams.outputBands;
     int outputBands = convolutionParams.outputBands;
+    int squareOutputBands = (int) (Math.ceil(convolutionParams.outputBands * 1.0 / inputBands) * inputBands);
+    assert squareOutputBands >= convolutionParams.outputBands : String.format("%d >= %d", squareOutputBands, convolutionParams.outputBands);
+    assert squareOutputBands % inputBands == 0 : String.format("%d %% %d", squareOutputBands, inputBands);
     Tensor resultDelta = new Tensor(filterDimensions[0], filterDimensions[1], inputBands * outputBands);
+  
     for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
-      final int filterBandOffset = layerNumber * inputBands * inputBands;
+      int _layerNumber = layerNumber;
       Tensor deltaTensor = extractor.apply(subLayers.get(layerNumber));
       if (null != deltaTensor) {
         deltaTensor.forEach((v, c) -> {
           int[] coords = c.getCoords();
-          int filterBand = getFilterBand(filterBandOffset, coords[2]);
+          int filterBand = getFilterBand(_layerNumber * inputBands * inputBands, coords[2], squareOutputBands);
           if (filterBand < filterDimensions[2]) {
             resultDelta.set(coords[0], coords[1], filterBand, v);
           }
@@ -143,12 +148,21 @@ class ExplodedConvolutionLeg {
    *
    * @param filterBandOffset the filter band offset
    * @param cellFilterBand   the filter band
+   * @param squareOutputBands
    * @return the filter band
    */
-  public int getFilterBand(int filterBandOffset, int cellFilterBand) {
-    int filterBand = filterBandOffset + cellFilterBand;
-    filterBand = ConvolutionLayer.transposeCoordinates(getInputBands(), convolutionParams.outputBands, filterBand);
-    //log.info(String.format("%s.getFilterBand(%d,%d) = %d", this, filterBandOffset, cellFilterBand, filterBand));
+  public int getFilterBand(int filterBandOffset, int cellFilterBand, int squareOutputBands) {
+    int inputBands = getInputBands();
+    assert cellFilterBand >= 0;
+    assert cellFilterBand < (inputBands * inputBands);
+    assert filterBandOffset < (inputBands * squareOutputBands);
+
+//    int filterBand = Coordinate.transposeXY(inputBands, inputBands, cellFilterBand) + filterBandOffset;
+    int filterBand = cellFilterBand + filterBandOffset;
+  
+    filterBand = Coordinate.transposeXY(inputBands, convolutionParams.outputBands, filterBand);
+//    filterBand = Coordinate.transposeXY(convolutionParams.outputBands, inputBands, filterBand);
+    
     return filterBand;
   }
   
@@ -204,7 +218,7 @@ class ExplodedConvolutionLeg {
     else {
       head = network.add(new ImgConcatLayer().setMaxBands(this.convolutionParams.outputBands).setPrecision(this.convolutionParams.precision),
                          subLayers.stream().map(l -> {
-                           return network.add(l, input);
+                           return network.add(new LinearActivationLayer().freeze(), network.add(l, input));
                          }).toArray(i -> new DAGNode[i]));
     }
     if (this.convolutionParams.paddingX != null || this.convolutionParams.paddingY != null) {

@@ -69,6 +69,21 @@ public final class Coordinate {
     return r;
   }
   
+  /**
+   * Transpose coordinates int.
+   *
+   * @param rows  the rows
+   * @param cols  the cols
+   * @param index the index
+   * @return the int
+   */
+  public static int transposeXY(int rows, int cols, int index) {
+    final int filterBandX = index % rows;
+    final int filterBandY = (index - filterBandX) / rows;
+    assert index == filterBandY * rows + filterBandX;
+    return filterBandX * cols + filterBandY;
+  }
+  
   @Override
   public boolean equals(final Object obj) {
     if (this == obj) {

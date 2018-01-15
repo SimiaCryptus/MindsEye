@@ -143,21 +143,6 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   }
   
   /**
-   * Transpose coordinates int.
-   *
-   * @param rows  the rows
-   * @param cols  the cols
-   * @param index the index
-   * @return the int
-   */
-  public static int transposeCoordinates(int rows, int cols, int index) {
-    final int filterBandX = index % rows;
-    final int filterBandY = (index - filterBandX) / rows;
-    assert index == filterBandY * rows + filterBandX;
-    return filterBandX * cols + filterBandY;
-  }
-  
-  /**
    * Explode nn layer.
    *
    * @return the nn layer

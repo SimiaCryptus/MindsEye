@@ -22,6 +22,9 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.lang.Precision;
+import com.simiacryptus.mindseye.test.ToleranceStatistics;
+import com.simiacryptus.mindseye.test.unit.ComponentTest;
+import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -63,7 +66,10 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
     this.inputBands = inputBands;
     this.outputBands = outputBands;
     convolutionLayer = new ConvolutionLayer(radius, radius, inputBands, outputBands).setPrecision(precision).setBatchBands(batchBands);
-    convolutionLayer.getKernel().set(() -> random());
+    Random random = getRandom();
+    convolutionLayer.getKernel().set(() -> {
+      return random(random);
+    });
   }
   
   /**
@@ -73,7 +79,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   public void verifyWeights() {
     ExplodedConvolutionGrid explodedNetwork = this.convolutionLayer.getExplodedNetwork();
     int[] kernelDims = this.convolutionLayer.getKernel().getDimensions();
-    Tensor testData = new Tensor(kernelDims).map(x -> Math.random());
+    Tensor testData = new Tensor(kernelDims).map(x -> random());
     explodedNetwork.write(testData);
     Tensor echo = explodedNetwork.read();
     Assert.assertEquals(testData, echo);
@@ -99,8 +105,8 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public Class<? extends NNLayer> getReferenceLayerClass() {
-    return com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class;
+  public NNLayer getReferenceLayer() {
+    return convolutionLayer.as(com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class);
   }
   
   @Override
@@ -117,9 +123,47 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Asymmetric apply.
      */
     public BandExpand() {
-      super(3, 3, 4, Precision.Double, 16);
+      super(1, 3, 2, Precision.Double, 16);
+    }
+  
+    @Override
+    public int[][] getInputDims(Random random) {
+      return new int[][]{
+        {1, 1, inputBands}
+      };
+    }
+  
+    @Override
+    public int[][] getPerfDims(Random random) {
+      return getInputDims(random);
     }
     
+  }
+  
+  /**
+   * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
+   */
+  public static class BandLimit extends ConvolutionLayerTest {
+    
+    /**
+     * Instantiates a new Asymmetric apply.
+     */
+    public BandLimit() {
+      super(1, 3, 2, Precision.Double, 16);
+    }
+
+//    @Override
+//    public int[][] getInputDims(Random random) {
+//      return new int[][]{
+//        {10, 10, inputBands}
+//      };
+//    }
+//
+//    @Override
+//    public int[][] getPerfDims(Random random) {
+//      return getInputDims(random);
+//    }
+  
   }
   
   /**
@@ -173,7 +217,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Double.
      */
     public Double() {
-      super(3, 2, 2, Precision.Double, 16);
+      super(3, 4, 4, Precision.Double, 16);
     }
     
   }
@@ -238,6 +282,12 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
      */
     public IrregularTest_Float() {
       super(3, 7, 5, Precision.Float, 16);
+    }
+  
+    @Override
+    public ComponentTest<ToleranceStatistics> getDerivativeTester() {
+      if (!validateDifferentials) return null;
+      return new SingleDerivativeTester(1e-2, 1e-4);
     }
   }
   

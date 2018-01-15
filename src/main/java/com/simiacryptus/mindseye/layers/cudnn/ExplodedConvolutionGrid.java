@@ -126,8 +126,13 @@ class ExplodedConvolutionGrid {
   
   private int getFilterBand(ExplodedConvolutionLeg leg, int legFilterBand) {
     int filterBand = legFilterBand;
+//    int filterBand = Coordinate.transposeXY(convolutionParams.outputBands, leg.getInputBands(), legFilterBand);
+
     filterBand = filterBand + convolutionParams.outputBands * leg.fromBand;
-    filterBand = ConvolutionLayer.transposeCoordinates(convolutionParams.inputBands, convolutionParams.outputBands, filterBand);
+
+//    filterBand = Coordinate.transposeXY(convolutionParams.outputBands, convolutionParams.inputBands, filterBand);
+//    filterBand = Coordinate.transposeXY(convolutionParams.inputBands, convolutionParams.outputBands, filterBand);
+
     //log.info(String.format("%s.getFilterBand(%s,%d) = %d", this, leg, legFilterBand, filterBand));
     return filterBand;
   }

@@ -1053,7 +1053,7 @@ public class Tensor implements Serializable {
    * @return the tensor
    */
   public Tensor set(final DoubleSupplier f) {
-    Arrays.parallelSetAll(getData(), i -> f.getAsDouble());
+    Arrays.setAll(getData(), i -> f.getAsDouble());
     return this;
   }
   

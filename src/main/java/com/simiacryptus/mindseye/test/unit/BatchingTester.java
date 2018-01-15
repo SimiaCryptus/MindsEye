@@ -27,6 +27,8 @@ import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.SimpleListEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,6 +39,7 @@ import java.util.stream.IntStream;
  * The type Batching tester.
  */
 public class BatchingTester implements ComponentTest<ToleranceStatistics> {
+  private static final Logger logger = LoggerFactory.getLogger(BatchingTester.class);
   
   private final double tolerance;
   
@@ -83,8 +86,11 @@ public class BatchingTester implements ComponentTest<ToleranceStatistics> {
                                                                                            asABatch.getOutput().get(batch).getData(),
                                                                                            oneAtATime.get(batch).getOutput().getData())
                                                                                       ).reduce((a, b) -> a.combine(b)).get();
-    if (!(outputAgreement.absoluteTol.getMax() < tolerance))
+    if (!(outputAgreement.absoluteTol.getMax() < tolerance)) {
+      logger.info("Batch Output: " + asABatch.getOutput().stream().map(x -> x.prettyPrint()).collect(Collectors.toList()));
+      logger.info("Singular Output: " + oneAtATime.stream().map(x -> x.getOutput().prettyPrint()).collect(Collectors.toList()));
       throw new AssertionError("Output Corrupt: " + outputAgreement);
+    }
   
     final ToleranceStatistics derivativeAgreement = IntStream.range(0, batchSize).mapToObj(batch ->
                                                                                              IntStream.range(0, inputTensorLists.length).mapToObj(input ->

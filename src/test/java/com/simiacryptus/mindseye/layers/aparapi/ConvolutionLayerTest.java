@@ -39,7 +39,7 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
   
     @Override
     public NNLayer getLayer(final int[][] inputSize, Random random) {
-      return new ConvolutionLayer(3, 3, inputBands, outputBands, true).setWeights(this::random);
+      return new ConvolutionLayer(3, 3, inputBands, outputBands, true).setWeights(() -> this.random());
     }
     
     @Override
@@ -74,7 +74,7 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
   
     @Override
     public NNLayer getLayer(final int[][] inputSize, Random random) {
-      return new ConvolutionLayer(3, 3, 7, 3, false).setWeights(this::random);
+      return new ConvolutionLayer(3, 3, 7, 3, false).setWeights(() -> this.random());
     }
   
   }
@@ -93,7 +93,7 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
     
     @Override
     public NNLayer getLayer(final int[][] inputSize, Random random) {
-      return new ConvolutionLayer(3, 3, 2, 3, false).setWeights(this::random);
+      return new ConvolutionLayer(3, 3, 2, 3, false).setWeights(() -> this.random());
     }
   
   }

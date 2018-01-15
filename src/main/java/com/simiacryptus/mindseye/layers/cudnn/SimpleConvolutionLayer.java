@@ -155,9 +155,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
     if (!CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
     return CuDNN.run(nncontext -> {
       final int deviceNumber = nncontext.getDeviceNumber();
-      if (deviceNumber < 0) return getCompatibilityLayer().eval(inObj);
       //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
-      nncontext.initThread();
       final NNResult input = inObj[0];
       final TensorList batch = input.getData();
       final int[] inputSize = batch.getDimensions();
@@ -225,7 +223,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
               int deviceNumber = nncontext.getDeviceNumber();
               final CudaPtr errorPtr = CudaPtr.write(deviceNumber, precision, error);
               if (!isFrozen()) {
-                final CudaPtr filterBuffer = CuDNN.alloc(deviceNumber, kernel.getData().length * 1l * precision.size, true);
+                final CudaPtr filterBuffer = CuDNN.alloc(deviceNumber, kernel.dim() * 1l * precision.size, true);
                 try {
                   final int backwardAlgorithm = nncontext.getBackwardFilterAlgorithm(
                     inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
@@ -302,7 +300,19 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
    * @return the compatibility layer
    */
   public NNLayer getCompatibilityLayer() {
-    return this.as(com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class);
+    int bands = (int) Math.sqrt(this.kernel.getDimensions()[2]);
+    final com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer convolutionLayer = new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(this.kernel.getDimensions()[0], this.kernel.getDimensions()[1], this.kernel.getDimensions()[2], true);
+    final Tensor tensor = new Tensor(kernel.getDimensions());
+    tensor.setByCoord(c -> {
+      final int band = c.getCoords()[2];
+      final int bandX = band % bands;
+      final int bandY = (band - bandX) / bands;
+      assert band == bandX + bandY * bands;
+      final int bandT = bandY + bandX * bands;
+      return kernel.get(c.getCoords()[0], c.getCoords()[1], bandT);
+    });
+    convolutionLayer.kernel.set(tensor);
+    return convolutionLayer;
   }
   
   @Override

@@ -62,7 +62,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * The constant seed.
    */
   public static final long seed = 51389; //System.nanoTime();
-  private final Random random = new Random(seed);
   private boolean testTraining = false;
   
   /**
@@ -289,12 +288,18 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     return isTestTraining() ? new TrainingTester() : null;
   }
   
+  private final Random random = getRandom();
+
   /**
    * Random double.
    *
    * @return the double
    */
   public double random() {
+    return random(random);
+  }
+  
+  public double random(Random random) {
     return Math.round(1000.0 * (random.nextDouble() - 0.5)) / 250.0;
   }
   
@@ -452,5 +457,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   public StandardLayerTests setTestTraining(boolean testTraining) {
     this.testTraining = testTraining;
     return this;
+  }
+  
+  public Random getRandom() {
+    return new Random(seed);
   }
 }

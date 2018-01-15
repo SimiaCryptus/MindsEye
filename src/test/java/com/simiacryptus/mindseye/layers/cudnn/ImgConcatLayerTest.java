@@ -62,6 +62,11 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
     };
   }
   
+  @Override
+  public Class<? extends NNLayer> getReferenceLayerClass() {
+    return com.simiacryptus.mindseye.layers.java.ImgConcatLayer.class;
+  }
+  
   /**
    * Test truncation feature that limits the image to N bands, discarding the last as needed.
    */
@@ -77,7 +82,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
     @Override
     public int[][] getInputDims(Random random) {
       return new int[][]{
-        {1, 1, 2}, {1, 1, 2}, {1, 1, 2}
+        {1, 1, 3}
       };
     }
   
@@ -88,7 +93,38 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
   
     @Override
     public NNLayer getLayer(final int[][] inputSize, Random random) {
-      return new ImgConcatLayer().setMaxBands(5);
+      return new ImgConcatLayer().setMaxBands(2);
+    }
+  }
+  
+  /**
+   * Test truncation feature that both concatenates images and limits the image to N bands, discarding the last as
+   * needed.
+   */
+  public static class BandConcatLimitTest extends ImgConcatLayerTest {
+    
+    /**
+     * Instantiates a new Band limit apply.
+     */
+    public BandConcatLimitTest() {
+      super(Precision.Double);
+    }
+    
+    @Override
+    public int[][] getInputDims(Random random) {
+      return new int[][]{
+        {1, 1, 2}, {1, 1, 2}
+      };
+    }
+    
+    @Override
+    public int[][] getPerfDims(Random random) {
+      return getInputDims(new Random());
+    }
+    
+    @Override
+    public NNLayer getLayer(final int[][] inputSize, Random random) {
+      return new ImgConcatLayer().setMaxBands(3);
     }
   }
   

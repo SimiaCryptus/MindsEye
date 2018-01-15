@@ -67,7 +67,7 @@ public abstract class RescaledSubnetLayerTest extends LayerTestBase // CudnnLaye
   
   @Override
   public NNLayer getLayer(final int[][] inputSize, Random random) {
-    return new RescaledSubnetLayer(2, convolutionLayer.set(this::random));
+    return new RescaledSubnetLayer(2, convolutionLayer.set(() -> this.random()));
   }
   
   @Override

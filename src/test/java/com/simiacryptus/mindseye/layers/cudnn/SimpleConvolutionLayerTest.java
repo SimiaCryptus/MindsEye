@@ -49,12 +49,6 @@ public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
    */
   SimpleConvolutionLayer layer;
   
-  @Override
-  public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
-    return null;
-    //return super.getTrainingTester();
-  }
-  
   
   /**
    * Instantiates a new Simple convolution layer apply.
@@ -156,6 +150,15 @@ public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
      */
     public Matrix() {
       super(3, 1, Precision.Double);
+    }
+  }
+  
+  public static class Temp extends SimpleConvolutionLayerTest {
+    /**
+     * Instantiates a new Matrix.
+     */
+    public Temp() {
+      super(1, 3, Precision.Double);
     }
   }
   

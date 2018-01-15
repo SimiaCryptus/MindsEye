@@ -37,20 +37,23 @@ public class ImgConcatLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ImgConcatLayer.class);
+  private int maxBands;
   
   /**
    * Instantiates a new Img concat layer.
    */
   public ImgConcatLayer() {
+    setMaxBands(0);
   }
   
   /**
    * Instantiates a new Img concat layer.
    *
-   * @param id the id
+   * @param json the json
    */
-  protected ImgConcatLayer(final JsonObject id) {
-    super(id);
+  protected ImgConcatLayer(final JsonObject json) {
+    super(json);
+    setMaxBands(json.get("maxBands").getAsInt());
   }
   
   /**
@@ -72,6 +75,7 @@ public class ImgConcatLayer extends NNLayer {
     assert Arrays.stream(inObj).allMatch(x -> x.getData().length() == numBatches) : "All inputs must use same batch size";
     final int[] outputDims = Arrays.copyOf(inObj[0].getData().get(0).getDimensions(), 3);
     outputDims[2] = Arrays.stream(inObj).mapToInt(x -> x.getData().get(0).getDimensions()[2]).sum();
+    if (maxBands > 0) outputDims[2] = Math.min(maxBands, outputDims[2]);
     assert Arrays.stream(inObj).allMatch(x -> x.getData().get(0).getDimensions()[0] == outputDims[0]) : "Inputs must be same size";
     assert Arrays.stream(inObj).allMatch(x -> x.getData().get(0).getDimensions()[1] == outputDims[1]) : "Inputs must be same size";
   
@@ -82,7 +86,7 @@ public class ImgConcatLayer extends NNLayer {
       final double[] outputTensorData = outputTensor.getData();
       for (int i = 0; i < inObj.length; i++) {
         final double[] data = inObj[i].getData().get(b).getData();
-        System.arraycopy(data, 0, outputTensorData, pos, data.length);
+        System.arraycopy(data, 0, outputTensorData, pos, Math.min(data.length, outputTensorData.length - pos));
         pos += data.length;
       }
       outputTensors.add(outputTensor);
@@ -105,7 +109,8 @@ public class ImgConcatLayer extends NNLayer {
           int pos = 0;
           for (int i = 0; i < inObj.length; i++) {
             final Tensor dest = new Tensor(inObj[i].getData().get(0).getDimensions());
-            System.arraycopy(tensor.getData(), pos, dest.getData(), 0, dest.size());
+            double[] tensorData = tensor.getData();
+            System.arraycopy(tensorData, pos, dest.getData(), 0, Math.min(dest.size(), tensorData.length - pos));
             pos += dest.size();
             outputTensors[i] = dest;
           }
@@ -147,5 +152,14 @@ public class ImgConcatLayer extends NNLayer {
   @Override
   public List<double[]> state() {
     return Arrays.asList();
+  }
+  
+  public int getMaxBands() {
+    return maxBands;
+  }
+  
+  public ImgConcatLayer setMaxBands(int maxBands) {
+    this.maxBands = maxBands;
+    return this;
   }
 }

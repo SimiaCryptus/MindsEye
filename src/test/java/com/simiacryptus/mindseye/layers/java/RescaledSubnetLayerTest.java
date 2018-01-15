@@ -39,7 +39,7 @@ public abstract class RescaledSubnetLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer(final int[][] inputSize, Random random) {
-    return new RescaledSubnetLayer(2, new ConvolutionLayer(3, 3, 1, 1).set(this::random));
+    return new RescaledSubnetLayer(2, new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random()));
   }
   
   /**
