@@ -44,30 +44,23 @@ public class GpuTensorList implements TensorList {
    * The Ptr.
    */
   public final ManagedCudaPtr ptr;
-  /**
-   * The Cudnn handle.
-   */
-  protected final jcuda.jcudnn.cudnnHandle cudnnHandle;
   private final Precision precision;
   private volatile TensorList _inner = null;
   
   /**
    * Instantiates a new Cu dnn double tensor list.
-   *
-   * @param ptr         the ptr
+   *  @param ptr         the ptr
    * @param length      the length
    * @param dimensions  the dimensions
-   * @param cudnnHandle the cudnn handle
    * @param precision   the precision
    */
-  public GpuTensorList(final CudaPtr ptr, final int length, final int[] dimensions, final jcuda.jcudnn.cudnnHandle cudnnHandle, final Precision precision) {
+  public GpuTensorList(final CudaPtr ptr, final int length, final int[] dimensions, final Precision precision) {
     this.precision = precision;
     if (null == ptr) throw new IllegalArgumentException("ptr");
     if (null == ptr.getPtr()) throw new IllegalArgumentException("ptr.getPtr()");
     this.ptr = ptr.managed();
     this.length = length;
-    this.dimensions = dimensions;
-    this.cudnnHandle = cudnnHandle;
+    this.dimensions = Arrays.copyOf(dimensions, dimensions.length);
     assert ptr.size == length * Tensor.dim(dimensions) * precision.size;
     assert ptr.getPtr() != null;
     //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
@@ -78,14 +71,17 @@ public class GpuTensorList implements TensorList {
   public void accum(final TensorList right) {
     assert length() == right.length();
     if (right instanceof GpuTensorList && ((GpuTensorList) right).precision == precision) {
-      final GpuTensorList nativeRight = (GpuTensorList) right;
-      assert cudnnHandle == nativeRight.cudnnHandle;
-      final CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
-      CuDNN.handle(CuDNN.cudnnAddTensor(cudnnHandle,
-                                        precision.getPointer(1.0), size.getPtr(), nativeRight.ptr.getPtr(),
-                                        precision.getPointer(1.0), size.getPtr(), GpuTensorList.this.ptr.getPtr()));
-      size.finalize();
-      nativeRight.ptr.free(); // Make this function destructive to both arguments
+      CuDNN.apply(exe -> {
+        final GpuTensorList nativeRight = (GpuTensorList) right;
+        final CudaResource<cudnnTensorDescriptor> leftSize = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
+        final CudaResource<cudnnTensorDescriptor> rightSize = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
+        CuDNN.handle(CuDNN.cudnnAddTensor(exe.cudnnHandle,
+                                          precision.getPointer(1.0), rightSize.getPtr(), nativeRight.ptr.getPtr(),
+                                          precision.getPointer(1.0), leftSize.getPtr(), GpuTensorList.this.ptr.getPtr()));
+        leftSize.finalize();
+        rightSize.finalize();
+        nativeRight.ptr.free(); // Make this function destructive to both arguments
+      });
     }
     else {
       IntStream.range(0, length()).forEach(i -> {
@@ -98,14 +94,15 @@ public class GpuTensorList implements TensorList {
   public TensorList add(final TensorList right) {
     assert length() == right.length();
     if (right instanceof GpuTensorList && ((GpuTensorList) right).precision == precision) {
-      final GpuTensorList nativeRight = (GpuTensorList) right;
-      assert cudnnHandle == nativeRight.cudnnHandle;
-      final CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
-      CuDNN.handle(CuDNN.cudnnAddTensor(cudnnHandle,
-                                        precision.getPointer(1.0), size.getPtr(), nativeRight.ptr.getPtr(),
-                                        precision.getPointer(1.0), size.getPtr(), GpuTensorList.this.ptr.getPtr()));
-      size.finalize();
-      nativeRight.ptr.free(); // Make this function destructive to both arguments
+      CuDNN.apply(exe -> {
+        final GpuTensorList nativeRight = (GpuTensorList) right;
+        final CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
+        CuDNN.handle(CuDNN.cudnnAddTensor(exe.cudnnHandle,
+                                          precision.getPointer(1.0), size.getPtr(), nativeRight.ptr.getPtr(),
+                                          precision.getPointer(1.0), size.getPtr(), GpuTensorList.this.ptr.getPtr()));
+        size.finalize();
+        nativeRight.ptr.free(); // Make this function destructive to both arguments
+      });
       return this;
     }
     return new TensorArray(

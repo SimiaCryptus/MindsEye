@@ -40,7 +40,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
   /**
    * The Layer.
    */
-  ImgBandSelectLayer layer = new ImgBandSelectLayer(1, 2);
+  ImgBandSelectLayer layer;
   
   /**
    * Instantiates a new Img concat layer apply.
@@ -49,6 +49,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
    */
   public ImgBandSelectLayerTest(final Precision precision) {
     this.precision = precision;
+    layer = new ImgBandSelectLayer(1, 2).setPrecision(precision);
   }
   
   @Override

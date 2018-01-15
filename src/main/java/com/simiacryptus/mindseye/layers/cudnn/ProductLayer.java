@@ -77,7 +77,7 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    if (CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    if (!CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
     return CuDNN.run(nncontext -> {
       nncontext.initThread();
       if (inObj.length <= 1) {
@@ -102,10 +102,10 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
         assert lPtr.size == rPtr.size;
         final CudaPtr outputPtr = CuDNN.alloc(nncontext.getDeviceNumber(), lPtr.size, true);
         CuDNN.handle(JCudnn.cudnnOpTensor(nncontext.cudnnHandle, opDescriptor.getPtr(),
-                                          precision.getPointer(1.0f), sizeDescriptor.getPtr(), lPtr.getPtr(),
-                                          precision.getPointer(1.0f), sizeDescriptor.getPtr(), rPtr.getPtr(),
-                                          precision.getPointer(0.0f), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-        return new GpuTensorList(outputPtr, length, dimensions, nncontext.cudnnHandle, precision);
+                                          precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
+                                          precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
+                                          precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
+        return new GpuTensorList(outputPtr, length, dimensions, precision);
       }).get();
     
       return new NNResult(result) {
@@ -130,10 +130,10 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
                   assert lPtr.size == rPtr.size;
                   final CudaPtr outputPtr = CuDNN.alloc(nncontext.getDeviceNumber(), lPtr.size, true);
                   CuDNN.handle(JCudnn.cudnnOpTensor(nncontext.cudnnHandle, opDescriptor.getPtr(),
-                                                    precision.getPointer(1.0f), sizeDescriptor.getPtr(), lPtr.getPtr(),
-                                                    precision.getPointer(1.0f), sizeDescriptor.getPtr(), rPtr.getPtr(),
-                                                    precision.getPointer(0.0f), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-                  return new GpuTensorList(outputPtr, length, dimensions, nncontext.cudnnHandle, precision);
+                                                    precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
+                                                    precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
+                                                    precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
+                  return new GpuTensorList(outputPtr, length, dimensions, precision);
                 });
               }).get();
               input.accumulate(buffer, data);

@@ -94,7 +94,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    if (CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    if (!CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
     return CuDNN.run(nncontext -> {
       if (nncontext.getDeviceNumber() < 0)
         return getCompatibilityLayer().eval(inObj);
@@ -110,7 +110,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
       final CudaPtr outputBuffer = CuDNN.alloc(nncontext.getDeviceNumber(),
                                                length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size, true);
       copy(nncontext, length, dimIn, inputBuffer, dimOut, outputBuffer);
-      final TensorList outputData = new GpuTensorList(outputBuffer, length, dimOut, nncontext.cudnnHandle, precision);
+      final TensorList outputData = new GpuTensorList(outputBuffer, length, dimOut, precision);
       return new NNResult(outputData) {
       
         @Override
@@ -135,7 +135,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
               final CudaPtr passbackBuffer = CuDNN.alloc(nncontext.getDeviceNumber(),
                                                          length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size, true);
               copy(nncontext, length, dimOut, errorPtr, dimIn, passbackBuffer);
-              GpuTensorList gpuTensorList = new GpuTensorList(passbackBuffer, length, dimIn, nncontext.cudnnHandle, precision);
+              GpuTensorList gpuTensorList = new GpuTensorList(passbackBuffer, length, dimIn, precision);
               errorPtr.finalize();
               return gpuTensorList;
             });

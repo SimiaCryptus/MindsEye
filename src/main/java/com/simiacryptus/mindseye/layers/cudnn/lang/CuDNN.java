@@ -1333,6 +1333,7 @@ public class CuDNN {
     else {
       return contexts.run(exe -> {
         try {
+          exe.initThread();
           return fn.apply(exe);
         } catch (final Exception e) {
           throw new RuntimeException(e);
@@ -1349,6 +1350,7 @@ public class CuDNN {
   public static void apply(final Consumer<CuDNN> fn) {
     contexts.apply(exe -> {
       try {
+        exe.initThread();
         fn.accept(exe);
       } catch (final Exception e) {
         throw new RuntimeException(e);
@@ -1357,7 +1359,7 @@ public class CuDNN {
   }
   
   public static boolean isEnabled() {
-    return 0 == CuDNN.contexts.size();
+    return 0 < CuDNN.contexts.size();
   }
   
   /**

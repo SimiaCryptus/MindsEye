@@ -862,7 +862,7 @@ public class Tensor implements Serializable {
    * @param f the f
    * @return the tensor
    */
-  public Tensor mapCoords(final ToDoubleFunction<Coordinate> f) {return mapCoords(f, true);}
+  public Tensor mapCoords(final ToDoubleFunction<Coordinate> f) {return mapCoords(f, false);}
   
   /**
    * Map coords tensor.

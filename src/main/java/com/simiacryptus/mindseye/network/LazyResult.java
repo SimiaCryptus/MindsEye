@@ -84,7 +84,11 @@ abstract class LazyResult implements DAGNode {
           context.calculated.put(id, singleton);
         }
       }
-      if (run) deque.add(new CountingNNResult(eval(context)));
+      if (run) {
+        NNResult result = eval(context);
+        assert null != result;
+        deque.add(new CountingNNResult(result));
+      }
     }
     Supplier<CountingNNResult> resultSupplier = context.calculated.get(id);
     CountingNNResult nnResult = null == resultSupplier ? null : resultSupplier.get();

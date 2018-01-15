@@ -26,7 +26,10 @@ import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.java.SumInputsLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.TestUtil;
-import jcuda.jcudnn.*;
+import jcuda.jcudnn.cudnnOpTensorDescriptor;
+import jcuda.jcudnn.cudnnOpTensorOp;
+import jcuda.jcudnn.cudnnTensorDescriptor;
+import jcuda.jcudnn.cudnnTensorFormat;
 
 import java.util.Arrays;
 import java.util.List;
@@ -100,33 +103,33 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    if (CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    if (!CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
+  
+    if (inObj.length == 1) {
+      if (rightFactor != 1) throw new IllegalStateException();
+      if (leftFactor != 1) throw new IllegalStateException();
+      return inObj[0];
+    }
+    if (inObj.length > 2) {
+      if (rightFactor != 1) throw new IllegalStateException();
+      if (leftFactor != 1) throw new IllegalStateException();
+      return Arrays.stream(inObj).reduce((a, b) -> eval(a, b)).get();
+    }
+    assert (inObj.length == 2);
+    final TensorList leftData = inObj[0].getData();
+    final TensorList rightData = inObj[1].getData();
+    final int[] dimensions = leftData.getDimensions();
+    final int length = leftData.length();
+    if (3 != dimensions.length) {
+      throw new IllegalArgumentException("dimensions=" + Arrays.toString(dimensions));
+    }
+    for (int i = 1; i < inObj.length; i++) {
+      if (Tensor.dim(dimensions) != Tensor.dim(inObj[i].getData().getDimensions())) {
+        throw new IllegalArgumentException(Arrays.toString(dimensions) + " != " + Arrays.toString(inObj[i].getData().getDimensions()));
+      }
+    }
+  
     return CuDNN.run(nncontext -> {
-      nncontext.initThread();
-      if (inObj.length == 1) {
-        if (rightFactor != 1) throw new IllegalStateException();
-        if (leftFactor != 1) throw new IllegalStateException();
-        return inObj[0];
-      }
-      if (inObj.length > 2) {
-        if (rightFactor != 1) throw new IllegalStateException();
-        if (leftFactor != 1) throw new IllegalStateException();
-        return Arrays.stream(inObj).reduce((a, b) -> eval(a, b)).get();
-      }
-      assert (inObj.length == 2);
-      final TensorList leftData = inObj[0].getData();
-      final TensorList rightData = inObj[1].getData();
-      final int[] dimensions = leftData.getDimensions();
-      final int length = leftData.length();
-      if (3 != dimensions.length) {
-        throw new IllegalArgumentException("dimensions=" + Arrays.toString(dimensions));
-      }
-      for (int i = 1; i < inObj.length; i++) {
-        if (Tensor.dim(dimensions) != Tensor.dim(inObj[i].getData().getDimensions())) {
-          throw new IllegalArgumentException(Arrays.toString(dimensions) + " != " + Arrays.toString(inObj[i].getData().getDimensions()));
-        }
-      }
-    
       final CudaResource<cudnnOpTensorDescriptor> opDescriptor = CuDNN.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
       final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
@@ -134,11 +137,11 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
       final CudaPtr rPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, rightData);
       assert lPtr.size == rPtr.size;
       final CudaPtr outputPtr = CuDNN.alloc(nncontext.getDeviceNumber(), lPtr.size, true);
-      CuDNN.handle(JCudnn.cudnnOpTensor(nncontext.cudnnHandle, opDescriptor.getPtr(),
-                                        precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
-                                        precision.getPointer(rightFactor), sizeDescriptor.getPtr(), rPtr.getPtr(),
-                                        precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-      TensorList result = new GpuTensorList(outputPtr, length, dimensions, nncontext.cudnnHandle, precision);
+      CuDNN.cudnnOpTensor(nncontext.cudnnHandle, opDescriptor.getPtr(),
+                          precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
+                          precision.getPointer(rightFactor), sizeDescriptor.getPtr(), rPtr.getPtr(),
+                          precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
+      TensorList result = new GpuTensorList(outputPtr, length, dimensions, precision);
       return new NNResult(result) {
       
         @Override
@@ -150,33 +153,29 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
           TestUtil.runAll(() -> {
             if (inObj[0].isAlive()) {
-              final TensorList data = CuDNN.run(nncontext -> {
-                nncontext.initThread();
+              inObj[0].accumulate(buffer, CuDNN.run(nncontext -> {
                 final CudaPtr lPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, delta);
                 final CudaPtr outputPtr = CuDNN.alloc(nncontext.getDeviceNumber(), lPtr.size, true);
                 final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
                   precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
-                CuDNN.handle(JCudnn.cudnnAddTensor(nncontext.cudnnHandle,
-                                                   precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
-                                                   precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-                return new GpuTensorList(outputPtr, length, dimensions, nncontext.cudnnHandle, precision);
-              });
-              inObj[0].accumulate(buffer, data);
+                CuDNN.cudnnAddTensor(nncontext.cudnnHandle,
+                                     precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
+                                     precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
+                return new GpuTensorList(outputPtr, length, dimensions, precision);
+              }));
             }
           }, () -> {
             if (inObj[1].isAlive()) {
-              final TensorList data = CuDNN.run(nncontext -> {
-                nncontext.initThread();
+              inObj[1].accumulate(buffer, CuDNN.run(nncontext -> {
                 final CudaPtr lPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, delta);
                 final CudaPtr outputPtr = CuDNN.alloc(nncontext.getDeviceNumber(), lPtr.size, true);
                 final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
                   precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
-                CuDNN.handle(JCudnn.cudnnAddTensor(nncontext.cudnnHandle,
-                                                   precision.getPointer(rightFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
-                                                   precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-                return new GpuTensorList(outputPtr, length, dimensions, nncontext.cudnnHandle, precision);
-              });
-              inObj[1].accumulate(buffer, data);
+                CuDNN.cudnnAddTensor(nncontext.cudnnHandle,
+                                     precision.getPointer(rightFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
+                                     precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
+                return new GpuTensorList(outputPtr, length, dimensions, precision);
+              }));
             }
           });
         }

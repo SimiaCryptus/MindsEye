@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.lang.Precision;
 import com.simiacryptus.mindseye.layers.java.ActivationLayerTestBase;
 import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
@@ -29,6 +30,7 @@ import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 import com.simiacryptus.util.io.NotebookOutput;
 
+import java.io.PrintStream;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -80,6 +82,10 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   
   @Override
   public void run(final NotebookOutput log) {
+    String logName = "cuda_" + log.getName() + "_all.log";
+    log.p(log.file((String) null, logName, "GPU Log"));
+    CuDNN.addLog(new PrintStream(log.file(logName)));
+
     super.run(log);
   
     log.h3("Function Plots");

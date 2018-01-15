@@ -46,6 +46,7 @@ public abstract class NNResult {
    */
   public NNResult(final TensorList data) {
     super();
+    if (null == data) throw new IllegalArgumentException();
     this.data = data;
   }
   

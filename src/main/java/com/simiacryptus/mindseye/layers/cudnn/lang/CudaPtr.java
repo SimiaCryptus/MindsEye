@@ -286,48 +286,65 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    * Read cuda ptr.
    *
    * @param precision the precision
-   * @param data      the data
+   * @param destination      the data
    * @return the cuda ptr
    */
-  public CudaPtr read(final Precision precision, final double[] data) {
-    synchronized (CudaPtr.getPciBusLock()) {
-      if (size != data.length * precision.size) {
-        throw new IllegalArgumentException(size + " != " + data.length * precision.size);
+  public CudaPtr read(final Precision precision, final double[] destination) {
+    if (precision == Precision.Float) {
+      float[] data = new float[destination.length];
+      read(Precision.Float, data);
+      for (int i = 0; i < data.length; i++) {
+        destination[i] = data[i];
       }
-      Pointer ptr = getPtr();
-      final Pointer dst = precision.getPointer(data);
-      int returnCode = CuDNN.cudaMemcpy(dst, ptr, size, useDefaultDir ? cudaMemcpyKind.cudaMemcpyDefault : cudaMemcpyKind.cudaMemcpyDeviceToHost);
-//      if(cudaErrorInvalidMemcpyDirection == returnCode) {
-//        returnCode = CuDNN.cudaMemcpy(dst, getPtr(), size, cudaMemcpyKind.cudaMemcpyHostToHost);
-//      }
-      CuDNN.handle(returnCode);
-      CudaPtr.getGpuStats(deviceId).memoryReads.addAndGet(size);
-      return this;
     }
+    else {
+      synchronized (CudaPtr.getPciBusLock()) {
+        if (size != destination.length * precision.size) {
+          throw new IllegalArgumentException(size + " != " + destination.length * precision.size);
+        }
+        int returnCode = CuDNN.cudaMemcpy(precision.getPointer(destination), getPtr(),
+                                          size,
+                                          useDefaultDir ? cudaMemcpyKind.cudaMemcpyDefault : cudaMemcpyKind.cudaMemcpyDeviceToHost);
+        //      if(cudaErrorInvalidMemcpyDirection == returnCode) {
+        //        returnCode = CuDNN.cudaMemcpy(dst, getPtr(), size, cudaMemcpyKind.cudaMemcpyHostToHost);
+        //      }
+        CuDNN.handle(returnCode);
+        CudaPtr.getGpuStats(deviceId).memoryReads.addAndGet(size);
+      }
+    }
+    return this;
   }
   
   /**
    * Read cuda ptr.
    *
    * @param precision the precision
-   * @param data      the data
+   * @param destination      the data
    * @return the cuda ptr
    */
-  public CudaPtr read(final Precision precision, final float[] data) {
-    synchronized (CudaPtr.getPciBusLock()) {
-      if (size != data.length * 1l * precision.size) {
-        throw new IllegalArgumentException(size + " != " + data.length * 1l * precision.size);
+  public CudaPtr read(final Precision precision, final float[] destination) {
+    if (precision == Precision.Double) {
+      double[] data = new double[destination.length];
+      read(Precision.Double, data);
+      for (int i = 0; i < data.length; i++) {
+        destination[i] = (float) data[i];
       }
-      final Pointer dst = precision.getPointer(data);
-      int returnCode = CuDNN.cudaMemcpy(dst, getPtr(), size, useDefaultDir ? cudaMemcpyKind.cudaMemcpyDefault : cudaMemcpyKind.cudaMemcpyDeviceToHost);
-//      if(cudaErrorInvalidMemcpyDirection == returnCode) {
-//        returnCode = CuDNN.cudaMemcpy(dst, getPtr(), size, cudaMemcpyKind.cudaMemcpyHostToHost);
-//      }
-      CuDNN.handle(returnCode);
-      CudaPtr.getGpuStats(deviceId).memoryReads.addAndGet(size);
-      return this;
     }
-    
+    else {
+      synchronized (CudaPtr.getPciBusLock()) {
+        if (size != destination.length * 1l * precision.size) {
+          throw new IllegalArgumentException(size + " != " + destination.length * 1l * precision.size);
+        }
+        final Pointer dst = precision.getPointer(destination);
+        int returnCode = CuDNN.cudaMemcpy(dst, getPtr(), size, useDefaultDir ? cudaMemcpyKind.cudaMemcpyDefault : cudaMemcpyKind.cudaMemcpyDeviceToHost);
+        //      if(cudaErrorInvalidMemcpyDirection == returnCode) {
+        //        returnCode = CuDNN.cudaMemcpy(dst, getPtr(), size, cudaMemcpyKind.cudaMemcpyHostToHost);
+        //      }
+        CuDNN.handle(returnCode);
+        CudaPtr.getGpuStats(deviceId).memoryReads.addAndGet(size);
+      }
+    }
+    return this;
   }
   
   /**

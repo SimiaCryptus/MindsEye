@@ -157,7 +157,7 @@ public class FullyConnectedLayer extends NNLayer implements LayerPrecision<Fully
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    if (CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    if (!CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
     return explode().eval(inObj);
   }
   

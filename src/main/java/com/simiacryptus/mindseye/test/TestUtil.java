@@ -580,6 +580,8 @@ public class TestUtil {
   }
   
   public static void runAll(Runnable... runnables) {
-    Arrays.stream(runnables).parallel().forEach(Runnable::run);
+    Arrays.stream(runnables)
+          //.parallel()
+          .forEach(Runnable::run);
   }
 }

@@ -82,8 +82,7 @@ public class SoftmaxActivationLayer extends NNLayer implements LayerPrecision<So
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    if (CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
-  
+    if (!CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
     log.debug("Not Implemented: " + getClass().getCanonicalName());
     return getCompatibilityLayer().eval(inObj);
   }

@@ -209,26 +209,4 @@ public enum Precision {
     }
   }
   
-  
-  /**
-   * Java ptr cuda ptr.
-   *
-   * @param deviceNumber the device number
-   * @param data         the data
-   * @return the cuda ptr
-   */
-  public CudaPtr javaPtr(final int deviceNumber, final double... data) {return javaPtr(deviceNumber, CudaPtr.MemoryType.Device, data);}
-  
-  /**
-   * Java ptr cuda ptr.
-   *
-   * @param deviceNumber the device number
-   * @param type         the type
-   * @param data         the data
-   * @return the cuda ptr
-   */
-  public CudaPtr javaPtr(final int deviceNumber, CudaPtr.MemoryType type, final double... data) {
-    return new CudaPtr(getPointer(data), data.length * size, deviceNumber, type);
-  }
-  
 }

@@ -82,7 +82,10 @@ public class ImgBandSelectLayer extends NNLayer {
     assert 3 == inputDims.length;
     final Tensor outputDims = new Tensor(inputDims[0], inputDims[1], bands.length);
     return new NNResult(IntStream.range(0, batch.length()).parallel()
-                                 .mapToObj(dataIndex -> outputDims.mapCoords((c) -> batch.get(dataIndex).get(c.getCoords()[0], c.getCoords()[1], bands[c.getCoords()[2]])))
+                                 .mapToObj(dataIndex -> outputDims.mapCoords((c) -> {
+                                   int[] coords = c.getCoords();
+                                   return batch.get(dataIndex).get(coords[0], coords[1], bands[coords[2]]);
+                                 }))
                                  .toArray(i -> new Tensor[i])) {
   
       @Override
@@ -93,16 +96,16 @@ public class ImgBandSelectLayer extends NNLayer {
       @Override
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
         if (input.isAlive()) {
-          final Tensor[] data1 = IntStream.range(0, error.length()).parallel()
-                                          .mapToObj(dataIndex -> {
+          input.accumulate(buffer, new TensorArray(IntStream.range(0, error.length()).parallel()
+                                                            .mapToObj(dataIndex -> {
                                             final Tensor passback = new Tensor(inputDims);
                                             final Tensor err = error.get(dataIndex);
-                                            err.coordStream(true).forEach(c -> {
-                                              passback.set(c.getCoords()[0], c.getCoords()[1], bands[c.getCoords()[2]], err.get(c));
+                                                              err.coordStream(false).forEach(c -> {
+                                                                int[] coords = c.getCoords();
+                                                                passback.set(coords[0], coords[1], bands[coords[2]], err.get(c));
                                             });
                                             return passback;
-                                          }).toArray(i -> new Tensor[i]);
-          input.accumulate(buffer, new TensorArray(data1));
+                                                            }).toArray(i -> new Tensor[i])));
         }
       }
       
