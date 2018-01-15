@@ -868,7 +868,7 @@ public class Tensor implements Serializable {
    * Map coords tensor.
    *
    * @param f        the f
-   * @param parallel
+   * @param parallel the parallel
    * @return the tensor
    */
   public Tensor mapCoords(final ToDoubleFunction<Coordinate> f, boolean parallel) {
@@ -1166,7 +1166,7 @@ public class Tensor implements Serializable {
    * Fill by coord tensor.
    *
    * @param f        the f
-   * @param parallel
+   * @param parallel the parallel
    * @return the tensor
    */
   public Tensor setByCoord(final ToDoubleFunction<Coordinate> f, boolean parallel) {

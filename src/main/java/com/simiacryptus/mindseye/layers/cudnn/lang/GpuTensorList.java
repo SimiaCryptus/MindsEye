@@ -49,10 +49,11 @@ public class GpuTensorList implements TensorList {
   
   /**
    * Instantiates a new Cu dnn double tensor list.
-   *  @param ptr         the ptr
-   * @param length      the length
-   * @param dimensions  the dimensions
-   * @param precision   the precision
+   *
+   * @param ptr        the ptr
+   * @param length     the length
+   * @param dimensions the dimensions
+   * @param precision  the precision
    */
   public GpuTensorList(final CudaPtr ptr, final int length, final int[] dimensions, final Precision precision) {
     this.precision = precision;

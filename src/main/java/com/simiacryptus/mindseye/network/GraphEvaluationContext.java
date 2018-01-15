@@ -35,6 +35,9 @@ class GraphEvaluationContext {
    */
   final Map<UUID, CountingNNResult> inputs = new HashMap<>();
   
+  /**
+   * The Calculated.
+   */
   final Map<UUID, Supplier<CountingNNResult>> calculated = new HashMap<>();
   
 }

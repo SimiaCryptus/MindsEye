@@ -80,6 +80,11 @@ public class TensorTest {
     }
   }
   
+  /**
+   * Test shuffle stream.
+   *
+   * @throws Exception the exception
+   */
   @Test
   @Category(TestCategories.UnitTest.class)
   public void testShuffleStream() throws Exception {

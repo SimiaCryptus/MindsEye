@@ -285,8 +285,8 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   /**
    * Read cuda ptr.
    *
-   * @param precision the precision
-   * @param destination      the data
+   * @param precision   the precision
+   * @param destination the data
    * @return the cuda ptr
    */
   public CudaPtr read(final Precision precision, final double[] destination) {
@@ -318,8 +318,8 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   /**
    * Read cuda ptr.
    *
-   * @param precision the precision
-   * @param destination      the data
+   * @param precision   the precision
+   * @param destination the data
    * @return the cuda ptr
    */
   public CudaPtr read(final Precision precision, final float[] destination) {

@@ -48,6 +48,9 @@ public class CuDNN {
    * The constant INSTANCE.
    */
   public static final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
+  /**
+   * The constant logger.
+   */
   protected static final Logger logger = LoggerFactory.getLogger(CuDNN.class);
   
   private static final ThreadLocal<Integer> currentDevice = new ThreadLocal<Integer>() {
@@ -94,14 +97,27 @@ public class CuDNN {
     //cudaSetDevice();
   }
   
+  /**
+   * Log header.
+   */
   public static void logHeader() {
     logger.info(getHeader());
   }
   
+  /**
+   * Gets header.
+   *
+   * @return the header
+   */
   public static String getHeader() {
     return TestUtil.toString(CuDNN::printHeader);
   }
   
+  /**
+   * Print header.
+   *
+   * @param out the out
+   */
   public static void printHeader(PrintStream out) {
     int[] runtimeVersion = {0};
     int[] driverVersion = {0};
@@ -1358,6 +1374,11 @@ public class CuDNN {
     });
   }
   
+  /**
+   * Is enabled boolean.
+   *
+   * @return the boolean
+   */
   public static boolean isEnabled() {
     return 0 < CuDNN.contexts.size();
   }
@@ -1525,6 +1546,11 @@ public class CuDNN {
     return getClass().getSimpleName() + "{" + deviceNumber + "; " + deviceName + "}@" + Long.toHexString(System.identityHashCode(this));
   }
   
+  /**
+   * Add log.
+   *
+   * @param log the log
+   */
   public static void addLog(PrintStream log) {
     printHeader(log);
     apiLog.add(log);

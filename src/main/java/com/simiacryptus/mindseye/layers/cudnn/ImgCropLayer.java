@@ -95,30 +95,27 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
   @Override
   public NNResult eval(final NNResult... inObj) {
     if (!CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    assert 1 == inObj.length;
+    assert 3 == inObj[0].getData().getDimensions().length;
+    final int length = inObj[0].getData().length();
+    int[] dimIn = inObj[0].getData().getDimensions();
+    final int[] dimOut = Arrays.copyOf(dimIn, 3);
+    dimOut[0] = sizeX;
+    dimOut[1] = sizeY;
     return CuDNN.run(nncontext -> {
-      if (nncontext.getDeviceNumber() < 0)
-        return getCompatibilityLayer().eval(inObj);
-      nncontext.initThread();
-      assert 1 == inObj.length;
-      assert 3 == inObj[0].getData().getDimensions().length;
-      final int length = inObj[0].getData().length();
-      int[] dimIn = inObj[0].getData().getDimensions();
-      final int[] dimOut = Arrays.copyOf(dimIn, 3);
-      dimOut[0] = sizeX;
-      dimOut[1] = sizeY;
       final CudaPtr inputBuffer = CudaPtr.write(nncontext.getDeviceNumber(), precision, inObj[0].getData());
       final CudaPtr outputBuffer = CuDNN.alloc(nncontext.getDeviceNumber(),
                                                length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size, true);
       copy(nncontext, length, dimIn, inputBuffer, dimOut, outputBuffer);
       final TensorList outputData = new GpuTensorList(outputBuffer, length, dimOut, precision);
       return new NNResult(outputData) {
-      
+  
         @Override
         public void free() {
           inputBuffer.finalize();
           Arrays.stream(inObj).forEach(NNResult::free);
         }
-      
+  
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
           if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
@@ -130,21 +127,18 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
           assert error.length() == inObj[0].getData().length();
           if (inObj[0].isAlive()) {
             final TensorList passbackTensorList = CuDNN.run(nncontext -> {
-              nncontext.initThread();
               final CudaPtr errorPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, error);
               final CudaPtr passbackBuffer = CuDNN.alloc(nncontext.getDeviceNumber(),
                                                          length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size, true);
               copy(nncontext, length, dimOut, errorPtr, dimIn, passbackBuffer);
-              GpuTensorList gpuTensorList = new GpuTensorList(passbackBuffer, length, dimIn, precision);
-              errorPtr.finalize();
-              return gpuTensorList;
+              return new GpuTensorList(passbackBuffer, length, dimIn, precision);
             });
             inObj[0].accumulate(buffer, passbackTensorList);
             passbackTensorList.recycle();
           }
           free();
         }
-      
+  
         @Override
         public boolean isAlive() {
           return Arrays.stream(inObj).anyMatch(x -> x.isAlive());
@@ -156,64 +150,70 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
   /**
    * Copy.
    *
-   * @param nncontext   the nncontext
-   * @param length      the length
-   * @param dimIn       the dim in
-   * @param source      the input buffer
-   * @param dimOut      the dim out
-   * @param destination the output buffer
+   * @param nncontext             the nncontext
+   * @param length                the length
+   * @param sourceDimensions      the dim in
+   * @param source                the input buffer
+   * @param destinationDimensions the dim out
+   * @param destination           the output buffer
    */
-  public void copy(CuDNN nncontext, int length, int[] dimIn, CudaPtr source, int[] dimOut, CudaPtr destination) {
-    if (source.getDeviceId() != destination.getDeviceId()) throw new IllegalArgumentException("device id mismatch");
-    if (source.getDeviceId() != nncontext.getDeviceNumber())
-      throw new IllegalArgumentException(String.format("device id mismatch: %d != %d", source.getDeviceId(), nncontext.getDeviceNumber()));
-    if (3 != dimIn.length) throw new IllegalArgumentException("dimIn.length");
-    if (3 != dimOut.length) throw new IllegalArgumentException("dimOut.length");
-    final double offsetX = ((dimOut[0] - dimIn[0]) / 2.0);
-    final double offsetY = ((dimOut[1] - dimIn[1]) / 2.0);
+  public void copy(CuDNN nncontext, int length, int[] sourceDimensions, CudaPtr source, int[] destinationDimensions, CudaPtr destination) {
+    if (3 != sourceDimensions.length) throw new IllegalArgumentException("inputDimensions.length");
+    if (3 != destinationDimensions.length) throw new IllegalArgumentException("dimOut.length");
     //log.info(String.format("offset=%d,%d", offsetX, offsetY));
-    final int[] viewDim = new int[3];
-    Arrays.parallelSetAll(viewDim, i -> Math.min(dimIn[i], dimOut[i]));
+    final int[] viewDim = getViewDimensions(sourceDimensions, destinationDimensions);
     final CudaResource<cudnnTensorDescriptor> sourceViewDescriptor = CuDNN.newTensorDescriptor(
-      precision.code,
-      length,
-      viewDim[2],
-      viewDim[1],
-      viewDim[0],
-      dimIn[2] * dimIn[1] * dimIn[0],
-      dimIn[1] * dimIn[0],
-      dimIn[0],
+      precision.code,//
+      length,//
+      viewDim[2],//
+      viewDim[1],//
+      viewDim[0],//
+      sourceDimensions[2] * sourceDimensions[1] * sourceDimensions[0],//
+      sourceDimensions[1] * sourceDimensions[0],//
+      sourceDimensions[0],//
       1);
     final CudaResource<cudnnTensorDescriptor> destinationViewDescriptor = CuDNN.newTensorDescriptor(
-      precision.code,
-      length,
-      viewDim[2],
-      viewDim[1],
-      viewDim[0],
-      dimOut[2] * dimOut[1] * dimOut[0],
-      dimOut[1] * dimOut[0],
-      dimOut[0],
+      precision.code,//
+      length,//
+      viewDim[2],//
+      viewDim[1],//
+      viewDim[0],//
+      destinationDimensions[2] * destinationDimensions[1] * destinationDimensions[0],//
+      destinationDimensions[1] * destinationDimensions[0],//
+      destinationDimensions[0],//
       1);
-    int inOffset = 0;
-    int outputOffset = 0;
-    if (offsetX < 0) {
-      inOffset += Math.floor(-offsetX) * precision.size;
-    }
-    else {
-      outputOffset += Math.floor(offsetX) * precision.size;
-    }
-    if (offsetY < 0) {
-      inOffset += Math.floor(-offsetY) * dimIn[0] * precision.size;
-    }
-    else {
-      outputOffset += Math.floor(offsetY) * dimOut[0] * precision.size;
-    }
+    int offset = getOffset(sourceDimensions, destinationDimensions);
     CuDNN.cudnnTransformTensor(nncontext.cudnnHandle,
                                precision.getPointer(1.0),
-                               sourceViewDescriptor.getPtr(), source.getPtr().withByteOffset(inOffset),
+                               sourceViewDescriptor.getPtr(), source.getPtr().withByteOffset(offset < 0 ? -offset : 0),
                                precision.getPointer(0.0),
-                               destinationViewDescriptor.getPtr(), destination.getPtr().withByteOffset(outputOffset)
+                               destinationViewDescriptor.getPtr(), destination.getPtr().withByteOffset(offset > 0 ? offset : 0)
                               );
+  }
+  
+  public int[] getViewDimensions(int[] sourceDimensions, int[] destinationDimensions) {
+    final int[] viewDim = new int[3];
+    Arrays.parallelSetAll(viewDim, i -> Math.min(sourceDimensions[i], destinationDimensions[i]));
+    return viewDim;
+  }
+  
+  public int getOffset(int[] sourceDimensions, int[] destinationDimensions) {
+    int offset = 0;
+    final double offsetX = ((destinationDimensions[0] - sourceDimensions[0]) / 2.0);
+    if (offsetX < 0) {
+      offset += Math.ceil(offsetX) * precision.size;
+    }
+    else {
+      offset += Math.floor(offsetX) * precision.size;
+    }
+    final double offsetY = ((destinationDimensions[1] - sourceDimensions[1]) / 2.0);
+    if (offsetY < 0) {
+      offset += Math.ceil(offsetY) * sourceDimensions[0] * precision.size;
+    }
+    else {
+      offset += Math.floor(offsetY) * destinationDimensions[0] * precision.size;
+    }
+    return offset;
   }
   
   @Override

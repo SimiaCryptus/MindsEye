@@ -118,8 +118,8 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
   /**
    * Eval point sample.
    *
-   * @param list      the list
-   * @param monitor   the monitor
+   * @param list    the list
+   * @param monitor the monitor
    * @return the point sample
    */
   protected PointSample eval(final List<Tensor[]> list, final TrainingMonitor monitor) {

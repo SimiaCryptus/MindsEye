@@ -145,6 +145,12 @@ public class TestUtil {
     }
   }
   
+  /**
+   * To string string.
+   *
+   * @param fn the fn
+   * @return the string
+   */
   public static String toString(Consumer<PrintStream> fn) {
     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     try (PrintStream out = new PrintStream(buffer)) {
@@ -564,6 +570,12 @@ public class TestUtil {
     return Factory.graph().with(nodeArray).generalAttr().with(RankDir.TOP_TO_BOTTOM).directed();
   }
   
+  /**
+   * Shuffle int stream.
+   *
+   * @param stream the stream
+   * @return the int stream
+   */
   public static IntStream shuffle(IntStream stream) {
     // http://primes.utm.edu/lists/small/10000.txt
     long coprimeA = 41387;
@@ -579,6 +591,11 @@ public class TestUtil {
     return stream.map(conditions).mapToLong(fn).sorted().mapToInt(inv);
   }
   
+  /**
+   * Run all.
+   *
+   * @param runnables the runnables
+   */
   public static void runAll(Runnable... runnables) {
     Arrays.stream(runnables)
           //.parallel()

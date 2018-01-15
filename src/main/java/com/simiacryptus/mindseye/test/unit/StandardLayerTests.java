@@ -247,6 +247,12 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     return getLayer(getInputDims(new Random()), new Random()).getClass();
   }
   
+  /**
+   * Cvt nn layer.
+   *
+   * @param layer the layer
+   * @return the nn layer
+   */
   protected NNLayer cvt(NNLayer layer) {
     if (layer instanceof DAGNetwork) {
       ((DAGNetwork) layer).visitNodes(node -> {
@@ -428,10 +434,21 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     return ReportType.Components;
   }
   
+  /**
+   * Is test training boolean.
+   *
+   * @return the boolean
+   */
   public boolean isTestTraining() {
     return testTraining;
   }
   
+  /**
+   * Sets test training.
+   *
+   * @param testTraining the test training
+   * @return the test training
+   */
   public StandardLayerTests setTestTraining(boolean testTraining) {
     this.testTraining = testTraining;
     return this;

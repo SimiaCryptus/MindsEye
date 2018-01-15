@@ -59,7 +59,7 @@ abstract class LazyResult implements DAGNode {
   /**
    * Eval nn result.
    *
-   * @param t         the t
+   * @param t the t
    * @return the nn result
    */
   protected abstract NNResult eval(GraphEvaluationContext t);

@@ -117,7 +117,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Asymmetric apply.
      */
     public BandExpand() {
-      super(3, 3, 6, Precision.Double, 16);
+      super(3, 3, 4, Precision.Double, 16);
     }
     
   }
@@ -175,30 +175,6 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
     public Double() {
       super(3, 2, 2, Precision.Double, 16);
     }
-
-//    @Override
-//    public NNLayer getLayer(int[][] inputSize, Random random) {
-//      return convolutionLayer.explode();
-//    }
-//
-//    @Override
-//    public NNLayer getReferenceLayer() {
-//      return convolutionLayer.as(com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class);
-//    }
-//
-//    @Override
-//    public int[][] getInputDims(Random random) {
-//      return new int[][]{
-//        {1, 1, inputBands}
-//      };
-//    }
-//
-//    @Override
-//    public int[][] getPerfDims(Random random) {
-//      return new int[][]{
-//        {1, 1, inputBands}
-//      };
-//    }
     
   }
   

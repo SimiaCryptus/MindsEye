@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
-import com.simiacryptus.mindseye.test.unit.BatchDerivativeTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 
 /**
@@ -37,7 +36,8 @@ public abstract class MetaLayerTestBase extends LayerTestBase {
   
   @Override
   public ComponentTest<ToleranceStatistics> getDerivativeTester() {
-    return new BatchDerivativeTester(1e-3, 1e-4, 10);
+    return null;
+    //return new BatchDerivativeTester(1e-3, 1e-4, 10);
   }
   
 }

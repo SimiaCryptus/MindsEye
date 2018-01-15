@@ -204,7 +204,7 @@ public abstract class NNLayer implements Serializable {
   /**
    * Eval nn result.
    *
-   * @param array     the array
+   * @param array the array
    * @return the nn result
    */
   public abstract NNResult eval(NNResult... array);
@@ -212,7 +212,7 @@ public abstract class NNLayer implements Serializable {
   /**
    * Eval nn result.
    *
-   * @param array     the array
+   * @param array the array
    * @return the nn result
    */
   public final NNResult eval(final Tensor... array) {
@@ -222,7 +222,7 @@ public abstract class NNLayer implements Serializable {
   /**
    * Eval nn result.
    *
-   * @param array     the array
+   * @param array the array
    * @return the nn result
    */
   public final NNResult eval(final Tensor[][] array) {
