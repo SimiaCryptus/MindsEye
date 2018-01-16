@@ -1068,8 +1068,8 @@ public class CuDNN {
               paddingX, // zero-padding width
               strideHeight, // vertical filter stride
               strideWidth, // horizontal filter stride
-              1, // upscale the input in x-direction
-              1, // upscale the input in y-direction
+              dilationY, // upscale the input in x-direction
+              dilationX, // upscale the input in y-direction
               mode,
               dataType);
     CuDNN.handle(result);

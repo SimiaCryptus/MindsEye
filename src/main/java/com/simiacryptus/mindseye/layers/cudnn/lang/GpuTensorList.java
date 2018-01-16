@@ -70,8 +70,9 @@ public class GpuTensorList implements TensorList {
   
   @Override
   public void accum(final TensorList right) {
+  // TODO: Review use, make sure immutable behavior is not assumed.
     assert length() == right.length();
-    if (right instanceof GpuTensorList && ((GpuTensorList) right).precision == precision) {
+    if (right instanceof GpuTensorList && ((GpuTensorList) right).precision == precision && ((GpuTensorList) right)._inner == null && _inner == null) {
       CuDNN.apply(exe -> {
         final GpuTensorList nativeRight = (GpuTensorList) right;
         final CudaResource<cudnnTensorDescriptor> leftSize = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
@@ -81,8 +82,7 @@ public class GpuTensorList implements TensorList {
                                           precision.getPointer(1.0), leftSize.getPtr(), GpuTensorList.this.ptr.getPtr()));
         leftSize.finalize();
         rightSize.finalize();
-        nativeRight.ptr.free(); // Make this function destructive to both arguments
-      });
+     });
     }
     else {
       IntStream.range(0, length()).forEach(i -> {
@@ -93,8 +93,9 @@ public class GpuTensorList implements TensorList {
   
   @Override
   public TensorList add(final TensorList right) {
+  // TODO: Review use, make sure immutable behavior is not assumed.
     assert length() == right.length();
-    if (right instanceof GpuTensorList && ((GpuTensorList) right).precision == precision) {
+    if (right instanceof GpuTensorList && ((GpuTensorList) right).precision == precision && ((GpuTensorList) right)._inner == null && _inner == null) {
       CuDNN.apply(exe -> {
         final GpuTensorList nativeRight = (GpuTensorList) right;
         final CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
@@ -102,8 +103,7 @@ public class GpuTensorList implements TensorList {
                                           precision.getPointer(1.0), size.getPtr(), nativeRight.ptr.getPtr(),
                                           precision.getPointer(1.0), size.getPtr(), GpuTensorList.this.ptr.getPtr()));
         size.finalize();
-        nativeRight.ptr.free(); // Make this function destructive to both arguments
-      });
+     });
       return this;
     }
     return new TensorArray(

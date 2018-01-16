@@ -155,20 +155,14 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
       try {
         pointer = new Pointer();
         type.alloc(size, pointer);
-        if (!dirty) {
-          CuDNN.handle(CuDNN.cudaMemset(pointer, 0, size));
-        }
-      } catch (final Exception e) {
+     } catch (final Exception e) {
         try {
           final long startMemory = metrics.usedMemory.get();
           CuDNN.cleanMemory();
           final long freedMemory = startMemory - metrics.usedMemory.get();
           pointer = new Pointer();
           type.alloc(size, pointer);
-          if (!dirty) {
-            CuDNN.handle(CuDNN.cudaMemset(pointer, 0, size));
-          }
-          String msg = String.format("Low GPU Memory while allocating %s bytes; %s freed resulting in %s total (triggered by %s)",
+         String msg = String.format("Low GPU Memory while allocating %s bytes; %s freed resulting in %s total (triggered by %s)",
                                      size, freedMemory, metrics.usedMemory.get() + size, e.getMessage());
           System.err.println(msg);
         } catch (final Exception e2) {
@@ -176,6 +170,9 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
           String msg = String.format("Error allocating %s bytes; %s currently allocated to device %s; device properties = %s", size, metrics.usedMemory.get(), deviceId, properties);
           throw new com.simiacryptus.mindseye.lang.OutOfMemoryError(msg, e2);
         }
+      }
+      if (!dirty) {
+        CuDNN.handle(CuDNN.cudaMemset(pointer, 0, size));
       }
       final long finalMemory = metrics.usedMemory.addAndGet(size);
       metrics.peakMemory.updateAndGet(l -> Math.max(finalMemory, l));
@@ -291,19 +288,19 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    * @return the cuda ptr
    */
   public CudaPtr read(final Precision precision, final double[] destination) {
+    if (size != destination.length * 1l * precision.size) {
+      throw new IllegalArgumentException(size + " != " + destination.length * 1l * precision.size);
+    }
     if (precision == Precision.Float) {
       float[] data = new float[destination.length];
-      read(Precision.Float, data);
+      read(precision, data);
       for (int i = 0; i < data.length; i++) {
         destination[i] = data[i];
       }
     }
     else {
       synchronized (CudaPtr.getPciBusLock()) {
-        if (size != destination.length * precision.size) {
-          throw new IllegalArgumentException(size + " != " + destination.length * precision.size);
-        }
-        int returnCode = CuDNN.cudaMemcpy(precision.getPointer(destination), getPtr(),
+       int returnCode = CuDNN.cudaMemcpy(precision.getPointer(destination), getPtr(),
                                           size,
                                           useDefaultDir ? cudaMemcpyKind.cudaMemcpyDefault : cudaMemcpyKind.cudaMemcpyDeviceToHost);
         //      if(cudaErrorInvalidMemcpyDirection == returnCode) {
@@ -324,20 +321,21 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    * @return the cuda ptr
    */
   public CudaPtr read(final Precision precision, final float[] destination) {
+    if (size != destination.length * 1l * precision.size) {
+      throw new IllegalArgumentException(size + " != " + destination.length * 1l * precision.size);
+    }
     if (precision == Precision.Double) {
       double[] data = new double[destination.length];
-      read(Precision.Double, data);
+      read(precision, data);
       for (int i = 0; i < data.length; i++) {
         destination[i] = (float) data[i];
       }
     }
     else {
       synchronized (CudaPtr.getPciBusLock()) {
-        if (size != destination.length * 1l * precision.size) {
-          throw new IllegalArgumentException(size + " != " + destination.length * 1l * precision.size);
-        }
-        final Pointer dst = precision.getPointer(destination);
-        int returnCode = CuDNN.cudaMemcpy(dst, getPtr(), size, useDefaultDir ? cudaMemcpyKind.cudaMemcpyDefault : cudaMemcpyKind.cudaMemcpyDeviceToHost);
+       int returnCode = CuDNN.cudaMemcpy(precision.getPointer(destination), getPtr(), 
+                size, 
+                useDefaultDir ? cudaMemcpyKind.cudaMemcpyDefault : cudaMemcpyKind.cudaMemcpyDeviceToHost);
         //      if(cudaErrorInvalidMemcpyDirection == returnCode) {
         //        returnCode = CuDNN.cudaMemcpy(dst, getPtr(), size, cudaMemcpyKind.cudaMemcpyHostToHost);
         //      }
