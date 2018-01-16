@@ -34,7 +34,7 @@ public class ConstL12Normalizer extends L12Normalizer implements SampledTrainabl
   /**
    * Instantiates a new Const l 12 normalizer.
    *
-   * @param inner the inner
+   * @param inner the localCopy
    */
   public ConstL12Normalizer(final Trainable inner) {
     super(inner);

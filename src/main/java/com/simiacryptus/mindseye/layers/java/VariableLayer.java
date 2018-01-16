@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Acts as a mutable placeholder layer, whose inner implementation can be setByCoord and changed.
+ * Acts as a mutable placeholder layer, whose localCopy implementation can be setByCoord and changed.
  */
 @SuppressWarnings("serial")
 public class VariableLayer extends WrapperLayer {
@@ -44,7 +44,7 @@ public class VariableLayer extends WrapperLayer {
   /**
    * Instantiates a new Variable layer.
    *
-   * @param inner the inner
+   * @param inner the localCopy
    */
   public VariableLayer(final NNLayer inner) {
     super();
@@ -70,14 +70,14 @@ public class VariableLayer extends WrapperLayer {
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
-    json.add("inner", getInner().getJson(resources, dataSerializer));
+    json.add("localCopy", getInner().getJson(resources, dataSerializer));
     return json;
   }
   
   /**
-   * Sets inner.
+   * Sets localCopy.
    *
-   * @param inner the inner
+   * @param inner the localCopy
    */
   public final void setInner(final NNLayer inner) {
     this.inner = inner;

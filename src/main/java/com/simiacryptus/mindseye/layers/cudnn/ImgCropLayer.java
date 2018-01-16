@@ -107,7 +107,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
       final CudaPtr outputBuffer = CuDNN.alloc(nncontext.getDeviceNumber(),
                                                length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size, false);
       copy(nncontext, length, dimIn, inputBuffer, dimOut, outputBuffer);
-      final TensorList outputData = new GpuTensorList(outputBuffer, length, dimOut, precision);
+      final TensorList outputData = new GpuTensorList(outputBuffer, length, dimOut, precision).object();
       return new NNResult(outputData) {
   
         @Override
@@ -131,7 +131,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
               final CudaPtr passbackBuffer = CuDNN.alloc(nncontext.getDeviceNumber(),
                                                          length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size, false);
               copy(nncontext, length, dimOut, errorPtr, dimIn, passbackBuffer);
-              return new GpuTensorList(passbackBuffer, length, dimIn, precision);
+              return new GpuTensorList(passbackBuffer, length, dimIn, precision).object();
             });
             inObj[0].accumulate(buffer, passbackTensorList);
             passbackTensorList.recycle();

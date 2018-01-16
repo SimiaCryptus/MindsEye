@@ -70,7 +70,7 @@ public class SignReducerLayer extends DAGNetwork {
   /**
    * From json nn layer.
    *
-   * @param inner the inner
+   * @param inner the localCopy
    * @param rs    the rs
    * @return the nn layer
    */

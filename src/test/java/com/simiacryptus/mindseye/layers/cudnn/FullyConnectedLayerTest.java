@@ -22,6 +22,10 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
+import com.simiacryptus.mindseye.test.ToleranceStatistics;
+import com.simiacryptus.mindseye.test.unit.BatchingTester;
+import com.simiacryptus.mindseye.test.unit.ComponentTest;
+import com.simiacryptus.mindseye.test.unit.PerformanceTester;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import java.io.PrintStream;
@@ -134,6 +138,51 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
   
   }
   
+  public static class Big2 extends FullyConnectedLayerTest {
+    /**
+     * Instantiates a new Big.
+     */
+    public Big2() {
+      super(new int[]{2048}, new int[]{2048});
+      validateDifferentials = false;
+    }
+    
+    @Override
+    public Class<? extends NNLayer> getReferenceLayerClass() {
+      return null;
+    }
+    
+    @Override
+    public ComponentTest<ToleranceStatistics> getBatchingTester() {
+      if (!validateBatchExecution) return null;
+      return (new BatchingTester(1e-2) {
+        @Override
+        public double getRandom() {
+          return random();
+        }
+      }).setBatchSize(2);
+    }
+    
+    @Override
+    public ComponentTest<ToleranceStatistics> getPerformanceTester() {
+      ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setBatches(1);
+      return (log, component, inputPrototype) -> {
+        PrintStream apiLog = null;
+        try {
+          String logName = "cuda_" + log.getName() + "_perf.log";
+          log.p(log.file((String) null, logName, "GPU Log"));
+          apiLog = new PrintStream(log.file(logName));
+          CuDNN.addLog(apiLog);
+          return inner.test(log, component, inputPrototype);
+        } finally {
+          if (null != apiLog) {
+            apiLog.close();
+            CuDNN.apiLog.remove(apiLog);
+          }
+        }
+      };
+    }
+  }
   /**
    * Basic Test
    */
@@ -150,6 +199,36 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
     public Class<? extends NNLayer> getReferenceLayerClass() {
       return null;
     }
-    
+  
+    @Override
+    public ComponentTest<ToleranceStatistics> getBatchingTester() {
+      if (!validateBatchExecution) return null;
+      return (new BatchingTester(1e-2) {
+        @Override
+        public double getRandom() {
+          return random();
+        }
+      }).setBatchSize(2);
+    }
+  
+    @Override
+    public ComponentTest<ToleranceStatistics> getPerformanceTester() {
+      ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setBatches(1);
+      return (log, component, inputPrototype) -> {
+        PrintStream apiLog = null;
+        try {
+          String logName = "cuda_" + log.getName() + "_perf.log";
+          log.p(log.file((String) null, logName, "GPU Log"));
+          apiLog = new PrintStream(log.file(logName));
+          CuDNN.addLog(apiLog);
+          return inner.test(log, component, inputPrototype);
+        } finally {
+          if (null != apiLog) {
+            apiLog.close();
+            CuDNN.apiLog.remove(apiLog);
+          }
+        }
+      };
+    }
   }
 }

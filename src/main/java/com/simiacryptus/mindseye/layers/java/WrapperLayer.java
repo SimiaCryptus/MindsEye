@@ -51,13 +51,13 @@ public abstract class WrapperLayer extends NNLayer {
    */
   public WrapperLayer(final JsonObject json) {
     super(json);
-    inner = NNLayer.fromJson(json.getAsJsonObject("inner"));
+    inner = NNLayer.fromJson(json.getAsJsonObject("localCopy"));
   }
   
   /**
    * Instantiates a new Wrapper layer.
    *
-   * @param inner the inner
+   * @param inner the localCopy
    */
   public WrapperLayer(final NNLayer inner) {
     this.inner = inner;
@@ -69,9 +69,9 @@ public abstract class WrapperLayer extends NNLayer {
   }
   
   /**
-   * Gets inner.
+   * Gets localCopy.
    *
-   * @return the inner
+   * @return the localCopy
    */
   public final NNLayer getInner() {
     return inner;
@@ -80,7 +80,7 @@ public abstract class WrapperLayer extends NNLayer {
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
-    json.add("inner", getInner().getJson(resources, dataSerializer));
+    json.add("localCopy", getInner().getJson(resources, dataSerializer));
     return json;
   }
   

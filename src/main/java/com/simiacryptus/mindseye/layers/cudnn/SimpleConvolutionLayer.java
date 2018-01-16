@@ -194,7 +194,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
                                                    outputDescriptor.getPtr(), outputBuffer.getPtr()));
         Supplier<CudaPtr> workspacePtr = PersistanceMode.Weak.wrap(workSpace);
         //filterPtr.setGpuPersistance(PersistanceMode.Weak);
-        TensorList output = new GpuTensorList(outputBuffer, length, outputDims, precision);
+        TensorList output = new GpuTensorList(outputBuffer, length, outputDims, precision).object();
         return new NNResult(output) {
         
           public StackTraceElement[] freedBy = null;
@@ -242,7 +242,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
                 buffer.get(SimpleConvolutionLayer.this, kernel.getData()).addInPlace(weightGradient.getData());
                 filterBuffer.finalize();
               }
-              GpuTensorList gpuTensorList = null;
+              TensorList gpuTensorList = null;
               if (input.isAlive()) {
                 final CudaPtr inputBuffer = CuDNN.alloc(deviceNumber, Tensor.dim(batch.getDimensions()) * 1l * length * precision.size, true);
                 try {
@@ -259,7 +259,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
                 } catch (final Throwable e) {
                   throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
                 }
-                gpuTensorList = new GpuTensorList(inputBuffer, length, inputSize, precision);
+                gpuTensorList = new GpuTensorList(inputBuffer, length, inputSize, precision).object();
               }
               errorPtr.finalize();
               return gpuTensorList;

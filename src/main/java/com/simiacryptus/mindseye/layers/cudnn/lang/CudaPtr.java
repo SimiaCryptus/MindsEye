@@ -119,7 +119,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    * @return the cuda ptr
    */
   public static CudaPtr write(final int deviceId, final Precision precision, final TensorList data, MemoryType type) {
-    if (data instanceof GpuTensorList && precision == ((GpuTensorList) data).getPrecision()) {
+    if (data instanceof GpuTensorList && precision == ((GpuTensorList) data).getPrecision() && ((GpuTensorList) data).isNative()) {
       GpuTensorList gpuTensorList = (GpuTensorList) data;
       final CudaPtr ptr = gpuTensorList.ptr.getCudaPtr();
       assert null != ptr;
@@ -293,7 +293,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     }
     if (precision == Precision.Float) {
       float[] data = new float[destination.length];
-      read(precision, data);
+      read(Precision.Float, data);
       for (int i = 0; i < data.length; i++) {
         destination[i] = data[i];
       }
@@ -326,7 +326,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     }
     if (precision == Precision.Double) {
       double[] data = new double[destination.length];
-      read(precision, data);
+      read(Precision.Double, data);
       for (int i = 0; i < data.length; i++) {
         destination[i] = (float) data[i];
       }

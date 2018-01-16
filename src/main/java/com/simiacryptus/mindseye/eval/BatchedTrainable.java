@@ -42,7 +42,7 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
   /**
    * Instantiates a new Batched trainable.
    *
-   * @param inner     the inner
+   * @param inner     the localCopy
    * @param batchSize the batch size
    */
   public BatchedTrainable(final DataTrainable inner, final int batchSize) {

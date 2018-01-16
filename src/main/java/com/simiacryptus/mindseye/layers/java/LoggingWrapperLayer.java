@@ -55,7 +55,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
   /**
    * Instantiates a new Monitoring wrapper layer.
    *
-   * @param inner the inner
+   * @param inner the localCopy
    */
   public LoggingWrapperLayer(final NNLayer inner) {
     super(inner);

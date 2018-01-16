@@ -31,7 +31,7 @@ import com.simiacryptus.util.ArrayUtil;
 import java.util.HashMap;
 
 /**
- * This wrapping strategy alters the (Simple)LineCursor returned by the inner strategy to effectively tune the learning
+ * This wrapping strategy alters the (Simple)LineCursor returned by the localCopy strategy to effectively tune the learning
  * rate for each layer.
  */
 public abstract class LayerReweightingStrategy implements OrientationStrategy<SimpleLineSearchCursor> {
@@ -45,7 +45,7 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy<Si
   /**
    * Instantiates a new Layer reweighting strategy.
    *
-   * @param inner the inner
+   * @param inner the localCopy
    */
   public LayerReweightingStrategy(final OrientationStrategy<SimpleLineSearchCursor> inner) {
     this.inner = inner;
@@ -87,7 +87,7 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy<Si
     /**
      * Instantiates a new Hash map layer reweighting strategy.
      *
-     * @param inner the inner
+     * @param inner the localCopy
      */
     public HashMapLayerReweightingStrategy(final OrientationStrategy<SimpleLineSearchCursor> inner) {
       super(inner);

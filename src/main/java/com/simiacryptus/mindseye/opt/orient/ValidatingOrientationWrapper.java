@@ -29,7 +29,7 @@ import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 
 /**
  * This strategy uses finite-difference methods to estimate a numerical derivative, and compares it with the derivative
- * supplied by the inner's cursor. This is a diagnostic tool; extra processing is used to estimate derivatives which
+ * supplied by the localCopy's cursor. This is a diagnostic tool; extra processing is used to estimate derivatives which
  * should agree with the programmatic derivatives to an appropriate degree.
  */
 public class ValidatingOrientationWrapper implements OrientationStrategy<LineSearchCursor> {
@@ -39,7 +39,7 @@ public class ValidatingOrientationWrapper implements OrientationStrategy<LineSea
   /**
    * Instantiates a new Validating orientation strategy.
    *
-   * @param inner the inner
+   * @param inner the localCopy
    */
   public ValidatingOrientationWrapper(final OrientationStrategy<? extends LineSearchCursor> inner) {
     this.inner = inner;

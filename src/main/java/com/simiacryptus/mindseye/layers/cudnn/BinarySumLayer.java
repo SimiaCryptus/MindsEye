@@ -141,7 +141,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
                           precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
                           precision.getPointer(rightFactor), sizeDescriptor.getPtr(), rPtr.getPtr(),
                           precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-      TensorList result = new GpuTensorList(outputPtr, length, dimensions, precision);
+      TensorList result = new GpuTensorList(outputPtr, length, dimensions, precision).object();
       return new NNResult(result) {
       
         @Override
@@ -161,7 +161,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
                 CuDNN.cudnnAddTensor(nncontext.cudnnHandle,
                                      precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                      precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-                return new GpuTensorList(outputPtr, length, dimensions, precision);
+                return new GpuTensorList(outputPtr, length, dimensions, precision).object();
               }));
             }
           }, () -> {
@@ -174,7 +174,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
                 CuDNN.cudnnAddTensor(nncontext.cudnnHandle,
                                      precision.getPointer(rightFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                      precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-                return new GpuTensorList(outputPtr, length, dimensions, precision);
+                return new GpuTensorList(outputPtr, length, dimensions, precision).object();
               }));
             }
           });

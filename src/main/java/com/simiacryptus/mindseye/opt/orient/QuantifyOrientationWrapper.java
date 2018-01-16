@@ -40,7 +40,7 @@ public class QuantifyOrientationWrapper implements OrientationStrategy<LineSearc
   /**
    * Instantiates a new Quantify orientation wrapper.
    *
-   * @param inner the inner
+   * @param inner the localCopy
    */
   public QuantifyOrientationWrapper(final OrientationStrategy<? extends LineSearchCursor> inner) {
     this.inner = inner;

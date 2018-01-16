@@ -100,7 +100,7 @@ public class EncodingUtil {
   /**
    * Build training model dag network.
    *
-   * @param innerModel       the inner model
+   * @param innerModel       the localCopy model
    * @param reproducedColumn the reproduced column
    * @param learnedColumn    the learned column
    * @return the dag network

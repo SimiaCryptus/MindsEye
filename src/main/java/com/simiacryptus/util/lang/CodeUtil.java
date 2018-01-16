@@ -99,10 +99,10 @@ public class CodeUtil {
   }
   
   /**
-   * Gets inner text.
+   * Gets localCopy text.
    *
    * @param callingFrame the calling frame
-   * @return the inner text
+   * @return the localCopy text
    * @throws IOException the io exception
    */
   public static String getInnerText(final StackTraceElement callingFrame) throws IOException {

@@ -183,6 +183,21 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   /**
    * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
    */
+  public static class Temp extends ConvolutionLayerTest {
+    
+    /**
+     * Instantiates a new Asymmetric apply.
+     */
+    public Temp() {
+      super(1, 8, 8, Precision.Double, 2);
+      validateDifferentials = false;
+    }
+    
+  }
+  
+  /**
+   * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
+   */
   public static class SqGrid extends ConvolutionLayerTest {
   
     /**

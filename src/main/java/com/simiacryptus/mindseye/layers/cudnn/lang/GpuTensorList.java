@@ -115,7 +115,7 @@ public class GpuTensorList implements TensorList {
   
   @Override
   public Tensor get(final int i) {
-    return inner().get(i);
+    return localCopy().get(i);
   }
   
   @Override
@@ -137,7 +137,7 @@ public class GpuTensorList implements TensorList {
    *
    * @return the tensor list
    */
-  public TensorList inner() {
+  public TensorList localCopy() {
     if (null == _inner) {
       synchronized (this) {
         if (null == _inner) {
@@ -169,7 +169,7 @@ public class GpuTensorList implements TensorList {
    * @param persistanceMode the persistance mode
    * @return the gpu persistance
    */
-  public GpuTensorList setGpuPersistance(PersistanceMode persistanceMode) {
+  public TensorList setGpuPersistance(PersistanceMode persistanceMode) {
     ptr.setGpuPersistance(persistanceMode);
     return this;
   }
@@ -189,7 +189,19 @@ public class GpuTensorList implements TensorList {
   
   @Override
   public Stream<Tensor> stream() {
-    return inner().stream();
+    return localCopy().stream();
   }
   
+  public boolean isNative() {
+    return null == _inner;
+  }
+  
+  /**
+   * A giant hack, returning the object to actually use. Provides a code point to be inlined when the bug is fixed.
+   *
+   * @return
+   */
+  public TensorList object() {
+    return localCopy();
+  }
 }

@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**
- * A base class for a Trainable type which wraps an inner type of the same kind.
+ * A base class for a Trainable type which wraps an localCopy type of the same kind.
  *
  * @param <T> the type parameter
  */
@@ -35,16 +35,16 @@ public class TrainableWrapper<T extends Trainable> implements TrainableDataMask 
   /**
    * Instantiates a new Trainable wrapper.
    *
-   * @param inner the inner
+   * @param inner the localCopy
    */
   public TrainableWrapper(final T inner) {
     this.inner = inner;
   }
   
   /**
-   * Gets inner.
+   * Gets localCopy.
    *
-   * @return the inner
+   * @return the localCopy
    */
   public T getInner() {
     return inner;
@@ -79,7 +79,7 @@ public class TrainableWrapper<T extends Trainable> implements TrainableDataMask 
   @Override
   public String toString() {
     return getClass().getSimpleName() + "{" +
-      "inner=" + inner +
+      "localCopy=" + inner +
       '}';
   }
 }

@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import org.slf4j.Logger;
@@ -218,8 +217,7 @@ class ExplodedConvolutionLeg {
     else {
       head = network.add(new ImgConcatLayer().setMaxBands(this.convolutionParams.outputBands).setPrecision(this.convolutionParams.precision),
                          subLayers.stream().map(l -> {
-                           return network.add(new LinearActivationLayer().freeze(),  // GPU Interlink bug hack
-                                              network.add(l, input));
+                           return network.add(l, input);
                          }).toArray(i -> new DAGNode[i]));
     }
     if (this.convolutionParams.paddingX != null || this.convolutionParams.paddingY != null) {
@@ -227,9 +225,7 @@ class ExplodedConvolutionLeg {
       if (this.convolutionParams.paddingX != null) x = this.convolutionParams.paddingX - x;
       int y = ((filterDimensions[1] - 1) / 2);
       if (this.convolutionParams.paddingY != null) y = this.convolutionParams.paddingY - y;
-      head = network.add(new ImgZeroPaddingLayer(x, y),
-                         network.add(new LinearActivationLayer().freeze(),
-                                     head));
+      head = network.add(new ImgZeroPaddingLayer(x, y), head);
     }
     return head;
   }

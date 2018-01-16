@@ -74,7 +74,7 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     if (getKernel().getDimensions()[2] <= 0) throw new IllegalArgumentException();
     this.inputBands = inputBands;
     this.outputBands = outputBands;
-    setBatchBands((int) Math.pow(2, Math.floor(10 * Math.log(Math.sqrt((1 * 1024.0 * 1024.0) / (width * height))) / Math.log(2)) / 10));
+    setBatchBands((int) Math.min(512, Math.pow(2, Math.floor(10 * Math.log(Math.sqrt((1 * 1024.0 * 1024.0) / (width * height))) / Math.log(2)) / 10)));
   }
   
   /**

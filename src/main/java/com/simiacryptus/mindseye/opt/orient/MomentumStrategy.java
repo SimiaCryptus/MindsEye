@@ -48,7 +48,7 @@ public class MomentumStrategy implements OrientationStrategy<SimpleLineSearchCur
   /**
    * Instantiates a new Momentum strategy.
    *
-   * @param inner the inner
+   * @param inner the localCopy
    */
   public MomentumStrategy(final OrientationStrategy<SimpleLineSearchCursor> inner) {
     this.inner = inner;

@@ -43,7 +43,7 @@ public class SupplementedProblemData implements ImageProblemData {
   /**
    * Instantiates a new Supplemented data.
    *
-   * @param inner the inner
+   * @param inner the localCopy
    */
   public SupplementedProblemData(final ImageProblemData inner) {
     this.inner = inner;

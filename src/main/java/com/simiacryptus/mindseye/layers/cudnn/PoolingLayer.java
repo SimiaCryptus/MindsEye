@@ -127,7 +127,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
                                                inputDescriptor.getPtr(), inputData.getPtr(),
                                                beta,
                                                outputDescriptor.getPtr(), outputData.getPtr()));
-        final TensorList output = new GpuTensorList(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, precision);
+        final TensorList output = new GpuTensorList(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, precision).object();
         return new NNResult(output) {
         
           @Override
@@ -139,7 +139,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
           public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
             assert error.length() == batch.length();
             if (input.isAlive()) {
-              GpuTensorList data = CuDNN.run(nncontext -> {
+              TensorList data = CuDNN.run(nncontext -> {
                 final Pointer alpha = precision.getPointer(1.0);
                 final Pointer beta = precision.getPointer(0.0);
                 final CudaPtr errorPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, error);
@@ -151,7 +151,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
                                                         inputDescriptor.getPtr(), inputData.getPtr(),
                                                         beta,
                                                         inputDescriptor.getPtr(), passbackBuffer.getPtr()));
-                return new GpuTensorList(passbackBuffer, length, inputSize, precision);
+                return new GpuTensorList(passbackBuffer, length, inputSize, precision).object();
               });
               input.accumulate(buffer, data);
             }

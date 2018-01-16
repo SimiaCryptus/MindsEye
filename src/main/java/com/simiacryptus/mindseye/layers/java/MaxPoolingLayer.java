@@ -108,7 +108,7 @@ public class MaxPoolingLayer extends NNLayer {
    */
   public static MaxPoolingLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new MaxPoolingLayer(json,
-                               JsonUtil.getIntArray(json.getAsJsonArray("inner")));
+                               JsonUtil.getIntArray(json.getAsJsonArray("localCopy")));
   }
   
   @Override
@@ -183,7 +183,7 @@ public class MaxPoolingLayer extends NNLayer {
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
-    json.add("inner", JsonUtil.getJson(kernelDims));
+    json.add("localCopy", JsonUtil.getJson(kernelDims));
     return json;
   }
   

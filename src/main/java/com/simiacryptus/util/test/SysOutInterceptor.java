@@ -140,9 +140,9 @@ public class SysOutInterceptor extends PrintStream {
   }
   
   /**
-   * Gets inner.
+   * Gets localCopy.
    *
-   * @return the inner
+   * @return the localCopy
    */
   public PrintStream getInner() {
     return (PrintStream) out;

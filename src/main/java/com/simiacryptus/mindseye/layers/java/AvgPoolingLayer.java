@@ -89,7 +89,7 @@ public class AvgPoolingLayer extends NNLayer {
    */
   public static AvgPoolingLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new AvgPoolingLayer(json,
-                               JsonUtil.getIntArray(json.getAsJsonArray("inner")));
+                               JsonUtil.getIntArray(json.getAsJsonArray("localCopy")));
   }
   
   private static synchronized Map<Coordinate, List<int[]>> getCoordMap(final int[] kernelDims, final int[] outDims) {
@@ -156,7 +156,7 @@ public class AvgPoolingLayer extends NNLayer {
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJsonStub();
-    json.add("inner", JsonUtil.getJson(kernelDims));
+    json.add("localCopy", JsonUtil.getJson(kernelDims));
     return json;
   }
   

@@ -42,6 +42,7 @@ public class BatchingTester implements ComponentTest<ToleranceStatistics> {
   private static final Logger logger = LoggerFactory.getLogger(BatchingTester.class);
   
   private final double tolerance;
+  private int batchSize = 10;
   
   /**
    * Instantiates a new Batching tester.
@@ -71,28 +72,27 @@ public class BatchingTester implements ComponentTest<ToleranceStatistics> {
   public ToleranceStatistics test(final NNLayer reference, final Tensor[] inputPrototype) {
     if (null == reference) return new ToleranceStatistics();
   
-    final int batchSize = 10;
     final TensorList[] inputTensorLists = Arrays.stream(inputPrototype).map(t ->
-                                                                              new TensorArray(IntStream.range(0, batchSize).mapToObj(i -> t.map(v -> getRandom()))
+                                                                              new TensorArray(IntStream.range(0, getBatchSize()).mapToObj(i -> t.map(v -> getRandom()))
                                                                                                        .toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
     final SimpleListEval asABatch = SimpleListEval.run(reference, inputTensorLists);
-    final List<SimpleEval> oneAtATime = IntStream.range(0, batchSize).mapToObj(batch ->
+    final List<SimpleEval> oneAtATime = IntStream.range(0, getBatchSize()).mapToObj(batch ->
                                                                                  SimpleEval.run(reference, IntStream.range(0, inputTensorLists.length)
                                                                                                                     .mapToObj(i -> inputTensorLists[i].get(batch)).toArray(i -> new Tensor[i]))
-                                                                              ).collect(Collectors.toList());
-    
-    final ToleranceStatistics outputAgreement = IntStream.range(0, batchSize).mapToObj(batch ->
+                                                                                   ).collect(Collectors.toList());
+  
+    final ToleranceStatistics outputAgreement = IntStream.range(0, getBatchSize()).mapToObj(batch ->
                                                                                          new ToleranceStatistics().accumulate(
                                                                                            asABatch.getOutput().get(batch).getData(),
                                                                                            oneAtATime.get(batch).getOutput().getData())
-                                                                                      ).reduce((a, b) -> a.combine(b)).get();
+                                                                                           ).reduce((a, b) -> a.combine(b)).get();
     if (!(outputAgreement.absoluteTol.getMax() < tolerance)) {
       logger.info("Batch Output: " + asABatch.getOutput().stream().map(x -> x.prettyPrint()).collect(Collectors.toList()));
       logger.info("Singular Output: " + oneAtATime.stream().map(x -> x.getOutput().prettyPrint()).collect(Collectors.toList()));
       throw new AssertionError("Output Corrupt: " + outputAgreement);
     }
   
-    final ToleranceStatistics derivativeAgreement = IntStream.range(0, batchSize).mapToObj(batch ->
+    final ToleranceStatistics derivativeAgreement = IntStream.range(0, getBatchSize()).mapToObj(batch ->
                                                                                              IntStream.range(0, inputTensorLists.length).mapToObj(input ->
                                                                                                                                                     new ToleranceStatistics().accumulate(
                                                                                                                                                       asABatch.getDerivative()[input].get(batch).getData(),
@@ -122,4 +122,12 @@ public class BatchingTester implements ComponentTest<ToleranceStatistics> {
     });
   }
   
+  public int getBatchSize() {
+    return batchSize;
+  }
+  
+  public BatchingTester setBatchSize(int batchSize) {
+    this.batchSize = batchSize;
+    return this;
+  }
 }

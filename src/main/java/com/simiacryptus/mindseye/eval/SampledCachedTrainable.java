@@ -31,7 +31,7 @@ public class SampledCachedTrainable<T extends SampledTrainable> extends CachedTr
   /**
    * Instantiates a new Cached trainable.
    *
-   * @param inner the inner
+   * @param inner the localCopy
    */
   public SampledCachedTrainable(final T inner) {
     super(inner);

@@ -129,7 +129,7 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
                                     );
         }
       }
-      final TensorList outputData = new GpuTensorList(cudaOutput, length, outputDimensions, precision);
+      final TensorList outputData = new GpuTensorList(cudaOutput, length, outputDimensions, precision).object();
       return new NNResult(outputData) {
       
         @Override
@@ -175,7 +175,7 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
                                            precision.getPointer(1.0), outputDescriptor.getPtr(), cudaDelta.getPtr().withByteOffset(outputDimensions[1] * outputDimensions[0] * bandOffset * precision.size),
                                            precision.getPointer(0.0), inputDescriptor.getPtr(), cudaBackprop.getPtr()
                                           );
-                return new GpuTensorList(cudaBackprop, length, input.getData().getDimensions(), precision);
+                return new GpuTensorList(cudaBackprop, length, input.getData().getDimensions(), precision).object();
               });
               input.accumulate(buffer, passbackTensorList);
               passbackTensorList.recycle();

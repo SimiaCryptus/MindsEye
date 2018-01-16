@@ -99,7 +99,7 @@ public class AutoencoderNetwork {
    * New layer autoencoder network . builder.
    *
    * @param outerSize the outer size
-   * @param innerSize the inner size
+   * @param innerSize the localCopy size
    * @return the autoencoder network . builder
    */
   public static AutoencoderNetwork.Builder newLayer(final int[] outerSize, final int[] innerSize) {
@@ -200,7 +200,7 @@ public class AutoencoderNetwork {
   }
   
   /**
-   * Get inner size int [ ].
+   * Get localCopy size int [ ].
    *
    * @return the int [ ]
    */
@@ -384,7 +384,7 @@ public class AutoencoderNetwork {
     }
   
     /**
-     * Get inner size int [ ].
+     * Get localCopy size int [ ].
      *
      * @return the int [ ]
      */
