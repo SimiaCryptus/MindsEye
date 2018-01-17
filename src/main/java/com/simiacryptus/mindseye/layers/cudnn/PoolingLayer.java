@@ -127,7 +127,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
                                                inputDescriptor.getPtr(), inputData.getPtr(),
                                                beta,
                                                outputDescriptor.getPtr(), outputData.getPtr()));
-        final TensorList output = new GpuTensorList(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, precision).object();
+        final TensorList output = new GpuTensorList(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, precision);
         return new NNResult(output) {
         
           @Override
@@ -151,7 +151,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
                                                         inputDescriptor.getPtr(), inputData.getPtr(),
                                                         beta,
                                                         inputDescriptor.getPtr(), passbackBuffer.getPtr()));
-                return new GpuTensorList(passbackBuffer, length, inputSize, precision).object();
+                return new GpuTensorList(passbackBuffer, length, inputSize, precision);
               });
               input.accumulate(buffer, data);
             }

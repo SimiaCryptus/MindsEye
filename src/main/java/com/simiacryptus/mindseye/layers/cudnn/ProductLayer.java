@@ -105,7 +105,7 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
                                           precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                           precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
                                           precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-        return new GpuTensorList(outputPtr, length, dimensions, precision).object();
+        return new GpuTensorList(outputPtr, length, dimensions, precision);
       }).get();
     
       return new NNResult(result) {
@@ -133,7 +133,7 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
                                                     precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                                     precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
                                                     precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-                  return new GpuTensorList(outputPtr, length, dimensions, precision).object();
+                  return new GpuTensorList(outputPtr, length, dimensions, precision);
                 });
               }).get();
               input.accumulate(buffer, data);

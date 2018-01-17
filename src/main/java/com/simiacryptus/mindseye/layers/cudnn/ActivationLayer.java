@@ -128,7 +128,7 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
         } catch (final Throwable e) {
           throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
         }
-        final TensorList output = new GpuTensorList(outputData, length, outputSize, precision).object();
+        final TensorList output = new GpuTensorList(outputData, length, outputSize, precision);
         //assert output.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         return new NNResult(output) {
         
@@ -157,7 +157,7 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
                 } catch (final Throwable e) {
                   throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
                 }
-                return new GpuTensorList(passbackBuffer, length, inputSize, precision).object();
+                return new GpuTensorList(passbackBuffer, length, inputSize, precision);
               });
               input.accumulate(buffer, data);
               data.recycle();

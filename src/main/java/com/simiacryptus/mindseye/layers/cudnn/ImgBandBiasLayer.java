@@ -185,7 +185,7 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
         } catch (final Throwable e) {
           throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
         }
-        final TensorList output = new GpuTensorList(inputData, length, outputSize, precision).object();
+        final TensorList output = new GpuTensorList(inputData, length, outputSize, precision);
         return new NNResult(output) {
         
           @Override

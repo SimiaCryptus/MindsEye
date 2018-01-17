@@ -34,6 +34,7 @@ import java.util.stream.Stream;
  */
 public class GpuTensorList implements TensorList {
   protected static final Logger logger = LoggerFactory.getLogger(GpuTensorList.class);
+  public static boolean DISABLE_GPU_INTERCONNECT = true;
   
   /**
    * The Dimensions.
@@ -73,25 +74,31 @@ public class GpuTensorList implements TensorList {
   
   @Override
   public synchronized void addInPlace(final TensorList right) {
-  // TODO: Review use, make sure immutable behavior is not assumed.
     assert length() == right.length();
-    if (right instanceof GpuTensorList && ((GpuTensorList) right).precision == precision && ((GpuTensorList) right)._inner == null && _inner == null) {
-      CuDNN.apply(exe -> {
+    if (_inner == null) {
+      if (right instanceof GpuTensorList) {
         final GpuTensorList nativeRight = (GpuTensorList) right;
-        final CudaResource<cudnnTensorDescriptor> leftSize = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
-        final CudaResource<cudnnTensorDescriptor> rightSize = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
-        CuDNN.handle(CuDNN.cudnnAddTensor(exe.cudnnHandle,
-                                          precision.getPointer(1.0), rightSize.getPtr(), nativeRight.ptr.getPtr(),
-                                          precision.getPointer(1.0), leftSize.getPtr(), GpuTensorList.this.ptr.getPtr()));
-        leftSize.finalize();
-        rightSize.finalize();
-     });
+        if (nativeRight.precision == precision) {
+          if (nativeRight._inner == null) {
+            if (CuDNN.run(exe -> {
+              if (DISABLE_GPU_INTERCONNECT) return false;
+              if (nativeRight.ptr.getDeviceId() != GpuTensorList.this.ptr.getDeviceId()) return false;
+              final CudaResource<cudnnTensorDescriptor> leftSize = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
+              final CudaResource<cudnnTensorDescriptor> rightSize = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
+              CuDNN.handle(CuDNN.cudnnAddTensor(exe.cudnnHandle,
+                                                precision.getPointer(1.0), rightSize.getPtr(), nativeRight.ptr.getPtr(),
+                                                precision.getPointer(1.0), leftSize.getPtr(), GpuTensorList.this.ptr.getPtr()));
+              leftSize.finalize();
+              rightSize.finalize();
+              return true;
+            })) return;
+          }
+        }
+      }
     }
-    else {
-      IntStream.range(0, length()).forEach(i -> {
-        get(i).accumulate(right.get(i));
-      });
-    }
+    IntStream.range(0, length()).forEach(i -> {
+      get(i).accumulate(right.get(i));
+    });
   }
   
   @Override
@@ -177,13 +184,4 @@ public class GpuTensorList implements TensorList {
     return null == _inner;
   }
   
-  /**
-   * A giant hack, returning the object to actually use. Provides a code point to be inlined when the bug is fixed.
-   *
-   * @return
-   */
-  public TensorList object() {
-    //return this;
-    return localCopy();
-  }
 }
