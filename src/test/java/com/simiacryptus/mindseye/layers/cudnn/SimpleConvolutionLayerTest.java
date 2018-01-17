@@ -175,7 +175,7 @@ public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * Base test configuration demonstrating the absence of failure in this case.
+   * Base allocationOverflow configuration demonstrating the absence of failure in this case.
    */
   public static class Bug_Control extends SimpleConvolutionLayerTest {
     /**

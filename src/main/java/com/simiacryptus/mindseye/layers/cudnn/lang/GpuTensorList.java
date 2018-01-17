@@ -80,8 +80,7 @@ public class GpuTensorList implements TensorList {
         final GpuTensorList nativeRight = (GpuTensorList) right;
         if (nativeRight.precision == precision) {
           if (nativeRight._inner == null) {
-            if (CuDNN.run(exe -> {
-              if (DISABLE_GPU_INTERCONNECT) return false;
+            if (!DISABLE_GPU_INTERCONNECT && CuDNN.run(exe -> {
               if (nativeRight.ptr.getDeviceId() != GpuTensorList.this.ptr.getDeviceId()) return false;
               final CudaResource<cudnnTensorDescriptor> leftSize = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
               final CudaResource<cudnnTensorDescriptor> rightSize = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);

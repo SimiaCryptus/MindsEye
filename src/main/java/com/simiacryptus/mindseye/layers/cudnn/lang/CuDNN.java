@@ -1111,6 +1111,13 @@ public class CuDNN {
     }
   }
   
+  public static void forEach(final Consumer<? super CuDNN> fn) {
+    contexts.getAll().forEach(x -> {
+      x.initThread();
+      fn.accept(x);
+    });
+  }
+  
   /**
    * Log.
    *
@@ -1788,5 +1795,9 @@ public class CuDNN {
   @Override
   public String toString() {
     return getClass().getSimpleName() + "{" + deviceNumber + "; " + deviceName + "}@" + Long.toHexString(System.identityHashCode(this));
+  }
+  
+  public static boolean removeLog(PrintStream apiLog) {
+    return CuDNN.apiLog.remove(apiLog);
   }
 }

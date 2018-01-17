@@ -81,6 +81,7 @@ public class Tensor implements Serializable {
    * @param dims the dims
    */
   public Tensor(final double[] data, final int... dims) {
+    if (Tensor.dim(dims) > Integer.MAX_VALUE) throw new IllegalArgumentException();
     dimensions = Arrays.copyOf(dims, dims.length);
     strides = Tensor.getSkips(dims);
     //this.data = data;// Arrays.copyOf(data, data.length);
@@ -93,6 +94,7 @@ public class Tensor implements Serializable {
   }
   
   private Tensor(int[] dimensions, int[] strides, double[] data) {
+    if (Tensor.dim(dimensions) >= Integer.MAX_VALUE) throw new IllegalArgumentException();
     assert null == data || data.length == Tensor.dim(dimensions);
     this.dimensions = dimensions;
     this.strides = strides;
@@ -107,6 +109,7 @@ public class Tensor implements Serializable {
    * @param dims the dims
    */
   public Tensor(final float[] data, final int... dims) {
+    if (Tensor.dim(dims) >= Integer.MAX_VALUE) throw new IllegalArgumentException();
     dimensions = Arrays.copyOf(dims, dims.length);
     strides = Tensor.getSkips(dims);
     if (null != data) {
@@ -239,7 +242,13 @@ public class Tensor implements Serializable {
    * @return the int
    */
   public static int dim(final int... dims) {
-    int total = 1;
+    long total = dimL(dims);
+    if (total > Integer.MAX_VALUE) throw new IllegalArgumentException();
+    return (int) total;
+  }
+  
+  public static long dimL(int... dims) {
+    long total = 1;
     for (final int dim : dims) {
       total *= dim;
     }

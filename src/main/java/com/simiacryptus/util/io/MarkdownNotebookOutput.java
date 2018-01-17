@@ -201,10 +201,17 @@ public class MarkdownNotebookOutput implements NotebookOutput {
       final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[framesNo];
       final String sourceCode = CodeUtil.getInnerText(callingFrame);
       final SysOutInterceptor.LoggedResult<TimedResult<Object>> result = SysOutInterceptor.withOutput(() -> {
+        final long start = System.nanoTime();
         try {
-          return TimedResult.time(() -> fn.get());
+          Object result1 = null;
+          try {
+            result1 = fn.get();
+          } catch (final Exception e) {
+            throw new RuntimeException(e);
+          }
+          return new TimedResult<Object>(result1, System.nanoTime() - start);
         } catch (final Throwable e) {
-          return new TimedResult<Object>(e, 0);
+          return new TimedResult<Object>(e, System.nanoTime() - start);
         }
       });
       out(anchor(anchorId()) + "Code from [%s:%s](%s#L%s) executed in %.2f seconds: ",

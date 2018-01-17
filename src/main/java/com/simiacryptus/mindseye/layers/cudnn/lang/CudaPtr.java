@@ -26,6 +26,7 @@ import com.simiacryptus.mindseye.lang.PersistanceMode;
 import com.simiacryptus.mindseye.lang.RecycleBin;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.util.lang.TimedResult;
 import jcuda.Pointer;
 import jcuda.runtime.cudaDeviceProp;
 import jcuda.runtime.cudaMemcpyKind;
@@ -56,9 +57,10 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   private static final int K = 1024;
   private static final int MiB = K * 1024;
   private static final long GiB = 1024 * MiB;
-  static final long MAX = 4 * GiB;
+  static final long MAX = Precision.Double.size * (Integer.MAX_VALUE - 1L);
   private static final Object pciBusLock = new Object();
   private static final boolean useDefaultDir = false;
+  public static boolean DISABLE_DIRTY_MEMORY = true;
   /**
    * The Size.
    */
@@ -135,13 +137,14 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
         assert elementLength == doubles.length;
         System.arraycopy(doubles, 0, inputBuffer, i * elementLength, elementLength);
       }
-      final CudaPtr ptr = new CudaPtr(inputBuffer.length * precision.size, deviceId, type, true).write(precision, inputBuffer);
+      final CudaPtr ptr = new CudaPtr((long) inputBuffer.length * precision.size, deviceId, type, true).write(precision, inputBuffer);
       RecycleBin.DOUBLES.recycle(inputBuffer, inputBuffer.length);
       return ptr;
     }
   }
   
   private static Pointer acquire(int deviceId, long size, MemoryType type, boolean dirty, int retries) {
+    if (retries < 0) throw new IllegalArgumentException();
     if (size < 0) {
       throw new OutOfMemoryError("Allocated block is too large: " + size);
     }
@@ -154,22 +157,25 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
       try {
         Pointer pointer = new Pointer();
         type.alloc(size, pointer);
-        if (!dirty) {
+        if (!dirty || DISABLE_DIRTY_MEMORY) {
           CuDNN.handle(CuDNN.cudaMemset(pointer, 0, size));
         }
         final long finalMemory = metrics.usedMemory.addAndGet(size);
         metrics.peakMemory.updateAndGet(l -> Math.max(finalMemory, l));
         return pointer;
-      } catch (final Exception e) {
+      } catch (final ThreadDeath e) {
+        throw e;
+      } catch (final Throwable e) {
         if (retries <= 0) throw new RuntimeException(e);
         final long startMemory = metrics.usedMemory.get();
-        CuDNN.cleanMemory();
+        TimedResult<Void> timedResult = TimedResult.time(() -> CuDNN.cleanMemory());
         final long freedMemory = startMemory - metrics.usedMemory.get();
-        logger.warn(String.format("Low GPU Memory while allocating %s bytes; %s freed resulting in %s total (triggered by %s)",
-                                  size, freedMemory, metrics.usedMemory.get() + size, e.getMessage()));
-        return acquire(deviceId, size, type, dirty, retries - 1);
+        logger.warn(String.format("Low GPU Memory while allocating %s bytes; %s freed in %.4fs resulting in %s total (triggered by %s)",
+                                  size, freedMemory, timedResult.seconds(), metrics.usedMemory.get() + size, e.getMessage()));
       }
     }
+    if (retries < 0) throw new IllegalStateException();
+    return acquire(deviceId, size, type, dirty, retries - 1);
   }
   
   
@@ -347,7 +353,8 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    */
   public CudaPtr write(final Precision precision, final double[] data) {
     synchronized (CudaPtr.getPciBusLock()) {
-      if (size != data.length * precision.size) throw new IllegalArgumentException();
+      if (size != (long) data.length * precision.size)
+        throw new IllegalArgumentException(String.format("%d != %d * %d", size, data.length, precision.size));
       final Pointer src = precision.getPointer(data);
       int returnCode = CuDNN.cudaMemcpy(getPtr(), src, size, useDefaultDir ? cudaMemcpyKind.cudaMemcpyDefault : cudaMemcpyKind.cudaMemcpyHostToDevice);
 //      if(cudaErrorInvalidMemcpyDirection == returnCode) {

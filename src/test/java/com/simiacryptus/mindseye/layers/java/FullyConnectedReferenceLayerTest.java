@@ -34,7 +34,7 @@ public abstract class FullyConnectedReferenceLayerTest extends LayerTestBase {
   
   
   /**
-   * Instantiates a new Fully connected reference layer test.
+   * Instantiates a new Fully connected reference layer allocationOverflow.
    *
    * @param inputDims  the input dims
    * @param outputDims the output dims

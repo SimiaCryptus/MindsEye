@@ -68,7 +68,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   }
   
   /**
-   * Autoencoder test.
+   * Autoencoder allocationOverflow.
    *
    * @param log the log
    */
@@ -91,7 +91,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   }
   
   /**
-   * Classification test.
+   * Classification allocationOverflow.
    *
    * @throws IOException the io exception
    */
@@ -102,7 +102,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   }
   
   /**
-   * Classification test.
+   * Classification allocationOverflow.
    *
    * @param log the log
    */
@@ -113,7 +113,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   }
   
   /**
-   * Encoding test.
+   * Encoding allocationOverflow.
    *
    * @throws IOException the io exception
    */
@@ -125,7 +125,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   }
   
   /**
-   * Encoding test.
+   * Encoding allocationOverflow.
    *
    * @param log the log
    */

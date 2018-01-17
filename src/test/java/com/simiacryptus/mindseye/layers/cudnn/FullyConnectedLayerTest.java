@@ -41,7 +41,7 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
   private final PipelineNetwork layer;
   
   /**
-   * Instantiates a new Fully connected layer test.
+   * Instantiates a new Fully connected layer allocationOverflow.
    *
    * @param dim the dim
    */
@@ -50,7 +50,7 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * Instantiates a new Fully connected layer test.
+   * Instantiates a new Fully connected layer allocationOverflow.
    *
    * @param inputDim  the input dim
    * @param outputDim the output dim
@@ -60,7 +60,7 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * Instantiates a new Fully connected layer test.
+   * Instantiates a new Fully connected layer allocationOverflow.
    *
    * @param inputDims  the input dims
    * @param outputDims the output dims
