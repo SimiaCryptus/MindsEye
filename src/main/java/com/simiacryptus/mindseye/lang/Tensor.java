@@ -469,7 +469,7 @@ public class Tensor implements Serializable {
    *
    * @param tensor the tensor
    */
-  public void accumulate(final Tensor tensor) {
+  public void addInPlace(final Tensor tensor) {
     assert Arrays.equals(getDimensions(), tensor.getDimensions());
     setParallelByIndex(c -> get(c) + tensor.get(c));
   }

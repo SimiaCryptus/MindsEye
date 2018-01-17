@@ -53,7 +53,7 @@ public class SimpleListEval implements Callable<SimpleListEval> {
    */
   public static void accumulate(final TensorList buffer, final TensorList data) {
     IntStream.range(0, data.length()).forEach(b -> {
-      buffer.get(b).accumulate(data.get(b));
+      buffer.get(b).addInPlace(data.get(b));
     });
   }
   

@@ -63,7 +63,7 @@ public class SimpleEval implements Callable<SimpleEval> {
       return new NNResult(input[i]) {
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-          data.stream().forEach(t -> derivative[i].accumulate(t));
+          data.stream().forEach(t -> derivative[i].addInPlace(t));
         }
         
         @Override

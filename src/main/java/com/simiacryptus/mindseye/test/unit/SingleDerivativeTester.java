@@ -107,7 +107,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
       eval.accumulate(deltaSet, new TensorArray(new Tensor(outputPrototype.getDimensions()).set(j, 1)));
       final Delta<NNLayer> inputDelta = deltaSet.getMap().get(inputKey);
       if (null != inputDelta) {
-        result.accumulate(new Tensor(inputDelta.getDelta(), result.getDimensions()));
+        result.addInPlace(new Tensor(inputDelta.getDelta(), result.getDimensions()));
       }
     }
     return result;

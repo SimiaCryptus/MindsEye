@@ -50,6 +50,7 @@ public class GpuTensorList implements TensorList {
   public final ManagedCudaPtr ptr;
   private final Precision precision;
   private volatile TensorList _inner = null;
+  private TensorList heapCopy;
   
   /**
    * Instantiates a new Cu dnn double tensor list.
@@ -66,7 +67,7 @@ public class GpuTensorList implements TensorList {
     this.ptr = ptr.managed();
     this.length = length;
     this.dimensions = Arrays.copyOf(dimensions, dimensions.length);
-    assert ptr.size == length * Tensor.dim(dimensions) * precision.size;
+    assert ptr.size == (long) length * Tensor.dim(dimensions) * precision.size;
     assert ptr.getPtr() != null;
     //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     assert !System.getProperties().containsKey("safe") || stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
@@ -96,7 +97,7 @@ public class GpuTensorList implements TensorList {
       }
     }
     IntStream.range(0, length()).forEach(i -> {
-      get(i).accumulate(right.get(i));
+      get(i).addInPlace(right.get(i));
     });
   }
   
@@ -183,4 +184,7 @@ public class GpuTensorList implements TensorList {
     return null == _inner;
   }
   
+  public TensorList getHeapCopy() {
+    return localCopy();
+  }
 }

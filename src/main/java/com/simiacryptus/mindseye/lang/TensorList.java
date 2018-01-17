@@ -39,8 +39,30 @@ public interface TensorList {
       if (length() == 0) throw new IllegalArgumentException();
       assert length() == right.length();
       IntStream.range(0, length()).forEach(i -> {
-        get(i).accumulate(right.get(i));
+        get(i).addInPlace(right.get(i));
       });
+    }
+  }
+  
+  default TensorList add(final TensorList right) {
+    synchronized (this) {
+      if (right.length() == 0) return this;
+      if (length() == 0) throw new IllegalArgumentException();
+      assert length() == right.length();
+      return new TensorArray(IntStream.range(0, length()).mapToObj(i -> {
+        return get(i).add(right.get(i));
+      }).toArray(i -> new Tensor[i]));
+    }
+  }
+  
+  default TensorList minus(final TensorList right) {
+    synchronized (this) {
+      if (right.length() == 0) return this;
+      if (length() == 0) throw new IllegalArgumentException();
+      assert length() == right.length();
+      return new TensorArray(IntStream.range(0, length()).mapToObj(i -> {
+        return get(i).minus(right.get(i));
+      }).toArray(i -> new Tensor[i]));
     }
   }
   
@@ -89,4 +111,7 @@ public interface TensorList {
    */
   Stream<Tensor> stream();
   
+  default String prettyPrint() {
+    return stream().map(t -> t.prettyPrint()).reduce((a, b) -> a + "\n" + b).get();
+  }
 }

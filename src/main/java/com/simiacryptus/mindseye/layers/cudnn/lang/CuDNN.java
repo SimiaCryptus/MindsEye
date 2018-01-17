@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -53,6 +54,7 @@ public class CuDNN {
    * The constant apiLog.
    */
   public static final HashSet<PrintStream> apiLog = new HashSet<>();
+  private static final ConcurrentHashMap<Integer, cudaDeviceProp> propertyCache = new ConcurrentHashMap<>();
   /**
    * The constant logger.
    */
@@ -1059,6 +1061,29 @@ public class CuDNN {
     return new String(CuDNN.getDeviceProperties(device).name, Charset.forName("ASCII")).trim();
   }
   
+  private volatile cudaDeviceProp deviceProperties;
+  
+  /**
+   * Gets device properties.
+   *
+   * @param device the device
+   * @return the device properties
+   */
+  public static cudaDeviceProp getDeviceProperties(final int device) {
+    return propertyCache.computeIfAbsent(device, deviceId -> {
+      long startTime = System.nanoTime();
+      final cudaDeviceProp deviceProp = new cudaDeviceProp();
+      final int result = JCuda.cudaGetDeviceProperties(deviceProp, device);
+      getDeviceProperties_execution.accept((System.nanoTime() - startTime) / 1e9);
+      CuDNN.log("cudaGetDeviceProperties", result, deviceProp, device);
+      return deviceProp;
+    });
+  }
+  
+  public String getDeviceName() {
+    return new String(getDeviceProperties().name, Charset.forName("ASCII")).trim();
+  }
+  
   /**
    * Sets device.
    *
@@ -1075,19 +1100,15 @@ public class CuDNN {
     }
   }
   
-  /**
-   * Gets device properties.
-   *
-   * @param device the device
-   * @return the device properties
-   */
-  public static cudaDeviceProp getDeviceProperties(final int device) {
-    long startTime = System.nanoTime();
-    final cudaDeviceProp deviceProp = new cudaDeviceProp();
-    final int result = JCuda.cudaGetDeviceProperties(deviceProp, device);
-    getDeviceProperties_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CuDNN.log("cudaGetDeviceProperties", result, deviceProp, device);
-    return deviceProp;
+  public cudaDeviceProp getDeviceProperties() {
+    if (null == deviceProperties) {
+      synchronized (this) {
+        if (null == deviceProperties) {
+          deviceProperties = getDeviceProperties(getDeviceNumber());
+        }
+      }
+    }
+    return deviceProperties;
   }
   
   /**

@@ -100,7 +100,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
       eval.accumulate(xxx, new TensorArray(eval.getData().stream().map(x -> x.set(j_, 1)).toArray(i -> new Tensor[i])));
       final Delta<NNLayer> inputDelta = xxx.getMap().get(inputKey);
       if (null != inputDelta) {
-        result.accumulate(new Tensor(inputDelta.getDelta(), result.getDimensions()));
+        result.addInPlace(new Tensor(inputDelta.getDelta(), result.getDimensions()));
       }
     }
     return result;
