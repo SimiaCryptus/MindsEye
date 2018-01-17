@@ -226,7 +226,7 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
       RecycleBin.DOUBLES.printNetProfiling(System.err);
       if (retries > 0) {
         lastGc = System.currentTimeMillis();
-        CuDNN.reset();
+        CuDNN.cleanMemory();
         CudaPtr.METRICS.invalidateAll();
         if (gcEachIteration && TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - lastGc) > gcPeriod) {
           lastGc = System.currentTimeMillis();

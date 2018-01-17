@@ -24,6 +24,8 @@ import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.lang.*;
 import com.simiacryptus.util.Util;
 import jcuda.jcudnn.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -41,6 +43,7 @@ import java.util.stream.IntStream;
 @SuppressWarnings("serial")
 public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<SimpleConvolutionLayer> {
   
+  static final Logger log = LoggerFactory.getLogger(SimpleConvolutionLayer.class);
   
   /**
    * The Filter.
@@ -178,7 +181,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
       
         assert 0 < kernel.getData().length;
         assert kernelSize[0] * kernelSize[1] * kernelSize[2] == kernel.getData().length;
-        CudaPtr.MemoryType filterMemoryType = CudaPtr.MemoryType.Device;
+        MemoryType filterMemoryType = MemoryType.Device;
         final ManagedCudaPtr filterPtr = new CudaPtr(kernel.getData().length * precision.size, deviceNumber, filterMemoryType).write(precision, kernel.getData()).managed();
         final CudaPtr inputData = CudaPtr.write(deviceNumber, precision, batch);
       
@@ -300,6 +303,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
    * @return the compatibility layer
    */
   public NNLayer getCompatibilityLayer() {
+    log.info("Using compatibility layer for " + this);
     int bands = (int) Math.sqrt(this.kernel.getDimensions()[2]);
     final com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer convolutionLayer = new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(this.kernel.getDimensions()[0], this.kernel.getDimensions()[1], this.kernel.getDimensions()[2], true);
     final Tensor tensor = new Tensor(kernel.getDimensions());
@@ -312,7 +316,33 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
       return kernel.get(c.getCoords()[0], c.getCoords()[1], bandT);
     });
     convolutionLayer.kernel.set(tensor);
-    return convolutionLayer;
+    return new NNLayer() {
+      @Override
+      public NNResult eval(NNResult... array) {
+        NNResult result = convolutionLayer.eval(array);
+        return new NNResult(result.getData()) {
+          @Override
+          public void accumulate(DeltaSet<NNLayer> buffer, TensorList data) {
+            throw new IllegalStateException();
+          }
+        
+          @Override
+          public boolean isAlive() {
+            return false;
+          }
+        };
+      }
+    
+      @Override
+      public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+        throw new IllegalStateException();
+      }
+    
+      @Override
+      public List<double[]> state() {
+        throw new IllegalStateException();
+      }
+    };
   }
   
   @Override

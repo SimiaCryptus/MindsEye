@@ -65,29 +65,19 @@ abstract class LazyResult implements DAGNode {
   protected abstract NNResult eval(GraphEvaluationContext t);
   
   @Override
-  public synchronized CountingNNResult get(final GraphEvaluationContext context) {
+  public CountingNNResult get(final GraphEvaluationContext context) {
     if (!context.calculated.containsKey(id)) {
-      boolean run = false;
-      BlockingDeque<CountingNNResult> deque = new LinkedBlockingDeque<>();
+      Singleton singleton = null;
       synchronized (context) {
         if (!context.calculated.containsKey(id)) {
-          run = true;
-          Supplier<CountingNNResult> singleton = () -> {
-            try {
-              CountingNNResult take = deque.take();
-              deque.add(take);
-              return take;
-            } catch (InterruptedException e) {
-              throw new RuntimeException(e);
-            }
-          };
+          singleton = new Singleton();
           context.calculated.put(id, singleton);
         }
       }
-      if (run) {
+      if (null != singleton) {
         NNResult result = eval(context);
         assert null != result;
-        deque.add(new CountingNNResult(result));
+        singleton.set(new CountingNNResult(result));
       }
     }
     Supplier<CountingNNResult> resultSupplier = context.calculated.get(id);
@@ -100,4 +90,25 @@ abstract class LazyResult implements DAGNode {
     return id;
   }
   
+  public static class Singleton<T> implements Supplier<T> {
+    private final BlockingDeque<T> deque = new LinkedBlockingDeque<>();
+    
+    public Singleton() {}
+    
+    @Override
+    public T get() {
+      try {
+        T take = deque.take();
+        deque.add(take);
+        return take;
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    
+    public void set(T obj) {
+      assert deque.isEmpty();
+      deque.add(obj);
+    }
+  }
 }

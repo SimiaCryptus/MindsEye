@@ -66,7 +66,7 @@ public class CudnnTest extends NotebookReportBase {
           }
         });
       } catch (Exception e) {
-        CuDNN.reset();
+        CuDNN.cleanMemory();
       }
     });
   }

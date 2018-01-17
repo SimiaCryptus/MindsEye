@@ -349,7 +349,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         logger.info("Error plotting graph", e);
       }
     }
-  
     throwException(standardTests(log, seed));
     getFinalTests().stream().filter(x -> null != x).forEach(test -> {
       final NNLayer perfLayer = getLayer(getPerfDims(new Random(seed)), new Random(seed));

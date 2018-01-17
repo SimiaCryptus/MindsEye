@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn.lang;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.simiacryptus.mindseye.lang.RecycleBin;
 import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.lang.StaticResourcePool;
 import jcuda.Pointer;
 import jcuda.jcudnn.*;
@@ -49,10 +50,13 @@ public class CuDNN {
    */
   public static final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
   /**
+   * The constant apiLog.
+   */
+  public static final HashSet<PrintStream> apiLog = new HashSet<>();
+  /**
    * The constant logger.
    */
   protected static final Logger logger = LoggerFactory.getLogger(CuDNN.class);
-  
   private static final ThreadLocal<Integer> currentDevice = new ThreadLocal<Integer>() {
     @Override
     protected Integer initialValue() {
@@ -61,10 +65,67 @@ public class CuDNN {
   };
   private static final ExecutorService logThread = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
   private static final long start = System.nanoTime();
-  /**
-   * The constant apiLog.
-   */
-  public static final HashSet<PrintStream> apiLog = new HashSet<>();
+  private static final DoubleStatistics createPoolingDescriptor_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudaDeviceReset_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudaFree_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudaMalloc_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudaMallocManaged_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudaHostAlloc_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudaFreeHost_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudaDeviceGetLimit_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudaDeviceSetLimit_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudaMemcpy_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudaMemset_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudnnActivationBackward_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudnnActivationForward_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudnnAddTensor_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudnnConvolutionBackwardBias_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudnnConvolutionBackwardData_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudnnConvolutionBackwardFilter_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudnnConvolutionForward_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudnnDestroyActivationDescriptor_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudnnDestroyConvolutionDescriptor_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudnnDestroyFilterDescriptor_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudnnDestroyOpTensorDescriptor_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudnnDestroyPoolingDescriptor_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudnnDestroyTensorDescriptor_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudnnGetPoolingNdForwardOutputDim_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudnnOpTensor_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudnnPoolingBackward_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudnnPoolingForward_execution = new DoubleStatistics();
+  private static final DoubleStatistics cudnnTransformTensor_execution = new DoubleStatistics();
+  private static final DoubleStatistics deviceCount_execution = new DoubleStatistics();
+  private static final DoubleStatistics setDevice_execution = new DoubleStatistics();
+  private static final DoubleStatistics getDeviceProperties_execution = new DoubleStatistics();
+  private static final DoubleStatistics getOutputDims_execution = new DoubleStatistics();
+  private static final DoubleStatistics newActivationDescriptor_execution = new DoubleStatistics();
+  private static final DoubleStatistics newConvolutionNdDescriptor_execution = new DoubleStatistics();
+  private static final DoubleStatistics newConvolutions2dDescriptor_execution = new DoubleStatistics();
+  private static final DoubleStatistics newFilterDescriptor_execution = new DoubleStatistics();
+  private static final DoubleStatistics newOpDescriptor_execution = new DoubleStatistics();
+  private static final DoubleStatistics newTensorDescriptor_execution = new DoubleStatistics();
+  private static final DoubleStatistics allocateBackwardDataWorkspace_execution = new DoubleStatistics();
+  private static final DoubleStatistics allocateBackwardFilterWorkspace_execution = new DoubleStatistics();
+  private static final DoubleStatistics allocateForwardWorkspace_execution = new DoubleStatistics();
+  private static final DoubleStatistics getBackwardDataAlgorithm_execution = new DoubleStatistics();
+  private static final DoubleStatistics getBackwardFilterAlgorithm_execution = new DoubleStatistics();
+  private static final DoubleStatistics getForwardAlgorithm_execution = new DoubleStatistics();
+  private static final ThreadLocal<CuDNN> threadContext = new ThreadLocal<>();
+  //  /**
+//   * Cudnn create reduce tensor descriptor int.
+//   *
+//   * @param reduceTensorDesc the reduce tensor desc
+//   * @return the int
+//   */
+//  public static int cudnnCreateReduceTensorDescriptor(
+//    final cudnnReduceTensorDescriptor reduceTensorDesc) {
+//    final int result = JCudnn.cudnnCreateReduceTensorDescriptor(reduceTensorDesc);
+//    CuDNN.log("cudnnCreateReduceTensorDescriptor", result, reduceTensorDesc);
+//    CuDNN.handle(result);
+//    return result;
+//  }
+  private final int memoryLimitInBytes = 32 * 1024 * 1024;
+  
   /**
    * The constant gpuContexts.
    */
@@ -75,7 +136,59 @@ public class CuDNN {
   public final cudnnHandle cudnnHandle;
   private final String deviceName;
   private final int deviceNumber;
-  private final int memoryLimitInBytes = 32 * 1024 * 1024;
+  
+  public static final Map<String, Map<String, String>> getExecutionStatistics() {
+    HashMap<String, Map<String, String>> map = new HashMap<>();
+    map.put("createPoolingDescriptor", toMap(createPoolingDescriptor_execution));
+    map.put("cudaDeviceReset", toMap(cudaDeviceReset_execution));
+    map.put("cudaFree", toMap(cudaFree_execution));
+    map.put("cudaMalloc", toMap(cudaMalloc_execution));
+    map.put("cudaMallocManaged", toMap(cudaMallocManaged_execution));
+    map.put("cudaHostAlloc", toMap(cudaHostAlloc_execution));
+    map.put("cudaFreeHost", toMap(cudaFreeHost_execution));
+    map.put("cudaDeviceGetLimit", toMap(cudaDeviceGetLimit_execution));
+    map.put("cudaDeviceSetLimit", toMap(cudaDeviceSetLimit_execution));
+    map.put("cudaMemcpy", toMap(cudaMemcpy_execution));
+    map.put("cudaMemset", toMap(cudaMemset_execution));
+    map.put("cudnnActivationBackward", toMap(cudnnActivationBackward_execution));
+    map.put("cudnnActivationForward", toMap(cudnnActivationForward_execution));
+    map.put("cudnnAddTensor", toMap(cudnnAddTensor_execution));
+    map.put("cudnnConvolutionBackwardBias", toMap(cudnnConvolutionBackwardBias_execution));
+    map.put("cudnnConvolutionBackwardData", toMap(cudnnConvolutionBackwardData_execution));
+    map.put("cudnnConvolutionBackwardFilter", toMap(cudnnConvolutionBackwardFilter_execution));
+    map.put("cudnnConvolutionForward", toMap(cudnnConvolutionForward_execution));
+    map.put("cudnnDestroyActivationDescriptor", toMap(cudnnDestroyActivationDescriptor_execution));
+    map.put("cudnnDestroyConvolutionDescriptor", toMap(cudnnDestroyConvolutionDescriptor_execution));
+    map.put("cudnnDestroyFilterDescriptor", toMap(cudnnDestroyFilterDescriptor_execution));
+    map.put("cudnnDestroyOpTensorDescriptor", toMap(cudnnDestroyOpTensorDescriptor_execution));
+    map.put("cudnnDestroyPoolingDescriptor", toMap(cudnnDestroyPoolingDescriptor_execution));
+    map.put("cudnnDestroyTensorDescriptor", toMap(cudnnDestroyTensorDescriptor_execution));
+    map.put("cudnnGetPoolingNdForwardOutputDim", toMap(cudnnGetPoolingNdForwardOutputDim_execution));
+    map.put("cudnnOpTensor", toMap(cudnnOpTensor_execution));
+    map.put("cudnnPoolingBackward", toMap(cudnnPoolingBackward_execution));
+    map.put("cudnnPoolingForward", toMap(cudnnPoolingForward_execution));
+    map.put("cudnnTransformTensor", toMap(cudnnTransformTensor_execution));
+    map.put("deviceCount", toMap(deviceCount_execution));
+    map.put("setDevice", toMap(setDevice_execution));
+    map.put("getDeviceProperties", toMap(getDeviceProperties_execution));
+    map.put("getOutputDims", toMap(getOutputDims_execution));
+    map.put("newActivationDescriptor", toMap(newActivationDescriptor_execution));
+    map.put("newConvolutionNdDescriptor", toMap(newConvolutionNdDescriptor_execution));
+    map.put("newConvolutions2dDescriptor", toMap(newConvolutions2dDescriptor_execution));
+    map.put("newFilterDescriptor", toMap(newFilterDescriptor_execution));
+    map.put("newOpDescriptor", toMap(newOpDescriptor_execution));
+    map.put("newTensorDescriptor", toMap(newTensorDescriptor_execution));
+    map.put("allocateBackwardDataWorkspace", toMap(allocateBackwardDataWorkspace_execution));
+    map.put("allocateBackwardFilterWorkspace", toMap(allocateBackwardFilterWorkspace_execution));
+    map.put("allocateForwardWorkspace", toMap(allocateForwardWorkspace_execution));
+    map.put("getBackwardDataAlgorithm", toMap(getBackwardDataAlgorithm_execution));
+    map.put("getBackwardFilterAlgorithm", toMap(getBackwardFilterAlgorithm_execution));
+    map.put("getForwardAlgorithm", toMap(getForwardAlgorithm_execution));
+    for (String entry : map.entrySet().stream().filter(x -> x.getValue().isEmpty()).map(x -> x.getKey()).collect(Collectors.toList())) {
+      map.remove(entry);
+    }
+    return map;
+  }
   
   /**
    * Instantiates a new Cu dnn.
@@ -154,6 +267,18 @@ public class CuDNN {
    */
   public static CudaPtr alloc(final int deviceId, final long size) {return alloc(deviceId, size, false);}
   
+  private static Map<String, String> toMap(DoubleStatistics obj) {
+    HashMap<String, String> map = new HashMap<>();
+    if (0 < obj.getCount()) {
+      map.put("stddev", Double.toString(obj.getStandardDeviation()));
+      map.put("mean", Double.toString(obj.getAverage()));
+      map.put("total", Double.toString(obj.getSum()));
+      map.put("max", Double.toString(obj.getMax()));
+      map.put("count", Double.toString(obj.getCount()));
+    }
+    return map;
+  }
+  
   /**
    * Alloc cuda ptr.
    *
@@ -162,7 +287,7 @@ public class CuDNN {
    * @param dirty    the dirty
    * @return the cuda ptr
    */
-  public static CudaPtr alloc(final int deviceId, final long size, boolean dirty) {return alloc(deviceId, size, CudaPtr.MemoryType.Device, dirty);}
+  public static CudaPtr alloc(final int deviceId, final long size, boolean dirty) {return alloc(deviceId, size, MemoryType.Device, dirty);}
   
   /**
    * Alloc cuda ptr.
@@ -172,7 +297,7 @@ public class CuDNN {
    * @param type     the type
    * @return the cuda ptr
    */
-  public static CudaPtr alloc(final int deviceId, final long size, CudaPtr.MemoryType type) {return alloc(deviceId, size, type, false);}
+  public static CudaPtr alloc(final int deviceId, final long size, MemoryType type) {return alloc(deviceId, size, type, false);}
   
   /**
    * Alloc cuda ptr.
@@ -183,7 +308,7 @@ public class CuDNN {
    * @param dirty    the dirty
    * @return the cuda ptr
    */
-  public static CudaPtr alloc(final int deviceId, final long size, CudaPtr.MemoryType type, boolean dirty) {
+  public static CudaPtr alloc(final int deviceId, final long size, MemoryType type, boolean dirty) {
     return new CudaPtr(size, deviceId, type, dirty);
   }
   
@@ -198,6 +323,7 @@ public class CuDNN {
    * @return the cuda resource
    */
   public static CudaResource<cudnnPoolingDescriptor> createPoolingDescriptor(final int mode, final int poolDims, final int[] windowSize, final int[] padding, final int[] stride) {
+    long startTime = System.nanoTime();
     final cudnnPoolingDescriptor poolingDesc = new cudnnPoolingDescriptor();
     int result = JCudnn.cudnnCreatePoolingDescriptor(poolingDesc);
     CuDNN.log("cudnnCreatePoolingDescriptor", result, poolingDesc);
@@ -209,6 +335,7 @@ public class CuDNN {
               mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, poolDims, windowSize,
               padding, stride);
     CuDNN.handle(result);
+    createPoolingDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     return new CudaResource<>(poolingDesc, CuDNN::cudnnDestroyPoolingDescriptor, getDevice());
   }
   
@@ -218,8 +345,10 @@ public class CuDNN {
    * @return the int
    */
   public static int cudaDeviceReset() {
+    long startTime = System.nanoTime();
     final int result = JCuda.cudaDeviceReset();
     CuDNN.log("cudaDeviceReset", result);
+    cudaDeviceReset_execution.accept((System.nanoTime() - startTime) / 1e9);
     return result;
   }
   
@@ -231,9 +360,11 @@ public class CuDNN {
    * @return the int
    */
   public static int cudaFree(final Pointer devPtr, int deviceId) {
+    long startTime = System.nanoTime();
     setDevice(deviceId);
     final int result = JCuda.cudaFree(devPtr);
     CuDNN.log("cudaFree", result, devPtr);
+    cudaFree_execution.accept((System.nanoTime() - startTime) / 1e9);
     return result;
   }
   
@@ -245,8 +376,10 @@ public class CuDNN {
    * @return the int
    */
   public static int cudaMalloc(final Pointer devPtr, final long size) {
+    long startTime = System.nanoTime();
     final int result = JCuda.cudaMalloc(devPtr, size);
     CuDNN.log("cudaMalloc", result, devPtr, size);
+    cudaMalloc_execution.accept((System.nanoTime() - startTime) / 1e9);
     return result;
   }
   
@@ -259,8 +392,10 @@ public class CuDNN {
    * @return the int
    */
   public static int cudaMallocManaged(final Pointer devPtr, final long size, int flags) {
+    long startTime = System.nanoTime();
     final int result = JCuda.cudaMallocManaged(devPtr, size, flags);
     CuDNN.log("cudaMallocManaged", result, devPtr, size, flags);
+    cudaMallocManaged_execution.accept((System.nanoTime() - startTime) / 1e9);
     return result;
   }
   
@@ -273,7 +408,9 @@ public class CuDNN {
    * @return the int
    */
   public static int cudaHostAlloc(final Pointer devPtr, final long size, int flags) {
+    long startTime = System.nanoTime();
     final int result = JCuda.cudaHostAlloc(devPtr, size, flags);
+    cudaHostAlloc_execution.accept((System.nanoTime() - startTime) / 1e9);
     CuDNN.log("cudaHostAlloc", result, devPtr, size, flags);
     return result;
   }
@@ -285,7 +422,9 @@ public class CuDNN {
    * @return the int
    */
   public static int cudaFreeHost(final Pointer devPtr) {
+    long startTime = System.nanoTime();
     final int result = JCuda.cudaFreeHost(devPtr);
+    cudaFreeHost_execution.accept((System.nanoTime() - startTime) / 1e9);
     CuDNN.log("cudaFreeHost", result, devPtr);
     return result;
   }
@@ -297,13 +436,14 @@ public class CuDNN {
    * @return the long
    */
   public static long cudaDeviceGetLimit(final int limit) {
+    long startTime = System.nanoTime();
     long[] pValue = new long[1];
     final int result = JCuda.cudaDeviceGetLimit(pValue, limit);
+    cudaDeviceGetLimit_execution.accept((System.nanoTime() - startTime) / 1e9);
     CuDNN.log("cudaDeviceGetLimit(", result, pValue, limit);
     handle(result);
     return pValue[0];
   }
-  
   
   /**
    * Cuda device set limit int.
@@ -313,7 +453,9 @@ public class CuDNN {
    * @return the int
    */
   public static int cudaDeviceSetLimit(final int limit, long value) {
+    long startTime = System.nanoTime();
     final int result = JCuda.cudaDeviceSetLimit(limit, value);
+    cudaDeviceSetLimit_execution.accept((System.nanoTime() - startTime) / 1e9);
     CuDNN.log("cudaDeviceSetLimit(", result, limit, value);
     return result;
   }
@@ -328,446 +470,10 @@ public class CuDNN {
    * @return the int
    */
   public static int cudaMemcpy(final Pointer dst, final Pointer src, final long count, final int cudaMemcpyKind_kind) {
+    long startTime = System.nanoTime();
     final int result = JCuda.cudaMemcpy(dst, src, count, cudaMemcpyKind_kind);
+    cudaMemcpy_execution.accept((System.nanoTime() - startTime) / 1e9);
     CuDNN.log("cudaMemcpy", result, dst, src, count, cudaMemcpyKind_kind);
-    return result;
-  }
-  
-  /**
-   * Cuda memset int.
-   *
-   * @param mem   the mem
-   * @param c     the c
-   * @param count the count
-   * @return the int
-   */
-  public static int cudaMemset(final Pointer mem, final int c, final long count) {
-    final int result = JCuda.cudaMemset(mem, c, count);
-    CuDNN.log("cudaMemset", result, mem, c, count);
-    return result;
-  }
-  
-  /**
-   * Cudnn activation backward int.
-   *
-   * @param handle         the handle
-   * @param activationDesc the activation desc
-   * @param alpha          the alpha
-   * @param yDesc          the y desc
-   * @param y              the y
-   * @param dyDesc         the dy desc
-   * @param dy             the dy
-   * @param xDesc          the x desc
-   * @param x              the x
-   * @param beta           the beta
-   * @param dxDesc         the dx desc
-   * @param dx             the dx
-   * @return the int
-   */
-  public static int cudnnActivationBackward(
-    final cudnnHandle handle,
-    final cudnnActivationDescriptor activationDesc,
-    final Pointer alpha,
-    final cudnnTensorDescriptor yDesc,
-    final Pointer y,
-    final cudnnTensorDescriptor dyDesc,
-    final Pointer dy,
-    final cudnnTensorDescriptor xDesc,
-    final Pointer x,
-    final Pointer beta,
-    final cudnnTensorDescriptor dxDesc,
-    final Pointer dx) {
-    final int result = JCudnn.cudnnActivationBackward(handle, activationDesc, alpha, yDesc, y, dyDesc, dy, xDesc, x, beta, dxDesc, dx);
-    CuDNN.log("cudnnActivationBackward", result, handle, activationDesc, alpha, yDesc, y, dyDesc, dy, xDesc, x, beta, dxDesc, dx);
-    return result;
-  }
-  
-  /**
-   * Cudnn activation forward int.
-   *
-   * @param handle         the handle
-   * @param activationDesc the activation desc
-   * @param alpha          the alpha
-   * @param xDesc          the x desc
-   * @param x              the x
-   * @param beta           the beta
-   * @param yDesc          the y desc
-   * @param y              the y
-   * @return the int
-   */
-  public static int cudnnActivationForward(
-    final cudnnHandle handle,
-    final cudnnActivationDescriptor activationDesc,
-    final Pointer alpha,
-    final cudnnTensorDescriptor xDesc,
-    final Pointer x,
-    final Pointer beta,
-    final cudnnTensorDescriptor yDesc,
-    final Pointer y) {
-    final int result = JCudnn.cudnnActivationForward(handle, activationDesc, alpha, xDesc, x, beta, yDesc, y);
-    CuDNN.log("cudnnActivationForward", result, handle, activationDesc, alpha, xDesc, x, beta, yDesc, y);
-    return result;
-  }
-  
-  /**
-   * Cudnn add tensor int.
-   *
-   * @param handle the handle
-   * @param alpha  the alpha
-   * @param aDesc  the a desc
-   * @param A      the a
-   * @param beta   the beta
-   * @param cDesc  the c desc
-   * @param C      the c
-   * @return the int
-   */
-  public static int cudnnAddTensor(
-    final cudnnHandle handle,
-    final Pointer alpha,
-    final cudnnTensorDescriptor aDesc,
-    final Pointer A,
-    final Pointer beta,
-    final cudnnTensorDescriptor cDesc,
-    final Pointer C) {
-    final int result = JCudnn.cudnnAddTensor(handle, alpha, aDesc, A, beta, cDesc, C);
-    CuDNN.log("cudnnAddTensor", result, handle, alpha, aDesc, A, beta, cDesc, C);
-    CuDNN.handle(result);
-    return result;
-  }
-  
-  /**
-   * Cudnn convolution backward bias int.
-   *
-   * @param handle the handle
-   * @param alpha  the alpha
-   * @param dyDesc the dy desc
-   * @param dy     the dy
-   * @param beta   the beta
-   * @param dbDesc the db desc
-   * @param db     the db
-   * @return the int
-   */
-  public static int cudnnConvolutionBackwardBias(
-    final cudnnHandle handle,
-    final Pointer alpha,
-    final cudnnTensorDescriptor dyDesc,
-    final Pointer dy,
-    final Pointer beta,
-    final cudnnTensorDescriptor dbDesc,
-    final Pointer db) {
-    final int result = JCudnn.cudnnConvolutionBackwardBias(handle, alpha, dyDesc, dy, beta, dbDesc, db);
-    CuDNN.log("cudnnConvolutionBackwardBias", result, handle, alpha, dyDesc, dy, beta, dbDesc, db);
-    return result;
-  }
-  
-  /**
-   * Cudnn convolution backward data int.
-   *
-   * @param handle               the handle
-   * @param alpha                the alpha
-   * @param wDesc                the w desc
-   * @param w                    the w
-   * @param dyDesc               the dy desc
-   * @param dy                   the dy
-   * @param convDesc             the conv desc
-   * @param algo                 the algo
-   * @param workSpace            the work space
-   * @param workSpaceSizeInBytes the work space size in bytes
-   * @param beta                 the beta
-   * @param dxDesc               the dx desc
-   * @param dx                   the dx
-   * @return the int
-   */
-  public static int cudnnConvolutionBackwardData(
-    final cudnnHandle handle,
-    final Pointer alpha,
-    final cudnnFilterDescriptor wDesc,
-    final Pointer w,
-    final cudnnTensorDescriptor dyDesc,
-    final Pointer dy,
-    final cudnnConvolutionDescriptor convDesc,
-    final int algo,
-    final Pointer workSpace,
-    final long workSpaceSizeInBytes,
-    final Pointer beta,
-    final cudnnTensorDescriptor dxDesc,
-    final Pointer dx) {
-    final int result = JCudnn.cudnnConvolutionBackwardData(handle, alpha, wDesc, w, dyDesc, dy, convDesc, algo, workSpace, workSpaceSizeInBytes, beta, dxDesc, dx);
-    CuDNN.log("cudnnConvolutionBackwardData", result, handle, alpha, wDesc, w, dyDesc, dy, convDesc, algo, workSpace, workSpaceSizeInBytes, beta, dxDesc, dx);
-    return result;
-  }
-  
-  /**
-   * Cudnn convolution backward filter int.
-   *
-   * @param handle               the handle
-   * @param alpha                the alpha
-   * @param xDesc                the x desc
-   * @param x                    the x
-   * @param dyDesc               the dy desc
-   * @param dy                   the dy
-   * @param convDesc             the conv desc
-   * @param algo                 the algo
-   * @param workSpace            the work space
-   * @param workSpaceSizeInBytes the work space size in bytes
-   * @param beta                 the beta
-   * @param dwDesc               the dw desc
-   * @param dw                   the dw
-   * @return the int
-   */
-  public static int cudnnConvolutionBackwardFilter(
-    final cudnnHandle handle,
-    final Pointer alpha,
-    final cudnnTensorDescriptor xDesc,
-    final Pointer x,
-    final cudnnTensorDescriptor dyDesc,
-    final Pointer dy,
-    final cudnnConvolutionDescriptor convDesc,
-    final int algo,
-    final Pointer workSpace,
-    final long workSpaceSizeInBytes,
-    final Pointer beta,
-    final cudnnFilterDescriptor dwDesc,
-    final Pointer dw) {
-    final int result = JCudnn.cudnnConvolutionBackwardFilter(handle, alpha, xDesc, x, dyDesc, dy, convDesc, algo, workSpace, workSpaceSizeInBytes, beta, dwDesc, dw);
-    CuDNN.log("cudnnConvolutionBackwardFilter", result, handle, alpha, xDesc, x, dyDesc, dy, convDesc, algo, workSpace, workSpaceSizeInBytes, beta, dwDesc, dw);
-    return result;
-  }
-  
-  /**
-   * Cudnn convolution forward int.
-   *
-   * @param handle               the handle
-   * @param alpha                the alpha
-   * @param xDesc                the x desc
-   * @param x                    the x
-   * @param wDesc                the w desc
-   * @param w                    the w
-   * @param convDesc             the conv desc
-   * @param algo                 the algo
-   * @param workSpace            the work space
-   * @param workSpaceSizeInBytes the work space size in bytes
-   * @param beta                 the beta
-   * @param yDesc                the y desc
-   * @param y                    the y
-   * @return the int
-   */
-  public static int cudnnConvolutionForward(
-    final cudnnHandle handle,
-    final Pointer alpha,
-    final cudnnTensorDescriptor xDesc,
-    final Pointer x,
-    final cudnnFilterDescriptor wDesc,
-    final Pointer w,
-    final cudnnConvolutionDescriptor convDesc,
-    final int algo,
-    final Pointer workSpace,
-    final long workSpaceSizeInBytes,
-    final Pointer beta,
-    final cudnnTensorDescriptor yDesc,
-    final Pointer y) {
-    final int result = JCudnn.cudnnConvolutionForward(handle, alpha, xDesc, x, wDesc, w, convDesc, algo, workSpace, workSpaceSizeInBytes, beta, yDesc, y);
-    CuDNN.log("cudnnConvolutionForward", result, handle, alpha, xDesc, x, wDesc, w, convDesc, algo, workSpace, workSpaceSizeInBytes, beta, yDesc, y);
-    return result;
-  }
-
-//  /**
-//   * Cudnn create reduce tensor descriptor int.
-//   *
-//   * @param reduceTensorDesc the reduce tensor desc
-//   * @return the int
-//   */
-//  public static int cudnnCreateReduceTensorDescriptor(
-//    final cudnnReduceTensorDescriptor reduceTensorDesc) {
-//    final int result = JCudnn.cudnnCreateReduceTensorDescriptor(reduceTensorDesc);
-//    CuDNN.log("cudnnCreateReduceTensorDescriptor", result, reduceTensorDesc);
-//    CuDNN.handle(result);
-//    return result;
-//  }
-  
-  /**
-   * Cudnn destroy activation descriptor int.
-   *
-   * @param activationDesc the activation desc
-   * @return the int
-   */
-  public static int cudnnDestroyActivationDescriptor(final cudnnActivationDescriptor activationDesc) {
-    final int result = JCudnn.cudnnDestroyActivationDescriptor(activationDesc);
-    CuDNN.log("cudnnDestroyActivationDescriptor", result, activationDesc);
-    return result;
-  }
-  
-  /**
-   * Cudnn destroy convolution descriptor int.
-   *
-   * @param convDesc the conv desc
-   * @return the int
-   */
-  public static int cudnnDestroyConvolutionDescriptor(final cudnnConvolutionDescriptor convDesc) {
-    final int result = JCudnn.cudnnDestroyConvolutionDescriptor(convDesc);
-    CuDNN.log("cudnnDestroyConvolutionDescriptor", result, convDesc);
-    return result;
-  }
-  
-  /**
-   * Cudnn destroy filter descriptor int.
-   *
-   * @param filterDesc the filter desc
-   * @return the int
-   */
-  public static int cudnnDestroyFilterDescriptor(final cudnnFilterDescriptor filterDesc) {
-    final int result = JCudnn.cudnnDestroyFilterDescriptor(filterDesc);
-    CuDNN.log("cudnnDestroyFilterDescriptor", result, filterDesc);
-    return result;
-  }
-  
-  /**
-   * Cudnn destroy op tensor descriptor int.
-   *
-   * @param opTensorDesc the op tensor desc
-   * @return the int
-   */
-  public static int cudnnDestroyOpTensorDescriptor(final cudnnOpTensorDescriptor opTensorDesc) {
-    final int result = JCudnn.cudnnDestroyOpTensorDescriptor(opTensorDesc);
-    CuDNN.log("cudnnDestroyOpTensorDescriptor", result, opTensorDesc);
-    return result;
-  }
-  
-  /**
-   * Cudnn destroy pooling descriptor int.
-   *
-   * @param poolingDesc the pooling desc
-   * @return the int
-   */
-  public static int cudnnDestroyPoolingDescriptor(final cudnnPoolingDescriptor poolingDesc) {
-    final int result = JCudnn.cudnnDestroyPoolingDescriptor(poolingDesc);
-    CuDNN.log("cudnnDestroyPoolingDescriptor", result, poolingDesc);
-    return result;
-  }
-  
-  /**
-   * Cudnn destroy tensor descriptor int.
-   *
-   * @param tensorDesc the tensor desc
-   * @return the int
-   */
-  public static int cudnnDestroyTensorDescriptor(final cudnnTensorDescriptor tensorDesc) {
-    final int result = JCudnn.cudnnDestroyTensorDescriptor(tensorDesc);
-    CuDNN.log("cudnnDestroyTensorDescriptor", result, tensorDesc);
-    return result;
-  }
-  
-  /**
-   * Cudnn get pooling nd forward output dim int.
-   *
-   * @param poolingDesc      the pooling desc
-   * @param inputTensorDesc  the input tensor desc
-   * @param nbDims           the nb dims
-   * @param outputTensorDimA the output tensor dim a
-   * @return the int
-   */
-  public static int cudnnGetPoolingNdForwardOutputDim(
-    final cudnnPoolingDescriptor poolingDesc,
-    final cudnnTensorDescriptor inputTensorDesc,
-    final int nbDims,
-    final int[] outputTensorDimA) {
-    final int result = JCudnn.cudnnGetPoolingNdForwardOutputDim(poolingDesc, inputTensorDesc, nbDims, outputTensorDimA);
-    CuDNN.log("cudnnGetPoolingNdForwardOutputDim", result, poolingDesc, inputTensorDesc, nbDims, outputTensorDimA);
-    return result;
-  }
-  
-  /**
-   * Cudnn op tensor int.
-   *
-   * @param handle       the handle
-   * @param opTensorDesc the op tensor desc
-   * @param alpha1       the alpha 1
-   * @param aDesc        the a desc
-   * @param A            the a
-   * @param alpha2       the alpha 2
-   * @param bDesc        the b desc
-   * @param B            the b
-   * @param beta         the beta
-   * @param cDesc        the c desc
-   * @param C            the c
-   * @return the int
-   */
-  public static int cudnnOpTensor(
-    final cudnnHandle handle,
-    final cudnnOpTensorDescriptor opTensorDesc,
-    final Pointer alpha1,
-    final cudnnTensorDescriptor aDesc,
-    final Pointer A,
-    final Pointer alpha2,
-    final cudnnTensorDescriptor bDesc,
-    final Pointer B,
-    final Pointer beta,
-    final cudnnTensorDescriptor cDesc,
-    final Pointer C) {
-    final int result = JCudnn.cudnnOpTensor(handle, opTensorDesc, alpha1, aDesc, A, alpha2, bDesc, B, beta, cDesc, C);
-    CuDNN.log("cudnnOpTensor", result, handle, opTensorDesc, alpha1, aDesc, A, alpha2, bDesc, B, beta, cDesc, C);
-    return result;
-  }
-  
-  /**
-   * Cudnn pooling backward int.
-   *
-   * @param handle      the handle
-   * @param poolingDesc the pooling desc
-   * @param alpha       the alpha
-   * @param yDesc       the y desc
-   * @param y           the y
-   * @param dyDesc      the dy desc
-   * @param dy          the dy
-   * @param xDesc       the x desc
-   * @param x           the x
-   * @param beta        the beta
-   * @param dxDesc      the dx desc
-   * @param dx          the dx
-   * @return the int
-   */
-  public static int cudnnPoolingBackward(
-    final cudnnHandle handle,
-    final cudnnPoolingDescriptor poolingDesc,
-    final Pointer alpha,
-    final cudnnTensorDescriptor yDesc,
-    final Pointer y,
-    final cudnnTensorDescriptor dyDesc,
-    final Pointer dy,
-    final cudnnTensorDescriptor xDesc,
-    final Pointer x,
-    final Pointer beta,
-    final cudnnTensorDescriptor dxDesc,
-    final Pointer dx) {
-    final int result = JCudnn.cudnnPoolingBackward(handle, poolingDesc, alpha, yDesc, y, dyDesc, dy, xDesc, x, beta, dxDesc, dx);
-    CuDNN.log("cudnnPoolingBackward", result, handle, poolingDesc, alpha, yDesc, y, dyDesc, dy, xDesc, x, beta, dxDesc, dx);
-    return result;
-  }
-  
-  /**
-   * Cudnn pooling forward int.
-   *
-   * @param handle      the handle
-   * @param poolingDesc the pooling desc
-   * @param alpha       the alpha
-   * @param xDesc       the x desc
-   * @param x           the x
-   * @param beta        the beta
-   * @param yDesc       the y desc
-   * @param y           the y
-   * @return the int
-   */
-  public static int cudnnPoolingForward(
-    final cudnnHandle handle,
-    final cudnnPoolingDescriptor poolingDesc,
-    final Pointer alpha,
-    final cudnnTensorDescriptor xDesc,
-    final Pointer x,
-    final Pointer beta,
-    final cudnnTensorDescriptor yDesc,
-    final Pointer y) {
-    final int result = JCudnn.cudnnPoolingForward(handle, poolingDesc, alpha, xDesc, x, beta, yDesc, y);
-    CuDNN.log("cudnnPoolingForward", result, handle, poolingDesc, alpha, xDesc, x, beta, yDesc, y);
     return result;
   }
 
@@ -832,6 +538,466 @@ public class CuDNN {
 //  }
   
   /**
+   * Cuda memset int.
+   *
+   * @param mem   the mem
+   * @param c     the c
+   * @param count the count
+   * @return the int
+   */
+  public static int cudaMemset(final Pointer mem, final int c, final long count) {
+    long startTime = System.nanoTime();
+    final int result = JCuda.cudaMemset(mem, c, count);
+    cudaMemset_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.log("cudaMemset", result, mem, c, count);
+    return result;
+  }
+  
+  /**
+   * Cudnn activation backward int.
+   *
+   * @param handle         the handle
+   * @param activationDesc the activation desc
+   * @param alpha          the alpha
+   * @param yDesc          the y desc
+   * @param y              the y
+   * @param dyDesc         the dy desc
+   * @param dy             the dy
+   * @param xDesc          the x desc
+   * @param x              the x
+   * @param beta           the beta
+   * @param dxDesc         the dx desc
+   * @param dx             the dx
+   * @return the int
+   */
+  public static int cudnnActivationBackward(
+    final cudnnHandle handle,
+    final cudnnActivationDescriptor activationDesc,
+    final Pointer alpha,
+    final cudnnTensorDescriptor yDesc,
+    final Pointer y,
+    final cudnnTensorDescriptor dyDesc,
+    final Pointer dy,
+    final cudnnTensorDescriptor xDesc,
+    final Pointer x,
+    final Pointer beta,
+    final cudnnTensorDescriptor dxDesc,
+    final Pointer dx) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnActivationBackward(handle, activationDesc, alpha, yDesc, y, dyDesc, dy, xDesc, x, beta, dxDesc, dx);
+    cudnnActivationBackward_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.log("cudnnActivationBackward", result, handle, activationDesc, alpha, yDesc, y, dyDesc, dy, xDesc, x, beta, dxDesc, dx);
+    return result;
+  }
+  
+  /**
+   * Cudnn activation forward int.
+   *
+   * @param handle         the handle
+   * @param activationDesc the activation desc
+   * @param alpha          the alpha
+   * @param xDesc          the x desc
+   * @param x              the x
+   * @param beta           the beta
+   * @param yDesc          the y desc
+   * @param y              the y
+   * @return the int
+   */
+  public static int cudnnActivationForward(
+    final cudnnHandle handle,
+    final cudnnActivationDescriptor activationDesc,
+    final Pointer alpha,
+    final cudnnTensorDescriptor xDesc,
+    final Pointer x,
+    final Pointer beta,
+    final cudnnTensorDescriptor yDesc,
+    final Pointer y) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnActivationForward(handle, activationDesc, alpha, xDesc, x, beta, yDesc, y);
+    cudnnActivationForward_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.log("cudnnActivationForward", result, handle, activationDesc, alpha, xDesc, x, beta, yDesc, y);
+    return result;
+  }
+  
+  /**
+   * Cudnn add tensor int.
+   *
+   * @param handle the handle
+   * @param alpha  the alpha
+   * @param aDesc  the a desc
+   * @param A      the a
+   * @param beta   the beta
+   * @param cDesc  the c desc
+   * @param C      the c
+   * @return the int
+   */
+  public static int cudnnAddTensor(
+    final cudnnHandle handle,
+    final Pointer alpha,
+    final cudnnTensorDescriptor aDesc,
+    final Pointer A,
+    final Pointer beta,
+    final cudnnTensorDescriptor cDesc,
+    final Pointer C) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnAddTensor(handle, alpha, aDesc, A, beta, cDesc, C);
+    cudnnAddTensor_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.log("cudnnAddTensor", result, handle, alpha, aDesc, A, beta, cDesc, C);
+    CuDNN.handle(result);
+    return result;
+  }
+  
+  /**
+   * Cudnn convolution backward bias int.
+   *
+   * @param handle the handle
+   * @param alpha  the alpha
+   * @param dyDesc the dy desc
+   * @param dy     the dy
+   * @param beta   the beta
+   * @param dbDesc the db desc
+   * @param db     the db
+   * @return the int
+   */
+  public static int cudnnConvolutionBackwardBias(
+    final cudnnHandle handle,
+    final Pointer alpha,
+    final cudnnTensorDescriptor dyDesc,
+    final Pointer dy,
+    final Pointer beta,
+    final cudnnTensorDescriptor dbDesc,
+    final Pointer db) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnConvolutionBackwardBias(handle, alpha, dyDesc, dy, beta, dbDesc, db);
+    cudnnConvolutionBackwardBias_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.log("cudnnConvolutionBackwardBias", result, handle, alpha, dyDesc, dy, beta, dbDesc, db);
+    return result;
+  }
+  
+  /**
+   * Cudnn convolution backward data int.
+   *
+   * @param handle               the handle
+   * @param alpha                the alpha
+   * @param wDesc                the w desc
+   * @param w                    the w
+   * @param dyDesc               the dy desc
+   * @param dy                   the dy
+   * @param convDesc             the conv desc
+   * @param algo                 the algo
+   * @param workSpace            the work space
+   * @param workSpaceSizeInBytes the work space size in bytes
+   * @param beta                 the beta
+   * @param dxDesc               the dx desc
+   * @param dx                   the dx
+   * @return the int
+   */
+  public static int cudnnConvolutionBackwardData(
+    final cudnnHandle handle,
+    final Pointer alpha,
+    final cudnnFilterDescriptor wDesc,
+    final Pointer w,
+    final cudnnTensorDescriptor dyDesc,
+    final Pointer dy,
+    final cudnnConvolutionDescriptor convDesc,
+    final int algo,
+    final Pointer workSpace,
+    final long workSpaceSizeInBytes,
+    final Pointer beta,
+    final cudnnTensorDescriptor dxDesc,
+    final Pointer dx) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnConvolutionBackwardData(handle, alpha, wDesc, w, dyDesc, dy, convDesc, algo, workSpace, workSpaceSizeInBytes, beta, dxDesc, dx);
+    cudnnConvolutionBackwardData_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.log("cudnnConvolutionBackwardData", result, handle, alpha, wDesc, w, dyDesc, dy, convDesc, algo, workSpace, workSpaceSizeInBytes, beta, dxDesc, dx);
+    return result;
+  }
+  
+  /**
+   * Cudnn convolution backward filter int.
+   *
+   * @param handle               the handle
+   * @param alpha                the alpha
+   * @param xDesc                the x desc
+   * @param x                    the x
+   * @param dyDesc               the dy desc
+   * @param dy                   the dy
+   * @param convDesc             the conv desc
+   * @param algo                 the algo
+   * @param workSpace            the work space
+   * @param workSpaceSizeInBytes the work space size in bytes
+   * @param beta                 the beta
+   * @param dwDesc               the dw desc
+   * @param dw                   the dw
+   * @return the int
+   */
+  public static int cudnnConvolutionBackwardFilter(
+    final cudnnHandle handle,
+    final Pointer alpha,
+    final cudnnTensorDescriptor xDesc,
+    final Pointer x,
+    final cudnnTensorDescriptor dyDesc,
+    final Pointer dy,
+    final cudnnConvolutionDescriptor convDesc,
+    final int algo,
+    final Pointer workSpace,
+    final long workSpaceSizeInBytes,
+    final Pointer beta,
+    final cudnnFilterDescriptor dwDesc,
+    final Pointer dw) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnConvolutionBackwardFilter(handle, alpha, xDesc, x, dyDesc, dy, convDesc, algo, workSpace, workSpaceSizeInBytes, beta, dwDesc, dw);
+    cudnnConvolutionBackwardFilter_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.log("cudnnConvolutionBackwardFilter", result, handle, alpha, xDesc, x, dyDesc, dy, convDesc, algo, workSpace, workSpaceSizeInBytes, beta, dwDesc, dw);
+    return result;
+  }
+  
+  /**
+   * Cudnn convolution forward int.
+   *
+   * @param handle               the handle
+   * @param alpha                the alpha
+   * @param xDesc                the x desc
+   * @param x                    the x
+   * @param wDesc                the w desc
+   * @param w                    the w
+   * @param convDesc             the conv desc
+   * @param algo                 the algo
+   * @param workSpace            the work space
+   * @param workSpaceSizeInBytes the work space size in bytes
+   * @param beta                 the beta
+   * @param yDesc                the y desc
+   * @param y                    the y
+   * @return the int
+   */
+  public static int cudnnConvolutionForward(
+    final cudnnHandle handle,
+    final Pointer alpha,
+    final cudnnTensorDescriptor xDesc,
+    final Pointer x,
+    final cudnnFilterDescriptor wDesc,
+    final Pointer w,
+    final cudnnConvolutionDescriptor convDesc,
+    final int algo,
+    final Pointer workSpace,
+    final long workSpaceSizeInBytes,
+    final Pointer beta,
+    final cudnnTensorDescriptor yDesc,
+    final Pointer y) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnConvolutionForward(handle, alpha, xDesc, x, wDesc, w, convDesc, algo, workSpace, workSpaceSizeInBytes, beta, yDesc, y);
+    cudnnConvolutionForward_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.log("cudnnConvolutionForward", result, handle, alpha, xDesc, x, wDesc, w, convDesc, algo, workSpace, workSpaceSizeInBytes, beta, yDesc, y);
+    return result;
+  }
+  
+  /**
+   * Cudnn destroy activation descriptor int.
+   *
+   * @param activationDesc the activation desc
+   * @return the int
+   */
+  public static int cudnnDestroyActivationDescriptor(final cudnnActivationDescriptor activationDesc) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnDestroyActivationDescriptor(activationDesc);
+    cudnnDestroyActivationDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.log("cudnnDestroyActivationDescriptor", result, activationDesc);
+    return result;
+  }
+  
+  /**
+   * Cudnn destroy convolution descriptor int.
+   *
+   * @param convDesc the conv desc
+   * @return the int
+   */
+  public static int cudnnDestroyConvolutionDescriptor(final cudnnConvolutionDescriptor convDesc) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnDestroyConvolutionDescriptor(convDesc);
+    cudnnDestroyConvolutionDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.log("cudnnDestroyConvolutionDescriptor", result, convDesc);
+    return result;
+  }
+  
+  /**
+   * Cudnn destroy filter descriptor int.
+   *
+   * @param filterDesc the filter desc
+   * @return the int
+   */
+  public static int cudnnDestroyFilterDescriptor(final cudnnFilterDescriptor filterDesc) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnDestroyFilterDescriptor(filterDesc);
+    cudnnDestroyFilterDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.log("cudnnDestroyFilterDescriptor", result, filterDesc);
+    return result;
+  }
+  
+  /**
+   * Cudnn destroy op tensor descriptor int.
+   *
+   * @param opTensorDesc the op tensor desc
+   * @return the int
+   */
+  public static int cudnnDestroyOpTensorDescriptor(final cudnnOpTensorDescriptor opTensorDesc) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnDestroyOpTensorDescriptor(opTensorDesc);
+    cudnnDestroyOpTensorDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.log("cudnnDestroyOpTensorDescriptor", result, opTensorDesc);
+    return result;
+  }
+  
+  /**
+   * Cudnn destroy pooling descriptor int.
+   *
+   * @param poolingDesc the pooling desc
+   * @return the int
+   */
+  public static int cudnnDestroyPoolingDescriptor(final cudnnPoolingDescriptor poolingDesc) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnDestroyPoolingDescriptor(poolingDesc);
+    cudnnDestroyPoolingDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.log("cudnnDestroyPoolingDescriptor", result, poolingDesc);
+    return result;
+  }
+  
+  /**
+   * Cudnn destroy tensor descriptor int.
+   *
+   * @param tensorDesc the tensor desc
+   * @return the int
+   */
+  public static int cudnnDestroyTensorDescriptor(final cudnnTensorDescriptor tensorDesc) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnDestroyTensorDescriptor(tensorDesc);
+    cudnnDestroyTensorDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.log("cudnnDestroyTensorDescriptor", result, tensorDesc);
+    return result;
+  }
+  
+  /**
+   * Cudnn get pooling nd forward output dim int.
+   *
+   * @param poolingDesc      the pooling desc
+   * @param inputTensorDesc  the input tensor desc
+   * @param nbDims           the nb dims
+   * @param outputTensorDimA the output tensor dim a
+   * @return the int
+   */
+  public static int cudnnGetPoolingNdForwardOutputDim(
+    final cudnnPoolingDescriptor poolingDesc,
+    final cudnnTensorDescriptor inputTensorDesc,
+    final int nbDims,
+    final int[] outputTensorDimA) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnGetPoolingNdForwardOutputDim(poolingDesc, inputTensorDesc, nbDims, outputTensorDimA);
+    cudnnGetPoolingNdForwardOutputDim_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.log("cudnnGetPoolingNdForwardOutputDim", result, poolingDesc, inputTensorDesc, nbDims, outputTensorDimA);
+    return result;
+  }
+  
+  /**
+   * Cudnn op tensor int.
+   *
+   * @param handle       the handle
+   * @param opTensorDesc the op tensor desc
+   * @param alpha1       the alpha 1
+   * @param aDesc        the a desc
+   * @param A            the a
+   * @param alpha2       the alpha 2
+   * @param bDesc        the b desc
+   * @param B            the b
+   * @param beta         the beta
+   * @param cDesc        the c desc
+   * @param C            the c
+   * @return the int
+   */
+  public static int cudnnOpTensor(
+    final cudnnHandle handle,
+    final cudnnOpTensorDescriptor opTensorDesc,
+    final Pointer alpha1,
+    final cudnnTensorDescriptor aDesc,
+    final Pointer A,
+    final Pointer alpha2,
+    final cudnnTensorDescriptor bDesc,
+    final Pointer B,
+    final Pointer beta,
+    final cudnnTensorDescriptor cDesc,
+    final Pointer C) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnOpTensor(handle, opTensorDesc, alpha1, aDesc, A, alpha2, bDesc, B, beta, cDesc, C);
+    cudnnOpTensor_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.log("cudnnOpTensor", result, handle, opTensorDesc, alpha1, aDesc, A, alpha2, bDesc, B, beta, cDesc, C);
+    return result;
+  }
+  
+  /**
+   * Cudnn pooling backward int.
+   *
+   * @param handle      the handle
+   * @param poolingDesc the pooling desc
+   * @param alpha       the alpha
+   * @param yDesc       the y desc
+   * @param y           the y
+   * @param dyDesc      the dy desc
+   * @param dy          the dy
+   * @param xDesc       the x desc
+   * @param x           the x
+   * @param beta        the beta
+   * @param dxDesc      the dx desc
+   * @param dx          the dx
+   * @return the int
+   */
+  public static int cudnnPoolingBackward(
+    final cudnnHandle handle,
+    final cudnnPoolingDescriptor poolingDesc,
+    final Pointer alpha,
+    final cudnnTensorDescriptor yDesc,
+    final Pointer y,
+    final cudnnTensorDescriptor dyDesc,
+    final Pointer dy,
+    final cudnnTensorDescriptor xDesc,
+    final Pointer x,
+    final Pointer beta,
+    final cudnnTensorDescriptor dxDesc,
+    final Pointer dx) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnPoolingBackward(handle, poolingDesc, alpha, yDesc, y, dyDesc, dy, xDesc, x, beta, dxDesc, dx);
+    cudnnPoolingBackward_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.log("cudnnPoolingBackward", result, handle, poolingDesc, alpha, yDesc, y, dyDesc, dy, xDesc, x, beta, dxDesc, dx);
+    return result;
+  }
+  
+  /**
+   * Cudnn pooling forward int.
+   *
+   * @param handle      the handle
+   * @param poolingDesc the pooling desc
+   * @param alpha       the alpha
+   * @param xDesc       the x desc
+   * @param x           the x
+   * @param beta        the beta
+   * @param yDesc       the y desc
+   * @param y           the y
+   * @return the int
+   */
+  public static int cudnnPoolingForward(
+    final cudnnHandle handle,
+    final cudnnPoolingDescriptor poolingDesc,
+    final Pointer alpha,
+    final cudnnTensorDescriptor xDesc,
+    final Pointer x,
+    final Pointer beta,
+    final cudnnTensorDescriptor yDesc,
+    final Pointer y) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnPoolingForward(handle, poolingDesc, alpha, xDesc, x, beta, yDesc, y);
+    cudnnPoolingForward_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.log("cudnnPoolingForward", result, handle, poolingDesc, alpha, xDesc, x, beta, yDesc, y);
+    return result;
+  }
+  
+  /**
    * Cudnn transform tensor int.
    *
    * @param handle the handle
@@ -851,22 +1017,11 @@ public class CuDNN {
     final Pointer beta,
     final cudnnTensorDescriptor yDesc,
     final Pointer y) {
+    long startTime = System.nanoTime();
     final int result = JCudnn.cudnnTransformTensor(handle, alpha, xDesc, x, beta, yDesc, y);
+    cudnnTransformTensor_execution.accept((System.nanoTime() - startTime) / 1e9);
     CuDNN.log("cudnnTransformTensor", result, handle, alpha, xDesc, x, beta, yDesc, y);
     return result;
-  }
-  
-  /**
-   * Device count int.
-   *
-   * @return the int
-   */
-  public static int deviceCount() {
-    final int[] deviceCount = new int[1];
-    final int returnCode = jcuda.runtime.JCuda.cudaGetDeviceCount(deviceCount);
-    CuDNN.log("cudaGetDeviceCount", returnCode, deviceCount);
-    CuDNN.handle(returnCode);
-    return deviceCount[0];
   }
   
   /**
@@ -880,17 +1035,18 @@ public class CuDNN {
   }
   
   /**
-   * Sets device.
+   * Device count int.
    *
-   * @param cudaDeviceId the cuda device id
+   * @return the int
    */
-  public static void setDevice(final int cudaDeviceId) {
-    if (cudaDeviceId != getDevice()) {
-      final int result = JCuda.cudaSetDevice(cudaDeviceId);
-      CuDNN.log("cudaSetDevice", result, cudaDeviceId);
-      CuDNN.handle(result);
-      CuDNN.currentDevice.set(cudaDeviceId);
-    }
+  public static int deviceCount() {
+    long startTime = System.nanoTime();
+    final int[] deviceCount = new int[1];
+    final int returnCode = jcuda.runtime.JCuda.cudaGetDeviceCount(deviceCount);
+    CuDNN.log("cudaGetDeviceCount", returnCode, deviceCount);
+    deviceCount_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.handle(returnCode);
+    return deviceCount[0];
   }
   
   /**
@@ -904,32 +1060,34 @@ public class CuDNN {
   }
   
   /**
+   * Sets device.
+   *
+   * @param cudaDeviceId the cuda device id
+   */
+  public static void setDevice(final int cudaDeviceId) {
+    if (cudaDeviceId != getDevice()) {
+      long startTime = System.nanoTime();
+      final int result = JCuda.cudaSetDevice(cudaDeviceId);
+      setDevice_execution.accept((System.nanoTime() - startTime) / 1e9);
+      CuDNN.log("cudaSetDevice", result, cudaDeviceId);
+      CuDNN.handle(result);
+      CuDNN.currentDevice.set(cudaDeviceId);
+    }
+  }
+  
+  /**
    * Gets device properties.
    *
    * @param device the device
    * @return the device properties
    */
   public static cudaDeviceProp getDeviceProperties(final int device) {
+    long startTime = System.nanoTime();
     final cudaDeviceProp deviceProp = new cudaDeviceProp();
     final int result = JCuda.cudaGetDeviceProperties(deviceProp, device);
+    getDeviceProperties_execution.accept((System.nanoTime() - startTime) / 1e9);
     CuDNN.log("cudaGetDeviceProperties", result, deviceProp, device);
     return deviceProp;
-  }
-  
-  /**
-   * Get output dims int [ ].
-   *
-   * @param srcTensorDesc the src tensor desc
-   * @param filterDesc    the filter desc
-   * @param convDesc      the conv desc
-   * @return the int [ ]
-   */
-  public static int[] getOutputDims(final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc) {
-    final int[] tensorOuputDims = new int[4];
-    final int result = JCudnn.cudnnGetConvolutionNdForwardOutputDim(convDesc, srcTensorDesc, filterDesc, tensorOuputDims.length, tensorOuputDims);
-    CuDNN.log("cudnnGetConvolutionNdForwardOutputDim", result, convDesc, srcTensorDesc, filterDesc, tensorOuputDims.length, tensorOuputDims);
-    CuDNN.handle(result);
-    return tensorOuputDims;
   }
   
   /**
@@ -969,6 +1127,24 @@ public class CuDNN {
   }
   
   /**
+   * Get output dims int [ ].
+   *
+   * @param srcTensorDesc the src tensor desc
+   * @param filterDesc    the filter desc
+   * @param convDesc      the conv desc
+   * @return the int [ ]
+   */
+  public static int[] getOutputDims(final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc) {
+    long startTime = System.nanoTime();
+    final int[] tensorOuputDims = new int[4];
+    final int result = JCudnn.cudnnGetConvolutionNdForwardOutputDim(convDesc, srcTensorDesc, filterDesc, tensorOuputDims.length, tensorOuputDims);
+    getOutputDims_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.log("cudnnGetConvolutionNdForwardOutputDim", result, convDesc, srcTensorDesc, filterDesc, tensorOuputDims.length, tensorOuputDims);
+    CuDNN.handle(result);
+    return tensorOuputDims;
+  }
+  
+  /**
    * New activation descriptor cuda resource.
    *
    * @param mode     the mode
@@ -977,11 +1153,13 @@ public class CuDNN {
    * @return the cuda resource
    */
   public static CudaResource<cudnnActivationDescriptor> newActivationDescriptor(final int mode, final int reluNan, final double reluCeil) {
+    long startTime = System.nanoTime();
     final cudnnActivationDescriptor desc = new cudnnActivationDescriptor();
     int result = JCudnn.cudnnCreateActivationDescriptor(desc);
     CuDNN.log("cudnnCreateActivationDescriptor", result, desc);
     CuDNN.handle(result);
     result = JCudnn.cudnnSetActivationDescriptor(desc, mode, reluNan, reluCeil);
+    newActivationDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     CuDNN.log("cudnnSetActivationDescriptor", result, desc, mode, reluNan, reluCeil);
     CuDNN.handle(result);
     return new CudaResource<>(desc, CuDNN::cudnnDestroyActivationDescriptor, getDevice());
@@ -998,6 +1176,7 @@ public class CuDNN {
    * @return the cuda resource
    */
   public static CudaResource<cudnnConvolutionDescriptor> newConvolutionNdDescriptor(final int mode, final int dataType, final int[] padding, final int[] stride, final int[] dilation) {
+    long startTime = System.nanoTime();
     assert padding.length == stride.length;
     assert padding.length == dilation.length;
     assert Arrays.stream(padding).allMatch(x -> x >= 0);
@@ -1005,6 +1184,7 @@ public class CuDNN {
     assert Arrays.stream(dilation).allMatch(x -> x > 0);
     final cudnnConvolutionDescriptor convDesc = new cudnnConvolutionDescriptor();
     int result = JCudnn.cudnnCreateConvolutionDescriptor(convDesc);
+    newConvolutionNdDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     CuDNN.log("cudnnCreateConvolutionDescriptor", result, convDesc);
     CuDNN.handle(result);
     result = JCudnn.cudnnSetConvolutionNdDescriptor(convDesc,
@@ -1048,6 +1228,7 @@ public class CuDNN {
    * @return the cuda resource
    */
   public static CudaResource<cudnnConvolutionDescriptor> newConvolutions2dDescriptor(final int mode, final int dataType, final int paddingY, final int paddingX, final int strideHeight, final int strideWidth, int dilationY, int dilationX) {
+    long startTime = System.nanoTime();
     final cudnnConvolutionDescriptor convDesc = new cudnnConvolutionDescriptor();
     int result = JCudnn.cudnnCreateConvolutionDescriptor(convDesc);
     CuDNN.log("cudnnCreateConvolutionDescriptor", result, convDesc);
@@ -1063,6 +1244,7 @@ public class CuDNN {
       mode
       , dataType
                                                    );
+    newConvolutions2dDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     CuDNN.log("cudnnSetConvolution2dDescriptor", result, convDesc,
               paddingY, // zero-padding height
               paddingX, // zero-padding width
@@ -1088,11 +1270,13 @@ public class CuDNN {
    * @return the cuda resource
    */
   public static CudaResource<cudnnFilterDescriptor> newFilterDescriptor(final int dataType, final int tensorLayout, final int outputChannels, final int inputChannels, final int height, final int width) {
+    long startTime = System.nanoTime();
     final cudnnFilterDescriptor filterDesc = new cudnnFilterDescriptor();
     int result = JCudnn.cudnnCreateFilterDescriptor(filterDesc);
     CuDNN.log("cudnnCreateFilterDescriptor", result, filterDesc);
     CuDNN.handle(result);
     result = JCudnn.cudnnSetFilter4dDescriptor(filterDesc, dataType, tensorLayout, outputChannels, inputChannels, height, width);
+    newFilterDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     CuDNN.log("cudnnSetFilter4dDescriptor", result, filterDesc, dataType, tensorLayout, outputChannels, inputChannels, height, width);
     CuDNN.handle(result);
     return new CudaResource<cudnnFilterDescriptor>(filterDesc, CuDNN::cudnnDestroyFilterDescriptor, getDevice()) {
@@ -1117,11 +1301,13 @@ public class CuDNN {
    * @return the cuda resource
    */
   public static CudaResource<cudnnFilterDescriptor> newFilterDescriptor(final int dataType, final int tensorLayout, final int[] dimensions) {
+    long startTime = System.nanoTime();
     final cudnnFilterDescriptor filterDesc = new cudnnFilterDescriptor();
     int result = JCudnn.cudnnCreateFilterDescriptor(filterDesc);
     CuDNN.log("cudnnCreateFilterDescriptor", result, filterDesc);
     CuDNN.handle(result);
     result = JCudnn.cudnnSetFilterNdDescriptor(filterDesc, dataType, tensorLayout, dimensions.length, dimensions);
+    newFilterDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     CuDNN.log("cudnnSetFilterNdDescriptor", result, filterDesc, dataType, tensorLayout, dimensions.length, dimensions);
     CuDNN.handle(result);
     return new CudaResource<cudnnFilterDescriptor>(filterDesc, CuDNN::cudnnDestroyFilterDescriptor, getDevice()) {
@@ -1142,11 +1328,13 @@ public class CuDNN {
    * @return the cuda resource
    */
   public static CudaResource<cudnnOpTensorDescriptor> newOpDescriptor(final int opType, final int dataType) {
+    long startTime = System.nanoTime();
     final cudnnOpTensorDescriptor opDesc = new cudnnOpTensorDescriptor();
     int result = JCudnn.cudnnCreateOpTensorDescriptor(opDesc);
     CuDNN.log("cudnnCreateOpTensorDescriptor", result, opDesc);
     CuDNN.handle(result);
     result = JCudnn.cudnnSetOpTensorDescriptor(opDesc, opType, dataType, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN);
+    newOpDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     CuDNN.log("cudnnSetOpTensorDescriptor", result, opDesc, opType, dataType, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN);
     CuDNN.handle(result);
     return new CudaResource<>(opDesc, CuDNN::cudnnDestroyOpTensorDescriptor, getDevice());
@@ -1165,11 +1353,13 @@ public class CuDNN {
    */
   public static CudaResource<cudnnTensorDescriptor> newTensorDescriptor(final int dataType, final int tensorLayout,
                                                                         final int batchCount, final int channels, final int height, final int width) {
+    long startTime = System.nanoTime();
     final cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
     int result = JCudnn.cudnnCreateTensorDescriptor(desc);
     CuDNN.log("cudnnCreateTensorDescriptor", result, desc);
     CuDNN.handle(result);
     result = JCudnn.cudnnSetTensor4dDescriptor(desc, tensorLayout, dataType, batchCount, channels, height, width);
+    newTensorDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     CuDNN.log("cudnnSetTensor4dDescriptor", result, desc, tensorLayout, dataType, batchCount, channels, height, width);
     CuDNN.handle(result);
     return new CudaResource<cudnnTensorDescriptor>(desc, CuDNN::cudnnDestroyTensorDescriptor, getDevice()) {
@@ -1183,33 +1373,6 @@ public class CuDNN {
           ";=width" + width + ")";
       }
     };
-  }
-  
-  /**
-   * New tensor descriptor cuda resource.
-   *
-   * @param dataType   the data type
-   * @param batchCount the batch count
-   * @param channels   the channels
-   * @param height     the height
-   * @param width      the width
-   * @param nStride    the n stride
-   * @param cStride    the c stride
-   * @param hStride    the h stride
-   * @param wStride    the w stride
-   * @return the cuda resource
-   */
-  public static CudaResource<cudnnTensorDescriptor> newTensorDescriptor(final int dataType,
-                                                                        final int batchCount, final int channels, final int height, final int width,
-                                                                        final int nStride, final int cStride, final int hStride, final int wStride) {
-    final cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
-    int result = JCudnn.cudnnCreateTensorDescriptor(desc);
-    CuDNN.log("cudnnCreateTensorDescriptor", result, desc);
-    CuDNN.handle(result);
-    result = JCudnn.cudnnSetTensor4dDescriptorEx(desc, dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride);
-    CuDNN.log("cudnnSetTensor4dDescriptorEx", result, desc, dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride);
-    CuDNN.handle(result);
-    return new CudaResource<>(desc, CuDNN::cudnnDestroyTensorDescriptor, getDevice());
   }
   
   private static String renderToLog(final Object obj) {
@@ -1296,10 +1459,40 @@ public class CuDNN {
   }
   
   /**
+   * New tensor descriptor cuda resource.
+   *
+   * @param dataType   the data type
+   * @param batchCount the batch count
+   * @param channels   the channels
+   * @param height     the height
+   * @param width      the width
+   * @param nStride    the n stride
+   * @param cStride    the c stride
+   * @param hStride    the h stride
+   * @param wStride    the w stride
+   * @return the cuda resource
+   */
+  public static CudaResource<cudnnTensorDescriptor> newTensorDescriptor(final int dataType,
+                                                                        final int batchCount, final int channels, final int height, final int width,
+                                                                        final int nStride, final int cStride, final int hStride, final int wStride) {
+    long startTime = System.nanoTime();
+    final cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
+    int result = JCudnn.cudnnCreateTensorDescriptor(desc);
+    CuDNN.log("cudnnCreateTensorDescriptor", result, desc);
+    CuDNN.handle(result);
+    result = JCudnn.cudnnSetTensor4dDescriptorEx(desc, dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride);
+    newTensorDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
+    CuDNN.log("cudnnSetTensor4dDescriptorEx", result, desc, dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride);
+    CuDNN.handle(result);
+    return new CudaResource<>(desc, CuDNN::cudnnDestroyTensorDescriptor, getDevice());
+  }
+  
+  /**
    * Clean memory.
    */
   public static void cleanMemory() {
     singleThreadExecutor.submit(() -> {
+      logger.warn("Cleaning Memory");
       RecycleBin.DOUBLES.clear();
       System.gc();
       System.runFinalization();
@@ -1319,6 +1512,7 @@ public class CuDNN {
       }
       try {
         IntStream.range(0, CuDNN.deviceCount()).forEach(deviceNumber -> {
+          logger.warn(String.format("Resetting Device %d", deviceNumber));
           CudaPtr.getGpuStats(deviceNumber).usedMemory.set(0);
           setDevice(deviceNumber);
           cudaDeviceReset();
@@ -1347,14 +1541,28 @@ public class CuDNN {
       return fn.apply(new CuDNN(-1));
     }
     else {
-      return contexts.run(exe -> {
+      CuDNN threadlocal = threadContext.get();
+      if (threadlocal != null) {
         try {
-          exe.initThread();
-          return fn.apply(exe);
+          threadlocal.initThread();
+          return fn.apply(threadlocal);
         } catch (final Exception e) {
           throw new RuntimeException(e);
         }
-      });
+      }
+      else {
+        return contexts.run(exe -> {
+          try {
+            threadContext.set(exe);
+            exe.initThread();
+            return fn.apply(exe);
+          } catch (final Exception e) {
+            throw new RuntimeException(e);
+          } finally {
+            threadContext.remove();
+          }
+        });
+      }
     }
   }
   
@@ -1364,14 +1572,28 @@ public class CuDNN {
    * @param fn the fn
    */
   public static void apply(final Consumer<CuDNN> fn) {
-    contexts.apply(exe -> {
+    CuDNN threadlocal = threadContext.get();
+    if (threadlocal != null) {
       try {
-        exe.initThread();
-        fn.accept(exe);
+        threadlocal.initThread();
+        fn.accept(threadlocal);
       } catch (final Exception e) {
         throw new RuntimeException(e);
       }
-    });
+    }
+    else {
+      contexts.apply(exe -> {
+        try {
+          threadContext.set(exe);
+          exe.initThread();
+          fn.accept(exe);
+        } catch (final Exception e) {
+          throw new RuntimeException(e);
+        } finally {
+          threadContext.remove();
+        }
+      });
+    }
   }
   
   /**
@@ -1381,6 +1603,16 @@ public class CuDNN {
    */
   public static boolean isEnabled() {
     return 0 < CuDNN.contexts.size();
+  }
+  
+  /**
+   * Add log.
+   *
+   * @param log the log
+   */
+  public static void addLog(PrintStream log) {
+    printHeader(log);
+    apiLog.add(log);
   }
   
   /**
@@ -1395,10 +1627,12 @@ public class CuDNN {
    * @return the cuda ptr
    */
   public CudaPtr allocateBackwardDataWorkspace(final int deviceId, final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc, final int algorithm) {
+    long startTime = System.nanoTime();
     final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionBackwardDataWorkspaceSize(cudnnHandle,
                                                                            filterDesc, outputDesc, convDesc, inputDesc,
                                                                            algorithm, sizeInBytesArray);
+    allocateBackwardDataWorkspace_execution.accept((System.nanoTime() - startTime) / 1e9);
     CuDNN.log("cudnnGetConvolutionBackwardDataWorkspaceSize", result, cudnnHandle,
               filterDesc, outputDesc, convDesc, inputDesc,
               algorithm, sizeInBytesArray);
@@ -1419,10 +1653,12 @@ public class CuDNN {
    * @return the cuda ptr
    */
   public CudaPtr allocateBackwardFilterWorkspace(final int deviceId, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
+    long startTime = System.nanoTime();
     final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionBackwardFilterWorkspaceSize(cudnnHandle,
                                                                              srcTensorDesc, dstTensorDesc, convDesc, filterDesc,
                                                                              algorithm, sizeInBytesArray);
+    allocateBackwardFilterWorkspace_execution.accept((System.nanoTime() - startTime) / 1e9);
     CuDNN.log("cudnnGetConvolutionBackwardFilterWorkspaceSize", result, cudnnHandle,
               srcTensorDesc, dstTensorDesc, convDesc, filterDesc,
               algorithm, sizeInBytesArray);
@@ -1443,10 +1679,12 @@ public class CuDNN {
    * @return the cuda ptr
    */
   public CudaPtr allocateForwardWorkspace(final int deviceId, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
+    long startTime = System.nanoTime();
     final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionForwardWorkspaceSize(cudnnHandle,
                                                                       srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
                                                                       algorithm, sizeInBytesArray);
+    allocateForwardWorkspace_execution.accept((System.nanoTime() - startTime) / 1e9);
     CuDNN.log("cudnnGetConvolutionForwardWorkspaceSize", result, cudnnHandle,
               srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
               algorithm, sizeInBytesArray);
@@ -1472,10 +1710,12 @@ public class CuDNN {
    * @return the backward data algorithm
    */
   public int getBackwardDataAlgorithm(final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc) {
+    long startTime = System.nanoTime();
     final int algoArray[] = {-1};
     final int result = JCudnn.cudnnGetConvolutionBackwardDataAlgorithm(cudnnHandle,
                                                                        filterDesc, inputDesc, convDesc, outputDesc,
                                                                        cudnnConvolutionBwdDataPreference.CUDNN_CONVOLUTION_BWD_DATA_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
+    getBackwardDataAlgorithm_execution.accept((System.nanoTime() - startTime) / 1e9);
     CuDNN.log("cudnnGetConvolutionBackwardDataAlgorithm", result, cudnnHandle,
               filterDesc, inputDesc, convDesc, outputDesc,
               cudnnConvolutionBwdDataPreference.CUDNN_CONVOLUTION_BWD_DATA_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
@@ -1493,10 +1733,12 @@ public class CuDNN {
    * @return the backward filter algorithm
    */
   public int getBackwardFilterAlgorithm(final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc) {
+    long startTime = System.nanoTime();
     final int algoArray[] = {-1};
     final int result = JCudnn.cudnnGetConvolutionBackwardFilterAlgorithm(cudnnHandle,
                                                                          inputDesc, outputDesc, convDesc, filterDesc,
                                                                          cudnnConvolutionBwdFilterPreference.CUDNN_CONVOLUTION_BWD_FILTER_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
+    getBackwardFilterAlgorithm_execution.accept((System.nanoTime() - startTime) / 1e9);
     CuDNN.log("cudnnGetConvolutionBackwardFilterAlgorithm", result, cudnnHandle,
               inputDesc, outputDesc, convDesc, filterDesc,
               cudnnConvolutionBwdFilterPreference.CUDNN_CONVOLUTION_BWD_FILTER_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
@@ -1523,10 +1765,12 @@ public class CuDNN {
    * @return the forward algorithm
    */
   public int getForwardAlgorithm(final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc) {
+    long startTime = System.nanoTime();
     final int algoArray[] = {-1};
     final int result = JCudnn.cudnnGetConvolutionForwardAlgorithm(cudnnHandle,
                                                                   srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
                                                                   cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
+    getForwardAlgorithm_execution.accept((System.nanoTime() - startTime) / 1e9);
     CuDNN.log("cudnnGetConvolutionForwardAlgorithm", result, cudnnHandle,
               srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
               cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
@@ -1544,15 +1788,5 @@ public class CuDNN {
   @Override
   public String toString() {
     return getClass().getSimpleName() + "{" + deviceNumber + "; " + deviceName + "}@" + Long.toHexString(System.identityHashCode(this));
-  }
-  
-  /**
-   * Add log.
-   *
-   * @param log the log
-   */
-  public static void addLog(PrintStream log) {
-    printHeader(log);
-    apiLog.add(log);
   }
 }

@@ -189,7 +189,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Asymmetric apply.
      */
     public Temp() {
-      super(1, 8, 8, Precision.Double, 2);
+      super(1, 4, 4, Precision.Double, 2);
       validateDifferentials = false;
     }
     

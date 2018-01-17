@@ -29,18 +29,18 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import jcuda.Pointer;
 import jcuda.runtime.cudaDeviceProp;
 import jcuda.runtime.cudaMemcpyKind;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-
-import static jcuda.runtime.JCuda.*;
 
 /**
  * A GPU memory segment
  */
 public class CudaPtr extends CudaResourceBase<Pointer> {
+  protected static final Logger logger = LoggerFactory.getLogger(CudaPtr.class);
   
   /**
    * The constant METRICS.
@@ -56,7 +56,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   private static final int K = 1024;
   private static final int MiB = K * 1024;
   private static final long GiB = 1024 * MiB;
-  private static final long MAX = 4 * GiB;
+  static final long MAX = 4 * GiB;
   private static final Object pciBusLock = new Object();
   private static final boolean useDefaultDir = false;
   /**
@@ -86,7 +86,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    * @param dirty    the dirty
    */
   protected CudaPtr(final long size, final int deviceId, MemoryType type, boolean dirty) {
-    super(acquire(deviceId, size, type, dirty));
+    super(acquire(deviceId, size, type, dirty, 1));
     this.size = size;
     this.dirty = dirty;
     this.deviceId = deviceId;
@@ -141,7 +141,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     }
   }
   
-  private static Pointer acquire(int deviceId, long size, MemoryType type, boolean dirty) {
+  private static Pointer acquire(int deviceId, long size, MemoryType type, boolean dirty, int retries) {
     if (size < 0) {
       throw new OutOfMemoryError("Allocated block is too large: " + size);
     }
@@ -150,38 +150,30 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     }
     if (CuDNN.getDevice() != deviceId) throw new IllegalArgumentException();
     final GpuStats metrics = CudaPtr.getGpuStats(deviceId);
-    Pointer pointer;
     synchronized (CudaPtr.getPciBusLock()) {
       try {
-        pointer = new Pointer();
+        Pointer pointer = new Pointer();
         type.alloc(size, pointer);
-     } catch (final Exception e) {
-        try {
-          final long startMemory = metrics.usedMemory.get();
-          CuDNN.cleanMemory();
-          final long freedMemory = startMemory - metrics.usedMemory.get();
-          pointer = new Pointer();
-          type.alloc(size, pointer);
-         String msg = String.format("Low GPU Memory while allocating %s bytes; %s freed resulting in %s total (triggered by %s)",
-                                     size, freedMemory, metrics.usedMemory.get() + size, e.getMessage());
-          System.err.println(msg);
-        } catch (final Exception e2) {
-          cudaDeviceProp properties = getCurrentDeviceProperties();
-          String msg = String.format("Error allocating %s bytes; %s currently allocated to device %s; device properties = %s", size, metrics.usedMemory.get(), deviceId, properties);
-          throw new com.simiacryptus.mindseye.lang.OutOfMemoryError(msg, e2);
+        if (!dirty) {
+          CuDNN.handle(CuDNN.cudaMemset(pointer, 0, size));
         }
+        final long finalMemory = metrics.usedMemory.addAndGet(size);
+        metrics.peakMemory.updateAndGet(l -> Math.max(finalMemory, l));
+        return pointer;
+      } catch (final Exception e) {
+        if (retries <= 0) throw new RuntimeException(e);
+        final long startMemory = metrics.usedMemory.get();
+        CuDNN.cleanMemory();
+        final long freedMemory = startMemory - metrics.usedMemory.get();
+        logger.warn(String.format("Low GPU Memory while allocating %s bytes; %s freed resulting in %s total (triggered by %s)",
+                                  size, freedMemory, metrics.usedMemory.get() + size, e.getMessage()));
+        return acquire(deviceId, size, type, dirty, retries - 1);
       }
-      if (!dirty) {
-        CuDNN.handle(CuDNN.cudaMemset(pointer, 0, size));
-      }
-      final long finalMemory = metrics.usedMemory.addAndGet(size);
-      metrics.peakMemory.updateAndGet(l -> Math.max(finalMemory, l));
-      return pointer;
     }
   }
   
   
-  private static cudaDeviceProp getCurrentDeviceProperties() {
+  static cudaDeviceProp getCurrentDeviceProperties() {
     return CuDNN.getDeviceProperties(CuDNN.getDevice());
   }
   
@@ -416,139 +408,4 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     return dirty;
   }
   
-  /**
-   * The enum Memory type.
-   */
-  public enum MemoryType {
-    /**
-     * The Device.
-     */
-    Device {
-      @Override
-      void alloc(long size, Pointer pointer) {
-        if (size < 0) {
-          throw new OutOfMemoryError("Allocated block is too large: " + size);
-        }
-        if (size > CudaPtr.MAX) {
-          throw new OutOfMemoryError("Allocated block is too large: " + size);
-        }
-        cudaDeviceProp properties = getCurrentDeviceProperties();
-        if (properties.managedMemory == 1) {
-          CuDNN.handle(CuDNN.cudaMallocManaged(pointer, size, cudaMemAttachGlobal));
-        }
-        else {
-          CuDNN.handle(CuDNN.cudaMalloc(pointer, size));
-        }
-      }
-      
-      @Override
-      void free(Pointer ptr, int deviceId) {
-        CuDNN.cudaFree(ptr, deviceId);
-      }
-    },
-    /**
-     * The Device direct.
-     */
-    DeviceDirect {
-      @Override
-      void alloc(long size, Pointer pointer) {
-        CuDNN.handle(CuDNN.cudaMalloc(pointer, size));
-      }
-      
-      @Override
-      void free(Pointer ptr, int deviceId) {
-        CuDNN.cudaFree(ptr, deviceId);
-      }
-    },
-    /**
-     * The Host.
-     */
-    Host {
-      @Override
-      void alloc(long size, Pointer pointer) {
-        if (size < 0) {
-          throw new OutOfMemoryError("Allocated block is too large: " + size);
-        }
-        if (size > CudaPtr.MAX) {
-          throw new OutOfMemoryError("Allocated block is too large: " + size);
-        }
-        cudaDeviceProp properties = getCurrentDeviceProperties();
-        if (properties.canMapHostMemory == 1) {
-          CuDNN.handle(CuDNN.cudaHostAlloc(pointer, size, cudaHostAllocDefault));
-        }
-        else {
-          throw new UnsupportedOperationException();
-        }
-      }
-      
-      @Override
-      void free(Pointer ptr, int deviceId) {
-        CuDNN.cudaFreeHost(ptr);
-      }
-    },
-    /**
-     * The Host writeable.
-     */
-    HostWriteable {
-      @Override
-      void alloc(long size, Pointer pointer) {
-        if (size < 0) {
-          throw new OutOfMemoryError("Allocated block is too large: " + size);
-        }
-        if (size > CudaPtr.MAX) {
-          throw new OutOfMemoryError("Allocated block is too large: " + size);
-        }
-        cudaDeviceProp properties = getCurrentDeviceProperties();
-        if (properties.canMapHostMemory == 1) {
-          CuDNN.handle(CuDNN.cudaHostAlloc(pointer, size, cudaHostAllocWriteCombined));
-        }
-        else {
-          throw new UnsupportedOperationException();
-        }
-      }
-      
-      @Override
-      void free(Pointer ptr, int deviceId) {
-        CuDNN.cudaFreeHost(ptr);
-      }
-    };
-  
-    /**
-     * Alloc.
-     *
-     * @param size    the size
-     * @param pointer the pointer
-     */
-    abstract void alloc(long size, Pointer pointer);
-  
-    /**
-     * Free.
-     *
-     * @param ptr      the ptr
-     * @param deviceId the device id
-     */
-    abstract void free(Pointer ptr, int deviceId);
-  }
-  
-  /**
-   * The type Gpu stats.
-   */
-  public static class GpuStats {
-    /**
-     * The Memory reads.
-     */
-    public final AtomicLong memoryReads = new AtomicLong(0);
-    /**
-     * The Memory writes.
-     */
-    public final AtomicLong memoryWrites = new AtomicLong(0);
-    /**
-     * The Peak memory.
-     */
-    public final AtomicLong peakMemory = new AtomicLong(0);
-    /**
-     * The Used memory.
-     */
-    public final AtomicLong usedMemory = new AtomicLong(0);
-  }
 }

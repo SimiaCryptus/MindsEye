@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.cudnn.lang;
 
 import com.simiacryptus.mindseye.lang.PersistanceMode;
 import com.simiacryptus.mindseye.lang.RecycleBin;
-import com.simiacryptus.mindseye.layers.cudnn.lang.CudaPtr.MemoryType;
 import jcuda.Pointer;
 import scala.reflect.internal.util.WeakHashSet;
 

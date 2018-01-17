@@ -21,8 +21,10 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
+import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
+import com.simiacryptus.util.io.NotebookOutput;
 
 import java.io.PrintStream;
 
@@ -35,6 +37,15 @@ public abstract class CudnnLayerTestBase extends LayerTestBase {
    * Instantiates a new Cudnn layer run base.
    */
   public CudnnLayerTestBase() {
+  }
+  
+  @Override
+  public void run(NotebookOutput log) {
+    super.run(log);
+    log.p("CuDNN Statistics:");
+    log.code(() -> {
+      return TestUtil.toFormattedJson(CuDNN.getExecutionStatistics());
+    });
   }
   
   @Override

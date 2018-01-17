@@ -523,7 +523,7 @@ public class TestUtil {
    * @param metrics the metrics
    * @return the string
    */
-  public static String toFormattedJson(final Map<String, Object> metrics) {
+  public static String toFormattedJson(final Object metrics) {
     try {
       final ByteArrayOutputStream out = new ByteArrayOutputStream();
       JsonUtil.writeJson(out, metrics);

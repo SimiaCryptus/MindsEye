@@ -27,6 +27,8 @@ import com.simiacryptus.util.io.JsonUtil;
 import jcuda.jcudnn.cudnnHandle;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 import jcuda.jcudnn.cudnnTensorFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -39,6 +41,7 @@ import java.util.function.IntToDoubleFunction;
  */
 @SuppressWarnings("serial")
 public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandBiasLayer> {
+  static final Logger log = LoggerFactory.getLogger(ImgBandBiasLayer.class);
   
   private final double[] bias;
   private Precision precision = Precision.Double;
@@ -82,7 +85,36 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
    * @return the compatibility layer
    */
   public NNLayer getCompatibilityLayer() {
-    return this.as(com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer.class);
+    log.info("Using compatibility layer for " + this);
+    return new NNLayer() {
+      com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer inner = this.as(com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer.class);
+    
+      @Override
+      public NNResult eval(NNResult... array) {
+        NNResult result = inner.eval(array);
+        return new NNResult(result.getData()) {
+          @Override
+          public void accumulate(DeltaSet<NNLayer> buffer, TensorList data) {
+            throw new IllegalStateException();
+          }
+        
+          @Override
+          public boolean isAlive() {
+            return false;
+          }
+        };
+      }
+    
+      @Override
+      public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+        throw new IllegalStateException();
+      }
+    
+      @Override
+      public List<double[]> state() {
+        throw new IllegalStateException();
+      }
+    };
   }
   
   
@@ -142,7 +174,7 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
   
         assert 0 < bias.length;
-        final CudaPtr filterPtr = new CudaPtr(bias.length * precision.size, nncontext.getDeviceNumber(), CudaPtr.MemoryType.Device).write(precision, bias);
+        final CudaPtr filterPtr = new CudaPtr(bias.length * precision.size, nncontext.getDeviceNumber(), MemoryType.Device).write(precision, bias);
         final CudaPtr inputData = CudaPtr.write(nncontext.getDeviceNumber(), precision, batch);
         final cudnnHandle cudnnHandle = nncontext.cudnnHandle;
         try {

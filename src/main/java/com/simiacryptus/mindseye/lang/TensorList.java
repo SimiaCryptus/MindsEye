@@ -33,28 +33,15 @@ public interface TensorList {
    *
    * @param right the right
    */
-  default void accum(final TensorList right) {
-    if (right.length() == 0) return;
-    if (length() == 0) throw new IllegalArgumentException();
-    assert length() == right.length();
-    IntStream.range(0, length()).forEach(i -> {
-      get(i).accumulate(right.get(i));
-    });
-  }
-  
-  /**
-   * Add tensor list.
-   *
-   * @param right the right
-   * @return the tensor list
-   */
-  default TensorList add(final TensorList right) {
-    assert length() == right.length();
-    return new TensorArray(
-      IntStream.range(0, length()).mapToObj(i -> {
-        return get(i).add(right.get(i));
-      }).toArray(i -> new Tensor[i])
-    );
+  default void addInPlace(final TensorList right) {
+    synchronized (this) {
+      if (right.length() == 0) return;
+      if (length() == 0) throw new IllegalArgumentException();
+      assert length() == right.length();
+      IntStream.range(0, length()).forEach(i -> {
+        get(i).accumulate(right.get(i));
+      });
+    }
   }
   
   /**

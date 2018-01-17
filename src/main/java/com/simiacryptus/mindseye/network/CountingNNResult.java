@@ -23,6 +23,8 @@ import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.TensorList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -34,6 +36,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * backpropigating delta signals into a single signal before evaluating further backwards.
  */
 class CountingNNResult extends NNResult {
+  protected static final Logger logger = LoggerFactory.getLogger(CountingNNResult.class);
+
   /**
    * The constant debugLifecycle.
    */
@@ -61,7 +65,7 @@ class CountingNNResult extends NNResult {
   /**
    * The Passback buffer.
    */
-  TensorList passbackBuffer = null;
+  volatile TensorList passbackBuffer = null;
   
   /**
    * Instantiates a new Counting nn result.
@@ -105,17 +109,18 @@ class CountingNNResult extends NNResult {
     }
     else {
       if (null == passbackBuffer) {
-        passbackBuffer = null == data ? null : data.copy();
+        synchronized (this) {
+          if (null == passbackBuffer) {
+            passbackBuffer = data;
+          }
+        }
       }
-      else {
-        passbackBuffer.accum(data);
+      if (null != passbackBuffer) {
+        passbackBuffer.addInPlace(data);
       }
       if (accumulations.incrementAndGet() == references.get()) {
         if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
         inner.accumulate(buffer, passbackBuffer);
-        if (1 < references.get()) {
-          passbackBuffer.recycle();
-        }
         accumulations.set(0);
       }
     }

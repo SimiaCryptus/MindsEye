@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.layers.cudnn.lang;
 import com.simiacryptus.mindseye.lang.*;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 import jcuda.jcudnn.cudnnTensorFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.stream.IntStream;
@@ -31,6 +33,7 @@ import java.util.stream.Stream;
  * A TensorList data object stored on a GPU with a configurable precision.
  */
 public class GpuTensorList implements TensorList {
+  protected static final Logger logger = LoggerFactory.getLogger(GpuTensorList.class);
   
   /**
    * The Dimensions.
@@ -69,7 +72,7 @@ public class GpuTensorList implements TensorList {
   }
   
   @Override
-  public void accum(final TensorList right) {
+  public synchronized void addInPlace(final TensorList right) {
   // TODO: Review use, make sure immutable behavior is not assumed.
     assert length() == right.length();
     if (right instanceof GpuTensorList && ((GpuTensorList) right).precision == precision && ((GpuTensorList) right)._inner == null && _inner == null) {
@@ -89,28 +92,6 @@ public class GpuTensorList implements TensorList {
         get(i).accumulate(right.get(i));
       });
     }
-  }
-  
-  @Override
-  public TensorList add(final TensorList right) {
-  // TODO: Review use, make sure immutable behavior is not assumed.
-    assert length() == right.length();
-    if (right instanceof GpuTensorList && ((GpuTensorList) right).precision == precision && ((GpuTensorList) right)._inner == null && _inner == null) {
-      CuDNN.apply(exe -> {
-        final GpuTensorList nativeRight = (GpuTensorList) right;
-        final CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
-        CuDNN.handle(CuDNN.cudnnAddTensor(exe.cudnnHandle,
-                                          precision.getPointer(1.0), size.getPtr(), nativeRight.ptr.getPtr(),
-                                          precision.getPointer(1.0), size.getPtr(), GpuTensorList.this.ptr.getPtr()));
-        size.finalize();
-     });
-      return this;
-    }
-    return new TensorArray(
-      IntStream.range(0, length()).mapToObj(i -> {
-        return get(i).add(right.get(i));
-      }).toArray(i -> new Tensor[i])
-    );
   }
   
   @Override
@@ -202,6 +183,7 @@ public class GpuTensorList implements TensorList {
    * @return
    */
   public TensorList object() {
+    //return this;
     return localCopy();
   }
 }
