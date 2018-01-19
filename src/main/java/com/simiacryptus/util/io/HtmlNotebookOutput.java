@@ -33,6 +33,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.Base64;
@@ -116,6 +117,7 @@ public class HtmlNotebookOutput implements NotebookOutput {
       final StackTraceElement callingFrame = stackTrace[framesNo];
       final String sourceCode = CodeUtil.getInnerText(callingFrame);
       final SysOutInterceptor.LoggedResult<TimedResult<Object>> result = SysOutInterceptor.withOutput(() -> {
+        long priorGcMs = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
         final long start = System.nanoTime();
         try {
           Object result1 = null;
@@ -124,9 +126,11 @@ public class HtmlNotebookOutput implements NotebookOutput {
           } catch (final Exception e) {
             throw new RuntimeException(e);
           }
-          return new TimedResult<Object>(result1, System.nanoTime() - start);
+          long gcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum() - priorGcMs;
+          return new TimedResult<Object>(result1, System.nanoTime() - start, gcTime);
         } catch (final Throwable e) {
-          return new TimedResult<Object>(e, System.nanoTime() - start);
+          long gcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum() - priorGcMs;
+          return new TimedResult<Object>(e, System.nanoTime() - start, gcTime);
         }
       });
       try {

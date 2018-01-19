@@ -23,7 +23,10 @@ package com.simiacryptus.util;
  * The type Fast randomize.
  */
 public class FastRandom {
-  private static volatile double randomA = FastRandom.seed();
+  private static final long t = System.nanoTime() >>> 24;
+  private static long x = System.nanoTime();
+  private static long y = System.nanoTime() >>> 8;
+  private static long z = System.nanoTime() >>> 16;
   
   /**
    * Random double.
@@ -31,23 +34,35 @@ public class FastRandom {
    * @return the double
    */
   public static double random() {
-    int i = 0;
-    while (true) {
-      final double prev = FastRandom.randomA;
-      assert Double.isFinite(prev);
-      double next = 4 * prev * (1 - prev);
-      if (!Double.isFinite(next)) {
-        next = FastRandom.seed();
-      }
-      if (i++ < 3) {
-        FastRandom.randomA = next;
-        //System.err.println(next);
-        return next;
-      }
+    long z = next();
+    int exponentMag = 4;
+    double resolution = 1e8;
+    double x = ((z / 2) % resolution) / resolution;
+    double y = z % exponentMag - exponentMag / 2;
+    while (y > 1) {
+      y--;
+      x = 2;
     }
+    while (y < -1) {
+      y++;
+      x /= 2;
+    }
+    return x;
   }
   
-  private static double seed() {
-    return Math.random();
+  public static long next() {
+    long x = xorshift(FastRandom.x);
+    FastRandom.x = y;
+    y = z;
+    z = FastRandom.x ^ x ^ y;
+    return z;
   }
+  
+  public static long xorshift(long x) {
+    x ^= x << 16;
+    x ^= x >> 5;
+    x ^= x << 1;
+    return x;
+  }
+  
 }

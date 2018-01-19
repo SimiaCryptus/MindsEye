@@ -37,6 +37,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -1518,12 +1519,18 @@ public class CuDNN {
   /**
    * Clean memory.
    */
-  public static void cleanMemory() {
-    singleThreadExecutor.submit(() -> {
-      logger.warn("Cleaning Memory");
-      RecycleBin.DOUBLES.clear();
-      System.gc();
-      System.runFinalization();
+  public static Future<?> cleanMemory() {
+    return singleThreadExecutor.submit(() -> {
+      try {
+        logger.warn("Cleaning Memory");
+        RecycleBin.DOUBLES.clear();
+        Runtime runtime = Runtime.getRuntime();
+        runtime.gc();
+        runtime.runFinalization();
+        runtime.gc();
+      } catch (Throwable e) {
+        logger.warn("Error while cleaning memory", e);
+      }
     });
   }
   

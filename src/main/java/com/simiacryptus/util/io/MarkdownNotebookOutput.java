@@ -34,6 +34,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
@@ -201,6 +202,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
       final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[framesNo];
       final String sourceCode = CodeUtil.getInnerText(callingFrame);
       final SysOutInterceptor.LoggedResult<TimedResult<Object>> result = SysOutInterceptor.withOutput(() -> {
+        long priorGcMs = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
         final long start = System.nanoTime();
         try {
           Object result1 = null;
@@ -209,14 +211,16 @@ public class MarkdownNotebookOutput implements NotebookOutput {
           } catch (final Exception e) {
             throw new RuntimeException(e);
           }
-          return new TimedResult<Object>(result1, System.nanoTime() - start);
+          long gcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum() - priorGcMs;
+          return new TimedResult<Object>(result1, System.nanoTime() - start, gcTime);
         } catch (final Throwable e) {
-          return new TimedResult<Object>(e, System.nanoTime() - start);
+          long gcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum() - priorGcMs;
+          return new TimedResult<Object>(e, System.nanoTime() - start, gcTime);
         }
       });
-      out(anchor(anchorId()) + "Code from [%s:%s](%s#L%s) executed in %.2f seconds: ",
+      out(anchor(anchorId()) + "Code from [%s:%s](%s#L%s) executed in %.2f seconds (%.3f gc): ",
           callingFrame.getFileName(), callingFrame.getLineNumber(),
-          linkTo(CodeUtil.findFile(callingFrame)), callingFrame.getLineNumber(), result.obj.seconds());
+          linkTo(CodeUtil.findFile(callingFrame)), callingFrame.getLineNumber(), result.obj.seconds(), result.obj.gc_seconds());
       String text = sourceCode.replaceAll("\n", "\n  ");
       out("```java");
       out("  " + text);

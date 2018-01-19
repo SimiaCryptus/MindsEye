@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.lang;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -37,6 +39,7 @@ import static com.simiacryptus.mindseye.lang.PersistanceMode.Soft;
  * @param <T> the type parameter
  */
 public abstract class RecycleBin<T> {
+  protected static final Logger logger = LoggerFactory.getLogger(RecycleBin.class);
   
   
   /**
@@ -74,8 +77,8 @@ public abstract class RecycleBin<T> {
   private final ConcurrentHashMap<Long, ConcurrentLinkedDeque<Supplier<T>>> recycling = new ConcurrentHashMap<>();
   private int profilingThreshold = 32 * 1024;
   private PersistanceMode persistanceMode = Soft;
-  private int minBytesPerBuffer = 256;
-  private double maxBytesPerBuffer = 1e8;
+  private int minLengthPerBuffer = 256;
+  private double maxLengthPerBuffer = 1e6;
   private int maxItemsPerBuffer = 100;
   
   /**
@@ -285,7 +288,7 @@ public abstract class RecycleBin<T> {
     final ConcurrentLinkedDeque<Supplier<T>> bin;
     synchronized (recycling) {
       bin = recycling.get(length);
-  
+    
     }
     StackCounter stackCounter = getRecycle_get(length);
     if (null != stackCounter) {
@@ -301,31 +304,41 @@ public abstract class RecycleBin<T> {
         }
       }
     }
-    try {
-      return create2(length);
-    } catch (final java.lang.OutOfMemoryError e) {
-      try {
-        clear();
-        CuDNN.cleanMemory();
-        return create2(length);
-      } catch (final java.lang.OutOfMemoryError e2) {
-        throw new OutOfMemoryError("Could not allocate " + length + " bytes", e2);
-      }
-    }
+    return create(length, 1);
   }
   
-  /**
-   * Create 2 t.
-   *
-   * @param length the length
-   * @return the t
-   */
-  public T create2(long length) {
-    StackCounter stackCounter = getAllocations(length);
-    if (null != stackCounter) {
-      stackCounter.increment(length);
+  public T create(long length, int retries) {
+    try {
+      T result = create(length);
+      StackCounter stackCounter = getAllocations(length);
+      if (null != stackCounter) {
+        stackCounter.increment(length);
+      }
+      return result;
+    } catch (final com.simiacryptus.mindseye.lang.OutOfMemoryError | java.lang.OutOfMemoryError e) {
+      if (retries <= 0) throw e;
     }
-    return create(length);
+    clearMemory(length);
+    return create(length, retries - 1);
+  }
+  
+  private void clearMemory(long length) {
+    long max = Runtime.getRuntime().maxMemory();
+    long previous = Runtime.getRuntime().freeMemory();
+    long size = getSize();
+    logger.warn(String.format("Allocation of length %d failed; %s/%s used memory; %s items in recycle buffer; Clearing memory", length, previous, max, size));
+    clear();
+    try {
+      CuDNN.cleanMemory().get();
+    } catch (InterruptedException | ExecutionException e) {
+      throw new RuntimeException(e);
+    }
+    long after = Runtime.getRuntime().freeMemory();
+    logger.warn(String.format("Clearing memory freed %s/%s bytes", previous - after, max));
+  }
+  
+  public long getSize() {
+    return this.recycling.entrySet().stream().mapToLong(e -> e.getKey() * e.getValue().size()).sum();
   }
   
   /**
@@ -335,12 +348,36 @@ public abstract class RecycleBin<T> {
    * @param size the size
    */
   public void recycle(final T data, long size) {
-    if (null == data) return;
-    if (size < getMinBytesPerBuffer()) return;
+    if (null != data && size >= getMinLengthPerBuffer() && size <= getMaxLengthPerBuffer()) {
+      StackCounter stackCounter = getRecycle_put(size);
+      if (null != stackCounter) {
+        stackCounter.increment(size);
+      }
+      ConcurrentLinkedDeque<Supplier<T>> bin = getBin(size);
+      if (bin.size() < Math.min(Math.max(1, (int) (getMaxLengthPerBuffer() / size)), getMaxItemsPerBuffer())) {
+        synchronized (bin) {
+          if (!bin.stream().filter(x -> equals(x.get(), data)).findAny().isPresent()) {
+            bin.add(wrap(data));
+            return;
+          }
+        }
+      }
+    }
+    free2(data, size);
+  }
+  
+  public boolean want(long size) {
+    if (size < getMinLengthPerBuffer()) return false;
+    if (size > getMaxLengthPerBuffer()) return false;
     StackCounter stackCounter = getRecycle_put(size);
     if (null != stackCounter) {
       stackCounter.increment(size);
     }
+    ConcurrentLinkedDeque<Supplier<T>> bin = getBin(size);
+    return bin.size() < Math.min(Math.max(1, (int) (getMaxLengthPerBuffer() / size)), getMaxItemsPerBuffer());
+  }
+  
+  protected ConcurrentLinkedDeque<Supplier<T>> getBin(long size) {
     ConcurrentLinkedDeque<Supplier<T>> bin;
     synchronized (recycling) {
       bin = recycling.get(size);
@@ -349,19 +386,7 @@ public abstract class RecycleBin<T> {
       bin = new ConcurrentLinkedDeque<>();
       recycling.put(size, bin);
     }
-    if (bin.size() < Math.min(Math.max(1, (int) (getMaxBytesPerBuffer() / size)), getMaxItemsPerBuffer())) {
-      synchronized (bin) {
-        if (!bin.stream().filter(x -> equals(x.get(), data)).findAny().isPresent()) {
-          bin.add(wrap(data));
-        }
-        else {
-          free2(data, size);
-        }
-      }
-    }
-    else {
-      free2(data, size);
-    }
+    return bin;
   }
   
   /**
@@ -418,18 +443,18 @@ public abstract class RecycleBin<T> {
    *
    * @return the min bytes per buffer
    */
-  public int getMinBytesPerBuffer() {
-    return minBytesPerBuffer;
+  public int getMinLengthPerBuffer() {
+    return minLengthPerBuffer;
   }
   
   /**
    * Sets min bytes per buffer.
    *
-   * @param minBytesPerBuffer the min bytes per buffer
+   * @param minLengthPerBuffer the min bytes per buffer
    * @return the min bytes per buffer
    */
-  public RecycleBin<T> setMinBytesPerBuffer(int minBytesPerBuffer) {
-    this.minBytesPerBuffer = minBytesPerBuffer;
+  public RecycleBin<T> setMinLengthPerBuffer(int minLengthPerBuffer) {
+    this.minLengthPerBuffer = minLengthPerBuffer;
     return this;
   }
   
@@ -438,18 +463,18 @@ public abstract class RecycleBin<T> {
    *
    * @return the max bytes per buffer
    */
-  public double getMaxBytesPerBuffer() {
-    return maxBytesPerBuffer;
+  public double getMaxLengthPerBuffer() {
+    return maxLengthPerBuffer;
   }
   
   /**
    * Sets max bytes per buffer.
    *
-   * @param maxBytesPerBuffer the max bytes per buffer
+   * @param maxLengthPerBuffer the max bytes per buffer
    * @return the max bytes per buffer
    */
-  public RecycleBin<T> setMaxBytesPerBuffer(double maxBytesPerBuffer) {
-    this.maxBytesPerBuffer = maxBytesPerBuffer;
+  public RecycleBin<T> setMaxLengthPerBuffer(double maxLengthPerBuffer) {
+    this.maxLengthPerBuffer = maxLengthPerBuffer;
     return this;
   }
   

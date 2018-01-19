@@ -53,14 +53,14 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     }
   });
   
-  private static final boolean lockPci = Boolean.parseBoolean(System.getProperty("lockPci", "true"));
+  private static final boolean lockPci = Boolean.parseBoolean(System.getProperty("lockPci", "false"));
   private static final int K = 1024;
   private static final int MiB = K * 1024;
   private static final long GiB = 1024 * MiB;
   static final long MAX = Precision.Double.size * (Integer.MAX_VALUE - 1L);
   private static final Object pciBusLock = new Object();
   private static final boolean useDefaultDir = false;
-  public static boolean DISABLE_DIRTY_MEMORY = true;
+  public static boolean DISABLE_DIRTY_MEMORY = false;
   /**
    * The Size.
    */
@@ -153,26 +153,26 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     }
     if (CuDNN.getDevice() != deviceId) throw new IllegalArgumentException();
     final GpuStats metrics = CudaPtr.getGpuStats(deviceId);
-    synchronized (CudaPtr.getPciBusLock()) {
-      try {
-        Pointer pointer = new Pointer();
+    try {
+      Pointer pointer = new Pointer();
+      synchronized (CudaPtr.getPciBusLock()) {
         type.alloc(size, pointer);
-        if (!dirty || DISABLE_DIRTY_MEMORY) {
-          CuDNN.handle(CuDNN.cudaMemset(pointer, 0, size));
-        }
-        final long finalMemory = metrics.usedMemory.addAndGet(size);
-        metrics.peakMemory.updateAndGet(l -> Math.max(finalMemory, l));
-        return pointer;
-      } catch (final ThreadDeath e) {
-        throw e;
-      } catch (final Throwable e) {
-        if (retries <= 0) throw new RuntimeException(e);
-        final long startMemory = metrics.usedMemory.get();
-        TimedResult<Void> timedResult = TimedResult.time(() -> CuDNN.cleanMemory());
-        final long freedMemory = startMemory - metrics.usedMemory.get();
-        logger.warn(String.format("Low GPU Memory while allocating %s bytes; %s freed in %.4fs resulting in %s total (triggered by %s)",
-                                  size, freedMemory, timedResult.seconds(), metrics.usedMemory.get() + size, e.getMessage()));
       }
+      if (!dirty || DISABLE_DIRTY_MEMORY) {
+        CuDNN.handle(CuDNN.cudaMemset(pointer, 0, size));
+      }
+      final long finalMemory = metrics.usedMemory.addAndGet(size);
+      metrics.peakMemory.updateAndGet(l -> Math.max(finalMemory, l));
+      return pointer;
+    } catch (final ThreadDeath e) {
+      throw e;
+    } catch (final Throwable e) {
+      if (retries <= 0) throw new RuntimeException(e);
+      final long startMemory = metrics.usedMemory.get();
+      TimedResult<Void> timedResult = TimedResult.time(() -> {CuDNN.cleanMemory().get();});
+      final long freedMemory = startMemory - metrics.usedMemory.get();
+      logger.warn(String.format("Low GPU Memory while allocating %s bytes; %s freed in %.4fs resulting in %s total (triggered by %s)",
+                                size, freedMemory, timedResult.seconds(), metrics.usedMemory.get(), e.getMessage()));
     }
     if (retries < 0) throw new IllegalStateException();
     return acquire(deviceId, size, type, dirty, retries - 1);

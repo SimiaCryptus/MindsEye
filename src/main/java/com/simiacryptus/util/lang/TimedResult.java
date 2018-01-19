@@ -19,6 +19,8 @@
 
 package com.simiacryptus.util.lang;
 
+import java.lang.management.ManagementFactory;
+
 /**
  * The type Timed result.
  *
@@ -33,16 +35,18 @@ public class TimedResult<T> {
    * The Time nanos.
    */
   public final long timeNanos;
+  public final long gcMs;
   
   /**
    * Instantiates a new Timed result.
-   *
-   * @param result    the obj
+   *  @param result    the obj
    * @param timeNanos the time nanos
+   * @param gcMs
    */
-  public TimedResult(final T result, final long timeNanos) {
+  public TimedResult(final T result, final long timeNanos, long gcMs) {
     this.result = result;
     this.timeNanos = timeNanos;
+    this.gcMs = gcMs;
   }
   
   /**
@@ -53,6 +57,7 @@ public class TimedResult<T> {
    * @return the timed result
    */
   public static <T> TimedResult<T> time(final UncheckedSupplier<T> fn) {
+    long priorGcMs = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
     final long start = System.nanoTime();
     T result = null;
     try {
@@ -60,7 +65,9 @@ public class TimedResult<T> {
     } catch (final Exception e) {
       throw new RuntimeException(e);
     }
-    return new TimedResult<T>(result, System.nanoTime() - start);
+    long gcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum() - priorGcMs;
+    long wallClockTime = System.nanoTime() - start;
+    return new TimedResult<T>(result, wallClockTime, gcTime);
   }
   
   /**
@@ -71,13 +78,16 @@ public class TimedResult<T> {
    * @return the timed result
    */
   public static <T> TimedResult<Void> time(final UncheckedRunnable<T> fn) {
+    long priorGcMs = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
     final long start = System.nanoTime();
     try {
       fn.get();
     } catch (final Exception e) {
       throw new RuntimeException(e);
     }
-    return new TimedResult<Void>(null, System.nanoTime() - start);
+    long gcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum() - priorGcMs;
+    long wallClockTime = System.nanoTime() - start;
+    return new TimedResult<Void>(null, wallClockTime, gcTime);
   }
   
   /**
@@ -86,6 +96,10 @@ public class TimedResult<T> {
    * @return the double
    */
   public double seconds() {
-    return timeNanos / 1000000000.0;
+    return timeNanos / 1e9;
+  }
+  
+  public double gc_seconds() {
+    return gcMs / 1e3;
   }
 }
