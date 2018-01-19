@@ -40,7 +40,7 @@ public class GpuTensorList implements TensorList {
   /**
    * The constant DISABLE_GPU_INTERCONNECT.
    */
-  public static boolean DISABLE_GPU_INTERCONNECT = true;
+  public static boolean DISABLE_GPU_INTERCONNECT = false;
   
   /**
    * The Dimensions.
@@ -101,12 +101,15 @@ public class GpuTensorList implements TensorList {
         if (nativeRight.precision == precision) {
           if (nativeRight._inner == null) {
             if (!DISABLE_GPU_INTERCONNECT && CuDNN.run(exe -> {
-              if (nativeRight.ptr.getDeviceId() != GpuTensorList.this.ptr.getDeviceId()) return false;
-              final CudaResource<cudnnTensorDescriptor> leftSize = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
-              final CudaResource<cudnnTensorDescriptor> rightSize = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
+              assert dimensions.length <= 3;
+              ManagedCudaPtr rightPtr = nativeRight.ptr;
+              int deviceId = GpuTensorList.this.ptr.getDeviceId();
+              if (rightPtr.getDeviceId() != deviceId) return false;
+              final CudaResource<cudnnTensorDescriptor> leftSize = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions.length < 3 ? 1 : dimensions[2], dimensions.length < 2 ? 1 : dimensions[1], dimensions[0]);
+              final CudaResource<cudnnTensorDescriptor> rightSize = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions.length < 3 ? 1 : dimensions[2], dimensions.length < 2 ? 1 : dimensions[1], dimensions[0]);
               CuDNN.handle(CuDNN.cudnnAddTensor(exe.cudnnHandle,
-                                                precision.getPointer(1.0), rightSize.getPtr(), nativeRight.ptr.getPtr(),
-                                                precision.getPointer(1.0), leftSize.getPtr(), GpuTensorList.this.ptr.getPtr()));
+                                                precision.getPointer(1.0), rightSize.getPtr(), rightPtr.getPtr(deviceId),
+                                                precision.getPointer(1.0), leftSize.getPtr(), GpuTensorList.this.ptr.getPtr(deviceId)));
               leftSize.finalize();
               rightSize.finalize();
               return true;

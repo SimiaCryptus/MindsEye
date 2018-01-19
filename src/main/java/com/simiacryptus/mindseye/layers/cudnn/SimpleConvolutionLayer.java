@@ -195,7 +195,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
                                                                      inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
         CuDNN.handle(CuDNN.cudnnConvolutionForward(nncontext.cudnnHandle, precision.getPointer(1.0),
                                                    inputDescriptor.getPtr(), inputData.getPtr(),
-                                                   filterDescriptor.getPtr(), filterPtr.getPtr(),
+                                                   filterDescriptor.getPtr(), filterPtr.getPtr(deviceNumber),
                                                    convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, precision.getPointer(0.0),
                                                    outputDescriptor.getPtr(), outputBuffer.getPtr()));
         Supplier<CudaPtr> workspacePtr = PersistanceMode.Weak.wrap(workSpace);
@@ -257,7 +257,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
                   final CudaPtr workSpace = nncontext.allocateBackwardDataWorkspace(deviceNumber,
                                                                                     inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
                   CuDNN.handle(CuDNN.cudnnConvolutionBackwardData(nncontext.cudnnHandle, precision.getPointer(1.0),
-                                                                  filterDescriptor.getPtr(), filterPtr.getPtr(),
+                                                                  filterDescriptor.getPtr(), filterPtr.getPtr(deviceNumber),
                                                                   outputDescriptor.getPtr(), errorPtr.getPtr(),
                                                                   convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, precision.getPointer(0.0),
                                                                   inputDescriptor.getPtr(), inputBuffer.getPtr()));

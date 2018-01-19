@@ -40,6 +40,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -369,11 +370,12 @@ public class CuDNN {
    */
   public static int cudaFree(final Pointer devPtr, int deviceId) {
     long startTime = System.nanoTime();
-    setDevice(deviceId);
-    final int result = JCuda.cudaFree(devPtr);
-    CuDNN.log("cudaFree", result, devPtr);
-    cudaFree_execution.accept((System.nanoTime() - startTime) / 1e9);
-    return result;
+    return CuDNN.withDevice(deviceId, () -> {
+      final int result = JCuda.cudaFree(devPtr);
+      CuDNN.log("cudaFree", result, devPtr);
+      cudaFree_execution.accept((System.nanoTime() - startTime) / 1e9);
+      return result;
+    });
   }
   
   /**
@@ -1104,6 +1106,7 @@ public class CuDNN {
    * @param cudaDeviceId the cuda device id
    */
   public static void setDevice(final int cudaDeviceId) {
+    if (cudaDeviceId < 0) throw new IllegalArgumentException("cudaDeviceId=" + cudaDeviceId);
     if (cudaDeviceId != getDevice()) {
       long startTime = System.nanoTime();
       final int result = JCuda.cudaSetDevice(cudaDeviceId);
@@ -1470,26 +1473,29 @@ public class CuDNN {
     }
     final int deviceCount = CuDNN.deviceCount();
     logger.info(String.format("Found %s devices", deviceCount));
-    List<Integer> devices = new ArrayList<>();
-    for (int device = 0; device < deviceCount; device++) {
+    final List<Integer> devices = new ArrayList<>();
+    for (int d = 0; d < deviceCount; d++) {
+      int deviceNumber = d;
       //if(device>0) System.err.println(String.format("IGNORING Device %s - %s", device, getDeviceName(device)));
-      CuDNN.setDevice(device);
-      logger.info(String.format("Device %s - %s", device, CuDNN.getDeviceName(device)));
-      devices.add(device);
-      //CuDNN.handle(cudaSetDeviceFlags(cudaDeviceScheduleAuto));
-      for (DeviceLimits limit : DeviceLimits.values()) {
-        logger.info(String.format("Default Limit %s = %s", limit, limit.get()));
-      }
-      DeviceLimits.HeapSize.set(16 * 1024 * 1024 * 1024);
-      DeviceLimits.FifoSize.set(8 * 1024 * 1024);
-      for (DeviceLimits limit : DeviceLimits.values()) {
-        logger.info(String.format("Configured Limit %s = %s", limit, limit.get()));
-      }
+      CuDNN.withDevice(deviceNumber, () -> {
+        logger.info(String.format("Device %s - %s", deviceNumber, CuDNN.getDeviceName(deviceNumber)));
+        devices.add(deviceNumber);
+        //CuDNN.handle(cudaSetDeviceFlags(cudaDeviceScheduleAuto));
+        for (DeviceLimits limit : DeviceLimits.values()) {
+          logger.info(String.format("Default Limit %s = %s", limit, limit.get()));
+        }
+        DeviceLimits.HeapSize.set(16 * 1024 * 1024 * 1024);
+        DeviceLimits.FifoSize.set(8 * 1024 * 1024);
+        for (DeviceLimits limit : DeviceLimits.values()) {
+          logger.info(String.format("Configured Limit %s = %s", limit, limit.get()));
+        }
+      });
     }
     if (System.getProperties().containsKey("gpus")) {
-      devices = Arrays.stream(System.getProperty("gpus").split(","))
-                      .map(Integer::parseInt).collect(Collectors.toList());
-      
+      List<Integer> devices2 = Arrays.stream(System.getProperty("gpus").split(","))
+                                     .map(Integer::parseInt).collect(Collectors.toList());
+      devices.clear();
+      devices.addAll(devices2);
     }
     logger.info(String.format("Found %s devices; using devices %s", deviceCount, devices));
     return devices.stream()
@@ -1562,12 +1568,11 @@ public class CuDNN {
         Thread.currentThread().interrupt();
       }
       try {
-        IntStream.range(0, CuDNN.deviceCount()).forEach(deviceNumber -> {
+        IntStream.range(0, CuDNN.deviceCount()).forEach(deviceNumber -> CuDNN.withDevice(deviceNumber, () -> {
           logger.warn(String.format("Resetting Device %d", deviceNumber));
           CudaPtr.getGpuStats(deviceNumber).usedMemory.set(0);
-          setDevice(deviceNumber);
           cudaDeviceReset();
-        });
+        }));
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
@@ -1577,6 +1582,26 @@ public class CuDNN {
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
       }
+    }
+  }
+  
+  public static void withDevice(int n, Runnable action) {
+    final int currentDevice = getDevice();
+    try {
+      action.run();
+    } finally {
+      if (currentDevice >= 0) setDevice(currentDevice);
+      else CuDNN.currentDevice.remove();
+    }
+  }
+  
+  public static <T> T withDevice(int n, Supplier<T> action) {
+    final int currentDevice = getDevice();
+    try {
+      return action.get();
+    } finally {
+      if (currentDevice >= 0) setDevice(currentDevice);
+      else CuDNN.currentDevice.remove();
     }
   }
   

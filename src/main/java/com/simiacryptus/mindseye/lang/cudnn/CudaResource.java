@@ -19,6 +19,9 @@
 
 package com.simiacryptus.mindseye.lang.cudnn;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.ToIntFunction;
 
@@ -28,6 +31,7 @@ import java.util.function.ToIntFunction;
  * @param <T> the type parameter
  */
 public class CudaResource<T> extends CudaResourceBase<T> {
+  protected static final Logger logger = LoggerFactory.getLogger(CudaResource.class);
   
   /**
    * The Device id.
@@ -54,12 +58,13 @@ public class CudaResource<T> extends CudaResourceBase<T> {
    */
   protected void free() {
     try {
-      CuDNN.setDevice(deviceId);
-      if (isActiveObj() && !isFinalized.getAndSet(true)) {
-        CuDNN.handle(this.destructor.applyAsInt(ptr));
-      }
+      CuDNN.withDevice(deviceId, () -> {
+        if (isActiveObj() && !isFinalized.getAndSet(true)) {
+          CuDNN.handle(this.destructor.applyAsInt(ptr));
+        }
+      });
     } catch (final Throwable e) {
-      //new ComponentException("Error freeing resource " + this, e).printStackTrace(System.err);
+      logger.debug("Error freeing resource " + this, e);
     }
   }
   

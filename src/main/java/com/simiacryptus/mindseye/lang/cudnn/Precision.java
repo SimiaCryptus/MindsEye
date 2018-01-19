@@ -63,9 +63,12 @@ public enum Precision {
    * @return the double [ ]
    */
   public static double[] getDoubles(final float[] data) {
-    final double[] doubles = new double[data.length];
-    for (int i = 0; i < data.length; i++) {
-      doubles[i] = data[i];
+    return copy(data, new double[data.length]);
+  }
+  
+  public static double[] copy(float[] from, double[] doubles) {
+    for (int i = 0; i < from.length; i++) {
+      doubles[i] = from[i];
     }
     return doubles;
   }
@@ -77,11 +80,14 @@ public enum Precision {
    * @return the float [ ]
    */
   public static float[] getFloats(final double[] data) {
-    final float[] floats = new float[data.length];
-    for (int i = 0; i < data.length; i++) {
-      floats[i] = (float) data[i];
+    return copy(data, new float[data.length]);
+  }
+  
+  public static float[] copy(double[] from, float[] to) {
+    for (int i = 0; i < from.length; i++) {
+      to[i] = (float) from[i];
     }
-    return floats;
+    return to;
   }
   
   /**

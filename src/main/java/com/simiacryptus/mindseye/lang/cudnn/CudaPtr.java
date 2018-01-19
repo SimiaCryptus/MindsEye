@@ -132,7 +132,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   public static CudaPtr write(final int deviceId, final Precision precision, final TensorList data, MemoryType type) {
     if (data instanceof GpuTensorList && precision == ((GpuTensorList) data).getPrecision() && ((GpuTensorList) data).isNative()) {
       GpuTensorList gpuTensorList = (GpuTensorList) data;
-      final CudaPtr ptr = gpuTensorList.ptr.getCudaPtr();
+      final CudaPtr ptr = gpuTensorList.ptr.getCudaPtr(deviceId);
       assert null != ptr;
       assert null != ptr.getPtr() : null == ptr.finalizedBy ? "" : Arrays.stream(ptr.finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).get();
       return ptr;
