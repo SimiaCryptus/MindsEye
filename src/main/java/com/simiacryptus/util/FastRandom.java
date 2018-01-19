@@ -50,6 +50,11 @@ public class FastRandom {
     return x;
   }
   
+  /**
+   * Next long.
+   *
+   * @return the long
+   */
   public static long next() {
     long x = xorshift(FastRandom.x);
     FastRandom.x = y;
@@ -58,6 +63,12 @@ public class FastRandom {
     return z;
   }
   
+  /**
+   * Xorshift long.
+   *
+   * @param x the x
+   * @return the long
+   */
   public static long xorshift(long x) {
     x ^= x << 16;
     x ^= x >> 5;

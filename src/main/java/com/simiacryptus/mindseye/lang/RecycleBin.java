@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.lang;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
+import com.simiacryptus.mindseye.lang.cudnn.CuDNN;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +39,9 @@ import static com.simiacryptus.mindseye.lang.PersistanceMode.Soft;
  * @param <T> the type parameter
  */
 public abstract class RecycleBin<T> {
+  /**
+   * The constant logger.
+   */
   protected static final Logger logger = LoggerFactory.getLogger(RecycleBin.class);
   
   
@@ -307,6 +310,13 @@ public abstract class RecycleBin<T> {
     return create(length, 1);
   }
   
+  /**
+   * Create t.
+   *
+   * @param length  the length
+   * @param retries the retries
+   * @return the t
+   */
   public T create(long length, int retries) {
     try {
       T result = create(length);
@@ -337,6 +347,11 @@ public abstract class RecycleBin<T> {
     logger.warn(String.format("Clearing memory freed %s/%s bytes", previous - after, max));
   }
   
+  /**
+   * Gets size.
+   *
+   * @return the size
+   */
   public long getSize() {
     return this.recycling.entrySet().stream().mapToLong(e -> e.getKey() * e.getValue().size()).sum();
   }
@@ -366,6 +381,12 @@ public abstract class RecycleBin<T> {
     free2(data, size);
   }
   
+  /**
+   * Want boolean.
+   *
+   * @param size the size
+   * @return the boolean
+   */
   public boolean want(long size) {
     if (size < getMinLengthPerBuffer()) return false;
     if (size > getMaxLengthPerBuffer()) return false;
@@ -377,6 +398,12 @@ public abstract class RecycleBin<T> {
     return bin.size() < Math.min(Math.max(1, (int) (getMaxLengthPerBuffer() / size)), getMaxItemsPerBuffer());
   }
   
+  /**
+   * Gets bin.
+   *
+   * @param size the size
+   * @return the bin
+   */
   protected ConcurrentLinkedDeque<Supplier<T>> getBin(long size) {
     ConcurrentLinkedDeque<Supplier<T>> bin;
     synchronized (recycling) {

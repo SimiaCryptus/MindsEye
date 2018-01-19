@@ -24,9 +24,9 @@ import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.cudnn.CuDNN;
+import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer.PoolingMode;
-import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
-import com.simiacryptus.mindseye.layers.cudnn.lang.Precision;
 
 import java.util.Arrays;
 import java.util.List;

@@ -36,6 +36,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * backpropigating delta signals into a single signal before evaluating further backwards.
  */
 class CountingNNResult extends NNResult {
+  /**
+   * The constant logger.
+   */
   protected static final Logger logger = LoggerFactory.getLogger(CountingNNResult.class);
 
   /**

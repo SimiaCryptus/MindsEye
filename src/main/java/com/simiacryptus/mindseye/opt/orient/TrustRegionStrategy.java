@@ -37,9 +37,10 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * A generalization of the OWL-QN algorithm, this wrapping strategy projects an localCopy cursor to the interior of a trust
- * region, which can be defined per-layer. Any simple orientation strategy can be used as the localCopy, most commonly
- * either GD or LBFGS. Many trust regions can be defined; see the com.simiacryptus.mindseye.opt.region package.
+ * A generalization of the OWL-QN algorithm, this wrapping strategy projects an localCopy cursor to the interior of a
+ * trust region, which can be defined per-layer. Any simple orientation strategy can be used as the localCopy, most
+ * commonly either GD or LBFGS. Many trust regions can be defined; see the com.simiacryptus.mindseye.opt.region
+ * package.
  */
 public abstract class TrustRegionStrategy implements OrientationStrategy<LineSearchCursor> {
   

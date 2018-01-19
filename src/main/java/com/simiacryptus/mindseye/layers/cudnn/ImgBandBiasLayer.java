@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.lang.*;
+import com.simiacryptus.mindseye.lang.cudnn.*;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
 import jcuda.jcudnn.cudnnHandle;
@@ -41,6 +41,9 @@ import java.util.function.IntToDoubleFunction;
  */
 @SuppressWarnings("serial")
 public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandBiasLayer> {
+  /**
+   * The Log.
+   */
   static final Logger log = LoggerFactory.getLogger(ImgBandBiasLayer.class);
   
   private final double[] bias;
@@ -185,7 +188,7 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
         } catch (final Throwable e) {
           throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
         }
-        final TensorList output = new GpuTensorList(inputData, length, outputSize, precision);
+        final TensorList output = GpuTensorList.create(inputData, length, outputSize, precision);
         return new NNResult(output) {
         
           @Override

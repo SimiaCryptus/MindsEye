@@ -154,10 +154,21 @@ public class ImgConcatLayer extends NNLayer {
     return Arrays.asList();
   }
   
+  /**
+   * Gets max bands.
+   *
+   * @return the max bands
+   */
   public int getMaxBands() {
     return maxBands;
   }
   
+  /**
+   * Sets max bands.
+   *
+   * @param maxBands the max bands
+   * @return the max bands
+   */
   public ImgConcatLayer setMaxBands(int maxBands) {
     this.maxBands = maxBands;
     return this;

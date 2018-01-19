@@ -20,8 +20,9 @@
 package com.simiacryptus.mindseye.lang;
 
 /**
- * A custom type for OOM errors so we can track an localCopy exception. In the case of a GPU OOM exception, we will likely
- * have an interesting GpuError. For a java OOM, we will wrap it anyway so we have a consolidated exception class.
+ * A custom type for OOM errors so we can track an localCopy exception. In the case of a GPU OOM exception, we will
+ * likely have an interesting GpuError. For a java OOM, we will wrap it anyway so we have a consolidated exception
+ * class.
  */
 @SuppressWarnings("serial")
 public class OutOfMemoryError extends RuntimeException {

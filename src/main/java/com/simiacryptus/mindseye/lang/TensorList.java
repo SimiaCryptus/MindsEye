@@ -44,6 +44,12 @@ public interface TensorList {
     }
   }
   
+  /**
+   * Add tensor list.
+   *
+   * @param right the right
+   * @return the tensor list
+   */
   default TensorList add(final TensorList right) {
     synchronized (this) {
       if (right.length() == 0) return this;
@@ -55,6 +61,12 @@ public interface TensorList {
     }
   }
   
+  /**
+   * Minus tensor list.
+   *
+   * @param right the right
+   * @return the tensor list
+   */
   default TensorList minus(final TensorList right) {
     synchronized (this) {
       if (right.length() == 0) return this;
@@ -111,6 +123,11 @@ public interface TensorList {
    */
   Stream<Tensor> stream();
   
+  /**
+   * Pretty print string.
+   *
+   * @return the string
+   */
   default String prettyPrint() {
     return stream().map(t -> t.prettyPrint()).reduce((a, b) -> a + "\n" + b).get();
   }

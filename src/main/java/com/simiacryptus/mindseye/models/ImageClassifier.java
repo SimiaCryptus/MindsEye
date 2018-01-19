@@ -23,7 +23,7 @@ import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.lang.NNConstant;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
+import com.simiacryptus.mindseye.lang.cudnn.CuDNN;
 
 import java.util.Arrays;
 import java.util.Comparator;

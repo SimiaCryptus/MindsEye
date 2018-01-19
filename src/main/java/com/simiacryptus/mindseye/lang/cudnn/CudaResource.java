@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn.lang;
+package com.simiacryptus.mindseye.lang.cudnn;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.ToIntFunction;

@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.lang.*;
+import com.simiacryptus.mindseye.lang.cudnn.*;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,7 +107,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
       final CudaPtr outputBuffer = CuDNN.alloc(nncontext.getDeviceNumber(),
                                                length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size, false);
       copy(nncontext, length, dimIn, inputBuffer, dimOut, outputBuffer);
-      final TensorList outputData = new GpuTensorList(outputBuffer, length, dimOut, precision);
+      final TensorList outputData = GpuTensorList.create(outputBuffer, length, dimOut, precision);
       return new NNResult(outputData) {
   
         @Override
@@ -131,7 +131,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
               final CudaPtr passbackBuffer = CuDNN.alloc(nncontext.getDeviceNumber(),
                                                          length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size, false);
               copy(nncontext, length, dimOut, errorPtr, dimIn, passbackBuffer);
-              return new GpuTensorList(passbackBuffer, length, dimIn, precision);
+              return GpuTensorList.create(passbackBuffer, length, dimIn, precision);
             });
             inObj[0].accumulate(buffer, passbackTensorList);
             passbackTensorList.recycle();
@@ -213,6 +213,13 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
                                            ));
   }
   
+  /**
+   * Get view dimensions int [ ].
+   *
+   * @param sourceDimensions      the source dimensions
+   * @param destinationDimensions the destination dimensions
+   * @return the int [ ]
+   */
   public int[] getViewDimensions(int[] sourceDimensions, int[] destinationDimensions) {
     final int[] viewDim = new int[3];
     Arrays.parallelSetAll(viewDim, i -> Math.min(sourceDimensions[i], destinationDimensions[i]));

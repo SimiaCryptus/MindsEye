@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.lang.*;
+import com.simiacryptus.mindseye.lang.cudnn.*;
 import com.simiacryptus.util.Util;
 import jcuda.jcudnn.*;
 import org.slf4j.Logger;
@@ -43,6 +43,9 @@ import java.util.stream.IntStream;
 @SuppressWarnings("serial")
 public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<SimpleConvolutionLayer> {
   
+  /**
+   * The Log.
+   */
   static final Logger log = LoggerFactory.getLogger(SimpleConvolutionLayer.class);
   
   /**
@@ -197,7 +200,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
                                                    outputDescriptor.getPtr(), outputBuffer.getPtr()));
         Supplier<CudaPtr> workspacePtr = PersistanceMode.Weak.wrap(workSpace);
         //filterPtr.setGpuPersistance(PersistanceMode.Weak);
-        TensorList output = new GpuTensorList(outputBuffer, length, outputDims, precision);
+        TensorList output = GpuTensorList.create(outputBuffer, length, outputDims, precision);
         return new NNResult(output) {
         
           public StackTraceElement[] freedBy = null;
@@ -262,7 +265,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
                 } catch (final Throwable e) {
                   throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
                 }
-                gpuTensorList = new GpuTensorList(inputBuffer, length, inputSize, precision);
+                gpuTensorList = GpuTensorList.create(inputBuffer, length, inputSize, precision);
               }
               errorPtr.finalize();
               return gpuTensorList;

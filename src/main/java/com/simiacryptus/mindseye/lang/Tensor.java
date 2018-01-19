@@ -247,6 +247,12 @@ public class Tensor implements Serializable {
     return (int) total;
   }
   
+  /**
+   * Dim l long.
+   *
+   * @param dims the dims
+   * @return the long
+   */
   public static long dimL(int... dims) {
     long total = 1;
     for (final int dim : dims) {

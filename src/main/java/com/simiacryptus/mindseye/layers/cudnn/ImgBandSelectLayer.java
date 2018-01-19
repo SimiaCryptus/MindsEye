@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.lang.*;
+import com.simiacryptus.mindseye.lang.cudnn.*;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 
 import java.util.Arrays;
@@ -120,7 +120,7 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
                                  precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.getPtr().withByteOffset(byteOffset),
                                  precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr()
                                 );
-      final TensorList outputData = new GpuTensorList(cudaOutput, length, outputDimensions, precision);
+      final TensorList outputData = GpuTensorList.create(cudaOutput, length, outputDimensions, precision);
       //assert outputData.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       Supplier<CudaPtr> cleanupPtr = PersistanceMode.Weak.wrap(cudaOutput);
       return new NNResult(outputData) {
@@ -164,7 +164,7 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
                                          precision.getPointer(1.0), outputDescriptor.getPtr(), errorPtr.getPtr(),
                                          precision.getPointer(0.0), inputDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
                                         );
-              return new GpuTensorList(passbackBuffer, length, inputDimensions, precision);
+              return GpuTensorList.create(passbackBuffer, length, inputDimensions, precision);
               //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
             });
             inObj[0].accumulate(buffer, passbackTensorList);

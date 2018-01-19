@@ -145,9 +145,9 @@ class ExplodedConvolutionLeg {
   /**
    * Gets filter band.
    *
-   * @param filterBandOffset the filter band offset
-   * @param cellFilterBand   the filter band
-   * @param squareOutputBands
+   * @param filterBandOffset  the filter band offset
+   * @param cellFilterBand    the filter band
+   * @param squareOutputBands the square output bands
    * @return the filter band
    */
   public int getFilterBand(int filterBandOffset, int cellFilterBand, int squareOutputBands) {

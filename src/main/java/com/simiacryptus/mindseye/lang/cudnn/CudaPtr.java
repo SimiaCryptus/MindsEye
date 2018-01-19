@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn.lang;
+package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -41,6 +41,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * A GPU memory segment
  */
 public class CudaPtr extends CudaResourceBase<Pointer> {
+  /**
+   * The constant logger.
+   */
   protected static final Logger logger = LoggerFactory.getLogger(CudaPtr.class);
   
   /**
@@ -57,9 +60,15 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   private static final int K = 1024;
   private static final int MiB = K * 1024;
   private static final long GiB = 1024 * MiB;
+  /**
+   * The Max.
+   */
   static final long MAX = Precision.Double.size * (Integer.MAX_VALUE - 1L);
   private static final Object pciBusLock = new Object();
   private static final boolean useDefaultDir = false;
+  /**
+   * The constant DISABLE_DIRTY_MEMORY.
+   */
   public static boolean DISABLE_DIRTY_MEMORY = false;
   /**
    * The Size.
@@ -179,6 +188,11 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   }
   
   
+  /**
+   * Gets current device properties.
+   *
+   * @return the current device properties
+   */
   static cudaDeviceProp getCurrentDeviceProperties() {
     return CuDNN.getDeviceProperties(CuDNN.getDevice());
   }

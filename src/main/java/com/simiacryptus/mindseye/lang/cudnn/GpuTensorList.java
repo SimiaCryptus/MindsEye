@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn.lang;
+package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.simiacryptus.mindseye.lang.*;
 import jcuda.jcudnn.cudnnTensorDescriptor;
@@ -33,7 +33,13 @@ import java.util.stream.Stream;
  * A TensorList data object stored on a GPU with a configurable precision.
  */
 public class GpuTensorList implements TensorList {
+  /**
+   * The constant logger.
+   */
   protected static final Logger logger = LoggerFactory.getLogger(GpuTensorList.class);
+  /**
+   * The constant DISABLE_GPU_INTERCONNECT.
+   */
   public static boolean DISABLE_GPU_INTERCONNECT = true;
   
   /**
@@ -60,7 +66,7 @@ public class GpuTensorList implements TensorList {
    * @param dimensions the dimensions
    * @param precision  the precision
    */
-  public GpuTensorList(final CudaPtr ptr, final int length, final int[] dimensions, final Precision precision) {
+  private GpuTensorList(final CudaPtr ptr, final int length, final int[] dimensions, final Precision precision) {
     this.precision = precision;
     if (null == ptr) throw new IllegalArgumentException("ptr");
     if (null == ptr.getPtr()) throw new IllegalArgumentException("ptr.getPtr()");
@@ -71,6 +77,19 @@ public class GpuTensorList implements TensorList {
     assert ptr.getPtr() != null;
     //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     assert !System.getProperties().containsKey("safe") || stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+  }
+  
+  /**
+   * Create gpu tensor list.
+   *
+   * @param ptr        the ptr
+   * @param length     the length
+   * @param dimensions the dimensions
+   * @param precision  the precision
+   * @return the gpu tensor list
+   */
+  public static GpuTensorList create(final CudaPtr ptr, final int length, final int[] dimensions, final Precision precision) {
+    return new GpuTensorList(ptr, length, dimensions, precision);
   }
   
   @Override
@@ -180,10 +199,20 @@ public class GpuTensorList implements TensorList {
     return localCopy().stream();
   }
   
+  /**
+   * Is native boolean.
+   *
+   * @return the boolean
+   */
   public boolean isNative() {
     return null == _inner;
   }
   
+  /**
+   * Gets heap copy.
+   *
+   * @return the heap copy
+   */
   public TensorList getHeapCopy() {
     return localCopy();
   }

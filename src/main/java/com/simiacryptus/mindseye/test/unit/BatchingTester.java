@@ -122,10 +122,21 @@ public class BatchingTester implements ComponentTest<ToleranceStatistics> {
     });
   }
   
+  /**
+   * Gets batch size.
+   *
+   * @return the batch size
+   */
   public int getBatchSize() {
     return batchSize;
   }
   
+  /**
+   * Sets batch size.
+   *
+   * @param batchSize the batch size
+   * @return the batch size
+   */
   public BatchingTester setBatchSize(int batchSize) {
     this.batchSize = batchSize;
     return this;

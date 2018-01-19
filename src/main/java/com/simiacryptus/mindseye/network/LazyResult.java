@@ -90,9 +90,17 @@ abstract class LazyResult implements DAGNode {
     return id;
   }
   
+  /**
+   * The type Singleton.
+   *
+   * @param <T> the type parameter
+   */
   public static class Singleton<T> implements Supplier<T> {
     private final BlockingDeque<T> deque = new LinkedBlockingDeque<>();
     
+    /**
+     * Instantiates a new Singleton.
+     */
     public Singleton() {}
     
     @Override
@@ -106,6 +114,11 @@ abstract class LazyResult implements DAGNode {
       }
     }
     
+    /**
+     * Set.
+     *
+     * @param obj the obj
+     */
     public void set(T obj) {
       assert deque.isEmpty();
       deque.add(obj);

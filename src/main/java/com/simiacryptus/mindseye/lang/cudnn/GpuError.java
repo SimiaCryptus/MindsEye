@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn.lang;
+package com.simiacryptus.mindseye.lang.cudnn;
 
 /**
  * A low-level exception occured while executing GPU instructions

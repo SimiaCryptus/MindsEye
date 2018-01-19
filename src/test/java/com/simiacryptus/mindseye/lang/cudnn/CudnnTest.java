@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn;
+package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -26,10 +26,6 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.layers.cudnn.lang.CuDNN;
-import com.simiacryptus.mindseye.layers.cudnn.lang.CudaPtr;
-import com.simiacryptus.mindseye.layers.cudnn.lang.GpuTensorList;
-import com.simiacryptus.mindseye.layers.cudnn.lang.Precision;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -95,6 +91,9 @@ public class CudnnTest extends NotebookReportBase {
     CuDNN.removeLog(apiLog);
   }
   
+  /**
+   * Memory transfer.
+   */
   @Test
   public void memoryTransfer() {
     run(this::memoryTransfer, "memoryTransfer");
@@ -141,6 +140,9 @@ public class CudnnTest extends NotebookReportBase {
     });
   }
   
+  /**
+   * Tensor lists.
+   */
   @Test
   public void tensorLists() {
     run(this::tensorLists, "tensorLists");
@@ -153,10 +155,13 @@ public class CudnnTest extends NotebookReportBase {
     log.p(log.file((String) null, logName, "GPU Log"));
     int size = 8;
     for (int i = 0; i < 50; i++) {
-      testTensorList(log, new int[]{size}, 1, 1e-2, 3);
+      int length = 10;
+      int accumulations = 3;
+      double memoryLoadCoeff = length * accumulations / 3;
+      testTensorList(log, new int[]{size}, length, 1e-2, accumulations);
       size = size + size / 1;
       if (size < 0) break;
-      if (size > 256 * 1024 * 1204) break;
+      if (size > memoryLoadCoeff * 256 * 1024 * 1204) break;
     }
     CuDNN.removeLog(apiLog);
   }
@@ -174,7 +179,7 @@ public class CudnnTest extends NotebookReportBase {
       TensorList mutableGpuData = CuDNN.run(ctx -> {
         TimedResult<CudaPtr> timedResult = TimedResult.time(() -> CudaPtr.write(ctx.getDeviceNumber(), Precision.Double, original));
         logger.info(String.format("Wrote %s in %.4f seconds, Device %d: %s", Arrays.toString(dimensions), timedResult.seconds(), ctx.getDeviceNumber(), CuDNN.getDeviceName(ctx.getDeviceNumber())));
-        return new GpuTensorList(timedResult.result, length, dimensions, Precision.Double);
+        return GpuTensorList.create(timedResult.result, length, dimensions, Precision.Double);
       });
       CuDNN.forEach(ctx -> {
         TimedResult<TensorList> timedResult = TimedResult.time(() -> (mutableGpuData instanceof GpuTensorList) ? ((GpuTensorList) mutableGpuData).getHeapCopy() : mutableGpuData);
@@ -190,7 +195,7 @@ public class CudnnTest extends NotebookReportBase {
       accumulants.stream().forEach(accumulant -> {
         CuDNN.apply(ctx -> {
           TimedResult<TensorList> timedWrite = TimedResult.time(() -> {
-            return new GpuTensorList(CudaPtr.write(ctx.getDeviceNumber(), Precision.Double, accumulant), length, dimensions, Precision.Double);
+            return GpuTensorList.create(CudaPtr.write(ctx.getDeviceNumber(), Precision.Double, accumulant), length, dimensions, Precision.Double);
           });
           TimedResult<Void> timedAccumulation = TimedResult.time(() -> mutableGpuData.addInPlace(timedWrite.result));
           logger.info(String.format("Wrote in %.4f seconds and accumulated %s in %.4f seconds, Device %d: %s",
@@ -213,6 +218,9 @@ public class CudnnTest extends NotebookReportBase {
     });
   }
   
+  /**
+   * Tensor lists multithreaded.
+   */
   @Test
   public void tensorLists_multithreaded() {
     run(this::tensorLists_multithreaded, "tensorLists_multithreaded");
@@ -225,10 +233,13 @@ public class CudnnTest extends NotebookReportBase {
     log.p(log.file((String) null, logName, "GPU Log"));
     int size = 8;
     for (int i = 0; i < 50; i++) {
-      testTensorListMT(log, new int[]{size}, 1, 1e-2, 5);
+      int length = 10;
+      int accumulations = 5;
+      double memoryLoadCoeff = length * accumulations / 3;
+      testTensorListMT(log, new int[]{size}, length, 1e-2, accumulations);
       size = size + size / 1;
       if (size < 0) break;
-      if (size > 128 * 1024 * 1204) break;
+      if (size > memoryLoadCoeff * 128 * 1024 * 1204) break;
     }
     CuDNN.removeLog(apiLog);
   }
@@ -252,7 +263,7 @@ public class CudnnTest extends NotebookReportBase {
             TimedResult<CudaPtr> timedResult = TimedResult.time(() -> CudaPtr.write(ctx.getDeviceNumber(), Precision.Double, original));
             logger.info(String.format("[%s] Wrote %s in %.4f seconds, Device %d: %s", workerNumber, Arrays.toString(dimensions), timedResult.seconds(), ctx.getDeviceNumber(), CuDNN.getDeviceName(ctx.getDeviceNumber())));
             SysOutInterceptor.INSTANCE.setCurrentHandler(oldHandler);
-            return new GpuTensorList(timedResult.result, length, dimensions, Precision.Double);
+            return GpuTensorList.create(timedResult.result, length, dimensions, Precision.Double);
           }));
           TimedResult<List<TensorList>> accumulantTiming = TimedResult.time(() -> IntStream.range(0, accumulations).mapToObj(x -> factory.get()).collect(Collectors.<TensorList>toList()));
           List<TensorList> accumulants = accumulantTiming.result;
@@ -262,7 +273,7 @@ public class CudnnTest extends NotebookReportBase {
             accumulants.stream().forEach(delta -> {
               CuDNN.apply(ctx -> {
                 TimedResult<GpuTensorList> timedWrite = TimedResult.time(() -> {
-                  return new GpuTensorList(CudaPtr.write(ctx.getDeviceNumber(), Precision.Double, delta), length, dimensions, Precision.Double);
+                  return GpuTensorList.create(CudaPtr.write(ctx.getDeviceNumber(), Precision.Double, delta), length, dimensions, Precision.Double);
                 });
                 TimedResult<Void> timedAccumulation = TimedResult.time(() -> mutableGpuData.addInPlace(timedWrite.result));
                 logger.info(String.format("[%s] Wrote in %.4f seconds and accumulated %s in %.4f seconds, Device %d: %s", workerNumber,

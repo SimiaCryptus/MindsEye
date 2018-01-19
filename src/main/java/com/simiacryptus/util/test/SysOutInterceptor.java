@@ -168,6 +168,7 @@ public class SysOutInterceptor extends PrintStream {
    * Sets current handler.
    *
    * @param out the out
+   * @return the current handler
    */
   public PrintStream setCurrentHandler(final PrintStream out) {
     PrintStream previous = threadHandler.get();

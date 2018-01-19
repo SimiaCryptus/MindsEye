@@ -289,7 +289,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   }
   
   private final Random random = getRandom();
-
+  
   /**
    * Random double.
    *
@@ -299,6 +299,12 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     return random(random);
   }
   
+  /**
+   * Random double.
+   *
+   * @param random the random
+   * @return the double
+   */
   public double random(Random random) {
     return Math.round(1000.0 * (random.nextDouble() - 0.5)) / 250.0;
   }
@@ -458,6 +464,11 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     return this;
   }
   
+  /**
+   * Gets random.
+   *
+   * @return the random
+   */
   public Random getRandom() {
     return new Random(seed);
   }

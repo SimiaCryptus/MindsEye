@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn.lang;
+package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.simiacryptus.mindseye.lang.RecycleBin;
@@ -140,6 +140,11 @@ public class CuDNN {
   private final String deviceName;
   private final int deviceNumber;
   
+  /**
+   * Gets execution statistics.
+   *
+   * @return the execution statistics
+   */
   public static final Map<String, Map<String, String>> getExecutionStatistics() {
     HashMap<String, Map<String, String>> map = new HashMap<>();
     map.put("createPoolingDescriptor", toMap(createPoolingDescriptor_execution));
@@ -1081,8 +1086,16 @@ public class CuDNN {
     });
   }
   
-  public String getDeviceName() {
-    return new String(getDeviceProperties().name, Charset.forName("ASCII")).trim();
+  /**
+   * For each.
+   *
+   * @param fn the fn
+   */
+  public static void forEach(final Consumer<? super CuDNN> fn) {
+    contexts.getAll().forEach(x -> {
+      x.initThread();
+      fn.accept(x);
+    });
   }
   
   /**
@@ -1101,15 +1114,18 @@ public class CuDNN {
     }
   }
   
-  public cudaDeviceProp getDeviceProperties() {
-    if (null == deviceProperties) {
-      synchronized (this) {
-        if (null == deviceProperties) {
-          deviceProperties = getDeviceProperties(getDeviceNumber());
-        }
-      }
-    }
-    return deviceProperties;
+  /**
+   * Is oom boolean.
+   *
+   * @param t the t
+   * @return the boolean
+   */
+  public static boolean isOom(final Throwable t) {
+    if (t instanceof OutOfMemoryError) return true;
+    if (t instanceof com.simiacryptus.mindseye.lang.OutOfMemoryError) return true;
+    //if (t instanceof com.simiacryptus.mindseye.lang.cudnn.GpuError) return true;
+    if (null != t.getCause() && t != t.getCause()) return isOom(t.getCause());
+    return false;
   }
   
   /**
@@ -1133,10 +1149,23 @@ public class CuDNN {
     }
   }
   
-  public static void forEach(final Consumer<? super CuDNN> fn) {
-    contexts.getAll().forEach(x -> {
-      x.initThread();
-      fn.accept(x);
+  /**
+   * Clean memory.
+   *
+   * @return the future
+   */
+  public static Future<?> cleanMemory() {
+    return singleThreadExecutor.submit(() -> {
+      try {
+        logger.warn("Cleaning Memory");
+        RecycleBin.DOUBLES.clear();
+        Runtime runtime = Runtime.getRuntime();
+        runtime.gc();
+        runtime.runFinalization();
+        runtime.gc();
+      } catch (Throwable e) {
+        logger.warn("Error while cleaning memory", e);
+      }
     });
   }
   
@@ -1474,17 +1503,13 @@ public class CuDNN {
   }
   
   /**
-   * Is oom boolean.
+   * Remove log boolean.
    *
-   * @param t the t
+   * @param apiLog the api log
    * @return the boolean
    */
-  public static boolean isOom(final Throwable t) {
-    if (t instanceof OutOfMemoryError) return true;
-    if (t instanceof com.simiacryptus.mindseye.lang.OutOfMemoryError) return true;
-    //if (t instanceof com.simiacryptus.mindseye.layers.cudnn.lang.GpuError) return true;
-    if (null != t.getCause() && t != t.getCause()) return isOom(t.getCause());
-    return false;
+  public static boolean removeLog(PrintStream apiLog) {
+    return CuDNN.apiLog.remove(apiLog);
   }
   
   /**
@@ -1517,21 +1542,12 @@ public class CuDNN {
   }
   
   /**
-   * Clean memory.
+   * Gets device name.
+   *
+   * @return the device name
    */
-  public static Future<?> cleanMemory() {
-    return singleThreadExecutor.submit(() -> {
-      try {
-        logger.warn("Cleaning Memory");
-        RecycleBin.DOUBLES.clear();
-        Runtime runtime = Runtime.getRuntime();
-        runtime.gc();
-        runtime.runFinalization();
-        runtime.gc();
-      } catch (Throwable e) {
-        logger.warn("Error while cleaning memory", e);
-      }
-    });
+  public String getDeviceName() {
+    return new String(getDeviceProperties().name, Charset.forName("ASCII")).trim();
   }
   
   /**
@@ -1825,7 +1841,19 @@ public class CuDNN {
     return getClass().getSimpleName() + "{" + deviceNumber + "; " + deviceName + "}@" + Long.toHexString(System.identityHashCode(this));
   }
   
-  public static boolean removeLog(PrintStream apiLog) {
-    return CuDNN.apiLog.remove(apiLog);
+  /**
+   * Gets device properties.
+   *
+   * @return the device properties
+   */
+  public cudaDeviceProp getDeviceProperties() {
+    if (null == deviceProperties) {
+      synchronized (this) {
+        if (null == deviceProperties) {
+          deviceProperties = getDeviceProperties(getDeviceNumber());
+        }
+      }
+    }
+    return deviceProperties;
   }
 }

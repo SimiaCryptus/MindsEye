@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.layers.cudnn.lang.Precision;
+import com.simiacryptus.mindseye.lang.cudnn.Precision;
 
 /**
  * The type Convolution params.

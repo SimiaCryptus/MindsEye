@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.cudnn.lang.Precision;
+import com.simiacryptus.mindseye.lang.cudnn.Precision;
 
 import java.util.Random;
 
@@ -102,7 +102,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
    * needed.
    */
   public static class BandConcatLimitTest extends ImgConcatLayerTest {
-    
+  
     /**
      * Instantiates a new Band limit apply.
      */

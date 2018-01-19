@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.lang.*;
+import com.simiacryptus.mindseye.lang.cudnn.*;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.java.SumInputsLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -141,7 +141,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
                           precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
                           precision.getPointer(rightFactor), sizeDescriptor.getPtr(), rPtr.getPtr(),
                           precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-      TensorList result = new GpuTensorList(outputPtr, length, dimensions, precision);
+      TensorList result = GpuTensorList.create(outputPtr, length, dimensions, precision);
       return new NNResult(result) {
       
         @Override
@@ -161,7 +161,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
                 CuDNN.cudnnAddTensor(nncontext.cudnnHandle,
                                      precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                      precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-                return new GpuTensorList(outputPtr, length, dimensions, precision);
+                return GpuTensorList.create(outputPtr, length, dimensions, precision);
               }));
             }
           }, () -> {
@@ -174,7 +174,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
                 CuDNN.cudnnAddTensor(nncontext.cudnnHandle,
                                      precision.getPointer(rightFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                      precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-                return new GpuTensorList(outputPtr, length, dimensions, precision);
+                return GpuTensorList.create(outputPtr, length, dimensions, precision);
               }));
             }
           });

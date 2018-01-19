@@ -35,13 +35,17 @@ public class TimedResult<T> {
    * The Time nanos.
    */
   public final long timeNanos;
+  /**
+   * The Gc ms.
+   */
   public final long gcMs;
   
   /**
    * Instantiates a new Timed result.
-   *  @param result    the obj
+   *
+   * @param result    the obj
    * @param timeNanos the time nanos
-   * @param gcMs
+   * @param gcMs      the gc ms
    */
   public TimedResult(final T result, final long timeNanos, long gcMs) {
     this.result = result;
@@ -99,6 +103,11 @@ public class TimedResult<T> {
     return timeNanos / 1e9;
   }
   
+  /**
+   * Gc seconds double.
+   *
+   * @return the double
+   */
   public double gc_seconds() {
     return gcMs / 1e3;
   }
