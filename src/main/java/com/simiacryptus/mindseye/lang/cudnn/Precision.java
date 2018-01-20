@@ -66,6 +66,13 @@ public enum Precision {
     return copy(data, new double[data.length]);
   }
   
+  /**
+   * Copy double [ ].
+   *
+   * @param from    the from
+   * @param doubles the doubles
+   * @return the double [ ]
+   */
   public static double[] copy(float[] from, double[] doubles) {
     for (int i = 0; i < from.length; i++) {
       doubles[i] = from[i];
@@ -83,6 +90,13 @@ public enum Precision {
     return copy(data, new float[data.length]);
   }
   
+  /**
+   * Copy float [ ].
+   *
+   * @param from the from
+   * @param to   the to
+   * @return the float [ ]
+   */
   public static float[] copy(double[] from, float[] to) {
     for (int i = 0; i < from.length; i++) {
       to[i] = (float) from[i];

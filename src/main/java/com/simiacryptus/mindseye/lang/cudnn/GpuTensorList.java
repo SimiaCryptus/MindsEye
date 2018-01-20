@@ -96,14 +96,14 @@ public class GpuTensorList implements TensorList {
         final GpuTensorList nativeRight = (GpuTensorList) right;
         if (nativeRight.precision == precision) {
           if (nativeRight._inner == null) {
-            CuDNN.apply(exe -> {
+            GpuHandle.apply(exe -> {
               assert dimensions.length <= 3;
               ManagedCudaPtr rightPtr = nativeRight.ptr;
               int deviceId = GpuTensorList.this.ptr.getDeviceId();
               CuDNN.withDevice(deviceId, () -> {
                 final CudaResource<cudnnTensorDescriptor> leftSize = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions.length < 3 ? 1 : dimensions[2], dimensions.length < 2 ? 1 : dimensions[1], dimensions[0]);
                 final CudaResource<cudnnTensorDescriptor> rightSize = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions.length < 3 ? 1 : dimensions[2], dimensions.length < 2 ? 1 : dimensions[1], dimensions[0]);
-                CuDNN.handle(CuDNN.cudnnAddTensor(exe.cudnnHandle,
+                CuDNN.handle(CuDNN.cudnnAddTensor(exe.getHandle(),
                                                   precision.getPointer(1.0), rightSize.getPtr(), rightPtr.getPtr(deviceId),
                                                   precision.getPointer(1.0), leftSize.getPtr(), GpuTensorList.this.ptr.getPtr(deviceId)));
                 leftSize.finalize();

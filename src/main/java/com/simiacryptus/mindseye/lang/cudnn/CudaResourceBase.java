@@ -33,7 +33,7 @@ public abstract class CudaResourceBase<T> {
   /**
    * The constant debugLifecycle.
    */
-  public static boolean debugLifecycle = false;
+  public static boolean debugLifecycle = true;
   /**
    * The constant gpuGeneration.
    */
@@ -73,7 +73,7 @@ public abstract class CudaResourceBase<T> {
    */
   public T getPtr() {
     if (isFinalized())
-      throw new IllegalStateException(Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).orElse(""));
+      throw new IllegalStateException(null == finalizedBy ? "" : Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).orElse(""));
     return ptr;
   }
   

@@ -86,7 +86,7 @@ public class AvgReducerLayer extends NNLayer {
       public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         for (final NNResult in_l : inObj) {
           if (in_l.isAlive()) {
-            final TensorArray tensorArray = new TensorArray(IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {
+            final TensorList tensorList = new TensorArray(IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {
               final double delta = data.get(dataIndex).get(0);
               final Tensor passback = new Tensor(in_l.getData().get(dataIndex).getDimensions());
               final int dim = in_l.getData().get(dataIndex).dim();
@@ -95,8 +95,8 @@ public class AvgReducerLayer extends NNLayer {
               }
               return passback;
             }).toArray(i -> new Tensor[i]));
-            in_l.accumulate(buffer, tensorArray);
-            tensorArray.recycle();
+            in_l.accumulate(buffer, tensorList);
+            tensorList.recycle();
           }
         }
       }

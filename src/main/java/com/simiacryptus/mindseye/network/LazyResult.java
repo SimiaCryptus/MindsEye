@@ -97,7 +97,7 @@ abstract class LazyResult implements DAGNode {
    */
   public static class Singleton<T> implements Supplier<T> {
     private final BlockingDeque<T> deque = new LinkedBlockingDeque<>();
-    
+  
     /**
      * Instantiates a new Singleton.
      */
@@ -113,7 +113,7 @@ abstract class LazyResult implements DAGNode {
         throw new RuntimeException(e);
       }
     }
-    
+  
     /**
      * Set.
      *

@@ -366,15 +366,15 @@ public class FullyConnectedLayer extends NNLayer {
     }
   
     private void backprop(final TensorList delta, final DeltaSet<NNLayer> buffer) {
-      final TensorArray tensorArray = new TensorArray(IntStream.range(0, inObj.getData().length()).parallel().mapToObj(dataIndex -> {
+      final TensorList tensorList = new TensorArray(IntStream.range(0, inObj.getData().length()).parallel().mapToObj(dataIndex -> {
         final double[] deltaData = delta.get(dataIndex).getData();
         final Tensor r = getWeights();
         final Tensor passback = new Tensor(inObj.getData().get(dataIndex).getDimensions());
         FullyConnectedLayer.multiplyT(r.getData(), deltaData, passback.getData());
         return passback;
       }).toArray(i -> new Tensor[i]));
-      inObj.accumulate(buffer, tensorArray);
-      tensorArray.recycle();
+      inObj.accumulate(buffer, tensorList);
+      tensorList.recycle();
     }
     
     @Override

@@ -102,7 +102,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
     final int[] dimOut = Arrays.copyOf(dimIn, 3);
     dimOut[0] = sizeX;
     dimOut[1] = sizeY;
-    return CuDNN.run(nncontext -> {
+    return GpuHandle.run(nncontext -> {
       final CudaPtr inputBuffer = CudaPtr.write(nncontext.getDeviceNumber(), precision, inObj[0].getData());
       final CudaPtr outputBuffer = CuDNN.alloc(nncontext.getDeviceNumber(),
                                                length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size, false);
@@ -126,7 +126,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
           }
           assert error.length() == inObj[0].getData().length();
           if (inObj[0].isAlive()) {
-            final TensorList passbackTensorList = CuDNN.run(nncontext -> {
+            final TensorList passbackTensorList = GpuHandle.run(nncontext -> {
               final CudaPtr errorPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, error);
               final CudaPtr passbackBuffer = CuDNN.alloc(nncontext.getDeviceNumber(),
                                                          length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size, false);
@@ -157,7 +157,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
    * @param destinationDimensions the dim out
    * @param destination           the output buffer
    */
-  public void copy(CuDNN nncontext, int length, int[] sourceDimensions, CudaPtr source, int[] destinationDimensions, CudaPtr destination) {
+  public void copy(GpuHandle nncontext, int length, int[] sourceDimensions, CudaPtr source, int[] destinationDimensions, CudaPtr destination) {
     if (3 != sourceDimensions.length) throw new IllegalArgumentException("inputDimensions.length");
     if (3 != destinationDimensions.length) throw new IllegalArgumentException("dimOut.length");
     if (sourceDimensions[2] != destinationDimensions[2])
@@ -205,7 +205,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
     assert sourceOffset + Tensor.dim(viewDim) <= Tensor.dim(sourceDimensions);
     assert destinationOffset + Tensor.dim(viewDim) <= Tensor.dim(destinationDimensions);
   
-    CuDNN.handle(CuDNN.cudnnTransformTensor(nncontext.cudnnHandle,
+    CuDNN.handle(CuDNN.cudnnTransformTensor(nncontext.getHandle(),
                                             precision.getPointer(1.0),
                                             sourceViewDescriptor.getPtr(), source.getPtr().withByteOffset(sourceOffset * precision.size),
                                             precision.getPointer(0.0),

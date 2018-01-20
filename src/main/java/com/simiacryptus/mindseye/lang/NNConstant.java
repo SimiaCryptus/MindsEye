@@ -39,10 +39,10 @@ public final class NNConstant extends NNResult {
   /**
    * Instantiates a new Nn constant.
    *
-   * @param tensorArray the tensor array
+   * @param tensorList the tensor array
    */
-  public NNConstant(final TensorArray tensorArray) {
-    super(tensorArray);
+  public NNConstant(final TensorList tensorList) {
+    super(tensorList);
   }
   
   /**

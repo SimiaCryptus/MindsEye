@@ -28,7 +28,7 @@ import java.util.stream.IntStream;
 /**
  * The type Simple list trainAll.
  */
-public class SimpleListEval implements Callable<SimpleListEval> {
+public class SimpleListEval implements Callable<SimpleResult>, SimpleResult {
   private final TensorList[] input;
   private final NNLayer layer;
   private TensorList[] derivative;
@@ -64,12 +64,12 @@ public class SimpleListEval implements Callable<SimpleListEval> {
    * @param tensor the tensor
    * @return the simple list trainAll
    */
-  public static SimpleListEval run(final NNLayer layer, final TensorList... tensor) {
+  public static SimpleResult run(final NNLayer layer, final TensorList... tensor) {
     return new SimpleListEval(layer, tensor).call();
   }
   
   @Override
-  public SimpleListEval call() {
+  public SimpleResult call() {
     derivative = Arrays.stream(input).map(x -> new TensorArray(x.stream()
                                                                 .map(i -> new Tensor(i.getDimensions()))
                                                                 .toArray(i -> new Tensor[i]))
@@ -100,6 +100,7 @@ public class SimpleListEval implements Callable<SimpleListEval> {
    *
    * @return the tensor list [ ]
    */
+  @Override
   public TensorList[] getDerivative() {
     return derivative;
   }
@@ -110,7 +111,7 @@ public class SimpleListEval implements Callable<SimpleListEval> {
    * @param data the data
    * @return the feedback
    */
-  public TensorArray getFeedback(final TensorList data) {
+  public TensorList getFeedback(final TensorList data) {
     return new TensorArray(data.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i]));
   }
   
@@ -119,6 +120,7 @@ public class SimpleListEval implements Callable<SimpleListEval> {
    *
    * @return the output
    */
+  @Override
   public TensorList getOutput() {
     return output;
   }

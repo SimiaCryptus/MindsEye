@@ -159,7 +159,7 @@ public class FullyConnectedReferenceLayer extends NNLayer {
           Arrays.stream(array).map(x -> x.getData()).reduce((a, b) -> ArrayUtil.add(a, b)).map(data1 -> deltaBuffer.addInPlace(data1));
         }
         if (inputResult.isAlive()) {
-          final TensorArray tensorArray = new TensorArray(IntStream.range(0, inputResult.getData().length()).mapToObj(i -> {
+          final TensorList tensorList = new TensorArray(IntStream.range(0, inputResult.getData().length()).mapToObj(i -> {
             final Tensor input = new Tensor(inputDims);
             final Tensor output = delta.get(i);
             weights.coordStream(false).forEach(c -> {
@@ -168,8 +168,8 @@ public class FullyConnectedReferenceLayer extends NNLayer {
             });
             return input;
           }).toArray(i -> new Tensor[i]));
-          inputResult.accumulate(buffer, tensorArray);
-          tensorArray.recycle();
+          inputResult.accumulate(buffer, tensorList);
+          tensorList.recycle();
         }
       }
       

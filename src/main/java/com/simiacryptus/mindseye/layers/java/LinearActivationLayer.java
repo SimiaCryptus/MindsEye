@@ -160,7 +160,7 @@ public class LinearActivationLayer extends NNLayer {
         });
       }
       if (inObj.isAlive()) {
-        final TensorArray tensorArray = new TensorArray(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+        final TensorList tensorList = new TensorArray(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           final double[] deltaData = delta.get(dataIndex).getData();
           final int[] dims = inObj.getData().get(dataIndex).getDimensions();
           final Tensor passback = new Tensor(dims);
@@ -169,8 +169,8 @@ public class LinearActivationLayer extends NNLayer {
           }
           return passback;
         }).toArray(i -> new Tensor[i]));
-        inObj.accumulate(buffer, tensorArray);
-        tensorArray.recycle();
+        inObj.accumulate(buffer, tensorList);
+        tensorList.recycle();
       }
     }
     

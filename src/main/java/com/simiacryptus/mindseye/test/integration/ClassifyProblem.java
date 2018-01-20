@@ -206,7 +206,7 @@ public class ClassifyProblem implements Problem {
       try {
         final TableOutput table = new TableOutput();
         Lists.partition(data.validationData().collect(Collectors.toList()), 100).stream().flatMap(batch -> {
-          TensorArray batchIn = new TensorArray(batch.stream().map(x -> x.data).toArray(i -> new Tensor[i]));
+          TensorList batchIn = new TensorArray(batch.stream().map(x -> x.data).toArray(i -> new Tensor[i]));
           TensorList batchOut = network.eval(new NNConstant(batchIn)).getData();
           return IntStream.range(0, batchOut.length())
                           .mapToObj(i -> toRow(log, batch.get(i), batchOut.get(i).getData()));

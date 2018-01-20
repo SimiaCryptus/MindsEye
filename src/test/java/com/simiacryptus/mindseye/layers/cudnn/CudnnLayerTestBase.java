@@ -24,9 +24,11 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
+import com.simiacryptus.mindseye.test.unit.GpuLocalityTester;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 
 /**
  * The type Cudnn layer run base.
@@ -37,6 +39,13 @@ public abstract class CudnnLayerTestBase extends LayerTestBase {
    * Instantiates a new Cudnn layer run base.
    */
   public CudnnLayerTestBase() {
+  }
+  
+  @Override
+  public ArrayList<ComponentTest<?>> getBigTests() {
+    ArrayList<ComponentTest<?>> copy = new ArrayList<>(super.getBigTests());
+    copy.add(new GpuLocalityTester(1e-3));
+    return copy;
   }
   
   @Override

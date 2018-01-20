@@ -93,7 +93,7 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
     if (0 < maxBands && outputDimensions[2] > maxBands) {
       outputDimensions[2] = maxBands;
     }
-    return CuDNN.run(nncontext -> {
+    return GpuHandle.run(nncontext -> {
       final CudaPtr cudaOutput = CuDNN.alloc(nncontext.getDeviceNumber(), length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size, true);
       for (int i = 0; i < inObj.length; i++) {
         final TensorList input = inObj[i].getData();
@@ -123,7 +123,7 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
             outputDimensions[1] * outputDimensions[0], //
             outputDimensions[0], //
             1);
-          CuDNN.cudnnTransformTensor(nncontext.cudnnHandle,
+          CuDNN.cudnnTransformTensor(nncontext.getHandle(),
                                      precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.getPtr(),
                                      precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr().withByteOffset(inputDimensions[1] * inputDimensions[0] * bandOffset * precision.size)
                                     );
@@ -146,7 +146,7 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
           //outputBuffer.free();
           assert delta.length() == inObj[0].getData().length();
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
-          final CudaPtr cudaDelta = CuDNN.run(nncontext -> CudaPtr.write(nncontext.getDeviceNumber(), precision, delta));
+          final CudaPtr cudaDelta = GpuHandle.run(nncontext -> CudaPtr.write(nncontext.getDeviceNumber(), precision, delta));
           IntStream.range(0, inObj.length).forEach(i -> {
             final NNResult input = inObj[i];
             assert 3 == input.getData().getDimensions().length;
@@ -157,7 +157,7 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
             int inputBands = maxBands <= 0 ? input.getData().getDimensions()[2] : Math.min(input.getData().getDimensions()[2], maxBands - bandOffset);
             if (inputBands > 0 && input.isAlive()) {
               assert inputBands <= input.getData().getDimensions()[2];
-              final TensorList passbackTensorList = CuDNN.run(nncontext -> {
+              final TensorList passbackTensorList = GpuHandle.run(nncontext -> {
                 final CudaPtr cudaBackprop = CuDNN.alloc(nncontext.getDeviceNumber(), length * input.getData().getDimensions()[2] * input.getData().getDimensions()[1] * input.getData().getDimensions()[0] * precision.size, false);
                 final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
                   precision.code, length, inputBands, input.getData().getDimensions()[1], input.getData().getDimensions()[0], //
@@ -171,7 +171,7 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
                   outputDimensions[1] * outputDimensions[0], //
                   outputDimensions[0], //
                   1);
-                CuDNN.cudnnTransformTensor(nncontext.cudnnHandle,
+                CuDNN.cudnnTransformTensor(nncontext.getHandle(),
                                            precision.getPointer(1.0), outputDescriptor.getPtr(), cudaDelta.getPtr().withByteOffset(outputDimensions[1] * outputDimensions[0] * bandOffset * precision.size),
                                            precision.getPointer(0.0), inputDescriptor.getPtr(), cudaBackprop.getPtr()
                                           );

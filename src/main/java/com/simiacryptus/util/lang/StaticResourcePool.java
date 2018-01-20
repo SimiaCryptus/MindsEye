@@ -66,6 +66,35 @@ public class StaticResourcePool<T> {
   }
   
   /**
+   * Add.
+   *
+   * @param obj the obj
+   */
+  public void add(T obj) {
+    if (!this.all.contains(obj)) {
+      synchronized (this.all) {
+        if (!this.all.contains(obj)) {
+          this.all.add(obj);
+        }
+      }
+    }
+    this.pool.add(obj);
+  }
+  
+  /**
+   * Take t.
+   *
+   * @return the t
+   */
+  public T take() {
+    try {
+      return this.pool.take();
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  /**
    * Gets all.
    *
    * @return the all

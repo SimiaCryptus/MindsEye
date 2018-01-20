@@ -93,9 +93,9 @@ public abstract class NNResult {
    * @return the data and free
    */
   public TensorList getDataAndFree() {
-    TensorArray tensorArray = new TensorArray(data.stream().toArray(i -> new Tensor[i]));
+    TensorList tensorList = new TensorArray(data.stream().toArray(i -> new Tensor[i]));
     free();
-    return tensorArray;
+    return tensorList;
   }
   
   /**

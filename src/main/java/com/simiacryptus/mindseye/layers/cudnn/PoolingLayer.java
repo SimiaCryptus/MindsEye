@@ -97,7 +97,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
   @Override
   public NNResult eval(final NNResult... inObj) {
     if (!CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
-    return CuDNN.run(nncontext -> {
+    return GpuHandle.run(nncontext -> {
       final int poolDims = 2;
       final int windowSize[] = {windowX, windowY};
       final int padding[] = {paddingX, paddingY};
@@ -122,7 +122,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
         final Pointer beta = precision.getPointer(0.0);
         final CudaPtr inputData = CudaPtr.write(nncontext.getDeviceNumber(), precision, batch);
         final CudaPtr outputData = CuDNN.alloc(nncontext.getDeviceNumber(), precision.size * 1l * Tensor.dim(outputSize), true);
-        CuDNN.handle(CuDNN.cudnnPoolingForward(nncontext.cudnnHandle, poolingDesc.getPtr(),
+        CuDNN.handle(CuDNN.cudnnPoolingForward(nncontext.getHandle(), poolingDesc.getPtr(),
                                                alpha,
                                                inputDescriptor.getPtr(), inputData.getPtr(),
                                                beta,
@@ -139,12 +139,12 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
           public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
             assert error.length() == batch.length();
             if (input.isAlive()) {
-              TensorList data = CuDNN.run(nncontext -> {
+              TensorList data = GpuHandle.run(nncontext -> {
                 final Pointer alpha = precision.getPointer(1.0);
                 final Pointer beta = precision.getPointer(0.0);
                 final CudaPtr errorPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, error);
                 final CudaPtr passbackBuffer = CuDNN.alloc(nncontext.getDeviceNumber(), inputDims * 1l * precision.size * length, true);
-                CuDNN.handle(CuDNN.cudnnPoolingBackward(nncontext.cudnnHandle, poolingDesc.getPtr(),
+                CuDNN.handle(CuDNN.cudnnPoolingBackward(nncontext.getHandle(), poolingDesc.getPtr(),
                                                         alpha,
                                                         outputDescriptor.getPtr(), outputData.getPtr(),
                                                         outputDescriptor.getPtr(), errorPtr.getPtr(),

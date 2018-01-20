@@ -31,6 +31,9 @@ import java.util.function.ToIntFunction;
  * @param <T> the type parameter
  */
 public class CudaResource<T> extends CudaResourceBase<T> {
+  /**
+   * The constant logger.
+   */
   protected static final Logger logger = LoggerFactory.getLogger(CudaResource.class);
   
   /**

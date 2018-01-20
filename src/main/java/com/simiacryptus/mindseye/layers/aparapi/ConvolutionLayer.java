@@ -130,10 +130,12 @@ public class ConvolutionLayer extends NNLayer {
     super();
     this.paddingX = simple ? null : 0;
     this.paddingY = simple ? null : 0;
-    if (kernel.getDimensions().length != 3) throw new IllegalArgumentException();
-    if (kernel.getDimensions()[0] <= 0) throw new IllegalArgumentException();
-    if (kernel.getDimensions()[1] <= 0) throw new IllegalArgumentException();
-    if (kernel.getDimensions()[2] <= 0) throw new IllegalArgumentException();
+    int[] dimensions = kernel.getDimensions();
+    if (dimensions.length != 3) throw new IllegalArgumentException(Arrays.toString(dimensions));
+    if (dimensions[0] <= 0) throw new IllegalArgumentException(Arrays.toString(dimensions));
+    if (dimensions[1] <= 0) throw new IllegalArgumentException(Arrays.toString(dimensions));
+    if (dimensions[2] <= 0) throw new IllegalArgumentException(Arrays.toString(dimensions));
+    if (dimensions[2] <= 0) throw new IllegalArgumentException(Arrays.toString(dimensions));
     this.kernel = kernel;
   }
   

@@ -111,7 +111,7 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
     final int length = batch.length();
     final int inputDims = Tensor.dim(inputSize);
     try {
-      return CuDNN.run(nncontext -> {
+      return GpuHandle.run(nncontext -> {
         final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
         final CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
@@ -120,7 +120,7 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
         final CudaPtr outputData = CuDNN.alloc(nncontext.getDeviceNumber(), precision.size * 1l * inputDims * length, true);
         final CudaResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
         try {
-          CuDNN.handle(CuDNN.cudnnActivationForward(nncontext.cudnnHandle, activationDesc.getPtr(),
+          CuDNN.handle(CuDNN.cudnnActivationForward(nncontext.getHandle(), activationDesc.getPtr(),
                                                     precision.getPointer(1.0),
                                                     inputDescriptor.getPtr(), inputData.getPtr(),
                                                     precision.getPointer(0.0),
@@ -140,14 +140,14 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
           @Override
           public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
             if (input.isAlive()) {
-              final TensorList data = CuDNN.run(nncontext -> {
+              final TensorList data = GpuHandle.run(nncontext -> {
                 //assert (error.length() == batch.length());
                 //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
                 final CudaPtr errorPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, error);
                 final CudaPtr passbackBuffer = CuDNN.alloc(nncontext.getDeviceNumber(), inputDims * 1l * precision.size * length, true);
                 try {
                   final CudaResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
-                  CuDNN.handle(CuDNN.cudnnActivationBackward(nncontext.cudnnHandle, activationDesc.getPtr(),
+                  CuDNN.handle(CuDNN.cudnnActivationBackward(nncontext.getHandle(), activationDesc.getPtr(),
                                                              precision.getPointer(1.0),
                                                              inputDescriptor.getPtr(), outputData.getPtr(),
                                                              inputDescriptor.getPtr(), errorPtr.getPtr(),

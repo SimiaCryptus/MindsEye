@@ -23,7 +23,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.simiacryptus.mindseye.lang.RecycleBin;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.data.DoubleStatistics;
-import com.simiacryptus.util.lang.StaticResourcePool;
 import jcuda.Pointer;
 import jcuda.jcudnn.*;
 import jcuda.runtime.JCuda;
@@ -38,8 +37,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -48,6 +45,9 @@ import java.util.stream.IntStream;
  * Main library wrapper class around the CuDNN API, providing logging and managed wrappers.
  */
 public class CuDNN {
+  
+  private static final Logger logger = LoggerFactory.getLogger(CuDNN.class);
+  
   /**
    * The constant INSTANCE.
    */
@@ -57,10 +57,7 @@ public class CuDNN {
    */
   public static final HashSet<PrintStream> apiLog = new HashSet<>();
   private static final ConcurrentHashMap<Integer, cudaDeviceProp> propertyCache = new ConcurrentHashMap<>();
-  /**
-   * The constant logger.
-   */
-  protected static final Logger logger = LoggerFactory.getLogger(CuDNN.class);
+  private static final int memoryLimitInBytes = 32 * 1024 * 1024;
   private static final ThreadLocal<Integer> currentDevice = new ThreadLocal<Integer>() {
     @Override
     protected Integer initialValue() {
@@ -114,32 +111,10 @@ public class CuDNN {
   private static final DoubleStatistics getBackwardDataAlgorithm_execution = new DoubleStatistics();
   private static final DoubleStatistics getBackwardFilterAlgorithm_execution = new DoubleStatistics();
   private static final DoubleStatistics getForwardAlgorithm_execution = new DoubleStatistics();
-  private static final ThreadLocal<CuDNN> threadContext = new ThreadLocal<>();
-  //  /**
-//   * Cudnn create reduce tensor descriptor int.
-//   *
-//   * @param reduceTensorDesc the reduce tensor desc
-//   * @return the int
-//   */
-//  public static int cudnnCreateReduceTensorDescriptor(
-//    final cudnnReduceTensorDescriptor reduceTensorDesc) {
-//    final int result = JCudnn.cudnnCreateReduceTensorDescriptor(reduceTensorDesc);
-//    CuDNN.log("cudnnCreateReduceTensorDescriptor", result, reduceTensorDesc);
-//    CuDNN.handle(result);
-//    return result;
-//  }
-  private final int memoryLimitInBytes = 32 * 1024 * 1024;
   
-  /**
-   * The constant gpuContexts.
-   */
-  public static StaticResourcePool<CuDNN> contexts = new StaticResourcePool<>(loadGpuContexts());
-  /**
-   * The Cudnn handle.
-   */
-  public final cudnnHandle cudnnHandle;
-  private final String deviceName;
-  private final int deviceNumber;
+  private CuDNN() {
+    throw new RuntimeException("This is a singleton. I'm not sure how you got here, but go away!");
+  }
   
   /**
    * Gets execution statistics.
@@ -199,25 +174,6 @@ public class CuDNN {
     return map;
   }
   
-  /**
-   * Instantiates a new Cu dnn.
-   *
-   * @param deviceNumber the device number
-   */
-  protected CuDNN(final int deviceNumber) {
-    this.deviceNumber = deviceNumber;
-    if (0 <= this.deviceNumber) {
-      cudnnHandle = new cudnnHandle();
-      initThread();
-      deviceName = CuDNN.getDeviceName(deviceNumber);
-      JCudnn.cudnnCreate(cudnnHandle);
-    }
-    else {
-      cudnnHandle = null;
-      deviceName = null;
-    }
-    //cudaSetDevice();
-  }
   
   /**
    * Log header.
@@ -486,66 +442,6 @@ public class CuDNN {
     CuDNN.log("cudaMemcpy", result, dst, src, count, cudaMemcpyKind_kind);
     return result;
   }
-
-//  /**
-//   * Cudnn reduce tensor int.
-//   *
-//   * @param handle               the handle
-//   * @param reduceTensorDesc     the reduce tensor desc
-//   * @param indices              the indices
-//   * @param indicesSizeInBytes   the indices size in bytes
-//   * @param workspace            the workspace
-//   * @param workspaceSizeInBytes the workspace size in bytes
-//   * @param alpha                the alpha
-//   * @param aDesc                the a desc
-//   * @param A                    the a
-//   * @param beta                 the beta
-//   * @param cDesc                the c desc
-//   * @param C                    the c
-//   * @return the int
-//   */
-//  public static int cudnnReduceTensor(
-//    final cudnnHandle handle,
-//    final cudnnReduceTensorDescriptor reduceTensorDesc,
-//    final Pointer indices,
-//    final long indicesSizeInBytes,
-//    final Pointer workspace,
-//    final long workspaceSizeInBytes,
-//    final Pointer alpha,
-//    final cudnnTensorDescriptor aDesc,
-//    final Pointer A,
-//    final Pointer beta,
-//    final cudnnTensorDescriptor cDesc,
-//    final Pointer C) {
-//    final int result = JCudnn.cudnnReduceTensor(handle, reduceTensorDesc, indices, indicesSizeInBytes, workspace, workspaceSizeInBytes, alpha, aDesc, A, beta, cDesc, C);
-//    CuDNN.log("cudnnReduceTensor", result, handle, reduceTensorDesc, indices, indicesSizeInBytes, workspace, workspaceSizeInBytes, alpha, aDesc, A, beta, cDesc, C);
-//    CuDNN.handle(result);
-//    return result;
-//  }
-//
-//  /**
-//   * Cudnn setByCoord reduce tensor descriptor int.
-//   *
-//   * @param reduceTensorDesc        the reduce tensor desc
-//   * @param reduceTensorOp          the reduce tensor op
-//   * @param reduceTensorCompType    the reduce tensor comp type
-//   * @param reduceTensorNanOpt      the reduce tensor nan opt
-//   * @param reduceTensorIndices     the reduce tensor indices
-//   * @param reduceTensorIndicesType the reduce tensor indices type
-//   * @return the int
-//   */
-//  public static int cudnnSetReduceTensorDescriptor(
-//    final cudnnReduceTensorDescriptor reduceTensorDesc,
-//    final int reduceTensorOp,
-//    final int reduceTensorCompType,
-//    final int reduceTensorNanOpt,
-//    final int reduceTensorIndices,
-//    final int reduceTensorIndicesType) {
-//    final int result = JCudnn.cudnnSetReduceTensorDescriptor(reduceTensorDesc, reduceTensorOp, reduceTensorCompType, reduceTensorNanOpt, reduceTensorIndices, reduceTensorIndicesType);
-//    CuDNN.log("cudnnSetReduceTensorDescriptor", result, reduceTensorDesc, reduceTensorOp, reduceTensorCompType, reduceTensorNanOpt, reduceTensorIndices, reduceTensorIndicesType);
-//    CuDNN.handle(result);
-//    return result;
-//  }
   
   /**
    * Cuda memset int.
@@ -1069,8 +965,6 @@ public class CuDNN {
     return new String(CuDNN.getDeviceProperties(device).name, Charset.forName("ASCII")).trim();
   }
   
-  private volatile cudaDeviceProp deviceProperties;
-  
   /**
    * Gets device properties.
    *
@@ -1085,18 +979,6 @@ public class CuDNN {
       getDeviceProperties_execution.accept((System.nanoTime() - startTime) / 1e9);
       CuDNN.log("cudaGetDeviceProperties", result, deviceProp, device);
       return deviceProp;
-    });
-  }
-  
-  /**
-   * For each.
-   *
-   * @param fn the fn
-   */
-  public static void forEach(final Consumer<? super CuDNN> fn) {
-    contexts.getAll().forEach(x -> {
-      x.initThread();
-      fn.accept(x);
     });
   }
   
@@ -1461,54 +1343,6 @@ public class CuDNN {
   }
   
   /**
-   * Load gpu contexts list. If the property disableCuDnn is setWeights to true, no GPUs will be recognized. This is
-   * useful for testing CPU-only compatibility.
-   *
-   * @return the list
-   */
-  static List<CuDNN> loadGpuContexts() {
-    if (Boolean.parseBoolean(System.getProperty("disableCuDnn", "false"))) {
-      logger.warn("Disabled CuDNN");
-      return Arrays.asList();
-    }
-    final int deviceCount = CuDNN.deviceCount();
-    logger.info(String.format("Found %s devices", deviceCount));
-    final List<Integer> devices = new ArrayList<>();
-    for (int d = 0; d < deviceCount; d++) {
-      int deviceNumber = d;
-      //if(device>0) System.err.println(String.format("IGNORING Device %s - %s", device, getDeviceName(device)));
-      CuDNN.withDevice(deviceNumber, () -> {
-        logger.info(String.format("Device %s - %s", deviceNumber, CuDNN.getDeviceName(deviceNumber)));
-        devices.add(deviceNumber);
-        //CuDNN.handle(cudaSetDeviceFlags(cudaDeviceScheduleAuto));
-        for (DeviceLimits limit : DeviceLimits.values()) {
-          logger.info(String.format("Default Limit %s = %s", limit, limit.get()));
-        }
-        DeviceLimits.HeapSize.set(16 * 1024 * 1024 * 1024);
-        DeviceLimits.FifoSize.set(8 * 1024 * 1024);
-        for (DeviceLimits limit : DeviceLimits.values()) {
-          logger.info(String.format("Configured Limit %s = %s", limit, limit.get()));
-        }
-      });
-    }
-    if (System.getProperties().containsKey("gpus")) {
-      List<Integer> devices2 = Arrays.stream(System.getProperty("gpus").split(","))
-                                     .map(Integer::parseInt).collect(Collectors.toList());
-      devices.clear();
-      devices.addAll(devices2);
-    }
-    logger.info(String.format("Found %s devices; using devices %s", deviceCount, devices));
-    return devices.stream()
-                  .map(i -> {
-                    try {
-                      return new CuDNN(i);
-                    } catch (Throwable e) {
-                      return null;
-                    }
-                  }).filter(x -> x != null).collect(Collectors.toList());
-  }
-  
-  /**
    * Remove log boolean.
    *
    * @param apiLog the api log
@@ -1548,15 +1382,6 @@ public class CuDNN {
   }
   
   /**
-   * Gets device name.
-   *
-   * @return the device name
-   */
-  public String getDeviceName() {
-    return new String(getDeviceProperties().name, Charset.forName("ASCII")).trim();
-  }
-  
-  /**
    * Reset all GPUs and Heap Memory
    */
   public static void reset() {
@@ -1585,6 +1410,12 @@ public class CuDNN {
     }
   }
   
+  /**
+   * With device.
+   *
+   * @param n      the n
+   * @param action the action
+   */
   public static void withDevice(int n, Runnable action) {
     final int currentDevice = getDevice();
     try {
@@ -1595,6 +1426,14 @@ public class CuDNN {
     }
   }
   
+  /**
+   * With device t.
+   *
+   * @param <T>    the type parameter
+   * @param n      the n
+   * @param action the action
+   * @return the t
+   */
   public static <T> T withDevice(int n, Supplier<T> action) {
     final int currentDevice = getDevice();
     try {
@@ -1606,79 +1445,12 @@ public class CuDNN {
   }
   
   /**
-   * Call t.
-   *
-   * @param <T> the type parameter
-   * @param fn  the fn
-   * @return the t
-   */
-  public static <T> T run(final Function<CuDNN, T> fn) {
-    if (contexts.getAll().isEmpty()) {
-      return fn.apply(new CuDNN(-1));
-    }
-    else {
-      CuDNN threadlocal = threadContext.get();
-      if (threadlocal != null) {
-        try {
-          threadlocal.initThread();
-          return fn.apply(threadlocal);
-        } catch (final Exception e) {
-          throw new RuntimeException(e);
-        }
-      }
-      else {
-        return contexts.run(exe -> {
-          try {
-            threadContext.set(exe);
-            exe.initThread();
-            return fn.apply(exe);
-          } catch (final Exception e) {
-            throw new RuntimeException(e);
-          } finally {
-            threadContext.remove();
-          }
-        });
-      }
-    }
-  }
-  
-  /**
-   * Run.
-   *
-   * @param fn the fn
-   */
-  public static void apply(final Consumer<CuDNN> fn) {
-    CuDNN threadlocal = threadContext.get();
-    if (threadlocal != null) {
-      try {
-        threadlocal.initThread();
-        fn.accept(threadlocal);
-      } catch (final Exception e) {
-        throw new RuntimeException(e);
-      }
-    }
-    else {
-      contexts.apply(exe -> {
-        try {
-          threadContext.set(exe);
-          exe.initThread();
-          fn.accept(exe);
-        } catch (final Exception e) {
-          throw new RuntimeException(e);
-        } finally {
-          threadContext.remove();
-        }
-      });
-    }
-  }
-  
-  /**
    * Is enabled boolean.
    *
    * @return the boolean
    */
   public static boolean isEnabled() {
-    return 0 < CuDNN.contexts.size();
+    return 0 < GpuHandle.POOL.size();
   }
   
   /**
@@ -1694,15 +1466,16 @@ public class CuDNN {
   /**
    * Allocate backward data workspace cuda ptr.
    *
-   * @param deviceId   the device id
-   * @param inputDesc  the input desc
-   * @param filterDesc the filter desc
-   * @param convDesc   the conv desc
-   * @param outputDesc the output desc
-   * @param algorithm  the algorithm
+   * @param cudnnHandle the cudnn handle
+   * @param deviceId    the device id
+   * @param inputDesc   the input desc
+   * @param filterDesc  the filter desc
+   * @param convDesc    the conv desc
+   * @param outputDesc  the output desc
+   * @param algorithm   the algorithm
    * @return the cuda ptr
    */
-  public CudaPtr allocateBackwardDataWorkspace(final int deviceId, final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc, final int algorithm) {
+  public static CudaPtr allocateBackwardDataWorkspace(cudnnHandle cudnnHandle, final int deviceId, final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc, final int algorithm) {
     long startTime = System.nanoTime();
     final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionBackwardDataWorkspaceSize(cudnnHandle,
@@ -1720,6 +1493,7 @@ public class CuDNN {
   /**
    * Allocate backward filter workspace cuda ptr.
    *
+   * @param cudnnHandle   the cudnn handle
    * @param deviceId      the device id
    * @param srcTensorDesc the src tensor desc
    * @param filterDesc    the filter desc
@@ -1728,7 +1502,7 @@ public class CuDNN {
    * @param algorithm     the algorithm
    * @return the cuda ptr
    */
-  public CudaPtr allocateBackwardFilterWorkspace(final int deviceId, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
+  public static CudaPtr allocateBackwardFilterWorkspace(cudnnHandle cudnnHandle, final int deviceId, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
     long startTime = System.nanoTime();
     final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionBackwardFilterWorkspaceSize(cudnnHandle,
@@ -1746,6 +1520,7 @@ public class CuDNN {
   /**
    * Allocate forward workspace cuda ptr.
    *
+   * @param cudnnHandle   the cudnn handle
    * @param deviceId      the device id
    * @param srcTensorDesc the src tensor desc
    * @param filterDesc    the filter desc
@@ -1754,7 +1529,7 @@ public class CuDNN {
    * @param algorithm     the algorithm
    * @return the cuda ptr
    */
-  public CudaPtr allocateForwardWorkspace(final int deviceId, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
+  public static CudaPtr allocateForwardWorkspace(cudnnHandle cudnnHandle, final int deviceId, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
     long startTime = System.nanoTime();
     final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionForwardWorkspaceSize(cudnnHandle,
@@ -1769,23 +1544,17 @@ public class CuDNN {
     return CuDNN.alloc(deviceId, 0 < workspaceSize ? workspaceSize : 0, true);
   }
   
-  @Override
-  public void finalize() throws Throwable {
-    final int result = JCudnn.cudnnDestroy(cudnnHandle);
-    CuDNN.log("cudnnDestroy", result, cudnnHandle);
-    CuDNN.handle(result);
-  }
-  
   /**
    * Gets backward data algorithm.
    *
-   * @param inputDesc  the src tensor desc
-   * @param filterDesc the filter desc
-   * @param convDesc   the conv desc
-   * @param outputDesc the weight desc
+   * @param cudnnHandle the cudnn handle
+   * @param inputDesc   the src tensor desc
+   * @param filterDesc  the filter desc
+   * @param convDesc    the conv desc
+   * @param outputDesc  the weight desc
    * @return the backward data algorithm
    */
-  public int getBackwardDataAlgorithm(final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc) {
+  public static int getBackwardDataAlgorithm(cudnnHandle cudnnHandle, final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc) {
     long startTime = System.nanoTime();
     final int algoArray[] = {-1};
     final int result = JCudnn.cudnnGetConvolutionBackwardDataAlgorithm(cudnnHandle,
@@ -1802,13 +1571,14 @@ public class CuDNN {
   /**
    * Gets backward filter algorithm.
    *
-   * @param inputDesc  the input desc
-   * @param filterDesc the filter desc
-   * @param convDesc   the conv desc
-   * @param outputDesc the output desc
+   * @param cudnnHandle the cudnn handle
+   * @param inputDesc   the input desc
+   * @param filterDesc  the filter desc
+   * @param convDesc    the conv desc
+   * @param outputDesc  the output desc
    * @return the backward filter algorithm
    */
-  public int getBackwardFilterAlgorithm(final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc) {
+  public static int getBackwardFilterAlgorithm(cudnnHandle cudnnHandle, final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc) {
     long startTime = System.nanoTime();
     final int algoArray[] = {-1};
     final int result = JCudnn.cudnnGetConvolutionBackwardFilterAlgorithm(cudnnHandle,
@@ -1823,24 +1593,16 @@ public class CuDNN {
   }
   
   /**
-   * Gets device number.
-   *
-   * @return the device number
-   */
-  public int getDeviceNumber() {
-    return deviceNumber;
-  }
-  
-  /**
    * Gets forward algorithm.
    *
+   * @param cudnnHandle   the cudnn handle
    * @param srcTensorDesc the src tensor desc
    * @param filterDesc    the filter desc
    * @param convDesc      the conv desc
    * @param dstTensorDesc the dst tensor desc
    * @return the forward algorithm
    */
-  public int getForwardAlgorithm(final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc) {
+  public static int getForwardAlgorithm(cudnnHandle cudnnHandle, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc) {
     long startTime = System.nanoTime();
     final int algoArray[] = {-1};
     final int result = JCudnn.cudnnGetConvolutionForwardAlgorithm(cudnnHandle,
@@ -1852,33 +1614,5 @@ public class CuDNN {
               cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
     CuDNN.handle(result);
     return algoArray[0];
-  }
-  
-  /**
-   * Init thread.
-   */
-  public void initThread() {
-    CuDNN.setDevice(getDeviceNumber());
-  }
-  
-  @Override
-  public String toString() {
-    return getClass().getSimpleName() + "{" + deviceNumber + "; " + deviceName + "}@" + Long.toHexString(System.identityHashCode(this));
-  }
-  
-  /**
-   * Gets device properties.
-   *
-   * @return the device properties
-   */
-  public cudaDeviceProp getDeviceProperties() {
-    if (null == deviceProperties) {
-      synchronized (this) {
-        if (null == deviceProperties) {
-          deviceProperties = getDeviceProperties(getDeviceNumber());
-        }
-      }
-    }
-    return deviceProperties;
   }
 }

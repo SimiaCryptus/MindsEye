@@ -40,7 +40,7 @@ class CountingNNResult extends NNResult {
    * The constant logger.
    */
   protected static final Logger logger = LoggerFactory.getLogger(CountingNNResult.class);
-
+  
   /**
    * The constant debugLifecycle.
    */

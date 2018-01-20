@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.SimpleListEval;
+import com.simiacryptus.mindseye.test.SimpleResult;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -75,7 +77,7 @@ public class BatchingTester implements ComponentTest<ToleranceStatistics> {
     final TensorList[] inputTensorLists = Arrays.stream(inputPrototype).map(t ->
                                                                               new TensorArray(IntStream.range(0, getBatchSize()).mapToObj(i -> t.map(v -> getRandom()))
                                                                                                        .toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
-    final SimpleListEval asABatch = SimpleListEval.run(reference, inputTensorLists);
+    final SimpleResult asABatch = SimpleListEval.run(reference, inputTensorLists);
     final List<SimpleEval> oneAtATime = IntStream.range(0, getBatchSize()).mapToObj(batch ->
                                                                                  SimpleEval.run(reference, IntStream.range(0, inputTensorLists.length)
                                                                                                                     .mapToObj(i -> inputTensorLists[i].get(batch)).toArray(i -> new Tensor[i]))
@@ -92,12 +94,13 @@ public class BatchingTester implements ComponentTest<ToleranceStatistics> {
       throw new AssertionError("Output Corrupt: " + outputAgreement);
     }
   
-    final ToleranceStatistics derivativeAgreement = IntStream.range(0, getBatchSize()).mapToObj(batch ->
-                                                                                             IntStream.range(0, inputTensorLists.length).mapToObj(input ->
-                                                                                                                                                    new ToleranceStatistics().accumulate(
-                                                                                                                                                      asABatch.getDerivative()[input].get(batch).getData(),
-                                                                                                                                                      oneAtATime.get(batch).getDerivative()[input].getData())
-                                                                                                                                                 ).reduce((a, b) -> a.combine(b)).get()).reduce((a, b) -> a.combine(b)).get();
+    final ToleranceStatistics derivativeAgreement = IntStream.range(0, getBatchSize()).mapToObj(batch -> {
+      IntFunction<ToleranceStatistics> statisticsFunction = input ->
+        new ToleranceStatistics().accumulate(
+          asABatch.getDerivative()[input].get(batch).getData(),
+          oneAtATime.get(batch).getDerivative()[input].getData());
+      return IntStream.range(0, inputTensorLists.length).mapToObj(statisticsFunction).reduce((a, b) -> a.combine(b)).get();
+    }).reduce((a, b) -> a.combine(b)).get();
     if (!(derivativeAgreement.absoluteTol.getMax() < tolerance)) {
       throw new AssertionError("Derivatives Corrupt: " + derivativeAgreement);
     }

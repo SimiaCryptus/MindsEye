@@ -95,7 +95,7 @@ public class SimpleEval implements Callable<SimpleEval> {
    * @param data the data
    * @return the feedback
    */
-  public TensorArray getFeedback(final TensorList data) {
+  public TensorList getFeedback(final TensorList data) {
     return new TensorArray(data.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i]));
   }
   

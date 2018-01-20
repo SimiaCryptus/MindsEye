@@ -214,6 +214,7 @@ public class ManagedCudaPtr {
   /**
    * Gets ptr.
    *
+   * @param deviceId the device id
    * @return the ptr
    */
   public Pointer getPtr(int deviceId) {
@@ -223,6 +224,7 @@ public class ManagedCudaPtr {
   /**
    * Gets cuda ptr.
    *
+   * @param deviceId the device id
    * @return the cuda ptr
    */
   public CudaPtr getCudaPtr(int deviceId) {

@@ -106,7 +106,7 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
     while (length > maskList.size()) {
       maskList.add(tensorPrototype.map(v -> FastRandom.random() < getValue() ? 0 : (1.0 / getValue())));
     }
-    final TensorArray mask = new TensorArray(maskList.stream().limit(length).toArray(i -> new Tensor[i]));
+    final TensorList mask = new TensorArray(maskList.stream().limit(length).toArray(i -> new Tensor[i]));
     return new NNResult(mask) {
   
       @Override
