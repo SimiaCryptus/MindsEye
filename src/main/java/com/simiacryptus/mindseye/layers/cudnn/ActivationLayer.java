@@ -116,8 +116,8 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
         final CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-        final CudaPtr inputData = CudaPtr.write(nncontext.getDeviceNumber(), precision, batch);
-        final CudaPtr outputData = CuDNN.alloc(nncontext.getDeviceNumber(), precision.size * 1l * inputDims * length, true);
+        final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
+        final CudaPtr outputData = CudaPtr.allocate(precision.size * 1l * inputDims * length, nncontext.getDeviceNumber(), MemoryType.Managed, true);
         final CudaResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
         try {
           CuDNN.handle(CuDNN.cudnnActivationForward(nncontext.getHandle(), activationDesc.getPtr(),
@@ -143,8 +143,8 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
               final TensorList data = GpuHandle.run(nncontext -> {
                 //assert (error.length() == batch.length());
                 //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-                final CudaPtr errorPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, error);
-                final CudaPtr passbackBuffer = CuDNN.alloc(nncontext.getDeviceNumber(), inputDims * 1l * precision.size * length, true);
+                final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
+                final CudaPtr passbackBuffer = CudaPtr.allocate(inputDims * 1l * precision.size * length, nncontext.getDeviceNumber(), MemoryType.Managed, true);
                 try {
                   final CudaResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
                   CuDNN.handle(CuDNN.cudnnActivationBackward(nncontext.getHandle(), activationDesc.getPtr(),
@@ -160,7 +160,6 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
                 return GpuTensorList.create(passbackBuffer, length, inputSize, precision);
               });
               input.accumulate(buffer, data);
-              data.recycle();
             }
           }
         

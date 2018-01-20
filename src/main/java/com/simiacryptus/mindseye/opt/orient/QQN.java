@@ -34,7 +34,7 @@ import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
  * This method hybridizes pure gradient descent with higher-order quasinewton implementations such as L-BFGS. During
  * each iteration, a quadratic curve is interpolated which aligns with the gradient's direction prediction and
  * intersects with the quasinewton's optimal point prediction. A simple parameteric quadratic function blends both
- * localCopy cursors into a simple nonlinear path which should combine the stability of both methods.
+ * heapCopy cursors into a simple nonlinear path which should combine the stability of both methods.
  */
 public class QQN implements OrientationStrategy<LineSearchCursor> {
   

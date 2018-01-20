@@ -70,6 +70,6 @@ public enum DeviceLimits {
    * @param value the value
    */
   public void set(long value) {
-    CuDNN.handle(CuDNN.cudaDeviceSetLimit(id, value));
+    CuDNN.cudaDeviceSetLimit(id, value);
   }
 }

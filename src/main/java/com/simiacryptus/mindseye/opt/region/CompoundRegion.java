@@ -29,7 +29,7 @@ public class CompoundRegion implements TrustRegion {
   /**
    * Instantiates a new Compound region.
    *
-   * @param inner the localCopy
+   * @param inner the heapCopy
    */
   public CompoundRegion(final TrustRegion... inner) {
     this.inner = inner;

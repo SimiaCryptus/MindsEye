@@ -62,7 +62,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * The constant seed.
    */
   public static final long seed = 51389; //System.nanoTime();
-  private boolean testTraining = true;
+  private boolean testTraining = false;
   
   /**
    * Instantiates a new Standard layer tests.

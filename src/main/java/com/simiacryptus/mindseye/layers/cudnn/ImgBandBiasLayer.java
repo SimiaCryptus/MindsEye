@@ -177,8 +177,8 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
   
         assert 0 < bias.length;
-        final CudaPtr filterPtr = new CudaPtr(bias.length * precision.size, nncontext.getDeviceNumber(), MemoryType.Device).write(precision, bias);
-        final CudaPtr inputData = CudaPtr.write(nncontext.getDeviceNumber(), precision, batch);
+        final CudaPtr filterPtr = CudaPtr.allocate((long) (bias.length * precision.size), nncontext.getDeviceNumber(), MemoryType.Managed, false).write(precision, bias);
+        final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
         final cudnnHandle cudnnHandle = nncontext.getHandle();
         try {
           CuDNN.handle(CuDNN.cudnnAddTensor(cudnnHandle, precision.getPointer(1.0),
@@ -202,8 +202,8 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
             //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
             if (!isFrozen()) {
               GpuHandle.apply(nncontext -> {
-                final CudaPtr errorPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, error);
-                final CudaPtr filterBuffer = CuDNN.alloc(nncontext.getDeviceNumber(), bias.length * 1l * precision.size, false);
+                final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
+                final CudaPtr filterBuffer = CudaPtr.allocate(bias.length * 1l * precision.size, nncontext.getDeviceNumber(), MemoryType.Managed, false);
                 try {
                   CuDNN.handle(CuDNN.cudnnConvolutionBackwardBias(cudnnHandle, precision.getPointer(1.0),
                                                                   inputDescriptor.getPtr(), errorPtr.getPtr(),

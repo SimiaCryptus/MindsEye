@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
 import java.util.Random;
+import java.util.stream.IntStream;
 
 /**
  * The type BinarySumLayerTest layer apply.
@@ -76,20 +77,15 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
     
     @Override
     public int[][] getInputDims(Random random) {
-      return new int[][]{
-        {2, 2, 1}, {2, 2, 1}, {2, 2, 1}, {2, 2, 1}, {2, 2, 1}
-      };
+      return IntStream.range(0, 5).mapToObj(i -> new int[]{2, 2, 2}).toArray(i -> new int[i][]);
     }
     
     @Override
     public int[][] getPerfDims(Random random) {
-      return new int[][]{
-        {200, 200, 3}, {200, 200, 3}, {200, 200, 3}, {200, 200, 3}, {200, 200, 3}
-      };
+      return IntStream.range(0, 5).mapToObj(i -> new int[]{200, 200, 3}).toArray(i -> new int[i][]);
     }
     
   }
-  
   
   /**
    * Adds using double (64-bit) precision, C = A + B

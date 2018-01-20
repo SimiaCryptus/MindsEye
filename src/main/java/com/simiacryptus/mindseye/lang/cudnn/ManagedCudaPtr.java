@@ -117,7 +117,7 @@ public class ManagedCudaPtr {
    */
   public ManagedCudaPtr setGpuPersistance(PersistanceMode persistanceMode) {
     if (persistanceMode != PersistanceMode.Strong && null == getValues()) throw new IllegalStateException();
-    if (persistanceMode == PersistanceMode.Strong && null == getPtr(-1)) throw new IllegalStateException();
+    if (persistanceMode == PersistanceMode.Strong && null == getPtr()) throw new IllegalStateException();
     if (ptrRef != null) {
       CudaPtr cudaPtr = ptrRef.get();
       if (null != cudaPtr) {
@@ -141,7 +141,7 @@ public class ManagedCudaPtr {
       System.arraycopy(values, 0, data, 0, data.length);
     }
     else {
-      getCudaPtr(-1).read(precision, data);
+      getCudaPtr().read(precision, data);
     }
     return this;
   }
@@ -159,7 +159,7 @@ public class ManagedCudaPtr {
       Precision.copy(values, data);
     }
     else {
-      getCudaPtr(-1).read(precision, data);
+      getCudaPtr().read(precision, data);
     }
     return this;
   }
@@ -177,7 +177,7 @@ public class ManagedCudaPtr {
       System.arraycopy(data, 0, values, 0, data.length);
     }
     else {
-      getCudaPtr(-1).write(precision, data);
+      getCudaPtr().write(precision, data);
     }
     return this;
   }
@@ -195,7 +195,7 @@ public class ManagedCudaPtr {
       Precision.copy(data, values);
     }
     else {
-      getCudaPtr(-1).write(precision, data);
+      getCudaPtr().write(precision, data);
     }
     return this;
   }
@@ -214,35 +214,32 @@ public class ManagedCudaPtr {
   /**
    * Gets ptr.
    *
-   * @param deviceId the device id
    * @return the ptr
    */
-  public Pointer getPtr(int deviceId) {
-    return getCudaPtr(deviceId).getPtr();
+  public Pointer getPtr() {
+    return getCudaPtr().getPtr();
   }
   
   /**
    * Gets cuda ptr.
    *
-   * @param deviceId the device id
    * @return the cuda ptr
    */
-  public CudaPtr getCudaPtr(int deviceId) {
+  public CudaPtr getCudaPtr() {
     CudaPtr cudaPtr;
     cudaPtr = null == ptrRef ? null : ptrRef.get();
     if (null == cudaPtr) {
       synchronized (this) {
         cudaPtr = null == ptrRef ? null : ptrRef.get();
         if (null == cudaPtr) {
-          CuDNN.setDevice(deviceId);
-          cudaPtr = new CudaPtr(size, deviceId, type, true);
+          cudaPtr = CudaPtr.allocate(size, CuDNN.getDevice(), type, true);
           ptrRef = persistanceMode.wrap(cudaPtr);
           assert Arrays.stream(values).allMatch(Double::isFinite);
           cudaPtr.write(precision, values);
         }
       }
     }
-    return cudaPtr;
+    return cudaPtr.assertAlive();
   }
   
   /**
@@ -254,7 +251,7 @@ public class ManagedCudaPtr {
     if (null == values) {
       synchronized (this) {
         if (null == values) {
-          CudaPtr cudaPtr = getCudaPtr(-1);
+          CudaPtr cudaPtr = getCudaPtr();
           //CuDNN.setDevice(cudaPtr.getDeviceId());
           values = new double[(int) (size / precision.size)];
           cudaPtr.read(precision, values);

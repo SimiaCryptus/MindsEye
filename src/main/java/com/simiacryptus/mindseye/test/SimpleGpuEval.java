@@ -59,7 +59,7 @@ public class SimpleGpuEval extends SimpleListEval {
   
   @Override
   public TensorList getFeedback(final TensorList original) {
-    CudaPtr cudaPtr = CudaPtr.write(gpu.getDeviceNumber(), Precision.Double, original);
+    CudaPtr cudaPtr = CudaPtr.getCudaPtr(Precision.Double, original);
     return GpuTensorList.create(cudaPtr, original.length(), original.getDimensions(), Precision.Double);
   }
   

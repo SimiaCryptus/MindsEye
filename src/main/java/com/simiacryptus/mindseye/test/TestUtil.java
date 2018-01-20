@@ -598,7 +598,7 @@ public class TestUtil {
    */
   public static void runAll(Runnable... runnables) {
     Arrays.stream(runnables)
-          //.parallel()
+          .parallel()
           .forEach(Runnable::run);
   }
 }

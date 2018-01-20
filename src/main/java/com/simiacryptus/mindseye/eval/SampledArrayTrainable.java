@@ -33,7 +33,7 @@ import java.util.stream.IntStream;
 
 /**
  * This type handles the data selection part of stochastic gradient descent training. Between each epoch, a "reset"
- * method is called to re-sample the training data and pass it to the localCopy Trainable implementation.
+ * method is called to re-sample the training data and pass it to the heapCopy Trainable implementation.
  */
 public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> implements SampledTrainable, TrainableDataMask {
   

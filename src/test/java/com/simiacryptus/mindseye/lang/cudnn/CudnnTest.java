@@ -75,7 +75,7 @@ public class CudnnTest extends NotebookReportBase {
           while (true) {
             int s = size;
             TimedResult<CudaPtr> timedResult = TimedResult.time(() -> {
-              return CudaPtr.write(ctx.getDeviceNumber(), Precision.Double, new TensorArray(new Tensor(s)));
+              return CudaPtr.getCudaPtr(Precision.Double, new TensorArray(new Tensor(s)));
             });
             logger.info(String.format("Allocated %d in %.4fsec", size, timedResult.seconds()));
             list.add(timedResult.result);
@@ -124,7 +124,7 @@ public class CudnnTest extends NotebookReportBase {
     TensorList original = factory.get();
     log.code(() -> {
       CudaPtr write = GpuHandle.run(ctx -> {
-        TimedResult<CudaPtr> timedResult = TimedResult.time(() -> CudaPtr.write(ctx.getDeviceNumber(), Precision.Double, original));
+        TimedResult<CudaPtr> timedResult = TimedResult.time(() -> CudaPtr.getCudaPtr(Precision.Double, original));
         logger.info(String.format("Wrote %d bytes in %.4f seconds, Device %d: %s", size, timedResult.seconds(), ctx.getDeviceNumber(), CuDNN.getDeviceName(ctx.getDeviceNumber())));
         return timedResult.result;
       });
@@ -177,7 +177,7 @@ public class CudnnTest extends NotebookReportBase {
       logger.info(String.format("Calculated test data in %.4fsec", originalTiming.seconds()));
       TensorList original = originalTiming.result;
       TensorList mutableGpuData = GpuHandle.run(ctx -> {
-        TimedResult<CudaPtr> timedResult = TimedResult.time(() -> CudaPtr.write(ctx.getDeviceNumber(), Precision.Double, original));
+        TimedResult<CudaPtr> timedResult = TimedResult.time(() -> CudaPtr.getCudaPtr(Precision.Double, original));
         logger.info(String.format("Wrote %s in %.4f seconds, Device %d: %s", Arrays.toString(dimensions), timedResult.seconds(), ctx.getDeviceNumber(), CuDNN.getDeviceName(ctx.getDeviceNumber())));
         return GpuTensorList.create(timedResult.result, length, dimensions, Precision.Double);
       });
@@ -195,7 +195,7 @@ public class CudnnTest extends NotebookReportBase {
       accumulants.stream().forEach(accumulant -> {
         GpuHandle.apply(ctx -> {
           TimedResult<TensorList> timedWrite = TimedResult.time(() -> {
-            return GpuTensorList.create(CudaPtr.write(ctx.getDeviceNumber(), Precision.Double, accumulant), length, dimensions, Precision.Double);
+            return GpuTensorList.create(CudaPtr.getCudaPtr(Precision.Double, accumulant), length, dimensions, Precision.Double);
           });
           TimedResult<Void> timedAccumulation = TimedResult.time(() -> mutableGpuData.addInPlace(timedWrite.result));
           logger.info(String.format("Wrote in %.4f seconds and accumulated %s in %.4f seconds, Device %d: %s",
@@ -260,7 +260,7 @@ public class CudnnTest extends NotebookReportBase {
           logger.info(String.format("[%s] Calculated test data in %.4fsec", workerNumber, originalTiming.seconds()));
           ListenableFuture<TensorList> mutableDataFuture = pool.submit(() -> GpuHandle.run(ctx -> {
             PrintStream oldHandler = SysOutInterceptor.INSTANCE.setCurrentHandler(out);
-            TimedResult<CudaPtr> timedResult = TimedResult.time(() -> CudaPtr.write(ctx.getDeviceNumber(), Precision.Double, original));
+            TimedResult<CudaPtr> timedResult = TimedResult.time(() -> CudaPtr.getCudaPtr(Precision.Double, original));
             logger.info(String.format("[%s] Wrote %s in %.4f seconds, Device %d: %s", workerNumber, Arrays.toString(dimensions), timedResult.seconds(), ctx.getDeviceNumber(), CuDNN.getDeviceName(ctx.getDeviceNumber())));
             SysOutInterceptor.INSTANCE.setCurrentHandler(oldHandler);
             return GpuTensorList.create(timedResult.result, length, dimensions, Precision.Double);
@@ -273,7 +273,7 @@ public class CudnnTest extends NotebookReportBase {
             accumulants.stream().forEach(delta -> {
               GpuHandle.apply(ctx -> {
                 TimedResult<GpuTensorList> timedWrite = TimedResult.time(() -> {
-                  return GpuTensorList.create(CudaPtr.write(ctx.getDeviceNumber(), Precision.Double, delta), length, dimensions, Precision.Double);
+                  return GpuTensorList.create(CudaPtr.getCudaPtr(Precision.Double, delta), length, dimensions, Precision.Double);
                 });
                 TimedResult<Void> timedAccumulation = TimedResult.time(() -> mutableGpuData.addInPlace(timedWrite.result));
                 logger.info(String.format("[%s] Wrote in %.4f seconds and accumulated %s in %.4f seconds, Device %d: %s", workerNumber,

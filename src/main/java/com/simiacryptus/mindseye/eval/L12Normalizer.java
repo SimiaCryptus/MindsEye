@@ -42,7 +42,7 @@ public abstract class L12Normalizer implements Trainable {
   /**
    * Instantiates a new L 12 normalizer.
    *
-   * @param inner the localCopy
+   * @param inner the heapCopy
    */
   public L12Normalizer(final Trainable inner) {
     this.inner = inner;

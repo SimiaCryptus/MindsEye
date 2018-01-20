@@ -76,7 +76,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   /**
    * Instantiates a new Monitoring wrapper layer.
    *
-   * @param inner the localCopy
+   * @param inner the heapCopy
    */
   public MonitoringWrapperLayer(final NNLayer inner) {
     super(inner);
@@ -214,7 +214,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     final JsonObject json = super.getJsonStub();
     //json.fn("forwardPerf",forwardPerf.getJson());
     //json.fn("backwardPerf",backwardPerf.getJson());
-    json.add("localCopy", getInner().getJson(resources, dataSerializer));
+    json.add("heapCopy", getInner().getJson(resources, dataSerializer));
     json.addProperty("totalBatches", totalBatches);
     json.addProperty("totalItems", totalItems);
     json.addProperty("recordSignalMetrics", recordSignalMetrics);

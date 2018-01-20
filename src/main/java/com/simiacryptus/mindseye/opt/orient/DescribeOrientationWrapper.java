@@ -40,7 +40,7 @@ public class DescribeOrientationWrapper implements OrientationStrategy<LineSearc
   /**
    * Instantiates a new Describe orientation wrapper.
    *
-   * @param inner the localCopy
+   * @param inner the heapCopy
    */
   public DescribeOrientationWrapper(final OrientationStrategy<? extends LineSearchCursor> inner) {
     this.inner = inner;

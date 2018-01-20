@@ -102,8 +102,8 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
     final int byteOffset = inputDimensions[1] * inputDimensions[0] * getFrom() * precision.size;
     outputDimensions[2] = getTo() - getFrom();
     return GpuHandle.run(nncontext -> {
-      final CudaPtr cudaOutput = CuDNN.alloc(nncontext.getDeviceNumber(), length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size, true);
-      final CudaPtr cudaInput = CudaPtr.write(nncontext.getDeviceNumber(), precision, inputData);
+      final CudaPtr cudaOutput = CudaPtr.allocate((long) (length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size), nncontext.getDeviceNumber(), MemoryType.Managed, true);
+      final CudaPtr cudaInput = CudaPtr.getCudaPtr(precision, inputData);
       final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
         precision.code, length, outputDimensions[2], outputDimensions[1], outputDimensions[0], //
         inputDimensions[2] * inputDimensions[1] * inputDimensions[0], //
@@ -156,10 +156,8 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
                 1);
               assert error.length() == inputData.length();
               //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
-              final CudaPtr errorPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, error);
-              final CudaPtr passbackBuffer = CuDNN.alloc(nncontext.getDeviceNumber(), //
-                                                         (long) (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size), //
-                                                         false);
+              final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
+              final CudaPtr passbackBuffer = CudaPtr.allocate((long) (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size), nncontext.getDeviceNumber(), MemoryType.Managed, false);
               CuDNN.cudnnTransformTensor(nncontext.getHandle(),
                                          precision.getPointer(1.0), outputDescriptor.getPtr(), errorPtr.getPtr(),
                                          precision.getPointer(0.0), inputDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
@@ -168,7 +166,6 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
               //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
             });
             inObj[0].accumulate(buffer, passbackTensorList);
-            passbackTensorList.recycle();
           }
         }
       

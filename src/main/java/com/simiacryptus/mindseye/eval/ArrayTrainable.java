@@ -35,7 +35,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
   /**
    * Instantiates a new Array trainable.
    *
-   * @param inner        the localCopy
+   * @param inner        the heapCopy
    * @param trainingData the training data
    */
   public ArrayTrainable(DataTrainable inner, Tensor[]... trainingData) {
@@ -45,7 +45,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
   /**
    * Instantiates a new Array trainable.
    *
-   * @param inner        the localCopy
+   * @param inner        the heapCopy
    * @param trainingData the training data
    * @param batchSize    the batch size
    */

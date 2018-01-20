@@ -103,9 +103,8 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
     dimOut[0] = sizeX;
     dimOut[1] = sizeY;
     return GpuHandle.run(nncontext -> {
-      final CudaPtr inputBuffer = CudaPtr.write(nncontext.getDeviceNumber(), precision, inObj[0].getData());
-      final CudaPtr outputBuffer = CuDNN.alloc(nncontext.getDeviceNumber(),
-                                               length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size, false);
+      final CudaPtr inputBuffer = CudaPtr.getCudaPtr(precision, inObj[0].getData());
+      final CudaPtr outputBuffer = CudaPtr.allocate((long) (length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size), nncontext.getDeviceNumber(), MemoryType.Managed, false);
       copy(nncontext, length, dimIn, inputBuffer, dimOut, outputBuffer);
       final TensorList outputData = GpuTensorList.create(outputBuffer, length, dimOut, precision);
       return new NNResult(outputData) {
@@ -127,16 +126,13 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
           assert error.length() == inObj[0].getData().length();
           if (inObj[0].isAlive()) {
             final TensorList passbackTensorList = GpuHandle.run(nncontext -> {
-              final CudaPtr errorPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, error);
-              final CudaPtr passbackBuffer = CuDNN.alloc(nncontext.getDeviceNumber(),
-                                                         length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size, false);
+              final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
+              final CudaPtr passbackBuffer = CudaPtr.allocate((long) (length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size), nncontext.getDeviceNumber(), MemoryType.Managed, false);
               copy(nncontext, length, dimOut, errorPtr, dimIn, passbackBuffer);
               return GpuTensorList.create(passbackBuffer, length, dimIn, precision);
             });
             inObj[0].accumulate(buffer, passbackTensorList);
-            passbackTensorList.recycle();
           }
-          free();
         }
   
         @Override

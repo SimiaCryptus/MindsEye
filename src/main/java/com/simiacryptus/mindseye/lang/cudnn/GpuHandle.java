@@ -82,6 +82,7 @@ public class GpuHandle {
       try {
         threadlocal.initThread();
         fn.accept(threadlocal);
+        CuDNN.cudaDeviceSynchronize();
       } catch (final Exception e) {
         throw new RuntimeException(e);
       }
@@ -92,6 +93,7 @@ public class GpuHandle {
           threadContext.set(exe);
           exe.initThread();
           fn.accept(exe);
+          CuDNN.cudaDeviceSynchronize();
         } catch (final Exception e) {
           throw new RuntimeException(e);
         } finally {
@@ -117,7 +119,9 @@ public class GpuHandle {
       if (threadlocal != null) {
         try {
           threadlocal.initThread();
-          return fn.apply(threadlocal);
+          T result = fn.apply(threadlocal);
+          CuDNN.cudaDeviceSynchronize();
+          return result;
         } catch (final Exception e) {
           throw new RuntimeException(e);
         }
@@ -127,7 +131,9 @@ public class GpuHandle {
           try {
             threadContext.set(exe);
             exe.initThread();
-            return fn.apply(exe);
+            T result = fn.apply(exe);
+            CuDNN.cudaDeviceSynchronize();
+            return result;
           } catch (final Exception e) {
             throw new RuntimeException(e);
           } finally {
@@ -177,7 +183,12 @@ public class GpuHandle {
       CuDNN.withDevice(deviceNumber, () -> {
         logger.info(String.format("Device %s - %s", deviceNumber, CuDNN.getDeviceName(deviceNumber)));
         devices.add(deviceNumber);
-        //CuDNN.handle(cudaSetDeviceFlags(cudaDeviceScheduleAuto));
+        try {
+          //CuDNN.handle(CuDNN.cudaSetDeviceFlags(JCuda.cudaDeviceScheduleBlockingSync));
+        } catch (Throwable e) {
+          logger.warn("Error initializing GPU", e);
+          throw new RuntimeException(e);
+        }
         for (DeviceLimits limit : DeviceLimits.values()) {
           logger.info(String.format("Default Limit %s = %s", limit, limit.get()));
         }

@@ -19,7 +19,8 @@
 
 package com.simiacryptus.mindseye.lang.cudnn;
 
-import com.simiacryptus.mindseye.lang.ComponentException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @param <T> the type parameter
  */
 public abstract class CudaResourceBase<T> {
+  private static final Logger logger = LoggerFactory.getLogger(CudaResourceBase.class);
   /**
    * The constant debugLifecycle.
    */
@@ -87,7 +89,7 @@ public abstract class CudaResourceBase<T> {
       }
       super.finalize();
     } catch (final Throwable e) {
-      new ComponentException("Error freeing resource " + this, e).printStackTrace(System.err);
+      logger.warn("Error freeing resource " + this, e);
     }
   }
   

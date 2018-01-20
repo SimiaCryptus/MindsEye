@@ -97,10 +97,10 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
       final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
       final TensorList result = Arrays.stream(inObj).map(x -> x.getData()).reduce((l, r) -> {
-        final CudaPtr lPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, l);
-        final CudaPtr rPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, r);
+        final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, l);
+        final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, r);
         assert lPtr.size == rPtr.size;
-        final CudaPtr outputPtr = CuDNN.alloc(nncontext.getDeviceNumber(), lPtr.size, true);
+        final CudaPtr outputPtr = CudaPtr.allocate(lPtr.size, nncontext.getDeviceNumber(), MemoryType.Managed, true);
         CuDNN.handle(JCudnn.cudnnOpTensor(nncontext.getHandle(), opDescriptor.getPtr(),
                                           precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                           precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
@@ -125,10 +125,10 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
               TensorList data = IntStream.range(0, inObj.length).mapToObj(i -> i == _index ? delta : inObj[i].getData()).reduce((l, r) -> {
                 return GpuHandle.run(nncontext -> {
                   nncontext.initThread();
-                  final CudaPtr lPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, l);
-                  final CudaPtr rPtr = CudaPtr.write(nncontext.getDeviceNumber(), precision, r);
+                  final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, l);
+                  final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, r);
                   assert lPtr.size == rPtr.size;
-                  final CudaPtr outputPtr = CuDNN.alloc(nncontext.getDeviceNumber(), lPtr.size, true);
+                  final CudaPtr outputPtr = CudaPtr.allocate(lPtr.size, nncontext.getDeviceNumber(), MemoryType.Managed, true);
                   CuDNN.handle(JCudnn.cudnnOpTensor(nncontext.getHandle(), opDescriptor.getPtr(),
                                                     precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                                     precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),

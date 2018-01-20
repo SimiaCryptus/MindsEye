@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -162,8 +161,7 @@ class ExplodedConvolutionGrid {
     }
     DAGNetwork network = input.getNetwork();
     DAGNode[] nodes = subLayers.stream().map(l -> {
-      return l.add(network.add(new LinearActivationLayer().freeze(), // GPU Interlink bug hack
-                               network.add(new ImgBandSelectLayer(l.fromBand, l.toBand), input)));
+      return l.add(network.add(new ImgBandSelectLayer(l.fromBand, l.toBand), input));
     }).toArray(i -> new DAGNode[i]);
     if (nodes.length > 1) return network.add(new BinarySumLayer(), nodes);
     return nodes[0];

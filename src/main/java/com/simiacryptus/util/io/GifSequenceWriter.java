@@ -47,7 +47,7 @@ public class GifSequenceWriter {
    */
   protected ImageWriter gifWriter;
   /**
-   * The Image write param.
+   * The Image getCudaPtr param.
    */
   protected ImageWriteParam imageWriteParam;
   /**

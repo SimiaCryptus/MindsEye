@@ -73,7 +73,7 @@ class CountingNNResult extends NNResult {
   /**
    * Instantiates a new Counting nn result.
    *
-   * @param inner the localCopy
+   * @param inner the heapCopy
    */
   protected CountingNNResult(final NNResult inner) {
     super(inner.getData());

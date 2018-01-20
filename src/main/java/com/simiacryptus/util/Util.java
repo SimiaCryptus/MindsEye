@@ -106,7 +106,7 @@ public class Util {
    *
    * @param <F>   the type parameter
    * @param <T>   the type parameter
-   * @param inner the localCopy
+   * @param inner the heapCopy
    * @return the function
    */
   public static <F, T> Function<F, T> cache(final Function<F, T> inner) {

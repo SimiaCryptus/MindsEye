@@ -159,8 +159,8 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
   @Override
   public NNResult eval(final NNResult... inObj) {
     if (!CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
-    return GpuHandle.run(nncontext -> {
-      final int deviceNumber = nncontext.getDeviceNumber();
+    return GpuHandle.run(gpu -> {
+      final int deviceNumber = gpu.getDeviceNumber();
       //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
       final NNResult input = inObj[0];
       final TensorList batch = input.getData();
@@ -170,7 +170,6 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
       final int length = batch.length();
     
       try {
-      
         final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
         final CudaResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
@@ -184,18 +183,18 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
       
         assert 0 < kernel.getData().length;
         assert kernelSize[0] * kernelSize[1] * kernelSize[2] == kernel.getData().length;
-        MemoryType filterMemoryType = MemoryType.Device;
-        final ManagedCudaPtr filterPtr = new CudaPtr(kernel.getData().length * precision.size, deviceNumber, filterMemoryType).write(precision, kernel.getData()).managed();
-        final CudaPtr inputData = CudaPtr.write(deviceNumber, precision, batch);
-      
-        final CudaPtr outputBuffer = CuDNN.alloc(deviceNumber, Tensor.dim(outputDims) * 1l * length * precision.size, true);
-        final int algorithm = CuDNN.getForwardAlgorithm(nncontext.getHandle(),
+        MemoryType filterMemoryType = MemoryType.Managed;
+        final ManagedCudaPtr filterPtr = CudaPtr.allocate((long) (kernel.getData().length * precision.size), deviceNumber, filterMemoryType, false).write(precision, kernel.getData()).managed();
+        final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
+  
+        final CudaPtr outputBuffer = CudaPtr.allocate(Tensor.dim(outputDims) * 1l * length * precision.size, deviceNumber, MemoryType.Managed, true);
+        final int algorithm = CuDNN.getForwardAlgorithm(gpu.getHandle(),
                                                         inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
-        final CudaPtr workSpace = CuDNN.allocateForwardWorkspace(nncontext.getHandle(), deviceNumber,
+        final CudaPtr workSpace = CuDNN.allocateForwardWorkspace(gpu.getHandle(), deviceNumber,
                                                                  inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
-        CuDNN.handle(CuDNN.cudnnConvolutionForward(nncontext.getHandle(), precision.getPointer(1.0),
+        CuDNN.handle(CuDNN.cudnnConvolutionForward(gpu.getHandle(), precision.getPointer(1.0),
                                                    inputDescriptor.getPtr(), inputData.getPtr(),
-                                                   filterDescriptor.getPtr(), filterPtr.getPtr(deviceNumber),
+                                                   filterDescriptor.getPtr(), filterPtr.getPtr(),
                                                    convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, precision.getPointer(0.0),
                                                    outputDescriptor.getPtr(), outputBuffer.getPtr()));
         Supplier<CudaPtr> workspacePtr = PersistanceMode.Weak.wrap(workSpace);
@@ -225,17 +224,22 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
             assert error.length() == batch.length();
             //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
             final int length = error.length();
-            final TensorList inputBufferTensors = GpuHandle.run(nncontext -> {
-              int deviceNumber = nncontext.getDeviceNumber();
-              final CudaPtr errorPtr = CudaPtr.write(deviceNumber, precision, error);
+            final TensorList inputBufferTensors = GpuHandle.run(gpu -> {
+              final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+                precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+              final CudaResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
+                precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
+              final CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = getConvolutionDescriptor();
+              int deviceNumber = gpu.getDeviceNumber();
+              final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
               if (!isFrozen()) {
-                final CudaPtr filterBuffer = CuDNN.alloc(deviceNumber, kernel.dim() * 1l * precision.size, true);
+                final CudaPtr filterBuffer = CudaPtr.allocate(kernel.dim() * 1l * precision.size, deviceNumber, MemoryType.Managed, true);
                 try {
-                  final int backwardAlgorithm = CuDNN.getBackwardFilterAlgorithm(nncontext.getHandle(),
+                  final int backwardAlgorithm = CuDNN.getBackwardFilterAlgorithm(gpu.getHandle(),
                                                                                  inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
-                  final CudaPtr workSpace = CuDNN.allocateBackwardFilterWorkspace(nncontext.getHandle(), deviceNumber,
+                  final CudaPtr workSpace = CuDNN.allocateBackwardFilterWorkspace(gpu.getHandle(), deviceNumber,
                                                                                   inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), backwardAlgorithm);
-                  CuDNN.handle(CuDNN.cudnnConvolutionBackwardFilter(nncontext.getHandle(), precision.getPointer(1.0),
+                  CuDNN.handle(CuDNN.cudnnConvolutionBackwardFilter(gpu.getHandle(), precision.getPointer(1.0),
                                                                     inputDescriptor.getPtr(), inputData.getPtr(),
                                                                     outputDescriptor.getPtr(), errorPtr.getPtr(),
                                                                     convolutionDescriptor.getPtr(), backwardAlgorithm, workSpace.getPtr(), workSpace.size, precision.getPointer(0.0),
@@ -250,14 +254,14 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
               }
               TensorList gpuTensorList = null;
               if (input.isAlive()) {
-                final CudaPtr inputBuffer = CuDNN.alloc(deviceNumber, Tensor.dim(batch.getDimensions()) * 1l * length * precision.size, true);
+                final CudaPtr inputBuffer = CudaPtr.allocate(Tensor.dim(batch.getDimensions()) * 1l * length * precision.size, deviceNumber, MemoryType.Managed, true);
                 try {
-                  final int algorithm = CuDNN.getBackwardDataAlgorithm(nncontext.getHandle(),
+                  final int algorithm = CuDNN.getBackwardDataAlgorithm(gpu.getHandle(),
                                                                        inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
-                  final CudaPtr workSpace = CuDNN.allocateBackwardDataWorkspace(nncontext.getHandle(), deviceNumber,
+                  final CudaPtr workSpace = CuDNN.allocateBackwardDataWorkspace(gpu.getHandle(), deviceNumber,
                                                                                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
-                  CuDNN.handle(CuDNN.cudnnConvolutionBackwardData(nncontext.getHandle(), precision.getPointer(1.0),
-                                                                  filterDescriptor.getPtr(), filterPtr.getPtr(deviceNumber),
+                  CuDNN.handle(CuDNN.cudnnConvolutionBackwardData(gpu.getHandle(), precision.getPointer(1.0),
+                                                                  filterDescriptor.getPtr(), filterPtr.getPtr(),
                                                                   outputDescriptor.getPtr(), errorPtr.getPtr(),
                                                                   convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, precision.getPointer(0.0),
                                                                   inputDescriptor.getPtr(), inputBuffer.getPtr()));
@@ -271,9 +275,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
             });
             if (null != inputBufferTensors) {
               input.accumulate(buffer, inputBufferTensors);
-              inputBufferTensors.recycle();
             }
-            free();
           }
         
           @Override

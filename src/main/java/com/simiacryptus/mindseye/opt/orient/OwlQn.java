@@ -54,7 +54,7 @@ public class OwlQn implements OrientationStrategy<LineSearchCursor> {
   /**
    * Instantiates a new Owl qn.
    *
-   * @param inner the localCopy
+   * @param inner the heapCopy
    */
   protected OwlQn(final OrientationStrategy<?> inner) {
     this.inner = inner;

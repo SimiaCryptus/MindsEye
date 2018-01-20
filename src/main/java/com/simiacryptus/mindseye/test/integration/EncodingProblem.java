@@ -194,8 +194,7 @@ public class EncodingProblem implements Problem {
     final DAGNode image = trainingNetwork.add(imageNetwork, trainingNetwork.getInput(0));
     final DAGNode softmax = trainingNetwork.add(new SoftmaxActivationLayer(), trainingNetwork.getInput(0));
     trainingNetwork.add(new SumInputsLayer(),
-                        trainingNetwork.add(new LinearActivationLayer().setScale(1).freeze(),
-                                            trainingNetwork.add(new EntropyLossLayer(), softmax, softmax)),
+                        trainingNetwork.add(new EntropyLossLayer(), softmax, softmax),
                         trainingNetwork.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
                                             trainingNetwork.add(new MeanSqLossLayer(), image, trainingNetwork.getInput(1))
                                            )

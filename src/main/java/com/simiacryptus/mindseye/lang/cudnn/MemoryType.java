@@ -31,7 +31,7 @@ public enum MemoryType {
   /**
    * The Device.
    */
-  Device {
+  Managed {
     @Override
     void alloc(long size, Pointer pointer) {
       if (size < 0) {
@@ -57,7 +57,7 @@ public enum MemoryType {
   /**
    * The Device direct.
    */
-  DeviceDirect {
+  Device {
     @Override
     void alloc(long size, Pointer pointer) {
       CuDNN.handle(CuDNN.cudaMalloc(pointer, size));

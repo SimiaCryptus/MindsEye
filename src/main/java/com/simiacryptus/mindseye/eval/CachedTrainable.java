@@ -43,7 +43,7 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
   /**
    * Instantiates a new Cached trainable.
    *
-   * @param inner the localCopy
+   * @param inner the heapCopy
    */
   public CachedTrainable(final T inner) {
     super(inner);
