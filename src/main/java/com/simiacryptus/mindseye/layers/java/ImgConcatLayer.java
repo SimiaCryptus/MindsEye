@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
@@ -53,7 +54,8 @@ public class ImgConcatLayer extends NNLayer {
    */
   protected ImgConcatLayer(final JsonObject json) {
     super(json);
-    setMaxBands(json.get("maxBands").getAsInt());
+    JsonElement maxBands = json.get("maxBands");
+    if (null == maxBands) setMaxBands(maxBands.getAsInt());
   }
   
   /**

@@ -325,7 +325,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
     @Override
     public ComponentTest<ToleranceStatistics> getDerivativeTester() {
       if (!validateDifferentials) return null;
-      return new SingleDerivativeTester(1e-2, 1e-4);
+      return new SingleDerivativeTester(1e-1, 1e-4);
     }
   }
   

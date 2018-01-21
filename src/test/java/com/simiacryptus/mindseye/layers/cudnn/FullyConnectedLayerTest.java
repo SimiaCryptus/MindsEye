@@ -198,7 +198,11 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
       super(new int[]{25088}, new int[]{4096});
       validateDifferentials = false;
     }
-    
+  
+    static {
+      System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", Integer.toString(1024));
+    }
+  
     @Override
     public Class<? extends NNLayer> getReferenceLayerClass() {
       return null;

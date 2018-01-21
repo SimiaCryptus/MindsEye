@@ -52,8 +52,7 @@ public class GpuTensorList implements TensorList {
    */
   public final ManagedCudaPtr ptr;
   private final Precision precision;
-  private volatile TensorList _inner = null;
-  private TensorList heapCopy;
+  private volatile TensorList heapCopy = null;
   
   /**
    * Instantiates a new Cu dnn double tensor list.
@@ -92,11 +91,11 @@ public class GpuTensorList implements TensorList {
   @Override
   public synchronized void addInPlace(final TensorList right) {
     assert length() == right.length();
-    if (_inner == null) {
+    if (heapCopy == null) {
       if (right instanceof GpuTensorList) {
         final GpuTensorList nativeRight = (GpuTensorList) right;
         if (nativeRight.precision == precision) {
-          if (nativeRight._inner == null) {
+          if (nativeRight.heapCopy == null) {
             GpuHandle.apply(exe -> {
               assert dimensions.length <= 3;
               // CuDNN.withDevice(this.ptr.getDeviceId(), () -> { });
@@ -151,9 +150,9 @@ public class GpuTensorList implements TensorList {
    * @return the tensor list
    */
   public TensorList heapCopy() {
-    if (null == _inner) {
+    if (null == heapCopy) {
       synchronized (this) {
-        if (null == _inner) {
+        if (null == heapCopy) {
           final int itemLength = Tensor.dim(dimensions);
           final double[] outputBuffer = RecycleBin.DOUBLES.obtain(itemLength * length);
           assert 0 < outputBuffer.length;
@@ -169,11 +168,11 @@ public class GpuTensorList implements TensorList {
           }
           //assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           RecycleBin.DOUBLES.recycle(outputBuffer, outputBuffer.length);
-          _inner = new TensorArray(output);
+          heapCopy = new TensorArray(output);
         }
       }
     }
-    return _inner;
+    return heapCopy;
   }
   
   /**
@@ -195,8 +194,8 @@ public class GpuTensorList implements TensorList {
   @Override
   public void recycle() {
     ptr.free();
-    if (null != _inner) {
-      _inner.recycle();
+    if (null != heapCopy) {
+      heapCopy.recycle();
     }
   }
   
@@ -211,7 +210,7 @@ public class GpuTensorList implements TensorList {
    * @return the boolean
    */
   public boolean isNative() {
-    return null == _inner;
+    return null == heapCopy;
   }
   
   /**
@@ -228,5 +227,9 @@ public class GpuTensorList implements TensorList {
     return GpuHandle.run(gpu -> {
       return new GpuTensorList(ptr.getCudaPtr().copyTo(gpu.getDeviceNumber()), length, dimensions, precision);
     });
+  }
+  
+  public void free() {
+    ptr.free();
   }
 }

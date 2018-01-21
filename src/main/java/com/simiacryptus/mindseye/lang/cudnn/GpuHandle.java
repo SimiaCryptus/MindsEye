@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * The type Gpu handle.
@@ -42,6 +44,8 @@ public class GpuHandle {
   private static final ThreadLocal<GpuHandle> threadContext = new ThreadLocal<>();
   private static final boolean DISABLE = Boolean.parseBoolean(System.getProperty("DISABLE_CUDNN", Boolean.toString(false)));
   private static final boolean FORCE_SINGLE_GPU = Boolean.parseBoolean(System.getProperty("FORCE_SINGLE_GPU", Boolean.toString(false)));
+  private static final int THREADS_PER_GPU = Integer.parseInt(System.getProperty("THREADS_PER_GPU", Integer.toString(2)));
+
   /**
    * The constant gpuContexts.
    */
@@ -78,28 +82,30 @@ public class GpuHandle {
    */
   public static void apply(final Consumer<GpuHandle> fn) {
     GpuHandle threadlocal = threadContext.get();
-    if (threadlocal != null) {
-      try {
-        threadlocal.initThread();
-        fn.accept(threadlocal);
-        CuDNN.cudaDeviceSynchronize();
-      } catch (final Exception e) {
-        throw new RuntimeException(e);
-      }
-    }
-    else {
-      POOL.apply(exe -> {
+    try {
+      if (threadlocal != null) {
         try {
-          threadContext.set(exe);
-          exe.initThread();
-          fn.accept(exe);
-          CuDNN.cudaDeviceSynchronize();
+          threadlocal.initThread();
+          fn.accept(threadlocal);
         } catch (final Exception e) {
           throw new RuntimeException(e);
-        } finally {
-          threadContext.remove();
         }
-      });
+      }
+      else {
+        POOL.apply(exe -> {
+          try {
+            threadContext.set(exe);
+            exe.initThread();
+            fn.accept(exe);
+          } catch (final Exception e) {
+            throw new RuntimeException(e);
+          } finally {
+            threadContext.remove();
+          }
+        });
+      }
+    } finally {
+      CuDNN.cudaDeviceSynchronize();
     }
   }
   
@@ -115,31 +121,33 @@ public class GpuHandle {
       return fn.apply(new GpuHandle(-1));
     }
     else {
-      GpuHandle threadlocal = threadContext.get();
-      if (threadlocal != null) {
-        try {
-          threadlocal.initThread();
-          T result = fn.apply(threadlocal);
-          CuDNN.cudaDeviceSynchronize();
-          return result;
-        } catch (final Exception e) {
-          throw new RuntimeException(e);
-        }
-      }
-      else {
-        return POOL.run(exe -> {
+      try {
+        GpuHandle threadlocal = threadContext.get();
+        if (threadlocal != null) {
           try {
-            threadContext.set(exe);
-            exe.initThread();
-            T result = fn.apply(exe);
-            CuDNN.cudaDeviceSynchronize();
+            threadlocal.initThread();
+            T result = fn.apply(threadlocal);
             return result;
           } catch (final Exception e) {
             throw new RuntimeException(e);
-          } finally {
-            threadContext.remove();
           }
-        });
+        }
+        else {
+          return POOL.run(exe -> {
+            try {
+              threadContext.set(exe);
+              exe.initThread();
+              T result = fn.apply(exe);
+              return result;
+            } catch (final Exception e) {
+              throw new RuntimeException(e);
+            } finally {
+              threadContext.remove();
+            }
+          });
+        }
+      } finally {
+        CuDNN.cudaDeviceSynchronize();
       }
     }
   }
@@ -207,13 +215,14 @@ public class GpuHandle {
     }
     logger.info(String.format("Found %s devices; using devices %s", deviceCount, devices));
     return devices.stream()
-                  .map(i -> {
+                  .flatMap(i -> {
                     try {
-                      return new GpuHandle(i);
+                      return IntStream.range(0, THREADS_PER_GPU).mapToObj(j -> new GpuHandle(i));
                     } catch (Throwable e) {
-                      return null;
+                      logger.warn(String.format("Error initializing device %d", i), e);
+                      return Stream.empty();
                     }
-                  }).filter(x -> x != null).collect(Collectors.toList());
+                  }).collect(Collectors.toList());
   }
   
   /**

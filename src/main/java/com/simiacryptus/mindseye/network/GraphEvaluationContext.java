@@ -19,9 +19,9 @@
 
 package com.simiacryptus.mindseye.network;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 /**
@@ -33,11 +33,11 @@ class GraphEvaluationContext {
   /**
    * The Cache.
    */
-  final Map<UUID, CountingNNResult> inputs = new HashMap<>();
+  final Map<UUID, CountingNNResult> inputs = new ConcurrentHashMap<>();
   
   /**
    * The Calculated.
    */
-  final Map<UUID, Supplier<CountingNNResult>> calculated = new HashMap<>();
+  final Map<UUID, Supplier<CountingNNResult>> calculated = new ConcurrentHashMap<>();
   
 }

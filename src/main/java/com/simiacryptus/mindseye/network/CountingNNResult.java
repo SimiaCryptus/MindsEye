@@ -67,10 +67,6 @@ class CountingNNResult extends NNResult {
    * The Finalized by.
    */
   public StackTraceElement[] finalizedBy = null;
-  /**
-   * The Passback buffer.
-   */
-  volatile TensorList passbackBuffer = null;
   
   /**
    * Instantiates a new Counting nn result.
@@ -80,7 +76,6 @@ class CountingNNResult extends NNResult {
   protected CountingNNResult(final NNResult inner) {
     super(inner.getData());
     this.inner = inner;
-    logger.info(String.format("%s.<init>(%s) via %s", this, inner, miniStackTrace()));
   }
   
   public static String miniStackTrace() {
@@ -99,7 +94,6 @@ class CountingNNResult extends NNResult {
    */
   @Override
   public void free() {
-    logger.info(String.format("%s.free(%s/%s)", this, finalizations.get(), references.get()));
     if (1 >= references.get()) {
       if (!hasFinalized.getAndSet(true)) {
         finalizedBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
@@ -118,9 +112,11 @@ class CountingNNResult extends NNResult {
     }
   }
   
+  //private final Deque<TensorList> passbackBuffers = new LinkedBlockingDeque<>();
+  private volatile TensorList passbackBuffer = null;
+  
   @Override
   public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-    logger.info(String.format("%s.accumulate(%s/%s,%s) via %s", this, accumulations.get(), references.get(), data, miniStackTrace()));
     if (hasFinalized.get()) throw new IllegalStateException(finalizedByStr());
     if (1 >= references.get()) {
       if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
@@ -163,7 +159,6 @@ class CountingNNResult extends NNResult {
    * @return the counting nn result
    */
   public CountingNNResult increment() {
-    logger.info(String.format("%s.increment(%s/%s) via %s", this, accumulations.get(), references.get(), miniStackTrace()));
     this.references.incrementAndGet();
     return this;
   }

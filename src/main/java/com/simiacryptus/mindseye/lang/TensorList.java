@@ -131,4 +131,13 @@ public interface TensorList {
   default String prettyPrint() {
     return stream().map(t -> t.prettyPrint()).reduce((a, b) -> a + "\n" + b).get();
   }
+  
+  default void free() {
+    stream().forEach(t -> {
+      try {
+        t.finalize();
+      } catch (Throwable throwable) {
+      }
+    });
+  }
 }

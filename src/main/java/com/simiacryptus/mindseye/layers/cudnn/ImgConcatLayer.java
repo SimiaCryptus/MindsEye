@@ -93,9 +93,9 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
     if (0 < maxBands && outputDimensions[2] > maxBands) {
       outputDimensions[2] = maxBands;
     }
-    return GpuHandle.run(nncontext -> {
-      long outputSize = (length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
-      final CudaPtr cudaOutput = CudaPtr.allocate(outputSize, nncontext.getDeviceNumber(), MemoryType.Managed, true);
+    TensorList results = GpuHandle.run(gpu -> {
+      final long outputSize = (length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
+      final CudaPtr cudaOutput = CudaPtr.allocate(outputSize, gpu.getDeviceNumber(), MemoryType.Managed, true);
       for (int i = 0; i < inObj.length; i++) {
         final TensorList input = inObj[i].getData();
         final CudaPtr cudaInput = CudaPtr.getCudaPtr(precision, input);
@@ -125,75 +125,75 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
             outputDimensions[0], //
             1);
           int byteOffset = inputDimensions[1] * inputDimensions[0] * bandOffset * precision.size;
-          CuDNN.cudnnTransformTensor(nncontext.getHandle(),
+          CuDNN.cudnnTransformTensor(gpu.getHandle(),
                                      precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.getPtr(),
                                      precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr().withByteOffset(byteOffset)
                                     );
         }
       }
-      final TensorList outputData = GpuTensorList.create(cudaOutput, length, outputDimensions, precision);
-      return new NNResult(outputData) {
-      
-        @Override
-        public void free() {
-          Arrays.stream(inObj).forEach(NNResult::free);
-          cudaOutput.finalize();
-        }
-      
-        @Override
-        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
-          if (!Arrays.equals(delta.getDimensions(), outputDimensions)) {
-            throw new AssertionError(Arrays.toString(delta.getDimensions()) + " != " + Arrays.toString(outputDimensions));
-          }
-          //outputBuffer.free();
-          assert delta.length() == inObj[0].getData().length();
-          //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
-          final CudaPtr cudaDelta = GpuHandle.run(nncontext -> CudaPtr.getCudaPtr(precision, delta));
-          IntStream.range(0, inObj.length).forEach(i -> {
-            final NNResult input = inObj[i];
-            int[] inputDimensions = input.getData().getDimensions();
-            assert 3 == inputDimensions.length;
-            assert delta.length() == input.getData().length();
-            assert inputDimensions[0] == outputDimensions[0];
-            assert inputDimensions[1] == outputDimensions[1];
-            int bandOffset = IntStream.range(0, i).map(j -> inObj[j].getData().getDimensions()[2]).sum();
-            int inputBands = maxBands <= 0 ? inputDimensions[2] : Math.min(inputDimensions[2], maxBands - bandOffset);
-            if (inputBands > 0 && input.isAlive()) {
-              assert inputBands <= inputDimensions[2];
-              final TensorList passbackTensorList = GpuHandle.run(nncontext -> {
-                long inputSize = (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size);
-                final CudaPtr cudaBackprop = CudaPtr.allocate(inputSize, nncontext.getDeviceNumber(), MemoryType.Managed, false);
-                final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-                  precision.code, length, inputBands, inputDimensions[1], inputDimensions[0], //
-                  inputDimensions[2] * inputDimensions[1] * inputDimensions[0], //
-                  inputDimensions[1] * inputDimensions[0], //
-                  inputDimensions[0], //
-                  1);
-                final CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
-                  precision.code, length, inputBands, inputDimensions[1], inputDimensions[0], //
-                  outputDimensions[2] * outputDimensions[1] * outputDimensions[0], //
-                  outputDimensions[1] * outputDimensions[0], //
-                  outputDimensions[0], //
-                  1);
-                int byteOffset = outputDimensions[1] * outputDimensions[0] * bandOffset * precision.size;
-                CuDNN.cudnnTransformTensor(nncontext.getHandle(),
-                                           precision.getPointer(1.0), outputDescriptor.getPtr(), cudaDelta.getPtr().withByteOffset(byteOffset),
-                                           precision.getPointer(0.0), inputDescriptor.getPtr(), cudaBackprop.getPtr()
-                                          );
-                return GpuTensorList.create(cudaBackprop, length, inputDimensions, precision);
-              });
-              input.accumulate(buffer, passbackTensorList);
-            }
-            //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-          });
-        }
-  
-        @Override
-        public boolean isAlive() {
-          return Arrays.stream(inObj).anyMatch(x -> x.isAlive());
-        }
-      };
+      return GpuTensorList.create(cudaOutput, length, outputDimensions, precision);
     });
+    return new NNResult(results) {
+    
+      @Override
+      public void free() {
+        Arrays.stream(inObj).forEach(NNResult::free);
+        results.free();
+      }
+    
+      @Override
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
+        if (!Arrays.equals(delta.getDimensions(), outputDimensions)) {
+          throw new AssertionError(Arrays.toString(delta.getDimensions()) + " != " + Arrays.toString(outputDimensions));
+        }
+        //outputBuffer.free();
+        assert delta.length() == inObj[0].getData().length();
+        //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
+        final CudaPtr cudaDelta = GpuHandle.run(nncontext -> CudaPtr.getCudaPtr(precision, delta));
+        IntStream.range(0, inObj.length).parallel().forEach(i -> {
+          final NNResult input = inObj[i];
+          int[] inputDimensions = input.getData().getDimensions();
+          assert 3 == inputDimensions.length;
+          assert delta.length() == input.getData().length();
+          assert inputDimensions[0] == outputDimensions[0];
+          assert inputDimensions[1] == outputDimensions[1];
+          int bandOffset = IntStream.range(0, i).map(j -> inObj[j].getData().getDimensions()[2]).sum();
+          int inputBands = maxBands <= 0 ? inputDimensions[2] : Math.min(inputDimensions[2], maxBands - bandOffset);
+          if (inputBands > 0 && input.isAlive()) {
+            assert inputBands <= inputDimensions[2];
+            final TensorList passbackTensorList = GpuHandle.run(nncontext -> {
+              long inputSize = (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size);
+              final CudaPtr cudaBackprop = CudaPtr.allocate(inputSize, nncontext.getDeviceNumber(), MemoryType.Managed, false);
+              final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+                precision.code, length, inputBands, inputDimensions[1], inputDimensions[0], //
+                inputDimensions[2] * inputDimensions[1] * inputDimensions[0], //
+                inputDimensions[1] * inputDimensions[0], //
+                inputDimensions[0], //
+                1);
+              final CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
+                precision.code, length, inputBands, inputDimensions[1], inputDimensions[0], //
+                outputDimensions[2] * outputDimensions[1] * outputDimensions[0], //
+                outputDimensions[1] * outputDimensions[0], //
+                outputDimensions[0], //
+                1);
+              int byteOffset = outputDimensions[1] * outputDimensions[0] * bandOffset * precision.size;
+              CuDNN.cudnnTransformTensor(nncontext.getHandle(),
+                                         precision.getPointer(1.0), outputDescriptor.getPtr(), cudaDelta.getPtr().withByteOffset(byteOffset),
+                                         precision.getPointer(0.0), inputDescriptor.getPtr(), cudaBackprop.getPtr()
+                                        );
+              return GpuTensorList.create(cudaBackprop, length, inputDimensions, precision);
+            });
+            input.accumulate(buffer, passbackTensorList);
+          }
+          //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+        });
+      }
+    
+      @Override
+      public boolean isAlive() {
+        return Arrays.stream(inObj).anyMatch(x -> x.isAlive());
+      }
+    };
   }
   
   @Override
