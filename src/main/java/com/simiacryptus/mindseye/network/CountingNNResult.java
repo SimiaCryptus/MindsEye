@@ -27,8 +27,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * A result type for evaluating the backpropigation phase of an Acyclic Directed Graph. Since the result of a given
@@ -78,6 +80,17 @@ class CountingNNResult extends NNResult {
   protected CountingNNResult(final NNResult inner) {
     super(inner.getData());
     this.inner = inner;
+    logger.info(String.format("%s.<init>(%s) via %s", this, inner, miniStackTrace()));
+  }
+  
+  public static String miniStackTrace() {
+    int max = 30;
+    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+    List<String> list = Arrays.stream(stackTrace).skip(3).limit(max - 3).map(x -> x.isNativeMethod() ? "(Native Method)" :
+      (x.getFileName() != null && x.getLineNumber() >= 0 ?
+        x.getFileName() + ":" + x.getLineNumber() :
+        (x.getFileName() != null ? x.getFileName() : "(Unknown Source)"))).collect(Collectors.toList());
+    return "[" + list.stream().reduce((a, b) -> a + ", " + b).get() + (stackTrace.length > max ? ", ..." : "") + "]";
   }
   
   /**
@@ -86,6 +99,7 @@ class CountingNNResult extends NNResult {
    */
   @Override
   public void free() {
+    logger.info(String.format("%s.free(%s/%s)", this, finalizations.get(), references.get()));
     if (1 >= references.get()) {
       if (!hasFinalized.getAndSet(true)) {
         finalizedBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
@@ -99,32 +113,37 @@ class CountingNNResult extends NNResult {
           inner.free();
         }
         finalizations.set(0);
+        passbackBuffer = null;
       }
     }
   }
   
   @Override
   public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+    logger.info(String.format("%s.accumulate(%s/%s,%s) via %s", this, accumulations.get(), references.get(), data, miniStackTrace()));
     if (hasFinalized.get()) throw new IllegalStateException(finalizedByStr());
     if (1 >= references.get()) {
       if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
       inner.accumulate(buffer, data);
     }
     else {
+      boolean created = false;
       if (null == passbackBuffer) {
         synchronized (this) {
           if (null == passbackBuffer) {
-            passbackBuffer = data;
+            passbackBuffer = data.copy();
+            created = true;
           }
         }
       }
-      if (null != passbackBuffer) {
+      if (null != passbackBuffer && !created) {
         passbackBuffer.addInPlace(data);
       }
       if (accumulations.incrementAndGet() == references.get()) {
         if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
         inner.accumulate(buffer, passbackBuffer);
         accumulations.set(0);
+        passbackBuffer = null;
       }
     }
   }
@@ -144,6 +163,7 @@ class CountingNNResult extends NNResult {
    * @return the counting nn result
    */
   public CountingNNResult increment() {
+    logger.info(String.format("%s.increment(%s/%s) via %s", this, accumulations.get(), references.get(), miniStackTrace()));
     this.references.incrementAndGet();
     return this;
   }

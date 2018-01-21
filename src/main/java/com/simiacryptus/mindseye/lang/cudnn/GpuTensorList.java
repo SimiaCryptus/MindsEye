@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.simiacryptus.mindseye.lang.*;
+import jcuda.Pointer;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 import jcuda.jcudnn.cudnnTensorFormat;
 import org.slf4j.Logger;
@@ -101,9 +102,16 @@ public class GpuTensorList implements TensorList {
               // CuDNN.withDevice(this.ptr.getDeviceId(), () -> { });
               final CudaResource<cudnnTensorDescriptor> leftSize = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions.length < 3 ? 1 : dimensions[2], dimensions.length < 2 ? 1 : dimensions[1], dimensions[0]);
               final CudaResource<cudnnTensorDescriptor> rightSize = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions.length < 3 ? 1 : dimensions[2], dimensions.length < 2 ? 1 : dimensions[1], dimensions[0]);
-              CuDNN.handle(CuDNN.cudnnAddTensor(exe.getHandle(),
-                                                precision.getPointer(1.0), rightSize.getPtr(), nativeRight.ptr.getPtr(),
-                                                precision.getPointer(1.0), leftSize.getPtr(), GpuTensorList.this.ptr.getPtr()));
+              Pointer rightCudaPtr = nativeRight.ptr.getPtr();
+              Pointer leftCudaPtr = GpuTensorList.this.ptr.getPtr();
+              if (rightCudaPtr == leftCudaPtr) {
+                throw new RuntimeException();
+              }
+              else {
+                CuDNN.handle(CuDNN.cudnnAddTensor(exe.getHandle(),
+                                                  precision.getPointer(1.0), rightSize.getPtr(), rightCudaPtr,
+                                                  precision.getPointer(1.0), leftSize.getPtr(), leftCudaPtr));
+              }
               //CuDNN.cudaDeviceSynchronize();
 //              leftSize.finalize();
 //              rightSize.finalize();
@@ -213,5 +221,12 @@ public class GpuTensorList implements TensorList {
    */
   public TensorList getHeapCopy() {
     return heapCopy();
+  }
+  
+  @Override
+  public TensorList copy() {
+    return GpuHandle.run(gpu -> {
+      return new GpuTensorList(ptr.getCudaPtr().copyTo(gpu.getDeviceNumber()), length, dimensions, precision);
+    });
   }
 }

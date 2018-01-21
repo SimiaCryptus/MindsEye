@@ -1197,7 +1197,7 @@ public class Tensor implements Serializable {
    * @param f the f
    */
   public void setParallelByIndex(final IntToDoubleFunction f) {
-    IntStream.range(0, dim()).forEach(c -> set(c, f.applyAsDouble(c)));
+    IntStream.range(0, dim()).parallel().forEach(c -> set(c, f.applyAsDouble(c)));
   }
   
   /**
@@ -1437,7 +1437,7 @@ public class Tensor implements Serializable {
   
   @Override
   public String toString() {
-    return toString(false);
+    return (null == data ? "0" : Integer.toHexString(System.identityHashCode(data))) + "@" + toString(false);
   }
   
   private String toString(final boolean prettyPrint, final int... coords) {

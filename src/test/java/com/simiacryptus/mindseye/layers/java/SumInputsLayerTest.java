@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.mindseye.network.DAGNode;
+import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 import java.util.Random;
 
@@ -76,6 +78,51 @@ public class SumInputsLayerTest {
       return new int[][]{
         {100}, {100}
       };
+    }
+    
+  }
+  
+  /**
+   * Ensures addition can be used to implement a doubling (x2) function
+   */
+  public static class OnePlusOne extends LayerTestBase {
+    
+    /**
+     * Instantiates a new Asymmetric apply.
+     */
+    public OnePlusOne() {
+      super();
+    }
+    
+    
+    @Override
+    public NNLayer getLayer(int[][] inputSize, Random random) {
+      PipelineNetwork network = new PipelineNetwork();
+      DAGNode input = network.getInput(0);
+      network.add(new SumInputsLayer(), input, input);
+      return network;
+    }
+    
+    @Override
+    public NNLayer getReferenceLayer() {
+      return null;
+    }
+    
+    @Override
+    public int[][] getInputDims(Random random) {
+      return new int[][]{
+        {1, 1, 1}
+      };
+    }
+    
+    @Override
+    public int[][] getPerfDims(Random random) {
+      return getInputDims(random);
+    }
+    
+    @Override
+    protected Class<?> getTargetClass() {
+      return SumInputsLayer.class;
     }
     
   }

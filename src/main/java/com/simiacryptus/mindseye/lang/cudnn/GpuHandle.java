@@ -40,8 +40,8 @@ import java.util.stream.Collectors;
 public class GpuHandle {
   private static final Logger logger = LoggerFactory.getLogger(GpuHandle.class);
   private static final ThreadLocal<GpuHandle> threadContext = new ThreadLocal<>();
-  private static final boolean DISABLE = Boolean.parseBoolean(System.getProperty("DISABLE_CUDNN", "false"));
-  private static final boolean FORCE_SINGLE_GPU = Boolean.parseBoolean(System.getProperty("FORCE_SINGLE_GPU", "false"));
+  private static final boolean DISABLE = Boolean.parseBoolean(System.getProperty("DISABLE_CUDNN", Boolean.toString(false)));
+  private static final boolean FORCE_SINGLE_GPU = Boolean.parseBoolean(System.getProperty("FORCE_SINGLE_GPU", Boolean.toString(false)));
   /**
    * The constant gpuContexts.
    */

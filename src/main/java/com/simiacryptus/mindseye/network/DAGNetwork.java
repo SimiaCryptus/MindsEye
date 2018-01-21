@@ -23,10 +23,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
-import com.simiacryptus.mindseye.lang.SerialPrecision;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.java.WrapperLayer;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
@@ -221,9 +218,8 @@ public abstract class DAGNetwork extends NNLayer {
     for (int i = 0; i < inputs.length; i++) {
       UUID key = inputHandles.get(i);
       CountingNNResult value = new CountingNNResult(inputs[i]);
-      synchronized (context) {
-        context.inputs.put(key, value);
-      }
+      context.inputs.put(key, value);
+      context.calculated.put(key, new Singleton<CountingNNResult>().set(value));
     }
     return context;
   }

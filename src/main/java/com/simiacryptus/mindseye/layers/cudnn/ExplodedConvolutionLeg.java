@@ -216,9 +216,7 @@ class ExplodedConvolutionLeg {
     }
     else {
       head = network.add(new ImgConcatLayer().setMaxBands(this.convolutionParams.outputBands).setPrecision(this.convolutionParams.precision),
-                         subLayers.stream().map(l -> {
-                           return network.add(l, input);
-                         }).toArray(i -> new DAGNode[i]));
+                         subLayers.stream().map(l -> network.add(l, input)).toArray(i -> new DAGNode[i]));
     }
     if (this.convolutionParams.paddingX != null || this.convolutionParams.paddingY != null) {
       int x = ((filterDimensions[0] - 1) / 2);

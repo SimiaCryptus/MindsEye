@@ -103,8 +103,6 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    if (!CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
-  
     if (inObj.length == 1) {
       if (rightFactor != 1) throw new IllegalStateException();
       if (leftFactor != 1) throw new IllegalStateException();
@@ -128,6 +126,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
         throw new IllegalArgumentException(Arrays.toString(dimensions) + " != " + Arrays.toString(inObj[i].getData().getDimensions()));
       }
     }
+    if (!CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
   
     return GpuHandle.run(gpu -> {
       final CudaResource<cudnnOpTensorDescriptor> opDescriptor = CuDNN.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);

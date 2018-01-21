@@ -21,6 +21,9 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.layers.java.SumInputsLayer;
+import com.simiacryptus.mindseye.network.DAGNode;
+import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
 import java.util.Random;
@@ -83,6 +86,49 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
     @Override
     public int[][] getPerfDims(Random random) {
       return IntStream.range(0, 5).mapToObj(i -> new int[]{200, 200, 3}).toArray(i -> new int[i][]);
+    }
+    
+  }
+  
+  /**
+   * Ensures addition can be used to implement a doubling (x2) function
+   */
+  public static class OnePlusOne extends CudnnLayerTestBase {
+    
+    /**
+     * Instantiates a new Asymmetric apply.
+     */
+    public OnePlusOne() {
+      super();
+    }
+    
+    
+    @Override
+    public NNLayer getLayer(int[][] inputSize, Random random) {
+      PipelineNetwork network = new PipelineNetwork();
+      DAGNode input = network.getInput(0);
+      network.add(new BinarySumLayer(), input, input);
+      return network;
+    }
+    
+    @Override
+    public NNLayer getReferenceLayer() {
+      PipelineNetwork network = new PipelineNetwork();
+      DAGNode input = network.getInput(0);
+      network.add(new SumInputsLayer(), input, input);
+      return network;
+    }
+    
+    @Override
+    public int[][] getInputDims(Random random) {
+      return new int[][]{
+        {1, 1, 1}
+      };
+    }
+    
+    @Override
+    public int[][] getPerfDims(Random random) {
+      return getInputDims(random);
     }
     
   }

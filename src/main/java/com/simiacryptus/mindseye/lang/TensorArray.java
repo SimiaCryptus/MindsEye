@@ -67,4 +67,13 @@ public class TensorArray implements TensorList {
   public Stream<Tensor> stream() {
     return Arrays.stream(data);
   }
+  
+  public static <T> String toString(int limit, T... data) {
+    return (data.length < limit) ? Arrays.toString(data) : "[" + Arrays.stream(data).limit(limit).map(x -> x.toString()).reduce((a, b) -> a + ", " + b).get() + ", ...]";
+  }
+  
+  @Override
+  public String toString() {
+    return String.format("TensorArray{data=%s}", toString(9, data));
+  }
 }

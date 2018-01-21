@@ -20,10 +20,9 @@
 package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.Singleton;
 
 import java.util.UUID;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Supplier;
 
 /**
@@ -90,38 +89,4 @@ abstract class LazyResult implements DAGNode {
     return id;
   }
   
-  /**
-   * The type Singleton.
-   *
-   * @param <T> the type parameter
-   */
-  public static class Singleton<T> implements Supplier<T> {
-    private final BlockingDeque<T> deque = new LinkedBlockingDeque<>();
-  
-    /**
-     * Instantiates a new Singleton.
-     */
-    public Singleton() {}
-    
-    @Override
-    public T get() {
-      try {
-        T take = deque.take();
-        deque.add(take);
-        return take;
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
-    }
-  
-    /**
-     * Set.
-     *
-     * @param obj the obj
-     */
-    public void set(T obj) {
-      assert deque.isEmpty();
-      deque.add(obj);
-    }
-  }
 }

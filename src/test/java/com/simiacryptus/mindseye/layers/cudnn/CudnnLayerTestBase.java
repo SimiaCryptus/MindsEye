@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.cudnn.CuDNN;
+import com.simiacryptus.mindseye.lang.cudnn.GpuHandle;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
@@ -44,7 +45,7 @@ public abstract class CudnnLayerTestBase extends LayerTestBase {
   @Override
   public ArrayList<ComponentTest<?>> getBigTests() {
     ArrayList<ComponentTest<?>> copy = new ArrayList<>(super.getBigTests());
-    copy.add(new GpuLocalityTester(1e-3));
+    if (GpuHandle.POOL.size() > 1) copy.add(new GpuLocalityTester(1e-3));
     return copy;
   }
   
