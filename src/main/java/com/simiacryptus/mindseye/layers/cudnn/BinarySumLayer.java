@@ -177,7 +177,6 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
             }
           });
           delta.free();
-          data.free();
         }
       
         @Override

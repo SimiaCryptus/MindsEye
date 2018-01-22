@@ -161,7 +161,6 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
           inObj[0].accumulate(buffer, passbackTensorList);
         }
         error.free();
-        outputData.free();
       }
       
       @Override

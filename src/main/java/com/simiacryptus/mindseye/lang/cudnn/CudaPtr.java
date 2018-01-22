@@ -62,7 +62,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    * The Max.
    */
   static final long MAX = Precision.Double.size * (Integer.MAX_VALUE - 1L);
-  private static final boolean DEBUG_LIFECYCLE = true;
+  static final boolean DEBUG_LIFECYCLE = true;
   /**
    * The constant DISABLE_DIRTY_MEMORY.
    */

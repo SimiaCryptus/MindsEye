@@ -134,7 +134,6 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
             inObj[0].accumulate(buffer, passbackTensorList);
           }
           error.free();
-          outputData.free();
         }
   
         @Override

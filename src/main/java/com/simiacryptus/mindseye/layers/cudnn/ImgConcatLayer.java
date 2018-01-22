@@ -169,7 +169,6 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
           }
           //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         });
-        results.free();
         delta.free();
         if (!(delta instanceof GpuTensorList)) CudaPtr.recycle(cudaDelta);
       }

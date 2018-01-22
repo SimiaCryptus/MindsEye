@@ -51,6 +51,7 @@ public class ManagedCudaPtr {
   private volatile Supplier<CudaPtr> ptrRef;
   private final Precision precision;
   private volatile double[] values;
+  private StackTraceElement[] finalizedBy;
   
   /**
    * Instantiates a new Cuda ptr.
@@ -98,6 +99,9 @@ public class ManagedCudaPtr {
    * Free.
    */
   public void free() {
+    if (null != finalizedBy)
+      throw new IllegalStateException(Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).get());
+    if (CudaPtr.DEBUG_LIFECYCLE) finalizedBy = Thread.currentThread().getStackTrace();
     Supplier<CudaPtr> ptr = this.ptrRef;
     if (ptr != null) {
       CudaPtr cudaPtr = ptr.get();

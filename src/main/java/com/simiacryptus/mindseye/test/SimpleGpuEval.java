@@ -20,6 +20,8 @@
 package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.lang.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.lang.cudnn.GpuHandle;
@@ -59,7 +61,7 @@ public class SimpleGpuEval extends SimpleListEval {
   
   @Override
   public TensorList getFeedback(final TensorList original) {
-    CudaPtr cudaPtr = CudaPtr.getCudaPtr(Precision.Double, original);
+    CudaPtr cudaPtr = CudaPtr.getCudaPtr(Precision.Double, new TensorArray(original.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i])));
     return GpuTensorList.create(cudaPtr, original.length(), original.getDimensions(), Precision.Double);
   }
   

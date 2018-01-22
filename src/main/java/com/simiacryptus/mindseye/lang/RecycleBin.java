@@ -112,11 +112,13 @@ public abstract class RecycleBin<K, T> {
    * @param size the size
    */
   protected void free2(T obj, K size) {
-    StackCounter stackCounter = getFrees(size);
-    if (null != stackCounter) {
-      stackCounter.increment(size(size));
+    if (null != obj) {
+      StackCounter stackCounter = getFrees(size);
+      if (null != stackCounter) {
+        stackCounter.increment(size(size));
+      }
+      free(obj);
     }
-    free(obj);
   }
   
   /**
