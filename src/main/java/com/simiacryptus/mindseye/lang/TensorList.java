@@ -51,14 +51,12 @@ public interface TensorList {
    * @return the tensor list
    */
   default TensorList add(final TensorList right) {
-    synchronized (this) {
-      if (right.length() == 0) return this;
-      if (length() == 0) throw new IllegalArgumentException();
-      assert length() == right.length();
-      return new TensorArray(IntStream.range(0, length()).mapToObj(i -> {
-        return get(i).add(right.get(i));
-      }).toArray(i -> new Tensor[i]));
-    }
+    if (right.length() == 0) return this;
+    if (length() == 0) throw new IllegalArgumentException();
+    assert length() == right.length();
+    return new TensorArray(IntStream.range(0, length()).mapToObj(i -> {
+      return get(i).add(right.get(i));
+    }).toArray(i -> new Tensor[i]));
   }
   
   /**
@@ -68,14 +66,12 @@ public interface TensorList {
    * @return the tensor list
    */
   default TensorList minus(final TensorList right) {
-    synchronized (this) {
-      if (right.length() == 0) return this;
-      if (length() == 0) throw new IllegalArgumentException();
-      assert length() == right.length();
-      return new TensorArray(IntStream.range(0, length()).mapToObj(i -> {
-        return get(i).minus(right.get(i));
-      }).toArray(i -> new Tensor[i]));
-    }
+    if (right.length() == 0) return this;
+    if (length() == 0) throw new IllegalArgumentException();
+    assert length() == right.length();
+    return new TensorArray(IntStream.range(0, length()).mapToObj(i -> {
+      return get(i).minus(right.get(i));
+    }).toArray(i -> new Tensor[i]));
   }
   
   /**

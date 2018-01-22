@@ -23,7 +23,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.simiacryptus.mindseye.lang.PersistanceMode;
-import com.simiacryptus.mindseye.lang.RecycleBin;
+import com.simiacryptus.mindseye.lang.RecycleBinLong;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.util.lang.TimedResult;
@@ -111,14 +111,14 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     else {
       final int listLength = data.length();
       final int elementLength = Tensor.dim(data.getDimensions());
-      final double[] inputBuffer = RecycleBin.DOUBLES.obtain(elementLength * listLength);
+      final double[] inputBuffer = RecycleBinLong.DOUBLES.obtain(elementLength * listLength);
       for (int i = 0; i < listLength; i++) {
         final double[] doubles = data.get(i).getData();
         assert elementLength == doubles.length;
         System.arraycopy(doubles, 0, inputBuffer, i * elementLength, elementLength);
       }
       final CudaPtr ptr = CudaPtr.allocate((long) inputBuffer.length * precision.size, CuDNN.getDevice(), MemoryType.Managed, true).write(precision, inputBuffer);
-      RecycleBin.DOUBLES.recycle(inputBuffer, inputBuffer.length);
+      RecycleBinLong.DOUBLES.recycle(inputBuffer, inputBuffer.length);
       return ptr;
     }
   }

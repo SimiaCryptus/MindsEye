@@ -44,7 +44,7 @@ public class GpuHandle {
   private static final ThreadLocal<GpuHandle> threadContext = new ThreadLocal<>();
   private static final boolean DISABLE = Boolean.parseBoolean(System.getProperty("DISABLE_CUDNN", Boolean.toString(false)));
   private static final boolean FORCE_SINGLE_GPU = Boolean.parseBoolean(System.getProperty("FORCE_SINGLE_GPU", Boolean.toString(false)));
-  private static final int THREADS_PER_GPU = Integer.parseInt(System.getProperty("THREADS_PER_GPU", Integer.toString(2)));
+  private static final int THREADS_PER_GPU = Integer.parseInt(System.getProperty("THREADS_PER_GPU", Integer.toString(3)));
 
   /**
    * The constant gpuContexts.
@@ -80,7 +80,15 @@ public class GpuHandle {
    *
    * @param fn the fn
    */
-  public static void apply(final Consumer<GpuHandle> fn) {
+  public static void apply(final Consumer<GpuHandle> fn) {apply(fn, true);}
+  
+  /**
+   * Run.
+   *
+   * @param fn          the fn
+   * @param synchronize
+   */
+  public static void apply(final Consumer<GpuHandle> fn, boolean synchronize) {
     GpuHandle threadlocal = threadContext.get();
     try {
       if (threadlocal != null) {
@@ -105,7 +113,7 @@ public class GpuHandle {
         });
       }
     } finally {
-      CuDNN.cudaDeviceSynchronize();
+      if (synchronize) CuDNN.cudaDeviceSynchronize();
     }
   }
   
@@ -116,7 +124,17 @@ public class GpuHandle {
    * @param fn  the fn
    * @return the t
    */
-  public static <T> T run(final Function<GpuHandle, T> fn) {
+  public static <T> T run(final Function<GpuHandle, T> fn) {return run(fn, true);}
+  
+  /**
+   * Call t.
+   *
+   * @param <T>         the type parameter
+   * @param fn          the fn
+   * @param synchronize
+   * @return the t
+   */
+  public static <T> T run(final Function<GpuHandle, T> fn, boolean synchronize) {
     if (POOL.getAll().isEmpty()) {
       return fn.apply(new GpuHandle(-1));
     }
@@ -147,7 +165,7 @@ public class GpuHandle {
           });
         }
       } finally {
-        CuDNN.cudaDeviceSynchronize();
+        if (synchronize) CuDNN.cudaDeviceSynchronize();
       }
     }
   }

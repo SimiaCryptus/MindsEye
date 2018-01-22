@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.layers.aparapi;
 
 import com.simiacryptus.mindseye.lang.ComponentException;
-import com.simiacryptus.mindseye.lang.RecycleBin;
+import com.simiacryptus.mindseye.lang.RecycleBinLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,12 +126,12 @@ public final class ConvolutionController {
             final int currentIndexOffset = run * inputsPerRun;
             final int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
             if (null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
-              if (null != inputBuffer) RecycleBin.DOUBLES.recycle(inputBuffer, inputBuffer.length);
-              inputBuffer = RecycleBin.DOUBLES.obtain(inLength * currentNumItems);
+              if (null != inputBuffer) RecycleBinLong.DOUBLES.recycle(inputBuffer, inputBuffer.length);
+              inputBuffer = RecycleBinLong.DOUBLES.obtain(inLength * currentNumItems);
             }
             if (null == outputBuffer || outputBuffer.length != outLength * currentNumItems) {
-              if (null != outputBuffer) RecycleBin.DOUBLES.recycle(outputBuffer, outputBuffer.length);
-              outputBuffer = RecycleBin.DOUBLES.obtain(outLength * currentNumItems);
+              if (null != outputBuffer) RecycleBinLong.DOUBLES.recycle(outputBuffer, outputBuffer.length);
+              outputBuffer = RecycleBinLong.DOUBLES.obtain(outLength * currentNumItems);
             }
             for (int i = 0; i < currentNumItems; i++) {
               assert outLength == output[currentIndexOffset + i].length;
@@ -157,8 +157,8 @@ public final class ConvolutionController {
               System.arraycopy(inputBuffer, i * inLength, input[currentIndexOffset + i], 0, inLength);
             }
           }
-          RecycleBin.DOUBLES.recycle(inputBuffer, inputBuffer.length);
-          RecycleBin.DOUBLES.recycle(outputBuffer, outputBuffer.length);
+          RecycleBinLong.DOUBLES.recycle(inputBuffer, inputBuffer.length);
+          RecycleBinLong.DOUBLES.recycle(outputBuffer, outputBuffer.length);
           ConvolutionController.backpropTask.kernelSize = null;
           ConvolutionController.backpropTask.weights = null;
         }
@@ -209,12 +209,12 @@ public final class ConvolutionController {
               continue;
             }
             if (null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
-              if (null != inputBuffer) RecycleBin.DOUBLES.recycle(inputBuffer, inputBuffer.length);
-              inputBuffer = RecycleBin.DOUBLES.obtain(inLength * currentNumItems);
+              if (null != inputBuffer) RecycleBinLong.DOUBLES.recycle(inputBuffer, inputBuffer.length);
+              inputBuffer = RecycleBinLong.DOUBLES.obtain(inLength * currentNumItems);
             }
             if (null == outputBuffer || outputBuffer.length != outLength * currentNumItems) {
-              if (null != outputBuffer) RecycleBin.DOUBLES.recycle(outputBuffer, outputBuffer.length);
-              outputBuffer = RecycleBin.DOUBLES.obtain(outLength * currentNumItems);
+              if (null != outputBuffer) RecycleBinLong.DOUBLES.recycle(outputBuffer, outputBuffer.length);
+              outputBuffer = RecycleBinLong.DOUBLES.obtain(outLength * currentNumItems);
             }
             for (int i = 0; i < currentNumItems; i++) {
               assert inLength == input[currentIndexOffset + i].length;
@@ -240,8 +240,8 @@ public final class ConvolutionController {
               System.arraycopy(outputBuffer, i * outLength, output[currentIndexOffset + i], 0, outLength);
             }
           }
-          RecycleBin.DOUBLES.recycle(inputBuffer, inputBuffer.length);
-          RecycleBin.DOUBLES.recycle(outputBuffer, outputBuffer.length);
+          RecycleBinLong.DOUBLES.recycle(inputBuffer, inputBuffer.length);
+          RecycleBinLong.DOUBLES.recycle(outputBuffer, outputBuffer.length);
           ConvolutionController.convolveTask.kernelSize = null;
           ConvolutionController.convolveTask.weights = null;
         }
@@ -322,12 +322,12 @@ public final class ConvolutionController {
       final int currentIndexOffset = run * inputsPerRun;
       final int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
       if (null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
-        if (null != inputBuffer) RecycleBin.DOUBLES.recycle(inputBuffer, inputBuffer.length);
-        inputBuffer = RecycleBin.DOUBLES.obtain(inLength * currentNumItems);
+        if (null != inputBuffer) RecycleBinLong.DOUBLES.recycle(inputBuffer, inputBuffer.length);
+        inputBuffer = RecycleBinLong.DOUBLES.obtain(inLength * currentNumItems);
       }
       if (null == outputBuffer || outputBuffer.length != outLength * currentNumItems) {
-        if (null != outputBuffer) RecycleBin.DOUBLES.recycle(outputBuffer, outputBuffer.length);
-        outputBuffer = RecycleBin.DOUBLES.obtain(outLength * currentNumItems);
+        if (null != outputBuffer) RecycleBinLong.DOUBLES.recycle(outputBuffer, outputBuffer.length);
+        outputBuffer = RecycleBinLong.DOUBLES.obtain(outLength * currentNumItems);
       }
       for (int i = 0; i < currentNumItems; i++) {
         assert inLength == input[currentIndexOffset + i].length;
@@ -336,17 +336,17 @@ public final class ConvolutionController {
         System.arraycopy(output[currentIndexOffset + i], 0, outputBuffer, i * outLength, outLength);
       }
       final int parallelism = Math.min(16, inLength);
-      final double[] buffer = RecycleBin.DOUBLES.obtain(weights.length * parallelism);
+      final double[] buffer = RecycleBinLong.DOUBLES.obtain(weights.length * parallelism);
       gradient(inputBuffer, buffer, weights.length, outputBuffer);
       IntStream.range(0, weights.length).forEach(weightIndex -> {
         for (int i = weightIndex; i < buffer.length; i += weights.length) {
           weights[weightIndex] += buffer[i];
         }
       });
-      RecycleBin.DOUBLES.recycle(buffer, buffer.length);
+      RecycleBinLong.DOUBLES.recycle(buffer, buffer.length);
     }
-    RecycleBin.DOUBLES.recycle(inputBuffer, inputBuffer.length);
-    RecycleBin.DOUBLES.recycle(outputBuffer, outputBuffer.length);
+    RecycleBinLong.DOUBLES.recycle(inputBuffer, inputBuffer.length);
+    RecycleBinLong.DOUBLES.recycle(outputBuffer, outputBuffer.length);
   }
   
   @Override

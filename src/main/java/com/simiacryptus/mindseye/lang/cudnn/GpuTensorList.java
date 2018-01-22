@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.simiacryptus.mindseye.lang.*;
 import jcuda.Pointer;
+import jcuda.jcudnn.cudnnOpTensorDescriptor;
+import jcuda.jcudnn.cudnnOpTensorOp;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 import jcuda.jcudnn.cudnnTensorFormat;
 import org.slf4j.Logger;
@@ -73,6 +75,43 @@ public class GpuTensorList implements TensorList {
     assert ptr.getPtr() != null;
     //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     assert !System.getProperties().containsKey("safe") || stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+  }
+  
+  @Override
+  public synchronized TensorList add(final TensorList right) {
+    assert length() == right.length();
+    if (heapCopy == null) {
+      if (right instanceof GpuTensorList) {
+        final GpuTensorList nativeRight = (GpuTensorList) right;
+        if (nativeRight.precision == precision) {
+          if (nativeRight.heapCopy == null) {
+            return GpuHandle.run(gpu -> {
+              assert dimensions.length <= 3;
+              int d2 = dimensions.length < 3 ? 1 : dimensions[2];
+              int d1 = dimensions.length < 2 ? 1 : dimensions[1];
+              int d0 = dimensions[0];
+              ManagedCudaPtr rPtr = nativeRight.ptr;
+              ManagedCudaPtr lPtr = GpuTensorList.this.ptr;
+              final CudaResource<cudnnOpTensorDescriptor> opDescriptor = CuDNN.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
+              final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
+                precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, d2, d1, d0);
+              final CudaPtr outputPtr = CudaPtr.allocate(lPtr.size, gpu.getDeviceNumber(), MemoryType.Managed, true);
+              CuDNN.cudnnOpTensor(gpu.getHandle(), opDescriptor.getPtr(),
+                                  precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
+                                  precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
+                                  precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
+              return GpuTensorList.create(outputPtr, length, dimensions, precision);
+            });
+          }
+        }
+      }
+    }
+    if (right.length() == 0) return this;
+    if (length() == 0) throw new IllegalArgumentException();
+    assert length() == right.length();
+    return new TensorArray(IntStream.range(0, length()).mapToObj(i -> {
+      return get(i).add(right.get(i));
+    }).toArray(i -> new Tensor[i]));
   }
   
   /**
@@ -154,7 +193,7 @@ public class GpuTensorList implements TensorList {
       synchronized (this) {
         if (null == heapCopy) {
           final int itemLength = Tensor.dim(dimensions);
-          final double[] outputBuffer = RecycleBin.DOUBLES.obtain(itemLength * length);
+          final double[] outputBuffer = RecycleBinLong.DOUBLES.obtain(itemLength * length);
           assert 0 < outputBuffer.length;
           final Tensor[] output = IntStream.range(0, length)
                                            .mapToObj(dataIndex -> new Tensor(dimensions))
@@ -167,7 +206,7 @@ public class GpuTensorList implements TensorList {
             System.arraycopy(outputBuffer, i * itemLength, outputBuffers[0 + i], 0, itemLength);
           }
           //assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-          RecycleBin.DOUBLES.recycle(outputBuffer, outputBuffer.length);
+          RecycleBinLong.DOUBLES.recycle(outputBuffer, outputBuffer.length);
           heapCopy = new TensorArray(output);
         }
       }

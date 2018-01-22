@@ -27,7 +27,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -42,6 +44,7 @@ class CountingNNResult extends NNResult {
    * The constant logger.
    */
   protected static final Logger logger = LoggerFactory.getLogger(CountingNNResult.class);
+  private static final int COMPACTION_SIZE = 4;
   
   /**
    * The constant debugLifecycle.
@@ -88,6 +91,8 @@ class CountingNNResult extends NNResult {
     return "[" + list.stream().reduce((a, b) -> a + ", " + b).get() + (stackTrace.length > max ? ", ..." : "") + "]";
   }
   
+  private final Deque<TensorList> passbackBuffers = new LinkedBlockingDeque<>();
+  
   /**
    * A flagrant abuse of Java's object finalization contract. Repeated calls to this class's free method will increment
    * a counter, and when the counter cycles the call is chained.
@@ -107,13 +112,10 @@ class CountingNNResult extends NNResult {
           inner.free();
         }
         finalizations.set(0);
-        passbackBuffer = null;
+        passbackBuffers.clear();
       }
     }
   }
-  
-  //private final Deque<TensorList> passbackBuffers = new LinkedBlockingDeque<>();
-  private volatile TensorList passbackBuffer = null;
   
   @Override
   public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
@@ -123,23 +125,22 @@ class CountingNNResult extends NNResult {
       inner.accumulate(buffer, data);
     }
     else {
-      boolean created = false;
-      if (null == passbackBuffer) {
-        synchronized (this) {
-          if (null == passbackBuffer) {
-            passbackBuffer = data.copy();
-            created = true;
+      passbackBuffers.add(data);
+      if (passbackBuffers.size() > COMPACTION_SIZE) {
+        synchronized (passbackBuffers) {
+          if (passbackBuffers.size() > COMPACTION_SIZE) {
+            TensorList reduced = passbackBuffers.stream().parallel().reduce((a, b) -> a.add(b)).get();
+            passbackBuffers.clear();
+            passbackBuffers.add(reduced);
           }
         }
       }
-      if (null != passbackBuffer && !created) {
-        passbackBuffer.addInPlace(data);
-      }
       if (accumulations.incrementAndGet() == references.get()) {
         if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
-        inner.accumulate(buffer, passbackBuffer);
+        TensorList reduced = passbackBuffers.stream().parallel().reduce((a, b) -> a.add(b)).get();
+        inner.accumulate(buffer, reduced);
         accumulations.set(0);
-        passbackBuffer = null;
+        passbackBuffers.clear();
       }
     }
   }

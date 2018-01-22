@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.simiacryptus.mindseye.lang.PersistanceMode;
-import com.simiacryptus.mindseye.lang.RecycleBin;
+import com.simiacryptus.mindseye.lang.RecycleBinLong;
 import jcuda.Pointer;
 import scala.reflect.internal.util.WeakHashSet;
 
@@ -104,7 +104,7 @@ public class ManagedCudaPtr {
       if (null != cudaPtr) cudaPtr.free();
     }
     if (null != values) {
-      RecycleBin.DOUBLES.recycle(values, values.length);
+      RecycleBinLong.DOUBLES.recycle(values, values.length);
       values = null;
     }
   }

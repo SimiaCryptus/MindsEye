@@ -32,7 +32,6 @@ import java.util.UUID;
  */
 public interface DAGNode extends Serializable {
   
-  
   /**
    * Get nn result.
    *

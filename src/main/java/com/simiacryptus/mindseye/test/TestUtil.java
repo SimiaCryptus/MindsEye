@@ -601,4 +601,14 @@ public class TestUtil {
           .parallel()
           .forEach(Runnable::run);
   }
+  
+  public static <T> Supplier<T> orElse(Supplier<T>... suppliers) {
+    return () -> {
+      for (Supplier<T> supplier : suppliers) {
+        T t = supplier.get();
+        if (null != t) return t;
+      }
+      return null;
+    };
+  }
 }

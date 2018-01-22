@@ -93,7 +93,7 @@ public class DoubleBuffer<K> {
    * @return the delta
    */
   public DoubleBuffer<K> copy() {
-    return new DoubleBuffer<K>(layer, target, RecycleBin.DOUBLES.copyOf(delta, length()));
+    return new DoubleBuffer<K>(layer, target, RecycleBinLong.DOUBLES.copyOf(delta, length()));
   }
   
   /**
@@ -134,7 +134,7 @@ public class DoubleBuffer<K> {
     if (null == delta) {
       synchronized (this) {
         if (null == delta) {
-          delta = RecycleBin.DOUBLES.obtain(target.length);
+          delta = RecycleBinLong.DOUBLES.obtain(target.length);
         }
       }
     }

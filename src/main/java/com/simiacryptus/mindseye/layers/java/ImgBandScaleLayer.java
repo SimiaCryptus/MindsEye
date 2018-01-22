@@ -137,7 +137,7 @@ public class ImgBandScaleLayer extends NNLayer {
             int z = dimensions[2];
             int y = dimensions[1];
             int x = dimensions[0];
-            final double[] array = RecycleBin.DOUBLES.obtain(z);
+            final double[] array = RecycleBinLong.DOUBLES.obtain(z);
             final double[] deltaArray = delta.get(index).getData();
             final double[] inputData = input.getData().get(index).getData();
             for (int i = 0; i < z; i++) {
@@ -148,7 +148,7 @@ public class ImgBandScaleLayer extends NNLayer {
             }
             assert Arrays.stream(array).allMatch(v -> Double.isFinite(v));
             deltaBuffer.addInPlace(array);
-            RecycleBin.DOUBLES.recycle(array, array.length);
+            RecycleBinLong.DOUBLES.recycle(array, array.length);
           });
         }
         if (input.isAlive()) {

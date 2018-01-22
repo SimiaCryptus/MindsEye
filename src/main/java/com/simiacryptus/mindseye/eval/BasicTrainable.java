@@ -223,7 +223,7 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
       }
       return timedResult.result;
     } catch (final Exception e) {
-      RecycleBin.DOUBLES.printNetProfiling(System.err);
+      RecycleBinLong.DOUBLES.printNetProfiling(System.err);
       if (retries > 0) {
         lastGc = System.currentTimeMillis();
         CuDNN.cleanMemory();

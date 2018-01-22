@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.*;
+import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.Util;
 import jcuda.jcudnn.*;
 import org.slf4j.Logger;
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -94,23 +96,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
     precision = Precision.valueOf(json.get("precision").getAsString());
   }
   
-  /**
-   * Instantiates a new Convolution layer.
-   *
-   * @param kernel the filter
-   */
-  protected SimpleConvolutionLayer(final Tensor kernel) {
-    super();
-    int[] kernelSize = kernel.getDimensions();
-    if (kernelSize.length != 3) throw new IllegalArgumentException();
-    if (kernelSize[0] <= 0) throw new IllegalArgumentException();
-    if (kernelSize[1] <= 0) throw new IllegalArgumentException();
-    if (kernelSize[2] <= 0) throw new IllegalArgumentException();
-    this.kernel = kernel;
-    this.setPaddingX((int) Math.ceil((kernelSize[0] - 1) / 2.0));
-    this.setPaddingY((int) Math.ceil((kernelSize[1] - 1) / 2.0));
-  
-  }
+  private static final WeakHashMap<SimpleConvolutionParameters, CudaFwdParameters> fwdWs = new WeakHashMap<>();
   
   /**
    * From json convolution layer.
@@ -156,149 +142,162 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
     return outputSize[2] == outputDims[1];
   }
   
+  private static final WeakHashMap<SimpleConvolutionParameters, CudaRevParameters> revWs = new WeakHashMap<>();
+  
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param kernel the filter
+   */
+  protected SimpleConvolutionLayer(final Tensor kernel) {
+    super();
+    int[] kernelSize = kernel.getDimensions();
+    if (kernelSize.length != 3) throw new IllegalArgumentException();
+    if (kernelSize[0] <= 0) throw new IllegalArgumentException();
+    if (kernelSize[1] <= 0) throw new IllegalArgumentException();
+    if (kernelSize[2] <= 0) throw new IllegalArgumentException();
+    this.kernel = kernel;
+    this.setPaddingX((int) Math.ceil((kernelSize[0] - 1) / 2.0));
+    this.setPaddingY((int) Math.ceil((kernelSize[1] - 1) / 2.0));
+    
+  }
+  
+  private static CudaFwdParameters obtainFwd(SimpleConvolutionParameters parameters) {
+    synchronized (fwdWs) {
+      return fwdWs.computeIfAbsent(parameters, k -> new CudaFwdParameters(k));
+    }
+  }
+  
+  private static CudaRevParameters obtainRev(SimpleConvolutionParameters parameters) {
+    synchronized (revWs) {
+      return revWs.computeIfAbsent(parameters, k -> new CudaRevParameters(k));
+    }
+  }
+  
   @Override
   public NNResult eval(final NNResult... inObj) {
     if (!CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
+  
+    final NNResult input = inObj[0];
+    final TensorList batch = input.getData();
+    final int[] inputSize = batch.getDimensions();
+    final int[] kernelSize = kernel.getDimensions();
+    final int[] outputSize = getOutputSize(inputSize);
+    final int length = batch.length();
+  
     return GpuHandle.run(gpu -> {
       final int deviceNumber = gpu.getDeviceNumber();
       //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
-      final NNResult input = inObj[0];
-      final TensorList batch = input.getData();
-      final int[] inputSize = batch.getDimensions();
-      final int[] kernelSize = kernel.getDimensions();
-      final int[] outputSize = getOutputSize(inputSize);
-      final int length = batch.length();
     
       try {
-        final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-          precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-        final CudaResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
-          precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
-        final CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = getConvolutionDescriptor();
-  
-        int[] outputDims = reverse(CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr()));
-        outputDims = IntStream.of(outputDims).limit(3).toArray();
-        final CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
-          precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, outputDims[2], outputDims[1], outputDims[0]);
-      
+        SimpleConvolutionParameters parameters = new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu);
+        CudaFwdParameters cudaParameters = obtainFwd(parameters);
         assert 0 < kernel.getData().length;
         assert kernelSize[0] * kernelSize[1] * kernelSize[2] == kernel.getData().length;
         MemoryType filterMemoryType = MemoryType.Managed;
-        final ManagedCudaPtr filterPtr = CudaPtr.allocate((long) (kernel.getData().length * precision.size), deviceNumber, filterMemoryType, false).write(precision, kernel.getData()).managed();
+        final ManagedCudaPtr filterPtr = CudaPtr.allocate((long) (kernel.getData().length * precision.size), deviceNumber, filterMemoryType, true)
+                                                .write(precision, kernel.getData()).managed();
         final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
-  
-        final CudaPtr outputBuffer = CudaPtr.allocate(Tensor.dim(outputDims) * 1l * length * precision.size, deviceNumber, MemoryType.Managed, true);
-        final int algorithm = CuDNN.getForwardAlgorithm(gpu.getHandle(),
-                                                        inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
-        final CudaPtr workSpace = CuDNN.allocateForwardWorkspace(gpu.getHandle(), deviceNumber,
-                                                                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
+      
+        final CudaPtr outputBuffer = CudaPtr.allocate(Tensor.dim(cudaParameters.outputDims) * 1l * length * precision.size, deviceNumber, MemoryType.Managed, true);
         CuDNN.handle(CuDNN.cudnnConvolutionForward(gpu.getHandle(), precision.getPointer(1.0),
-                                                   inputDescriptor.getPtr(), inputData.getPtr(),
-                                                   filterDescriptor.getPtr(), filterPtr.getPtr(),
-                                                   convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, precision.getPointer(0.0),
-                                                   outputDescriptor.getPtr(), outputBuffer.getPtr()));
-        Supplier<CudaPtr> workspacePtr = PersistanceMode.Weak.wrap(workSpace);
-        //filterPtr.setGpuPersistance(PersistanceMode.Weak);
-        TensorList output = GpuTensorList.create(outputBuffer, length, outputDims, precision);
-        return new NNResult(output) {
-        
-          public StackTraceElement[] freedBy = null;
-          AtomicBoolean hasAccumulated = new AtomicBoolean(false);
-        
-          @Override
-          public void free() {
-            free(workspacePtr.get());
-            freedBy = Thread.currentThread().getStackTrace();
-            Arrays.stream(inObj).forEach(NNResult::free);
-            filterPtr.free();
-          }
-  
-          public void free(CudaPtr cudaPtr) {
-            if (null != cudaPtr) cudaPtr.finalize();
-          }
-  
-          @Override
-          public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
-            if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
-            assert null == freedBy : Arrays.toString(freedBy);
-            assert error.length() == batch.length();
-            //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-            final int length = error.length();
-            final TensorList inputBufferTensors = GpuHandle.run(gpu -> {
-              final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-                precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-              final CudaResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
-                precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
-              final CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = getConvolutionDescriptor();
-              int deviceNumber = gpu.getDeviceNumber();
-              final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
-              if (!isFrozen()) {
-                final CudaPtr filterBuffer = CudaPtr.allocate(kernel.dim() * 1l * precision.size, deviceNumber, MemoryType.Managed, true);
-                try {
-                  final int backwardAlgorithm = CuDNN.getBackwardFilterAlgorithm(gpu.getHandle(),
-                                                                                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
-                  final CudaPtr workSpace = CuDNN.allocateBackwardFilterWorkspace(gpu.getHandle(), deviceNumber,
-                                                                                  inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), backwardAlgorithm);
-                  CuDNN.handle(CuDNN.cudnnConvolutionBackwardFilter(gpu.getHandle(), precision.getPointer(1.0),
-                                                                    inputDescriptor.getPtr(), inputData.getPtr(),
-                                                                    outputDescriptor.getPtr(), errorPtr.getPtr(),
-                                                                    convolutionDescriptor.getPtr(), backwardAlgorithm, workSpace.getPtr(), workSpace.size, precision.getPointer(0.0),
-                                                                    filterDescriptor.getPtr(), filterBuffer.getPtr()));
-                  workSpace.finalize();
-                } catch (final Throwable e) {
-                  throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
-                }
-                final Tensor weightGradient = CudaPtr.read(filterBuffer, precision, kernel.getDimensions());
-                buffer.get(SimpleConvolutionLayer.this, kernel.getData()).addInPlace(weightGradient.getData());
-                filterBuffer.finalize();
-              }
-              TensorList gpuTensorList = null;
-              if (input.isAlive()) {
-                final CudaPtr inputBuffer = CudaPtr.allocate(Tensor.dim(batch.getDimensions()) * 1l * length * precision.size, deviceNumber, MemoryType.Managed, true);
-                try {
-                  final int algorithm = CuDNN.getBackwardDataAlgorithm(gpu.getHandle(),
-                                                                       inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
-                  final CudaPtr workSpace = CuDNN.allocateBackwardDataWorkspace(gpu.getHandle(), deviceNumber,
-                                                                                inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
-                  CuDNN.handle(CuDNN.cudnnConvolutionBackwardData(gpu.getHandle(), precision.getPointer(1.0),
-                                                                  filterDescriptor.getPtr(), filterPtr.getPtr(),
-                                                                  outputDescriptor.getPtr(), errorPtr.getPtr(),
-                                                                  convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, precision.getPointer(0.0),
-                                                                  inputDescriptor.getPtr(), inputBuffer.getPtr()));
-                  workSpace.finalize();
-                } catch (final Throwable e) {
-                  throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
-                }
-                gpuTensorList = GpuTensorList.create(inputBuffer, length, inputSize, precision);
-              }
-              return gpuTensorList;
-            });
-            if (null != inputBufferTensors) {
-              input.accumulate(buffer, inputBufferTensors);
-            }
-          }
-        
-          @Override
-          public boolean isAlive() {
-            return input.isAlive() || !isFrozen();
-          }
-        };
+                                                   cudaParameters.inputDescriptor.getPtr(), inputData.getPtr(),
+                                                   cudaParameters.filterDescriptor.getPtr(), filterPtr.getPtr(),
+                                                   cudaParameters.convolutionDescriptor.getPtr(),
+                                                   cudaParameters.forwardAlgorithm,
+                                                   cudaParameters.forwardWorkspace.getPtr(),
+                                                   cudaParameters.forwardWorkspace.size,
+                                                   precision.getPointer(0.0), cudaParameters.outputDescriptor.getPtr(), outputBuffer.getPtr()));
+        GpuTensorList output = GpuTensorList.create(outputBuffer, length, cudaParameters.outputDims, precision);
+        return getResult(input, inputSize, kernelSize, outputSize, PersistanceMode.Weak.wrap(filterPtr), inputData, output, inObj);
       } catch (final Throwable e) {
         throw new ComponentException(String.format("Error in convolution %s x %s", Arrays.toString(inputSize), Arrays.toString(kernelSize)), e);
       }
     });
   }
   
-  /**
-   * Gets convolution descriptor.
-   *
-   * @return the convolution descriptor
-   */
-  public CudaResource<cudnnConvolutionDescriptor> getConvolutionDescriptor() {
-    return CuDNN.newConvolutions2dDescriptor(cudnnConvolutionMode.CUDNN_CONVOLUTION, precision.code,
-                                             paddingY, paddingX,
-                                             strideY, strideX,
-                                             1, 1);
+  public NNResult getResult(NNResult input, int[] inputSize, int[] kernelSize, int[] outputSize, Supplier<ManagedCudaPtr> filterPtr, CudaPtr inputData, GpuTensorList output, NNResult[] inObj) {
+    return new NNResult(output) {
+      
+      public StackTraceElement[] freedBy = null;
+      AtomicBoolean hasAccumulated = new AtomicBoolean(false);
+      
+      @Override
+      public void free() {
+        freedBy = Thread.currentThread().getStackTrace();
+        Arrays.stream(inObj).forEach(NNResult::free);
+        ManagedCudaPtr managedCudaPtr = filterPtr.get();
+        if (null != managedCudaPtr) managedCudaPtr.free();
+      }
+      
+      public void free(CudaPtr cudaPtr) {
+        if (null != cudaPtr) cudaPtr.finalize();
+      }
+      
+      @Override
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
+        if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
+        assert null == freedBy : Arrays.toString(freedBy);
+        final NNResult input = inObj[0];
+        final TensorList batch = input.getData();
+        assert error.length() == batch.length();
+        //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+        final int length = error.length();
+        final TensorList inputBufferTensors = GpuHandle.run((GpuHandle gpu) -> {
+          int deviceNumber = gpu.getDeviceNumber();
+          final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
+          SimpleConvolutionParameters parameters = new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu);
+          CudaRevParameters cudaParameters = obtainRev(parameters);
+          if (!isFrozen()) {
+            CudaPtr filterBuffer = CudaPtr.allocate(kernel.dim() * 1l * precision.size, deviceNumber, MemoryType.Managed, true);
+            try {
+              CuDNN.handle(CuDNN.cudnnConvolutionBackwardFilter(gpu.getHandle(), precision.getPointer(1.0),
+                                                                cudaParameters.inputDescriptor.getPtr(), inputData.getPtr(),
+                                                                cudaParameters.outputDescriptor.getPtr(), errorPtr.getPtr(),
+                                                                cudaParameters.convolutionDescriptor.getPtr(),
+                                                                cudaParameters.backwardFilterAlgorithm,
+                                                                cudaParameters.backwardsWorkSpace.getPtr(),
+                                                                cudaParameters.backwardsWorkSpace.size,
+                                                                precision.getPointer(0.0), cudaParameters.filterDescriptor.getPtr(), filterBuffer.getPtr()));
+            } catch (final Throwable e) {
+              throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
+            }
+            final Tensor weightGradient = CudaPtr.read(filterBuffer, precision, kernel.getDimensions());
+            buffer.get(SimpleConvolutionLayer.this, kernel.getData()).addInPlace(weightGradient.getData());
+            //filterBuffer.finalize();
+          }
+          TensorList gpuTensorList = null;
+          if (input.isAlive()) {
+            final CudaPtr inputBuffer = CudaPtr.allocate(Tensor.dim(batch.getDimensions()) * 1l * length * precision.size, deviceNumber, MemoryType.Managed, true);
+            try {
+              final ManagedCudaPtr _filterPtr = TestUtil.orElse(filterPtr, () -> CudaPtr.allocate((long) (kernel.getData().length * precision.size), deviceNumber, MemoryType.Managed, true)
+                                                                                        .write(precision, kernel.getData()).managed()).get();
+              CuDNN.handle(CuDNN.cudnnConvolutionBackwardData(gpu.getHandle(), precision.getPointer(1.0),
+                                                              cudaParameters.filterDescriptor.getPtr(), _filterPtr.getPtr(),
+                                                              cudaParameters.outputDescriptor.getPtr(), errorPtr.getPtr(),
+                                                              cudaParameters.convolutionDescriptor.getPtr(),
+                                                              cudaParameters.backwardDataAlgorithm,
+                                                              cudaParameters.backwardsWorkSpace.getPtr(),
+                                                              cudaParameters.backwardsWorkSpace.size,
+                                                              precision.getPointer(0.0), cudaParameters.inputDescriptor.getPtr(), inputBuffer.getPtr()));
+              //_filterPtr.free();
+            } catch (final Throwable e) {
+              throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
+            }
+            gpuTensorList = GpuTensorList.create(inputBuffer, length, inputSize, precision);
+          }
+          return gpuTensorList;
+        });
+        if (null != inputBufferTensors) {
+          input.accumulate(buffer, inputBufferTensors);
+        }
+      }
+      
+      @Override
+      public boolean isAlive() {
+        return input.isAlive() || !isFrozen();
+      }
+    };
   }
   
   /**
@@ -329,24 +328,181 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
           public void accumulate(DeltaSet<NNLayer> buffer, TensorList data) {
             throw new IllegalStateException();
           }
-        
+  
           @Override
           public boolean isAlive() {
             return false;
           }
         };
       }
-    
+  
       @Override
       public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
         throw new IllegalStateException();
       }
-    
+  
       @Override
       public List<double[]> state() {
         throw new IllegalStateException();
       }
     };
+  }
+  
+  private static class SimpleConvolutionParameters {
+    public final int length;
+    public final int[] inputSize;
+    public final int[] outputSize;
+    public final int[] kernelSize;
+    public final Tensor kernel;
+    public final int paddingX;
+    public final int paddingY;
+    public final Precision precision;
+    public final int strideX;
+    public final int strideY;
+    public final GpuHandle gpu;
+    
+    public SimpleConvolutionParameters(Tensor kernel, int paddingX, int paddingY, Precision precision, int strideX, int strideY, int length, int[] inputSize, int[] outputSize, int[] kernelSize, GpuHandle gpu) {
+      this.paddingX = paddingX;
+      this.gpu = gpu;
+      this.strideX = strideX;
+      this.strideY = strideY;
+      this.paddingY = paddingY;
+      this.precision = precision;
+      this.kernel = kernel;
+      this.length = length;
+      this.inputSize = Arrays.copyOf(inputSize, inputSize.length);
+      this.outputSize = Arrays.copyOf(outputSize, outputSize.length);
+      this.kernelSize = Arrays.copyOf(kernelSize, kernelSize.length);
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (!(o instanceof SimpleConvolutionParameters)) return false;
+      SimpleConvolutionParameters that = (SimpleConvolutionParameters) o;
+      if (length != that.length) return false;
+      if (paddingX != that.paddingX) return false;
+      if (paddingY != that.paddingY) return false;
+      if (strideX != that.strideX) return false;
+      if (strideY != that.strideY) return false;
+      if (!gpu.equals(that.gpu)) return false;
+      if (!Arrays.equals(inputSize, that.inputSize)) return false;
+      if (!Arrays.equals(outputSize, that.outputSize)) return false;
+      if (!Arrays.equals(kernelSize, that.kernelSize)) return false;
+      if (kernel != null ? !kernel.equals(that.kernel) : that.kernel != null) return false;
+      return precision == that.precision;
+    }
+    
+    @Override
+    public int hashCode() {
+      int result = length;
+      result = 31 * result + Arrays.hashCode(inputSize);
+      result = 31 * result + Arrays.hashCode(outputSize);
+      result = 31 * result + Arrays.hashCode(kernelSize);
+      result = 31 * result + (kernel != null ? kernel.hashCode() : 0);
+      result = 31 * result + paddingX;
+      result = 31 * result + paddingY;
+      result = 31 * result + (precision != null ? precision.hashCode() : 0);
+      result = 31 * result + strideX;
+      result = 31 * result + strideY;
+      result = 31 * result + gpu.hashCode();
+      return result;
+    }
+    
+    @Override
+    public String toString() {
+      return getClass().getSimpleName() + "{" +
+        "length=" + length +
+        ", inputSize=" + Arrays.toString(inputSize) +
+        ", outputSize=" + Arrays.toString(outputSize) +
+        ", kernelSize=" + Arrays.toString(kernelSize) +
+        ", kernel=" + kernel +
+        ", paddingX=" + paddingX +
+        ", paddingY=" + paddingY +
+        ", precision=" + precision +
+        ", strideX=" + strideX +
+        ", strideY=" + strideY +
+        ", gpu=" + gpu +
+        '}';
+    }
+  }
+  
+  private static class CudaRevParameters extends SimpleConvolutionParameters {
+    public final int backwardDataAlgorithm;
+    public final int backwardFilterAlgorithm;
+    public final int[] outputDims;
+    public final CudaPtr backwardsWorkSpace;
+    public final CudaResource<cudnnTensorDescriptor> outputDescriptor;
+    public final CudaResource<cudnnTensorDescriptor> inputDescriptor;
+    public final CudaResource<cudnnFilterDescriptor> filterDescriptor;
+    public final CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor;
+    
+    CudaRevParameters(SimpleConvolutionParameters obj) {
+      super(obj.kernel, obj.paddingX, obj.paddingY, obj.precision, obj.strideX, obj.strideY, obj.length, obj.inputSize, obj.outputSize, obj.kernelSize, obj.gpu);
+      inputDescriptor = CuDNN.newTensorDescriptor(
+        precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+      filterDescriptor = CuDNN.newFilterDescriptor(
+        precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
+      convolutionDescriptor = CuDNN.newConvolutions2dDescriptor(cudnnConvolutionMode.CUDNN_CONVOLUTION, precision.code,
+                                                                paddingY, paddingX,
+                                                                strideY, strideX,
+                                                                1, 1);
+      outputDims = IntStream.of(reverse(CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr()))).limit(3).toArray();
+      outputDescriptor = CuDNN.newTensorDescriptor(
+        precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, outputDims[2], outputDims[1], outputDims[0]);
+      backwardDataAlgorithm = CuDNN.getBackwardDataAlgorithm(gpu.getHandle(),
+                                                             inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
+      backwardFilterAlgorithm = CuDNN.getBackwardFilterAlgorithm(gpu.getHandle(),
+                                                                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
+      backwardsWorkSpace = CuDNN.allocateBackwardFilterWorkspace(gpu.getHandle(), gpu.getDeviceNumber(),
+                                                                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), backwardDataAlgorithm);
+    }
+    
+    public void free() {
+      this.convolutionDescriptor.finalize();
+      this.filterDescriptor.finalize();
+      this.inputDescriptor.finalize();
+      this.outputDescriptor.finalize();
+      this.backwardsWorkSpace.finalize();
+    }
+    
+  }
+  
+  private static class CudaFwdParameters extends SimpleConvolutionParameters {
+    public final int forwardAlgorithm;
+    public final int[] outputDims;
+    public final CudaResource<cudnnTensorDescriptor> outputDescriptor;
+    public final CudaResource<cudnnTensorDescriptor> inputDescriptor;
+    public final CudaResource<cudnnFilterDescriptor> filterDescriptor;
+    public final CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor;
+    public final CudaPtr forwardWorkspace;
+    
+    CudaFwdParameters(SimpleConvolutionParameters obj) {
+      super(obj.kernel, obj.paddingX, obj.paddingY, obj.precision, obj.strideX, obj.strideY, obj.length, obj.inputSize, obj.outputSize, obj.kernelSize, obj.gpu);
+      inputDescriptor = CuDNN.newTensorDescriptor(
+        precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+      filterDescriptor = CuDNN.newFilterDescriptor(
+        precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
+      convolutionDescriptor = CuDNN.newConvolutions2dDescriptor(cudnnConvolutionMode.CUDNN_CONVOLUTION, precision.code,
+                                                                paddingY, paddingX,
+                                                                strideY, strideX,
+                                                                1, 1);
+      outputDims = IntStream.of(reverse(CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr()))).limit(3).toArray();
+      outputDescriptor = CuDNN.newTensorDescriptor(
+        precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, outputDims[2], outputDims[1], outputDims[0]);
+      forwardAlgorithm = CuDNN.getForwardAlgorithm(gpu.getHandle(),
+                                                   inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
+      forwardWorkspace = CuDNN.allocateForwardWorkspace(gpu.getHandle(), gpu.getDeviceNumber(),
+                                                        inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), forwardAlgorithm);
+    }
+    
+    public void free() {
+      this.convolutionDescriptor.finalize();
+      this.filterDescriptor.finalize();
+      this.inputDescriptor.finalize();
+      this.outputDescriptor.finalize();
+    }
+    
   }
   
   @Override

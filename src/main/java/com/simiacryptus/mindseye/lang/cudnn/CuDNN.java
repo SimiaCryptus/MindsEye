@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.simiacryptus.mindseye.lang.RecycleBin;
+import com.simiacryptus.mindseye.lang.RecycleBinLong;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.data.DoubleStatistics;
 import jcuda.Pointer;
@@ -1080,7 +1080,7 @@ public class CuDNN {
     return singleThreadExecutor.submit(() -> {
       try {
         logger.warn("Cleaning Memory");
-        RecycleBin.DOUBLES.clear();
+        RecycleBinLong.DOUBLES.clear();
         Runtime runtime = Runtime.getRuntime();
         runtime.gc();
         runtime.runFinalization();
@@ -1583,7 +1583,7 @@ public class CuDNN {
     CuDNN.handle(result);
     final long workspaceSize = sizeInBytesArray[0];
     final long size = 0 < workspaceSize ? workspaceSize : 0;
-    return CudaPtr.allocate(size, deviceId, MemoryType.Managed, true);
+    return CudaPtr.allocate(size, deviceId, MemoryType.Managed, false);
   }
   
   /**

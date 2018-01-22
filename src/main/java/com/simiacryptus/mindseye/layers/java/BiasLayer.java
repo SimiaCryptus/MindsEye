@@ -92,7 +92,7 @@ public class BiasLayer extends NNLayer {
    * @return the double [ ]
    */
   public double[] add(final double[] input) {
-    final double[] array = RecycleBin.DOUBLES.obtain(input.length);
+    final double[] array = RecycleBinLong.DOUBLES.obtain(input.length);
     if (1 == bias.length) {
       for (int i = 0; i < array.length; i++) {
         array[i] = input[i] + bias[0];
