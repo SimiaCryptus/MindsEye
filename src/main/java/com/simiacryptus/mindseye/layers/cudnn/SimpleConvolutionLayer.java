@@ -545,7 +545,8 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
       backwardFilterAlgorithm = CuDNN.getBackwardFilterAlgorithm(gpu.getHandle(),
                                                                  inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
       backwardsWorkSpace = CuDNN.allocateBackwardFilterWorkspace(gpu.getHandle(), gpu.getDeviceNumber(),
-                                                                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), backwardDataAlgorithm);
+                                                                 inputDescriptor.getPtr(), filterDescriptor.getPtr(),
+                                                                 convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), backwardDataAlgorithm);
     }
   
     /**

@@ -82,7 +82,7 @@ public class GpuTensorList implements TensorList {
     if (heapCopy == null) {
       if (right instanceof GpuTensorList) {
         final GpuTensorList nativeRight = (GpuTensorList) right;
-        if (nativeRight.precision == precision) {
+        if (nativeRight.precision == this.precision) {
           if (nativeRight.heapCopy == null) {
             return GpuHandle.run(gpu -> {
               assert dimensions.length <= 3;
@@ -91,15 +91,15 @@ public class GpuTensorList implements TensorList {
               int d0 = dimensions[0];
               ManagedCudaPtr rPtr = nativeRight.ptr;
               ManagedCudaPtr lPtr = GpuTensorList.this.ptr;
-              final CudaResource<cudnnOpTensorDescriptor> opDescriptor = CuDNN.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
+              final CudaResource<cudnnOpTensorDescriptor> opDescriptor = CuDNN.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, this.precision.code);
               final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
-                precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, d2, d1, d0);
+                this.precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, d2, d1, d0);
               final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
               CuDNN.cudnnOpTensor(gpu.getHandle(), opDescriptor.getPtr(),
                                   precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                   precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
                                   precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-              return GpuTensorList.create(outputPtr, length, dimensions, precision);
+              return GpuTensorList.create(outputPtr, length, dimensions, this.precision);
             });
           }
         }

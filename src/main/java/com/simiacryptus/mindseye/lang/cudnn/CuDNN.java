@@ -1135,11 +1135,11 @@ public class CuDNN {
    * @param args   the args
    */
   protected static void log(final String method, final Object result, final Object... args) {
-    for (PrintStream apiLog : CuDNN.apiLog) {
-      final String paramString = null == args ? "" : Arrays.stream(args).map(CuDNN::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
-      final String message = String.format("%.6f @ %s: %s(%s) = %s", (System.nanoTime() - CuDNN.start) / 1e9, Thread.currentThread().getName(), method, paramString, result);
-      CuDNN.logThread.submit(() -> apiLog.println(message));
-    }
+    final String paramString = null == args ? "" : Arrays.stream(args).map(CuDNN::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
+    final String message = String.format("%.6f @ %s: %s(%s) = %s", (System.nanoTime() - CuDNN.start) / 1e9, Thread.currentThread().getName(), method, paramString, result);
+    try {
+      CuDNN.apiLog.forEach(apiLog -> CuDNN.logThread.submit(() -> apiLog.println(message)));
+    } catch (ConcurrentModificationException e) {}
   }
   
   /**

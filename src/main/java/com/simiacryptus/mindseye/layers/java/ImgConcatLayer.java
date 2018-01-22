@@ -148,7 +148,9 @@ public class ImgConcatLayer extends NNLayer {
   
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    return super.getJsonStub();
+    JsonObject json = super.getJsonStub();
+    json.addProperty("maxBands", maxBands);
+    return json;
   }
   
   @Override
