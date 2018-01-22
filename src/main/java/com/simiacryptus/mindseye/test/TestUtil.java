@@ -602,6 +602,13 @@ public class TestUtil {
           .forEach(Runnable::run);
   }
   
+  /**
+   * Or else supplier.
+   *
+   * @param <T>       the type parameter
+   * @param suppliers the suppliers
+   * @return the supplier
+   */
   public static <T> Supplier<T> orElse(Supplier<T>... suppliers) {
     return () -> {
       for (Supplier<T> supplier : suppliers) {

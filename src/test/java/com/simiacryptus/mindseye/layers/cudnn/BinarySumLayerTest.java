@@ -94,7 +94,7 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
    * Ensures addition can be used to implement a doubling (x2) function
    */
   public static class OnePlusOne extends CudnnLayerTestBase {
-    
+  
     /**
      * Instantiates a new Asymmetric apply.
      */

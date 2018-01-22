@@ -100,7 +100,7 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
         final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, l);
         final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, r);
         assert lPtr.size == rPtr.size;
-        final CudaPtr outputPtr = CudaPtr.allocate(lPtr.size, nncontext.getDeviceNumber(), MemoryType.Managed, true);
+        final CudaPtr outputPtr = CudaPtr.allocate(nncontext.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
         CuDNN.handle(JCudnn.cudnnOpTensor(nncontext.getHandle(), opDescriptor.getPtr(),
                                           precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                           precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
@@ -128,7 +128,7 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
                   final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, l);
                   final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, r);
                   assert lPtr.size == rPtr.size;
-                  final CudaPtr outputPtr = CudaPtr.allocate(lPtr.size, nncontext.getDeviceNumber(), MemoryType.Managed, true);
+                  final CudaPtr outputPtr = CudaPtr.allocate(nncontext.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
                   CuDNN.handle(JCudnn.cudnnOpTensor(nncontext.getHandle(), opDescriptor.getPtr(),
                                                     precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                                     precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),

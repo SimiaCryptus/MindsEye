@@ -135,7 +135,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
       final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, leftData);//.moveTo(gpu.getDeviceNumber());
       final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, rightData);//.moveTo(gpu.getDeviceNumber());
       assert lPtr.size == rPtr.size;
-      final CudaPtr outputPtr = CudaPtr.allocate(lPtr.size, gpu.getDeviceNumber(), MemoryType.Managed, true);
+      final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
       CuDNN.cudnnOpTensor(gpu.getHandle(), opDescriptor.getPtr(),
                           precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
                           precision.getPointer(rightFactor), sizeDescriptor.getPtr(), rPtr.getPtr(),
@@ -153,7 +153,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
             if (inObj[0].isAlive()) {
               inObj[0].accumulate(buffer, GpuHandle.run(gpu -> {
                 final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);
-                final CudaPtr outputPtr = CudaPtr.allocate(lPtr.size, gpu.getDeviceNumber(), MemoryType.Managed, true);
+                final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
                 final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
                   precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
                 CuDNN.cudnnAddTensor(gpu.getHandle(),
@@ -166,7 +166,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
             if (inObj[1].isAlive()) {
               inObj[1].accumulate(buffer, GpuHandle.run(gpu -> {
                 final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);
-                final CudaPtr outputPtr = CudaPtr.allocate(lPtr.size, gpu.getDeviceNumber(), MemoryType.Managed, true);
+                final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
                 final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
                   precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
                 CuDNN.cudnnAddTensor(gpu.getHandle(),

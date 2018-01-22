@@ -195,11 +195,11 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
         assert 0 < kernel.getData().length;
         assert kernelSize[0] * kernelSize[1] * kernelSize[2] == kernel.getData().length;
         MemoryType filterMemoryType = MemoryType.Managed;
-        final ManagedCudaPtr filterPtr = CudaPtr.allocate((long) (kernel.getData().length * precision.size), deviceNumber, filterMemoryType, true)
+        final ManagedCudaPtr filterPtr = CudaPtr.allocate(deviceNumber, (long) (kernel.getData().length * precision.size), filterMemoryType, true)
                                                 .write(precision, kernel.getData()).managed();
         final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
-      
-        final CudaPtr outputBuffer = CudaPtr.allocate(Tensor.dim(cudaParameters.outputDims) * 1l * length * precision.size, deviceNumber, MemoryType.Managed, true);
+  
+        final CudaPtr outputBuffer = CudaPtr.allocate(deviceNumber, Tensor.dim(cudaParameters.outputDims) * 1l * length * precision.size, MemoryType.Managed, true);
         CuDNN.handle(CuDNN.cudnnConvolutionForward(gpu.getHandle(), precision.getPointer(1.0),
                                                    cudaParameters.inputDescriptor.getPtr(), inputData.getPtr(),
                                                    cudaParameters.filterDescriptor.getPtr(), filterPtr.getPtr(),
@@ -216,6 +216,19 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
     });
   }
   
+  /**
+   * Gets result.
+   *
+   * @param input      the input
+   * @param inputSize  the input size
+   * @param kernelSize the kernel size
+   * @param outputSize the output size
+   * @param filterPtr  the filter ptr
+   * @param inputData  the input data
+   * @param output     the output
+   * @param inObj      the in obj
+   * @return the result
+   */
   public NNResult getResult(NNResult input, int[] inputSize, int[] kernelSize, int[] outputSize, Supplier<ManagedCudaPtr> filterPtr, CudaPtr inputData, GpuTensorList output, NNResult[] inObj) {
     return new NNResult(output) {
       
@@ -249,9 +262,9 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
           SimpleConvolutionParameters parameters = new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu);
           CudaRevParameters cudaParameters = obtainRev(parameters);
           if (!isFrozen()) {
-            CudaPtr filterBuffer = CudaPtr.allocate(kernel.dim() * 1l * precision.size, deviceNumber, MemoryType.Managed, true);
+            CudaPtr filterBuffer = CudaPtr.allocate(deviceNumber, kernel.dim() * 1l * precision.size, MemoryType.Managed, true);
             try {
-              CuDNN.handle(CuDNN.cudnnConvolutionBackwardFilter(gpu.getHandle(), precision.getPointer(1.0),
+              CuDNN.handle(CuDNN.cudnnConvolutionBackwardFilter(gpu.getHandle(), cudaParameters.precision.getPointer(1.0),
                                                                 cudaParameters.inputDescriptor.getPtr(), inputData.getPtr(),
                                                                 cudaParameters.outputDescriptor.getPtr(), errorPtr.getPtr(),
                                                                 cudaParameters.convolutionDescriptor.getPtr(),
@@ -268,9 +281,9 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
           }
           TensorList gpuTensorList = null;
           if (input.isAlive()) {
-            final CudaPtr inputBuffer = CudaPtr.allocate(Tensor.dim(batch.getDimensions()) * 1l * length * precision.size, deviceNumber, MemoryType.Managed, true);
+            final CudaPtr inputBuffer = CudaPtr.allocate(deviceNumber, Tensor.dim(batch.getDimensions()) * 1l * length * precision.size, MemoryType.Managed, true);
             try {
-              final ManagedCudaPtr _filterPtr = TestUtil.orElse(filterPtr, () -> CudaPtr.allocate((long) (kernel.getData().length * precision.size), deviceNumber, MemoryType.Managed, true)
+              final ManagedCudaPtr _filterPtr = TestUtil.orElse(filterPtr, () -> CudaPtr.allocate(deviceNumber, (long) (kernel.getData().length * precision.size), MemoryType.Managed, true)
                                                                                         .write(precision, kernel.getData()).managed()).get();
               CuDNN.handle(CuDNN.cudnnConvolutionBackwardData(gpu.getHandle(), precision.getPointer(1.0),
                                                               cudaParameters.filterDescriptor.getPtr(), _filterPtr.getPtr(),
@@ -349,18 +362,66 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
   }
   
   private static class SimpleConvolutionParameters {
+    /**
+     * The Length.
+     */
     public final int length;
+    /**
+     * The Input size.
+     */
     public final int[] inputSize;
+    /**
+     * The Output size.
+     */
     public final int[] outputSize;
+    /**
+     * The Kernel size.
+     */
     public final int[] kernelSize;
+    /**
+     * The Kernel.
+     */
     public final Tensor kernel;
+    /**
+     * The Padding x.
+     */
     public final int paddingX;
+    /**
+     * The Padding y.
+     */
     public final int paddingY;
+    /**
+     * The Precision.
+     */
     public final Precision precision;
+    /**
+     * The Stride x.
+     */
     public final int strideX;
+    /**
+     * The Stride y.
+     */
     public final int strideY;
+    /**
+     * The Gpu.
+     */
     public final GpuHandle gpu;
-    
+  
+    /**
+     * Instantiates a new Simple convolution parameters.
+     *
+     * @param kernel     the kernel
+     * @param paddingX   the padding x
+     * @param paddingY   the padding y
+     * @param precision  the precision
+     * @param strideX    the stride x
+     * @param strideY    the stride y
+     * @param length     the length
+     * @param inputSize  the input size
+     * @param outputSize the output size
+     * @param kernelSize the kernel size
+     * @param gpu        the gpu
+     */
     public SimpleConvolutionParameters(Tensor kernel, int paddingX, int paddingY, Precision precision, int strideX, int strideY, int length, int[] inputSize, int[] outputSize, int[] kernelSize, GpuHandle gpu) {
       this.paddingX = paddingX;
       this.gpu = gpu;
@@ -428,15 +489,44 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
   }
   
   private static class CudaRevParameters extends SimpleConvolutionParameters {
+    /**
+     * The Backward data algorithm.
+     */
     public final int backwardDataAlgorithm;
+    /**
+     * The Backward filter algorithm.
+     */
     public final int backwardFilterAlgorithm;
+    /**
+     * The Output dims.
+     */
     public final int[] outputDims;
+    /**
+     * The Backwards work space.
+     */
     public final CudaPtr backwardsWorkSpace;
+    /**
+     * The Output descriptor.
+     */
     public final CudaResource<cudnnTensorDescriptor> outputDescriptor;
+    /**
+     * The Input descriptor.
+     */
     public final CudaResource<cudnnTensorDescriptor> inputDescriptor;
+    /**
+     * The Filter descriptor.
+     */
     public final CudaResource<cudnnFilterDescriptor> filterDescriptor;
+    /**
+     * The Convolution descriptor.
+     */
     public final CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor;
-    
+  
+    /**
+     * Instantiates a new Cuda rev parameters.
+     *
+     * @param obj the obj
+     */
     CudaRevParameters(SimpleConvolutionParameters obj) {
       super(obj.kernel, obj.paddingX, obj.paddingY, obj.precision, obj.strideX, obj.strideY, obj.length, obj.inputSize, obj.outputSize, obj.kernelSize, obj.gpu);
       inputDescriptor = CuDNN.newTensorDescriptor(
@@ -457,7 +547,10 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
       backwardsWorkSpace = CuDNN.allocateBackwardFilterWorkspace(gpu.getHandle(), gpu.getDeviceNumber(),
                                                                  inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), backwardDataAlgorithm);
     }
-    
+  
+    /**
+     * Free.
+     */
     public void free() {
       this.convolutionDescriptor.finalize();
       this.filterDescriptor.finalize();
@@ -469,14 +562,40 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
   }
   
   private static class CudaFwdParameters extends SimpleConvolutionParameters {
+    /**
+     * The Forward algorithm.
+     */
     public final int forwardAlgorithm;
+    /**
+     * The Output dims.
+     */
     public final int[] outputDims;
+    /**
+     * The Output descriptor.
+     */
     public final CudaResource<cudnnTensorDescriptor> outputDescriptor;
+    /**
+     * The Input descriptor.
+     */
     public final CudaResource<cudnnTensorDescriptor> inputDescriptor;
+    /**
+     * The Filter descriptor.
+     */
     public final CudaResource<cudnnFilterDescriptor> filterDescriptor;
+    /**
+     * The Convolution descriptor.
+     */
     public final CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor;
+    /**
+     * The Forward workspace.
+     */
     public final CudaPtr forwardWorkspace;
-    
+  
+    /**
+     * Instantiates a new Cuda fwd parameters.
+     *
+     * @param obj the obj
+     */
     CudaFwdParameters(SimpleConvolutionParameters obj) {
       super(obj.kernel, obj.paddingX, obj.paddingY, obj.precision, obj.strideX, obj.strideY, obj.length, obj.inputSize, obj.outputSize, obj.kernelSize, obj.gpu);
       inputDescriptor = CuDNN.newTensorDescriptor(
@@ -495,7 +614,10 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
       forwardWorkspace = CuDNN.allocateForwardWorkspace(gpu.getHandle(), gpu.getDeviceNumber(),
                                                         inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), forwardAlgorithm);
     }
-    
+  
+    /**
+     * Free.
+     */
     public void free() {
       this.convolutionDescriptor.finalize();
       this.filterDescriptor.finalize();

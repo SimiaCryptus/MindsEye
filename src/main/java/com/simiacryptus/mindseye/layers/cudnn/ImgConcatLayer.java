@@ -95,7 +95,7 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
     }
     TensorList results = GpuHandle.run(gpu -> {
       final long outputSize = (length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
-      final CudaPtr cudaOutput = CudaPtr.allocate(outputSize, gpu.getDeviceNumber(), MemoryType.Managed, true);
+      final CudaPtr cudaOutput = CudaPtr.allocate(gpu.getDeviceNumber(), outputSize, MemoryType.Managed, true);
       for (int i = 0; i < inObj.length; i++) {
         final TensorList input = inObj[i].getData();
         final CudaPtr cudaInput = CudaPtr.getCudaPtr(precision, input);
@@ -163,7 +163,7 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
             assert inputBands <= inputDimensions[2];
             final TensorList passbackTensorList = GpuHandle.run(nncontext -> {
               long inputSize = (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size);
-              final CudaPtr cudaBackprop = CudaPtr.allocate(inputSize, nncontext.getDeviceNumber(), MemoryType.Managed, true);
+              final CudaPtr cudaBackprop = CudaPtr.allocate(nncontext.getDeviceNumber(), inputSize, MemoryType.Managed, true);
               final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
                 precision.code, length, inputBands, inputDimensions[1], inputDimensions[0], //
                 inputDimensions[2] * inputDimensions[1] * inputDimensions[0], //

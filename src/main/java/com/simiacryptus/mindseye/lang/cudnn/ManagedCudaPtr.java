@@ -232,7 +232,7 @@ public class ManagedCudaPtr {
       synchronized (this) {
         cudaPtr = null == ptrRef ? null : ptrRef.get();
         if (null == cudaPtr) {
-          cudaPtr = CudaPtr.allocate(size, CuDNN.getDevice(), type, true);
+          cudaPtr = CudaPtr.allocate(CuDNN.getDevice(), size, type, true);
           ptrRef = persistanceMode.wrap(cudaPtr);
           assert Arrays.stream(values).allMatch(Double::isFinite);
           cudaPtr.write(precision, values);

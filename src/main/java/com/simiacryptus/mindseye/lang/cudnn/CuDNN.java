@@ -327,7 +327,7 @@ public class CuDNN {
     handle(result);
     return result;
   }
-
+  
   /**
    * Cuda malloc managed int.
    *
@@ -345,6 +345,11 @@ public class CuDNN {
     return result;
   }
   
+  /**
+   * Cuda device synchronize int.
+   *
+   * @return the int
+   */
   public static int cudaDeviceSynchronize() {
     long startTime = System.nanoTime();
     synchronized (syncLock) {
@@ -356,6 +361,12 @@ public class CuDNN {
     }
   }
   
+  /**
+   * Cuda set device flags int.
+   *
+   * @param flags the flags
+   * @return the int
+   */
   public static int cudaSetDeviceFlags(int flags) {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaSetDeviceFlags(flags);
@@ -444,6 +455,15 @@ public class CuDNN {
     handle(result);
   }
   
+  /**
+   * Cuda memcpy async.
+   *
+   * @param dst                 the dst
+   * @param src                 the src
+   * @param count               the count
+   * @param cudaMemcpyKind_kind the cuda memcpy kind kind
+   * @param stream              the stream
+   */
   public static void cudaMemcpyAsync(final Pointer dst, final Pointer src, final long count, final int cudaMemcpyKind_kind, cudaStream_t stream) {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaMemcpyAsync(dst, src, count, cudaMemcpyKind_kind, stream);
@@ -452,6 +472,11 @@ public class CuDNN {
     handle(result);
   }
   
+  /**
+   * Cuda stream create cuda resource.
+   *
+   * @return the cuda resource
+   */
   public static CudaResource<cudaStream_t> cudaStreamCreate() {
     long startTime = System.nanoTime();
     cudaStream_t stream = new cudaStream_t();
@@ -462,6 +487,12 @@ public class CuDNN {
     return new CudaStream(stream);
   }
   
+  /**
+   * Cuda stream destroy int.
+   *
+   * @param stream the stream
+   * @return the int
+   */
   public static int cudaStreamDestroy(cudaStream_t stream) {
     long startTime = System.nanoTime();
     int result = JCuda.cudaStreamDestroy(stream);
@@ -471,6 +502,11 @@ public class CuDNN {
     return result;
   }
   
+  /**
+   * Cuda stream synchronize.
+   *
+   * @param stream the stream
+   */
   public static void cudaStreamSynchronize(cudaStream_t stream) {
     long startTime = System.nanoTime();
     int result = JCuda.cudaStreamSynchronize(stream);
@@ -1527,7 +1563,7 @@ public class CuDNN {
     CuDNN.handle(result);
     final long workspaceSize = sizeInBytesArray[0];
     final long size = 0 < workspaceSize ? workspaceSize : 0;
-    return CudaPtr.allocate(size, deviceId, MemoryType.Managed, false);
+    return CudaPtr.allocate(deviceId, size, MemoryType.Managed, false);
   }
   
   /**
@@ -1555,7 +1591,7 @@ public class CuDNN {
     CuDNN.handle(result);
     final long workspaceSize = sizeInBytesArray[0];
     final long size = 0 < workspaceSize ? workspaceSize : 0;
-    return CudaPtr.allocate(size, deviceId, MemoryType.Managed, false);
+    return CudaPtr.allocate(deviceId, size, MemoryType.Managed, false);
   }
   
   /**
@@ -1583,7 +1619,7 @@ public class CuDNN {
     CuDNN.handle(result);
     final long workspaceSize = sizeInBytesArray[0];
     final long size = 0 < workspaceSize ? workspaceSize : 0;
-    return CudaPtr.allocate(size, deviceId, MemoryType.Managed, false);
+    return CudaPtr.allocate(deviceId, size, MemoryType.Managed, false);
   }
   
   /**

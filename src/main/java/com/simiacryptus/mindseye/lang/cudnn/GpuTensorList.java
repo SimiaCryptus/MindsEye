@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.simiacryptus.mindseye.lang.*;
-import jcuda.Pointer;
 import jcuda.jcudnn.cudnnOpTensorDescriptor;
 import jcuda.jcudnn.cudnnOpTensorOp;
 import jcuda.jcudnn.cudnnTensorDescriptor;
@@ -95,7 +94,7 @@ public class GpuTensorList implements TensorList {
               final CudaResource<cudnnOpTensorDescriptor> opDescriptor = CuDNN.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
               final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
                 precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, d2, d1, d0);
-              final CudaPtr outputPtr = CudaPtr.allocate(lPtr.size, gpu.getDeviceNumber(), MemoryType.Managed, true);
+              final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
               CuDNN.cudnnOpTensor(gpu.getHandle(), opDescriptor.getPtr(),
                                   precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                   precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
@@ -125,43 +124,6 @@ public class GpuTensorList implements TensorList {
    */
   public static GpuTensorList create(final CudaPtr ptr, final int length, final int[] dimensions, final Precision precision) {
     return new GpuTensorList(ptr, length, dimensions, precision);
-  }
-  
-  @Override
-  public synchronized void addInPlace(final TensorList right) {
-    assert length() == right.length();
-    if (heapCopy == null) {
-      if (right instanceof GpuTensorList) {
-        final GpuTensorList nativeRight = (GpuTensorList) right;
-        if (nativeRight.precision == precision) {
-          if (nativeRight.heapCopy == null) {
-            GpuHandle.apply(exe -> {
-              assert dimensions.length <= 3;
-              // CuDNN.withDevice(this.ptr.getDeviceId(), () -> { });
-              final CudaResource<cudnnTensorDescriptor> leftSize = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions.length < 3 ? 1 : dimensions[2], dimensions.length < 2 ? 1 : dimensions[1], dimensions[0]);
-              final CudaResource<cudnnTensorDescriptor> rightSize = CuDNN.newTensorDescriptor(precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length(), dimensions.length < 3 ? 1 : dimensions[2], dimensions.length < 2 ? 1 : dimensions[1], dimensions[0]);
-              Pointer rightCudaPtr = nativeRight.ptr.getPtr();
-              Pointer leftCudaPtr = GpuTensorList.this.ptr.getPtr();
-              if (rightCudaPtr == leftCudaPtr) {
-                throw new RuntimeException();
-              }
-              else {
-                CuDNN.handle(CuDNN.cudnnAddTensor(exe.getHandle(),
-                                                  precision.getPointer(1.0), rightSize.getPtr(), rightCudaPtr,
-                                                  precision.getPointer(1.0), leftSize.getPtr(), leftCudaPtr));
-              }
-              //CuDNN.cudaDeviceSynchronize();
-//              leftSize.finalize();
-//              rightSize.finalize();
-            });
-            return;
-          }
-        }
-      }
-    }
-    IntStream.range(0, length()).forEach(i -> {
-      get(i).addInPlace(right.get(i));
-    });
   }
   
   @Override

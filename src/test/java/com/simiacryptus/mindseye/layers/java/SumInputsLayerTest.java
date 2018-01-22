@@ -86,7 +86,7 @@ public class SumInputsLayerTest {
    * Ensures addition can be used to implement a doubling (x2) function
    */
   public static class OnePlusOne extends LayerTestBase {
-    
+  
     /**
      * Instantiates a new Asymmetric apply.
      */

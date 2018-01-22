@@ -28,21 +28,6 @@ import java.util.stream.Stream;
  * can operate with minimal CPU-GPU data transfer.
  */
 public interface TensorList {
-  /**
-   * Accum.
-   *
-   * @param right the right
-   */
-  default void addInPlace(final TensorList right) {
-    synchronized (this) {
-      if (right.length() == 0) return;
-      if (length() == 0) throw new IllegalArgumentException();
-      assert length() == right.length();
-      IntStream.range(0, length()).forEach(i -> {
-        get(i).addInPlace(right.get(i));
-      });
-    }
-  }
   
   /**
    * Add tensor list.
@@ -128,6 +113,9 @@ public interface TensorList {
     return stream().map(t -> t.prettyPrint()).reduce((a, b) -> a + "\n" + b).get();
   }
   
+  /**
+   * Free.
+   */
   default void free() {
     stream().forEach(t -> {
       try {

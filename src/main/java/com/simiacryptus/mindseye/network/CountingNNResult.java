@@ -81,6 +81,11 @@ class CountingNNResult extends NNResult {
     this.inner = inner;
   }
   
+  /**
+   * Mini stack trace string.
+   *
+   * @return the string
+   */
   public static String miniStackTrace() {
     int max = 30;
     StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
@@ -126,21 +131,18 @@ class CountingNNResult extends NNResult {
     }
     else {
       passbackBuffers.add(data);
-      if (passbackBuffers.size() > COMPACTION_SIZE) {
-        synchronized (passbackBuffers) {
-          if (passbackBuffers.size() > COMPACTION_SIZE) {
-            TensorList reduced = passbackBuffers.stream().parallel().reduce((a, b) -> a.add(b)).get();
-            passbackBuffers.clear();
-            passbackBuffers.add(reduced);
-          }
+      synchronized (passbackBuffers) {
+        if (passbackBuffers.size() > COMPACTION_SIZE) {
+          TensorList reduced = passbackBuffers.stream().parallel().reduce((a, b) -> a.add(b)).get();
+          passbackBuffers.clear();
+          passbackBuffers.add(reduced);
         }
-      }
-      if (accumulations.incrementAndGet() == references.get()) {
-        if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
-        TensorList reduced = passbackBuffers.stream().parallel().reduce((a, b) -> a.add(b)).get();
-        inner.accumulate(buffer, reduced);
-        accumulations.set(0);
-        passbackBuffers.clear();
+        if (accumulations.incrementAndGet() == references.get()) {
+          if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
+          inner.accumulate(buffer, passbackBuffers.stream().parallel().reduce((a, b) -> a.add(b)).get());
+          accumulations.set(0);
+          passbackBuffers.clear();
+        }
       }
     }
   }

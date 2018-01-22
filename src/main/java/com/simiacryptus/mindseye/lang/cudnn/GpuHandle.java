@@ -45,7 +45,7 @@ public class GpuHandle {
   private static final boolean DISABLE = Boolean.parseBoolean(System.getProperty("DISABLE_CUDNN", Boolean.toString(false)));
   private static final boolean FORCE_SINGLE_GPU = Boolean.parseBoolean(System.getProperty("FORCE_SINGLE_GPU", Boolean.toString(false)));
   private static final int THREADS_PER_GPU = Integer.parseInt(System.getProperty("THREADS_PER_GPU", Integer.toString(3)));
-
+  
   /**
    * The constant gpuContexts.
    */
@@ -86,7 +86,7 @@ public class GpuHandle {
    * Run.
    *
    * @param fn          the fn
-   * @param synchronize
+   * @param synchronize the synchronize
    */
   public static void apply(final Consumer<GpuHandle> fn, boolean synchronize) {
     GpuHandle threadlocal = threadContext.get();
@@ -131,7 +131,7 @@ public class GpuHandle {
    *
    * @param <T>         the type parameter
    * @param fn          the fn
-   * @param synchronize
+   * @param synchronize the synchronize
    * @return the t
    */
   public static <T> T run(final Function<GpuHandle, T> fn, boolean synchronize) {

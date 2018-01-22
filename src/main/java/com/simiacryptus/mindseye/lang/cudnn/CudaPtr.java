@@ -96,10 +96,26 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     this.type = type;
   }
   
-  public static CudaPtr allocate(final long size, final int deviceId, MemoryType type, boolean dirty) {
+  /**
+   * Allocate cuda ptr.
+   *
+   * @param deviceId the device id
+   * @param size     the size
+   * @param type     the type
+   * @param dirty    the dirty
+   * @return the cuda ptr
+   */
+  public static CudaPtr allocate(final int deviceId, final long size, MemoryType type, boolean dirty) {
     return new CudaPtr(size, deviceId, type, dirty);
   }
   
+  /**
+   * Gets cuda ptr.
+   *
+   * @param precision the precision
+   * @param data      the data
+   * @return the cuda ptr
+   */
   public static CudaPtr getCudaPtr(final Precision precision, final TensorList data) {
     if (data instanceof GpuTensorList && precision == ((GpuTensorList) data).getPrecision() && ((GpuTensorList) data).isNative()) {
       GpuTensorList gpuTensorList = (GpuTensorList) data;
@@ -117,7 +133,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
         assert elementLength == doubles.length;
         System.arraycopy(doubles, 0, inputBuffer, i * elementLength, elementLength);
       }
-      final CudaPtr ptr = CudaPtr.allocate((long) inputBuffer.length * precision.size, CuDNN.getDevice(), MemoryType.Managed, true).write(precision, inputBuffer);
+      final CudaPtr ptr = CudaPtr.allocate(CuDNN.getDevice(), (long) inputBuffer.length * precision.size, MemoryType.Managed, true).write(precision, inputBuffer);
       RecycleBinLong.DOUBLES.recycle(inputBuffer, inputBuffer.length);
       return ptr;
     }
@@ -212,9 +228,15 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     return devivceMemCtr;
   }
   
+  /**
+   * Copy to cuda ptr.
+   *
+   * @param deviceId the device id
+   * @return the cuda ptr
+   */
   public CudaPtr copyTo(int deviceId) {
     return CuDNN.withDevice(deviceId, () -> {
-      CudaPtr copy = allocate(size, deviceId, MemoryType.Managed, false);
+      CudaPtr copy = allocate(deviceId, size, MemoryType.Managed, false);
       CuDNN.cudaMemcpy(copy.getPtr(), this.getPtr(), size, cudaMemcpyKind.cudaMemcpyDeviceToDevice);
       return copy;
     });
@@ -229,6 +251,12 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     return new ManagedCudaPtr(this, PersistanceMode.Strong);
   }
   
+  /**
+   * Move to cuda ptr.
+   *
+   * @param deviceId the device id
+   * @return the cuda ptr
+   */
   public CudaPtr moveTo(int deviceId) {
     if (deviceId == getDeviceId()) return this;
     else return copyTo(deviceId);
@@ -246,6 +274,11 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     }
   }
   
+  /**
+   * Assert alive cuda ptr.
+   *
+   * @return the cuda ptr
+   */
   public CudaPtr assertAlive() {
     if (null != finalizedBy)
       throw new IllegalStateException(Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).get());

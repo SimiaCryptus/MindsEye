@@ -104,7 +104,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
     dimOut[1] = sizeY;
     return GpuHandle.run(nncontext -> {
       final CudaPtr inputBuffer = CudaPtr.getCudaPtr(precision, inObj[0].getData());
-      final CudaPtr outputBuffer = CudaPtr.allocate((long) (length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size), nncontext.getDeviceNumber(), MemoryType.Managed, false);
+      final CudaPtr outputBuffer = CudaPtr.allocate(nncontext.getDeviceNumber(), (long) (length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size), MemoryType.Managed, false);
       copy(nncontext, length, dimIn, inputBuffer, dimOut, outputBuffer);
       final TensorList outputData = GpuTensorList.create(outputBuffer, length, dimOut, precision);
       return new NNResult(outputData) {
@@ -127,7 +127,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
           if (inObj[0].isAlive()) {
             final TensorList passbackTensorList = GpuHandle.run(nncontext -> {
               final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
-              final CudaPtr passbackBuffer = CudaPtr.allocate((long) (length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size), nncontext.getDeviceNumber(), MemoryType.Managed, false);
+              final CudaPtr passbackBuffer = CudaPtr.allocate(nncontext.getDeviceNumber(), (long) (length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size), MemoryType.Managed, false);
               copy(nncontext, length, dimOut, errorPtr, dimIn, passbackBuffer);
               return GpuTensorList.create(passbackBuffer, length, dimIn, precision);
             });

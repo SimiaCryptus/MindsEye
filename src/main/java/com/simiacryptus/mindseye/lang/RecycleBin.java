@@ -35,6 +35,7 @@ import static com.simiacryptus.mindseye.lang.PersistanceMode.Soft;
  * mechanism to optimize tight loops which would otherwise require careful and complex coding to minimize allocations
  * and avoid excessive GC load
  *
+ * @param <K> the type parameter
  * @param <T> the type parameter
  */
 public abstract class RecycleBin<K, T> {
@@ -118,6 +119,12 @@ public abstract class RecycleBin<K, T> {
     free(obj);
   }
   
+  /**
+   * Size long.
+   *
+   * @param size the size
+   * @return the long
+   */
   protected abstract long size(K size);
   
   /**

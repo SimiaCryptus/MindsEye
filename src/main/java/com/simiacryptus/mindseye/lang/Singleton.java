@@ -51,6 +51,7 @@ public class Singleton<T> implements Supplier<T> {
    * Set.
    *
    * @param obj the obj
+   * @return the singleton
    */
   public Singleton<T> set(T obj) {
     assert deque.isEmpty();
