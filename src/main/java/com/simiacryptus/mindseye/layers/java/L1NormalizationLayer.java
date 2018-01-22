@@ -82,12 +82,12 @@ public class L1NormalizationLayer extends NNLayer {
     return new NNResult(output) {
   
       @Override
-      public void free() {
+      protected void _free() {
         Arrays.stream(input).forEach(NNResult::free);
       }
   
       @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList outDelta) {
+      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList outDelta) {
         if (in.isAlive()) {
           final Tensor[] passbackArray = IntStream.range(0, outDelta.length()).mapToObj(dataIndex -> {
             final double[] value = inData.get(dataIndex).getData();

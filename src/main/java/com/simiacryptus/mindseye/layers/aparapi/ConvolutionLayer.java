@@ -186,12 +186,12 @@ public class ConvolutionLayer extends NNLayer {
     return new NNResult(output) {
   
       @Override
-      public void free() {
+      protected void _free() {
         Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
+      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
         assert error.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         if (!isFrozen()) {
           final double[][] inputBuffers = batch.stream().map(x -> x.getData()).toArray(i -> new double[i][]);

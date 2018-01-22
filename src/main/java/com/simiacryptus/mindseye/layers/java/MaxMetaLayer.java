@@ -81,7 +81,7 @@ public class MaxMetaLayer extends NNLayer {
       return input.getData().get(indicies[c]).getData()[c];
     })) {
       @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (input.isAlive()) {
           final Tensor delta = data.get(0);
           final Tensor feedback[] = new Tensor[itemCnt];
@@ -99,7 +99,7 @@ public class MaxMetaLayer extends NNLayer {
       }
   
       @Override
-      public void free() {
+      protected void _free() {
         input.free();
       }
   

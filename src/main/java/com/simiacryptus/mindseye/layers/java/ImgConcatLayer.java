@@ -55,7 +55,7 @@ public class ImgConcatLayer extends NNLayer {
   protected ImgConcatLayer(final JsonObject json) {
     super(json);
     JsonElement maxBands = json.get("maxBands");
-    if (null == maxBands) setMaxBands(maxBands.getAsInt());
+    if (null != maxBands) setMaxBands(maxBands.getAsInt());
   }
   
   /**
@@ -96,12 +96,12 @@ public class ImgConcatLayer extends NNLayer {
     return new NNResult(outputTensors.toArray(new Tensor[]{})) {
   
       @Override
-      public void free() {
+      protected void _free() {
         Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         assert numBatches == data.length();
     
         final List<Tensor[]> splitBatches = new ArrayList<>();

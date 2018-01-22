@@ -107,7 +107,7 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
   
   
           @Override
-          public void accumulate(DeltaSet<NNLayer> buffer, TensorList data) {
+          protected void _accumulate(DeltaSet<NNLayer> buffer, TensorList data) {
             DoubleStream deltaStream = deltaLayers.stream().mapToDouble(layer -> {
               Delta<NNLayer> a = direction.getMap().get(layer);
               Delta<NNLayer> b = measure.delta.getMap().get(layer);

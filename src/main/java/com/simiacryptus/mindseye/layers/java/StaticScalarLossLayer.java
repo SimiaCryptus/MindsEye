@@ -79,12 +79,12 @@ public class StaticScalarLossLayer extends NNLayer {
     return new NNResult(outputA) {
   
       @Override
-      public void free() {
+      protected void _free() {
         Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         if (inObj[0].isAlive()) {
           final Tensor[] passbackA = IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {

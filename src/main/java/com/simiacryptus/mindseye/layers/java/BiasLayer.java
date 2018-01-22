@@ -133,12 +133,12 @@ public class BiasLayer extends NNLayer {
     return new NNResult(outputA) {
   
       @Override
-      public void free() {
+      protected void _free() {
         Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         if (!isFrozen()) {
           final Delta<NNLayer> deltaBuffer = buffer.get(BiasLayer.this, bias);

@@ -73,12 +73,12 @@ public class ConstNNLayer extends NNLayer {
     return new NNResult(data) {
   
       @Override
-      public void free() {
+      protected void _free() {
         Arrays.stream(array).forEach(NNResult::free);
       }
   
       @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (!isFrozen()) {
           data.stream().forEach(datum -> {
             buffer.get(ConstNNLayer.this, ConstNNLayer.this.data.getData()).addInPlace(datum.getData());

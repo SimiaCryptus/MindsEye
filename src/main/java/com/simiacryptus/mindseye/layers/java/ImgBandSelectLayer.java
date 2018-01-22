@@ -89,12 +89,12 @@ public class ImgBandSelectLayer extends NNLayer {
                                  .toArray(i -> new Tensor[i])) {
   
       @Override
-      public void free() {
+      protected void _free() {
         Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
+      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
         if (input.isAlive()) {
           input.accumulate(buffer, new TensorArray(IntStream.range(0, error.length()).parallel()
                                                             .mapToObj(dataIndex -> {

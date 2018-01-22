@@ -96,7 +96,7 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
   
   
           @Override
-          public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
+          protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
             for (int index = 0; index < delta.length(); index++) {
               final Tensor dt = delta.get(index);
               final double[] d = dt.getData();

@@ -103,7 +103,7 @@ class CountingNNResult extends NNResult {
    * a counter, and when the counter cycles the call is chained.
    */
   @Override
-  public void free() {
+  protected void _free() {
     if (1 >= references.get()) {
       if (!hasFinalized.getAndSet(true)) {
         finalizedBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
@@ -123,7 +123,7 @@ class CountingNNResult extends NNResult {
   }
   
   @Override
-  public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+  protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
     if (hasFinalized.get()) throw new IllegalStateException(finalizedByStr());
     if (1 >= references.get()) {
       if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
@@ -134,12 +134,15 @@ class CountingNNResult extends NNResult {
       synchronized (passbackBuffers) {
         if (passbackBuffers.size() > COMPACTION_SIZE) {
           TensorList reduced = passbackBuffers.stream().parallel().reduce((a, b) -> a.add(b)).get();
+          passbackBuffers.stream().distinct().filter((TensorList x) -> x != reduced).forEach(t -> t.free());
           passbackBuffers.clear();
           passbackBuffers.add(reduced);
         }
         if (accumulations.incrementAndGet() == references.get()) {
           if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
-          inner.accumulate(buffer, passbackBuffers.stream().parallel().reduce((a, b) -> a.add(b)).get());
+          TensorList reduced = passbackBuffers.stream().parallel().reduce((a, b) -> a.add(b)).get();
+          passbackBuffers.stream().distinct().filter((TensorList x) -> x != reduced).forEach(t -> t.free());
+          inner.accumulate(buffer, reduced);
           accumulations.set(0);
           passbackBuffers.clear();
         }

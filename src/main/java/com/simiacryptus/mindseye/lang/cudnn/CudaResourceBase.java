@@ -89,7 +89,7 @@ public abstract class CudaResourceBase<T> {
       }
       super.finalize();
     } catch (final Throwable e) {
-      logger.warn("Error freeing resource " + this, e);
+      //logger.warn("Error freeing resource " + this, e);
     }
   }
   

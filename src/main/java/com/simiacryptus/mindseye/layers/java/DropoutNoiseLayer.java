@@ -171,12 +171,12 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
     }
   
     @Override
-    public void free() {
+    protected void _free() {
       inObj.free();
     }
     
     @Override
-    public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
+    protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
       if (inObj.isAlive()) {
         final Tensor[] passbackA = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           final double[] deltaData = delta.get(dataIndex).getData();

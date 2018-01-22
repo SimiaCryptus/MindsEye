@@ -55,7 +55,7 @@ public abstract class RecycleBin<K, T> {
   private int profilingThreshold = 32 * 1024;
   private PersistanceMode persistanceMode = Soft;
   private int minLengthPerBuffer = 256;
-  private double maxLengthPerBuffer = 1e6;
+  private double maxLengthPerBuffer = 1e7;
   private int maxItemsPerBuffer = 100;
   
   /**
@@ -291,7 +291,7 @@ public abstract class RecycleBin<K, T> {
         stackCounter.increment(size(length));
       }
       return result;
-    } catch (final OutOfMemoryError | java.lang.OutOfMemoryError e) {
+    } catch (final java.lang.OutOfMemoryError e) {
       if (retries <= 0) throw e;
     }
     clearMemory(length);

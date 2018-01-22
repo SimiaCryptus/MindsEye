@@ -71,7 +71,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
       final PlaceholderLayer<Tensor> inputKey = new PlaceholderLayer<Tensor>(new Tensor());
       final NNResult[] copyInput = Arrays.stream(inputPrototype).map(x -> new NNResult(x) {
         @Override
-        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+        protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         }
         
         @Override
@@ -82,7 +82,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
       }).toArray(i -> new NNResult[i]);
       copyInput[inputIndex] = new NNResult(inputTensor) {
         @Override
-        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+        protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
           if (1 != data.length()) throw new AssertionError();
           if (data.length() != 1) throw new AssertionError();
           final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.dim());
@@ -428,7 +428,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
     final NNLayer frozen = component.copy().freeze();
     final NNResult eval = frozen.eval(Arrays.stream(inputPrototype).map((final Tensor x) -> new NNResult(x) {
       @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         reachedInputFeedback.set(true);
       }
     
@@ -464,7 +464,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
     final NNLayer frozen = component.copy().setFrozen(false);
     final NNResult eval = frozen.eval(Arrays.stream(inputPrototype).map((final Tensor x) -> new NNResult(x) {
       @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         reachedInputFeedback.set(true);
       }
     

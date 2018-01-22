@@ -606,14 +606,13 @@ public class Tensor implements Serializable {
   }
   
   @Override
-  public void finalize() throws Throwable {
+  public void finalize() {
     if (null != data) {
       if (RecycleBinLong.DOUBLES.want(data.length)) {
         RecycleBinLong.DOUBLES.recycle(data, data.length);
       }
       data = null;
     }
-    super.finalize();
   }
   
   /**

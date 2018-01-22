@@ -1080,7 +1080,6 @@ public class CuDNN {
    */
   public static boolean isOom(final Throwable t) {
     if (t instanceof OutOfMemoryError) return true;
-    if (t instanceof com.simiacryptus.mindseye.lang.OutOfMemoryError) return true;
     //if (t instanceof com.simiacryptus.mindseye.lang.cudnn.GpuError) return true;
     if (null != t.getCause() && t != t.getCause()) return isOom(t.getCause());
     return false;
@@ -1117,6 +1116,7 @@ public class CuDNN {
       try {
         logger.warn("Cleaning Memory");
         RecycleBinLong.DOUBLES.clear();
+        CudaPtr.POINTERS.clear();
         Runtime runtime = Runtime.getRuntime();
         runtime.gc();
         runtime.runFinalization();
@@ -1509,6 +1509,7 @@ public class CuDNN {
    * @return the t
    */
   public static <T> T withDevice(int n, Supplier<T> action) {
+    if (n < 0) return action.get();
     final int currentDevice = getDevice();
     try {
       setDevice(n);
@@ -1563,7 +1564,7 @@ public class CuDNN {
     CuDNN.handle(result);
     final long workspaceSize = sizeInBytesArray[0];
     final long size = 0 < workspaceSize ? workspaceSize : 0;
-    return CudaPtr.allocate(deviceId, size, MemoryType.Managed, false);
+    return CudaPtr.allocate(deviceId, size, MemoryType.Managed, true);
   }
   
   /**
@@ -1591,7 +1592,7 @@ public class CuDNN {
     CuDNN.handle(result);
     final long workspaceSize = sizeInBytesArray[0];
     final long size = 0 < workspaceSize ? workspaceSize : 0;
-    return CudaPtr.allocate(deviceId, size, MemoryType.Managed, false);
+    return CudaPtr.allocate(deviceId, size, MemoryType.Managed, true);
   }
   
   /**
@@ -1619,7 +1620,7 @@ public class CuDNN {
     CuDNN.handle(result);
     final long workspaceSize = sizeInBytesArray[0];
     final long size = 0 < workspaceSize ? workspaceSize : 0;
-    return CudaPtr.allocate(deviceId, size, MemoryType.Managed, false);
+    return CudaPtr.allocate(deviceId, size, MemoryType.Managed, true);
   }
   
   /**

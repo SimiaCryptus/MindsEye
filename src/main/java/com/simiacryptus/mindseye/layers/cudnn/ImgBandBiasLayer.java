@@ -97,7 +97,7 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
         NNResult result = inner.eval(array);
         return new NNResult(result.getData()) {
           @Override
-          public void accumulate(DeltaSet<NNLayer> buffer, TensorList data) {
+          protected void _accumulate(DeltaSet<NNLayer> buffer, TensorList data) {
             throw new IllegalStateException();
           }
         
@@ -192,12 +192,12 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
         return new NNResult(output) {
         
           @Override
-          public void free() {
+          protected void _free() {
             Arrays.stream(inObj).forEach(NNResult::free);
           }
         
           @Override
-          public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
+          protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
             assert error.length() == batch.length();
             //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
             if (!isFrozen()) {
@@ -222,6 +222,8 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
             if (input.isAlive()) {
               input.accumulate(buffer, error);
             }
+            error.free();
+            output.free();
           }
         
           @Override

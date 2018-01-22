@@ -101,7 +101,10 @@ public class ManagedCudaPtr {
     Supplier<CudaPtr> ptr = this.ptrRef;
     if (ptr != null) {
       CudaPtr cudaPtr = ptr.get();
-      if (null != cudaPtr) cudaPtr.free();
+      if (null != cudaPtr) {
+        CudaPtr.recycle(cudaPtr);
+        this.ptrRef = null;
+      }
     }
     if (null != values) {
       RecycleBinLong.DOUBLES.recycle(values, values.length);

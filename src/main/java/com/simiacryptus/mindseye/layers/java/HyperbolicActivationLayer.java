@@ -172,12 +172,12 @@ public class HyperbolicActivationLayer extends NNLayer {
     }
   
     @Override
-    public void free() {
+    protected void _free() {
       inObj.free();
     }
     
     @Override
-    public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
+    protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
       
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).forEach(dataIndex -> {

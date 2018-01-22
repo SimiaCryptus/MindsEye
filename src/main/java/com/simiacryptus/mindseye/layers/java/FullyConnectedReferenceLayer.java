@@ -137,12 +137,12 @@ public class FullyConnectedReferenceLayer extends NNLayer {
     return new NNResult(data) {
       
       @Override
-      public void free() {
+      protected void _free() {
         inputResult.free();
       }
       
       @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
+      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
         assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         if (!isFrozen()) {
           final Delta<NNLayer> deltaBuffer = buffer.get(FullyConnectedReferenceLayer.this, getWeights().getData());

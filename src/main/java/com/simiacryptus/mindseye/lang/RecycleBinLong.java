@@ -79,7 +79,7 @@ public abstract class RecycleBinLong<T> {
   private int profilingThreshold = 32 * 1024;
   private PersistanceMode persistanceMode = Soft;
   private int minLengthPerBuffer = 256;
-  private double maxLengthPerBuffer = 1e6;
+  private double maxLengthPerBuffer = 1e7;
   private int maxItemsPerBuffer = 100;
   
   /**
@@ -323,7 +323,7 @@ public abstract class RecycleBinLong<T> {
         stackCounter.increment(length);
       }
       return result;
-    } catch (final com.simiacryptus.mindseye.lang.OutOfMemoryError | java.lang.OutOfMemoryError e) {
+    } catch (final java.lang.OutOfMemoryError e) {
       if (retries <= 0) throw e;
     }
     clearMemory(length);

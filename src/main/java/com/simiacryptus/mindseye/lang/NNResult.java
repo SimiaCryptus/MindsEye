@@ -74,9 +74,19 @@ public abstract class NNResult {
    * Accumulate.
    *
    * @param buffer the buffer
+   * @param delta   the data
+   */
+  public final void accumulate(DeltaSet<NNLayer> buffer, final TensorList delta) {
+    _accumulate(buffer, delta);
+  }
+  
+  /**
+   * Accumulate.
+   *
+   * @param buffer the buffer
    * @param data   the data
    */
-  public abstract void accumulate(DeltaSet<NNLayer> buffer, final TensorList data);
+  protected abstract void _accumulate(DeltaSet<NNLayer> buffer, final TensorList data);
   
   /**
    * Gets data.
@@ -108,5 +118,13 @@ public abstract class NNResult {
   /**
    * Free.
    */
-  public void free() {}
+  public final void free() {
+    _free();
+    data.free();
+  }
+  
+  /**
+   * Free.
+   */
+  protected void _free() {}
 }

@@ -81,7 +81,7 @@ public final class NNConstant extends NNResult {
   }
   
   @Override
-  public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+  protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
     // Do Nothing
   }
   

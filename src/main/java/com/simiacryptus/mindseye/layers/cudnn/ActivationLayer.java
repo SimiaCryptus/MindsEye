@@ -133,12 +133,12 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
         return new NNResult(output) {
         
           @Override
-          public void free() {
+          protected void _free() {
             Arrays.stream(inObj).forEach(NNResult::free);
           }
         
           @Override
-          public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
+          protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
             if (input.isAlive()) {
               final TensorList data = GpuHandle.run(nncontext -> {
                 //assert (error.length() == batch.length());
@@ -161,6 +161,8 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
               });
               input.accumulate(buffer, data);
             }
+            error.free();
+            output.free();
           }
         
           @Override

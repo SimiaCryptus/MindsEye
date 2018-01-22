@@ -43,6 +43,7 @@ public enum MemoryType {
       cudaDeviceProp properties = CudaPtr.getCurrentDeviceProperties();
       if (properties.managedMemory == 1) {
         CuDNN.handle(CuDNN.cudaMallocManaged(pointer, size, cudaMemAttachGlobal));
+        CuDNN.cudaDeviceSynchronize();
       }
       else {
         CuDNN.handle(CuDNN.cudaMalloc(pointer, size));

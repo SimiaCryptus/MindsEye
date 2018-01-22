@@ -174,12 +174,12 @@ public class ImgReshapeLayer extends NNLayer {
                                  .toArray(i -> new Tensor[i])) {
   
       @Override
-      public void free() {
+      protected void _free() {
         Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
+      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
         //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         if (input.isAlive()) {
           final Tensor[] data1 = IntStream.range(0, error.length()).parallel()

@@ -123,12 +123,12 @@ public class ImgBandScaleLayer extends NNLayer {
     return new NNResult(outputA) {
   
       @Override
-      public void free() {
+      protected void _free() {
         input.free();
       }
   
       @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
+      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
         assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         if (!isFrozen()) {
           final Delta<NNLayer> deltaBuffer = buffer.get(ImgBandScaleLayer.this, weights);

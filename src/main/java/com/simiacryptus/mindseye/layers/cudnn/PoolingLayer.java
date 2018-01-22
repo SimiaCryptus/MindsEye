@@ -131,12 +131,12 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
         return new NNResult(output) {
         
           @Override
-          public void free() {
+          protected void _free() {
             Arrays.stream(inObj).forEach(NNResult::free);
           }
         
           @Override
-          public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
+          protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
             assert error.length() == batch.length();
             if (input.isAlive()) {
               TensorList data = GpuHandle.run(nncontext -> {
@@ -155,6 +155,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
               });
               input.accumulate(buffer, data);
             }
+            error.free();
           }
         
           @Override

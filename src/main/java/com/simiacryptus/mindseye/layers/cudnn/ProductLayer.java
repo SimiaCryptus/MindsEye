@@ -111,12 +111,12 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
       return new NNResult(result) {
       
         @Override
-        public void free() {
+        protected void _free() {
           Arrays.stream(inObj).forEach(NNResult::free);
         }
       
         @Override
-        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
+        protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
           assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
           for (int index = 0; index < inObj.length; index++) {
             final NNResult input = inObj[index];

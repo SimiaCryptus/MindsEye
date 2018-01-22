@@ -79,7 +79,7 @@ public class SimpleListEval implements Callable<SimpleResult>, SimpleResult {
   
   
         @Override
-        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+        protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
           SimpleListEval.accumulate(derivative[i], data);
         }
         

@@ -111,7 +111,7 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     });
     return new NNResult(input.getData()) {
       @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         backpropStatistics.clear();
         data.stream().parallel().forEach(t -> {
           backpropStatistics.add(t.getData());
@@ -125,7 +125,7 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
       }
   
       @Override
-      public void free() {
+      protected void _free() {
         input.free();
       }
     };

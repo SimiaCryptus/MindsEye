@@ -90,7 +90,7 @@ public class ReshapeLayer extends NNLayer implements LayerPrecision<ReshapeLayer
     int[] inputDims = data.getDimensions();
     return new NNResult(new ReshapedTensorList(data, outputDims)) {
       @Override
-      public void accumulate(DeltaSet<NNLayer> buffer, TensorList delta) {
+      protected void _accumulate(DeltaSet<NNLayer> buffer, TensorList delta) {
         inObj[0].accumulate(buffer, new ReshapedTensorList(delta, inputDims));
       }
       

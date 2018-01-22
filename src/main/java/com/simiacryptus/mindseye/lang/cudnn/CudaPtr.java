@@ -22,10 +22,7 @@ package com.simiacryptus.mindseye.lang.cudnn;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.simiacryptus.mindseye.lang.PersistanceMode;
-import com.simiacryptus.mindseye.lang.RecycleBinLong;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.lang.TimedResult;
 import jcuda.Pointer;
 import jcuda.runtime.cudaDeviceProp;
@@ -76,9 +73,34 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   public final long size;
   private final int deviceId;
   private final MemoryType type;
-  private final boolean dirty;
   private final AtomicBoolean isFinalized = new AtomicBoolean(false);
   private volatile StackTraceElement[] finalizedBy = null;
+  
+  public static final RecycleBin<ManagedPtrParams, CudaPtr> POINTERS = new RecycleBin<ManagedPtrParams, CudaPtr>() {
+    @Override
+    protected long size(ManagedPtrParams size) {
+      return size.size;
+    }
+    
+    @Override
+    protected void free(CudaPtr obj) {
+      obj.finalize();
+    }
+    
+    @Override
+    public CudaPtr create(ManagedPtrParams key) {
+      return new CudaPtr(key.size, key.deviceId, key.type);
+    }
+    
+    @Override
+    public boolean isProfiling(ManagedPtrParams length) {
+      return false;
+    }
+    
+    @Override
+    public void reset(CudaPtr data, ManagedPtrParams size) {
+    }
+  }.setPersistanceMode(PersistanceMode.Weak).setMaxLengthPerBuffer(1e6).setMaxItemsPerBuffer(3).setMinLengthPerBuffer(1);
   
   /**
    * Instantiates a new Cuda ptr.
@@ -86,12 +108,10 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    * @param size     the size
    * @param deviceId the device id
    * @param type     the type
-   * @param dirty    the dirty
    */
-  private CudaPtr(final long size, final int deviceId, MemoryType type, boolean dirty) {
-    super(acquire(deviceId, size, type, dirty, 1));
+  private CudaPtr(final long size, final int deviceId, MemoryType type) {
+    super(acquire(deviceId, size, type, 1));
     this.size = size;
-    this.dirty = dirty;
     this.deviceId = deviceId;
     this.type = type;
   }
@@ -106,7 +126,13 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    * @return the cuda ptr
    */
   public static CudaPtr allocate(final int deviceId, final long size, MemoryType type, boolean dirty) {
-    return new CudaPtr(size, deviceId, type, dirty);
+    CudaPtr obtain = POINTERS.obtain(new ManagedPtrParams(type == MemoryType.Device ? deviceId : -1, size, type));
+    if (!dirty) obtain.clear();
+    return obtain;
+  }
+  
+  public static void recycle(final CudaPtr obj) {
+    POINTERS.recycle(obj, new ManagedPtrParams(obj.deviceId, obj.size, obj.type));
   }
   
   /**
@@ -139,7 +165,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     }
   }
   
-  private static Pointer acquire(int deviceId, long size, MemoryType type, boolean dirty, int retries) {
+  private static Pointer acquire(int deviceId, long size, MemoryType type, int retries) {
     if (retries < 0) throw new IllegalArgumentException();
     if (size < 0) {
       throw new OutOfMemoryError("Allocated block is too large: " + size);
@@ -147,14 +173,11 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     if (size > CudaPtr.MAX) {
       throw new OutOfMemoryError("Allocated block is too large: " + size);
     }
-    if (CuDNN.getDevice() != deviceId) throw new IllegalArgumentException();
+    if (deviceId >= 0 && CuDNN.getDevice() != deviceId) throw new IllegalArgumentException();
     final GpuStats metrics = CudaPtr.getGpuStats(deviceId);
     try {
       Pointer pointer = new Pointer();
       type.alloc(size, pointer);
-      if (!dirty || DISABLE_DIRTY_MEMORY) {
-        CuDNN.cudaMemset(pointer, 0, size);
-      }
       final long finalMemory = metrics.usedMemory.addAndGet(size);
       metrics.peakMemory.updateAndGet(l -> Math.max(finalMemory, l));
       return pointer;
@@ -169,7 +192,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
                                 size, freedMemory, timedResult.seconds(), metrics.usedMemory.get(), e.getMessage()));
     }
     if (retries < 0) throw new IllegalStateException();
-    return acquire(deviceId, size, type, dirty, retries - 1);
+    return acquire(deviceId, size, type, retries - 1);
   }
   
   /**
@@ -385,13 +408,22 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     return type;
   }
   
-  /**
-   * Is dirty boolean.
-   *
-   * @return the boolean
-   */
-  public boolean isDirty() {
-    return dirty;
+  private CudaPtr clear() {
+    CuDNN.cudaMemset(getPtr(), 0, size);
+    return this;
   }
   
+  private static class ManagedPtrParams {
+    public final int deviceId;
+    public final long size;
+    public final MemoryType type;
+    
+    private ManagedPtrParams(int deviceId, long size, MemoryType type) {
+      this.deviceId = deviceId;
+      this.size = size;
+      this.type = type;
+    }
+    
+  }
+
 }

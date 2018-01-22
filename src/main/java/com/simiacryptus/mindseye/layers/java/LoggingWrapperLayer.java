@@ -79,12 +79,12 @@ public final class LoggingWrapperLayer extends WrapperLayer {
       return new NNResult(result.getData()) {
   
         @Override
-        public void free() {
+        protected void _free() {
           Arrays.stream(inObj).forEach(NNResult::free);
         }
   
         @Override
-        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+        protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
           final String formatted = data.stream().map(x -> x.prettyPrint())
                                        .reduce((a, b) -> a + "\n" + b).get();
           log.info(String.format("Feedback Output %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
@@ -114,12 +114,12 @@ public final class LoggingWrapperLayer extends WrapperLayer {
     return new NNResult(output.getData()) {
   
       @Override
-      public void free() {
+      protected void _free() {
         Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         final String formatted = data.stream().map(x -> x.prettyPrint())
                                      .reduce((a, b) -> a + "\n" + b).get();
         log.info(String.format("Feedback Input for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));

@@ -190,12 +190,12 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     return new NNResult(resultData) {
       
       @Override
-      public void free() {
+      protected void _free() {
         result.free();
       }
     
       @Override
-      public void accumulate(final DeltaSet<NNLayer> deltaSet, final TensorList data) {
+      protected void _accumulate(final DeltaSet<NNLayer> deltaSet, final TensorList data) {
         result.accumulate(deltaSet, data);
         if (!isFrozen()) {
           deltaSet.get(ConvolutionLayer.this, getKernel().getData()).addInPlace(grid.read(deltaSet, true).getData());

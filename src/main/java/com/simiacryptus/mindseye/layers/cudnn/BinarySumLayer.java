@@ -143,12 +143,12 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
       return new NNResult(GpuTensorList.create(outputPtr, length, dimensions, precision)) {
       
         @Override
-        public void free() {
+        protected void _free() {
           Arrays.stream(inObj).forEach(NNResult::free);
         }
       
         @Override
-        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
+        protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
           TestUtil.runAll(() -> {
             if (inObj[0].isAlive()) {
               inObj[0].accumulate(buffer, GpuHandle.run(gpu -> {
@@ -176,6 +176,8 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
               }));
             }
           });
+          delta.free();
+          data.free();
         }
       
         @Override

@@ -85,12 +85,12 @@ public class SumMetaLayer extends NNLayer {
     return new NNResult(lastResult) {
   
       @Override
-      public void free() {
+      protected void _free() {
         Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (input.isAlive()) {
           final Tensor delta = data.get(0);
           final Tensor feedback[] = new Tensor[itemCnt];

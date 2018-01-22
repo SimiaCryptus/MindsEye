@@ -79,7 +79,7 @@ public class ProductInputsLayer extends NNLayer {
     }).get();
     return new NNResult(result) {
       @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
+      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
         assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         for (final NNResult input : inObj) {
           if (input.isAlive()) {
@@ -114,7 +114,7 @@ public class ProductInputsLayer extends NNLayer {
       }
   
       @Override
-      public void free() {
+      protected void _free() {
         Arrays.stream(inObj).forEach(NNResult::free);
       }
   

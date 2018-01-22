@@ -89,12 +89,12 @@ public class CrossProductLayer extends NNLayer {
     }).toArray(i -> new Tensor[i])) {
   
       @Override
-      public void free() {
+      protected void _free() {
         Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         final NNResult input = inObj[0];
         if (input.isAlive()) {
           assert inObj[0].getData().length() == data.length();

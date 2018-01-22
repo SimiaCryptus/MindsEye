@@ -98,12 +98,12 @@ public class EntropyLossLayer extends NNLayer {
     return new NNResult(output) {
   
       @Override
-      public void free() {
+      protected void _free() {
         Arrays.stream(inObj).forEach(NNResult::free);
       }
   
       @Override
-      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
+      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         if (inObj[1].isAlive()) {
           inObj[1].accumulate(buffer, new TensorArray(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
             final Tensor l = inObj[0].getData().get(dataIndex);

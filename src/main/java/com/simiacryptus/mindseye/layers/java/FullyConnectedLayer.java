@@ -350,12 +350,12 @@ public class FullyConnectedLayer extends NNLayer {
     }
   
     @Override
-    public void free() {
+    protected void _free() {
       inObj.free();
     }
     
     @Override
-    public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
+    protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
       assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
       if (!isFrozen()) {
         learn(delta, buffer);

@@ -110,13 +110,13 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
       return new NNResult(outputData) {
   
         @Override
-        public void free() {
+        protected void _free() {
           inputBuffer.finalize();
           Arrays.stream(inObj).forEach(NNResult::free);
         }
   
         @Override
-        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
+        protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
           if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
             throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
           }
@@ -133,6 +133,8 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
             });
             inObj[0].accumulate(buffer, passbackTensorList);
           }
+          error.free();
+          outputData.free();
         }
   
         @Override
