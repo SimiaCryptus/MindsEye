@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * The type Exploded convolution grid.
@@ -153,11 +154,10 @@ class ExplodedConvolutionGrid {
       return subLayers.get(0).add(input);
     }
     DAGNetwork network = input.getNetwork();
-    DAGNode[] nodes = subLayers.stream().map(l -> {
-      return l.add(network.add(new ImgBandSelectLayer(l.fromBand, l.toBand), input));
-    }).toArray(i -> new DAGNode[i]);
-    if (nodes.length > 1) return network.add(new BinarySumLayer(), nodes);
-    return nodes[0];
+    List<DAGNode> legs = subLayers.stream().map(l -> {
+      return l.add(network.add(new ImgBandSelectLayer(l.fromBand, l.toBand).setPrecision(convolutionParams.precision), input));
+    }).collect(Collectors.toList());
+    return legs.stream().reduce((a, b) -> network.add(new BinarySumLayer().setPrecision(convolutionParams.precision), a, b)).get();
   }
   
   

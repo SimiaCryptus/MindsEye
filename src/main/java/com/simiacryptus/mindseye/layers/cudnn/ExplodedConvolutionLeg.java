@@ -155,13 +155,8 @@ class ExplodedConvolutionLeg {
     assert cellFilterBand >= 0;
     assert cellFilterBand < (inputBands * inputBands);
     assert filterBandOffset < (inputBands * squareOutputBands);
-
-//    int filterBand = Coordinate.transposeXY(inputBands, inputBands, cellFilterBand) + filterBandOffset;
     int filterBand = cellFilterBand + filterBandOffset;
-  
     filterBand = Coordinate.transposeXY(inputBands, convolutionParams.outputBands, filterBand);
-//    filterBand = Coordinate.transposeXY(convolutionParams.outputBands, inputBands, filterBand);
-    
     return filterBand;
   }
   
@@ -223,7 +218,7 @@ class ExplodedConvolutionLeg {
       if (this.convolutionParams.paddingX != null) x = this.convolutionParams.paddingX - x;
       int y = ((filterDimensions[1] - 1) / 2);
       if (this.convolutionParams.paddingY != null) y = this.convolutionParams.paddingY - y;
-      head = network.add(new ImgZeroPaddingLayer(x, y), head);
+      head = network.add(new ImgZeroPaddingLayer(x, y).setPrecision(convolutionParams.precision), head);
     }
     return head;
   }
