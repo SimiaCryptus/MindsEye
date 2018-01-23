@@ -72,7 +72,7 @@ public class EntropyLossLayer extends NNLayer {
     final double max_prob = 1.;
     return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (inObj[1].isAlive()) {
-        inObj[1].accumulate(buffer, new TensorArray(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
+        TensorArray tensorArray = new TensorArray(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
           final Tensor l = inObj[0].getData().get(dataIndex);
           final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
           for (int i = 0; i < passback.dim(); i++) {
@@ -80,16 +80,20 @@ public class EntropyLossLayer extends NNLayer {
             passback.set(i, -data.get(dataIndex).get(0) * Math.log(lv));
           }
           return passback;
-        }).toArray(i -> new Tensor[i])));
+        }).toArray(i -> new Tensor[i]));
+        inObj[1].accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
       }
       if (inObj[0].isAlive()) {
-        inObj[0].accumulate(buffer, new TensorArray(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
+        TensorArray tensorArray = new TensorArray(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
           final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, data.get(dataIndex).get(0) * gradient[dataIndex].get(i));
           }
           return passback;
-        }).toArray(i -> new Tensor[i])));
+        }).toArray(i -> new Tensor[i]));
+        inObj[0].accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
       }
     }, IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
       final Tensor l = inObj[0].getData().get(dataIndex);

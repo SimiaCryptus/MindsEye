@@ -170,7 +170,7 @@ public class ReLuActivationLayer extends NNLayer {
         }
         if (inObj.isAlive()) {
           final double weight = weights.getData()[0];
-          final Tensor[] passbackA = IntStream.range(0, delta.length()).parallel().mapToObj(dataIndex -> {
+          TensorArray tensorArray = new TensorArray(IntStream.range(0, delta.length()).parallel().mapToObj(dataIndex -> {
             final double[] deltaData = delta.get(dataIndex).getData();
             final double[] inputData = inObj.getData().get(dataIndex).getData();
             final int[] dims = inObj.getData().get(dataIndex).getDimensions();
@@ -179,8 +179,9 @@ public class ReLuActivationLayer extends NNLayer {
               passback.set(i, inputData[i] < 0 ? 0 : deltaData[i] * weight);
             }
             return passback;
-          }).toArray(i -> new Tensor[i]);
-          inObj.accumulate(buffer, new TensorArray(passbackA));
+          }).toArray(i -> new Tensor[i]));
+          inObj.accumulate(buffer, tensorArray);
+          tensorArray.freeRef();
         }
       }, outputA);
       this.inObj = inObj;

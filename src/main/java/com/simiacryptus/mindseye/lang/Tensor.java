@@ -36,7 +36,7 @@ import java.util.stream.*;
  * handling in MindsEye, and may have some odd-looking or suprising optimizations.
  */
 @SuppressWarnings("serial")
-public class Tensor implements Serializable {
+public class Tensor extends ReferenceCountingBase implements Serializable {
   
   /**
    * The constant json_precision.
@@ -606,7 +606,7 @@ public class Tensor implements Serializable {
   }
   
   @Override
-  public void finalize() {
+  protected void _free() {
     if (null != data) {
       if (RecycleBinLong.DOUBLES.want(data.length)) {
         RecycleBinLong.DOUBLES.recycle(data, data.length);

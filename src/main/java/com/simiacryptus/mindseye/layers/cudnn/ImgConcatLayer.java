@@ -167,6 +167,7 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
             return GpuTensorList.wrap(cudaBackprop, length, inputDimensions, precision);
           });
           input.accumulate(buffer, passbackTensorList);
+          passbackTensorList.freeRef();
         }
         //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       });

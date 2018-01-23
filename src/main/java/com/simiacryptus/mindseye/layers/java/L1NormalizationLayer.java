@@ -96,7 +96,9 @@ public class L1NormalizationLayer extends NNLayer {
           return passback;
         }).toArray(i -> new Tensor[i]);
         assert Arrays.stream(passbackArray).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-        in.accumulate(buffer, new TensorArray(passbackArray));
+        TensorArray tensorArray = new TensorArray(passbackArray);
+        in.accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
       }
     }, output) {
     

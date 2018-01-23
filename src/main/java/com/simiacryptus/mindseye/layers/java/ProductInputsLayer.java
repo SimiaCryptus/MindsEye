@@ -98,6 +98,7 @@ public class ProductInputsLayer extends NNLayer {
                                                .map((a) -> new Tensor(a.sum())).toArray(i -> new Tensor[i]));
           }
           input.accumulate(buffer, passback);
+          passback.freeRef();
         }
       }
     }) {

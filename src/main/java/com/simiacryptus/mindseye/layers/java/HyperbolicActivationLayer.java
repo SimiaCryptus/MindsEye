@@ -185,7 +185,7 @@ public class HyperbolicActivationLayer extends NNLayer {
           });
         }
         if (inObj.isAlive()) {
-          final Tensor[] passbackA = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+          TensorArray tensorArray = new TensorArray(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
             final double[] deltaData = delta.get(dataIndex).getData();
             final int[] dims = inObj.getData().get(dataIndex).getDimensions();
             final Tensor passback = new Tensor(dims);
@@ -197,8 +197,9 @@ public class HyperbolicActivationLayer extends NNLayer {
               passback.set(i, sign * d * a * x / Math.sqrt(1 + a * x * a * x));
             }
             return passback;
-          }).toArray(i -> new Tensor[i]);
-          inObj.accumulate(buffer, new TensorArray(passbackA));
+          }).toArray(i -> new Tensor[i]));
+          inObj.accumulate(buffer, tensorArray);
+          tensorArray.freeRef();
         }
       }, outputA);
       this.inObj = inObj;

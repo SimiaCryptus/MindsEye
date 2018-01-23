@@ -206,8 +206,9 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
     final NNResult result = timedEval.result;
     final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
     TimedResult<DeltaSet<NNLayer>> timedBackprop = TimedResult.time(() -> {
-      final Tensor[] delta = result.getData().stream().map(x -> x.map(v -> 1.0)).toArray(i -> new Tensor[i]);
-      result.accumulate(buffer, new TensorArray(delta));
+      TensorArray tensorArray = new TensorArray(result.getData().stream().map(x -> x.map(v -> 1.0)).toArray(i -> new Tensor[i]));
+      result.accumulate(buffer, tensorArray);
+      tensorArray.freeRef();
       return buffer;
     });
     return new Tuple2<>(timedEval.timeNanos / 1e9, timedBackprop.timeNanos / 1e9);

@@ -104,7 +104,9 @@ public class AvgMetaLayer extends NNLayer {
             feedback[inputItem].add(inputCoord, delta.get(inputCoord) / itemCnt);
           }
         });
-        input.accumulate(buffer, new TensorArray(feedback));
+        TensorArray tensorArray = new TensorArray(feedback);
+        input.accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
       }
     }, thisResult) {
       

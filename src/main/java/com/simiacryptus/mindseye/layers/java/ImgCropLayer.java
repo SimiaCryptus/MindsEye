@@ -119,13 +119,14 @@ public class ImgCropLayer extends NNLayer {
     return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList error) -> {
       assert error.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
       if (input.isAlive()) {
-        final Tensor[] data1 = IntStream.range(0, error.length()).parallel()
-                                        .mapToObj(dataIndex -> {
-                                          final Tensor err = error.get(dataIndex);
-                                          final Tensor passback = new Tensor(inputDims);
-                                          return copy(err, passback);
-                                        }).toArray(i -> new Tensor[i]);
-        input.accumulate(buffer, new TensorArray(data1));
+        TensorArray tensorArray = new TensorArray(IntStream.range(0, error.length()).parallel()
+                                                           .mapToObj(dataIndex -> {
+                                                             final Tensor err = error.get(dataIndex);
+                                                             final Tensor passback = new Tensor(inputDims);
+                                                             return copy(err, passback);
+                                                           }).toArray(i -> new Tensor[i]));
+        input.accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
       }
     }, IntStream.range(0, batch.length()).parallel()
                                  .mapToObj(dataIndex -> {

@@ -81,15 +81,16 @@ public class ProductLayer extends NNLayer {
     return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       for (final NNResult in_l : inObj) {
         if (in_l.isAlive()) {
-          final Tensor[] passbackA = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
+          TensorArray tensorArray = new TensorArray(IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
             final double delta = data.get(dataIndex).get(0);
             final Tensor passback = new Tensor(in_l.getData().get(dataIndex).getDimensions());
             for (int i = 0; i < in_l.getData().get(dataIndex).dim(); i++) {
               passback.set(i, delta * sum_A[dataIndex] / in_l.getData().get(dataIndex).getData()[i]);
             }
             return passback;
-          }).toArray(i -> new Tensor[i]);
-          in_l.accumulate(buffer, new TensorArray(passbackA));
+          }).toArray(i -> new Tensor[i]));
+          in_l.accumulate(buffer, tensorArray);
+          tensorArray.freeRef();
         }
       }
     }, outputA) {

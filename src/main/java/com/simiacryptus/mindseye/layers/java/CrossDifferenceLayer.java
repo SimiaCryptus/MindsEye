@@ -77,7 +77,7 @@ public class CrossDifferenceLayer extends NNLayer {
     return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       final NNResult input = inObj[0];
       if (input.isAlive()) {
-        input.accumulate(buffer, new TensorArray(data.stream().parallel().map(tensor -> {
+        TensorArray tensorArray = new TensorArray(data.stream().parallel().map(tensor -> {
           final int outputDim = tensor.dim();
           final int inputDim = (1 + (int) Math.sqrt(1 + 8 * outputDim)) / 2;
           final Tensor passback = new Tensor(inputDim);
@@ -90,7 +90,9 @@ public class CrossDifferenceLayer extends NNLayer {
             });
           });
           return passback;
-        }).toArray(i -> new Tensor[i])));
+        }).toArray(i -> new Tensor[i]));
+        input.accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
       }
     }, inObj[0].getData().stream().parallel().map(tensor -> {
       final int inputDim = tensor.dim();

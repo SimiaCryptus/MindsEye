@@ -167,6 +167,7 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
           //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         });
         inObj[0].accumulate(buffer, passbackTensorList);
+        passbackTensorList.freeRef();
       }
     }) {
       

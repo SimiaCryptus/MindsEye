@@ -94,7 +94,9 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
       };
       final NNResult eval = component.eval(copyInput);
       final DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
-      eval.accumulate(xxx, new TensorArray(eval.getData().stream().map(x -> x.set(j_, 1)).toArray(i -> new Tensor[i])));
+      TensorArray tensorArray = new TensorArray(eval.getData().stream().map(x -> x.set(j_, 1)).toArray(i -> new Tensor[i]));
+      eval.accumulate(xxx, tensorArray);
+      tensorArray.freeRef();
       final Delta<NNLayer> inputDelta = xxx.getMap().get(inputKey);
       if (null != inputDelta) {
         result.addInPlace(new Tensor(inputDelta.getDelta(), result.getDimensions()));
@@ -114,7 +116,9 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
       final Tensor[] data = {new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0)};
       final NNResult eval = component.eval(NNConstant.singleResultArray(new Tensor[][]{inputPrototype}));
       eval.getData().get(0);
-      eval.accumulate(buffer, new TensorArray(data));
+      TensorArray tensorArray = new TensorArray(data);
+      eval.accumulate(buffer, tensorArray);
+      tensorArray.freeRef();
       final DoubleBuffer<NNLayer> deltaFlushBuffer = buffer.getMap().values().stream().filter(x -> x.target == stateArray).findFirst().orElse(null);
       if (null != deltaFlushBuffer) {
         for (int i = 0; i < stateLen; i++) {
@@ -431,7 +435,9 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
     
     });
     final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
-    eval.accumulate(buffer, eval.getData().copy());
+    TensorList tensorList = eval.getData().copy();
+    eval.accumulate(buffer, tensorList);
+    tensorList.freeRef();
     final List<Delta<NNLayer>> deltas = component.state().stream().map(doubles -> {
       return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
     }).filter(x -> x != null).collect(Collectors.toList());
@@ -464,7 +470,9 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
     
     });
     final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
-    eval.accumulate(buffer, eval.getData());
+    TensorList data = eval.getData();
+    eval.accumulate(buffer, data);
+    data.freeRef();
     final List<double[]> stateList = frozen.state();
     final List<Delta<NNLayer>> deltas = stateList.stream().map(doubles -> {
       return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);

@@ -96,7 +96,9 @@ public class Sparse01MetaLayer extends NNLayer {
           }
           return 0;
         });
-        input.accumulate(buffer, new TensorArray(feedback));
+        TensorArray tensorArray = new TensorArray(feedback);
+        input.accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
       }
     }, avgActivationArray.mapIndex((avgActivation, c) -> {
       assert Double.isFinite(avgActivation);

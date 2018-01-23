@@ -79,12 +79,13 @@ public class StaticScalarLossLayer extends NNLayer {
     return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
       if (inObj[0].isAlive()) {
-        final Tensor[] passbackA = IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {
+        TensorArray tensorArray = new TensorArray(IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {
           final Tensor a = inObj[0].getData().get(dataIndex);
           final double deriv = data.get(dataIndex).get(0) * (a.get(0) - getTarget() < 0 ? -1 : 1);
           return new Tensor(new double[]{deriv}, 1);
-        }).toArray(i -> new Tensor[i]);
-        inObj[0].accumulate(buffer, new TensorArray(passbackA));
+        }).toArray(i -> new Tensor[i]));
+        inObj[0].accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
       }
     }, outputA) {
     

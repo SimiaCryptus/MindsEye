@@ -137,6 +137,7 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
             });
           }).get();
           input.accumulate(buffer, data);
+          data.freeRef();
         }
       }
     }) {

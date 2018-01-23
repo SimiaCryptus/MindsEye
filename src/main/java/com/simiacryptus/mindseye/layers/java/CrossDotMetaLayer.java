@@ -101,9 +101,10 @@ public class CrossDotMetaLayer extends NNLayer {
             }
           }
         }
-      
-      
-        input.accumulate(buffer, new TensorArray(feedback));
+  
+        TensorArray tensorArray = new TensorArray(feedback);
+        input.accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
       }
     }, results) {
     

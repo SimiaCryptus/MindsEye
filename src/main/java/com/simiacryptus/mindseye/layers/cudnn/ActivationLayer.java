@@ -160,6 +160,7 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
             return GpuTensorList.wrap(passbackBuffer, length, inputSize, precision);
           });
           input.accumulate(buffer, data);
+          data.freeRef();
         }
       }) {
     

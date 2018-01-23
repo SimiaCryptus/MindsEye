@@ -198,7 +198,9 @@ public class ConvolutionLayer extends NNLayer {
         final double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
         convolutionController.backprop(inputBuffers, kernelData, outputBuffers);
         assert Arrays.stream(inputBufferTensors).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-        input.accumulate(buffer, new TensorArray(inputBufferTensors));
+        TensorArray tensorArray = new TensorArray(inputBufferTensors);
+        input.accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
       }
     }, output) {
     

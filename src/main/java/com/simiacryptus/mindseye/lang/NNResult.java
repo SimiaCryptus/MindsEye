@@ -72,8 +72,9 @@ public abstract class NNResult {
    * @param value  the value
    */
   public final void accumulate(final DeltaSet<NNLayer> buffer, final double value) {
-    final Tensor[] defaultVector = getData().stream().map(t -> t.map(v -> value)).toArray(i -> new Tensor[i]);
-    accumulate(buffer, new TensorArray(defaultVector));
+    TensorArray tensorArray = new TensorArray(getData().stream().map(t -> t.map(v -> value)).toArray(i -> new Tensor[i]));
+    accumulate(buffer, tensorArray);
+    tensorArray.freeRef();
   }
   
   

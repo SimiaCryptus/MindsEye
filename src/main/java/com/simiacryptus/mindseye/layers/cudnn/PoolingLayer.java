@@ -162,6 +162,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
           return GpuTensorList.wrap(passbackBuffer, length, inputSize, precision);
         });
         input.accumulate(buffer, data);
+        data.freeRef();
       }
                         }) {
     

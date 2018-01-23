@@ -185,6 +185,7 @@ class CountingNNResult extends NNResult {
             TensorList reduced = passbackBuffers.stream().parallel().reduce((a, b) -> a.add(b)).get();
             passbackBuffers.stream().distinct().filter((TensorList x) -> x != reduced).forEach(t -> t.freeRef());
             inner.accumulate(buffer, reduced);
+            reduced.freeRef();
             accumulations.set(0);
             passbackBuffers.clear();
           }

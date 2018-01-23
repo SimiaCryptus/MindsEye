@@ -121,7 +121,7 @@ public final class NthPowerActivationLayer extends NNLayer {
     final Tensor inputGradientA[] = new Tensor[itemCnt];
     return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (inObj[0].isAlive()) {
-        final Tensor[] passbackA = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
+        TensorArray tensorArray = new TensorArray(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
           final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
           final double[] gradientData = inputGradientA[dataIndex].getData();
           IntStream.range(0, passback.dim()).forEach(i -> {
@@ -131,8 +131,9 @@ public final class NthPowerActivationLayer extends NNLayer {
             }
           });
           return passback;
-        }).toArray(i -> new Tensor[i]);
-        inObj[0].accumulate(buffer, new TensorArray(passbackA));
+        }).toArray(i -> new Tensor[i]));
+        inObj[0].accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
       }
     }, IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);

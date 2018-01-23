@@ -127,28 +127,28 @@ public class BiasLayer extends NNLayer {
     else {
       input = inObj[0].getData();
     }
-    final Tensor[] outputA = input.stream().parallel()
-                                  .map(r -> new Tensor(add(r.getData()), r.getDimensions()))
-                                  .toArray(i -> new Tensor[i]);
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
-      assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-      if (!isFrozen()) {
-        final Delta<NNLayer> deltaBuffer = buffer.get(BiasLayer.this, bias);
-        if (1 == bias.length) {
-          data.stream().parallel().forEach(d -> {
-            final double[] array = d.getData();
-            deltaBuffer.addInPlace(1 == array.length ? array : new double[]{Arrays.stream(array).sum()});
-          });
-        }
-        else {
-          data.stream().parallel().forEach(d -> deltaBuffer.addInPlace(d.getData()));
-        }
-      }
-      if (0 < inObj.length && inObj[0].isAlive()) {
-        inObj[0].accumulate(buffer, data);
-      }
-    }, outputA) {
-    
+    return new NNResult(new TensorArray(input.stream().parallel()
+                                             .map(r -> new Tensor(add(r.getData()), r.getDimensions()))
+                                             .toArray(i -> new Tensor[i])),
+                        (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+                          assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+                          if (!isFrozen()) {
+                            final Delta<NNLayer> deltaBuffer = buffer.get(BiasLayer.this, bias);
+                            if (1 == bias.length) {
+                              data.stream().parallel().forEach(d -> {
+                                final double[] array = d.getData();
+                                deltaBuffer.addInPlace(1 == array.length ? array : new double[]{Arrays.stream(array).sum()});
+                              });
+                            }
+                            else {
+                              data.stream().parallel().forEach(d -> deltaBuffer.addInPlace(d.getData()));
+                            }
+                          }
+                          if (0 < inObj.length && inObj[0].isAlive()) {
+                            inObj[0].accumulate(buffer, data);
+                          }
+                        }) {
+      
       @Override
       public void free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.free());

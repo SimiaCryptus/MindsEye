@@ -146,7 +146,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
     return new NNResult(data, (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
       TestUtil.runAll(() -> {
         if (inObj[0].isAlive()) {
-          inObj[0].accumulate(buffer, GpuHandle.run(gpu -> {
+          GpuTensorList tensorList = GpuHandle.run(gpu -> {
             final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);
             final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
             final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
@@ -156,11 +156,13 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
                                  precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
             lPtr.freeRef();
             return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
-          }));
+          });
+          inObj[0].accumulate(buffer, tensorList);
+          tensorList.freeRef();
         }
       }, () -> {
         if (inObj[1].isAlive()) {
-          inObj[1].accumulate(buffer, GpuHandle.run(gpu -> {
+          GpuTensorList tensorList = GpuHandle.run(gpu -> {
             final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);
             final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
             final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
@@ -170,7 +172,9 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
                                  precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
             lPtr.freeRef();
             return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
-          }));
+          });
+          inObj[1].accumulate(buffer, tensorList);
+          tensorList.freeRef();
         }
       });
     }) {

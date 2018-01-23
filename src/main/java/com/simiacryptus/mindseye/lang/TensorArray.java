@@ -78,7 +78,7 @@ public class TensorArray extends ReferenceCountingBase implements TensorList {
   protected void _free() {
     try {
       for (final Tensor d : data) {
-        d.finalize();
+        d.freeRef();
       }
     } catch (final Throwable e) {
       throw new RuntimeException(e);

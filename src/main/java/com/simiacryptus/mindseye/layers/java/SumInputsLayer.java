@@ -80,13 +80,19 @@ public class SumInputsLayer extends NNLayer {
       for (final NNResult input : inObj) {
         if (input.isAlive()) {
           TensorList data1 = data;
+          data1.addRef();
           if (1 < data1.length() && input.getData().length() == 1) {
-            data1 = new TensorArray(data1.stream().parallel().reduce((a, b) -> a.add(b)).get());
+            TensorArray data2 = new TensorArray(data1.stream().parallel().reduce((a, b) -> a.add(b)).get());
+            data1.freeRef();
+            data1 = data2;
           }
           if (1 < data1.get(0).dim() && input.getData().get(0).dim() == 1) {
-            data1 = new TensorArray(data1.stream().map(t -> new Tensor(new double[]{t.sum()})).toArray(i -> new Tensor[i]));
+            TensorArray data2 = new TensorArray(data1.stream().map(t -> new Tensor(new double[]{t.sum()})).toArray(i -> new Tensor[i]));
+            data1.freeRef();
+            data1 = data2;
           }
           input.accumulate(buffer, data1);
+          data1.freeRef();
         }
       }
     }) {

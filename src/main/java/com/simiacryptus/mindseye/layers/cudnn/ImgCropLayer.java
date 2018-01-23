@@ -126,6 +126,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
           return GpuTensorList.wrap(passbackBuffer, length, dimIn, precision);
         });
         inObj[0].accumulate(buffer, passbackTensorList);
+        passbackTensorList.freeRef();
       }
     }) {
     

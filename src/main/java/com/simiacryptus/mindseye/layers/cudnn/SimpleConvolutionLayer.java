@@ -182,7 +182,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
     final int[] outputSize = getOutputSize(inputSize);
     final int length = batch.length();
   
-    final TensorList outputTensor = GpuHandle.run(gpu -> {
+    return new NNResult(GpuHandle.run(gpu -> {
       final int deviceNumber = gpu.getDeviceNumber();
       SimpleConvolutionParameters parameters = new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu);
       //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
@@ -209,11 +209,10 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
       } catch (final Throwable e) {
         throw new ComponentException(String.format("Error in convolution %s x %s", Arrays.toString(inputSize), Arrays.toString(kernelSize)), e);
       }
-    });
-    return new NNResult(outputTensor, (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
+    }), (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
       assert error.length() == batch.length();
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-      final TensorList inputBufferTensors = GpuHandle.run((GpuHandle gpu) -> {
+      final TensorList inputBufferTensors = GpuHandle.run(gpu -> {
         int deviceNumber = gpu.getDeviceNumber();
         final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
         SimpleConvolutionParameters parameters = new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu);
@@ -237,7 +236,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
           final Tensor weightGradient = CudaPtr.read(filterPtr, precision, kernel.getDimensions());
           filterPtr.freeRef();
           buffer.get(SimpleConvolutionLayer.this, kernel.getData()).addInPlace(weightGradient.getData());
-          weightGradient.finalize();
+          weightGradient.freeRef();
           inputData.freeRef();
         }
         if (input.isAlive()) {
@@ -265,6 +264,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
       });
       if (null != inputBufferTensors) {
         input.accumulate(buffer, inputBufferTensors);
+        inputBufferTensors.freeRef();
       }
     }) {
     

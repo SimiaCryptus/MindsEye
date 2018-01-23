@@ -94,7 +94,9 @@ public class SumMetaLayer extends NNLayer {
           return 0;
         };
         delta.mapCoords(f);
-        input.accumulate(buffer, new TensorArray(feedback));
+        TensorArray tensorArray = new TensorArray(feedback);
+        input.accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
       }
     }, lastResult) {
     

@@ -116,7 +116,9 @@ public class SoftmaxActivationLayer extends NNLayer {
           return passback;
         }).toArray(i -> new Tensor[i]);
         assert Arrays.stream(passbackA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-        inObj[0].accumulate(buffer, new TensorArray(passbackA));
+        TensorArray tensorArray = new TensorArray(passbackA);
+        inObj[0].accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
       }
     }, outputA) {
     
