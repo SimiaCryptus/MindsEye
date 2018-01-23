@@ -74,6 +74,7 @@ public class State<K> extends DoubleBuffer<K> {
   
   @Override
   public State<K> copy() {
+    assertAlive();
     return new State(layer, target, RecycleBinLong.DOUBLES.copyOf(delta, length()));
   }
   

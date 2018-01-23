@@ -120,7 +120,7 @@ public class StateSet<K> extends DoubleBufferSet<K, State<K>> {
    */
   public DeltaSet<K> asVector() {
     final HashMap<K, Delta<K>> newMap = new HashMap<>();
-    map.forEach((layer, state) -> newMap.put(layer, new Delta<K>(layer, state.target, state.delta)));
+    map.forEach((layer, state) -> newMap.put(layer, new Delta<K>(layer, state.target, RecycleBinLong.DOUBLES.copyOf(state.delta, state.delta.length))));
     return new DeltaSet<K>(newMap);
   }
   

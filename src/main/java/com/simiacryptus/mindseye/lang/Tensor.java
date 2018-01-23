@@ -440,7 +440,7 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
    * @return the boolean
    */
   public boolean isValid() {
-    return null == this.data || this.data.length == Tensor.dim(dimensions);
+    return !isFinalized() && null == this.data || this.data.length == Tensor.dim(dimensions);
   }
   
   /**
@@ -579,6 +579,7 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
    * @return the int
    */
   public int dim() {
+    assertAlive();
     if (null != data) {
       return data.length;
     }
@@ -698,6 +699,7 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
    * @return the double [ ]
    */
   public double[] getData() {
+    assertAlive();
     if (null == data) {
       synchronized (this) {
         if (null == data) {
@@ -1205,6 +1207,7 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
    * @return the int
    */
   public int size() {
+    assertAlive();
     return null == data ? Tensor.dim(dimensions) : data.length;
   }
   

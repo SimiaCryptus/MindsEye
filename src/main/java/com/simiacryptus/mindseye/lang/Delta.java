@@ -129,6 +129,7 @@ public class Delta<K> extends DoubleBuffer<K> {
    * @return the delta
    */
   public Delta<K> addInPlace(final Delta<K> buffer) {
+    assertAlive();
     return addInPlace(buffer.delta).addInPlace(buffer.deltaCompensation);
   }
   
@@ -149,6 +150,7 @@ public class Delta<K> extends DoubleBuffer<K> {
   
   @Override
   public Delta<K> copy() {
+    assertAlive();
     return new Delta<K>(layer, target, RecycleBinLong.DOUBLES.copyOf(delta, length()), RecycleBinLong.DOUBLES.copyOf(deltaCompensation, length()));
   }
   

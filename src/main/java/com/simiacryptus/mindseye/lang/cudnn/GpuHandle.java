@@ -22,11 +22,7 @@ package com.simiacryptus.mindseye.lang.cudnn;
 import com.simiacryptus.util.lang.StaticResourcePool;
 import jcuda.jcudnn.JCudnn;
 import jcuda.jcudnn.cudnnHandle;
-import jcuda.runtime.cudaDeviceProp;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,8 +35,7 @@ import java.util.stream.Stream;
 /**
  * The type Gpu handle.
  */
-public class GpuHandle {
-  private static final Logger logger = LoggerFactory.getLogger(GpuHandle.class);
+public class GpuHandle extends GpuDevice {
   private static final ThreadLocal<GpuHandle> threadContext = new ThreadLocal<>();
   private static final boolean DISABLE = Boolean.parseBoolean(System.getProperty("DISABLE_CUDNN", Boolean.toString(false)));
   private static final boolean FORCE_SINGLE_GPU = Boolean.parseBoolean(System.getProperty("FORCE_SINGLE_GPU", Boolean.toString(false)));
@@ -51,9 +46,6 @@ public class GpuHandle {
    */
   public static final StaticResourcePool<GpuHandle> POOL = new StaticResourcePool<>(loadGpuContexts());
   private final jcuda.jcudnn.cudnnHandle handle;
-  private final String deviceName;
-  private final int deviceNumber;
-  private volatile cudaDeviceProp deviceProperties;
   
   /**
    * Instantiates a new Cu dnn.
@@ -61,16 +53,14 @@ public class GpuHandle {
    * @param deviceNumber the device number
    */
   private GpuHandle(final int deviceNumber) {
-    this.deviceNumber = deviceNumber;
+    super(deviceNumber);
     if (0 <= this.deviceNumber) {
-      handle = new cudnnHandle();
       initThread();
-      deviceName = CuDNN.getDeviceName(deviceNumber);
+      handle = new cudnnHandle();
       JCudnn.cudnnCreate(getHandle());
     }
     else {
       handle = null;
-      deviceName = null;
     }
     //cudaSetDevice();
   }
@@ -175,7 +165,7 @@ public class GpuHandle {
    *
    * @param fn the fn
    */
-  public static void forEach(final Consumer<? super GpuHandle> fn) {
+  public static void forEach(final Consumer<? super GpuDevice> fn) {
     POOL.getAll().forEach(x -> {
       x.initThread();
       fn.accept(x);
@@ -243,50 +233,9 @@ public class GpuHandle {
                   }).collect(Collectors.toList());
   }
   
-  /**
-   * Init thread.
-   */
-  public void initThread() {
-    CuDNN.setDevice(getDeviceNumber());
-  }
-  
   @Override
   public String toString() {
     return getClass().getSimpleName() + "{" + deviceNumber + "; " + deviceName + "}@" + Long.toHexString(System.identityHashCode(this));
-  }
-  
-  /**
-   * Gets device properties.
-   *
-   * @return the device properties
-   */
-  public cudaDeviceProp getDeviceProperties() {
-    if (null == deviceProperties) {
-      synchronized (this) {
-        if (null == deviceProperties) {
-          deviceProperties = CuDNN.getDeviceProperties(getDeviceNumber());
-        }
-      }
-    }
-    return deviceProperties;
-  }
-  
-  /**
-   * Gets device number.
-   *
-   * @return the device number
-   */
-  public int getDeviceNumber() {
-    return deviceNumber;
-  }
-  
-  /**
-   * Gets device name.
-   *
-   * @return the device name
-   */
-  public String getDeviceName() {
-    return new String(getDeviceProperties().name, Charset.forName("ASCII")).trim();
   }
   
   @Override

@@ -93,6 +93,7 @@ public class DoubleBuffer<K> extends ReferenceCountingBase {
    * @return the delta
    */
   public DoubleBuffer<K> copy() {
+    assertAlive();
     return new DoubleBuffer<K>(layer, target, RecycleBinLong.DOUBLES.copyOf(delta, length()));
   }
   
@@ -131,6 +132,7 @@ public class DoubleBuffer<K> extends ReferenceCountingBase {
    * @return the double [ ]
    */
   public double[] getDelta() {
+    assertAlive();
     if (null == delta) {
       synchronized (this) {
         if (null == delta) {

@@ -58,7 +58,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
       String finalizedByStr = null == finalizedBy ? "?" : Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "\n" + b).orElse("?");
       String currentStackStr = Arrays.stream(Thread.currentThread().getStackTrace()).skip(2).map(x -> x.toString()).reduce((a, b) -> a + "\n" + b).orElse("?");
       logger.warn(String.format("Error freeing reference for %s created by \n\t%s\n; freed by \n\t%s\n; with current stack \n\t%s",
-                                this,
+                                getClass().getSimpleName(),
                                 createdByStr.replaceAll("\n", "\n\t"),
                                 finalizedByStr.replaceAll("\n", "\n\t"),
                                 currentStackStr.replaceAll("\n", "\n\t")));
@@ -86,7 +86,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
       String finalizedByStr = null == finalizedBy ? "?" : Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "\n" + b).orElse("?");
       String currentStackStr = Arrays.stream(Thread.currentThread().getStackTrace()).skip(2).map(x -> x.toString()).reduce((a, b) -> a + "\n" + b).orElse("?");
       logger.warn(String.format("Using freed reference for %s created by \n\t%s\n; freed by \n\t%s\n; with current stack \n\t%s",
-                                this,
+                                getClass().getSimpleName(),
                                 createdByStr.replaceAll("\n", "\n\t"),
                                 finalizedByStr.replaceAll("\n", "\n\t"),
                                 currentStackStr.replaceAll("\n", "\n\t")));

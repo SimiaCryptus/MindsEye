@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.lang.cudnn.CudaPtr;
-import com.simiacryptus.mindseye.lang.cudnn.GpuHandle;
+import com.simiacryptus.mindseye.lang.cudnn.GpuDevice;
 import com.simiacryptus.mindseye.lang.cudnn.GpuTensorList;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 
@@ -33,7 +33,7 @@ import com.simiacryptus.mindseye.lang.cudnn.Precision;
  */
 public class SimpleGpuEval extends SimpleListEval {
   
-  private final GpuHandle gpu;
+  private final GpuDevice gpu;
   
   /**
    * Instantiates a new Simple gpu eval.
@@ -42,7 +42,7 @@ public class SimpleGpuEval extends SimpleListEval {
    * @param gpu   the gpu
    * @param input the input
    */
-  public SimpleGpuEval(NNLayer layer, GpuHandle gpu, TensorList... input) {
+  public SimpleGpuEval(NNLayer layer, GpuDevice gpu, TensorList... input) {
     super(layer, input);
     this.gpu = gpu;
   }
@@ -55,7 +55,7 @@ public class SimpleGpuEval extends SimpleListEval {
    * @param tensor the tensor
    * @return the simple result
    */
-  public static SimpleResult run(final NNLayer layer, final GpuHandle gpu, final TensorList... tensor) {
+  public static SimpleResult run(final NNLayer layer, final GpuDevice gpu, final TensorList... tensor) {
     return new SimpleGpuEval(layer, gpu, tensor).call();
   }
   

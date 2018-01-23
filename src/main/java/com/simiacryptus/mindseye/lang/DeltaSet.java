@@ -102,6 +102,7 @@ public class DeltaSet<K> extends DoubleBufferSet<K, Delta<K>> {
   public StateSet<K> asState() {
     final StateSet<K> returnValue = new StateSet<>();
     map.forEach((layer, delta) -> {
+      delta.assertAlive();
       returnValue.get(layer, delta.target).set(delta.delta);
     });
     return returnValue;
