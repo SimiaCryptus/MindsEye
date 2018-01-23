@@ -81,7 +81,7 @@ public class GpuLocalityTester implements ComponentTest<ToleranceStatistics> {
                                                                                                   .toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
       TensorList[] gpuInput = Arrays.stream(heapInput).map(original -> {
         CudaPtr cudaPtr = CudaPtr.getCudaPtr(Precision.Double, original);
-        return GpuTensorList.create(cudaPtr, original.length(), original.getDimensions(), Precision.Double);
+        return GpuTensorList.wrap(cudaPtr, original.length(), original.getDimensions(), Precision.Double);
       }).toArray(i -> new TensorList[i]);
       final SimpleResult fromHeap = SimpleGpuEval.run(reference, gpu, heapInput);
       final SimpleResult fromGPU = SimpleGpuEval.run(reference, gpu, gpuInput);

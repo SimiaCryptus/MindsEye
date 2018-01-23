@@ -56,14 +56,14 @@ class CountingNNResult extends NNResult {
    * The Inner.
    */
   private final NNResult inner;
-
+  
   /**
    * Instantiates a new Counting nn result.
    *
    * @param inner the heapCopy
    */
   protected CountingNNResult(final NNResult inner) {
-    super(new CountingAccumulator(inner), inner.getData());
+    super(inner.getData(), new CountingAccumulator(inner));
     this.inner = inner;
   }
   
@@ -124,8 +124,16 @@ class CountingNNResult extends NNResult {
      * The Queued.
      */
     private final AtomicInteger accumulations;
+    /**
+     * The Finalized by.
+     */
     public StackTraceElement[] finalizedBy;
-    
+  
+    /**
+     * Instantiates a new Counting accumulator.
+     *
+     * @param inner the inner
+     */
     public CountingAccumulator(NNResult inner) {
       this.inner = inner;
       finalizations = new AtomicInteger(0);
@@ -136,7 +144,7 @@ class CountingNNResult extends NNResult {
       passbackBuffers = new LinkedBlockingDeque<>();
       accumulations = new AtomicInteger(0);
     }
-    
+  
     /**
      * Finalized by str string.
      *
@@ -145,7 +153,7 @@ class CountingNNResult extends NNResult {
     public String finalizedByStr() {
       return null == finalizedBy ? "" : Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).get();
     }
-    
+  
     /**
      * Increment counting nn result.
      *
@@ -164,6 +172,7 @@ class CountingNNResult extends NNResult {
       }
       else {
         passbackBuffers.add(data);
+        data.addRef();
         synchronized (passbackBuffers) {
           if (passbackBuffers.size() > COMPACTION_SIZE) {
             TensorList reduced = passbackBuffers.stream().parallel().reduce((a, b) -> a.add(b)).get();
@@ -182,7 +191,7 @@ class CountingNNResult extends NNResult {
         }
       }
     }
-    
+  
     /**
      * A flagrant abuse of Java's object finalization contract. Repeated calls to this class's free method will
      * increment a counter, and when the counter cycles the call is chained.
@@ -201,7 +210,10 @@ class CountingNNResult extends NNResult {
             inner.free();
           }
           finalizations.set(0);
-          passbackBuffers.clear();
+          synchronized (passbackBuffers) {
+            passbackBuffers.stream().distinct().forEach(t -> t.freeRef());
+            passbackBuffers.clear();
+          }
         }
       }
     }

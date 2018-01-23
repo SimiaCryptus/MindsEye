@@ -119,9 +119,9 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   @Override
   public NNResult eval(final NNResult... inObj) {
     final AtomicLong passbackNanos = new AtomicLong(0);
-    final NNResult[] wrappedInput = Arrays.stream(inObj).map(result -> new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    final NNResult[] wrappedInput = Arrays.stream(inObj).map(result -> new NNResult(result.getData(), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       passbackNanos.addAndGet(TimedResult.time(() -> result.accumulate(buffer, data)).timeNanos);
-    }, result.getData()) {
+    }) {
     
       @Override
       public void free() {
@@ -147,7 +147,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
         forwardSignal.add(t.getData());
       });
     }
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    return new NNResult(output.getData(), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (recordSignalMetrics) {
         backwardSignal.clear();
         data.stream().parallel().forEach(t -> {
@@ -155,7 +155,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
         });
       }
       backwardPerformance.add((TimedResult.time(() -> output.accumulate(buffer, data)).timeNanos - passbackNanos.getAndSet(0)) / (items * 1e9));
-    }, output.getData()) {
+    }) {
     
       @Override
       public void free() {

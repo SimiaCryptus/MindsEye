@@ -26,6 +26,9 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * The type Reference counting base.
+ */
 public abstract class ReferenceCountingBase implements ReferenceCounting {
   private static final Logger logger = LoggerFactory.getLogger(ReferenceCountingBase.class);
   
@@ -33,13 +36,16 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
    * The constant debugLifecycle.
    */
   public static boolean debugLifecycle = true;
+  /**
+   * The Created by.
+   */
   protected final StackTraceElement[] createdBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
   private final AtomicInteger references = new AtomicInteger(1);
   private final AtomicBoolean isFreed = new AtomicBoolean(false);
   private volatile StackTraceElement[] finalizedBy = null;
   
   @Override
-  public void getRef() {
+  public void addRef() {
     if (references.incrementAndGet() <= 1) throw new IllegalStateException();
   }
   
@@ -58,6 +64,9 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     return isFreed.get();
   }
   
+  /**
+   * Free.
+   */
   protected final void free() {
     assertAlive();
     assert references.get() == 0;
@@ -67,11 +76,17 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     }
   }
   
+  /**
+   * Assert alive.
+   */
   public void assertAlive() {
     if (isFinalized())
       throw new IllegalStateException(null == finalizedBy ? "" : Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).orElse(""));
   }
   
+  /**
+   * Free.
+   */
   protected abstract void _free();
   
   @Override

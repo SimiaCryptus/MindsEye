@@ -182,12 +182,12 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
     final int[] outputSize = getOutputSize(inputSize);
     final int length = batch.length();
   
-    return GpuHandle.run(gpu -> {
+    final TensorList outputTensor = GpuHandle.run(gpu -> {
       final int deviceNumber = gpu.getDeviceNumber();
+      SimpleConvolutionParameters parameters = new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu);
       //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     
       try {
-        SimpleConvolutionParameters parameters = new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu);
         CudaFwdParameters cudaParameters = obtainFwd(parameters);
         assert 0 < kernel.getData().length;
         assert kernelSize[0] * kernelSize[1] * kernelSize[2] == kernel.getData().length;
@@ -204,33 +204,15 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
                                                    cudaParameters.forwardWorkspace.getPtr(),
                                                    cudaParameters.forwardWorkspace.size,
                                                    precision.getPointer(0.0), cudaParameters.outputDescriptor.getPtr(), outputBuffer.getPtr()));
-        GpuTensorList output = GpuTensorList.create(outputBuffer, length, cudaParameters.outputDims, precision);
         filterPtr.freeRef();
-        return getResult(input, inputSize, kernelSize, outputSize, inputData, output, inObj);
+        return GpuTensorList.wrap(outputBuffer, length, cudaParameters.outputDims, precision);
       } catch (final Throwable e) {
         throw new ComponentException(String.format("Error in convolution %s x %s", Arrays.toString(inputSize), Arrays.toString(kernelSize)), e);
       }
     });
-  }
-  
-  /**
-   * Gets result.
-   *
-   * @param input      the input
-   * @param inputSize  the input size
-   * @param kernelSize the kernel size
-   * @param outputSize the output size
-   * @param inputData  the input data
-   * @param output     the output
-   * @param inObj      the in obj
-   * @return the result
-   */
-  public NNResult getResult(NNResult input, int[] inputSize, int[] kernelSize, int[] outputSize, CudaPtr inputData, GpuTensorList output, NNResult[] inObj) {
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList error) -> {
-      final TensorList batch = input.getData();
+    return new NNResult(outputTensor, (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
       assert error.length() == batch.length();
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-      final int length = error.length();
       final TensorList inputBufferTensors = GpuHandle.run((GpuHandle gpu) -> {
         int deviceNumber = gpu.getDeviceNumber();
         final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
@@ -238,6 +220,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
         CudaRevParameters cudaParameters = obtainRev(parameters);
         assert cudaParameters.precision == precision;
         if (!isFrozen()) {
+          final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
           CudaPtr filterPtr = CudaPtr.allocate(deviceNumber, kernel.dim() * 1l * precision.size, MemoryType.Managed, true);
           try {
             CuDNN.handle(CuDNN.cudnnConvolutionBackwardFilter(gpu.getHandle(), cudaParameters.precision.getPointer(1.0),
@@ -255,8 +238,8 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
           filterPtr.freeRef();
           buffer.get(SimpleConvolutionLayer.this, kernel.getData()).addInPlace(weightGradient.getData());
           weightGradient.finalize();
+          inputData.freeRef();
         }
-        TensorList gpuTensorList = null;
         if (input.isAlive()) {
           final CudaPtr inputBuffer = CudaPtr.allocate(deviceNumber, Tensor.dim(batch.getDimensions()) * 1l * length * precision.size, MemoryType.Managed, true);
           try {
@@ -274,23 +257,21 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
           } catch (final Throwable e) {
             throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
           }
-          gpuTensorList = GpuTensorList.create(inputBuffer, length, inputSize, precision);
+          return GpuTensorList.wrap(inputBuffer, length, inputSize, precision);
         }
-        return gpuTensorList;
+        else {
+          return null;
+        }
       });
       if (null != inputBufferTensors) {
         input.accumulate(buffer, inputBufferTensors);
       }
-      error.freeRef();
-      output.freeRef();
-    }, output) {
+    }) {
     
       @Override
       public void free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
       }
-      
-      
       
       @Override
       public boolean isAlive() {
@@ -322,9 +303,9 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
       @Override
       public NNResult eval(NNResult... array) {
         NNResult result = convolutionLayer.eval(array);
-        return new NNResult((DeltaSet<NNLayer> buffer, TensorList data) -> {
+        return new NNResult(result.getData(), (DeltaSet<NNLayer> buffer, TensorList data) -> {
           throw new IllegalStateException();
-        }, result.getData()) {
+        }) {
           
   
           @Override

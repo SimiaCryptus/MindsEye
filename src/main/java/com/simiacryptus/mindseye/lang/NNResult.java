@@ -21,23 +21,39 @@ package com.simiacryptus.mindseye.lang;
 
 import java.util.function.BiConsumer;
 
+/**
+ * The type Nn result.
+ */
 public abstract class NNResult {
   /**
    * The Data.
    */
   protected final TensorList data;
+  /**
+   * The Accumulator.
+   */
   protected final BiConsumer<DeltaSet<NNLayer>, TensorList> accumulator;
   
-  public NNResult(BiConsumer<DeltaSet<NNLayer>, TensorList> accumulator, final TensorList data) {
+  /**
+   * Instantiates a new Nn result.
+   *
+   * @param data        the data
+   * @param accumulator the accumulator
+   */
+  public NNResult(final TensorList data, BiConsumer<DeltaSet<NNLayer>, TensorList> accumulator) {
     super();
     this.data = data;
     this.accumulator = accumulator;
   }
   
+  /**
+   * Instantiates a new Nn result.
+   *
+   * @param accumulator the accumulator
+   * @param data        the data
+   */
   public NNResult(BiConsumer<DeltaSet<NNLayer>, TensorList> accumulator, final Tensor... data) {
-    super();
-    this.data = new TensorArray(data);
-    this.accumulator = accumulator;
+    this(new TensorArray(data), accumulator);
   }
   
   /**
@@ -61,6 +77,12 @@ public abstract class NNResult {
   }
   
   
+  /**
+   * Accumulate.
+   *
+   * @param buffer the buffer
+   * @param delta  the delta
+   */
   public final void accumulate(DeltaSet<NNLayer> buffer, TensorList delta) {
     getAccumulator().accept(buffer, delta);
   }
@@ -86,6 +108,11 @@ public abstract class NNResult {
    */
   public void free() {}
   
+  /**
+   * Gets accumulator.
+   *
+   * @return the accumulator
+   */
   public BiConsumer<DeltaSet<NNLayer>, TensorList> getAccumulator() {
     return accumulator;
   }

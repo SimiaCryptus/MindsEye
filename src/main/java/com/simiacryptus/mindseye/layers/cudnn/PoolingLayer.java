@@ -127,13 +127,14 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
                                                inputDescriptor.getPtr(), inputData.getPtr(),
                                                beta,
                                                outputDescriptor.getPtr(), outputTensor.getPtr()));
+        inputData.freeRef();
         return outputTensor;
       } catch (final Throwable e) {
         throw new ComponentException("Error", e);
       }
     });
-    final TensorList output = GpuTensorList.create(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, precision);
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList error) -> {
+    return new NNResult(GpuTensorList.create(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, precision),
+                        (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
       assert error.length() == batch.length();
       if (input.isAlive()) {
         TensorList data = GpuHandle.run(nncontext -> {
@@ -155,12 +156,14 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
                                                   inputDescriptor.getPtr(), inputData.getPtr(),
                                                   beta,
                                                   inputDescriptor.getPtr(), passbackBuffer.getPtr()));
-          return GpuTensorList.create(passbackBuffer, length, inputSize, precision);
+          errorPtr.freeRef();
+          inputData.freeRef();
+          outputData.freeRef();
+          return GpuTensorList.wrap(passbackBuffer, length, inputSize, precision);
         });
         input.accumulate(buffer, data);
       }
-      error.freeRef();
-    }, output) {
+                        }) {
     
       @Override
       public void free() {

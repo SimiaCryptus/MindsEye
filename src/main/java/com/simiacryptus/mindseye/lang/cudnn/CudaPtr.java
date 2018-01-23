@@ -110,6 +110,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
       GpuTensorList gpuTensorList = (GpuTensorList) data;
       final CudaPtr ptr = gpuTensorList.getPtr();
       assert null != ptr;
+      ptr.addRef();
       return ptr;
     }
     else {
@@ -350,4 +351,23 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     return this;
   }
   
+  /**
+   * As copy cuda ptr.
+   *
+   * @return the cuda ptr
+   */
+  public CudaPtr asCopy() {
+    CudaPtr copy = copy();
+    freeRef();
+    return copy;
+  }
+  
+  /**
+   * Copy cuda ptr.
+   *
+   * @return the cuda ptr
+   */
+  public CudaPtr copy() {
+    return copyTo(getDeviceId());
+  }
 }

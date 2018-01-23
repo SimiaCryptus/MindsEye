@@ -139,9 +139,11 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
                           precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
                           precision.getPointer(rightFactor), sizeDescriptor.getPtr(), rPtr.getPtr(),
                           precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-      return GpuTensorList.create(outputPtr, length, dimensions, precision);
+      lPtr.freeRef();
+      rPtr.freeRef();
+      return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
     });
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+    return new NNResult(data, (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
       TestUtil.runAll(() -> {
         if (inObj[0].isAlive()) {
           inObj[0].accumulate(buffer, GpuHandle.run(gpu -> {
@@ -152,7 +154,8 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
             CuDNN.cudnnAddTensor(gpu.getHandle(),
                                  precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                  precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-            return GpuTensorList.create(outputPtr, length, dimensions, precision);
+            lPtr.freeRef();
+            return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
           }));
         }
       }, () -> {
@@ -165,12 +168,12 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
             CuDNN.cudnnAddTensor(gpu.getHandle(),
                                  precision.getPointer(rightFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                  precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-            return GpuTensorList.create(outputPtr, length, dimensions, precision);
+            lPtr.freeRef();
+            return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
           }));
         }
       });
-      delta.freeRef();
-    }, data) {
+    }) {
     
       @Override
       public void free() {

@@ -82,7 +82,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
       }
       return output;
     }).toArray(i -> new Tensor[i]));
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    return new NNResult(outputArray, (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (inObj[0].isAlive()) {
         final Tensor[] passbackArray = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
           final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
@@ -97,9 +97,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
         }).toArray(i -> new Tensor[i]);
         inObj[0].accumulate(buffer, new TensorArray(passbackArray));
       }
-      outputArray.freeRef();
-      data.freeRef();
-    }, outputArray) {
+    }) {
     
       @Override
       public void free() {

@@ -110,12 +110,19 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
                                  precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.getPtr().withByteOffset(byteOffset),
                                  precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr()
                                 );
-      final TensorList outputData = GpuTensorList.create(cudaOutput, length, outputDimensions, precision);
-      //assert outputData.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-      return getResult(inputData, inputDimensions, length, outputDimensions, byteOffset, outputData, inObj);
+      cudaInput.freeRef();
+      return getResult(inputData, inputDimensions, length, outputDimensions, byteOffset, GpuTensorList.wrap(cudaOutput, length, outputDimensions, precision), inObj);
     });
   }
   
+  /**
+   * Gets tensor descriptor.
+   *
+   * @param inputDimensions  the input dimensions
+   * @param length           the length
+   * @param outputDimensions the output dimensions
+   * @return the tensor descriptor
+   */
   public CudaResource<cudnnTensorDescriptor> getTensorDescriptor(int[] inputDimensions, int length, int[] outputDimensions) {
     return CuDNN.newTensorDescriptor(
       precision.code, length, outputDimensions[2], outputDimensions[1], outputDimensions[0], //
@@ -125,8 +132,20 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
       1);
   }
   
+  /**
+   * Gets result.
+   *
+   * @param inputData        the input data
+   * @param inputDimensions  the input dimensions
+   * @param length           the length
+   * @param outputDimensions the output dimensions
+   * @param byteOffset       the byte offset
+   * @param outputData       the output data
+   * @param inObj            the in obj
+   * @return the result
+   */
   public NNResult getResult(TensorList inputData, int[] inputDimensions, int length, int[] outputDimensions, int byteOffset, TensorList outputData, NNResult[] inObj) {
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList error) -> {
+    return new NNResult(outputData, (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
       if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
         throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
       }
@@ -143,14 +162,14 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
                                      precision.getPointer(1.0), outputDescriptor.getPtr(), errorPtr.getPtr(),
                                      precision.getPointer(0.0), inputDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
                                     );
-          return GpuTensorList.create(passbackBuffer, length, inputDimensions, precision);
+          errorPtr.freeRef();
+          return GpuTensorList.wrap(passbackBuffer, length, inputDimensions, precision);
           //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         });
         inObj[0].accumulate(buffer, passbackTensorList);
       }
-      error.freeRef();
-    }, outputData) {
-    
+    }) {
+      
       @Override
       public void free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.free());

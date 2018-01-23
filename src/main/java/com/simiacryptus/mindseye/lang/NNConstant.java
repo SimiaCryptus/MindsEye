@@ -42,7 +42,7 @@ public final class NNConstant extends NNResult {
    * @param tensorList the tensor array
    */
   public NNConstant(final TensorList tensorList) {
-    super((final DeltaSet<NNLayer> buffer, final TensorList data) -> {}, tensorList);
+    super(tensorList, (final DeltaSet<NNLayer> buffer, final TensorList data) -> {});
   }
   
   /**

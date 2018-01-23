@@ -76,12 +76,12 @@ public final class LoggingWrapperLayer extends WrapperLayer {
   public NNResult eval(final NNResult... inObj) {
     final NNResult[] wrappedInput = IntStream.range(0, inObj.length).mapToObj(i -> {
       final NNResult result = inObj[i];
-      return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      return new NNResult(result.getData(), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
         final String formatted = data.stream().map(x -> x.prettyPrint())
                                      .reduce((a, b) -> a + "\n" + b).get();
         log.info(String.format("Feedback Output %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
         result.accumulate(buffer, data);
-      }, result.getData()) {
+      }) {
     
         @Override
         public void free() {
@@ -106,12 +106,12 @@ public final class LoggingWrapperLayer extends WrapperLayer {
                                          .reduce((a, b) -> a + "\n" + b).get();
       log.info(String.format("Output for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
     }
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    return new NNResult(output.getData(), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       final String formatted = data.stream().map(x -> x.prettyPrint())
                                    .reduce((a, b) -> a + "\n" + b).get();
       log.info(String.format("Feedback Input for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
       output.accumulate(buffer, data);
-    }, output.getData()) {
+    }) {
     
       @Override
       public void free() {

@@ -34,7 +34,7 @@ import java.util.Map;
 public class PolynomialConvolutionNetwork extends PolynomialNetwork {
   
   private final int radius;
-
+  
   /**
    * Instantiates a new Polynomial convolution network.
    *

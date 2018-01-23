@@ -19,12 +19,26 @@
 
 package com.simiacryptus.mindseye.lang;
 
+/**
+ * The interface Reference counting.
+ */
 public interface ReferenceCounting {
   
-  void getRef();
+  /**
+   * Add ref.
+   */
+  void addRef();
   
+  /**
+   * Free ref.
+   */
   void freeRef();
   
+  /**
+   * Is finalized boolean.
+   *
+   * @return the boolean
+   */
   boolean isFinalized();
   
 }

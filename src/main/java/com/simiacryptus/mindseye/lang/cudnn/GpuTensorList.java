@@ -59,12 +59,41 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
     if (null == ptr) throw new IllegalArgumentException("ptr");
     if (null == ptr.getPtr()) throw new IllegalArgumentException("ptr.getPtr()");
     this.ptr = ptr;
+    this.ptr.addRef();
     this.length = length;
     this.dimensions = Arrays.copyOf(dimensions, dimensions.length);
     assert ptr.size == (long) length * Tensor.dim(dimensions) * precision.size;
     assert ptr.getPtr() != null;
     //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     assert !System.getProperties().containsKey("safe") || stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+  }
+  
+  /**
+   * Wrap gpu tensor list.
+   *
+   * @param ptr        the ptr
+   * @param length     the length
+   * @param dimensions the dimensions
+   * @param precision  the precision
+   * @return the gpu tensor list
+   */
+  public static GpuTensorList wrap(final CudaPtr ptr, final int length, final int[] dimensions, final Precision precision) {
+    GpuTensorList gpuTensorList = new GpuTensorList(ptr, length, dimensions, precision);
+    ptr.freeRef();
+    return gpuTensorList;
+  }
+  
+  /**
+   * Create gpu tensor list.
+   *
+   * @param ptr        the ptr
+   * @param length     the length
+   * @param dimensions the dimensions
+   * @param precision  the precision
+   * @return the gpu tensor list
+   */
+  public static GpuTensorList create(final CudaPtr ptr, final int length, final int[] dimensions, final Precision precision) {
+    return new GpuTensorList(ptr, length, dimensions, precision);
   }
   
   @Override
@@ -90,7 +119,7 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
                                   precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                   precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
                                   precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-              return GpuTensorList.create(outputPtr, getLength(), getDimensions(), this.precision);
+              return GpuTensorList.wrap(outputPtr, getLength(), getDimensions(), this.precision);
             });
           }
         }
@@ -102,19 +131,6 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
     return new TensorArray(IntStream.range(0, length()).mapToObj(i -> {
       return get(i).add(right.get(i));
     }).toArray(i -> new Tensor[i]));
-  }
-  
-  /**
-   * Create gpu tensor list.
-   *
-   * @param ptr        the ptr
-   * @param length     the length
-   * @param dimensions the dimensions
-   * @param precision  the precision
-   * @return the gpu tensor list
-   */
-  public static GpuTensorList create(final CudaPtr ptr, final int length, final int[] dimensions, final Precision precision) {
-    return new GpuTensorList(ptr, length, dimensions, precision);
   }
   
   @Override
@@ -215,6 +231,8 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
   
   /**
    * The Ptr.
+   *
+   * @return the ptr
    */
   public CudaPtr getPtr() {
     return ptr;
@@ -222,6 +240,8 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
   
   /**
    * The Length.
+   *
+   * @return the length
    */
   public int getLength() {
     return length;

@@ -109,13 +109,13 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     input.getData().stream().parallel().forEach(t -> {
       forwardStatistics.add(t.getData());
     });
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    return new NNResult(input.getData(), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       backpropStatistics.clear();
       data.stream().parallel().forEach(t -> {
         backpropStatistics.add(t.getData());
       });
       input.accumulate(buffer, data);
-    }, input.getData()) {
+    }) {
       
       
       @Override

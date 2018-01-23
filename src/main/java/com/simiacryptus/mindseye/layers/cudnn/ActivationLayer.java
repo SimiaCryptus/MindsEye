@@ -128,11 +128,11 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
         } catch (final Throwable e) {
           throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
         }
+        inputData.freeRef();
         return outputData;
         //assert output.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       });
-      final TensorList output = GpuTensorList.create(outPtr, length, outputSize, precision);
-      return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList error) -> {
+      return new NNResult(GpuTensorList.create(outPtr, length, outputSize, precision), (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
         if (input.isAlive()) {
           final TensorList data = GpuHandle.run(nncontext -> {
             //assert (error.length() == batch.length());
@@ -144,7 +144,6 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
             final CudaPtr passbackBuffer = CudaPtr.allocate(nncontext.getDeviceNumber(), inputDims * 1l * precision.size * length, MemoryType.Managed, true);
             final CudaResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
             try {
-          
               CuDNN.handle(CuDNN.cudnnActivationBackward(nncontext.getHandle(), activationDesc.getPtr(),
                                                          precision.getPointer(1.0),
                                                          inputDescriptor.getPtr(), outPtr.getPtr(),
@@ -155,12 +154,14 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
             } catch (final Throwable e) {
               throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
             }
-            return GpuTensorList.create(passbackBuffer, length, inputSize, precision);
+            inputData.freeRef();
+            errorPtr.freeRef();
+            outPtr.freeRef();
+            return GpuTensorList.wrap(passbackBuffer, length, inputSize, precision);
           });
           input.accumulate(buffer, data);
         }
-        error.freeRef();
-      }, output) {
+      }) {
     
         @Override
         public void free() {

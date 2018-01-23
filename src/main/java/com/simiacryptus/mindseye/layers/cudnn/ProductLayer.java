@@ -91,7 +91,26 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
         throw new IllegalArgumentException(Arrays.toString(dimensions) + " != " + Arrays.toString(inObj[i].getData().getDimensions()));
       }
     }
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+    return new NNResult(GpuHandle.run(nncontext -> {
+      nncontext.initThread();
+      final CudaResource<cudnnOpTensorDescriptor> opDescriptor = CuDNN.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
+      final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
+        precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
+      final TensorList result1 = Arrays.stream(inObj).map(x -> x.getData()).reduce((l, r) -> {
+        final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, l);
+        final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, r);
+        assert lPtr.size == rPtr.size;
+        final CudaPtr outputPtr = CudaPtr.allocate(nncontext.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
+        CuDNN.handle(JCudnn.cudnnOpTensor(nncontext.getHandle(), opDescriptor.getPtr(),
+                                          precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
+                                          precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
+                                          precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
+        lPtr.freeRef();
+        rPtr.freeRef();
+        return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
+      }).get();
+      return result1;
+    }), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
       assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
       for (int index = 0; index < inObj.length; index++) {
         final NNResult input = inObj[index];
@@ -112,31 +131,15 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
                                                 precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                                 precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
                                                 precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-              return GpuTensorList.create(outputPtr, length, dimensions, precision);
+              lPtr.freeRef();
+              rPtr.freeRef();
+              return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
             });
           }).get();
           input.accumulate(buffer, data);
         }
       }
-      delta.freeRef();
-    }, GpuHandle.<TensorList>run(nncontext -> {
-      nncontext.initThread();
-      final CudaResource<cudnnOpTensorDescriptor> opDescriptor = CuDNN.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
-      final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
-        precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
-      final TensorList result1 = Arrays.stream(inObj).map(x -> x.getData()).reduce((l, r) -> {
-        final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, l);
-        final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, r);
-        assert lPtr.size == rPtr.size;
-        final CudaPtr outputPtr = CudaPtr.allocate(nncontext.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
-        CuDNN.handle(JCudnn.cudnnOpTensor(nncontext.getHandle(), opDescriptor.getPtr(),
-                                          precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
-                                          precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
-                                          precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-        return GpuTensorList.create(outputPtr, length, dimensions, precision);
-      }).get();
-      return result1;
-    })) {
+    }) {
     
       @Override
       public void free() {
