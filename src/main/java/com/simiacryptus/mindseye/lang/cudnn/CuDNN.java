@@ -38,6 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -120,6 +121,10 @@ public class CuDNN {
   private static final DoubleStatistics cudaStreamDestroy_execution = new DoubleStatistics();
   private static final DoubleStatistics cudaStreamSynchronize_execution = new DoubleStatistics();
   private static final DoubleStatistics getForwardAlgorithm_execution = new DoubleStatistics();
+  /**
+   * The constant gpuGeneration.
+   */
+  public static AtomicInteger gpuGeneration = new AtomicInteger(0);
   
   private CuDNN() {
     throw new RuntimeException("This is a singleton. I'm not sure how you got here, but go away!");
@@ -1116,7 +1121,6 @@ public class CuDNN {
       try {
         logger.warn("Cleaning Memory");
         RecycleBinLong.DOUBLES.clear();
-        CudaPtr.POINTERS.clear();
         Runtime runtime = Runtime.getRuntime();
         runtime.gc();
         runtime.runFinalization();
@@ -1474,7 +1478,7 @@ public class CuDNN {
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
-      CudaResource.gpuGeneration.incrementAndGet();
+      gpuGeneration.incrementAndGet();
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {

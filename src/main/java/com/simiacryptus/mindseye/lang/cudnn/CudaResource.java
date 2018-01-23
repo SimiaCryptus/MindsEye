@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.lang.cudnn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.ToIntFunction;
 
 /**
@@ -41,7 +40,6 @@ public class CudaResource<T> extends CudaResourceBase<T> {
    */
   public final int deviceId;
   private final ToIntFunction<T> destructor;
-  private final AtomicBoolean isFinalized = new AtomicBoolean(false);
   
   /**
    * Instantiates a new Cuda resource.
@@ -62,7 +60,7 @@ public class CudaResource<T> extends CudaResourceBase<T> {
   protected void _free() {
     try {
       CuDNN.withDevice(deviceId, () -> {
-        if (isActiveObj() && !isFinalized.getAndSet(true)) {
+        if (isActiveObj()) {
           CuDNN.handle(this.destructor.applyAsInt(ptr));
         }
       });

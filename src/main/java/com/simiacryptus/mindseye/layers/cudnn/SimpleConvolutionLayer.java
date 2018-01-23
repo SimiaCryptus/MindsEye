@@ -206,7 +206,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
                                                    cudaParameters.forwardWorkspace.size,
                                                    precision.getPointer(0.0), cudaParameters.outputDescriptor.getPtr(), outputBuffer.getPtr()));
         GpuTensorList output = GpuTensorList.create(outputBuffer, length, cudaParameters.outputDims, precision);
-        CudaPtr.recycle(filterPtr);
+        filterPtr.freeRef();
         return getResult(input, inputSize, kernelSize, outputSize, inputData, output, inObj);
       } catch (final Throwable e) {
         throw new ComponentException(String.format("Error in convolution %s x %s", Arrays.toString(inputSize), Arrays.toString(kernelSize)), e);
@@ -268,7 +268,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
               throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
             }
             final Tensor weightGradient = CudaPtr.read(filterPtr, precision, kernel.getDimensions());
-            CudaPtr.recycle(filterPtr);
+            filterPtr.freeRef();
             buffer.get(SimpleConvolutionLayer.this, kernel.getData()).addInPlace(weightGradient.getData());
             weightGradient.finalize();
           }
@@ -286,7 +286,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
                                                               cudaParameters.backwardsDataWorkSpace.getPtr(),
                                                               cudaParameters.backwardsDataWorkSpace.size,
                                                               precision.getPointer(0.0), cudaParameters.inputDescriptor.getPtr(), inputBuffer.getPtr()));
-              CudaPtr.recycle(filterPtr);
+              filterPtr.freeRef();
             } catch (final Throwable e) {
               throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
             }

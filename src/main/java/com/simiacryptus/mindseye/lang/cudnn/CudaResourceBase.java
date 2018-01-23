@@ -23,8 +23,6 @@ import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * The type Cuda resource base.
  *
@@ -33,17 +31,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class CudaResourceBase<T> extends ReferenceCountingBase {
   private static final Logger logger = LoggerFactory.getLogger(CudaResourceBase.class);
   /**
-   * The constant debugLifecycle.
-   */
-  public static boolean debugLifecycle = true;
-  /**
-   * The constant gpuGeneration.
-   */
-  public static AtomicInteger gpuGeneration = new AtomicInteger(0);
-  /**
    * The Obj generation.
    */
-  public final int objGeneration = CudaResourceBase.gpuGeneration.get();
+  public final int objGeneration = CuDNN.gpuGeneration.get();
   /**
    * The Ptr.
    */
@@ -77,7 +67,7 @@ public abstract class CudaResourceBase<T> extends ReferenceCountingBase {
    * @return the boolean
    */
   public boolean isActiveObj() {
-    return objGeneration == CudaResourceBase.gpuGeneration.get();
+    return objGeneration == CuDNN.gpuGeneration.get();
   }
   
 }

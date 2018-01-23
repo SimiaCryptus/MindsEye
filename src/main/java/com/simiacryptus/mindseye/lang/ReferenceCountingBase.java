@@ -19,14 +19,21 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import com.simiacryptus.mindseye.lang.cudnn.CudaResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class ReferenceCountingBase implements ReferenceCounting {
+  private static final Logger logger = LoggerFactory.getLogger(ReferenceCountingBase.class);
   
+  /**
+   * The constant debugLifecycle.
+   */
+  public static boolean debugLifecycle = true;
+  protected final StackTraceElement[] createdBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
   private final AtomicInteger references = new AtomicInteger(1);
   private final AtomicBoolean isFreed = new AtomicBoolean(false);
   private volatile StackTraceElement[] finalizedBy = null;
@@ -55,7 +62,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     assertAlive();
     assert references.get() == 0;
     if (!isFreed.getAndSet(true)) {
-      finalizedBy = CudaResource.debugLifecycle ? Thread.currentThread().getStackTrace() : null;
+      finalizedBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
       _free();
     }
   }
@@ -70,7 +77,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   @Override
   protected final void finalize() throws Throwable {
     if (!isFreed.getAndSet(true)) {
-      finalizedBy = CudaResource.debugLifecycle ? Thread.currentThread().getStackTrace() : null;
+      finalizedBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
       _free();
     }
   }

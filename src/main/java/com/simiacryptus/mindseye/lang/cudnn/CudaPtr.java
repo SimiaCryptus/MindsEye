@@ -22,7 +22,9 @@ package com.simiacryptus.mindseye.lang.cudnn;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.RecycleBinLong;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.util.lang.TimedResult;
 import jcuda.Pointer;
 import jcuda.runtime.cudaDeviceProp;
@@ -30,9 +32,7 @@ import jcuda.runtime.cudaMemcpyKind;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static jcuda.runtime.cudaMemcpyKind.cudaMemcpyDeviceToHost;
 
@@ -62,45 +62,12 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    * The Max.
    */
   static final long MAX = Precision.Double.size * (Integer.MAX_VALUE - 1L);
-  static final boolean DEBUG_LIFECYCLE = true;
-  /**
-   * The constant DISABLE_DIRTY_MEMORY.
-   */
-  public static boolean DISABLE_DIRTY_MEMORY = false;
   /**
    * The Size.
    */
   public final long size;
   private final int deviceId;
   private final MemoryType type;
-  private final AtomicBoolean isFinalized = new AtomicBoolean(false);
-  private volatile StackTraceElement[] finalizedBy = null;
-  
-  public static final RecycleBin<ManagedPtrParams, CudaPtr> POINTERS = new RecycleBin<ManagedPtrParams, CudaPtr>() {
-    @Override
-    protected long size(ManagedPtrParams size) {
-      return size.size;
-    }
-    
-    @Override
-    protected void free(CudaPtr obj) {
-      obj.freeRef();
-    }
-    
-    @Override
-    public CudaPtr create(ManagedPtrParams key) {
-      return new CudaPtr(key.size, key.deviceId, key.type);
-    }
-    
-    @Override
-    public boolean isProfiling(ManagedPtrParams length) {
-      return false;
-    }
-    
-    @Override
-    public void reset(CudaPtr data, ManagedPtrParams size) {
-    }
-  }.setPersistanceMode(PersistanceMode.Weak).setMaxLengthPerBuffer(1e6).setMaxItemsPerBuffer(3).setMinLengthPerBuffer(1);
   
   /**
    * Instantiates a new Cuda ptr.
@@ -126,13 +93,9 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    * @return the cuda ptr
    */
   public static CudaPtr allocate(final int deviceId, final long size, MemoryType type, boolean dirty) {
-    CudaPtr obtain = POINTERS.obtain(new ManagedPtrParams(type == MemoryType.Device ? deviceId : -1, size, type));
+    CudaPtr obtain = new CudaPtr(size, type == MemoryType.Device ? deviceId : -1, type);
     if (!dirty) obtain.clear();
     return obtain;
-  }
-  
-  public static void recycle(final CudaPtr obj) {
-    POINTERS.recycle(obj, new ManagedPtrParams(obj.deviceId, obj.size, obj.type));
   }
   
   /**
@@ -145,9 +108,8 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   public static CudaPtr getCudaPtr(final Precision precision, final TensorList data) {
     if (data instanceof GpuTensorList && precision == ((GpuTensorList) data).getPrecision() && ((GpuTensorList) data).isNative()) {
       GpuTensorList gpuTensorList = (GpuTensorList) data;
-      final CudaPtr ptr = gpuTensorList.ptr.getCudaPtr();
+      final CudaPtr ptr = gpuTensorList.getPtr();
       assert null != ptr;
-      assert null != ptr.getPtr() : null == ptr.finalizedBy ? "" : Arrays.stream(ptr.finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).get();
       return ptr;
     }
     else {
@@ -266,15 +228,6 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   }
   
   /**
-   * Managed managed cuda ptr.
-   *
-   * @return the managed cuda ptr
-   */
-  public ManagedCudaPtr managed() {
-    return new ManagedCudaPtr(this, PersistanceMode.Strong);
-  }
-  
-  /**
    * Move to cuda ptr.
    *
    * @param deviceId the device id
@@ -288,12 +241,8 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   @Override
   protected void _free() {
     if (isActiveObj()) {
-      assertAlive();
-      if (!isFinalized.getAndSet(true)) {
-        if (DEBUG_LIFECYCLE) finalizedBy = Thread.currentThread().getStackTrace();
-        getType().free(ptr, deviceId);
-        CudaPtr.getGpuStats(deviceId).usedMemory.addAndGet(-size);
-      }
+      getType().free(ptr, deviceId);
+      CudaPtr.getGpuStats(deviceId).usedMemory.addAndGet(-size);
     }
   }
   
@@ -401,17 +350,4 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     return this;
   }
   
-  private static class ManagedPtrParams {
-    public final int deviceId;
-    public final long size;
-    public final MemoryType type;
-    
-    private ManagedPtrParams(int deviceId, long size, MemoryType type) {
-      this.deviceId = deviceId;
-      this.size = size;
-      this.type = type;
-    }
-    
-  }
-
 }
