@@ -41,6 +41,9 @@ public interface ReferenceCounting {
    */
   boolean isFinalized();
   
+  /**
+   * Assert alive.
+   */
   void assertAlive();
   
 }

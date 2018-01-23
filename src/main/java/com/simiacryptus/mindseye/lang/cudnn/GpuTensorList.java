@@ -76,6 +76,9 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
   
   private static long lastCleanTime = 0;
   
+  /**
+   * Evict all to heap.
+   */
   public static void evictAllToHeap() {
     synchronized (INSTANCES) {
       Iterator<WeakReference<GpuTensorList>> iterator = INSTANCES.iterator();
@@ -263,6 +266,9 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
     }
   }
   
+  /**
+   * Evict to heap.
+   */
   public void evictToHeap() {
     if (null == getHeapCopy()) {
       throw new IllegalStateException();

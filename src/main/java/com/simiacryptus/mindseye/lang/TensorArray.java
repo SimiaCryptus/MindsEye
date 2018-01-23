@@ -40,10 +40,22 @@ public class TensorArray extends ReferenceCountingBase implements TensorList {
     }
   }
   
+  /**
+   * Create tensor array.
+   *
+   * @param data the data
+   * @return the tensor array
+   */
   public static TensorArray create(final Tensor... data) {
     return new TensorArray(data);
   }
   
+  /**
+   * Wrap tensor array.
+   *
+   * @param data the data
+   * @return the tensor array
+   */
   public static TensorArray wrap(final Tensor... data) {
     TensorArray tensorArray = TensorArray.create(data);
     for (Tensor tensor : data) {

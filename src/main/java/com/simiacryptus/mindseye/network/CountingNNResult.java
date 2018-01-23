@@ -61,7 +61,8 @@ class CountingNNResult extends NNResult {
   /**
    * Instantiates a new Counting nn result.
    *
-   * @param inner the heapCopy
+   * @param inner         the heapCopy
+   * @param expectedCount the expected count
    */
   protected CountingNNResult(final NNResult inner, long expectedCount) {
     super(inner.getData(), new CountingAccumulator(inner));
@@ -105,6 +106,9 @@ class CountingNNResult extends NNResult {
     return inner.isAlive();
   }
   
+  /**
+   * The type Counting accumulator.
+   */
   static class CountingAccumulator implements BiConsumer<DeltaSet<NNLayer>, TensorList> {
     private final AtomicInteger finalizations;
     private final AtomicInteger references;
@@ -120,7 +124,7 @@ class CountingNNResult extends NNResult {
      * The Finalized by.
      */
     public StackTraceElement[] finalizedBy;
-  
+    
     /**
      * Instantiates a new Counting accumulator.
      *
@@ -136,7 +140,7 @@ class CountingNNResult extends NNResult {
       passbackBuffers = new LinkedBlockingDeque<>();
       accumulations = new AtomicInteger(0);
     }
-  
+    
     /**
      * Finalized by str string.
      *
@@ -145,7 +149,7 @@ class CountingNNResult extends NNResult {
     public String finalizedByStr() {
       return null == finalizedBy ? "" : Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).get();
     }
-  
+    
     /**
      * Increment counting nn result.
      *
@@ -184,7 +188,7 @@ class CountingNNResult extends NNResult {
         }
       }
     }
-  
+    
     /**
      * A flagrant abuse of Java's object finalization contract. Repeated calls to this class's free method will
      * increment a counter, and when the counter cycles the call is chained.

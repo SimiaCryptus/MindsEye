@@ -60,7 +60,7 @@ public class Delta<K> extends DoubleBuffer<K> {
    *
    * @param layer             the layer
    * @param target            the target
-   * @param delta           the doubles
+   * @param delta             the doubles
    * @param deltaCompensation the delta compensation
    */
   protected Delta(final K layer, final double[] target, final double[] delta, final double[] deltaCompensation) {

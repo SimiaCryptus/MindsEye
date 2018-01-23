@@ -78,8 +78,8 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer<K>> {
   /**
    * Factory t.
    *
-   * @param layer the layer
-   * @param target   the target
+   * @param layer  the layer
+   * @param target the target
    * @return the t
    */
   protected abstract T factory(final K layer, final double[] target);

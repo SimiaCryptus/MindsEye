@@ -35,6 +35,9 @@ class GraphEvaluationContext {
    */
   final Map<UUID, CountingNNResult> inputs = new ConcurrentHashMap<>();
   
+  /**
+   * The Expected counts.
+   */
   final Map<UUID, Long> expectedCounts = new ConcurrentHashMap<>();
   
   /**
