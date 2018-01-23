@@ -70,7 +70,7 @@ public class SimpleListEval implements Callable<SimpleResult>, SimpleResult {
   
   @Override
   public SimpleResult call() {
-    TensorList[] inputCopy = Arrays.stream(input).toArray(i -> new TensorList[i]);
+    TensorList[] inputCopy = Arrays.stream(input).map(x -> x.copy()).toArray(i -> new TensorList[i]);
     derivative = Arrays.stream(inputCopy).map(tensorList -> new TensorArray(tensorList.stream()
                                                                 .map(i -> new Tensor(i.getDimensions()))
                                                                 .toArray(i -> new Tensor[i]))

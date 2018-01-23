@@ -58,7 +58,7 @@ public class SimpleEval implements Callable<SimpleEval> {
   
   @Override
   public SimpleEval call() {
-    Tensor[] inputCopy = Arrays.stream(input).toArray(i -> new Tensor[i]);
+    Tensor[] inputCopy = Arrays.stream(input).map(x -> x.copy()).toArray(i -> new Tensor[i]);
     derivative = Arrays.stream(inputCopy).map(input -> new Tensor(input.getDimensions())).toArray(i -> new Tensor[i]);
     final NNResult eval = layer.eval(IntStream.range(0, inputCopy.length).mapToObj(i -> {
       return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {

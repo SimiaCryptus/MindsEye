@@ -53,7 +53,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   public void freeRef() {
     int refs = references.decrementAndGet();
     if (refs < 0) {
-      throw new IllegalStateException();
+      throw new IllegalStateException(null == finalizedBy ? "" : Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).orElse(""));
     }
     else if (refs == 0) {
       free();
