@@ -31,6 +31,7 @@ import com.simiacryptus.util.test.SysOutInterceptor;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -346,9 +347,13 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         if (explode instanceof DAGNetwork) {
           log.h1("Exploded Network Diagram");
           log.p("This is a network with the following layout:");
+          DAGNetwork network = (DAGNetwork) explode;
           log.code(() -> {
-            return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) explode))
-                           .height(400).width(600).render(Format.PNG).toImage();
+            Graphviz graphviz = Graphviz.fromGraph(TestUtil.toGraph(network)).height(400).width(600);
+            File file = new File(log.getResourceDir(), log.getName() + "_network.svg");
+            graphviz.render(Format.SVG_STANDALONE).toFile(file);
+            log.link(file, "Saved to File");
+            return graphviz.render(Format.SVG).toString();
           });
         }
       } catch (Throwable e) {

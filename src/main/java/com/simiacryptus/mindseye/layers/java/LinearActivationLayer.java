@@ -75,14 +75,55 @@ public class LinearActivationLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    final int itemCnt = inObj[0].getData().length();
+    final TensorList inData = inObj[0].getData();
+    inData.addRef();
+    final int itemCnt = inData.length();
     final double scale = weights.get(0);
     final double bias = weights.get(1);
     final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].getData().get(dataIndex);
+      final Tensor input = inData.get(dataIndex);
       return input.map(v -> scale * v + bias);
     }).toArray(i -> new Tensor[i]);
-    return new Result(outputA, inObj[0]);
+    return new NNResult(TensorArray.wrap(outputA), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+      if (!isFrozen()) {
+        IntStream.range(0, delta.length()).forEach(dataIndex -> {
+          final double[] deltaData = delta.get(dataIndex).getData();
+          final double[] inputData = inData.get(dataIndex).getData();
+          final Tensor weightDelta = new Tensor(weights.getDimensions());
+          for (int i = 0; i < deltaData.length; i++) {
+            weightDelta.add(0, deltaData[i] * inputData[inputData.length == 1 ? 0 : i]);
+            weightDelta.add(1, deltaData[i]);
+          }
+          buffer.get(LinearActivationLayer.this, weights.getData()).addInPlace(weightDelta.getData());
+        });
+      }
+      if (inObj[0].isAlive()) {
+        final TensorList tensorList = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+          final double[] deltaData = delta.get(dataIndex).getData();
+          final int[] dims = inData.get(dataIndex).getDimensions();
+          final Tensor passback = new Tensor(dims);
+          for (int i = 0; i < passback.dim(); i++) {
+            passback.set(i, deltaData[i] * weights.getData()[0]);
+          }
+          return passback;
+        }).toArray(i -> new Tensor[i]));
+        inObj[0].accumulate(buffer, tensorList);
+        tensorList.freeRef();
+      }
+      inData.freeRef();
+    }) {
+    
+      @Override
+      public boolean isAlive() {
+        return inObj[0].isAlive() || !isFrozen();
+      }
+    
+      @Override
+      public void free() {
+        inObj[0].free();
+      }
+    
+    };
   }
   
   /**
@@ -137,49 +178,4 @@ public class LinearActivationLayer extends NNLayer {
     return Arrays.asList(weights.getData());
   }
   
-  private final class Result extends NNResult {
-    private final NNResult inObj;
-    
-    private Result(final Tensor[] outputA, final NNResult inObj) {
-      super((final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
-        if (!isFrozen()) {
-          IntStream.range(0, delta.length()).forEach(dataIndex -> {
-            final double[] deltaData = delta.get(dataIndex).getData();
-            final double[] inputData = inObj.getData().get(dataIndex).getData();
-            final Tensor weightDelta = new Tensor(weights.getDimensions());
-            for (int i = 0; i < deltaData.length; i++) {
-              weightDelta.add(0, deltaData[i] * inputData[inputData.length == 1 ? 0 : i]);
-              weightDelta.add(1, deltaData[i]);
-            }
-            buffer.get(LinearActivationLayer.this, weights.getData()).addInPlace(weightDelta.getData());
-          });
-        }
-        if (inObj.isAlive()) {
-          final TensorList tensorList = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-            final double[] deltaData = delta.get(dataIndex).getData();
-            final int[] dims = inObj.getData().get(dataIndex).getDimensions();
-            final Tensor passback = new Tensor(dims);
-            for (int i = 0; i < passback.dim(); i++) {
-              passback.set(i, deltaData[i] * weights.getData()[0]);
-            }
-            return passback;
-          }).toArray(i -> new Tensor[i]));
-          inObj.accumulate(buffer, tensorList);
-          tensorList.freeRef();
-        }
-      }, outputA);
-      this.inObj = inObj;
-    }
-    
-    @Override
-    public boolean isAlive() {
-      return inObj.isAlive() || !isFrozen();
-    }
-  
-    @Override
-    public void free() {
-      inObj.free();
-    }
-  
-  }
 }

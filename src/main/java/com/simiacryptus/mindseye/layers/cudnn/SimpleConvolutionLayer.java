@@ -207,11 +207,11 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
       } catch (final Throwable e) {
         throw new ComponentException(String.format("Error in convolution %s x %s", Arrays.toString(inputSize), Arrays.toString(kernelSize)), e);
       }
-    }), (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
-      assert error.length() == batch.length();
+    }), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+      assert delta.length() == batch.length();
       final TensorList inputBufferTensors = GpuHandle.run(gpu -> {
         int deviceNumber = gpu.getDeviceNumber();
-        final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
+        final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, delta);
         CudaRevParameters cudaParameters = obtainRev(new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu));
         assert cudaParameters.precision == precision;
         if (!isFrozen()) {
@@ -234,6 +234,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
           buffer.get(SimpleConvolutionLayer.this, kernel.getData()).addInPlace(weightGradient.getData());
           weightGradient.freeRef();
           inputData.freeRef();
+          errorPtr.freeRef();
         }
         if (input.isAlive()) {
           final CudaPtr inputBuffer = CudaPtr.allocate(deviceNumber, Tensor.dim(batch.getDimensions()) * 1l * length * precision.size, MemoryType.Managed, true);

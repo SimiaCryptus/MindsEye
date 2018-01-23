@@ -105,7 +105,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
     final TensorList batch = input.getData();
     final int[] inputSize = batch.get(0).getDimensions();
     final int length = batch.length();
-    batch.freeRef();
+    batch.addRef();
     final int inputDims = Tensor.dim(inputSize);
     final int[] outputSize = new int[4];
     final CudaPtr outputData = GpuHandle.run(nncontext -> {

@@ -188,13 +188,55 @@ public class FullyConnectedLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    assert Tensor.dim(inObj[0].getData().getDimensions()) == Tensor.dim(this.inputDims) : Arrays.toString(inObj[0].getData().getDimensions()) + " == " + Arrays.toString(this.inputDims);
+    final TensorList indata = inObj[0].getData();
+    indata.addRef();
+    assert Tensor.dim(indata.getDimensions()) == Tensor.dim(this.inputDims) : Arrays.toString(indata.getDimensions()) + " == " + Arrays.toString(this.inputDims);
     assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
-    final Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].getData().get(dataIndex);
+    return new NNResult(TensorArray.wrap(IntStream.range(0, indata.length()).parallel().mapToObj(dataIndex -> {
+      final Tensor input = indata.get(dataIndex);
       return multiply2(getWeights().getData(), input.getData());
-    }).toArray(i -> new Tensor[i]);
-    return new Result(outputA, inObj[0]);
+    }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+      assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+      if (!isFrozen()) {
+        final Delta<NNLayer> deltaBuffer = buffer.get(FullyConnectedLayer.this, getWeights().getData());
+        final int threads = 4;
+        IntStream.range(0, threads).parallel().mapToObj(x -> x).flatMap(thread -> {
+          final Tensor weightDelta = new Tensor(Tensor.dim(inputDims), Tensor.dim(outputDims));
+          return IntStream.range(0, indata.length()).filter(i -> thread == i % threads).mapToObj(dataIndex -> {
+            final double[] deltaData = delta.get(dataIndex).getData();
+            final double[] inputData = indata.get(dataIndex).getData();
+            FullyConnectedLayer.crossMultiply(deltaData, inputData, weightDelta.getData());
+            return weightDelta.getData();
+          });
+        }).reduce((a, b) -> ArrayUtil.add(a, b)).map(data -> deltaBuffer.addInPlace(data));
+      }
+      if (inObj[0].isAlive()) {
+        final TensorList tensorList = TensorArray.wrap(IntStream.range(0, indata.length()).parallel().mapToObj(dataIndex -> {
+          final double[] deltaData = delta.get(dataIndex).getData();
+          final Tensor r = getWeights();
+          final Tensor passback = new Tensor(indata.get(dataIndex).getDimensions());
+          FullyConnectedLayer.multiplyT(r.getData(), deltaData, passback.getData());
+          return passback;
+        }).toArray(i -> new Tensor[i]));
+        inObj[0].accumulate(buffer, tensorList);
+        tensorList.freeRef();
+      }
+      indata.freeRef();
+    }) {
+    
+      @Override
+      public void free() {
+        for (NNResult nnResult : inObj) {
+          nnResult.free();
+        }
+      }
+    
+      @Override
+      public boolean isAlive() {
+        return !isFrozen() || Arrays.stream(inObj).anyMatch(x -> x.isAlive());
+      }
+    
+    };
   }
   
   @Override
@@ -340,51 +382,5 @@ public class FullyConnectedLayer extends NNLayer {
     return Arrays.asList(getWeights().getData());
   }
   
-  private final class Result extends NNResult {
-  
-    private final NNResult inObj;
-  
-    private Result(final Tensor[] outputA, final NNResult inObj) {
-      super((final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
-        assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-        if (!isFrozen()) {
-          final Delta<NNLayer> deltaBuffer = buffer.get(FullyConnectedLayer.this, getWeights().getData());
-          final int threads = 4;
-          IntStream.range(0, threads).parallel().mapToObj(x -> x).flatMap(thread -> {
-            final Tensor weightDelta = new Tensor(Tensor.dim(inputDims), Tensor.dim(outputDims));
-            return IntStream.range(0, inObj.getData().length()).filter(i -> thread == i % threads).mapToObj(dataIndex -> {
-              final double[] deltaData = delta.get(dataIndex).getData();
-              final double[] inputData = inObj.getData().get(dataIndex).getData();
-              FullyConnectedLayer.crossMultiply(deltaData, inputData, weightDelta.getData());
-              return weightDelta.getData();
-            });
-          }).reduce((a, b) -> ArrayUtil.add(a, b)).map(data -> deltaBuffer.addInPlace(data));
-        }
-        if (inObj.isAlive()) {
-          final TensorList tensorList = TensorArray.wrap(IntStream.range(0, inObj.getData().length()).parallel().mapToObj(dataIndex -> {
-            final double[] deltaData = delta.get(dataIndex).getData();
-            final Tensor r = getWeights();
-            final Tensor passback = new Tensor(inObj.getData().get(dataIndex).getDimensions());
-            FullyConnectedLayer.multiplyT(r.getData(), deltaData, passback.getData());
-            return passback;
-          }).toArray(i -> new Tensor[i]));
-          inObj.accumulate(buffer, tensorList);
-          tensorList.freeRef();
-        }
-      }, outputA);
-      this.inObj = inObj;
-    }
-  
-    @Override
-    public void free() {
-      inObj.free();
-    }
-    
-    @Override
-    public boolean isAlive() {
-      return inObj.isAlive() || !isFrozen();
-    }
-    
-  }
   
 }

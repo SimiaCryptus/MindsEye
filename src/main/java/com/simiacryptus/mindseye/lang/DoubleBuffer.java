@@ -31,7 +31,7 @@ import java.util.stream.IntStream;
  *
  * @param <K> the type parameter
  */
-public class DoubleBuffer<K> {
+public class DoubleBuffer<K> extends ReferenceCountingBase {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DoubleBuffer.class);
   /**
@@ -200,4 +200,11 @@ public class DoubleBuffer<K> {
     return builder.toString();
   }
   
+  @Override
+  protected void _free() {
+    if (null != delta) {
+      RecycleBinLong.DOUBLES.recycle(delta, delta.length);
+      delta = null;
+    }
+  }
 }

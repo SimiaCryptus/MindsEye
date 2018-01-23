@@ -86,9 +86,13 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
     if (3 != dimensions.length) {
       throw new IllegalArgumentException("dimensions=" + Arrays.toString(dimensions));
     }
+    for (int i = 0; i < inObj.length; i++) {
+      inObj[i].getData().addRef();
+    }
     for (int i = 1; i < inObj.length; i++) {
-      if (Tensor.dim(dimensions) != Tensor.dim(inObj[i].getData().getDimensions())) {
-        throw new IllegalArgumentException(Arrays.toString(dimensions) + " != " + Arrays.toString(inObj[i].getData().getDimensions()));
+      TensorList data = inObj[i].getData();
+      if (Tensor.dim(dimensions) != Tensor.dim(data.getDimensions())) {
+        throw new IllegalArgumentException(Arrays.toString(dimensions) + " != " + Arrays.toString(data.getDimensions()));
       }
     }
     return new NNResult(GpuHandle.run(nncontext -> {
@@ -139,6 +143,9 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
           input.accumulate(buffer, data);
           data.freeRef();
         }
+      }
+      for (int i = 0; i < inObj.length; i++) {
+        inObj[i].getData().freeRef();
       }
     }) {
     

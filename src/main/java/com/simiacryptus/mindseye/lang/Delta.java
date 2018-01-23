@@ -153,16 +153,12 @@ public class Delta<K> extends DoubleBuffer<K> {
   }
   
   @Override
-  protected void finalize() throws Throwable {
-    if (null != delta) {
-      RecycleBinLong.DOUBLES.recycle(delta, delta.length);
-      delta = null;
-    }
+  protected void _free() {
+    super._free();
     if (null != deltaCompensation) {
       RecycleBinLong.DOUBLES.recycle(deltaCompensation, deltaCompensation.length);
       deltaCompensation = null;
     }
-    super.finalize();
   }
   
   @Override

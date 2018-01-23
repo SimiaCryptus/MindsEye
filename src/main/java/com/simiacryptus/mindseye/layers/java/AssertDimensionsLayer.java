@@ -76,14 +76,16 @@ public class AssertDimensionsLayer extends NNLayer {
     if (0 == array.length) {
       throw new IllegalArgumentException();
     }
-    if (0 == array[0].getData().length()) {
+    NNResult input = array[0];
+    if (0 == input.getData().length()) {
       throw new IllegalArgumentException();
     }
-    final int[] inputDims = array[0].getData().get(0).getDimensions();
+    final int[] inputDims = input.getData().get(0).getDimensions();
     if (!Arrays.equals(inputDims, dims)) {
       throw new IllegalArgumentException(Arrays.toString(inputDims) + " != " + Arrays.toString(dims));
     }
-    return array[0];
+    input.getData().addRef();
+    return input;
   }
   
   @Override
