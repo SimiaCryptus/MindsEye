@@ -100,69 +100,40 @@ public class ImgBandSelectLayer extends NNLayer implements MultiPrecision<ImgBan
     final int[] outputDimensions = Arrays.copyOf(inputDimensions, 3);
     final int byteOffset = inputDimensions[1] * inputDimensions[0] * getFrom() * precision.size;
     outputDimensions[2] = getTo() - getFrom();
-    return GpuHandle.run(nncontext -> {
-      long size = (length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
-      final CudaPtr cudaOutput = CudaPtr.allocate(nncontext.getDeviceNumber(), size, MemoryType.Managed, true);
+    long size = (length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
+    return new NNResult(GpuHandle.run(gpu -> {
+      final CudaPtr cudaOutput = CudaPtr.allocate(gpu.getDeviceNumber(), size, MemoryType.Managed, true);
       final CudaPtr cudaInput = CudaPtr.getCudaPtr(precision, inputData);
       final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(inputDimensions, length, outputDimensions);
       final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(outputDimensions, length, outputDimensions);
-      CuDNN.cudnnTransformTensor(nncontext.getHandle(),
+      CuDNN.cudnnTransformTensor(gpu.getHandle(),
                                  precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.getPtr().withByteOffset(byteOffset),
                                  precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr()
                                 );
       cudaInput.freeRef();
-      return getResult(inputData, inputDimensions, length, outputDimensions, byteOffset, GpuTensorList.wrap(cudaOutput, length, outputDimensions, precision), inObj);
-    });
-  }
-  
-  /**
-   * Gets tensor descriptor.
-   *
-   * @param inputDimensions  the input dimensions
-   * @param length           the length
-   * @param outputDimensions the output dimensions
-   * @return the tensor descriptor
-   */
-  public CudaResource<cudnnTensorDescriptor> getTensorDescriptor(int[] inputDimensions, int length, int[] outputDimensions) {
-    return CuDNN.newTensorDescriptor(
-      precision.code, length, outputDimensions[2], outputDimensions[1], outputDimensions[0], //
-      inputDimensions[2] * inputDimensions[1] * inputDimensions[0], //
-      inputDimensions[1] * inputDimensions[0], //
-      inputDimensions[0], //
-      1);
-  }
-  
-  /**
-   * Gets result.
-   *
-   * @param inputData        the input data
-   * @param inputDimensions  the input dimensions
-   * @param length           the length
-   * @param outputDimensions the output dimensions
-   * @param byteOffset       the byte offset
-   * @param outputData       the output data
-   * @param inObj            the in obj
-   * @return the result
-   */
-  public NNResult getResult(TensorList inputData, int[] inputDimensions, int length, int[] outputDimensions, int byteOffset, TensorList outputData, NNResult[] inObj) {
-    return new NNResult(outputData, (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
-      if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
-        throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
+      inputDescriptor.freeRef();
+      outputDescriptor.freeRef();
+      return GpuTensorList.wrap(cudaOutput, length, outputDimensions, precision);
+    }), (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
+      if (!Arrays.equals(error.getDimensions(), outputDimensions)) {
+        throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputDimensions));
       }
       if (inObj[0].isAlive()) {
-        final TensorList passbackTensorList = GpuHandle.run(nncontext -> {
+        final TensorList passbackTensorList = GpuHandle.run(gpu -> {
           final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(inputDimensions, length, outputDimensions);
           final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(outputDimensions, length, outputDimensions);
           assert error.length() == inputData.length();
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
           final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
-          long size = (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size);
-          final CudaPtr passbackBuffer = CudaPtr.allocate(nncontext.getDeviceNumber(), size, MemoryType.Managed, false);
-          CuDNN.cudnnTransformTensor(nncontext.getHandle(),
+          long size1 = (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size);
+          final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), size1, MemoryType.Managed, false);
+          CuDNN.cudnnTransformTensor(gpu.getHandle(),
                                      precision.getPointer(1.0), outputDescriptor.getPtr(), errorPtr.getPtr(),
                                      precision.getPointer(0.0), inputDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
                                     );
           errorPtr.freeRef();
+          inputDescriptor.freeRef();
+          outputDescriptor.freeRef();
           return GpuTensorList.wrap(passbackBuffer, length, inputDimensions, precision);
           //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         });
@@ -181,6 +152,23 @@ public class ImgBandSelectLayer extends NNLayer implements MultiPrecision<ImgBan
         return Arrays.stream(inObj).anyMatch(x -> x.isAlive());
       }
     };
+  }
+  
+  /**
+   * Gets tensor descriptor.
+   *
+   * @param inputDimensions  the input dimensions
+   * @param length           the length
+   * @param outputDimensions the output dimensions
+   * @return the tensor descriptor
+   */
+  public CudaResource<cudnnTensorDescriptor> getTensorDescriptor(int[] inputDimensions, int length, int[] outputDimensions) {
+    return CuDNN.newTensorDescriptor(
+      precision.code, length, outputDimensions[2], outputDimensions[1], outputDimensions[0], //
+      inputDimensions[2] * inputDimensions[1] * inputDimensions[0], //
+      inputDimensions[1] * inputDimensions[0], //
+      inputDimensions[0], //
+      1);
   }
   
   @Override

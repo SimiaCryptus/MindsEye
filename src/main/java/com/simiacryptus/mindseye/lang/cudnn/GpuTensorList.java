@@ -74,21 +74,31 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
     addInstance(self);
   }
   
-  public static void evictAllToHeap() {
-    Iterator<WeakReference<GpuTensorList>> iter = INSTANCES.iterator();
-    do {
-      GpuTensorList next = iter.next().get();
-      if (null != next) next.evictToHeap();
-    } while (iter.hasNext());
-  }
+  private static long lastCleanTime = 0;
   
+  public static void evictAllToHeap() {
+    synchronized (INSTANCES) {
+      Iterator<WeakReference<GpuTensorList>> iterator = INSTANCES.iterator();
+      while (iterator.hasNext()) {
+        GpuTensorList next = iterator.next().get();
+        if (null != next) next.evictToHeap();
+      }
+    }
+  }
+
   private static void addInstance(GpuTensorList self) {
-    Iterator<WeakReference<GpuTensorList>> iter = INSTANCES.iterator();
-    do {
-      GpuTensorList next = iter.next().get();
-      if (null == next) iter.remove();
-    } while (iter.hasNext());
-    INSTANCES.add(new WeakReference<GpuTensorList>(self));
+    long now = System.currentTimeMillis();
+    if (now - lastCleanTime > 1000) {
+      synchronized (INSTANCES) {
+        Iterator<WeakReference<GpuTensorList>> iterator = INSTANCES.iterator();
+        while (iterator.hasNext()) {
+          GpuTensorList next = iterator.next().get();
+          if (null == next) iterator.remove();
+        }
+        lastCleanTime = now;
+      }
+    }
+    INSTANCES.add(new WeakReference<>(self));
   }
   
   /**
