@@ -130,7 +130,7 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(NNResult::free);
-        results.free();
+        results.freeRef();
       }
       
       @Override
@@ -138,7 +138,7 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
         if (!Arrays.equals(delta.getDimensions(), outputDimensions)) {
           throw new AssertionError(Arrays.toString(delta.getDimensions()) + " != " + Arrays.toString(outputDimensions));
         }
-        //outputBuffer.free();
+        //outputBuffer._free();
         assert delta.length() == inObj[0].getData().length();
         //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
         final CudaPtr cudaDelta = GpuHandle.run(nncontext -> CudaPtr.getCudaPtr(precision, delta), false);
@@ -169,7 +169,7 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
           }
           //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         });
-        delta.free();
+        delta.freeRef();
         if (!(delta instanceof GpuTensorList)) CudaPtr.recycle(cudaDelta);
       }
       

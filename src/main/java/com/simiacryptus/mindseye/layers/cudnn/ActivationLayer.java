@@ -161,7 +161,7 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
               });
               input.accumulate(buffer, data);
             }
-            error.free();
+            error.freeRef();
           }
         
           @Override

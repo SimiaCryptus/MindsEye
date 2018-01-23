@@ -155,7 +155,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
               });
               input.accumulate(buffer, data);
             }
-            error.free();
+            error.freeRef();
           }
         
           @Override

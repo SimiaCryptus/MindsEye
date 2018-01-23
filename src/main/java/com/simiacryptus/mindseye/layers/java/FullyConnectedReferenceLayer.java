@@ -169,7 +169,7 @@ public class FullyConnectedReferenceLayer extends NNLayer {
             return input;
           }).toArray(i -> new Tensor[i]));
           inputResult.accumulate(buffer, tensorList);
-          tensorList.recycle();
+          tensorList.freeRef();
         }
       }
       

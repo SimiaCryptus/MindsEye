@@ -139,7 +139,7 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
               input.accumulate(buffer, data);
             }
           }
-          delta.free();
+          delta.freeRef();
         }
       
         @Override

@@ -59,7 +59,7 @@ public class CudaResource<T> extends CudaResourceBase<T> {
   /**
    * Free.
    */
-  protected void free() {
+  protected void _free() {
     try {
       CuDNN.withDevice(deviceId, () -> {
         if (isActiveObj() && !isFinalized.getAndSet(true)) {

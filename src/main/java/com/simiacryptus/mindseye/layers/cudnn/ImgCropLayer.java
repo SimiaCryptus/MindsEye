@@ -111,7 +111,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
   
         @Override
         protected void _free() {
-          inputBuffer.finalize();
+          inputBuffer.freeRef();
           Arrays.stream(inObj).forEach(NNResult::free);
         }
   
@@ -133,7 +133,7 @@ public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer
             });
             inObj[0].accumulate(buffer, passbackTensorList);
           }
-          error.free();
+          error.freeRef();
         }
   
         @Override

@@ -103,7 +103,7 @@ public class MeanSqLossLayer extends NNLayer {
             }
             final TensorList array = new TensorArray(tensorStream.toArray(i -> new Tensor[i]));
             inObj[0].accumulate(buffer, array);
-            array.recycle();
+            array.freeRef();
           }
           if (inObj[1].isAlive()) {
             Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
@@ -114,7 +114,7 @@ public class MeanSqLossLayer extends NNLayer {
             }
             final TensorList array = new TensorArray(tensorStream.map(x -> x.scale(-1)).toArray(i -> new Tensor[i]));
             inObj[1].accumulate(buffer, array);
-            array.recycle();
+            array.freeRef();
           }
         }
       }

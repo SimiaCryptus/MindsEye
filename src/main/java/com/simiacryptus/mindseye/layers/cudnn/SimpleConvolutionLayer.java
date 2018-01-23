@@ -297,8 +297,8 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
         if (null != inputBufferTensors) {
           input.accumulate(buffer, inputBufferTensors);
         }
-        error.free();
-        output.free();
+        error.freeRef();
+        output.freeRef();
       }
       
       @Override
@@ -555,12 +555,12 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
      * Free.
      */
     public void free() {
-      this.convolutionDescriptor.finalize();
-      this.filterDescriptor.finalize();
-      this.inputDescriptor.finalize();
-      this.outputDescriptor.finalize();
-      this.backwardsFilterWorkSpace.finalize();
-      this.backwardsDataWorkSpace.finalize();
+      this.convolutionDescriptor.freeRef();
+      this.filterDescriptor.freeRef();
+      this.inputDescriptor.freeRef();
+      this.outputDescriptor.freeRef();
+      this.backwardsFilterWorkSpace.freeRef();
+      this.backwardsDataWorkSpace.freeRef();
     }
     
   }
@@ -623,10 +623,10 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
      * Free.
      */
     public void free() {
-      this.convolutionDescriptor.finalize();
-      this.filterDescriptor.finalize();
-      this.inputDescriptor.finalize();
-      this.outputDescriptor.finalize();
+      this.convolutionDescriptor.freeRef();
+      this.filterDescriptor.freeRef();
+      this.inputDescriptor.freeRef();
+      this.outputDescriptor.freeRef();
     }
     
   }

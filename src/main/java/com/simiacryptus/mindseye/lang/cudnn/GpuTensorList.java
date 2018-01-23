@@ -34,7 +34,7 @@ import java.util.stream.Stream;
 /**
  * A TensorList data object stored on a GPU with a configurable precision.
  */
-public class GpuTensorList implements TensorList {
+public class GpuTensorList extends ReferenceCountingBase implements TensorList {
   /**
    * The constant logger.
    */
@@ -193,14 +193,6 @@ public class GpuTensorList implements TensorList {
   }
   
   @Override
-  public void recycle() {
-    ptr.free();
-    if (null != heapCopy) {
-      heapCopy.recycle();
-    }
-  }
-  
-  @Override
   public Stream<Tensor> stream() {
     return heapCopy().stream();
   }
@@ -230,7 +222,11 @@ public class GpuTensorList implements TensorList {
     });
   }
   
-  public void free() {
-    ptr.free();
+  @Override
+  protected void _free() {
+    ptr.freeRef();
+    if (null != heapCopy) {
+      heapCopy.freeRef();
+    }
   }
 }

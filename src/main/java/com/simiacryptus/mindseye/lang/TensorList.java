@@ -27,7 +27,7 @@ import java.util.stream.Stream;
  * off-heap, such as on a particular GPU. Use of this abstract class allows optimizations where adjacent GPU components
  * can operate with minimal CPU-GPU data transfer.
  */
-public interface TensorList {
+public interface TensorList extends ReferenceCounting {
   
   /**
    * Add tensor list.
@@ -93,11 +93,6 @@ public interface TensorList {
   int length();
   
   /**
-   * Recycle.
-   */
-  void recycle();
-  
-  /**
    * Stream stream.
    *
    * @return the stream
@@ -113,15 +108,4 @@ public interface TensorList {
     return stream().map(t -> t.prettyPrint()).reduce((a, b) -> a + "\n" + b).get();
   }
   
-  /**
-   * Free.
-   */
-  default void free() {
-    stream().forEach(t -> {
-      try {
-        t.finalize();
-      } catch (Throwable throwable) {
-      }
-    });
-  }
 }

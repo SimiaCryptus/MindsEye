@@ -105,8 +105,8 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
           }).toArray(i -> new Tensor[i]);
           inObj[0].accumulate(buffer, new TensorArray(passbackArray));
         }
-        outputArray.free();
-        data.free();
+        outputArray.freeRef();
+        data.freeRef();
       }
       
       @Override

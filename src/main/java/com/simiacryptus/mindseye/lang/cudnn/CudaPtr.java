@@ -84,7 +84,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     
     @Override
     protected void free(CudaPtr obj) {
-      obj.finalize();
+      obj.freeRef();
     }
     
     @Override
@@ -286,7 +286,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   }
   
   @Override
-  protected void free() {
+  protected void _free() {
     if (isActiveObj()) {
       assertAlive();
       if (!isFinalized.getAndSet(true)) {
@@ -295,18 +295,6 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
         CudaPtr.getGpuStats(deviceId).usedMemory.addAndGet(-size);
       }
     }
-  }
-  
-  /**
-   * Assert alive cuda ptr.
-   *
-   * @return the cuda ptr
-   */
-  public CudaPtr assertAlive() {
-    if (null != finalizedBy)
-      throw new IllegalStateException(Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).get());
-    if (isFinalized.get()) throw new IllegalStateException();
-    return this;
   }
   
   /**

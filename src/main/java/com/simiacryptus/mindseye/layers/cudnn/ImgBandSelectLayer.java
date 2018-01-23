@@ -133,10 +133,6 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
         Arrays.stream(inObj).forEach(NNResult::free);
       }
       
-      public void free(CudaPtr cudaPtr) {
-        if (null != cudaPtr) cudaPtr.finalize();
-      }
-      
       @Override
       protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
         if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
@@ -160,7 +156,7 @@ public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBan
           });
           inObj[0].accumulate(buffer, passbackTensorList);
         }
-        error.free();
+        error.freeRef();
       }
       
       @Override

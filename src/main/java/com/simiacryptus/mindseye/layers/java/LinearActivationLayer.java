@@ -170,7 +170,7 @@ public class LinearActivationLayer extends NNLayer {
           return passback;
         }).toArray(i -> new Tensor[i]));
         inObj.accumulate(buffer, tensorList);
-        tensorList.recycle();
+        tensorList.freeRef();
       }
     }
     

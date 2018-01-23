@@ -222,7 +222,7 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
             if (input.isAlive()) {
               input.accumulate(buffer, error);
             }
-            error.free();
+            error.freeRef();
           }
         
           @Override

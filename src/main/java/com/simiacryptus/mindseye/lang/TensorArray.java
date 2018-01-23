@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 /**
  * An on-heap implementation of the TensorList data container.
  */
-public class TensorArray implements TensorList {
+public class TensorArray extends ReferenceCountingBase implements TensorList {
   private final Tensor[] data;
   
   /**
@@ -53,17 +53,6 @@ public class TensorArray implements TensorList {
   }
   
   @Override
-  public void recycle() {
-    try {
-      for (final Tensor d : data) {
-        d.finalize();
-      }
-    } catch (final Throwable e) {
-      throw new RuntimeException(e);
-    }
-  }
-  
-  @Override
   public Stream<Tensor> stream() {
     return Arrays.stream(data);
   }
@@ -83,5 +72,16 @@ public class TensorArray implements TensorList {
   @Override
   public String toString() {
     return String.format("TensorArray{data=%s}", toString(9, data));
+  }
+  
+  @Override
+  protected void _free() {
+    try {
+      for (final Tensor d : data) {
+        d.finalize();
+      }
+    } catch (final Throwable e) {
+      throw new RuntimeException(e);
+    }
   }
 }

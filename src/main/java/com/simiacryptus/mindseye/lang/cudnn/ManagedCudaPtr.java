@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.simiacryptus.mindseye.lang.PersistanceMode;
 import com.simiacryptus.mindseye.lang.RecycleBinLong;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import jcuda.Pointer;
 import scala.reflect.internal.util.WeakHashSet;
 
@@ -30,7 +31,7 @@ import java.util.function.Supplier;
 /**
  * A GPU memory segment
  */
-public class ManagedCudaPtr {
+public class ManagedCudaPtr extends ReferenceCountingBase {
   
   /**
    * The constant INSTANCES.
@@ -98,7 +99,7 @@ public class ManagedCudaPtr {
   /**
    * Free.
    */
-  public void free() {
+  protected void _free() {
     if (null != finalizedBy)
       throw new IllegalStateException(Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).get());
     if (CudaPtr.DEBUG_LIFECYCLE) finalizedBy = Thread.currentThread().getStackTrace();
@@ -208,17 +209,6 @@ public class ManagedCudaPtr {
   }
   
   /**
-   * Gets device id.
-   *
-   * @return the device id
-   */
-  public Integer getDeviceId() {
-    CudaPtr cudaPtr = null == ptrRef ? null : ptrRef.get();
-    return null == cudaPtr ? null : cudaPtr.getDeviceId();
-  }
-  
-  
-  /**
    * Gets ptr.
    *
    * @return the ptr
@@ -246,7 +236,8 @@ public class ManagedCudaPtr {
         }
       }
     }
-    return cudaPtr.assertAlive();
+    cudaPtr.assertAlive();
+    return cudaPtr;
   }
   
   /**

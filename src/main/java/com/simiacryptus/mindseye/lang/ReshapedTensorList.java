@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 /**
  * The type Reshaped tensor list.
  */
-public class ReshapedTensorList implements TensorList {
+public class ReshapedTensorList extends ReferenceCountingBase implements TensorList {
   private final TensorList data;
   private final int[] dims;
   
@@ -58,13 +58,12 @@ public class ReshapedTensorList implements TensorList {
   }
   
   @Override
-  public void recycle() {
-    data.recycle();
-  }
-  
-  @Override
   public Stream<Tensor> stream() {
     return data.stream().map(t -> t.reshapeCast(dims));
   }
   
+  @Override
+  protected void _free() {
+    data.freeRef();
+  }
 }

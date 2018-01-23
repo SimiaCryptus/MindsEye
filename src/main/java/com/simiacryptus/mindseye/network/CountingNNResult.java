@@ -99,7 +99,7 @@ class CountingNNResult extends NNResult {
   private final Deque<TensorList> passbackBuffers = new LinkedBlockingDeque<>();
   
   /**
-   * A flagrant abuse of Java's object finalization contract. Repeated calls to this class's free method will increment
+   * A flagrant abuse of Java's object finalization contract. Repeated calls to this class's _free method will increment
    * a counter, and when the counter cycles the call is chained.
    */
   @Override
@@ -134,14 +134,14 @@ class CountingNNResult extends NNResult {
       synchronized (passbackBuffers) {
         if (passbackBuffers.size() > COMPACTION_SIZE) {
           TensorList reduced = passbackBuffers.stream().parallel().reduce((a, b) -> a.add(b)).get();
-          passbackBuffers.stream().distinct().filter((TensorList x) -> x != reduced).forEach(t -> t.free());
+          passbackBuffers.stream().distinct().filter((TensorList x) -> x != reduced).forEach(t -> t.freeRef());
           passbackBuffers.clear();
           passbackBuffers.add(reduced);
         }
         if (accumulations.incrementAndGet() == references.get()) {
           if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
           TensorList reduced = passbackBuffers.stream().parallel().reduce((a, b) -> a.add(b)).get();
-          passbackBuffers.stream().distinct().filter((TensorList x) -> x != reduced).forEach(t -> t.free());
+          passbackBuffers.stream().distinct().filter((TensorList x) -> x != reduced).forEach(t -> t.freeRef());
           inner.accumulate(buffer, reduced);
           accumulations.set(0);
           passbackBuffers.clear();
