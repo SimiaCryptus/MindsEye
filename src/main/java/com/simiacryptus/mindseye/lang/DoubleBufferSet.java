@@ -79,10 +79,10 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer<K>> {
    * Factory t.
    *
    * @param layer the layer
-   * @param ptr   the ptr
+   * @param target   the target
    * @return the t
    */
-  protected abstract T factory(final K layer, final double[] ptr);
+  protected abstract T factory(final K layer, final double[] target);
   
   /**
    * Get delta.
@@ -184,8 +184,8 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer<K>> {
     }
     
     @Override
-    protected T factory(final K layer, final double[] ptr) {
-      return parent.factory(layer, ptr);
+    protected T factory(final K layer, final double[] target) {
+      return parent.factory(layer, target);
     }
   }
 }

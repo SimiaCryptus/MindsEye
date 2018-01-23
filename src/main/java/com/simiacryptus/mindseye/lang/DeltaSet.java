@@ -137,8 +137,8 @@ public class DeltaSet<K> extends DoubleBufferSet<K, Delta<K>> {
   }
   
   @Override
-  protected Delta<K> factory(final K layer, final double[] ptr) {
-    return new Delta<K>(layer, ptr);
+  protected Delta<K> factory(final K layer, final double[] target) {
+    return new Delta<K>(layer, target);
   }
   
   /**

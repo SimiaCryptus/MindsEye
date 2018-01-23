@@ -203,7 +203,9 @@ public class DoubleBuffer<K> extends ReferenceCountingBase {
   @Override
   protected void _free() {
     if (null != delta) {
-      RecycleBinLong.DOUBLES.recycle(delta, delta.length);
+      if (RecycleBinLong.DOUBLES.want(delta.length)) {
+        RecycleBinLong.DOUBLES.recycle(delta, delta.length);
+      }
       delta = null;
     }
   }

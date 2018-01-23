@@ -60,13 +60,13 @@ public class Delta<K> extends DoubleBuffer<K> {
    *
    * @param layer             the layer
    * @param target            the target
-   * @param doubles           the doubles
+   * @param delta           the doubles
    * @param deltaCompensation the delta compensation
    */
-  protected Delta(final K layer, final double[] target, final double[] doubles, final double[] deltaCompensation) {
-    super(layer, target, doubles);
+  protected Delta(final K layer, final double[] target, final double[] delta, final double[] deltaCompensation) {
+    super(layer, target, delta);
     if (null == target) throw new IllegalArgumentException();
-    assert null == doubles || target.length == doubles.length;
+    assert null == delta || target.length == delta.length;
     //if(null == array) throw new IllegalArgumentException();
     this.deltaCompensation = deltaCompensation;
   }
@@ -156,7 +156,9 @@ public class Delta<K> extends DoubleBuffer<K> {
   protected void _free() {
     super._free();
     if (null != deltaCompensation) {
-      RecycleBinLong.DOUBLES.recycle(deltaCompensation, deltaCompensation.length);
+      if (RecycleBinLong.DOUBLES.want(deltaCompensation.length)) {
+        RecycleBinLong.DOUBLES.recycle(deltaCompensation, deltaCompensation.length);
+      }
       deltaCompensation = null;
     }
   }

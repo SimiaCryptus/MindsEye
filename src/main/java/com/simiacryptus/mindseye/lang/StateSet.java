@@ -167,8 +167,8 @@ public class StateSet<K> extends DoubleBufferSet<K, State<K>> {
   }
   
   @Override
-  protected State<K> factory(final K layer, final double[] ptr) {
-    return new State<K>(layer, ptr);
+  protected State<K> factory(final K layer, final double[] target) {
+    return new State<K>(layer, target);
   }
   
   /**
