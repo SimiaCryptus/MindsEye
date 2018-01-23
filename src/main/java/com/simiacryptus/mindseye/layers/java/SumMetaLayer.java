@@ -82,28 +82,25 @@ public class SumMetaLayer extends NNLayer {
                  .sum();
       lastResult = input.getData().get(0).mapCoords(f);
     }
-    return new NNResult(lastResult) {
-  
-      @Override
-      protected void _free() {
-        Arrays.stream(inObj).forEach(NNResult::free);
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      if (input.isAlive()) {
+        final Tensor delta = data.get(0);
+        final Tensor feedback[] = new Tensor[itemCnt];
+        Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
+        final ToDoubleFunction<Coordinate> f = (inputCoord) -> {
+          for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
+            feedback[inputItem].add(inputCoord, delta.get(inputCoord));
+          }
+          return 0;
+        };
+        delta.mapCoords(f);
+        input.accumulate(buffer, new TensorArray(feedback));
       }
-  
+    }, lastResult) {
+    
       @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        if (input.isAlive()) {
-          final Tensor delta = data.get(0);
-          final Tensor feedback[] = new Tensor[itemCnt];
-          Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
-          final ToDoubleFunction<Coordinate> f = (inputCoord) -> {
-            for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
-              feedback[inputItem].add(inputCoord, delta.get(inputCoord));
-            }
-            return 0;
-          };
-          delta.mapCoords(f);
-          input.accumulate(buffer, new TensorArray(feedback));
-        }
+      public void free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
       }
       
       @Override

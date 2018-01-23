@@ -120,44 +120,42 @@ public class ImgBandScaleLayer extends NNLayer {
                                     return tensor.mapCoords(c -> tensor.get(c) * weights[c.getCoords()[2]]);
                                   }).toArray(i -> new Tensor[i]);
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    return new NNResult(outputA) {
-  
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+      assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+      if (!isFrozen()) {
+        final Delta<NNLayer> deltaBuffer = buffer.get(ImgBandScaleLayer.this, weights);
+        IntStream.range(0, delta.length()).forEach(index -> {
+          int[] dimensions = delta.getDimensions();
+          int z = dimensions[2];
+          int y = dimensions[1];
+          int x = dimensions[0];
+          final double[] array = RecycleBinLong.DOUBLES.obtain(z);
+          final double[] deltaArray = delta.get(index).getData();
+          final double[] inputData = input.getData().get(index).getData();
+          for (int i = 0; i < z; i++) {
+            for (int j = 0; j < y * x; j++) {
+              //array[i] += deltaArray[i + z * j];
+              array[i] += deltaArray[i * x * y + j] * inputData[i * x * y + j];
+            }
+          }
+          assert Arrays.stream(array).allMatch(v -> Double.isFinite(v));
+          deltaBuffer.addInPlace(array);
+          RecycleBinLong.DOUBLES.recycle(array, array.length);
+        });
+      }
+      if (input.isAlive()) {
+        input.accumulate(buffer, new TensorArray(delta.stream().map(
+          t -> t.mapCoords((c) -> t.get(c) * weights[c.getCoords()[2]])
+                                                                   ).toArray(i -> new Tensor[i])));
+      }
+    }, outputA) {
+    
       @Override
-      protected void _free() {
+      public void free() {
         input.free();
       }
-  
-      @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
-        assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-        if (!isFrozen()) {
-          final Delta<NNLayer> deltaBuffer = buffer.get(ImgBandScaleLayer.this, weights);
-          IntStream.range(0, delta.length()).forEach(index -> {
-            int[] dimensions = delta.getDimensions();
-            int z = dimensions[2];
-            int y = dimensions[1];
-            int x = dimensions[0];
-            final double[] array = RecycleBinLong.DOUBLES.obtain(z);
-            final double[] deltaArray = delta.get(index).getData();
-            final double[] inputData = input.getData().get(index).getData();
-            for (int i = 0; i < z; i++) {
-              for (int j = 0; j < y * x; j++) {
-                //array[i] += deltaArray[i + z * j];
-                array[i] += deltaArray[i * x * y + j] * inputData[i * x * y + j];
-              }
-            }
-            assert Arrays.stream(array).allMatch(v -> Double.isFinite(v));
-            deltaBuffer.addInPlace(array);
-            RecycleBinLong.DOUBLES.recycle(array, array.length);
-          });
-        }
-        if (input.isAlive()) {
-          input.accumulate(buffer, new TensorArray(delta.stream().map(
-            t -> t.mapCoords((c) -> t.get(c) * weights[c.getCoords()[2]])
-                                                                     ).toArray(i -> new Tensor[i])));
-        }
-      }
-      
+    
+    
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();

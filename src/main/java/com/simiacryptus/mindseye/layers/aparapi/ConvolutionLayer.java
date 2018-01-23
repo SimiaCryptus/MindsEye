@@ -182,34 +182,32 @@ public class ConvolutionLayer extends NNLayer {
       throw new RuntimeException("Error mapCoords image res " + Arrays.toString(inputDims), e);
     }
     assert Arrays.stream(output).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+  
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList error) -> {
+      assert error.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+      if (!isFrozen()) {
+        final double[][] inputBuffers = batch.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
+        final double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
+        final Tensor weightGradient = new Tensor(kernelDims);
+        convolutionController.gradient(inputBuffers, weightGradient.getData(), outputBuffers);
+        buffer.get(ConvolutionLayer.this, kernelData).addInPlace(weightGradient.getData());
+      }
+      if (input.isAlive()) {
+        final Tensor[] inputBufferTensors = IntStream.range(0, output.length).mapToObj(dataIndex -> new Tensor(inputDims)).toArray(i -> new Tensor[i]);
+        final double[][] inputBuffers = Arrays.stream(inputBufferTensors).map(x -> x.getData()).toArray(i -> new double[i][]);
+        final double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
+        convolutionController.backprop(inputBuffers, kernelData, outputBuffers);
+        assert Arrays.stream(inputBufferTensors).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+        input.accumulate(buffer, new TensorArray(inputBufferTensors));
+      }
+    }, output) {
     
-    return new NNResult(output) {
-  
       @Override
-      protected void _free() {
-        Arrays.stream(inObj).forEach(NNResult::free);
+      public void free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
       }
-  
-      @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
-        assert error.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-        if (!isFrozen()) {
-          final double[][] inputBuffers = batch.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
-          final double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
-          final Tensor weightGradient = new Tensor(kernelDims);
-          convolutionController.gradient(inputBuffers, weightGradient.getData(), outputBuffers);
-          buffer.get(ConvolutionLayer.this, kernelData).addInPlace(weightGradient.getData());
-        }
-        if (input.isAlive()) {
-          final Tensor[] inputBufferTensors = IntStream.range(0, getData().length()).mapToObj(dataIndex -> new Tensor(inputDims)).toArray(i -> new Tensor[i]);
-          final double[][] inputBuffers = Arrays.stream(inputBufferTensors).map(x -> x.getData()).toArray(i -> new double[i][]);
-          final double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
-          convolutionController.backprop(inputBuffers, kernelData, outputBuffers);
-          assert Arrays.stream(inputBufferTensors).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-          input.accumulate(buffer, new TensorArray(inputBufferTensors));
-        }
-      }
-      
+    
+    
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();

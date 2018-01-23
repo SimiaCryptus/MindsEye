@@ -130,33 +130,31 @@ public class BiasLayer extends NNLayer {
     final Tensor[] outputA = input.stream().parallel()
                                   .map(r -> new Tensor(add(r.getData()), r.getDimensions()))
                                   .toArray(i -> new Tensor[i]);
-    return new NNResult(outputA) {
-  
-      @Override
-      protected void _free() {
-        Arrays.stream(inObj).forEach(NNResult::free);
-      }
-  
-      @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-        if (!isFrozen()) {
-          final Delta<NNLayer> deltaBuffer = buffer.get(BiasLayer.this, bias);
-          if (1 == bias.length) {
-            data.stream().parallel().forEach(d -> {
-              final double[] array = d.getData();
-              deltaBuffer.addInPlace(1 == array.length ? array : new double[]{Arrays.stream(array).sum()});
-            });
-          }
-          else {
-            data.stream().parallel().forEach(d -> deltaBuffer.addInPlace(d.getData()));
-          }
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+      if (!isFrozen()) {
+        final Delta<NNLayer> deltaBuffer = buffer.get(BiasLayer.this, bias);
+        if (1 == bias.length) {
+          data.stream().parallel().forEach(d -> {
+            final double[] array = d.getData();
+            deltaBuffer.addInPlace(1 == array.length ? array : new double[]{Arrays.stream(array).sum()});
+          });
         }
-        if (0 < inObj.length && inObj[0].isAlive()) {
-          inObj[0].accumulate(buffer, data);
+        else {
+          data.stream().parallel().forEach(d -> deltaBuffer.addInPlace(d.getData()));
         }
       }
-      
+      if (0 < inObj.length && inObj[0].isAlive()) {
+        inObj[0].accumulate(buffer, data);
+      }
+    }, outputA) {
+    
+      @Override
+      public void free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      }
+    
+    
       @Override
       public boolean isAlive() {
         return 0 < inObj.length && inObj[0].isAlive() || !isFrozen();

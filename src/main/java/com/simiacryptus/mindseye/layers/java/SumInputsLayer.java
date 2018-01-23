@@ -61,7 +61,21 @@ public class SumInputsLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    final TensorList data = Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+      for (final NNResult input : inObj) {
+        if (input.isAlive()) {
+          TensorList data1 = data;
+          if (1 < data1.length() && input.getData().length() == 1) {
+            data1 = new TensorArray(data1.stream().parallel().reduce((a, b) -> a.add(b)).get());
+          }
+          if (1 < data1.get(0).dim() && input.getData().get(0).dim() == 1) {
+            data1 = new TensorArray(data1.stream().map(t -> new Tensor(new double[]{t.sum()})).toArray(i -> new Tensor[i]));
+          }
+          input.accumulate(buffer, data1);
+        }
+      }
+    }, Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
       assert l.length() == r.length() || 1 == l.length() || 1 == r.length();
       return new TensorArray(IntStream.range(0, l.length()).parallel()
                                       .mapToObj(i -> {
@@ -75,29 +89,11 @@ public class SumInputsLayer extends NNLayer {
                                         }
                                       })
                                       .toArray(i -> new Tensor[i]));
-    }).get();
-    return new NNResult(data) {
+    }).get()) {
   
       @Override
-      protected void _free() {
-        Arrays.stream(inObj).forEach(NNResult::free);
-      }
-  
-      @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-        for (final NNResult input : inObj) {
-          if (input.isAlive()) {
-            TensorList data1 = data;
-            if (1 < data1.length() && input.getData().length() == 1) {
-              data1 = new TensorArray(data1.stream().parallel().reduce((a, b) -> a.add(b)).get());
-            }
-            if (1 < data1.get(0).dim() && input.getData().get(0).dim() == 1) {
-              data1 = new TensorArray(data1.stream().map(t -> new Tensor(new double[]{t.sum()})).toArray(i -> new Tensor[i]));
-            }
-            input.accumulate(buffer, data1);
-          }
-        }
+      public void free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
       }
       
       @Override

@@ -70,7 +70,28 @@ public class EntropyLossLayer extends NNLayer {
     final double zero_tol = 1e-12;
     final Tensor gradient[] = new Tensor[inObj[0].getData().length()];
     final double max_prob = 1.;
-    final Tensor[] output = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      if (inObj[1].isAlive()) {
+        inObj[1].accumulate(buffer, new TensorArray(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
+          final Tensor l = inObj[0].getData().get(dataIndex);
+          final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
+          for (int i = 0; i < passback.dim(); i++) {
+            final double lv = Math.max(Math.min(l.get(i), max_prob), zero_tol);
+            passback.set(i, -data.get(dataIndex).get(0) * Math.log(lv));
+          }
+          return passback;
+        }).toArray(i -> new Tensor[i])));
+      }
+      if (inObj[0].isAlive()) {
+        inObj[0].accumulate(buffer, new TensorArray(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
+          final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
+          for (int i = 0; i < passback.dim(); i++) {
+            passback.set(i, data.get(dataIndex).get(0) * gradient[dataIndex].get(i));
+          }
+          return passback;
+        }).toArray(i -> new Tensor[i])));
+      }
+    }, IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
       final Tensor l = inObj[0].getData().get(dataIndex);
       final Tensor r = inObj[1].getData().get(dataIndex);
       assert l.dim() == r.dim() : l.dim() + " != " + r.dim();
@@ -94,36 +115,11 @@ public class EntropyLossLayer extends NNLayer {
       gradient[dataIndex] = gradientTensor;
       final Tensor outValue = new Tensor(new double[]{total}, 1);
       return outValue;
-    }).toArray(i -> new Tensor[i]);
-    return new NNResult(output) {
+    }).toArray(i -> new Tensor[i])) {
   
       @Override
-      protected void _free() {
-        Arrays.stream(inObj).forEach(NNResult::free);
-      }
-  
-      @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        if (inObj[1].isAlive()) {
-          inObj[1].accumulate(buffer, new TensorArray(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
-            final Tensor l = inObj[0].getData().get(dataIndex);
-            final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
-            for (int i = 0; i < passback.dim(); i++) {
-              final double lv = Math.max(Math.min(l.get(i), max_prob), zero_tol);
-              passback.set(i, -data.get(dataIndex).get(0) * Math.log(lv));
-            }
-            return passback;
-          }).toArray(i -> new Tensor[i])));
-        }
-        if (inObj[0].isAlive()) {
-          inObj[0].accumulate(buffer, new TensorArray(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
-            final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
-            for (int i = 0; i < passback.dim(); i++) {
-              passback.set(i, data.get(dataIndex).get(0) * gradient[dataIndex].get(i));
-            }
-            return passback;
-          }).toArray(i -> new Tensor[i])));
-        }
+      public void free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
       }
       
       @Override

@@ -127,8 +127,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
       }
     }
     if (!CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
-  
-    return GpuHandle.run(gpu -> {
+    GpuTensorList data = GpuHandle.run(gpu -> {
       final CudaResource<cudnnOpTensorDescriptor> opDescriptor = CuDNN.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
       final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
@@ -140,56 +139,55 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
                           precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
                           precision.getPointer(rightFactor), sizeDescriptor.getPtr(), rPtr.getPtr(),
                           precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-      return new NNResult(GpuTensorList.create(outputPtr, length, dimensions, precision)) {
-      
-        @Override
-        protected void _free() {
-          Arrays.stream(inObj).forEach(NNResult::free);
-        }
-      
-        @Override
-        protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
-          TestUtil.runAll(() -> {
-            if (inObj[0].isAlive()) {
-              inObj[0].accumulate(buffer, GpuHandle.run(gpu -> {
-                final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);
-                final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
-                final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
-                  precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
-                CuDNN.cudnnAddTensor(gpu.getHandle(),
-                                     precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
-                                     precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-                return GpuTensorList.create(outputPtr, length, dimensions, precision);
-              }));
-            }
-          }, () -> {
-            if (inObj[1].isAlive()) {
-              inObj[1].accumulate(buffer, GpuHandle.run(gpu -> {
-                final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);
-                final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
-                final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
-                  precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
-                CuDNN.cudnnAddTensor(gpu.getHandle(),
-                                     precision.getPointer(rightFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
-                                     precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-                return GpuTensorList.create(outputPtr, length, dimensions, precision);
-              }));
-            }
-          });
-          delta.freeRef();
-        }
-      
-        @Override
-        public boolean isAlive() {
-          for (final NNResult element : inObj)
-            if (element.isAlive()) {
-              return true;
-            }
-          return false;
-        }
-      
-      };
+      return GpuTensorList.create(outputPtr, length, dimensions, precision);
     });
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+      TestUtil.runAll(() -> {
+        if (inObj[0].isAlive()) {
+          inObj[0].accumulate(buffer, GpuHandle.run(gpu -> {
+            final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);
+            final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
+            final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
+              precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
+            CuDNN.cudnnAddTensor(gpu.getHandle(),
+                                 precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
+                                 precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
+            return GpuTensorList.create(outputPtr, length, dimensions, precision);
+          }));
+        }
+      }, () -> {
+        if (inObj[1].isAlive()) {
+          inObj[1].accumulate(buffer, GpuHandle.run(gpu -> {
+            final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);
+            final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
+            final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
+              precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
+            CuDNN.cudnnAddTensor(gpu.getHandle(),
+                                 precision.getPointer(rightFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
+                                 precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
+            return GpuTensorList.create(outputPtr, length, dimensions, precision);
+          }));
+        }
+      });
+      delta.freeRef();
+    }, data) {
+    
+      @Override
+      public void free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      }
+    
+    
+      @Override
+      public boolean isAlive() {
+        for (final NNResult element : inObj)
+          if (element.isAlive()) {
+            return true;
+          }
+        return false;
+      }
+    
+    };
   }
   
   @Override

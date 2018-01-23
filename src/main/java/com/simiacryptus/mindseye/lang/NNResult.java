@@ -19,35 +19,25 @@
 
 package com.simiacryptus.mindseye.lang;
 
-/**
- * This type holds the result from a NNLayer evaluation. It holds the result and a callback mechanism to evaluate the
- * derivatives.
- */
+import java.util.function.BiConsumer;
+
 public abstract class NNResult {
-  
   /**
    * The Data.
    */
   protected final TensorList data;
+  protected final BiConsumer<DeltaSet<NNLayer>, TensorList> accumulator;
   
-  /**
-   * Instantiates a new Nn result.
-   *
-   * @param data the data
-   */
-  public NNResult(final Tensor... data) {
-    this(new TensorArray(data));
+  public NNResult(BiConsumer<DeltaSet<NNLayer>, TensorList> accumulator, final TensorList data) {
+    super();
+    this.data = data;
+    this.accumulator = accumulator;
   }
   
-  /**
-   * Instantiates a new Nn result.
-   *
-   * @param data the data
-   */
-  public NNResult(final TensorList data) {
+  public NNResult(BiConsumer<DeltaSet<NNLayer>, TensorList> accumulator, final Tensor... data) {
     super();
-    if (null == data) throw new IllegalArgumentException();
-    this.data = data;
+    this.data = new TensorArray(data);
+    this.accumulator = accumulator;
   }
   
   /**
@@ -70,42 +60,18 @@ public abstract class NNResult {
     accumulate(buffer, new TensorArray(defaultVector));
   }
   
-  /**
-   * Accumulate.
-   *
-   * @param buffer the buffer
-   * @param delta   the data
-   */
-  public final void accumulate(DeltaSet<NNLayer> buffer, final TensorList delta) {
-    _accumulate(buffer, delta);
-  }
   
-  /**
-   * Accumulate.
-   *
-   * @param buffer the buffer
-   * @param data   the data
-   */
-  protected abstract void _accumulate(DeltaSet<NNLayer> buffer, final TensorList data);
+  public final void accumulate(DeltaSet<NNLayer> buffer, TensorList delta) {
+    getAccumulator().accept(buffer, delta);
+  }
   
   /**
    * Gets data.
    *
    * @return the data
    */
-  public TensorList getData() {
+  public final TensorList getData() {
     return data;
-  }
-  
-  /**
-   * Gets data and _free.
-   *
-   * @return the data and _free
-   */
-  public TensorList getDataAndFree() {
-    TensorList tensorList = new TensorArray(data.stream().toArray(i -> new Tensor[i]));
-    free();
-    return tensorList;
   }
   
   /**
@@ -118,13 +84,9 @@ public abstract class NNResult {
   /**
    * Free.
    */
-  public final void free() {
-    _free();
-    data.freeRef();
-  }
+  public void free() {}
   
-  /**
-   * Free.
-   */
-  protected void _free() {}
+  public BiConsumer<DeltaSet<NNLayer>, TensorList> getAccumulator() {
+    return accumulator;
+  }
 }

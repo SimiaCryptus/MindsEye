@@ -119,17 +119,16 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   @Override
   public NNResult eval(final NNResult... inObj) {
     final AtomicLong passbackNanos = new AtomicLong(0);
-    final NNResult[] wrappedInput = Arrays.stream(inObj).map(result -> new NNResult(result.getData()) {
-  
+    final NNResult[] wrappedInput = Arrays.stream(inObj).map(result -> new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      passbackNanos.addAndGet(TimedResult.time(() -> result.accumulate(buffer, data)).timeNanos);
+    }, result.getData()) {
+    
       @Override
-      protected void _free() {
-        Arrays.stream(inObj).forEach(NNResult::free);
+      public void free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
       }
   
-      @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        passbackNanos.addAndGet(TimedResult.time(() -> result.accumulate(buffer, data)).timeNanos);
-      }
+      
       
       @Override
       public boolean isAlive() {
@@ -148,22 +147,19 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
         forwardSignal.add(t.getData());
       });
     }
-    return new NNResult(output.getData()) {
-  
-      @Override
-      protected void _free() {
-        Arrays.stream(inObj).forEach(NNResult::free);
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      if (recordSignalMetrics) {
+        backwardSignal.clear();
+        data.stream().parallel().forEach(t -> {
+          backwardSignal.add(t.getData());
+        });
       }
-  
+      backwardPerformance.add((TimedResult.time(() -> output.accumulate(buffer, data)).timeNanos - passbackNanos.getAndSet(0)) / (items * 1e9));
+    }, output.getData()) {
+    
       @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        if (recordSignalMetrics) {
-          backwardSignal.clear();
-          data.stream().parallel().forEach(t -> {
-            backwardSignal.add(t.getData());
-          });
-        }
-        backwardPerformance.add((TimedResult.time(() -> output.accumulate(buffer, data)).timeNanos - passbackNanos.getAndSet(0)) / (items * 1e9));
+      public void free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
       }
       
       @Override

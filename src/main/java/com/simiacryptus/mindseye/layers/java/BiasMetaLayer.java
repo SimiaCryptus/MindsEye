@@ -73,26 +73,23 @@ public class BiasMetaLayer extends NNLayer {
                                       .parallel()
                                       .mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).mapIndex((v, c) -> v + inObj[1].getData().get(0).get(c)))
                                       .toArray(i -> new Tensor[i]);
-    return new NNResult(tensors) {
-  
-      @Override
-      protected void _free() {
-        Arrays.stream(inObj).forEach(NNResult::free);
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      if (inObj[0].isAlive()) {
+        inObj[0].accumulate(buffer, new TensorArray(data.stream().map(t -> t.mapParallel(v -> v)).toArray(i -> new Tensor[i])));
       }
-  
+      if (inObj[1].isAlive()) {
+        final ToDoubleFunction<Coordinate> f = (c) -> {
+          return IntStream.range(0, itemCnt).mapToDouble(i -> data.get(i).get(c)).sum();
+        };
+        final Tensor passback = tensors[0].mapCoords(f);
+        inObj[1].accumulate(buffer, new TensorArray(IntStream.range(0, inObj[1].getData().length())
+                                                             .mapToObj(i -> i == 0 ? passback : passback.map(v -> 0)).toArray(i -> new Tensor[i])));
+      }
+    }, tensors) {
+    
       @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        if (inObj[0].isAlive()) {
-          inObj[0].accumulate(buffer, new TensorArray(data.stream().map(t -> t.mapParallel(v -> v)).toArray(i -> new Tensor[i])));
-        }
-        if (inObj[1].isAlive()) {
-          final ToDoubleFunction<Coordinate> f = (c) -> {
-            return IntStream.range(0, itemCnt).mapToDouble(i -> data.get(i).get(c)).sum();
-          };
-          final Tensor passback = tensors[0].mapCoords(f);
-          inObj[1].accumulate(buffer, new TensorArray(IntStream.range(0, inObj[1].getData().length())
-                                                               .mapToObj(i -> i == 0 ? passback : passback.map(v -> 0)).toArray(i -> new Tensor[i])));
-        }
+      public void free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
       }
       
       @Override

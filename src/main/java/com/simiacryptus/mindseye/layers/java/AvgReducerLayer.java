@@ -66,7 +66,23 @@ public class AvgReducerLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    return new NNResult(IntStream.range(0, inObj[0].getData().length()).parallel().mapToDouble(dataIndex -> {
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      for (final NNResult in_l : inObj) {
+        if (in_l.isAlive()) {
+          final TensorList tensorList = new TensorArray(IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {
+            final double delta = data.get(dataIndex).get(0);
+            final Tensor passback = new Tensor(in_l.getData().get(dataIndex).getDimensions());
+            final int dim = in_l.getData().get(dataIndex).dim();
+            for (int i = 0; i < dim; i++) {
+              passback.set(i, delta / dim);
+            }
+            return passback;
+          }).toArray(i -> new Tensor[i]));
+          in_l.accumulate(buffer, tensorList);
+          tensorList.freeRef();
+        }
+      }
+    }, IntStream.range(0, inObj[0].getData().length()).parallel().mapToDouble(dataIndex -> {
       double sum = 0;
       for (final NNResult element : inObj) {
         final double[] input = element.getData().get(dataIndex).getData();
@@ -76,29 +92,10 @@ public class AvgReducerLayer extends NNLayer {
       }
       return sum;
     }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])) {
-  
+    
       @Override
-      protected void _free() {
-        Arrays.stream(inObj).forEach(NNResult::free);
-      }
-  
-      @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        for (final NNResult in_l : inObj) {
-          if (in_l.isAlive()) {
-            final TensorList tensorList = new TensorArray(IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {
-              final double delta = data.get(dataIndex).get(0);
-              final Tensor passback = new Tensor(in_l.getData().get(dataIndex).getDimensions());
-              final int dim = in_l.getData().get(dataIndex).dim();
-              for (int i = 0; i < dim; i++) {
-                passback.set(i, delta / dim);
-              }
-              return passback;
-            }).toArray(i -> new Tensor[i]));
-            in_l.accumulate(buffer, tensorList);
-            tensorList.freeRef();
-          }
-        }
+      public void free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
       }
       
       @Override

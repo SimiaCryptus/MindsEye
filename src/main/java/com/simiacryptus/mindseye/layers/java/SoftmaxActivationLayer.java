@@ -96,36 +96,33 @@ public class SoftmaxActivationLayer extends NNLayer {
       return exp.map(x -> x / sum);
     }).toArray(i -> new Tensor[i]);
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    return new NNResult(outputA) {
-  
-      @Override
-      protected void _free() {
-        Arrays.stream(inObj).forEach(NNResult::free);
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      if (inObj[0].isAlive()) {
+        final Tensor[] passbackA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
+          final double[] delta = data.get(dataIndex).getData();
+          final double[] expdata = expA[dataIndex].getData();
+          final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
+          final int dim = expdata.length;
+          double dot = 0;
+          for (int i = 0; i < expdata.length; i++) {
+            dot += delta[i] * expdata[i];
+          }
+          final double sum = sumA[dataIndex];
+          for (int i = 0; i < dim; i++) {
+            double value = 0;
+            value = (sum * delta[i] - dot) * expdata[i] / (sum * sum);
+            passback.set(i, value);
+          }
+          return passback;
+        }).toArray(i -> new Tensor[i]);
+        assert Arrays.stream(passbackA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+        inObj[0].accumulate(buffer, new TensorArray(passbackA));
       }
-  
+    }, outputA) {
+    
       @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        if (inObj[0].isAlive()) {
-          final Tensor[] passbackA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-            final double[] delta = data.get(dataIndex).getData();
-            final double[] expdata = expA[dataIndex].getData();
-            final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
-            final int dim = expdata.length;
-            double dot = 0;
-            for (int i = 0; i < expdata.length; i++) {
-              dot += delta[i] * expdata[i];
-            }
-            final double sum = sumA[dataIndex];
-            for (int i = 0; i < dim; i++) {
-              double value = 0;
-              value = (sum * delta[i] - dot) * expdata[i] / (sum * sum);
-              passback.set(i, value);
-            }
-            return passback;
-          }).toArray(i -> new Tensor[i]);
-          assert Arrays.stream(passbackA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-          inObj[0].accumulate(buffer, new TensorArray(passbackA));
-        }
+      public void free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
       }
       
       @Override

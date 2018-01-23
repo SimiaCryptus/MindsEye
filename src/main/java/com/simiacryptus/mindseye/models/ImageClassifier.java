@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.models;
 import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.lang.NNConstant;
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CuDNN;
 
@@ -77,9 +78,10 @@ public abstract class ImageClassifier {
     };
     try {
       return Lists.partition(Arrays.asList(data), batchSize).stream().flatMap(batch -> {
-        List<Tensor> tensorList = network.eval(NNConstant.singleResultArray(new Tensor[][]{
+        NNResult nnResult = network.eval(NNConstant.singleResultArray(new Tensor[][]{
           batch.stream().map(prefilter).toArray(i -> new Tensor[i])
-        })).getDataAndFree().stream().collect(Collectors.toList());
+        }));
+        List<Tensor> tensorList = nnResult.getData().stream().collect(Collectors.toList());
         garbageman.execute(CuDNN::cleanMemory);
         return tensorList.stream().map(tensor -> {
           double[] predictionSignal = tensor.getData();

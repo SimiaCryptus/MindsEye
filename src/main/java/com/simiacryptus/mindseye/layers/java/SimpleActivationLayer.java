@@ -82,33 +82,30 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
       }
       return output;
     }).toArray(i -> new Tensor[i]));
-    return new NNResult(outputArray) {
-  
-      @Override
-      protected void _free() {
-        Arrays.stream(inObj).forEach(NNResult::free);
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      if (inObj[0].isAlive()) {
+        final Tensor[] passbackArray = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
+          final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
+          final double[] gradientData = inputGradientA[dataIndex].getData();
+          IntStream.range(0, passback.dim()).forEach(i -> {
+            final double v = gradientData[i];
+            if (Double.isFinite(v)) {
+              passback.set(i, data.get(dataIndex).getData()[i] * v);
+            }
+          });
+          return passback;
+        }).toArray(i -> new Tensor[i]);
+        inObj[0].accumulate(buffer, new TensorArray(passbackArray));
       }
-  
+      outputArray.freeRef();
+      data.freeRef();
+    }, outputArray) {
+    
       @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        if (inObj[0].isAlive()) {
-          final Tensor[] passbackArray = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
-            final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
-            final double[] gradientData = inputGradientA[dataIndex].getData();
-            IntStream.range(0, passback.dim()).forEach(i -> {
-              final double v = gradientData[i];
-              if (Double.isFinite(v)) {
-                passback.set(i, data.get(dataIndex).getData()[i] * v);
-              }
-            });
-            return passback;
-          }).toArray(i -> new Tensor[i]);
-          inObj[0].accumulate(buffer, new TensorArray(passbackArray));
-        }
-        outputArray.freeRef();
-        data.freeRef();
+      public void free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
       }
-      
+    
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive();

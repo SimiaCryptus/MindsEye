@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 /**
@@ -55,30 +56,20 @@ class CountingNNResult extends NNResult {
    * The Inner.
    */
   private final NNResult inner;
-  /**
-   * The Queued.
-   */
-  private final AtomicInteger accumulations = new AtomicInteger(0);
-  /**
-   * The Finalizations.
-   */
-  private final AtomicInteger finalizations = new AtomicInteger(0);
-  private final AtomicInteger references = new AtomicInteger(0);
-  private final AtomicBoolean hasAccumulated = new AtomicBoolean(false);
-  private final AtomicBoolean hasFinalized = new AtomicBoolean(false);
-  /**
-   * The Finalized by.
-   */
-  public StackTraceElement[] finalizedBy = null;
-  
+
   /**
    * Instantiates a new Counting nn result.
    *
    * @param inner the heapCopy
    */
   protected CountingNNResult(final NNResult inner) {
-    super(inner.getData());
+    super(new CountingAccumulator(inner), inner.getData());
     this.inner = inner;
+  }
+  
+  @Override
+  public CountingAccumulator getAccumulator() {
+    return (CountingAccumulator) super.getAccumulator();
   }
   
   /**
@@ -96,68 +87,16 @@ class CountingNNResult extends NNResult {
     return "[" + list.stream().reduce((a, b) -> a + ", " + b).get() + (stackTrace.length > max ? ", ..." : "") + "]";
   }
   
-  private final Deque<TensorList> passbackBuffers = new LinkedBlockingDeque<>();
-  
   /**
-   * A flagrant abuse of Java's object finalization contract. Repeated calls to this class's _free method will increment
+   * A flagrant abuse of Java's object finalization contract. Repeated calls to this class's free method will increment
    * a counter, and when the counter cycles the call is chained.
    */
   @Override
-  protected void _free() {
-    if (1 >= references.get()) {
-      if (!hasFinalized.getAndSet(true)) {
-        finalizedBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
-        inner.free();
-      }
-    }
-    else {
-      if (finalizations.incrementAndGet() == references.get()) {
-        if (!hasFinalized.getAndSet(true)) {
-          finalizedBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
-          inner.free();
-        }
-        finalizations.set(0);
-        passbackBuffers.clear();
-      }
-    }
+  public void free() {
+    getAccumulator()._free();
+    inner.free();
   }
   
-  @Override
-  protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-    if (hasFinalized.get()) throw new IllegalStateException(finalizedByStr());
-    if (1 >= references.get()) {
-      if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
-      inner.accumulate(buffer, data);
-    }
-    else {
-      passbackBuffers.add(data);
-      synchronized (passbackBuffers) {
-        if (passbackBuffers.size() > COMPACTION_SIZE) {
-          TensorList reduced = passbackBuffers.stream().parallel().reduce((a, b) -> a.add(b)).get();
-          passbackBuffers.stream().distinct().filter((TensorList x) -> x != reduced).forEach(t -> t.freeRef());
-          passbackBuffers.clear();
-          passbackBuffers.add(reduced);
-        }
-        if (accumulations.incrementAndGet() == references.get()) {
-          if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
-          TensorList reduced = passbackBuffers.stream().parallel().reduce((a, b) -> a.add(b)).get();
-          passbackBuffers.stream().distinct().filter((TensorList x) -> x != reduced).forEach(t -> t.freeRef());
-          inner.accumulate(buffer, reduced);
-          accumulations.set(0);
-          passbackBuffers.clear();
-        }
-      }
-    }
-  }
-  
-  /**
-   * Finalized by str string.
-   *
-   * @return the string
-   */
-  public String finalizedByStr() {
-    return null == finalizedBy ? "" : Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).get();
-  }
   
   /**
    * Increment counting nn result.
@@ -165,12 +104,108 @@ class CountingNNResult extends NNResult {
    * @return the counting nn result
    */
   public CountingNNResult increment() {
-    this.references.incrementAndGet();
+    getAccumulator().increment();
     return this;
   }
   
   @Override
   public boolean isAlive() {
     return inner.isAlive();
+  }
+  
+  private static class CountingAccumulator implements BiConsumer<DeltaSet<NNLayer>, TensorList> {
+    private final AtomicInteger finalizations;
+    private final AtomicInteger references;
+    private final AtomicBoolean hasAccumulated;
+    private final AtomicBoolean hasFinalized;
+    private final NNResult inner;
+    private final Deque<TensorList> passbackBuffers;
+    /**
+     * The Queued.
+     */
+    private final AtomicInteger accumulations;
+    public StackTraceElement[] finalizedBy;
+    
+    public CountingAccumulator(NNResult inner) {
+      this.inner = inner;
+      finalizations = new AtomicInteger(0);
+      references = new AtomicInteger(0);
+      hasAccumulated = new AtomicBoolean(false);
+      hasFinalized = new AtomicBoolean(false);
+      finalizedBy = null;
+      passbackBuffers = new LinkedBlockingDeque<>();
+      accumulations = new AtomicInteger(0);
+    }
+    
+    /**
+     * Finalized by str string.
+     *
+     * @return the string
+     */
+    public String finalizedByStr() {
+      return null == finalizedBy ? "" : Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).get();
+    }
+    
+    /**
+     * Increment counting nn result.
+     *
+     * @return the counting nn result
+     */
+    public void increment() {
+      this.references.incrementAndGet();
+    }
+    
+    @Override
+    public void accept(DeltaSet<NNLayer> buffer, TensorList data) {
+      if (hasFinalized.get()) throw new IllegalStateException(finalizedByStr());
+      if (1 >= references.get()) {
+        if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
+        inner.accumulate(buffer, data);
+      }
+      else {
+        passbackBuffers.add(data);
+        synchronized (passbackBuffers) {
+          if (passbackBuffers.size() > COMPACTION_SIZE) {
+            TensorList reduced = passbackBuffers.stream().parallel().reduce((a, b) -> a.add(b)).get();
+            passbackBuffers.stream().distinct().filter((TensorList x) -> x != reduced).forEach(t -> t.freeRef());
+            passbackBuffers.clear();
+            passbackBuffers.add(reduced);
+          }
+          if (accumulations.incrementAndGet() == references.get()) {
+            if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
+            TensorList reduced = passbackBuffers.stream().parallel().reduce((a, b) -> a.add(b)).get();
+            passbackBuffers.stream().distinct().filter((TensorList x) -> x != reduced).forEach(t -> t.freeRef());
+            inner.accumulate(buffer, reduced);
+            accumulations.set(0);
+            passbackBuffers.clear();
+          }
+        }
+      }
+    }
+    
+    /**
+     * A flagrant abuse of Java's object finalization contract. Repeated calls to this class's free method will
+     * increment a counter, and when the counter cycles the call is chained.
+     */
+    protected void _free() {
+      if (1 >= references.get()) {
+        if (!hasFinalized.getAndSet(true)) {
+          finalizedBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
+          inner.free();
+        }
+      }
+      else {
+        if (finalizations.incrementAndGet() == references.get()) {
+          if (!hasFinalized.getAndSet(true)) {
+            finalizedBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
+            inner.free();
+          }
+          finalizations.set(0);
+          passbackBuffers.clear();
+        }
+      }
+    }
+    
+    
   }
 }

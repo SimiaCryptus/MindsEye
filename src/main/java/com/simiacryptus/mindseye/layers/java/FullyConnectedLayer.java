@@ -345,55 +345,44 @@ public class FullyConnectedLayer extends NNLayer {
     private final NNResult inObj;
   
     private Result(final Tensor[] outputA, final NNResult inObj) {
-      super(outputA);
+      super((final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+        assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+        if (!isFrozen()) {
+          final Delta<NNLayer> deltaBuffer = buffer.get(FullyConnectedLayer.this, getWeights().getData());
+          final int threads = 4;
+          IntStream.range(0, threads).parallel().mapToObj(x -> x).flatMap(thread -> {
+            final Tensor weightDelta = new Tensor(Tensor.dim(inputDims), Tensor.dim(outputDims));
+            return IntStream.range(0, inObj.getData().length()).filter(i -> thread == i % threads).mapToObj(dataIndex -> {
+              final double[] deltaData = delta.get(dataIndex).getData();
+              final double[] inputData = inObj.getData().get(dataIndex).getData();
+              FullyConnectedLayer.crossMultiply(deltaData, inputData, weightDelta.getData());
+              return weightDelta.getData();
+            });
+          }).reduce((a, b) -> ArrayUtil.add(a, b)).map(data -> deltaBuffer.addInPlace(data));
+        }
+        if (inObj.isAlive()) {
+          final TensorList tensorList = new TensorArray(IntStream.range(0, inObj.getData().length()).parallel().mapToObj(dataIndex -> {
+            final double[] deltaData = delta.get(dataIndex).getData();
+            final Tensor r = getWeights();
+            final Tensor passback = new Tensor(inObj.getData().get(dataIndex).getDimensions());
+            FullyConnectedLayer.multiplyT(r.getData(), deltaData, passback.getData());
+            return passback;
+          }).toArray(i -> new Tensor[i]));
+          inObj.accumulate(buffer, tensorList);
+          tensorList.freeRef();
+        }
+      }, outputA);
       this.inObj = inObj;
     }
   
     @Override
-    protected void _free() {
+    public void free() {
       inObj.free();
-    }
-    
-    @Override
-    protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
-      assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-      if (!isFrozen()) {
-        learn(delta, buffer);
-      }
-      if (inObj.isAlive()) {
-        backprop(delta, buffer);
-      }
-    }
-  
-    private void backprop(final TensorList delta, final DeltaSet<NNLayer> buffer) {
-      final TensorList tensorList = new TensorArray(IntStream.range(0, inObj.getData().length()).parallel().mapToObj(dataIndex -> {
-        final double[] deltaData = delta.get(dataIndex).getData();
-        final Tensor r = getWeights();
-        final Tensor passback = new Tensor(inObj.getData().get(dataIndex).getDimensions());
-        FullyConnectedLayer.multiplyT(r.getData(), deltaData, passback.getData());
-        return passback;
-      }).toArray(i -> new Tensor[i]));
-      inObj.accumulate(buffer, tensorList);
-      tensorList.freeRef();
     }
     
     @Override
     public boolean isAlive() {
       return inObj.isAlive() || !isFrozen();
-    }
-    
-    private void learn(final TensorList delta, final DeltaSet<NNLayer> buffer) {
-      final Delta<NNLayer> deltaBuffer = buffer.get(FullyConnectedLayer.this, getWeights().getData());
-      final int threads = 4;
-      IntStream.range(0, threads).parallel().mapToObj(x -> x).flatMap(thread -> {
-        final Tensor weightDelta = new Tensor(Tensor.dim(inputDims), Tensor.dim(outputDims));
-        return IntStream.range(0, inObj.getData().length()).filter(i -> thread == i % threads).mapToObj(dataIndex -> {
-          final double[] deltaData = delta.get(dataIndex).getData();
-          final double[] inputData = inObj.getData().get(dataIndex).getData();
-          FullyConnectedLayer.crossMultiply(deltaData, inputData, weightDelta.getData());
-          return weightDelta.getData();
-        });
-      }).reduce((a, b) -> ArrayUtil.add(a, b)).map(data -> deltaBuffer.addInPlace(data));
     }
     
   }

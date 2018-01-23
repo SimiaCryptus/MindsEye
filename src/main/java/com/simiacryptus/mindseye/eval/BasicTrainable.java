@@ -92,20 +92,16 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
         return new NNConstant(tensors);
       }
       else {
-        return new NNResult(tensors) {
-  
-  
-          @Override
-          protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
-            for (int index = 0; index < delta.length(); index++) {
-              final Tensor dt = delta.get(index);
-              final double[] d = dt.getData();
-              final Tensor t = tensors[index];
-              final double[] p = t.getData();
-              buffer.get(new PlaceholderLayer<double[]>(p), p).addInPlace(d);
-            }
+        return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+          for (int index = 0; index < delta.length(); index++) {
+            final Tensor dt = delta.get(index);
+            final double[] d = dt.getData();
+            final Tensor t = tensors[index];
+            final double[] p = t.getData();
+            buffer.get(new PlaceholderLayer<double[]>(p), p).addInPlace(d);
           }
-          
+        }, tensors) {
+  
           @Override
           public boolean isAlive() {
             return true;

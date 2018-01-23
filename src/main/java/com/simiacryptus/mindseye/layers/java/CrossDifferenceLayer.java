@@ -74,7 +74,25 @@ public class CrossDifferenceLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     assert 1 == inObj.length;
-    return new NNResult(inObj[0].getData().stream().parallel().map(tensor -> {
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      final NNResult input = inObj[0];
+      if (input.isAlive()) {
+        input.accumulate(buffer, new TensorArray(data.stream().parallel().map(tensor -> {
+          final int outputDim = tensor.dim();
+          final int inputDim = (1 + (int) Math.sqrt(1 + 8 * outputDim)) / 2;
+          final Tensor passback = new Tensor(inputDim);
+          final double[] passbackData = passback.getData();
+          final double[] tensorData = tensor.getData();
+          IntStream.range(0, inputDim).forEach(x -> {
+            IntStream.range(x + 1, inputDim).forEach(y -> {
+              passbackData[x] += tensorData[CrossDifferenceLayer.index(x, y, inputDim)];
+              passbackData[y] += -tensorData[CrossDifferenceLayer.index(x, y, inputDim)];
+            });
+          });
+          return passback;
+        }).toArray(i -> new Tensor[i])));
+      }
+    }, inObj[0].getData().stream().parallel().map(tensor -> {
       final int inputDim = tensor.dim();
       final int outputDim = (inputDim * inputDim - inputDim) / 2;
       final Tensor result = new Tensor(outputDim);
@@ -87,31 +105,10 @@ public class CrossDifferenceLayer extends NNLayer {
       });
       return result;
     }).toArray(i -> new Tensor[i])) {
-  
+    
       @Override
-      protected void _free() {
-        Arrays.stream(inObj).forEach(NNResult::free);
-      }
-  
-      @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        final NNResult input = inObj[0];
-        if (input.isAlive()) {
-          input.accumulate(buffer, new TensorArray(data.stream().parallel().map(tensor -> {
-            final int outputDim = tensor.dim();
-            final int inputDim = (1 + (int) Math.sqrt(1 + 8 * outputDim)) / 2;
-            final Tensor passback = new Tensor(inputDim);
-            final double[] passbackData = passback.getData();
-            final double[] tensorData = tensor.getData();
-            IntStream.range(0, inputDim).forEach(x -> {
-              IntStream.range(x + 1, inputDim).forEach(y -> {
-                passbackData[x] += tensorData[CrossDifferenceLayer.index(x, y, inputDim)];
-                passbackData[y] += -tensorData[CrossDifferenceLayer.index(x, y, inputDim)];
-              });
-            });
-            return passback;
-          }).toArray(i -> new Tensor[i])));
-        }
+      public void free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
       }
       
       @Override

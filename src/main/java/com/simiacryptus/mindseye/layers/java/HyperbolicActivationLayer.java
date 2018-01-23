@@ -167,50 +167,49 @@ public class HyperbolicActivationLayer extends NNLayer {
     private final NNResult inObj;
     
     private Result(final Tensor[] outputA, final NNResult inObj) {
-      super(outputA);
+      super((final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+    
+        if (!isFrozen()) {
+          IntStream.range(0, delta.length()).forEach(dataIndex -> {
+            final double[] deltaData = delta.get(dataIndex).getData();
+            final double[] inputData = inObj.getData().get(dataIndex).getData();
+            final Tensor weightDelta = new Tensor(weights.getDimensions());
+            for (int i = 0; i < deltaData.length; i++) {
+              final double d = deltaData[i];
+              final double x = inputData[i];
+              final int sign = x < 0 ? negativeMode : 1;
+              final double a = Math.max(0, weights.getData()[x < 0 ? 1 : 0]);
+              weightDelta.add(x < 0 ? 1 : 0, -sign * d / (a * a * Math.sqrt(1 + Math.pow(a * x, 2))));
+            }
+            buffer.get(HyperbolicActivationLayer.this, weights.getData()).addInPlace(weightDelta.getData());
+          });
+        }
+        if (inObj.isAlive()) {
+          final Tensor[] passbackA = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+            final double[] deltaData = delta.get(dataIndex).getData();
+            final int[] dims = inObj.getData().get(dataIndex).getDimensions();
+            final Tensor passback = new Tensor(dims);
+            for (int i = 0; i < passback.dim(); i++) {
+              final double x = inObj.getData().get(dataIndex).getData()[i];
+              final double d = deltaData[i];
+              final int sign = x < 0 ? negativeMode : 1;
+              final double a = Math.max(0, weights.getData()[x < 0 ? 1 : 0]);
+              passback.set(i, sign * d * a * x / Math.sqrt(1 + a * x * a * x));
+            }
+            return passback;
+          }).toArray(i -> new Tensor[i]);
+          inObj.accumulate(buffer, new TensorArray(passbackA));
+        }
+      }, outputA);
       this.inObj = inObj;
     }
   
     @Override
-    protected void _free() {
+    public void free() {
       inObj.free();
     }
     
-    @Override
-    protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
-      
-      if (!isFrozen()) {
-        IntStream.range(0, delta.length()).forEach(dataIndex -> {
-          final double[] deltaData = delta.get(dataIndex).getData();
-          final double[] inputData = inObj.getData().get(dataIndex).getData();
-          final Tensor weightDelta = new Tensor(weights.getDimensions());
-          for (int i = 0; i < deltaData.length; i++) {
-            final double d = deltaData[i];
-            final double x = inputData[i];
-            final int sign = x < 0 ? negativeMode : 1;
-            final double a = Math.max(0, weights.getData()[x < 0 ? 1 : 0]);
-            weightDelta.add(x < 0 ? 1 : 0, -sign * d / (a * a * Math.sqrt(1 + Math.pow(a * x, 2))));
-          }
-          buffer.get(HyperbolicActivationLayer.this, weights.getData()).addInPlace(weightDelta.getData());
-        });
-      }
-      if (inObj.isAlive()) {
-        final Tensor[] passbackA = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-          final double[] deltaData = delta.get(dataIndex).getData();
-          final int[] dims = inObj.getData().get(dataIndex).getDimensions();
-          final Tensor passback = new Tensor(dims);
-          for (int i = 0; i < passback.dim(); i++) {
-            final double x = inObj.getData().get(dataIndex).getData()[i];
-            final double d = deltaData[i];
-            final int sign = x < 0 ? negativeMode : 1;
-            final double a = Math.max(0, weights.getData()[x < 0 ? 1 : 0]);
-            passback.set(i, sign * d * a * x / Math.sqrt(1 + a * x * a * x));
-          }
-          return passback;
-        }).toArray(i -> new Tensor[i]);
-        inObj.accumulate(buffer, new TensorArray(passbackA));
-      }
-    }
+    
     
     @Override
     public boolean isAlive() {

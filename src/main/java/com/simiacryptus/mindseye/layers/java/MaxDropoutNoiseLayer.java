@@ -138,31 +138,28 @@ public class MaxDropoutNoiseLayer extends NNLayer {
     private final Tensor[] mask;
   
     private Result(final Tensor[] outputA, final NNResult inObj, final Tensor[] mask) {
-      super(outputA);
+      super((final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+        if (inObj.isAlive()) {
+          final Tensor[] passbackA = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+            final double[] deltaData = delta.get(dataIndex).getData();
+            final int[] dims = inObj.getData().get(dataIndex).getDimensions();
+            final double[] maskData = mask[dataIndex].getData();
+            final Tensor passback = new Tensor(dims);
+            for (int i = 0; i < passback.dim(); i++) {
+              passback.set(i, maskData[i] * deltaData[i]);
+            }
+            return passback;
+          }).toArray(i -> new Tensor[i]);
+          inObj.accumulate(buffer, new TensorArray(passbackA));
+        }
+      }, outputA);
       this.inObj = inObj;
       this.mask = mask;
     }
   
     @Override
-    protected void _free() {
+    public void free() {
       inObj.free();
-    }
-    
-    @Override
-    protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
-      if (inObj.isAlive()) {
-        final Tensor[] passbackA = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-          final double[] deltaData = delta.get(dataIndex).getData();
-          final int[] dims = inObj.getData().get(dataIndex).getDimensions();
-          final double[] maskData = mask[dataIndex].getData();
-          final Tensor passback = new Tensor(dims);
-          for (int i = 0; i < passback.dim(); i++) {
-            passback.set(i, maskData[i] * deltaData[i]);
-          }
-          return passback;
-        }).toArray(i -> new Tensor[i]);
-        inObj.accumulate(buffer, new TensorArray(passbackA));
-      }
     }
     
     @Override

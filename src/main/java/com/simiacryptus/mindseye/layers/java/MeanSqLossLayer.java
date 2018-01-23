@@ -84,39 +84,36 @@ public class MeanSqLossLayer extends NNLayer {
       diffs[dataIndex] = r;
       return new Tensor(new double[]{r.sumSq() / r.dim()}, 1);
     }).toArray(i -> new Tensor[i]);
-    return new NNResult(outputA) {
-  
-      @Override
-      protected void _free() {
-        Arrays.stream(inObj).forEach(NNResult::free);
-      }
-  
-      @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        if (inObj[0].isAlive() || inObj[1].isAlive()) {
-          if (inObj[0].isAlive()) {
-            Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
-              return diffs[dataIndex].scale(data.get(dataIndex).get(0) * 2.0 / diffs[dataIndex].dim());
-            });
-            if (1 == leftLength) {
-              tensorStream = Stream.of(tensorStream.reduce((a, b) -> a.add(b)).get());
-            }
-            final TensorList array = new TensorArray(tensorStream.toArray(i -> new Tensor[i]));
-            inObj[0].accumulate(buffer, array);
-            array.freeRef();
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      if (inObj[0].isAlive() || inObj[1].isAlive()) {
+        if (inObj[0].isAlive()) {
+          Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
+            return diffs[dataIndex].scale(data.get(dataIndex).get(0) * 2.0 / diffs[dataIndex].dim());
+          });
+          if (1 == leftLength) {
+            tensorStream = Stream.of(tensorStream.reduce((a, b) -> a.add(b)).get());
           }
-          if (inObj[1].isAlive()) {
-            Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
-              return diffs[dataIndex].scale(data.get(dataIndex).get(0) * 2.0 / diffs[dataIndex].dim());
-            });
-            if (1 == rightLength) {
-              tensorStream = Stream.of(tensorStream.reduce((a, b) -> a.add(b)).get());
-            }
-            final TensorList array = new TensorArray(tensorStream.map(x -> x.scale(-1)).toArray(i -> new Tensor[i]));
-            inObj[1].accumulate(buffer, array);
-            array.freeRef();
-          }
+          final TensorList array = new TensorArray(tensorStream.toArray(i -> new Tensor[i]));
+          inObj[0].accumulate(buffer, array);
+          array.freeRef();
         }
+        if (inObj[1].isAlive()) {
+          Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
+            return diffs[dataIndex].scale(data.get(dataIndex).get(0) * 2.0 / diffs[dataIndex].dim());
+          });
+          if (1 == rightLength) {
+            tensorStream = Stream.of(tensorStream.reduce((a, b) -> a.add(b)).get());
+          }
+          final TensorList array = new TensorArray(tensorStream.map(x -> x.scale(-1)).toArray(i -> new Tensor[i]));
+          inObj[1].accumulate(buffer, array);
+          array.freeRef();
+        }
+      }
+    }, outputA) {
+    
+      @Override
+      public void free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
       }
       
       @Override

@@ -75,24 +75,21 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
     for (int j = 0; j < outputPrototype.dim(); j++) {
       final int j_ = j;
       final PlaceholderLayer<Tensor> inputKey = new PlaceholderLayer<Tensor>(new Tensor());
-      final NNResult copyInput = new NNResult(new TensorArray(inputPrototype)) {
-        @Override
-        protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-          final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.dim());
-          if (!Arrays.equals(inputTensor.getDimensions(), data.get(inputIndex).getDimensions())) {
-            throw new AssertionError();
-          }
-          for (int i = 0; i < inputDims; i++) {
-            gradientBuffer.set(new int[]{i, j_}, data.get(inputIndex).getData()[i]);
-          }
-          buffer.get(inputKey, new double[gradientBuffer.dim()]).addInPlace(gradientBuffer.getData());
+      final NNResult copyInput = new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+        final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.dim());
+        if (!Arrays.equals(inputTensor.getDimensions(), data.get(inputIndex).getDimensions())) {
+          throw new AssertionError();
         }
+        for (int i = 0; i < inputDims; i++) {
+          gradientBuffer.set(new int[]{i, j_}, data.get(inputIndex).getData()[i]);
+        }
+        buffer.get(inputKey, new double[gradientBuffer.dim()]).addInPlace(gradientBuffer.getData());
+      }, new TensorArray(inputPrototype)) {
         
         @Override
         public boolean isAlive() {
           return true;
         }
-  
   
       };
       final NNResult eval = component.eval(copyInput);
@@ -422,11 +419,9 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
   public void testFrozen(final NNLayer component, final Tensor[] inputPrototype) {
     final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     final NNLayer frozen = component.copy().freeze();
-    final NNResult eval = frozen.eval(new NNResult(new TensorArray(inputPrototype)) {
-      @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        reachedInputFeedback.set(true);
-      }
+    final NNResult eval = frozen.eval(new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      reachedInputFeedback.set(true);
+    }, new TensorArray(inputPrototype)) {
     
       @Override
       public boolean isAlive() {
@@ -458,17 +453,14 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
   public void testUnFrozen(final NNLayer component, final Tensor[] inputPrototype) {
     final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     final NNLayer frozen = component.copy().setFrozen(false);
-    final NNResult eval = frozen.eval(new NNResult(new TensorArray(inputPrototype)) {
-      @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        reachedInputFeedback.set(true);
-      }
+    final NNResult eval = frozen.eval(new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      reachedInputFeedback.set(true);
+    }, new TensorArray(inputPrototype)) {
     
       @Override
       public boolean isAlive() {
         return true;
       }
-    
     
     });
     final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();

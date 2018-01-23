@@ -164,7 +164,7 @@ public class CuDNN {
     long[] free = {0};
     long[] total = {0};
     JCuda.cudaMemGetInfo(free, total);
-    out.printf("Cuda Memory: %.1f _free, %.1f total%n", free[0] * 1.0 / (1024 * 1024), total[0] * 1.0 / (1024 * 1024));
+    out.printf("Cuda Memory: %.1f free, %.1f total%n", free[0] * 1.0 / (1024 * 1024), total[0] * 1.0 / (1024 * 1024));
     final int[] deviceCount = new int[1];
     jcuda.runtime.JCuda.cudaGetDeviceCount(deviceCount);
     IntStream.range(0, deviceCount[0]).forEach(device -> {
@@ -300,7 +300,7 @@ public class CuDNN {
   }
   
   /**
-   * Cuda _free int.
+   * Cuda free int.
    *
    * @param devPtr   the dev ptr
    * @param deviceId the device id
@@ -399,7 +399,7 @@ public class CuDNN {
   }
   
   /**
-   * Cuda _free host int.
+   * Cuda free host int.
    *
    * @param devPtr the dev ptr
    * @return the int

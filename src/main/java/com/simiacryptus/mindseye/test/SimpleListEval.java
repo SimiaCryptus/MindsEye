@@ -75,13 +75,9 @@ public class SimpleListEval implements Callable<SimpleResult>, SimpleResult {
                                                                 .toArray(i -> new Tensor[i]))
                                          ).toArray(i -> new TensorList[i]);
     final NNResult[] inputR = IntStream.range(0, input.length).mapToObj(i -> {
-      return new NNResult(input[i]) {
-  
-  
-        @Override
-        protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-          SimpleListEval.accumulate(derivative[i], data);
-        }
+      return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+        SimpleListEval.accumulate(derivative[i], data);
+      }, input[i]) {
         
         @Override
         public boolean isAlive() {

@@ -33,7 +33,7 @@ public final class NNConstant extends NNResult {
    * @param data the data
    */
   public NNConstant(final Tensor... data) {
-    super(data);
+    super((final DeltaSet<NNLayer> buffer, final TensorList tensorList) -> {}, data);
   }
   
   /**
@@ -42,7 +42,7 @@ public final class NNConstant extends NNResult {
    * @param tensorList the tensor array
    */
   public NNConstant(final TensorList tensorList) {
-    super(tensorList);
+    super((final DeltaSet<NNLayer> buffer, final TensorList data) -> {}, tensorList);
   }
   
   /**
@@ -78,11 +78,6 @@ public final class NNConstant extends NNResult {
    */
   public static NNResult[] singleResultArray(final Tensor[][] input) {
     return Arrays.stream(input).map((final Tensor[] x) -> new NNConstant(new TensorArray(x))).toArray(i -> new NNResult[i]);
-  }
-  
-  @Override
-  protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-    // Do Nothing
   }
   
   @Override

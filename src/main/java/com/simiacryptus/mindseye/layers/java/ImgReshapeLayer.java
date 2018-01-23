@@ -169,29 +169,27 @@ public class ImgReshapeLayer extends NNLayer {
                               inputDims[1] / kernelSizeY,
                               inputDims[2] * kernelSizeX * kernelSizeY);
     }
-    return new NNResult(IntStream.range(0, batch.length()).parallel()
-                                 .mapToObj(dataIndex -> expand ? ImgReshapeLayer.copyExpand(batch.get(dataIndex), outputDims.copy()) : ImgReshapeLayer.copyCondense(batch.get(dataIndex), outputDims.copy()))
-                                 .toArray(i -> new Tensor[i])) {
-  
-      @Override
-      protected void _free() {
-        Arrays.stream(inObj).forEach(NNResult::free);
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList error) -> {
+      //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+      if (input.isAlive()) {
+        final Tensor[] data1 = IntStream.range(0, error.length()).parallel()
+                                        .mapToObj(dataIndex -> {
+                                          final Tensor passback = new Tensor(inputDims);
+                                          final Tensor err = error.get(dataIndex);
+                                          return expand ? ImgReshapeLayer.copyCondense(err, passback) : ImgReshapeLayer.copyExpand(err, passback);
+                                        }).toArray(i -> new Tensor[i]);
+        input.accumulate(buffer, new TensorArray(data1));
       }
-  
+    }, IntStream.range(0, batch.length()).parallel()
+                .mapToObj(dataIndex -> expand ? ImgReshapeLayer.copyExpand(batch.get(dataIndex), outputDims.copy()) : ImgReshapeLayer.copyCondense(batch.get(dataIndex), outputDims.copy()))
+                .toArray(i -> new Tensor[i])) {
+    
       @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
-        //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-        if (input.isAlive()) {
-          final Tensor[] data1 = IntStream.range(0, error.length()).parallel()
-                                          .mapToObj(dataIndex -> {
-                                            final Tensor passback = new Tensor(inputDims);
-                                            final Tensor err = error.get(dataIndex);
-                                            return expand ? ImgReshapeLayer.copyCondense(err, passback) : ImgReshapeLayer.copyExpand(err, passback);
-                                          }).toArray(i -> new Tensor[i]);
-          input.accumulate(buffer, new TensorArray(data1));
-        }
+      public void free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
       }
-      
+    
+    
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();

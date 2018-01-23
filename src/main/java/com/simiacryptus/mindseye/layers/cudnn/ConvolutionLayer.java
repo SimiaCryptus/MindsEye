@@ -187,19 +187,16 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     assert inObj[0].getData().length() == resultData.length();
     assert 3 == resultData.getDimensions().length;
     assert outputBands == resultData.getDimensions()[2];
-    return new NNResult(resultData) {
-      
-      @Override
-      protected void _free() {
-        result.free();
+    return new NNResult((final DeltaSet<NNLayer> deltaSet, final TensorList data) -> {
+      result.accumulate(deltaSet, data);
+      if (!isFrozen()) {
+        deltaSet.get(ConvolutionLayer.this, getKernel().getData()).addInPlace(grid.read(deltaSet, true).getData());
       }
+    }, resultData) {
     
       @Override
-      protected void _accumulate(final DeltaSet<NNLayer> deltaSet, final TensorList data) {
-        result.accumulate(deltaSet, data);
-        if (!isFrozen()) {
-          deltaSet.get(ConvolutionLayer.this, getKernel().getData()).addInPlace(grid.read(deltaSet, true).getData());
-        }
+      public void free() {
+        result.free();
       }
       
       @Override

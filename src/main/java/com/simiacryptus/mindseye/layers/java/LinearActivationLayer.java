@@ -141,37 +141,34 @@ public class LinearActivationLayer extends NNLayer {
     private final NNResult inObj;
     
     private Result(final Tensor[] outputA, final NNResult inObj) {
-      super(outputA);
+      super((final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+        if (!isFrozen()) {
+          IntStream.range(0, delta.length()).forEach(dataIndex -> {
+            final double[] deltaData = delta.get(dataIndex).getData();
+            final double[] inputData = inObj.getData().get(dataIndex).getData();
+            final Tensor weightDelta = new Tensor(weights.getDimensions());
+            for (int i = 0; i < deltaData.length; i++) {
+              weightDelta.add(0, deltaData[i] * inputData[inputData.length == 1 ? 0 : i]);
+              weightDelta.add(1, deltaData[i]);
+            }
+            buffer.get(LinearActivationLayer.this, weights.getData()).addInPlace(weightDelta.getData());
+          });
+        }
+        if (inObj.isAlive()) {
+          final TensorList tensorList = new TensorArray(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+            final double[] deltaData = delta.get(dataIndex).getData();
+            final int[] dims = inObj.getData().get(dataIndex).getDimensions();
+            final Tensor passback = new Tensor(dims);
+            for (int i = 0; i < passback.dim(); i++) {
+              passback.set(i, deltaData[i] * weights.getData()[0]);
+            }
+            return passback;
+          }).toArray(i -> new Tensor[i]));
+          inObj.accumulate(buffer, tensorList);
+          tensorList.freeRef();
+        }
+      }, outputA);
       this.inObj = inObj;
-    }
-    
-    @Override
-    protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
-      if (!isFrozen()) {
-        IntStream.range(0, delta.length()).forEach(dataIndex -> {
-          final double[] deltaData = delta.get(dataIndex).getData();
-          final double[] inputData = inObj.getData().get(dataIndex).getData();
-          final Tensor weightDelta = new Tensor(weights.getDimensions());
-          for (int i = 0; i < deltaData.length; i++) {
-            weightDelta.add(0, deltaData[i] * inputData[inputData.length == 1 ? 0 : i]);
-            weightDelta.add(1, deltaData[i]);
-          }
-          buffer.get(LinearActivationLayer.this, weights.getData()).addInPlace(weightDelta.getData());
-        });
-      }
-      if (inObj.isAlive()) {
-        final TensorList tensorList = new TensorArray(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-          final double[] deltaData = delta.get(dataIndex).getData();
-          final int[] dims = inObj.getData().get(dataIndex).getDimensions();
-          final Tensor passback = new Tensor(dims);
-          for (int i = 0; i < passback.dim(); i++) {
-            passback.set(i, deltaData[i] * weights.getData()[0]);
-          }
-          return passback;
-        }).toArray(i -> new Tensor[i]));
-        inObj.accumulate(buffer, tensorList);
-        tensorList.freeRef();
-      }
     }
     
     @Override
@@ -180,7 +177,7 @@ public class LinearActivationLayer extends NNLayer {
     }
   
     @Override
-    protected void _free() {
+    public void free() {
       inObj.free();
     }
   

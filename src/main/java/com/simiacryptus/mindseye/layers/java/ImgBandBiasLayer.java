@@ -141,36 +141,33 @@ public class ImgBandBiasLayer extends NNLayer {
                                   })
                                   .toArray(i -> new Tensor[i]);
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    return new NNResult(outputA) {
-  
-      @Override
-      protected void _free() {
-        input.free();
-      }
-  
-      @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-        if (!isFrozen()) {
-          final Delta<NNLayer> deltaBuffer = buffer.get(ImgBandBiasLayer.this, bias);
-          data.stream().parallel().forEach(d -> {
-            final double[] array = RecycleBinLong.DOUBLES.obtain(bias.length);
-            final double[] signal = d.getData();
-            final int size = signal.length / bias.length;
-            for (int i = 0; i < signal.length; i++) {
-              array[i / size] += signal[i];
-              if (!Double.isFinite(array[i / size])) {
-                array[i / size] = 0.0;
-              }
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+      if (!isFrozen()) {
+        final Delta<NNLayer> deltaBuffer = buffer.get(ImgBandBiasLayer.this, bias);
+        data.stream().parallel().forEach(d -> {
+          final double[] array = RecycleBinLong.DOUBLES.obtain(bias.length);
+          final double[] signal = d.getData();
+          final int size = signal.length / bias.length;
+          for (int i = 0; i < signal.length; i++) {
+            array[i / size] += signal[i];
+            if (!Double.isFinite(array[i / size])) {
+              array[i / size] = 0.0;
             }
-            assert Arrays.stream(array).allMatch(v -> Double.isFinite(v));
-            deltaBuffer.addInPlace(array);
-            RecycleBinLong.DOUBLES.recycle(array, array.length);
-          });
-        }
-        if (input.isAlive()) {
-          input.accumulate(buffer, data);
-        }
+          }
+          assert Arrays.stream(array).allMatch(v -> Double.isFinite(v));
+          deltaBuffer.addInPlace(array);
+          RecycleBinLong.DOUBLES.recycle(array, array.length);
+        });
+      }
+      if (input.isAlive()) {
+        input.accumulate(buffer, data);
+      }
+    }, outputA) {
+    
+      @Override
+      public void free() {
+        input.free();
       }
       
       @Override

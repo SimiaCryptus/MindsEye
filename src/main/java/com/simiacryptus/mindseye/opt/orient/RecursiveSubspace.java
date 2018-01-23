@@ -103,26 +103,22 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
         PointSample measure = subject.measure(monitor);
         double mean = measure.getMean();
         monitor.log(String.format("RecursiveSubspace: %s <- %s", mean, Arrays.toString(weights)));
-        return new NNResult(new Tensor(mean)) {
-  
-  
-          @Override
-          protected void _accumulate(DeltaSet<NNLayer> buffer, TensorList data) {
-            DoubleStream deltaStream = deltaLayers.stream().mapToDouble(layer -> {
-              Delta<NNLayer> a = direction.getMap().get(layer);
-              Delta<NNLayer> b = measure.delta.getMap().get(layer);
-              return b.dot(a) / Math.max(Math.sqrt(a.dot(a)), 1e-8);
-            });
-            if (hasPlaceholders) {
-              deltaStream = DoubleStream.concat(DoubleStream.of(
-                direction.getMap().keySet().stream().filter(x -> x instanceof PlaceholderLayer).distinct().mapToDouble(layer -> {
-                  Delta<NNLayer> a = direction.getMap().get(layer);
-                  Delta<NNLayer> b = measure.delta.getMap().get(layer);
-                  return b.dot(a) / Math.max(Math.sqrt(a.dot(a)), 1e-8);
-                }).sum()), deltaStream);
-            }
-            buffer.get(self, weights).addInPlace(deltaStream.toArray());
+        return new NNResult((DeltaSet<NNLayer> buffer, TensorList data) -> {
+          DoubleStream deltaStream = deltaLayers.stream().mapToDouble(layer -> {
+            Delta<NNLayer> a = direction.getMap().get(layer);
+            Delta<NNLayer> b = measure.delta.getMap().get(layer);
+            return b.dot(a) / Math.max(Math.sqrt(a.dot(a)), 1e-8);
+          });
+          if (hasPlaceholders) {
+            deltaStream = DoubleStream.concat(DoubleStream.of(
+              direction.getMap().keySet().stream().filter(x -> x instanceof PlaceholderLayer).distinct().mapToDouble(layer -> {
+                Delta<NNLayer> a = direction.getMap().get(layer);
+                Delta<NNLayer> b = measure.delta.getMap().get(layer);
+                return b.dot(a) / Math.max(Math.sqrt(a.dot(a)), 1e-8);
+              }).sum()), deltaStream);
           }
+          buffer.get(self, weights).addInPlace(deltaStream.toArray());
+        }, new Tensor(mean)) {
           
           @Override
           public boolean isAlive() {

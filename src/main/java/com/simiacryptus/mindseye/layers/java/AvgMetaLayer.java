@@ -94,32 +94,31 @@ public class AvgMetaLayer extends NNLayer {
       passback = false;
       thisResult = lastResult;
     }
-    return new NNResult(thisResult) {
-      @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        if (passback && input.isAlive()) {
-          final Tensor delta = data.get(0);
-          final Tensor feedback[] = new Tensor[itemCnt];
-          Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
-          thisResult.coordStream(true).forEach((inputCoord) -> {
-            for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
-              feedback[inputItem].add(inputCoord, delta.get(inputCoord) / itemCnt);
-            }
-          });
-          input.accumulate(buffer, new TensorArray(feedback));
-        }
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      if (passback && input.isAlive()) {
+        final Tensor delta = data.get(0);
+        final Tensor feedback[] = new Tensor[itemCnt];
+        Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
+        thisResult.coordStream(true).forEach((inputCoord) -> {
+          for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
+            feedback[inputItem].add(inputCoord, delta.get(inputCoord) / itemCnt);
+          }
+        });
+        input.accumulate(buffer, new TensorArray(feedback));
       }
-  
+    }, thisResult) {
+      
+      
       @Override
       public boolean isAlive() {
         return input.isAlive();
       }
-  
+    
       @Override
-      protected void _free() {
+      public void free() {
         input.free();
       }
-  
+    
     };
   }
   

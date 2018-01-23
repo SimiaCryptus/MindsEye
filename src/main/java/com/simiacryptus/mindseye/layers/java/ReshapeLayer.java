@@ -88,11 +88,9 @@ public class ReshapeLayer extends NNLayer implements LayerPrecision<ReshapeLayer
     assert 1 == inObj.length;
     TensorList data = inObj[0].getData();
     int[] inputDims = data.getDimensions();
-    return new NNResult(new ReshapedTensorList(data, outputDims)) {
-      @Override
-      protected void _accumulate(DeltaSet<NNLayer> buffer, TensorList delta) {
-        inObj[0].accumulate(buffer, new ReshapedTensorList(delta, inputDims));
-      }
+    return new NNResult((DeltaSet<NNLayer> buffer, TensorList delta) -> {
+      inObj[0].accumulate(buffer, new ReshapedTensorList(delta, inputDims));
+    }, new ReshapedTensorList(data, outputDims)) {
       
       @Override
       public boolean isAlive() {

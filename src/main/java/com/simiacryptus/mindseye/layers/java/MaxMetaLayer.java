@@ -77,21 +77,19 @@ public class MaxMetaLayer extends NNLayer {
       indicies[i] = IntStream.range(0, itemCnt)
                              .mapToObj(x -> x).max(Comparator.comparing(dataIndex -> input.getData().get(dataIndex).getData()[itemNumber])).get();
     }
-    return new NNResult(input.getData().get(0).mapIndex((v, c) -> {
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      if (input.isAlive()) {
+        final Tensor delta = data.get(0);
+        final Tensor feedback[] = new Tensor[itemCnt];
+        Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
+        input.getData().get(0).coordStream(true).forEach((inputCoord) -> {
+          feedback[indicies[inputCoord.getIndex()]].add(inputCoord, delta.get(inputCoord));
+        });
+        input.accumulate(buffer, new TensorArray(feedback));
+      }
+    }, input.getData().get(0).mapIndex((v, c) -> {
       return input.getData().get(indicies[c]).getData()[c];
     })) {
-      @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        if (input.isAlive()) {
-          final Tensor delta = data.get(0);
-          final Tensor feedback[] = new Tensor[itemCnt];
-          Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
-          input.getData().get(0).coordStream(true).forEach((inputCoord) -> {
-            feedback[indicies[inputCoord.getIndex()]].add(inputCoord, delta.get(inputCoord));
-          });
-          input.accumulate(buffer, new TensorArray(feedback));
-        }
-      }
   
       @Override
       public boolean isAlive() {
@@ -99,7 +97,7 @@ public class MaxMetaLayer extends NNLayer {
       }
   
       @Override
-      protected void _free() {
+      public void free() {
         input.free();
       }
   

@@ -92,29 +92,27 @@ public class MaxImageBandLayer extends NNLayer {
       });
       return new Tensor(1, 1, inputDims[2]).set(Tensor.getDoubles(doubleStream, inputDims[2]));
     }).toArray(i -> new Tensor[i]);
+  
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      if (in.isAlive()) {
+        final Tensor[] data1 = IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
+          final Tensor passback = new Tensor(in.getData().get(dataIndex).getDimensions());
+          IntStream.range(0, inputDims[2]).forEach(b -> {
+            final int[] maxCoord = maxCoords[dataIndex][b].getCoords();
+            passback.set(new int[]{maxCoord[0], maxCoord[1], b}, data.get(dataIndex).get(0, 0, b));
+          });
+          return passback;
+        }).toArray(i -> new Tensor[i]);
+        in.accumulate(buffer, new TensorArray(data1));
+      }
+    }, results) {
     
-    return new NNResult(results) {
-  
       @Override
-      protected void _free() {
-        Arrays.stream(inObj).forEach(NNResult::free);
+      public void free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
       }
-  
-      @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        if (in.isAlive()) {
-          final Tensor[] data1 = IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
-            final Tensor passback = new Tensor(in.getData().get(dataIndex).getDimensions());
-            IntStream.range(0, inputDims[2]).forEach(b -> {
-              final int[] maxCoord = maxCoords[dataIndex][b].getCoords();
-              passback.set(new int[]{maxCoord[0], maxCoord[1], b}, data.get(dataIndex).get(0, 0, b));
-            });
-            return passback;
-          }).toArray(i -> new Tensor[i]);
-          in.accumulate(buffer, new TensorArray(data1));
-        }
-      }
-      
+    
+    
       @Override
       public boolean isAlive() {
         return in.isAlive();

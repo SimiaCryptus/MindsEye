@@ -79,35 +79,33 @@ public class L1NormalizationLayer extends NNLayer {
       if (!Double.isFinite(sum) || 0 == sum) return value;
       return value.scale(1.0 / sum);
     }).toArray(i -> new Tensor[i]);
-    return new NNResult(output) {
-  
-      @Override
-      protected void _free() {
-        Arrays.stream(input).forEach(NNResult::free);
-      }
-  
-      @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList outDelta) {
-        if (in.isAlive()) {
-          final Tensor[] passbackArray = IntStream.range(0, outDelta.length()).mapToObj(dataIndex -> {
-            final double[] value = inData.get(dataIndex).getData();
-            final double[] delta = outDelta.get(dataIndex).getData();
-            final double dot = ArrayUtil.dot(value, delta);
-            final double sum = Arrays.stream(value).sum();
-            final Tensor passback = new Tensor(outDelta.get(dataIndex).getDimensions());
-            final double[] passbackData = passback.getData();
-            if (0 != sum || Double.isFinite(sum)) {
-              for (int i = 0; i < value.length; i++) {
-                passbackData[i] = (delta[i] - dot / sum) / sum;
-              }
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList outDelta) -> {
+      if (in.isAlive()) {
+        final Tensor[] passbackArray = IntStream.range(0, outDelta.length()).mapToObj(dataIndex -> {
+          final double[] value = inData.get(dataIndex).getData();
+          final double[] delta = outDelta.get(dataIndex).getData();
+          final double dot = ArrayUtil.dot(value, delta);
+          final double sum = Arrays.stream(value).sum();
+          final Tensor passback = new Tensor(outDelta.get(dataIndex).getDimensions());
+          final double[] passbackData = passback.getData();
+          if (0 != sum || Double.isFinite(sum)) {
+            for (int i = 0; i < value.length; i++) {
+              passbackData[i] = (delta[i] - dot / sum) / sum;
             }
-            return passback;
-          }).toArray(i -> new Tensor[i]);
-          assert Arrays.stream(passbackArray).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-          in.accumulate(buffer, new TensorArray(passbackArray));
-        }
+          }
+          return passback;
+        }).toArray(i -> new Tensor[i]);
+        assert Arrays.stream(passbackArray).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+        in.accumulate(buffer, new TensorArray(passbackArray));
       }
-      
+    }, output) {
+    
+      @Override
+      public void free() {
+        Arrays.stream(input).forEach(nnResult -> nnResult.free());
+      }
+    
+    
       @Override
       public boolean isAlive() {
         return in.isAlive();

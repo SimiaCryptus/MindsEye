@@ -122,28 +122,25 @@ public class AvgPoolingLayer extends NNLayer {
       }
       return output;
     }).toArray(i -> new Tensor[i]);
-    return new NNResult(outputValues) {
-  
-      @Override
-      protected void _free() {
-        Arrays.stream(inObj).forEach(NNResult::free);
-      }
-  
-      @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList delta) {
-        if (inObj[0].isAlive()) {
-          final Tensor[] passback = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-            final Tensor backSignal = new Tensor(inputDims);
-            for (final Entry<Coordinate, List<int[]>> outputMapping : coordMap.entrySet()) {
-              final double outputValue = delta.get(dataIndex).get(outputMapping.getKey());
-              for (final int[] inputCoord : outputMapping.getValue()) {
-                backSignal.add(inputCoord, outputValue / kernelSize);
-              }
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+      if (inObj[0].isAlive()) {
+        final Tensor[] passback = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+          final Tensor backSignal = new Tensor(inputDims);
+          for (final Entry<Coordinate, List<int[]>> outputMapping : coordMap.entrySet()) {
+            final double outputValue = delta.get(dataIndex).get(outputMapping.getKey());
+            for (final int[] inputCoord : outputMapping.getValue()) {
+              backSignal.add(inputCoord, outputValue / kernelSize);
             }
-            return backSignal;
-          }).toArray(i -> new Tensor[i]);
-          inObj[0].accumulate(buffer, new TensorArray(passback));
-        }
+          }
+          return backSignal;
+        }).toArray(i -> new Tensor[i]);
+        inObj[0].accumulate(buffer, new TensorArray(passback));
+      }
+    }, outputValues) {
+    
+      @Override
+      public void free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
       }
       
       @Override

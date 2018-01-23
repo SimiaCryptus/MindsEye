@@ -75,32 +75,27 @@ public class AvgImageBandLayer extends NNLayer {
     final int[] inputDims = inData.get(0).getDimensions();
     assert 3 == inputDims.length;
   
-    final Tensor[] results = inData.stream().map(data -> {
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      if (in.isAlive()) {
+        in.accumulate(buffer, new TensorArray(IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
+          final Tensor tensor = inData.get(dataIndex);
+          final int[] inputDim = tensor.getDimensions();
+          final Tensor backprop = data.get(dataIndex);
+          return new Tensor(inputDim).mapCoords((c) -> {
+            return backprop.get(0, 0, c.getCoords()[2]) / (inputDim[0] * inputDim[1]);
+          });
+        }).toArray(i -> new Tensor[i])));
+      }
+    }, inData.stream().map(data -> {
       final DoubleStream doubleStream = IntStream.range(0, inputDims[2]).parallel().mapToDouble(band -> {
         return data.coordStream(true).filter(e -> e.getCoords()[2] == band).mapToDouble(c -> data.get(c)).average().getAsDouble();
       });
       return new Tensor(1, 1, inputDims[2]).set(Tensor.getDoubles(doubleStream, inputDims[2]));
-    }).toArray(i -> new Tensor[i]);
+    }).toArray(i -> new Tensor[i])) {
     
-    return new NNResult(results) {
-  
       @Override
-      protected void _free() {
-        Arrays.stream(inObj).forEach(NNResult::free);
-      }
-  
-      @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        if (in.isAlive()) {
-          in.accumulate(buffer, new TensorArray(IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
-            final Tensor tensor = inData.get(dataIndex);
-            final int[] inputDim = tensor.getDimensions();
-            final Tensor backprop = data.get(dataIndex);
-            return new Tensor(inputDim).mapCoords((c) -> {
-              return backprop.get(0, 0, c.getCoords()[2]) / (inputDim[0] * inputDim[1]);
-            });
-          }).toArray(i -> new Tensor[i])));
-        }
+      public void free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
       }
       
       @Override

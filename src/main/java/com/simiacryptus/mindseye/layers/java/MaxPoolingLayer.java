@@ -150,27 +150,24 @@ public class MaxPoolingLayer extends NNLayer {
       });
       gradientMapA[dataIndex] = gradientMap;
     });
-    return new NNResult(outputA) {
-  
-      @Override
-      protected void _free() {
-        Arrays.stream(inObj).forEach(NNResult::free);
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      if (in.isAlive()) {
+        final Tensor[] passbackA = IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
+          final Tensor backSignal = new Tensor(inputDims);
+          final int[] ints = gradientMapA[dataIndex];
+          final Tensor datum = data.get(dataIndex);
+          for (int i = 0; i < datum.dim(); i++) {
+            backSignal.add(ints[i], datum.get(i));
+          }
+          return backSignal;
+        }).toArray(i -> new Tensor[i]);
+        in.accumulate(buffer, new TensorArray(passbackA));
       }
-  
+    }, outputA) {
+    
       @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        if (in.isAlive()) {
-          final Tensor[] passbackA = IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
-            final Tensor backSignal = new Tensor(inputDims);
-            final int[] ints = gradientMapA[dataIndex];
-            final Tensor datum = data.get(dataIndex);
-            for (int i = 0; i < datum.dim(); i++) {
-              backSignal.add(ints[i], datum.get(i));
-            }
-            return backSignal;
-          }).toArray(i -> new Tensor[i]);
-          in.accumulate(buffer, new TensorArray(passbackA));
-        }
+      public void free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
       }
       
       @Override

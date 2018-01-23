@@ -69,25 +69,22 @@ public class ScaleMetaLayer extends NNLayer {
   public NNResult eval(final NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
     final Tensor[] tensors = IntStream.range(0, itemCnt).mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).mapIndex((v, c) -> v * inObj[1].getData().get(0).get(c))).toArray(i -> new Tensor[i]);
-    return new NNResult(tensors) {
-  
-      @Override
-      protected void _free() {
-        Arrays.stream(inObj).forEach(NNResult::free);
+    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      if (inObj[0].isAlive()) {
+        inObj[0].accumulate(buffer, new TensorArray(data.stream().map(t -> t.mapIndex((v, c) -> v * inObj[1].getData().get(0).get(c))).toArray(i -> new Tensor[i])));
       }
+      if (inObj[1].isAlive()) {
+        final Tensor passback = tensors[0].mapIndex((v, c) -> {
+          return IntStream.range(0, itemCnt).mapToDouble(i -> data.get(i).get(c) * inObj[0].getData().get(i).get(c)).sum();
+        });
+        inObj[1].accumulate(buffer, new TensorArray(IntStream.range(0, inObj[1].getData().length())
+                                                             .mapToObj(i -> i == 0 ? passback : passback.map(v -> 0)).toArray(i -> new Tensor[i])));
+      }
+    }, tensors) {
   
       @Override
-      protected void _accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-        if (inObj[0].isAlive()) {
-          inObj[0].accumulate(buffer, new TensorArray(data.stream().map(t -> t.mapIndex((v, c) -> v * inObj[1].getData().get(0).get(c))).toArray(i -> new Tensor[i])));
-        }
-        if (inObj[1].isAlive()) {
-          final Tensor passback = tensors[0].mapIndex((v, c) -> {
-            return IntStream.range(0, itemCnt).mapToDouble(i -> data.get(i).get(c) * inObj[0].getData().get(i).get(c)).sum();
-          });
-          inObj[1].accumulate(buffer, new TensorArray(IntStream.range(0, inObj[1].getData().length())
-                                                               .mapToObj(i -> i == 0 ? passback : passback.map(v -> 0)).toArray(i -> new Tensor[i])));
-        }
+      public void free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
       }
       
       @Override
