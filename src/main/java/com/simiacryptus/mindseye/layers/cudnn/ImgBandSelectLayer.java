@@ -34,7 +34,7 @@ import java.util.stream.IntStream;
  * color bands. (e.g. Used in Inception modules in GoogLeNet.)
  */
 @SuppressWarnings("serial")
-public class ImgBandSelectLayer extends NNLayer implements LayerPrecision<ImgBandSelectLayer> {
+public class ImgBandSelectLayer extends NNLayer implements MultiPrecision<ImgBandSelectLayer> {
   
   private int from;
   private int to;

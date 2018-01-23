@@ -35,7 +35,7 @@ import java.util.Map;
  * color bands.
  */
 @SuppressWarnings("serial")
-public class ImgCropLayer extends NNLayer implements LayerPrecision<ImgCropLayer> {
+public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer> {
   private static final Logger log = LoggerFactory.getLogger(ImgCropLayer.class);
   
   private int sizeX;

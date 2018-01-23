@@ -38,7 +38,7 @@ import java.util.function.IntToDoubleFunction;
  * more general layer contract.
  */
 @SuppressWarnings("serial")
-public class ConvolutionLayer extends NNLayer implements LayerPrecision<ConvolutionLayer>, Explodable {
+public class ConvolutionLayer extends NNLayer implements MultiPrecision<ConvolutionLayer>, Explodable {
   
   private final Tensor kernel;
   private final int inputBands;

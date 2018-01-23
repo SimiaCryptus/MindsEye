@@ -34,7 +34,7 @@ import java.util.stream.IntStream;
  * layers, such as the square needed in MeanSqLossLayer.
  */
 @SuppressWarnings("serial")
-public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer> {
+public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer> {
   
   private Precision precision = Precision.Double;
   

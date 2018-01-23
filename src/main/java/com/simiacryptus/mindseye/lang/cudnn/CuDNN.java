@@ -1120,11 +1120,12 @@ public class CuDNN {
     return singleThreadExecutor.submit(() -> {
       try {
         logger.warn("Cleaning Memory");
-        RecycleBinLong.DOUBLES.clear();
         Runtime runtime = Runtime.getRuntime();
+        RecycleBinLong.DOUBLES.clear();
+        runtime.gc();
+        GpuTensorList.evictAllToHeap();
         runtime.gc();
         runtime.runFinalization();
-        runtime.gc();
       } catch (Throwable e) {
         logger.warn("Error while cleaning memory", e);
       }

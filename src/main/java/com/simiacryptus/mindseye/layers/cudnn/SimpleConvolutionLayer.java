@@ -40,7 +40,7 @@ import java.util.stream.IntStream;
  * component for ConvolutionLayer, since the CuDNN api has this restriction (in recent versions).
  */
 @SuppressWarnings("serial")
-public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<SimpleConvolutionLayer> {
+public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<SimpleConvolutionLayer> {
   
   /**
    * The Log.

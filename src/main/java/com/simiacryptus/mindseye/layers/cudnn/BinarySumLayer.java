@@ -40,7 +40,7 @@ import java.util.Map;
  * used to implement a summation layer, a difference layer, a scaling layer, or any combination.
  */
 @SuppressWarnings("serial")
-public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumLayer> {
+public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumLayer> {
   
   private double leftFactor;
   private Precision precision = Precision.Double;

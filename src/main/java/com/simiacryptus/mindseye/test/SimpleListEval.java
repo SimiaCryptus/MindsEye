@@ -85,13 +85,15 @@ public class SimpleListEval implements Callable<SimpleResult>, SimpleResult {
         }
       };
     }).<NNResult>toArray(i -> new NNResult[i]));
+    TensorList outputData = eval.getData().copy();
     for (TensorList tensorList : inputCopy) {
       tensorList.freeRef();
     }
-    TensorList tensorList = getFeedback(eval.getData());
+    eval.getData().freeRef();
+    TensorList tensorList = getFeedback(outputData);
     eval.accumulate(new DeltaSet<NNLayer>(), tensorList);
     tensorList.freeRef();
-    output = eval.getData();
+    output = outputData;
     return this;
   }
   

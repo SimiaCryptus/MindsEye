@@ -40,7 +40,7 @@ import java.util.function.IntToDoubleFunction;
  * Adds a scalar offset to the input based on color band (3rd tensor dimension)
  */
 @SuppressWarnings("serial")
-public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandBiasLayer> {
+public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandBiasLayer> {
   /**
    * The Log.
    */

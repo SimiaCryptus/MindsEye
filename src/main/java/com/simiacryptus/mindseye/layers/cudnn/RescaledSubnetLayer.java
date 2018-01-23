@@ -37,7 +37,7 @@ import java.util.Map;
  * across larger image regions. Implemented via CuDNN.
  */
 @SuppressWarnings("serial")
-public class RescaledSubnetLayer extends NNLayer implements LayerPrecision<RescaledSubnetLayer> {
+public class RescaledSubnetLayer extends NNLayer implements MultiPrecision<RescaledSubnetLayer> {
   private static final Logger log = LoggerFactory.getLogger(RescaledSubnetLayer.class);
   
   private int scale;

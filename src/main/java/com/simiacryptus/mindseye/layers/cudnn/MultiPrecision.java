@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.lang.cudnn.Precision;
  *
  * @param <T> the parent type, specified for return values.
  */
-public interface LayerPrecision<T> {
+public interface MultiPrecision<T> {
   /**
    * Gets precision.
    *

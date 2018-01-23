@@ -36,7 +36,7 @@ import java.util.Map;
  * Similar to the pooling layer, but the pool size is always the image size. The output dimensions are always 1x1xN.
  */
 @SuppressWarnings("serial")
-public class BandReducerLayer extends NNLayer implements LayerPrecision<BandReducerLayer> {
+public class BandReducerLayer extends NNLayer implements MultiPrecision<BandReducerLayer> {
   
   private PoolingLayer.PoolingMode mode = PoolingLayer.PoolingMode.Max;
   private Precision precision = Precision.Double;

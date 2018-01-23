@@ -36,7 +36,7 @@ import java.util.Map;
  * number of color bands, and the area outside the source image will be setWeights to 0.
  */
 @SuppressWarnings("serial")
-public class ImgZeroPaddingLayer extends NNLayer implements LayerPrecision<ImgZeroPaddingLayer> {
+public class ImgZeroPaddingLayer extends NNLayer implements MultiPrecision<ImgZeroPaddingLayer> {
   private static final Logger log = LoggerFactory.getLogger(ImgZeroPaddingLayer.class);
   
   private int sizeX;

@@ -34,7 +34,7 @@ import java.util.stream.IntStream;
  * color bands. (e.g. Used in Inception modules in GoogLeNet.)
  */
 @SuppressWarnings("serial")
-public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatLayer> {
+public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatLayer> {
   
   private int maxBands = -1;
   private Precision precision = Precision.Double;

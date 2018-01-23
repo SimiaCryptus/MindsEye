@@ -35,7 +35,7 @@ import java.util.Map;
  * determined by a univariate function, e.g. ReLU or Sigmoid.
  */
 @SuppressWarnings("serial")
-public class ActivationLayer extends NNLayer implements LayerPrecision<ActivationLayer> {
+public class ActivationLayer extends NNLayer implements MultiPrecision<ActivationLayer> {
   /**
    * The Mode.
    */

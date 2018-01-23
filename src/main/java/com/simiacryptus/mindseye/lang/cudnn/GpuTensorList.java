@@ -27,7 +27,10 @@ import jcuda.jcudnn.cudnnTensorFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.ref.WeakReference;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -39,10 +42,11 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
    * The constant logger.
    */
   protected static final Logger logger = LoggerFactory.getLogger(GpuTensorList.class);
+  private static final ConcurrentLinkedDeque<WeakReference<GpuTensorList>> INSTANCES = new ConcurrentLinkedDeque<>();
   
   private final int[] dimensions;
   private final int length;
-  private final CudaPtr ptr;
+  private CudaPtr ptr;
   private final Precision precision;
   private volatile TensorList heapCopy = null;
   
@@ -66,6 +70,25 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
     assert ptr.getPtr() != null;
     //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     assert !System.getProperties().containsKey("safe") || stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+    GpuTensorList self = this;
+    addInstance(self);
+  }
+  
+  public static void evictAllToHeap() {
+    Iterator<WeakReference<GpuTensorList>> iter = INSTANCES.iterator();
+    do {
+      GpuTensorList next = iter.next().get();
+      if (null != next) next.evictToHeap();
+    } while (iter.hasNext());
+  }
+  
+  private static void addInstance(GpuTensorList self) {
+    Iterator<WeakReference<GpuTensorList>> iter = INSTANCES.iterator();
+    do {
+      GpuTensorList next = iter.next().get();
+      if (null == next) iter.remove();
+    } while (iter.hasNext());
+    INSTANCES.add(new WeakReference<GpuTensorList>(self));
   }
   
   /**
@@ -229,12 +252,29 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
     }
   }
   
+  public void evictToHeap() {
+    if (null == getHeapCopy()) {
+      throw new IllegalStateException();
+    }
+    if (null != ptr) {
+      ptr.freeRef();
+      ptr = null;
+    }
+  }
+  
   /**
    * The Ptr.
    *
    * @return the ptr
    */
   public CudaPtr getPtr() {
+    if ((null == ptr || ptr.isFinalized()) && null != heapCopy) {
+      synchronized (this) {
+        if ((null == ptr || ptr.isFinalized()) && null != heapCopy) {
+          ptr = CudaPtr.getCudaPtr(precision, heapCopy);
+        }
+      }
+    }
     return ptr;
   }
   

@@ -36,7 +36,7 @@ import java.util.Map;
  * The classic "softmax" layer. All outputs will sum to 1 and be proportional to the log of the input.
  */
 @SuppressWarnings("serial")
-public class SoftmaxActivationLayer extends NNLayer implements LayerPrecision<SoftmaxActivationLayer> {
+public class SoftmaxActivationLayer extends NNLayer implements MultiPrecision<SoftmaxActivationLayer> {
   private static final Logger log = LoggerFactory.getLogger(SoftmaxActivationLayer.class);
   
   private Precision precision = Precision.Double;

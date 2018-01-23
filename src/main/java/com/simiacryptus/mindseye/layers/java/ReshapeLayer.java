@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import com.simiacryptus.mindseye.layers.cudnn.LayerPrecision;
+import com.simiacryptus.mindseye.layers.cudnn.MultiPrecision;
 import com.simiacryptus.util.io.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +36,7 @@ import java.util.Map;
  * inputs are connected to all outputs via seperate coefficients.
  */
 @SuppressWarnings("serial")
-public class ReshapeLayer extends NNLayer implements LayerPrecision<ReshapeLayer> {
+public class ReshapeLayer extends NNLayer implements MultiPrecision<ReshapeLayer> {
   private static final Logger log = LoggerFactory.getLogger(ReshapeLayer.class);
   /**
    * The Output dims.

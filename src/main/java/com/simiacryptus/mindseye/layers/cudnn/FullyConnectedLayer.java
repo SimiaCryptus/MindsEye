@@ -44,7 +44,7 @@ import java.util.function.DoubleSupplier;
  * inputs are connected to all outputs via seperate coefficients.
  */
 @SuppressWarnings("serial")
-public class FullyConnectedLayer extends NNLayer implements LayerPrecision<FullyConnectedLayer>, Explodable {
+public class FullyConnectedLayer extends NNLayer implements MultiPrecision<FullyConnectedLayer>, Explodable {
   private static final Logger log = LoggerFactory.getLogger(FullyConnectedLayer.class);
   /**
    * The Input dims.

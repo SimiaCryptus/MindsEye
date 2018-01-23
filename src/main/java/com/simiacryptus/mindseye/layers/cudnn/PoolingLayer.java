@@ -37,7 +37,7 @@ import java.util.Map;
  * Max or Avg operation.
  */
 @SuppressWarnings("serial")
-public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer> {
+public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer> {
   
   private PoolingMode mode = PoolingMode.Max;
   private int paddingX = 0;
