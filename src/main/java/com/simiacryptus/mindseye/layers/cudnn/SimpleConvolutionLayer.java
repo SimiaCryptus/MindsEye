@@ -181,14 +181,12 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
     final int[] kernelSize = kernel.getDimensions();
     final int[] outputSize = getOutputSize(inputSize);
     final int length = batch.length();
+    batch.addRef();
   
     return new NNResult(GpuHandle.run(gpu -> {
-      final int deviceNumber = gpu.getDeviceNumber();
-      SimpleConvolutionParameters parameters = new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu);
-      //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
-    
       try {
-        CudaFwdParameters cudaParameters = obtainFwd(parameters);
+        final int deviceNumber = gpu.getDeviceNumber();
+        CudaFwdParameters cudaParameters = obtainFwd(new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu));
         assert 0 < kernel.getData().length;
         assert kernelSize[0] * kernelSize[1] * kernelSize[2] == kernel.getData().length;
         MemoryType filterMemoryType = MemoryType.Managed;
@@ -211,12 +209,10 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
       }
     }), (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
       assert error.length() == batch.length();
-      //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       final TensorList inputBufferTensors = GpuHandle.run(gpu -> {
         int deviceNumber = gpu.getDeviceNumber();
         final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
-        SimpleConvolutionParameters parameters = new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu);
-        CudaRevParameters cudaParameters = obtainRev(parameters);
+        CudaRevParameters cudaParameters = obtainRev(new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu));
         assert cudaParameters.precision == precision;
         if (!isFrozen()) {
           final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
@@ -241,6 +237,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
         }
         if (input.isAlive()) {
           final CudaPtr inputBuffer = CudaPtr.allocate(deviceNumber, Tensor.dim(batch.getDimensions()) * 1l * length * precision.size, MemoryType.Managed, true);
+          batch.freeRef();
           try {
             final CudaPtr filterPtr = CudaPtr.allocate(deviceNumber, (long) (kernel.getData().length * precision.size), MemoryType.Managed, true)
                                              .write(precision, kernel.getData());
@@ -259,6 +256,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
           return GpuTensorList.wrap(inputBuffer, length, inputSize, precision);
         }
         else {
+          batch.freeRef();
           return null;
         }
       });

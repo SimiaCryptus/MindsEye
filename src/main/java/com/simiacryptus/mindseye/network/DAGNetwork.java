@@ -234,17 +234,7 @@ public abstract class DAGNetwork extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... input) {
-    return get(buildExeCtx(input));
-  }
-  
-  /**
-   * Get nn result.
-   *
-   * @param buildExeCtx the build exe ctx
-   * @return the nn result
-   */
-  public NNResult get(final GraphEvaluationContext buildExeCtx) {
-    return getHead().get(buildExeCtx);
+    return getHead().get(buildExeCtx(input));
   }
   
   /**

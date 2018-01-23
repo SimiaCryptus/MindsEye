@@ -65,9 +65,9 @@ public interface TensorList extends ReferenceCounting {
    * @return the tensor list
    */
   default TensorList copy() {
-    return TensorArray.create(
+    return TensorArray.wrap(
       IntStream.range(0, length()).mapToObj(i -> get(i).copy()).toArray(i -> new Tensor[i])
-                             );
+                           );
   }
   
   /**

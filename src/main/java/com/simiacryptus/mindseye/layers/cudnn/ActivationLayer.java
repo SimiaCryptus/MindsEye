@@ -110,6 +110,7 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
     final int[] outputSize = inputSize;
     final int length = batch.length();
     final int inputDims = Tensor.dim(inputSize);
+    batch.addRef();
     try {
       CudaPtr outPtr = GpuHandle.run(nncontext -> {
         final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
@@ -138,6 +139,7 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
             //assert (error.length() == batch.length());
             //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
             final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
+            batch.freeRef();
             final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
               precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
             final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);

@@ -86,7 +86,11 @@ final class InnerNode extends LazyResult {
     assert Arrays.stream(inputNodes).allMatch(x -> x != null);
     final NNResult[] in = Arrays.stream(inputNodes).parallel().map(x -> x == null ? null : x.get(ctx)).toArray(i -> new NNResult[i]);
     assert Arrays.stream(in).allMatch(x -> x != null);
-    return innerLayer.eval(in);
+    NNResult result = innerLayer.eval(in);
+    for (NNResult inputNNResult : in) {
+      inputNNResult.getData().freeRef();
+    }
+    return result;
   }
   
   @Override

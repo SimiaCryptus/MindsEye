@@ -168,6 +168,7 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
   
   @Override
   public Tensor get(final int i) {
+    assertAlive();
     return heapCopy().get(i);
   }
   
@@ -278,9 +279,9 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
    * @return the ptr
    */
   public CudaPtr getPtr() {
-    if ((null == ptr || ptr.isFinalized()) && null != heapCopy) {
+    if ((null == ptr || ptr.isFinalized()) && null != heapCopy && !heapCopy.isFinalized()) {
       synchronized (this) {
-        if ((null == ptr || ptr.isFinalized()) && null != heapCopy) {
+        if ((null == ptr || ptr.isFinalized()) && null != heapCopy && !heapCopy.isFinalized()) {
           ptr = CudaPtr.getCudaPtr(precision, heapCopy);
         }
       }

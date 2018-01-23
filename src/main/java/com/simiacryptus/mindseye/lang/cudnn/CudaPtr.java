@@ -106,6 +106,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    * @return the cuda ptr
    */
   public static CudaPtr getCudaPtr(final Precision precision, final TensorList data) {
+    data.assertAlive();
     if (data instanceof GpuTensorList && precision == ((GpuTensorList) data).getPrecision() && ((GpuTensorList) data).isNative()) {
       GpuTensorList gpuTensorList = (GpuTensorList) data;
       final CudaPtr ptr = gpuTensorList.getPtr();
