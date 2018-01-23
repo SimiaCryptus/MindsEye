@@ -144,9 +144,9 @@ public class ImgBandScaleLayer extends NNLayer {
         });
       }
       if (input.isAlive()) {
-        TensorArray tensorArray = new TensorArray(delta.stream()
-                                                       .map(t -> t.mapCoords((c) -> t.get(c) * weights[c.getCoords()[2]]))
-                                                       .toArray(i -> new Tensor[i]));
+        TensorArray tensorArray = TensorArray.wrap(delta.stream()
+                                                        .map(t -> t.mapCoords((c) -> t.get(c) * weights[c.getCoords()[2]]))
+                                                        .toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }

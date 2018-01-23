@@ -62,14 +62,14 @@ public abstract class RecycleBinLong<T> {
    */
   protected static final Logger logger = LoggerFactory.getLogger(RecycleBinLong.class);
   private static volatile ScheduledExecutorService garbageTruck;
-  
-  static {
-    if (RecycleBinLong.class.desiredAssertionStatus()) {
-      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-        RecycleBinLong.DOUBLES.printNetProfiling(System.err);
-      }));
-    }
-  }
+
+//  static {
+//    if (RecycleBinLong.class.desiredAssertionStatus()) {
+//      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+//        RecycleBinLong.DOUBLES.printNetProfiling(System.err);
+//      }));
+//    }
+//  }
   
   private final StackCounter allocations = new StackCounter();
   private final StackCounter frees = new StackCounter();

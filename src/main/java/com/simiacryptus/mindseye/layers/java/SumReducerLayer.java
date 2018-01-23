@@ -69,7 +69,7 @@ public class SumReducerLayer extends NNLayer {
     return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       for (final NNResult in_l : inObj) {
         if (in_l.isAlive()) {
-          TensorArray tensorArray = new TensorArray(IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {
+          TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {
             final double delta = data.get(dataIndex).get(0);
             final Tensor passback = new Tensor(in_l.getData().get(dataIndex).getDimensions());
             for (int i = 0; i < in_l.getData().get(dataIndex).dim(); i++) {

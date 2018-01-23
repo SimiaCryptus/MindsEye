@@ -76,7 +76,7 @@ public class CudnnTest extends NotebookReportBase {
           while (true) {
             int s = size;
             TimedResult<CudaPtr> timedResult = TimedResult.time(() -> {
-              return CudaPtr.getCudaPtr(Precision.Double, new TensorArray(new Tensor(s)));
+              return CudaPtr.getCudaPtr(Precision.Double, TensorArray.create(new Tensor(s)));
             });
             logger.info(String.format("Allocated %d in %.4fsec", size, timedResult.seconds()));
             list.add(timedResult.result);
@@ -117,7 +117,7 @@ public class CudnnTest extends NotebookReportBase {
   }
   
   private void memoryTransfer(NotebookOutput log, int... size) {
-    Supplier<TensorList> factory = () -> new TensorArray(IntStream.range(0, 1).mapToObj(j -> {
+    Supplier<TensorList> factory = () -> TensorArray.create(IntStream.range(0, 1).mapToObj(j -> {
       Tensor tensor = new Tensor(size);
       Arrays.parallelSetAll(tensor.getData(), this::random);
       return tensor;
@@ -168,7 +168,7 @@ public class CudnnTest extends NotebookReportBase {
   }
   
   private void testTensorList(NotebookOutput log, int[] dimensions, int length, double tolerance, int accumulations) {
-    Supplier<TensorList> factory = () -> new TensorArray(IntStream.range(0, length).mapToObj(j -> {
+    Supplier<TensorList> factory = () -> TensorArray.create(IntStream.range(0, length).mapToObj(j -> {
       Tensor tensor = new Tensor(dimensions);
       Arrays.parallelSetAll(tensor.getData(), this::random);
       return tensor;
@@ -248,7 +248,7 @@ public class CudnnTest extends NotebookReportBase {
   }
   
   private void testTensorListMT(NotebookOutput log, int[] dimensions, int length, double tolerance, int accumulations) {
-    Supplier<TensorList> factory = () -> new TensorArray(IntStream.range(0, length).mapToObj(j -> {
+    Supplier<TensorList> factory = () -> TensorArray.create(IntStream.range(0, length).mapToObj(j -> {
       Tensor tensor = new Tensor(dimensions);
       Arrays.parallelSetAll(tensor.getData(), this::random);
       return tensor;

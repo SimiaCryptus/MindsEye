@@ -138,7 +138,7 @@ public class FullyConnectedReferenceLayer extends NNLayer {
         Arrays.stream(array).map(x -> x.getData()).reduce((a, b) -> ArrayUtil.add(a, b)).map(data1 -> deltaBuffer.addInPlace(data1));
       }
       if (inputResult.isAlive()) {
-        final TensorList tensorList = new TensorArray(IntStream.range(0, inputResult.getData().length()).mapToObj(i -> {
+        final TensorList tensorList = TensorArray.wrap(IntStream.range(0, inputResult.getData().length()).mapToObj(i -> {
           final Tensor input = new Tensor(inputDims);
           final Tensor output = delta.get(i);
           weights.coordStream(false).forEach(c -> {

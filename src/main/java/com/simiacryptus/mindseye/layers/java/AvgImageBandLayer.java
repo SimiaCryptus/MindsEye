@@ -77,7 +77,7 @@ public class AvgImageBandLayer extends NNLayer {
   
     return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (in.isAlive()) {
-        TensorArray tensorArray = new TensorArray(IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
+        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
           final Tensor tensor = inData.get(dataIndex);
           final int[] inputDim = tensor.getDimensions();
           final Tensor backprop = data.get(dataIndex);

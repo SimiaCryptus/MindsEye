@@ -61,7 +61,9 @@ public class SimpleGpuEval extends SimpleListEval {
   
   @Override
   public TensorList getFeedback(final TensorList original) {
-    CudaPtr cudaPtr = CudaPtr.getCudaPtr(Precision.Double, new TensorArray(original.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i])));
+    TensorArray tensorArray = TensorArray.wrap(original.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i]));
+    CudaPtr cudaPtr = CudaPtr.getCudaPtr(Precision.Double, tensorArray);
+    tensorArray.freeRef();
     return GpuTensorList.wrap(cudaPtr, original.length(), original.getDimensions(), Precision.Double);
   }
   

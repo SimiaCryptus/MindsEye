@@ -33,8 +33,23 @@ public class TensorArray extends ReferenceCountingBase implements TensorList {
    *
    * @param data the data
    */
-  public TensorArray(final Tensor... data) {
+  private TensorArray(final Tensor... data) {
     this.data = data;
+    for (Tensor tensor : data) {
+      tensor.addRef();
+    }
+  }
+  
+  public static TensorArray create(final Tensor... data) {
+    return new TensorArray(data);
+  }
+  
+  public static TensorArray wrap(final Tensor... data) {
+    TensorArray tensorArray = TensorArray.create(data);
+    for (Tensor tensor : data) {
+      tensor.freeRef();
+    }
+    return tensorArray;
   }
   
   @Override

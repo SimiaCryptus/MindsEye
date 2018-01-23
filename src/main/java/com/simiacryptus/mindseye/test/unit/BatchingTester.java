@@ -75,8 +75,8 @@ public class BatchingTester implements ComponentTest<ToleranceStatistics> {
     if (null == reference) return new ToleranceStatistics();
   
     final TensorList[] inputTensorLists = Arrays.stream(inputPrototype).map(t ->
-                                                                              new TensorArray(IntStream.range(0, getBatchSize()).mapToObj(i -> t.map(v -> getRandom()))
-                                                                                                       .toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
+                                                                              TensorArray.wrap(IntStream.range(0, getBatchSize()).mapToObj(i -> t.map(v -> getRandom()))
+                                                                                                        .toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
     final SimpleResult asABatch = SimpleListEval.run(reference, inputTensorLists);
     final List<SimpleEval> oneAtATime = IntStream.range(0, getBatchSize()).mapToObj(batch ->
                                                                                  SimpleEval.run(reference, IntStream.range(0, inputTensorLists.length)

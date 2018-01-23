@@ -155,7 +155,7 @@ public class LinearActivationLayer extends NNLayer {
           });
         }
         if (inObj.isAlive()) {
-          final TensorList tensorList = new TensorArray(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+          final TensorList tensorList = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
             final double[] deltaData = delta.get(dataIndex).getData();
             final int[] dims = inObj.getData().get(dataIndex).getDimensions();
             final Tensor passback = new Tensor(dims);

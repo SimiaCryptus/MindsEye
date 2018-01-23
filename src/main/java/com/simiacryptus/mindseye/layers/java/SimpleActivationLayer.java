@@ -69,7 +69,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
     final int itemCnt = inObj[0].getData().length();
     assert 0 < itemCnt;
     final Tensor inputGradientA[] = new Tensor[itemCnt];
-    final TensorArray outputArray = new TensorArray(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
+    final TensorArray outputArray = TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);
       final Tensor output = new Tensor(inObj[0].getData().get(dataIndex).getDimensions());
       final Tensor inputGradient = new Tensor(input.dim());
@@ -84,7 +84,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
     }).toArray(i -> new Tensor[i]));
     return new NNResult(outputArray, (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (inObj[0].isAlive()) {
-        TensorArray tensorArray = new TensorArray(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
+        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
           final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
           final double[] gradientData = inputGradientA[dataIndex].getData();
           IntStream.range(0, passback.dim()).forEach(i -> {

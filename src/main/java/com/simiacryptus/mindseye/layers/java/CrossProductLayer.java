@@ -78,7 +78,7 @@ public class CrossProductLayer extends NNLayer {
       final NNResult input = inObj[0];
       if (input.isAlive()) {
         assert inObj[0].getData().length() == data.length();
-        TensorArray tensorArray = new TensorArray(IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(batchIndex -> {
+        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(batchIndex -> {
           final Tensor tensor = data.get(batchIndex);
           final int outputDim = tensor.dim();
           final int inputDim = (1 + (int) Math.sqrt(1 + 8 * outputDim)) / 2;

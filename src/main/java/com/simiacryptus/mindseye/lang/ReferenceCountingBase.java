@@ -53,7 +53,15 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   public void freeRef() {
     int refs = references.decrementAndGet();
     if (refs < 0) {
-      throw new IllegalStateException(null == finalizedBy ? "" : Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).orElse(""));
+      String createdByStr = null == finalizedBy ? "?" : Arrays.stream(createdBy).map(x -> x.toString()).reduce((a, b) -> a + "\n" + b).orElse("?");
+      String finalizedByStr = null == finalizedBy ? "?" : Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "\n" + b).orElse("?");
+      String currentStackStr = Arrays.stream(Thread.currentThread().getStackTrace()).skip(2).map(x -> x.toString()).reduce((a, b) -> a + "\n" + b).orElse("?");
+      logger.warn(String.format("Error freeing reference for %s created by \n\t%s\n; freed by \n\t%s\n; with current stack \n\t%s",
+                                this,
+                                createdByStr.replaceAll("\n", "\n\t"),
+                                finalizedByStr.replaceAll("\n", "\n\t"),
+                                currentStackStr.replaceAll("\n", "\n\t")));
+      throw new IllegalStateException();
     }
     else if (refs == 0) {
       free();

@@ -167,7 +167,7 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
     private Result(final Tensor[] outputA, final NNResult inObj, final Tensor[] mask) {
       super((final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
         if (inObj.isAlive()) {
-          TensorArray tensorArray = new TensorArray(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+          TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
             final double[] deltaData = delta.get(dataIndex).getData();
             final int[] dims = inObj.getData().get(dataIndex).getDimensions();
             final double[] maskData = mask[dataIndex].getData();

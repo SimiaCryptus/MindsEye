@@ -39,7 +39,7 @@ public interface TensorList extends ReferenceCounting {
     if (right.length() == 0) return this;
     if (length() == 0) throw new IllegalArgumentException();
     assert length() == right.length();
-    return new TensorArray(IntStream.range(0, length()).mapToObj(i -> {
+    return TensorArray.create(IntStream.range(0, length()).mapToObj(i -> {
       return get(i).add(right.get(i));
     }).toArray(i -> new Tensor[i]));
   }
@@ -54,7 +54,7 @@ public interface TensorList extends ReferenceCounting {
     if (right.length() == 0) return this;
     if (length() == 0) throw new IllegalArgumentException();
     assert length() == right.length();
-    return new TensorArray(IntStream.range(0, length()).mapToObj(i -> {
+    return TensorArray.create(IntStream.range(0, length()).mapToObj(i -> {
       return get(i).minus(right.get(i));
     }).toArray(i -> new Tensor[i]));
   }
@@ -65,9 +65,9 @@ public interface TensorList extends ReferenceCounting {
    * @return the tensor list
    */
   default TensorList copy() {
-    return new TensorArray(
+    return TensorArray.create(
       IntStream.range(0, length()).mapToObj(i -> get(i).copy()).toArray(i -> new Tensor[i])
-    );
+                             );
   }
   
   /**

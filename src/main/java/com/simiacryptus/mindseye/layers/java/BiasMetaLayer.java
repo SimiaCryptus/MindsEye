@@ -75,7 +75,7 @@ public class BiasMetaLayer extends NNLayer {
                                       .toArray(i -> new Tensor[i]);
     return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (inObj[0].isAlive()) {
-        TensorArray delta = new TensorArray(data.stream().map(t -> t.mapParallel(v -> v)).toArray(i -> new Tensor[i]));
+        TensorArray delta = TensorArray.wrap(data.stream().map(t -> t.mapParallel(v -> v)).toArray(i -> new Tensor[i]));
         inObj[0].accumulate(buffer, delta);
         delta.freeRef();
       }
@@ -84,8 +84,8 @@ public class BiasMetaLayer extends NNLayer {
           return IntStream.range(0, itemCnt).mapToDouble(i -> data.get(i).get(c)).sum();
         };
         final Tensor passback = tensors[0].mapCoords(f);
-        TensorArray tensorArray = new TensorArray(IntStream.range(0, inObj[1].getData().length())
-                                                           .mapToObj(i -> i == 0 ? passback : passback.map(v -> 0)).toArray(i -> new Tensor[i]));
+        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, inObj[1].getData().length())
+                                                            .mapToObj(i -> i == 0 ? passback : passback.map(v -> 0)).toArray(i -> new Tensor[i]));
         inObj[1].accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }

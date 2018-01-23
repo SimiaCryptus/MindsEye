@@ -56,15 +56,17 @@ class CountingNNResult extends NNResult {
    * The Inner.
    */
   private final NNResult inner;
+  private final long expectedCount;
   
   /**
    * Instantiates a new Counting nn result.
    *
    * @param inner the heapCopy
    */
-  protected CountingNNResult(final NNResult inner) {
+  protected CountingNNResult(final NNResult inner, long expectedCount) {
     super(inner.getData(), new CountingAccumulator(inner));
     this.inner = inner;
+    this.expectedCount = expectedCount;
   }
   
   @Override
@@ -98,22 +100,12 @@ class CountingNNResult extends NNResult {
   }
   
   
-  /**
-   * Increment counting nn result.
-   *
-   * @return the counting nn result
-   */
-  public CountingNNResult increment() {
-    getAccumulator().increment();
-    return this;
-  }
-  
   @Override
   public boolean isAlive() {
     return inner.isAlive();
   }
   
-  private static class CountingAccumulator implements BiConsumer<DeltaSet<NNLayer>, TensorList> {
+  static class CountingAccumulator implements BiConsumer<DeltaSet<NNLayer>, TensorList> {
     private final AtomicInteger finalizations;
     private final AtomicInteger references;
     private final AtomicBoolean hasAccumulated;
@@ -159,8 +151,8 @@ class CountingNNResult extends NNResult {
      *
      * @return the counting nn result
      */
-    public void increment() {
-      this.references.incrementAndGet();
+    public int increment() {
+      return this.references.incrementAndGet();
     }
     
     @Override

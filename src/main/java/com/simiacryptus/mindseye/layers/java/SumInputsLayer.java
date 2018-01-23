@@ -63,8 +63,8 @@ public class SumInputsLayer extends NNLayer {
   public NNResult eval(final NNResult... inObj) {
     return new NNResult(Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
       assert l.length() == r.length() || 1 == l.length() || 1 == r.length();
-      return new TensorArray(IntStream.range(0, l.length()).parallel()
-                                      .mapToObj(i -> {
+      return TensorArray.wrap(IntStream.range(0, l.length()).parallel()
+                                       .mapToObj(i -> {
                                         final Tensor left = l.get(1 == l.length() ? 0 : i);
                                         final Tensor right = r.get(1 == r.length() ? 0 : i);
                                         if (right.dim() == 1) {
@@ -74,7 +74,7 @@ public class SumInputsLayer extends NNLayer {
                                           return left.reduceParallel(right, (v1, v2) -> v1 + v2);
                                         }
                                       })
-                                      .toArray(i -> new Tensor[i]));
+                                       .toArray(i -> new Tensor[i]));
     }).get(), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
       for (final NNResult input : inObj) {
@@ -82,12 +82,10 @@ public class SumInputsLayer extends NNLayer {
           TensorList data1 = data;
           data1.addRef();
           if (1 < data1.length() && input.getData().length() == 1) {
-            TensorArray data2 = new TensorArray(data1.stream().parallel().reduce((a, b) -> a.add(b)).get());
-            data1.freeRef();
-            data1 = data2;
+            data1 = TensorArray.wrap(data1.stream().parallel().reduce((a, b) -> a.add(b)).get());
           }
           if (1 < data1.get(0).dim() && input.getData().get(0).dim() == 1) {
-            TensorArray data2 = new TensorArray(data1.stream().map(t -> new Tensor(new double[]{t.sum()})).toArray(i -> new Tensor[i]));
+            TensorArray data2 = TensorArray.wrap(data1.stream().map(t -> new Tensor(new double[]{t.sum()})).toArray(i -> new Tensor[i]));
             data1.freeRef();
             data1 = data2;
           }

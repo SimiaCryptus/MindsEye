@@ -55,7 +55,7 @@ public final class NNConstant extends NNResult {
     return IntStream.range(0, input[0].length).mapToObj(index -> IntStream.range(0, input.length)
                                                                           .mapToObj(id -> input[id][index])
                                                                           .toArray(i -> new Tensor[i]))
-                    .map(tensors -> new TensorArray(tensors))
+                    .map(tensors -> TensorArray.create(tensors))
                     .map(tensorArray -> new NNConstant(tensorArray))
                     .toArray(x -> new NNResult[x]);
   }
@@ -67,7 +67,7 @@ public final class NNConstant extends NNResult {
    * @return the nn result [ ]
    */
   public static NNResult[] singleResultArray(final Tensor[] input) {
-    return Arrays.stream(input).map((final Tensor x) -> new NNConstant(new TensorArray(x))).toArray(i -> new NNResult[i]);
+    return Arrays.stream(input).map((final Tensor x) -> new NNConstant(TensorArray.create(x))).toArray(i -> new NNResult[i]);
   }
   
   /**
@@ -77,7 +77,7 @@ public final class NNConstant extends NNResult {
    * @return the nn result [ ]
    */
   public static NNResult[] singleResultArray(final Tensor[][] input) {
-    return Arrays.stream(input).map((final Tensor[] x) -> new NNConstant(new TensorArray(x))).toArray(i -> new NNResult[i]);
+    return Arrays.stream(input).map((final Tensor[] x) -> new NNConstant(TensorArray.create(x))).toArray(i -> new NNResult[i]);
   }
   
   @Override

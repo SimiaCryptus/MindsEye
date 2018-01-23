@@ -122,7 +122,7 @@ public class ImgConcatLayer extends NNLayer {
       }
     
       for (int i = 0; i < inObj.length; i++) {
-        TensorArray tensorArray = new TensorArray(splitData[i]);
+        TensorArray tensorArray = TensorArray.wrap(splitData[i]);
         inObj[i].accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }

@@ -134,7 +134,7 @@ public class AvgPoolingLayer extends NNLayer {
           }
           return backSignal;
         }).toArray(i -> new Tensor[i]);
-        TensorArray tensorArray = new TensorArray(passback);
+        TensorArray tensorArray = TensorArray.wrap(passback);
         inObj[0].accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }

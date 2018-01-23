@@ -99,7 +99,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
       };
       final NNResult eval = component.eval(copyInput);
       final DeltaSet<NNLayer> deltaSet = new DeltaSet<NNLayer>();
-      TensorArray tensorArray = new TensorArray(new Tensor(outputPrototype.getDimensions()).set(j, 1));
+      TensorArray tensorArray = TensorArray.wrap(new Tensor(outputPrototype.getDimensions()).set(j, 1));
       eval.accumulate(deltaSet, tensorArray);
       tensorArray.freeRef();
       final Delta<NNLayer> inputDelta = deltaSet.getMap().get(inputKey);
@@ -119,7 +119,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
       final int j_ = j;
       final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
       final NNResult eval = component.eval(NNConstant.batchResultArray(new Tensor[][]{inputPrototype}));
-      TensorArray tensorArray = new TensorArray(new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0));
+      TensorArray tensorArray = TensorArray.wrap(new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0));
       eval.accumulate(buffer, tensorArray);
       tensorArray.freeRef();
       final DoubleBuffer<NNLayer> deltaFlushBuffer = buffer.getMap().values().stream().filter(x -> x.target == stateArray).findFirst().orElse(null);

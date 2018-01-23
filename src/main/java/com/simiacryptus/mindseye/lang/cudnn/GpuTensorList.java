@@ -161,7 +161,7 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
     if (right.length() == 0) return this;
     if (length() == 0) throw new IllegalArgumentException();
     assert length() == right.length();
-    return new TensorArray(IntStream.range(0, length()).mapToObj(i -> {
+    return TensorArray.create(IntStream.range(0, length()).mapToObj(i -> {
       return get(i).add(right.get(i));
     }).toArray(i -> new Tensor[i]));
   }
@@ -212,7 +212,7 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
           }
           //assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           RecycleBinLong.DOUBLES.recycle(outputBuffer, outputBuffer.length);
-          heapCopy = new TensorArray(output);
+          heapCopy = TensorArray.create(output);
         }
       }
     }

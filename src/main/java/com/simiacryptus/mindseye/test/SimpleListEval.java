@@ -71,10 +71,10 @@ public class SimpleListEval implements Callable<SimpleResult>, SimpleResult {
   @Override
   public SimpleResult call() {
     TensorList[] inputCopy = Arrays.stream(input).map(x -> x.copy()).toArray(i -> new TensorList[i]);
-    derivative = Arrays.stream(inputCopy).map(tensorList -> new TensorArray(tensorList.stream()
-                                                                .map(i -> new Tensor(i.getDimensions()))
-                                                                .toArray(i -> new Tensor[i]))
-                                         ).toArray(i -> new TensorList[i]);
+    derivative = Arrays.stream(inputCopy).map(tensorList -> TensorArray.create(tensorList.stream()
+                                                                                         .map(i -> new Tensor(i.getDimensions()))
+                                                                                         .toArray(i -> new Tensor[i]))
+                                             ).toArray(i -> new TensorList[i]);
     final NNResult eval = layer.eval(IntStream.range(0, inputCopy.length).mapToObj(i -> {
       return new NNResult(inputCopy[i], (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
         SimpleListEval.accumulate(derivative[i], data);
@@ -114,7 +114,7 @@ public class SimpleListEval implements Callable<SimpleResult>, SimpleResult {
    * @return the feedback
    */
   public TensorList getFeedback(final TensorList data) {
-    return new TensorArray(data.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i]));
+    return TensorArray.create(data.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i]));
   }
   
   /**

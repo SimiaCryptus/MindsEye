@@ -98,7 +98,7 @@ public class SimpleEval implements Callable<SimpleEval> {
    * @return the feedback
    */
   public TensorList getFeedback(final TensorList data) {
-    return new TensorArray(data.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i]));
+    return TensorArray.wrap(data.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i]));
   }
   
   /**

@@ -53,7 +53,7 @@ public abstract class NNResult {
    * @param data        the data
    */
   public NNResult(BiConsumer<DeltaSet<NNLayer>, TensorList> accumulator, final Tensor... data) {
-    this(new TensorArray(data), accumulator);
+    this(TensorArray.create(data), accumulator);
   }
   
   /**
@@ -72,7 +72,7 @@ public abstract class NNResult {
    * @param value  the value
    */
   public final void accumulate(final DeltaSet<NNLayer> buffer, final double value) {
-    TensorArray tensorArray = new TensorArray(getData().stream().map(t -> t.map(v -> value)).toArray(i -> new Tensor[i]));
+    TensorArray tensorArray = TensorArray.wrap(getData().stream().map(t -> t.map(v -> value)).toArray(i -> new Tensor[i]));
     accumulate(buffer, tensorArray);
     tensorArray.freeRef();
   }

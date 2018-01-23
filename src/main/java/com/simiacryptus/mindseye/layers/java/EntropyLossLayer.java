@@ -72,7 +72,7 @@ public class EntropyLossLayer extends NNLayer {
     final double max_prob = 1.;
     return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (inObj[1].isAlive()) {
-        TensorArray tensorArray = new TensorArray(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
+        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
           final Tensor l = inObj[0].getData().get(dataIndex);
           final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
           for (int i = 0; i < passback.dim(); i++) {
@@ -85,7 +85,7 @@ public class EntropyLossLayer extends NNLayer {
         tensorArray.freeRef();
       }
       if (inObj[0].isAlive()) {
-        TensorArray tensorArray = new TensorArray(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
+        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
           final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, data.get(dataIndex).get(0) * gradient[dataIndex].get(i));

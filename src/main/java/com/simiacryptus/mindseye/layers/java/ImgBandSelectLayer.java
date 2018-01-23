@@ -83,8 +83,8 @@ public class ImgBandSelectLayer extends NNLayer {
     final Tensor outputDims = new Tensor(inputDims[0], inputDims[1], bands.length);
     return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList error) -> {
       if (input.isAlive()) {
-        TensorArray tensorArray = new TensorArray(IntStream.range(0, error.length()).parallel()
-                                                           .mapToObj(dataIndex -> {
+        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
+                                                            .mapToObj(dataIndex -> {
                                                              final Tensor passback = new Tensor(inputDims);
                                                              final Tensor err = error.get(dataIndex);
                                                              err.coordStream(false).forEach(c -> {

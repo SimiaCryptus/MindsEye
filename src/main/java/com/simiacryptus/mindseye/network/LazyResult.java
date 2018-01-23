@@ -65,6 +65,7 @@ abstract class LazyResult implements DAGNode {
   
   @Override
   public CountingNNResult get(final GraphEvaluationContext context) {
+    long expectedCount = context.expectedCounts.getOrDefault(id, -1L);
     if (!context.calculated.containsKey(id)) {
       Singleton singleton = null;
       synchronized (context) {
@@ -76,14 +77,23 @@ abstract class LazyResult implements DAGNode {
       if (null != singleton) {
         NNResult result = eval(context);
         if (null == result) throw new IllegalStateException();
-        singleton.set(new CountingNNResult(result));
+        singleton.set(new CountingNNResult(result, expectedCount));
       }
     }
     Supplier<CountingNNResult> resultSupplier = context.calculated.get(id);
     if (null == resultSupplier) throw new IllegalStateException();
     CountingNNResult nnResult = null == resultSupplier ? null : resultSupplier.get();
     if (null == nnResult) throw new IllegalStateException();
-    return null == nnResult ? null : nnResult.increment();
+    int references = nnResult.getAccumulator().increment();
+    if (references <= 0) throw new IllegalStateException();
+    if (expectedCount >= 0 && references > expectedCount) throw new IllegalStateException();
+    if (references == expectedCount) {
+      nnResult.getData().freeRef();
+    }
+    else {
+      assert !nnResult.getData().isFinalized();
+    }
+    return nnResult;
   }
   
   @Override

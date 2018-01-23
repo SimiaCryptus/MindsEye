@@ -85,7 +85,7 @@ public class MaxMetaLayer extends NNLayer {
         input.getData().get(0).coordStream(true).forEach((inputCoord) -> {
           feedback[indicies[inputCoord.getIndex()]].add(inputCoord, delta.get(inputCoord));
         });
-        TensorArray tensorArray = new TensorArray(feedback);
+        TensorArray tensorArray = TensorArray.wrap(feedback);
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }

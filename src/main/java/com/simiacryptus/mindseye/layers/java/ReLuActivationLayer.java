@@ -118,7 +118,7 @@ public class ReLuActivationLayer extends NNLayer {
       }
       if (input.isAlive()) {
         final double weight = weights.getData()[0];
-        TensorArray tensorArray = new TensorArray(IntStream.range(0, delta.length()).parallel().mapToObj(dataIndex -> {
+        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).parallel().mapToObj(dataIndex -> {
           final double[] deltaData = delta.get(dataIndex).getData();
           final double[] inputData = input.getData().get(dataIndex).getData();
           final int[] dims = input.getData().get(dataIndex).getDimensions();
