@@ -102,11 +102,12 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
     final int[] dimOut = Arrays.copyOf(dimIn, 3);
     dimOut[0] = sizeX;
     dimOut[1] = sizeY;
-    final TensorList outputData = CuDNNHandle.run(nncontext -> {
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+    final TensorList outputData = CuDNNHandle.run(gpu -> {
       final CudaPtr inputBuffer = CudaPtr.getCudaPtr(precision, inObj[0].getData());
-      final CudaPtr outputBuffer = CudaPtr.allocate(nncontext.getDeviceNumber(), (long) (length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size), MemoryType.Managed, false);
-      copy(nncontext, length, dimIn, inputBuffer, dimOut, outputBuffer);
-      inputBuffer.freeRef();
+      final CudaPtr outputBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), (long) (length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size), MemoryType.Managed, false);
+      copy(gpu, length, dimIn, inputBuffer, dimOut, outputBuffer);
+      gpu.registerForCleanup(inputBuffer);
       return GpuTensorList.wrap(outputBuffer, length, dimOut, precision);
     });
     return new NNResult(outputData, (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
@@ -118,11 +119,11 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
       }
       assert error.length() == inObj[0].getData().length();
       if (inObj[0].isAlive()) {
-        final TensorList passbackTensorList = CuDNNHandle.run(nncontext -> {
+        final TensorList passbackTensorList = CuDNNHandle.run(gpu -> {
           final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
-          final CudaPtr passbackBuffer = CudaPtr.allocate(nncontext.getDeviceNumber(), (long) (length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size), MemoryType.Managed, false);
-          copy(nncontext, length, dimOut, errorPtr, dimIn, passbackBuffer);
-          errorPtr.freeRef();
+          final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), (long) (length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size), MemoryType.Managed, false);
+          copy(gpu, length, dimOut, errorPtr, dimIn, passbackBuffer);
+          gpu.registerForCleanup(errorPtr);
           return GpuTensorList.wrap(passbackBuffer, length, dimIn, precision);
         });
         inObj[0].accumulate(buffer, passbackTensorList);

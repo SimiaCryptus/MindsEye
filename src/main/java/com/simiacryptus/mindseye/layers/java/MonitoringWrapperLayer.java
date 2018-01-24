@@ -118,6 +118,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   
   @Override
   public NNResult eval(final NNResult... inObj) {
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final AtomicLong passbackNanos = new AtomicLong(0);
     final NNResult[] wrappedInput = Arrays.stream(inObj).map(result -> new NNResult(result.getData(), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       passbackNanos.addAndGet(TimedResult.time(() -> result.accumulate(buffer, data)).timeNanos);
@@ -139,7 +140,10 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     final NNResult output = timedResult.result;
     forwardPerformance.add((timedResult.timeNanos) / 1000000000.0);
     totalBatches++;
-    Arrays.stream(inObj).forEach(x -> x.getData().addRef());
+    Arrays.stream(inObj).forEach(x -> {
+      x.addRef();
+      x.getData().addRef();
+    });
     final int items = Arrays.stream(inObj).mapToInt(x -> x.getData().length()).max().orElse(1);
     totalItems += items;
     if (recordSignalMetrics) {

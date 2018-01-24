@@ -174,6 +174,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
   @Override
   public NNResult eval(final NNResult... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
   
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();

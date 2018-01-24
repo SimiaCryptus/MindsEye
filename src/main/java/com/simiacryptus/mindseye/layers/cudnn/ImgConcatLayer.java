@@ -94,6 +94,7 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
       outputDimensions[2] = maxBands;
     }
     for (NNResult nnResult : inObj) {
+      nnResult.addRef();
       nnResult.getData().addRef();
     }
     return new NNResult(CuDNNHandle.run(gpu -> {
@@ -158,7 +159,6 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
           });
           input.accumulate(buffer, passbackTensorList);
           passbackTensorList.freeRef();
-          input.getData().freeRef();
         }
         //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       });
@@ -167,6 +167,7 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.getData().freeRef());
       }
       
       @Override

@@ -94,6 +94,7 @@ public class ImgBandSelectLayer extends NNLayer implements MultiPrecision<ImgBan
     assert 1 == inObj.length;
     assert 3 == inObj[0].getData().getDimensions().length;
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final TensorList inputData = inObj[0].getData();
     final int[] inputDimensions = inputData.getDimensions();
     final int length = inputData.length();
@@ -131,9 +132,7 @@ public class ImgBandSelectLayer extends NNLayer implements MultiPrecision<ImgBan
                                            precision.getPointer(1.0), outputDescriptor.getPtr(), errorPtr.getPtr(),
                                            precision.getPointer(0.0), inputDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
                                           );
-          errorPtr.freeRef();
-          inputDescriptor.freeRef();
-          outputDescriptor.freeRef();
+          gpu.registerForCleanup(errorPtr, inputDescriptor, outputDescriptor);
           return GpuTensorList.wrap(passbackBuffer, length, inputDimensions, precision);
           //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         });

@@ -88,6 +88,7 @@ abstract class LazyResult implements DAGNode {
     int references = nnResult.getAccumulator().increment();
     if (references <= 0) throw new IllegalStateException();
     if (expectedCount >= 0 && references > expectedCount) throw new IllegalStateException();
+    nnResult.addRef();
     if (expectedCount < 0 || references < expectedCount) {
       nnResult.getData().addRef();
     }

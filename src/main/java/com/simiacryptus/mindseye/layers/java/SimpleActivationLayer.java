@@ -68,6 +68,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
   public NNResult eval(final NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
     assert 0 < itemCnt;
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final Tensor inputGradientA[] = new Tensor[itemCnt];
     return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);

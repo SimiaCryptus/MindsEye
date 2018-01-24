@@ -163,7 +163,7 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
   @Override
   public NNResult eval(final NNResult... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
-  
+    Arrays.stream(inObj).forEach(x -> x.addRef());
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputSize = batch.get(0).getDimensions();

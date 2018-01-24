@@ -97,6 +97,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
   @Override
   public NNResult eval(final NNResult... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final int poolDims = 2;
     final int windowSize[] = {windowX, windowY};
     final int padding[] = {paddingX, paddingY};
@@ -148,7 +149,6 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
           final Pointer alpha = precision.getPointer(1.0);
           final Pointer beta = precision.getPointer(0.0);
           final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
-          batch.freeRef();
           final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
           final CudaPtr passbackBuffer = CudaPtr.allocate(nncontext.getDeviceNumber(), inputDims * 1l * precision.size * length, MemoryType.Managed, true);
           GpuSystem.handle(CuDNNHandle.cudnnPoolingBackward(nncontext.getHandle(), poolingDesc.getPtr(),
@@ -160,7 +160,6 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
                                                             inputDescriptor.getPtr(), passbackBuffer.getPtr()));
           errorPtr.freeRef();
           inputData.freeRef();
-          outputData.freeRef();
           return GpuTensorList.wrap(passbackBuffer, length, inputSize, precision);
         });
         input.accumulate(buffer, data);
@@ -171,6 +170,8 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+        batch.freeRef();
+        outputData.freeRef();
       }
     
       @Override
