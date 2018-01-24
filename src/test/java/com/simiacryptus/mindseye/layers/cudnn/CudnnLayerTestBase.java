@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.cudnn.GpuHandle;
+import com.simiacryptus.mindseye.lang.cudnn.CuDNNHandle;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.test.TestUtil;
@@ -45,17 +45,23 @@ public abstract class CudnnLayerTestBase extends LayerTestBase {
   @Override
   public ArrayList<ComponentTest<?>> getBigTests() {
     ArrayList<ComponentTest<?>> copy = new ArrayList<>(super.getBigTests());
-    if (GpuHandle.POOL.size() > 1) copy.add(new GpuLocalityTester(1e-3));
+    if (CuDNNHandle.POOL.size() > 1) copy.add(new GpuLocalityTester(1e-3));
     return copy;
   }
   
   @Override
   public void run(NotebookOutput log) {
+    String logName = "cuda_" + log.getName() + "_all.log";
+    log.p(log.file((String) null, logName, "GPU Log"));
+    PrintStream apiLog = new PrintStream(log.file(logName));
+    GpuSystem.addLog(apiLog);
     super.run(log);
     log.p("GpuSystem Statistics:");
     log.code(() -> {
       return TestUtil.toFormattedJson(GpuSystem.getExecutionStatistics());
     });
+    apiLog.close();
+    GpuSystem.apiLog.remove(apiLog);
   }
   
   @Override

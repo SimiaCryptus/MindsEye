@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.test.unit;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.cudnn.GpuError;
 import com.simiacryptus.mindseye.layers.cudnn.Explodable;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
@@ -64,7 +65,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * The constant seed.
    */
   public static final long seed = 51389; //System.nanoTime();
-  private boolean testTraining = false;
+  private boolean testTraining = true;
   
   /**
    * Instantiates a new Standard layer tests.
@@ -413,7 +414,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       try {
         final NNLayer perfLayer = getLayer(getPerfDims(new Random(seed)), new Random(seed));
         test.test(log, perfLayer.copy(), randomize(getPerfDims(new Random(seed))));
-      } catch (ReferenceCountingBase.LifecycleException e) { throw e; } catch (Throwable e) { exceptions.add(e); }
+      } catch (ReferenceCountingBase.LifecycleException e) { throw e; } catch (GpuError e) {
+        throw e;
+      } catch (Throwable e) { exceptions.add(e); }
     });
     return exceptions;
   }

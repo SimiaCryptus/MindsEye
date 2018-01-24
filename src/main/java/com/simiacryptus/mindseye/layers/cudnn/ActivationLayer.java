@@ -112,7 +112,7 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
     final int inputDims = Tensor.dim(inputSize);
     batch.addRef();
     try {
-      CudaPtr outPtr = GpuHandle.run(nncontext -> {
+      CudaPtr outPtr = CuDNNHandle.run(nncontext -> {
         final CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
         final CudaResource<cudnnTensorDescriptor> outputDescriptor = GpuSystem.newTensorDescriptor(
@@ -121,11 +121,11 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
         final CudaPtr outputData = CudaPtr.allocate(nncontext.getDeviceNumber(), precision.size * 1l * inputDims * length, MemoryType.Managed, true);
         final CudaResource<cudnnActivationDescriptor> activationDesc = GpuSystem.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
         try {
-          GpuSystem.handle(GpuHandle.cudnnActivationForward(nncontext.getHandle(), activationDesc.getPtr(),
-                                                            precision.getPointer(1.0),
-                                                            inputDescriptor.getPtr(), inputData.getPtr(),
-                                                            precision.getPointer(0.0),
-                                                            outputDescriptor.getPtr(), outputData.getPtr()));
+          GpuSystem.handle(CuDNNHandle.cudnnActivationForward(nncontext.getHandle(), activationDesc.getPtr(),
+                                                              precision.getPointer(1.0),
+                                                              inputDescriptor.getPtr(), inputData.getPtr(),
+                                                              precision.getPointer(0.0),
+                                                              outputDescriptor.getPtr(), outputData.getPtr()));
         } catch (final Throwable e) {
           throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
         }
@@ -135,7 +135,7 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
       });
       return new NNResult(GpuTensorList.create(outPtr, length, outputSize, precision), (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
         if (input.isAlive()) {
-          final TensorList data = GpuHandle.run(nncontext -> {
+          final TensorList data = CuDNNHandle.run(nncontext -> {
             //assert (error.length() == batch.length());
             //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
             final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
@@ -146,13 +146,13 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
             final CudaPtr passbackBuffer = CudaPtr.allocate(nncontext.getDeviceNumber(), inputDims * 1l * precision.size * length, MemoryType.Managed, true);
             final CudaResource<cudnnActivationDescriptor> activationDesc = GpuSystem.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
             try {
-              GpuSystem.handle(GpuHandle.cudnnActivationBackward(nncontext.getHandle(), activationDesc.getPtr(),
-                                                                 precision.getPointer(1.0),
-                                                                 inputDescriptor.getPtr(), outPtr.getPtr(),
-                                                                 inputDescriptor.getPtr(), errorPtr.getPtr(),
-                                                                 inputDescriptor.getPtr(), inputData.getPtr(),
-                                                                 precision.getPointer(0.0),
-                                                                 inputDescriptor.getPtr(), passbackBuffer.getPtr()));
+              GpuSystem.handle(CuDNNHandle.cudnnActivationBackward(nncontext.getHandle(), activationDesc.getPtr(),
+                                                                   precision.getPointer(1.0),
+                                                                   inputDescriptor.getPtr(), outPtr.getPtr(),
+                                                                   inputDescriptor.getPtr(), errorPtr.getPtr(),
+                                                                   inputDescriptor.getPtr(), inputData.getPtr(),
+                                                                   precision.getPointer(0.0),
+                                                                   inputDescriptor.getPtr(), passbackBuffer.getPtr()));
             } catch (final Throwable e) {
               throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
             }

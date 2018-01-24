@@ -34,7 +34,7 @@ public class GpuDevice extends GpuSystem {
   /**
    * The constant logger.
    */
-  protected static final Logger logger = LoggerFactory.getLogger(GpuHandle.class);
+  protected static final Logger logger = LoggerFactory.getLogger(CuDNNHandle.class);
   /**
    * The Device name.
    */

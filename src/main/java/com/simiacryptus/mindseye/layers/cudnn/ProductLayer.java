@@ -95,7 +95,7 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
         throw new IllegalArgumentException(Arrays.toString(dimensions) + " != " + Arrays.toString(data.getDimensions()));
       }
     }
-    return new NNResult(GpuHandle.run(nncontext -> {
+    return new NNResult(CuDNNHandle.run(nncontext -> {
       nncontext.initThread();
       final CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
       final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
@@ -121,7 +121,7 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
         if (input.isAlive()) {
           final int _index = index;
           TensorList data = IntStream.range(0, inObj.length).mapToObj(i -> i == _index ? delta : inObj[i].getData()).reduce((l, r) -> {
-            return GpuHandle.run(nncontext -> {
+            return CuDNNHandle.run(nncontext -> {
               nncontext.initThread();
               final CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
               final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(

@@ -140,7 +140,7 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
         final GpuTensorList nativeRight = (GpuTensorList) right;
         if (nativeRight.precision == this.precision) {
           if (nativeRight.heapCopy == null) {
-            return GpuHandle.run(gpu -> {
+            return CuDNNHandle.run(gpu -> {
               assert getDimensions().length <= 3;
               int d2 = getDimensions().length < 3 ? 1 : getDimensions()[2];
               int d1 = getDimensions().length < 2 ? 1 : getDimensions()[1];
@@ -151,10 +151,10 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
               final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
                 this.precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, getLength(), d2, d1, d0);
               final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
-              GpuHandle.cudnnOpTensor(gpu.getHandle(), opDescriptor.getPtr(),
-                                      precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
-                                      precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
-                                      precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
+              CuDNNHandle.cudnnOpTensor(gpu.getHandle(), opDescriptor.getPtr(),
+                                        precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
+                                        precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
+                                        precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
               return GpuTensorList.wrap(outputPtr, getLength(), getDimensions(), this.precision);
             });
           }
@@ -253,7 +253,7 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
   
   @Override
   public TensorList copy() {
-    return GpuHandle.run(gpu -> {
+    return CuDNNHandle.run(gpu -> {
       return new GpuTensorList(getPtr().copyTo(gpu.getDeviceNumber()), getLength(), getDimensions(), precision);
     });
   }

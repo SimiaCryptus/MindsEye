@@ -117,12 +117,14 @@ public class FullyConnectedReferenceLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     final NNResult inputResult = inObj[0];
-    int[] inputDimensions = inputResult.getData().getDimensions();
+    final TensorList indata = inputResult.getData();
+    indata.addRef();
+    int[] inputDimensions = indata.getDimensions();
     assert Tensor.dim(inputDimensions) == Tensor.dim(this.inputDims) : Arrays.toString(inputDimensions) + " == " + Arrays.toString(this.inputDims);
     assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
   
-    return new NNResult(TensorArray.wrap(IntStream.range(0, inputResult.getData().length()).mapToObj(index -> {
-      final Tensor input = inputResult.getData().get(index);
+    return new NNResult(TensorArray.wrap(IntStream.range(0, indata.length()).mapToObj(index -> {
+      final Tensor input = indata.get(index);
       final Tensor output = new Tensor(outputDims);
       weights.coordStream(false).forEach(c -> {
         int[] coords = c.getCoords();
@@ -137,8 +139,8 @@ public class FullyConnectedReferenceLayer extends NNLayer {
       assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
       if (!isFrozen()) {
         final Delta<NNLayer> deltaBuffer = buffer.get(FullyConnectedReferenceLayer.this, getWeights().getData());
-        Tensor[] array = IntStream.range(0, inputResult.getData().length()).mapToObj(i -> {
-          final Tensor input = inputResult.getData().get(i);
+        Tensor[] array = IntStream.range(0, indata.length()).mapToObj(i -> {
+          final Tensor input = indata.get(i);
           final Tensor output = delta.get(i);
           Tensor weights = new Tensor(FullyConnectedReferenceLayer.this.weights.getDimensions());
           weights.coordStream(false).forEach(c -> {
@@ -150,7 +152,7 @@ public class FullyConnectedReferenceLayer extends NNLayer {
         Arrays.stream(array).map(x -> x.getData()).reduce((a, b) -> ArrayUtil.add(a, b)).map(data1 -> deltaBuffer.addInPlace(data1));
       }
       if (inputResult.isAlive()) {
-        final TensorList tensorList = TensorArray.wrap(IntStream.range(0, inputResult.getData().length()).mapToObj(i -> {
+        final TensorList tensorList = TensorArray.wrap(IntStream.range(0, indata.length()).mapToObj(i -> {
           final Tensor input = new Tensor(inputDims);
           final Tensor output = delta.get(i);
           weights.coordStream(false).forEach(c -> {
@@ -162,6 +164,7 @@ public class FullyConnectedReferenceLayer extends NNLayer {
         inputResult.accumulate(buffer, tensorList);
         tensorList.freeRef();
       }
+      indata.freeRef();
     }) {
     
       @Override

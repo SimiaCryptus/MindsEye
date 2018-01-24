@@ -1289,7 +1289,7 @@ public class GpuSystem {
    * @return the boolean
    */
   public static boolean isEnabled() {
-    return 0 < GpuHandle.POOL.size();
+    return 0 < CuDNNHandle.POOL.size();
   }
   
   /**

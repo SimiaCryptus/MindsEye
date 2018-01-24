@@ -96,7 +96,7 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
     for (NNResult nnResult : inObj) {
       nnResult.getData().addRef();
     }
-    return new NNResult(GpuHandle.run(gpu -> {
+    return new NNResult(CuDNNHandle.run(gpu -> {
       final long outputSize = (length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
       final CudaPtr cudaOutput = CudaPtr.allocate(gpu.getDeviceNumber(), outputSize, MemoryType.Managed, true);
       for (int i = 0; i < inObj.length; i++) {
@@ -116,11 +116,11 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
           final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(length, inputBands, inputDimensions, inputDimensions);
           final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(length, inputBands, inputDimensions, outputDimensions);
           int byteOffset = inputDimensions[1] * inputDimensions[0] * bandOffset * precision.size;
-          GpuHandle.cudnnTransformTensor(gpu.getHandle(),
-                                         precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.getPtr(),
-                                         precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr().withByteOffset(byteOffset)
-                                        );
-          cudaInput.freeRef();
+          CuDNNHandle.cudnnTransformTensor(gpu.getHandle(),
+                                           precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.getPtr(),
+                                           precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr().withByteOffset(byteOffset)
+                                          );
+          gpu.registerForCleanup(cudaInput);
         }
       }
       return GpuTensorList.wrap(cudaOutput, length, outputDimensions, precision);
@@ -131,7 +131,6 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
       //outputBuffer.freeRef();
       assert delta.length() == inObj[0].getData().length();
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
-      final CudaPtr cudaDelta = GpuHandle.run(nncontext -> CudaPtr.getCudaPtr(precision, delta), false);
       IntStream.range(0, inObj.length).parallel().forEach(i -> {
         final NNResult input = inObj[i];
         int[] inputDimensions = input.getData().getDimensions();
@@ -143,16 +142,18 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
         int inputBands1 = maxBands <= 0 ? inputDimensions[2] : Math.min(inputDimensions[2], maxBands - bandOffset1);
         if (inputBands1 > 0 && input.isAlive()) {
           assert inputBands1 <= inputDimensions[2];
-          final TensorList passbackTensorList = GpuHandle.run(nncontext -> {
+          final TensorList passbackTensorList = CuDNNHandle.run(gpu -> {
+            final CudaPtr cudaDelta = CudaPtr.getCudaPtr(precision, delta);
             long inputSize = (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size);
-            final CudaPtr cudaBackprop = CudaPtr.allocate(nncontext.getDeviceNumber(), inputSize, MemoryType.Managed, true);
-            final CudaResource<cudnnTensorDescriptor> inputDescriptor1 = getTensorDescriptor(length, inputBands1, inputDimensions, inputDimensions);
-            final CudaResource<cudnnTensorDescriptor> outputDescriptor1 = getTensorDescriptor(length, inputBands1, inputDimensions, outputDimensions);
+            final CudaPtr cudaBackprop = CudaPtr.allocate(gpu.getDeviceNumber(), inputSize, MemoryType.Managed, true);
+            final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(length, inputBands1, inputDimensions, inputDimensions);
+            final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(length, inputBands1, inputDimensions, outputDimensions);
             int byteOffset1 = outputDimensions[1] * outputDimensions[0] * bandOffset1 * precision.size;
-            GpuHandle.cudnnTransformTensor(nncontext.getHandle(),
-                                           precision.getPointer(1.0), outputDescriptor1.getPtr(), cudaDelta.getPtr().withByteOffset(byteOffset1),
-                                           precision.getPointer(0.0), inputDescriptor1.getPtr(), cudaBackprop.getPtr()
-                                          );
+            CuDNNHandle.cudnnTransformTensor(gpu.getHandle(),
+                                             precision.getPointer(1.0), outputDescriptor.getPtr(), cudaDelta.getPtr().withByteOffset(byteOffset1),
+                                             precision.getPointer(0.0), inputDescriptor.getPtr(), cudaBackprop.getPtr()
+                                            );
+            gpu.registerForCleanup(cudaDelta);
             return GpuTensorList.wrap(cudaBackprop, length, inputDimensions, precision);
           });
           input.accumulate(buffer, passbackTensorList);
@@ -161,7 +162,6 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
         }
         //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       });
-      cudaDelta.freeRef();
     }) {
       
       @Override
@@ -181,16 +181,16 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
    *
    * @param length           the length
    * @param inputBands       the input bands
-   * @param inputDimensions  the input dimensions
-   * @param outputDimensions the output dimensions
+   * @param imageDimensions  the input dimensions
+   * @param strideDimensions the output dimensions
    * @return the tensor descriptor
    */
-  public CudaResource<cudnnTensorDescriptor> getTensorDescriptor(int length, int inputBands, int[] inputDimensions, int[] outputDimensions) {
+  public CudaResource<cudnnTensorDescriptor> getTensorDescriptor(int length, int inputBands, int[] imageDimensions, int[] strideDimensions) {
     return GpuSystem.newTensorDescriptor(
-      precision.code, length, inputBands, inputDimensions[1], inputDimensions[0], //
-      outputDimensions[2] * outputDimensions[1] * outputDimensions[0], //
-      outputDimensions[1] * outputDimensions[0], //
-      outputDimensions[0], //
+      precision.code, length, inputBands, imageDimensions[1], imageDimensions[0], //
+      strideDimensions[2] * strideDimensions[1] * strideDimensions[0], //
+      strideDimensions[1] * strideDimensions[0], //
+      strideDimensions[0], //
       1);
   }
   

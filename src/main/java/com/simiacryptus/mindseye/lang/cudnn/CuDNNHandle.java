@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.lang.cudnn;
 
+import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.util.lang.StaticResourcePool;
 import jcuda.Pointer;
 import jcuda.jcudnn.*;
@@ -26,6 +27,7 @@ import jcuda.jcudnn.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -35,24 +37,29 @@ import java.util.stream.Stream;
 /**
  * The type Gpu handle.
  */
-public class GpuHandle extends GpuDevice {
-  private static final ThreadLocal<GpuHandle> threadContext = new ThreadLocal<>();
-  private static final boolean DISABLE = Boolean.parseBoolean(System.getProperty("DISABLE_CUDNN", Boolean.toString(false)));
-  private static final boolean FORCE_SINGLE_GPU = Boolean.parseBoolean(System.getProperty("FORCE_SINGLE_GPU", Boolean.toString(false)));
-  private static final int THREADS_PER_GPU = Integer.parseInt(System.getProperty("THREADS_PER_GPU", Integer.toString(3)));
-  
+public class CuDNNHandle extends GpuDevice {
   /**
    * The constant gpuContexts.
    */
-  public static final StaticResourcePool<GpuHandle> POOL = new StaticResourcePool<>(loadGpuContexts());
+  public static final StaticResourcePool<CuDNNHandle> POOL = new StaticResourcePool<>(loadGpuContexts());
+  private static final boolean DISABLE = Boolean.parseBoolean(System.getProperty("DISABLE_CUDNN", Boolean.toString(false)));
+  private static final boolean FORCE_SINGLE_GPU = Boolean.parseBoolean(System.getProperty("FORCE_SINGLE_GPU", Boolean.toString(false)));
+  private static final int THREADS_PER_GPU = Integer.parseInt(System.getProperty("THREADS_PER_GPU", Integer.toString(3)));
+  public static final ThreadLocal<LinkedBlockingDeque<ReferenceCounting>> CLEANUP = new ThreadLocal<LinkedBlockingDeque<ReferenceCounting>>() {
+    @Override
+    protected LinkedBlockingDeque<ReferenceCounting> initialValue() {
+      return new LinkedBlockingDeque<>();
+    }
+  };
   private final jcuda.jcudnn.cudnnHandle handle;
+  private static final ThreadLocal<CuDNNHandle> threadContext = new ThreadLocal<>();
   
   /**
    * Instantiates a new Cu dnn.
    *
    * @param deviceNumber the device number
    */
-  private GpuHandle(final int deviceNumber) {
+  private CuDNNHandle(final int deviceNumber) {
     super(deviceNumber);
     if (0 <= this.deviceNumber) {
       initThread();
@@ -70,7 +77,7 @@ public class GpuHandle extends GpuDevice {
    *
    * @param fn the fn
    */
-  public static void apply(final Consumer<GpuHandle> fn) {apply(fn, true);}
+  public static void apply(final Consumer<CuDNNHandle> fn) {apply(fn, true);}
   
   /**
    * Run.
@@ -78,8 +85,8 @@ public class GpuHandle extends GpuDevice {
    * @param fn          the fn
    * @param synchronize the synchronize
    */
-  public static void apply(final Consumer<GpuHandle> fn, boolean synchronize) {
-    GpuHandle threadlocal = threadContext.get();
+  public static void apply(final Consumer<CuDNNHandle> fn, boolean synchronize) {
+    CuDNNHandle threadlocal = threadContext.get();
     try {
       if (threadlocal != null) {
         try {
@@ -118,7 +125,7 @@ public class GpuHandle extends GpuDevice {
    * @param fn  the fn
    * @return the t
    */
-  public static <T> T run(final Function<GpuHandle, T> fn) {return run(fn, true);}
+  public static <T> T run(final Function<CuDNNHandle, T> fn) {return run(fn, true);}
   
   /**
    * Call t.
@@ -128,13 +135,13 @@ public class GpuHandle extends GpuDevice {
    * @param synchronize the synchronize
    * @return the t
    */
-  public static <T> T run(final Function<GpuHandle, T> fn, boolean synchronize) {
+  public static <T> T run(final Function<CuDNNHandle, T> fn, boolean synchronize) {
     if (POOL.getAll().isEmpty()) {
-      return fn.apply(new GpuHandle(-1));
+      return fn.apply(new CuDNNHandle(-1));
     }
     else {
       try {
-        GpuHandle threadlocal = threadContext.get();
+        CuDNNHandle threadlocal = threadContext.get();
         if (threadlocal != null) {
           try {
             threadlocal.initThread();
@@ -164,20 +171,11 @@ public class GpuHandle extends GpuDevice {
         }
       } finally {
         if (synchronize) GpuSystem.cudaDeviceSynchronize();
+        LinkedBlockingDeque<ReferenceCounting> deque = CLEANUP.get();
+        deque.stream().forEach(x -> x.freeRef());
+        deque.clear();
       }
     }
-  }
-  
-  /**
-   * For each.
-   *
-   * @param fn the fn
-   */
-  public static void forEach(final Consumer<? super GpuDevice> fn) {
-    POOL.getAll().forEach(x -> {
-      x.initThread();
-      fn.accept(x);
-    });
   }
   
   /**
@@ -186,7 +184,7 @@ public class GpuHandle extends GpuDevice {
    *
    * @return the list
    */
-  private static List<GpuHandle> loadGpuContexts() {
+  private static List<CuDNNHandle> loadGpuContexts() {
     if (DISABLE) {
       logger.warn("Disabled GpuSystem");
       return Arrays.asList();
@@ -233,12 +231,30 @@ public class GpuHandle extends GpuDevice {
     return devices.stream()
                   .flatMap(i -> {
                     try {
-                      return IntStream.range(0, THREADS_PER_GPU).mapToObj(j -> new GpuHandle(i));
+                      return IntStream.range(0, THREADS_PER_GPU).mapToObj(j -> new CuDNNHandle(i));
                     } catch (Throwable e) {
                       logger.warn(String.format("Error initializing device %d", i), e);
                       return Stream.empty();
                     }
                   }).collect(Collectors.toList());
+  }
+  
+  /**
+   * For each.
+   *
+   * @param fn the fn
+   */
+  public static void forEach(final Consumer<? super GpuDevice> fn) {
+    POOL.getAll().forEach(x -> {
+      x.initThread();
+      fn.accept(x);
+    });
+  }
+  
+  public void registerForCleanup(ReferenceCounting... objs) {
+    Arrays.stream(objs).forEach(ReferenceCounting::assertAlive);
+    LinkedBlockingDeque<ReferenceCounting> list = CLEANUP.get();
+    Arrays.stream(objs).forEach(list::add);
   }
   
   /**

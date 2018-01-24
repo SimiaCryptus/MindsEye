@@ -102,7 +102,7 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
     final int[] dimOut = Arrays.copyOf(dimIn, 3);
     dimOut[0] = sizeX;
     dimOut[1] = sizeY;
-    final TensorList outputData = GpuHandle.run(nncontext -> {
+    final TensorList outputData = CuDNNHandle.run(nncontext -> {
       final CudaPtr inputBuffer = CudaPtr.getCudaPtr(precision, inObj[0].getData());
       final CudaPtr outputBuffer = CudaPtr.allocate(nncontext.getDeviceNumber(), (long) (length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size), MemoryType.Managed, false);
       copy(nncontext, length, dimIn, inputBuffer, dimOut, outputBuffer);
@@ -118,7 +118,7 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
       }
       assert error.length() == inObj[0].getData().length();
       if (inObj[0].isAlive()) {
-        final TensorList passbackTensorList = GpuHandle.run(nncontext -> {
+        final TensorList passbackTensorList = CuDNNHandle.run(nncontext -> {
           final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
           final CudaPtr passbackBuffer = CudaPtr.allocate(nncontext.getDeviceNumber(), (long) (length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size), MemoryType.Managed, false);
           copy(nncontext, length, dimOut, errorPtr, dimIn, passbackBuffer);
@@ -152,7 +152,7 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
    * @param destinationDimensions the dim out
    * @param destination           the output buffer
    */
-  public void copy(GpuHandle nncontext, int length, int[] sourceDimensions, CudaPtr source, int[] destinationDimensions, CudaPtr destination) {
+  public void copy(CuDNNHandle nncontext, int length, int[] sourceDimensions, CudaPtr source, int[] destinationDimensions, CudaPtr destination) {
     if (3 != sourceDimensions.length) throw new IllegalArgumentException("inputDimensions.length");
     if (3 != destinationDimensions.length) throw new IllegalArgumentException("dimOut.length");
     if (sourceDimensions[2] != destinationDimensions[2])
@@ -200,12 +200,12 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
     assert sourceOffset + Tensor.dim(viewDim) <= Tensor.dim(sourceDimensions);
     assert destinationOffset + Tensor.dim(viewDim) <= Tensor.dim(destinationDimensions);
   
-    GpuSystem.handle(GpuHandle.cudnnTransformTensor(nncontext.getHandle(),
-                                                    precision.getPointer(1.0),
-                                                    sourceViewDescriptor.getPtr(), source.getPtr().withByteOffset(sourceOffset * precision.size),
-                                                    precision.getPointer(0.0),
-                                                    destinationViewDescriptor.getPtr(), destination.getPtr().withByteOffset(destinationOffset * precision.size)
-                                                   ));
+    GpuSystem.handle(CuDNNHandle.cudnnTransformTensor(nncontext.getHandle(),
+                                                      precision.getPointer(1.0),
+                                                      sourceViewDescriptor.getPtr(), source.getPtr().withByteOffset(sourceOffset * precision.size),
+                                                      precision.getPointer(0.0),
+                                                      destinationViewDescriptor.getPtr(), destination.getPtr().withByteOffset(destinationOffset * precision.size)
+                                                     ));
   }
   
   /**

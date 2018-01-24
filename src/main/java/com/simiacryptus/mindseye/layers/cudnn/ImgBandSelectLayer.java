@@ -101,15 +101,15 @@ public class ImgBandSelectLayer extends NNLayer implements MultiPrecision<ImgBan
     final int byteOffset = inputDimensions[1] * inputDimensions[0] * getFrom() * precision.size;
     outputDimensions[2] = getTo() - getFrom();
     long size = (length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
-    return new NNResult(GpuHandle.run(gpu -> {
+    return new NNResult(CuDNNHandle.run(gpu -> {
       final CudaPtr cudaOutput = CudaPtr.allocate(gpu.getDeviceNumber(), size, MemoryType.Managed, true);
       final CudaPtr cudaInput = CudaPtr.getCudaPtr(precision, inputData);
       final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(inputDimensions, length, outputDimensions);
       final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(outputDimensions, length, outputDimensions);
-      GpuHandle.cudnnTransformTensor(gpu.getHandle(),
-                                     precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.getPtr().withByteOffset(byteOffset),
-                                     precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr()
-                                    );
+      CuDNNHandle.cudnnTransformTensor(gpu.getHandle(),
+                                       precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.getPtr().withByteOffset(byteOffset),
+                                       precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr()
+                                      );
       cudaInput.freeRef();
       inputDescriptor.freeRef();
       outputDescriptor.freeRef();
@@ -119,7 +119,7 @@ public class ImgBandSelectLayer extends NNLayer implements MultiPrecision<ImgBan
         throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputDimensions));
       }
       if (inObj[0].isAlive()) {
-        final TensorList passbackTensorList = GpuHandle.run(gpu -> {
+        final TensorList passbackTensorList = CuDNNHandle.run(gpu -> {
           final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(inputDimensions, length, outputDimensions);
           final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(outputDimensions, length, outputDimensions);
           assert error.length() == inputData.length();
@@ -127,10 +127,10 @@ public class ImgBandSelectLayer extends NNLayer implements MultiPrecision<ImgBan
           final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
           long size1 = (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size);
           final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), size1, MemoryType.Managed, false);
-          GpuHandle.cudnnTransformTensor(gpu.getHandle(),
-                                         precision.getPointer(1.0), outputDescriptor.getPtr(), errorPtr.getPtr(),
-                                         precision.getPointer(0.0), inputDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
-                                        );
+          CuDNNHandle.cudnnTransformTensor(gpu.getHandle(),
+                                           precision.getPointer(1.0), outputDescriptor.getPtr(), errorPtr.getPtr(),
+                                           precision.getPointer(0.0), inputDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
+                                          );
           errorPtr.freeRef();
           inputDescriptor.freeRef();
           outputDescriptor.freeRef();
