@@ -84,8 +84,8 @@ public final class LoggingWrapperLayer extends WrapperLayer {
       }) {
     
         @Override
-        public void free() {
-          Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+        protected void _free() {
+          Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
         }
         
         @Override
@@ -114,8 +114,8 @@ public final class LoggingWrapperLayer extends WrapperLayer {
     }) {
     
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
     
     

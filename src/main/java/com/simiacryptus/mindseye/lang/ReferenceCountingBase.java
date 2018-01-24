@@ -35,11 +35,17 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   /**
    * The constant debugLifecycle.
    */
-  public static boolean debugLifecycle = true;
+  public static boolean DEBUG_LIFECYCLE = ReferenceCountingBase.class.desiredAssertionStatus();
+  /**
+   * The constant SUPPRESS_LOG.
+   */
+  public static volatile boolean SUPPRESS_LOG = false;
+  
+  
   /**
    * The Created by.
    */
-  protected final StackTraceElement[] createdBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
+  protected final StackTraceElement[] createdBy = DEBUG_LIFECYCLE ? Thread.currentThread().getStackTrace() : null;
   private final AtomicInteger references = new AtomicInteger(1);
   private final AtomicBoolean isFreed = new AtomicBoolean(false);
   private volatile StackTraceElement[] finalizedBy = null;
@@ -54,20 +60,23 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   public void freeRef() {
     int refs = references.decrementAndGet();
     if (refs < 0) {
-      String createdByStr = null == finalizedBy ? "?" : Arrays.stream(createdBy).map(x -> x.toString()).reduce((a, b) -> a + "\n" + b).orElse("?");
-      String finalizedByStr = null == finalizedBy ? "?" : Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "\n" + b).orElse("?");
-      String currentStackStr = Arrays.stream(Thread.currentThread().getStackTrace()).skip(2).map(x -> x.toString()).reduce((a, b) -> a + "\n" + b).orElse("?");
-      logger.warn(String.format("Error freeing reference for %s created by \n\t%s\n; freed by \n\t%s\n; with current stack \n\t%s",
-                                getClass().getSimpleName(),
-                                createdByStr.replaceAll("\n", "\n\t"),
-                                finalizedByStr.replaceAll("\n", "\n\t"),
-                                currentStackStr.replaceAll("\n", "\n\t")));
-      throw new IllegalStateException();
+      if (!SUPPRESS_LOG) {
+        SUPPRESS_LOG = true;
+        String createdByStr = null == finalizedBy ? "?" : Arrays.stream(createdBy).map(x -> x.toString()).reduce((a, b) -> a + "\n" + b).orElse("?");
+        String finalizedByStr = null == finalizedBy ? "?" : Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "\n" + b).orElse("?");
+        String currentStackStr = Arrays.stream(Thread.currentThread().getStackTrace()).skip(2).map(x -> x.toString()).reduce((a, b) -> a + "\n" + b).orElse("?");
+        logger.warn(String.format("Error freeing reference for %s created by \n\t%s\n; freed by \n\t%s\n; with current stack \n\t%s",
+                                  getClass().getSimpleName(),
+                                  createdByStr.replaceAll("\n", "\n\t"),
+                                  finalizedByStr.replaceAll("\n", "\n\t"),
+                                  currentStackStr.replaceAll("\n", "\n\t")));
+      }
+      throw new LifecycleException();
     }
     else if (refs == 0) {
       assert references.get() == 0;
       if (!isFreed.getAndSet(true)) {
-        finalizedBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
+        finalizedBy = DEBUG_LIFECYCLE ? Thread.currentThread().getStackTrace() : null;
         _free();
       }
     }
@@ -82,15 +91,18 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
    */
   public void assertAlive() {
     if (isFinalized()) {
-      String createdByStr = null == finalizedBy ? "?" : Arrays.stream(createdBy).map(x -> x.toString()).reduce((a, b) -> a + "\n" + b).orElse("?");
-      String finalizedByStr = null == finalizedBy ? "?" : Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "\n" + b).orElse("?");
-      String currentStackStr = Arrays.stream(Thread.currentThread().getStackTrace()).skip(2).map(x -> x.toString()).reduce((a, b) -> a + "\n" + b).orElse("?");
-      logger.warn(String.format("Using freed reference for %s created by \n\t%s\n; freed by \n\t%s\n; with current stack \n\t%s",
-                                getClass().getSimpleName(),
-                                createdByStr.replaceAll("\n", "\n\t"),
-                                finalizedByStr.replaceAll("\n", "\n\t"),
-                                currentStackStr.replaceAll("\n", "\n\t")));
-      throw new IllegalStateException();
+      if (!SUPPRESS_LOG) {
+        SUPPRESS_LOG = true;
+        String createdByStr = null == finalizedBy ? "?" : Arrays.stream(createdBy).map(x -> x.toString()).reduce((a, b) -> a + "\n" + b).orElse("?");
+        String finalizedByStr = null == finalizedBy ? "?" : Arrays.stream(finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "\n" + b).orElse("?");
+        String currentStackStr = Arrays.stream(Thread.currentThread().getStackTrace()).skip(2).map(x -> x.toString()).reduce((a, b) -> a + "\n" + b).orElse("?");
+        logger.warn(String.format("Using freed reference for %s created by \n\t%s\n; freed by \n\t%s\n; with current stack \n\t%s",
+                                  getClass().getSimpleName(),
+                                  createdByStr.replaceAll("\n", "\n\t"),
+                                  finalizedByStr.replaceAll("\n", "\n\t"),
+                                  currentStackStr.replaceAll("\n", "\n\t")));
+      }
+      throw new LifecycleException();
     }
   }
   
@@ -102,8 +114,59 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   @Override
   protected final void finalize() throws Throwable {
     if (!isFreed.getAndSet(true)) {
-      finalizedBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
+      finalizedBy = DEBUG_LIFECYCLE ? Thread.currentThread().getStackTrace() : null;
       _free();
+    }
+  }
+  
+  /**
+   * The type Lifecycle exception.
+   */
+  public static class LifecycleException extends RuntimeException {
+    /**
+     * Instantiates a new Lifecycle exception.
+     */
+    public LifecycleException() {
+    }
+    
+    /**
+     * Instantiates a new Lifecycle exception.
+     *
+     * @param message the message
+     */
+    public LifecycleException(String message) {
+      super(message);
+    }
+    
+    /**
+     * Instantiates a new Lifecycle exception.
+     *
+     * @param message the message
+     * @param cause   the cause
+     */
+    public LifecycleException(String message, Throwable cause) {
+      super(message, cause);
+    }
+    
+    /**
+     * Instantiates a new Lifecycle exception.
+     *
+     * @param cause the cause
+     */
+    public LifecycleException(Throwable cause) {
+      super(cause);
+    }
+    
+    /**
+     * Instantiates a new Lifecycle exception.
+     *
+     * @param message            the message
+     * @param cause              the cause
+     * @param enableSuppression  the enable suppression
+     * @param writableStackTrace the writable stack trace
+     */
+    public LifecycleException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+      super(message, cause, enableSuppression, writableStackTrace);
     }
   }
 }

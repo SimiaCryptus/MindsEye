@@ -74,30 +74,10 @@ public class CrossProductLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     assert 1 == inObj.length;
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
-      final NNResult input = inObj[0];
-      if (input.isAlive()) {
-        assert inObj[0].getData().length() == data.length();
-        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(batchIndex -> {
-          final Tensor tensor = data.get(batchIndex);
-          final int outputDim = tensor.dim();
-          final int inputDim = (1 + (int) Math.sqrt(1 + 8 * outputDim)) / 2;
-          final Tensor passback = new Tensor(inputDim);
-          final double[] passbackData = passback.getData();
-          final double[] tensorData = tensor.getData();
-          final double[] inputData = inObj[0].getData().get(batchIndex).getData();
-          IntStream.range(0, inputDim).forEach(x -> {
-            IntStream.range(x + 1, inputDim).forEach(y -> {
-              passbackData[x] += tensorData[CrossProductLayer.index(x, y, inputDim)] * inputData[y];
-              passbackData[y] += tensorData[CrossProductLayer.index(x, y, inputDim)] * inputData[x];
-            });
-          });
-          return passback;
-        }).toArray(i -> new Tensor[i]));
-        input.accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
-      }
-    }, inObj[0].getData().stream().parallel().map(tensor -> {
+    final NNResult in = inObj[0];
+    TensorList indata = in.getData();
+    indata.addRef();
+    return new NNResult(TensorArray.wrap(indata.stream().parallel().map(tensor -> {
       final int inputDim = tensor.dim();
       final int outputDim = (inputDim * inputDim - inputDim) / 2;
       final Tensor result = new Tensor(outputDim);
@@ -109,11 +89,34 @@ public class CrossProductLayer extends NNLayer {
         });
       });
       return result;
-    }).toArray(i -> new Tensor[i])) {
-    
+    }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      if (in.isAlive()) {
+        assert data.length() == data.length();
+        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).parallel().mapToObj(batchIndex -> {
+          final Tensor tensor = data.get(batchIndex);
+          final int outputDim = tensor.dim();
+          final int inputDim = (1 + (int) Math.sqrt(1 + 8 * outputDim)) / 2;
+          final Tensor passback = new Tensor(inputDim);
+          final double[] passbackData = passback.getData();
+          final double[] tensorData = tensor.getData();
+          final double[] inputData = indata.get(batchIndex).getData();
+          IntStream.range(0, inputDim).forEach(x -> {
+            IntStream.range(x + 1, inputDim).forEach(y -> {
+              passbackData[x] += tensorData[CrossProductLayer.index(x, y, inputDim)] * inputData[y];
+              passbackData[y] += tensorData[CrossProductLayer.index(x, y, inputDim)] * inputData[x];
+            });
+          });
+          return passback;
+        }).toArray(i -> new Tensor[i]));
+        indata.freeRef();
+        in.accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
+      }
+    }) {
+      
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
       
       @Override

@@ -91,7 +91,33 @@ public class GaussianNoiseLayer extends NNLayer {
       });
       return output;
     }).toArray(i -> new Tensor[i]);
-    return new Result(outputA, inObj[0]);
+    return new NNResult(TensorArray.wrap(outputA), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+      if (inObj[0].isAlive()) {
+        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+          final double[] deltaData = delta.get(dataIndex).getData();
+          final int[] dims = inObj[0].getData().get(dataIndex).getDimensions();
+          final Tensor passback = new Tensor(dims);
+          for (int i = 0; i < passback.dim(); i++) {
+            passback.set(i, deltaData[i]);
+          }
+          return passback;
+        }).toArray(i -> new Tensor[i]));
+        inObj[0].accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
+      }
+    }) {
+    
+      @Override
+      protected void _free() {
+        inObj[0].freeRef();
+      }
+    
+    
+      @Override
+      public boolean isAlive() {
+        return inObj[0].isAlive() || !isFrozen();
+      }
+    };
   }
   
   @Override
@@ -133,39 +159,4 @@ public class GaussianNoiseLayer extends NNLayer {
     return Arrays.asList();
   }
   
-  private final class Result extends NNResult {
-  
-    private final NNResult inObj;
-    
-    private Result(final Tensor[] outputA, final NNResult inObj) {
-      super((final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
-        if (inObj.isAlive()) {
-          TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-            final double[] deltaData = delta.get(dataIndex).getData();
-            final int[] dims = inObj.getData().get(dataIndex).getDimensions();
-            final Tensor passback = new Tensor(dims);
-            for (int i = 0; i < passback.dim(); i++) {
-              passback.set(i, deltaData[i]);
-            }
-            return passback;
-          }).toArray(i -> new Tensor[i]));
-          inObj.accumulate(buffer, tensorArray);
-          tensorArray.freeRef();
-        }
-      }, outputA);
-      this.inObj = inObj;
-    }
-  
-    @Override
-    public void free() {
-      inObj.free();
-    }
-    
-    
-    @Override
-    public boolean isAlive() {
-      return inObj.isAlive() || !isFrozen();
-    }
-    
-  }
 }

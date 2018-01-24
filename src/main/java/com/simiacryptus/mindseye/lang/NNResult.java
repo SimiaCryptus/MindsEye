@@ -24,7 +24,7 @@ import java.util.function.BiConsumer;
 /**
  * The type Nn result.
  */
-public abstract class NNResult {
+public abstract class NNResult extends ReferenceCountingBase {
   /**
    * The Data.
    */
@@ -44,16 +44,6 @@ public abstract class NNResult {
     super();
     this.data = data;
     this.accumulator = accumulator;
-  }
-  
-  /**
-   * Instantiates a new Nn result.
-   *
-   * @param accumulator the accumulator
-   * @param data        the data
-   */
-  public NNResult(BiConsumer<DeltaSet<NNLayer>, TensorList> accumulator, final Tensor... data) {
-    this(TensorArray.create(data), accumulator);
   }
   
   /**
@@ -97,17 +87,17 @@ public abstract class NNResult {
     return data;
   }
   
+  @Override
+  protected void _free() { }
+  
   /**
    * Is alive boolean.
    *
    * @return the boolean
    */
-  public abstract boolean isAlive();
-  
-  /**
-   * Free.
-   */
-  public void free() {}
+  public boolean isAlive() {
+    return null != getAccumulator();
+  }
   
   /**
    * Gets accumulator.

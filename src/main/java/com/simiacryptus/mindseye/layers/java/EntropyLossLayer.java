@@ -68,35 +68,13 @@ public class EntropyLossLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     final double zero_tol = 1e-12;
-    final Tensor gradient[] = new Tensor[inObj[0].getData().length()];
+    final NNResult in0 = inObj[0];
+    TensorList indata = in0.getData();
+    indata.addRef();
+    final Tensor gradient[] = new Tensor[indata.length()];
     final double max_prob = 1.;
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
-      if (inObj[1].isAlive()) {
-        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
-          final Tensor l = inObj[0].getData().get(dataIndex);
-          final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
-          for (int i = 0; i < passback.dim(); i++) {
-            final double lv = Math.max(Math.min(l.get(i), max_prob), zero_tol);
-            passback.set(i, -data.get(dataIndex).get(0) * Math.log(lv));
-          }
-          return passback;
-        }).toArray(i -> new Tensor[i]));
-        inObj[1].accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
-      }
-      if (inObj[0].isAlive()) {
-        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
-          final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
-          for (int i = 0; i < passback.dim(); i++) {
-            passback.set(i, data.get(dataIndex).get(0) * gradient[dataIndex].get(i));
-          }
-          return passback;
-        }).toArray(i -> new Tensor[i]));
-        inObj[0].accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
-      }
-    }, IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
-      final Tensor l = inObj[0].getData().get(dataIndex);
+    return new NNResult(TensorArray.wrap(IntStream.range(0, indata.length()).mapToObj(dataIndex -> {
+      final Tensor l = indata.get(dataIndex);
       final Tensor r = inObj[1].getData().get(dataIndex);
       assert l.dim() == r.dim() : l.dim() + " != " + r.dim();
       final Tensor gradientTensor = new Tensor(l.getDimensions());
@@ -119,16 +97,42 @@ public class EntropyLossLayer extends NNLayer {
       gradient[dataIndex] = gradientTensor;
       final Tensor outValue = new Tensor(new double[]{total}, 1);
       return outValue;
-    }).toArray(i -> new Tensor[i])) {
+    }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      if (inObj[1].isAlive()) {
+        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
+          final Tensor l = indata.get(dataIndex);
+          final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
+          for (int i = 0; i < passback.dim(); i++) {
+            final double lv = Math.max(Math.min(l.get(i), max_prob), zero_tol);
+            passback.set(i, -data.get(dataIndex).get(0) * Math.log(lv));
+          }
+          return passback;
+        }).toArray(i -> new Tensor[i]));
+        inObj[1].accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
+      }
+      indata.freeRef();
+      if (in0.isAlive()) {
+        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
+          final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
+          for (int i = 0; i < passback.dim(); i++) {
+            passback.set(i, data.get(dataIndex).get(0) * gradient[dataIndex].get(i));
+          }
+          return passback;
+        }).toArray(i -> new Tensor[i]));
+        in0.accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
+      }
+    }) {
   
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
       
       @Override
       public boolean isAlive() {
-        return inObj[0].isAlive() || inObj[0].isAlive();
+        return in0.isAlive() || in0.isAlive();
       }
       
     };

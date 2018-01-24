@@ -77,7 +77,8 @@ abstract class LazyResult implements DAGNode {
       if (null != singleton) {
         NNResult result = eval(context);
         if (null == result) throw new IllegalStateException();
-        singleton.set(new CountingNNResult(result, expectedCount));
+        singleton.set(new CountingNNResult(result));
+        result.freeRef();
       }
     }
     Supplier<CountingNNResult> resultSupplier = context.calculated.get(id);

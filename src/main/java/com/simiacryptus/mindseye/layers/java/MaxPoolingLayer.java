@@ -150,7 +150,7 @@ public class MaxPoolingLayer extends NNLayer {
       });
       gradientMapA[dataIndex] = gradientMap;
     });
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(outputA), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (in.isAlive()) {
         TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
           final Tensor backSignal = new Tensor(inputDims);
@@ -164,11 +164,11 @@ public class MaxPoolingLayer extends NNLayer {
         in.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
-    }, outputA) {
+    }) {
     
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
       
       @Override

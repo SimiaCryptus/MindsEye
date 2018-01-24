@@ -30,12 +30,12 @@ public class CudaStream extends CudaResource<cudaStream_t> {
    *
    * @param stream the stream
    */
-  CudaStream(cudaStream_t stream) {super(stream, CuDNN::cudaStreamDestroy, CuDNN.getDevice());}
+  CudaStream(cudaStream_t stream) {super(stream, GpuSystem::cudaStreamDestroy, GpuSystem.getDevice());}
   
   /**
    * Sync.
    */
   public void sync() {
-    CuDNN.cudaStreamSynchronize(getPtr());
+    GpuSystem.cudaStreamSynchronize(getPtr());
   }
 }

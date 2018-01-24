@@ -78,7 +78,15 @@ public class Sparse01MetaLayer extends NNLayer {
                                                                         IntStream.range(0, itemCnt)
                                                                                  .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
                                                                                  .average().getAsDouble());
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(avgActivationArray.mapIndex((avgActivation, c) -> {
+      assert Double.isFinite(avgActivation);
+      if (avgActivation > 0 && avgActivation < 1) {
+        return sparsity * Math.log(sparsity / avgActivation) + (1 - sparsity) * Math.log((1 - sparsity) / (1 - avgActivation));
+      }
+      else {
+        return 0;
+      }
+    })), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (input.isAlive()) {
         final Tensor delta = data.get(0);
         final Tensor feedback[] = new Tensor[itemCnt];
@@ -100,19 +108,11 @@ public class Sparse01MetaLayer extends NNLayer {
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
-    }, avgActivationArray.mapIndex((avgActivation, c) -> {
-      assert Double.isFinite(avgActivation);
-      if (avgActivation > 0 && avgActivation < 1) {
-        return sparsity * Math.log(sparsity / avgActivation) + (1 - sparsity) * Math.log((1 - sparsity) / (1 - avgActivation));
-      }
-      else {
-        return 0;
-      }
-    })) {
+    }) {
     
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
       
       @Override

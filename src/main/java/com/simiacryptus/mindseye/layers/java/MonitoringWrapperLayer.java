@@ -124,8 +124,8 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     }) {
     
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
   
       
@@ -139,6 +139,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     final NNResult output = timedResult.result;
     forwardPerformance.add((timedResult.timeNanos) / 1000000000.0);
     totalBatches++;
+    Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     final int items = Arrays.stream(inObj).mapToInt(x -> x.getData().length()).max().orElse(1);
     totalItems += items;
     if (recordSignalMetrics) {
@@ -158,8 +159,8 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     }) {
     
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
       
       @Override

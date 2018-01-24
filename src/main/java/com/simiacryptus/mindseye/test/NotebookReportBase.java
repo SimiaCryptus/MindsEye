@@ -106,7 +106,7 @@ public abstract class NotebookReportBase {
           log.setFrontMatterProperty("result", "OK");
         } catch (Throwable e) {
           log.setFrontMatterProperty("result", getExceptionString(e).toString().replaceAll("\n", "<br/>").trim());
-          throw new RuntimeException(e);
+          throw (RuntimeException) (e instanceof RuntimeException ? e : new RuntimeException(e));
         }
       });
       log.setFrontMatterProperty("execution_time", String.format("%.6f", time.timeNanos / 1e9));

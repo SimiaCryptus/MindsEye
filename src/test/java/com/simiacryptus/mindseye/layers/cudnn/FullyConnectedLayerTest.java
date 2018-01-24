@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.cudnn.CuDNN;
+import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.BatchingTester;
@@ -129,7 +129,7 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
     public void run(NotebookOutput log) {
       String logName = "cuda_" + log.getName() + "_all.log";
       log.p(log.file((String) null, logName, "GPU Log"));
-      CuDNN.addLog(new PrintStream(log.file(logName)));
+      GpuSystem.addLog(new PrintStream(log.file(logName)));
       super.run(log);
     }
   
@@ -177,12 +177,12 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
           String logName = "cuda_" + log.getName() + "_perf.log";
           log.p(log.file((String) null, logName, "GPU Log"));
           apiLog = new PrintStream(log.file(logName));
-          CuDNN.addLog(apiLog);
+          GpuSystem.addLog(apiLog);
           return inner.test(log, component, inputPrototype);
         } finally {
           if (null != apiLog) {
             apiLog.close();
-            CuDNN.apiLog.remove(apiLog);
+            GpuSystem.apiLog.remove(apiLog);
           }
         }
       };
@@ -237,12 +237,12 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
           String logName = "cuda_" + log.getName() + "_perf.log";
           log.p(log.file((String) null, logName, "GPU Log"));
           apiLog = new PrintStream(log.file(logName));
-          CuDNN.addLog(apiLog);
+          GpuSystem.addLog(apiLog);
           return inner.test(log, component, inputPrototype);
         } finally {
           if (null != apiLog) {
             apiLog.close();
-            CuDNN.apiLog.remove(apiLog);
+            GpuSystem.apiLog.remove(apiLog);
           }
         }
       };

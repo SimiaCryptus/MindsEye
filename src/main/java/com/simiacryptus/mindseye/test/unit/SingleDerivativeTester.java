@@ -69,7 +69,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
     for (int j = 0; j < outputPrototype.dim(); j++) {
       final int j_ = j;
       final PlaceholderLayer<Tensor> inputKey = new PlaceholderLayer<Tensor>(new Tensor());
-      final NNResult[] copyInput = Arrays.stream(inputPrototype).map(x -> new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {}, x) {
+      final NNResult[] copyInput = Arrays.stream(inputPrototype).map(x -> new NNResult(TensorArray.create(x), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {}) {
         
         @Override
         public boolean isAlive() {
@@ -77,7 +77,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
         }
   
       }).toArray(i -> new NNResult[i]);
-      copyInput[inputIndex] = new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      copyInput[inputIndex] = new NNResult(TensorArray.create(inputTensor), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
         if (1 != data.length()) throw new AssertionError();
         if (data.length() != 1) throw new AssertionError();
         final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.dim());
@@ -90,7 +90,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
           }
         });
         buffer.get(inputKey, new double[gradientBuffer.dim()]).addInPlace(gradientBuffer.getData());
-      }, inputTensor) {
+      }) {
         
         @Override
         public boolean isAlive() {
@@ -99,7 +99,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
       };
       final NNResult eval = component.eval(copyInput);
       final DeltaSet<NNLayer> deltaSet = new DeltaSet<NNLayer>();
-      TensorArray tensorArray = TensorArray.wrap(new Tensor(outputPrototype.getDimensions()).set(j, 1));
+      TensorArray tensorArray = TensorArray.create(new Tensor(outputPrototype.getDimensions()).set(j, 1));
       eval.accumulate(deltaSet, tensorArray);
       tensorArray.freeRef();
       final Delta<NNLayer> inputDelta = deltaSet.getMap().get(inputKey);
@@ -119,7 +119,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
       final int j_ = j;
       final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
       final NNResult eval = component.eval(NNConstant.batchResultArray(new Tensor[][]{inputPrototype}));
-      TensorArray tensorArray = TensorArray.wrap(new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0));
+      TensorArray tensorArray = TensorArray.create(new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0));
       eval.accumulate(buffer, tensorArray);
       tensorArray.freeRef();
       final DoubleBuffer<NNLayer> deltaFlushBuffer = buffer.getMap().values().stream().filter(x -> x.target == stateArray).findFirst().orElse(null);
@@ -421,22 +421,23 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
    * @param inputPrototype the input prototype
    */
   public void testFrozen(final NNLayer component, Tensor[] inputPrototype) {
+    final int inElements = Arrays.stream(inputPrototype).mapToInt(x -> x.dim()).sum();
     inputPrototype = Arrays.stream(inputPrototype).map(tensor -> tensor.copy()).toArray(i -> new Tensor[i]);
     final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     final NNLayer frozen = component.copy().freeze();
-    final NNResult eval = frozen.eval(Arrays.stream(inputPrototype).map((final Tensor x) -> new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    List<TensorArray> inputCopies = Arrays.stream(inputPrototype).map(TensorArray::wrap).collect(Collectors.toList());
+    final NNResult eval = frozen.eval(inputCopies.stream().map((tensorArray) -> new NNResult(tensorArray, (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       reachedInputFeedback.set(true);
-    }, x) {
-    
+    }) {
+  
       @Override
       public boolean isAlive() {
         return true;
       }
     
-    
     }).<NNResult>toArray(i -> new NNResult[i]));
-    for (Tensor tensor : inputPrototype) {
-      tensor.freeRef();
+    for (TensorArray tensorArray : inputCopies) {
+      tensorArray.freeRef();
     }
     final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
     TensorList tensorList = eval.getData().copy();
@@ -448,7 +449,6 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
     if (!deltas.isEmpty() && !component.state().isEmpty()) {
       throw new AssertionError("Frozen component listed in delta. Deltas: " + deltas);
     }
-    final int inElements = Arrays.stream(inputPrototype).mapToInt(x -> x.dim()).sum();
     if (!reachedInputFeedback.get() && 0 < inElements) {
       throw new RuntimeException("Frozen component did not pass input backwards");
     }
@@ -464,9 +464,10 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
     inputPrototype = Arrays.stream(inputPrototype).map(tensor -> tensor.copy()).toArray(i -> new Tensor[i]);
     final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     final NNLayer frozen = component.copy().setFrozen(false);
-    final NNResult eval = frozen.eval(Arrays.stream(inputPrototype).map(tensor -> new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    List<TensorArray> inputCopies = Arrays.stream(inputPrototype).map(TensorArray::wrap).collect(Collectors.toList());
+    final NNResult eval = frozen.eval(inputCopies.stream().map(tensor -> new NNResult(tensor, (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       reachedInputFeedback.set(true);
-    }, tensor) {
+    }) {
     
       @Override
       public boolean isAlive() {
@@ -474,8 +475,8 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
       }
     
     }).<NNResult>toArray(i -> new NNResult[i]));
-    for (Tensor tensor : inputPrototype) {
-      tensor.freeRef();
+    for (TensorArray tensorArray : inputCopies) {
+      tensorArray.freeRef();
     }
     final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
     TensorList tensorList = eval.getData();

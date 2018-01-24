@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.Explodable;
 import com.simiacryptus.mindseye.network.DAGNetwork;
@@ -406,13 +407,13 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     getLittleTests().stream().filter(x -> null != x).forEach((ComponentTest<?> test) -> {
       try {
         test.test(log, layer.copy(), randomize(getInputDims(new Random(seed))));
-      } catch (Throwable e) { exceptions.add(e); }
+      } catch (ReferenceCountingBase.LifecycleException e) { throw e; } catch (Throwable e) { exceptions.add(e); }
     });
     getBigTests().stream().filter(x -> null != x).forEach(test -> {
       try {
         final NNLayer perfLayer = getLayer(getPerfDims(new Random(seed)), new Random(seed));
         test.test(log, perfLayer.copy(), randomize(getPerfDims(new Random(seed))));
-      } catch (Throwable e) { exceptions.add(e); }
+      } catch (ReferenceCountingBase.LifecycleException e) { throw e; } catch (Throwable e) { exceptions.add(e); }
     });
     return exceptions;
   }

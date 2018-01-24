@@ -169,7 +169,9 @@ public class ImgReshapeLayer extends NNLayer {
                               inputDims[1] / kernelSizeY,
                               inputDims[2] * kernelSizeX * kernelSizeY);
     }
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList error) -> {
+    return new NNResult(TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
+                                                  .mapToObj(dataIndex -> expand ? ImgReshapeLayer.copyExpand(batch.get(dataIndex), outputDims.copy()) : ImgReshapeLayer.copyCondense(batch.get(dataIndex), outputDims.copy()))
+                                                  .toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       if (input.isAlive()) {
         TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
@@ -181,13 +183,11 @@ public class ImgReshapeLayer extends NNLayer {
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
-    }, IntStream.range(0, batch.length()).parallel()
-                .mapToObj(dataIndex -> expand ? ImgReshapeLayer.copyExpand(batch.get(dataIndex), outputDims.copy()) : ImgReshapeLayer.copyCondense(batch.get(dataIndex), outputDims.copy()))
-                .toArray(i -> new Tensor[i])) {
+    }) {
     
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
     
     

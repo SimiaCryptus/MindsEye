@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.cudnn.CuDNN;
+import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
@@ -74,13 +74,13 @@ public abstract class ImgCropLayerTest extends CudnnLayerTestBase {
       PrintStream apiLog = null;
       try {
         apiLog = new PrintStream(log1.file("cuda_perf.log"));
-        CuDNN.addLog(apiLog);
+        GpuSystem.addLog(apiLog);
         return inner.test(log1, component, inputPrototype);
       } finally {
         log1.p(log1.file((String) null, "cuda_perf.log", "GPU Log"));
         if (null != apiLog) {
           apiLog.close();
-          CuDNN.apiLog.remove(apiLog);
+          GpuSystem.apiLog.remove(apiLog);
         }
       }
     };

@@ -66,6 +66,8 @@ public class TimedResult<T> {
     T result = null;
     try {
       result = fn.get();
+    } catch (final RuntimeException e) {
+      throw e;
     } catch (final Exception e) {
       throw new RuntimeException(e);
     }
@@ -86,6 +88,8 @@ public class TimedResult<T> {
     final long start = System.nanoTime();
     try {
       fn.get();
+    } catch (final RuntimeException e) {
+      throw e;
     } catch (final Exception e) {
       throw new RuntimeException(e);
     }

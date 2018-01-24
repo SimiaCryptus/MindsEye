@@ -42,17 +42,17 @@ public enum MemoryType {
       }
       cudaDeviceProp properties = CudaPtr.getCurrentDeviceProperties();
       if (properties.managedMemory == 1) {
-        CuDNN.handle(CuDNN.cudaMallocManaged(pointer, size, cudaMemAttachGlobal));
-        CuDNN.cudaDeviceSynchronize();
+        GpuSystem.handle(GpuSystem.cudaMallocManaged(pointer, size, cudaMemAttachGlobal));
+        GpuSystem.cudaDeviceSynchronize();
       }
       else {
-        CuDNN.handle(CuDNN.cudaMalloc(pointer, size));
+        GpuSystem.handle(GpuSystem.cudaMalloc(pointer, size));
       }
     }
     
     @Override
     void free(Pointer ptr, int deviceId) {
-      CuDNN.cudaFree(ptr, deviceId);
+      GpuDevice.cudaFree(ptr, deviceId);
     }
   },
   /**
@@ -61,12 +61,12 @@ public enum MemoryType {
   Device {
     @Override
     void alloc(long size, Pointer pointer) {
-      CuDNN.handle(CuDNN.cudaMalloc(pointer, size));
+      GpuSystem.handle(GpuSystem.cudaMalloc(pointer, size));
     }
     
     @Override
     void free(Pointer ptr, int deviceId) {
-      CuDNN.cudaFree(ptr, deviceId);
+      GpuDevice.cudaFree(ptr, deviceId);
     }
   },
   /**
@@ -83,7 +83,7 @@ public enum MemoryType {
       }
       cudaDeviceProp properties = CudaPtr.getCurrentDeviceProperties();
       if (properties.canMapHostMemory == 1) {
-        CuDNN.handle(CuDNN.cudaHostAlloc(pointer, size, cudaHostAllocDefault));
+        GpuSystem.handle(GpuSystem.cudaHostAlloc(pointer, size, cudaHostAllocDefault));
       }
       else {
         throw new UnsupportedOperationException();
@@ -92,7 +92,7 @@ public enum MemoryType {
     
     @Override
     void free(Pointer ptr, int deviceId) {
-      CuDNN.cudaFreeHost(ptr);
+      GpuSystem.cudaFreeHost(ptr);
     }
   },
   /**
@@ -109,7 +109,7 @@ public enum MemoryType {
       }
       cudaDeviceProp properties = CudaPtr.getCurrentDeviceProperties();
       if (properties.canMapHostMemory == 1) {
-        CuDNN.handle(CuDNN.cudaHostAlloc(pointer, size, cudaHostAllocWriteCombined));
+        GpuSystem.handle(GpuSystem.cudaHostAlloc(pointer, size, cudaHostAllocWriteCombined));
       }
       else {
         throw new UnsupportedOperationException();
@@ -118,7 +118,7 @@ public enum MemoryType {
     
     @Override
     void free(Pointer ptr, int deviceId) {
-      CuDNN.cudaFreeHost(ptr);
+      GpuSystem.cudaFreeHost(ptr);
     }
   };
   

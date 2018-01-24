@@ -20,8 +20,8 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.lang.cudnn.CuDNN;
 import com.simiacryptus.mindseye.lang.cudnn.CudaPtr;
+import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.lang.TimedResult;
@@ -88,11 +88,12 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
     final int cols = data.get(0).length;
     return IntStream.range(0, cols).parallel().mapToObj(col -> {
       final Tensor[] tensors = IntStream.range(0, data.size()).mapToObj(row -> data.get(row)[col]).toArray(i -> new Tensor[i]);
+      TensorArray tensorArray = TensorArray.create(tensors);
       if (null == mask || col >= mask.length || !mask[col]) {
-        return new NNConstant(tensors);
+        return new NNConstant(tensorArray);
       }
       else {
-        return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+        return new NNResult(tensorArray, (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
           for (int index = 0; index < delta.length(); index++) {
             final Tensor dt = delta.get(index);
             final double[] d = dt.getData();
@@ -100,7 +101,7 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
             final double[] p = t.getData();
             buffer.get(new PlaceholderLayer<double[]>(p), p).addInPlace(d);
           }
-        }, tensors) {
+        }) {
   
           @Override
           public boolean isAlive() {
@@ -215,18 +216,18 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
       // Recommended JVM flags: -XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC
       if (gcEachIteration && TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - lastGc) > gcPeriod) {
         lastGc = System.currentTimeMillis();
-        CuDNN.cleanMemory();
+        GpuSystem.cleanMemory();
       }
       return timedResult.result;
     } catch (final Exception e) {
-      RecycleBinLong.DOUBLES.printNetProfiling(System.err);
+      RecycleBin.DOUBLES.printNetProfiling(System.err);
       if (retries > 0) {
         lastGc = System.currentTimeMillis();
-        CuDNN.cleanMemory();
+        GpuSystem.cleanMemory();
         CudaPtr.METRICS.invalidateAll();
         if (gcEachIteration && TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - lastGc) > gcPeriod) {
           lastGc = System.currentTimeMillis();
-          CuDNN.cleanMemory();
+          GpuSystem.cleanMemory();
         }
         return measure(retries - 1, monitor);
       }

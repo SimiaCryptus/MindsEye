@@ -93,7 +93,7 @@ public class ReshapeLayer extends NNLayer implements MultiPrecision<ReshapeLayer
       inObj[0].accumulate(buffer, tensorList);
       tensorList.freeRef();
     }) {
-      
+  
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive();

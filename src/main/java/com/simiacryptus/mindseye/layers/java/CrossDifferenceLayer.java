@@ -74,7 +74,19 @@ public class CrossDifferenceLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     assert 1 == inObj.length;
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(inObj[0].getData().stream().parallel().map(tensor -> {
+      final int inputDim = tensor.dim();
+      final int outputDim = (inputDim * inputDim - inputDim) / 2;
+      final Tensor result = new Tensor(outputDim);
+      final double[] inputData = tensor.getData();
+      final double[] resultData = result.getData();
+      IntStream.range(0, inputDim).forEach(x -> {
+        IntStream.range(x + 1, inputDim).forEach(y -> {
+          resultData[CrossDifferenceLayer.index(x, y, inputDim)] = inputData[x] - inputData[y];
+        });
+      });
+      return result;
+    }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       final NNResult input = inObj[0];
       if (input.isAlive()) {
         TensorArray tensorArray = TensorArray.wrap(data.stream().parallel().map(tensor -> {
@@ -94,23 +106,11 @@ public class CrossDifferenceLayer extends NNLayer {
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
-    }, inObj[0].getData().stream().parallel().map(tensor -> {
-      final int inputDim = tensor.dim();
-      final int outputDim = (inputDim * inputDim - inputDim) / 2;
-      final Tensor result = new Tensor(outputDim);
-      final double[] inputData = tensor.getData();
-      final double[] resultData = result.getData();
-      IntStream.range(0, inputDim).forEach(x -> {
-        IntStream.range(x + 1, inputDim).forEach(y -> {
-          resultData[CrossDifferenceLayer.index(x, y, inputDim)] = inputData[x] - inputData[y];
-        });
-      });
-      return result;
-    }).toArray(i -> new Tensor[i])) {
+    }) {
     
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
       
       @Override

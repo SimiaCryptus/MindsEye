@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.cudnn.CuDNN;
+import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.java.ActivationLayerTestBase;
 import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
@@ -84,7 +84,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   public void run(final NotebookOutput log) {
     String logName = "cuda_" + log.getName() + "_all.log";
     log.p(log.file((String) null, logName, "GPU Log"));
-    CuDNN.addLog(new PrintStream(log.file(logName)));
+    GpuSystem.addLog(new PrintStream(log.file(logName)));
 
     super.run(log);
   

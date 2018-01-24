@@ -33,7 +33,7 @@ public final class NNConstant extends NNResult {
    * @param data the data
    */
   public NNConstant(final Tensor... data) {
-    super((final DeltaSet<NNLayer> buffer, final TensorList tensorList) -> {}, data);
+    super(TensorArray.create(data), (final DeltaSet<NNLayer> buffer, final TensorList tensorList) -> {});
   }
   
   /**

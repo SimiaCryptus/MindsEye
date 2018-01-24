@@ -82,6 +82,8 @@ public class SysOutInterceptor extends PrintStream {
         fn.run();
         return new LoggedResult<>(null, buff.toString());
       }
+    } catch (final RuntimeException e) {
+      throw e;
     } catch (final Exception e) {
       throw new RuntimeException(e);
     } finally {
@@ -108,6 +110,8 @@ public class SysOutInterceptor extends PrintStream {
         ps.close();
         return new LoggedResult<>(result, buff.toString());
       }
+    } catch (final RuntimeException e) {
+      throw e;
     } catch (final Exception e) {
       throw new RuntimeException(e);
     } finally {

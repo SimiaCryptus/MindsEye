@@ -94,7 +94,7 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    if (!CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     assert 1 == inObj.length;
     assert 3 == inObj[0].getData().getDimensions().length;
     final int length = inObj[0].getData().length();
@@ -131,8 +131,8 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
     }) {
     
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
     
       @Override
@@ -159,7 +159,7 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
       throw new IllegalArgumentException(String.format("%d != %d", sourceDimensions[2], destinationDimensions[2]));
     //log.info(String.format("offset=%d,%d", offsetX, offsetY));
     final int[] viewDim = getViewDimensions(sourceDimensions, destinationDimensions);
-    final CudaResource<cudnnTensorDescriptor> sourceViewDescriptor = CuDNN.newTensorDescriptor(
+    final CudaResource<cudnnTensorDescriptor> sourceViewDescriptor = GpuSystem.newTensorDescriptor(
       precision.code,//
       length,//
       viewDim[2],//
@@ -169,7 +169,7 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
       sourceDimensions[1] * sourceDimensions[0],//
       sourceDimensions[0],//
       1);
-    final CudaResource<cudnnTensorDescriptor> destinationViewDescriptor = CuDNN.newTensorDescriptor(
+    final CudaResource<cudnnTensorDescriptor> destinationViewDescriptor = GpuSystem.newTensorDescriptor(
       precision.code,//
       length,//
       viewDim[2],//
@@ -200,12 +200,12 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
     assert sourceOffset + Tensor.dim(viewDim) <= Tensor.dim(sourceDimensions);
     assert destinationOffset + Tensor.dim(viewDim) <= Tensor.dim(destinationDimensions);
   
-    CuDNN.handle(CuDNN.cudnnTransformTensor(nncontext.getHandle(),
-                                            precision.getPointer(1.0),
-                                            sourceViewDescriptor.getPtr(), source.getPtr().withByteOffset(sourceOffset * precision.size),
-                                            precision.getPointer(0.0),
-                                            destinationViewDescriptor.getPtr(), destination.getPtr().withByteOffset(destinationOffset * precision.size)
-                                           ));
+    GpuSystem.handle(GpuHandle.cudnnTransformTensor(nncontext.getHandle(),
+                                                    precision.getPointer(1.0),
+                                                    sourceViewDescriptor.getPtr(), source.getPtr().withByteOffset(sourceOffset * precision.size),
+                                                    precision.getPointer(0.0),
+                                                    destinationViewDescriptor.getPtr(), destination.getPtr().withByteOffset(destinationOffset * precision.size)
+                                                   ));
   }
   
   /**

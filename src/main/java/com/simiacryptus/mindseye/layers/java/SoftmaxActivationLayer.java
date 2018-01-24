@@ -96,7 +96,7 @@ public class SoftmaxActivationLayer extends NNLayer {
       return exp.map(x -> x / sum);
     }).toArray(i -> new Tensor[i]);
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(outputA), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (inObj[0].isAlive()) {
         final Tensor[] passbackA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
           final double[] delta = data.get(dataIndex).getData();
@@ -120,11 +120,11 @@ public class SoftmaxActivationLayer extends NNLayer {
         inObj[0].accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
-    }, outputA) {
+    }) {
     
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
       
       @Override

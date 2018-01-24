@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.NNConstant;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -394,8 +395,9 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
                    .orElse("");
     });
     log.p("Which produces the following output:");
-    final Tensor[] output_target = network_target.eval(NNConstant.batchResultArray(input_target))
-                                                 .getData().stream().toArray(i -> new Tensor[i]);
+    TensorList result = network_target.eval(NNConstant.batchResultArray(input_target)).getData();
+    result.stream().forEach(x -> x.addRef());
+    final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
     log.code(() -> {
       return Stream.of(output_target).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
     });
@@ -426,8 +428,9 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
                    .reduce((a, b) -> a + "\n" + b)
                    .orElse("");
     });
-    final Tensor[] output_target = network.eval(NNConstant.batchResultArray(input_target))
-                                          .getData().stream().toArray(i -> new Tensor[i]);
+    TensorList result = network.eval(NNConstant.batchResultArray(input_target)).getData();
+    result.stream().forEach(x -> x.addRef());
+    final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
     //if (output_target.length != inputPrototype.length) return null;
     return trainAll("Input Convergence", log,
                     append(shuffleCopy(random, inputPrototype), output_target),
@@ -451,8 +454,9 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     log.code(() -> {
       return network_target.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
     });
-    final Tensor[] output_target = network_target.eval(NNConstant.batchResultArray(input_target))
-                                                 .getData().stream().toArray(i -> new Tensor[i]);
+    TensorList result = network_target.eval(NNConstant.batchResultArray(input_target)).getData();
+    result.stream().forEach(x -> x.addRef());
+    final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
     //if (output_target.length != input_target.length) return null;
     return trainAll("Model Convergence", log,
                     append(input_target, output_target),

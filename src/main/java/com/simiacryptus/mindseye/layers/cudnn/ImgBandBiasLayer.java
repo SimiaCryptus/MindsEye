@@ -98,7 +98,12 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
         return new NNResult(result.getData(), (DeltaSet<NNLayer> buffer, TensorList data) -> {
           throw new IllegalStateException();
         }) {
-          
+  
+          @Override
+          protected void _free() {
+    
+          }
+  
           @Override
           public boolean isAlive() {
             return false;
@@ -157,7 +162,7 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    if (!CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
   
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
@@ -168,9 +173,9 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
   
     return new NNResult(GpuHandle.run(nncontext -> {
       try {
-        final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+        final CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-        final CudaResource<cudnnTensorDescriptor> filterDescriptor = CuDNN.newTensorDescriptor(
+        final CudaResource<cudnnTensorDescriptor> filterDescriptor = GpuSystem.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
       
         assert 0 < bias.length;
@@ -178,10 +183,10 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
         final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch).asCopy();
         final cudnnHandle cudnnHandle = nncontext.getHandle();
         try {
-          CuDNN.handle(CuDNN.cudnnAddTensor(cudnnHandle, precision.getPointer(1.0),
-                                            filterDescriptor.getPtr(), filterPtr.getPtr(),
-                                            precision.getPointer(1.0),
-                                            inputDescriptor.getPtr(), inputData.getPtr()));
+          GpuSystem.handle(GpuHandle.cudnnAddTensor(cudnnHandle, precision.getPointer(1.0),
+                                                    filterDescriptor.getPtr(), filterPtr.getPtr(),
+                                                    precision.getPointer(1.0),
+                                                    inputDescriptor.getPtr(), inputData.getPtr()));
         } catch (final Throwable e) {
           throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
         }
@@ -196,17 +201,17 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
       if (!isFrozen()) {
         GpuHandle.apply(nncontext -> {
           final cudnnHandle cudnnHandle = nncontext.getHandle();
-          final CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+          final CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
             precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-          final CudaResource<cudnnTensorDescriptor> filterDescriptor = CuDNN.newTensorDescriptor(
+          final CudaResource<cudnnTensorDescriptor> filterDescriptor = GpuSystem.newTensorDescriptor(
             precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
           final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
           final CudaPtr filterBuffer = CudaPtr.allocate(nncontext.getDeviceNumber(), bias.length * 1l * precision.size, MemoryType.Managed, false);
           try {
-            CuDNN.handle(CuDNN.cudnnConvolutionBackwardBias(cudnnHandle, precision.getPointer(1.0),
-                                                            inputDescriptor.getPtr(), errorPtr.getPtr(),
-                                                            precision.getPointer(1.0),
-                                                            filterDescriptor.getPtr(), filterBuffer.getPtr()));
+            GpuSystem.handle(GpuHandle.cudnnConvolutionBackwardBias(cudnnHandle, precision.getPointer(1.0),
+                                                                    inputDescriptor.getPtr(), errorPtr.getPtr(),
+                                                                    precision.getPointer(1.0),
+                                                                    filterDescriptor.getPtr(), filterBuffer.getPtr()));
           } catch (final Throwable e) {
             throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
           }
@@ -225,8 +230,8 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
     }) {
     
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
     
       @Override

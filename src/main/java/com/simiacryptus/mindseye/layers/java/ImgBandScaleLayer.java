@@ -107,8 +107,10 @@ public class ImgBandScaleLayer extends NNLayer {
    */
   public NNResult eval(final NNResult input) {
     final double[] weights = getWeights();
-    assert input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    final Tensor[] outputA = input.getData().stream().parallel()
+    final TensorList inData = input.getData();
+    inData.addRef();
+    assert inData.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+    final Tensor[] outputA = inData.stream().parallel()
                                   .map(tensor -> {
                                     if (tensor.getDimensions().length != 3) {
                                       throw new IllegalArgumentException(Arrays.toString(tensor.getDimensions()));
@@ -120,7 +122,7 @@ public class ImgBandScaleLayer extends NNLayer {
                                     return tensor.mapCoords(c -> tensor.get(c) * weights[c.getCoords()[2]]);
                                   }).toArray(i -> new Tensor[i]);
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+    return new NNResult(TensorArray.wrap(outputA), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
       assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
       if (!isFrozen()) {
         final Delta<NNLayer> deltaBuffer = buffer.get(ImgBandScaleLayer.this, weights);
@@ -129,9 +131,9 @@ public class ImgBandScaleLayer extends NNLayer {
           int z = dimensions[2];
           int y = dimensions[1];
           int x = dimensions[0];
-          final double[] array = RecycleBinLong.DOUBLES.obtain(z);
+          final double[] array = RecycleBin.DOUBLES.obtain(z);
           final double[] deltaArray = delta.get(index).getData();
-          final double[] inputData = input.getData().get(index).getData();
+          final double[] inputData = inData.get(index).getData();
           for (int i = 0; i < z; i++) {
             for (int j = 0; j < y * x; j++) {
               //array[i] += deltaArray[i + z * j];
@@ -140,9 +142,10 @@ public class ImgBandScaleLayer extends NNLayer {
           }
           assert Arrays.stream(array).allMatch(v -> Double.isFinite(v));
           deltaBuffer.addInPlace(array);
-          RecycleBinLong.DOUBLES.recycle(array, array.length);
+          RecycleBin.DOUBLES.recycle(array, array.length);
         });
       }
+      inData.freeRef();
       if (input.isAlive()) {
         TensorArray tensorArray = TensorArray.wrap(delta.stream()
                                                         .map(t -> t.mapCoords((c) -> t.get(c) * weights[c.getCoords()[2]]))
@@ -150,11 +153,11 @@ public class ImgBandScaleLayer extends NNLayer {
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
-    }, outputA) {
+    }) {
   
       @Override
-      public void free() {
-        input.free();
+      protected void _free() {
+        input.freeRef();
       }
   
   

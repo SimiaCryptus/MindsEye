@@ -101,6 +101,7 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
   public NNResult eval(final NNResult... inObj) {
     assert 1 == inObj.length;
     final NNResult input = inObj[0];
+    input.getData().addRef();
     System.nanoTime();
     System.nanoTime();
     totalBatches++;
@@ -115,7 +116,6 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
       input.accumulate(buffer, data);
       data.stream().parallel().forEach(t -> {
         backpropStatistics.add(t.getData());
-        t.freeRef();
       });
     }) {
       
@@ -126,8 +126,8 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
       }
     
       @Override
-      public void free() {
-        input.free();
+      protected void _free() {
+        input.freeRef();
       }
     };
   }

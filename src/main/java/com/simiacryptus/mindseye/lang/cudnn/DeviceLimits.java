@@ -61,7 +61,7 @@ public enum DeviceLimits {
    * @return the long
    */
   public long get() {
-    return CuDNN.cudaDeviceGetLimit(id);
+    return GpuSystem.cudaDeviceGetLimit(id);
   }
   
   /**
@@ -70,6 +70,6 @@ public enum DeviceLimits {
    * @param value the value
    */
   public void set(long value) {
-    CuDNN.cudaDeviceSetLimit(id, value);
+    GpuSystem.cudaDeviceSetLimit(id, value);
   }
 }

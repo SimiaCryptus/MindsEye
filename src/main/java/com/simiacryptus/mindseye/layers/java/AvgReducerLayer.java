@@ -66,7 +66,17 @@ public class AvgReducerLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    Arrays.stream(inObj).forEach(x -> x.getData().addRef());
+    return new NNResult(TensorArray.wrap(IntStream.range(0, inObj[0].getData().length()).parallel().mapToDouble(dataIndex -> {
+      double sum = 0;
+      for (final NNResult element : inObj) {
+        final double[] input = element.getData().get(dataIndex).getData();
+        for (final double element2 : input) {
+          sum += element2 / input.length;
+        }
+      }
+      return sum;
+    }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       for (final NNResult in_l : inObj) {
         if (in_l.isAlive()) {
           final TensorList tensorList = TensorArray.wrap(IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {
@@ -82,20 +92,12 @@ public class AvgReducerLayer extends NNLayer {
           tensorList.freeRef();
         }
       }
-    }, IntStream.range(0, inObj[0].getData().length()).parallel().mapToDouble(dataIndex -> {
-      double sum = 0;
-      for (final NNResult element : inObj) {
-        final double[] input = element.getData().get(dataIndex).getData();
-        for (final double element2 : input) {
-          sum += element2 / input.length;
-        }
-      }
-      return sum;
-    }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])) {
-    
+      Arrays.stream(inObj).forEach(x -> x.getData().addRef());
+    }) {
+      
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
       
       @Override

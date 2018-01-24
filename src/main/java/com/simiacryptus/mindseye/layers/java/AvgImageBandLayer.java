@@ -75,7 +75,12 @@ public class AvgImageBandLayer extends NNLayer {
     final int[] inputDims = inData.get(0).getDimensions();
     assert 3 == inputDims.length;
   
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(inData.stream().map(data -> {
+      final DoubleStream doubleStream = IntStream.range(0, inputDims[2]).parallel().mapToDouble(band -> {
+        return data.coordStream(true).filter(e -> e.getCoords()[2] == band).mapToDouble(c -> data.get(c)).average().getAsDouble();
+      });
+      return new Tensor(1, 1, inputDims[2]).set(Tensor.getDoubles(doubleStream, inputDims[2]));
+    }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (in.isAlive()) {
         TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
           final Tensor tensor = inData.get(dataIndex);
@@ -88,16 +93,11 @@ public class AvgImageBandLayer extends NNLayer {
         in.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
-    }, inData.stream().map(data -> {
-      final DoubleStream doubleStream = IntStream.range(0, inputDims[2]).parallel().mapToDouble(band -> {
-        return data.coordStream(true).filter(e -> e.getCoords()[2] == band).mapToDouble(c -> data.get(c)).average().getAsDouble();
-      });
-      return new Tensor(1, 1, inputDims[2]).set(Tensor.getDoubles(doubleStream, inputDims[2]));
-    }).toArray(i -> new Tensor[i])) {
-    
+    }) {
+      
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
       
       @Override

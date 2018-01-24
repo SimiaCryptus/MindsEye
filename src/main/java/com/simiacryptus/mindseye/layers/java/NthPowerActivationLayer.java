@@ -119,23 +119,7 @@ public final class NthPowerActivationLayer extends NNLayer {
     final int itemCnt = inObj[0].getData().length();
     assert 0 < itemCnt;
     final Tensor inputGradientA[] = new Tensor[itemCnt];
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
-      if (inObj[0].isAlive()) {
-        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
-          final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
-          final double[] gradientData = inputGradientA[dataIndex].getData();
-          IntStream.range(0, passback.dim()).forEach(i -> {
-            final double v = gradientData[i];
-            if (Double.isFinite(v)) {
-              passback.set(i, data.get(dataIndex).getData()[i] * v);
-            }
-          });
-          return passback;
-        }).toArray(i -> new Tensor[i]));
-        inObj[0].accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
-      }
-    }, IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
+    return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);
       final Tensor output = new Tensor(inObj[0].getData().get(dataIndex).getDimensions());
       final Tensor gradient = new Tensor(input.dim());
@@ -156,11 +140,27 @@ public final class NthPowerActivationLayer extends NNLayer {
         NthPowerActivationLayer.nthPower(power, input, inputData, gradientData, outputData);
       }
       return output;
-    }).toArray(i -> new Tensor[i])) {
+    }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      if (inObj[0].isAlive()) {
+        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
+          final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
+          final double[] gradientData = inputGradientA[dataIndex].getData();
+          IntStream.range(0, passback.dim()).forEach(i -> {
+            final double v = gradientData[i];
+            if (Double.isFinite(v)) {
+              passback.set(i, data.get(dataIndex).getData()[i] * v);
+            }
+          });
+          return passback;
+        }).toArray(i -> new Tensor[i]));
+        inObj[0].accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
+      }
+    }) {
   
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
       
       @Override

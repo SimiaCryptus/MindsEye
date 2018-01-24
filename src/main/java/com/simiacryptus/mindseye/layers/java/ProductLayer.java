@@ -78,7 +78,8 @@ public class ProductLayer extends NNLayer {
       sum_A[dataIndex] = sum;
       return new Tensor(new double[]{sum}, 1);
     }).toArray(i -> new Tensor[i]);
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    Arrays.stream(inObj).forEach(x -> x.getData().addRef());
+    return new NNResult(TensorArray.wrap(outputA), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       for (final NNResult in_l : inObj) {
         if (in_l.isAlive()) {
           TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
@@ -93,11 +94,12 @@ public class ProductLayer extends NNLayer {
           tensorArray.freeRef();
         }
       }
-    }, outputA) {
+      Arrays.stream(inObj).forEach(x -> x.getData().addRef());
+    }) {
     
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
     
     

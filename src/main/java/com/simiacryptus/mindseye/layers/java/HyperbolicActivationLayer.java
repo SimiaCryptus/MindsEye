@@ -77,16 +77,64 @@ public class HyperbolicActivationLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    final int itemCnt = inObj[0].getData().length();
-    final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].getData().get(dataIndex);
+    final TensorList indata = inObj[0].getData();
+    indata.addRef();
+    final int itemCnt = indata.length();
+    return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
+      final Tensor input = indata.get(dataIndex);
       return input.map(v -> {
         final int sign = v < 0 ? negativeMode : 1;
         final double a = Math.max(0, weights.get(v < 0 ? 1 : 0));
         return sign * (Math.sqrt(Math.pow(a * v, 2) + 1) - a) / a;
       });
-    }).toArray(i -> new Tensor[i]);
-    return new Result(outputA, inObj[0]);
+    }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+      if (!isFrozen()) {
+        IntStream.range(0, delta.length()).forEach(dataIndex -> {
+          final double[] deltaData = delta.get(dataIndex).getData();
+          final double[] inputData = indata.get(dataIndex).getData();
+          final Tensor weightDelta = new Tensor(weights.getDimensions());
+          for (int i = 0; i < deltaData.length; i++) {
+            final double d = deltaData[i];
+            final double x = inputData[i];
+            final int sign = x < 0 ? negativeMode : 1;
+            final double a = Math.max(0, weights.getData()[x < 0 ? 1 : 0]);
+            weightDelta.add(x < 0 ? 1 : 0, -sign * d / (a * a * Math.sqrt(1 + Math.pow(a * x, 2))));
+          }
+          buffer.get(HyperbolicActivationLayer.this, weights.getData()).addInPlace(weightDelta.getData());
+        });
+      }
+      if (inObj[0].isAlive()) {
+        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+          final double[] deltaData = delta.get(dataIndex).getData();
+          final int[] dims = indata.get(dataIndex).getDimensions();
+          final Tensor passback = new Tensor(dims);
+          for (int i = 0; i < passback.dim(); i++) {
+            final double x = indata.get(dataIndex).getData()[i];
+            final double d = deltaData[i];
+            final int sign = x < 0 ? negativeMode : 1;
+            final double a = Math.max(0, weights.getData()[x < 0 ? 1 : 0]);
+            passback.set(i, sign * d * a * x / Math.sqrt(1 + a * x * a * x));
+          }
+          return passback;
+        }).toArray(i -> new Tensor[i]));
+        inObj[0].accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
+      }
+      indata.freeRef();
+    }) {
+    
+      @Override
+      protected void _free() {
+        inObj[0].freeRef();
+      }
+    
+    
+      @Override
+      public boolean isAlive() {
+        return inObj[0].isAlive() || !isFrozen();
+      }
+    };
+    
   }
   
   @Override
@@ -162,60 +210,4 @@ public class HyperbolicActivationLayer extends NNLayer {
     return Arrays.asList(weights.getData());
   }
   
-  private final class Result extends NNResult {
-  
-    private final NNResult inObj;
-    
-    private Result(final Tensor[] outputA, final NNResult inObj) {
-      super((final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
-    
-        if (!isFrozen()) {
-          IntStream.range(0, delta.length()).forEach(dataIndex -> {
-            final double[] deltaData = delta.get(dataIndex).getData();
-            final double[] inputData = inObj.getData().get(dataIndex).getData();
-            final Tensor weightDelta = new Tensor(weights.getDimensions());
-            for (int i = 0; i < deltaData.length; i++) {
-              final double d = deltaData[i];
-              final double x = inputData[i];
-              final int sign = x < 0 ? negativeMode : 1;
-              final double a = Math.max(0, weights.getData()[x < 0 ? 1 : 0]);
-              weightDelta.add(x < 0 ? 1 : 0, -sign * d / (a * a * Math.sqrt(1 + Math.pow(a * x, 2))));
-            }
-            buffer.get(HyperbolicActivationLayer.this, weights.getData()).addInPlace(weightDelta.getData());
-          });
-        }
-        if (inObj.isAlive()) {
-          TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-            final double[] deltaData = delta.get(dataIndex).getData();
-            final int[] dims = inObj.getData().get(dataIndex).getDimensions();
-            final Tensor passback = new Tensor(dims);
-            for (int i = 0; i < passback.dim(); i++) {
-              final double x = inObj.getData().get(dataIndex).getData()[i];
-              final double d = deltaData[i];
-              final int sign = x < 0 ? negativeMode : 1;
-              final double a = Math.max(0, weights.getData()[x < 0 ? 1 : 0]);
-              passback.set(i, sign * d * a * x / Math.sqrt(1 + a * x * a * x));
-            }
-            return passback;
-          }).toArray(i -> new Tensor[i]));
-          inObj.accumulate(buffer, tensorArray);
-          tensorArray.freeRef();
-        }
-      }, outputA);
-      this.inObj = inObj;
-    }
-  
-    @Override
-    public void free() {
-      inObj.free();
-    }
-    
-    
-    
-    @Override
-    public boolean isAlive() {
-      return inObj.isAlive() || !isFrozen();
-    }
-    
-  }
 }

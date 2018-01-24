@@ -217,7 +217,7 @@ public abstract class DAGNetwork extends NNLayer {
     final GraphEvaluationContext context = new GraphEvaluationContext();
     for (int i = 0; i < inputs.length; i++) {
       UUID key = inputHandles.get(i);
-      CountingNNResult value = new CountingNNResult(inputs[i], -1);
+      CountingNNResult value = new CountingNNResult(inputs[i]);
       context.inputs.put(key, value);
       context.calculated.put(key, new Singleton<CountingNNResult>().set(value));
     }

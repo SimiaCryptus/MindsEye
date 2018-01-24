@@ -86,7 +86,7 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
     strides = Tensor.getSkips(dims);
     //this.data = data;// Arrays.copyOf(data, data.length);
     if (null != data) {
-      this.data = RecycleBinLong.DOUBLES.obtain(data.length);// Arrays.copyOf(data, data.length);
+      this.data = RecycleBin.DOUBLES.obtain(data.length);// Arrays.copyOf(data, data.length);
       System.arraycopy(data, 0, this.data, 0, data.length);
     }
     assert isValid();
@@ -113,7 +113,7 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
     dimensions = Arrays.copyOf(dims, dims.length);
     strides = Tensor.getSkips(dims);
     if (null != data) {
-      this.data = RecycleBinLong.DOUBLES.obtain(data.length);// Arrays.copyOf(data, data.length);
+      this.data = RecycleBin.DOUBLES.obtain(data.length);// Arrays.copyOf(data, data.length);
       Arrays.parallelSetAll(this.data, i -> {
         final double v = data[i];
         return Double.isFinite(v) ? v : 0;
@@ -310,7 +310,7 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
    * @return the double [ ]
    */
   public static double[] getDoubles(final DoubleStream stream, final int dim) {
-    final double[] doubles = RecycleBinLong.DOUBLES.obtain(dim);
+    final double[] doubles = RecycleBin.DOUBLES.obtain(dim);
     stream.forEach(new DoubleConsumer() {
       int j = 0;
       
@@ -364,7 +364,7 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
    * @return the double [ ]
    */
   public static double[] toDoubles(final float[] data) {
-    final double[] buffer = RecycleBinLong.DOUBLES.obtain(data.length);
+    final double[] buffer = RecycleBin.DOUBLES.obtain(data.length);
     for (int i = 0; i < data.length; i++) {
       buffer[i] = data[i];
     }
@@ -570,7 +570,8 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
    * @return the tensor
    */
   public Tensor copy() {
-    return new Tensor(Arrays.copyOf(getData(), getData().length), Arrays.copyOf(dimensions, dimensions.length));
+    assertAlive();
+    return new Tensor(RecycleBin.DOUBLES.copyOf(getData(), getData().length), Arrays.copyOf(dimensions, dimensions.length));
   }
   
   /**
@@ -609,8 +610,8 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
   @Override
   protected void _free() {
     if (null != data) {
-      if (RecycleBinLong.DOUBLES.want(data.length)) {
-        RecycleBinLong.DOUBLES.recycle(data, data.length);
+      if (RecycleBin.DOUBLES.want(data.length)) {
+        RecycleBin.DOUBLES.recycle(data, data.length);
       }
       data = null;
     }
@@ -704,7 +705,7 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
       synchronized (this) {
         if (null == data) {
           final int length = Tensor.dim(dimensions);
-          data = RecycleBinLong.DOUBLES.obtain(length);
+          data = RecycleBin.DOUBLES.obtain(length);
           assert null != data;
           assert length == data.length;
         }

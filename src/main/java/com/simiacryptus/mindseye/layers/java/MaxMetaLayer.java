@@ -77,7 +77,9 @@ public class MaxMetaLayer extends NNLayer {
       indicies[i] = IntStream.range(0, itemCnt)
                              .mapToObj(x -> x).max(Comparator.comparing(dataIndex -> input.getData().get(dataIndex).getData()[itemNumber])).get();
     }
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(input.getData().get(0).mapIndex((v, c) -> {
+      return input.getData().get(indicies[c]).getData()[c];
+    })), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (input.isAlive()) {
         final Tensor delta = data.get(0);
         final Tensor feedback[] = new Tensor[itemCnt];
@@ -89,9 +91,7 @@ public class MaxMetaLayer extends NNLayer {
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
-    }, input.getData().get(0).mapIndex((v, c) -> {
-      return input.getData().get(indicies[c]).getData()[c];
-    })) {
+    }) {
   
       @Override
       public boolean isAlive() {
@@ -99,8 +99,8 @@ public class MaxMetaLayer extends NNLayer {
       }
   
       @Override
-      public void free() {
-        input.free();
+      protected void _free() {
+        input.freeRef();
       }
   
     };

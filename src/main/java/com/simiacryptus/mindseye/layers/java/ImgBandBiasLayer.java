@@ -141,12 +141,12 @@ public class ImgBandBiasLayer extends NNLayer {
                                   })
                                   .toArray(i -> new Tensor[i]);
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(outputA), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
       if (!isFrozen()) {
         final Delta<NNLayer> deltaBuffer = buffer.get(ImgBandBiasLayer.this, bias);
         data.stream().parallel().forEach(d -> {
-          final double[] array = RecycleBinLong.DOUBLES.obtain(bias.length);
+          final double[] array = RecycleBin.DOUBLES.obtain(bias.length);
           final double[] signal = d.getData();
           final int size = signal.length / bias.length;
           for (int i = 0; i < signal.length; i++) {
@@ -157,17 +157,17 @@ public class ImgBandBiasLayer extends NNLayer {
           }
           assert Arrays.stream(array).allMatch(v -> Double.isFinite(v));
           deltaBuffer.addInPlace(array);
-          RecycleBinLong.DOUBLES.recycle(array, array.length);
+          RecycleBin.DOUBLES.recycle(array, array.length);
         });
       }
       if (input.isAlive()) {
         input.accumulate(buffer, data);
       }
-    }, outputA) {
+    }) {
     
       @Override
-      public void free() {
-        input.free();
+      protected void _free() {
+        input.freeRef();
       }
       
       @Override

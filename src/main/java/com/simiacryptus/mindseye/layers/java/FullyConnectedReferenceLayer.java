@@ -121,7 +121,19 @@ public class FullyConnectedReferenceLayer extends NNLayer {
     assert Tensor.dim(inputDimensions) == Tensor.dim(this.inputDims) : Arrays.toString(inputDimensions) + " == " + Arrays.toString(this.inputDims);
     assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
   
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+    return new NNResult(TensorArray.wrap(IntStream.range(0, inputResult.getData().length()).mapToObj(index -> {
+      final Tensor input = inputResult.getData().get(index);
+      final Tensor output = new Tensor(outputDims);
+      weights.coordStream(false).forEach(c -> {
+        int[] coords = c.getCoords();
+        double prev = output.get(coords[1]);
+        double w = weights.get(c);
+        double i = input.get(coords[0]);
+        double value = prev + w * i;
+        output.set(coords[1], value);
+      });
+      return output;
+    }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
       assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
       if (!isFrozen()) {
         final Delta<NNLayer> deltaBuffer = buffer.get(FullyConnectedReferenceLayer.this, getWeights().getData());
@@ -150,23 +162,11 @@ public class FullyConnectedReferenceLayer extends NNLayer {
         inputResult.accumulate(buffer, tensorList);
         tensorList.freeRef();
       }
-    }, IntStream.range(0, inputResult.getData().length()).mapToObj(index -> {
-      final Tensor input = inputResult.getData().get(index);
-      final Tensor output = new Tensor(outputDims);
-      weights.coordStream(false).forEach(c -> {
-        int[] coords = c.getCoords();
-        double prev = output.get(coords[1]);
-        double w = weights.get(c);
-        double i = input.get(coords[0]);
-        double value = prev + w * i;
-        output.set(coords[1], value);
-      });
-      return output;
-    }).toArray(i -> new Tensor[i])) {
+    }) {
     
       @Override
-      public void free() {
-        inputResult.free();
+      protected void _free() {
+        inputResult.freeRef();
       }
       
       @Override

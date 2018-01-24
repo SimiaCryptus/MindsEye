@@ -208,6 +208,8 @@ public class MarkdownNotebookOutput implements NotebookOutput {
           Object result1 = null;
           try {
             result1 = fn.get();
+          } catch (final RuntimeException e) {
+            throw e;
           } catch (final Exception e) {
             throw new RuntimeException(e);
           }
@@ -272,6 +274,9 @@ public class MarkdownNotebookOutput implements NotebookOutput {
           out(fmt);
         }
         out("\n\n");
+        if (eval instanceof RuntimeException) {
+          throw ((RuntimeException) result.obj.result);
+        }
         if (eval instanceof Throwable) {
           throw new RuntimeException((Throwable) result.obj.result);
         }

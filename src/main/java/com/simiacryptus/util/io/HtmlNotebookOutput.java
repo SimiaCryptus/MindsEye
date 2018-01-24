@@ -123,6 +123,8 @@ public class HtmlNotebookOutput implements NotebookOutput {
           Object result1 = null;
           try {
             result1 = fn.get();
+          } catch (final RuntimeException e) {
+            throw e;
           } catch (final Exception e) {
             throw new RuntimeException(e);
           }

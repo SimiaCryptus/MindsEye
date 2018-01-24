@@ -94,7 +94,7 @@ public class DoubleBuffer<K> extends ReferenceCountingBase {
    */
   public DoubleBuffer<K> copy() {
     assertAlive();
-    return new DoubleBuffer<K>(layer, target, RecycleBinLong.DOUBLES.copyOf(delta, length()));
+    return new DoubleBuffer<K>(layer, target, RecycleBin.DOUBLES.copyOf(delta, length()));
   }
   
   /**
@@ -136,7 +136,7 @@ public class DoubleBuffer<K> extends ReferenceCountingBase {
     if (null == delta) {
       synchronized (this) {
         if (null == delta) {
-          delta = RecycleBinLong.DOUBLES.obtain(target.length);
+          delta = RecycleBin.DOUBLES.obtain(target.length);
         }
       }
     }
@@ -205,8 +205,8 @@ public class DoubleBuffer<K> extends ReferenceCountingBase {
   @Override
   protected void _free() {
     if (null != delta) {
-      if (RecycleBinLong.DOUBLES.want(delta.length)) {
-        RecycleBinLong.DOUBLES.recycle(delta, delta.length);
+      if (RecycleBin.DOUBLES.want(delta.length)) {
+        RecycleBin.DOUBLES.recycle(delta, delta.length);
       }
       delta = null;
     }

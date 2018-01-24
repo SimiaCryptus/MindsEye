@@ -71,33 +71,36 @@ public class StaticScalarLossLayer extends NNLayer {
     if (1 != inObj.length) throw new IllegalArgumentException();
     //if (inObj[0].getData().length() != 1) throw new IllegalArgumentException();
     assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
-    final Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {
-      final Tensor a = inObj[0].getData().get(dataIndex);
+    final NNResult in0 = inObj[0];
+    TensorList indata = in0.getData();
+    indata.addRef();
+    return new NNResult(TensorArray.wrap(IntStream.range(0, indata.length()).parallel().mapToObj(dataIndex -> {
+      final Tensor a = indata.get(dataIndex);
       final double diff = Math.abs(a.get(0) - getTarget());
       return new Tensor(new double[]{diff}, 1);
-    }).toArray(i -> new Tensor[i]);
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-      if (inObj[0].isAlive()) {
-        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {
-          final Tensor a = inObj[0].getData().get(dataIndex);
+      if (in0.isAlive()) {
+        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
+          final Tensor a = indata.get(dataIndex);
           final double deriv = data.get(dataIndex).get(0) * (a.get(0) - getTarget() < 0 ? -1 : 1);
           return new Tensor(new double[]{deriv}, 1);
         }).toArray(i -> new Tensor[i]));
-        inObj[0].accumulate(buffer, tensorArray);
+        in0.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
-    }, outputA) {
+      indata.freeRef();
+    }) {
     
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
     
     
       @Override
       public boolean isAlive() {
-        return inObj[0].isAlive();
+        return in0.isAlive();
       }
       
     };

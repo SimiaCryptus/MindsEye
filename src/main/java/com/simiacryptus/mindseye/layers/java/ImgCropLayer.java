@@ -116,7 +116,12 @@ public class ImgCropLayer extends NNLayer {
     final int[] inputDims = batch.getDimensions();
     assert 3 == inputDims.length;
     assert input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList error) -> {
+    return new NNResult(TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
+                                                  .mapToObj(dataIndex -> {
+                                                    final Tensor outputDims = new Tensor(sizeX, sizeY, inputDims[2]);
+                                                    return ImgCropLayer.copy(batch.get(dataIndex), outputDims);
+                                                  })
+                                                  .toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
       assert error.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
       if (input.isAlive()) {
         TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
@@ -128,16 +133,11 @@ public class ImgCropLayer extends NNLayer {
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
-    }, IntStream.range(0, batch.length()).parallel()
-                                 .mapToObj(dataIndex -> {
-                                   final Tensor outputDims = new Tensor(sizeX, sizeY, inputDims[2]);
-                                   return ImgCropLayer.copy(batch.get(dataIndex), outputDims);
-                                 })
-                                 .toArray(i -> new Tensor[i])) {
+    }) {
   
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
       
       @Override

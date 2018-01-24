@@ -73,7 +73,9 @@ public class BiasMetaLayer extends NNLayer {
                                       .parallel()
                                       .mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).mapIndex((v, c) -> v + inObj[1].getData().get(0).get(c)))
                                       .toArray(i -> new Tensor[i]);
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    Tensor tensor0 = tensors[0];
+    tensor0.addRef();
+    return new NNResult(TensorArray.wrap(tensors), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (inObj[0].isAlive()) {
         TensorArray delta = TensorArray.wrap(data.stream().map(t -> t.mapParallel(v -> v)).toArray(i -> new Tensor[i]));
         inObj[0].accumulate(buffer, delta);
@@ -83,17 +85,18 @@ public class BiasMetaLayer extends NNLayer {
         final ToDoubleFunction<Coordinate> f = (c) -> {
           return IntStream.range(0, itemCnt).mapToDouble(i -> data.get(i).get(c)).sum();
         };
-        final Tensor passback = tensors[0].mapCoords(f);
+        final Tensor passback = tensor0.mapCoords(f);
+        tensor0.freeRef();
         TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, inObj[1].getData().length())
                                                             .mapToObj(i -> i == 0 ? passback : passback.map(v -> 0)).toArray(i -> new Tensor[i]));
         inObj[1].accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
-    }, tensors) {
+    }) {
     
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
       
       @Override

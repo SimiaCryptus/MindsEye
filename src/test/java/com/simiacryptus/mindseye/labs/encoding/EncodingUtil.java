@@ -276,6 +276,8 @@ public class EncodingUtil {
   public static Tensor findBaseline(final PipelineNetwork decoder, final Tensor tensor) {
     try {
       return decoder.eval(tensor.map(x -> 0)).getData().get(0);
+    } catch (final RuntimeException e) {
+      throw e;
     } catch (final Exception e) {
       throw new RuntimeException(e);
     }
@@ -298,6 +300,8 @@ public class EncodingUtil {
     try {
       return decoderBand.eval(tensor).getData().get(0);
       //return log.image(t.toImage(), "");
+    } catch (final RuntimeException e) {
+      throw e;
     } catch (final Exception e) {
       throw new RuntimeException(e);
     }
@@ -329,6 +333,8 @@ public class EncodingUtil {
           Tensor.fromRGB(img)
         };
       }).sorted(Comparator.comparingInt(a -> System.identityHashCode(a) ^ seed)).limit(maxImages).toArray(i -> new Tensor[i][]);
+    } catch (final RuntimeException e) {
+      throw e;
     } catch (final IOException e) {
       throw new RuntimeException(e);
     }

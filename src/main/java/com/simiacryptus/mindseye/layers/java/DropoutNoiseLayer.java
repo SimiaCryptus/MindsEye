@@ -94,27 +94,55 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    final int itemCnt = inObj[0].getData().length();
+    final NNResult inputResult = inObj[0];
+    final TensorList inputData = inputResult.getData();
+    final int itemCnt = inputData.length();
     final Tensor[] mask = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       final Random random = new Random(seed);
-      final Tensor input = inObj[0].getData().get(dataIndex);
+      final Tensor input = inputData.get(dataIndex);
       final Tensor output = input.map(x -> {
         if (seed == -1) return 1;
         return random.nextDouble() < getValue() ? 0 : (1.0 / getValue());
       });
       return output;
     }).toArray(i -> new Tensor[i]);
-    final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final double[] input = inObj[0].getData().get(dataIndex).getData();
+    return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
+      final double[] input = inputData.get(dataIndex).getData();
       final double[] maskT = mask[dataIndex].getData();
-      final Tensor output = new Tensor(inObj[0].getData().get(dataIndex).getDimensions());
+      final Tensor output = new Tensor(inputData.get(dataIndex).getDimensions());
       final double[] outputData = output.getData();
       for (int i = 0; i < outputData.length; i++) {
         outputData[i] = input[i] * maskT[i];
       }
       return output;
-    }).toArray(i -> new Tensor[i]);
-    return new Result(outputA, inObj[0], mask);
+    }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+      if (inputResult.isAlive()) {
+        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+          final double[] deltaData = delta.get(dataIndex).getData();
+          final int[] dims = inputData.get(dataIndex).getDimensions();
+          final double[] maskData = mask[dataIndex].getData();
+          final Tensor passback = new Tensor(dims);
+          for (int i = 0; i < passback.dim(); i++) {
+            passback.set(i, maskData[i] * deltaData[i]);
+          }
+          return passback;
+        }).toArray(i -> new Tensor[i]));
+        inputResult.accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
+      }
+    }) {
+    
+      @Override
+      protected void _free() {
+        inputResult.freeRef();
+      }
+    
+      @Override
+      public boolean isAlive() {
+        return inputResult.isAlive() || !isFrozen();
+      }
+    
+    };
   }
   
   @Override
@@ -159,42 +187,5 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
     return Arrays.asList();
   }
   
-  private final class Result extends NNResult {
-  
-    private final NNResult inObj;
-    private final Tensor[] mask;
-  
-    private Result(final Tensor[] outputA, final NNResult inObj, final Tensor[] mask) {
-      super((final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
-        if (inObj.isAlive()) {
-          TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-            final double[] deltaData = delta.get(dataIndex).getData();
-            final int[] dims = inObj.getData().get(dataIndex).getDimensions();
-            final double[] maskData = mask[dataIndex].getData();
-            final Tensor passback = new Tensor(dims);
-            for (int i = 0; i < passback.dim(); i++) {
-              passback.set(i, maskData[i] * deltaData[i]);
-            }
-            return passback;
-          }).toArray(i -> new Tensor[i]));
-          inObj.accumulate(buffer, tensorArray);
-          tensorArray.freeRef();
-        }
-      }, outputA);
-      this.inObj = inObj;
-      this.mask = mask;
-    }
-  
-    @Override
-    public void free() {
-      inObj.free();
-    }
-    
-    @Override
-    public boolean isAlive() {
-      return inObj.isAlive() || !isFrozen();
-    }
-    
-  }
   
 }

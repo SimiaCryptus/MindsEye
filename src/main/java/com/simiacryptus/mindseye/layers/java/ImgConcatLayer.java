@@ -93,7 +93,7 @@ public class ImgConcatLayer extends NNLayer {
       }
       outputTensors.add(outputTensor);
     }
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(outputTensors.toArray(new Tensor[]{})), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       assert numBatches == data.length();
     
       final List<Tensor[]> splitBatches = new ArrayList<>();
@@ -126,11 +126,11 @@ public class ImgConcatLayer extends NNLayer {
         inObj[i].accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
-    }, outputTensors.toArray(new Tensor[]{})) {
+    }) {
     
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
       
       @Override

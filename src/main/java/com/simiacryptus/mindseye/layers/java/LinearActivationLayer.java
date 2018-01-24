@@ -119,8 +119,8 @@ public class LinearActivationLayer extends NNLayer {
       }
     
       @Override
-      public void free() {
-        inObj[0].free();
+      protected void _free() {
+        inObj[0].freeRef();
       }
     
     };

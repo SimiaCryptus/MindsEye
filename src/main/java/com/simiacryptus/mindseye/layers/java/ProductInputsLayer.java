@@ -62,6 +62,7 @@ public class ProductInputsLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     assert inObj.length > 1;
+    Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     for (int i = 1; i < inObj.length; i++) {
       final int dim0 = Tensor.dim(inObj[0].getData().get(0).getDimensions());
       final int dimI = Tensor.dim(inObj[i].getData().get(0).getDimensions());
@@ -69,15 +70,14 @@ public class ProductInputsLayer extends NNLayer {
         throw new IllegalArgumentException(Arrays.toString(inObj[0].getData().get(0).getDimensions()) + " != " + Arrays.toString(inObj[i].getData().get(0).getDimensions()));
       }
     }
-    final TensorList result = Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
+    return new NNResult(Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
       return TensorArray.wrap(IntStream.range(0, Math.max(l.length(), r.length())).parallel()
                                        .mapToObj(i1 -> {
                                         final Tensor left = l.get(1 == l.length() ? 0 : i1);
                                         final Tensor right = r.get(1 == r.length() ? 0 : i1);
                                         return Tensor.product(left, right);
                                       }).toArray(i -> new Tensor[i]));
-    }).get();
-    return new NNResult(result, (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+    }).get(), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
       assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
       for (final NNResult input : inObj) {
         if (input.isAlive()) {
@@ -110,6 +110,7 @@ public class ProductInputsLayer extends NNLayer {
           passback.freeRef();
         }
       }
+      Arrays.stream(inObj).forEach(x -> x.getData().freeRef());
     }) {
       
   
@@ -123,8 +124,8 @@ public class ProductInputsLayer extends NNLayer {
       }
   
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
   
     };

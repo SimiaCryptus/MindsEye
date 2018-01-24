@@ -103,7 +103,7 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
         PointSample measure = subject.measure(monitor);
         double mean = measure.getMean();
         monitor.log(String.format("RecursiveSubspace: %s <- %s", mean, Arrays.toString(weights)));
-        return new NNResult((DeltaSet<NNLayer> buffer, TensorList data) -> {
+        return new NNResult(TensorArray.wrap(new Tensor(mean)), (DeltaSet<NNLayer> buffer, TensorList data) -> {
           DoubleStream deltaStream = deltaLayers.stream().mapToDouble(layer -> {
             Delta<NNLayer> a = direction.getMap().get(layer);
             Delta<NNLayer> b = measure.delta.getMap().get(layer);
@@ -118,7 +118,7 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
               }).sum()), deltaStream);
           }
           buffer.get(self, weights).addInPlace(deltaStream.toArray());
-        }, new Tensor(mean)) {
+        }) {
           
           @Override
           public boolean isAlive() {

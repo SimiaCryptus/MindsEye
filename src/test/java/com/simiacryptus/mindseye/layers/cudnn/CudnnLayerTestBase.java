@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.cudnn.CuDNN;
 import com.simiacryptus.mindseye.lang.cudnn.GpuHandle;
+import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
@@ -52,9 +52,9 @@ public abstract class CudnnLayerTestBase extends LayerTestBase {
   @Override
   public void run(NotebookOutput log) {
     super.run(log);
-    log.p("CuDNN Statistics:");
+    log.p("GpuSystem Statistics:");
     log.code(() -> {
-      return TestUtil.toFormattedJson(CuDNN.getExecutionStatistics());
+      return TestUtil.toFormattedJson(GpuSystem.getExecutionStatistics());
     });
   }
   
@@ -67,12 +67,12 @@ public abstract class CudnnLayerTestBase extends LayerTestBase {
         String logName = "cuda_" + log.getName() + "_io.log";
         log.p(log.file((String) null, logName, "GPU Log"));
         apiLog = new PrintStream(log.file(logName));
-        CuDNN.addLog(apiLog);
+        GpuSystem.addLog(apiLog);
         return inner.test(log, component, inputPrototype);
       } finally {
         if (null != apiLog) {
           apiLog.close();
-          CuDNN.apiLog.remove(apiLog);
+          GpuSystem.apiLog.remove(apiLog);
         }
       }
     };
@@ -87,12 +87,12 @@ public abstract class CudnnLayerTestBase extends LayerTestBase {
         String logName = "cuda_" + log.getName() + "_perf.log";
         log.p(log.file((String) null, logName, "GPU Log"));
         apiLog = new PrintStream(log.file(logName));
-        CuDNN.addLog(apiLog);
+        GpuSystem.addLog(apiLog);
         return inner.test(log, component, inputPrototype);
       } finally {
         if (null != apiLog) {
           apiLog.close();
-          CuDNN.apiLog.remove(apiLog);
+          GpuSystem.apiLog.remove(apiLog);
         }
       }
     };

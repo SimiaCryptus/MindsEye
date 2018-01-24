@@ -61,6 +61,7 @@ public class SumInputsLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
+    Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     return new NNResult(Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
       assert l.length() == r.length() || 1 == l.length() || 1 == r.length();
       return TensorArray.wrap(IntStream.range(0, l.length()).parallel()
@@ -93,11 +94,12 @@ public class SumInputsLayer extends NNLayer {
           data1.freeRef();
         }
       }
+      Arrays.stream(inObj).forEach(x -> x.getData().freeRef());
     }) {
   
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
       
       @Override

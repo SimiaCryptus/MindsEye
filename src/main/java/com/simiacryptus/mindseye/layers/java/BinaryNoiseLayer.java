@@ -112,8 +112,8 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
     }) {
     
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
     
     

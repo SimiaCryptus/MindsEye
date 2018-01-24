@@ -74,7 +74,7 @@ public class MeanSqLossLayer extends NNLayer {
       throw new IllegalArgumentException(leftLength + " != " + rightLength);
     }
     final Tensor diffs[] = new Tensor[leftLength];
-    final Tensor[] outputA = IntStream.range(0, leftLength).parallel().mapToObj(dataIndex -> {
+    return new NNResult(TensorArray.wrap(IntStream.range(0, leftLength).parallel().mapToObj(dataIndex -> {
       final Tensor a = inObj[0].getData().get(1 == leftLength ? 0 : dataIndex);
       final Tensor b = inObj[1].getData().get(1 == rightLength ? 0 : dataIndex);
       if (a.dim() != b.dim()) {
@@ -83,8 +83,7 @@ public class MeanSqLossLayer extends NNLayer {
       final Tensor r = a.minus(b);
       diffs[dataIndex] = r;
       return new Tensor(new double[]{r.sumSq() / r.dim()}, 1);
-    }).toArray(i -> new Tensor[i]);
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (inObj[0].isAlive() || inObj[1].isAlive()) {
         if (inObj[0].isAlive()) {
           Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
@@ -109,11 +108,11 @@ public class MeanSqLossLayer extends NNLayer {
           array.freeRef();
         }
       }
-    }, outputA) {
+    }) {
     
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
       
       @Override

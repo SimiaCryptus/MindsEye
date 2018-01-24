@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.cudnn.CuDNN;
+import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -57,10 +57,10 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
     String logName = "cuda_" + log.getName() + "_all.log";
     log.p(log.file((String) null, logName, "GPU Log"));
     PrintStream apiLog = new PrintStream(log.file(logName));
-    CuDNN.addLog(apiLog);
+    GpuSystem.addLog(apiLog);
     super.run(log);
     apiLog.close();
-    CuDNN.apiLog.remove(apiLog);
+    GpuSystem.apiLog.remove(apiLog);
   }
   
   @Override

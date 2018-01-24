@@ -77,6 +77,8 @@ public class LocalSparkTrainable extends SparkTrainable {
         final Stream<Tensor[]> stream = Arrays.stream(array).flatMap(i -> i.stream());
         final Iterator<Tensor[]> iterator = stream.iterator();
         return new PartitionTask(network).call(iterator).next();
+      } catch (final RuntimeException e) {
+        throw e;
       } catch (final Exception e) {
         throw new RuntimeException(e);
       }

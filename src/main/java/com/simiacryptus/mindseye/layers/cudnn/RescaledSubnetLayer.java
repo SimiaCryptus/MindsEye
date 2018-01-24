@@ -23,7 +23,7 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
-import com.simiacryptus.mindseye.lang.cudnn.CuDNN;
+import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +34,7 @@ import java.util.Map;
 
 /**
  * This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work
- * across larger image regions. Implemented via CuDNN.
+ * across larger image regions. Implemented via GpuSystem.
  */
 @SuppressWarnings("serial")
 public class RescaledSubnetLayer extends NNLayer implements MultiPrecision<RescaledSubnetLayer> {
@@ -96,7 +96,7 @@ public class RescaledSubnetLayer extends NNLayer implements MultiPrecision<Resca
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    if (!CuDNN.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     log.warn("Not Implemented: " + getClass().getCanonicalName());
     return getCompatibilityLayer().eval(inObj);
   }

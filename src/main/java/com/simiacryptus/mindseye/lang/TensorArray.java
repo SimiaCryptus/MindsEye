@@ -107,6 +107,8 @@ public class TensorArray extends ReferenceCountingBase implements TensorList {
       for (final Tensor d : data) {
         d.freeRef();
       }
+    } catch (final RuntimeException e) {
+      throw e;
     } catch (final Throwable e) {
       throw new RuntimeException(e);
     }

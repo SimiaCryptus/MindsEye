@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.util.function.ToIntFunction;
 
 /**
- * A managed resource containing a native CuDNN resource, bound to its lifecycle with a prearranged destructor.
+ * A managed resource containing a native GpuSystem resource, bound to its lifecycle with a prearranged destructor.
  *
  * @param <T> the type parameter
  */
@@ -59,9 +59,9 @@ public class CudaResource<T> extends CudaResourceBase<T> {
    */
   protected void _free() {
     try {
-      CuDNN.withDevice(deviceId, () -> {
+      GpuSystem.withDevice(deviceId, () -> {
         if (isActiveObj()) {
-          CuDNN.handle(this.destructor.applyAsInt(ptr));
+          GpuSystem.handle(this.destructor.applyAsInt(ptr));
         }
       });
     } catch (final Throwable e) {

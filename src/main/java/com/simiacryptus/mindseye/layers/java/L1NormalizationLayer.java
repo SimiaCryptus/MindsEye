@@ -73,13 +73,13 @@ public class L1NormalizationLayer extends NNLayer {
   public NNResult eval(final NNResult... input) {
     final NNResult in = input[0];
     final TensorList inData = in.getData();
-    final Tensor[] output = IntStream.range(0, inData.length()).mapToObj(dataIndex -> {
+    inData.addRef();
+    return new NNResult(TensorArray.wrap(IntStream.range(0, inData.length()).mapToObj(dataIndex -> {
       final Tensor value = inData.get(dataIndex);
       final double sum = value.sum();
       if (!Double.isFinite(sum) || 0 == sum) return value;
       return value.scale(1.0 / sum);
-    }).toArray(i -> new Tensor[i]);
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList outDelta) -> {
+    }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList outDelta) -> {
       if (in.isAlive()) {
         final Tensor[] passbackArray = IntStream.range(0, outDelta.length()).mapToObj(dataIndex -> {
           final double[] value = inData.get(dataIndex).getData();
@@ -95,16 +95,17 @@ public class L1NormalizationLayer extends NNLayer {
           }
           return passback;
         }).toArray(i -> new Tensor[i]);
+        inData.freeRef();
         assert Arrays.stream(passbackArray).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         TensorArray tensorArray = TensorArray.wrap(passbackArray);
         in.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
-    }, output) {
+    }) {
     
       @Override
-      public void free() {
-        Arrays.stream(input).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(input).forEach(nnResult -> nnResult.freeRef());
       }
     
     

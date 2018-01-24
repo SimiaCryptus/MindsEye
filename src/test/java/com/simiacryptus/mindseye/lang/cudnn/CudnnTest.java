@@ -64,10 +64,10 @@ public class CudnnTest extends NotebookReportBase {
   private void allocationOverflow(NotebookOutput log) {
     String logName = "cuda_" + log.getName() + ".log";
     PrintStream apiLog = new PrintStream(log.file(logName));
-    CuDNN.addLog(apiLog);
+    GpuSystem.addLog(apiLog);
     log.p(log.file((String) null, logName, "GPU Log"));
     GpuHandle.forEach(ctx -> {
-      log.h1("Device " + ctx.getDeviceNumber() + ": " + CuDNN.getDeviceName(ctx.getDeviceNumber()));
+      log.h1("Device " + ctx.getDeviceNumber() + ": " + GpuDevice.getDeviceName(ctx.getDeviceNumber()));
       try {
         log.code(() -> {
           ArrayList<Object> list = new ArrayList<>();
@@ -85,11 +85,11 @@ public class CudnnTest extends NotebookReportBase {
           }
         });
       } catch (Exception e) {
-        CuDNN.cleanMemory();
+        GpuSystem.cleanMemory();
         e.printStackTrace(System.out);
       }
     });
-    CuDNN.removeLog(apiLog);
+    GpuSystem.removeLog(apiLog);
   }
   
   /**
@@ -103,7 +103,7 @@ public class CudnnTest extends NotebookReportBase {
   private void memoryTransfer(NotebookOutput log) {
     String logName = "cuda_" + log.getName() + ".log";
     PrintStream apiLog = new PrintStream(log.file(logName));
-    CuDNN.addLog(apiLog);
+    GpuSystem.addLog(apiLog);
     log.p(log.file((String) null, logName, "GPU Log"));
     int _size = 8;
     for (int i = 0; i < 50; i++) {
@@ -113,7 +113,7 @@ public class CudnnTest extends NotebookReportBase {
       if (_size < 0) break;
       if (size > 512 * 1024 * 1204) break;
     }
-    CuDNN.removeLog(apiLog);
+    GpuSystem.removeLog(apiLog);
   }
   
   private void memoryTransfer(NotebookOutput log, int... size) {
@@ -126,7 +126,7 @@ public class CudnnTest extends NotebookReportBase {
     log.code(() -> {
       CudaPtr write = GpuHandle.run(ctx -> {
         TimedResult<CudaPtr> timedResult = TimedResult.time(() -> CudaPtr.getCudaPtr(Precision.Double, original));
-        logger.info(String.format("Wrote %d bytes in %.4f seconds, Device %d: %s", size, timedResult.seconds(), ctx.getDeviceNumber(), CuDNN.getDeviceName(ctx.getDeviceNumber())));
+        logger.info(String.format("Wrote %d bytes in %.4f seconds, Device %d: %s", size, timedResult.seconds(), ctx.getDeviceNumber(), GpuDevice.getDeviceName(ctx.getDeviceNumber())));
         return timedResult.result;
       });
       GpuHandle.forEach(ctx -> {
@@ -134,7 +134,7 @@ public class CudnnTest extends NotebookReportBase {
         TimedResult<CudaPtr> timedResult = TimedResult.time(() -> write.read(Precision.Double, readCopy.getData()));
         TimedResult<Boolean> timedVerify = TimedResult.time(() -> original.get(0).equals(readCopy));
         logger.info(String.format("Read %d bytes in %.4f seconds and verified in %.4fs using device %d: %s",
-                                  size, timedResult.seconds(), timedVerify.seconds(), ctx.getDeviceNumber(), CuDNN.getDeviceName(ctx.getDeviceNumber())));
+                                  size, timedResult.seconds(), timedVerify.seconds(), ctx.getDeviceNumber(), GpuDevice.getDeviceName(ctx.getDeviceNumber())));
         if (!timedVerify.result)
           Assert.assertTrue(original.prettyPrint() + " != " + readCopy.prettyPrint(), timedVerify.result);
       });
@@ -152,7 +152,7 @@ public class CudnnTest extends NotebookReportBase {
   private void tensorLists(NotebookOutput log) {
     String logName = "cuda_" + log.getName() + ".log";
     PrintStream apiLog = new PrintStream(log.file(logName));
-    CuDNN.addLog(apiLog);
+    GpuSystem.addLog(apiLog);
     log.p(log.file((String) null, logName, "GPU Log"));
     int size = 8;
     for (int i = 0; i < 50; i++) {
@@ -164,7 +164,7 @@ public class CudnnTest extends NotebookReportBase {
       if (size < 0) break;
       if (size > memoryLoadCoeff * 256 * 1024 * 1204) break;
     }
-    CuDNN.removeLog(apiLog);
+    GpuSystem.removeLog(apiLog);
   }
   
   private void testTensorList(NotebookOutput log, int[] dimensions, int length, double tolerance, int accumulations) {
@@ -179,14 +179,14 @@ public class CudnnTest extends NotebookReportBase {
       TensorList original = originalTiming.result;
       AtomicReference<TensorList> mutableGpuData = new AtomicReference<>(GpuHandle.run(ctx -> {
         TimedResult<CudaPtr> timedResult = TimedResult.time(() -> CudaPtr.getCudaPtr(Precision.Double, original));
-        logger.info(String.format("Wrote %s in %.4f seconds, Device %d: %s", Arrays.toString(dimensions), timedResult.seconds(), ctx.getDeviceNumber(), CuDNN.getDeviceName(ctx.getDeviceNumber())));
+        logger.info(String.format("Wrote %s in %.4f seconds, Device %d: %s", Arrays.toString(dimensions), timedResult.seconds(), ctx.getDeviceNumber(), GpuDevice.getDeviceName(ctx.getDeviceNumber())));
         return GpuTensorList.create(timedResult.result, length, dimensions, Precision.Double);
       }));
       GpuHandle.forEach(ctx -> {
         TimedResult<TensorList> timedResult = TimedResult.time(() -> (mutableGpuData.get() instanceof GpuTensorList) ? ((GpuTensorList) mutableGpuData.get()).getHeapCopy() : mutableGpuData.get());
         TimedResult<Boolean> timedVerify = TimedResult.time(() -> original.minus(timedResult.result).stream().flatMapToDouble(x -> Arrays.stream(x.getData())).map(x -> Math.abs(x)).max().getAsDouble() < tolerance);
         logger.info(String.format("Read %s in %.4f seconds and verified in %.4fs using device %d: %s",
-                                  Arrays.toString(dimensions), timedResult.seconds(), timedVerify.seconds(), ctx.getDeviceNumber(), CuDNN.getDeviceName(ctx.getDeviceNumber())));
+                                  Arrays.toString(dimensions), timedResult.seconds(), timedVerify.seconds(), ctx.getDeviceNumber(), GpuDevice.getDeviceName(ctx.getDeviceNumber())));
         if (!timedVerify.result)
           Assert.assertTrue(original.prettyPrint() + " != " + timedResult.result.prettyPrint(), timedVerify.result);
       });
@@ -202,7 +202,7 @@ public class CudnnTest extends NotebookReportBase {
             mutableGpuData.updateAndGet(x -> x.add(timedWrite.result));
           });
           logger.info(String.format("Wrote in %.4f seconds and accumulated %s in %.4f seconds, Device %d: %s",
-                                    timedAccumulation.seconds(), Arrays.toString(dimensions), timedWrite.seconds(), ctx.getDeviceNumber(), CuDNN.getDeviceName(ctx.getDeviceNumber())));
+                                    timedAccumulation.seconds(), Arrays.toString(dimensions), timedWrite.seconds(), ctx.getDeviceNumber(), GpuDevice.getDeviceName(ctx.getDeviceNumber())));
         });
       });
       TimedResult<TensorList> finalResultTiming = TimedResult.time(() -> {
@@ -214,7 +214,7 @@ public class CudnnTest extends NotebookReportBase {
       GpuHandle.forEach(ctx -> {
         TimedResult<Boolean> timedVerify = TimedResult.time(() -> finalResult.minus(mutableGpuData.get()).stream().flatMapToDouble(x -> Arrays.stream(x.getData())).map(x -> Math.abs(x)).max().getAsDouble() < tolerance);
         logger.info(String.format("Read %s and verified in %.4fs using device %d: %s",
-                                  Arrays.toString(dimensions), timedVerify.seconds(), ctx.getDeviceNumber(), CuDNN.getDeviceName(ctx.getDeviceNumber())));
+                                  Arrays.toString(dimensions), timedVerify.seconds(), ctx.getDeviceNumber(), GpuDevice.getDeviceName(ctx.getDeviceNumber())));
         if (!timedVerify.result)
           Assert.assertTrue(finalResult.prettyPrint() + " != " + mutableGpuData.get().prettyPrint(), timedVerify.result);
       });
@@ -232,7 +232,7 @@ public class CudnnTest extends NotebookReportBase {
   private void tensorLists_multithreaded(NotebookOutput log) {
     String logName = "cuda_" + log.getName() + ".log";
     PrintStream apiLog = new PrintStream(log.file(logName));
-    CuDNN.addLog(apiLog);
+    GpuSystem.addLog(apiLog);
     log.p(log.file((String) null, logName, "GPU Log"));
     int size = 8;
     for (int i = 0; i < 50; i++) {
@@ -244,7 +244,7 @@ public class CudnnTest extends NotebookReportBase {
       if (size < 0) break;
       if (size > memoryLoadCoeff * 128 * 1024 * 1204) break;
     }
-    CuDNN.removeLog(apiLog);
+    GpuSystem.removeLog(apiLog);
   }
   
   private void testTensorListMT(NotebookOutput log, int[] dimensions, int length, double tolerance, int accumulations) {
@@ -264,7 +264,7 @@ public class CudnnTest extends NotebookReportBase {
           ListenableFuture<TensorList> mutableDataFuture = pool.submit(() -> GpuHandle.run(ctx -> {
             PrintStream oldHandler = SysOutInterceptor.INSTANCE.setCurrentHandler(out);
             TimedResult<CudaPtr> timedResult = TimedResult.time(() -> CudaPtr.getCudaPtr(Precision.Double, original));
-            logger.info(String.format("[%s] Wrote %s in %.4f seconds, Device %d: %s", workerNumber, Arrays.toString(dimensions), timedResult.seconds(), ctx.getDeviceNumber(), CuDNN.getDeviceName(ctx.getDeviceNumber())));
+            logger.info(String.format("[%s] Wrote %s in %.4f seconds, Device %d: %s", workerNumber, Arrays.toString(dimensions), timedResult.seconds(), ctx.getDeviceNumber(), GpuDevice.getDeviceName(ctx.getDeviceNumber())));
             SysOutInterceptor.INSTANCE.setCurrentHandler(oldHandler);
             return GpuTensorList.create(timedResult.result, length, dimensions, Precision.Double);
           }));
@@ -283,7 +283,7 @@ public class CudnnTest extends NotebookReportBase {
                   mutableGpuData.updateAndGet(y -> y.add(timedWrite.result));
                 });
                 logger.info(String.format("[%s] Wrote in %.4f seconds and accumulated %s in %.4f seconds, Device %d: %s", workerNumber,
-                                          timedAccumulation.seconds(), Arrays.toString(dimensions), timedWrite.seconds(), ctx.getDeviceNumber(), CuDNN.getDeviceName(ctx.getDeviceNumber())));
+                                          timedAccumulation.seconds(), Arrays.toString(dimensions), timedWrite.seconds(), ctx.getDeviceNumber(), GpuDevice.getDeviceName(ctx.getDeviceNumber())));
               });
             });
             SysOutInterceptor.INSTANCE.setCurrentHandler(oldHandler);
@@ -299,7 +299,7 @@ public class CudnnTest extends NotebookReportBase {
             GpuHandle.apply(ctx -> {
               TimedResult<Boolean> timedVerify = TimedResult.time(() -> finalResult.minus(write).stream().flatMapToDouble(x -> Arrays.stream(x.getData())).map(x -> Math.abs(x)).max().getAsDouble() < tolerance);
               logger.info(String.format("[%s] Read %s and verified in %.4fs using device %d: %s", workerNumber,
-                                        Arrays.toString(dimensions), timedVerify.seconds(), ctx.getDeviceNumber(), CuDNN.getDeviceName(ctx.getDeviceNumber())));
+                                        Arrays.toString(dimensions), timedVerify.seconds(), ctx.getDeviceNumber(), GpuDevice.getDeviceName(ctx.getDeviceNumber())));
               if (!timedVerify.result)
                 Assert.assertTrue(finalResult.prettyPrint() + " != " + write.prettyPrint(), timedVerify.result);
             });
@@ -326,6 +326,6 @@ public class CudnnTest extends NotebookReportBase {
   
   @Override
   protected Class<?> getTargetClass() {
-    return CuDNN.class;
+    return GpuSystem.class;
   }
 }

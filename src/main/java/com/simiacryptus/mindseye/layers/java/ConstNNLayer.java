@@ -70,17 +70,17 @@ public class ConstNNLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... array) {
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    return new NNResult(TensorArray.create(data), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (!isFrozen()) {
         data.stream().forEach(datum -> {
           buffer.get(ConstNNLayer.this, ConstNNLayer.this.data.getData()).addInPlace(datum.getData());
         });
       }
-    }, data) {
+    }) {
   
       @Override
-      public void free() {
-        Arrays.stream(array).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(array).forEach(nnResult -> nnResult.freeRef());
       }
       
       @Override

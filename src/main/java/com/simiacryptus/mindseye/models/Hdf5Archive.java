@@ -78,6 +78,8 @@ public class Hdf5Archive {
     this.filename = filename;
     try {
       this.file = new H5File(filename.getCanonicalPath(), H5F_ACC_RDONLY());
+    } catch (final RuntimeException e) {
+      throw e;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

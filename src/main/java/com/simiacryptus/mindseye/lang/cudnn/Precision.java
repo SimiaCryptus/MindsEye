@@ -29,8 +29,8 @@ import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 
 /**
- * This enum defines the levels or precision supported by (our support of) the CuDNN library. It also provides related
- * methods involving precision-dependant code.
+ * This enum defines the levels or precision supported by (our support of) the GpuSystem library. It also provides
+ * related methods involving precision-dependant code.
  */
 public enum Precision {
   /**

@@ -82,7 +82,7 @@ public class SumMetaLayer extends NNLayer {
                  .sum();
       lastResult = input.getData().get(0).mapCoords(f);
     }
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(lastResult), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (input.isAlive()) {
         final Tensor delta = data.get(0);
         final Tensor feedback[] = new Tensor[itemCnt];
@@ -98,11 +98,11 @@ public class SumMetaLayer extends NNLayer {
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
-    }, lastResult) {
+    }) {
     
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
       
       @Override

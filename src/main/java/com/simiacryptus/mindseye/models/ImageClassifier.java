@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.lang.NNConstant;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.cudnn.CuDNN;
+import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -82,7 +82,7 @@ public abstract class ImageClassifier {
           batch.stream().map(prefilter).toArray(i -> new Tensor[i])
         }));
         List<Tensor> tensorList = nnResult.getData().stream().collect(Collectors.toList());
-        garbageman.execute(CuDNN::cleanMemory);
+        garbageman.execute(GpuSystem::cleanMemory);
         return tensorList.stream().map(tensor -> {
           double[] predictionSignal = tensor.getData();
           int[] order = IntStream.range(0, 1000).mapToObj(x -> x)

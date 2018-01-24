@@ -104,7 +104,34 @@ public class MaxDropoutNoiseLayer extends NNLayer {
       }
       return output;
     }).toArray(i -> new Tensor[i]);
-    return new Result(outputA, inObj[0], mask);
+    return new NNResult(TensorArray.wrap(outputA), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+      if (inObj[0].isAlive()) {
+        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+          final double[] deltaData = delta.get(dataIndex).getData();
+          final int[] dims = inObj[0].getData().get(dataIndex).getDimensions();
+          final double[] maskData = mask[dataIndex].getData();
+          final Tensor passback = new Tensor(dims);
+          for (int i = 0; i < passback.dim(); i++) {
+            passback.set(i, maskData[i] * deltaData[i]);
+          }
+          return passback;
+        }).toArray(i -> new Tensor[i]));
+        inObj[0].accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
+      }
+    }) {
+    
+      @Override
+      protected void _free() {
+        inObj[0].freeRef();
+      }
+    
+      @Override
+      public boolean isAlive() {
+        return inObj[0].isAlive() || !isFrozen();
+      }
+    
+    };
   }
   
   private List<List<Coordinate>> getCellMap(final IntArray dims) {
@@ -132,42 +159,5 @@ public class MaxDropoutNoiseLayer extends NNLayer {
     return Arrays.asList();
   }
   
-  private final class Result extends NNResult {
-  
-    private final NNResult inObj;
-    private final Tensor[] mask;
-  
-    private Result(final Tensor[] outputA, final NNResult inObj, final Tensor[] mask) {
-      super((final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
-        if (inObj.isAlive()) {
-          TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-            final double[] deltaData = delta.get(dataIndex).getData();
-            final int[] dims = inObj.getData().get(dataIndex).getDimensions();
-            final double[] maskData = mask[dataIndex].getData();
-            final Tensor passback = new Tensor(dims);
-            for (int i = 0; i < passback.dim(); i++) {
-              passback.set(i, maskData[i] * deltaData[i]);
-            }
-            return passback;
-          }).toArray(i -> new Tensor[i]));
-          inObj.accumulate(buffer, tensorArray);
-          tensorArray.freeRef();
-        }
-      }, outputA);
-      this.inObj = inObj;
-      this.mask = mask;
-    }
-  
-    @Override
-    public void free() {
-      inObj.free();
-    }
-    
-    @Override
-    public boolean isAlive() {
-      return inObj.isAlive() || !isFrozen();
-    }
-    
-  }
   
 }

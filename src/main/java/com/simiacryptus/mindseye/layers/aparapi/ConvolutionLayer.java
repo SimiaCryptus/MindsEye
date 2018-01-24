@@ -34,7 +34,7 @@ import java.util.stream.IntStream;
 /**
  * This convolution layer is often used as the reference implementation for other convolution implementation. It uses
  * OpenCL via Aparapi to compile Java into GPU-accellerated kernels. Due to its simple implementation and limitations of
- * Aparapi, it is not as fast as CuDNN-powered layers.
+ * Aparapi, it is not as fast as GpuSystem-powered layers.
  */
 @SuppressWarnings("serial")
 public class ConvolutionLayer extends NNLayer {
@@ -167,6 +167,7 @@ public class ConvolutionLayer extends NNLayer {
     
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
+    batch.addRef();
     final int[] inputDims = batch.get(0).getDimensions();
     final int[] kernelDims = kernel.getDimensions();
     final double[] kernelData = ConvolutionLayer.this.kernel.getData();
@@ -183,13 +184,14 @@ public class ConvolutionLayer extends NNLayer {
     }
     assert Arrays.stream(output).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
   
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList error) -> {
+    return new NNResult(TensorArray.wrap(output), (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
       assert error.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
       if (!isFrozen()) {
         final double[][] inputBuffers = batch.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
         final double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
         final Tensor weightGradient = new Tensor(kernelDims);
         convolutionController.gradient(inputBuffers, weightGradient.getData(), outputBuffers);
+        batch.freeRef();
         buffer.get(ConvolutionLayer.this, kernelData).addInPlace(weightGradient.getData());
       }
       if (input.isAlive()) {
@@ -202,11 +204,11 @@ public class ConvolutionLayer extends NNLayer {
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
-    }, output) {
+    }) {
     
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
     
     

@@ -66,8 +66,10 @@ public class CrossDotMetaLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     final NNResult input = inObj[0];
-    final int itemCnt = input.getData().length();
-    final int dim = input.getData().get(0).dim();
+    final TensorList indata = input.getData();
+    indata.addRef();
+    final int itemCnt = indata.length();
+    final int dim = indata.get(0).dim();
     final Tensor results = new Tensor(dim, dim);
     for (int i = 0; i < dim; i++) {
       for (int j = 0; j < dim; j++) {
@@ -76,13 +78,13 @@ public class CrossDotMetaLayer extends NNLayer {
         }
         double v = 0;
         for (int k = 0; k < itemCnt; k++) {
-          final double[] kk = input.getData().get(k).getData();
+          final double[] kk = indata.get(k).getData();
           v += kk[i] * kk[j];
         }
         results.set(new int[]{i, j}, v);
       }
     }
-    return new NNResult((final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(results), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (input.isAlive()) {
         final Tensor delta = data.get(0);
         final Tensor feedback[] = new Tensor[itemCnt];
@@ -95,7 +97,7 @@ public class CrossDotMetaLayer extends NNLayer {
             }
             final double v = delta.get(i, j);
             for (int k = 0; k < itemCnt; k++) {
-              final double[] kk = input.getData().get(k).getData();
+              final double[] kk = indata.get(k).getData();
               feedback[k].add(i, v * kk[j]);
               feedback[k].add(j, v * kk[i]);
             }
@@ -106,11 +108,12 @@ public class CrossDotMetaLayer extends NNLayer {
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
-    }, results) {
+      indata.freeRef();
+    }) {
     
       @Override
-      public void free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.free());
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
       
       @Override

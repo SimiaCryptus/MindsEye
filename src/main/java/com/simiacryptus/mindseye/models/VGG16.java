@@ -45,6 +45,8 @@ public abstract class VGG16 extends ImageClassifier {
   public static VGG16 fromS3_HDF5() {
     try {
       return new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5"))));
+    } catch (final RuntimeException e) {
+      throw e;
     } catch (Throwable e) {
       throw new RuntimeException(e);
     }
@@ -59,6 +61,8 @@ public abstract class VGG16 extends ImageClassifier {
   public static VGG16 fromZip(File file) {
     try {
       return new VGG16_Zip(NNLayer.fromZip(new ZipFile(file)));
+    } catch (final RuntimeException e) {
+      throw e;
     } catch (Throwable e) {
       throw new RuntimeException(e);
     }
