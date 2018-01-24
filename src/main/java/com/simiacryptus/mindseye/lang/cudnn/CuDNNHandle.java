@@ -41,10 +41,10 @@ public class CuDNNHandle extends GpuDevice {
   /**
    * The constant gpuContexts.
    */
-  public static final StaticResourcePool<CuDNNHandle> POOL = new StaticResourcePool<>(loadGpuContexts());
   private static final boolean DISABLE = Boolean.parseBoolean(System.getProperty("DISABLE_CUDNN", Boolean.toString(false)));
   private static final boolean FORCE_SINGLE_GPU = Boolean.parseBoolean(System.getProperty("FORCE_SINGLE_GPU", Boolean.toString(false)));
   private static final int THREADS_PER_GPU = Integer.parseInt(System.getProperty("THREADS_PER_GPU", Integer.toString(3)));
+  public static final StaticResourcePool<CuDNNHandle> POOL = new StaticResourcePool<>(loadGpuContexts());
   public static final ThreadLocal<LinkedBlockingDeque<ReferenceCounting>> CLEANUP = new ThreadLocal<LinkedBlockingDeque<ReferenceCounting>>() {
     @Override
     protected LinkedBlockingDeque<ReferenceCounting> initialValue() {
@@ -227,16 +227,17 @@ public class CuDNNHandle extends GpuDevice {
       devices.clear();
       devices.addAll(devices2);
     }
-    logger.info(String.format("Found %s devices; using devices %s", deviceCount, devices));
-    return devices.stream()
-                  .flatMap(i -> {
-                    try {
-                      return IntStream.range(0, THREADS_PER_GPU).mapToObj(j -> new CuDNNHandle(i));
-                    } catch (Throwable e) {
-                      logger.warn(String.format("Error initializing device %d", i), e);
-                      return Stream.empty();
-                    }
-                  }).collect(Collectors.toList());
+    List<CuDNNHandle> handles = devices.stream()
+                                       .flatMap(i -> {
+                                         try {
+                                           return IntStream.range(0, THREADS_PER_GPU).mapToObj(j -> new CuDNNHandle(i));
+                                         } catch (Throwable e) {
+                                           logger.warn(String.format("Error initializing device %d", i), e);
+                                           return Stream.empty();
+                                         }
+                                       }).collect(Collectors.toList());
+    logger.info(String.format("Found %s devices; using %s handles per devices %s; %s handles", deviceCount, THREADS_PER_GPU, devices, handles.size()));
+    return handles;
   }
   
   /**

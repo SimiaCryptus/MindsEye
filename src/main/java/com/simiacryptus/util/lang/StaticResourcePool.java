@@ -19,6 +19,8 @@
 
 package com.simiacryptus.util.lang;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -40,7 +42,7 @@ public class StaticResourcePool<T> {
    */
   public StaticResourcePool(final List<T> items) {
     super();
-    this.all = items;
+    this.all = Collections.unmodifiableList(new ArrayList<>(items));
     pool.addAll(getAll());
   }
   
@@ -63,22 +65,6 @@ public class StaticResourcePool<T> {
     } finally {
       this.pool.add(poll);
     }
-  }
-  
-  /**
-   * Add.
-   *
-   * @param obj the obj
-   */
-  public void add(T obj) {
-    if (!this.all.contains(obj)) {
-      synchronized (this.all) {
-        if (!this.all.contains(obj)) {
-          this.all.add(obj);
-        }
-      }
-    }
-    this.pool.add(obj);
   }
   
   /**

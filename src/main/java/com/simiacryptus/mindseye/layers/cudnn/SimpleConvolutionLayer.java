@@ -279,7 +279,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
    * @return the compatibility layer
    */
   public NNLayer getCompatibilityLayer() {
-    log.info("Using compatibility layer for " + this);
+    log.info(String.format("Using compatibility layer for %s", this));
     int bands = (int) Math.sqrt(this.kernel.getDimensions()[2]);
     final com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer convolutionLayer = new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(this.kernel.getDimensions()[0], this.kernel.getDimensions()[1], this.kernel.getDimensions()[2], true);
     final Tensor tensor = new Tensor(kernel.getDimensions());
