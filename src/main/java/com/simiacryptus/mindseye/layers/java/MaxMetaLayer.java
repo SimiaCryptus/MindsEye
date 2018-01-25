@@ -68,6 +68,7 @@ public class MaxMetaLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
+        input.addRef();
     final NNResult input = inObj[0];
     final int itemCnt = input.getData().length();
     final int vectorSize = input.getData().get(0).dim();

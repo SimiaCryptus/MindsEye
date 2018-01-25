@@ -71,6 +71,7 @@ public class L1NormalizationLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... input) {
+        Arrays.stream(input).forEach(nnResult -> nnResult.addRef());
     final NNResult in = input[0];
     final TensorList inData = in.getData();
     inData.addRef();
@@ -95,8 +96,7 @@ public class L1NormalizationLayer extends NNLayer {
           }
           return passback;
         }).toArray(i -> new Tensor[i]);
-        inData.freeRef();
-        assert Arrays.stream(passbackArray).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+       assert Arrays.stream(passbackArray).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         TensorArray tensorArray = TensorArray.wrap(passbackArray);
         in.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
@@ -105,6 +105,7 @@ public class L1NormalizationLayer extends NNLayer {
     
       @Override
       protected void _free() {
+        inData.freeRef();
         Arrays.stream(input).forEach(nnResult -> nnResult.freeRef());
       }
     

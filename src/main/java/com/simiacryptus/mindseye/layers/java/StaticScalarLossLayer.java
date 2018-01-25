@@ -69,6 +69,7 @@ public class StaticScalarLossLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     if (1 != inObj.length) throw new IllegalArgumentException();
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     //if (inObj[0].getData().length() != 1) throw new IllegalArgumentException();
     assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
     final NNResult in0 = inObj[0];
@@ -89,11 +90,11 @@ public class StaticScalarLossLayer extends NNLayer {
         in0.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
-      indata.freeRef();
-    }) {
+   }) {
     
       @Override
       protected void _free() {
+      indata.freeRef();
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
     

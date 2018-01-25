@@ -76,6 +76,7 @@ public class LinearActivationLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     final TensorList inData = inObj[0].getData();
+        inObj[0].freeRef();
     inData.addRef();
     final int itemCnt = inData.length();
     final double scale = weights.get(0);
@@ -110,16 +111,16 @@ public class LinearActivationLayer extends NNLayer {
         inObj[0].accumulate(buffer, tensorList);
         tensorList.freeRef();
       }
-      inData.freeRef();
-    }) {
+   }) {
     
       @Override
       public boolean isAlive() {
-        return inObj[0].isAlive() || !isFrozen();
+       return inObj[0].isAlive() || !isFrozen();
       }
     
       @Override
       protected void _free() {
+      inData.freeRef();
         inObj[0].freeRef();
       }
     

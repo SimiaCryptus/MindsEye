@@ -66,6 +66,8 @@ public class ProductLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+      Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     final double[] sum_A = new double[inObj[0].getData().length()];
     final Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
       double sum = 1;
@@ -94,12 +96,12 @@ public class ProductLayer extends NNLayer {
           tensorArray.freeRef();
         }
       }
-      Arrays.stream(inObj).forEach(x -> x.getData().addRef());
-    }) {
+   }) {
     
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+      Arrays.stream(inObj).forEach(x -> x.getData().freeRef());
       }
     
     

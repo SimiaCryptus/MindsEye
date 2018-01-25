@@ -109,6 +109,7 @@ public class ImgCropLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
     
     final NNResult input = inObj[0];

@@ -70,6 +70,7 @@ public class ConstNNLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... array) {
+        Arrays.stream(array).forEach(nnResult -> nnResult.addRef());
     return new NNResult(TensorArray.create(data), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (!isFrozen()) {
         data.stream().forEach(datum -> {

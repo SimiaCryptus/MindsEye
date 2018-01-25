@@ -118,6 +118,7 @@ public class FullyConnectedReferenceLayer extends NNLayer {
   public NNResult eval(final NNResult... inObj) {
     final NNResult inputResult = inObj[0];
     final TensorList indata = inputResult.getData();
+        inputResult.addRef();
     indata.addRef();
     int[] inputDimensions = indata.getDimensions();
     assert Tensor.dim(inputDimensions) == Tensor.dim(this.inputDims) : Arrays.toString(inputDimensions) + " == " + Arrays.toString(this.inputDims);
@@ -164,11 +165,11 @@ public class FullyConnectedReferenceLayer extends NNLayer {
         inputResult.accumulate(buffer, tensorList);
         tensorList.freeRef();
       }
-      indata.freeRef();
-    }) {
+   }) {
     
       @Override
       protected void _free() {
+      indata.freeRef();
         inputResult.freeRef();
       }
       

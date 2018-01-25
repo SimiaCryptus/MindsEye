@@ -84,6 +84,7 @@ public class AssertDimensionsLayer extends NNLayer {
     if (!Arrays.equals(inputDims, dims)) {
       throw new IllegalArgumentException(Arrays.toString(inputDims) + " != " + Arrays.toString(dims));
     }
+    input.addRef();
     input.getData().addRef();
     return input;
   }

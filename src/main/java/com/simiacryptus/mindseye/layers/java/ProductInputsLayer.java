@@ -63,6 +63,7 @@ public class ProductInputsLayer extends NNLayer {
   public NNResult eval(final NNResult... inObj) {
     assert inObj.length > 1;
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     for (int i = 1; i < inObj.length; i++) {
       final int dim0 = Tensor.dim(inObj[0].getData().get(0).getDimensions());
       final int dimI = Tensor.dim(inObj[i].getData().get(0).getDimensions());
@@ -110,8 +111,7 @@ public class ProductInputsLayer extends NNLayer {
           passback.freeRef();
         }
       }
-      Arrays.stream(inObj).forEach(x -> x.getData().freeRef());
-    }) {
+   }) {
       
   
       @Override
@@ -126,6 +126,7 @@ public class ProductInputsLayer extends NNLayer {
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+      Arrays.stream(inObj).forEach(x -> x.getData().freeRef());
       }
   
     };

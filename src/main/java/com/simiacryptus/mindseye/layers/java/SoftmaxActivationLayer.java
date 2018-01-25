@@ -74,6 +74,7 @@ public class SoftmaxActivationLayer extends NNLayer {
   public NNResult eval(final NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
     final double[] sumA = new double[itemCnt];
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final Tensor expA[] = new Tensor[itemCnt];
     final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);

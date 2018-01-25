@@ -109,6 +109,7 @@ public class ImgBandScaleLayer extends NNLayer {
     final double[] weights = getWeights();
     final TensorList inData = input.getData();
     inData.addRef();
+        input.addRef();
     assert inData.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
     final Tensor[] outputA = inData.stream().parallel()
                                   .map(tensor -> {
@@ -145,8 +146,7 @@ public class ImgBandScaleLayer extends NNLayer {
           RecycleBin.DOUBLES.recycle(array, array.length);
         });
       }
-      inData.freeRef();
-      if (input.isAlive()) {
+     if (input.isAlive()) {
         TensorArray tensorArray = TensorArray.wrap(delta.stream()
                                                         .map(t -> t.mapCoords((c) -> t.get(c) * weights[c.getCoords()[2]]))
                                                         .toArray(i -> new Tensor[i]));
@@ -157,6 +157,7 @@ public class ImgBandScaleLayer extends NNLayer {
   
       @Override
       protected void _free() {
+      inData.freeRef();
         input.freeRef();
       }
   

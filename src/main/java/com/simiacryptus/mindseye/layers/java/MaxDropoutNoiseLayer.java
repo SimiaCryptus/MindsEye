@@ -85,6 +85,7 @@ public class MaxDropoutNoiseLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
+    inObj[0].addRef();
     final Tensor[] mask = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);
       final Tensor output = input.map(x -> 0);

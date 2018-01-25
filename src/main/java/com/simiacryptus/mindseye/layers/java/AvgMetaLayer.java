@@ -94,7 +94,7 @@ public class AvgMetaLayer extends NNLayer {
       passback = false;
       thisResult = lastResult;
     }
-    return new NNResult(TensorArray.create(thisResult), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+   return new NNResult(TensorArray.create(thisResult), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (passback && input.isAlive()) {
         final Tensor delta = data.get(0);
         final Tensor feedback[] = new Tensor[itemCnt];
@@ -108,8 +108,7 @@ public class AvgMetaLayer extends NNLayer {
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
-      thisResult.freeRef();
-    }) {
+   }) {
       
       
       @Override
@@ -119,6 +118,7 @@ public class AvgMetaLayer extends NNLayer {
     
       @Override
       protected void _free() {
+        thisResult.freeRef();
         input.freeRef();
       }
     

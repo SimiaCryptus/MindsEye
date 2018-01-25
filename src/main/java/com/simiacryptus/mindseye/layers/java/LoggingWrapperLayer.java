@@ -74,6 +74,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final NNResult[] wrappedInput = IntStream.range(0, inObj.length).mapToObj(i -> {
       final NNResult result = inObj[i];
       return new NNResult(result.getData(), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {

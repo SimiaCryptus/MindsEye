@@ -66,6 +66,7 @@ public class SumReducerLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     return new NNResult(TensorArray.wrap(IntStream.range(0, inObj[0].getData().length()).parallel().mapToDouble(dataIndex -> {
       double sum = 0;
@@ -91,11 +92,11 @@ public class SumReducerLayer extends NNLayer {
           tensorArray.freeRef();
         }
       }
-      Arrays.stream(inObj).forEach(x -> x.getData().freeRef());
-    }) {
+   }) {
   
       @Override
       protected void _free() {
+      Arrays.stream(inObj).forEach(x -> x.getData().freeRef());
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
       

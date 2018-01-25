@@ -164,6 +164,7 @@ public class ConvolutionLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();

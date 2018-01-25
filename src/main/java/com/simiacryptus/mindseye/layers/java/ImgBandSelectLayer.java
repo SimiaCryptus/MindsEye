@@ -81,6 +81,7 @@ public class ImgBandSelectLayer extends NNLayer {
     final int[] inputDims = batch.get(0).getDimensions();
     assert 3 == inputDims.length;
     final Tensor outputDims = new Tensor(inputDims[0], inputDims[1], bands.length);
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     return new NNResult(TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
                                                   .mapToObj(dataIndex -> outputDims.mapCoords((c) -> {
                                                     int[] coords = c.getCoords();
