@@ -193,16 +193,16 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
    * Basic Test
    */
   public static class Big extends FullyConnectedLayerTest {
+    static {
+      System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", Integer.toString(1024));
+    }
+    
     /**
      * Instantiates a new Big.
      */
     public Big() {
       super(new int[]{25088}, new int[]{4096});
       validateDifferentials = false;
-    }
-  
-    static {
-      System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", Integer.toString(1024));
     }
   
     @Override

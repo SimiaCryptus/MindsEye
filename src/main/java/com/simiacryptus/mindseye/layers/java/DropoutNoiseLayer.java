@@ -94,8 +94,8 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-   final NNResult inputResult = inObj[0];
-        inputResult.addRef();
+    final NNResult inputResult = inObj[0];
+    inputResult.addRef();
     final TensorList inputData = inputResult.getData();
     final int itemCnt = inputData.length();
     final Tensor[] mask = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
@@ -132,17 +132,17 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
         tensorArray.freeRef();
       }
     }) {
-    
+  
       @Override
       protected void _free() {
         inputResult.freeRef();
       }
-    
+  
       @Override
       public boolean isAlive() {
         return inputResult.isAlive() || !isFrozen();
       }
-    
+  
     };
   }
   

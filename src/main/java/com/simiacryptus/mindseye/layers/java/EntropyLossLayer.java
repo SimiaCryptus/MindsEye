@@ -67,7 +67,7 @@ public class EntropyLossLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final double zero_tol = 1e-12;
     final NNResult in0 = inObj[0];
     TensorList indata = in0.getData();

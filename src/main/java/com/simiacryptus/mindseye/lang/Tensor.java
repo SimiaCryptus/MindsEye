@@ -125,6 +125,15 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
   }
   
   /**
+   * Instantiates a new Tensor.
+   *
+   * @param dims the dims
+   */
+  public Tensor(final int... dims) {
+    this((double[]) null, dims);
+  }
+  
+  /**
    * From json tensor.
    *
    * @param json      the json
@@ -190,15 +199,6 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
       assert tensor.isValid();
       return tensor;
     }
-  }
-  
-  /**
-   * Instantiates a new Tensor.
-   *
-   * @param dims the dims
-   */
-  public Tensor(final int... dims) {
-    this((double[]) null, dims);
   }
   
   /**
@@ -435,15 +435,6 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
   }
   
   /**
-   * Is valid boolean.
-   *
-   * @return the boolean
-   */
-  public boolean isValid() {
-    return !isFinalized() && null == this.data || this.data.length == Tensor.dim(dimensions);
-  }
-  
-  /**
    * Permute int [ ].
    *
    * @param key  the key
@@ -468,6 +459,15 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
     int[] copy = Arrays.copyOf(dimensions, dimensions.length);
     ArrayUtils.reverse(copy);
     return copy;
+  }
+  
+  /**
+   * Is valid boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isValid() {
+    return !isFinalized() && null == this.data || this.data.length == Tensor.dim(dimensions);
   }
   
   /**

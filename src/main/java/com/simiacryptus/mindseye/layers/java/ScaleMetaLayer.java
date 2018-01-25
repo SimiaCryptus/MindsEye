@@ -68,8 +68,8 @@ public class ScaleMetaLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
-      Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-      Arrays.stream(inObj).forEach(x -> x.getData().addRef());
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+    Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     final Tensor[] tensors = IntStream.range(0, itemCnt).mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).mapIndex((v, c) -> v * inObj[1].getData().get(0).get(c))).toArray(i -> new Tensor[i]);
     Tensor tensor0 = tensors[0];
     tensor0.addRef();

@@ -38,6 +38,12 @@ import java.util.stream.Stream;
  * The type Gpu handle.
  */
 public class CuDNNHandle extends GpuDevice {
+  public static final ThreadLocal<LinkedBlockingDeque<ReferenceCounting>> CLEANUP = new ThreadLocal<LinkedBlockingDeque<ReferenceCounting>>() {
+    @Override
+    protected LinkedBlockingDeque<ReferenceCounting> initialValue() {
+      return new LinkedBlockingDeque<>();
+    }
+  };
   /**
    * The constant gpuContexts.
    */
@@ -45,14 +51,8 @@ public class CuDNNHandle extends GpuDevice {
   private static final boolean FORCE_SINGLE_GPU = Boolean.parseBoolean(System.getProperty("FORCE_SINGLE_GPU", Boolean.toString(false)));
   private static final int THREADS_PER_GPU = Integer.parseInt(System.getProperty("THREADS_PER_GPU", Integer.toString(3)));
   public static final StaticResourcePool<CuDNNHandle> POOL = new StaticResourcePool<>(loadGpuContexts());
-  public static final ThreadLocal<LinkedBlockingDeque<ReferenceCounting>> CLEANUP = new ThreadLocal<LinkedBlockingDeque<ReferenceCounting>>() {
-    @Override
-    protected LinkedBlockingDeque<ReferenceCounting> initialValue() {
-      return new LinkedBlockingDeque<>();
-    }
-  };
-  private final jcuda.jcudnn.cudnnHandle handle;
   private static final ThreadLocal<CuDNNHandle> threadContext = new ThreadLocal<>();
+  private final jcuda.jcudnn.cudnnHandle handle;
   
   /**
    * Instantiates a new Cu dnn.
@@ -250,12 +250,6 @@ public class CuDNNHandle extends GpuDevice {
       x.initThread();
       fn.accept(x);
     });
-  }
-  
-  public void registerForCleanup(ReferenceCounting... objs) {
-    Arrays.stream(objs).forEach(ReferenceCounting::assertAlive);
-    LinkedBlockingDeque<ReferenceCounting> list = CLEANUP.get();
-    Arrays.stream(objs).forEach(list::add);
   }
   
   /**
@@ -778,6 +772,12 @@ public class CuDNNHandle extends GpuDevice {
                   cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
     GpuSystem.handle(result);
     return algoArray[0];
+  }
+  
+  public void registerForCleanup(ReferenceCounting... objs) {
+    Arrays.stream(objs).forEach(ReferenceCounting::assertAlive);
+    LinkedBlockingDeque<ReferenceCounting> list = CLEANUP.get();
+    Arrays.stream(objs).forEach(list::add);
   }
   
   @Override

@@ -95,7 +95,7 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final NNResult input = inObj[0];
     if (!enabled) return input;
     final int[] dimensions = input.getData().getDimensions();
@@ -111,13 +111,13 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
     return new NNResult(mask, (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       input.accumulate(buffer, data);
     }) {
-    
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-    
-    
+  
+  
       @Override
       public boolean isAlive() {
         return input.isAlive();

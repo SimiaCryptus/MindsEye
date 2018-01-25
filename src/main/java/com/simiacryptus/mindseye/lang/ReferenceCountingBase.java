@@ -41,8 +41,8 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   private final AtomicBoolean isFreed = new AtomicBoolean(false);
   private final StackTraceElement[] createdBy = DEBUG_LIFECYCLE ? Thread.currentThread().getStackTrace() : null;
   private final ArrayList<StackTraceElement[]> addRefs = new ArrayList<>();
-  private volatile StackTraceElement[] finalizedBy = null;
   private final ArrayList<StackTraceElement[]> freeRefs = new ArrayList<>();
+  private volatile StackTraceElement[] finalizedBy = null;
   private volatile boolean isFinalized = false;
   
   private static String getString(StackTraceElement[] trace) {

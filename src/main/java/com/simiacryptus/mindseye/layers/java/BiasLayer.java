@@ -119,7 +119,7 @@ public class BiasLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
     TensorList input;
     if (0 == inObj.length) {
@@ -154,8 +154,8 @@ public class BiasLayer extends NNLayer {
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-    
-    
+  
+  
       @Override
       public boolean isAlive() {
         return 0 < inObj.length && inObj[0].isAlive() || !isFrozen();

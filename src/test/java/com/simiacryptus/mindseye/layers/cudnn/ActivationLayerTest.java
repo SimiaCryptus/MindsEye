@@ -85,7 +85,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
     String logName = "cuda_" + log.getName() + "_all.log";
     log.p(log.file((String) null, logName, "GPU Log"));
     GpuSystem.addLog(new PrintStream(log.file(logName)));
-
+  
     super.run(log);
   
     log.h3("Function Plots");

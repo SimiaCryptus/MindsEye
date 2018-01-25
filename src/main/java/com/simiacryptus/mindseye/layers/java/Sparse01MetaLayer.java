@@ -73,7 +73,7 @@ public class Sparse01MetaLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     final NNResult input = inObj[0];
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final int itemCnt = input.getData().length();
     final Tensor avgActivationArray = input.getData().get(0).mapIndex((v, c) ->
                                                                         IntStream.range(0, itemCnt)
@@ -110,7 +110,7 @@ public class Sparse01MetaLayer extends NNLayer {
         tensorArray.freeRef();
       }
     }) {
-    
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());

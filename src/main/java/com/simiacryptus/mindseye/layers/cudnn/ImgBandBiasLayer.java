@@ -91,7 +91,7 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
     log.info("Using compatibility layer for " + this);
     return new NNLayer() {
       com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer inner = this.as(com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer.class);
-    
+  
       @Override
       public NNResult eval(NNResult... array) {
         NNResult result = inner.eval(array);
@@ -110,12 +110,12 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
           }
         };
       }
-    
+  
       @Override
       public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
         throw new IllegalStateException();
       }
-    
+  
       @Override
       public List<double[]> state() {
         throw new IllegalStateException();
@@ -177,7 +177,7 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
         final CudaResource<cudnnTensorDescriptor> filterDescriptor = GpuSystem.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
-      
+  
         assert 0 < bias.length;
         final CudaPtr filterPtr = CudaPtr.allocate(nncontext.getDeviceNumber(), (long) (bias.length * precision.size), MemoryType.Managed, false).write(precision, bias);
         final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch).asCopy();

@@ -67,7 +67,7 @@ public class CrossDotMetaLayer extends NNLayer {
   public NNResult eval(final NNResult... inObj) {
     final NNResult input = inObj[0];
     final TensorList indata = input.getData();
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     indata.addRef();
     final int itemCnt = indata.length();
     final int dim = indata.get(0).dim();
@@ -90,7 +90,7 @@ public class CrossDotMetaLayer extends NNLayer {
         final Tensor delta = data.get(0);
         final Tensor feedback[] = new Tensor[itemCnt];
         Arrays.parallelSetAll(feedback, i -> new Tensor(dim));
-      
+  
         for (int i = 0; i < dim; i++) {
           for (int j = 0; j < dim; j++) {
             if (i == j) {
@@ -109,11 +109,11 @@ public class CrossDotMetaLayer extends NNLayer {
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
-   }) {
-    
+    }) {
+      
       @Override
       protected void _free() {
-      indata.freeRef();
+        indata.freeRef();
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
       

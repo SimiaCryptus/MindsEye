@@ -83,8 +83,8 @@ public class GaussianNoiseLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
-        inObj[0].addRef();
-        inObj[0].getData().addRef();
+    inObj[0].addRef();
+    inObj[0].getData().addRef();
     final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       final Random random = new Random(seed);
       final Tensor input = inObj[0].getData().get(dataIndex);
@@ -106,15 +106,15 @@ public class GaussianNoiseLayer extends NNLayer {
         }).toArray(i -> new Tensor[i]));
         inObj[0].accumulate(buffer, tensorArray);
         tensorArray.freeRef();
-     }
+      }
     }) {
-    
+  
       @Override
       protected void _free() {
         inObj[0].freeRef();
       }
-    
-    
+  
+  
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive() || !isFrozen();

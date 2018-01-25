@@ -99,12 +99,12 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
         tensorArray.freeRef();
       }
     }) {
-    
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-    
+  
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive();

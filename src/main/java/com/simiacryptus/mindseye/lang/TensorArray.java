@@ -64,6 +64,18 @@ public class TensorArray extends ReferenceCountingBase implements TensorList {
     return tensorArray;
   }
   
+  /**
+   * To string string.
+   *
+   * @param <T>   the type parameter
+   * @param limit the limit
+   * @param data  the data
+   * @return the string
+   */
+  public static <T> String toString(int limit, T... data) {
+    return (data.length < limit) ? Arrays.toString(data) : "[" + Arrays.stream(data).limit(limit).map(x -> x.toString()).reduce((a, b) -> a + ", " + b).get() + ", ...]";
+  }
+  
   @Override
   public Tensor get(final int i) {
     return data[i];
@@ -82,18 +94,6 @@ public class TensorArray extends ReferenceCountingBase implements TensorList {
   @Override
   public Stream<Tensor> stream() {
     return Arrays.stream(data);
-  }
-  
-  /**
-   * To string string.
-   *
-   * @param <T>   the type parameter
-   * @param limit the limit
-   * @param data  the data
-   * @return the string
-   */
-  public static <T> String toString(int limit, T... data) {
-    return (data.length < limit) ? Arrays.toString(data) : "[" + Arrays.stream(data).limit(limit).map(x -> x.toString()).reduce((a, b) -> a + ", " + b).get() + ", ...]";
   }
   
   @Override

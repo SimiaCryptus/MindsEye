@@ -76,7 +76,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
         int[] fullyconnectedOrder = {1, 0};
         PipelineNetwork model = new PipelineNetwork();
         Precision precision = Precision.Double;
-      
+  
         @Override
         public NNLayer call() throws Exception {
           //  model.add(ZeroPadding2D((1,1),input_shape=(3,224,224)))
@@ -468,7 +468,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           });
           return model;
         }
-      
+  
         protected void add(NNLayer layer) {
           if (layer instanceof Explodable) ((Explodable) layer).explode();
           int numberOfParameters = layer.state().stream().mapToInt(x -> x.length).sum();

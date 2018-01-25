@@ -55,17 +55,6 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
    */
   ConvolutionLayer convolutionLayer;
   
-  @Override
-  public void run(NotebookOutput log) {
-    String logName = "cuda_" + log.getName() + "_all.log";
-    log.p(log.file((String) null, logName, "GPU Log"));
-    PrintStream apiLog = new PrintStream(log.file(logName));
-    GpuSystem.addLog(apiLog);
-    super.run(log);
-    apiLog.close();
-    GpuSystem.apiLog.remove(apiLog);
-  }
-  
   /**
    * Instantiates a new Convolution layer apply.
    *
@@ -84,6 +73,17 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
     convolutionLayer.getKernel().set(() -> {
       return random(random);
     });
+  }
+  
+  @Override
+  public void run(NotebookOutput log) {
+    String logName = "cuda_" + log.getName() + "_all.log";
+    log.p(log.file((String) null, logName, "GPU Log"));
+    PrintStream apiLog = new PrintStream(log.file(logName));
+    GpuSystem.addLog(apiLog);
+    super.run(log);
+    apiLog.close();
+    GpuSystem.apiLog.remove(apiLog);
   }
   
   /**

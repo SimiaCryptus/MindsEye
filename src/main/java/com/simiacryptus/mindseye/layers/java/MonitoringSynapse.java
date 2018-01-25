@@ -102,7 +102,7 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     assert 1 == inObj.length;
     final NNResult input = inObj[0];
     input.getData().addRef();
-        input.addRef();
+    input.addRef();
     System.nanoTime();
     System.nanoTime();
     totalBatches++;
@@ -110,7 +110,7 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     forwardStatistics.clear();
     input.getData().stream().parallel().forEach(t -> {
       forwardStatistics.add(t.getData());
-   });
+    });
     return new NNResult(input.getData(), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       backpropStatistics.clear();
       input.accumulate(buffer, data);
@@ -124,10 +124,10 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
       public boolean isAlive() {
         return input.isAlive();
       }
-    
+  
       @Override
       protected void _free() {
-    input.getData().freeRef();
+        input.getData().freeRef();
         input.freeRef();
       }
     };

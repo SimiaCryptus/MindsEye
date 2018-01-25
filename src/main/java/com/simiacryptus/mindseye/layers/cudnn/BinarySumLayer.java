@@ -179,13 +179,13 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
         }
       });
     }) {
-    
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(x -> x.freeRef());
       }
-    
-    
+  
+  
       @Override
       public boolean isAlive() {
         for (final NNResult element : inObj)
@@ -194,7 +194,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
           }
         return false;
       }
-    
+  
     };
   }
   

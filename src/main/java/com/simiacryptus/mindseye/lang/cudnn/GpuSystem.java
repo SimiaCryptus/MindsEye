@@ -48,11 +48,6 @@ import java.util.stream.IntStream;
 public class GpuSystem {
   
   /**
-   * The constant logger.
-   */
-  protected static final Logger logger = LoggerFactory.getLogger(GpuSystem.class);
-  
-  /**
    * The constant INSTANCE.
    */
   public static final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
@@ -60,6 +55,10 @@ public class GpuSystem {
    * The constant apiLog.
    */
   public static final HashSet<PrintStream> apiLog = new HashSet<>();
+  /**
+   * The constant logger.
+   */
+  protected static final Logger logger = LoggerFactory.getLogger(GpuSystem.class);
   /**
    * The constant propertyCache.
    */
@@ -292,13 +291,13 @@ public class GpuSystem {
    */
   protected static final DoubleStatistics getForwardAlgorithm_execution = new DoubleStatistics();
   /**
-   * The constant gpuGeneration.
-   */
-  public static AtomicInteger gpuGeneration = new AtomicInteger(0);
-  /**
    * The constant syncLock.
    */
   protected static final Object syncLock = new Object();
+  /**
+   * The constant gpuGeneration.
+   */
+  public static AtomicInteger gpuGeneration = new AtomicInteger(0);
   
   /**
    * Instantiates a new Gpu system.

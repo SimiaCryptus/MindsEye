@@ -68,11 +68,6 @@ class CountingNNResult extends NNResult {
     inner.addRef();
   }
   
-  @Override
-  public CountingAccumulator getAccumulator() {
-    return (CountingAccumulator) super.getAccumulator();
-  }
-  
   /**
    * Mini stack trace string.
    *
@@ -86,6 +81,11 @@ class CountingNNResult extends NNResult {
         x.getFileName() + ":" + x.getLineNumber() :
         (x.getFileName() != null ? x.getFileName() : "(Unknown Source)"))).collect(Collectors.toList());
     return "[" + list.stream().reduce((a, b) -> a + ", " + b).get() + (stackTrace.length > max ? ", ..." : "") + "]";
+  }
+  
+  @Override
+  public CountingAccumulator getAccumulator() {
+    return (CountingAccumulator) super.getAccumulator();
   }
   
   @Override

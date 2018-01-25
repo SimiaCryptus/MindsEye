@@ -113,9 +113,9 @@ public class MaxPoolingLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
+  
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-
     final NNResult in = inObj[0];
     in.getData().length();
     
@@ -167,11 +167,11 @@ public class MaxPoolingLayer extends NNLayer {
         tensorArray.freeRef();
       }
     }) {
-    
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
-     }
+      }
       
       @Override
       public boolean isAlive() {

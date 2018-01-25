@@ -74,7 +74,7 @@ public class SumMetaLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     final NNResult input = inObj[0];
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final int itemCnt = input.getData().length();
     if (null == lastResult || minBatches < itemCnt) {
       final ToDoubleFunction<Coordinate> f = (c) ->
@@ -100,7 +100,7 @@ public class SumMetaLayer extends NNLayer {
         tensorArray.freeRef();
       }
     }) {
-    
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());

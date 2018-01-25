@@ -76,7 +76,7 @@ public class CrossProductLayer extends NNLayer {
     assert 1 == inObj.length;
     final NNResult in = inObj[0];
     TensorList indata = in.getData();
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     indata.addRef();
     return new NNResult(TensorArray.wrap(indata.stream().parallel().map(tensor -> {
       final int inputDim = tensor.dim();
@@ -109,7 +109,7 @@ public class CrossProductLayer extends NNLayer {
           });
           return passback;
         }).toArray(i -> new Tensor[i]));
-       in.accumulate(buffer, tensorArray);
+        in.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
     }) {

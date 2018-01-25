@@ -46,7 +46,8 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
    * The Log.
    */
   static final Logger log = LoggerFactory.getLogger(SimpleConvolutionLayer.class);
-  
+  private static final WeakHashMap<SimpleConvolutionParameters, CudaFwdParameters> fwdWs = new WeakHashMap<>();
+  private static final WeakHashMap<SimpleConvolutionParameters, CudaRevParameters> revWs = new WeakHashMap<>();
   /**
    * The Filter.
    */
@@ -93,7 +94,23 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
     precision = Precision.valueOf(json.get("precision").getAsString());
   }
   
-  private static final WeakHashMap<SimpleConvolutionParameters, CudaFwdParameters> fwdWs = new WeakHashMap<>();
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param kernel the filter
+   */
+  protected SimpleConvolutionLayer(final Tensor kernel) {
+    super();
+    int[] kernelSize = kernel.getDimensions();
+    if (kernelSize.length != 3) throw new IllegalArgumentException();
+    if (kernelSize[0] <= 0) throw new IllegalArgumentException();
+    if (kernelSize[1] <= 0) throw new IllegalArgumentException();
+    if (kernelSize[2] <= 0) throw new IllegalArgumentException();
+    this.kernel = kernel;
+    this.setPaddingX((int) Math.ceil((kernelSize[0] - 1) / 2.0));
+    this.setPaddingY((int) Math.ceil((kernelSize[1] - 1) / 2.0));
+    
+  }
   
   /**
    * From json convolution layer.
@@ -121,6 +138,18 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
     return array;
   }
   
+  private static CudaFwdParameters obtainFwd(SimpleConvolutionParameters parameters) {
+    synchronized (fwdWs) {
+      return fwdWs.computeIfAbsent(parameters, k -> new CudaFwdParameters(k));
+    }
+  }
+  
+  private static CudaRevParameters obtainRev(SimpleConvolutionParameters parameters) {
+    synchronized (revWs) {
+      return revWs.computeIfAbsent(parameters, k -> new CudaRevParameters(k));
+    }
+  }
+  
   /**
    * Add weights convolution layer.
    *
@@ -137,38 +166,6 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
     if (outputSize[0] != outputDims[3]) return false;
     if (outputSize[1] != outputDims[2]) return false;
     return outputSize[2] == outputDims[1];
-  }
-  
-  private static final WeakHashMap<SimpleConvolutionParameters, CudaRevParameters> revWs = new WeakHashMap<>();
-  
-  /**
-   * Instantiates a new Convolution layer.
-   *
-   * @param kernel the filter
-   */
-  protected SimpleConvolutionLayer(final Tensor kernel) {
-    super();
-    int[] kernelSize = kernel.getDimensions();
-    if (kernelSize.length != 3) throw new IllegalArgumentException();
-    if (kernelSize[0] <= 0) throw new IllegalArgumentException();
-    if (kernelSize[1] <= 0) throw new IllegalArgumentException();
-    if (kernelSize[2] <= 0) throw new IllegalArgumentException();
-    this.kernel = kernel;
-    this.setPaddingX((int) Math.ceil((kernelSize[0] - 1) / 2.0));
-    this.setPaddingY((int) Math.ceil((kernelSize[1] - 1) / 2.0));
-    
-  }
-  
-  private static CudaFwdParameters obtainFwd(SimpleConvolutionParameters parameters) {
-    synchronized (fwdWs) {
-      return fwdWs.computeIfAbsent(parameters, k -> new CudaFwdParameters(k));
-    }
-  }
-  
-  private static CudaRevParameters obtainRev(SimpleConvolutionParameters parameters) {
-    synchronized (revWs) {
-      return revWs.computeIfAbsent(parameters, k -> new CudaRevParameters(k));
-    }
   }
   
   @Override
@@ -325,6 +322,202 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
         throw new IllegalStateException();
       }
     };
+  }
+  
+  @Override
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    final JsonObject json = super.getJsonStub();
+    json.add("filter", kernel.toJson(resources, dataSerializer));
+    json.addProperty("strideX", strideX);
+    json.addProperty("strideY", strideY);
+    json.addProperty("paddingX", getPaddingX());
+    json.addProperty("paddingY", getPaddingY());
+    json.addProperty("precision", precision.name());
+    return json;
+  }
+  
+  /**
+   * Get output size int [ ].
+   *
+   * @param inputSize the input size
+   * @return the int [ ]
+   */
+  public int[] getOutputSize(final int... inputSize) {
+    final int[] kernelSize = kernel.getDimensions();
+    return IntStream.range(0, kernelSize.length).map(i -> {
+      int x;
+      if (i == kernelSize.length - 1) {
+        //assert kernelSize[i] == inputSize[i];
+        x = kernelSize[i] / inputSize[i];
+      }
+      else {
+        int padding;
+        if (i == 0) {
+          padding = this.paddingX;
+        }
+        else if (i == 1) {
+          padding = this.paddingY;
+        }
+        else {
+          throw new IllegalStateException();
+        }
+        x = inputSize[i] - (kernelSize[i] - 1) + padding * 2;
+      }
+      assert 0 < x;
+      return x;
+    }).toArray();
+  }
+  
+  @Override
+  public Precision getPrecision() {
+    return precision;
+  }
+  
+  @Override
+  public SimpleConvolutionLayer setPrecision(final Precision precision) {
+    this.precision = precision;
+    return this;
+  }
+  
+  /**
+   * The Stride x.
+   *
+   * @return the stride x
+   */
+  public int getStrideX() {
+    return strideX;
+  }
+  
+  /**
+   * Sets stride x.
+   *
+   * @param strideX the stride x
+   * @return the stride x
+   */
+  public SimpleConvolutionLayer setStrideX(final int strideX) {
+    this.strideX = strideX;
+    return this;
+  }
+  
+  /**
+   * The Stride y.
+   *
+   * @return the stride y
+   */
+  public int getStrideY() {
+    return strideY;
+  }
+  
+  /**
+   * Sets stride y.
+   *
+   * @param strideY the stride y
+   * @return the stride y
+   */
+  public SimpleConvolutionLayer setStrideY(final int strideY) {
+    this.strideY = strideY;
+    return this;
+  }
+  
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
+  public SimpleConvolutionLayer set(final DoubleSupplier f) {
+    kernel.coordStream(true).parallel().forEach(c -> {
+      kernel.set(c, f.getAsDouble());
+    });
+    return this;
+  }
+  
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
+  public SimpleConvolutionLayer set(final ToDoubleFunction<Coordinate> f) {
+    kernel.coordStream(true).parallel().forEach(c -> {
+      kernel.set(c, f.applyAsDouble(c));
+    });
+    return this;
+  }
+  
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList(kernel.getData());
+  }
+  
+  /**
+   * Gets padding x.
+   *
+   * @return the padding x
+   */
+  public int getPaddingX() {
+    return paddingX;
+  }
+  
+  /**
+   * Sets padding x.
+   *
+   * @param paddingX the padding x
+   * @return the padding x
+   */
+  public SimpleConvolutionLayer setPaddingX(int paddingX) {
+    this.paddingX = paddingX;
+    return this;
+  }
+  
+  /**
+   * Gets padding y.
+   *
+   * @return the padding y
+   */
+  public int getPaddingY() {
+    return paddingY;
+  }
+  
+  /**
+   * Sets padding y.
+   *
+   * @param paddingY the padding y
+   * @return the padding y
+   */
+  public SimpleConvolutionLayer setPaddingY(int paddingY) {
+    this.paddingY = paddingY;
+    return this;
+  }
+  
+  /**
+   * Sets padding xy.
+   *
+   * @param x the x
+   * @param y the y
+   * @return the padding xy
+   */
+  public SimpleConvolutionLayer setPaddingXY(int x, int y) {
+    return setPaddingX(x).setPaddingY(y);
+  }
+  
+  /**
+   * Sets weights log.
+   *
+   * @param f the f
+   * @return the weights log
+   */
+  public SimpleConvolutionLayer setWeightsLog(double f) {
+    return set(() -> Math.pow(10, f) * (Math.random() - 0.5));
+  }
+  
+  /**
+   * Set.
+   *
+   * @param kernel the kernel
+   */
+  public void set(Tensor kernel) {
+    this.kernel.set(kernel);
   }
   
   private static class SimpleConvolutionParameters {
@@ -600,202 +793,5 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
       this.outputDescriptor.freeRef();
     }
     
-  }
-  
-  @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final JsonObject json = super.getJsonStub();
-    json.add("filter", kernel.toJson(resources, dataSerializer));
-    json.addProperty("strideX", strideX);
-    json.addProperty("strideY", strideY);
-    json.addProperty("paddingX", getPaddingX());
-    json.addProperty("paddingY", getPaddingY());
-    json.addProperty("precision", precision.name());
-    return json;
-  }
-  
-  
-  /**
-   * Get output size int [ ].
-   *
-   * @param inputSize the input size
-   * @return the int [ ]
-   */
-  public int[] getOutputSize(final int... inputSize) {
-    final int[] kernelSize = kernel.getDimensions();
-    return IntStream.range(0, kernelSize.length).map(i -> {
-      int x;
-      if (i == kernelSize.length - 1) {
-        //assert kernelSize[i] == inputSize[i];
-        x = kernelSize[i] / inputSize[i];
-      }
-      else {
-        int padding;
-        if (i == 0) {
-          padding = this.paddingX;
-        }
-        else if (i == 1) {
-          padding = this.paddingY;
-        }
-        else {
-          throw new IllegalStateException();
-        }
-        x = inputSize[i] - (kernelSize[i] - 1) + padding * 2;
-      }
-      assert 0 < x;
-      return x;
-    }).toArray();
-  }
-  
-  @Override
-  public Precision getPrecision() {
-    return precision;
-  }
-  
-  @Override
-  public SimpleConvolutionLayer setPrecision(final Precision precision) {
-    this.precision = precision;
-    return this;
-  }
-  
-  /**
-   * The Stride x.
-   *
-   * @return the stride x
-   */
-  public int getStrideX() {
-    return strideX;
-  }
-  
-  /**
-   * Sets stride x.
-   *
-   * @param strideX the stride x
-   * @return the stride x
-   */
-  public SimpleConvolutionLayer setStrideX(final int strideX) {
-    this.strideX = strideX;
-    return this;
-  }
-  
-  /**
-   * The Stride y.
-   *
-   * @return the stride y
-   */
-  public int getStrideY() {
-    return strideY;
-  }
-  
-  /**
-   * Sets stride y.
-   *
-   * @param strideY the stride y
-   * @return the stride y
-   */
-  public SimpleConvolutionLayer setStrideY(final int strideY) {
-    this.strideY = strideY;
-    return this;
-  }
-  
-  /**
-   * Sets weights.
-   *
-   * @param f the f
-   * @return the weights
-   */
-  public SimpleConvolutionLayer set(final DoubleSupplier f) {
-    kernel.coordStream(true).parallel().forEach(c -> {
-      kernel.set(c, f.getAsDouble());
-    });
-    return this;
-  }
-  
-  /**
-   * Sets weights.
-   *
-   * @param f the f
-   * @return the weights
-   */
-  public SimpleConvolutionLayer set(final ToDoubleFunction<Coordinate> f) {
-    kernel.coordStream(true).parallel().forEach(c -> {
-      kernel.set(c, f.applyAsDouble(c));
-    });
-    return this;
-  }
-  
-  @Override
-  public List<double[]> state() {
-    return Arrays.asList(kernel.getData());
-  }
-  
-  /**
-   * Gets padding x.
-   *
-   * @return the padding x
-   */
-  public int getPaddingX() {
-    return paddingX;
-  }
-  
-  /**
-   * Sets padding x.
-   *
-   * @param paddingX the padding x
-   * @return the padding x
-   */
-  public SimpleConvolutionLayer setPaddingX(int paddingX) {
-    this.paddingX = paddingX;
-    return this;
-  }
-  
-  /**
-   * Gets padding y.
-   *
-   * @return the padding y
-   */
-  public int getPaddingY() {
-    return paddingY;
-  }
-  
-  /**
-   * Sets padding y.
-   *
-   * @param paddingY the padding y
-   * @return the padding y
-   */
-  public SimpleConvolutionLayer setPaddingY(int paddingY) {
-    this.paddingY = paddingY;
-    return this;
-  }
-  
-  /**
-   * Sets padding xy.
-   *
-   * @param x the x
-   * @param y the y
-   * @return the padding xy
-   */
-  public SimpleConvolutionLayer setPaddingXY(int x, int y) {
-    return setPaddingX(x).setPaddingY(y);
-  }
-  
-  /**
-   * Sets weights log.
-   *
-   * @param f the f
-   * @return the weights log
-   */
-  public SimpleConvolutionLayer setWeightsLog(double f) {
-    return set(() -> Math.pow(10, f) * (Math.random() - 0.5));
-  }
-  
-  /**
-   * Set.
-   *
-   * @param kernel the kernel
-   */
-  public void set(Tensor kernel) {
-    this.kernel.set(kernel);
   }
 }

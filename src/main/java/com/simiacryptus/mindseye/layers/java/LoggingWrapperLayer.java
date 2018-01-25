@@ -74,7 +74,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final NNResult[] wrappedInput = IntStream.range(0, inObj.length).mapToObj(i -> {
       final NNResult result = inObj[i];
       return new NNResult(result.getData(), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
@@ -83,7 +83,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
         log.info(String.format("Feedback Output %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
         result.accumulate(buffer, data);
       }) {
-    
+  
         @Override
         protected void _free() {
           Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
@@ -113,13 +113,13 @@ public final class LoggingWrapperLayer extends WrapperLayer {
       log.info(String.format("Feedback Input for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
       output.accumulate(buffer, data);
     }) {
-    
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-    
-    
+  
+  
       @Override
       public boolean isAlive() {
         return output.isAlive();

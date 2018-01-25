@@ -190,9 +190,9 @@ public class FullyConnectedLayer extends NNLayer {
   public NNResult eval(final NNResult... inObj) {
     final TensorList indata = inObj[0].getData();
     indata.addRef();
-        for (NNResult nnResult : inObj) {
-          nnResult.addRef();
-        }
+    for (NNResult nnResult : inObj) {
+      nnResult.addRef();
+    }
     assert Tensor.dim(indata.getDimensions()) == Tensor.dim(this.inputDims) : Arrays.toString(indata.getDimensions()) + " == " + Arrays.toString(this.inputDims);
     assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
     return new NNResult(TensorArray.wrap(IntStream.range(0, indata.length()).parallel().mapToObj(dataIndex -> {
@@ -224,21 +224,21 @@ public class FullyConnectedLayer extends NNLayer {
         inObj[0].accumulate(buffer, tensorList);
         tensorList.freeRef();
       }
-   }) {
-    
+    }) {
+      
       @Override
       protected void _free() {
-      indata.freeRef();
+        indata.freeRef();
         for (NNResult nnResult : inObj) {
           nnResult.freeRef();
         }
       }
-    
+  
       @Override
       public boolean isAlive() {
         return !isFrozen() || Arrays.stream(inObj).anyMatch(x -> x.isAlive());
       }
-    
+  
     };
   }
   

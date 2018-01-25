@@ -137,43 +137,43 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
     });
     return new NNResult(GpuTensorList.create(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, precision),
                         (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
-      assert error.length() == batch.length();
-      if (input.isAlive()) {
-        TensorList data = CuDNNHandle.run(nncontext -> {
-          final CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
-            precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-          final CudaResource<cudnnTensorDescriptor> outputDescriptor = GpuSystem.newTensorDescriptor(
-            precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[0], outputSize[1], outputSize[2], outputSize[3]);
-          final CudaResource<cudnnPoolingDescriptor> poolingDesc = GpuSystem.createPoolingDescriptor(
-            mode.id, poolDims, windowSize, padding, stride);
-          final Pointer alpha = precision.getPointer(1.0);
-          final Pointer beta = precision.getPointer(0.0);
-          final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
-          final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
-          final CudaPtr passbackBuffer = CudaPtr.allocate(nncontext.getDeviceNumber(), inputDims * 1l * precision.size * length, MemoryType.Managed, true);
-          GpuSystem.handle(CuDNNHandle.cudnnPoolingBackward(nncontext.getHandle(), poolingDesc.getPtr(),
-                                                            alpha,
-                                                            outputDescriptor.getPtr(), outputData.getPtr(),
-                                                            outputDescriptor.getPtr(), errorPtr.getPtr(),
-                                                            inputDescriptor.getPtr(), inputData.getPtr(),
-                                                            beta,
-                                                            inputDescriptor.getPtr(), passbackBuffer.getPtr()));
-          errorPtr.freeRef();
-          inputData.freeRef();
-          return GpuTensorList.wrap(passbackBuffer, length, inputSize, precision);
-        });
-        input.accumulate(buffer, data);
-        data.freeRef();
-      }
+                          assert error.length() == batch.length();
+                          if (input.isAlive()) {
+                            TensorList data = CuDNNHandle.run(nncontext -> {
+                              final CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
+                                precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+                              final CudaResource<cudnnTensorDescriptor> outputDescriptor = GpuSystem.newTensorDescriptor(
+                                precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[0], outputSize[1], outputSize[2], outputSize[3]);
+                              final CudaResource<cudnnPoolingDescriptor> poolingDesc = GpuSystem.createPoolingDescriptor(
+                                mode.id, poolDims, windowSize, padding, stride);
+                              final Pointer alpha = precision.getPointer(1.0);
+                              final Pointer beta = precision.getPointer(0.0);
+                              final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
+                              final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
+                              final CudaPtr passbackBuffer = CudaPtr.allocate(nncontext.getDeviceNumber(), inputDims * 1l * precision.size * length, MemoryType.Managed, true);
+                              GpuSystem.handle(CuDNNHandle.cudnnPoolingBackward(nncontext.getHandle(), poolingDesc.getPtr(),
+                                                                                alpha,
+                                                                                outputDescriptor.getPtr(), outputData.getPtr(),
+                                                                                outputDescriptor.getPtr(), errorPtr.getPtr(),
+                                                                                inputDescriptor.getPtr(), inputData.getPtr(),
+                                                                                beta,
+                                                                                inputDescriptor.getPtr(), passbackBuffer.getPtr()));
+                              errorPtr.freeRef();
+                              inputData.freeRef();
+                              return GpuTensorList.wrap(passbackBuffer, length, inputSize, precision);
+                            });
+                            input.accumulate(buffer, data);
+                            data.freeRef();
+                          }
                         }) {
-    
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
         batch.freeRef();
         outputData.freeRef();
       }
-    
+  
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();

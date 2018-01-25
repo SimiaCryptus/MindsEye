@@ -109,7 +109,7 @@ public class ImgCropLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
     
     final NNResult input = inObj[0];
@@ -127,10 +127,10 @@ public class ImgCropLayer extends NNLayer {
       if (input.isAlive()) {
         TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
                                                             .mapToObj(dataIndex -> {
-                                                             final Tensor err = error.get(dataIndex);
-                                                             final Tensor passback = new Tensor(inputDims);
-                                                             return copy(err, passback);
-                                                           }).toArray(i -> new Tensor[i]));
+                                                              final Tensor err = error.get(dataIndex);
+                                                              final Tensor passback = new Tensor(inputDims);
+                                                              return copy(err, passback);
+                                                            }).toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }

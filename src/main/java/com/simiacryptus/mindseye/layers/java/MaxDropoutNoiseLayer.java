@@ -121,17 +121,17 @@ public class MaxDropoutNoiseLayer extends NNLayer {
         tensorArray.freeRef();
       }
     }) {
-    
+  
       @Override
       protected void _free() {
         inObj[0].freeRef();
       }
-    
+  
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive() || !isFrozen();
       }
-    
+  
     };
   }
   

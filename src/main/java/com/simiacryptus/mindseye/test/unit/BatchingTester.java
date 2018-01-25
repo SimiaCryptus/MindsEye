@@ -79,14 +79,14 @@ public class BatchingTester implements ComponentTest<ToleranceStatistics> {
                                                                                                         .toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
     final SimpleResult asABatch = SimpleListEval.run(reference, inputTensorLists);
     final List<SimpleEval> oneAtATime = IntStream.range(0, getBatchSize()).mapToObj(batch ->
-                                                                                 SimpleEval.run(reference, IntStream.range(0, inputTensorLists.length)
-                                                                                                                    .mapToObj(i -> inputTensorLists[i].get(batch)).toArray(i -> new Tensor[i]))
+                                                                                      SimpleEval.run(reference, IntStream.range(0, inputTensorLists.length)
+                                                                                                                         .mapToObj(i -> inputTensorLists[i].get(batch)).toArray(i -> new Tensor[i]))
                                                                                    ).collect(Collectors.toList());
   
     final ToleranceStatistics outputAgreement = IntStream.range(0, getBatchSize()).mapToObj(batch ->
-                                                                                         new ToleranceStatistics().accumulate(
-                                                                                           asABatch.getOutput().get(batch).getData(),
-                                                                                           oneAtATime.get(batch).getOutput().getData())
+                                                                                              new ToleranceStatistics().accumulate(
+                                                                                                asABatch.getOutput().get(batch).getData(),
+                                                                                                oneAtATime.get(batch).getOutput().getData())
                                                                                            ).reduce((a, b) -> a.combine(b)).get();
     if (!(outputAgreement.absoluteTol.getMax() < tolerance)) {
       logger.info("Batch Output: " + asABatch.getOutput().stream().map(x -> x.prettyPrint()).collect(Collectors.toList()));

@@ -193,7 +193,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
         deltaSet.get(ConvolutionLayer.this, getKernel().getData()).addInPlace(grid.read(deltaSet, true).getData());
       }
     }) {
-    
+  
       @Override
       protected void _free() {
         result.freeRef();

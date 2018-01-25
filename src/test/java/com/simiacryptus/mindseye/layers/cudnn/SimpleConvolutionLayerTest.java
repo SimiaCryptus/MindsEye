@@ -272,7 +272,7 @@ public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
         } finally {
           log1.p(log1.file((String) null, logName, "GPU Log"));
           if (null != apiLog) {
-    
+  
             apiLog.close();
             GpuSystem.apiLog.remove(apiLog);
           }

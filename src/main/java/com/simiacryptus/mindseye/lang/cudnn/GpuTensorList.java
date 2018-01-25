@@ -43,11 +43,11 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
    */
   protected static final Logger logger = LoggerFactory.getLogger(GpuTensorList.class);
   private static final ConcurrentLinkedDeque<WeakReference<GpuTensorList>> INSTANCES = new ConcurrentLinkedDeque<>();
-  
+  private static long lastCleanTime = 0;
   private final int[] dimensions;
   private final int length;
-  private CudaPtr ptr;
   private final Precision precision;
+  private CudaPtr ptr;
   private volatile TensorList heapCopy = null;
   
   /**
@@ -74,8 +74,6 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
     addInstance(self);
   }
   
-  private static long lastCleanTime = 0;
-  
   /**
    * Evict all to heap.
    */
@@ -88,7 +86,7 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
       }
     }
   }
-
+  
   private static void addInstance(GpuTensorList self) {
     long now = System.currentTimeMillis();
     if (now - lastCleanTime > 1000) {

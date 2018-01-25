@@ -41,11 +41,6 @@ import static jcuda.runtime.cudaMemcpyKind.cudaMemcpyDeviceToHost;
  */
 public class CudaPtr extends CudaResourceBase<Pointer> {
   /**
-   * The constant logger.
-   */
-  protected static final Logger logger = LoggerFactory.getLogger(CudaPtr.class);
-  
-  /**
    * The constant METRICS.
    */
   public static final LoadingCache<Integer, GpuStats> METRICS = CacheBuilder.newBuilder().build(new CacheLoader<Integer, GpuStats>() {
@@ -54,14 +49,17 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
       return new GpuStats();
     }
   });
-  
-  private static final int K = 1024;
-  private static final int MiB = K * 1024;
-  private static final long GiB = 1024 * MiB;
+  /**
+   * The constant logger.
+   */
+  protected static final Logger logger = LoggerFactory.getLogger(CudaPtr.class);
   /**
    * The Max.
    */
   static final long MAX = Precision.Double.size * (Integer.MAX_VALUE - 1L);
+  private static final int K = 1024;
+  private static final int MiB = K * 1024;
+  private static final long GiB = 1024 * MiB;
   /**
    * The Size.
    */

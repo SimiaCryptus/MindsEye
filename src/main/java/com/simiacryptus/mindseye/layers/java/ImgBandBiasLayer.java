@@ -127,7 +127,7 @@ public class ImgBandBiasLayer extends NNLayer {
    */
   public NNResult eval(final NNResult input) {
     final double[] bias = getBias();
-        input.addRef();
+    input.addRef();
     assert input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
     final Tensor[] outputA = input.getData().stream().parallel()
                                   .map(r -> {
@@ -165,7 +165,7 @@ public class ImgBandBiasLayer extends NNLayer {
         input.accumulate(buffer, data);
       }
     }) {
-    
+  
       @Override
       protected void _free() {
         input.freeRef();

@@ -61,21 +61,21 @@ public class SumInputsLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     return new NNResult(Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
       assert l.length() == r.length() || 1 == l.length() || 1 == r.length();
       return TensorArray.wrap(IntStream.range(0, l.length()).parallel()
                                        .mapToObj(i -> {
-                                        final Tensor left = l.get(1 == l.length() ? 0 : i);
-                                        final Tensor right = r.get(1 == r.length() ? 0 : i);
-                                        if (right.dim() == 1) {
-                                          return left.mapParallel(v -> v + right.get(0));
-                                        }
-                                        else {
-                                          return left.reduceParallel(right, (v1, v2) -> v1 + v2);
-                                        }
-                                      })
+                                         final Tensor left = l.get(1 == l.length() ? 0 : i);
+                                         final Tensor right = r.get(1 == r.length() ? 0 : i);
+                                         if (right.dim() == 1) {
+                                           return left.mapParallel(v -> v + right.get(0));
+                                         }
+                                         else {
+                                           return left.reduceParallel(right, (v1, v2) -> v1 + v2);
+                                         }
+                                       })
                                        .toArray(i -> new Tensor[i]));
     }).get(), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
@@ -95,12 +95,12 @@ public class SumInputsLayer extends NNLayer {
           data1.freeRef();
         }
       }
-   }) {
-  
+    }) {
+      
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
-      Arrays.stream(inObj).forEach(x -> x.getData().freeRef());
+        Arrays.stream(inObj).forEach(x -> x.getData().freeRef());
       }
       
       @Override

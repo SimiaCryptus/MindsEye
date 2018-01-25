@@ -87,7 +87,7 @@ public class CaltechTests {
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{4, 4, 40}).set(weights));
       network.add(new ImgBandBiasLayer(40));
       network.add(new NormalizationMetaLayer());
-  
+
       network.add(new ConvolutionLayer(3, 3, 40, 160).set(weights));
       network.add(new ImgReshapeLayer(2, 2, true)); // 8x8x40
       network.add(new ReLuActivationLayer());

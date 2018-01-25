@@ -149,8 +149,8 @@ public class ImgReshapeLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     //assert Arrays.stream(inObj).flatMapToDouble(input-> input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
-            Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
-
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+    
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputDims = batch.get(0).getDimensions();
@@ -177,21 +177,21 @@ public class ImgReshapeLayer extends NNLayer {
       if (input.isAlive()) {
         TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
                                                             .mapToObj(dataIndex -> {
-                                          final Tensor passback = new Tensor(inputDims);
-                                          final Tensor err = error.get(dataIndex);
-                                          return expand ? ImgReshapeLayer.copyCondense(err, passback) : ImgReshapeLayer.copyExpand(err, passback);
-                                                           }).toArray(i -> new Tensor[i]));
+                                                              final Tensor passback = new Tensor(inputDims);
+                                                              final Tensor err = error.get(dataIndex);
+                                                              return expand ? ImgReshapeLayer.copyCondense(err, passback) : ImgReshapeLayer.copyExpand(err, passback);
+                                                            }).toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
     }) {
-    
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-    
-    
+  
+  
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();

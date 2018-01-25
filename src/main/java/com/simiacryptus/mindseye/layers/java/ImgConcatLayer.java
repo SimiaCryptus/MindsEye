@@ -71,7 +71,7 @@ public class ImgConcatLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-            Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     assert Arrays.stream(inObj).allMatch(x -> x.getData().get(0).getDimensions().length == 3) : "This component is for use mapCoords 3d image tensors only";
     final int numBatches = inObj[0].getData().length();
     assert Arrays.stream(inObj).allMatch(x -> x.getData().length() == numBatches) : "All inputs must use same batch size";
@@ -95,7 +95,7 @@ public class ImgConcatLayer extends NNLayer {
     }
     return new NNResult(TensorArray.wrap(outputTensors.toArray(new Tensor[]{})), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       assert numBatches == data.length();
-    
+  
       final List<Tensor[]> splitBatches = new ArrayList<>();
       for (int b = 0; b < numBatches; b++) {
         final Tensor tensor = data.get(b);
@@ -110,7 +110,7 @@ public class ImgConcatLayer extends NNLayer {
         }
         splitBatches.add(outputTensors2);
       }
-    
+  
       final Tensor[][] splitData = new Tensor[inObj.length][];
       for (int i = 0; i < splitData.length; i++) {
         splitData[i] = new Tensor[numBatches];
@@ -120,14 +120,14 @@ public class ImgConcatLayer extends NNLayer {
           splitData[i][b] = splitBatches.get(b)[i];
         }
       }
-    
+  
       for (int i = 0; i < inObj.length; i++) {
         TensorArray tensorArray = TensorArray.wrap(splitData[i]);
         inObj[i].accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
     }) {
-    
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());

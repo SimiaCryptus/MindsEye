@@ -130,12 +130,12 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
         passbackTensorList.freeRef();
       }
     }) {
-    
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-    
+  
       @Override
       public boolean isAlive() {
         return Arrays.stream(inObj).anyMatch(x -> x.isAlive());

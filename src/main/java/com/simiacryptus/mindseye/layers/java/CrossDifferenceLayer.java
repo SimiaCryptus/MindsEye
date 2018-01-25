@@ -74,7 +74,7 @@ public class CrossDifferenceLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     assert 1 == inObj.length;
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     return new NNResult(TensorArray.wrap(inObj[0].getData().stream().parallel().map(tensor -> {
       final int inputDim = tensor.dim();
       final int outputDim = (inputDim * inputDim - inputDim) / 2;
@@ -108,7 +108,7 @@ public class CrossDifferenceLayer extends NNLayer {
         tensorArray.freeRef();
       }
     }) {
-    
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());

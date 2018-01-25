@@ -45,10 +45,16 @@ import java.util.function.Consumer;
  * The type Layer apply base.
  */
 public abstract class StandardLayerTests extends NotebookReportBase {
+  /**
+   * The constant seed.
+   */
+  public static final long seed = 51389; //System.nanoTime();
+  
   static {
     SysOutInterceptor.INSTANCE.init();
   }
   
+  private final Random random = getRandom();
   /**
    * The Validate batch execution.
    */
@@ -60,11 +66,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   private ArrayList<ComponentTest<?>> finalTests;
   private ArrayList<ComponentTest<?>> bigTests;
   private ArrayList<ComponentTest<?>> littleTests;
-  
-  /**
-   * The constant seed.
-   */
-  public static final long seed = 51389; //System.nanoTime();
   private boolean testTraining = false;
   
   /**
@@ -290,8 +291,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
     return isTestTraining() ? new TrainingTester() : null;
   }
-  
-  private final Random random = getRandom();
   
   /**
    * Random double.

@@ -121,8 +121,8 @@ public class AvgPoolingLayer extends NNLayer {
         }
       }
       return output;
-    }).toArray(i -> new Tensor[i]);  
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+    }).toArray(i -> new Tensor[i]);
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     return new NNResult(TensorArray.wrap(outputValues), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
       if (inObj[0].isAlive()) {
         final Tensor[] passback = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
@@ -140,7 +140,7 @@ public class AvgPoolingLayer extends NNLayer {
         tensorArray.freeRef();
       }
     }) {
-    
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());

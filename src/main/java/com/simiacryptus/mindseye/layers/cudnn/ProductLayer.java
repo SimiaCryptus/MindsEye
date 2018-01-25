@@ -126,7 +126,7 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
               final CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
               final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
                 precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
-            
+  
               final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, l);
               final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, r);
               assert lPtr.size == rPtr.size;
@@ -144,7 +144,7 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
         }
       }
     }) {
-    
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
@@ -152,8 +152,8 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
           inObj[i].getData().freeRef();
         }
       }
-    
-    
+  
+  
       @Override
       public boolean isAlive() {
         for (final NNResult element : inObj)
@@ -162,7 +162,7 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
           }
         return false;
       }
-    
+  
     };
   }
   
