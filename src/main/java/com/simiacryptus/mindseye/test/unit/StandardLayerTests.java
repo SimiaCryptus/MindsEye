@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.mindseye.lang.LifecycleException;
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.GpuError;
 import com.simiacryptus.mindseye.layers.cudnn.Explodable;
@@ -365,6 +366,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     getFinalTests().stream().filter(x -> null != x).forEach(test -> {
       final NNLayer perfLayer = getLayer(getPerfDims(new Random(seed)), new Random(seed));
       test.test(log, perfLayer.copy(), randomize(getPerfDims(new Random(seed))));
+    });
+    log.code(() -> {
+      ReferenceCountingBase.logFreeWarnings();
     });
   }
   

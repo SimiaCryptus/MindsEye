@@ -165,7 +165,6 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
   
         @Override
         protected void _free() {
-          data.freeRef();
           batch.freeRef();
           outPtr.freeRef();
           Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());

@@ -29,12 +29,20 @@ import java.util.Random;
  */
 public abstract class FullyConnectedLayerTest extends LayerTestBase {
   
-  private final FullyConnectedLayer fullyConnectedLayer = new FullyConnectedLayer(new int[]{3}, new int[]{3});
+  private final FullyConnectedLayer fullyConnectedLayer;
+  private final int inputs;
+  private final int outputs;
+  
+  protected FullyConnectedLayerTest(int inputs, int outputs) {
+    fullyConnectedLayer = new FullyConnectedLayer(new int[]{inputs}, new int[]{outputs});
+    this.inputs = inputs;
+    this.outputs = outputs;
+  }
   
   @Override
   public int[][] getInputDims(Random random) {
     return new int[][]{
-      {3}
+      {inputs}
     };
   }
   
@@ -47,12 +55,22 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
    * Basic Test
    */
   public static class Basic extends FullyConnectedLayerTest {
+    public Basic() {super(3, 3);}
+  }
+  
+  public static class Big extends FullyConnectedLayerTest {
+    public Big() {
+      super(25088, 4096);
+      validateDifferentials = false;
+    }
   }
   
   /**
    * Demonstration of bug
    */
   public static class Bug extends FullyConnectedLayerTest {
+    public Bug() {super(3, 3);}
+  
     @Override
     public Class<? extends NNLayer> getReferenceLayerClass() {
       return FullyConnectedReferenceLayer.class;

@@ -27,8 +27,6 @@ import com.simiacryptus.mindseye.test.unit.BatchingTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.PerformanceTester;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.junit.Ignore;
-import org.junit.Test;
 
 import java.io.PrintStream;
 import java.util.Random;
@@ -204,13 +202,13 @@ public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
       super(new int[]{25088}, new int[]{4096});
       validateDifferentials = false;
     }
-  
-    @Override
-    @Test
-    @Ignore
-    public void test() throws Throwable {
-      super.test();
-    }
+
+//    @Override
+//    @Test
+//    @Ignore
+//    public void test() throws Throwable {
+//      super.test();
+//    }
   
     @Override
     public Class<? extends NNLayer> getReferenceLayerClass() {

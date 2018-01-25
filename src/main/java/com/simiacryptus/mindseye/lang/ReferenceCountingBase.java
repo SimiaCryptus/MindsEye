@@ -24,10 +24,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 /**
  * The type Reference counting base.
@@ -40,10 +42,11 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   private final AtomicInteger references = new AtomicInteger(1);
   private final AtomicBoolean isFreed = new AtomicBoolean(false);
   private final StackTraceElement[] createdBy = DEBUG_LIFECYCLE ? Thread.currentThread().getStackTrace() : null;
-  private final ArrayList<StackTraceElement[]> addRefs = new ArrayList<>();
-  private final ArrayList<StackTraceElement[]> freeRefs = new ArrayList<>();
+  private static final ConcurrentHashMap<Class<?>, ConcurrentLinkedDeque<Supplier<ReferenceCountingBase>>> leakMap = new ConcurrentHashMap<>();
+  private static final PersistanceMode FREE_WARNING_PERSISTANCE = PersistanceMode.Soft;
   private volatile StackTraceElement[] finalizedBy = null;
   private volatile boolean isFinalized = false;
+  private static final int MAX_FREE_WARNINGS = 1;
   
   private static String getString(StackTraceElement[] trace) {
     return null == trace ? "?" : Arrays.stream(trace).map(x -> "at " + x).skip(2).reduce((a, b) -> a + "\n" + b).orElse("<Empty Stack>");
@@ -56,32 +59,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     if (DEBUG_LIFECYCLE) addRefs.add(Thread.currentThread().getStackTrace());
   }
   
-  @Override
-  public void freeRef() {
-    if (isFinalized) {
-      //logger.debug("Object has been finalized");
-      return;
-    }
-    int refs = references.decrementAndGet();
-    if (refs < 0) {
-      if (!SUPPRESS_LOG) {
-        //SUPPRESS_LOG = true;
-        logger.warn(String.format("Error freeing reference for %s", getClass().getSimpleName()));
-        logger.warn(detailString());
-      }
-      throw new LifecycleException();
-    }
-    else if (refs == 0) {
-      assert references.get() == 0;
-      if (!isFreed.getAndSet(true)) {
-        finalizedBy = DEBUG_LIFECYCLE ? Thread.currentThread().getStackTrace() : null;
-        _free();
-      }
-    }
-    else {
-      if (DEBUG_LIFECYCLE) freeRefs.add(Thread.currentThread().getStackTrace());
-    }
-  }
+  private final ConcurrentLinkedDeque<StackTraceElement[]> addRefs = new ConcurrentLinkedDeque<>();
   
   private String detailString() {
     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -136,13 +114,70 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
    */
   protected abstract void _free();
   
+  private final ConcurrentLinkedDeque<StackTraceElement[]> freeRefs = new ConcurrentLinkedDeque<>();
+  private boolean floating = false;
+  
+  public static void logFreeWarnings() {
+    leakMap.forEach((clazz, queue) -> {
+      logger.info(String.format("Objects not freed by reference for %s", clazz.getSimpleName()));
+      queue.forEach(obj -> {
+        ReferenceCountingBase base = obj.get();
+        if (null != base) logger.warn(base.detailString());
+      });
+    });
+  }
+  
+  @Override
+  public void freeRef() {
+    if (isFinalized) {
+      //logger.debug("Object has been finalized");
+      return;
+    }
+    int refs = references.decrementAndGet();
+    if (refs < 0) {
+      if (!SUPPRESS_LOG) {
+        //SUPPRESS_LOG = true;
+        logger.warn(String.format("Error freeing reference for %s", getClass().getSimpleName()));
+        logger.warn(detailString());
+      }
+      throw new LifecycleException();
+    }
+    else if (refs == 0) {
+      assert references.get() == 0;
+      if (!isFreed.getAndSet(true)) {
+        finalizedBy = DEBUG_LIFECYCLE ? Thread.currentThread().getStackTrace() : null;
+        try {
+          _free();
+        } catch (LifecycleException e) {
+          logger.info("Error freeing resources: " + detailString());
+          throw e;
+        }
+      }
+    }
+    else {
+      if (DEBUG_LIFECYCLE) freeRefs.add(Thread.currentThread().getStackTrace());
+    }
+  }
+  
   @Override
   protected final void finalize() throws Throwable {
     isFinalized = true;
     if (!isFreed.getAndSet(true)) {
+      if (!isFloating()) {
+        ConcurrentLinkedDeque<Supplier<ReferenceCountingBase>> deque = leakMap.computeIfAbsent(getClass(), clazz -> new ConcurrentLinkedDeque<>());
+        deque.add(FREE_WARNING_PERSISTANCE.wrap(this));
+        while (deque.size() > MAX_FREE_WARNINGS) deque.remove();
+      }
       finalizedBy = DEBUG_LIFECYCLE ? Thread.currentThread().getStackTrace() : null;
       _free();
     }
   }
   
+  public boolean isFloating() {
+    return floating;
+  }
+  
+  public void setFloating(boolean floating) {
+    this.floating = floating;
+  }
 }

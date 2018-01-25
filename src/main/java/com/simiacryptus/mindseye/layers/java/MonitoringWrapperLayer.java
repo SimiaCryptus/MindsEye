@@ -126,7 +126,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     
       @Override
       protected void _free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+        result.freeRef();
       }
       
       
@@ -139,9 +139,9 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     final NNResult output = timedResult.result;
     forwardPerformance.add((timedResult.timeNanos) / 1000000000.0);
     totalBatches++;
-    Arrays.stream(inObj).forEach(x -> {
+    Arrays.stream(wrappedInput).forEach(x -> {
       x.addRef();
-      x.getData().addRef();
+      //x.getData().addRef();
     });
     final int items = Arrays.stream(inObj).mapToInt(x -> x.getData().length()).max().orElse(1);
     totalItems += items;

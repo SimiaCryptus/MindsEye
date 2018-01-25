@@ -78,7 +78,9 @@ public class TensorArray extends ReferenceCountingBase implements TensorList {
   
   @Override
   public Tensor get(final int i) {
-    return data[i];
+    Tensor datum = data[i];
+    datum.addRef();
+    return datum;
   }
   
   @Override

@@ -84,348 +84,290 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
             add(new AssertDimensionsLayer(224, 224, 3));
           });
           output.code(() -> {
-            add(new ImgZeroPaddingLayer(1, 1)
-                  .setPrecision(precision));
+            add(new ImgZeroPaddingLayer(1, 1));
           });
           //  model.add(Convolution2D(64, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 3, 64)
                   .setPaddingXY(0, 0)
-                  .setPrecision(precision)
                   .set(hdf5.readDataSet("param_0", "layer_1")
                            .permuteDimensions(convolutionOrder))
                );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(64)
-                  .setPrecision(precision)
                   .set((hdf5.readDataSet("param_1", "layer_1"))));
           });
           output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU)
-                  .setPrecision(precision));
+            add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
-            add(new ImgZeroPaddingLayer(1, 1)
-                  .setPrecision(precision));
+            add(new ImgZeroPaddingLayer(1, 1));
           });
           //  model.add(Convolution2D(64, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 64, 64)
                   .setPaddingXY(0, 0)
-                  .setPrecision(precision)
                   .set(hdf5.readDataSet("param_0", "layer_3")
                            .permuteDimensions(convolutionOrder))
                );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(64)
-                  .setPrecision(precision)
                   .set((hdf5.readDataSet("param_1", "layer_3"))));
           });
           output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU)
-                  .setPrecision(precision));
+            add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
           //  model.add(MaxPooling2D((2,2), strides=(2,2)))
           output.code(() -> {
             add(new PoolingLayer()
                   .setMode(PoolingLayer.PoolingMode.Max)
                   .setWindowXY(2, 2)
-                  .setStrideXY(2, 2)
-                  .setPrecision(precision));
+                  .setStrideXY(2, 2));
           });
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
-            add(new ImgZeroPaddingLayer(1, 1)
-                  .setPrecision(precision));
+            add(new ImgZeroPaddingLayer(1, 1));
           });
           //  model.add(Convolution2D(128, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 64, 128)
                   .setPaddingXY(0, 0)
-                  .setPrecision(precision)
                   .set(hdf5.readDataSet("param_0", "layer_6")
                            .permuteDimensions(convolutionOrder))
                );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(128)
-                  .setPrecision(precision)
                   .set((hdf5.readDataSet("param_1", "layer_6"))));
           });
           output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU)
-                  .setPrecision(precision));
+            add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
-            add(new ImgZeroPaddingLayer(1, 1)
-                  .setPrecision(precision));
+            add(new ImgZeroPaddingLayer(1, 1));
           });
           //  model.add(Convolution2D(128, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 128, 128)
                   .setPaddingXY(0, 0)
-                  .setPrecision(precision)
                   .set(hdf5.readDataSet("param_0", "layer_8")
                            .permuteDimensions(convolutionOrder))
                );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(128)
-                  .setPrecision(precision)
                   .set((hdf5.readDataSet("param_1", "layer_8"))));
           });
           output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU)
-                  .setPrecision(precision));
+            add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
           //  model.add(MaxPooling2D((2,2), strides=(2,2)))
           output.code(() -> {
             add(new PoolingLayer()
                   .setMode(PoolingLayer.PoolingMode.Max)
                   .setWindowXY(2, 2)
-                  .setStrideXY(2, 2)
-                  .setPrecision(precision));
+                  .setStrideXY(2, 2));
           });
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
-            add(new ImgZeroPaddingLayer(1, 1)
-                  .setPrecision(precision));
+            add(new ImgZeroPaddingLayer(1, 1));
           });
           //  model.add(Convolution2D(256, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 128, 256)
                   .setPaddingXY(0, 0)
-                  .setPrecision(precision)
                   .set(hdf5.readDataSet("param_0", "layer_11")
                            .permuteDimensions(convolutionOrder))
                );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(256)
-                  .setPrecision(precision)
                   .set((hdf5.readDataSet("param_1", "layer_11"))));
           });
           output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU)
-                  .setPrecision(precision));
+            add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
-            add(new ImgZeroPaddingLayer(1, 1)
-                  .setPrecision(precision));
+            add(new ImgZeroPaddingLayer(1, 1));
           });
           //  model.add(Convolution2D(256, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 256, 256)
                   .setPaddingXY(0, 0)
-                  .setPrecision(precision)
                   .set(hdf5.readDataSet("param_0", "layer_13")
                            .permuteDimensions(convolutionOrder))
                );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(256)
-                  .setPrecision(precision)
                   .set((hdf5.readDataSet("param_1", "layer_13"))));
           });
           output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU)
-                  .setPrecision(precision));
+            add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
-            add(new ImgZeroPaddingLayer(1, 1)
-                  .setPrecision(precision));
+            add(new ImgZeroPaddingLayer(1, 1));
           });
           //  model.add(Convolution2D(256, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 256, 256)
                   .setPaddingXY(0, 0)
-                  .setPrecision(precision)
                   .set(hdf5.readDataSet("param_0", "layer_15")
                            .permuteDimensions(convolutionOrder))
                );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(256)
-                  .setPrecision(precision)
                   .set((hdf5.readDataSet("param_1", "layer_15"))));
           });
           output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU)
-                  .setPrecision(precision));
+            add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
           //  model.add(MaxPooling2D((2,2), strides=(2,2)))
           output.code(() -> {
             add(new PoolingLayer()
                   .setMode(PoolingLayer.PoolingMode.Max)
                   .setWindowXY(2, 2)
-                  .setStrideXY(2, 2)
-                  .setPrecision(precision));
+                  .setStrideXY(2, 2));
           });
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
-            add(new ImgZeroPaddingLayer(1, 1)
-                  .setPrecision(precision));
+            add(new ImgZeroPaddingLayer(1, 1));
           });
           //  model.add(Convolution2D(512, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 256, 512)
                   .setPaddingXY(0, 0)
-                  .setPrecision(precision)
                   .set(hdf5.readDataSet("param_0", "layer_18")
                            .permuteDimensions(convolutionOrder))
                );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(512)
-                  .setPrecision(precision)
                   .set((hdf5.readDataSet("param_1", "layer_18"))));
           });
           output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU)
-                  .setPrecision(precision));
+            add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
-            add(new ImgZeroPaddingLayer(1, 1)
-                  .setPrecision(precision));
+            add(new ImgZeroPaddingLayer(1, 1));
           });
           //  model.add(Convolution2D(512, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 512, 512)
                   .setPaddingXY(0, 0)
-                  .setPrecision(precision)
                   .set(hdf5.readDataSet("param_0", "layer_20")
                            .permuteDimensions(convolutionOrder))
                );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(512)
-                  .setPrecision(precision)
                   .set((hdf5.readDataSet("param_1", "layer_20"))));
           });
           output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU)
-                  .setPrecision(precision));
+            add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
-            add(new ImgZeroPaddingLayer(1, 1)
-                  .setPrecision(precision));
+            add(new ImgZeroPaddingLayer(1, 1));
           });
           //  model.add(Convolution2D(512, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 512, 512)
                   .setPaddingXY(0, 0)
-                  .setPrecision(precision)
                   .set(hdf5.readDataSet("param_0", "layer_22")
                            .permuteDimensions(convolutionOrder))
                );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(512)
-                  .setPrecision(precision)
                   .set((hdf5.readDataSet("param_1", "layer_22"))));
           });
           output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU)
-                  .setPrecision(precision));
+            add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
           //  model.add(MaxPooling2D((2,2), strides=(2,2)))
           output.code(() -> {
             add(new PoolingLayer()
                   .setMode(PoolingLayer.PoolingMode.Max)
                   .setWindowXY(2, 2)
-                  .setStrideXY(2, 2)
-                  .setPrecision(precision));
+                  .setStrideXY(2, 2));
           });
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
-            add(new ImgZeroPaddingLayer(1, 1)
-                  .setPrecision(precision));
+            add(new ImgZeroPaddingLayer(1, 1));
           });
           //  model.add(Convolution2D(512, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 512, 512)
                   .setPaddingXY(0, 0)
-                  .setPrecision(precision)
                   .set(hdf5.readDataSet("param_0", "layer_25")
                            .permuteDimensions(convolutionOrder))
                );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(512)
-                  .setPrecision(precision)
                   .set((hdf5.readDataSet("param_1", "layer_25"))));
           });
           output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU)
-                  .setPrecision(precision));
+            add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
-            add(new ImgZeroPaddingLayer(1, 1)
-                  .setPrecision(precision));
+            add(new ImgZeroPaddingLayer(1, 1));
           });
           //  model.add(Convolution2D(512, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 512, 512)
                   .setPaddingXY(0, 0)
-                  .setPrecision(precision)
                   .set(hdf5.readDataSet("param_0", "layer_27")
                            .permuteDimensions(convolutionOrder))
                );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(512)
-                  .setPrecision(precision)
                   .set((hdf5.readDataSet("param_1", "layer_27"))));
           });
           output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU)
-                  .setPrecision(precision));
+            add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
-            add(new ImgZeroPaddingLayer(1, 1)
-                  .setPrecision(precision));
+            add(new ImgZeroPaddingLayer(1, 1));
           });
           //  model.add(Convolution2D(512, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 512, 512)
                   .setPaddingXY(0, 0)
-                  .setPrecision(precision)
                   .set(hdf5.readDataSet("param_0", "layer_29")
                            .permuteDimensions(convolutionOrder))
                );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(512)
-                  .setPrecision(precision)
                   .set((hdf5.readDataSet("param_1", "layer_29"))));
           });
           output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU)
-                  .setPrecision(precision));
+            add(new ActivationLayer(ActivationLayer.Mode.RELU));
           });
           //  model.add(MaxPooling2D((2,2), strides=(2,2)))
           output.code(() -> {
             add(new PoolingLayer()
                   .setMode(PoolingLayer.PoolingMode.Max)
                   .setWindowXY(2, 2)
-                  .setStrideXY(2, 2)
-                  .setPrecision(precision));
+                  .setStrideXY(2, 2));
           });
           //  model.add(Flatten())
           //  model.add(Dense(4096, activation='relu'))
           output.code(() -> {
             add(new FullyConnectedLayer(new int[]{25088}, new int[]{4096})
-                  .setPrecision(precision)
                   .set(hdf5.readDataSet("param_0", "layer_32")
                            .permuteDimensions(fullyconnectedOrder))
                   .setName("fullyconnected_32"));
@@ -439,7 +381,6 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           //  model.add(Dense(4096, activation='relu'))
           output.code(() -> {
             add(new FullyConnectedLayer(new int[]{4096}, new int[]{4096})
-                  .setPrecision(precision)
                   .set(hdf5.readDataSet("param_0", "layer_34")
                            .permuteDimensions(fullyconnectedOrder))
                );
@@ -453,7 +394,6 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           //  model.add(Dense(1000, activation='softmax'))
           output.code(() -> {
             add(new FullyConnectedLayer(new int[]{4096}, new int[]{1000})
-                  .setPrecision(precision)
                   .set(hdf5.readDataSet("param_0", "layer_36")
                            .permuteDimensions(fullyconnectedOrder))
                   .setName("fullyconnected_36"));
@@ -465,6 +405,13 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           });
           output.code(() -> {
             add(new SoftmaxActivationLayer());
+          });
+          output.code(() -> {
+            model.visitLayers(layer -> {
+              if (layer instanceof MultiPrecision) {
+                ((MultiPrecision) layer).setPrecision(precision);
+              }
+            });
           });
           return model;
         }

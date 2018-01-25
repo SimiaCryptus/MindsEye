@@ -166,8 +166,10 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
       
       @Override
       protected void _free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.getData().freeRef());
+        for (NNResult nnResult : inObj) {
+          nnResult.freeRef();
+          nnResult.getData().freeRef();
+        }
       }
       
       @Override
