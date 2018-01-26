@@ -128,7 +128,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
     }
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     Arrays.stream(inObj).forEach(x -> x.addRef());
-    GpuTensorList data = CuDNNHandle.run(gpu -> {
+    return new NNResult(CuDNNHandle.run(gpu -> {
       final CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
       final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
@@ -143,8 +143,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
       lPtr.freeRef();
       rPtr.freeRef();
       return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
-    });
-    return new NNResult(data, (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+    }), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
       TestUtil.runAll(() -> {
         if (inObj[0].isAlive()) {
           GpuTensorList tensorList = CuDNNHandle.run(gpu -> {

@@ -47,6 +47,11 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
   }
   
   @Override
+  public Class<? extends NNLayer> getReferenceLayerClass() {
+    return FullyConnectedReferenceLayer.class;
+  }
+  
+  @Override
   public NNLayer getLayer(final int[][] inputSize, Random random) {
     return fullyConnectedLayer;
   }
@@ -63,18 +68,13 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
       super(25088, 4096);
       validateDifferentials = false;
     }
-  }
-  
-  /**
-   * Demonstration of bug
-   */
-  public static class Bug extends FullyConnectedLayerTest {
-    public Bug() {super(3, 3);}
   
     @Override
     public Class<? extends NNLayer> getReferenceLayerClass() {
-      return FullyConnectedReferenceLayer.class;
+      return null;
     }
+  
   }
+  
   
 }

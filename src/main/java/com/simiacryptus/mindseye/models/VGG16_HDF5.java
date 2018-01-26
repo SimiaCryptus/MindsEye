@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.*;
 import com.simiacryptus.mindseye.layers.java.AssertDimensionsLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
+import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -73,7 +74,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
         Tensor prototype = new Tensor(224, 224, 3);
         int cnt = 1;
         int[] convolutionOrder = {2, 3, 0, 1};
-        int[] fullyconnectedOrder = {1, 0};
+        int[] fullyconnectedOrder = {0, 1};
         PipelineNetwork model = new PipelineNetwork();
         Precision precision = Precision.Double;
   
