@@ -367,9 +367,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       final NNLayer perfLayer = getLayer(getPerfDims(new Random(seed)), new Random(seed));
       test.test(log, perfLayer.copy(), randomize(getPerfDims(new Random(seed))));
     });
-    log.code(() -> {
-      ReferenceCountingBase.logFreeWarnings();
-    });
   }
   
   /**
@@ -420,6 +417,10 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       } catch (LifecycleException e) { throw e; } catch (GpuError e) {
         throw e;
       } catch (Throwable e) { exceptions.add(e); }
+    });
+    log.code(() -> {
+      System.gc();
+      ReferenceCountingBase.logFreeWarnings();
     });
     return exceptions;
   }

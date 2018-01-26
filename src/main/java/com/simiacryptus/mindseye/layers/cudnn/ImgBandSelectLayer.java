@@ -111,9 +111,7 @@ public class ImgBandSelectLayer extends NNLayer implements MultiPrecision<ImgBan
                                        precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.getPtr().withByteOffset(byteOffset),
                                        precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr()
                                       );
-      cudaInput.freeRef();
-      inputDescriptor.freeRef();
-      outputDescriptor.freeRef();
+      gpu.registerForCleanup(outputDescriptor, inputDescriptor, cudaInput);
       return GpuTensorList.wrap(cudaOutput, length, outputDimensions, precision);
     }), (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
       if (!Arrays.equals(error.getDimensions(), outputDimensions)) {
