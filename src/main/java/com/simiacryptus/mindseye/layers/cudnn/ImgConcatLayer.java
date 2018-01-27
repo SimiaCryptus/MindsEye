@@ -144,11 +144,13 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
         if (inputBands > 0 && input.isAlive()) {
           assert inputBands <= inputDimensions[2];
           final TensorList passbackTensorList = CuDNNHandle.run(gpu -> {
+            int[] viewDimensions = Arrays.copyOf(inputDimensions, inputDimensions.length);
+            viewDimensions[2] = inputBands;
             final CudaPtr cudaDelta = CudaPtr.getCudaPtr(precision, delta);
             long inputSize = (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size);
-            final CudaPtr cudaBackprop = CudaPtr.allocate(gpu.getDeviceNumber(), inputSize, MemoryType.Managed, true);
-            final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(length, inputBands, inputDimensions, inputDimensions);
-            final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(length, inputBands, inputDimensions, outputDimensions);
+            final CudaPtr cudaBackprop = CudaPtr.allocate(gpu.getDeviceNumber(), inputSize, MemoryType.Managed, false);
+            final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(length, inputBands, viewDimensions, inputDimensions);
+            final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(length, inputBands, viewDimensions, outputDimensions);
             int byteOffset = outputDimensions[1] * outputDimensions[0] * bandOffset * precision.size;
             CuDNNHandle.cudnnTransformTensor(gpu.getHandle(),
                                              precision.getPointer(1.0), outputDescriptor.getPtr(), cudaDelta.getPtr().withByteOffset(byteOffset),

@@ -98,6 +98,9 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
         }
       };
       final NNResult eval = component.eval(copyInput);
+      for (NNResult nnResult : copyInput) {
+        nnResult.freeRef();
+      }
       final DeltaSet<NNLayer> deltaSet = new DeltaSet<NNLayer>();
       TensorArray tensorArray = TensorArray.create(new Tensor(outputPrototype.getDimensions()).set(j, 1));
       eval.accumulate(deltaSet, tensorArray);
