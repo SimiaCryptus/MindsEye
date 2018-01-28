@@ -21,7 +21,9 @@ package com.simiacryptus.mindseye.models;
 
 import com.simiacryptus.mindseye.labs.encoding.EncodingUtil;
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
@@ -104,6 +106,17 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
       }
       return tableOutput;
     }, 256 * 1024);
+  
+    log.p("GpuSystem Statistics:");
+    log.code(() -> {
+      return TestUtil.toFormattedJson(GpuSystem.getExecutionStatistics());
+    });
+  
+    log.code(() -> {
+      System.gc();
+      ReferenceCountingBase.logFreeWarnings();
+    });
+
   }
   
   /**

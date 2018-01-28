@@ -34,7 +34,7 @@ import java.util.Random;
 /**
  * The type Simple convolution layer apply.
  */
-public abstract class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
+public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
   
   /**
    * The Radius.

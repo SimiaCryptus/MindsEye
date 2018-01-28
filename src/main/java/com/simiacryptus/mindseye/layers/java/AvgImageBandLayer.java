@@ -75,6 +75,7 @@ public class AvgImageBandLayer extends NNLayer {
     final int[] inputDims = inData.get(0).getDimensions();
     assert 3 == inputDims.length;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+    inData.addRef();
     
     return new NNResult(TensorArray.wrap(inData.stream().map(data -> {
       final DoubleStream doubleStream = IntStream.range(0, inputDims[2]).parallel().mapToDouble(band -> {
@@ -99,6 +100,7 @@ public class AvgImageBandLayer extends NNLayer {
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+        inData.freeRef();
       }
       
       @Override

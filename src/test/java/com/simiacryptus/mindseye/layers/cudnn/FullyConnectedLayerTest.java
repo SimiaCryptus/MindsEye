@@ -34,7 +34,7 @@ import java.util.Random;
 /**
  * The type Fully connected layer apply.
  */
-public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
+public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
   
   private final int[] inputDim;
   private final FullyConnectedLayer fullyConnectedLayer;
