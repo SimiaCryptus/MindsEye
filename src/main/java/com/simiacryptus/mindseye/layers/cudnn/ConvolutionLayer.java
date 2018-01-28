@@ -33,9 +33,7 @@ import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
 /**
- * This is the general convolution layer, allowing any number of input and output bands. During execution it delegates
- * processing to a dynamically created subbnet created using SimpleConvolutionLayer and ImgConcatLayer to implement the
- * more general layer contract.
+ * This is the general convolution layer, allowing any number of input and output bands at high scale. It implements an explosion operation to produce a convolution network whose components have a managabe size and the same overall function.
  */
 @SuppressWarnings("serial")
 public class ConvolutionLayer extends NNLayer implements MultiPrecision<ConvolutionLayer>, Explodable {

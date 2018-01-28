@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
- * The interface Explodable.
+ * An (NNLayer) object which can be exploded into an equivalent network with more fine-grained components.
  */
 public interface Explodable {
   /**

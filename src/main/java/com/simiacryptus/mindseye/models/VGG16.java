@@ -33,7 +33,9 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipFile;
 
 /**
- * The type Vgg 16.
+ * Details about this network architecture can be found in the following arXiv paper: Very Deep Convolutional Networks
+ * for Large-Scale Image Recognition K. Simonyan, A. Zisserman arXiv:1409.1556 Please cite the paper if you use the
+ * models.
  */
 public abstract class VGG16 extends ImageClassifier {
   

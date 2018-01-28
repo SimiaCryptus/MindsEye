@@ -20,7 +20,10 @@
 package com.simiacryptus.mindseye.lang;
 
 /**
- * The interface Data serializer.
+ * Provides a data serialization interface designed 
+ * for converting arrays of doubles to/from arrays of bytes.
+ * Implementations may use reduced precision 
+ * and other lossy compression techniques.
  */
 public interface DataSerializer {
   

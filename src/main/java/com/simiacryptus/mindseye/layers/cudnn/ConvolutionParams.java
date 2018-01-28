@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 
 /**
- * The type Convolution params.
+ * Contains the parameters of a convolution
  */
 public class ConvolutionParams {
   /**

@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The type Avg subsample layer.
+ * A local-pooling layer which sets all elements to the average value.
  */
 @SuppressWarnings("serial")
 public class AvgPoolingLayer extends NNLayer {

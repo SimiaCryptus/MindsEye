@@ -20,7 +20,13 @@
 package com.simiacryptus.mindseye.lang;
 
 /**
- * The interface Reference counting.
+ * Interface for objects with reference counting. Reference counted objects 
+ * will be freed when the last reference is freed, in a guaranteed-once-only 
+ * manner. In general, valid reference counting behavior can be maintained by observing a few rules:
+ * 1) References should be freed as soon as they are finished being used
+ * 2) Only reference counting objects should be used to hold pointers to other reference counting objects, and those pointers should be freed & clears when the object is freed.
+ * 3) If returning a reference to an object from a method, increment its reference count.
+ * 4) Handle reference counted objects within the scope of a single method when possible. (i.e. prefer to keep them on the stack, not heap.)
  */
 public interface ReferenceCounting {
   

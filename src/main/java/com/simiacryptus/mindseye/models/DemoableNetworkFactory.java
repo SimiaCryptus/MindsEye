@@ -24,7 +24,8 @@ import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.io.NullNotebookOutput;
 
 /**
- * The interface Demoable network factory.
+ * A network factory designed to be called within a report,
+ * with extra details being logged to the report output.
  */
 public interface DemoableNetworkFactory {
   

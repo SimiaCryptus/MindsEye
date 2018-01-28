@@ -34,7 +34,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * The type Exploded convolution grid.
+ * The higher level of convolution construction logic. Provides support 
+ * for large numbers of input bands by splitting the network into 
+ * sub-networks that consider only a subset of the input bands, then 
+ * summing the results together. This strategy remains valid so long 
+ * as the sub-networks are purely linear.
  */
 class ExplodedConvolutionGrid {
   private static final Logger log = LoggerFactory.getLogger(ExplodedConvolutionGrid.class);

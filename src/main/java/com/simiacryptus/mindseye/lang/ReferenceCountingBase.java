@@ -32,7 +32,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 /**
- * The type Reference counting base.
+ * The base implementation for ReferenceCounting objects.
+ * Provides state management and debugging facilities.
+ * If assertions are enabled, stack traces are recorded 
+ * to provide detailed logs for debugging LifecycleExceptions.
  */
 public abstract class ReferenceCountingBase implements ReferenceCounting {
   private static final Logger logger = LoggerFactory.getLogger(ReferenceCountingBase.class);

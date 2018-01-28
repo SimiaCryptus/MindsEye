@@ -24,7 +24,7 @@ import java.util.DoubleSummaryStatistics;
 import java.util.stream.DoubleStream;
 
 /**
- * The type Double array stats facade.
+ * A stateless wrapper class that provides accessors for statistical metrics of a given scalar array.
  */
 public class DoubleArrayStatsFacade {
   /**

@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
 
 /**
- * This enum defines the levels of precision supported for bulk data serialization
+ * This enum defines the default levels of precision supported for bulk data serialization.
  */
 public enum SerialPrecision implements DataSerializer {
   /**

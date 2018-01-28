@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 
 /**
- * An interface for GpuSystem layers supporting any GpuSystem numeric resolution type.
+ * An interface for CuDNN layers with configurable numeric precision.
  *
  * @param <T> the parent type, specified for return values.
  */

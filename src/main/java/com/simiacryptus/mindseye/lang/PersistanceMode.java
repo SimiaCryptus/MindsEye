@@ -24,7 +24,8 @@ import java.lang.ref.WeakReference;
 import java.util.function.Supplier;
 
 /**
- * The enum Persistance mode.
+ * Varying levels of persistence which can be used to provide reference wrappers to an object.
+ * Allows the RecycleBin to be configured with the desired reference type.
  */
 public enum PersistanceMode {
   /**
