@@ -26,7 +26,7 @@ import java.util.Random;
 /**
  * The type Softmax activation layer run.
  */
-public abstract class SoftmaxActivationLayerTest extends CudnnLayerTestBase {
+public abstract class SoftmaxActivationLayerTest extends CuDNNLayerTestBase {
   
   @Override
   public int[][] getInputDims(Random random) {

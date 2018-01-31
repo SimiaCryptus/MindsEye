@@ -39,7 +39,7 @@ import java.util.function.Supplier;
  */
 public abstract class ReferenceCountingBase implements ReferenceCounting {
   private static final Logger logger = LoggerFactory.getLogger(ReferenceCountingBase.class);
-  private static final boolean DEBUG_LIFECYCLE = false && ReferenceCountingBase.class.desiredAssertionStatus();
+  private static final boolean DEBUG_LIFECYCLE = ReferenceCountingBase.class.desiredAssertionStatus();
   private static final boolean SUPPRESS_LOG = false;
   
   private final AtomicInteger references = new AtomicInteger(1);

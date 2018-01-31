@@ -33,7 +33,7 @@ import java.util.Random;
 /**
  * The type Img crop layer apply.
  */
-public abstract class ImgCropLayerTest extends CudnnLayerTestBase {
+public abstract class ImgCropLayerTest extends CuDNNLayerTestBase {
   
   /**
    * Instantiates a new Img crop layer apply.

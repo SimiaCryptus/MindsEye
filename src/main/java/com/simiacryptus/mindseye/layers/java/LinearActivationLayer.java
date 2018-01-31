@@ -76,7 +76,7 @@ public class LinearActivationLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     final TensorList inData = inObj[0].getData();
-    inObj[0].freeRef();
+    inObj[0].addRef();
     inData.addRef();
     final int itemCnt = inData.length();
     final double scale = weights.get(0);

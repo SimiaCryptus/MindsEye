@@ -28,7 +28,7 @@ import java.util.Random;
 /**
  * The type Pooling layer apply.
  */
-public abstract class PoolingLayerTest extends CudnnLayerTestBase {
+public abstract class PoolingLayerTest extends CuDNNLayerTestBase {
   
   /**
    * The Precision.

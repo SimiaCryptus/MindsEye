@@ -36,7 +36,7 @@ import java.util.Random;
 /**
  * The type Convolution layer apply.
  */
-public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
+public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   
   /**
    * The Input bands.

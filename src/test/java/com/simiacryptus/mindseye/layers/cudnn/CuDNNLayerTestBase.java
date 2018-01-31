@@ -34,12 +34,12 @@ import java.util.ArrayList;
 /**
  * The type Cudnn layer run base.
  */
-public abstract class CudnnLayerTestBase extends LayerTestBase {
+public abstract class CuDNNLayerTestBase extends LayerTestBase {
   
   /**
    * Instantiates a new Cudnn layer run base.
    */
-  public CudnnLayerTestBase() {
+  public CuDNNLayerTestBase() {
   }
   
   @Override

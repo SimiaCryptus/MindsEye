@@ -27,7 +27,7 @@ import java.util.Random;
 /**
  * The type Img concat layer apply.
  */
-public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
+public abstract class ImgConcatLayerTest extends CuDNNLayerTestBase {
   
   /**
    * The Precision.
