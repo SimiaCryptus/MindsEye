@@ -29,7 +29,8 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
- * The type Stack counter.
+ * A diagnostics tool that accumulates weighted stack trace statistics.
+ * Can be used to track hot spots in code related to custom variable-intensity events.
  */
 public class StackCounter {
   

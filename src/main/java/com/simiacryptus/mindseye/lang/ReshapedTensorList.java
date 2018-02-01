@@ -23,7 +23,8 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 /**
- * The type Reshaped tensor list.
+ * A wrapper TensorList data to override the existing tensor layer.
+ * Can be used for example to flatten or unflatten a tensor to/from a rank-1 array.
  */
 public class ReshapedTensorList extends ReferenceCountingBase implements TensorList {
   private final TensorList data;

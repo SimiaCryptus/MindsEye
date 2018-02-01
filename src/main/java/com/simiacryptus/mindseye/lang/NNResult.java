@@ -22,7 +22,11 @@ package com.simiacryptus.mindseye.lang;
 import java.util.function.BiConsumer;
 
 /**
- * The type Nn result.
+ * Encapsulates the results of evaluating neural network. It includes 
+ * both the result data and a function which can be evaluated to 
+ * determine the learning gradient. Does not hold a reference on the 
+ * result data object, allowing that data to be freed when possible 
+ * while preserving the gradient callback.
  */
 public abstract class NNResult extends ReferenceCountingBase {
   /**

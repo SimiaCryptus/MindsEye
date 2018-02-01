@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.lang;
 
 /**
- * The type Lifecycle exception.
+ * A runtime exception when performing an invalid operation on a ReferenceCounted object.
  */
 public class LifecycleException extends RuntimeException {
   /**

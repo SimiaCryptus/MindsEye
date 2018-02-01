@@ -20,7 +20,8 @@
 package com.simiacryptus.mindseye.lang;
 
 /**
- * Represents an evaluation record used during an optimization search. We track both a record of the network's state,
+ * Represents an evaluation record used during an optimization
+ * search. We track both a record of the network's state,
  * and a record of the gradient evaluated at that point.
  */
 public final class PointSample {

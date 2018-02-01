@@ -24,7 +24,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Supplier;
 
 /**
- * The type Singleton.
+ * An asynchronous, settable reference buffer.
+ * Allows consumers to block until a value is availble.
  *
  * @param <T> the type parameter
  */

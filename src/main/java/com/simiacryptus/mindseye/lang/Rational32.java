@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
 
 /**
- * The type Rational 32.
+ * An experimental serialization scheme which uses an encoding based on rational numbers.
  */
 public class Rational32 implements DataSerializer {
   
