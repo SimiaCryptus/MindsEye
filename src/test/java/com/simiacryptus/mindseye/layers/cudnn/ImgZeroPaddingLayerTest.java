@@ -37,14 +37,14 @@ public abstract class ImgZeroPaddingLayerTest extends CuDNNLayerTestBase {
   }
   
   @Override
-  public int[][] getInputDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{
       {8, 8, 1}
     };
   }
   
   @Override
-  public int[][] getPerfDims(Random random) {
+  public int[][] getLargeDims(Random random) {
     return new int[][]{
       {200, 200, 3}
     };
@@ -72,14 +72,14 @@ public abstract class ImgZeroPaddingLayerTest extends CuDNNLayerTestBase {
 //  public static class Asymmetric extends ImgZeroPaddingLayerTest {
 //
 //    @Override
-//    public int[][] getInputDims() {
+//    public int[][] getDims() {
 //      return new int[][]{
 //        {5, 3, 2}
 //      };
 //    }
 //
 //    @Override
-//    public int[][] getPerfDims() {
+//    public int[][] getLargeDims() {
 //      return new int[][]{
 //        {5, 5, 3}
 //      };

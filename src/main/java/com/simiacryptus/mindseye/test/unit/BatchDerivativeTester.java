@@ -531,4 +531,17 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
       return this;
     }
   }
+  
+  @Override
+  public String toString() {
+    return "BatchDerivativeTester{" +
+      "probeSize=" + probeSize +
+      ", batches=" + batches +
+      ", tolerance=" + tolerance +
+      ", testFeedback=" + testFeedback +
+      ", testLearning=" + testLearning +
+      ", verbose=" + verbose +
+      ", verify=" + verify +
+      '}';
+  }
 }

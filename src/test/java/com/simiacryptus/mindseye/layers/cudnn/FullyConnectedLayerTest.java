@@ -25,7 +25,6 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.BatchingTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
-import com.simiacryptus.mindseye.test.unit.PerformanceTester;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import java.io.PrintStream;
@@ -36,9 +35,9 @@ import java.util.Random;
  */
 public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
   
-  private final int[] inputDim;
-  private final FullyConnectedLayer fullyConnectedLayer;
-  private final PipelineNetwork layer;
+  protected final int[] inputDim;
+  protected final FullyConnectedLayer fullyConnectedLayer;
+  protected final PipelineNetwork layer;
   
   /**
    * Instantiates a new Fully connected layer allocationOverflow.
@@ -56,7 +55,7 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
    * @param outputDim the output dim
    */
   public FullyConnectedLayerTest(int inputDim, int outputDim) {
-    this(new int[]{inputDim}, new int[]{outputDim});
+    this(new int[]{inputDim}, new int[]{outputDim}, 512);
   }
   
   /**
@@ -64,15 +63,16 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
    *
    * @param inputDims  the input dims
    * @param outputDims the output dims
+   * @param batchBands
    */
-  public FullyConnectedLayerTest(int[] inputDims, int[] outputDims) {
+  public FullyConnectedLayerTest(int[] inputDims, int[] outputDims, int batchBands) {
     this.inputDim = inputDims;
     this.fullyConnectedLayer = new FullyConnectedLayer(inputDims, outputDims).setWeightsLog(-2);
-    this.layer = this.fullyConnectedLayer.explode();
+    this.layer = this.fullyConnectedLayer.setBatchBands(batchBands).explode();
   }
   
   @Override
-  public int[][] getInputDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{
       inputDim
     };
@@ -99,6 +99,14 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
     return com.simiacryptus.mindseye.layers.java.FullyConnectedReferenceLayer.class;
   }
   
+  @Override
+  public void run(NotebookOutput log) {
+    String logName = "cuda_" + log.getName() + "_all.log";
+    log.p(log.file((String) null, logName, "GPU Log"));
+    GpuSystem.addLog(new PrintStream(log.file(logName)));
+    super.run(log);
+  }
+  
   /**
    * Basic Test
    */
@@ -114,136 +122,81 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
   /**
    * Basic Test
    */
-  public static class Big1 extends FullyConnectedLayerTest {
+  public abstract static class Big extends FullyConnectedLayerTest {
+  
+    public Big(int[] inputDims, int[] outputDims, int batchBands) {
+      super(inputDims, outputDims, batchBands);
+      validateDifferentials = false;
+    }
+  
+    @Override
+    public Class<? extends NNLayer> getReferenceLayerClass() {
+      return null;
+    }
+  
+    @Override
+    public ComponentTest<ToleranceStatistics> getBatchingTester() {
+      if (!validateBatchExecution) return null;
+      return (new BatchingTester(1e-2) {
+        @Override
+        public double getRandom() {
+          return random();
+        }
+      }).setBatchSize(5);
+    }
+  
+    @Override
+    protected ComponentTest<ToleranceStatistics> getJsonTester() {
+      logger.warn("Disabled Json Test");
+      return null;
+      //return super.getJsonTester();
+    }
+  
+    @Override
+    public ComponentTest<ToleranceStatistics> getPerformanceTester() {
+      logger.warn("Disabled Performance Test");
+      return null;
+      //return super.getPerformanceTester();
+    }
+  }
+  
+  /**
+   * Large-dimension test using the size of the largest layer in VGG16
+   */
+  public static class Big_VGG extends Big {
+    /**
+     * Instantiates a new Big.
+     */
+    public Big_VGG() {
+      super(new int[]{25088}, new int[]{4096}, 512);
+    }
+    
+  }
+  
+  /**
+   * Large-dimension test
+   */
+  public static class Big1 extends Big {
     /**
      * Instantiates a new Big.
      */
     public Big1() {
-      super(new int[]{2 * 1024}, new int[]{2 * 1024});
-      validateDifferentials = false;
+      super(new int[]{2 * 1024}, new int[]{2 * 1024}, 512);
     }
-  
-    @Override
-    public void run(NotebookOutput log) {
-      String logName = "cuda_" + log.getName() + "_all.log";
-      log.p(log.file((String) null, logName, "GPU Log"));
-      GpuSystem.addLog(new PrintStream(log.file(logName)));
-      super.run(log);
-    }
-  
-    @Override
-    public Class<? extends NNLayer> getReferenceLayerClass() {
-      return null;
-    }
-  
+    
   }
   
   /**
-   * The type Big 2.
+   * Large-dimension test
    */
-  public static class Big2 extends FullyConnectedLayerTest {
+  public static class Big_Temp extends Big {
     /**
      * Instantiates a new Big.
      */
-    public Big2() {
-      super(new int[]{2048}, new int[]{2048});
-      validateDifferentials = false;
+    public Big_Temp() {
+      super(new int[]{1024}, new int[]{256}, 64);
     }
     
-    @Override
-    public Class<? extends NNLayer> getReferenceLayerClass() {
-      return null;
-    }
-    
-    @Override
-    public ComponentTest<ToleranceStatistics> getBatchingTester() {
-      if (!validateBatchExecution) return null;
-      return (new BatchingTester(1e-2) {
-        @Override
-        public double getRandom() {
-          return random();
-        }
-      }).setBatchSize(2);
-    }
-    
-    @Override
-    public ComponentTest<ToleranceStatistics> getPerformanceTester() {
-      ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setBatches(1);
-      return (log, component, inputPrototype) -> {
-        PrintStream apiLog = null;
-        try {
-          String logName = "cuda_" + log.getName() + "_perf.log";
-          log.p(log.file((String) null, logName, "GPU Log"));
-          apiLog = new PrintStream(log.file(logName));
-          GpuSystem.addLog(apiLog);
-          return inner.test(log, component, inputPrototype);
-        } finally {
-          if (null != apiLog) {
-            apiLog.close();
-            GpuSystem.apiLog.remove(apiLog);
-          }
-        }
-      };
-    }
   }
   
-  /**
-   * Basic Test
-   */
-  public static class Big extends FullyConnectedLayerTest {
-    static {
-      System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", Integer.toString(1024));
-    }
-    
-    /**
-     * Instantiates a new Big.
-     */
-    public Big() {
-      super(new int[]{25088}, new int[]{4096});
-      validateDifferentials = false;
-    }
-
-//    @Override
-//    @Test
-//    @Ignore
-//    public void test() throws Throwable {
-//      super.test();
-//    }
-  
-    @Override
-    public Class<? extends NNLayer> getReferenceLayerClass() {
-      return null;
-    }
-  
-    @Override
-    public ComponentTest<ToleranceStatistics> getBatchingTester() {
-      if (!validateBatchExecution) return null;
-      return (new BatchingTester(1e-2) {
-        @Override
-        public double getRandom() {
-          return random();
-        }
-      }).setBatchSize(2);
-    }
-  
-    @Override
-    public ComponentTest<ToleranceStatistics> getPerformanceTester() {
-      ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setBatches(1);
-      return (log, component, inputPrototype) -> {
-        PrintStream apiLog = null;
-        try {
-          String logName = "cuda_" + log.getName() + "_perf.log";
-          log.p(log.file((String) null, logName, "GPU Log"));
-          apiLog = new PrintStream(log.file(logName));
-          GpuSystem.addLog(apiLog);
-          return inner.test(log, component, inputPrototype);
-        } finally {
-          if (null != apiLog) {
-            apiLog.close();
-            GpuSystem.apiLog.remove(apiLog);
-          }
-        }
-      };
-    }
-  }
 }

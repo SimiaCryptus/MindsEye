@@ -157,7 +157,8 @@ class ExplodedConvolutionGrid {
     List<DAGNode> legs = subLayers.stream().map(l -> {
       return l.add(network.add(new ImgBandSelectLayer(l.fromBand, l.toBand).setPrecision(convolutionParams.precision), input));
     }).collect(Collectors.toList());
-    return network.add(new BinarySumLayer().setPrecision(convolutionParams.precision), legs.stream().toArray(i -> new DAGNode[i]));
+    return network.add(new SumInputsLayer().setPrecision(convolutionParams.precision), legs.stream().toArray(i -> new DAGNode[i]));
+    //return network.add(new BinarySumLayer().setPrecision(convolutionParams.precision), legs.stream().toArray(i -> new DAGNode[i]));
   }
   
   

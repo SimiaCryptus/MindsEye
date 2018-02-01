@@ -30,7 +30,7 @@ import java.util.Random;
 public abstract class ImgBandSelectLayerTest extends LayerTestBase {
   
   @Override
-  public int[][] getInputDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{
       {2, 2, 3}
     };

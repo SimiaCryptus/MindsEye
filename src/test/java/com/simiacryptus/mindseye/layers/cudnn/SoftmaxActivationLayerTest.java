@@ -29,7 +29,7 @@ import java.util.Random;
 public abstract class SoftmaxActivationLayerTest extends CuDNNLayerTestBase {
   
   @Override
-  public int[][] getInputDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{{4}};
   }
   

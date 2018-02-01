@@ -65,7 +65,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
   }
   
   @Override
-  public int[][] getInputDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{
       {radius, radius, bands}
     };
@@ -77,7 +77,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
   }
   
   @Override
-  public int[][] getPerfDims(Random random) {
+  public int[][] getLargeDims(Random random) {
     return new int[][]{
       {100, 100, bands}
     };
@@ -254,7 +254,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
     }
     
     @Override
-    public int[][] getPerfDims(Random random) {
+    public int[][] getLargeDims(Random random) {
       return new int[][]{
         {30, 30, bands}
       };

@@ -30,7 +30,7 @@ import java.util.Random;
 public abstract class MaxMetaLayerTest extends MetaLayerTestBase {
   
   @Override
-  public int[][] getInputDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{
       {3}
     };
@@ -42,7 +42,7 @@ public abstract class MaxMetaLayerTest extends MetaLayerTestBase {
   }
   
   @Override
-  public int[][] getPerfDims(Random random) {
+  public int[][] getLargeDims(Random random) {
     return new int[][]{
       {3}
     };

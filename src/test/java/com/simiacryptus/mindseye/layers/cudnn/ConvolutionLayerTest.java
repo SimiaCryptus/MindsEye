@@ -100,7 +100,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   }
   
   @Override
-  public int[][] getInputDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{
       {3, 3, inputBands}
     };
@@ -112,7 +112,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   }
   
   @Override
-  public int[][] getPerfDims(Random random) {
+  public int[][] getLargeDims(Random random) {
     return new int[][]{
       {100, 100, inputBands}
     };
@@ -141,15 +141,15 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
     }
   
     @Override
-    public int[][] getInputDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {1, 1, inputBands}
       };
     }
   
     @Override
-    public int[][] getPerfDims(Random random) {
-      return getInputDims(random);
+    public int[][] getLargeDims(Random random) {
+      return getSmallDims(random);
     }
     
   }
@@ -167,15 +167,15 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
     }
 
 //    @Override
-//    public int[][] getInputDims(Random random) {
+//    public int[][] getDims(Random random) {
 //      return new int[][]{
 //        {10, 10, inputBands}
 //      };
 //    }
 //
 //    @Override
-//    public int[][] getPerfDims(Random random) {
-//      return getInputDims(random);
+//    public int[][] getLargeDims(Random random) {
+//      return getDims(random);
 //    }
   
   }
@@ -266,15 +266,15 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
 
 //
 //    @Override
-//    public int[][] getInputDims(Random random) {
+//    public int[][] getDims(Random random) {
 //      return new int[][]{
 //        {50, 50, inputBands}
 //      };
 //    }
 //
 //    @Override
-//    public int[][] getPerfDims(Random random) {
-//      return getInputDims(random);
+//    public int[][] getLargeDims(Random random) {
+//      return getDims(random);
 //    }
 //
   

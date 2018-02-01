@@ -64,7 +64,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
   }
   
   @Override
-  public int[][] getInputDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{
       {1, 1, 2}
     };
@@ -76,7 +76,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
   }
   
   @Override
-  public int[][] getPerfDims(Random random) {
+  public int[][] getLargeDims(Random random) {
     return new int[][]{
       {64, 64, 2}
     };

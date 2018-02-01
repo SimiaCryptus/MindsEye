@@ -36,7 +36,7 @@ public class SumInputsLayerTest {
   public static class N1Test extends LayerTestBase {
     
     @Override
-    public int[][] getInputDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {3}, {1}
       };
@@ -48,7 +48,7 @@ public class SumInputsLayerTest {
     }
     
     @Override
-    public int[][] getPerfDims(Random random) {
+    public int[][] getLargeDims(Random random) {
       return new int[][]{
         {100}, {1}
       };
@@ -62,7 +62,7 @@ public class SumInputsLayerTest {
   public static class NNTest extends LayerTestBase {
     
     @Override
-    public int[][] getInputDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {3}, {3}
       };
@@ -74,7 +74,7 @@ public class SumInputsLayerTest {
     }
     
     @Override
-    public int[][] getPerfDims(Random random) {
+    public int[][] getLargeDims(Random random) {
       return new int[][]{
         {100}, {100}
       };
@@ -109,15 +109,15 @@ public class SumInputsLayerTest {
     }
     
     @Override
-    public int[][] getInputDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {1, 1, 1}
       };
     }
     
     @Override
-    public int[][] getPerfDims(Random random) {
-      return getInputDims(random);
+    public int[][] getLargeDims(Random random) {
+      return getSmallDims(random);
     }
     
     @Override

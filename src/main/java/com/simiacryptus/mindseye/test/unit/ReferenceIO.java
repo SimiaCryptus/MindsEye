@@ -76,4 +76,11 @@ public class ReferenceIO implements ComponentTest<ToleranceStatistics> {
     }
     return null;
   }
+  
+  @Override
+  public String toString() {
+    return "ReferenceIO{" +
+      "referenceIO=" + referenceIO +
+      '}';
+  }
 }

@@ -213,4 +213,14 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
     });
     return new Tuple2<>(timedEval.timeNanos / 1e9, timedBackprop.timeNanos / 1e9);
   }
+  
+  @Override
+  public String toString() {
+    return "PerformanceTester{" +
+      "batches=" + batches +
+      ", samples=" + samples +
+      ", testEvaluation=" + testEvaluation +
+      ", testLearning=" + testLearning +
+      '}';
+  }
 }

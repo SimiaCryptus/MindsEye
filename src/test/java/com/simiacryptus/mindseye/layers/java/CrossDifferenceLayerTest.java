@@ -30,7 +30,7 @@ import java.util.Random;
 public abstract class CrossDifferenceLayerTest extends LayerTestBase {
   
   @Override
-  public int[][] getInputDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{
       {4}
     };

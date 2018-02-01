@@ -132,7 +132,9 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
       //outputBuffer.freeRef();
       assert delta.length() == inObj[0].getData().length();
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
-      IntStream.range(0, inObj.length).forEach(i -> {
+      IntStream stream = IntStream.range(0, inObj.length);
+      //stream = stream.parallel();
+      stream.forEach(i -> {
         final NNResult input = inObj[i];
         int[] inputDimensions = input.getData().getDimensions();
         assert 3 == inputDimensions.length;

@@ -158,4 +158,12 @@ public class SerializationTest implements ComponentTest<ToleranceStatistics> {
     this.persist = persist;
     return this;
   }
+  
+  @Override
+  public String toString() {
+    return "SerializationTest{" +
+      "models=" + models +
+      ", persist=" + persist +
+      '}';
+  }
 }

@@ -17,32 +17,17 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.java;
+package com.simiacryptus.mindseye.test.unit;
 
-import java.util.Random;
+import com.simiacryptus.mindseye.lang.NNLayer;
 
-/**
- * The type Max dropout noise layer run.
- */
-public abstract class MaxDropoutNoiseLayerTest extends ActivationLayerTestBase {
-  /**
-   * Instantiates a new Max dropout noise layer run.
-   */
-  public MaxDropoutNoiseLayerTest() {
-    super(new MaxDropoutNoiseLayer(2, 2, 1));
-  }
+public class TestError extends RuntimeException {
+  public final ComponentTest<?> test;
+  public final NNLayer layer;
   
-  @Override
-  public int[][] getSmallDims(Random random) {
-    return new int[][]{
-      {8, 8, 1}
-    };
+  public TestError(Throwable cause, ComponentTest<?> test, NNLayer layer) {
+    super(String.format("Error in %s with %s", test, layer), cause);
+    this.test = test;
+    this.layer = layer;
   }
-  
-  /**
-   * Basic Test
-   */
-  public static class Basic extends MaxDropoutNoiseLayerTest {
-  }
-  
 }

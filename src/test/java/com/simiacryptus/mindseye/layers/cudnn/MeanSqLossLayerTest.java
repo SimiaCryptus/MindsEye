@@ -30,7 +30,7 @@ import java.util.Random;
 public abstract class MeanSqLossLayerTest extends LayerTestBase {
   
   @Override
-  public int[][] getInputDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{
       {8, 8, 1}, {8, 8, 1}
     };
@@ -47,7 +47,7 @@ public abstract class MeanSqLossLayerTest extends LayerTestBase {
   }
   
   @Override
-  public int[][] getPerfDims(Random random) {
+  public int[][] getLargeDims(Random random) {
     return new int[][]{
       {200, 200, 3}, {200, 200, 3}
     };
@@ -59,7 +59,7 @@ public abstract class MeanSqLossLayerTest extends LayerTestBase {
   public class Basic extends MeanSqLossLayerTest {
   
     @Override
-    public int[][] getInputDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {8, 8, 1}, {8, 8, 1}
       };
@@ -72,7 +72,7 @@ public abstract class MeanSqLossLayerTest extends LayerTestBase {
   public class Asymetric extends MeanSqLossLayerTest {
   
     @Override
-    public int[][] getInputDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {2, 3, 1}, {2, 3, 1}
       };

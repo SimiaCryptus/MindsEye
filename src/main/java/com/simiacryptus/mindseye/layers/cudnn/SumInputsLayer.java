@@ -32,6 +32,7 @@ import jcuda.jcudnn.cudnnTensorFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * Computes a weighted binary sum of two layers. Provides two weighting coefficients, one for each input. This can be
@@ -114,7 +115,10 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
       return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
     })).get();
     return new NNResult(run, (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
-      Arrays.stream(inObj).parallel().filter(x -> x.isAlive()).forEach(obj -> {
+      Stream<NNResult> stream = Arrays.stream(inObj);
+      // TODO: Fix issue where parallel will cause data corruption
+      //stream = stream.parallel();
+      stream.filter(x -> x.isAlive()).forEach(obj -> {
         GpuTensorList tensorList = CuDNNHandle.run(gpu -> {
           final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);
           final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);

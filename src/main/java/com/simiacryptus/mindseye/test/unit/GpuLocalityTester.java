@@ -148,4 +148,12 @@ public class GpuLocalityTester implements ComponentTest<ToleranceStatistics> {
     this.batchSize = batchSize;
     return this;
   }
+  
+  @Override
+  public String toString() {
+    return "GpuLocalityTester{" +
+      "tolerance=" + tolerance +
+      ", batchSize=" + batchSize +
+      '}';
+  }
 }

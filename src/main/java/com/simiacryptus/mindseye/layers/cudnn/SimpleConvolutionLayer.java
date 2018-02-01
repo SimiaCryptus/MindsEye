@@ -29,10 +29,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.WeakHashMap;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
@@ -47,8 +48,8 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
    * The Log.
    */
   static final Logger log = LoggerFactory.getLogger(SimpleConvolutionLayer.class);
-  private static final WeakHashMap<SimpleConvolutionParameters, CudaFwdParameters> fwdWs = new WeakHashMap<>();
-  private static final WeakHashMap<SimpleConvolutionParameters, CudaRevParameters> revWs = new WeakHashMap<>();
+  private static final HashMap<SimpleConvolutionParameters, Supplier<CudaFwdParameters>> fwdWs = new HashMap<>();
+  private static final HashMap<SimpleConvolutionParameters, Supplier<CudaRevParameters>> revWs = new HashMap<>();
   /**
    * The Filter.
    */
@@ -139,16 +140,39 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
     return array;
   }
   
+  private static final PersistanceMode workspaceCachePersistance = PersistanceMode.Strong;
   private static CudaFwdParameters obtainFwd(SimpleConvolutionParameters parameters) {
-    synchronized (fwdWs) {
-      return fwdWs.computeIfAbsent(parameters, k -> new CudaFwdParameters(k));
+    Supplier<CudaFwdParameters> supplier = fwdWs.get(parameters);
+    CudaFwdParameters fwdParameters = supplier == null ? null : supplier.get();
+    if (null == fwdParameters) {
+      synchronized (fwdWs) {
+        supplier = fwdWs.get(parameters);
+        fwdParameters = supplier == null ? null : supplier.get();
+        if (null == fwdParameters) {
+          fwdParameters = new CudaFwdParameters(parameters);
+          fwdWs.put(parameters, workspaceCachePersistance.wrap(fwdParameters));
+        }
+        return fwdParameters;
+      }
     }
+    return fwdParameters;
   }
   
   private static CudaRevParameters obtainRev(SimpleConvolutionParameters parameters) {
-    synchronized (revWs) {
-      return revWs.computeIfAbsent(parameters, k -> new CudaRevParameters(k));
+    Supplier<CudaRevParameters> supplier = revWs.get(parameters);
+    CudaRevParameters revParameters = supplier == null ? null : supplier.get();
+    if (null == revParameters) {
+      synchronized (revWs) {
+        supplier = revWs.get(parameters);
+        revParameters = supplier == null ? null : supplier.get();
+        if (null == revParameters) {
+          revParameters = new CudaRevParameters(parameters);
+          revWs.put(parameters, workspaceCachePersistance.wrap(revParameters));
+        }
+        return revParameters;
+      }
     }
+    return revParameters;
   }
   
   /**

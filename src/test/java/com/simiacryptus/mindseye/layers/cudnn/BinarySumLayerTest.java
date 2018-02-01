@@ -49,7 +49,7 @@ public abstract class BinarySumLayerTest extends CuDNNLayerTestBase {
   }
   
   @Override
-  public int[][] getInputDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{
       {8, 8, 1}, {8, 8, 1}
     };
@@ -61,7 +61,7 @@ public abstract class BinarySumLayerTest extends CuDNNLayerTestBase {
   }
   
   @Override
-  public int[][] getPerfDims(Random random) {
+  public int[][] getLargeDims(Random random) {
     return new int[][]{
       {200, 200, 3}, {200, 200, 3}
     };
@@ -79,12 +79,12 @@ public abstract class BinarySumLayerTest extends CuDNNLayerTestBase {
     }
     
     @Override
-    public int[][] getInputDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return IntStream.range(0, 5).mapToObj(i -> new int[]{2, 2, 2}).toArray(i -> new int[i][]);
     }
     
     @Override
-    public int[][] getPerfDims(Random random) {
+    public int[][] getLargeDims(Random random) {
       return IntStream.range(0, 5).mapToObj(i -> new int[]{200, 200, 3}).toArray(i -> new int[i][]);
     }
     
@@ -120,15 +120,15 @@ public abstract class BinarySumLayerTest extends CuDNNLayerTestBase {
     }
     
     @Override
-    public int[][] getInputDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {1, 1, 1}
       };
     }
     
     @Override
-    public int[][] getPerfDims(Random random) {
-      return getInputDims(random);
+    public int[][] getLargeDims(Random random) {
+      return getSmallDims(random);
     }
     
   }

@@ -59,7 +59,7 @@ public abstract class RescaledSubnetLayerTest extends LayerTestBase // CuDNNLaye
   }
   
   @Override
-  public int[][] getInputDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{
       {8, 8, 1}
     };

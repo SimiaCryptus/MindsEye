@@ -19,10 +19,8 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
-import com.simiacryptus.mindseye.lang.LifecycleException;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
-import com.simiacryptus.mindseye.lang.Tensor;
+import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.GpuError;
 import com.simiacryptus.mindseye.layers.cudnn.Explodable;
 import com.simiacryptus.mindseye.network.DAGNetwork;
@@ -35,10 +33,7 @@ import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -46,6 +41,7 @@ import java.util.function.Consumer;
  * The type Layer apply base.
  */
 public abstract class StandardLayerTests extends NotebookReportBase {
+  
   /**
    * The constant seed.
    */
@@ -157,7 +153,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * @param random the random
    * @return the int [ ] [ ]
    */
-  public abstract int[][] getInputDims(Random random);
+  public abstract int[][] getSmallDims(Random random);
   
   /**
    * Gets json tester.
@@ -202,8 +198,8 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * @param random the random
    * @return the int [ ] [ ]
    */
-  public int[][] getPerfDims(Random random) {
-    return getInputDims(new Random());
+  public int[][] getLargeDims(Random random) {
+    return getSmallDims(new Random());
   }
   
   /**
@@ -239,7 +235,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * @return the reference layer
    */
   public NNLayer getReferenceLayer() {
-    return cvt(getLayer(getInputDims(new Random()), new Random()));
+    return cvt(getLayer(getSmallDims(new Random()), new Random()));
   }
   
   /**
@@ -248,7 +244,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * @return the test class
    */
   public Class<? extends NNLayer> getTestClass() {
-    return getLayer(getInputDims(new Random()), new Random()).getClass();
+    return getLayer(getSmallDims(new Random()), new Random()).getClass();
   }
   
   /**
@@ -330,22 +326,25 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    */
   public void run(final NotebookOutput log) {
     long seed = (long) (Math.random() * Long.MAX_VALUE);
-    final NNLayer layer = getLayer(getInputDims(new Random(seed)), new Random(seed));
-    if (layer instanceof DAGNetwork) {
+    int[][] smallDims = getSmallDims(new Random(seed));
+    final NNLayer smallLayer = getLayer(smallDims, new Random(seed));
+    int[][] largeDims = getLargeDims(new Random(seed));
+    final NNLayer largeLayer = getLayer(largeDims, new Random(seed));
+    if (smallLayer instanceof DAGNetwork) {
       try {
         log.h1("Network Diagram");
         log.p("This is a network with the following layout:");
         log.code(() -> {
-          return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
+          return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) smallLayer))
                          .height(400).width(600).render(Format.PNG).toImage();
         });
       } catch (Throwable e) {
         logger.info("Error plotting graph", e);
       }
     }
-    else if (layer instanceof Explodable) {
+    else if (smallLayer instanceof Explodable) {
       try {
-        NNLayer explode = ((Explodable) layer).explode();
+        NNLayer explode = ((Explodable) smallLayer).explode();
         if (explode instanceof DAGNetwork) {
           log.h1("Exploded Network Diagram");
           log.p("This is a network with the following layout:");
@@ -362,11 +361,57 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         logger.info("Error plotting graph", e);
       }
     }
-    throwException(standardTests(log, seed));
-    getFinalTests().stream().filter(x -> null != x).forEach(test -> {
-      final NNLayer perfLayer = getLayer(getPerfDims(new Random(seed)), new Random(seed));
-      test.test(log, perfLayer.copy(), randomize(getPerfDims(new Random(seed))));
+    ArrayList<TestError> exceptions = standardTests(log, seed);
+    if (!exceptions.isEmpty()) {
+      if (smallLayer instanceof DAGNetwork) {
+        for (Invocation invocation : getInvocations(smallLayer, smallDims)) {
+          log.h2("Small SubTest: " + invocation.getLayer().getClass().getSimpleName());
+          littleTests(log, exceptions, invocation);
+        }
+      }
+      if (largeLayer instanceof DAGNetwork) {
+        for (Invocation invocation : getInvocations(largeLayer, largeDims)) {
+          log.h2("Large SubTest: " + invocation.getLayer().getClass().getSimpleName());
+          bigTests(log, exceptions, invocation);
+        }
+      }
+    }
+    log.code(() -> {
+      throwException(exceptions);
     });
+    getFinalTests().stream().filter(x -> null != x).forEach(test -> {
+      final NNLayer perfLayer = getLayer(largeDims, new Random(seed));
+      test.test(log, perfLayer.copy(), randomize(largeDims));
+    });
+  }
+  
+  public Collection<Invocation> getInvocations(NNLayer smallLayer, int[][] smallDims) {
+    DAGNetwork smallCopy = (DAGNetwork) smallLayer.copy();
+    HashSet<Invocation> invocations = new HashSet<>();
+    smallCopy.visitNodes(node -> {
+      NNLayer inner = node.getLayer();
+      node.setLayer(new NNLayer() {
+        @Override
+        public NNResult eval(NNResult... array) {
+          if (null == inner) return null;
+          NNResult result = inner.eval(array);
+          invocations.add(new Invocation(inner, Arrays.stream(array).map(x -> x.getData().getDimensions()).toArray(i -> new int[i][])));
+          return result;
+        }
+        
+        @Override
+        public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+          return inner.getJson(resources, dataSerializer);
+        }
+        
+        @Override
+        public List<double[]> state() {
+          return inner.state();
+        }
+      });
+    });
+    smallCopy.eval(Arrays.stream(smallDims).map(i -> new Tensor(i)).<Tensor>toArray(i -> new Tensor[i]));
+    return invocations;
   }
   
   /**
@@ -378,7 +423,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     long timeout = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(3);
     while (System.currentTimeMillis() < timeout) {
       long seed = (long) (Math.random() * Long.MAX_VALUE);
-      final NNLayer layer = getLayer(getInputDims(new Random(seed)), new Random(seed));
+      final NNLayer layer = getLayer(getSmallDims(new Random(seed)), new Random(seed));
       throwException(standardTests(log, seed));
     }
   }
@@ -388,7 +433,11 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    *
    * @param exceptions the exceptions
    */
-  public void throwException(ArrayList<Throwable> exceptions) {
+  public void throwException(ArrayList<TestError> exceptions) {
+    for (TestError exception : exceptions) {
+      logger.info(String.format("Layer: %s", exception.layer));
+      logger.info("Error", exception);
+    }
     for (Throwable exception : exceptions) {
       throw new RuntimeException(exception);
     }
@@ -401,28 +450,59 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * @param seed the seed
    * @return the array list
    */
-  public ArrayList<Throwable> standardTests(NotebookOutput log, long seed) {
-    final NNLayer layer = getLayer(getInputDims(new Random(seed)), new Random(seed));
-    ArrayList<Throwable> exceptions = new ArrayList<>();
+  public ArrayList<TestError> standardTests(NotebookOutput log, long seed) {
+    final NNLayer layer = getLayer(getSmallDims(new Random(seed)), new Random(seed));
+    ArrayList<TestError> exceptions = new ArrayList<>();
     log.p(String.format("Using Seed %d", seed));
-    getLittleTests().stream().filter(x -> null != x).forEach((ComponentTest<?> test) -> {
-      try {
-        test.test(log, layer.copy(), randomize(getInputDims(new Random(seed))));
-      } catch (LifecycleException e) { throw e; } catch (Throwable e) { exceptions.add(e); }
-    });
-    getBigTests().stream().filter(x -> null != x).forEach(test -> {
-      try {
-        final NNLayer perfLayer = getLayer(getPerfDims(new Random(seed)), new Random(seed));
-        test.test(log, perfLayer.copy(), randomize(getPerfDims(new Random(seed))));
-      } catch (LifecycleException e) { throw e; } catch (GpuError e) {
-        throw e;
-      } catch (Throwable e) { exceptions.add(e); }
-    });
+    littleTests(log, exceptions, new Invocation(layer, getSmallDims(new Random(seed))));
+    final NNLayer perfLayer = getLayer(getLargeDims(new Random(seed)), new Random(seed));
+    bigTests(log, seed, perfLayer, exceptions);
     log.code(() -> {
       System.gc();
       ReferenceCountingBase.logFreeWarnings();
     });
     return exceptions;
+  }
+  
+  public void bigTests(NotebookOutput log, long seed, NNLayer perfLayer, ArrayList<TestError> exceptions) {
+    getBigTests().stream().filter(x -> null != x).forEach(test -> {
+      NNLayer layer = perfLayer.copy();
+      try {
+        test.test(log, layer, randomize(getLargeDims(new Random(seed))));
+      } catch (LifecycleException e) {
+        throw e;
+      } catch (GpuError e) {
+        throw e;
+      } catch (Throwable e) {
+        exceptions.add(new TestError(e, test, layer));
+      }
+    });
+  }
+  
+  public void bigTests(NotebookOutput log, ArrayList<TestError> exceptions, Invocation invocation) {
+    getBigTests().stream().filter(x -> null != x).forEach((ComponentTest<?> test) -> {
+      NNLayer layer = invocation.getLayer().copy();
+      try {
+        test.test(log, layer, randomize(invocation.getDims()));
+      } catch (LifecycleException e) {
+        throw e;
+      } catch (Throwable e) {
+        exceptions.add(new TestError(e, test, layer));
+      }
+    });
+  }
+  
+  public void littleTests(NotebookOutput log, ArrayList<TestError> exceptions, Invocation invocation) {
+    getLittleTests().stream().filter(x -> null != x).forEach((ComponentTest<?> test) -> {
+      NNLayer layer = invocation.getLayer().copy();
+      try {
+        test.test(log, layer, randomize(invocation.getDims()));
+      } catch (LifecycleException e) {
+        throw e;
+      } catch (Throwable e) {
+        exceptions.add(new TestError(e, test, layer));
+      }
+    });
   }
   
   /**
@@ -449,7 +529,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   
   @Override
   protected Class<?> getTargetClass() {
-    return getLayer(getInputDims(new Random()), new Random()).getClass();
+    return getLayer(getSmallDims(new Random()), new Random()).getClass();
   }
   
   @Override
@@ -484,5 +564,41 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    */
   public Random getRandom() {
     return new Random(seed);
+  }
+  
+  private static class Invocation {
+    private final NNLayer layer;
+    private final int[][] smallDims;
+    
+    private Invocation(NNLayer layer, int[][] smallDims) {
+      this.layer = layer;
+      this.smallDims = smallDims;
+    }
+    
+    public NNLayer getLayer() {
+      return layer;
+    }
+    
+    public int[][] getDims() {
+      return smallDims;
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (!(o instanceof Invocation)) return false;
+      
+      Invocation that = (Invocation) o;
+      
+      if (layer != null ? !layer.getClass().equals(that.layer.getClass()) : that.layer != null) return false;
+      return Arrays.deepEquals(smallDims, that.smallDims);
+    }
+    
+    @Override
+    public int hashCode() {
+      int result = layer != null ? layer.getClass().hashCode() : 0;
+      result = 31 * result + Arrays.deepHashCode(smallDims);
+      return result;
+    }
   }
 }

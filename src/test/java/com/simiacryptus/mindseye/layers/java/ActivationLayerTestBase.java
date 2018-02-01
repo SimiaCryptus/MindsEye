@@ -81,7 +81,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
   }
   
   @Override
-  public int[][] getInputDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{
       {2, 3, 1}
     };
@@ -93,7 +93,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
   }
   
   @Override
-  public int[][] getPerfDims(Random random) {
+  public int[][] getLargeDims(Random random) {
     return new int[][]{
       {100, 100, 1}
     };

@@ -108,4 +108,11 @@ public class EquivalencyTester implements ComponentTest<ToleranceStatistics> {
     });
   }
   
+  @Override
+  public String toString() {
+    return "EquivalencyTester{" +
+      "reference=" + reference +
+      ", tolerance=" + tolerance +
+      '}';
+  }
 }

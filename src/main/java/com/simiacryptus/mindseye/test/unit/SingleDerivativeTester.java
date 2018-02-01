@@ -496,4 +496,16 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
       throw new RuntimeException("Nonfrozen component did not pass input backwards");
     }
   }
+  
+  @Override
+  public String toString() {
+    return "SingleDerivativeTester{" +
+      "probeSize=" + probeSize +
+      ", tolerance=" + tolerance +
+      ", testFeedback=" + testFeedback +
+      ", testLearning=" + testLearning +
+      ", verbose=" + verbose +
+      ", verify=" + verify +
+      '}';
+  }
 }

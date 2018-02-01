@@ -45,7 +45,7 @@ public abstract class ProductInputsLayerTest extends LayerTestBase {
    */
   public static class N1Test extends ProductInputsLayerTest {
     @Override
-    public int[][] getInputDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {3}, {1}
       };
@@ -58,7 +58,7 @@ public abstract class ProductInputsLayerTest extends LayerTestBase {
   public static class NNNTest extends ProductInputsLayerTest {
   
     @Override
-    public int[][] getInputDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {3}, {3}, {3}
       };
@@ -71,7 +71,7 @@ public abstract class ProductInputsLayerTest extends LayerTestBase {
   public static class NNTest extends ProductInputsLayerTest {
   
     @Override
-    public int[][] getInputDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {3}, {3}
       };

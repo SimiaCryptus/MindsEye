@@ -57,6 +57,7 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
   private final Tensor weights;
   
   private Precision precision = Precision.Double;
+  private int batchBands;
   
   /**
    * Instantiates a new Img concat layer.
@@ -173,6 +174,7 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
     network.add(new ReshapeLayer(1, 1, inputVol));
     ExplodedConvolutionGrid grid = new ConvolutionLayer(1, 1, inputVol, outVol)
       .set(this.weights.reshapeCast(1, 1, inputVol * outVol))
+      .setBatchBands(getBatchBands())
       .getExplodedNetwork();
     grid.add(network.getHead());
     network.add(new ReshapeLayer(outputDims));
@@ -223,6 +225,15 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
    */
   public FullyConnectedLayer setWeights(final DoubleSupplier f) {
     Arrays.parallelSetAll(getWeights().getData(), i -> f.getAsDouble());
+    return this;
+  }
+  
+  public int getBatchBands() {
+    return batchBands;
+  }
+  
+  public FullyConnectedLayer setBatchBands(int batchBands) {
+    this.batchBands = batchBands;
     return this;
   }
 }

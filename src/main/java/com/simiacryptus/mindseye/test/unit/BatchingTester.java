@@ -27,6 +27,8 @@ import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.SimpleListEval;
 import com.simiacryptus.mindseye.test.SimpleResult;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
+import com.simiacryptus.util.data.DensityTree;
+import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,10 +97,14 @@ public class BatchingTester implements ComponentTest<ToleranceStatistics> {
     }
   
     final ToleranceStatistics derivativeAgreement = IntStream.range(0, getBatchSize()).mapToObj(batch -> {
-      IntFunction<ToleranceStatistics> statisticsFunction = input ->
-        new ToleranceStatistics().accumulate(
-          asABatch.getDerivative()[input].get(batch).getData(),
-          oneAtATime.get(batch).getDerivative()[input].getData());
+      IntFunction<ToleranceStatistics> statisticsFunction = input -> {
+        Tensor a = asABatch.getDerivative()[input].get(batch);
+        Tensor b = oneAtATime.get(batch).getDerivative()[input];
+        logger.info("Error: " + a.minus(b).prettyPrint());
+        logger.info("Scalar Statistics: " + new ScalarStatistics().add(a.minus(b).getData()).getMetrics());
+        logger.info("Density: " + new DensityTree("x").setMinSplitFract(1e-8).setSplitSizeThreshold(2).new Node(Arrays.stream(a.minus(b).getData()).mapToObj(x -> new double[]{x}).toArray(i -> new double[i][])));
+        return new ToleranceStatistics().accumulate(a.getData(), b.getData());
+      };
       return IntStream.range(0, inputTensorLists.length).mapToObj(statisticsFunction).reduce((a, b) -> a.combine(b)).get();
     }).reduce((a, b) -> a.combine(b)).get();
     if (!(derivativeAgreement.absoluteTol.getMax() < tolerance)) {
@@ -143,5 +149,13 @@ public class BatchingTester implements ComponentTest<ToleranceStatistics> {
   public BatchingTester setBatchSize(int batchSize) {
     this.batchSize = batchSize;
     return this;
+  }
+  
+  @Override
+  public String toString() {
+    return "BatchingTester{" +
+      "tolerance=" + tolerance +
+      ", batchSize=" + batchSize +
+      '}';
   }
 }

@@ -37,7 +37,7 @@ public abstract class StaticScalarLossLayerTest extends LayerTestBase {
   }
   
   @Override
-  public int[][] getInputDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{
       {1}
     };

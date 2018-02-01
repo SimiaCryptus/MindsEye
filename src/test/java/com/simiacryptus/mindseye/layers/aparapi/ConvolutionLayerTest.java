@@ -43,14 +43,14 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
     }
     
     @Override
-    public int[][] getInputDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {8, 8, 1}
       };
     }
     
     @Override
-    public int[][] getPerfDims(Random random) {
+    public int[][] getLargeDims(Random random) {
       
       return new int[][]{
         {200, 200, inputBands}
@@ -66,7 +66,7 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
   public static class Downsize extends ConvolutionLayerTest {
   
     @Override
-    public int[][] getInputDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {3, 3, 7}
       };
@@ -85,7 +85,7 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
   public static class Upsize extends ConvolutionLayerTest {
   
     @Override
-    public int[][] getInputDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {3, 3, 2}
       };

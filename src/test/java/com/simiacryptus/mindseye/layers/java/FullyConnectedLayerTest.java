@@ -40,7 +40,7 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
   }
   
   @Override
-  public int[][] getInputDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{
       {inputs}
     };

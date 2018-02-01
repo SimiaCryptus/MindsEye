@@ -30,7 +30,7 @@ import java.util.Random;
 public abstract class AvgPoolingLayerTest extends LayerTestBase {
   
   @Override
-  public int[][] getInputDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{
       {8, 8, 1}
     };
@@ -42,7 +42,7 @@ public abstract class AvgPoolingLayerTest extends LayerTestBase {
   }
   
   @Override
-  public int[][] getPerfDims(Random random) {
+  public int[][] getLargeDims(Random random) {
     return new int[][]{
       {200, 200, 3}
     };

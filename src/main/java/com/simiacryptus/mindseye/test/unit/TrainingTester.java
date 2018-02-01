@@ -920,4 +920,14 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
       return String.format("{\"type\":\"%s\", value:%s}", type, value);
     }
   }
+  
+  @Override
+  public String toString() {
+    return "TrainingTester{" +
+      "batches=" + batches +
+      ", randomizationMode=" + randomizationMode +
+      ", verbose=" + verbose +
+      ", throwExceptions=" + throwExceptions +
+      '}';
+  }
 }
