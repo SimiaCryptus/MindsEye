@@ -23,49 +23,15 @@ package com.simiacryptus.mindseye.lang;
  * A runtime exception when performing an invalid operation on a ReferenceCounted object.
  */
 public class LifecycleException extends RuntimeException {
-  /**
-   * Instantiates a new Lifecycle exception.
-   */
-  public LifecycleException() {
-  }
+  public final ReferenceCountingBase obj;
   
   /**
    * Instantiates a new Lifecycle exception.
    *
-   * @param message the message
    */
-  public LifecycleException(String message) {
-    super(message);
+  public LifecycleException(ReferenceCountingBase obj) {
+    super("Lifecycle Exception: " + ReferenceCountingBase.detailString(obj, false));
+    this.obj = obj;
   }
   
-  /**
-   * Instantiates a new Lifecycle exception.
-   *
-   * @param message the message
-   * @param cause   the cause
-   */
-  public LifecycleException(String message, Throwable cause) {
-    super(message, cause);
-  }
-  
-  /**
-   * Instantiates a new Lifecycle exception.
-   *
-   * @param cause the cause
-   */
-  public LifecycleException(Throwable cause) {
-    super(cause);
-  }
-  
-  /**
-   * Instantiates a new Lifecycle exception.
-   *
-   * @param message            the message
-   * @param cause              the cause
-   * @param enableSuppression  the enable suppression
-   * @param writableStackTrace the writable stack trace
-   */
-  public LifecycleException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-    super(message, cause, enableSuppression, writableStackTrace);
-  }
 }

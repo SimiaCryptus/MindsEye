@@ -39,7 +39,7 @@ import java.util.function.Supplier;
  */
 public abstract class ReferenceCountingBase implements ReferenceCounting {
   private static final Logger logger = LoggerFactory.getLogger(ReferenceCountingBase.class);
-  private static final boolean DEBUG_LIFECYCLE = false && ReferenceCountingBase.class.desiredAssertionStatus();
+  private static final boolean DEBUG_LIFECYCLE = ReferenceCountingBase.class.desiredAssertionStatus();
   private static final boolean SUPPRESS_LOG = false;
   
   private final AtomicInteger references = new AtomicInteger(1);
@@ -64,7 +64,25 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   
   private final ConcurrentLinkedDeque<StackTraceElement[]> addRefs = new ConcurrentLinkedDeque<>();
   
-  private String detailString() {
+  public static String detailString(ReferenceCountingBase obj, boolean includeCaller) {
+    return obj.detailString(includeCaller);
+  }
+  
+  public static void logFreeWarnings() {
+    leakMap.forEach((clazz, queue) -> {
+      logger.info(String.format("Objects not freed by reference for %s", clazz.getSimpleName()));
+      queue.forEach(obj -> {
+        ReferenceCountingBase base = obj.get();
+        if (null != base) logger.warn(base.detailString(false));
+      });
+    });
+  }
+  
+  public final boolean isFinalized() {
+    return isFreed.get();
+  }
+  
+  private String detailString(boolean includeCaller) {
     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     PrintStream out = new PrintStream(buffer);
     out.print(String.format("Object %s ",
@@ -85,31 +103,10 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
       out.println(String.format("freed by \n\t%s",
                                 getString(this.finalizedBy).replaceAll("\n", "\n\t")));
     }
-    out.println(String.format("with current stack \n\t%s",
-                              getString(Thread.currentThread().getStackTrace()).replaceAll("\n", "\n\t")));
+    if (includeCaller) out.println(String.format("with current stack \n\t%s",
+                                                 getString(Thread.currentThread().getStackTrace()).replaceAll("\n", "\n\t")));
     out.close();
     return buffer.toString();
-  }
-  
-  public final boolean isFinalized() {
-    return isFreed.get();
-  }
-  
-  /**
-   * Assert alive.
-   */
-  public final void assertAlive() {
-    if (isFinalized) {
-      throw new LifecycleException("Object has been finalized");
-    }
-    if (isFinalized()) {
-      if (!SUPPRESS_LOG) {
-        //SUPPRESS_LOG = true;
-        logger.warn(String.format("Using freed reference for %s", getClass().getSimpleName()));
-        logger.warn(detailString());
-      }
-      throw new LifecycleException();
-    }
   }
   
   /**
@@ -120,14 +117,21 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   private final ConcurrentLinkedDeque<StackTraceElement[]> freeRefs = new ConcurrentLinkedDeque<>();
   private boolean floating = false;
   
-  public static void logFreeWarnings() {
-    leakMap.forEach((clazz, queue) -> {
-      logger.info(String.format("Objects not freed by reference for %s", clazz.getSimpleName()));
-      queue.forEach(obj -> {
-        ReferenceCountingBase base = obj.get();
-        if (null != base) logger.warn(base.detailString());
-      });
-    });
+  /**
+   * Assert alive.
+   */
+  public final void assertAlive() {
+    if (isFinalized) {
+      throw new LifecycleException(this);
+    }
+    if (isFinalized()) {
+      if (!SUPPRESS_LOG) {
+        //SUPPRESS_LOG = true;
+        logger.warn(String.format("Using freed reference for %s", getClass().getSimpleName()));
+        logger.warn(detailString(true));
+      }
+      throw new LifecycleException(this);
+    }
   }
   
   @Override
@@ -141,9 +145,9 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
       if (!SUPPRESS_LOG) {
         //SUPPRESS_LOG = true;
         logger.warn(String.format("Error freeing reference for %s", getClass().getSimpleName()));
-        logger.warn(detailString());
+        logger.warn(detailString(true));
       }
-      throw new LifecycleException();
+      throw new LifecycleException(this);
     }
     else if (refs == 0) {
       assert references.get() == 0;
@@ -152,7 +156,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
         try {
           _free();
         } catch (LifecycleException e) {
-          logger.info("Error freeing resources: " + detailString());
+          logger.info("Error freeing resources: " + detailString(true));
           throw e;
         }
       }
@@ -170,6 +174,9 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
         ConcurrentLinkedDeque<Supplier<ReferenceCountingBase>> deque = leakMap.computeIfAbsent(getClass(), clazz -> new ConcurrentLinkedDeque<>());
         deque.add(FREE_WARNING_PERSISTANCE.wrap(this));
         while (deque.size() > MAX_FREE_WARNINGS) deque.remove();
+        if (DEBUG_LIFECYCLE && logger.isDebugEnabled()) {
+          logger.debug("Instance Reclaimed by GC: " + detailString(false));
+        }
       }
       finalizedBy = DEBUG_LIFECYCLE ? Thread.currentThread().getStackTrace() : null;
       _free();

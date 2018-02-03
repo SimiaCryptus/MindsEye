@@ -124,9 +124,9 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
       final NNResult[] nnContext = BasicTrainable.getNNContext(list, mask);
       final NNResult result = network.eval(nnContext);
       final TensorList resultData = result.getData();
-      assert resultData.stream().allMatch(x -> x.dim() == 1);
-      assert resultData.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite));
-      final DoubleSummaryStatistics statistics = resultData.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).summaryStatistics();
+      final DoubleSummaryStatistics statistics = resultData.stream()
+                                                           .flatMapToDouble(x -> Arrays.stream(Arrays.stream(x.getData()).toArray()))
+                                                           .summaryStatistics();
       final double sum = statistics.getSum();
       final DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
       result.accumulate(xxx, 1.0);

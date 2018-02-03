@@ -94,6 +94,7 @@ public abstract class ImageClassifier {
             int index = order[i];
             topN.put(categories.get(index), predictionSignal[index]);
           }
+          tensor.freeRef();
           return topN;
         });
       }).collect(Collectors.toList());

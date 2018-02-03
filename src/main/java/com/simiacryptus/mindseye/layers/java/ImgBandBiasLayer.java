@@ -128,22 +128,18 @@ public class ImgBandBiasLayer extends NNLayer {
   public NNResult eval(final NNResult input) {
     final double[] bias = getBias();
     input.addRef();
-    assert input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    final Tensor[] outputA = input.getData().stream().parallel()
-                                  .map(r -> {
-                                    if (r.getDimensions().length != 3) {
-                                      throw new IllegalArgumentException(Arrays.toString(r.getDimensions()));
-                                    }
-                                    if (r.getDimensions()[2] != bias.length) {
-                                      throw new IllegalArgumentException(String.format("%s: %s does not have %s bands",
-                                                                                       getName(), Arrays.toString(r.getDimensions()), bias.length));
-                                    }
-                                    return new Tensor(add(r.getData()), r.getDimensions());
-                                  })
-                                  .toArray(i -> new Tensor[i]);
-    assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    return new NNResult(TensorArray.wrap(outputA), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
-      assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+    return new NNResult(TensorArray.wrap(input.getData().stream().parallel()
+                                              .map(r -> {
+                                                if (r.getDimensions().length != 3) {
+                                                  throw new IllegalArgumentException(Arrays.toString(r.getDimensions()));
+                                                }
+                                                if (r.getDimensions()[2] != bias.length) {
+                                                  throw new IllegalArgumentException(String.format("%s: %s does not have %s bands",
+                                                                                                   getName(), Arrays.toString(r.getDimensions()), bias.length));
+                                                }
+                                                return new Tensor(add(r.getData()), r.getDimensions());
+                                              })
+                                              .toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (!isFrozen()) {
         final Delta<NNLayer> deltaBuffer = buffer.get(ImgBandBiasLayer.this, bias);
         data.stream().parallel().forEach(d -> {
@@ -165,7 +161,7 @@ public class ImgBandBiasLayer extends NNLayer {
         input.accumulate(buffer, data);
       }
     }) {
-  
+    
       @Override
       protected void _free() {
         input.freeRef();

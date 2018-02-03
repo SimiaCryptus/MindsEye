@@ -69,7 +69,6 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
     assert ptr.size == (long) length * Tensor.dim(dimensions) * precision.size;
     assert ptr.getPtr() != null;
     //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-    assert !System.getProperties().containsKey("safe") || stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
     GpuTensorList self = this;
     addInstance(self);
   }
@@ -153,6 +152,7 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
                                         precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                         precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
                                         precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
+              gpu.registerForCleanup(opDescriptor, sizeDescriptor);
               return GpuTensorList.wrap(outputPtr, getLength(), getDimensions(), this.precision);
             });
           }
@@ -162,8 +162,13 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
     if (right.length() == 0) return this;
     if (length() == 0) throw new IllegalArgumentException();
     assert length() == right.length();
-    return TensorArray.create(IntStream.range(0, length()).mapToObj(i -> {
-      return get(i).add(right.get(i));
+    return TensorArray.wrap(IntStream.range(0, length()).mapToObj(i -> {
+      Tensor a = get(i);
+      Tensor b = right.get(i);
+      Tensor r = a.add(b);
+      a.freeRef();
+      b.freeRef();
+      return r;
     }).toArray(i -> new Tensor[i]));
   }
   
@@ -195,7 +200,7 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
    *
    * @return the tensor list
    */
-  public TensorList heapCopy() {
+  private TensorList heapCopy() {
     if (null == heapCopy) {
       synchronized (this) {
         if (null == heapCopy) {
@@ -214,7 +219,7 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
           }
           //assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           RecycleBin.DOUBLES.recycle(outputBuffer, outputBuffer.length);
-          heapCopy = TensorArray.create(output);
+          heapCopy = TensorArray.wrap(output);
         }
       }
     }
@@ -246,7 +251,9 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
    * @return the heap copy
    */
   public TensorList getHeapCopy() {
-    return heapCopy();
+    TensorList tensorList = heapCopy();
+    tensorList.addRef();
+    return tensorList;
   }
   
   @Override

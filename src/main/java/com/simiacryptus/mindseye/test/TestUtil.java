@@ -596,9 +596,14 @@ public class TestUtil {
    *
    * @param runnables the runnables
    */
-  public static void runAll(Runnable... runnables) {
+  public static void runAllParallel(Runnable... runnables) {
     Arrays.stream(runnables)
           .parallel()
+          .forEach(Runnable::run);
+  }
+  
+  public static void runAllSerial(Runnable... runnables) {
+    Arrays.stream(runnables)
           .forEach(Runnable::run);
   }
   

@@ -187,7 +187,6 @@ public class FullyConnectedLayer extends NNLayer {
       nnResult.addRef();
     }
     assert Tensor.dim(indata.getDimensions()) == Tensor.dim(this.inputDims) : Arrays.toString(indata.getDimensions()) + " == " + Arrays.toString(this.inputDims);
-    assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
     Tensor weights = this.weights;
     DoubleMatrix doubleMatrix = new DoubleMatrix(Tensor.dim(indata.getDimensions()), Tensor.dim(outputDims), weights.getData());
     final DoubleMatrix matrixObj = FullyConnectedLayer.transpose(doubleMatrix);
@@ -201,7 +200,6 @@ public class FullyConnectedLayer extends NNLayer {
     }).toArray(i -> new Tensor[i]));
     RecycleBin.DOUBLES.recycle(matrixObj.data, matrixObj.data.length);
     return new NNResult(tensorArray, (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
-      assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
       if (!isFrozen()) {
         final Delta<NNLayer> deltaBuffer = buffer.get(FullyConnectedLayer.this, weights.getData());
         final int threads = 4;

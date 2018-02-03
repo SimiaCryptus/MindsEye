@@ -122,7 +122,6 @@ public class FullyConnectedReferenceLayer extends NNLayer {
     indata.addRef();
     int[] inputDimensions = indata.getDimensions();
     assert Tensor.dim(inputDimensions) == Tensor.dim(this.inputDims) : Arrays.toString(inputDimensions) + " == " + Arrays.toString(this.inputDims);
-    assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
   
     return new NNResult(TensorArray.wrap(IntStream.range(0, indata.length()).mapToObj(index -> {
       final Tensor input = indata.get(index);
@@ -137,7 +136,6 @@ public class FullyConnectedReferenceLayer extends NNLayer {
       });
       return output;
     }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
-      assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
       if (!isFrozen()) {
         final Delta<NNLayer> deltaBuffer = buffer.get(FullyConnectedReferenceLayer.this, getWeights().getData());
         Tensor[] array = IntStream.range(0, indata.length()).mapToObj(i -> {

@@ -144,7 +144,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
       rPtr.freeRef();
       return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
     }), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
-      TestUtil.runAll(() -> {
+      TestUtil.runAllSerial(() -> {
         if (inObj[0].isAlive()) {
           GpuTensorList tensorList = CuDNNHandle.run(gpu -> {
             final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);

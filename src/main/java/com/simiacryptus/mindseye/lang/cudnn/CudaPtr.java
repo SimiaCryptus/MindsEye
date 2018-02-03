@@ -117,9 +117,11 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
       final int elementLength = Tensor.dim(data.getDimensions());
       final double[] inputBuffer = RecycleBin.DOUBLES.obtain(elementLength * listLength);
       for (int i = 0; i < listLength; i++) {
-        final double[] doubles = data.get(i).getData();
+        Tensor tensor = data.get(i);
+        final double[] doubles = tensor.getData();
         assert elementLength == doubles.length;
         System.arraycopy(doubles, 0, inputBuffer, i * elementLength, elementLength);
+        tensor.freeRef();
       }
       final CudaPtr ptr = CudaPtr.allocate(GpuSystem.getDevice(), (long) inputBuffer.length * precision.size, MemoryType.Managed, true).write(precision, inputBuffer);
       RecycleBin.DOUBLES.recycle(inputBuffer, inputBuffer.length);

@@ -115,7 +115,6 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
       }).get();
       return result1;
     }), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
-      assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
       for (int index = 0; index < inObj.length; index++) {
         final NNResult input = inObj[index];
         if (input.isAlive()) {

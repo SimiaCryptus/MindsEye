@@ -42,25 +42,6 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
   /**
    * Instantiates a new Fully connected layer allocationOverflow.
    *
-   * @param dim the dim
-   */
-  public FullyConnectedLayerTest(int dim) {
-    this(dim, dim);
-  }
-  
-  /**
-   * Instantiates a new Fully connected layer allocationOverflow.
-   *
-   * @param inputDim  the input dim
-   * @param outputDim the output dim
-   */
-  public FullyConnectedLayerTest(int inputDim, int outputDim) {
-    this(new int[]{inputDim}, new int[]{outputDim}, 512);
-  }
-  
-  /**
-   * Instantiates a new Fully connected layer allocationOverflow.
-   *
    * @param inputDims  the input dims
    * @param outputDims the output dims
    * @param batchBands
@@ -115,7 +96,7 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Basic.
      */
     public Basic() {
-      super(2);
+      super(new int[]{2}, new int[]{2}, 512);
     }
   }
   
@@ -186,15 +167,55 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
     
   }
   
+  
   /**
    * Large-dimension test
    */
-  public static class Big_Temp extends Big {
+  public static class Big_Temp2 extends Big {
     /**
      * Instantiates a new Big.
      */
-    public Big_Temp() {
-      super(new int[]{1024}, new int[]{256}, 64);
+    public Big_Temp2() {
+      super(new int[]{1024}, new int[]{512}, 32);
+    }
+    
+  }
+  
+  /**
+   * Large-dimension test
+   */
+  public static class Big_Temp3 extends Big {
+    /**
+     * Instantiates a new Big.
+     */
+    public Big_Temp3() {
+      super(new int[]{2 * 1024}, new int[]{512}, 32);
+    }
+    
+  }
+  
+  /**
+   * Large-dimension test
+   */
+  public static class Big_Temp0 extends Big {
+    /**
+     * Instantiates a new Big.
+     */
+    public Big_Temp0() {
+      super(new int[]{1024}, new int[]{256}, 32);
+    }
+    
+  }
+  
+  /**
+   * Large-dimension test
+   */
+  public static class Big_Temp1 extends Big {
+    /**
+     * Instantiates a new Big.
+     */
+    public Big_Temp1() {
+      super(new int[]{2 * 1024}, new int[]{256}, 32);
     }
     
   }

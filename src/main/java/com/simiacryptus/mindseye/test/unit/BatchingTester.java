@@ -110,7 +110,6 @@ public class BatchingTester implements ComponentTest<ToleranceStatistics> {
     if (!(derivativeAgreement.absoluteTol.getMax() < tolerance)) {
       throw new AssertionError("Derivatives Corrupt: " + derivativeAgreement);
     }
-    
     return derivativeAgreement.combine(outputAgreement);
   }
   

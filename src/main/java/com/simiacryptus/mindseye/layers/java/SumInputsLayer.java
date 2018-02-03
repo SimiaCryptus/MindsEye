@@ -78,13 +78,20 @@ public class SumInputsLayer extends NNLayer {
                                        })
                                        .toArray(i -> new Tensor[i]));
     }).get(), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
-      assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
       for (final NNResult input : inObj) {
         if (input.isAlive()) {
           TensorList data1 = data;
           data1.addRef();
           if (1 < data1.length() && input.getData().length() == 1) {
-            data1 = TensorArray.wrap(data1.stream().parallel().reduce((a, b) -> a.add(b)).get());
+            data1 = TensorArray.wrap(data1.stream().parallel().map(x -> {
+              x.addRef();
+              return x;
+            }).reduce((a, b) -> {
+              Tensor c = a.add(b);
+              a.freeRef();
+              b.freeRef();
+              return c;
+            }).get());
           }
           if (1 < data1.get(0).dim() && input.getData().get(0).dim() == 1) {
             TensorArray data2 = TensorArray.wrap(data1.stream().map(t -> new Tensor(new double[]{t.sum()})).toArray(i -> new Tensor[i]));

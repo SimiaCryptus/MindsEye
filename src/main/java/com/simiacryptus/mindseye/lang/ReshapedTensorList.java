@@ -61,7 +61,9 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
   
   @Override
   public Stream<Tensor> stream() {
-    return data.stream().map(t -> t.reshapeCast(dims));
+    return data.stream().map(t -> {
+      return t.reshapeCast(dims);
+    });
   }
   
   @Override

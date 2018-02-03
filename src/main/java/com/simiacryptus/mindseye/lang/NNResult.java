@@ -66,7 +66,8 @@ public abstract class NNResult extends ReferenceCountingBase {
    * @param value  the value
    */
   public final void accumulate(final DeltaSet<NNLayer> buffer, final double value) {
-    TensorArray tensorArray = TensorArray.wrap(getData().stream().map(t -> t.map(v -> value)).toArray(i -> new Tensor[i]));
+    TensorArray tensorArray = TensorArray.wrap(getData().stream().map(t -> t.map(v -> value))
+                                                        .toArray(i -> new Tensor[i]));
     accumulate(buffer, tensorArray);
     tensorArray.freeRef();
   }

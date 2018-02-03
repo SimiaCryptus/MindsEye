@@ -562,13 +562,16 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
       }
       log.p("To produce the following output:");
       log.code(() -> {
-        return layer.eval(NNConstant.batchResultArray(pop(data))).getData().stream()
-                    .collect(Collectors.toList())
-                    .stream()
-                    .limit(1)
-                    .map(x -> x.prettyPrint())
-                    .reduce((a, b) -> a + "\n" + b)
-                    .orElse("");
+        TensorList tensorList = layer.eval(NNConstant.batchResultArray(pop(data))).getData();
+        String str = tensorList.stream()
+                               .collect(Collectors.toList())
+                               .stream()
+                               .limit(1)
+                               .map(x -> x.prettyPrint())
+                               .reduce((a, b) -> a + "\n" + b)
+                               .orElse("");
+        tensorList.freeRef();
+        return str;
       });
     }
     else {

@@ -231,7 +231,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
       }
     }), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
       assert delta.length() == batch.length();
-      TestUtil.runAll(() -> {
+      TestUtil.runAllSerial(() -> {
         CuDNNHandle.apply(gpu -> {
           if (!isFrozen()) {
             CudaRevParameters cudaParameters = obtainRev(new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu));

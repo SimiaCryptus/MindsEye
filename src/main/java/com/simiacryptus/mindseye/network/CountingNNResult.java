@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A result type for evaluating the backpropigation phase of an Acyclic Directed Graph. Since the result of a given
@@ -143,15 +144,21 @@ class CountingNNResult extends NNResult {
         data.addRef();
         synchronized (passbackBuffers) {
           if (passbackBuffers.size() > COMPACTION_SIZE) {
-            TensorList reduced = passbackBuffers.stream().parallel().reduce((a, b) -> a.add(b)).get();
+            Stream<TensorList> stream = passbackBuffers.stream();
+            //stream = stream.parallel();
+            TensorList reduced = stream.reduce((a, b) -> a.add(b)).get();
             passbackBuffers.stream().distinct().filter((TensorList x) -> x != reduced).forEach(t -> t.freeRef());
             passbackBuffers.clear();
             passbackBuffers.add(reduced);
           }
           if (accumulations.incrementAndGet() == references.get()) {
             if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
-            TensorList reduced = passbackBuffers.stream().parallel().reduce((a, b) -> a.add(b)).get();
-            passbackBuffers.stream().distinct().filter((TensorList x) -> x != reduced).forEach(t -> t.freeRef());
+            Stream<TensorList> stream0 = passbackBuffers.stream();
+            //stream0 = stream0.parallel();
+            TensorList reduced = stream0.reduce((a, b) -> a.add(b)).get();
+            Stream<TensorList> stream1 = passbackBuffers.stream();
+            //stream1 = stream1.parallel();
+            stream1.distinct().filter((TensorList x) -> x != reduced).forEach(t -> t.freeRef());
             inner.accumulate(buffer, reduced);
             reduced.freeRef();
             accumulations.set(0);

@@ -110,20 +110,16 @@ public class ImgCropLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
-    
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputDims = batch.getDimensions();
     assert 3 == inputDims.length;
-    assert input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
     return new NNResult(TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
                                                   .mapToObj(dataIndex -> {
                                                     final Tensor outputDims = new Tensor(sizeX, sizeY, inputDims[2]);
                                                     return ImgCropLayer.copy(batch.get(dataIndex), outputDims);
                                                   })
                                                   .toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
-      assert error.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
       if (input.isAlive()) {
         TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
                                                             .mapToObj(dataIndex -> {

@@ -39,9 +39,16 @@ public interface TensorList extends ReferenceCounting {
     if (right.length() == 0) return this;
     if (length() == 0) throw new IllegalArgumentException();
     assert length() == right.length();
-    return TensorArray.create(IntStream.range(0, length()).mapToObj(i -> {
-      return get(i).add(right.get(i));
-    }).toArray(i -> new Tensor[i]));
+    return TensorArray.wrap(IntStream.range(0, length())
+                                     .mapToObj(i -> freeSum(get(i), right.get(i)))
+                                     .toArray(i -> new Tensor[i]));
+  }
+  
+  default Tensor freeSum(Tensor a, Tensor b) {
+    Tensor sum = a.add(b);
+    a.freeRef();
+    b.freeRef();
+    return sum;
   }
   
   /**
@@ -54,8 +61,13 @@ public interface TensorList extends ReferenceCounting {
     if (right.length() == 0) return this;
     if (length() == 0) throw new IllegalArgumentException();
     assert length() == right.length();
-    return TensorArray.create(IntStream.range(0, length()).mapToObj(i -> {
-      return get(i).minus(right.get(i));
+    return TensorArray.wrap(IntStream.range(0, length()).mapToObj(i -> {
+      Tensor a = get(i);
+      Tensor b = right.get(i);
+      Tensor r = a.minus(b);
+      a.freeRef();
+      b.freeRef();
+      return r;
     }).toArray(i -> new Tensor[i]));
   }
   

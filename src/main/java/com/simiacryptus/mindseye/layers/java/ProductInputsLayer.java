@@ -79,7 +79,6 @@ public class ProductInputsLayer extends NNLayer {
                                          return Tensor.product(left, right);
                                        }).toArray(i -> new Tensor[i]));
     }).get(), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
-      assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
       for (final NNResult input : inObj) {
         if (input.isAlive()) {
           TensorList passback = Arrays.stream(inObj).parallel().map(x -> x == input ? delta : x.getData()).reduce((l, r) -> {

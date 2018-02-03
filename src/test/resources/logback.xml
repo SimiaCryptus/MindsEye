@@ -34,7 +34,20 @@
         </rollingPolicy>
     </appender>
 
-    <root level="debug">
+    <appender name="FILE_MEM" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/mem-%d{yyyy-MM-dd-HH-mm}.log</fileNamePattern>
+        </rollingPolicy>
+    </appender>
+
+    <logger name="com.simiacryptus.mindseye.lang.ReferenceCountingBase" level="debug" additivity="false">
+        <appender-ref ref="FILE_MEM"/>
+    </logger>
+
+    <root level="info">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>
     </root>

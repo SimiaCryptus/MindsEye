@@ -110,9 +110,8 @@ public class ImgBandScaleLayer extends NNLayer {
     final TensorList inData = input.getData();
     inData.addRef();
     input.addRef();
-    assert inData.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    final Tensor[] outputA = inData.stream().parallel()
-                                   .map(tensor -> {
+    return new NNResult(TensorArray.wrap(inData.stream().parallel()
+                                               .map(tensor -> {
                                      if (tensor.getDimensions().length != 3) {
                                        throw new IllegalArgumentException(Arrays.toString(tensor.getDimensions()));
                                      }
@@ -121,10 +120,7 @@ public class ImgBandScaleLayer extends NNLayer {
                                                                                         getName(), Arrays.toString(tensor.getDimensions()), weights.length));
                                      }
                                      return tensor.mapCoords(c -> tensor.get(c) * weights[c.getCoords()[2]]);
-                                   }).toArray(i -> new Tensor[i]);
-    assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    return new NNResult(TensorArray.wrap(outputA), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
-      assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+                                               }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
       if (!isFrozen()) {
         final Delta<NNLayer> deltaBuffer = buffer.get(ImgBandScaleLayer.this, weights);
         IntStream.range(0, delta.length()).forEach(index -> {

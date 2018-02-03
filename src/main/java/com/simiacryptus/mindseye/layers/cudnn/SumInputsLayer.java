@@ -99,7 +99,9 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
     }
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     Arrays.stream(inObj).forEach(x -> x.addRef());
-    TensorList run = Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((leftData, rightData) -> CuDNNHandle.run(gpu -> {
+    Stream<NNResult> stream0 = Arrays.stream(inObj);
+    //stream0 = stream0.parallel();
+    TensorList run = stream0.map(x -> x.getData()).reduce((leftData, rightData) -> CuDNNHandle.run(gpu -> {
       final CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
       final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
@@ -115,10 +117,10 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
       return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
     })).get();
     return new NNResult(run, (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
-      Stream<NNResult> stream = Arrays.stream(inObj);
+      Stream<NNResult> stream1 = Arrays.stream(inObj);
       // TODO: Fix issue where parallel will cause data corruption
-      //stream = stream.parallel();
-      stream.filter(x -> x.isAlive()).forEach(obj -> {
+      //stream1 = stream1.parallel();
+      stream1.filter(x -> x.isAlive()).forEach(obj -> {
         GpuTensorList tensorList = CuDNNHandle.run(gpu -> {
           final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);
           final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);

@@ -25,6 +25,7 @@ import com.simiacryptus.util.Util;
 
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 /**
  * A calculation node, to be evaluated by a network once the inputs are available.
@@ -84,7 +85,9 @@ final class InnerNode extends LazyResult {
   protected NNResult eval(final GraphEvaluationContext ctx) {
     final NNLayer innerLayer = getLayer();
     assert Arrays.stream(inputNodes).allMatch(x -> x != null);
-    final NNResult[] in = Arrays.stream(inputNodes).parallel().map(x -> x == null ? null : x.get(ctx)).toArray(i -> new NNResult[i]);
+    Stream<DAGNode> stream = Arrays.stream(inputNodes);
+    //stream = stream.parallel();
+    final NNResult[] in = stream.map(x -> x == null ? null : x.get(ctx)).toArray(i -> new NNResult[i]);
     assert Arrays.stream(in).allMatch(x -> x != null);
     NNResult result = innerLayer.eval(in);
     for (NNResult inputNNResult : in) {

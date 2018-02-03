@@ -71,7 +71,6 @@ public class StaticScalarLossLayer extends NNLayer {
     if (1 != inObj.length) throw new IllegalArgumentException();
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     //if (inObj[0].getData().length() != 1) throw new IllegalArgumentException();
-    assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
     final NNResult in0 = inObj[0];
     TensorList indata = in0.getData();
     indata.addRef();
@@ -80,7 +79,6 @@ public class StaticScalarLossLayer extends NNLayer {
       final double diff = Math.abs(a.get(0) - getTarget());
       return new Tensor(new double[]{diff}, 1);
     }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
-      assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
       if (in0.isAlive()) {
         TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
           final Tensor a = indata.get(dataIndex);
