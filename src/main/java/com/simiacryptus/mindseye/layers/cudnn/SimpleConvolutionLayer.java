@@ -206,7 +206,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     batch.addRef();
   
-    return new NNResult(CuDNNHandle.run(gpu -> {
+    return new NNResult(GpuSystem.eval(gpu -> {
       try {
         final int deviceNumber = gpu.getDeviceNumber();
         CudaFwdParameters cudaParameters = obtainFwd(new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu));
@@ -232,7 +232,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
     }), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
       assert delta.length() == batch.length();
       TestUtil.runAllSerial(() -> {
-        CuDNNHandle.apply(gpu -> {
+        GpuSystem.run(gpu -> {
           if (!isFrozen()) {
             CudaRevParameters cudaParameters = obtainRev(new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu));
             assert cudaParameters.precision == precision;
@@ -258,7 +258,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
         });
       }, () -> {
         if (input.isAlive()) {
-          final TensorList inputBufferTensors = CuDNNHandle.run(gpu -> {
+          final TensorList inputBufferTensors = GpuSystem.eval(gpu -> {
             CudaRevParameters cudaParameters = obtainRev(new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu));
             final CudaPtr inputBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), Tensor.dim(batch.getDimensions()) * 1l * length * precision.size, MemoryType.Managed, true);
             try {

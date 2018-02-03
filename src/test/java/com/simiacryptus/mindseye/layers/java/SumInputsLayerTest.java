@@ -27,11 +27,11 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import java.util.Random;
 
 /**
- * The type Sum inputs layer run.
+ * The type Sum inputs layer eval.
  */
 public class SumInputsLayerTest {
   /**
-   * The type N 1 run.
+   * The type N 1 eval.
    */
   public static class N1Test extends LayerTestBase {
     
@@ -57,7 +57,7 @@ public class SumInputsLayerTest {
   }
   
   /**
-   * The type Nn run.
+   * The type Nn eval.
    */
   public static class NNTest extends LayerTestBase {
     
@@ -88,7 +88,7 @@ public class SumInputsLayerTest {
   public static class OnePlusOne extends LayerTestBase {
   
     /**
-     * Instantiates a new Asymmetric apply.
+     * Instantiates a new Asymmetric run.
      */
     public OnePlusOne() {
       super();

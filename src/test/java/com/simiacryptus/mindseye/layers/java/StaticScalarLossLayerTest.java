@@ -25,12 +25,12 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Static scalar loss layer run.
+ * The type Static scalar loss layer eval.
  */
 public abstract class StaticScalarLossLayerTest extends LayerTestBase {
   
   /**
-   * Instantiates a new Static scalar loss layer run.
+   * Instantiates a new Static scalar loss layer eval.
    */
   public StaticScalarLossLayerTest() {
     validateBatchExecution = false;

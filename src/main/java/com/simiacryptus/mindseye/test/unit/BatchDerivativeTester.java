@@ -130,7 +130,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
   }
   
   /**
-   * Is apply feedback boolean.
+   * Is run feedback boolean.
    *
    * @return the boolean
    */
@@ -139,10 +139,10 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
   }
   
   /**
-   * Sets apply feedback.
+   * Sets run feedback.
    *
-   * @param testFeedback the apply feedback
-   * @return the apply feedback
+   * @param testFeedback the run feedback
+   * @return the run feedback
    */
   public BatchDerivativeTester setTestFeedback(final boolean testFeedback) {
     this.testFeedback = testFeedback;
@@ -150,7 +150,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
   }
   
   /**
-   * Is apply learning boolean.
+   * Is run learning boolean.
    *
    * @return the boolean
    */
@@ -159,10 +159,10 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
   }
   
   /**
-   * Sets apply learning.
+   * Sets run learning.
    *
-   * @param testLearning the apply learning
-   * @return the apply learning
+   * @param testLearning the run learning
+   * @return the run learning
    */
   public BatchDerivativeTester setTestLearning(final boolean testLearning) {
     this.testLearning = testLearning;
@@ -527,7 +527,7 @@ public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics>
      */
     public IOPair invoke() {
       inputPrototype = IntStream.range(0, batches).mapToObj(i -> tensor.copy()).toArray(j -> new Tensor[j]);
-      outputPrototype = SimpleEval.run(component, inputPrototype[0]).getOutput();
+      outputPrototype = SimpleEval.run(component, inputPrototype[0]).getOutputAndFree();
       return this;
     }
   }

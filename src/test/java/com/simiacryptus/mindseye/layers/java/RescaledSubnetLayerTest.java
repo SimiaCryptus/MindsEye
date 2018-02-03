@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import java.util.Random;
 
 /**
- * The type Rascaled subnet layer run.
+ * The type Rascaled subnet layer eval.
  */
 public abstract class RescaledSubnetLayerTest extends LayerTestBase {
   

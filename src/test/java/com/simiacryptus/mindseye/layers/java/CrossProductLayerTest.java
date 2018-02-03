@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Cross product layer run.
+ * The type Cross product layer eval.
  */
 public abstract class CrossProductLayerTest extends LayerTestBase {
   

@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -51,7 +50,7 @@ public class CuDNNHandle extends GpuDevice {
   private static final boolean FORCE_SINGLE_GPU = Boolean.parseBoolean(System.getProperty("FORCE_SINGLE_GPU", Boolean.toString(true)));
   private static final int THREADS_PER_GPU = Integer.parseInt(System.getProperty("THREADS_PER_GPU", Integer.toString(1)));
   public static final StaticResourcePool<CuDNNHandle> POOL = new StaticResourcePool<>(loadGpuContexts());
-  private static final ThreadLocal<CuDNNHandle> threadContext = new ThreadLocal<>();
+  static final ThreadLocal<CuDNNHandle> threadContext = new ThreadLocal<>();
   private final jcuda.jcudnn.cudnnHandle handle;
   
   /**
@@ -59,7 +58,7 @@ public class CuDNNHandle extends GpuDevice {
    *
    * @param deviceNumber the device number
    */
-  private CuDNNHandle(final int deviceNumber) {
+  CuDNNHandle(final int deviceNumber) {
     super(deviceNumber);
     if (0 <= this.deviceNumber) {
       initThread();
@@ -70,112 +69,6 @@ public class CuDNNHandle extends GpuDevice {
       handle = null;
     }
     //cudaSetDevice();
-  }
-  
-  /**
-   * Run.
-   *
-   * @param fn the fn
-   */
-  public static void apply(final Consumer<CuDNNHandle> fn) {apply(fn, true);}
-  
-  /**
-   * Run.
-   *
-   * @param fn          the fn
-   * @param synchronize the synchronize
-   */
-  public static void apply(final Consumer<CuDNNHandle> fn, boolean synchronize) {
-    CuDNNHandle threadlocal = threadContext.get();
-    try {
-      if (threadlocal != null) {
-        try {
-          threadlocal.initThread();
-          fn.accept(threadlocal);
-        } catch (final RuntimeException e) {
-          throw e;
-        } catch (final Exception e) {
-          throw new RuntimeException(e);
-        }
-      }
-      else {
-        POOL.apply(exe -> {
-          try {
-            threadContext.set(exe);
-            exe.initThread();
-            fn.accept(exe);
-          } catch (final RuntimeException e) {
-            throw e;
-          } catch (final Exception e) {
-            throw new RuntimeException(e);
-          } finally {
-            threadContext.remove();
-          }
-        });
-      }
-    } finally {
-      if (synchronize) GpuSystem.cudaDeviceSynchronize();
-    }
-  }
-  
-  /**
-   * Call t.
-   *
-   * @param <T> the type parameter
-   * @param fn  the fn
-   * @return the t
-   */
-  public static <T> T run(final Function<CuDNNHandle, T> fn) {return run(fn, true);}
-  
-  /**
-   * Call t.
-   *
-   * @param <T>         the type parameter
-   * @param fn          the fn
-   * @param synchronize the synchronize
-   * @return the t
-   */
-  public static <T> T run(final Function<CuDNNHandle, T> fn, boolean synchronize) {
-    if (POOL.getAll().isEmpty()) {
-      return fn.apply(new CuDNNHandle(-1));
-    }
-    else {
-      try {
-        CuDNNHandle threadlocal = threadContext.get();
-        if (threadlocal != null) {
-          try {
-            threadlocal.initThread();
-            T result = fn.apply(threadlocal);
-            return result;
-          } catch (final RuntimeException e) {
-            throw e;
-          } catch (final Exception e) {
-            throw new RuntimeException(e);
-          }
-        }
-        else {
-          return POOL.run(exe -> {
-            try {
-              threadContext.set(exe);
-              exe.initThread();
-              T result = fn.apply(exe);
-              return result;
-            } catch (final RuntimeException e) {
-              throw e;
-            } catch (final Exception e) {
-              throw new RuntimeException(e);
-            } finally {
-              threadContext.remove();
-            }
-          });
-        }
-      } finally {
-        if (synchronize) GpuSystem.cudaDeviceSynchronize();
-        LinkedBlockingDeque<ReferenceCounting> deque = CLEANUP.get();
-        deque.stream().forEach(x -> x.freeRef());
-        deque.clear();
-      }
-    }
   }
   
   /**

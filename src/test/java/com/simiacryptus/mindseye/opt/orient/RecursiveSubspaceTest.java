@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.DoubleSupplier;
 
 /**
- * The type Lbfgs apply.
+ * The type Lbfgs run.
  */
 public abstract class RecursiveSubspaceTest extends MnistTestBase {
   

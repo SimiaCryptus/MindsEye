@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Img concat layer run.
+ * The type Img concat layer eval.
  */
 public abstract class ImgConcatLayerTest extends LayerTestBase {
   

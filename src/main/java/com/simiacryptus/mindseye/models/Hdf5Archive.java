@@ -50,7 +50,7 @@ public class Hdf5Archive {
   
   static {
     try {
-            /* This is necessary for the call to the BytePointer constructor below. */
+            /* This is necessary for the eval to the BytePointer constructor below. */
       Loader.load(hdf5.class);
     } catch (Exception e) {
       e.printStackTrace();

@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Img reshapeCast layer run.
+ * The type Img reshapeCast layer eval.
  */
 public abstract class ImgReshapeLayerTest extends LayerTestBase {
   

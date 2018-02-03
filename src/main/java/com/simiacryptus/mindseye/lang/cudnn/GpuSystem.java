@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.simiacryptus.mindseye.lang.RecycleBin;
+import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.data.DoubleStatistics;
 import jcuda.Pointer;
@@ -33,11 +34,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -1301,4 +1301,109 @@ public class GpuSystem {
     apiLog.add(log);
   }
   
+  /**
+   * Run.
+   *
+   * @param fn the fn
+   */
+  public static void run(final Consumer<CuDNNHandle> fn) {run(fn, true);}
+  
+  /**
+   * Run.
+   *
+   * @param fn          the fn
+   * @param synchronize the synchronize
+   */
+  public static void run(final Consumer<CuDNNHandle> fn, boolean synchronize) {
+    CuDNNHandle threadlocal = CuDNNHandle.threadContext.get();
+    try {
+      if (threadlocal != null) {
+        try {
+          threadlocal.initThread();
+          fn.accept(threadlocal);
+        } catch (final RuntimeException e) {
+          throw e;
+        } catch (final Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
+      else {
+        CuDNNHandle.POOL.apply(exe -> {
+          try {
+            CuDNNHandle.threadContext.set(exe);
+            exe.initThread();
+            fn.accept(exe);
+          } catch (final RuntimeException e) {
+            throw e;
+          } catch (final Exception e) {
+            throw new RuntimeException(e);
+          } finally {
+            CuDNNHandle.threadContext.remove();
+          }
+        });
+      }
+    } finally {
+      if (synchronize) GpuSystem.cudaDeviceSynchronize();
+    }
+  }
+  
+  /**
+   * Call t.
+   *
+   * @param <T> the type parameter
+   * @param fn  the fn
+   * @return the t
+   */
+  public static <T> T eval(final Function<CuDNNHandle, T> fn) {return eval(fn, true);}
+  
+  /**
+   * Call t.
+   *
+   * @param <T>         the type parameter
+   * @param fn          the fn
+   * @param synchronize the synchronize
+   * @return the t
+   */
+  public static <T> T eval(final Function<CuDNNHandle, T> fn, boolean synchronize) {
+    if (CuDNNHandle.POOL.getAll().isEmpty()) {
+      return fn.apply(new CuDNNHandle(-1));
+    }
+    else {
+      try {
+        CuDNNHandle threadlocal = CuDNNHandle.threadContext.get();
+        if (threadlocal != null) {
+          try {
+            threadlocal.initThread();
+            T result = fn.apply(threadlocal);
+            return result;
+          } catch (final RuntimeException e) {
+            throw e;
+          } catch (final Exception e) {
+            throw new RuntimeException(e);
+          }
+        }
+        else {
+          return CuDNNHandle.POOL.run(exe -> {
+            try {
+              CuDNNHandle.threadContext.set(exe);
+              exe.initThread();
+              T result = fn.apply(exe);
+              return result;
+            } catch (final RuntimeException e) {
+              throw e;
+            } catch (final Exception e) {
+              throw new RuntimeException(e);
+            } finally {
+              CuDNNHandle.threadContext.remove();
+            }
+          });
+        }
+      } finally {
+        if (synchronize) GpuSystem.cudaDeviceSynchronize();
+        LinkedBlockingDeque<ReferenceCounting> deque = CuDNNHandle.CLEANUP.get();
+        deque.stream().forEach(x -> x.freeRef());
+        deque.clear();
+      }
+    }
+  }
 }

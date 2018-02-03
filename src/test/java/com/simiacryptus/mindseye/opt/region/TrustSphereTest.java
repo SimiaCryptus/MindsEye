@@ -34,7 +34,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Trust sphere apply.
+ * The type Trust sphere run.
  */
 public class TrustSphereTest extends MnistTestBase {
   

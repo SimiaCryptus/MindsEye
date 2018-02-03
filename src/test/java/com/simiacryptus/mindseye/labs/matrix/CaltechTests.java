@@ -30,7 +30,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.util.function.IntToDoubleFunction;
 
 /**
- * The type Mnist run base.
+ * The type Mnist eval base.
  */
 public class CaltechTests {
   

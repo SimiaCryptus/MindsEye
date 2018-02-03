@@ -31,7 +31,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.util.function.DoubleSupplier;
 
 /**
- * The type Mnist run base.
+ * The type Mnist eval base.
  */
 public class MnistTests {
   /**

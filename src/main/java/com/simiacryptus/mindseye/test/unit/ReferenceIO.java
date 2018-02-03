@@ -56,10 +56,12 @@ public class ReferenceIO implements ComponentTest<ToleranceStatistics> {
         log.code(() -> {
           final SimpleEval eval = SimpleEval.run(layer, input);
           final DoubleStatistics error = new DoubleStatistics().accept(eval.getOutput().add(output.scale(-1)).getData());
-          return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\nError: %s\n--------------------\nDerivative: \n%s",
-                               Arrays.stream(input).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
-                               eval.getOutput().prettyPrint(), error,
-                               Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
+          String format = String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\nError: %s\n--------------------\nDerivative: \n%s",
+                                        Arrays.stream(input).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
+                                        eval.getOutput().prettyPrint(), error,
+                                        Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
+          eval.freeRef();
+          return format;
         });
       });
     }
@@ -68,10 +70,12 @@ public class ReferenceIO implements ComponentTest<ToleranceStatistics> {
       log.p("Display input/output pairs from random executions:");
       log.code(() -> {
         final SimpleEval eval = SimpleEval.run(layer, inputPrototype);
-        return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
-                             Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
-                             eval.getOutput().prettyPrint(),
-                             Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
+        String format = String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
+                                      Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
+                                      eval.getOutput().prettyPrint(),
+                                      Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
+        eval.freeRef();
+        return format;
       });
     }
     return null;

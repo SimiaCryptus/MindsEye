@@ -103,7 +103,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
   /**
    * Build input tensor [ ] [ ].
    *
-   * @param left  the apply input
+   * @param left  the run input
    * @param right the target output
    * @return the tensor [ ] [ ]
    */
@@ -272,7 +272,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
    * Shuffle nn layer.
    *
    * @param random        the randomize
-   * @param testComponent the apply component
+   * @param testComponent the run component
    * @return the nn layer
    */
   private NNLayer shuffle(final Random random, final NNLayer testComponent) {
@@ -371,18 +371,18 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
   }
   
   /**
-   * Test complete learning apply result.
+   * Test complete learning run result.
    *
    * @param log            the log
    * @param component      the component
    * @param random         the random
    * @param inputPrototype the input prototype
-   * @return the apply result
+   * @return the run result
    */
   public TestResult testCompleteLearning(final NotebookOutput log, final NNLayer component, final Random random, final Tensor[] inputPrototype) {
     final NNLayer network_target = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
-    log.p("In this apply, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
+    log.p("In this run, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
     log.code(() -> {
       return network_target.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
     });
@@ -415,12 +415,12 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
    * @param component      the component
    * @param random         the randomize
    * @param inputPrototype the input prototype
-   * @return the apply result
+   * @return the run result
    */
   public TestResult testInputLearning(final NotebookOutput log, final NNLayer component, final Random random, final Tensor[] inputPrototype) {
     final NNLayer network = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
-    log.p("In this apply, we use a network to learn this target input, given it's pre-evaluated output:");
+    log.p("In this run, we use a network to learn this target input, given it's pre-evaluated output:");
     log.code(() -> {
       return Arrays.stream(input_target)
                    .flatMap(x -> Arrays.stream(x))
@@ -445,12 +445,12 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
    * @param component      the component
    * @param random         the randomize
    * @param inputPrototype the input prototype
-   * @return the apply result
+   * @return the run result
    */
   public TestResult testModelLearning(final NotebookOutput log, final NNLayer component, final Random random, final Tensor[] inputPrototype) {
     final NNLayer network_target = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
-    log.p("In this apply, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
+    log.p("In this run, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
     log.code(() -> {
       return network_target.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
     });
@@ -488,14 +488,14 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
   }
   
   /**
-   * Train all apply result.
+   * Train all run result.
    *
    * @param title         the title
    * @param log           the log
    * @param trainingInput the training input
    * @param layer         the layer
    * @param mask          the mask
-   * @return the apply result
+   * @return the run result
    */
   public TestResult trainAll(String title, NotebookOutput log, Tensor[][] trainingInput, NNLayer layer, boolean... mask) {
     log.h3("Gradient Descent");
@@ -544,7 +544,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     List<StepRecord> history = opt.apply(log, trainable);
     if (history.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
       if (!network.isFrozen()) {
-        log.p("This training apply resulted in the following configuration:");
+        log.p("This training run resulted in the following configuration:");
         log.code(() -> {
           return network.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
         });
@@ -644,7 +644,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
    * @return the list
    */
   public List<StepRecord> trainLBFGS(final NotebookOutput log, final Trainable trainable) {
-    log.p("Next, we apply the same optimization using L-BFGS, which is nearly ideal for purely second-order or quadratic functions.");
+    log.p("Next, we run the same optimization using L-BFGS, which is nearly ideal for purely second-order or quadratic functions.");
     final List<StepRecord> history = new ArrayList<>();
     final TrainingMonitor monitor = TrainingTester.getMonitor(history);
     try {

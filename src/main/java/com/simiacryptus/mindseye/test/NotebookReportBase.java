@@ -40,7 +40,7 @@ import java.util.Date;
 import java.util.function.Consumer;
 
 /**
- * The type Notebook output apply base.
+ * The type Notebook output run base.
  */
 public abstract class NotebookReportBase {
   

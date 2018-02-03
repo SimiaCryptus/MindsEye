@@ -27,7 +27,7 @@ import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import java.util.Random;
 
 /**
- * The type Normalization meta layer run.
+ * The type Normalization meta layer eval.
  */
 public abstract class NormalizationMetaLayerTest extends MetaLayerTestBase {
   

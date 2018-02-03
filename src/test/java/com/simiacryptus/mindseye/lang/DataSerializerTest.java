@@ -30,7 +30,7 @@ import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
 
 /**
- * The type Tensor run.
+ * The type Tensor eval.
  */
 public class DataSerializerTest {
   private static final Logger log = LoggerFactory.getLogger(DataSerializerTest.class);

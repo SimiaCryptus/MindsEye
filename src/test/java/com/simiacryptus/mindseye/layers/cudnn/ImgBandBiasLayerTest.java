@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 import java.util.Random;
 
 /**
- * The type Img band bias layer apply.
+ * The type Img band bias layer run.
  */
 public abstract class ImgBandBiasLayerTest extends CuDNNLayerTestBase {
   
@@ -36,7 +36,7 @@ public abstract class ImgBandBiasLayerTest extends CuDNNLayerTestBase {
   final Precision precision;
   
   /**
-   * Instantiates a new Img band bias layer apply.
+   * Instantiates a new Img band bias layer run.
    *
    * @param precision the precision
    */
@@ -64,7 +64,7 @@ public abstract class ImgBandBiasLayerTest extends CuDNNLayerTestBase {
   }
   
   /**
-   * Basic 64-bit apply
+   * Basic 64-bit run
    */
   public static class Double extends ImgBandBiasLayerTest {
     /**
@@ -76,7 +76,7 @@ public abstract class ImgBandBiasLayerTest extends CuDNNLayerTestBase {
   }
   
   /**
-   * Basic 32-bit apply
+   * Basic 32-bit run
    */
   public static class Float extends ImgBandBiasLayerTest {
     /**

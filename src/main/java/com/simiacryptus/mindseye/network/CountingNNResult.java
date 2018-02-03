@@ -170,7 +170,7 @@ class CountingNNResult extends NNResult {
   
     /**
      * A flagrant abuse of Java's object finalization contract. Repeated calls to this class's freeRef method will
-     * increment a counter, and when the counter cycles the call is chained.
+     * increment a counter, and when the counter cycles the eval is chained.
      */
     protected void free() {
       synchronized (passbackBuffers) {

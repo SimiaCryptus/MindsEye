@@ -171,7 +171,7 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
     final int[] outputSize = inputSize;
     final int length = batch.length();
   
-    return new NNResult(CuDNNHandle.run(nncontext -> {
+    return new NNResult(GpuSystem.eval(nncontext -> {
       try {
         final CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
@@ -199,7 +199,7 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
       assert error.length() == batch.length();
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
       if (!isFrozen()) {
-        CuDNNHandle.apply(nncontext -> {
+        GpuSystem.run(nncontext -> {
           final cudnnHandle cudnnHandle = nncontext.getHandle();
           final CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
             precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);

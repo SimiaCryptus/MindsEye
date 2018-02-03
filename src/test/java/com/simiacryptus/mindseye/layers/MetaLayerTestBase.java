@@ -23,12 +23,12 @@ import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 
 /**
- * The type Meta layer run base.
+ * The type Meta layer eval base.
  */
 public abstract class MetaLayerTestBase extends LayerTestBase {
   
   /**
-   * Instantiates a new Meta layer run base.
+   * Instantiates a new Meta layer eval base.
    */
   public MetaLayerTestBase() {
     validateBatchExecution = false;

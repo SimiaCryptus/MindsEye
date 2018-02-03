@@ -31,7 +31,7 @@ import com.simiacryptus.mindseye.test.integration.*;
 import com.simiacryptus.util.io.NotebookOutput;
 
 /**
- * The type Mnist run base.
+ * The type Mnist eval base.
  */
 public class CifarTests {
   

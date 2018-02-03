@@ -80,15 +80,28 @@ public class BatchingTester implements ComponentTest<ToleranceStatistics> {
                                                                               TensorArray.wrap(IntStream.range(0, getBatchSize()).mapToObj(i -> t.map(v -> getRandom()))
                                                                                                         .toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
     final SimpleResult asABatch = SimpleListEval.run(reference, inputTensorLists);
-    final List<SimpleEval> oneAtATime = IntStream.range(0, getBatchSize()).mapToObj(batch ->
-                                                                                      SimpleEval.run(reference, IntStream.range(0, inputTensorLists.length)
-                                                                                                                         .mapToObj(i -> inputTensorLists[i].get(batch)).toArray(i -> new Tensor[i]))
+    final List<SimpleEval> oneAtATime = IntStream.range(0, getBatchSize()).mapToObj(batch -> {
+                                                                                      Tensor[] inputTensors = IntStream.range(0, inputTensorLists.length)
+                                                                                                                       .mapToObj(i -> inputTensorLists[i].get(batch)).toArray(i -> new Tensor[i]);
+                                                                                      SimpleEval eval = SimpleEval.run(reference, inputTensors);
+                                                                                      for (Tensor tensor : inputTensors) {
+                                                                                        tensor.freeRef();
+                                                                                      }
+                                                                                      return eval;
+                                                                                    }
                                                                                    ).collect(Collectors.toList());
+    for (TensorList tensorList : inputTensorLists) {
+      tensorList.freeRef();
+    }
   
-    final ToleranceStatistics outputAgreement = IntStream.range(0, getBatchSize()).mapToObj(batch ->
-                                                                                              new ToleranceStatistics().accumulate(
-                                                                                                asABatch.getOutput().get(batch).getData(),
-                                                                                                oneAtATime.get(batch).getOutput().getData())
+    final ToleranceStatistics outputAgreement = IntStream.range(0, getBatchSize()).mapToObj(batch -> {
+                                                                                              Tensor batchTensor = asABatch.getOutput().get(batch);
+                                                                                              ToleranceStatistics accumulate = new ToleranceStatistics().accumulate(
+                                                                                                batchTensor.getData(),
+                                                                                                oneAtATime.get(batch).getOutput().getData());
+                                                                                              batchTensor.freeRef();
+                                                                                              return accumulate;
+                                                                                            }
                                                                                            ).reduce((a, b) -> a.combine(b)).get();
     if (!(outputAgreement.absoluteTol.getMax() < tolerance)) {
       logger.info("Batch Output: " + asABatch.getOutput().stream().map(x -> x.prettyPrint()).collect(Collectors.toList()));
@@ -100,13 +113,21 @@ public class BatchingTester implements ComponentTest<ToleranceStatistics> {
       IntFunction<ToleranceStatistics> statisticsFunction = input -> {
         Tensor a = asABatch.getDerivative()[input].get(batch);
         Tensor b = oneAtATime.get(batch).getDerivative()[input];
-        logger.info("Error: " + a.minus(b).prettyPrint());
-        logger.info("Scalar Statistics: " + new ScalarStatistics().add(a.minus(b).getData()).getMetrics());
-        logger.info("Density: " + new DensityTree("x").setMinSplitFract(1e-8).setSplitSizeThreshold(2).new Node(Arrays.stream(a.minus(b).getData()).mapToObj(x -> new double[]{x}).toArray(i -> new double[i][])));
-        return new ToleranceStatistics().accumulate(a.getData(), b.getData());
+        Tensor diff = a.minus(b);
+        logger.info("Error: " + diff.prettyPrint());
+        logger.info("Scalar Statistics: " + new ScalarStatistics().add(diff.getData()).getMetrics());
+        double[][] points = Arrays.stream(diff.getData()).mapToObj(x -> new double[]{x}).toArray(i -> new double[i][]);
+        logger.info("Density: " + new DensityTree("x").setMinSplitFract(1e-8).setSplitSizeThreshold(2).new Node(points));
+        diff.freeRef();
+        ToleranceStatistics toleranceStatistics = new ToleranceStatistics().accumulate(a.getData(), b.getData());
+        a.freeRef();
+        return toleranceStatistics;
       };
-      return IntStream.range(0, inputTensorLists.length).mapToObj(statisticsFunction).reduce((a, b) -> a.combine(b)).get();
+      return IntStream.range(0, inputPrototype.length).mapToObj(statisticsFunction).reduce((a, b) -> a.combine(b)).get();
     }).reduce((a, b) -> a.combine(b)).get();
+  
+    asABatch.freeRef();
+    oneAtATime.forEach(x -> x.freeRef());
     if (!(derivativeAgreement.absoluteTol.getMax() < tolerance)) {
       throw new AssertionError("Derivatives Corrupt: " + derivativeAgreement);
     }

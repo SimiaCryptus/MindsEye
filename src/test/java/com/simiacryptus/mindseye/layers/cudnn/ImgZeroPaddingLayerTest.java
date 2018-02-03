@@ -25,12 +25,12 @@ import java.util.Random;
 
 
 /**
- * The type Img crop layer run.
+ * The type Img crop layer eval.
  */
 public abstract class ImgZeroPaddingLayerTest extends CuDNNLayerTestBase {
   
   /**
-   * Instantiates a new Img crop layer run.
+   * Instantiates a new Img crop layer eval.
    */
   public ImgZeroPaddingLayerTest() {
     validateBatchExecution = false;

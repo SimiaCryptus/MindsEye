@@ -32,7 +32,7 @@ import java.io.PrintStream;
 import java.util.Random;
 
 /**
- * The type Simple convolution layer apply.
+ * The type Simple convolution layer run.
  */
 public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
   
@@ -51,7 +51,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
   
   
   /**
-   * Instantiates a new Simple convolution layer apply.
+   * Instantiates a new Simple convolution layer run.
    *
    * @param radius    the radius
    * @param bands     the bands

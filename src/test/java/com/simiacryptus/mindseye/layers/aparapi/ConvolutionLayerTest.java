@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Convolution layer run.
+ * The type Convolution layer eval.
  */
 public abstract class ConvolutionLayerTest extends LayerTestBase {
   

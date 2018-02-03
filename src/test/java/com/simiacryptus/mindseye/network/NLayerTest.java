@@ -39,7 +39,7 @@ import java.util.stream.Stream;
 
 
 /**
- * The type N layer run.
+ * The type N layer eval.
  */
 public abstract class NLayerTest {
   static {
@@ -54,7 +54,7 @@ public abstract class NLayerTest {
   
   
   /**
-   * Instantiates a new N layer run.
+   * Instantiates a new N layer eval.
    *
    * @param dimList the dim list
    */

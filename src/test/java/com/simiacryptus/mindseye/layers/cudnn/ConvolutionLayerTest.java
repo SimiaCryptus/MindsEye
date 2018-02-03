@@ -34,7 +34,7 @@ import java.io.PrintStream;
 import java.util.Random;
 
 /**
- * The type Convolution layer apply.
+ * The type Convolution layer run.
  */
 public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   
@@ -56,7 +56,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   ConvolutionLayer convolutionLayer;
   
   /**
-   * Instantiates a new Convolution layer apply.
+   * Instantiates a new Convolution layer run.
    *
    * @param radius      the radius
    * @param inputBands  the input bands
@@ -134,7 +134,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   public static class BandExpand extends ConvolutionLayerTest {
   
     /**
-     * Instantiates a new Asymmetric apply.
+     * Instantiates a new Asymmetric run.
      */
     public BandExpand() {
       super(1, 3, 2, Precision.Double, 16);
@@ -160,7 +160,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   public static class BandLimit extends ConvolutionLayerTest {
   
     /**
-     * Instantiates a new Asymmetric apply.
+     * Instantiates a new Asymmetric run.
      */
     public BandLimit() {
       super(1, 3, 2, Precision.Double, 16);
@@ -186,7 +186,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   public static class Temp extends ConvolutionLayerTest {
   
     /**
-     * Instantiates a new Asymmetric apply.
+     * Instantiates a new Asymmetric run.
      */
     public Temp() {
       super(1, 4, 4, Precision.Double, 2);
@@ -201,7 +201,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   public static class SqGrid extends ConvolutionLayerTest {
   
     /**
-     * Instantiates a new Asymmetric apply.
+     * Instantiates a new Asymmetric run.
      */
     public SqGrid() {
       super(3, 4, 4, Precision.Double, 2);
@@ -215,7 +215,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   public static class IrregularGrid extends ConvolutionLayerTest {
   
     /**
-     * Instantiates a new Asymmetric apply.
+     * Instantiates a new Asymmetric run.
      */
     public IrregularGrid() {
       super(3, 5, 3, Precision.Double, 2);
@@ -229,7 +229,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   public static class BandReduceTest extends ConvolutionLayerTest {
   
     /**
-     * Instantiates a new Asymmetric apply.
+     * Instantiates a new Asymmetric run.
      */
     public BandReduceTest() {
       super(3, 6, 3, Precision.Double, 16);
@@ -303,7 +303,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   public static class IrregularTest extends ConvolutionLayerTest {
   
     /**
-     * Instantiates a new Irregular apply.
+     * Instantiates a new Irregular run.
      */
     public IrregularTest() {
       super(3, 7, 5, Precision.Double, 16);
@@ -316,7 +316,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   public static class IrregularTest_Float extends ConvolutionLayerTest {
   
     /**
-     * Instantiates a new Irregular apply float.
+     * Instantiates a new Irregular run float.
      */
     public IrregularTest_Float() {
       super(3, 7, 5, Precision.Float, 16);

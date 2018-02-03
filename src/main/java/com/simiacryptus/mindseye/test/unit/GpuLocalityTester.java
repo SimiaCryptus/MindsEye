@@ -23,8 +23,8 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.cudnn.CuDNNHandle;
 import com.simiacryptus.mindseye.lang.cudnn.CudaPtr;
+import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.GpuTensorList;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.test.SimpleGpuEval;
@@ -75,7 +75,7 @@ public class GpuLocalityTester implements ComponentTest<ToleranceStatistics> {
    */
   public ToleranceStatistics test(final NNLayer reference, final Tensor[] inputPrototype) {
     if (null == reference) return new ToleranceStatistics();
-    return CuDNNHandle.run(gpu -> {
+    return GpuSystem.eval(gpu -> {
       final TensorList[] heapInput = Arrays.stream(inputPrototype).map(t ->
                                                                          TensorArray.wrap(IntStream.range(0, getBatchSize()).mapToObj(i -> t.map(v -> getRandom()))
                                                                                                    .toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
@@ -123,7 +123,7 @@ public class GpuLocalityTester implements ComponentTest<ToleranceStatistics> {
   @Override
   public ToleranceStatistics test(final NotebookOutput log, final NNLayer reference, final Tensor... inputPrototype) {
     log.h1("Multi-GPU Compatibility");
-    log.p("This layer should be able to run using a GPU context other than the one used to create the inputs.");
+    log.p("This layer should be able to eval using a GPU context other than the one used to create the inputs.");
     return log.code(() -> {
       return test(reference, inputPrototype);
     });

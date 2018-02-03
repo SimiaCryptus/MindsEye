@@ -31,12 +31,12 @@ import java.util.Random;
 
 
 /**
- * The type Img crop layer apply.
+ * The type Img crop layer run.
  */
 public abstract class ImgCropLayerTest extends CuDNNLayerTestBase {
   
   /**
-   * Instantiates a new Img crop layer apply.
+   * Instantiates a new Img crop layer run.
    */
   public ImgCropLayerTest() {
     validateBatchExecution = false;

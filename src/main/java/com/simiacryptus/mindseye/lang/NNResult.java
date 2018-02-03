@@ -112,4 +112,10 @@ public abstract class NNResult extends ReferenceCountingBase {
   public BiConsumer<DeltaSet<NNLayer>, TensorList> getAccumulator() {
     return accumulator;
   }
+  
+  public TensorList getDataAndFree() {
+    TensorList data = getData();
+    freeRef();
+    return data;
+  }
 }

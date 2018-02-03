@@ -194,7 +194,7 @@ public class PolynomialNetwork extends DAGNetwork {
       elements.add(c.getJson());
     }
     json.add("corrections", elements);
-    assert null != NNLayer.fromJson(json) : "Smoke run deserialization";
+    assert null != NNLayer.fromJson(json) : "Smoke eval deserialization";
     return json;
   }
   

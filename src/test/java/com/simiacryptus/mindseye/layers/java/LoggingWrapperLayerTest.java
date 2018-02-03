@@ -25,12 +25,12 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Logging wrapper layer run.
+ * The type Logging wrapper layer eval.
  */
 public abstract class LoggingWrapperLayerTest extends LayerTestBase {
   
   /**
-   * Instantiates a new Logging wrapper layer run.
+   * Instantiates a new Logging wrapper layer eval.
    */
   public LoggingWrapperLayerTest() {
     validateBatchExecution = false;

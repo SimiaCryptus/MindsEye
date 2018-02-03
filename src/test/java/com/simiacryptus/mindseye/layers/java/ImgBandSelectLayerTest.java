@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Img band select layer run.
+ * The type Img band select layer eval.
  */
 public abstract class ImgBandSelectLayerTest extends LayerTestBase {
   

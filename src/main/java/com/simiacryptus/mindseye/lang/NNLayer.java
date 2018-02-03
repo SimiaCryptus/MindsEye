@@ -39,7 +39,7 @@ import java.util.zip.ZipOutputStream;
  * see DAGNetwork for composition details.
  */
 @SuppressWarnings("serial")
-public abstract class NNLayer implements Serializable {
+public abstract class NNLayer extends ReferenceCountingBase implements Serializable {
   
   private final UUID id;
   private boolean frozen = false;
@@ -422,5 +422,10 @@ public abstract class NNLayer implements Serializable {
   @Override
   public final String toString() {
     return getName();
+  }
+  
+  @Override
+  protected void _free() {
+  
   }
 }

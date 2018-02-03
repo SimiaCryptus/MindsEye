@@ -28,7 +28,7 @@ import java.util.stream.IntStream;
 /**
  * The type Simple list trainAll.
  */
-public class SimpleListEval implements Callable<SimpleResult>, SimpleResult {
+public class SimpleListEval extends ReferenceCountingBase implements Callable<SimpleResult>, SimpleResult {
   private final TensorList[] input;
   private final NNLayer layer;
   private TensorList[] derivative;
@@ -43,6 +43,8 @@ public class SimpleListEval implements Callable<SimpleResult>, SimpleResult {
   public SimpleListEval(final NNLayer layer, final TensorList... input) {
     this.layer = layer;
     this.input = input;
+    for (TensorList x : input) x.addRef();
+    layer.addRef();
   }
   
   /**
@@ -53,8 +55,20 @@ public class SimpleListEval implements Callable<SimpleResult>, SimpleResult {
    */
   public static void accumulate(final TensorList buffer, final TensorList data) {
     IntStream.range(0, data.length()).forEach(b -> {
-      buffer.get(b).addInPlace(data.get(b));
+      Tensor r = data.get(b);
+      Tensor l = buffer.get(b);
+      l.addInPlace(r);
+      l.freeRef();
+      r.freeRef();
     });
+  }
+  
+  @Override
+  protected void _free() {
+    for (TensorList x : input) x.freeRef();
+    layer.freeRef();
+    for (TensorList x : derivative) x.freeRef();
+    output.freeRef();
   }
   
   /**
@@ -75,7 +89,7 @@ public class SimpleListEval implements Callable<SimpleResult>, SimpleResult {
                                                                                        .map(i -> new Tensor(i.getDimensions()))
                                                                                        .toArray(i -> new Tensor[i]))
                                              ).toArray(i -> new TensorList[i]);
-    final NNResult eval = layer.eval(IntStream.range(0, inputCopy.length).mapToObj(i -> {
+    NNResult[] inputs = IntStream.range(0, inputCopy.length).mapToObj(i -> {
       return new NNResult(inputCopy[i], (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
         SimpleListEval.accumulate(derivative[i], data);
       }) {
@@ -84,14 +98,21 @@ public class SimpleListEval implements Callable<SimpleResult>, SimpleResult {
           return true;
         }
       };
-    }).<NNResult>toArray(i -> new NNResult[i]));
+    }).toArray(i -> new NNResult[i]);
+    final NNResult eval = layer.eval(inputs);
+    for (NNResult nnResult : inputs) {
+      nnResult.freeRef();
+    }
     TensorList outputData = eval.getData().copy();
     for (TensorList tensorList : inputCopy) {
       tensorList.freeRef();
     }
     eval.getData().freeRef();
     TensorList tensorList = getFeedback(outputData);
-    eval.accumulate(new DeltaSet<NNLayer>(), tensorList);
+    DeltaSet<NNLayer> buffer = new DeltaSet<>();
+    eval.accumulate(buffer, tensorList);
+    buffer.freeRef();
+    eval.freeRef();
     tensorList.freeRef();
     output = outputData;
     return this;
@@ -124,6 +145,12 @@ public class SimpleListEval implements Callable<SimpleResult>, SimpleResult {
    */
   @Override
   public TensorList getOutput() {
+    return output;
+  }
+  
+  public TensorList getOutputAndFree() {
+    output.addRef();
+    freeRef();
     return output;
   }
 }

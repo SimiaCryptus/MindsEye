@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Dropout noise layer run.
+ * The type Dropout noise layer eval.
  */
 public abstract class DropoutNoiseLayerTest extends LayerTestBase {
   

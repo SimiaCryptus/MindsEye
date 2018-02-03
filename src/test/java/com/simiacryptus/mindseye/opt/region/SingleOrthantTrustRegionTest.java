@@ -34,7 +34,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Single orthant trust region apply.
+ * The type Single orthant trust region run.
  */
 public class SingleOrthantTrustRegionTest extends MnistTestBase {
   

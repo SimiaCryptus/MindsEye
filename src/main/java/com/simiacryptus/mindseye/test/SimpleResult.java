@@ -19,12 +19,13 @@
 
 package com.simiacryptus.mindseye.test;
 
+import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.lang.TensorList;
 
 /**
  * The interface Simple result.
  */
-public interface SimpleResult {
+public interface SimpleResult extends ReferenceCounting {
   /**
    * Get derivative tensor list [ ].
    *

@@ -23,11 +23,11 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 /**
- * The type Binary entropy activation layer run.
+ * The type Binary entropy activation layer eval.
  */
 public abstract class BinaryEntropyActivationLayerTest extends ActivationLayerTestBase {
   /**
-   * Instantiates a new Binary entropy activation layer run.
+   * Instantiates a new Binary entropy activation layer eval.
    */
   public BinaryEntropyActivationLayerTest() {
     super(new BinaryEntropyActivationLayer());

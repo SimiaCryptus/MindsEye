@@ -97,7 +97,7 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
       nnResult.addRef();
       nnResult.getData().addRef();
     }
-    return new NNResult(CuDNNHandle.run(gpu -> {
+    return new NNResult(GpuSystem.eval(gpu -> {
       final long outputSize = (length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
       final CudaPtr cudaOutput = CudaPtr.allocate(gpu.getDeviceNumber(), outputSize, MemoryType.Managed, true);
       for (int i = 0; i < inObj.length; i++) {
@@ -145,7 +145,7 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
         int inputBands = maxBands <= 0 ? inputDimensions[2] : Math.min(inputDimensions[2], maxBands - bandOffset);
         if (inputBands > 0 && input.isAlive()) {
           assert inputBands <= inputDimensions[2];
-          final TensorList passbackTensorList = CuDNNHandle.run(gpu -> {
+          final TensorList passbackTensorList = GpuSystem.eval(gpu -> {
             int[] viewDimensions = Arrays.copyOf(inputDimensions, inputDimensions.length);
             viewDimensions[2] = inputBands;
             final CudaPtr cudaDelta = CudaPtr.getCudaPtr(precision, delta);

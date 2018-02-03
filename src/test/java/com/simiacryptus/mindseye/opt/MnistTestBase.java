@@ -48,7 +48,7 @@ import java.util.*;
 import java.util.stream.IntStream;
 
 /**
- * The type Mnist apply base.
+ * The type Mnist run base.
  */
 public abstract class MnistTestBase extends NotebookReportBase {
   private static final Logger log = LoggerFactory.getLogger(MnistTestBase.class);
@@ -262,7 +262,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
    */
   public void validate(final NotebookOutput log, final NNLayer network) {
     log.h1("Validation");
-    log.p("If we apply our model against the entire validation dataset, we get this accuracy:");
+    log.p("If we run our model against the entire validation dataset, we get this accuracy:");
     log.code(() -> {
       return MNIST.validationDataStream().mapToDouble(labeledObject ->
                                                         predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)

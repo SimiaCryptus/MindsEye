@@ -32,12 +32,12 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 
 /**
- * The type Cudnn layer run base.
+ * The type Cudnn layer eval base.
  */
 public abstract class CuDNNLayerTestBase extends LayerTestBase {
   
   /**
-   * Instantiates a new Cudnn layer run base.
+   * Instantiates a new Cudnn layer eval base.
    */
   public CuDNNLayerTestBase() {
   }

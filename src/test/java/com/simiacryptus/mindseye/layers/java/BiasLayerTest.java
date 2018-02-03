@@ -25,14 +25,14 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Bias layer run.
+ * The type Bias layer eval.
  */
 public abstract class BiasLayerTest extends LayerTestBase {
   
   private final int dimension;
   
   /**
-   * Instantiates a new Bias layer run.
+   * Instantiates a new Bias layer eval.
    *
    * @param dimension the dimension
    */

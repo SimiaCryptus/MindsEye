@@ -37,7 +37,7 @@ public class TestCategories {
   }
   
   /**
-   * The type Unit run.
+   * The type Unit eval.
    */
   public static class UnitTest {
   }

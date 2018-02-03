@@ -25,12 +25,12 @@ import com.simiacryptus.mindseye.layers.MetaLayerTestBase;
 import java.util.Random;
 
 /**
- * The type Sum meta layer run.
+ * The type Sum meta layer eval.
  */
 public abstract class SumMetaLayerTest extends MetaLayerTestBase {
   
   /**
-   * Instantiates a new Sum meta layer run.
+   * Instantiates a new Sum meta layer eval.
    */
   public SumMetaLayerTest() {
     super();

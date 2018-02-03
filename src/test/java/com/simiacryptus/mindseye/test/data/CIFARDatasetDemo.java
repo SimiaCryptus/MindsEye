@@ -27,7 +27,7 @@ import java.awt.image.BufferedImage;
 import java.util.stream.Stream;
 
 /**
- * The type Image classifier run base.
+ * The type Image classifier eval base.
  */
 public class CIFARDatasetDemo extends ImageCategoryDatasetDemo {
   

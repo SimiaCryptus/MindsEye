@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Avg subsample layer run.
+ * The type Avg subsample layer eval.
  */
 public abstract class AvgPoolingLayerTest extends LayerTestBase {
   

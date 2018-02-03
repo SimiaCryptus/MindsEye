@@ -28,11 +28,12 @@ import java.util.stream.IntStream;
 /**
  * The type Simple trainAll.
  */
-public class SimpleEval implements Callable<SimpleEval> {
+public class SimpleEval extends ReferenceCountingBase implements Callable<SimpleEval> {
   private final Tensor[] input;
   private final NNLayer layer;
   private Tensor[] derivative;
   private Tensor output;
+  
   
   /**
    * Instantiates a new Simple trainAll.
@@ -43,6 +44,16 @@ public class SimpleEval implements Callable<SimpleEval> {
   public SimpleEval(final NNLayer layer, final Tensor... input) {
     this.layer = layer;
     this.input = input;
+    for (Tensor x : input) x.addRef();
+    layer.addRef();
+  }
+  
+  @Override
+  protected void _free() {
+    for (Tensor x : input) x.freeRef();
+    layer.freeRef();
+    for (Tensor x : derivative) x.freeRef();
+    output.freeRef();
   }
   
   /**
@@ -60,7 +71,7 @@ public class SimpleEval implements Callable<SimpleEval> {
   public SimpleEval call() {
     Tensor[] inputCopy = Arrays.stream(input).map(x -> x.copy()).toArray(i -> new Tensor[i]);
     derivative = Arrays.stream(inputCopy).map(input -> new Tensor(input.getDimensions())).toArray(i -> new Tensor[i]);
-    final NNResult eval = layer.eval(IntStream.range(0, inputCopy.length).mapToObj(i -> {
+    NNResult[] input = IntStream.range(0, inputCopy.length).mapToObj(i -> {
       return new NNResult(TensorArray.create(inputCopy[i]), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
         data.stream().forEach(t -> derivative[i].addInPlace(t));
       }) {
@@ -69,15 +80,26 @@ public class SimpleEval implements Callable<SimpleEval> {
           return true;
         }
       };
-    }).<NNResult>toArray(i -> new NNResult[i]));
+    }).toArray(i -> new NNResult[i]);
+    final NNResult eval = layer.eval(input);
+    for (NNResult nnResult : input) {
+      nnResult.getData().freeRef();
+      nnResult.freeRef();
+    }
     TensorList outputData = eval.getData().copy();
-    output = outputData.get(0).copy();
+    Tensor tensor1 = outputData.get(0);
+    output = tensor1.copy();
+    tensor1.freeRef();
     for (Tensor tensor : inputCopy) {
       tensor.freeRef();
     }
     eval.getData().freeRef();
     TensorList tensorList = getFeedback(outputData);
-    eval.accumulate(new DeltaSet<NNLayer>(), tensorList);
+    outputData.freeRef();
+    DeltaSet<NNLayer> deltaSet = new DeltaSet<>();
+    eval.accumulate(deltaSet, tensorList);
+    eval.freeRef();
+    deltaSet.freeRef();
     tensorList.freeRef();
     return this;
   }
@@ -107,6 +129,12 @@ public class SimpleEval implements Callable<SimpleEval> {
    * @return the output
    */
   public Tensor getOutput() {
+    return output;
+  }
+  
+  public Tensor getOutputAndFree() {
+    output.addRef();
+    freeRef();
     return output;
   }
 }

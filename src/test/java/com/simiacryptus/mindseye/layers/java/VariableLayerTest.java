@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Variable layer run.
+ * The type Variable layer eval.
  */
 public abstract class VariableLayerTest extends LayerTestBase {
   

@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Product layer run.
+ * The type Product layer eval.
  */
 public abstract class ProductLayerTest extends LayerTestBase {
   

@@ -25,12 +25,12 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Cross dot meta layer run.
+ * The type Cross dot meta layer eval.
  */
 public abstract class CrossDotMetaLayerTest extends LayerTestBase {
   
   /**
-   * Instantiates a new Cross dot meta layer run.
+   * Instantiates a new Cross dot meta layer eval.
    */
   public CrossDotMetaLayerTest() {
     validateBatchExecution = false;

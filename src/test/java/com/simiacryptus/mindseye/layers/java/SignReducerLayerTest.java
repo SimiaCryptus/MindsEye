@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Sign reducer layer run.
+ * The type Sign reducer layer eval.
  */
 public class SignReducerLayerTest {
   /**

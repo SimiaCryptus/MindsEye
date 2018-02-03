@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 import java.util.Random;
 
 /**
- * The type Product layer apply.
+ * The type Product layer run.
  */
 public abstract class ProductLayerTest extends CuDNNLayerTestBase {
   
@@ -36,7 +36,7 @@ public abstract class ProductLayerTest extends CuDNNLayerTestBase {
   final Precision precision;
   
   /**
-   * Instantiates a new Product layer apply.
+   * Instantiates a new Product layer run.
    *
    * @param precision the precision
    */

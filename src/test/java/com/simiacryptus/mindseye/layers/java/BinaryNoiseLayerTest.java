@@ -25,12 +25,12 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Binary noise layer run.
+ * The type Binary noise layer eval.
  */
 public abstract class BinaryNoiseLayerTest extends LayerTestBase {
   
   /**
-   * Instantiates a new Binary noise layer run.
+   * Instantiates a new Binary noise layer eval.
    */
   public BinaryNoiseLayerTest() {
     validateBatchExecution = false;

@@ -24,11 +24,11 @@ import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
 /**
- * The type Entropy layer run.
+ * The type Entropy layer eval.
  */
 public abstract class EntropyLayerTest extends ActivationLayerTestBase {
   /**
-   * Instantiates a new Entropy layer run.
+   * Instantiates a new Entropy layer eval.
    */
   public EntropyLayerTest() {
     super(new EntropyLayer());

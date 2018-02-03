@@ -25,12 +25,12 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Scale meta layer run.
+ * The type Scale meta layer eval.
  */
 public abstract class ScaleMetaLayerTest extends LayerTestBase {
   
   /**
-   * Instantiates a new Scale meta layer run.
+   * Instantiates a new Scale meta layer eval.
    */
   public ScaleMetaLayerTest() {
     validateBatchExecution = false;

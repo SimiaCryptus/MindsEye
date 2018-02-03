@@ -37,14 +37,14 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 /**
- * The type Activation layer apply base.
+ * The type Activation layer run base.
  */
 public abstract class ActivationLayerTestBase extends LayerTestBase {
   
   private final NNLayer layer;
   
   /**
-   * Instantiates a new Activation layer apply base.
+   * Instantiates a new Activation layer run base.
    *
    * @param layer the layer
    */
@@ -116,7 +116,9 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     final NNLayer layer = getLayer(new int[][]{{1}}, new Random());
     final List<double[]> plotData = scan().mapToObj(x -> {
       final SimpleEval eval = SimpleEval.run(layer, new Tensor(x));
-      return new double[]{x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};
+      double[] doubles = {x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};
+      eval.freeRef();
+      return doubles;
     }).collect(Collectors.toList());
     
     log.code(() -> {

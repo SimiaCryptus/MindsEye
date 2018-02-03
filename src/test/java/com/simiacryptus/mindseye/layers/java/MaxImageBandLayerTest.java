@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Max image band layer run.
+ * The type Max image band layer eval.
  */
 public abstract class MaxImageBandLayerTest extends LayerTestBase {
   

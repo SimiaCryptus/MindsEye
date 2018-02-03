@@ -40,7 +40,7 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 /**
- * The type Json apply.
+ * The type Json run.
  */
 public class SerializationTest implements ComponentTest<ToleranceStatistics> {
   private final HashMap<SerialPrecision, NNLayer> models = new HashMap<>();
@@ -77,7 +77,7 @@ public class SerializationTest implements ComponentTest<ToleranceStatistics> {
   @Override
   public ToleranceStatistics test(final NotebookOutput log, final NNLayer layer, final Tensor... inputPrototype) {
     log.h1("Serialization");
-    log.p("This apply will demonstrate the layer's JSON serialization, and verify deserialization integrity.");
+    log.p("This run will demonstrate the layer's JSON serialization, and verify deserialization integrity.");
   
     String prettyPrint = "";
     log.h2("Raw Json");
@@ -88,6 +88,7 @@ public class SerializationTest implements ComponentTest<ToleranceStatistics> {
         if (echo == null) throw new AssertionError("Failed to deserialize");
         if (layer == echo) throw new AssertionError("Serialization did not copy");
         if (!layer.equals(echo)) throw new AssertionError("Serialization not equal");
+        echo.freeRef();
         return new GsonBuilder().setPrettyPrinting().create().toJson(json);
       });
       String filename = layer.getClass().getSimpleName() + "_" + log.getName() + ".json";
@@ -116,6 +117,7 @@ public class SerializationTest implements ComponentTest<ToleranceStatistics> {
           if (echo == null) throw new AssertionError("Failed to deserialize");
           if (layer == echo) throw new AssertionError("Serialization did not copy");
           if (!layer.equals(echo)) throw new AssertionError("Serialization not equal");
+          echo.freeRef();
         } catch (RuntimeException e) {
           e.printStackTrace();
         } catch (OutOfMemoryError e) {

@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Cross difference layer run.
+ * The type Cross difference layer eval.
  */
 public abstract class CrossDifferenceLayerTest extends LayerTestBase {
   

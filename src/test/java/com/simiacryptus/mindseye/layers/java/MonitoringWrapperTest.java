@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Monitoring wrapper run.
+ * The type Monitoring wrapper eval.
  */
 public abstract class MonitoringWrapperTest extends LayerTestBase {
   

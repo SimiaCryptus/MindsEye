@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
- * The type Layer apply base.
+ * The type Layer run base.
  */
 public abstract class StandardLayerTests extends NotebookReportBase {
   
@@ -468,7 +468,12 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     getBigTests().stream().filter(x -> null != x).forEach(test -> {
       NNLayer layer = perfLayer.copy();
       try {
-        test.test(log, layer, randomize(getLargeDims(new Random(seed))));
+        Tensor[] input = randomize(getLargeDims(new Random(seed)));
+        test.test(log, layer, input);
+        layer.freeRef();
+        for (Tensor t : input) {
+          t.freeRef();
+        }
       } catch (LifecycleException e) {
         throw e;
       } catch (GpuError e) {
@@ -496,7 +501,10 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     getLittleTests().stream().filter(x -> null != x).forEach((ComponentTest<?> test) -> {
       NNLayer layer = invocation.getLayer().copy();
       try {
-        test.test(log, layer, randomize(invocation.getDims()));
+        Tensor[] inputs = randomize(invocation.getDims());
+        test.test(log, layer, inputs);
+        layer.freeRef();
+        for (Tensor tensor : inputs) tensor.freeRef();
       } catch (LifecycleException e) {
         throw e;
       } catch (Throwable e) {
@@ -529,7 +537,10 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   
   @Override
   protected Class<?> getTargetClass() {
-    return getLayer(getSmallDims(new Random()), new Random()).getClass();
+    NNLayer layer = getLayer(getSmallDims(new Random()), new Random());
+    Class<? extends NNLayer> layerClass = layer.getClass();
+    layer.freeRef();
+    return layerClass;
   }
   
   @Override

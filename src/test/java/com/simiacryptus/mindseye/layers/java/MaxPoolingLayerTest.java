@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Max subsample layer run.
+ * The type Max subsample layer eval.
  */
 public abstract class MaxPoolingLayerTest extends LayerTestBase {
   

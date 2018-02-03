@@ -22,11 +22,11 @@ package com.simiacryptus.mindseye.layers.java;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
 /**
- * The type Log activation layer run.
+ * The type Log activation layer eval.
  */
 public abstract class LogActivationLayerTest extends ActivationLayerTestBase {
   /**
-   * Instantiates a new Log activation layer run.
+   * Instantiates a new Log activation layer eval.
    */
   public LogActivationLayerTest() {
     super(new LogActivationLayer());

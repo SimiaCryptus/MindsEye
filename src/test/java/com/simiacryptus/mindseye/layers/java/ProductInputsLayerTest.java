@@ -27,7 +27,7 @@ import com.simiacryptus.mindseye.test.unit.TrainingTester;
 import java.util.Random;
 
 /**
- * The type Product inputs layer run.
+ * The type Product inputs layer eval.
  */
 public abstract class ProductInputsLayerTest extends LayerTestBase {
   @Override

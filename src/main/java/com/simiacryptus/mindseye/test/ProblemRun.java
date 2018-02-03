@@ -27,7 +27,7 @@ import java.awt.*;
 import java.util.List;
 
 /**
- * The type Problem run.
+ * The type Problem eval.
  */
 public class ProblemRun {
   
@@ -49,7 +49,7 @@ public class ProblemRun {
   public final PlotType type;
   
   /**
-   * Instantiates a new Problem run.
+   * Instantiates a new Problem eval.
    *
    * @param name    the name
    * @param history the history

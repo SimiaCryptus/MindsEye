@@ -23,6 +23,7 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.ReferenceCounting;
 
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,9 @@ public final class PlaceholderLayer<T> extends NNLayer {
   public PlaceholderLayer(final T key) {
     if (null == key) throw new UnsupportedOperationException();
     this.key = key;
+    if (this.getKey() instanceof ReferenceCounting) {
+      ((ReferenceCounting) this.getKey()).addRef();
+    }
     setName(getClass().getSimpleName() + "/" + getId());
   }
   
@@ -55,7 +59,7 @@ public final class PlaceholderLayer<T> extends NNLayer {
   
   @Override
   public Object getId() {
-    return this.key;
+    return this.getKey();
   }
   
   @Override
@@ -68,4 +72,14 @@ public final class PlaceholderLayer<T> extends NNLayer {
     throw new UnsupportedOperationException();
   }
   
+  @Override
+  protected void _free() {
+    if (this.getKey() instanceof ReferenceCounting) {
+      ((ReferenceCounting) this.getKey()).freeRef();
+    }
+  }
+  
+  public T getKey() {
+    return key;
+  }
 }

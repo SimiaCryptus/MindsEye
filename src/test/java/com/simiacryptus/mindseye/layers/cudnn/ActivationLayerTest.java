@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The type Activation layer apply.
+ * The type Activation layer run.
  */
 public abstract class ActivationLayerTest extends CuDNNLayerTestBase {
   
@@ -48,7 +48,7 @@ public abstract class ActivationLayerTest extends CuDNNLayerTestBase {
   private final Precision precision;
   
   /**
-   * Instantiates a new Activation layer apply.
+   * Instantiates a new Activation layer run.
    *
    * @param mode      the mode
    * @param precision the precision
@@ -92,7 +92,9 @@ public abstract class ActivationLayerTest extends CuDNNLayerTestBase {
     final NNLayer layer = getLayer(new int[][]{{8, 8, 1}}, new Random());
     final List<double[]> plotData = IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0).mapToObj(x -> {
       final SimpleEval eval = SimpleEval.run(layer, new Tensor(new double[]{x}, 1, 1, 1));
-      return new double[]{x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};
+      double[] doubles = {x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};
+      eval.freeRef();
+      return doubles;
     }).collect(Collectors.toList());
   
     log.code(() -> {

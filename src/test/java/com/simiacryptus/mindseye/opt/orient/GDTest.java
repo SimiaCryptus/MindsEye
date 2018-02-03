@@ -33,7 +33,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Gd apply.
+ * The type Gd run.
  */
 public class GDTest extends MnistTestBase {
   

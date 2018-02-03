@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type L 1 normalization layer run.
+ * The type L 1 normalization layer eval.
  */
 public abstract class L1NormalizationLayerTest extends LayerTestBase {
   

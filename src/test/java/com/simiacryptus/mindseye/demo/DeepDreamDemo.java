@@ -51,7 +51,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * The type Image classifier apply base.
+ * The type Image classifier run base.
  */
 public class DeepDreamDemo extends NotebookReportBase {
   

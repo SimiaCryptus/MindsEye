@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Fully connected layer run.
+ * The type Fully connected layer eval.
  */
 public abstract class FullyConnectedLayerTest extends LayerTestBase {
   

@@ -33,7 +33,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Qqn apply.
+ * The type Qqn run.
  */
 public class QQNTest extends MnistTestBase {
 

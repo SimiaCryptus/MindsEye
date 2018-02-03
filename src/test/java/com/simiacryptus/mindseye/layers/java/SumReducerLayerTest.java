@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Sum reducer layer run.
+ * The type Sum reducer layer eval.
  */
 public abstract class SumReducerLayerTest extends LayerTestBase {
   

@@ -35,7 +35,7 @@ import java.util.stream.Stream;
  * @param <K> the type parameter
  * @param <T> the type parameter
  */
-public abstract class DoubleBufferSet<K, T extends DoubleBuffer<K>> {
+public abstract class DoubleBufferSet<K, T extends DoubleBuffer<K>> extends ReferenceCountingBase {
   /**
    * The Map.
    */
@@ -95,6 +95,7 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer<K>> {
     final T delta = get(layer, () -> factory(layer, ptr));
     assert delta.layer.equals(layer);
     assert delta.target == ptr;
+    delta.addRef();
     return delta;
   }
   
@@ -105,7 +106,7 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer<K>> {
    * @param factory the factory
    * @return the t
    */
-  public T get(final K layer, final Supplier<T> factory) {
+  private T get(final K layer, final Supplier<T> factory) {
     if (null == map) throw new IllegalArgumentException();
     if (null == factory) throw new IllegalArgumentException();
     if (null == layer) throw new IllegalArgumentException();
@@ -187,5 +188,11 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer<K>> {
     protected T factory(final K layer, final double[] target) {
       return parent.factory(layer, target);
     }
+  }
+  
+  @Override
+  protected void _free() {
+    map.values().forEach(x -> x.freeRef());
+    map.clear();
   }
 }

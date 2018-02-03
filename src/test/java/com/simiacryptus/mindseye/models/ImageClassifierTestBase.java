@@ -37,7 +37,7 @@ import org.junit.Test;
 import java.util.*;
 
 /**
- * The type Image classifier apply base.
+ * The type Image classifier run base.
  */
 public abstract class ImageClassifierTestBase extends NotebookReportBase {
   

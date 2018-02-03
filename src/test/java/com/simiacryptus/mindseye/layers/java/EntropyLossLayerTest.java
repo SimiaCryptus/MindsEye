@@ -27,7 +27,7 @@ import com.simiacryptus.util.Util;
 import java.util.Random;
 
 /**
- * The type Entropy loss layer run.
+ * The type Entropy loss layer eval.
  */
 public abstract class EntropyLossLayerTest extends LayerTestBase {
   

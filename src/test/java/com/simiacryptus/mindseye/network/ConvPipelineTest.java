@@ -27,12 +27,12 @@ import com.simiacryptus.mindseye.layers.java.*;
 import java.util.ArrayList;
 
 /**
- * The type Conv pipeline run.
+ * The type Conv pipeline eval.
  */
 public class ConvPipelineTest extends PipelineTest {
   
   /**
-   * Instantiates a new Conv pipeline run.
+   * Instantiates a new Conv pipeline eval.
    */
   public ConvPipelineTest() {
     super(

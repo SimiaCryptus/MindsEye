@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Avg reducer layer run.
+ * The type Avg reducer layer eval.
  */
 public abstract class AvgReducerLayerTest extends LayerTestBase {
   

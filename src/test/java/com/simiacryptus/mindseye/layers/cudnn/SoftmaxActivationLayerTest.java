@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import java.util.Random;
 
 /**
- * The type Softmax activation layer run.
+ * The type Softmax activation layer eval.
  */
 public abstract class SoftmaxActivationLayerTest extends CuDNNLayerTestBase {
   

@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Monitoring synapse run.
+ * The type Monitoring synapse eval.
  */
 public abstract class MonitoringSynapseTest extends LayerTestBase {
   

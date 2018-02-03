@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.MetaLayerTestBase;
 import java.util.Random;
 
 /**
- * The type Max meta layer run.
+ * The type Max meta layer eval.
  */
 public abstract class MaxMetaLayerTest extends MetaLayerTestBase {
   

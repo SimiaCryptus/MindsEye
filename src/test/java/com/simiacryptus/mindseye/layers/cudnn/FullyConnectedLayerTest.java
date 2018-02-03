@@ -31,7 +31,7 @@ import java.io.PrintStream;
 import java.util.Random;
 
 /**
- * The type Fully connected layer apply.
+ * The type Fully connected layer run.
  */
 public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
   

@@ -32,7 +32,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * The type Linear run.
+ * The type Linear eval.
  */
 public class SupplementedProblemData implements ImageProblemData {
   

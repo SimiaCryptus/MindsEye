@@ -55,7 +55,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * The type Image apply util.
+ * The type Image run util.
  */
 public class TestUtil {
   /**

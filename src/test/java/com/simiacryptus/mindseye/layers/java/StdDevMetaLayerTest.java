@@ -25,12 +25,12 @@ import com.simiacryptus.mindseye.layers.MetaLayerTestBase;
 import java.util.Random;
 
 /**
- * The type Std dev meta layer run.
+ * The type Std dev meta layer eval.
  */
 public abstract class StdDevMetaLayerTest extends MetaLayerTestBase {
   
   /**
-   * Instantiates a new Std dev meta layer run.
+   * Instantiates a new Std dev meta layer eval.
    */
   public StdDevMetaLayerTest() {
     super();

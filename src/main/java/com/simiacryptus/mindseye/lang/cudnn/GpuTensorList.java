@@ -137,7 +137,7 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
         final GpuTensorList nativeRight = (GpuTensorList) right;
         if (nativeRight.precision == this.precision) {
           if (nativeRight.heapCopy == null) {
-            return CuDNNHandle.run(gpu -> {
+            return GpuSystem.eval(gpu -> {
               assert getDimensions().length <= 3;
               int d2 = getDimensions().length < 3 ? 1 : getDimensions()[2];
               int d1 = getDimensions().length < 2 ? 1 : getDimensions()[1];
@@ -258,8 +258,11 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
   
   @Override
   public TensorList copy() {
-    return CuDNNHandle.run(gpu -> {
-      return new GpuTensorList(getPtr().copyTo(gpu.getDeviceNumber()), getLength(), getDimensions(), precision);
+    return GpuSystem.eval(gpu -> {
+      CudaPtr copyPtr = getPtr().copyTo(gpu.getDeviceNumber());
+      GpuTensorList gpuTensorList = new GpuTensorList(copyPtr, getLength(), getDimensions(), precision);
+      copyPtr.freeRef();
+      return gpuTensorList;
     });
   }
   

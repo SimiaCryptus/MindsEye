@@ -207,7 +207,7 @@ public class BasicTrainable implements DataTrainable, TrainableDataMask {
       assert !data.isEmpty();
   
       final TimedResult<PointSample> timedResult = TimedResult.time(() -> eval(data, monitor));
-      //          log.info(String.format("Evaluated to %s delta arrays", DeltaSet<NNLayer>.apply.size()));
+      //          log.info(String.format("Evaluated to %s delta arrays", DeltaSet<NNLayer>.run.size()));
       if (null != monitor && verbosity() > 1) {
         monitor.log(String.format("Evaluated %s items in %.4fs (%s/%s)", data.size(), timedResult.timeNanos / 1e9, timedResult.result.getMean(), timedResult.result.delta.getMagnitude()));
       }

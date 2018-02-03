@@ -34,7 +34,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type L 1 normalization apply.
+ * The type L 1 normalization run.
  */
 public class L1NormalizationTest extends MnistTestBase {
   

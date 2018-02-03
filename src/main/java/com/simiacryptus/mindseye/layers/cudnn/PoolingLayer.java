@@ -109,7 +109,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
     batch.addRef();
     final int inputDims = Tensor.dim(inputSize);
     final int[] outputSize = new int[4];
-    final CudaPtr outputData = CuDNNHandle.run(nncontext -> {
+    final CudaPtr outputData = GpuSystem.eval(nncontext -> {
       try {
         nncontext.initThread();
         final CudaResource<cudnnPoolingDescriptor> poolingDesc = GpuSystem.createPoolingDescriptor(
@@ -139,7 +139,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
                         (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
                           assert error.length() == batch.length();
                           if (input.isAlive()) {
-                            TensorList data = CuDNNHandle.run(gpu -> {
+                            TensorList data = GpuSystem.eval(gpu -> {
                               final CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
                                 precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
                               final CudaResource<cudnnTensorDescriptor> outputDescriptor = GpuSystem.newTensorDescriptor(

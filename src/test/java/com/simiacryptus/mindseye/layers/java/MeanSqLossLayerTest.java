@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Mean sq loss layer run.
+ * The type Mean sq loss layer eval.
  */
 public abstract class MeanSqLossLayerTest extends LayerTestBase {
   

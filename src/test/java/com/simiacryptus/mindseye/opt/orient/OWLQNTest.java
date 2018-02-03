@@ -33,7 +33,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Owlqn apply.
+ * The type Owlqn run.
  */
 public class OWLQNTest extends MnistTestBase {
   

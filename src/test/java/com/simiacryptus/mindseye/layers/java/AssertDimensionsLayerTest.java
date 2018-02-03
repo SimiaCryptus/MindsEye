@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Assert dimensions layer run.
+ * The type Assert dimensions layer eval.
  */
 public abstract class AssertDimensionsLayerTest extends LayerTestBase {
   

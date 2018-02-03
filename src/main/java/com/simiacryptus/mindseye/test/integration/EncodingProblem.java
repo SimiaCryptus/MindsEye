@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Mnist encoding apply.
+ * The type Mnist encoding run.
  */
 public class EncodingProblem implements Problem {
   

@@ -29,5 +29,6 @@ public class TestError extends RuntimeException {
     super(String.format("Error in %s with %s", test, layer), cause);
     this.test = test;
     this.layer = layer;
+    layer.setFloating(true);
   }
 }

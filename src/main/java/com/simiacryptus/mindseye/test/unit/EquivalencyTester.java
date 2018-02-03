@@ -61,8 +61,8 @@ public class EquivalencyTester implements ComponentTest<ToleranceStatistics> {
   public ToleranceStatistics test(final NNLayer subject, final Tensor[] inputPrototype) {
     if (null == reference || null == subject) return new ToleranceStatistics();
     ToleranceStatistics result1;
-    final Tensor subjectOutput = SimpleEval.run(subject, inputPrototype).getOutput();
-    final Tensor referenceOutput = SimpleEval.run(reference, inputPrototype).getOutput();
+    final Tensor subjectOutput = SimpleEval.run(subject, inputPrototype).getOutputAndFree();
+    final Tensor referenceOutput = SimpleEval.run(reference, inputPrototype).getOutputAndFree();
     final Tensor error = subjectOutput.minus(referenceOutput);
     final ToleranceStatistics result = IntStream.range(0, subjectOutput.dim()).mapToObj(i1 -> {
       return new ToleranceStatistics().accumulate(subjectOutput.getData()[i1], referenceOutput.getData()[i1]);
@@ -78,12 +78,15 @@ public class EquivalencyTester implements ComponentTest<ToleranceStatistics> {
       System.out.flush();
       throw e;
     }
+    subjectOutput.freeRef();
+    referenceOutput.freeRef();
     final ToleranceStatistics statistics = result1;
     log.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));
     log.info(String.format("Error: %s", error.prettyPrint()));
     log.info(String.format("Accuracy:"));
     log.info(String.format("absoluteTol: %s", statistics.absoluteTol.toString()));
     log.info(String.format("relativeTol: %s", statistics.relativeTol.toString()));
+    error.freeRef();
     return statistics;
   }
   

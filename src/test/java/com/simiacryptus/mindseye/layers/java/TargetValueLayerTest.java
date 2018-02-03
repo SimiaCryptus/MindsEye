@@ -25,11 +25,11 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Target value layer run.
+ * The type Target value layer eval.
  */
 public class TargetValueLayerTest {
   /**
-   * Basic run.
+   * Basic eval.
    */
   public static class Normal extends LayerTestBase {
     

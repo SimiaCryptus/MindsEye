@@ -103,7 +103,7 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
     dimOut[0] = sizeX;
     dimOut[1] = sizeY;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    final TensorList outputData = CuDNNHandle.run(gpu -> {
+    final TensorList outputData = GpuSystem.eval(gpu -> {
       final CudaPtr inputBuffer = CudaPtr.getCudaPtr(precision, inObj[0].getData());
       final CudaPtr outputBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), (long) (length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size), MemoryType.Managed, false);
       copy(gpu, length, dimIn, inputBuffer, dimOut, outputBuffer);
@@ -119,7 +119,7 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
       }
       assert error.length() == inObj[0].getData().length();
       if (inObj[0].isAlive()) {
-        final TensorList passbackTensorList = CuDNNHandle.run(gpu -> {
+        final TensorList passbackTensorList = GpuSystem.eval(gpu -> {
           final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
           final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), (long) (length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size), MemoryType.Managed, false);
           copy(gpu, length, dimOut, errorPtr, dimIn, passbackBuffer);

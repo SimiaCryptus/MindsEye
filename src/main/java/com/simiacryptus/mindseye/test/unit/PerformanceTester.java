@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.network.DAGNetwork;
-import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.data.DoubleStatistics;
@@ -99,7 +98,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
   }
   
   /**
-   * Is apply evaluation boolean.
+   * Is run evaluation boolean.
    *
    * @return the boolean
    */
@@ -108,10 +107,10 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
   }
   
   /**
-   * Sets apply evaluation.
+   * Sets run evaluation.
    *
-   * @param testEvaluation the apply evaluation
-   * @return the apply evaluation
+   * @param testEvaluation the run evaluation
+   * @return the run evaluation
    */
   public PerformanceTester setTestEvaluation(final boolean testEvaluation) {
     this.testEvaluation = testEvaluation;
@@ -119,7 +118,7 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
   }
   
   /**
-   * Is apply learning boolean.
+   * Is run learning boolean.
    *
    * @return the boolean
    */
@@ -128,10 +127,10 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
   }
   
   /**
-   * Sets apply learning.
+   * Sets run learning.
    *
-   * @param testLearning the apply learning
-   * @return the apply learning
+   * @param testLearning the run learning
+   * @return the run learning
    */
   public ComponentTest<ToleranceStatistics> setTestLearning(final boolean testLearning) {
     this.testLearning = testLearning;
@@ -147,10 +146,8 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
   public void test(final NNLayer component, final Tensor[] inputPrototype) {
     log.info(String.format("%s batch length, %s trials", batches, samples));
     log.info("Input Dimensions:");
-    final Tensor outputPrototype = SimpleEval.run(component, inputPrototype).getOutput();
     Arrays.stream(inputPrototype).map(t -> "\t" + Arrays.toString(t.getDimensions())).forEach(System.out::println);
     log.info("Performance:");
-  
     List<Tuple2<Double, Double>> performance = IntStream.range(0, samples).mapToObj(i -> {
       return testPerformance(component, inputPrototype);
     }).collect(Collectors.toList());
@@ -201,17 +198,26 @@ public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
   protected Tuple2<Double, Double> testPerformance(final NNLayer component, final Tensor... inputPrototype) {
     final Tensor[][] data = IntStream.range(0, batches).mapToObj(x -> x).flatMap(x -> Stream.<Tensor[]>of(inputPrototype)).toArray(i -> new Tensor[i][]);
     TimedResult<NNResult> timedEval = TimedResult.time(() -> {
-      return component.eval(NNConstant.batchResultArray(data));
+      NNResult[] input = NNConstant.batchResultArray(data);
+      NNResult result = component.eval(input);
+      for (NNResult nnResult : input) {
+        nnResult.freeRef();
+        nnResult.getData().freeRef();
+      }
+      return result;
     });
     final NNResult result = timedEval.result;
     final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
-    TimedResult<DeltaSet<NNLayer>> timedBackprop = TimedResult.time(() -> {
+    long timedBackprop = TimedResult.time(() -> {
       TensorArray tensorArray = TensorArray.wrap(result.getData().stream().map(x -> x.map(v -> 1.0)).toArray(i -> new Tensor[i]));
       result.accumulate(buffer, tensorArray);
       tensorArray.freeRef();
       return buffer;
-    });
-    return new Tuple2<>(timedEval.timeNanos / 1e9, timedBackprop.timeNanos / 1e9);
+    }).timeNanos;
+    buffer.freeRef();
+    result.freeRef();
+    result.getData().freeRef();
+    return new Tuple2<>(timedEval.timeNanos / 1e9, timedBackprop / 1e9);
   }
   
   @Override

@@ -69,6 +69,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
     for (int j = 0; j < outputPrototype.dim(); j++) {
       final int j_ = j;
       final PlaceholderLayer<Tensor> inputKey = new PlaceholderLayer<Tensor>(new Tensor());
+      inputKey.getKey().freeRef();
       final NNResult[] copyInput = Arrays.stream(inputPrototype).map(x -> new NNResult(TensorArray.create(x), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {}) {
         
         @Override
@@ -77,19 +78,24 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
         }
   
       }).toArray(i -> new NNResult[i]);
+      copyInput[inputIndex].getData().freeRef();
+      copyInput[inputIndex].freeRef();
       copyInput[inputIndex] = new NNResult(TensorArray.create(inputTensor), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
         if (1 != data.length()) throw new AssertionError();
         if (data.length() != 1) throw new AssertionError();
         final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.dim());
+        if (!Arrays.equals(inputTensor.getDimensions(), data.getDimensions())) {
+          throw new AssertionError();
+        }
         IntStream.range(0, data.length()).forEach(dataIndex -> {
-          if (!Arrays.equals(inputTensor.getDimensions(), data.get(dataIndex).getDimensions())) {
-            throw new AssertionError();
-          }
           for (int i = 0; i < inputDims; i++) {
-            gradientBuffer.set(new int[]{i, j_}, data.get(dataIndex).getData()[i]);
+            Tensor tensor = data.get(dataIndex);
+            gradientBuffer.set(new int[]{i, j_}, tensor.getData()[i]);
+            tensor.freeRef();
           }
         });
-        buffer.get(inputKey, new double[gradientBuffer.dim()]).addInPlace(gradientBuffer.getData());
+        buffer.get(inputKey, new double[gradientBuffer.dim()]).addInPlace(gradientBuffer.getData()).freeRef();
+        gradientBuffer.freeRef();
       }) {
         
         @Override
@@ -100,15 +106,22 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
       final NNResult eval = component.eval(copyInput);
       for (NNResult nnResult : copyInput) {
         nnResult.freeRef();
+        nnResult.getData().freeRef();
       }
       final DeltaSet<NNLayer> deltaSet = new DeltaSet<NNLayer>();
-      TensorArray tensorArray = TensorArray.create(new Tensor(outputPrototype.getDimensions()).set(j, 1));
+      TensorArray tensorArray = TensorArray.wrap(new Tensor(outputPrototype.getDimensions()).set(j, 1));
       eval.accumulate(deltaSet, tensorArray);
+      eval.getData().freeRef();
+      eval.freeRef();
       tensorArray.freeRef();
       final Delta<NNLayer> inputDelta = deltaSet.getMap().get(inputKey);
       if (null != inputDelta) {
-        result.addInPlace(new Tensor(inputDelta.getDelta(), result.getDimensions()));
+        Tensor tensor = new Tensor(inputDelta.getDelta(), result.getDimensions());
+        result.addInPlace(tensor);
+        tensor.freeRef();
       }
+      deltaSet.freeRef();
+      inputKey.freeRef();
     }
     return result;
   }
@@ -136,7 +149,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
   }
   
   /**
-   * Is apply feedback boolean.
+   * Is run feedback boolean.
    *
    * @return the boolean
    */
@@ -145,10 +158,10 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
   }
   
   /**
-   * Sets apply feedback.
+   * Sets run feedback.
    *
-   * @param testFeedback the apply feedback
-   * @return the apply feedback
+   * @param testFeedback the run feedback
+   * @return the run feedback
    */
   public SingleDerivativeTester setTestFeedback(final boolean testFeedback) {
     this.testFeedback = testFeedback;
@@ -156,7 +169,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
   }
   
   /**
-   * Is apply learning boolean.
+   * Is run learning boolean.
    *
    * @return the boolean
    */
@@ -165,10 +178,10 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
   }
   
   /**
-   * Sets apply learning.
+   * Sets run learning.
    *
-   * @param testLearning the apply learning
-   * @return the apply learning
+   * @param testLearning the run learning
+   * @return the run learning
    */
   public SingleDerivativeTester setTestLearning(final boolean testLearning) {
     this.testLearning = testLearning;
@@ -217,19 +230,33 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
   
   private Tensor measureFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor measuredGradient = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
-    final Tensor baseOutput = component.eval(NNConstant.batchResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
+    NNResult[] input0 = NNConstant.batchResultArray(new Tensor[][]{inputPrototype});
+    final Tensor baseOutput = component.eval(input0).getDataAndFree().getAndFree(0);
+    for (NNResult result : input0) {
+      result.freeRef();
+      result.getData().freeRef();
+    }
     outputPrototype.set(baseOutput);
     for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
       final Tensor inputProbe = inputPrototype[inputIndex].copy();
       inputProbe.add(i, probeSize * 1);
       final Tensor[] copyInput = Arrays.copyOf(inputPrototype, inputPrototype.length);
       copyInput[inputIndex] = inputProbe;
-      final Tensor evalProbe = component.eval(NNConstant.batchResultArray(new Tensor[][]{copyInput})).getData().get(0);
+      NNResult[] input1 = NNConstant.batchResultArray(new Tensor[][]{copyInput});
+      final Tensor evalProbe = component.eval(input1).getDataAndFree().getAndFree(0);
+      inputProbe.freeRef();
+      for (NNResult result : input1) {
+        result.freeRef();
+        result.getData().freeRef();
+      }
       final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
+      evalProbe.freeRef();
       for (int j = 0; j < delta.dim(); j++) {
         measuredGradient.set(new int[]{i, j}, delta.getData()[j]);
       }
+      delta.freeRef();
     }
+    baseOutput.freeRef();
     return measuredGradient;
   }
   
@@ -237,19 +264,21 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
     final int stateLen = component.state().get(layerNum).length;
     final Tensor gradient = new Tensor(stateLen, outputPrototype.dim());
   
-    final Tensor baseOutput = component.eval(NNConstant.batchResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
+    NNResult[] input2 = NNConstant.batchResultArray(new Tensor[][]{inputPrototype});
+    final Tensor baseOutput = component.eval(input2).getDataAndFree().getAndFree(0);
     
     for (int i = 0; i < stateLen; i++) {
       final NNLayer copy = KryoUtil.kryo().copy(component);
       copy.state().get(layerNum)[i] += probeSize;
   
-      final Tensor evalProbe = copy.eval(NNConstant.batchResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
+      final Tensor evalProbe = copy.eval(input2).getDataAndFree().getAndFree(0);
       
       final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
       for (int j = 0; j < delta.dim(); j++) {
         gradient.set(new int[]{i, j}, delta.getData()[j]);
       }
     }
+    for (NNResult result : input2) result.freeRef();
     return gradient;
   }
   
@@ -265,7 +294,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
   public ToleranceStatistics test(final NotebookOutput output, final NNLayer component, final Tensor... inputPrototype) {
     output.h1("Differential Validation");
     ToleranceStatistics _statistics = new ToleranceStatistics();
-    final Tensor outputPrototype = SimpleEval.run(component, inputPrototype).getOutput();
+    final Tensor outputPrototype = SimpleEval.run(component, inputPrototype).getOutputAndFree();
   
     if (verbose) {
       output.code(() -> {
@@ -292,6 +321,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
       });
     }
   
+    outputPrototype.freeRef();
     output.h2("Total Accuracy");
     output.p("The overall agreement accuracy between the implemented derivative and the finite difference estimations:");
     final ToleranceStatistics statistics = _statistics;
@@ -324,6 +354,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
     return IntStream.range(0, component.state().size()).mapToObj(i -> {
       final Tensor measuredGradient = !verify ? null : measureLearningGradient(component, i, outputPrototype, inputPrototype);
       final Tensor implementedGradient = getLearningGradient(component, i, outputPrototype, inputPrototype);
+      Tensor difference = measuredGradient.minus(implementedGradient);
       try {
         final ToleranceStatistics result = IntStream.range(0, null == measuredGradient ? 0 : measuredGradient.dim()).mapToObj(i1 -> {
           return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], implementedGradient.getData()[i1]);
@@ -342,10 +373,11 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
             if (null != measuredGradient) {
               log.info(String.format("Measured Gradient: %s", measuredGradient.prettyPrint()));
               log.info(String.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
-              log.info(String.format("Gradient Error: %s", measuredGradient.minus(implementedGradient).prettyPrint()));
-              log.info(String.format("Error Statistics: %s", new ScalarStatistics().add(measuredGradient.minus(implementedGradient).getData())));
+              log.info(String.format("Gradient Error: %s", difference.prettyPrint()));
+              log.info(String.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
             }
           }
+          difference.freeRef();
           return result;
         }
       } catch (final Throwable e) {
@@ -356,9 +388,10 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
         if (null != measuredGradient) {
           log.info(String.format("Measured Gradient: %s", measuredGradient.prettyPrint()));
           log.info(String.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
-          log.info(String.format("Gradient Error: %s", measuredGradient.minus(implementedGradient).prettyPrint()));
-          log.info(String.format("Error Statistics: %s", new ScalarStatistics().add(measuredGradient.minus(implementedGradient).getData())));
+          log.info(String.format("Gradient Error: %s", difference.prettyPrint()));
+          log.info(String.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
         }
+        difference.freeRef();
         throw e;
       }
       
@@ -378,6 +411,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
     return statistics.combine(IntStream.range(0, inputPrototype.length).mapToObj(i -> {
       final Tensor measuredGradient = !verify ? null : measureFeedbackGradient(component, i, outputPrototype, inputPrototype);
       final Tensor implementedGradient = getFeedbackGradient(component, i, outputPrototype, inputPrototype);
+      Tensor difference = measuredGradient.minus(implementedGradient);
       try {
         final ToleranceStatistics result = IntStream.range(0, null == measuredGradient ? 0 : measuredGradient.dim()).mapToObj(i1 -> {
           return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], implementedGradient.getData()[i1]);
@@ -394,10 +428,13 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
           if (null != measuredGradient) {
             log.info(String.format("Measured Feedback: %s", measuredGradient.prettyPrint()));
             log.info(String.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
-            log.info(String.format("Feedback Error: %s", measuredGradient.minus(implementedGradient).prettyPrint()));
-            log.info(String.format("Error Statistics: %s", new ScalarStatistics().add(measuredGradient.minus(implementedGradient).getData())));
+            log.info(String.format("Feedback Error: %s", difference.prettyPrint()));
+            log.info(String.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
           }
         }
+        difference.freeRef();
+        measuredGradient.freeRef();
+        implementedGradient.freeRef();
         return result;
       } catch (final Throwable e) {
         //log.info(String.format("Component: %s", component));
@@ -409,9 +446,12 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
         if (null != measuredGradient) {
           log.info(String.format("Measured: %s", measuredGradient.prettyPrint()));
           log.info(String.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
-          log.info(String.format("Feedback Error: %s", measuredGradient.minus(implementedGradient).prettyPrint()));
-          log.info(String.format("Error Statistics: %s", new ScalarStatistics().add(measuredGradient.minus(implementedGradient).getData())));
+          log.info(String.format("Feedback Error: %s", difference.prettyPrint()));
+          log.info(String.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
         }
+        measuredGradient.freeRef();
+        implementedGradient.freeRef();
+        difference.freeRef();
         throw e;
       }
     }).reduce((a, b) -> a.combine(b)).get());
@@ -429,26 +469,34 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
     final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     final NNLayer frozen = component.copy().freeze();
     List<TensorArray> inputCopies = Arrays.stream(inputPrototype).map(TensorArray::wrap).collect(Collectors.toList());
-    final NNResult eval = frozen.eval(inputCopies.stream().map((tensorArray) -> new NNResult(tensorArray, (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    NNResult[] input = inputCopies.stream().map((tensorArray) -> new NNResult(tensorArray, (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       reachedInputFeedback.set(true);
     }) {
-  
+    
       @Override
       public boolean isAlive() {
         return true;
       }
-  
-    }).<NNResult>toArray(i -> new NNResult[i]));
+    
+    }).toArray(i -> new NNResult[i]);
+    final NNResult eval = frozen.eval(input);
+    for (NNResult nnResult : input) {
+      nnResult.freeRef();
+    }
+    frozen.freeRef();
     for (TensorArray tensorArray : inputCopies) {
       tensorArray.freeRef();
     }
     final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
     TensorList tensorList = eval.getData().copy();
     eval.accumulate(buffer, tensorList);
+    eval.getData().freeRef();
+    eval.freeRef();
     tensorList.freeRef();
     final List<Delta<NNLayer>> deltas = component.state().stream().map(doubles -> {
       return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
     }).filter(x -> x != null).collect(Collectors.toList());
+    buffer.freeRef();
     if (!deltas.isEmpty() && !component.state().isEmpty()) {
       throw new AssertionError("Frozen component listed in delta. Deltas: " + deltas);
     }
@@ -468,22 +516,27 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
     final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     final NNLayer frozen = component.copy().setFrozen(false);
     List<TensorArray> inputCopies = Arrays.stream(inputPrototype).map(TensorArray::wrap).collect(Collectors.toList());
-    final NNResult eval = frozen.eval(inputCopies.stream().map(tensor -> new NNResult(tensor, (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    NNResult[] inputs = inputCopies.stream().map(tensor -> new NNResult(tensor, (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       reachedInputFeedback.set(true);
     }) {
-  
+    
       @Override
       public boolean isAlive() {
         return true;
       }
-  
-    }).<NNResult>toArray(i -> new NNResult[i]));
+    
+    }).toArray(i -> new NNResult[i]);
+    final NNResult eval = frozen.eval(inputs);
+    for (NNResult nnResult : inputs) {
+      nnResult.freeRef();
+    }
     for (TensorArray tensorArray : inputCopies) {
       tensorArray.freeRef();
     }
     final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
     TensorList tensorList = eval.getData();
     eval.accumulate(buffer, tensorList);
+    eval.freeRef();
     tensorList.freeRef();
     final List<double[]> stateList = frozen.state();
     final List<Delta<NNLayer>> deltas = stateList.stream().map(doubles -> {
@@ -492,6 +545,8 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
     if (deltas.isEmpty() && !stateList.isEmpty()) {
       throw new AssertionError("Nonfrozen component not listed in delta. Deltas: " + deltas);
     }
+    frozen.freeRef();
+    buffer.freeRef();
     if (!reachedInputFeedback.get()) {
       throw new RuntimeException("Nonfrozen component did not pass input backwards");
     }

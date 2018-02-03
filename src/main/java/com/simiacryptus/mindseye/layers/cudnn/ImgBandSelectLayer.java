@@ -102,7 +102,7 @@ public class ImgBandSelectLayer extends NNLayer implements MultiPrecision<ImgBan
     final int byteOffset = inputDimensions[1] * inputDimensions[0] * getFrom() * precision.size;
     outputDimensions[2] = getTo() - getFrom();
     long size = (length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
-    return new NNResult(CuDNNHandle.run(gpu -> {
+    return new NNResult(GpuSystem.eval(gpu -> {
       final CudaPtr cudaOutput = CudaPtr.allocate(gpu.getDeviceNumber(), size, MemoryType.Managed, true);
       final CudaPtr cudaInput = CudaPtr.getCudaPtr(precision, inputData);
       final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(inputDimensions, length, outputDimensions);
@@ -118,7 +118,7 @@ public class ImgBandSelectLayer extends NNLayer implements MultiPrecision<ImgBan
         throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputDimensions));
       }
       if (inObj[0].isAlive()) {
-        final TensorList passbackTensorList = CuDNNHandle.run(gpu -> {
+        final TensorList passbackTensorList = GpuSystem.eval(gpu -> {
           final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(inputDimensions, length, outputDimensions);
           final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(outputDimensions, length, outputDimensions);
           assert error.length() == inputData.length();

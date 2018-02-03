@@ -30,7 +30,7 @@ import java.util.Random;
 import java.util.stream.IntStream;
 
 /**
- * The type BinarySumLayerTest layer apply.
+ * The type BinarySumLayerTest layer run.
  */
 public abstract class BinarySumLayerTest extends CuDNNLayerTestBase {
   
@@ -40,7 +40,7 @@ public abstract class BinarySumLayerTest extends CuDNNLayerTestBase {
   final Precision precision;
   
   /**
-   * Instantiates a new Product layer apply.
+   * Instantiates a new Product layer run.
    *
    * @param precision the precision
    */
@@ -96,7 +96,7 @@ public abstract class BinarySumLayerTest extends CuDNNLayerTestBase {
   public static class OnePlusOne extends CuDNNLayerTestBase {
   
     /**
-     * Instantiates a new Asymmetric apply.
+     * Instantiates a new Asymmetric run.
      */
     public OnePlusOne() {
       super();

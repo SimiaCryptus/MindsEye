@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Img band bias layer run.
+ * The type Img band bias layer eval.
  */
 public abstract class ImgBandBiasLayerTest extends LayerTestBase {
   

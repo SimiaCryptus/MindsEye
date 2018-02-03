@@ -25,11 +25,11 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import java.util.Random;
 
 /**
- * The type Bias meta layer run.
+ * The type Bias meta layer eval.
  */
 public abstract class BiasMetaLayerTest extends LayerTestBase {
   /**
-   * Instantiates a new Bias meta layer run.
+   * Instantiates a new Bias meta layer eval.
    */
   public BiasMetaLayerTest() {
     validateBatchExecution = false;
