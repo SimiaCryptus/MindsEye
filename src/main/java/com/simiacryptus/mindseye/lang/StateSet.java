@@ -33,7 +33,7 @@ import java.util.stream.Stream;
  *
  * @param <K> the type parameter
  */
-public class StateSet<K> extends DoubleBufferSet<K, State<K>> {
+public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, State<K>> {
   
   /**
    * Instantiates a new State setByCoord.
@@ -49,7 +49,7 @@ public class StateSet<K> extends DoubleBufferSet<K, State<K>> {
   public StateSet(final DeltaSet<K> toCopy) {
     assert toCopy.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite));
     toCopy.getMap().forEach((layer, layerDelta) -> {
-      this.get(layer, layerDelta.target).backup();
+      this.get(layer, layerDelta.target).backup().freeRef();
     });
     assert stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite));
     assert stream().allMatch(x -> x instanceof State);
@@ -82,7 +82,7 @@ public class StateSet<K> extends DoubleBufferSet<K, State<K>> {
    * @param right the right
    * @return the state setByCoord
    */
-  public static <K> StateSet<K> union(final DoubleBufferSet<K, State<K>> left, final DoubleBufferSet<K, State<K>> right) {
+  public static <K extends ReferenceCounting> StateSet<K> union(final DoubleBufferSet<K, State<K>> left, final DoubleBufferSet<K, State<K>> right) {
     final Map<K, State<K>> collect = Stream.concat(
       left.map.entrySet().stream(),
       right.map.entrySet().stream()
@@ -187,7 +187,9 @@ public class StateSet<K> extends DoubleBufferSet<K, State<K>> {
       stream = stream.parallel();
     }
     final Map<K, State<K>> newMap = stream.collect(Collectors.toMap(e -> e.getKey(), e -> mapper.apply(e.getValue())));
-    return new StateSet<>(newMap);
+    StateSet<K> kStateSet = new StateSet<>(newMap);
+    newMap.values().forEach(x -> x.freeRef());
+    return kStateSet;
   }
   
   /**

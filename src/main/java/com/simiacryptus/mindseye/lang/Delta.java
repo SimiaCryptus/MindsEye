@@ -28,7 +28,7 @@ import java.util.function.DoubleUnaryOperator;
  *
  * @param <K> the type parameter
  */
-public class Delta<K> extends DoubleBuffer<K> {
+public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
   /**
    * The Delta compensation.
    */

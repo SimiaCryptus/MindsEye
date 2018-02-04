@@ -26,6 +26,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
+import com.simiacryptus.mindseye.opt.line.LineSearchCursorBase;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.mindseye.opt.region.TrustRegion;
@@ -42,7 +43,7 @@ import java.util.stream.Stream;
  * commonly either GD or LBFGS. Many trust regions can be defined; see the com.simiacryptus.mindseye.opt.region
  * package.
  */
-public abstract class TrustRegionStrategy implements OrientationStrategy<LineSearchCursor> {
+public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSearchCursor> {
   
   
   /**
@@ -57,6 +58,11 @@ public abstract class TrustRegionStrategy implements OrientationStrategy<LineSea
    */
   public TrustRegionStrategy() {
     this(new LBFGS());
+  }
+  
+  @Override
+  protected void _free() {
+    this.inner.freeRef();
   }
   
   /**
@@ -115,7 +121,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy<LineSea
       history.remove(history.size() - 1);
     }
     final SimpleLineSearchCursor cursor = inner.orient(subject, origin, monitor);
-    return new LineSearchCursor() {
+    return new LineSearchCursorBase() {
       @Override
       public String getDirectionType() {
         return cursor.getDirectionType() + "+Trust";
@@ -194,6 +200,11 @@ public abstract class TrustRegionStrategy implements OrientationStrategy<LineSea
         adjustedPosVector.accumulate(1);
         final PointSample sample = subject.measure(monitor).setRate(alpha);
         return new LineSearchPoint(sample, adjustedGradient.dot(sample.delta));
+      }
+    
+      @Override
+      public void _free() {
+        cursor.freeRef();
       }
     };
   }

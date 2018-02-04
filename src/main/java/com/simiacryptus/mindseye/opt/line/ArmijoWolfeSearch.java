@@ -236,88 +236,103 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
     double mu = 0;
     double nu = Double.POSITIVE_INFINITY;
     final LineSearchPoint startPoint = cursor.step(0, monitor);
-    final double startLineDeriv = startPoint.derivative; // theta'(0)
-    final double startValue = startPoint.point.getMean(); // theta(0)
-    if (0 <= startPoint.derivative) {
-      monitor.log(String.format("th(0)=%s;dx=%s (ERROR: Starting derivative negative)", startValue, startLineDeriv));
-      return cursor.step(0, monitor).point;
-    }
-    monitor.log(String.format("th(0)=%s;dx=%s", startValue, startLineDeriv));
     LineSearchPoint lastStep = null;
-    int stepBias = 0;
-    double bestAlpha = 0;
-    double bestValue = startPoint.point.getMean();
-    while (true) {
-      if (!isAlphaValid()) {
-        PointSample point = cursor.step(bestAlpha, monitor).point;
-        monitor.log(String.format("INVALID ALPHA (%s): th(%s)=%s", alpha, bestAlpha, point.getMean()));
-        return point;
+    try {
+      final double startLineDeriv = startPoint.derivative; // theta'(0)
+      final double startValue = startPoint.point.getMean(); // theta(0)
+      if (0 <= startPoint.derivative) {
+        monitor.log(String.format("th(0)=%s;dx=%s (ERROR: Starting derivative negative)", startValue, startLineDeriv));
+        return cursor.step(0, monitor).point;
       }
-      double lastValue = null == lastStep ? Double.POSITIVE_INFINITY : lastStep.point.getMean();
-      if (mu >= nu - absoluteTolerance) {
-        loosenMetaparameters();
-        PointSample point = cursor.step(bestAlpha, monitor).point;
-        monitor.log(String.format("mu >= nu (%s): th(%s)=%s", mu, bestAlpha, point.getMean()));
-        return point;
+      monitor.log(String.format("th(0)=%s;dx=%s", startValue, startLineDeriv));
+      int stepBias = 0;
+      double bestAlpha = 0;
+      double bestValue = startPoint.point.getMean();
+      while (true) {
+        if (!isAlphaValid()) {
+          PointSample point = stepPoint(cursor, monitor, bestAlpha);
+          monitor.log(String.format("INVALID ALPHA (%s): th(%s)=%s", alpha, bestAlpha, point.getMean()));
+          return point;
+        }
+        if (mu >= nu - absoluteTolerance) {
+          loosenMetaparameters();
+          PointSample point = stepPoint(cursor, monitor, bestAlpha);
+          monitor.log(String.format("mu >= nu (%s): th(%s)=%s", mu, bestAlpha, point.getMean()));
+          return point;
+        }
+        if (nu - mu < nu * relativeTolerance) {
+          loosenMetaparameters();
+          PointSample point = stepPoint(cursor, monitor, bestAlpha);
+          monitor.log(String.format("mu ~= nu (%s): th(%s)=%s", mu, bestAlpha, point.getMean()));
+          return point;
+        }
+        if (Math.abs(alpha) < minAlpha) {
+          PointSample point = stepPoint(cursor, monitor, bestAlpha);
+          monitor.log(String.format("MIN ALPHA (%s): th(%s)=%s", alpha, bestAlpha, point.getMean()));
+          alpha = minAlpha;
+          return point;
+        }
+        if (Math.abs(alpha) > maxAlpha) {
+          PointSample point = stepPoint(cursor, monitor, bestAlpha);
+          monitor.log(String.format("MAX ALPHA (%s): th(%s)=%s", alpha, bestAlpha, point.getMean()));
+          alpha = maxAlpha;
+          return point;
+        }
+        if (null != lastStep) lastStep.freeRef();
+        lastStep = cursor.step(alpha, monitor);
+        double lastValue = lastStep.point.getMean();
+        if (bestValue > lastValue) {
+          bestAlpha = alpha;
+          bestValue = lastValue;
+        }
+        if (!Double.isFinite(lastValue)) {
+          lastValue = Double.POSITIVE_INFINITY;
+        }
+        if (lastValue > startValue + alpha * c1 * startLineDeriv) {
+          // Value did not decrease (enough) - It is gauranteed to decrease given an infitefimal rate; the rate must be less than this; this is a new ceiling
+          monitor.log(String.format("Armijo: th(%s)=%s; dx=%s delta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
+          nu = alpha;
+          stepBias = Math.min(-1, stepBias - 1);
+        }
+        else if (isStrongWolfe() && lastStep.derivative > 0) {
+          // If the slope is increasing, then we can go lower by choosing a lower rate; this is a new ceiling
+          monitor.log(String.format("WOLF (strong): th(%s)=%s; dx=%s delta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
+          nu = alpha;
+          stepBias = Math.min(-1, stepBias - 1);
+        }
+        else if (lastStep.derivative < c2 * startLineDeriv) {
+          // Current slope decreases at no more than X - If it is still decreasing that fast, we know we want a rate of least this value; this is a new floor
+          monitor.log(String.format("WOLFE (weak): th(%s)=%s; dx=%s delta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
+          mu = alpha;
+          stepBias = Math.max(1, stepBias + 1);
+        }
+        else {
+          monitor.log(String.format("END: th(%s)=%s; dx=%s delta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
+          PointSample point = lastStep.point;
+          point.addRef();
+          return point;
+        }
+        if (!Double.isFinite(nu)) {
+          alpha = (1 + Math.abs(stepBias)) * alpha;
+        }
+        else if (0.0 == mu) {
+          alpha = nu / (1 + Math.abs(stepBias));
+        }
+        else {
+          alpha = (mu + nu) / 2;
+        }
       }
-      if (nu - mu < nu * relativeTolerance) {
-        loosenMetaparameters();
-        PointSample point = cursor.step(bestAlpha, monitor).point;
-        monitor.log(String.format("mu ~= nu (%s): th(%s)=%s", mu, bestAlpha, point.getMean()));
-        return point;
-      }
-      if (Math.abs(alpha) < minAlpha) {
-        PointSample point = cursor.step(bestAlpha, monitor).point;
-        monitor.log(String.format("MIN ALPHA (%s): th(%s)=%s", alpha, bestAlpha, point.getMean()));
-        alpha = minAlpha;
-        return point;
-      }
-      if (Math.abs(alpha) > maxAlpha) {
-        PointSample point = cursor.step(bestAlpha, monitor).point;
-        monitor.log(String.format("MAX ALPHA (%s): th(%s)=%s", alpha, bestAlpha, point.getMean()));
-        alpha = maxAlpha;
-        return point;
-      }
-      lastStep = cursor.step(alpha, monitor);
-      lastValue = lastStep.point.getMean();
-      if (bestValue > lastValue) {
-        bestAlpha = alpha;
-        bestValue = lastValue;
-      }
-      if (!Double.isFinite(lastValue)) {
-        lastValue = Double.POSITIVE_INFINITY;
-      }
-      if (lastValue > startValue + alpha * c1 * startLineDeriv) {
-        // Value did not decrease (enough) - It is gauranteed to decrease given an infitefimal rate; the rate must be less than this; this is a new ceiling
-        monitor.log(String.format("Armijo: th(%s)=%s; dx=%s delta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
-        nu = alpha;
-        stepBias = Math.min(-1, stepBias - 1);
-      }
-      else if (isStrongWolfe() && lastStep.derivative > 0) {
-        // If the slope is increasing, then we can go lower by choosing a lower rate; this is a new ceiling
-        monitor.log(String.format("WOLF (strong): th(%s)=%s; dx=%s delta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
-        nu = alpha;
-        stepBias = Math.min(-1, stepBias - 1);
-      }
-      else if (lastStep.derivative < c2 * startLineDeriv) {
-        // Current slope decreases at no more than X - If it is still decreasing that fast, we know we want a rate of least this value; this is a new floor
-        monitor.log(String.format("WOLFE (weak): th(%s)=%s; dx=%s delta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
-        mu = alpha;
-        stepBias = Math.max(1, stepBias + 1);
-      }
-      else {
-        monitor.log(String.format("END: th(%s)=%s; dx=%s delta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
-        return lastStep.point;
-      }
-      if (!Double.isFinite(nu)) {
-        alpha = (1 + Math.abs(stepBias)) * alpha;
-      }
-      else if (0.0 == mu) {
-        alpha = nu / (1 + Math.abs(stepBias));
-      }
-      else {
-        alpha = (mu + nu) / 2;
-      }
+    } finally {
+      if (null != lastStep) lastStep.freeRef();
+      startPoint.freeRef();
     }
+  }
+  
+  private PointSample stepPoint(LineSearchCursor cursor, TrainingMonitor monitor, double bestAlpha) {
+    LineSearchPoint step = cursor.step(bestAlpha, monitor);
+    PointSample point = step.point;
+    point.addRef();
+    step.freeRef();
+    return point;
   }
 }

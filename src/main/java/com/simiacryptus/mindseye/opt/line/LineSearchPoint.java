@@ -20,12 +20,13 @@
 package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 
 /**
  * A particular point in a NNLayer line search phase. Contains both the high-dimensional position and derivative, and
  * the simplified one-dimensional positiion and derivative.
  */
-public class LineSearchPoint {
+public class LineSearchPoint extends ReferenceCountingBase {
   /**
    * The Derivative.
    */
@@ -43,6 +44,7 @@ public class LineSearchPoint {
    */
   public LineSearchPoint(final PointSample point, final double derivative) {
     this.point = point;
+    this.point.addRef();
     this.derivative = derivative;
   }
   
@@ -53,5 +55,10 @@ public class LineSearchPoint {
     sb.append(", derivative=").append(derivative);
     sb.append('}');
     return sb.toString();
+  }
+  
+  @Override
+  protected void _free() {
+    point.freeRef();
   }
 }

@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  * An implementation of the Limited-Memory Broyden–Fletcher–Goldfarb–Shanno algorithm
  * https://en.m.wikipedia.org/wiki/Limited-memory_BFGS
  */
-public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
+public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
   
   /**
    * The History.
@@ -58,18 +58,18 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
    * @param monitor     the monitor
    */
   public void addToHistory(final PointSample measurement, final TrainingMonitor monitor) {
-    final PointSample copyFull = measurement.copyFull();
-    if (!LBFGS.isFinite(copyFull.delta)) {
+    if (!LBFGS.isFinite(measurement.delta)) {
       if (verbose) {
         monitor.log("Corrupt measurement");
       }
     }
-    else if (!LBFGS.isFinite(copyFull.weights)) {
+    else if (!LBFGS.isFinite(measurement.weights)) {
       if (verbose) {
         monitor.log("Corrupt measurement");
       }
     }
-    else if (history.isEmpty() || !history.stream().filter(x -> x.sum <= copyFull.sum).findAny().isPresent()) {
+    else if (history.isEmpty() || !history.stream().filter(x -> x.sum <= measurement.sum).findAny().isPresent()) {
+      final PointSample copyFull = measurement.copyFull();
       if (verbose) {
         monitor.log(String.format("Adding measurement %s to history. Total: %s", Long.toHexString(System.identityHashCode(copyFull)), history.size()));
       }
@@ -140,7 +140,9 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
     final DeltaSet<NNLayer> result = measurement.delta.scale(-1);
     if (history.size() > minHistory) {
       if (lbfgs(measurement, monitor, history, result)) {
+        this.history.forEach(x -> x.freeRef());
         this.history.clear();
+        history.forEach(x -> x.addRef());
         this.history.addAll(history);
         return result;
       }
@@ -238,6 +240,7 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
       if (verbose) {
         monitor.log(String.format("Removed measurement %s to history. Total: %s", Long.toHexString(System.identityHashCode(remove)), history.size()));
       }
+      remove.freeRef();
     }
 
 //    if (getClass().desiredAssertionStatus()) {
@@ -252,8 +255,16 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
   }
   
   @Override
-  public void reset() {
+  public synchronized void reset() {
+    history.forEach(x -> x.freeRef());
     history.clear();
+  }
+  
+  @Override
+  protected void _free() {
+    for (PointSample pointSample : history) {
+      pointSample.freeRef();
+    }
   }
   
   private class Stats {

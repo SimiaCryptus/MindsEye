@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Singleton;
 
 import java.util.UUID;
@@ -30,7 +31,7 @@ import java.util.function.Supplier;
  * only if and when needed.
  */
 @SuppressWarnings("serial")
-abstract class LazyResult implements DAGNode {
+abstract class LazyResult extends ReferenceCountingBase implements DAGNode {
   
   /**
    * The Id.
@@ -89,12 +90,7 @@ abstract class LazyResult implements DAGNode {
     if (references <= 0) throw new IllegalStateException();
     if (expectedCount >= 0 && references > expectedCount) throw new IllegalStateException();
     nnResult.addRef();
-    if (expectedCount <= 0 || references < expectedCount) {
-      nnResult.getData().addRef();
-    }
-    else {
-      assert !nnResult.getData().isFinalized();
-    }
+    nnResult.getData().addRef();
     return nnResult;
   }
   

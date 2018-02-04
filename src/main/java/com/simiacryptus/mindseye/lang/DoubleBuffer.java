@@ -31,7 +31,7 @@ import java.util.stream.IntStream;
  *
  * @param <K> the type parameter
  */
-public class DoubleBuffer<K> extends ReferenceCountingBase {
+public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCountingBase {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DoubleBuffer.class);
   /**
@@ -55,6 +55,7 @@ public class DoubleBuffer<K> extends ReferenceCountingBase {
    */
   public DoubleBuffer(final K layer, final double[] target) {
     this.layer = layer;
+    layer.addRef();
     this.target = target;
     this.delta = null;
   }
@@ -68,6 +69,7 @@ public class DoubleBuffer<K> extends ReferenceCountingBase {
    */
   public DoubleBuffer(final K layer, final double[] target, final double[] delta) {
     this.layer = layer;
+    layer.addRef();
     this.target = target;
     this.delta = delta;
   }
@@ -204,6 +206,7 @@ public class DoubleBuffer<K> extends ReferenceCountingBase {
   
   @Override
   protected void _free() {
+    layer.freeRef();
     if (null != delta) {
       if (RecycleBin.DOUBLES.want(delta.length)) {
         RecycleBin.DOUBLES.recycle(delta, delta.length);

@@ -33,7 +33,12 @@ import java.util.stream.Collectors;
 /**
  * An orientation wrapper which adds additional log statements.
  */
-public class QuantifyOrientationWrapper implements OrientationStrategy<LineSearchCursor> {
+public class QuantifyOrientationWrapper extends OrientationStrategyBase<LineSearchCursor> {
+  
+  @Override
+  protected void _free() {
+    inner.freeRef();
+  }
   
   private final OrientationStrategy<? extends LineSearchCursor> inner;
   

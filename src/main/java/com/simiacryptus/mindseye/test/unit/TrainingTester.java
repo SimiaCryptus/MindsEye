@@ -22,10 +22,7 @@ package com.simiacryptus.mindseye.test.unit;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.BasicTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.NNConstant;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -428,14 +425,25 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
                    .reduce((a, b) -> a + "\n" + b)
                    .orElse("");
     });
-    TensorList result = network.eval(NNConstant.batchResultArray(input_target)).getData();
-    result.stream().forEach(x -> x.addRef());
+    NNResult[] array = NNConstant.batchResultArray(input_target);
+    NNResult eval = network.eval(array);
+    TensorList result = eval.getData();
+    eval.freeRef();
+    for (NNResult nnResult : array) {
+      nnResult.freeRef();
+    }
     final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
+    Arrays.stream(output_target).forEach(x -> x.addRef());
+    result.freeRef();
     //if (output_target.length != inputPrototype.length) return null;
-    return trainAll("Input Convergence", log,
-                    append(shuffleCopy(random, inputPrototype), output_target),
-                    network,
-                    buildMask(inputPrototype.length));
+    Tensor[][] trainingInput = append(shuffleCopy(random, inputPrototype), output_target);
+    TestResult testResult = trainAll("Input Convergence", log,
+                                     trainingInput,
+                                     network,
+                                     buildMask(inputPrototype.length));
+    network.freeRef();
+    Arrays.stream(trainingInput).flatMap(x -> Arrays.stream(x)).forEach(x -> x.freeRef());
+    return testResult;
   }
   
   /**
@@ -600,7 +608,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
           .setTimeout(30, TimeUnit.SECONDS)
           .setMaxIterations(250)
           .setTerminateThreshold(0)
-          .run();
+          .runAndFree();
       });
     } catch (Throwable e) {
       if (isThrowExceptions()) throw new RuntimeException(e);
@@ -628,7 +636,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
           .setTimeout(30, TimeUnit.SECONDS)
           .setMaxIterations(250)
           .setTerminateThreshold(0)
-          .run();
+          .runAndFree();
       });
     } catch (Throwable e) {
       if (isThrowExceptions()) throw new RuntimeException(e);
@@ -657,7 +665,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
           .setIterationsPerSample(100)
           .setMaxIterations(250)
           .setTerminateThreshold(0)
-          .run();
+          .runAndFree();
       });
     } catch (Throwable e) {
       if (isThrowExceptions()) throw new RuntimeException(e);
@@ -692,7 +700,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
                   public void log(String msg) {
                     monitor.log("\t" + msg);
                   }
-                }).setMaxIterations(getIterations()).setIterationsPerSample(getIterations()).run();
+                }).setMaxIterations(getIterations()).setIterationsPerSample(getIterations()).runAndFree();
             }
           })
           .setMonitor(monitor)
@@ -700,7 +708,7 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
           .setIterationsPerSample(100)
           .setMaxIterations(250)
           .setTerminateThreshold(0)
-          .run();
+          .runAndFree();
       });
     } catch (Throwable e) {
       if (isThrowExceptions()) throw new RuntimeException(e);

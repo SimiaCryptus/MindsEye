@@ -19,10 +19,7 @@
 
 package com.simiacryptus.mindseye.opt;
 
-import com.simiacryptus.mindseye.eval.SampledCachedTrainable;
-import com.simiacryptus.mindseye.eval.SampledTrainable;
-import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.eval.TrainableWrapper;
+import com.simiacryptus.mindseye.eval.*;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.java.StochasticComponent;
 import com.simiacryptus.mindseye.network.DAGNetwork;
@@ -90,7 +87,13 @@ public class ValidatingTrainer {
    */
   public ValidatingTrainer(final SampledTrainable trainingSubject, final Trainable validationSubject) {
     regimen = new ArrayList<TrainingPhase>(Arrays.asList(new TrainingPhase(new PerformanceWrapper(trainingSubject))));
-    this.validationSubject = new Trainable() {
+    validationSubject.addRef();
+    this.validationSubject = new TrainableBase() {
+      @Override
+      protected void _free() {
+        validationSubject.freeRef();
+      }
+  
       @Override
       public PointSample measure(final TrainingMonitor monitor) {
         final TimedResult<PointSample> time = TimedResult.time(() ->

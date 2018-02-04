@@ -56,7 +56,7 @@ public class SingleOrthantTrustRegionTest extends MnistTestBase {
         .setOrientation(trustRegionStrategy)
         .setTimeout(3, TimeUnit.MINUTES)
         .setMaxIterations(500)
-        .run();
+        .runAndFree();
     });
   }
   

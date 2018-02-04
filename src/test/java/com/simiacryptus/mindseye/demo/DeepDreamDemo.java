@@ -134,7 +134,7 @@ public class DeepDreamDemo extends NotebookReportBase {
           .setOrientation(new QQN())
           .setLineSearchFactory(name -> new QuadraticSearch().setCurrentRate(1))
           .setTimeout(15, TimeUnit.MINUTES)
-          .run();
+          .runAndFree();
       });
       log.code(() -> {
         return TestUtil.plot(history);

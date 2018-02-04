@@ -49,7 +49,7 @@ public class BisectionLineSearchTest extends MnistTestBase {
         .setLineSearchFactory((final String name) -> new BisectionSearch())
         .setTimeout(3, TimeUnit.MINUTES)
         .setMaxIterations(500)
-        .run();
+        .runAndFree();
     });
   }
   

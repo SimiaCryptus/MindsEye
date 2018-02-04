@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.ReferenceCounting;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -30,7 +31,7 @@ import java.util.UUID;
  * assumtion; i.e. the same logical layer CAN be used twice in the same graph. Also, the layer assigned to a node can be
  * updated, which can be useful for adding/removing instrumentation wrappers.
  */
-public interface DAGNode extends Serializable {
+public interface DAGNode extends Serializable, ReferenceCounting {
   
   /**
    * Get nn result.

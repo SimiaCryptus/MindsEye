@@ -41,7 +41,7 @@ import java.util.stream.IntStream;
  * An recursive optimization strategy which projects the current space into a reduced-dimensional subspace for a
  * sub-optimization batch run.
  */
-public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCursor> {
+public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchCursor> {
   
   /**
    * The constant CURSOR_LABEL.
@@ -58,7 +58,10 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
     macroLayer.eval((NNResult) null);
     DeltaSet<NNLayer> delta = origin.weights.backupCopy().subtract(origin.weights);
     origin.restore();
-    return new SimpleLineSearchCursor(subject, origin, delta).setDirectionType(CURSOR_LABEL);
+    SimpleLineSearchCursor simpleLineSearchCursor = new SimpleLineSearchCursor(subject, origin, delta);
+    delta.freeRef();
+    origin.freeRef();
+    return simpleLineSearchCursor.setDirectionType(CURSOR_LABEL);
   }
   
   /**
@@ -119,7 +122,12 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
           }
           buffer.get(self, weights).addInPlace(deltaStream.toArray());
         }) {
-          
+          @Override
+          protected void _free() {
+            measure.freeRef();
+            super._free();
+          }
+  
           @Override
           public boolean isAlive() {
             return true;
@@ -156,7 +164,9 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
           monitor.log("\t" + msg);
         }
       })
-      .setMaxIterations(getIterations()).setIterationsPerSample(getIterations()).run();
+      .setMaxIterations(getIterations())
+      .setIterationsPerSample(getIterations())
+      .runAndFree();
   }
   
   @Override
@@ -182,5 +192,9 @@ public class RecursiveSubspace implements OrientationStrategy<SimpleLineSearchCu
   public RecursiveSubspace setIterations(int iterations) {
     this.iterations = iterations;
     return this;
+  }
+  
+  @Override
+  protected void _free() {
   }
 }

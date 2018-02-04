@@ -85,8 +85,8 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   private String detailString(boolean includeCaller) {
     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     PrintStream out = new PrintStream(buffer);
-    out.print(String.format("Object %s ",
-                            getClass().getSimpleName()));
+    out.print(String.format("Object %s (%d refs, %d frees) ",
+                            getClass().getName(), 1 + addRefs.size(), freeRefs.size()));
     if (null != createdBy) {
       out.println(String.format("created by \n\t%s",
                                 getString(createdBy).replaceAll("\n", "\n\t")));

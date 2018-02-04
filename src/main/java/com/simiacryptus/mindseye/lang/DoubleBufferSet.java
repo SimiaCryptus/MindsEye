@@ -35,7 +35,7 @@ import java.util.stream.Stream;
  * @param <K> the type parameter
  * @param <T> the type parameter
  */
-public abstract class DoubleBufferSet<K, T extends DoubleBuffer<K>> extends ReferenceCountingBase {
+public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends DoubleBuffer<K>> extends ReferenceCountingBase {
   /**
    * The Map.
    */
@@ -63,6 +63,10 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer<K>> extends Refe
    */
   public DoubleBufferSet(final Map<K, ? extends T> collect) {
     map.putAll(collect);
+    map.forEach((k, v) -> {
+      k.addRef();
+      v.addRef();
+    });
   }
   
   /**
@@ -95,7 +99,6 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer<K>> extends Refe
     final T delta = get(layer, () -> factory(layer, ptr));
     assert delta.layer.equals(layer);
     assert delta.target == ptr;
-    delta.addRef();
     return delta;
   }
   
@@ -110,7 +113,12 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer<K>> extends Refe
     if (null == map) throw new IllegalArgumentException();
     if (null == factory) throw new IllegalArgumentException();
     if (null == layer) throw new IllegalArgumentException();
-    return map.computeIfAbsent(layer, l -> factory.get());
+    T v = map.computeIfAbsent(layer, l -> {
+      l.addRef();
+      return factory.get();
+    });
+    v.addRef();
+    return v;
   }
   
   /**
@@ -146,7 +154,9 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer<K>> extends Refe
       stream = stream.parallel();
     }
     final Map<K, T> newMap = stream.collect(Collectors.toMap(e -> e.getKey(), e -> mapper.apply(e.getValue())));
-    return new Delegate(parent, newMap);
+    Delegate delegate = new Delegate(parent, newMap);
+    newMap.values().forEach(x -> x.freeRef());
+    return delegate;
   }
   
   /**
@@ -192,7 +202,10 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer<K>> extends Refe
   
   @Override
   protected void _free() {
-    map.values().forEach(x -> x.freeRef());
+    map.forEach((k, v) -> {
+      k.freeRef();
+      v.freeRef();
+    });
     map.clear();
   }
 }

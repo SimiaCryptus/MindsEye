@@ -33,7 +33,12 @@ import com.simiacryptus.util.ArrayUtil;
  * A simple momentum module which uses a cumulative decay algorithm to add a momentum term to any orientation strategy
  * (if it yields a SimpleLineSearch cursor)
  */
-public class MomentumStrategy implements OrientationStrategy<SimpleLineSearchCursor> {
+public class MomentumStrategy extends OrientationStrategyBase<SimpleLineSearchCursor> {
+  
+  @Override
+  protected void _free() {
+    this.inner.freeRef();
+  }
   
   /**
    * The Inner.

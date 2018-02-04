@@ -81,7 +81,7 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
       Iterator<WeakReference<GpuTensorList>> iterator = INSTANCES.iterator();
       while (iterator.hasNext()) {
         GpuTensorList next = iterator.next().get();
-        if (null != next) next.evictToHeap();
+        if (null != next && !next.isFinalized()) next.evictToHeap();
       }
     }
   }
@@ -267,8 +267,11 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
   }
   
   @Override
-  protected void _free() {
-    getPtr().freeRef();
+  protected synchronized void _free() {
+    if (null != ptr) {
+      ptr.freeRef();
+      ptr = null;
+    }
     if (null != heapCopy) {
       heapCopy.freeRef();
     }
@@ -277,11 +280,11 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
   /**
    * Evict to heap.
    */
-  public void evictToHeap() {
+  public synchronized void evictToHeap() {
     if (null == getHeapCopy()) {
       throw new IllegalStateException();
     }
-    if (null != ptr) {
+    if (null != ptr && !ptr.isFinalized()) {
       ptr.freeRef();
       ptr = null;
     }

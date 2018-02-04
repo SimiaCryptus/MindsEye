@@ -91,7 +91,9 @@ public abstract class ActivationLayerTest extends CuDNNLayerTestBase {
     log.h3("Function Plots");
     final NNLayer layer = getLayer(new int[][]{{8, 8, 1}}, new Random());
     final List<double[]> plotData = IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0).mapToObj(x -> {
-      final SimpleEval eval = SimpleEval.run(layer, new Tensor(new double[]{x}, 1, 1, 1));
+      Tensor input = new Tensor(new double[]{x}, 1, 1, 1);
+      final SimpleEval eval = SimpleEval.run(layer, input);
+      input.freeRef();
       double[] doubles = {x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};
       eval.freeRef();
       return doubles;

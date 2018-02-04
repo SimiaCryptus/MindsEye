@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
+import com.simiacryptus.mindseye.opt.line.LineSearchCursorBase;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 
@@ -36,7 +37,7 @@ import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
  * intersects with the quasinewton's optimal point prediction. A simple parameteric quadratic function blends both
  * heapCopy cursors into a simple nonlinear path which should combine the stability of both methods.
  */
-public class QQN implements OrientationStrategy<LineSearchCursor> {
+public class QQN extends OrientationStrategyBase<LineSearchCursor> {
   
   /**
    * The constant CURSOR_NAME.
@@ -95,7 +96,7 @@ public class QQN implements OrientationStrategy<LineSearchCursor> {
     if (Math.abs(lbfgsMag - gdMag) / (lbfgsMag + gdMag) > 1e-2) {
       final DeltaSet<NNLayer> scaledGradient = gd.scale(lbfgsMag / gdMag);
       monitor.log(String.format("Returning Quadratic Cursor %s GD, %s QN", gdMag, lbfgsMag));
-      return new LineSearchCursor() {
+      return new LineSearchCursorBase() {
   
         @Override
         public String getDirectionType() {
@@ -124,6 +125,11 @@ public class QQN implements OrientationStrategy<LineSearchCursor> {
           final DeltaSet<NNLayer> tangent = scaledGradient.scale(1 - 2 * t).add(lbfgs.scale(2 * t));
           return new LineSearchPoint(sample, tangent.dot(sample.delta));
         }
+    
+        @Override
+        public void _free() {
+          lbfgsCursor.freeRef();
+        }
       };
     }
     else {
@@ -134,6 +140,12 @@ public class QQN implements OrientationStrategy<LineSearchCursor> {
   @Override
   public void reset() {
     inner.reset();
+  }
+  
+  
+  @Override
+  protected void _free() {
+    this.inner.freeRef();
   }
   
 }

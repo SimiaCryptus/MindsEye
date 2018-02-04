@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.lang.IterativeStopException;
 import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.orient.DescribeOrientationWrapper;
 
@@ -48,88 +49,117 @@ public class QuadraticSearch implements LineSearchStrategy {
     double thisX = 0;
     LineSearchPoint thisPoint = cursor.step(thisX, monitor);
     final LineSearchPoint initialPoint = thisPoint;
+    initialPoint.addRef();
     double leftX = thisX;
     LineSearchPoint leftPoint = thisPoint;
+    leftPoint.addRef();
     monitor.log(String.format("F(%s) = %s", leftX, leftPoint));
-    if (0 == leftPoint.derivative) return leftPoint.point;
+    if (0 == leftPoint.derivative) {
+      initialPoint.freeRef();
+      thisPoint.freeRef();
+      PointSample point = leftPoint.point;
+      point.addRef();
+      leftPoint.freeRef();
+      return point;
+    }
   
     final LocateInitialRightPoint locateInitialRightPoint = new LocateInitialRightPoint(cursor, monitor, leftPoint).apply();
     LineSearchPoint rightPoint = locateInitialRightPoint.getRightPoint();
     double rightX = locateInitialRightPoint.getRightX();
   
-    int loops = 0;
-    while (true) {
-      final double a = (rightPoint.derivative - leftPoint.derivative) / (rightX - leftX);
-      final double b = rightPoint.derivative - a * rightX;
-      thisX = -b / a;
-      final boolean isBracketed = Math.signum(leftPoint.derivative) != Math.signum(rightPoint.derivative);
-      if (!Double.isFinite(thisX) || isBracketed && (leftX > thisX || rightX < thisX)) {
-        thisX = (rightX + leftX) / 2;
-      }
-      if (!isBracketed && thisX < 0) {
-        thisX = rightX * 2;
-      }
-      if (isSame(leftX, thisX, 1.0)) {
-        monitor.log(String.format("Converged to left"));
-        return filter(cursor, leftPoint.point, monitor);
-      }
-      else if (isSame(thisX, rightX, 1.0)) {
-        monitor.log(String.format("Converged to right"));
-        return filter(cursor, rightPoint.point, monitor);
-      }
-      thisPoint = cursor.step(thisX, monitor);
-      if (isSame(cursor, monitor, leftPoint, thisPoint)) {
-        monitor.log(String.format("%s ~= %s", leftX, thisX));
-        return filter(cursor, leftPoint.point, monitor);
-      }
-      if (isSame(cursor, monitor, thisPoint, rightPoint)) {
-        monitor.log(String.format("%s ~= %s", thisX, rightX));
-        return filter(cursor, rightPoint.point, monitor);
-      }
-      thisPoint = cursor.step(thisX, monitor);
-      boolean isLeft;
-      if (!isBracketed) {
-        isLeft = Math.abs(rightPoint.point.rate - thisPoint.point.rate) > Math.abs(leftPoint.point.rate - thisPoint.point.rate);
-      }
-      else {
-        isLeft = thisPoint.derivative < 0;
-      }
-      //monitor.log(String.format("isLeft=%s; isBracketed=%s; leftPoint=%s; rightPoint=%s", isLeft, isBracketed, leftPoint, rightPoint));
-      monitor.log(String.format("F(%s) = %s, delta = %s", thisX, thisPoint, thisPoint.point.getMean() - initialPoint.point.getMean()));
-      if (loops++ > 10) {
-        monitor.log(String.format("Loops = %s", loops));
-        return filter(cursor, thisPoint.point, monitor);
-      }
-      if (isSame(cursor, monitor, leftPoint, rightPoint)) {
-        monitor.log(String.format("%s ~= %s", leftX, rightX));
-        return filter(cursor, thisPoint.point, monitor);
-      }
-      if (isLeft) {
-        if (thisPoint.point.getMean() > leftPoint.point.getMean()) {
-          monitor.log(String.format("%s > %s", thisPoint.point.getMean(), leftPoint.point.getMean()));
+    try {
+      int loops = 0;
+      while (true) {
+        final double a = (rightPoint.derivative - leftPoint.derivative) / (rightX - leftX);
+        final double b = rightPoint.derivative - a * rightX;
+        thisX = -b / a;
+        final boolean isBracketed = Math.signum(leftPoint.derivative) != Math.signum(rightPoint.derivative);
+        if (!Double.isFinite(thisX) || isBracketed && (leftX > thisX || rightX < thisX)) {
+          thisX = (rightX + leftX) / 2;
+        }
+        if (!isBracketed && thisX < 0) {
+          thisX = rightX * 2;
+        }
+        if (isSame(leftX, thisX, 1.0)) {
+          monitor.log(String.format("Converged to left"));
           return filter(cursor, leftPoint.point, monitor);
         }
-        if (!isBracketed && leftPoint.point.getMean() < rightPoint.point.getMean()) {
-          rightX = leftX;
-          rightPoint = leftPoint;
-        }
-        leftPoint = thisPoint;
-        leftX = thisX;
-        monitor.log(String.format("Left bracket at %s", thisX));
-      }
-      else {
-        if (thisPoint.point.getMean() > rightPoint.point.getMean()) {
-          monitor.log(String.format("%s > %s", thisPoint.point.getMean(), rightPoint.point.getMean()));
+        else if (isSame(thisX, rightX, 1.0)) {
+          monitor.log(String.format("Converged to right"));
           return filter(cursor, rightPoint.point, monitor);
         }
-        if (!isBracketed && rightPoint.point.getMean() < leftPoint.point.getMean()) {
-          leftX = rightX;
-          leftPoint = rightPoint;
+        thisPoint.freeRef();
+        thisPoint = cursor.step(thisX, monitor);
+        if (isSame(cursor, monitor, leftPoint, thisPoint)) {
+          monitor.log(String.format("%s ~= %s", leftX, thisX));
+          return filter(cursor, leftPoint.point, monitor);
         }
-        rightX = thisX;
-        rightPoint = thisPoint;
-        monitor.log(String.format("Right bracket at %s", thisX));
+        if (isSame(cursor, monitor, thisPoint, rightPoint)) {
+          monitor.log(String.format("%s ~= %s", thisX, rightX));
+          return filter(cursor, rightPoint.point, monitor);
+        }
+        thisPoint.freeRef();
+        thisPoint = cursor.step(thisX, monitor);
+        boolean isLeft;
+        if (!isBracketed) {
+          isLeft = Math.abs(rightPoint.point.rate - thisPoint.point.rate) > Math.abs(leftPoint.point.rate - thisPoint.point.rate);
+        }
+        else {
+          isLeft = thisPoint.derivative < 0;
+        }
+        //monitor.log(String.format("isLeft=%s; isBracketed=%s; leftPoint=%s; rightPoint=%s", isLeft, isBracketed, leftPoint, rightPoint));
+        monitor.log(String.format("F(%s) = %s, delta = %s", thisX, thisPoint, thisPoint.point.getMean() - initialPoint.point.getMean()));
+        if (loops++ > 10) {
+          monitor.log(String.format("Loops = %s", loops));
+          PointSample filter = filter(cursor, thisPoint.point, monitor);
+          return filter;
+        }
+        if (isSame(cursor, monitor, leftPoint, rightPoint)) {
+          monitor.log(String.format("%s ~= %s", leftX, rightX));
+          PointSample filter = filter(cursor, thisPoint.point, monitor);
+          return filter;
+        }
+        if (isLeft) {
+          if (thisPoint.point.getMean() > leftPoint.point.getMean()) {
+            monitor.log(String.format("%s > %s", thisPoint.point.getMean(), leftPoint.point.getMean()));
+            return filter(cursor, leftPoint.point, monitor);
+          }
+          if (!isBracketed && leftPoint.point.getMean() < rightPoint.point.getMean()) {
+            rightX = leftX;
+            if (null != rightPoint) rightPoint.freeRef();
+            rightPoint = leftPoint;
+            rightPoint.addRef();
+          }
+          if (null != leftPoint) leftPoint.freeRef();
+          leftPoint = thisPoint;
+          leftPoint.addRef();
+          leftX = thisX;
+          monitor.log(String.format("Left bracket at %s", thisX));
+        }
+        else {
+          if (thisPoint.point.getMean() > rightPoint.point.getMean()) {
+            monitor.log(String.format("%s > %s", thisPoint.point.getMean(), rightPoint.point.getMean()));
+            return filter(cursor, rightPoint.point, monitor);
+          }
+          if (!isBracketed && rightPoint.point.getMean() < leftPoint.point.getMean()) {
+            leftX = rightX;
+            if (null != leftPoint) leftPoint.freeRef();
+            leftPoint = rightPoint;
+            leftPoint.addRef();
+          }
+          rightX = thisX;
+          if (null != rightPoint) rightPoint.freeRef();
+          rightPoint = thisPoint;
+          rightPoint.addRef();
+          monitor.log(String.format("Right bracket at %s", thisX));
+        }
       }
+    } finally {
+      if (null != leftPoint) leftPoint.freeRef();
+      if (null != rightPoint) rightPoint.freeRef();
+      if (null != thisPoint) thisPoint.freeRef();
+      if (null != initialPoint) initialPoint.freeRef();
+      if (null != locateInitialRightPoint) locateInitialRightPoint.freeRef();
     }
   }
   
@@ -156,8 +186,17 @@ public class QuadraticSearch implements LineSearchStrategy {
   }
   
   private PointSample filter(final LineSearchCursor cursor, final PointSample point, final TrainingMonitor monitor) {
-    if (stepSize == 1.0) return point;
-    return cursor.step(point.rate * stepSize, monitor).point;
+    if (stepSize == 1.0) {
+      point.addRef();
+      return point;
+    }
+    else {
+      LineSearchPoint step = cursor.step(point.rate * stepSize, monitor);
+      PointSample point1 = step.point;
+      point1.addRef();
+      step.freeRef();
+      return point1;
+    }
   }
   
   /**
@@ -305,7 +344,7 @@ public class QuadraticSearch implements LineSearchStrategy {
     return pointSample;
   }
   
-  private class LocateInitialRightPoint {
+  private class LocateInitialRightPoint extends ReferenceCountingBase {
     private final LineSearchCursor cursor;
     private final LineSearchPoint initialPoint;
     private final TrainingMonitor monitor;
@@ -326,6 +365,8 @@ public class QuadraticSearch implements LineSearchStrategy {
       thisX = getCurrentRate() > 0 ? getCurrentRate() : Math.abs(leftPoint.point.getMean() * 1e-4 / leftPoint.derivative);
       thisPoint = cursor.step(thisX, monitor);
       monitor.log(String.format("F(%s) = %s, delta = %s", thisX, thisPoint, thisPoint.point.getMean() - initialPoint.point.getMean()));
+      this.cursor.addRef();
+      this.initialPoint.addRef();
     }
   
     /**
@@ -334,9 +375,12 @@ public class QuadraticSearch implements LineSearchStrategy {
      * @return the locate initial right point
      */
     public LocateInitialRightPoint apply() {
-      LineSearchPoint lastPoint = thisPoint;
+      LineSearchPoint lastPoint = null;
       int loops = 0;
       while (true) {
+        if (null != lastPoint) lastPoint.freeRef();
+        lastPoint = thisPoint;
+        lastPoint.addRef();
         if (isSame(cursor, monitor, initialPoint, thisPoint)) {
           monitor.log(String.format("%s ~= %s", initialPoint.point.rate, thisX));
           return this;
@@ -351,12 +395,13 @@ public class QuadraticSearch implements LineSearchStrategy {
           monitor.log(String.format("%s <= %s", thisPoint.point.getMean(), initialPoint.point.getMean()));
           return this;
         }
+  
+        if (null != thisPoint) thisPoint.freeRef();
         thisPoint = cursor.step(thisX, monitor);
         if (isSame(cursor, monitor, lastPoint, thisPoint)) {
           monitor.log(String.format("%s ~= %s", lastPoint.point.rate, thisX));
           return this;
         }
-        lastPoint = thisPoint;
         monitor.log(String.format("F(%s) = %s, delta = %s", thisX, thisPoint, thisPoint.point.getMean() - initialPoint.point.getMean()));
         if (loops++ > 50) {
           monitor.log(String.format("Loops = %s", loops));
@@ -381,6 +426,13 @@ public class QuadraticSearch implements LineSearchStrategy {
      */
     public double getRightX() {
       return thisX;
+    }
+    
+    @Override
+    protected void _free() {
+      this.thisPoint.freeRef();
+      this.cursor.freeRef();
+      this.initialPoint.freeRef();
     }
   }
 }

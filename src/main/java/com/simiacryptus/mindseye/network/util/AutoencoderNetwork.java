@@ -817,7 +817,7 @@ public class AutoencoderNetwork {
       trainer.setTimeout(getTimeoutMinutes(), TimeUnit.MINUTES);
       trainer.setTerminateThreshold(getEndFitness());
       trainer.setMaxIterations(maxIterations);
-      trainer.run();
+      trainer.runAndFree();
     }
   
     /**

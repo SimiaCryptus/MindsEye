@@ -64,7 +64,7 @@ final class InputNode extends LazyResult {
   @Override
   protected NNResult eval(final GraphEvaluationContext context) {
     synchronized (context) {
-      return context.inputs.get(id);
+      return context.calculated.get(id).get();
     }
   }
   
@@ -81,5 +81,9 @@ final class InputNode extends LazyResult {
   @Override
   public DAGNetwork getNetwork() {
     return this.dagNetwork;
+  }
+  
+  @Override
+  protected void _free() {
   }
 }

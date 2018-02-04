@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
+import com.simiacryptus.mindseye.opt.line.LineSearchCursorBase;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 
 /**
@@ -32,7 +33,12 @@ import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
  * supplied by the heapCopy's cursor. This is a diagnostic tool; extra processing is used to estimate derivatives which
  * should agree with the programmatic derivatives to an appropriate degree.
  */
-public class ValidatingOrientationWrapper implements OrientationStrategy<LineSearchCursor> {
+public class ValidatingOrientationWrapper extends OrientationStrategyBase<LineSearchCursor> {
+  
+  @Override
+  protected void _free() {
+    this.inner.freeRef();
+  }
   
   private final OrientationStrategy<? extends LineSearchCursor> inner;
   
@@ -56,7 +62,7 @@ public class ValidatingOrientationWrapper implements OrientationStrategy<LineSea
     inner.reset();
   }
   
-  private static class ValidatingLineSearchCursor implements LineSearchCursor {
+  private static class ValidatingLineSearchCursor extends LineSearchCursorBase {
     private final LineSearchCursor cursor;
   
     /**
@@ -66,6 +72,7 @@ public class ValidatingOrientationWrapper implements OrientationStrategy<LineSea
      */
     public ValidatingLineSearchCursor(final LineSearchCursor cursor) {
       this.cursor = cursor;
+      this.cursor.addRef();
     }
 
     @Override
@@ -111,6 +118,11 @@ public class ValidatingOrientationWrapper implements OrientationStrategy<LineSea
       final double dx = probeAlpha - alpha;
       final double measuredDerivative = dy / dx;
       monitor.log(String.format("%s vs (%s, %s); probe=%s", measuredDerivative, primaryPoint.derivative, probePoint.derivative, probeSize));
+    }
+    
+    @Override
+    protected void _free() {
+      cursor.freeRef();
     }
   }
 }

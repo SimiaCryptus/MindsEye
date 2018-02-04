@@ -27,7 +27,7 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 /**
  * A wrapper for a line search cursor which tracks the best-known point.
  */
-public class FailsafeLineSearchCursor implements LineSearchCursor {
+public class FailsafeLineSearchCursor extends LineSearchCursorBase {
   private final LineSearchCursor direction;
   private final TrainingMonitor monitor;
   private PointSample best;
@@ -41,6 +41,7 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
    */
   public FailsafeLineSearchCursor(final LineSearchCursor direction, final PointSample previousPoint, final TrainingMonitor monitor) {
     this.direction = direction;
+    this.direction.addRef();
     best = previousPoint.copyFull();
     this.monitor = monitor;
   }
@@ -53,7 +54,9 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
   public void accumulate(final PointSample step) {
     if (null == best || best.getMean() > step.getMean()) {
       monitor.log(String.format("New Minimum: %s > %s", best.getMean(), step.getMean()));
-      best = step.copyFull();
+      PointSample newValue = step.copyFull();
+      if (null != this.best) this.best.freeRef();
+      this.best = newValue;
     }
   }
   
@@ -65,7 +68,10 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
    * @return the best
    */
   public PointSample getBest(final TrainingMonitor monitor) {
-    best.weights.restore();
+    if (null != this.best) {
+      best.weights.restore();
+      best.addRef();
+    }
     return best;
   }
   
@@ -89,6 +95,12 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
     final LineSearchPoint step = direction.step(alpha, monitor);
     accumulate(step.point);
     return step;
+  }
+  
+  @Override
+  public void _free() {
+    if (null != this.best) this.best.freeRef();
+    this.direction.freeRef();
   }
   
 }

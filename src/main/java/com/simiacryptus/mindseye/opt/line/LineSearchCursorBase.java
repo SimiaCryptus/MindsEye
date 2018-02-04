@@ -21,20 +21,20 @@ package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.ReferenceCounting;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**
  * A mutable cursor which represents a 1-d optimization problem.
  */
-public interface LineSearchCursor extends ReferenceCounting {
+public abstract class LineSearchCursorBase extends ReferenceCountingBase implements LineSearchCursor {
   
   /**
    * Gets direction type.
    *
    * @return the direction type
    */
-  String getDirectionType();
+  public abstract String getDirectionType();
   
   /**
    * Position delta setByCoord.
@@ -42,12 +42,12 @@ public interface LineSearchCursor extends ReferenceCounting {
    * @param alpha the alpha
    * @return the delta setByCoord
    */
-  DeltaSet<NNLayer> position(double alpha);
+  public abstract DeltaSet<NNLayer> position(double alpha);
   
   /**
    * Reset.
    */
-  void reset();
+  public abstract void reset();
   
   /**
    * Step line search point.
@@ -56,5 +56,7 @@ public interface LineSearchCursor extends ReferenceCounting {
    * @param monitor the monitor
    * @return the line search point
    */
-  LineSearchPoint step(double alpha, TrainingMonitor monitor);
+  public abstract LineSearchPoint step(double alpha, TrainingMonitor monitor);
+  
+  protected abstract void _free();
 }

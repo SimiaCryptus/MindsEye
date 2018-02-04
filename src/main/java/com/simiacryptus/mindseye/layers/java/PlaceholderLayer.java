@@ -77,6 +77,7 @@ public final class PlaceholderLayer<T> extends NNLayer {
     if (this.getKey() instanceof ReferenceCounting) {
       ((ReferenceCounting) this.getKey()).freeRef();
     }
+    super._free();
   }
   
   public T getKey() {

@@ -89,7 +89,9 @@ public class Research extends OptimizerComparison {
                        monitor.log("\t" + msg);
                      }
                    })
-                   .setMaxIterations(getIterations()).setIterationsPerSample(getIterations()).run();
+                   .setMaxIterations(getIterations())
+                   .setIterationsPerSample(getIterations())
+                   .runAndFree();
                }
              })
              .setLineSearchFactory(name -> new StaticLearningRate(1.0));

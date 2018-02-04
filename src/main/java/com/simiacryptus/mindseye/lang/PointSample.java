@@ -24,7 +24,7 @@ package com.simiacryptus.mindseye.lang;
  * search. We track both a record of the network's state,
  * and a record of the gradient evaluated at that point.
  */
-public final class PointSample {
+public final class PointSample extends ReferenceCountingBase {
   /**
    * The Count.
    */
@@ -57,7 +57,7 @@ public final class PointSample {
    */
   public PointSample(final DeltaSet<NNLayer> delta, final StateSet<NNLayer> weights, final double sum, final double rate, final int count) {
     assert delta.getMap().size() == weights.getMap().size();
-    this.delta = new DeltaSet<NNLayer>(delta);
+    this.delta = new DeltaSet<>(delta);
     this.weights = new StateSet<>(weights);
     assert delta.getMap().keySet().stream().allMatch(x -> weights.getMap().containsKey(x));
     this.sum = sum;
@@ -125,7 +125,12 @@ public final class PointSample {
    * @return the point sample
    */
   public PointSample copyFull() {
-    return new PointSample(delta.copy(), weights.copy(), sum, rate, count);
+    DeltaSet<NNLayer> deltaCopy = delta.copy();
+    StateSet<NNLayer> weightsCopy = weights.copy();
+    PointSample pointSample = new PointSample(deltaCopy, weightsCopy, sum, rate, count);
+    deltaCopy.freeRef();
+    weightsCopy.freeRef();
+    return pointSample;
   }
   
   /**
@@ -164,10 +169,14 @@ public final class PointSample {
    */
   public PointSample normalize() {
     if (count == 1) {
+      this.addRef();
       return this;
     }
     else {
-      return new PointSample(delta.scale(1.0 / count), weights, sum / count, rate, 1);
+      DeltaSet<NNLayer> scale = delta.scale(1.0 / count);
+      PointSample pointSample = new PointSample(scale, weights, sum / count, rate, 1);
+      scale.freeRef();
+      return pointSample;
     }
   }
   
@@ -199,4 +208,9 @@ public final class PointSample {
     return sb.toString();
   }
   
+  @Override
+  protected void _free() {
+    this.weights.freeRef();
+    this.delta.freeRef();
+  }
 }

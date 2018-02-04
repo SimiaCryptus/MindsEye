@@ -47,7 +47,7 @@ public class MomentumTest extends MnistTestBase {
         .setOrientation(new ValidatingOrientationWrapper(new MomentumStrategy(new GradientDescent()).setCarryOver(0.8)))
         .setTimeout(5, TimeUnit.MINUTES)
         .setMaxIterations(500)
-        .run();
+        .runAndFree();
     });
   }
   

@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.network;
 
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
+
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,12 +30,7 @@ import java.util.function.Supplier;
  * This class provides the index for re-using the output of any given node during a single network evaluation, such that
  * each node is executed minimally.
  */
-class GraphEvaluationContext {
-  
-  /**
-   * The Cache.
-   */
-  final Map<UUID, CountingNNResult> inputs = new ConcurrentHashMap<>();
+class GraphEvaluationContext extends ReferenceCountingBase {
   
   /**
    * The Expected counts.
@@ -45,4 +42,9 @@ class GraphEvaluationContext {
    */
   final Map<UUID, Supplier<CountingNNResult>> calculated = new ConcurrentHashMap<>();
   
+  @Override
+  protected synchronized void _free() {
+    calculated.values().forEach(x -> x.get().freeRef());
+    calculated.clear();
+  }
 }

@@ -37,7 +37,7 @@ import java.util.stream.StreamSupport;
 /**
  * A training implementation which holds data as a Spark RDD and distributes network evaluation over the partitions.
  */
-public class SparkTrainable implements Trainable {
+public class SparkTrainable extends TrainableBase {
   /**
    * The Logger.
    */
@@ -93,6 +93,7 @@ public class SparkTrainable implements Trainable {
   public SparkTrainable(final RDD<Tensor[]> trainingData, final NNLayer network, final int sampleSize) {
     dataRDD = trainingData;
     this.network = network;
+    this.network.addRef();
     this.sampleSize = sampleSize;
     setPartitions(Math.max(1, dataRDD.sparkContext().executorEnvs().size()));
     reseed(seed);
@@ -244,6 +245,11 @@ public class SparkTrainable implements Trainable {
   @Override
   public NNLayer getLayer() {
     return network;
+  }
+  
+  @Override
+  protected void _free() {
+    this.network.freeRef();
   }
   
   /**

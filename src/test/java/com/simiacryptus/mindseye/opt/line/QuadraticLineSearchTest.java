@@ -49,7 +49,7 @@ public class QuadraticLineSearchTest extends MnistTestBase {
         .setLineSearchFactory((final String name) -> new QuadraticSearch())
         .setTimeout(3, TimeUnit.MINUTES)
         .setMaxIterations(500)
-        .run();
+        .runAndFree();
     });
   }
   

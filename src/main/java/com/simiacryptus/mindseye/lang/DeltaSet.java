@@ -31,7 +31,7 @@ import java.util.stream.Stream;
  *
  * @param <K> the type parameter
  */
-public class DeltaSet<K> extends DoubleBufferSet<K, Delta<K>> {
+public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, Delta<K>> {
   
   /**
    * Instantiates a new Delta setByCoord.
@@ -162,7 +162,10 @@ public class DeltaSet<K> extends DoubleBufferSet<K, Delta<K>> {
   
   @Override
   public DeltaSet<K> map(final Function<Delta<K>, Delta<K>> mapper) {
-    return new DeltaSet<K>(super.map(mapper));
+    DoubleBufferSet<K, Delta<K>> map = super.map(mapper);
+    DeltaSet<K> kDeltaSet = new DeltaSet<>(map);
+    map.freeRef();
+    return kDeltaSet;
   }
   
   /**
@@ -172,7 +175,7 @@ public class DeltaSet<K> extends DoubleBufferSet<K, Delta<K>> {
    * @return the delta setByCoord
    */
   public DeltaSet<K> scale(final double f) {
-    return new DeltaSet<K>(map(x -> x.scale(f)));
+    return map(x -> x.scale(f));
   }
   
   /**

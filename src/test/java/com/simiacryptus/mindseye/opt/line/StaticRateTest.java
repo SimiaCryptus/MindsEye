@@ -49,7 +49,7 @@ public class StaticRateTest extends MnistTestBase {
         .setLineSearchFactory((final String name) -> new StaticLearningRate(0.001))
         .setTimeout(3, TimeUnit.MINUTES)
         .setMaxIterations(500)
-        .run();
+        .runAndFree();
     });
   }
   

@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.mindseye.test.unit.StandardLayerTests;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -48,7 +49,13 @@ public abstract class LayerTestBase extends StandardLayerTests {
    * Clean all.
    */
   @Before
-  public void cleanAll() {
+  public void setup() {
+    //GpuController.reset();
+  }
+  
+  @After
+  public void cleanup() {
+    System.gc();
     //GpuController.reset();
   }
   

@@ -62,7 +62,7 @@ public class L1NormalizationTest extends MnistTestBase {
         .setMonitor(monitor)
         .setTimeout(3, TimeUnit.MINUTES)
         .setMaxIterations(500)
-        .run();
+        .runAndFree();
     });
   }
   

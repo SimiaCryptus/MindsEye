@@ -34,7 +34,7 @@ import java.util.HashMap;
  * This wrapping strategy alters the (Simple)LineCursor returned by the heapCopy strategy to effectively tune the
  * learning rate for each layer.
  */
-public abstract class LayerReweightingStrategy implements OrientationStrategy<SimpleLineSearchCursor> {
+public abstract class LayerReweightingStrategy extends OrientationStrategyBase<SimpleLineSearchCursor> {
   
   /**
    * The Inner.
@@ -111,6 +111,11 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy<Si
     public void reset() {
       inner.reset();
     }
+  }
+  
+  @Override
+  protected void _free() {
+    this.inner.freeRef();
   }
   
 }

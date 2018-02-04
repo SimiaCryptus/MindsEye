@@ -19,10 +19,7 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,6 +62,7 @@ class CountingNNResult extends NNResult {
    */
   protected CountingNNResult(final NNResult inner) {
     super(inner.getData(), new CountingAccumulator(inner));
+    ((ReferenceCounting) this.accumulator).addRef();
     this.inner = inner;
     inner.addRef();
   }
@@ -91,7 +89,7 @@ class CountingNNResult extends NNResult {
   
   @Override
   protected void _free() {
-    getAccumulator().free();
+    getAccumulator().freeRef();
     inner.freeRef();
   }
   
@@ -104,7 +102,7 @@ class CountingNNResult extends NNResult {
   /**
    * The type Counting accumulator.
    */
-  static class CountingAccumulator implements BiConsumer<DeltaSet<NNLayer>, TensorList> {
+  static class CountingAccumulator extends ReferenceCountingBase implements BiConsumer<DeltaSet<NNLayer>, TensorList> {
     private final AtomicInteger references;
     private final AtomicBoolean hasAccumulated;
     private final NNResult inner;
@@ -118,6 +116,7 @@ class CountingNNResult extends NNResult {
      */
     public CountingAccumulator(NNResult inner) {
       this.inner = inner;
+      this.inner.addRef();
       references = new AtomicInteger(0);
       hasAccumulated = new AtomicBoolean(false);
       passbackBuffers = new LinkedBlockingDeque<>();
@@ -168,15 +167,13 @@ class CountingNNResult extends NNResult {
       }
     }
   
-    /**
-     * A flagrant abuse of Java's object finalization contract. Repeated calls to this class's freeRef method will
-     * increment a counter, and when the counter cycles the eval is chained.
-     */
-    protected void free() {
+    @Override
+    protected void _free() {
       synchronized (passbackBuffers) {
         passbackBuffers.stream().distinct().forEach(t -> t.freeRef());
         passbackBuffers.clear();
       }
+      this.inner.freeRef();
     }
     
     

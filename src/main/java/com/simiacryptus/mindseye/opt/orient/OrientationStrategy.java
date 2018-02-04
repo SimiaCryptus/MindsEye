@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 
@@ -31,7 +32,7 @@ import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
  *
  * @param <T> the type parameter
  */
-public interface OrientationStrategy<T extends LineSearchCursor> {
+public interface OrientationStrategy<T extends LineSearchCursor> extends ReferenceCounting {
   
   /**
    * Orient line search cursor.

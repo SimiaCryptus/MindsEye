@@ -48,6 +48,9 @@ public abstract class NNResult extends ReferenceCountingBase {
     super();
     this.data = data;
     this.accumulator = accumulator;
+    if (this.accumulator instanceof ReferenceCounting) {
+      ((ReferenceCounting) this.accumulator).addRef();
+    }
   }
   
   /**
@@ -93,7 +96,11 @@ public abstract class NNResult extends ReferenceCountingBase {
   }
   
   @Override
-  protected void _free() { }
+  protected void _free() {
+    if (this.accumulator instanceof ReferenceCounting) {
+      ((ReferenceCounting) this.accumulator).freeRef();
+    }
+  }
   
   /**
    * Is alive boolean.

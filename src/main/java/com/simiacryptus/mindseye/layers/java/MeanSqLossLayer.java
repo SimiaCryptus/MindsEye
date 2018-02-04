@@ -75,20 +75,26 @@ public class MeanSqLossLayer extends NNLayer {
       throw new IllegalArgumentException(leftLength + " != " + rightLength);
     }
     final Tensor diffs[] = new Tensor[leftLength];
-    return new NNResult(TensorArray.wrap(IntStream.range(0, leftLength).parallel().mapToObj(dataIndex -> {
+    return new NNResult(TensorArray.wrap(IntStream.range(0, leftLength).mapToObj(dataIndex -> {
       final Tensor a = inObj[0].getData().get(1 == leftLength ? 0 : dataIndex);
       final Tensor b = inObj[1].getData().get(1 == rightLength ? 0 : dataIndex);
       if (a.dim() != b.dim()) {
         throw new IllegalArgumentException(String.format("%s != %s", Arrays.toString(a.getDimensions()), Arrays.toString(b.getDimensions())));
       }
       final Tensor r = a.minus(b);
+      a.freeRef();
+      b.freeRef();
       diffs[dataIndex] = r;
-      return new Tensor(new double[]{r.sumSq() / r.dim()}, 1);
+      Tensor statsTensor = new Tensor(new double[]{r.sumSq() / r.dim()}, 1);
+      return statsTensor;
     }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (inObj[0].isAlive() || inObj[1].isAlive()) {
         if (inObj[0].isAlive()) {
           Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
-            return diffs[dataIndex].scale(data.get(dataIndex).get(0) * 2.0 / diffs[dataIndex].dim());
+            Tensor tensor = data.get(dataIndex);
+            Tensor scale = diffs[dataIndex].scale(tensor.get(0) * 2.0 / diffs[dataIndex].dim());
+            tensor.freeRef();
+            return scale;
           });
           if (1 == leftLength) {
             tensorStream = Stream.of(tensorStream.reduce((a, b) -> a.add(b)).get());
@@ -99,7 +105,10 @@ public class MeanSqLossLayer extends NNLayer {
         }
         if (inObj[1].isAlive()) {
           Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
-            return diffs[dataIndex].scale(data.get(dataIndex).get(0) * 2.0 / diffs[dataIndex].dim());
+            Tensor tensor = data.get(dataIndex);
+            Tensor scale = diffs[dataIndex].scale(tensor.get(0) * 2.0 / diffs[dataIndex].dim());
+            tensor.freeRef();
+            return scale;
           });
           if (1 == rightLength) {
             tensorStream = Stream.of(tensorStream.reduce((a, b) -> a.add(b)).get());
@@ -113,7 +122,8 @@ public class MeanSqLossLayer extends NNLayer {
   
       @Override
       protected void _free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+        Arrays.stream(inObj).forEach(ReferenceCountingBase::freeRef);
+        Arrays.stream(diffs).forEach(ReferenceCountingBase::freeRef);
       }
       
       @Override

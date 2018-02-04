@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.opt;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.IterativeStopException;
 import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.layers.java.StochasticComponent;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
@@ -47,7 +48,7 @@ import java.util.function.Function;
 /**
  * The basic type of training loop, which integrates a Trainable object with an Orientation and Line Search strategy
  */
-public class IterativeTrainer {
+public class IterativeTrainer extends ReferenceCountingBase {
   private static final Logger log = LoggerFactory.getLogger(IterativeTrainer.class);
   
   private final Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
@@ -68,6 +69,7 @@ public class IterativeTrainer {
    */
   public IterativeTrainer(final Trainable subject) {
     this.subject = subject;
+    this.subject.addRef();
     timeout = Duration.of(5, ChronoUnit.MINUTES);
     terminateThreshold = 0;
   }
@@ -188,6 +190,7 @@ public class IterativeTrainer {
    * @return the orientation
    */
   public IterativeTrainer setOrientation(final OrientationStrategy<?> orientation) {
+    if (null != this.orientation) this.orientation.freeRef();
     this.orientation = orientation;
     return this;
   }
@@ -239,7 +242,7 @@ public class IterativeTrainer {
    * @return the point sample
    */
   public PointSample measure(boolean reset) {
-    PointSample currentPoint;
+    PointSample currentPoint = null;
     int retries = 0;
     do {
       if (reset) {
@@ -256,10 +259,19 @@ public class IterativeTrainer {
           monitor.log(String.format("Reset training subject"));
         }
       }
+      if (null != currentPoint) {
+        currentPoint.freeRef();
+      }
       currentPoint = subject.measure(monitor);
     } while (!Double.isFinite(currentPoint.getMean()) && 10 < retries++);
     if (!Double.isFinite(currentPoint.getMean())) throw new IterativeStopException();
     return currentPoint;
+  }
+  
+  public double runAndFree() {
+    double result = run();
+    freeRef();
+    return result;
   }
   
   /**
@@ -276,6 +288,7 @@ public class IterativeTrainer {
       if (currentIteration.get() > maxIterations) {
         break;
       }
+      currentPoint.freeRef();
       currentPoint = measure(true);
       assert 0 < currentPoint.delta.getMap().size() : "Nothing to optimize";
       subiterationLoop:
@@ -286,46 +299,55 @@ public class IterativeTrainer {
         if (currentIteration.incrementAndGet() > maxIterations) {
           break mainLoop;
         }
+        currentPoint.freeRef();
         currentPoint = measure(true);
         final PointSample _currentPoint = currentPoint;
         final TimedResult<LineSearchCursor> timedOrientation = TimedResult.time(() -> orientation.orient(subject, _currentPoint, monitor));
         final LineSearchCursor direction = timedOrientation.result;
         final String directionType = direction.getDirectionType();
         final PointSample previous = currentPoint;
-        final TimedResult<PointSample> timedLineSearch = TimedResult.time(() -> step(direction, directionType, previous));
-        currentPoint = timedLineSearch.result;
-        final long now = System.nanoTime();
-        final String perfString = String.format("Total: %.4f; Orientation: %.4f; Line Search: %.4f",
-                                                now - lastIterationTime / 1e9, timedOrientation.timeNanos / 1e9, timedLineSearch.timeNanos / 1e9);
-        lastIterationTime = now;
-        if (previous.getMean() <= currentPoint.getMean()) {
-          if (previous.getMean() < currentPoint.getMean()) {
-            monitor.log(String.format("Resetting Iteration %s", perfString));
-            currentPoint = direction.step(0, monitor).point;
+        previous.addRef();
+        try {
+          final TimedResult<PointSample> timedLineSearch = TimedResult.time(() -> step(direction, directionType, previous));
+          currentPoint.freeRef();
+          currentPoint = timedLineSearch.result;
+          final long now = System.nanoTime();
+          final String perfString = String.format("Total: %.4f; Orientation: %.4f; Line Search: %.4f",
+                                                  now - lastIterationTime / 1e9, timedOrientation.timeNanos / 1e9, timedLineSearch.timeNanos / 1e9);
+          lastIterationTime = now;
+          if (previous.getMean() <= currentPoint.getMean()) {
+            if (previous.getMean() < currentPoint.getMean()) {
+              monitor.log(String.format("Resetting Iteration %s", perfString));
+              currentPoint.freeRef();
+              currentPoint = direction.step(0, monitor).point;
+            }
+            else {
+              monitor.log(String.format("Static Iteration %s", perfString));
+            }
+            if (subject.reseed(System.nanoTime())) {
+              monitor.log(String.format("Iteration %s failed, retrying. Error: %s",
+                                        currentIteration.get(), currentPoint.getMean()));
+              monitor.log(String.format("Previous Error: %s -> %s",
+                                        previous.getRate(), previous.getMean()));
+              break subiterationLoop;
+            }
+            else {
+              monitor.log(String.format("Iteration %s failed, aborting. Error: %s",
+                                        currentIteration.get(), currentPoint.getMean()));
+              monitor.log(String.format("Previous Error: %s -> %s",
+                                        previous.getRate(), previous.getMean()));
+              break mainLoop;
+            }
           }
           else {
-            monitor.log(String.format("Static Iteration %s", perfString));
-          }
-          if (subject.reseed(System.nanoTime())) {
-            monitor.log(String.format("Iteration %s failed, retrying. Error: %s",
+            monitor.log(String.format("Iteration %s complete. Error: %s " + perfString,
                                       currentIteration.get(), currentPoint.getMean()));
-            monitor.log(String.format("Previous Error: %s -> %s",
-                                      previous.getRate(), previous.getMean()));
-            break subiterationLoop;
           }
-          else {
-            monitor.log(String.format("Iteration %s failed, aborting. Error: %s",
-                                      currentIteration.get(), currentPoint.getMean()));
-            monitor.log(String.format("Previous Error: %s -> %s",
-                                      previous.getRate(), previous.getMean()));
-            break mainLoop;
-          }
+          monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
+        } finally {
+          previous.freeRef();
+          direction.freeRef();
         }
-        else {
-          monitor.log(String.format("Iteration %s complete. Error: %s " + perfString,
-                                    currentIteration.get(), currentPoint.getMean()));
-        }
-        monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
       }
     }
     if (subject.getLayer() instanceof DAGNetwork) {
@@ -333,7 +355,9 @@ public class IterativeTrainer {
         if (layer instanceof StochasticComponent) ((StochasticComponent) layer).clearNoise();
       });
     }
-    return null == currentPoint ? Double.NaN : currentPoint.getMean();
+    double mean = null == currentPoint ? Double.NaN : currentPoint.getMean();
+    currentPoint.freeRef();
+    return mean;
   }
   
   /**
@@ -379,9 +403,15 @@ public class IterativeTrainer {
       lineSearchStrategyMap.put(directionType, lineSearchStrategy);
     }
     final FailsafeLineSearchCursor wrapped = new FailsafeLineSearchCursor(direction, previous, monitor);
-    lineSearchStrategy.step(wrapped, monitor);
+    lineSearchStrategy.step(wrapped, monitor).freeRef();
     currentPoint = wrapped.getBest(monitor);
+    wrapped.freeRef();
     return currentPoint;
   }
   
+  @Override
+  protected void _free() {
+    this.subject.freeRef();
+    this.orientation.freeRef();
+  }
 }

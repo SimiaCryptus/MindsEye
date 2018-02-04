@@ -218,7 +218,6 @@ public abstract class DAGNetwork extends NNLayer {
     for (int i = 0; i < inputs.length; i++) {
       UUID key = inputHandles.get(i);
       CountingNNResult value = new CountingNNResult(inputs[i]);
-      context.inputs.put(key, value);
       context.calculated.put(key, new Singleton<CountingNNResult>().set(value));
     }
     context.expectedCounts.putAll(getNodes().stream().flatMap(t -> {
@@ -234,7 +233,10 @@ public abstract class DAGNetwork extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... input) {
-    return getHead().get(buildExeCtx(input));
+    GraphEvaluationContext buildExeCtx = buildExeCtx(input);
+    NNResult nnResult = getHead().get(buildExeCtx);
+    buildExeCtx.freeRef();
+    return nnResult;
   }
   
   /**

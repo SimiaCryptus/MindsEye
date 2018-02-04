@@ -29,7 +29,7 @@ import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 /**
  * The most basic type of orientation, which uses the raw function gradient.
  */
-public class GradientDescent implements OrientationStrategy<SimpleLineSearchCursor> {
+public class GradientDescent extends OrientationStrategyBase<SimpleLineSearchCursor> {
   
   @Override
   public SimpleLineSearchCursor orient(final Trainable subject, final PointSample measurement, final TrainingMonitor monitor) {
@@ -41,7 +41,9 @@ public class GradientDescent implements OrientationStrategy<SimpleLineSearchCurs
     else if (Math.abs(magnitude) < 1e-5) {
       monitor.log(String.format("Low gradient: %s", magnitude));
     }
-    return new SimpleLineSearchCursor(subject, measurement, direction).setDirectionType("GD");
+    SimpleLineSearchCursor gd = new SimpleLineSearchCursor(subject, measurement, direction).setDirectionType("GD");
+    direction.freeRef();
+    return gd;
   }
   
   @Override
@@ -49,4 +51,8 @@ public class GradientDescent implements OrientationStrategy<SimpleLineSearchCurs
   
   }
   
+  @Override
+  protected void _free() {
+  
+  }
 }

@@ -63,7 +63,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   private ArrayList<ComponentTest<?>> finalTests;
   private ArrayList<ComponentTest<?>> bigTests;
   private ArrayList<ComponentTest<?>> littleTests;
-  private boolean testTraining = false;
+  private boolean testTraining = true;
   
   /**
    * Instantiates a new Standard layer tests.
@@ -455,8 +455,10 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     ArrayList<TestError> exceptions = new ArrayList<>();
     log.p(String.format("Using Seed %d", seed));
     littleTests(log, exceptions, new Invocation(layer, getSmallDims(new Random(seed))));
+    layer.freeRef();
     final NNLayer perfLayer = getLayer(getLargeDims(new Random(seed)), new Random(seed));
     bigTests(log, seed, perfLayer, exceptions);
+    perfLayer.freeRef();
     log.code(() -> {
       System.gc();
       ReferenceCountingBase.logFreeWarnings();

@@ -28,7 +28,7 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 /**
  * A basic line search cursor representing a linear parametric path.
  */
-public class SimpleLineSearchCursor implements LineSearchCursor {
+public class SimpleLineSearchCursor extends LineSearchCursorBase {
   /**
    * The Direction.
    */
@@ -53,7 +53,9 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
   public SimpleLineSearchCursor(final Trainable subject, final PointSample origin, final DeltaSet<NNLayer> direction) {
     this.origin = origin.copyFull();
     this.direction = direction;
+    this.direction.addRef();
     this.subject = subject;
+    this.subject.addRef();
   }
   
   @Override
@@ -91,6 +93,15 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
     }
     final PointSample sample = subject.measure(monitor).setRate(alpha);
     final double dot = direction.dot(sample.delta);
-    return new LineSearchPoint(sample, dot);
+    LineSearchPoint lineSearchPoint = new LineSearchPoint(sample, dot);
+    sample.freeRef();
+    return lineSearchPoint;
+  }
+  
+  @Override
+  protected void _free() {
+    this.origin.freeRef();
+    this.direction.freeRef();
+    this.subject.freeRef();
   }
 }

@@ -52,7 +52,7 @@ public class SimpleStochasticGradientDescentTest extends MnistTestBase {
         .setOrientation(new GradientDescent())
         .setTimeout(5, TimeUnit.MINUTES)
         .setMaxIterations(500)
-        .run();
+        .runAndFree();
     });
   }
   

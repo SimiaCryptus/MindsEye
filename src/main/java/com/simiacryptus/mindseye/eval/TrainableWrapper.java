@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**
@@ -28,7 +29,7 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
  *
  * @param <T> the type parameter
  */
-public class TrainableWrapper<T extends Trainable> implements TrainableDataMask {
+public class TrainableWrapper<T extends Trainable> extends ReferenceCountingBase implements TrainableDataMask {
   
   private final T inner;
   
@@ -39,6 +40,12 @@ public class TrainableWrapper<T extends Trainable> implements TrainableDataMask 
    */
   public TrainableWrapper(final T inner) {
     this.inner = inner;
+    this.inner.addRef();
+  }
+  
+  @Override
+  protected void _free() {
+    this.inner.freeRef();
   }
   
   /**

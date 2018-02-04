@@ -69,6 +69,10 @@ final class InnerNode extends LazyResult {
     setLayer(layer);
     this.inputNodes = inputNodes;
     assert Arrays.stream(inputNodes).parallel().allMatch(x -> x != null);
+    for (DAGNode node : this.inputNodes) {
+      node.addRef();
+    }
+    this.layer.addRef();
   }
   
   /**
@@ -92,6 +96,7 @@ final class InnerNode extends LazyResult {
     NNResult result = innerLayer.eval(in);
     for (NNResult inputNNResult : in) {
       inputNNResult.getData().freeRef();
+      inputNNResult.freeRef();
     }
     return result;
   }
@@ -117,5 +122,13 @@ final class InnerNode extends LazyResult {
   @Override
   public DAGNetwork getNetwork() {
     return dagNetwork;
+  }
+  
+  @Override
+  protected void _free() {
+    for (DAGNode node : this.inputNodes) {
+      node.freeRef();
+    }
+    this.layer.freeRef();
   }
 }
