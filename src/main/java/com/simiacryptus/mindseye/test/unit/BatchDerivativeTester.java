@@ -38,7 +38,7 @@ import java.util.stream.IntStream;
 /**
  * The type Derivative tester.
  */
-public class BatchDerivativeTester implements ComponentTest<ToleranceStatistics> {
+public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
   /**
    * The Logger.
    */

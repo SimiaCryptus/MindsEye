@@ -19,18 +19,7 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 
-public class TestError extends RuntimeException {
-  public final ComponentTest<?> test;
-  public final NNLayer layer;
-  
-  public TestError(Throwable cause, ComponentTest<?> test, NNLayer layer) {
-    super(String.format("Error in %s with %s", test, layer), cause);
-    this.test = test;
-    this.test.addRef();
-    this.layer = layer;
-    this.layer.addRef();
-    layer.setFloating(true);
-  }
+public abstract class ComponentTestBase<T> extends ReferenceCountingBase implements ComponentTest<T> {
 }

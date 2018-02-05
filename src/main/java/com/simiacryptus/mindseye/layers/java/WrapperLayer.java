@@ -61,6 +61,13 @@ public abstract class WrapperLayer extends NNLayer {
    */
   public WrapperLayer(final NNLayer inner) {
     this.inner = inner;
+    this.inner.addRef();
+  }
+  
+  @Override
+  protected void _free() {
+    this.inner.freeRef();
+    super._free();
   }
   
   @Override

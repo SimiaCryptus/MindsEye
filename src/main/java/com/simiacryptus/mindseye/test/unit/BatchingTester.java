@@ -42,7 +42,7 @@ import java.util.stream.IntStream;
 /**
  * The type Batching tester.
  */
-public class BatchingTester implements ComponentTest<ToleranceStatistics> {
+public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger logger = LoggerFactory.getLogger(BatchingTester.class);
   
   private final double tolerance;

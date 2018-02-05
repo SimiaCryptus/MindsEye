@@ -72,7 +72,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
     final Tensor inputGradientA[] = new Tensor[itemCnt];
     return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);
-      final Tensor output = new Tensor(inObj[0].getData().get(dataIndex).getDimensions());
+      final Tensor output = new Tensor(inObj[0].getData().getDimensions());
       final Tensor inputGradient = new Tensor(input.dim());
       inputGradientA[dataIndex] = inputGradient;
       final double[] results = new double[2];
@@ -81,11 +81,12 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
         inputGradient.set(i, results[1]);
         output.set(i, results[0]);
       }
+      input.freeRef();
       return output;
     }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
       if (inObj[0].isAlive()) {
         TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
-          final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
+          final Tensor passback = new Tensor(data.getDimensions());
           final double[] gradientData = inputGradientA[dataIndex].getData();
           IntStream.range(0, passback.dim()).forEach(i -> {
             final double v = gradientData[i];
@@ -103,6 +104,9 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+        for (Tensor tensor : inputGradientA) {
+          tensor.freeRef();
+        }
       }
   
       @Override

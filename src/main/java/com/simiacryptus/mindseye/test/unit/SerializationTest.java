@@ -42,7 +42,7 @@ import java.util.zip.ZipFile;
 /**
  * The type Json run.
  */
-public class SerializationTest implements ComponentTest<ToleranceStatistics> {
+public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   private final HashMap<SerialPrecision, NNLayer> models = new HashMap<>();
   private boolean persist = false;
   

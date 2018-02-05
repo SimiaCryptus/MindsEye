@@ -34,7 +34,7 @@ import java.util.stream.IntStream;
 /**
  * The type Equivalency tester.
  */
-public class EquivalencyTester implements ComponentTest<ToleranceStatistics> {
+public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger log = LoggerFactory.getLogger(EquivalencyTester.class);
   
   private final NNLayer reference;
@@ -48,7 +48,14 @@ public class EquivalencyTester implements ComponentTest<ToleranceStatistics> {
    */
   public EquivalencyTester(final double tolerance, final NNLayer referenceLayer) {
     this.tolerance = tolerance;
-    reference = referenceLayer;
+    this.reference = referenceLayer;
+    this.reference.addRef();
+  }
+  
+  @Override
+  protected void _free() {
+    reference.freeRef();
+    super._free();
   }
   
   /**
@@ -60,6 +67,7 @@ public class EquivalencyTester implements ComponentTest<ToleranceStatistics> {
    */
   public ToleranceStatistics test(final NNLayer subject, final Tensor[] inputPrototype) {
     if (null == reference || null == subject) return new ToleranceStatistics();
+    reference.assertAlive();
     ToleranceStatistics result1;
     final Tensor subjectOutput = SimpleEval.run(subject, inputPrototype).getOutputAndFree();
     final Tensor referenceOutput = SimpleEval.run(reference, inputPrototype).getOutputAndFree();

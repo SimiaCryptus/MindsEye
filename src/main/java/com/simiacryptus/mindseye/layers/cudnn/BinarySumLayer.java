@@ -111,7 +111,18 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
     if (inObj.length > 2) {
       if (rightFactor != 1) throw new IllegalStateException();
       if (leftFactor != 1) throw new IllegalStateException();
-      return Arrays.stream(inObj).reduce((a, b) -> eval(a, b)).get();
+      for (NNResult nnResult : inObj) {
+        nnResult.addRef();
+        nnResult.getData().addRef();
+      }
+      return Arrays.stream(inObj).reduce((a, b) -> {
+        NNResult r = eval(a, b);
+        a.freeRef();
+        a.getData().freeRef();
+        b.freeRef();
+        b.getData().freeRef();
+        return r;
+      }).get();
     }
     assert (inObj.length == 2);
     final TensorList leftData = inObj[0].getData();
@@ -140,8 +151,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
                                 precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                 precision.getPointer(rightFactor), sizeDescriptor.getPtr(), rPtr.getPtr(),
                                 precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-      lPtr.freeRef();
-      rPtr.freeRef();
+      gpu.registerForCleanup(opDescriptor, sizeDescriptor, lPtr, rPtr);
       return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
     }), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
       TestUtil.runAllSerial(() -> {
@@ -154,7 +164,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
             CuDNNHandle.cudnnAddTensor(gpu.getHandle(),
                                        precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                        precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-            lPtr.freeRef();
+            gpu.registerForCleanup(sizeDescriptor, lPtr);
             return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
           });
           inObj[0].accumulate(buffer, tensorList);
@@ -170,7 +180,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
             CuDNNHandle.cudnnAddTensor(gpu.getHandle(),
                                        precision.getPointer(rightFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                        precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-            lPtr.freeRef();
+            gpu.registerForCleanup(sizeDescriptor, lPtr);
             return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
           });
           inObj[1].accumulate(buffer, tensorList);

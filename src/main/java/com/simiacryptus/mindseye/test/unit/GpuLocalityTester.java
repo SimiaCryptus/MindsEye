@@ -42,7 +42,7 @@ import java.util.stream.IntStream;
 /**
  * The type Batching tester.
  */
-public class GpuLocalityTester implements ComponentTest<ToleranceStatistics> {
+public class GpuLocalityTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger logger = LoggerFactory.getLogger(GpuLocalityTester.class);
   
   private final double tolerance;

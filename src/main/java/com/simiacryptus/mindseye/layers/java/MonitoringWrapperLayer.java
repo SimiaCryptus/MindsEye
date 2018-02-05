@@ -164,6 +164,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
       @Override
       protected void _free() {
         Arrays.stream(wrappedInput).forEach(nnResult -> nnResult.freeRef());
+        output.freeRef();
       }
       
       @Override

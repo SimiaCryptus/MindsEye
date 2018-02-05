@@ -104,14 +104,14 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
     final int stride[] = {strideX, strideY};
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
-    final int[] inputSize = batch.get(0).getDimensions();
+    final int[] inputSize = batch.getDimensions();
     final int length = batch.length();
     batch.addRef();
     final int inputDims = Tensor.dim(inputSize);
     final int[] outputSize = new int[4];
-    final CudaPtr outputData = GpuSystem.eval(nncontext -> {
+    final CudaPtr outputData = GpuSystem.eval(gpu -> {
       try {
-        nncontext.initThread();
+        gpu.initThread();
         final CudaResource<cudnnPoolingDescriptor> poolingDesc = GpuSystem.createPoolingDescriptor(
           mode.id, poolDims, windowSize, padding, stride);
         final CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
@@ -123,13 +123,13 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
         final Pointer alpha = precision.getPointer(1.0);
         final Pointer beta = precision.getPointer(0.0);
         final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
-        final CudaPtr outputTensor = CudaPtr.allocate(nncontext.getDeviceNumber(), precision.size * 1l * Tensor.dim(outputSize), MemoryType.Managed, true);
-        GpuSystem.handle(CuDNNHandle.cudnnPoolingForward(nncontext.getHandle(), poolingDesc.getPtr(),
+        final CudaPtr outputTensor = CudaPtr.allocate(gpu.getDeviceNumber(), precision.size * 1l * Tensor.dim(outputSize), MemoryType.Managed, true);
+        GpuSystem.handle(CuDNNHandle.cudnnPoolingForward(gpu.getHandle(), poolingDesc.getPtr(),
                                                          alpha,
                                                          inputDescriptor.getPtr(), inputData.getPtr(),
                                                          beta,
                                                          outputDescriptor.getPtr(), outputTensor.getPtr()));
-        inputData.freeRef();
+        gpu.registerForCleanup(inputDescriptor, inputData, outputDescriptor, poolingDesc);
         return outputTensor;
       } catch (final Throwable e) {
         throw new ComponentException("Error", e);
@@ -158,7 +158,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
                                                                                 inputDescriptor.getPtr(), inputData.getPtr(),
                                                                                 beta,
                                                                                 inputDescriptor.getPtr(), passbackBuffer.getPtr()));
-                              gpu.registerForCleanup(errorPtr, inputData);
+                              gpu.registerForCleanup(errorPtr, inputData, inputDescriptor, outputDescriptor, poolingDesc);
                               return GpuTensorList.wrap(passbackBuffer, length, inputSize, precision);
                             });
                             input.accumulate(buffer, data);

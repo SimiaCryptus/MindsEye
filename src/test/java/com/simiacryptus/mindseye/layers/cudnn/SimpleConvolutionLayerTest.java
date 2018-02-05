@@ -73,6 +73,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
   
   @Override
   public NNLayer getLayer(final int[][] inputSize, Random random) {
+    layer.freeRef();
     return layer;
   }
   
@@ -262,19 +263,22 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
     
     public ComponentTest<ToleranceStatistics> getPerformanceTester() {
       ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setBatches(10);
-      return (log1, component, inputPrototype) -> {
-        String logName = "cuda_" + log1.getName() + "_perf.log";
-        PrintStream apiLog = null;
-        try {
-          apiLog = new PrintStream(log1.file(logName));
-          GpuSystem.addLog(apiLog);
-          return inner.test(log1, component, inputPrototype);
-        } finally {
-          log1.p(log1.file((String) null, logName, "GPU Log"));
-          if (null != apiLog) {
-  
-            apiLog.close();
-            GpuSystem.apiLog.remove(apiLog);
+      return new ComponentTestBase<ToleranceStatistics>() {
+        @Override
+        public ToleranceStatistics test(NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
+          String logName = "cuda_" + log.getName() + "_perf.log";
+          PrintStream apiLog = null;
+          try {
+            apiLog = new PrintStream(log.file(logName));
+            GpuSystem.addLog(apiLog);
+            return inner.test(log, component, inputPrototype);
+          } finally {
+            log.p(log.file((String) null, logName, "GPU Log"));
+            if (null != apiLog) {
+          
+              apiLog.close();
+              GpuSystem.apiLog.remove(apiLog);
+            }
           }
         }
       };

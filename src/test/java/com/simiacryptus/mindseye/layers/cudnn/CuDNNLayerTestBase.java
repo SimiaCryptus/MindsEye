@@ -19,12 +19,15 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CuDNNHandle;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
+import com.simiacryptus.mindseye.test.unit.ComponentTestBase;
 import com.simiacryptus.mindseye.test.unit.GpuLocalityTester;
 import com.simiacryptus.util.io.NotebookOutput;
 
@@ -67,18 +70,27 @@ public abstract class CuDNNLayerTestBase extends LayerTestBase {
   @Override
   protected ComponentTest<ToleranceStatistics> getReferenceIOTester() {
     final ComponentTest<ToleranceStatistics> inner = super.getReferenceIOTester();
-    return (log, component, inputPrototype) -> {
-      PrintStream apiLog = null;
-      try {
-        String logName = "cuda_" + log.getName() + "_io.log";
-        log.p(log.file((String) null, logName, "GPU Log"));
-        apiLog = new PrintStream(log.file(logName));
-        GpuSystem.addLog(apiLog);
-        return inner.test(log, component, inputPrototype);
-      } finally {
-        if (null != apiLog) {
-          apiLog.close();
-          GpuSystem.apiLog.remove(apiLog);
+    return new ComponentTestBase<ToleranceStatistics>() {
+      @Override
+      protected void _free() {
+        inner.freeRef();
+        super._free();
+      }
+    
+      @Override
+      public ToleranceStatistics test(NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
+        PrintStream apiLog = null;
+        try {
+          String logName = "cuda_" + log.getName() + "_io.log";
+          log.p(log.file((String) null, logName, "GPU Log"));
+          apiLog = new PrintStream(log.file(logName));
+          GpuSystem.addLog(apiLog);
+          return inner.test(log, component, inputPrototype);
+        } finally {
+          if (null != apiLog) {
+            apiLog.close();
+            GpuSystem.apiLog.remove(apiLog);
+          }
         }
       }
     };
@@ -87,18 +99,27 @@ public abstract class CuDNNLayerTestBase extends LayerTestBase {
   @Override
   public ComponentTest<ToleranceStatistics> getPerformanceTester() {
     ComponentTest<ToleranceStatistics> inner = super.getPerformanceTester();
-    return (log, component, inputPrototype) -> {
-      PrintStream apiLog = null;
-      try {
-        String logName = "cuda_" + log.getName() + "_perf.log";
-        log.p(log.file((String) null, logName, "GPU Log"));
-        apiLog = new PrintStream(log.file(logName));
-        GpuSystem.addLog(apiLog);
-        return inner.test(log, component, inputPrototype);
-      } finally {
-        if (null != apiLog) {
-          apiLog.close();
-          GpuSystem.apiLog.remove(apiLog);
+    return new ComponentTestBase<ToleranceStatistics>() {
+      @Override
+      protected void _free() {
+        inner.freeRef();
+        super._free();
+      }
+    
+      @Override
+      public ToleranceStatistics test(NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
+        PrintStream apiLog = null;
+        try {
+          String logName = "cuda_" + log.getName() + "_perf.log";
+          log.p(log.file((String) null, logName, "GPU Log"));
+          apiLog = new PrintStream(log.file(logName));
+          GpuSystem.addLog(apiLog);
+          return inner.test(log, component, inputPrototype);
+        } finally {
+          if (null != apiLog) {
+            apiLog.close();
+            GpuSystem.apiLog.remove(apiLog);
+          }
         }
       }
     };

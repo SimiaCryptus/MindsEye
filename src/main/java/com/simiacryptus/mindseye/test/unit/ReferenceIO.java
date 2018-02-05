@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
@@ -32,7 +33,7 @@ import java.util.HashMap;
 /**
  * The type Reference io.
  */
-public class ReferenceIO implements ComponentTest<ToleranceStatistics> {
+public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
   /**
    * The Reference io.
    */
@@ -45,6 +46,13 @@ public class ReferenceIO implements ComponentTest<ToleranceStatistics> {
    */
   public ReferenceIO(final HashMap<Tensor[], Tensor> referenceIO) {
     this.referenceIO = referenceIO;
+  }
+  
+  @Override
+  protected void _free() {
+    referenceIO.keySet().stream().flatMap(x -> Arrays.stream(x)).forEach(ReferenceCountingBase::freeRef);
+    referenceIO.values().forEach(ReferenceCountingBase::freeRef);
+    super._free();
   }
   
   @Override

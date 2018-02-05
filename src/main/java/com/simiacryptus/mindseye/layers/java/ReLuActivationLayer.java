@@ -52,6 +52,11 @@ public class ReLuActivationLayer extends NNLayer {
     setFrozen(true);
   }
   
+  @Override
+  protected void _free() {
+    weights.freeRef();
+    super._free();
+  }
   
   /**
    * Instantiates a new Re lu activation layer.

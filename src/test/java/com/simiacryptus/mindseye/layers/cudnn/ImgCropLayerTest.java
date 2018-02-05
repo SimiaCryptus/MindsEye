@@ -20,11 +20,14 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
+import com.simiacryptus.mindseye.test.unit.ComponentTestBase;
 import com.simiacryptus.mindseye.test.unit.PerformanceTester;
+import com.simiacryptus.util.io.NotebookOutput;
 
 import java.io.PrintStream;
 import java.util.Random;
@@ -70,17 +73,20 @@ public abstract class ImgCropLayerTest extends CuDNNLayerTestBase {
   @Override
   public ComponentTest<ToleranceStatistics> getPerformanceTester() {
     ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setSamples(100).setBatches(10);
-    return (log1, component, inputPrototype) -> {
-      PrintStream apiLog = null;
-      try {
-        apiLog = new PrintStream(log1.file("cuda_perf.log"));
-        GpuSystem.addLog(apiLog);
-        return inner.test(log1, component, inputPrototype);
-      } finally {
-        log1.p(log1.file((String) null, "cuda_perf.log", "GPU Log"));
-        if (null != apiLog) {
-          apiLog.close();
-          GpuSystem.apiLog.remove(apiLog);
+    return new ComponentTestBase<ToleranceStatistics>() {
+      @Override
+      public ToleranceStatistics test(NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
+        PrintStream apiLog = null;
+        try {
+          apiLog = new PrintStream(log.file("cuda_perf.log"));
+          GpuSystem.addLog(apiLog);
+          return inner.test(log, component, inputPrototype);
+        } finally {
+          log.p(log.file((String) null, "cuda_perf.log", "GPU Log"));
+          if (null != apiLog) {
+            apiLog.close();
+            GpuSystem.apiLog.remove(apiLog);
+          }
         }
       }
     };

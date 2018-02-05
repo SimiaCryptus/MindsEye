@@ -59,7 +59,7 @@ import java.util.stream.Stream;
 /**
  * The type Derivative tester.
  */
-public class TrainingTester implements ComponentTest<TrainingTester.ComponentResult> {
+public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentResult> {
   /**
    * The Logger.
    */

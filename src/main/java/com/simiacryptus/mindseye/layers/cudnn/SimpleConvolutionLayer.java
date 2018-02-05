@@ -230,6 +230,10 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
         throw new ComponentException(String.format("Error in convolution %s x %s", Arrays.toString(inputSize), Arrays.toString(kernelSize)), e);
       }
     }), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+      assertAlive();
+      delta.assertAlive();
+      buffer.assertAlive();
+      batch.assertAlive();
       assert delta.length() == batch.length();
       TestUtil.runAllSerial(() -> {
         GpuSystem.run(gpu -> {
@@ -252,7 +256,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
               throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
             }
             final Tensor weightGradient = CudaPtr.read(filterPtr, precision, kernel.getDimensions());
-            buffer.get(SimpleConvolutionLayer.this, kernel.getData()).addInPlace(weightGradient.getData());
+            buffer.get(SimpleConvolutionLayer.this, kernel.getData()).addInPlace(weightGradient.getData()).freeRef();
             gpu.registerForCleanup(weightGradient, inputData, filterPtr, errorPtr);
           }
         });

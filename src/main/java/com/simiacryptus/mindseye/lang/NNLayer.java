@@ -350,6 +350,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    * @return the json stub
    */
   public JsonObject getJsonStub() {
+    assertAlive();
     final JsonObject json = new JsonObject();
     json.addProperty("class", getClass().getCanonicalName());
     json.addProperty("id", getId().toString());

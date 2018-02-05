@@ -35,7 +35,6 @@ import guru.nidi.graphviz.engine.Graphviz;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 /**
  * The type Layer run base.
@@ -60,9 +59,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * The Validate differentials.
    */
   protected boolean validateDifferentials = true;
-  private ArrayList<ComponentTest<?>> finalTests;
-  private ArrayList<ComponentTest<?>> bigTests;
-  private ArrayList<ComponentTest<?>> littleTests;
   private boolean testTraining = false;
   
   /**
@@ -92,20 +88,13 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    *
    * @return the big tests
    */
-  public ArrayList<ComponentTest<?>> getBigTests() {
-    if (null == bigTests) {
-      synchronized (this) {
-        if (null == bigTests) {
-          bigTests = new ArrayList<>(Arrays.asList(
-            getPerformanceTester(),
-            getBatchingTester(),
-            getReferenceIOTester(),
-            getEquivalencyTester()
-                                                  ));
-        }
-      }
-    }
-    return bigTests;
+  public List<ComponentTest<?>> getBigTests() {
+    return Arrays.asList(
+      getPerformanceTester(),
+      getBatchingTester(),
+      getReferenceIOTester(),
+      getEquivalencyTester()
+                        );
   }
   
   /**
@@ -113,17 +102,10 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    *
    * @return the big tests
    */
-  public ArrayList<ComponentTest<?>> getFinalTests() {
-    if (null == finalTests) {
-      synchronized (this) {
-        if (null == finalTests) {
-          finalTests = new ArrayList<>(Arrays.asList(
-            getTrainingTester()
-                                                    ));
-        }
-      }
-    }
-    return finalTests;
+  public List<ComponentTest<?>> getFinalTests() {
+    return Arrays.asList(
+      getTrainingTester()
+                        );
   }
   
   /**
@@ -178,18 +160,11 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    *
    * @return the little tests
    */
-  public ArrayList<ComponentTest<?>> getLittleTests() {
-    if (null == littleTests) {
-      synchronized (this) {
-        if (null == littleTests) {
-          littleTests = new ArrayList<>(Arrays.asList(
-            getJsonTester(),
-            getDerivativeTester()
-                                                     ));
-        }
-      }
-    }
-    return littleTests;
+  public List<ComponentTest<?>> getLittleTests() {
+    return Arrays.asList(
+      getJsonTester(),
+      getDerivativeTester()
+                        );
   }
   
   /**
@@ -244,7 +219,10 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * @return the test class
    */
   public Class<? extends NNLayer> getTestClass() {
-    return getLayer(getSmallDims(new Random()), new Random()).getClass();
+    NNLayer layer = getLayer(getSmallDims(new Random()), new Random());
+    Class<? extends NNLayer> layerClass = layer.getClass();
+    layer.freeRef();
+    return layerClass;
   }
   
   /**
@@ -253,7 +231,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * @param layer the layer
    * @return the nn layer
    */
-  protected NNLayer cvt(NNLayer layer) {
+  protected final NNLayer cvt(NNLayer layer) {
     if (layer instanceof DAGNetwork) {
       ((DAGNetwork) layer).visitNodes(node -> {
         NNLayer from = node.getLayer();
@@ -263,8 +241,15 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     }
     else if (getTestClass().isAssignableFrom(layer.getClass())) {
       Class<? extends NNLayer> referenceLayerClass = getReferenceLayerClass();
-      if (null == referenceLayerClass) return null;
-      return layer.as(referenceLayerClass);
+      if (null == referenceLayerClass) {
+        layer.freeRef();
+        return null;
+      }
+      else {
+        NNLayer cast = layer.as(referenceLayerClass);
+        layer.freeRef();
+        return cast;
+      }
     }
     else {
       return layer;
@@ -482,7 +467,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       try {
         Tensor[] input = randomize(getLargeDims(new Random(seed)));
         test.test(log, layer, input);
-        layer.freeRef();
         for (Tensor t : input) {
           t.freeRef();
         }
@@ -492,6 +476,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         throw e;
       } catch (Throwable e) {
         exceptions.add(new TestError(e, test, layer));
+      } finally {
+        layer.freeRef();
+        test.freeRef();
       }
     });
   }
@@ -500,11 +487,16 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     getBigTests().stream().filter(x -> null != x).forEach((ComponentTest<?> test) -> {
       NNLayer layer = invocation.getLayer().copy();
       try {
-        test.test(log, layer, randomize(invocation.getDims()));
+        Tensor[] inputs = randomize(invocation.getDims());
+        test.test(log, layer, inputs);
+        for (Tensor tensor : inputs) tensor.freeRef();
       } catch (LifecycleException e) {
         throw e;
       } catch (Throwable e) {
         exceptions.add(new TestError(e, test, layer));
+      } finally {
+        test.freeRef();
+        layer.freeRef();
       }
     });
   }
@@ -515,36 +507,16 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       try {
         Tensor[] inputs = randomize(invocation.getDims());
         test.test(log, layer, inputs);
-        layer.freeRef();
         for (Tensor tensor : inputs) tensor.freeRef();
       } catch (LifecycleException e) {
         throw e;
       } catch (Throwable e) {
         exceptions.add(new TestError(e, test, layer));
+      } finally {
+        layer.freeRef();
+        test.freeRef();
       }
     });
-  }
-  
-  /**
-   * With big tests standard layer tests.
-   *
-   * @param fn the fn
-   * @return the standard layer tests
-   */
-  public StandardLayerTests withBigTests(final Consumer<ArrayList<ComponentTest<?>>> fn) {
-    fn.accept(getBigTests());
-    return this;
-  }
-  
-  /**
-   * With little tests standard layer tests.
-   *
-   * @param fn the fn
-   * @return the standard layer tests
-   */
-  public StandardLayerTests withLittleTests(final Consumer<ArrayList<ComponentTest<?>>> fn) {
-    fn.accept(getLittleTests());
-    return this;
   }
   
   @Override

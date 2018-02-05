@@ -66,6 +66,7 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
   
   @Override
   public NNLayer getLayer(final int[][] inputSize, Random random) {
+    layer.addRef();
     return layer;
   }
   

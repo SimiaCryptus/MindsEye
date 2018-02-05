@@ -113,12 +113,14 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
     if (null == map) throw new IllegalArgumentException();
     if (null == factory) throw new IllegalArgumentException();
     if (null == layer) throw new IllegalArgumentException();
-    T v = map.computeIfAbsent(layer, l -> {
-      l.addRef();
-      return factory.get();
-    });
-    v.addRef();
-    return v;
+    synchronized (map) {
+      T v = map.computeIfAbsent(layer, l -> {
+        l.addRef();
+        return factory.get();
+      });
+      v.addRef();
+      return v;
+    }
   }
   
   /**

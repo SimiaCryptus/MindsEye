@@ -63,6 +63,8 @@ final class InputNode extends LazyResult {
   
   @Override
   protected NNResult eval(final GraphEvaluationContext context) {
+    assertAlive();
+    this.dagNetwork.assertAlive();
     synchronized (context) {
       CountingNNResult countingNNResult = context.calculated.get(id).get();
       countingNNResult.addRef();

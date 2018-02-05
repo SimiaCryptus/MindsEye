@@ -101,7 +101,8 @@ public abstract class DAGNetwork extends NNLayer {
     final Map<UUID, NNLayer> source_layersByNodeId = new HashMap<>();
     final Map<UUID, NNLayer> source_layersByLayerId = new HashMap<>();
     for (final Entry<String, JsonElement> e : jsonLayers.entrySet()) {
-      source_layersByLayerId.put(UUID.fromString(e.getKey()), NNLayer.fromJson(e.getValue().getAsJsonObject(), rs));
+      NNLayer value = NNLayer.fromJson(e.getValue().getAsJsonObject(), rs);
+      source_layersByLayerId.put(UUID.fromString(e.getKey()), value);
     }
     for (final Entry<String, JsonElement> e : jsonNodes.entrySet()) {
       final UUID nodeId = UUID.fromString(e.getKey());
@@ -127,6 +128,7 @@ public abstract class DAGNetwork extends NNLayer {
     }
     final UUID head = UUID.fromString(json.getAsJsonPrimitive("head").getAsString());
     initLinks(deserializedLinks, source_layersByNodeId, head);
+    source_layersByLayerId.values().forEach(x -> x.freeRef());
     this.labels.putAll(labels);
     assertConsistent();
   }
@@ -151,11 +153,17 @@ public abstract class DAGNetwork extends NNLayer {
    * @return the dag node
    */
   public DAGNode add(final String label, final NNLayer layer, final DAGNode... head) {
+    assertAlive();
     assertConsistent();
     assert null != getInput();
     final InnerNode node = new InnerNode(this, layer, head);
     layer.freeRef();
-    layersById.put(layer.getId(), layer);
+    synchronized (layersById) {
+      if (!layersById.containsKey(layer.getId())) {
+        layersById.put(layer.getId(), layer);
+        layer.addRef();
+      }
+    }
     nodesById.put(node.getId(), node);
     if (null != label) {
       labels.put(label, node.getId());
@@ -397,7 +405,7 @@ public abstract class DAGNetwork extends NNLayer {
                         ).collect(Collectors.toList());
   }
   
-  private void initLinks(final Map<UUID, List<UUID>> nodeLinks, final Map<UUID, NNLayer> layersByNodeId, final UUID newNodeId) {
+  private synchronized void initLinks(final Map<UUID, List<UUID>> nodeLinks, final Map<UUID, NNLayer> layersByNodeId, final UUID newNodeId) {
     if (layersById.containsKey(newNodeId)) return;
     if (inputNodes.containsKey(newNodeId)) return;
     final NNLayer layer = layersByNodeId.get(newNodeId);
@@ -413,7 +421,10 @@ public abstract class DAGNetwork extends NNLayer {
     assertConsistent();
     final DAGNode[] dependencies = getDependencies(nodeLinks, newNodeId);
     final InnerNode node = new InnerNode(this, layer, newNodeId, dependencies);
-    layersById.put(layer.getId(), layer);
+    if (!layersById.containsKey(layer.getId())) {
+      layersById.put(layer.getId(), layer);
+      layer.addRef();
+    }
     nodesById.put(node.getId(), node);
     assertConsistent();
   }
@@ -426,15 +437,18 @@ public abstract class DAGNetwork extends NNLayer {
   public NNLayer removeLastInput() {
     final int index = inputHandles.size() - 1;
     final UUID key = inputHandles.remove(index);
-    inputNodes.remove(key);
+    InputNode remove = inputNodes.remove(key);
+    if (null != remove) remove.freeRef();
     return this;
   }
   
   /**
    * Reset.
    */
-  public void reset() {
+  public synchronized void reset() {
+    layersById.values().forEach(x -> x.freeRef());
     layersById.clear();
+    nodesById.values().forEach(x -> x.freeRef());
     nodesById.clear();
     labels.clear();
   }

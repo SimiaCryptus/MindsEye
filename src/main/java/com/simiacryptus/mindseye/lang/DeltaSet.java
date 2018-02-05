@@ -89,7 +89,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
    */
   public DeltaSet<K> addInPlace(final DeltaSet<K> right) {
     right.map.forEach(100, (layer, buffer) -> {
-      get(layer, buffer.target).addInPlace(buffer);
+      get(layer, buffer.target).addInPlace(buffer).freeRef();
     });
     return this;
   }

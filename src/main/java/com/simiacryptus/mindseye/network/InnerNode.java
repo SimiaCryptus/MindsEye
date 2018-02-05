@@ -113,7 +113,14 @@ final class InnerNode extends LazyResult {
   
   @Override
   public void setLayer(final NNLayer newLayer) {
-    dagNetwork.layersById.put(newLayer.getId(), newLayer);
+    assertAlive();
+    dagNetwork.assertAlive();
+    synchronized (dagNetwork.layersById) {
+      if (!dagNetwork.layersById.containsKey(newLayer.getId())) {
+        dagNetwork.layersById.put(newLayer.getId(), newLayer);
+        newLayer.addRef();
+      }
+    }
     newLayer.addRef();
     if (null != this.layer) this.layer.freeRef();
     this.layer = newLayer;

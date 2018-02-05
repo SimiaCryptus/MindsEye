@@ -85,10 +85,12 @@ public class BandReducerLayer extends NNLayer implements MultiPrecision<BandRedu
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputSize = batch.getDimensions();
-    return new PoolingLayer().setMode(mode).setPrecision(precision)
-                             .setWindowX(inputSize[1])
-                             .setWindowY(inputSize[0])
-                             .eval(inObj);
+    PoolingLayer impl = new PoolingLayer().setMode(mode).setPrecision(precision)
+                                          .setWindowX(inputSize[1])
+                                          .setWindowY(inputSize[0]);
+    NNResult result = impl.eval(inObj);
+    impl.freeRef();
+    return result;
   }
   
   @Override

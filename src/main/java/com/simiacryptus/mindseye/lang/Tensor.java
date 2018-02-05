@@ -173,6 +173,9 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
           final double[] e = elements.get(i).getData();
           System.arraycopy(e, 0, data, i * e.length, e.length);
         }
+        for (Tensor t : elements) {
+          t.freeRef();
+        }
         assert tensor.isValid();
         return tensor;
       }
@@ -1534,6 +1537,13 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
     coordStream(parallel).forEach(c -> {
       fn.eval(get(c), c);
     });
+  }
+  
+  public static String prettyPrint(double[] doubles) {
+    Tensor t = new Tensor(doubles);
+    String prettyPrint = t.prettyPrint();
+    t.freeRef();
+    return prettyPrint;
   }
   
   /**

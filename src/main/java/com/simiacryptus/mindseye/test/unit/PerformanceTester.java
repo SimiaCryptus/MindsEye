@@ -39,7 +39,7 @@ import java.util.stream.Stream;
 /**
  * The type Performance tester.
  */
-public class PerformanceTester implements ComponentTest<ToleranceStatistics> {
+public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   /**
    * The Logger.
    */

@@ -186,17 +186,19 @@ public class ConvolutionLayer extends NNLayer {
     } catch (final Throwable e) {
       throw new RuntimeException("Error mapCoords image res " + Arrays.toString(inputDims), e);
     }
+    int outputLength = output.length;
     return new NNResult(TensorArray.wrap(output), (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
       if (!isFrozen()) {
         final double[][] inputBuffers = batch.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
         final double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
         final Tensor weightGradient = new Tensor(kernelDims);
         convolutionController.gradient(inputBuffers, weightGradient.getData(), outputBuffers);
-        batch.freeRef();
-        buffer.get(ConvolutionLayer.this, kernelData).addInPlace(weightGradient.getData());
+  
+        buffer.get(ConvolutionLayer.this, kernelData).addInPlace(weightGradient.getData()).freeRef();
+        weightGradient.freeRef();
       }
       if (input.isAlive()) {
-        final Tensor[] inputBufferTensors = IntStream.range(0, output.length).mapToObj(dataIndex -> new Tensor(inputDims)).toArray(i -> new Tensor[i]);
+        final Tensor[] inputBufferTensors = IntStream.range(0, outputLength).mapToObj(dataIndex -> new Tensor(inputDims)).toArray(i -> new Tensor[i]);
         final double[][] inputBuffers = Arrays.stream(inputBufferTensors).map(x -> x.getData()).toArray(i -> new double[i][]);
         final double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
         convolutionController.backprop(inputBuffers, kernelData, outputBuffers);
@@ -209,6 +211,7 @@ public class ConvolutionLayer extends NNLayer {
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+        batch.freeRef();
       }
     
     
@@ -299,5 +302,11 @@ public class ConvolutionLayer extends NNLayer {
   public ConvolutionLayer setPaddingY(Integer paddingY) {
     this.paddingY = paddingY;
     return this;
+  }
+  
+  @Override
+  protected void _free() {
+    this.kernel.freeRef();
+    super._free();
   }
 }

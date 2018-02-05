@@ -101,7 +101,10 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
     Arrays.stream(inObj).forEach(x -> x.addRef());
     Stream<NNResult> stream0 = Arrays.stream(inObj);
     //stream0 = stream0.parallel();
-    TensorList run = stream0.map(x -> x.getData()).reduce((leftData, rightData) -> GpuSystem.eval(gpu -> {
+    TensorList run = stream0.map(x -> x.getData()).map(x -> {
+      x.addRef();
+      return x;
+    }).reduce((leftData, rightData) -> GpuSystem.eval(gpu -> {
       final CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
       final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
@@ -113,7 +116,7 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
                                 precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                 precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
                                 precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-      gpu.registerForCleanup(lPtr, rPtr);
+      gpu.registerForCleanup(lPtr, rPtr, opDescriptor, sizeDescriptor, leftData, rightData);
       return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
     })).get();
     return new NNResult(run, (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
@@ -129,7 +132,7 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
           CuDNNHandle.cudnnAddTensor(gpu.getHandle(),
                                      precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                      precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-          gpu.registerForCleanup(lPtr);
+          gpu.registerForCleanup(lPtr, sizeDescriptor);
           return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
         });
         obj.accumulate(buffer, tensorList);

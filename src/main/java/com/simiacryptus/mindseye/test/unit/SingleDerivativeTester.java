@@ -38,7 +38,7 @@ import java.util.stream.IntStream;
 /**
  * The type Derivative tester.
  */
-public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics> {
+public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger log = LoggerFactory.getLogger(SingleDerivativeTester.class);
   
   /**
@@ -134,9 +134,16 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
     for (int j = 0; j < outputPrototype.dim(); j++) {
       final int j_ = j;
       final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
-      final NNResult eval = component.eval(NNConstant.batchResultArray(new Tensor[][]{inputPrototype}));
-      TensorArray tensorArray = TensorArray.create(new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0));
+      NNResult[] array = NNConstant.batchResultArray(new Tensor[][]{inputPrototype});
+      final NNResult eval = component.eval(array);
+      for (NNResult nnResult : array) {
+        nnResult.getData().freeRef();
+        nnResult.freeRef();
+      }
+      TensorArray tensorArray = TensorArray.wrap(new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0));
       eval.accumulate(buffer, tensorArray);
+      eval.getData().freeRef();
+      eval.freeRef();
       tensorArray.freeRef();
       final DoubleBuffer<NNLayer> deltaFlushBuffer = buffer.getMap().values().stream().filter(x -> x.target == stateArray).findFirst().orElse(null);
       if (null != deltaFlushBuffer) {
@@ -144,6 +151,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
           gradient.set(new int[]{i, j_}, deltaFlushBuffer.getDelta()[i]);
         }
       }
+      buffer.freeRef();
     }
     return gradient;
   }
@@ -270,15 +278,20 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
     for (int i = 0; i < stateLen; i++) {
       final NNLayer copy = KryoUtil.kryo().copy(component);
       copy.state().get(layerNum)[i] += probeSize;
-  
       final Tensor evalProbe = copy.eval(input2).getDataAndFree().getAndFree(0);
-      
+      copy.freeRef();
       final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
+      evalProbe.freeRef();
       for (int j = 0; j < delta.dim(); j++) {
         gradient.set(new int[]{i, j}, delta.getData()[j]);
       }
+      delta.freeRef();
     }
-    for (NNResult result : input2) result.freeRef();
+    baseOutput.freeRef();
+    for (NNResult result : input2) {
+      result.freeRef();
+      result.getData().freeRef();
+    }
     return gradient;
   }
   
@@ -367,7 +380,7 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
           if (verbose) {
   
             log.info(String.format("Learning Gradient for weight setByCoord %s", i));
-            log.info(String.format("Weights: %s", new Tensor(component.state().get(i)).prettyPrint()));
+            log.info(String.format("Weights: %s", Tensor.prettyPrint(component.state().get(i))));
             log.info(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
             log.info(String.format("Implemented Statistics: %s", new ScalarStatistics().add(implementedGradient.getData())));
             if (null != measuredGradient) {
@@ -393,6 +406,9 @@ public class SingleDerivativeTester implements ComponentTest<ToleranceStatistics
         }
         difference.freeRef();
         throw e;
+      } finally {
+        measuredGradient.freeRef();
+        implementedGradient.freeRef();
       }
       
     }).reduce((a, b) -> a.combine(b)).map(x -> x.combine(prev)).orElseGet(() -> prev);
