@@ -101,7 +101,7 @@ class ExplodedConvolutionLeg {
     final int inputBandsSq = inputBands * inputBands;
     for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
       final int filterBandOffset = layerNumber * inputBandsSq;
-      subLayers.get(layerNumber).set(new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq).setByCoord(c -> {
+      Tensor kernel = new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq).setByCoord(c -> {
         int[] coords = c.getCoords();
         int filterBand = getFilterBand(filterBandOffset, coords[2], squareOutputBands);
         if (filterBand < filterDimensions[2]) {
@@ -110,7 +110,9 @@ class ExplodedConvolutionLeg {
         else {
           return 0;
         }
-      }, false));
+      }, false);
+      subLayers.get(layerNumber).set(kernel);
+      kernel.freeRef();
     }
     return this;
   }

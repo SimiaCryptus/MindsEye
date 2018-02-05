@@ -120,29 +120,29 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   public NNResult eval(final NNResult... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final AtomicLong passbackNanos = new AtomicLong(0);
-    final NNResult[] wrappedInput = Arrays.stream(inObj).map(result -> new NNResult(result.getData(), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
-      passbackNanos.addAndGet(TimedResult.time(() -> result.accumulate(buffer, data)).timeNanos);
-    }) {
-    
-      @Override
-      protected void _free() {
-        result.freeRef();
-      }
+    final NNResult[] wrappedInput = Arrays.stream(inObj).map(result -> {
+      result.addRef();
+      return new NNResult(result.getData(), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+        passbackNanos.addAndGet(TimedResult.time(() -> result.accumulate(buffer, data)).timeNanos);
+      }) {
+      
+        @Override
+        protected void _free() {
+          result.freeRef();
+        }
       
       
-      @Override
-      public boolean isAlive() {
-        return result.isAlive();
-      }
+        @Override
+        public boolean isAlive() {
+          return result.isAlive();
+        }
+      };
     }).toArray(i -> new NNResult[i]);
     TimedResult<NNResult> timedResult = TimedResult.time(() -> getInner().eval(wrappedInput));
+    Arrays.stream(wrappedInput).forEach(ReferenceCountingBase::freeRef);
     final NNResult output = timedResult.result;
     forwardPerformance.add((timedResult.timeNanos) / 1000000000.0);
     totalBatches++;
-    Arrays.stream(wrappedInput).forEach(x -> {
-      x.addRef();
-      //x.getData().addRef();
-    });
     final int items = Arrays.stream(inObj).mapToInt(x -> x.getData().length()).max().orElse(1);
     totalItems += items;
     if (recordSignalMetrics) {
@@ -163,7 +163,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   
       @Override
       protected void _free() {
-        Arrays.stream(wrappedInput).forEach(nnResult -> nnResult.freeRef());
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
         output.freeRef();
       }
       
