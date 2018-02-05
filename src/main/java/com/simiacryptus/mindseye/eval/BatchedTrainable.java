@@ -58,6 +58,7 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
    */
   public BatchedTrainable(final NNLayer network, final int batchSize) {
     this(new BasicTrainable(network), batchSize);
+    getInner().freeRef();
   }
   
   /**

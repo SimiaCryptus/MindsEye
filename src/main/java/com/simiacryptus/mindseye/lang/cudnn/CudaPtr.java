@@ -150,7 +150,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     } catch (final Throwable e) {
       if (retries <= 0) throw new RuntimeException(e);
       final long startMemory = metrics.usedMemory.get();
-      TimedResult<Void> timedResult = TimedResult.time(() -> {GpuSystem.cleanMemory().get();});
+      TimedResult<Void> timedResult = TimedResult.time(() -> GpuSystem.cleanMemory());
       final long freedMemory = startMemory - metrics.usedMemory.get();
       logger.warn(String.format("Low GPU Memory while allocating %s bytes; %s freed in %.4fs resulting in %s total (triggered by %s)",
                                 size, freedMemory, timedResult.seconds(), metrics.usedMemory.get(), e.getMessage()));

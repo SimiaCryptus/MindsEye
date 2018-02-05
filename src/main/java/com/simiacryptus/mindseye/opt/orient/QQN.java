@@ -96,6 +96,7 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
     if (Math.abs(lbfgsMag - gdMag) / (lbfgsMag + gdMag) > 1e-2) {
       final DeltaSet<NNLayer> scaledGradient = gd.scale(lbfgsMag / gdMag);
       monitor.log(String.format("Returning Quadratic Cursor %s GD, %s QN", gdMag, lbfgsMag));
+      gd.freeRef();
       return new LineSearchCursorBase() {
   
         @Override
@@ -128,11 +129,13 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
     
         @Override
         public void _free() {
+          scaledGradient.freeRef();
           lbfgsCursor.freeRef();
         }
       };
     }
     else {
+      gd.freeRef();
       return lbfgsCursor;
     }
   }

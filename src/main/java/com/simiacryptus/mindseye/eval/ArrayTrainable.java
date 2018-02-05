@@ -52,6 +52,11 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
   public ArrayTrainable(DataTrainable inner, Tensor[][] trainingData, int batchSize) {
     super(inner, batchSize);
     this.trainingData = trainingData;
+    for (Tensor[] tensors : trainingData) {
+      for (Tensor tensor : tensors) {
+        tensor.addRef();
+      }
+    }
   }
   
   /**
@@ -84,6 +89,11 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
   public ArrayTrainable(final Tensor[][] trainingData, final NNLayer network, final int batchSize) {
     super(network, batchSize);
     this.trainingData = trainingData;
+    for (Tensor[] tensors : trainingData) {
+      for (Tensor tensor : tensors) {
+        tensor.addRef();
+      }
+    }
   }
   
   @Override
@@ -92,7 +102,27 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
   }
   
   @Override
+  protected void _free() {
+    for (Tensor[] tensors : trainingData) {
+      for (Tensor tensor : tensors) {
+        tensor.freeRef();
+      }
+    }
+    super._free();
+  }
+  
+  @Override
   public Trainable setData(final List<Tensor[]> tensors) {
+    for (Tensor[] ts : tensors) {
+      for (Tensor tensor : ts) {
+        tensor.addRef();
+      }
+    }
+    if (null != trainingData) for (Tensor[] ts : trainingData) {
+      for (Tensor tensor : ts) {
+        tensor.freeRef();
+      }
+    }
     trainingData = tensors.toArray(new Tensor[][]{});
     return this;
   }
@@ -100,10 +130,20 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
   /**
    * Sets training data.
    *
-   * @param trainingData the training data
+   * @param tensors the training data
    */
-  public void setTrainingData(final Tensor[][] trainingData) {
-    this.trainingData = trainingData;
+  public void setTrainingData(final Tensor[][] tensors) {
+    for (Tensor[] ts : tensors) {
+      for (Tensor tensor : ts) {
+        tensor.addRef();
+      }
+    }
+    if (null != trainingData) for (Tensor[] ts : trainingData) {
+      for (Tensor tensor : ts) {
+        tensor.freeRef();
+      }
+    }
+    this.trainingData = tensors;
   }
   
   @Override

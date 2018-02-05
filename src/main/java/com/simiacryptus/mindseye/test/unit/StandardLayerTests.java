@@ -63,7 +63,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   private ArrayList<ComponentTest<?>> finalTests;
   private ArrayList<ComponentTest<?>> bigTests;
   private ArrayList<ComponentTest<?>> littleTests;
-  private boolean testTraining = true;
+  private boolean testTraining = false;
   
   /**
    * Instantiates a new Standard layer tests.
@@ -376,12 +376,22 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         }
       }
     }
+    smallLayer.freeRef();
+    largeLayer.freeRef();
     log.code(() -> {
       throwException(exceptions);
     });
     getFinalTests().stream().filter(x -> null != x).forEach(test -> {
       final NNLayer perfLayer = getLayer(largeDims, new Random(seed));
-      test.test(log, perfLayer.copy(), randomize(largeDims));
+      perfLayer.assertAlive();
+      NNLayer copy = perfLayer.copy();
+      Tensor[] randomize = randomize(largeDims);
+      test.test(log, copy, randomize);
+      for (Tensor tensor : randomize) {
+        tensor.freeRef();
+      }
+      perfLayer.freeRef();
+      copy.freeRef();
     });
   }
   

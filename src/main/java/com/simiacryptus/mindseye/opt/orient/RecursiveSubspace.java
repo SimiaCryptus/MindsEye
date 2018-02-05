@@ -55,8 +55,13 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
     PointSample origin = measurement.copyFull().backup();
     NNLayer macroLayer = buildSubspace(subject, measurement, monitor);
     train(monitor, macroLayer);
-    macroLayer.eval((NNResult) null);
-    DeltaSet<NNLayer> delta = origin.weights.backupCopy().subtract(origin.weights);
+    NNResult eval = macroLayer.eval((NNResult) null);
+    macroLayer.freeRef();
+    eval.getData().freeRef();
+    eval.freeRef();
+    StateSet<NNLayer> backupCopy = origin.weights.backupCopy();
+    DeltaSet<NNLayer> delta = backupCopy.subtract(origin.weights);
+    backupCopy.freeRef();
     origin.restore();
     SimpleLineSearchCursor simpleLineSearchCursor = new SimpleLineSearchCursor(subject, origin, delta);
     delta.freeRef();
@@ -94,6 +99,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
       
       @Override
       public NNResult eval(NNResult... array) {
+        assertAlive();
         origin.restore();
         IntStream.range(0, deltaLayers.size()).forEach(i -> {
           direction.getMap().get(deltaLayers.get(i)).accumulate(weights[hasPlaceholders ? (i + 1) : i]);
@@ -106,6 +112,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
         PointSample measure = subject.measure(monitor);
         double mean = measure.getMean();
         monitor.log(String.format("RecursiveSubspace: %s <- %s", mean, Arrays.toString(weights)));
+        direction.addRef();
         return new NNResult(TensorArray.wrap(new Tensor(mean)), (DeltaSet<NNLayer> buffer, TensorList data) -> {
           DoubleStream deltaStream = deltaLayers.stream().mapToDouble(layer -> {
             Delta<NNLayer> a = direction.getMap().get(layer);
@@ -120,12 +127,12 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
                 return b.dot(a) / Math.max(Math.sqrt(a.dot(a)), 1e-8);
               }).sum()), deltaStream);
           }
-          buffer.get(self, weights).addInPlace(deltaStream.toArray());
+          buffer.get(self, weights).addInPlace(deltaStream.toArray()).freeRef();
         }) {
           @Override
           protected void _free() {
             measure.freeRef();
-            super._free();
+            direction.freeRef();
           }
   
           @Override
@@ -134,7 +141,14 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
           }
         };
       }
-      
+  
+      @Override
+      protected void _free() {
+        direction.freeRef();
+        origin.freeRef();
+        super._free();
+      }
+  
       @Override
       public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
         throw new IllegalStateException();
@@ -154,7 +168,11 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
    * @param macroLayer the macro layer
    */
   public void train(TrainingMonitor monitor, NNLayer macroLayer) {
-    ArrayTrainable trainable = new ArrayTrainable(new BasicTrainable(macroLayer), new Tensor[][]{{new Tensor()}});
+    BasicTrainable inner = new BasicTrainable(macroLayer);
+    Tensor tensor = new Tensor();
+    ArrayTrainable trainable = new ArrayTrainable(inner, new Tensor[][]{{tensor}});
+    inner.freeRef();
+    tensor.freeRef();
     new IterativeTrainer(trainable)
       .setOrientation(new LBFGS())
       .setLineSearchFactory(n -> new ArmijoWolfeSearch())
@@ -167,6 +185,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
       .setMaxIterations(getIterations())
       .setIterationsPerSample(getIterations())
       .runAndFree();
+    trainable.freeRef();
   }
   
   @Override

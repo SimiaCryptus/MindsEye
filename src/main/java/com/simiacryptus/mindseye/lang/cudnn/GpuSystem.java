@@ -34,7 +34,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -50,7 +53,7 @@ public class GpuSystem {
   /**
    * The constant INSTANCE.
    */
-  public static final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
+//  public static final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
   /**
    * The constant apiLog.
    */
@@ -867,20 +870,18 @@ public class GpuSystem {
    *
    * @return the future
    */
-  public static Future<?> cleanMemory() {
-    return singleThreadExecutor.submit(() -> {
-      try {
-        logger.warn("Cleaning Memory");
-        Runtime runtime = Runtime.getRuntime();
-        RecycleBin.DOUBLES.clear();
-        runtime.gc();
-        GpuTensorList.evictAllToHeap();
-        runtime.gc();
-        runtime.runFinalization();
-      } catch (Throwable e) {
-        logger.warn("Error while cleaning memory", e);
-      }
-    });
+  public static void cleanMemory() {
+    try {
+      logger.warn("Cleaning Memory");
+      Runtime runtime = Runtime.getRuntime();
+      RecycleBin.DOUBLES.clear();
+      runtime.gc();
+      GpuTensorList.evictAllToHeap();
+      runtime.gc();
+      runtime.runFinalization();
+    } catch (Throwable e) {
+      logger.warn("Error while cleaning memory", e);
+    }
   }
   
   /**

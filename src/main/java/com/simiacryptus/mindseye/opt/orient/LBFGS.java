@@ -147,11 +147,13 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
         return result;
       }
       else {
+        result.freeRef();
         monitor.log("Orientation rejected. Popping history element from " + history.stream().map(x -> String.format("%s", x.getMean())).reduce((a, b) -> a + ", " + b).get());
         return lbfgs(measurement, monitor, history.subList(0, history.size() - 1));
       }
     }
     else {
+      result.freeRef();
       monitor.log(String.format("LBFGS Accumulation History: %s points", history.size()));
       return null;
     }
@@ -230,10 +232,13 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     final DeltaSet<NNLayer> result = lbfgs(measurement, monitor, history);
     SimpleLineSearchCursor returnValue;
     if (null == result) {
-      returnValue = cursor(subject, measurement, "GD", measurement.delta.scale(-1));
+      DeltaSet<NNLayer> scale = measurement.delta.scale(-1);
+      returnValue = cursor(subject, measurement, "GD", scale);
+      scale.freeRef();
     }
     else {
       returnValue = cursor(subject, measurement, "LBFGS", result);
+      result.freeRef();
     }
     while (this.history.size() > (null == result ? minHistory : maxHistory)) {
       final PointSample remove = this.history.pollFirst();

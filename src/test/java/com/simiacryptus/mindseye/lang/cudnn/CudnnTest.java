@@ -84,8 +84,8 @@ public class CudnnTest extends NotebookReportBase {
           }
         });
       } catch (Exception e) {
+        logger.warn("Error allocating", e);
         GpuSystem.cleanMemory();
-        e.printStackTrace(System.out);
       }
     });
     GpuSystem.removeLog(apiLog);

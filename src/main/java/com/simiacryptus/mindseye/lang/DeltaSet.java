@@ -103,7 +103,9 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
     final StateSet<K> returnValue = new StateSet<>();
     map.forEach((layer, delta) -> {
       delta.assertAlive();
-      returnValue.get(layer, delta.target).set(delta.delta);
+      State<K> kState = returnValue.get(layer, delta.target);
+      kState.set(delta.delta);
+      kState.freeRef();
     });
     return returnValue;
   }

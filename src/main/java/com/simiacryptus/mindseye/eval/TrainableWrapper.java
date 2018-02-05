@@ -46,6 +46,7 @@ public class TrainableWrapper<T extends Trainable> extends ReferenceCountingBase
   @Override
   protected void _free() {
     this.inner.freeRef();
+    super._free();
   }
   
   /**

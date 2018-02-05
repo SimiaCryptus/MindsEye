@@ -430,7 +430,13 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
     TensorList result = eval.getData();
     eval.freeRef();
     for (NNResult nnResult : array) {
+      nnResult.getData().freeRef();
       nnResult.freeRef();
+    }
+    for (Tensor[] tensors : input_target) {
+      for (Tensor tensor : tensors) {
+        tensor.freeRef();
+      }
     }
     final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
     Arrays.stream(output_target).forEach(x -> x.addRef());
@@ -542,50 +548,67 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
   }
   
   private List<StepRecord> train(NotebookOutput log, BiFunction<NotebookOutput, Trainable, List<StepRecord>> opt, NNLayer layer, Tensor[][] data, boolean... mask) {
-    int inputs = data[0].length;
-    final PipelineNetwork network = new PipelineNetwork(inputs);
-    network.add(new MeanSqLossLayer(),
-                network.add(layer, IntStream.range(0, inputs - 1).mapToObj(i -> network.getInput(i)).toArray(i -> new DAGNode[i])),
-                network.getInput(inputs - 1));
-    ArrayTrainable trainable = new ArrayTrainable(data, network);
-    if (0 < mask.length) trainable.setMask(mask);
-    List<StepRecord> history = opt.apply(log, trainable);
-    if (history.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
-      if (!network.isFrozen()) {
-        log.p("This training run resulted in the following configuration:");
+    try {
+      int inputs = data[0].length;
+      final PipelineNetwork network = new PipelineNetwork(inputs);
+      network.add(new MeanSqLossLayer(),
+                  network.add(layer, IntStream.range(0, inputs - 1).mapToObj(i -> network.getInput(i)).toArray(i -> new DAGNode[i])),
+                  network.getInput(inputs - 1));
+      ArrayTrainable trainable = new ArrayTrainable(data, network);
+      if (0 < mask.length) trainable.setMask(mask);
+      List<StepRecord> history = opt.apply(log, trainable);
+      trainable.freeRef();
+      network.freeRef();
+      if (history.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
+        if (!network.isFrozen()) {
+          log.p("This training run resulted in the following configuration:");
+          log.code(() -> {
+            return network.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
+          });
+        }
+        if (0 < mask.length) {
+          log.p("And regressed input:");
+          log.code(() -> {
+            return Arrays.stream(data)
+                         .flatMap(x -> Arrays.stream(x))
+                         .limit(1)
+                         .map(x -> x.prettyPrint())
+                         .reduce((a, b) -> a + "\n" + b)
+                         .orElse("");
+          });
+        }
+        log.p("To produce the following output:");
         log.code(() -> {
-          return network.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
+          NNResult[] array = NNConstant.batchResultArray(pop(data));
+          NNResult eval = layer.eval(array);
+          for (NNResult nnResult : array) {
+            nnResult.freeRef();
+            nnResult.getData().freeRef();
+          }
+          TensorList tensorList = eval.getData();
+          eval.freeRef();
+          String str = tensorList.stream()
+                                 .collect(Collectors.toList())
+                                 .stream()
+                                 .limit(1)
+                                 .map(x -> x.prettyPrint())
+                                 .reduce((a, b) -> a + "\n" + b)
+                                 .orElse("");
+          tensorList.freeRef();
+          return str;
         });
       }
-      if (0 < mask.length) {
-        log.p("And regressed input:");
-        log.code(() -> {
-          return Arrays.stream(data)
-                       .flatMap(x -> Arrays.stream(x))
-                       .limit(1)
-                       .map(x -> x.prettyPrint())
-                       .reduce((a, b) -> a + "\n" + b)
-                       .orElse("");
-        });
+      else {
+        log.p("Training Converged");
       }
-      log.p("To produce the following output:");
-      log.code(() -> {
-        TensorList tensorList = layer.eval(NNConstant.batchResultArray(pop(data))).getData();
-        String str = tensorList.stream()
-                               .collect(Collectors.toList())
-                               .stream()
-                               .limit(1)
-                               .map(x -> x.prettyPrint())
-                               .reduce((a, b) -> a + "\n" + b)
-                               .orElse("");
-        tensorList.freeRef();
-        return str;
-      });
+      return history;
+    } finally {
+      for (Tensor[] tensors : data) {
+        for (Tensor tensor : tensors) {
+          tensor.freeRef();
+        }
+      }
     }
-    else {
-      log.p("Training Converged");
-    }
-    return history;
   }
   
   /**
@@ -691,7 +714,10 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
           .setOrientation(new RecursiveSubspace() {
             @Override
             public void train(TrainingMonitor monitor, NNLayer macroLayer) {
-              ArrayTrainable trainable1 = new ArrayTrainable(new BasicTrainable(macroLayer), new Tensor[][]{{new Tensor()}});
+              Tensor[][] nullData = {{new Tensor()}};
+              BasicTrainable inner = new BasicTrainable(macroLayer);
+              ArrayTrainable trainable1 = new ArrayTrainable(inner, nullData);
+              inner.freeRef();
               new IterativeTrainer(trainable1)
                 .setOrientation(new QQN())
                 .setLineSearchFactory(n -> new QuadraticSearch().setCurrentRate(n.equals(QQN.CURSOR_NAME) ? 1.0 : 1e-4))
@@ -701,6 +727,12 @@ public class TrainingTester implements ComponentTest<TrainingTester.ComponentRes
                     monitor.log("\t" + msg);
                   }
                 }).setMaxIterations(getIterations()).setIterationsPerSample(getIterations()).runAndFree();
+              trainable1.freeRef();
+              for (Tensor[] tensors : nullData) {
+                for (Tensor tensor : tensors) {
+                  tensor.freeRef();
+                }
+              }
             }
           })
           .setMonitor(monitor)

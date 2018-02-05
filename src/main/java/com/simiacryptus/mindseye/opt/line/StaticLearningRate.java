@@ -98,12 +98,16 @@ public class StaticLearningRate implements LineSearchStrategy {
         thisRate /= 2;
         if (thisRate < getMinimumRate()) {
           if (null != lastStep) lastStep.freeRef();
-          return startPoint.point;
+          PointSample point = startPoint.point;
+          point.addRef();
+          startPoint.freeRef();
+          return point;
         }
       }
       else {
         PointSample point = lastStep.point;
         point.addRef();
+        startPoint.freeRef();
         lastStep.freeRef();
         return point;
       }

@@ -62,7 +62,6 @@ class CountingNNResult extends NNResult {
    */
   protected CountingNNResult(final NNResult inner) {
     super(inner.getData(), new CountingAccumulator(inner));
-    ((ReferenceCounting) this.accumulator).addRef();
     this.inner = inner;
     inner.addRef();
   }
@@ -89,10 +88,9 @@ class CountingNNResult extends NNResult {
   
   @Override
   protected void _free() {
-    getAccumulator().freeRef();
     inner.freeRef();
+    getAccumulator().freeRef();
   }
-  
   
   @Override
   public boolean isAlive() {

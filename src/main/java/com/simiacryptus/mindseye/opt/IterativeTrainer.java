@@ -264,7 +264,10 @@ public class IterativeTrainer extends ReferenceCountingBase {
       }
       currentPoint = subject.measure(monitor);
     } while (!Double.isFinite(currentPoint.getMean()) && 10 < retries++);
-    if (!Double.isFinite(currentPoint.getMean())) throw new IterativeStopException();
+    if (!Double.isFinite(currentPoint.getMean())) {
+      currentPoint.freeRef();
+      throw new IterativeStopException();
+    }
     return currentPoint;
   }
   

@@ -71,7 +71,7 @@ public abstract class RecycleBin<T> {
   private int profilingThreshold = 32 * 1024;
   private PersistanceMode persistanceMode = Weak;
   private int minLengthPerBuffer = 256;
-  private double maxLengthPerBuffer = 1e8;
+  private double maxLengthPerBuffer = 1e9;
   private int maxItemsPerBuffer = 100;
   
   /**
@@ -328,11 +328,7 @@ public abstract class RecycleBin<T> {
     long size = getSize();
     logger.warn(String.format("Allocation of length %d failed; %s/%s used memory; %s items in recycle buffer; Clearing memory", length, previous, max, size));
     clear();
-    try {
-      GpuSystem.cleanMemory().get();
-    } catch (InterruptedException | ExecutionException e) {
-      throw new RuntimeException(e);
-    }
+    GpuSystem.cleanMemory();
     long after = Runtime.getRuntime().freeMemory();
     logger.warn(String.format("Clearing memory freed %s/%s bytes", previous - after, max));
   }

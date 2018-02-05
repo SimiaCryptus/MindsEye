@@ -66,6 +66,8 @@ abstract class LazyResult extends ReferenceCountingBase implements DAGNode {
   
   @Override
   public CountingNNResult get(final GraphEvaluationContext context) {
+    context.assertAlive();
+    assertAlive();
     long expectedCount = context.expectedCounts.getOrDefault(id, -1L);
     if (!context.calculated.containsKey(id)) {
       Singleton singleton = null;

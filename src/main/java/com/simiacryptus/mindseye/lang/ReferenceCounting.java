@@ -38,7 +38,7 @@ public interface ReferenceCounting {
   /**
    * Free ref.
    */
-  void freeRef();
+  default void freeRef() {}
   
   /**
    * Is finalized boolean.

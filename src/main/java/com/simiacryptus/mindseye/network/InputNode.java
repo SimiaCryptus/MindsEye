@@ -64,7 +64,9 @@ final class InputNode extends LazyResult {
   @Override
   protected NNResult eval(final GraphEvaluationContext context) {
     synchronized (context) {
-      return context.calculated.get(id).get();
+      CountingNNResult countingNNResult = context.calculated.get(id).get();
+      countingNNResult.addRef();
+      return countingNNResult;
     }
   }
   

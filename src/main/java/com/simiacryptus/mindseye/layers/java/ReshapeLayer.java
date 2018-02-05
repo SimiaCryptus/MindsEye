@@ -96,6 +96,11 @@ public class ReshapeLayer extends NNLayer implements MultiPrecision<ReshapeLayer
     }) {
   
       @Override
+      protected void _free() {
+    
+      }
+  
+      @Override
       public boolean isAlive() {
         return inObj[0].isAlive();
       }

@@ -41,7 +41,7 @@ public class SysOutInterceptor extends PrintStream {
   /**
    * The constant INSTANCE.
    */
-  public static final SysOutInterceptor INSTANCE = new SysOutInterceptor(ORIGINAL_OUT).init();
+  public static final SysOutInterceptor INSTANCE = new SysOutInterceptor(ORIGINAL_OUT);
   private final ThreadLocal<Boolean> isMonitoring = new ThreadLocal<Boolean>() {
     @Override
     protected Boolean initialValue() {

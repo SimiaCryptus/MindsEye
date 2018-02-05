@@ -154,6 +154,7 @@ public abstract class DAGNetwork extends NNLayer {
     assertConsistent();
     assert null != getInput();
     final InnerNode node = new InnerNode(this, layer, head);
+    layer.freeRef();
     layersById.put(layer.getId(), layer);
     nodesById.put(node.getId(), node);
     if (null != label) {
@@ -161,6 +162,13 @@ public abstract class DAGNetwork extends NNLayer {
     }
     assertConsistent();
     return node;
+  }
+  
+  @Override
+  protected void _free() {
+    super._free();
+    nodesById.values().forEach(ReferenceCounting::freeRef);
+    inputNodes.values().forEach(ReferenceCountingBase::freeRef);
   }
   
   /**
@@ -217,8 +225,11 @@ public abstract class DAGNetwork extends NNLayer {
     final GraphEvaluationContext context = new GraphEvaluationContext();
     for (int i = 0; i < inputs.length; i++) {
       UUID key = inputHandles.get(i);
-      CountingNNResult value = new CountingNNResult(inputs[i]);
-      context.calculated.put(key, new Singleton<CountingNNResult>().set(value));
+      NNResult input = inputs[i];
+      if (!context.calculated.containsKey(key)) {
+        input.getData().addRef();
+        context.calculated.put(key, new Singleton<CountingNNResult>().set(new CountingNNResult(input)));
+      }
     }
     context.expectedCounts.putAll(getNodes().stream().flatMap(t -> {
       return Arrays.stream(t.getInputs()).map(n -> n.getId());

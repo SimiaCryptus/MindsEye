@@ -44,7 +44,11 @@ class GraphEvaluationContext extends ReferenceCountingBase {
   
   @Override
   protected synchronized void _free() {
-    calculated.values().forEach(x -> x.get().freeRef());
+    calculated.values().forEach(x -> {
+      CountingNNResult result = x.get();
+      result.freeRef();
+      result.getData().freeRef();
+    });
     calculated.clear();
   }
 }

@@ -109,10 +109,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     return buffer.toString();
   }
   
-  /**
-   * Free.
-   */
-  protected abstract void _free();
+  private static final long LOAD_TIME = System.nanoTime();
   
   private final ConcurrentLinkedDeque<StackTraceElement[]> freeRefs = new ConcurrentLinkedDeque<>();
   private boolean floating = false;
@@ -166,6 +163,8 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     }
   }
   
+  protected void _free() {}
+
   @Override
   protected final void finalize() throws Throwable {
     isFinalized = true;
@@ -175,7 +174,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
         deque.add(FREE_WARNING_PERSISTANCE.wrap(this));
         while (deque.size() > MAX_FREE_WARNINGS) deque.remove();
         if (DEBUG_LIFECYCLE && logger.isDebugEnabled()) {
-          logger.debug("Instance Reclaimed by GC: " + detailString(false));
+          logger.debug(String.format("Instance Reclaimed by GC at %.9f: %s", (System.nanoTime() - LOAD_TIME) / 1e9, detailString(false)));
         }
       }
       finalizedBy = DEBUG_LIFECYCLE ? Thread.currentThread().getStackTrace() : null;

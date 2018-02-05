@@ -76,6 +76,11 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
         data.stream().forEach(t -> derivative[i].addInPlace(t));
       }) {
         @Override
+        protected void _free() {
+    
+        }
+  
+        @Override
         public boolean isAlive() {
           return true;
         }

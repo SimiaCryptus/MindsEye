@@ -105,12 +105,14 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
   public StateSet<K> add(final DeltaSet<K> right) {
     final DeltaSet<K> deltas = new DeltaSet<K>();
     map.forEach(100, (final K layer, final State<K> buffer) -> {
-      deltas.get(layer, buffer.target).set(buffer.getDelta());
+      deltas.get(layer, buffer.target).set(buffer.getDelta()).freeRef();
     });
     right.map.forEach(100, (final K layer, final Delta<K> buffer) -> {
-      deltas.get(layer, buffer.target).addInPlace(buffer.getDelta());
+      deltas.get(layer, buffer.target).addInPlace(buffer.getDelta()).freeRef();
     });
-    return deltas.asState();
+    StateSet<K> kStateSet = deltas.asState();
+    deltas.freeRef();
+    return kStateSet;
   }
   
   /**
@@ -121,7 +123,9 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
   public DeltaSet<K> asVector() {
     final HashMap<K, Delta<K>> newMap = new HashMap<>();
     map.forEach((layer, state) -> newMap.put(layer, new Delta<K>(layer, state.target, RecycleBin.DOUBLES.copyOf(state.delta, state.delta.length))));
-    return new DeltaSet<K>(newMap);
+    DeltaSet<K> deltaSet = new DeltaSet<>(newMap);
+    newMap.values().forEach(v -> v.freeRef());
+    return deltaSet;
   }
   
   @Override
@@ -209,7 +213,14 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
    * @return the delta setByCoord
    */
   public DeltaSet<K> subtract(final StateSet<K> right) {
-    return this.add(right.asVector().scale(-1)).asVector();
+    DeltaSet<K> rvec = right.asVector();
+    DeltaSet<K> scale = rvec.scale(-1);
+    rvec.freeRef();
+    StateSet<K> add = this.add(scale);
+    scale.freeRef();
+    DeltaSet<K> addVector = add.asVector();
+    add.freeRef();
+    return addVector;
   }
   
   

@@ -48,9 +48,6 @@ public abstract class NNResult extends ReferenceCountingBase {
     super();
     this.data = data;
     this.accumulator = accumulator;
-    if (this.accumulator instanceof ReferenceCounting) {
-      ((ReferenceCounting) this.accumulator).addRef();
-    }
   }
   
   /**
@@ -93,13 +90,6 @@ public abstract class NNResult extends ReferenceCountingBase {
    */
   public final TensorList getData() {
     return data;
-  }
-  
-  @Override
-  protected void _free() {
-    if (this.accumulator instanceof ReferenceCounting) {
-      ((ReferenceCounting) this.accumulator).freeRef();
-    }
   }
   
   /**
