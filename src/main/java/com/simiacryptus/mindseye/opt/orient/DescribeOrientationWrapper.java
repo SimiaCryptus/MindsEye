@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -53,9 +52,10 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
    * @param x the x
    * @return the id
    */
-  public static @NotNull String getId(final @NotNull DoubleBuffer<NNLayer> x) {
+  @javax.annotation.Nonnull
+  public static String getId(@javax.annotation.Nonnull final DoubleBuffer<NNLayer> x) {
     final String name = x.layer.getName();
-    final @NotNull String className = x.layer.getClass().getSimpleName();
+    @javax.annotation.Nonnull final String className = x.layer.getClass().getSimpleName();
     return name.contains(className) ? className : name;
 //    if(x.layer instanceof PlaceholderLayer) {
 //      return "Input";
@@ -70,9 +70,9 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
    * @param dirDelta    the dir delta
    * @return the string
    */
-  public static String render(final @NotNull DoubleBuffer<NNLayer> weightDelta, final @NotNull DoubleBuffer<NNLayer> dirDelta) {
-    final @NotNull String weightString = Arrays.toString(weightDelta.getDelta());
-    final @NotNull String deltaString = Arrays.toString(dirDelta.getDelta());
+  public static String render(@javax.annotation.Nonnull final DoubleBuffer<NNLayer> weightDelta, @javax.annotation.Nonnull final DoubleBuffer<NNLayer> dirDelta) {
+    @javax.annotation.Nonnull final String weightString = Arrays.toString(weightDelta.getDelta());
+    @javax.annotation.Nonnull final String deltaString = Arrays.toString(dirDelta.getDelta());
     return String.format("pos: %s\nvec: %s", weightString, deltaString);
   }
   
@@ -83,10 +83,10 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
    * @param direction the direction
    * @return the string
    */
-  public static String render(final @NotNull StateSet<NNLayer> weights, final @NotNull DeltaSet<NNLayer> direction) {
+  public static String render(@javax.annotation.Nonnull final StateSet<NNLayer> weights, @javax.annotation.Nonnull final DeltaSet<NNLayer> direction) {
     final Map<String, String> data = weights.stream()
                                             .collect(Collectors.groupingBy(x -> DescribeOrientationWrapper.getId(x), Collectors.toList())).entrySet().stream()
-                                            .collect(Collectors.toMap(x -> x.getKey(), (final @NotNull Map.Entry<String, List<State<NNLayer>>> list) -> {
+                                            .collect(Collectors.toMap(x -> x.getKey(), (@javax.annotation.Nonnull final Map.Entry<String, List<State<NNLayer>>> list) -> {
                                               final List<State<NNLayer>> deltaList = list.getValue();
                                               if (1 == deltaList.size()) {
                                                 final State<NNLayer> weightDelta = deltaList.get(0);
@@ -105,7 +105,7 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
   }
   
   @Override
-  public LineSearchCursor orient(final Trainable subject, final PointSample measurement, final @NotNull TrainingMonitor monitor) {
+  public LineSearchCursor orient(final Trainable subject, final PointSample measurement, @javax.annotation.Nonnull final TrainingMonitor monitor) {
     final LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
     if (cursor instanceof SimpleLineSearchCursor) {
       final DeltaSet<NNLayer> direction = ((SimpleLineSearchCursor) cursor).direction;

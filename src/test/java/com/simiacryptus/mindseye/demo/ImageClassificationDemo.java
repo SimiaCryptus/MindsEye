@@ -27,7 +27,6 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
@@ -58,7 +57,7 @@ public class ImageClassificationDemo extends NotebookReportBase {
    *
    * @param log the log
    */
-  public void run(@NotNull NotebookOutput log) {
+  public void run(@javax.annotation.Nonnull NotebookOutput log) {
   
   
     log.h1("Model");
@@ -83,9 +82,9 @@ public class ImageClassificationDemo extends NotebookReportBase {
   
     log.h1("Results");
     log.code(() -> {
-      @NotNull TableOutput tableOutput = new TableOutput();
+      @javax.annotation.Nonnull TableOutput tableOutput = new TableOutput();
       for (int i = 0; i < images.length; i++) {
-        @NotNull HashMap<String, Object> row = new HashMap<>();
+        @javax.annotation.Nonnull HashMap<String, Object> row = new HashMap<>();
         row.put("Image", log.image(images[i].toImage(), ""));
         row.put("Prediction", predictions.get(i).entrySet().stream()
                                          .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
@@ -113,12 +112,14 @@ public class ImageClassificationDemo extends NotebookReportBase {
    *
    * @return the target class
    */
-  protected @NotNull Class<?> getTargetClass() {
+  @javax.annotation.Nonnull
+  protected Class<?> getTargetClass() {
     return ImageClassifier.class;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull ReportType getReportType() {
+  public ReportType getReportType() {
     return ReportType.Demos;
   }
 }

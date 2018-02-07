@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,7 +69,8 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
    * @param historySize the history size
    * @return the history size
    */
-  public @NotNull CachedTrainable<T> setHistorySize(final int historySize) {
+  @javax.annotation.Nonnull
+  public CachedTrainable<T> setHistorySize(final int historySize) {
     this.historySize = historySize;
     return this;
   }
@@ -90,14 +90,15 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
    * @param verbose the verbose
    * @return the verbose
    */
-  public @NotNull CachedTrainable<T> setVerbose(final boolean verbose) {
+  @javax.annotation.Nonnull
+  public CachedTrainable<T> setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
   }
   
   @Override
   public PointSample measure(final TrainingMonitor monitor) {
-    for (final @NotNull PointSample result : history) {
+    for (@javax.annotation.Nonnull final PointSample result : history) {
       if (!result.weights.isDifferent()) {
         if (isVerbose()) {
           log.info(String.format("Returning cached value; %s buffers unchanged since %s => %s",

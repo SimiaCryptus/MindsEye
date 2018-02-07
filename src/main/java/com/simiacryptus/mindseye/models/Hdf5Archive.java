@@ -27,7 +27,6 @@ import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.FloatPointer;
 import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacpp.hdf5;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,15 +58,17 @@ public class Hdf5Archive {
     }
   }
   
-  private final @NotNull H5File file;
-  private final @NotNull File filename;
+  @javax.annotation.Nonnull
+  private final H5File file;
+  @javax.annotation.Nonnull
+  private final File filename;
   
   /**
    * Instantiates a new Hdf 5 archive.
    *
    * @param filename the archive filename
    */
-  public Hdf5Archive(@NotNull String filename) {
+  public Hdf5Archive(@javax.annotation.Nonnull String filename) {
     this(new File(filename));
   }
   
@@ -76,22 +77,22 @@ public class Hdf5Archive {
    *
    * @param filename the filename
    */
-  public Hdf5Archive(@NotNull File filename) {
+  public Hdf5Archive(@javax.annotation.Nonnull File filename) {
     this.filename = filename;
     try {
       this.file = new H5File(filename.getCanonicalPath(), H5F_ACC_RDONLY());
-    } catch (final @NotNull RuntimeException e) {
+    } catch (@javax.annotation.Nonnull final RuntimeException e) {
       throw e;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
   
-  private static void print(@NotNull Hdf5Archive archive, @NotNull Logger log) {
+  private static void print(@javax.annotation.Nonnull Hdf5Archive archive, @javax.annotation.Nonnull Logger log) {
     printTree(archive, "", false, log);
   }
   
-  private static void printTree(@NotNull Hdf5Archive hdf5, String prefix, boolean printData, @NotNull Logger log, @NotNull String... path) {
+  private static void printTree(@javax.annotation.Nonnull Hdf5Archive hdf5, String prefix, boolean printData, @javax.annotation.Nonnull Logger log, @javax.annotation.Nonnull String... path) {
     for (String datasetName : hdf5.getDataSets(path)) {
       @Nullable Tensor tensor = hdf5.readDataSet(datasetName, path);
       log.info(String.format("%sDataset %s: %s", prefix, datasetName, Arrays.toString(tensor.getDimensions())));
@@ -102,9 +103,9 @@ public class Hdf5Archive {
     });
     for (String t : hdf5.getGroups(path).stream().sorted(new Comparator<String>() {
       @Override
-      public int compare(@NotNull String o1, @NotNull String o2) {
-        @NotNull String prefix = "layer_";
-        @NotNull Pattern digit = Pattern.compile("^\\d+$");
+      public int compare(@javax.annotation.Nonnull String o1, @javax.annotation.Nonnull String o2) {
+        @javax.annotation.Nonnull String prefix = "layer_";
+        @javax.annotation.Nonnull Pattern digit = Pattern.compile("^\\d+$");
         if (digit.matcher(o1).matches() && digit.matcher(o2).matches())
           return Integer.compare(Integer.parseInt(o1), Integer.parseInt(o2));
         if (o1.startsWith(prefix) && o2.startsWith(prefix))
@@ -117,8 +118,9 @@ public class Hdf5Archive {
     }
   }
   
-  private static @NotNull String[] concat(@NotNull String[] s, String t) {
-    @NotNull String[] strings = new String[s.length + 1];
+  @javax.annotation.Nonnull
+  private static String[] concat(@javax.annotation.Nonnull String[] s, String t) {
+    @javax.annotation.Nonnull String[] strings = new String[s.length + 1];
     System.arraycopy(s, 0, strings, 0, s.length);
     strings[s.length] = t;
     return strings;
@@ -129,8 +131,9 @@ public class Hdf5Archive {
     return String.format("Hdf5Archive{%s}", file);
   }
   
-  private @NotNull Group[] openGroups(@NotNull String... groups) {
-    @NotNull Group[] groupArray = new Group[groups.length];
+  @javax.annotation.Nonnull
+  private Group[] openGroups(@javax.annotation.Nonnull String... groups) {
+    @javax.annotation.Nonnull Group[] groupArray = new Group[groups.length];
     groupArray[0] = this.file.openGroup(groups[0]);
     for (int i = 1; i < groups.length; i++) {
       groupArray[i] = groupArray[i - 1].openGroup(groups[i]);
@@ -138,7 +141,7 @@ public class Hdf5Archive {
     return groupArray;
   }
   
-  private void closeGroups(@NotNull Group[] groupArray) {
+  private void closeGroups(@javax.annotation.Nonnull Group[] groupArray) {
     for (int i = groupArray.length - 1; i >= 0; i--) {
       groupArray[i].deallocate();
     }
@@ -151,11 +154,11 @@ public class Hdf5Archive {
    * @param groups      Array of zero or more ancestor groups from root to parent.
    * @return tensor tensor
    */
-  public @Nullable Tensor readDataSet(String datasetName, @NotNull String... groups) {
+  public @Nullable Tensor readDataSet(String datasetName, @javax.annotation.Nonnull String... groups) {
     if (groups.length == 0) {
       return readDataSet(this.file, datasetName);
     }
-    @NotNull Group[] groupArray = openGroups(groups);
+    @javax.annotation.Nonnull Group[] groupArray = openGroups(groups);
     @Nullable Tensor a = readDataSet(groupArray[groupArray.length - 1], datasetName);
     closeGroups(groupArray);
     return a;
@@ -168,11 +171,11 @@ public class Hdf5Archive {
    * @param groups        Array of zero or more ancestor groups from root to parent.
    * @return string string
    */
-  public @Nullable String readAttributeAsJson(String attributeName, @NotNull String... groups) {
+  public @Nullable String readAttributeAsJson(String attributeName, @javax.annotation.Nonnull String... groups) {
     if (groups.length == 0) {
       return readAttributeAsJson(this.file.openAttribute(attributeName));
     }
-    @NotNull Group[] groupArray = openGroups(groups);
+    @javax.annotation.Nonnull Group[] groupArray = openGroups(groups);
     @Nullable String s = readAttributeAsJson(groupArray[groups.length - 1].openAttribute(attributeName));
     closeGroups(groupArray);
     return s;
@@ -185,11 +188,11 @@ public class Hdf5Archive {
    * @param groups        Array of zero or more ancestor groups from root to parent.
    * @return string string
    */
-  public @Nullable String readAttributeAsString(String attributeName, @NotNull String... groups) {
+  public @Nullable String readAttributeAsString(String attributeName, @javax.annotation.Nonnull String... groups) {
     if (groups.length == 0) {
       return readAttributeAsString(this.file.openAttribute(attributeName));
     }
-    @NotNull Group[] groupArray = openGroups(groups);
+    @javax.annotation.Nonnull Group[] groupArray = openGroups(groups);
     @Nullable String s = readAttributeAsString(groupArray[groupArray.length - 1].openAttribute(attributeName));
     closeGroups(groupArray);
     return s;
@@ -202,11 +205,11 @@ public class Hdf5Archive {
    * @param groups        Array of zero or more ancestor groups from root to parent.
    * @return Boolean indicating whether attribute exists in group path.
    */
-  public boolean hasAttribute(String attributeName, @NotNull String... groups) {
+  public boolean hasAttribute(String attributeName, @javax.annotation.Nonnull String... groups) {
     if (groups.length == 0) {
       return this.file.attrExists(attributeName);
     }
-    @NotNull Group[] groupArray = openGroups(groups);
+    @javax.annotation.Nonnull Group[] groupArray = openGroups(groups);
     boolean b = groupArray[groupArray.length - 1].attrExists(attributeName);
     closeGroups(groupArray);
     return b;
@@ -218,13 +221,14 @@ public class Hdf5Archive {
    * @param groups the groups
    * @return the attributes
    */
-  public @NotNull Map<String, Object> getAttributes(@NotNull String... groups) {
+  @javax.annotation.Nonnull
+  public Map<String, Object> getAttributes(@javax.annotation.Nonnull String... groups) {
     if (groups.length == 0) {
       return getAttributes(this.file);
     }
-    @NotNull Group[] groupArray = openGroups(groups);
+    @javax.annotation.Nonnull Group[] groupArray = openGroups(groups);
     Group group = groupArray[groupArray.length - 1];
-    @NotNull Map<String, Object> attributes = getAttributes(group);
+    @javax.annotation.Nonnull Map<String, Object> attributes = getAttributes(group);
     closeGroups(groupArray);
     return attributes;
   }
@@ -235,9 +239,10 @@ public class Hdf5Archive {
    * @param group the group
    * @return the attributes
    */
-  public @NotNull Map<String, Object> getAttributes(@NotNull Group group) {
+  @javax.annotation.Nonnull
+  public Map<String, Object> getAttributes(@javax.annotation.Nonnull Group group) {
     int numAttrs = group.getNumAttrs();
-    @NotNull TreeMap<String, Object> attributes = new TreeMap<>();
+    @javax.annotation.Nonnull TreeMap<String, Object> attributes = new TreeMap<>();
     for (int i = 0; i < numAttrs; i++) {
       Attribute attribute = group.openAttribute(i);
       String name = attribute.getName().getString();
@@ -254,27 +259,29 @@ public class Hdf5Archive {
     return attributes;
   }
   
-  private long getI64(@NotNull Attribute attribute) {
+  private long getI64(@javax.annotation.Nonnull Attribute attribute) {
     return getI64(attribute, attribute.getIntType(), new byte[8]);
   }
   
-  private @NotNull String getString(@NotNull Attribute attribute) {
+  @javax.annotation.Nonnull
+  private String getString(@javax.annotation.Nonnull Attribute attribute) {
     return getString(attribute, attribute.getVarLenType(), new byte[1024]);
   }
   
-  private long getI64(@NotNull Attribute attribute, DataType dataType, @NotNull byte[] buffer) {
-    @NotNull BytePointer pointer = new BytePointer(buffer);
+  private long getI64(@javax.annotation.Nonnull Attribute attribute, DataType dataType, @javax.annotation.Nonnull byte[] buffer) {
+    @javax.annotation.Nonnull BytePointer pointer = new BytePointer(buffer);
     attribute.read(dataType, pointer);
     pointer.get(buffer);
     ArrayUtils.reverse(buffer);
     return ByteBuffer.wrap(buffer).asLongBuffer().get();
   }
   
-  private @NotNull String getString(@NotNull Attribute attribute, DataType dataType, @NotNull byte[] buffer) {
-    @NotNull BytePointer pointer = new BytePointer(buffer);
+  @javax.annotation.Nonnull
+  private String getString(@javax.annotation.Nonnull Attribute attribute, DataType dataType, @javax.annotation.Nonnull byte[] buffer) {
+    @javax.annotation.Nonnull BytePointer pointer = new BytePointer(buffer);
     attribute.read(dataType, pointer);
     pointer.get(buffer);
-    @NotNull String str = new String(buffer);
+    @javax.annotation.Nonnull String str = new String(buffer);
     if (str.indexOf('\0') >= 0) {
       return str.substring(0, str.indexOf('\0'));
     }
@@ -289,12 +296,13 @@ public class Hdf5Archive {
    * @param groups Array of zero or more ancestor groups from root to parent.
    * @return data sets
    */
-  public @NotNull List<String> getDataSets(@NotNull String... groups) {
+  @javax.annotation.Nonnull
+  public List<String> getDataSets(@javax.annotation.Nonnull String... groups) {
     if (groups.length == 0) {
       return getObjects(this.file, H5O_TYPE_DATASET);
     }
-    @NotNull Group[] groupArray = openGroups(groups);
-    @NotNull List<String> ls = getObjects(groupArray[groupArray.length - 1], H5O_TYPE_DATASET);
+    @javax.annotation.Nonnull Group[] groupArray = openGroups(groups);
+    @javax.annotation.Nonnull List<String> ls = getObjects(groupArray[groupArray.length - 1], H5O_TYPE_DATASET);
     closeGroups(groupArray);
     return ls;
   }
@@ -305,12 +313,13 @@ public class Hdf5Archive {
    * @param groups Array of zero or more ancestor groups from root to parent.
    * @return groups groups
    */
-  public @NotNull List<String> getGroups(@NotNull String... groups) {
+  @javax.annotation.Nonnull
+  public List<String> getGroups(@javax.annotation.Nonnull String... groups) {
     if (groups.length == 0) {
       return getObjects(this.file, H5O_TYPE_GROUP);
     }
-    @NotNull Group[] groupArray = openGroups(groups);
-    @NotNull List<String> ls = getObjects(groupArray[groupArray.length - 1], H5O_TYPE_GROUP);
+    @javax.annotation.Nonnull Group[] groupArray = openGroups(groups);
+    @javax.annotation.Nonnull List<String> ls = getObjects(groupArray[groupArray.length - 1], H5O_TYPE_GROUP);
     closeGroups(groupArray);
     return ls;
   }
@@ -322,16 +331,16 @@ public class Hdf5Archive {
    * @param datasetName Name of data setBytes
    * @return
    */
-  private @Nullable Tensor readDataSet(@NotNull Group fileGroup, String datasetName) {
+  private @Nullable Tensor readDataSet(@javax.annotation.Nonnull Group fileGroup, String datasetName) {
     DataSet dataset = fileGroup.openDataSet(datasetName);
     DataSpace space = dataset.getSpace();
     int nbDims = space.getSimpleExtentNdims();
-    @NotNull long[] dims = new long[nbDims];
+    @javax.annotation.Nonnull long[] dims = new long[nbDims];
     space.getSimpleExtentDims(dims);
     @Nullable float[] dataBuffer = null;
     @Nullable FloatPointer fp = null;
     int j = 0;
-    @NotNull DataType dataType = new DataType(PredType.NATIVE_FLOAT());
+    @javax.annotation.Nonnull DataType dataType = new DataType(PredType.NATIVE_FLOAT());
     @Nullable Tensor data = null;
     switch (nbDims) {
       case 4: /* 2D Convolution weights */
@@ -395,8 +404,9 @@ public class Hdf5Archive {
    * @param objType   Type of object as integer
    * @return
    */
-  private @NotNull List<String> getObjects(@NotNull Group fileGroup, int objType) {
-    @NotNull List<String> groups = new ArrayList<String>();
+  @javax.annotation.Nonnull
+  private List<String> getObjects(@javax.annotation.Nonnull Group fileGroup, int objType) {
+    @javax.annotation.Nonnull List<String> groups = new ArrayList<String>();
     for (int i = 0; i < fileGroup.getNumObjs(); i++) {
       BytePointer objPtr = fileGroup.getObjnameByIdx(i);
       if (fileGroup.childObjType(objPtr) == objType) {
@@ -412,7 +422,7 @@ public class Hdf5Archive {
    * @param attribute HDF5 attribute to read as JSON formatted string.
    * @return
    */
-  private @Nullable String readAttributeAsJson(@NotNull Attribute attribute) {
+  private @Nullable String readAttributeAsJson(@javax.annotation.Nonnull Attribute attribute) {
     VarLenType vl = attribute.getVarLenType();
     int bufferSizeMult = 1;
     @Nullable String s = null;
@@ -425,12 +435,12 @@ public class Hdf5Archive {
          * buffer and repeat.
          */
     while (true) {
-      @NotNull byte[] attrBuffer = new byte[bufferSizeMult * 2000];
-      @NotNull BytePointer attrPointer = new BytePointer(attrBuffer);
+      @javax.annotation.Nonnull byte[] attrBuffer = new byte[bufferSizeMult * 2000];
+      @javax.annotation.Nonnull BytePointer attrPointer = new BytePointer(attrBuffer);
       attribute.read(vl, attrPointer);
       attrPointer.get(attrBuffer);
       s = new String(attrBuffer);
-      @NotNull ObjectMapper mapper = new ObjectMapper();
+      @javax.annotation.Nonnull ObjectMapper mapper = new ObjectMapper();
       mapper.enable(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY);
       try {
         mapper.readTree(s);
@@ -451,7 +461,7 @@ public class Hdf5Archive {
    * @param attribute HDF5 attribute to read as string.
    * @return
    */
-  private @Nullable String readAttributeAsString(@NotNull Attribute attribute) {
+  private @Nullable String readAttributeAsString(@javax.annotation.Nonnull Attribute attribute) {
     VarLenType vl = attribute.getVarLenType();
     int bufferSizeMult = 1;
     @Nullable String s = null;
@@ -463,8 +473,8 @@ public class Hdf5Archive {
          * until the buffer ends with \u0000
          */
     while (true) {
-      @NotNull byte[] attrBuffer = new byte[bufferSizeMult * 2000];
-      @NotNull BytePointer attrPointer = new BytePointer(attrBuffer);
+      @javax.annotation.Nonnull byte[] attrBuffer = new byte[bufferSizeMult * 2000];
+      @javax.annotation.Nonnull BytePointer attrPointer = new BytePointer(attrBuffer);
       attribute.read(vl, attrPointer);
       attrPointer.get(attrBuffer);
       s = new String(attrBuffer);
@@ -490,7 +500,8 @@ public class Hdf5Archive {
    * @param bufferSize    buffer size to read
    * @return string string
    */
-  public @NotNull String readAttributeAsFixedLengthString(String attributeName, int bufferSize) {
+  @javax.annotation.Nonnull
+  public String readAttributeAsFixedLengthString(String attributeName, int bufferSize) {
     return readAttributeAsFixedLengthString(this.file.openAttribute(attributeName), bufferSize);
   }
   
@@ -500,13 +511,14 @@ public class Hdf5Archive {
    * @param attribute HDF5 attribute to read as string.
    * @return
    */
-  private @NotNull String readAttributeAsFixedLengthString(@NotNull Attribute attribute, int bufferSize) {
+  @javax.annotation.Nonnull
+  private String readAttributeAsFixedLengthString(@javax.annotation.Nonnull Attribute attribute, int bufferSize) {
     VarLenType vl = attribute.getVarLenType();
-    @NotNull byte[] attrBuffer = new byte[bufferSize];
-    @NotNull BytePointer attrPointer = new BytePointer(attrBuffer);
+    @javax.annotation.Nonnull byte[] attrBuffer = new byte[bufferSize];
+    @javax.annotation.Nonnull BytePointer attrPointer = new BytePointer(attrBuffer);
     attribute.read(vl, attrPointer);
     attrPointer.get(attrBuffer);
-    @NotNull String s = new String(attrBuffer);
+    @javax.annotation.Nonnull String s = new String(attrBuffer);
     return s;
   }
   
@@ -520,7 +532,7 @@ public class Hdf5Archive {
    *
    * @param log the log
    */
-  public void print(@NotNull Logger log) {
+  public void print(@javax.annotation.Nonnull Logger log) {
     print(this, log);
   }
   
@@ -529,7 +541,8 @@ public class Hdf5Archive {
    *
    * @return the filename
    */
-  public @NotNull File getFilename() {
+  @javax.annotation.Nonnull
+  public File getFilename() {
     return filename;
   }
 }

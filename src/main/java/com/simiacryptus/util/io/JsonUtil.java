@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayOutputStream;
@@ -42,7 +41,7 @@ public class JsonUtil {
    * @param array the array
    * @return the double [ ]
    */
-  public static double[] getDoubleArray(final @NotNull JsonArray array) {
+  public static double[] getDoubleArray(@javax.annotation.Nonnull final JsonArray array) {
     return IntStream.range(0, array.size()).mapToDouble(i -> array.get(i).getAsDouble()).toArray();
   }
   
@@ -63,8 +62,9 @@ public class JsonUtil {
    * @param kernelDims the kernel dims
    * @return the json
    */
-  public static @NotNull JsonArray getJson(final @NotNull double[] kernelDims) {
-    final @NotNull JsonArray array = new JsonArray();
+  @javax.annotation.Nonnull
+  public static JsonArray getJson(@javax.annotation.Nonnull final double[] kernelDims) {
+    @javax.annotation.Nonnull final JsonArray array = new JsonArray();
     for (final double k : kernelDims) {
       array.add(new JsonPrimitive(k));
     }
@@ -77,8 +77,9 @@ public class JsonUtil {
    * @param kernelDims the kernel dims
    * @return the json
    */
-  public static @NotNull JsonArray getJson(final @NotNull int[] kernelDims) {
-    final @NotNull JsonArray array = new JsonArray();
+  @javax.annotation.Nonnull
+  public static JsonArray getJson(@javax.annotation.Nonnull final int[] kernelDims) {
+    @javax.annotation.Nonnull final JsonArray array = new JsonArray();
     for (final int k : kernelDims) {
       array.add(new JsonPrimitive(k));
     }
@@ -92,10 +93,10 @@ public class JsonUtil {
    * @param obj the obj
    * @throws IOException the io exception
    */
-  public static void writeJson(final @NotNull OutputStream out, final Object obj) throws IOException {
+  public static void writeJson(@javax.annotation.Nonnull final OutputStream out, final Object obj) throws IOException {
     final ObjectMapper mapper = new ObjectMapper().enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL)
                                                   .enable(SerializationFeature.INDENT_OUTPUT);
-    final @NotNull ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    @javax.annotation.Nonnull final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     mapper.writeValue(buffer, obj);
     out.write(buffer.toByteArray());
   }

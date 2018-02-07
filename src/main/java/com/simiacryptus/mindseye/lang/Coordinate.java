@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -64,8 +63,9 @@ public final class Coordinate {
    * @param b the b
    * @return the int [ ]
    */
-  public static @NotNull int[] add(final @NotNull int[] a, final @NotNull int[] b) {
-    final @NotNull int[] r = new int[Math.max(a.length, b.length)];
+  @javax.annotation.Nonnull
+  public static int[] add(@javax.annotation.Nonnull final int[] a, @javax.annotation.Nonnull final int[] b) {
+    @javax.annotation.Nonnull final int[] r = new int[Math.max(a.length, b.length)];
     for (int i = 0; i < r.length; i++) {
       r[i] = (a.length <= i ? 0 : a[i]) + (b.length <= i ? 0 : b[i]);
     }
@@ -116,7 +116,8 @@ public final class Coordinate {
    * @param coords the coords
    * @return the coords
    */
-  @NotNull Coordinate setCoords(final int[] coords) {
+  @javax.annotation.Nonnull
+  Coordinate setCoords(final int[] coords) {
     this.coords = coords;
     return this;
   }
@@ -136,7 +137,8 @@ public final class Coordinate {
    * @param index the index
    * @return the index
    */
-  @NotNull Coordinate setIndex(final int index) {
+  @javax.annotation.Nonnull
+  Coordinate setIndex(final int index) {
     this.index = index;
     return this;
   }

@@ -25,7 +25,6 @@ import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -55,7 +54,7 @@ public class AssertDimensionsLayer extends NNLayer {
    *
    * @param json the json
    */
-  protected AssertDimensionsLayer(final @NotNull JsonObject json) {
+  protected AssertDimensionsLayer(@javax.annotation.Nonnull final JsonObject json) {
     super(json);
     final JsonArray dimsJson = json.get("dims").getAsJsonArray();
     dims = IntStream.range(0, dimsJson.size()).map(i -> dimsJson.get(i).getAsInt()).toArray();
@@ -68,12 +67,12 @@ public class AssertDimensionsLayer extends NNLayer {
    * @param rs   the rs
    * @return the assert dimensions layer
    */
-  public static AssertDimensionsLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static AssertDimensionsLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new AssertDimensionsLayer(json);
   }
   
   @Override
-  public NNResult eval(final @NotNull NNResult... array) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... array) {
     if (0 == array.length) {
       throw new IllegalArgumentException();
     }
@@ -81,7 +80,7 @@ public class AssertDimensionsLayer extends NNLayer {
     if (0 == input.getData().length()) {
       throw new IllegalArgumentException();
     }
-    final @NotNull int[] inputDims = input.getData().get(0).getDimensions();
+    @javax.annotation.Nonnull final int[] inputDims = input.getData().get(0).getDimensions();
     if (!Arrays.equals(inputDims, dims)) {
       throw new IllegalArgumentException(Arrays.toString(inputDims) + " != " + Arrays.toString(dims));
     }
@@ -95,10 +94,11 @@ public class AssertDimensionsLayer extends NNLayer {
     return super.getChildren();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
-    final @NotNull JsonArray dimsJson = new JsonArray();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @javax.annotation.Nonnull final JsonArray dimsJson = new JsonArray();
     for (final int dim : dims) {
       dimsJson.add(new JsonPrimitive(dim));
     }
@@ -106,8 +106,9 @@ public class AssertDimensionsLayer extends NNLayer {
     return json;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
   

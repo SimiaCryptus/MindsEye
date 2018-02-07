@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -54,7 +53,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param target the target
    * @param delta  the delta
    */
-  public Delta(final K layer, final double[] target, final @NotNull double[] delta) {
+  public Delta(final K layer, final double[] target, @javax.annotation.Nonnull final double[] delta) {
     this(layer, target, delta, RecycleBin.DOUBLES.obtain(delta.length));
   }
   
@@ -81,7 +80,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param delta            the delta
    * @param dataCompensation the data compensation
    */
-  public static void accumulate(final @NotNull double[] data, final double[] delta, final @Nullable double[] dataCompensation) {
+  public static void accumulate(@javax.annotation.Nonnull final double[] data, final double[] delta, final @Nullable double[] dataCompensation) {
     synchronized (data) {
       for (int i = 0; i < data.length; i++) {
         final double sum = data[i];
@@ -131,7 +130,8 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param buffer the buffer
    * @return the delta
    */
-  public @NotNull Delta<K> addInPlace(final @NotNull Delta<K> buffer) {
+  @javax.annotation.Nonnull
+  public Delta<K> addInPlace(@javax.annotation.Nonnull final Delta<K> buffer) {
     assertAlive();
     return addInPlace(buffer.delta).addInPlace(buffer.deltaCompensation);
   }
@@ -142,7 +142,8 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param data the data
    * @return the delta
    */
-  public @NotNull Delta<K> addInPlace(final @NotNull double[] data) {
+  @javax.annotation.Nonnull
+  public Delta<K> addInPlace(@javax.annotation.Nonnull final double[] data) {
     assert data.length == this.target.length;
     //assert Arrays.stream(data).allMatch(Double::isFinite);
     Delta.accumulate(getDelta(), data, deltaCompensation);
@@ -151,8 +152,9 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
   }
   
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull Delta<K> copy() {
+  public Delta<K> copy() {
     assertAlive();
     return new Delta<K>(layer, target, RecycleBin.DOUBLES.copyOf(delta, length()), RecycleBin.DOUBLES.copyOf(deltaCompensation, length()));
   }
@@ -168,8 +170,9 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
     }
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull Delta<K> map(final @NotNull DoubleUnaryOperator mapper) {
+  public Delta<K> map(@javax.annotation.Nonnull final DoubleUnaryOperator mapper) {
     return new Delta<K>(layer, target, Arrays.stream(getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
   }
   
@@ -179,12 +182,14 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param f the f
    * @return the delta
    */
-  public @NotNull Delta<K> scale(final double f) {
+  @javax.annotation.Nonnull
+  public Delta<K> scale(final double f) {
     return map(x -> x * f);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull Delta<K> set(final double[] data) {
+  public Delta<K> set(final double[] data) {
     super.set(data);
     return this;
   }

@@ -25,15 +25,15 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * The most basic type of orientation, which uses the raw function gradient.
  */
 public class GradientDescent extends OrientationStrategyBase<SimpleLineSearchCursor> {
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull SimpleLineSearchCursor orient(final Trainable subject, final @NotNull PointSample measurement, final @NotNull TrainingMonitor monitor) {
+  public SimpleLineSearchCursor orient(final Trainable subject, @javax.annotation.Nonnull final PointSample measurement, @javax.annotation.Nonnull final TrainingMonitor monitor) {
     final DeltaSet<NNLayer> direction = measurement.delta.scale(-1);
     final double magnitude = direction.getMagnitude();
     if (Math.abs(magnitude) < 1e-10) {
@@ -42,7 +42,7 @@ public class GradientDescent extends OrientationStrategyBase<SimpleLineSearchCur
     else if (Math.abs(magnitude) < 1e-5) {
       monitor.log(String.format("Low gradient: %s", magnitude));
     }
-    @NotNull SimpleLineSearchCursor gd = new SimpleLineSearchCursor(subject, measurement, direction).setDirectionType("GD");
+    @javax.annotation.Nonnull SimpleLineSearchCursor gd = new SimpleLineSearchCursor(subject, measurement, direction).setDirectionType("GD");
     direction.freeRef();
     return gd;
   }

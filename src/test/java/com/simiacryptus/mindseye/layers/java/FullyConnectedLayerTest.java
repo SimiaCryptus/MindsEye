@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Random;
@@ -31,7 +30,8 @@ import java.util.Random;
  */
 public abstract class FullyConnectedLayerTest extends LayerTestBase {
   
-  private final @NotNull FullyConnectedLayer fullyConnectedLayer;
+  @javax.annotation.Nonnull
+  private final FullyConnectedLayer fullyConnectedLayer;
   private final int inputs;
   private final int outputs;
   
@@ -47,8 +47,9 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
     this.outputs = outputs;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull int[][] getSmallDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{
       {inputs}
     };
@@ -59,8 +60,9 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
     return FullyConnectedReferenceLayer.class;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return fullyConnectedLayer;
   }
   

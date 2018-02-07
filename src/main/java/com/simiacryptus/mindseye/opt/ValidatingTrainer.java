@@ -33,7 +33,6 @@ import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.lang.TimedResult;
-import org.jetbrains.annotations.NotNull;
 
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
@@ -57,10 +56,12 @@ public class ValidatingTrainer {
   
   
   private final AtomicInteger disappointments = new AtomicInteger(0);
-  private final @NotNull List<TrainingPhase> regimen;
+  @javax.annotation.Nonnull
+  private final List<TrainingPhase> regimen;
   private final AtomicLong trainingMeasurementTime = new AtomicLong(0);
   private final AtomicLong validatingMeasurementTime = new AtomicLong(0);
-  private final @NotNull Trainable validationSubject;
+  @javax.annotation.Nonnull
+  private final Trainable validationSubject;
   private double adjustmentFactor = 0.5;
   private double adjustmentTolerance = 0.1;
   private AtomicInteger currentIteration = new AtomicInteger(0);
@@ -86,7 +87,7 @@ public class ValidatingTrainer {
    * @param trainingSubject   the training subject
    * @param validationSubject the validation subject
    */
-  public ValidatingTrainer(final @NotNull SampledTrainable trainingSubject, final @NotNull Trainable validationSubject) {
+  public ValidatingTrainer(@javax.annotation.Nonnull final SampledTrainable trainingSubject, @javax.annotation.Nonnull final Trainable validationSubject) {
     regimen = new ArrayList<TrainingPhase>(Arrays.asList(new TrainingPhase(new PerformanceWrapper(trainingSubject))));
     validationSubject.addRef();
     this.validationSubject = new TrainableBase() {
@@ -97,9 +98,9 @@ public class ValidatingTrainer {
   
       @Override
       public PointSample measure(final TrainingMonitor monitor) {
-        final @NotNull TimedResult<PointSample> time = TimedResult.time(() ->
+        @javax.annotation.Nonnull final TimedResult<PointSample> time = TimedResult.time(() ->
                                                                  validationSubject.measure(monitor)
-                                                                       );
+                                                                                        );
         validatingMeasurementTime.addAndGet(time.timeNanos);
         return time.result;
       }
@@ -119,13 +120,14 @@ public class ValidatingTrainer {
     terminateThreshold = Double.NEGATIVE_INFINITY;
   }
   
-  private static @NotNull String getId(final @NotNull DoubleBuffer<NNLayer> x) {
+  @javax.annotation.Nonnull
+  private static String getId(@javax.annotation.Nonnull final DoubleBuffer<NNLayer> x) {
     final String name = x.layer.getName();
-    final @NotNull String className = x.layer.getClass().getSimpleName();
+    @javax.annotation.Nonnull final String className = x.layer.getClass().getSimpleName();
     return name.contains(className) ? className : name;
   }
   
-  private String compare(final @NotNull PointSample previousPoint, final @NotNull PointSample nextPoint) {
+  private String compare(@javax.annotation.Nonnull final PointSample previousPoint, @javax.annotation.Nonnull final PointSample nextPoint) {
     final StateSet<NNLayer> nextWeights = nextPoint.weights;
     final StateSet<NNLayer> prevWeights = previousPoint.weights;
     return String.format("Overall network state change: %s", prevWeights.stream()
@@ -158,7 +160,8 @@ public class ValidatingTrainer {
    * @param adjustmentFactor the adjustment factor
    * @return the adjustment factor
    */
-  public @NotNull ValidatingTrainer setAdjustmentFactor(final double adjustmentFactor) {
+  @javax.annotation.Nonnull
+  public ValidatingTrainer setAdjustmentFactor(final double adjustmentFactor) {
     this.adjustmentFactor = adjustmentFactor;
     return this;
   }
@@ -178,7 +181,8 @@ public class ValidatingTrainer {
    * @param adjustmentTolerance the adjustment tolerance
    * @return the adjustment tolerance
    */
-  public @NotNull ValidatingTrainer setAdjustmentTolerance(final double adjustmentTolerance) {
+  @javax.annotation.Nonnull
+  public ValidatingTrainer setAdjustmentTolerance(final double adjustmentTolerance) {
     this.adjustmentTolerance = adjustmentTolerance;
     return this;
   }
@@ -198,7 +202,8 @@ public class ValidatingTrainer {
    * @param currentIteration the current iteration
    * @return the current iteration
    */
-  public @NotNull ValidatingTrainer setCurrentIteration(final AtomicInteger currentIteration) {
+  @javax.annotation.Nonnull
+  public ValidatingTrainer setCurrentIteration(final AtomicInteger currentIteration) {
     this.currentIteration = currentIteration;
     return this;
   }
@@ -236,7 +241,8 @@ public class ValidatingTrainer {
    * @param epochIterations the runPhase iterations
    * @return the runPhase iterations
    */
-  public @NotNull ValidatingTrainer setEpochIterations(final int epochIterations) {
+  @javax.annotation.Nonnull
+  public ValidatingTrainer setEpochIterations(final int epochIterations) {
     this.epochIterations = epochIterations;
     return this;
   }
@@ -274,7 +280,8 @@ public class ValidatingTrainer {
    * @param maxEpochIterations the max runPhase iterations
    * @return the max runPhase iterations
    */
-  public @NotNull ValidatingTrainer setMaxEpochIterations(final int maxEpochIterations) {
+  @javax.annotation.Nonnull
+  public ValidatingTrainer setMaxEpochIterations(final int maxEpochIterations) {
     this.maxEpochIterations = maxEpochIterations;
     return this;
   }
@@ -294,7 +301,8 @@ public class ValidatingTrainer {
    * @param maxIterations the max iterations
    * @return the max iterations
    */
-  public @NotNull ValidatingTrainer setMaxIterations(final int maxIterations) {
+  @javax.annotation.Nonnull
+  public ValidatingTrainer setMaxIterations(final int maxIterations) {
     this.maxIterations = maxIterations;
     return this;
   }
@@ -314,7 +322,8 @@ public class ValidatingTrainer {
    * @param maxTrainingSize the max training size
    * @return the max training size
    */
-  public @NotNull ValidatingTrainer setMaxTrainingSize(final int maxTrainingSize) {
+  @javax.annotation.Nonnull
+  public ValidatingTrainer setMaxTrainingSize(final int maxTrainingSize) {
     this.maxTrainingSize = maxTrainingSize;
     return this;
   }
@@ -334,7 +343,8 @@ public class ValidatingTrainer {
    * @param minEpochIterations the min runPhase iterations
    * @return the min runPhase iterations
    */
-  public @NotNull ValidatingTrainer setMinEpochIterations(final int minEpochIterations) {
+  @javax.annotation.Nonnull
+  public ValidatingTrainer setMinEpochIterations(final int minEpochIterations) {
     this.minEpochIterations = minEpochIterations;
     return this;
   }
@@ -354,7 +364,8 @@ public class ValidatingTrainer {
    * @param minTrainingSize the min training size
    * @return the min training size
    */
-  public @NotNull ValidatingTrainer setMinTrainingSize(final int minTrainingSize) {
+  @javax.annotation.Nonnull
+  public ValidatingTrainer setMinTrainingSize(final int minTrainingSize) {
     this.minTrainingSize = minTrainingSize;
     return this;
   }
@@ -374,7 +385,8 @@ public class ValidatingTrainer {
    * @param monitor the monitor
    * @return the monitor
    */
-  public @NotNull ValidatingTrainer setMonitor(final TrainingMonitor monitor) {
+  @javax.annotation.Nonnull
+  public ValidatingTrainer setMonitor(final TrainingMonitor monitor) {
     this.monitor = monitor;
     return this;
   }
@@ -394,7 +406,8 @@ public class ValidatingTrainer {
    * @param overtrainingTarget the overtraining target
    * @return the overtraining target
    */
-  public @NotNull ValidatingTrainer setOvertrainingTarget(final double overtrainingTarget) {
+  @javax.annotation.Nonnull
+  public ValidatingTrainer setOvertrainingTarget(final double overtrainingTarget) {
     this.overtrainingTarget = overtrainingTarget;
     return this;
   }
@@ -414,7 +427,8 @@ public class ValidatingTrainer {
    * @param pessimism the pessimism
    * @return the pessimism
    */
-  public @NotNull ValidatingTrainer setPessimism(final double pessimism) {
+  @javax.annotation.Nonnull
+  public ValidatingTrainer setPessimism(final double pessimism) {
     this.pessimism = pessimism;
     return this;
   }
@@ -424,7 +438,8 @@ public class ValidatingTrainer {
    *
    * @return the regimen
    */
-  public @NotNull List<TrainingPhase> getRegimen() {
+  @javax.annotation.Nonnull
+  public List<TrainingPhase> getRegimen() {
     return regimen;
   }
   
@@ -443,7 +458,8 @@ public class ValidatingTrainer {
    * @param terminateThreshold the terminate threshold
    * @return the terminate threshold
    */
-  public @NotNull ValidatingTrainer setTerminateThreshold(final double terminateThreshold) {
+  @javax.annotation.Nonnull
+  public ValidatingTrainer setTerminateThreshold(final double terminateThreshold) {
     this.terminateThreshold = terminateThreshold;
     return this;
   }
@@ -463,7 +479,8 @@ public class ValidatingTrainer {
    * @param timeout the timeout
    * @return the timeout
    */
-  public @NotNull ValidatingTrainer setTimeout(final Duration timeout) {
+  @javax.annotation.Nonnull
+  public ValidatingTrainer setTimeout(final Duration timeout) {
     this.timeout = timeout;
     return this;
   }
@@ -483,7 +500,8 @@ public class ValidatingTrainer {
    * @param trainingSize the training size
    * @return the training size
    */
-  public @NotNull ValidatingTrainer setTrainingSize(final int trainingSize) {
+  @javax.annotation.Nonnull
+  public ValidatingTrainer setTrainingSize(final int trainingSize) {
     this.trainingSize = trainingSize;
     return this;
   }
@@ -503,7 +521,8 @@ public class ValidatingTrainer {
    * @param trainingTarget the training target
    * @return the training target
    */
-  public @NotNull ValidatingTrainer setTrainingTarget(final double trainingTarget) {
+  @javax.annotation.Nonnull
+  public ValidatingTrainer setTrainingTarget(final double trainingTarget) {
     this.trainingTarget = trainingTarget;
     return this;
   }
@@ -513,11 +532,12 @@ public class ValidatingTrainer {
    *
    * @return the validation subject
    */
-  public @NotNull Trainable getValidationSubject() {
+  @javax.annotation.Nonnull
+  public Trainable getValidationSubject() {
     return validationSubject;
   }
   
-  private PointSample measure(final @NotNull TrainingPhase phase) {
+  private PointSample measure(@javax.annotation.Nonnull final TrainingPhase phase) {
     int retries = 0;
     do {
       if (10 < retries++) throw new IterativeStopException();
@@ -527,7 +547,8 @@ public class ValidatingTrainer {
     } while (true);
   }
   
-  private @NotNull ValidatingTrainer reset(final @NotNull TrainingPhase phase, final long seed) {
+  @javax.annotation.Nonnull
+  private ValidatingTrainer reset(@javax.annotation.Nonnull final TrainingPhase phase, final long seed) {
     if (!phase.trainingSubject.reseed(seed)) throw new IterativeStopException();
     phase.orientation.reset();
     phase.trainingSubject.reseed(seed);
@@ -552,7 +573,7 @@ public class ValidatingTrainer {
           if (layer instanceof StochasticComponent) ((StochasticComponent) layer).clearNoise();
         });
       }
-      final @NotNull EpochParams epochParams = new EpochParams(timeoutAt, epochIterations, getTrainingSize(), validationSubject.measure(monitor));
+      @javax.annotation.Nonnull final EpochParams epochParams = new EpochParams(timeoutAt, epochIterations, getTrainingSize(), validationSubject.measure(monitor));
       int epochNumber = 0;
       int iterationNumber = 0;
       int lastImprovement = 0;
@@ -563,7 +584,7 @@ public class ValidatingTrainer {
           break;
         }
         monitor.log(String.format("Epoch parameters: %s, %s", epochParams.trainingSize, epochParams.iterations));
-        final @NotNull List<TrainingPhase> regimen = getRegimen();
+        @javax.annotation.Nonnull final List<TrainingPhase> regimen = getRegimen();
         final long seed = System.nanoTime();
         final List<EpochResult> epochResults = IntStream.range(0, regimen.size()).mapToObj(i -> {
           final TrainingPhase phase = getRegimen().get(i);
@@ -637,7 +658,7 @@ public class ValidatingTrainer {
         });
       }
       return epochParams.validation.getMean();
-    } catch (final @NotNull Throwable e) {
+    } catch (@javax.annotation.Nonnull final Throwable e) {
       RecycleBin.DOUBLES.printNetProfiling(System.err);
       throw new RuntimeException(e);
     }
@@ -652,7 +673,8 @@ public class ValidatingTrainer {
    * @param seed        the seed
    * @return the runPhase result
    */
-  protected @NotNull EpochResult runPhase(final @NotNull EpochParams epochParams, final @NotNull TrainingPhase phase, final int i, final long seed) {
+  @javax.annotation.Nonnull
+  protected EpochResult runPhase(@javax.annotation.Nonnull final EpochParams epochParams, @javax.annotation.Nonnull final TrainingPhase phase, final int i, final long seed) {
     monitor.log(String.format("Phase %d: %s", i, phase));
     phase.trainingSubject.setTrainingSize(epochParams.trainingSize);
     monitor.log(String.format("resetAndMeasure; trainingSize=%s", epochParams.trainingSize));
@@ -666,7 +688,7 @@ public class ValidatingTrainer {
       }
       final long startTime = System.nanoTime();
       final long prevGcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
-      final @NotNull StepResult epoch = runStep(currentPoint, phase);
+      @javax.annotation.Nonnull final StepResult epoch = runStep(currentPoint, phase);
       final long newGcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
       final long endTime = System.nanoTime();
       final String performance = String.format("%s in %.3f seconds; %.3f in orientation, %.3f in gc, %.3f in line search; %.3f trainAll time",
@@ -697,9 +719,10 @@ public class ValidatingTrainer {
    * @param phase         the phase
    * @return the runStep result
    */
-  protected @NotNull StepResult runStep(final @NotNull PointSample previousPoint, final @NotNull TrainingPhase phase) {
+  @javax.annotation.Nonnull
+  protected StepResult runStep(@javax.annotation.Nonnull final PointSample previousPoint, @javax.annotation.Nonnull final TrainingPhase phase) {
     currentIteration.incrementAndGet();
-    final @NotNull TimedResult<LineSearchCursor> timedOrientation = TimedResult.time(() -> phase.orientation.orient(phase.trainingSubject, previousPoint, monitor));
+    @javax.annotation.Nonnull final TimedResult<LineSearchCursor> timedOrientation = TimedResult.time(() -> phase.orientation.orient(phase.trainingSubject, previousPoint, monitor));
     final LineSearchCursor direction = timedOrientation.result;
     final String directionType = direction.getDirectionType();
     LineSearchStrategy lineSearchStrategy;
@@ -711,8 +734,8 @@ public class ValidatingTrainer {
       lineSearchStrategy = phase.lineSearchFactory.apply(direction.getDirectionType());
       phase.lineSearchStrategyMap.put(directionType, lineSearchStrategy);
     }
-    final @NotNull TimedResult<PointSample> timedLineSearch = TimedResult.time(() -> {
-      final @NotNull FailsafeLineSearchCursor cursor = new FailsafeLineSearchCursor(direction, previousPoint, monitor);
+    @javax.annotation.Nonnull final TimedResult<PointSample> timedLineSearch = TimedResult.time(() -> {
+      @javax.annotation.Nonnull final FailsafeLineSearchCursor cursor = new FailsafeLineSearchCursor(direction, previousPoint, monitor);
       lineSearchStrategy.step(cursor, monitor);
       final PointSample restore = cursor.getBest(monitor).restore();
       //cursor.step(restore.rate, monitor);
@@ -732,8 +755,9 @@ public class ValidatingTrainer {
    * @param lineSearchFactory the line search factory
    * @return the line search factory
    */
+  @javax.annotation.Nonnull
   @Deprecated
-  public @NotNull ValidatingTrainer setLineSearchFactory(final Function<String, LineSearchStrategy> lineSearchFactory) {
+  public ValidatingTrainer setLineSearchFactory(final Function<String, LineSearchStrategy> lineSearchFactory) {
     getRegimen().get(0).setLineSearchFactory(lineSearchFactory);
     return this;
   }
@@ -744,8 +768,9 @@ public class ValidatingTrainer {
    * @param orientation the orientation
    * @return the orientation
    */
+  @javax.annotation.Nonnull
   @Deprecated
-  public @NotNull ValidatingTrainer setOrientation(final OrientationStrategy<?> orientation) {
+  public ValidatingTrainer setOrientation(final OrientationStrategy<?> orientation) {
     getRegimen().get(0).setOrientation(orientation);
     return this;
   }
@@ -757,7 +782,8 @@ public class ValidatingTrainer {
    * @param units  the units
    * @return the timeout
    */
-  public @NotNull ValidatingTrainer setTimeout(final int number, final @NotNull TemporalUnit units) {
+  @javax.annotation.Nonnull
+  public ValidatingTrainer setTimeout(final int number, @javax.annotation.Nonnull final TemporalUnit units) {
     timeout = Duration.of(number, units);
     return this;
   }
@@ -769,7 +795,8 @@ public class ValidatingTrainer {
    * @param units  the units
    * @return the timeout
    */
-  public @NotNull ValidatingTrainer setTimeout(final int number, final @NotNull TimeUnit units) {
+  @javax.annotation.Nonnull
+  public ValidatingTrainer setTimeout(final int number, @javax.annotation.Nonnull final TimeUnit units) {
     return setTimeout(number, Util.cvt(units));
   }
   
@@ -780,7 +807,7 @@ public class ValidatingTrainer {
    * @param timeoutMs the timeout ms
    * @return the boolean
    */
-  protected boolean shouldHalt(final @NotNull TrainingMonitor monitor, final long timeoutMs) {
+  protected boolean shouldHalt(@javax.annotation.Nonnull final TrainingMonitor monitor, final long timeoutMs) {
     System.currentTimeMillis();
     if (timeoutMs < System.currentTimeMillis()) {
       monitor.log("Training timeout");
@@ -892,7 +919,8 @@ public class ValidatingTrainer {
      * @param lineSearchFactory the line search factory
      * @return the line search factory
      */
-    public @NotNull TrainingPhase setLineSearchFactory(final Function<String, LineSearchStrategy> lineSearchFactory) {
+    @javax.annotation.Nonnull
+    public TrainingPhase setLineSearchFactory(final Function<String, LineSearchStrategy> lineSearchFactory) {
       this.lineSearchFactory = lineSearchFactory;
       return this;
     }
@@ -912,7 +940,8 @@ public class ValidatingTrainer {
      * @param lineSearchStrategyMap the line search strategy map
      * @return the line search strategy map
      */
-    public @NotNull TrainingPhase setLineSearchStrategyMap(final Map<String, LineSearchStrategy> lineSearchStrategyMap) {
+    @javax.annotation.Nonnull
+    public TrainingPhase setLineSearchStrategyMap(final Map<String, LineSearchStrategy> lineSearchStrategyMap) {
       this.lineSearchStrategyMap = lineSearchStrategyMap;
       return this;
     }
@@ -932,7 +961,8 @@ public class ValidatingTrainer {
      * @param orientation the orientation
      * @return the orientation
      */
-    public @NotNull TrainingPhase setOrientation(final OrientationStrategy<?> orientation) {
+    @javax.annotation.Nonnull
+    public TrainingPhase setOrientation(final OrientationStrategy<?> orientation) {
       this.orientation = orientation;
       return this;
     }
@@ -952,13 +982,15 @@ public class ValidatingTrainer {
      * @param trainingSubject the training subject
      * @return the training subject
      */
-    public @NotNull TrainingPhase setTrainingSubject(final SampledTrainable trainingSubject) {
+    @javax.annotation.Nonnull
+    public TrainingPhase setTrainingSubject(final SampledTrainable trainingSubject) {
       this.trainingSubject = trainingSubject;
       return this;
     }
   
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull String toString() {
+    public String toString() {
       return "TrainingPhase{" +
         "trainingSubject=" + trainingSubject +
         ", orientation=" + orientation +
@@ -976,9 +1008,10 @@ public class ValidatingTrainer {
     public PerformanceWrapper(final SampledTrainable trainingSubject) {
       super(trainingSubject);
     }
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull SampledCachedTrainable<? extends SampledTrainable> cached() {
+    public SampledCachedTrainable<? extends SampledTrainable> cached() {
       return new SampledCachedTrainable<>(this);
     }
     
@@ -989,15 +1022,16 @@ public class ValidatingTrainer {
     
     @Override
     public PointSample measure(final TrainingMonitor monitor) {
-      final @NotNull TimedResult<PointSample> time = TimedResult.time(() ->
+      @javax.annotation.Nonnull final TimedResult<PointSample> time = TimedResult.time(() ->
                                                                getInner().measure(monitor)
-                                                                     );
+                                                                                      );
       trainingMeasurementTime.addAndGet(time.timeNanos);
       return time.result;
     }
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull SampledTrainable setTrainingSize(final int trainingSize) {
+    public SampledTrainable setTrainingSize(final int trainingSize) {
       getInner().setTrainingSize(trainingSize);
       return this;
     }

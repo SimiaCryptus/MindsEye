@@ -29,7 +29,6 @@ import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
@@ -73,9 +72,10 @@ public abstract class PipelineTest {
    * @param layers the dim list
    * @return the nn layer
    */
-  public @NotNull NNLayer buildNetwork(final @NotNull NNLayer... layers) {
-    final @NotNull PipelineNetwork network = new PipelineNetwork(1);
-    for (final @NotNull NNLayer layer : layers) {
+  @javax.annotation.Nonnull
+  public NNLayer buildNetwork(@javax.annotation.Nonnull final NNLayer... layers) {
+    @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork(1);
+    for (@javax.annotation.Nonnull final NNLayer layer : layers) {
       network.add(layer.copy());
     }
     return network;
@@ -94,7 +94,7 @@ public abstract class PipelineTest {
    * @param log   the log
    * @param layer the layer
    */
-  public void graphviz(final @NotNull NotebookOutput log, final NNLayer layer) {
+  public void graphviz(@javax.annotation.Nonnull final NotebookOutput log, final NNLayer layer) {
     if (layer instanceof DAGNetwork) {
       log.p("This is a network with the following layout:");
       log.code(() -> {
@@ -119,7 +119,7 @@ public abstract class PipelineTest {
    * @param inputDims the input dims
    * @return the tensor [ ]
    */
-  public Tensor[] randomize(final @NotNull int[][] inputDims) {
+  public Tensor[] randomize(@javax.annotation.Nonnull final int[][] inputDims) {
     return Arrays.stream(inputDims).map(dim -> new Tensor(dim).set(this::random)).toArray(i -> new Tensor[i]);
   }
   
@@ -130,7 +130,7 @@ public abstract class PipelineTest {
    */
   @Test
   public void test() throws Throwable {
-    try (@NotNull NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
+    try (@javax.annotation.Nonnull NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
       test(log);
     }
   }
@@ -140,12 +140,12 @@ public abstract class PipelineTest {
    *
    * @param log the log
    */
-  public void test(final @NotNull NotebookOutput log) {
-    final @NotNull ArrayList<NNLayer> workingSpec = new ArrayList<>();
+  public void test(@javax.annotation.Nonnull final NotebookOutput log) {
+    @javax.annotation.Nonnull final ArrayList<NNLayer> workingSpec = new ArrayList<>();
     int layerIndex = 0;
     for (final NNLayer l : pipeline) {
       workingSpec.add(l);
-      final @NotNull NNLayer networkHead = buildNetwork(workingSpec.toArray(new NNLayer[]{}));
+      @javax.annotation.Nonnull final NNLayer networkHead = buildNetwork(workingSpec.toArray(new NNLayer[]{}));
       graphviz(log, networkHead);
       test(log, networkHead, String.format("Pipeline Network with %d Layers", layerIndex++), getInputDims());
     }
@@ -160,7 +160,7 @@ public abstract class PipelineTest {
    * @param inputDims the input dims
    * @return the double
    */
-  public @Nullable TrainingTester.ComponentResult test(final @NotNull NotebookOutput log, final @NotNull NNLayer layer, final String header, final @NotNull int[]... inputDims) {
+  public @Nullable TrainingTester.ComponentResult test(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer layer, final String header, @javax.annotation.Nonnull final int[]... inputDims) {
     final NNLayer component = layer.copy();
     final Tensor[] randomize = randomize(inputDims);
     new SerializationTest().test(log, component, randomize);

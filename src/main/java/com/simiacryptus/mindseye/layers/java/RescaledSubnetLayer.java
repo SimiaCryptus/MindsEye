@@ -27,7 +27,6 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.ImgConcatLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -63,7 +62,7 @@ public class RescaledSubnetLayer extends NNLayer {
    * @param json the json
    * @param rs   the rs
    */
-  protected RescaledSubnetLayer(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  protected RescaledSubnetLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json);
     scale = json.getAsJsonPrimitive("scale").getAsInt();
     JsonObject subnetwork = json.getAsJsonObject("subnetwork");
@@ -77,23 +76,23 @@ public class RescaledSubnetLayer extends NNLayer {
    * @param rs   the rs
    * @return the rescaled subnet layer
    */
-  public static RescaledSubnetLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static RescaledSubnetLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new RescaledSubnetLayer(json, rs);
   }
   
   @Override
-  public NNResult eval(final @NotNull NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     assert 1 == inObj.length;
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
-    final @NotNull int[] inputDims = batch.get(0).getDimensions();
+    @javax.annotation.Nonnull final int[] inputDims = batch.get(0).getDimensions();
     assert 3 == inputDims.length;
     if (1 == scale) return subnetwork.eval(inObj);
   
-    final @NotNull PipelineNetwork network = new PipelineNetwork();
+    @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
     final DAGNode condensed = network.add(new ImgReshapeLayer(scale, scale, false));
     network.add(new ImgConcatLayer(), IntStream.range(0, scale * scale).mapToObj(subband -> {
-      final @NotNull int[] select = new int[inputDims[2]];
+      @javax.annotation.Nonnull final int[] select = new int[inputDims[2]];
       for (int i = 0; i < inputDims[2]; i++) {
         select[i] = subband * inputDims[2] + i;
       }
@@ -106,17 +105,19 @@ public class RescaledSubnetLayer extends NNLayer {
     return network.eval(inObj);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("scale", scale);
     json.add("subnetwork", subnetwork.getJson(resources, dataSerializer));
     return json;
   }
   
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return new ArrayList<>();
   }
   

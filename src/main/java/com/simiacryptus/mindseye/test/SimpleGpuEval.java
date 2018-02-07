@@ -27,7 +27,6 @@ import com.simiacryptus.mindseye.lang.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.lang.cudnn.GpuDevice;
 import com.simiacryptus.mindseye.lang.cudnn.GpuTensorList;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * The type Simple gpu eval.
@@ -60,9 +59,10 @@ public class SimpleGpuEval extends SimpleListEval {
     return new SimpleGpuEval(layer, gpu, tensor).call();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull TensorList getFeedback(final @NotNull TensorList original) {
-    @NotNull TensorArray tensorArray = TensorArray.wrap(original.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i]));
+  public TensorList getFeedback(@javax.annotation.Nonnull final TensorList original) {
+    @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(original.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i]));
     CudaPtr cudaPtr = CudaPtr.getCudaPtr(Precision.Double, tensorArray);
     tensorArray.freeRef();
     return GpuTensorList.wrap(cudaPtr, original.length(), original.getDimensions(), Precision.Double);

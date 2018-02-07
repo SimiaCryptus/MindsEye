@@ -23,7 +23,6 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.java.*;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
@@ -47,7 +46,7 @@ public class ConvPipelineTest extends PipelineTest {
    * @return the nn layer [ ]
    */
   public static NNLayer[] buildList_1() {
-    final @NotNull ArrayList<NNLayer> network = new ArrayList<NNLayer>();
+    @javax.annotation.Nonnull final ArrayList<NNLayer> network = new ArrayList<NNLayer>();
     
     network.add(new ConvolutionLayer(3, 3, 3, 10).set(i -> 1e-8 * (Math.random() - 0.5)));
     network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
@@ -76,8 +75,9 @@ public class ConvPipelineTest extends PipelineTest {
     return network.toArray(new NNLayer[]{});
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull int[] getInputDims() {
+  public int[] getInputDims() {
     return new int[]{256, 256, 3};
   }
 }

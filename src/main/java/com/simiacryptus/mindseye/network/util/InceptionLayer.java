@@ -26,7 +26,6 @@ import com.simiacryptus.mindseye.layers.java.ImgConcatLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +46,8 @@ public class InceptionLayer extends DAGNetwork {
   /**
    * The Convolution layers.
    */
-  @NotNull List<ConvolutionLayer> convolutionLayers = new ArrayList<>();
+  @javax.annotation.Nonnull
+  List<ConvolutionLayer> convolutionLayers = new ArrayList<>();
   
   /**
    * Instantiates a new Inception layer.
@@ -57,11 +57,11 @@ public class InceptionLayer extends DAGNetwork {
   public InceptionLayer(final int[][][] kernels) {
     super(1);
     this.kernels = kernels;
-    final @NotNull List<DAGNode> pipelines = new ArrayList<>();
-    for (final @NotNull int[][] kernelPipeline : this.kernels) {
-      final @NotNull PipelineNetwork kernelPipelineNetwork = new PipelineNetwork();
+    @javax.annotation.Nonnull final List<DAGNode> pipelines = new ArrayList<>();
+    for (@javax.annotation.Nonnull final int[][] kernelPipeline : this.kernels) {
+      @javax.annotation.Nonnull final PipelineNetwork kernelPipelineNetwork = new PipelineNetwork();
       for (final int[] kernel : kernelPipeline) {
-        final @NotNull ConvolutionLayer convolutionSynapseLayer = new ConvolutionLayer(kernel[0], kernel[1], kernel[2]);
+        @javax.annotation.Nonnull final ConvolutionLayer convolutionSynapseLayer = new ConvolutionLayer(kernel[0], kernel[1], kernel[2]);
         convolutionLayers.add(convolutionSynapseLayer);
         kernelPipelineNetwork.add(convolutionSynapseLayer);
       }
@@ -90,7 +90,8 @@ public class InceptionLayer extends DAGNetwork {
    * @param f the f
    * @return the weights
    */
-  public @NotNull InceptionLayer setWeights(final @NotNull DoubleSupplier f) {
+  @javax.annotation.Nonnull
+  public InceptionLayer setWeights(@javax.annotation.Nonnull final DoubleSupplier f) {
     convolutionLayers.forEach(x -> x.setWeights(f));
     return this;
   }

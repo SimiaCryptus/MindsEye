@@ -19,8 +19,6 @@
 
 package com.simiacryptus.util.io;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Iterator;
@@ -49,8 +47,9 @@ public final class BinaryChunkIterator implements Iterator<byte[]> {
     this.recordSize = recordSize;
   }
   
-  private static @NotNull byte[] read(final @NotNull DataInputStream i, final int s) throws IOException {
-    final @NotNull byte[] b = new byte[s];
+  @javax.annotation.Nonnull
+  private static byte[] read(@javax.annotation.Nonnull final DataInputStream i, final int s) throws IOException {
+    @javax.annotation.Nonnull final byte[] b = new byte[s];
     int pos = 0;
     while (b.length > pos) {
       final int read = i.read(b, pos, b.length - pos);
@@ -69,7 +68,7 @@ public final class BinaryChunkIterator implements Iterator<byte[]> {
    * @param iterator the iterator
    * @return the stream
    */
-  public static <T> Stream<T> toIterator(final @NotNull Iterator<T> iterator) {
+  public static <T> Stream<T> toIterator(@javax.annotation.Nonnull final Iterator<T> iterator) {
     return StreamSupport.stream(Spliterators.spliterator(iterator, 1, Spliterator.ORDERED), false);
   }
   
@@ -80,7 +79,7 @@ public final class BinaryChunkIterator implements Iterator<byte[]> {
    * @param iterator the iterator
    * @return the stream
    */
-  public static <T> Stream<T> toStream(final @NotNull Iterator<T> iterator) {
+  public static <T> Stream<T> toStream(@javax.annotation.Nonnull final Iterator<T> iterator) {
     return BinaryChunkIterator.toStream(iterator, 0);
   }
   
@@ -92,7 +91,7 @@ public final class BinaryChunkIterator implements Iterator<byte[]> {
    * @param size     the size
    * @return the stream
    */
-  public static <T> Stream<T> toStream(final @NotNull Iterator<T> iterator, final int size) {
+  public static <T> Stream<T> toStream(@javax.annotation.Nonnull final Iterator<T> iterator, final int size) {
     return BinaryChunkIterator.toStream(iterator, size, false);
   }
   
@@ -105,7 +104,7 @@ public final class BinaryChunkIterator implements Iterator<byte[]> {
    * @param parallel the parallel
    * @return the stream
    */
-  public static <T> Stream<T> toStream(final @NotNull Iterator<T> iterator, final int size, final boolean parallel) {
+  public static <T> Stream<T> toStream(@javax.annotation.Nonnull final Iterator<T> iterator, final int size, final boolean parallel) {
     return StreamSupport.stream(Spliterators.spliterator(iterator, size, Spliterator.ORDERED), parallel);
   }
   
@@ -113,17 +112,18 @@ public final class BinaryChunkIterator implements Iterator<byte[]> {
   public boolean hasNext() {
     try {
       return 0 < in.available();
-    } catch (final @NotNull Throwable e) {
+    } catch (@javax.annotation.Nonnull final Throwable e) {
       return false;
     }
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull byte[] next() {
+  public byte[] next() {
     assert hasNext();
     try {
       return BinaryChunkIterator.read(in, recordSize);
-    } catch (final @NotNull IOException e) {
+    } catch (@javax.annotation.Nonnull final IOException e) {
       throw new RuntimeException(e);
     }
   }

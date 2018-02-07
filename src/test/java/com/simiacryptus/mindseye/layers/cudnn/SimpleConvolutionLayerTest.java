@@ -27,7 +27,6 @@ import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.*;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.PrintStream;
@@ -66,8 +65,9 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
     layer.kernel.set(() -> random());
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull int[][] getSmallDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{
       {radius, radius, bands}
     };
@@ -79,8 +79,9 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
     return layer;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull int[][] getLargeDims(Random random) {
+  public int[][] getLargeDims(Random random) {
     return new int[][]{
       {100, 100, bands}
     };
@@ -88,8 +89,8 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
   
   @Override
   public @Nullable NNLayer getReferenceLayer() {
-    final @NotNull ConvolutionLayer convolutionLayer = new ConvolutionLayer(radius, radius, bands, bands, true);
-    final @NotNull Tensor tensor = new Tensor(layer.kernel.getDimensions());
+    @javax.annotation.Nonnull final ConvolutionLayer convolutionLayer = new ConvolutionLayer(radius, radius, bands, bands, true);
+    @javax.annotation.Nonnull final Tensor tensor = new Tensor(layer.kernel.getDimensions());
     tensor.setByCoord(c -> {
       final int band = c.getCoords()[2];
       final int bandX = band % bands;
@@ -194,9 +195,9 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
     
     @Override
     public void run(NotebookOutput log) {
-      @NotNull String logName = "cuda_" + log.getName() + "_all.log";
+      @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all.log";
       log.p(log.file((String) null, logName, "GPU Log"));
-      @NotNull PrintStream apiLog = new PrintStream(log.file(logName));
+      @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
       GpuSystem.addLog(apiLog);
       super.run(log);
       apiLog.close();
@@ -209,11 +210,13 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
       return null;
     }
   
-    public @NotNull ComponentTest<ToleranceStatistics> getPerformanceTester() {
+    @javax.annotation.Nonnull
+    public ComponentTest<ToleranceStatistics> getPerformanceTester() {
       return new PerformanceTester().setBatches(10).setSamples(1);
     }
   
-    protected @NotNull ComponentTest<ToleranceStatistics> getReferenceIOTester() {
+    @javax.annotation.Nonnull
+    protected ComponentTest<ToleranceStatistics> getReferenceIOTester() {
       return new ReferenceIO(getReferenceIO());
     }
     
@@ -255,20 +258,21 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
     public NNLayer getReferenceLayer() {
       return null;
     }
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull int[][] getLargeDims(Random random) {
+    public int[][] getLargeDims(Random random) {
       return new int[][]{
         {30, 30, bands}
       };
     }
   
     public @Nullable ComponentTest<ToleranceStatistics> getPerformanceTester() {
-      @NotNull ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setBatches(10);
+      @javax.annotation.Nonnull ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setBatches(10);
       return new ComponentTestBase<ToleranceStatistics>() {
         @Override
-        public ToleranceStatistics test(@NotNull NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
-          @NotNull String logName = "cuda_" + log.getName() + "_perf.log";
+        public ToleranceStatistics test(@javax.annotation.Nonnull NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
+          @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_perf.log";
           @Nullable PrintStream apiLog = null;
           try {
             apiLog = new PrintStream(log.file(logName));

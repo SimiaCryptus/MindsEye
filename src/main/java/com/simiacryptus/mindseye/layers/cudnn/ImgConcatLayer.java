@@ -23,7 +23,6 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.*;
 import jcuda.jcudnn.cudnnTensorDescriptor;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -51,7 +50,7 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
    *
    * @param json the json
    */
-  protected ImgConcatLayer(final @NotNull JsonObject json) {
+  protected ImgConcatLayer(@javax.annotation.Nonnull final JsonObject json) {
     super(json);
     maxBands = json.get("maxBands").getAsInt();
     precision = Precision.valueOf(json.get("precision").getAsString());
@@ -64,7 +63,7 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static ImgConcatLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static ImgConcatLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ImgConcatLayer(json);
   }
   
@@ -73,13 +72,14 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
    *
    * @return the compatibility layer
    */
-  public @NotNull NNLayer getCompatibilityLayer() {
+  @javax.annotation.Nonnull
+  public NNLayer getCompatibilityLayer() {
     return this.as(com.simiacryptus.mindseye.layers.java.ImgConcatLayer.class);
   }
   
   
   @Override
-  public NNResult eval(final @NotNull NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
@@ -94,13 +94,13 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
     if (0 < maxBands && outputDimensions[2] > maxBands) {
       outputDimensions[2] = maxBands;
     }
-    for (@NotNull NNResult nnResult : inObj) {
+    for (@javax.annotation.Nonnull NNResult nnResult : inObj) {
       nnResult.addRef();
       nnResult.getData().addRef();
     }
     return new NNResult(GpuSystem.eval(gpu -> {
       final long outputSize = (length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
-      final @NotNull CudaPtr cudaOutput = CudaPtr.allocate(gpu.getDeviceNumber(), outputSize, MemoryType.Managed, true);
+      @javax.annotation.Nonnull final CudaPtr cudaOutput = CudaPtr.allocate(gpu.getDeviceNumber(), outputSize, MemoryType.Managed, true);
       for (int i = 0; i < inObj.length; i++) {
         final TensorList input = inObj[i].getData();
         final int[] inputDimensions = input.getDimensions();
@@ -115,8 +115,8 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
           assert inputBands > 0;
           assert maxBands <= 0 || inputBands <= maxBands;
           assert inputBands <= inputDimensions[2];
-          final @NotNull CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(length, inputBands, inputDimensions, inputDimensions);
-          final @NotNull CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(length, inputBands, inputDimensions, outputDimensions);
+          @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(length, inputBands, inputDimensions, inputDimensions);
+          @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(length, inputBands, inputDimensions, outputDimensions);
           int byteOffset = inputDimensions[1] * inputDimensions[0] * bandOffset * precision.size;
           CuDNNHandle.cudnnTransformTensor(gpu.getHandle(),
                                            precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.getPtr(),
@@ -126,14 +126,14 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
         }
       }
       return GpuTensorList.wrap(cudaOutput, length, outputDimensions, precision);
-    }), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList delta) -> {
+    }), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!Arrays.equals(delta.getDimensions(), outputDimensions)) {
         throw new AssertionError(Arrays.toString(delta.getDimensions()) + " != " + Arrays.toString(outputDimensions));
       }
       //outputBuffer.freeRef();
       assert delta.length() == inObj[0].getData().length();
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
-      @NotNull IntStream stream = IntStream.range(0, inObj.length);
+      @javax.annotation.Nonnull IntStream stream = IntStream.range(0, inObj.length);
       //stream = stream.parallel();
       stream.forEach(i -> {
         final NNResult input = inObj[i];
@@ -147,13 +147,13 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
         if (inputBands > 0 && input.isAlive()) {
           assert inputBands <= inputDimensions[2];
           final TensorList passbackTensorList = GpuSystem.eval(gpu -> {
-            @NotNull int[] viewDimensions = Arrays.copyOf(inputDimensions, inputDimensions.length);
+            @javax.annotation.Nonnull int[] viewDimensions = Arrays.copyOf(inputDimensions, inputDimensions.length);
             viewDimensions[2] = inputBands;
             final CudaPtr cudaDelta = CudaPtr.getCudaPtr(precision, delta);
             long inputSize = (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size);
-            final @NotNull CudaPtr cudaBackprop = CudaPtr.allocate(gpu.getDeviceNumber(), inputSize, MemoryType.Managed, false);
-            final @NotNull CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(length, inputBands, viewDimensions, inputDimensions);
-            final @NotNull CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(length, inputBands, viewDimensions, outputDimensions);
+            @javax.annotation.Nonnull final CudaPtr cudaBackprop = CudaPtr.allocate(gpu.getDeviceNumber(), inputSize, MemoryType.Managed, false);
+            @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(length, inputBands, viewDimensions, inputDimensions);
+            @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(length, inputBands, viewDimensions, outputDimensions);
             int byteOffset = outputDimensions[1] * outputDimensions[0] * bandOffset * precision.size;
             CuDNNHandle.cudnnTransformTensor(gpu.getHandle(),
                                              precision.getPointer(1.0), outputDescriptor.getPtr(), cudaDelta.getPtr().withByteOffset(byteOffset),
@@ -171,7 +171,7 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
       
       @Override
       protected void _free() {
-        for (@NotNull NNResult nnResult : inObj) {
+        for (@javax.annotation.Nonnull NNResult nnResult : inObj) {
           nnResult.freeRef();
           nnResult.getData().freeRef();
         }
@@ -193,7 +193,8 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
    * @param strideDimensions the output dimensions
    * @return the tensor descriptor
    */
-  public @NotNull CudaResource<cudnnTensorDescriptor> getTensorDescriptor(int length, int inputBands, int[] imageDimensions, int[] strideDimensions) {
+  @javax.annotation.Nonnull
+  public CudaResource<cudnnTensorDescriptor> getTensorDescriptor(int length, int inputBands, int[] imageDimensions, int[] strideDimensions) {
     return GpuSystem.newTensorDescriptor(
       precision.code, length, inputBands, imageDimensions[1], imageDimensions[0], //
       strideDimensions[2] * strideDimensions[1] * strideDimensions[0], //
@@ -202,9 +203,10 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
       1);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("maxBands", maxBands);
     json.addProperty("precision", precision.name());
     return json;
@@ -225,7 +227,8 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
    * @param maxBands the max bands
    * @return the max bands
    */
-  public @NotNull ImgConcatLayer setMaxBands(final int maxBands) {
+  @javax.annotation.Nonnull
+  public ImgConcatLayer setMaxBands(final int maxBands) {
     this.maxBands = maxBands;
     return this;
   }
@@ -235,14 +238,16 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
     return precision;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull ImgConcatLayer setPrecision(final Precision precision) {
+  public ImgConcatLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
 }

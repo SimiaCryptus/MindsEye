@@ -19,7 +19,6 @@
 
 package com.simiacryptus.util.function;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
@@ -66,7 +65,8 @@ public class WeakCachedSupplier<T> implements Supplier<T> {
    *
    * @return the soft ref
    */
-  public @NotNull SoftCachedSupplier<T> getSoftRef() {
+  @javax.annotation.Nonnull
+  public SoftCachedSupplier<T> getSoftRef() {
     return new SoftCachedSupplier<>(this::get);
   }
 }

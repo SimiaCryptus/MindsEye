@@ -19,8 +19,6 @@
 
 package com.simiacryptus.util.lang;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
  * The type Resource pool.
  *
@@ -28,7 +26,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class ResourcePool<T> {
   
-  private final @NotNull java.util.HashSet<T> all;
+  @javax.annotation.Nonnull
+  private final java.util.HashSet<T> all;
   private final ThreadLocal<T> currentValue = new ThreadLocal<>();
   private final int maxItems;
   private final java.util.concurrent.LinkedBlockingQueue<T> pool = new java.util.concurrent.LinkedBlockingQueue<>();
@@ -69,7 +68,7 @@ public abstract class ResourcePool<T> {
     if (null == poll) {
       try {
         poll = this.pool.take();
-      } catch (final @NotNull InterruptedException e) {
+      } catch (@javax.annotation.Nonnull final InterruptedException e) {
         throw new RuntimeException(e);
       }
     }
@@ -90,7 +89,7 @@ public abstract class ResourcePool<T> {
    *
    * @param f the f
    */
-  public void with(final @NotNull java.util.function.Consumer<T> f) {
+  public void with(@javax.annotation.Nonnull final java.util.function.Consumer<T> f) {
     final T prior = currentValue.get();
     if (null != prior) {
       f.accept(prior);

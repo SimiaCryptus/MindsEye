@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +66,7 @@ public class ImgZeroPaddingLayer extends NNLayer implements MultiPrecision<ImgZe
    * @param json the json
    * @param rs   the rs
    */
-  protected ImgZeroPaddingLayer(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  protected ImgZeroPaddingLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json);
     sizeX = json.get("sizeX").getAsInt();
     sizeY = json.get("sizeY").getAsInt();
@@ -81,28 +80,30 @@ public class ImgZeroPaddingLayer extends NNLayer implements MultiPrecision<ImgZe
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static ImgZeroPaddingLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static ImgZeroPaddingLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ImgZeroPaddingLayer(json, rs);
   }
   
   @Override
-  public NNResult eval(final @NotNull NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     assert inObj.length == 1;
     int[] dimensions = inObj[0].getData().getDimensions();
     return new ImgCropLayer(dimensions[0] + 2 * this.sizeX, dimensions[1] + 2 * this.sizeY).eval(inObj);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("sizeY", sizeY);
     json.addProperty("sizeX", sizeX);
     json.addProperty("precision", precision.name());
     return json;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
   
@@ -111,8 +112,9 @@ public class ImgZeroPaddingLayer extends NNLayer implements MultiPrecision<ImgZe
     return precision;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull ImgZeroPaddingLayer setPrecision(final Precision precision) {
+  public ImgZeroPaddingLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }

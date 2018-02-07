@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -54,8 +53,9 @@ public final class PlaceholderLayer<T> extends NNLayer {
     setName(getClass().getSimpleName() + "/" + getId());
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNResult eval(final NNResult... array) {
+  public NNResult eval(final NNResult... array) {
     throw new UnsupportedOperationException();
   }
   
@@ -64,13 +64,15 @@ public final class PlaceholderLayer<T> extends NNLayer {
     return this.getKey();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     throw new UnsupportedOperationException();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     throw new UnsupportedOperationException();
   }
   

@@ -26,7 +26,6 @@ import com.simiacryptus.mindseye.layers.java.*;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.util.FastRandom;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -62,7 +61,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
    * @param json the json
    * @param rs   the rs
    */
-  protected SigmoidTreeNetwork(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  protected SigmoidTreeNetwork(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json, rs);
     head = nodesById.get(UUID.fromString(json.get("head").getAsString()));
     if (json.get("alpha") != null) {
@@ -108,7 +107,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
    * @param rs   the rs
    * @return the sigmoid tree network
    */
-  public static SigmoidTreeNetwork fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static SigmoidTreeNetwork fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new SigmoidTreeNetwork(json, rs);
   }
   
@@ -118,7 +117,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
    * @param from the from
    * @param to   the to
    */
-  public void copyState(final @NotNull NNLayer from, final @NotNull NNLayer to) {
+  public void copyState(@javax.annotation.Nonnull final NNLayer from, @javax.annotation.Nonnull final NNLayer to) {
     final @Nullable List<double[]> alphaState = from.state();
     final @Nullable List<double[]> betaState = to.state();
     for (int i = 0; i < alphaState.size(); i++) {
@@ -237,7 +236,8 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
    * @param skipFuzzy the skip fuzzy
    * @return the skip fuzzy
    */
-  public @NotNull SigmoidTreeNetwork setSkipFuzzy(final boolean skipFuzzy) {
+  @javax.annotation.Nonnull
+  public SigmoidTreeNetwork setSkipFuzzy(final boolean skipFuzzy) {
     this.skipFuzzy = skipFuzzy;
     return this;
   }
@@ -247,7 +247,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
     switch (getMode()) {
       case Linear: {
         head = null;
-        final @NotNull FullyConnectedLayer alpha = (FullyConnectedLayer) this.alpha;
+        @javax.annotation.Nonnull final FullyConnectedLayer alpha = (FullyConnectedLayer) this.alpha;
         //alpha.weights.scale(2);
         gate = new FullyConnectedLayer(alpha.inputDims, multigate ? alpha.outputDims : new int[]{1});
         gateBias = new BiasLayer(alpha.inputDims);
@@ -257,7 +257,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
       case Fuzzy: {
         head = null;
         final @Nullable FullyConnectedLayer alpha = (FullyConnectedLayer) this.alpha;
-        final @NotNull BiasLayer alphaBias = (BiasLayer) this.alphaBias;
+        @javax.annotation.Nonnull final BiasLayer alphaBias = (BiasLayer) this.alphaBias;
         beta = new FullyConnectedLayer(alpha.inputDims, alpha.outputDims).set(() -> {
           return initialFuzzyCoeff * (FastRandom.random() - 0.5);
         });
@@ -283,8 +283,8 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
         mode = NodeMode.Final;
         break;
       case Final:
-        final @NotNull SigmoidTreeNetwork alpha = (SigmoidTreeNetwork) this.alpha;
-        final @NotNull SigmoidTreeNetwork beta = (SigmoidTreeNetwork) this.beta;
+        @javax.annotation.Nonnull final SigmoidTreeNetwork alpha = (SigmoidTreeNetwork) this.alpha;
+        @javax.annotation.Nonnull final SigmoidTreeNetwork beta = (SigmoidTreeNetwork) this.beta;
         alpha.nextPhase();
         beta.nextPhase();
         break;
@@ -297,7 +297,8 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
    * @param skipChildStage the skip child stage
    * @return the skip child stage
    */
-  public @NotNull SigmoidTreeNetwork setSkipChildStage(final boolean skipChildStage) {
+  @javax.annotation.Nonnull
+  public SigmoidTreeNetwork setSkipChildStage(final boolean skipChildStage) {
     this.skipChildStage = skipChildStage;
     return this;
   }

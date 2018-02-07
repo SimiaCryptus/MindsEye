@@ -21,7 +21,6 @@ package com.simiacryptus.util.io;
 
 import com.simiacryptus.util.lang.UncheckedSupplier;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.image.BufferedImage;
@@ -54,7 +53,7 @@ public class NullNotebookOutput implements NotebookOutput {
   }
   
   @Override
-  public <T> T code(@NotNull UncheckedSupplier<T> fn, int maxLog, int framesNo) {
+  public <T> T code(@javax.annotation.Nonnull UncheckedSupplier<T> fn, int maxLog, int framesNo) {
     try {
       return fn.get();
     } catch (Exception e) {
@@ -63,8 +62,9 @@ public class NullNotebookOutput implements NotebookOutput {
     
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull OutputStream file(@NotNull String name) {
+  public OutputStream file(@javax.annotation.Nonnull String name) {
     try {
       return new FileOutputStream(name);
     } catch (FileNotFoundException e) {
@@ -72,10 +72,11 @@ public class NullNotebookOutput implements NotebookOutput {
     }
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull String file(@NotNull String data, String caption) {
+  public String file(@javax.annotation.Nonnull String data, String caption) {
     try {
-      @NotNull File file = File.createTempFile("temp", "bin");
+      @javax.annotation.Nonnull File file = File.createTempFile("temp", "bin");
       IOUtils.write(data.getBytes(Charset.forName("UTF-8")), new FileOutputStream(file));
       return file.getCanonicalPath();
     } catch (IOException e) {
@@ -83,15 +84,17 @@ public class NullNotebookOutput implements NotebookOutput {
     }
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull String file(@NotNull byte[] data, @NotNull String filename, String caption) {
+  public String file(@javax.annotation.Nonnull byte[] data, @javax.annotation.Nonnull String filename, String caption) {
     return file(new String(data, Charset.forName("UTF-8")), filename, caption);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull String file(@NotNull String data, @NotNull String fileName, String caption) {
+  public String file(@javax.annotation.Nonnull String data, @javax.annotation.Nonnull String fileName, String caption) {
     try {
-      @NotNull File file = new File(fileName);
+      @javax.annotation.Nonnull File file = new File(fileName);
       IOUtils.write(data.getBytes(Charset.forName("UTF-8")), new FileOutputStream(file));
       return file.getCanonicalPath();
     } catch (IOException e) {
@@ -114,13 +117,15 @@ public class NullNotebookOutput implements NotebookOutput {
   
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull String image(BufferedImage rawImage, String caption) throws IOException {
+  public String image(BufferedImage rawImage, String caption) throws IOException {
     return "";
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull String link(File file, String text) {
+  public String link(File file, String text) {
     return "";
   }
   
@@ -139,13 +144,15 @@ public class NullNotebookOutput implements NotebookOutput {
     return name;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull File getResourceDir() {
+  public File getResourceDir() {
     return new File(".");
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NotebookOutput setMaxOutSize(int size) {
+  public NotebookOutput setMaxOutSize(int size) {
     return this;
   }
   

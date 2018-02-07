@@ -19,8 +19,6 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
  * Represents an evaluation record used during an optimization search. We track both a record of the network's state,
  * and a record of the gradient evaluated at that point.
@@ -33,7 +31,8 @@ public final class PointSample extends ReferenceCountingBase {
   /**
    * The Delta.
    */
-  public final @NotNull DeltaSet<NNLayer> delta;
+  @javax.annotation.Nonnull
+  public final DeltaSet<NNLayer> delta;
   /**
    * The Sum.
    */
@@ -41,7 +40,8 @@ public final class PointSample extends ReferenceCountingBase {
   /**
    * The Weights.
    */
-  public final @NotNull StateSet<NNLayer> weights;
+  @javax.annotation.Nonnull
+  public final StateSet<NNLayer> weights;
   /**
    * The Rate.
    */
@@ -56,7 +56,7 @@ public final class PointSample extends ReferenceCountingBase {
    * @param rate    the rate
    * @param count   the count
    */
-  public PointSample(final @NotNull DeltaSet<NNLayer> delta, final @NotNull StateSet<NNLayer> weights, final double sum, final double rate, final int count) {
+  public PointSample(@javax.annotation.Nonnull final DeltaSet<NNLayer> delta, @javax.annotation.Nonnull final StateSet<NNLayer> weights, final double sum, final double rate, final int count) {
     assert delta.getMap().size() == weights.getMap().size();
     this.delta = new DeltaSet<>(delta);
     this.weights = new StateSet<>(weights);
@@ -73,7 +73,7 @@ public final class PointSample extends ReferenceCountingBase {
    * @param right the right
    * @return the point sample
    */
-  public static PointSample add(final @NotNull PointSample left, final @NotNull PointSample right) {
+  public static PointSample add(@javax.annotation.Nonnull final PointSample left, @javax.annotation.Nonnull final PointSample right) {
     assert left.delta.getMap().size() == left.weights.getMap().size();
     assert right.delta.getMap().size() == right.weights.getMap().size();
     assert left.rate == right.rate;
@@ -90,7 +90,7 @@ public final class PointSample extends ReferenceCountingBase {
    * @param right the right
    * @return the point sample
    */
-  public PointSample add(final @NotNull PointSample right) {
+  public PointSample add(@javax.annotation.Nonnull final PointSample right) {
     return PointSample.add(this, right);
   }
   
@@ -100,7 +100,7 @@ public final class PointSample extends ReferenceCountingBase {
    * @param right the right
    * @return the point sample
    */
-  public PointSample addInPlace(final @NotNull PointSample right) {
+  public PointSample addInPlace(@javax.annotation.Nonnull final PointSample right) {
     assert delta.getMap().size() == weights.getMap().size();
     assert right.delta.getMap().size() == right.weights.getMap().size();
     assert rate == right.rate;
@@ -125,10 +125,11 @@ public final class PointSample extends ReferenceCountingBase {
    *
    * @return the point sample
    */
-  public @NotNull PointSample copyFull() {
-    @NotNull DeltaSet<NNLayer> deltaCopy = delta.copy();
-    @NotNull StateSet<NNLayer> weightsCopy = weights.copy();
-    @NotNull PointSample pointSample = new PointSample(deltaCopy, weightsCopy, sum, rate, count);
+  @javax.annotation.Nonnull
+  public PointSample copyFull() {
+    @javax.annotation.Nonnull DeltaSet<NNLayer> deltaCopy = delta.copy();
+    @javax.annotation.Nonnull StateSet<NNLayer> weightsCopy = weights.copy();
+    @javax.annotation.Nonnull PointSample pointSample = new PointSample(deltaCopy, weightsCopy, sum, rate, count);
     deltaCopy.freeRef();
     weightsCopy.freeRef();
     return pointSample;
@@ -158,7 +159,8 @@ public final class PointSample extends ReferenceCountingBase {
    * @param rate the rate
    * @return the rate
    */
-  public @NotNull PointSample setRate(final double rate) {
+  @javax.annotation.Nonnull
+  public PointSample setRate(final double rate) {
     this.rate = rate;
     return this;
   }
@@ -168,14 +170,15 @@ public final class PointSample extends ReferenceCountingBase {
    *
    * @return the point sample
    */
-  public @NotNull PointSample normalize() {
+  @javax.annotation.Nonnull
+  public PointSample normalize() {
     if (count == 1) {
       this.addRef();
       return this;
     }
     else {
-      @NotNull DeltaSet<NNLayer> scale = delta.scale(1.0 / count);
-      @NotNull PointSample pointSample = new PointSample(scale, weights, sum / count, rate, 1);
+      @javax.annotation.Nonnull DeltaSet<NNLayer> scale = delta.scale(1.0 / count);
+      @javax.annotation.Nonnull PointSample pointSample = new PointSample(scale, weights, sum / count, rate, 1);
       scale.freeRef();
       return pointSample;
     }
@@ -186,7 +189,8 @@ public final class PointSample extends ReferenceCountingBase {
    *
    * @return the point sample
    */
-  public @NotNull PointSample restore() {
+  @javax.annotation.Nonnull
+  public PointSample restore() {
     weights.stream().forEach(d -> d.restore());
     return this;
   }
@@ -196,14 +200,15 @@ public final class PointSample extends ReferenceCountingBase {
    *
    * @return the point sample
    */
-  public @NotNull PointSample backup() {
+  @javax.annotation.Nonnull
+  public PointSample backup() {
     weights.stream().forEach(d -> d.backup());
     return this;
   }
   
   @Override
   public String toString() {
-    final @NotNull StringBuffer sb = new StringBuffer("PointSample{");
+    @javax.annotation.Nonnull final StringBuffer sb = new StringBuffer("PointSample{");
     sb.append("avg=").append(getMean());
     sb.append('}');
     return sb.toString();

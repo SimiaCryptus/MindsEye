@@ -19,8 +19,6 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Arrays;
 import java.util.function.DoubleUnaryOperator;
 
@@ -69,13 +67,15 @@ public class State<K extends ReferenceCounting> extends DoubleBuffer<K> {
    *
    * @return the double buffer
    */
-  public final synchronized @NotNull State<K> backup() {
+  @javax.annotation.Nonnull
+  public final synchronized State<K> backup() {
     System.arraycopy(target, 0, getDelta(), 0, target.length);
     return this;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull State<K> copy() {
+  public State<K> copy() {
     assertAlive();
     return new State(layer, target, RecycleBin.DOUBLES.copyOf(delta, length()));
   }
@@ -85,12 +85,14 @@ public class State<K extends ReferenceCounting> extends DoubleBuffer<K> {
    *
    * @return the state
    */
-  public @NotNull State<K> backupCopy() {
+  @javax.annotation.Nonnull
+  public State<K> backupCopy() {
     return new State(layer, target, RecycleBin.DOUBLES.copyOf(target, length()));
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull State<K> map(final @NotNull DoubleUnaryOperator mapper) {
+  public State<K> map(@javax.annotation.Nonnull final DoubleUnaryOperator mapper) {
     return new State(layer, target, Arrays.stream(getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
   }
   
@@ -99,7 +101,8 @@ public class State<K extends ReferenceCounting> extends DoubleBuffer<K> {
    *
    * @return the double buffer
    */
-  public final synchronized @NotNull State<K> restore() {
+  @javax.annotation.Nonnull
+  public final synchronized State<K> restore() {
     System.arraycopy(getDelta(), 0, target, 0, target.length);
     return this;
   }

@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -43,7 +42,7 @@ public class ConstNNLayer extends NNLayer {
    * @param json      the json
    * @param resources the resources
    */
-  protected ConstNNLayer(final @NotNull JsonObject json, Map<String, byte[]> resources) {
+  protected ConstNNLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> resources) {
     super(json);
     data = Tensor.fromJson(json.get("value"), resources);
   }
@@ -56,7 +55,7 @@ public class ConstNNLayer extends NNLayer {
   public ConstNNLayer(final Tensor data) {
     super();
     this.data = data;
-    setFrozen(true);
+    this.frozen = true;
   }
   
   /**
@@ -66,21 +65,22 @@ public class ConstNNLayer extends NNLayer {
    * @param rs   the rs
    * @return the const nn layer
    */
-  public static ConstNNLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static ConstNNLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ConstNNLayer(json, rs);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNResult eval(final @NotNull NNResult... array) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... array) {
     Arrays.stream(array).forEach(nnResult -> nnResult.addRef());
-    return new NNResult(TensorArray.create(data), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
+    return new NNResult(TensorArray.create(data), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (!isFrozen()) {
         data.stream().forEach(datum -> {
           buffer.get(ConstNNLayer.this, ConstNNLayer.this.data.getData()).addInPlace(datum.getData());
         });
       }
     }) {
-  
+      
       @Override
       protected void _free() {
         Arrays.stream(array).forEach(nnResult -> nnResult.freeRef());
@@ -111,15 +111,17 @@ public class ConstNNLayer extends NNLayer {
     this.data = data;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, @NotNull DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, @javax.annotation.Nonnull DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.add("value", data.toJson(resources, dataSerializer));
     return json;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList(data.getData());
   }
 }

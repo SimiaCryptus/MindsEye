@@ -19,8 +19,6 @@
 
 package com.simiacryptus.util;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,7 +39,8 @@ public class ArrayUtil {
    * @param b the b
    * @return the double [ ]
    */
-  public static @NotNull double[] add(final @NotNull double[] a, final @NotNull double[] b) {
+  @javax.annotation.Nonnull
+  public static double[] add(@javax.annotation.Nonnull final double[] a, @javax.annotation.Nonnull final double[] b) {
     return ArrayUtil.op(a, b, (x, y) -> x + y);
   }
   
@@ -52,7 +51,7 @@ public class ArrayUtil {
    * @param b the b
    * @return the list
    */
-  public static List<double[]> add(final @NotNull List<double[]> a, final @NotNull List<double[]> b) {
+  public static List<double[]> add(@javax.annotation.Nonnull final List<double[]> a, @javax.annotation.Nonnull final List<double[]> b) {
     return ArrayUtil.op(a, b, (x, y) -> x + y);
   }
   
@@ -63,7 +62,7 @@ public class ArrayUtil {
    * @param b the b
    * @return the double
    */
-  public static double dot(final @NotNull double[] a, final @NotNull double[] b) {
+  public static double dot(@javax.annotation.Nonnull final double[] a, @javax.annotation.Nonnull final double[] b) {
     return ArrayUtil.sum(ArrayUtil.op(a, b, (x, y) -> x * y));
   }
   
@@ -74,7 +73,7 @@ public class ArrayUtil {
    * @param b the b
    * @return the double
    */
-  public static double dot(final @NotNull List<double[]> a, final @NotNull List<double[]> b) {
+  public static double dot(@javax.annotation.Nonnull final List<double[]> a, @javax.annotation.Nonnull final List<double[]> b) {
     return ArrayUtil.sum(ArrayUtil.multiply(a, b));
   }
   
@@ -84,7 +83,7 @@ public class ArrayUtil {
    * @param a the a
    * @return the double
    */
-  public static double magnitude(final @NotNull double[] a) {
+  public static double magnitude(@javax.annotation.Nonnull final double[] a) {
     return Math.sqrt(ArrayUtil.dot(a, a));
   }
   
@@ -94,7 +93,7 @@ public class ArrayUtil {
    * @param op the op
    * @return the double
    */
-  public static double mean(final @NotNull double[] op) {
+  public static double mean(@javax.annotation.Nonnull final double[] op) {
     return ArrayUtil.sum(op) / op.length;
   }
   
@@ -105,7 +104,7 @@ public class ArrayUtil {
    * @param b the b
    * @return the list
    */
-  public static List<double[]> minus(final @NotNull List<double[]> a, final @NotNull List<double[]> b) {
+  public static List<double[]> minus(@javax.annotation.Nonnull final List<double[]> a, @javax.annotation.Nonnull final List<double[]> b) {
     return ArrayUtil.op(a, b, (x, y) -> x - y);
   }
   
@@ -116,7 +115,8 @@ public class ArrayUtil {
    * @param b the b
    * @return the double [ ]
    */
-  public static @NotNull double[] multiply(final @NotNull double[] a, final double b) {
+  @javax.annotation.Nonnull
+  public static double[] multiply(@javax.annotation.Nonnull final double[] a, final double b) {
     return ArrayUtil.op(a, (x) -> x * b);
   }
   
@@ -127,7 +127,8 @@ public class ArrayUtil {
    * @param b the b
    * @return the double [ ]
    */
-  public static @NotNull double[] multiply(final @NotNull double[] a, final @NotNull double[] b) {
+  @javax.annotation.Nonnull
+  public static double[] multiply(@javax.annotation.Nonnull final double[] a, @javax.annotation.Nonnull final double[] b) {
     return ArrayUtil.op(a, b, (x, y) -> x * y);
   }
   
@@ -138,7 +139,8 @@ public class ArrayUtil {
    * @param b the b
    * @return the list
    */
-  public static @NotNull List<double[]> multiply(final @NotNull List<double[]> a, final double b) {
+  @javax.annotation.Nonnull
+  public static List<double[]> multiply(@javax.annotation.Nonnull final List<double[]> a, final double b) {
     return ArrayUtil.op(a, x -> x * b);
   }
   
@@ -149,7 +151,7 @@ public class ArrayUtil {
    * @param b the b
    * @return the list
    */
-  public static List<double[]> multiply(final @NotNull List<double[]> a, final @NotNull List<double[]> b) {
+  public static List<double[]> multiply(@javax.annotation.Nonnull final List<double[]> a, @javax.annotation.Nonnull final List<double[]> b) {
     return ArrayUtil.op(a, b, (x, y) -> x * y);
   }
   
@@ -161,9 +163,10 @@ public class ArrayUtil {
    * @param fn the fn
    * @return the double [ ]
    */
-  public static @NotNull double[] op(final @NotNull double[] a, final @NotNull double[] b, final @NotNull DoubleBinaryOperator fn) {
+  @javax.annotation.Nonnull
+  public static double[] op(@javax.annotation.Nonnull final double[] a, @javax.annotation.Nonnull final double[] b, @javax.annotation.Nonnull final DoubleBinaryOperator fn) {
     assert a.length == b.length;
-    final @NotNull double[] c = new double[a.length];
+    @javax.annotation.Nonnull final double[] c = new double[a.length];
     for (int j = 0; j < a.length; j++) {
       c[j] = fn.applyAsDouble(a[j], b[j]);
     }
@@ -177,8 +180,9 @@ public class ArrayUtil {
    * @param fn the fn
    * @return the double [ ]
    */
-  public static @NotNull double[] op(final @NotNull double[] a, final @NotNull DoubleUnaryOperator fn) {
-    final @NotNull double[] c = new double[a.length];
+  @javax.annotation.Nonnull
+  public static double[] op(@javax.annotation.Nonnull final double[] a, @javax.annotation.Nonnull final DoubleUnaryOperator fn) {
+    @javax.annotation.Nonnull final double[] c = new double[a.length];
     for (int j = 0; j < a.length; j++) {
       c[j] = fn.applyAsDouble(a[j]);
     }
@@ -192,10 +196,11 @@ public class ArrayUtil {
    * @param fn the fn
    * @return the list
    */
-  public static @NotNull List<double[]> op(final @NotNull List<double[]> a, final @NotNull DoubleUnaryOperator fn) {
-    final @NotNull ArrayList<double[]> list = new ArrayList<>();
+  @javax.annotation.Nonnull
+  public static List<double[]> op(@javax.annotation.Nonnull final List<double[]> a, @javax.annotation.Nonnull final DoubleUnaryOperator fn) {
+    @javax.annotation.Nonnull final ArrayList<double[]> list = new ArrayList<>();
     for (int i = 0; i < a.size(); i++) {
-      final @NotNull double[] c = new double[a.get(i).length];
+      @javax.annotation.Nonnull final double[] c = new double[a.get(i).length];
       for (int j = 0; j < a.get(i).length; j++) {
         c[j] = fn.applyAsDouble(a.get(i)[j]);
       }
@@ -212,11 +217,11 @@ public class ArrayUtil {
    * @param fn the fn
    * @return the list
    */
-  public static List<double[]> op(final @NotNull List<double[]> a, final @NotNull List<double[]> b, final @NotNull DoubleBinaryOperator fn) {
+  public static List<double[]> op(@javax.annotation.Nonnull final List<double[]> a, @javax.annotation.Nonnull final List<double[]> b, @javax.annotation.Nonnull final DoubleBinaryOperator fn) {
     assert a.size() == b.size();
     return IntStream.range(0, a.size()).parallel().mapToObj(i -> {
       assert a.get(i).length == b.get(i).length;
-      final @NotNull double[] c = new double[a.get(i).length];
+      @javax.annotation.Nonnull final double[] c = new double[a.get(i).length];
       for (int j = 0; j < a.get(i).length; j++) {
         c[j] = fn.applyAsDouble(a.get(i)[j], b.get(i)[j]);
       }
@@ -231,7 +236,8 @@ public class ArrayUtil {
    * @param b the b
    * @return the double [ ]
    */
-  public static @NotNull double[] subtract(final @NotNull double[] a, final @NotNull double[] b) {
+  @javax.annotation.Nonnull
+  public static double[] subtract(@javax.annotation.Nonnull final double[] a, @javax.annotation.Nonnull final double[] b) {
     return ArrayUtil.op(a, b, (x, y) -> x - y);
   }
   
@@ -241,7 +247,7 @@ public class ArrayUtil {
    * @param op the op
    * @return the double
    */
-  public static double sum(final @NotNull double[] op) {
+  public static double sum(@javax.annotation.Nonnull final double[] op) {
     return Arrays.stream(op).sum();
   }
   
@@ -252,7 +258,8 @@ public class ArrayUtil {
    * @param b the b
    * @return the double [ ]
    */
-  public static @NotNull double[] sum(final @NotNull double[] a, final double b) {
+  @javax.annotation.Nonnull
+  public static double[] sum(@javax.annotation.Nonnull final double[] a, final double b) {
     return ArrayUtil.op(a, (x) -> x + b);
   }
   
@@ -262,7 +269,7 @@ public class ArrayUtil {
    * @param a the a
    * @return the double
    */
-  public static double sum(final @NotNull List<double[]> a) {
+  public static double sum(@javax.annotation.Nonnull final List<double[]> a) {
     return a.stream().parallel().mapToDouble(x -> Arrays.stream(x).sum()).sum();
   }
   

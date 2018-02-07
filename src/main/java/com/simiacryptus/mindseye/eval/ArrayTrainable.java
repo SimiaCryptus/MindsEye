@@ -21,8 +21,8 @@ package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -31,6 +31,7 @@ import java.util.List;
  */
 public class ArrayTrainable extends BatchedTrainable implements TrainableDataMask {
   
+  @Nullable
   private Tensor[][] trainingData;
   
   /**
@@ -39,7 +40,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
    * @param inner        the heapCopy
    * @param trainingData the training data
    */
-  public ArrayTrainable(DataTrainable inner, @NotNull Tensor[]... trainingData) {
+  public ArrayTrainable(DataTrainable inner, @javax.annotation.Nonnull Tensor[]... trainingData) {
     this(inner, trainingData, trainingData.length);
   }
   
@@ -50,11 +51,11 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
    * @param trainingData the training data
    * @param batchSize    the batch size
    */
-  public ArrayTrainable(DataTrainable inner, @NotNull Tensor[][] trainingData, int batchSize) {
+  public ArrayTrainable(DataTrainable inner, @javax.annotation.Nonnull Tensor[][] trainingData, int batchSize) {
     super(inner, batchSize);
     this.trainingData = trainingData;
-    for (@NotNull Tensor[] tensors : trainingData) {
-      for (@NotNull Tensor tensor : tensors) {
+    for (@javax.annotation.Nonnull Tensor[] tensors : trainingData) {
+      for (@javax.annotation.Nonnull Tensor tensor : tensors) {
         tensor.addRef();
       }
     }
@@ -76,7 +77,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
    * @param trainingData the training data
    * @param network      the network
    */
-  public ArrayTrainable(final @NotNull Tensor[][] trainingData, final NNLayer network) {
+  public ArrayTrainable(@javax.annotation.Nonnull final Tensor[][] trainingData, final NNLayer network) {
     this(trainingData, network, trainingData.length);
   }
   
@@ -87,11 +88,11 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
    * @param network      the network
    * @param batchSize    the batch size
    */
-  public ArrayTrainable(final @NotNull Tensor[][] trainingData, final NNLayer network, final int batchSize) {
+  public ArrayTrainable(@Nullable final Tensor[][] trainingData, final NNLayer network, final int batchSize) {
     super(network, batchSize);
     this.trainingData = trainingData;
-    for (@NotNull Tensor[] tensors : trainingData) {
-      for (@NotNull Tensor tensor : tensors) {
+    for (@javax.annotation.Nonnull Tensor[] tensors : trainingData) {
+      for (@javax.annotation.Nonnull Tensor tensor : tensors) {
         tensor.addRef();
       }
     }
@@ -104,23 +105,24 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
   
   @Override
   protected void _free() {
-    for (@NotNull Tensor[] tensors : trainingData) {
-      for (@NotNull Tensor tensor : tensors) {
+    for (@javax.annotation.Nonnull Tensor[] tensors : trainingData) {
+      for (@javax.annotation.Nonnull Tensor tensor : tensors) {
         tensor.freeRef();
       }
     }
     super._free();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull Trainable setData(final @NotNull List<Tensor[]> tensors) {
-    for (@NotNull Tensor[] ts : tensors) {
-      for (@NotNull Tensor tensor : ts) {
+  public Trainable setData(@javax.annotation.Nonnull final List<Tensor[]> tensors) {
+    for (@javax.annotation.Nonnull Tensor[] ts : tensors) {
+      for (@javax.annotation.Nonnull Tensor tensor : ts) {
         tensor.addRef();
       }
     }
-    if (null != trainingData) for (@NotNull Tensor[] ts : trainingData) {
-      for (@NotNull Tensor tensor : ts) {
+    if (null != trainingData) for (@javax.annotation.Nonnull Tensor[] ts : trainingData) {
+      for (@javax.annotation.Nonnull Tensor tensor : ts) {
         tensor.freeRef();
       }
     }
@@ -133,22 +135,23 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
    *
    * @param tensors the training data
    */
-  public void setTrainingData(final @NotNull Tensor[][] tensors) {
-    for (@NotNull Tensor[] ts : tensors) {
-      for (@NotNull Tensor tensor : ts) {
+  public void setTrainingData(@javax.annotation.Nonnull final Tensor[][] tensors) {
+    for (@javax.annotation.Nonnull Tensor[] ts : tensors) {
+      for (@javax.annotation.Nonnull Tensor tensor : ts) {
         tensor.addRef();
       }
     }
-    if (null != trainingData) for (@NotNull Tensor[] ts : trainingData) {
-      for (@NotNull Tensor tensor : ts) {
+    if (null != trainingData) for (@javax.annotation.Nonnull Tensor[] ts : trainingData) {
+      for (@javax.annotation.Nonnull Tensor tensor : ts) {
         tensor.freeRef();
       }
     }
     this.trainingData = tensors;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull ArrayTrainable setMask(boolean... mask) {
+  public ArrayTrainable setMask(boolean... mask) {
     return (ArrayTrainable) super.setMask(mask);
   }
 }

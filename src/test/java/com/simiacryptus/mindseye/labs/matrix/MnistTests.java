@@ -27,7 +27,6 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.data.MNIST;
 import com.simiacryptus.mindseye.test.integration.*;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.function.DoubleSupplier;
 
@@ -38,10 +37,11 @@ public class MnistTests {
   /**
    * The constant fwd_conv_1.
    */
-  public static @NotNull FwdNetworkFactory fwd_conv_1 = (log, features) -> {
+  @javax.annotation.Nonnull
+  public static FwdNetworkFactory fwd_conv_1 = (log, features) -> {
     log.p("The image-to-vector network is a single layer convolutional:");
     return log.code(() -> {
-      final @NotNull PipelineNetwork network = new PipelineNetwork();
+      @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new ConvolutionLayer(5, 5, 1, 32).set(i -> 1e-8 * (Math.random() - 0.5)));
       network.add(new ImgBandBiasLayer(32));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
@@ -65,14 +65,15 @@ public class MnistTests {
   /**
    * The constant fwd_conv_1_n.
    */
-  public static @NotNull FwdNetworkFactory fwd_conv_1_n = (log, features) -> {
+  @javax.annotation.Nonnull
+  public static FwdNetworkFactory fwd_conv_1_n = (log, features) -> {
     log.p("The image-to-vector network is a single layer convolutional:");
     return log.code(() -> {
-      final @NotNull PipelineNetwork network = new PipelineNetwork();
+      @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       double weight = 1e-3;
       
       network.add(new NormalizationMetaLayer());
-      @NotNull DoubleSupplier init = () -> weight * (Math.random() - 0.5);
+      @javax.annotation.Nonnull DoubleSupplier init = () -> weight * (Math.random() - 0.5);
       
       
       network.add(new ConvolutionLayer(5, 5, 1, 32).set(init));
@@ -100,10 +101,11 @@ public class MnistTests {
   /**
    * The constant fwd_linear_1.
    */
-  public static @NotNull FwdNetworkFactory fwd_linear_1 = (log, features) -> {
+  @javax.annotation.Nonnull
+  public static FwdNetworkFactory fwd_linear_1 = (log, features) -> {
     log.p("The image-to-vector network is a single layer, fully connected:");
     return log.code(() -> {
-      final @NotNull PipelineNetwork network = new PipelineNetwork();
+      @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new BiasLayer(28, 28, 1));
       network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{features})
                     .set(() -> 0.001 * (Math.random() - 0.45)));
@@ -114,10 +116,11 @@ public class MnistTests {
   /**
    * The constant rev_conv_1.
    */
-  public static @NotNull RevNetworkFactory rev_conv_1 = (log, features) -> {
+  @javax.annotation.Nonnull
+  public static RevNetworkFactory rev_conv_1 = (log, features) -> {
     log.p("The vector-to-image network uses a fully connected layer then a single convolutional layer:");
     return log.code(() -> {
-      final @NotNull PipelineNetwork network = new PipelineNetwork();
+      @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{1024})
                     .set(() -> 0.25 * (Math.random() - 0.5)));
       network.add(new DropoutNoiseLayer(0.5));
@@ -143,10 +146,11 @@ public class MnistTests {
   /**
    * The constant rev_linear_1.
    */
-  public static @NotNull RevNetworkFactory rev_linear_1 = (log, features) -> {
+  @javax.annotation.Nonnull
+  public static RevNetworkFactory rev_linear_1 = (log, features) -> {
     log.p("The vector-to-image network is a single fully connected layer:");
     return log.code(() -> {
-      final @NotNull PipelineNetwork network = new PipelineNetwork();
+      @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{28, 28, 1})
                     .set(() -> 0.25 * (Math.random() - 0.5)));
       network.add(new BiasLayer(28, 28, 1));
@@ -169,24 +173,28 @@ public class MnistTests {
     public All_MNIST_Tests(final OptimizationStrategy optimizationStrategy, final RevNetworkFactory revFactory, final FwdNetworkFactory fwdFactory) {
       super(fwdFactory, revFactory, optimizationStrategy);
     }
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    protected @NotNull Class<?> getTargetClass() {
+    protected Class<?> getTargetClass() {
       return MNIST.class;
     }
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull ImageProblemData getData() {
+    public ImageProblemData getData() {
       return new MnistProblemData();
     }
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull String getDatasetName() {
+    public String getDatasetName() {
       return "MNIST";
     }
   
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull ReportType getReportType() {
+    public ReportType getReportType() {
       return ReportType.Training;
     }
   
@@ -204,7 +212,7 @@ public class MnistTests {
     }
     
     @Override
-    protected void intro(final @NotNull NotebookOutput log) {
+    protected void intro(@javax.annotation.Nonnull final NotebookOutput log) {
       log.p("");
     }
   }
@@ -221,7 +229,7 @@ public class MnistTests {
     }
     
     @Override
-    protected void intro(final @NotNull NotebookOutput log) {
+    protected void intro(@javax.annotation.Nonnull final NotebookOutput log) {
       log.p("");
     }
     
@@ -239,7 +247,7 @@ public class MnistTests {
     }
     
     @Override
-    protected void intro(final @NotNull NotebookOutput log) {
+    protected void intro(@javax.annotation.Nonnull final NotebookOutput log) {
       log.p("");
     }
   }

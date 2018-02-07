@@ -25,7 +25,6 @@ import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,15 +68,16 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     this.batches = batches;
   }
   
-  private @NotNull Tensor getFeedbackGradient(final @NotNull NNLayer component, final int inputIndex, final @NotNull Tensor outputPrototype, final Tensor... inputPrototype) {
+  @javax.annotation.Nonnull
+  private Tensor getFeedbackGradient(@javax.annotation.Nonnull final NNLayer component, final int inputIndex, @javax.annotation.Nonnull final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor inputTensor = inputPrototype[inputIndex];
     final int inputDims = inputTensor.dim();
-    final @NotNull Tensor result = new Tensor(inputDims, outputPrototype.dim());
+    @javax.annotation.Nonnull final Tensor result = new Tensor(inputDims, outputPrototype.dim());
     for (int j = 0; j < outputPrototype.dim(); j++) {
       final int j_ = j;
-      final @NotNull PlaceholderLayer<Tensor> inputKey = new PlaceholderLayer<Tensor>(new Tensor());
-      final @NotNull NNResult copyInput = new NNResult(TensorArray.create(inputPrototype), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
-        final @NotNull Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.dim());
+      @javax.annotation.Nonnull final PlaceholderLayer<Tensor> inputKey = new PlaceholderLayer<Tensor>(new Tensor());
+      @javax.annotation.Nonnull final NNResult copyInput = new NNResult(TensorArray.create(inputPrototype), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+        @javax.annotation.Nonnull final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.dim());
         if (!Arrays.equals(inputTensor.getDimensions(), data.get(inputIndex).getDimensions())) {
           throw new AssertionError();
         }
@@ -94,8 +94,8 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   
       };
       final NNResult eval = component.eval(copyInput);
-      final @NotNull DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
-      @NotNull TensorArray tensorArray = TensorArray.wrap(eval.getData().stream().map(x -> x.set(j_, 1)).toArray(i -> new Tensor[i]));
+      @javax.annotation.Nonnull final DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
+      @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(eval.getData().stream().map(x -> x.set(j_, 1)).toArray(i -> new Tensor[i]));
       eval.accumulate(xxx, tensorArray);
       tensorArray.freeRef();
       final Delta<NNLayer> inputDelta = xxx.getMap().get(inputKey);
@@ -106,18 +106,19 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     return result;
   }
   
-  private @NotNull Tensor getLearningGradient(final @NotNull NNLayer component, final int layerNum, final @NotNull Tensor outputPrototype, final Tensor... inputPrototype) {
+  @javax.annotation.Nonnull
+  private Tensor getLearningGradient(@javax.annotation.Nonnull final NNLayer component, final int layerNum, @javax.annotation.Nonnull final Tensor outputPrototype, final Tensor... inputPrototype) {
     component.setFrozen(false);
     final double[] stateArray = component.state().get(layerNum);
     final int stateLen = stateArray.length;
-    final @NotNull Tensor gradient = new Tensor(stateLen, outputPrototype.dim());
+    @javax.annotation.Nonnull final Tensor gradient = new Tensor(stateLen, outputPrototype.dim());
     for (int j = 0; j < outputPrototype.dim(); j++) {
       final int j_ = j;
-      final @NotNull DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
-      final @NotNull Tensor data = new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0);
+      @javax.annotation.Nonnull final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
+      @javax.annotation.Nonnull final Tensor data = new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0);
       final NNResult eval = component.eval(NNConstant.singleResultArray(new Tensor[][]{inputPrototype}));
       eval.getData().get(0);
-      @NotNull TensorArray tensorArray = TensorArray.wrap(data);
+      @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(data);
       eval.accumulate(buffer, tensorArray);
       tensorArray.freeRef();
       final DoubleBuffer<NNLayer> deltaFlushBuffer = buffer.getMap().values().stream().filter(x -> x.target == stateArray).findFirst().orElse(null);
@@ -145,7 +146,8 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
    * @param testFeedback the run feedback
    * @return the run feedback
    */
-  public @NotNull BatchDerivativeTester setTestFeedback(final boolean testFeedback) {
+  @javax.annotation.Nonnull
+  public BatchDerivativeTester setTestFeedback(final boolean testFeedback) {
     this.testFeedback = testFeedback;
     return this;
   }
@@ -165,7 +167,8 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
    * @param testLearning the run learning
    * @return the run learning
    */
-  public @NotNull BatchDerivativeTester setTestLearning(final boolean testLearning) {
+  @javax.annotation.Nonnull
+  public BatchDerivativeTester setTestLearning(final boolean testLearning) {
     this.testLearning = testLearning;
     return this;
   }
@@ -185,7 +188,8 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
    * @param verbose the verbose
    * @return the verbose
    */
-  public @NotNull BatchDerivativeTester setVerbose(final boolean verbose) {
+  @javax.annotation.Nonnull
+  public BatchDerivativeTester setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
   }
@@ -205,22 +209,24 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
    * @param verify the verify
    * @return the verify
    */
-  public @NotNull BatchDerivativeTester setVerify(final boolean verify) {
+  @javax.annotation.Nonnull
+  public BatchDerivativeTester setVerify(final boolean verify) {
     this.verify = verify;
     return this;
   }
   
-  private @NotNull Tensor measureFeedbackGradient(final @NotNull NNLayer component, final int inputIndex, final @NotNull Tensor outputPrototype, final @NotNull Tensor... inputPrototype) {
-    final @NotNull Tensor measuredGradient = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
+  @javax.annotation.Nonnull
+  private Tensor measureFeedbackGradient(@javax.annotation.Nonnull final NNLayer component, final int inputIndex, @javax.annotation.Nonnull final Tensor outputPrototype, @javax.annotation.Nonnull final Tensor... inputPrototype) {
+    @javax.annotation.Nonnull final Tensor measuredGradient = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
     final Tensor baseOutput = component.eval(NNConstant.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
     outputPrototype.set(baseOutput);
     for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
-      final @NotNull Tensor inputProbe = inputPrototype[inputIndex].copy();
+      @javax.annotation.Nonnull final Tensor inputProbe = inputPrototype[inputIndex].copy();
       inputProbe.add(i, probeSize * 1);
-      final @NotNull Tensor[] copyInput = Arrays.copyOf(inputPrototype, inputPrototype.length);
+      @javax.annotation.Nonnull final Tensor[] copyInput = Arrays.copyOf(inputPrototype, inputPrototype.length);
       copyInput[inputIndex] = inputProbe;
       final Tensor evalProbe = component.eval(NNConstant.singleResultArray(new Tensor[][]{copyInput})).getData().get(0);
-      final @NotNull Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
+      @javax.annotation.Nonnull final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
       for (int j = 0; j < delta.dim(); j++) {
         measuredGradient.set(new int[]{i, j}, delta.getData()[j]);
       }
@@ -228,9 +234,10 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     return measuredGradient;
   }
   
-  private @NotNull Tensor measureLearningGradient(final @NotNull NNLayer component, final int layerNum, final @NotNull Tensor outputPrototype, final Tensor... inputPrototype) {
+  @javax.annotation.Nonnull
+  private Tensor measureLearningGradient(@javax.annotation.Nonnull final NNLayer component, final int layerNum, @javax.annotation.Nonnull final Tensor outputPrototype, final Tensor... inputPrototype) {
     final int stateLen = component.state().get(layerNum).length;
-    final @NotNull Tensor gradient = new Tensor(stateLen, outputPrototype.dim());
+    @javax.annotation.Nonnull final Tensor gradient = new Tensor(stateLen, outputPrototype.dim());
   
     final Tensor baseOutput = component.eval(NNConstant.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
     
@@ -240,7 +247,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   
       final Tensor evalProbe = copy.eval(NNConstant.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
   
-      final @NotNull Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
+      @javax.annotation.Nonnull final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
       for (int j = 0; j < delta.dim(); j++) {
         gradient.set(new int[]{i, j}, delta.getData()[j]);
       }
@@ -256,11 +263,11 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
    * @param statistics the statistics
    * @return the tolerance statistics
    */
-  public ToleranceStatistics testLearning(@NotNull NNLayer component, @NotNull IOPair IOPair, ToleranceStatistics statistics) {
+  public ToleranceStatistics testLearning(@javax.annotation.Nonnull NNLayer component, @javax.annotation.Nonnull IOPair IOPair, ToleranceStatistics statistics) {
     final ToleranceStatistics prev = statistics;
     statistics = IntStream.range(0, component.state().size()).mapToObj(i -> {
       final @Nullable Tensor measuredGradient = !verify ? null : measureLearningGradient(component, i, IOPair.getOutputPrototype(), IOPair.getInputPrototype());
-      final @NotNull Tensor implementedGradient = getLearningGradient(component, i, IOPair.getOutputPrototype(), IOPair.getInputPrototype());
+      @javax.annotation.Nonnull final Tensor implementedGradient = getLearningGradient(component, i, IOPair.getOutputPrototype(), IOPair.getInputPrototype());
       try {
         final ToleranceStatistics result = IntStream.range(0, null == measuredGradient ? 0 : measuredGradient.dim()).mapToObj(i1 -> {
           return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], implementedGradient.getData()[i1]);
@@ -285,7 +292,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
           }
           return result;
         }
-      } catch (final @NotNull Throwable e) {
+      } catch (@javax.annotation.Nonnull final Throwable e) {
         //log.info(String.format("Component: %s", component));
         log.info(String.format("Learning Gradient for weight setByCoord %s", i));
         log.info(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
@@ -311,10 +318,10 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
    * @param statistics the statistics
    * @return the tolerance statistics
    */
-  public ToleranceStatistics testFeedback(@NotNull NNLayer component, @NotNull IOPair IOPair, ToleranceStatistics statistics) {
+  public ToleranceStatistics testFeedback(@javax.annotation.Nonnull NNLayer component, @javax.annotation.Nonnull IOPair IOPair, ToleranceStatistics statistics) {
     statistics = statistics.combine(IntStream.range(0, IOPair.getInputPrototype().length).mapToObj(i -> {
       final @Nullable Tensor measuredGradient = !verify ? null : measureFeedbackGradient(component, i, IOPair.getOutputPrototype(), IOPair.getInputPrototype());
-      final @NotNull Tensor implementedGradient = getFeedbackGradient(component, i, IOPair.getOutputPrototype(), IOPair.getInputPrototype());
+      @javax.annotation.Nonnull final Tensor implementedGradient = getFeedbackGradient(component, i, IOPair.getOutputPrototype(), IOPair.getInputPrototype());
       try {
         final ToleranceStatistics result = IntStream.range(0, null == measuredGradient ? 0 : measuredGradient.dim()).mapToObj(i1 -> {
           return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], implementedGradient.getData()[i1]);
@@ -336,7 +343,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
           }
         }
         return result;
-      } catch (final @NotNull Throwable e) {
+      } catch (@javax.annotation.Nonnull final Throwable e) {
         //log.info(String.format("Component: %s", component));
         log.info(String.format("Feedback for input %s", i));
         log.info(String.format("Inputs Values: %s", IOPair.getInputPrototype()[i].prettyPrint()));
@@ -364,9 +371,9 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
    * @return the tolerance statistics
    */
   @Override
-  public ToleranceStatistics test(final @NotNull NotebookOutput log, final @NotNull NNLayer component, final @NotNull Tensor... inputPrototype) {
+  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer component, @javax.annotation.Nonnull final Tensor... inputPrototype) {
     log.h1("Differential Validation");
-    @NotNull IOPair ioPair = new IOPair(component, inputPrototype[0]).invoke();
+    @javax.annotation.Nonnull IOPair ioPair = new IOPair(component, inputPrototype[0]).invoke();
   
     if (verbose) {
       log.code(() -> {
@@ -421,10 +428,10 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
    * @param component      the component
    * @param inputPrototype the input prototype
    */
-  public void testFrozen(final @NotNull NNLayer component, final @NotNull Tensor[] inputPrototype) {
-    final @NotNull AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
+  public void testFrozen(@javax.annotation.Nonnull final NNLayer component, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
+    @javax.annotation.Nonnull final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     final NNLayer frozen = component.copy().freeze();
-    final NNResult eval = frozen.eval(new NNResult(TensorArray.create(inputPrototype), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
+    final NNResult eval = frozen.eval(new NNResult(TensorArray.create(inputPrototype), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       reachedInputFeedback.set(true);
     }) {
   
@@ -435,7 +442,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   
   
     });
-    final @NotNull DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
+    @javax.annotation.Nonnull final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
     TensorList tensorList = eval.getData().copy();
     eval.accumulate(buffer, tensorList);
     tensorList.freeRef();
@@ -457,10 +464,10 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
    * @param component      the component
    * @param inputPrototype the input prototype
    */
-  public void testUnFrozen(final @NotNull NNLayer component, final Tensor[] inputPrototype) {
-    final @NotNull AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
+  public void testUnFrozen(@javax.annotation.Nonnull final NNLayer component, final Tensor[] inputPrototype) {
+    @javax.annotation.Nonnull final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     final NNLayer frozen = component.copy().setFrozen(false);
-    final NNResult eval = frozen.eval(new NNResult(TensorArray.create(inputPrototype), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
+    final NNResult eval = frozen.eval(new NNResult(TensorArray.create(inputPrototype), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       reachedInputFeedback.set(true);
     }) {
   
@@ -470,7 +477,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       }
   
     });
-    final @NotNull DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
+    @javax.annotation.Nonnull final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
     TensorList data = eval.getData();
     eval.accumulate(buffer, data);
     data.freeRef();
@@ -486,8 +493,9 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     }
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull String toString() {
+  public String toString() {
     return "BatchDerivativeTester{" +
       "probeSize=" + probeSize +
       ", batches=" + batches +
@@ -539,7 +547,8 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
      *
      * @return the io pair
      */
-    public @NotNull IOPair invoke() {
+    @javax.annotation.Nonnull
+    public IOPair invoke() {
       inputPrototype = IntStream.range(0, batches).mapToObj(i -> tensor.copy()).toArray(j -> new Tensor[j]);
       outputPrototype = SimpleEval.run(component, inputPrototype[0]).getOutputAndFree();
       return this;

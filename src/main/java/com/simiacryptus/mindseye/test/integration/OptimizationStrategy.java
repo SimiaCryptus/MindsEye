@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * The interface Optimization strategy.
@@ -39,5 +38,6 @@ public interface OptimizationStrategy {
    * @param monitor           the monitor
    * @return the validating trainer
    */
-  @NotNull ValidatingTrainer train(NotebookOutput log, SampledTrainable trainingSubject, Trainable validationSubject, TrainingMonitor monitor);
+  @javax.annotation.Nonnull
+  ValidatingTrainer train(NotebookOutput log, SampledTrainable trainingSubject, Trainable validationSubject, TrainingMonitor monitor);
 }

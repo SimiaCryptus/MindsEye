@@ -23,7 +23,6 @@ import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.lang.TimedResult;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -76,18 +75,18 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
     final int cols = data.get(0).length;
     return IntStream.range(0, cols).mapToObj(col -> {
       final Tensor[] tensors = IntStream.range(0, data.size()).mapToObj(row -> data.get(row)[col]).toArray(i -> new Tensor[i]);
-      @NotNull TensorArray tensorArray = TensorArray.create(tensors);
+      @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.create(tensors);
       if (null == mask || col >= mask.length || !mask[col]) {
         return new NNConstant(tensorArray);
       }
       else {
-        return new NNResult(tensorArray, (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList delta) -> {
+        return new NNResult(tensorArray, (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
           for (int index = 0; index < delta.length(); index++) {
             final Tensor dt = delta.get(index);
             final double[] d = dt.getData();
             final Tensor t = tensors[index];
             final double[] p = t.getData();
-            @NotNull PlaceholderLayer<double[]> layer = new PlaceholderLayer<>(p);
+            @javax.annotation.Nonnull PlaceholderLayer<double[]> layer = new PlaceholderLayer<>(p);
             buffer.get(layer, p).addInPlace(d).freeRef();
             dt.freeRef();
             layer.freeRef();
@@ -110,11 +109,11 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
    * @param monitor the monitor
    * @return the point sample
    */
-  protected PointSample eval(final @NotNull List<Tensor[]> list, final @Nullable TrainingMonitor monitor) {
-    final @NotNull TimedResult<PointSample> timedResult = TimedResult.time(() -> {
+  protected PointSample eval(@javax.annotation.Nonnull final List<Tensor[]> list, final @Nullable TrainingMonitor monitor) {
+    @javax.annotation.Nonnull final TimedResult<PointSample> timedResult = TimedResult.time(() -> {
       final NNResult[] nnContext = BasicTrainable.getNNContext(list, mask);
       final NNResult result = network.eval(nnContext);
-      for (@NotNull NNResult nnResult : nnContext) {
+      for (@javax.annotation.Nonnull NNResult nnResult : nnContext) {
         nnResult.getData().freeRef();
         nnResult.freeRef();
       }
@@ -123,13 +122,13 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
                                                            .flatMapToDouble(x -> Arrays.stream(Arrays.stream(x.getData()).toArray()))
                                                            .summaryStatistics();
       final double sum = statistics.getSum();
-      final @NotNull DeltaSet<NNLayer> deltaSet = new DeltaSet<NNLayer>();
+      @javax.annotation.Nonnull final DeltaSet<NNLayer> deltaSet = new DeltaSet<NNLayer>();
       result.accumulate(deltaSet, 1.0);
       resultData.freeRef();
       result.freeRef();
       //log.info(String.format("Evaluated to %s delta buffers, %s mag", DeltaSet<NNLayer>.getMap().size(), DeltaSet<NNLayer>.getMagnitude()));
-      @NotNull StateSet<NNLayer> stateSet = new StateSet<>(deltaSet);
-      @NotNull PointSample pointSample = new PointSample(deltaSet, stateSet, sum, 0.0, list.size());
+      @javax.annotation.Nonnull StateSet<NNLayer> stateSet = new StateSet<>(deltaSet);
+      @javax.annotation.Nonnull PointSample pointSample = new PointSample(deltaSet, stateSet, sum, 0.0, list.size());
       deltaSet.freeRef();
       stateSet.freeRef();
       return pointSample;
@@ -142,8 +141,9 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
     return normalize;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull Tensor[][] getData() {
+  public Tensor[][] getData() {
     return data.toArray(new Tensor[][]{});
   }
   
@@ -166,7 +166,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
   @Override
   public PointSample measure(final @Nullable TrainingMonitor monitor) {
     assert !data.isEmpty();
-    final @NotNull TimedResult<PointSample> timedResult = TimedResult.time(() -> eval(data, monitor));
+    @javax.annotation.Nonnull final TimedResult<PointSample> timedResult = TimedResult.time(() -> eval(data, monitor));
     //          log.info(String.format("Evaluated to %s delta arrays", DeltaSet<NNLayer>.run.size()));
     if (null != monitor && verbosity() > 1) {
       monitor.log(String.format("Evaluated %s items in %.4fs (%s/%s)", data.size(), timedResult.timeNanos / 1e9, timedResult.result.getMean(), timedResult.result.delta.getMagnitude()));
@@ -175,8 +175,9 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
     return timedResult.result;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public synchronized @NotNull Trainable setData(final @NotNull List<Tensor[]> sampledData) {
+  public synchronized Trainable setData(@javax.annotation.Nonnull final List<Tensor[]> sampledData) {
     assert !sampledData.isEmpty();
     sampledData.stream().flatMap(x -> Arrays.stream(x)).forEach(x -> x.addRef());
     if (null != this.data) this.data.stream().flatMap(x -> Arrays.stream(x)).forEach(x -> x.freeRef());
@@ -184,8 +185,9 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
     return this;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull TrainableDataMask setMask(final boolean... mask) {
+  public TrainableDataMask setMask(final boolean... mask) {
     this.mask = mask;
     return this;
   }
@@ -196,7 +198,8 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
    * @param verbose the verbose
    * @return the verbose
    */
-  public @NotNull BasicTrainable setVerbosity(final int verbose) {
+  @javax.annotation.Nonnull
+  public BasicTrainable setVerbosity(final int verbose) {
     verbosity = verbose;
     return this;
   }

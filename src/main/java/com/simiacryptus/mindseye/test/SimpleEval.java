@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.concurrent.Callable;
@@ -30,8 +29,10 @@ import java.util.stream.IntStream;
  * The type Simple trainAll.
  */
 public class SimpleEval extends ReferenceCountingBase implements Callable<SimpleEval> {
-  private final @NotNull Tensor[] input;
-  private final @NotNull NNLayer layer;
+  @javax.annotation.Nonnull
+  private final Tensor[] input;
+  @javax.annotation.Nonnull
+  private final NNLayer layer;
   private Tensor[] derivative;
   private Tensor output;
   
@@ -42,10 +43,12 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
    * @param layer the layer
    * @param input the input
    */
-  public SimpleEval(final @NotNull NNLayer layer, final @NotNull Tensor... input) {
+  public SimpleEval(@javax.annotation.Nonnull final NNLayer layer, @javax.annotation.Nonnull final Tensor... input) {
     this.layer = layer;
     this.input = input;
-    for (@NotNull Tensor x : input) x.addRef();
+    this.derivative = null;
+    this.output = null;
+    for (@javax.annotation.Nonnull Tensor x : input) x.addRef();
     layer.addRef();
   }
   
@@ -56,31 +59,33 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
    * @param tensor the tensor
    * @return the simple trainAll
    */
-  public static @NotNull SimpleEval run(final @NotNull NNLayer layer, final Tensor... tensor) {
+  @javax.annotation.Nonnull
+  public static SimpleEval run(@javax.annotation.Nonnull final NNLayer layer, final Tensor... tensor) {
     return new SimpleEval(layer, tensor).call();
   }
   
   @Override
   protected void _free() {
-    for (@NotNull Tensor x : input) x.freeRef();
+    for (@javax.annotation.Nonnull Tensor x : input) x.freeRef();
     layer.freeRef();
-    for (@NotNull Tensor x : derivative) x.freeRef();
-    output.freeRef();
+    if (null != derivative) for (@javax.annotation.Nonnull Tensor x : derivative) x.freeRef();
+    if (null != output) output.freeRef();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull SimpleEval call() {
+  public SimpleEval call() {
     Tensor[] inputCopy = Arrays.stream(input).map(x -> x.copy()).toArray(i -> new Tensor[i]);
     derivative = Arrays.stream(inputCopy).map(input -> new Tensor(input.getDimensions())).toArray(i -> new Tensor[i]);
     NNResult[] input = IntStream.range(0, inputCopy.length).mapToObj(i -> {
-      return new NNResult(TensorArray.create(inputCopy[i]), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
+      return new NNResult(TensorArray.create(inputCopy[i]), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
         data.stream().forEach(t -> derivative[i].addInPlace(t));
       }) {
         @Override
         protected void _free() {
-    
+        
         }
-  
+        
         @Override
         public boolean isAlive() {
           return true;
@@ -88,7 +93,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
       };
     }).toArray(i -> new NNResult[i]);
     final NNResult eval = layer.eval(input);
-    for (@NotNull NNResult nnResult : input) {
+    for (@javax.annotation.Nonnull NNResult nnResult : input) {
       nnResult.getData().freeRef();
       nnResult.freeRef();
     }
@@ -96,13 +101,13 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
     Tensor tensor1 = outputData.get(0);
     output = tensor1.copy();
     tensor1.freeRef();
-    for (@NotNull Tensor tensor : inputCopy) {
+    for (@javax.annotation.Nonnull Tensor tensor : inputCopy) {
       tensor.freeRef();
     }
     eval.getData().freeRef();
-    @NotNull TensorList tensorList = getFeedback(outputData);
+    @javax.annotation.Nonnull TensorList tensorList = getFeedback(outputData);
     outputData.freeRef();
-    @NotNull DeltaSet<NNLayer> deltaSet = new DeltaSet<>();
+    @javax.annotation.Nonnull DeltaSet<NNLayer> deltaSet = new DeltaSet<>();
     eval.accumulate(deltaSet, tensorList);
     eval.freeRef();
     deltaSet.freeRef();
@@ -125,7 +130,8 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
    * @param data the data
    * @return the feedback
    */
-  public @NotNull TensorList getFeedback(final @NotNull TensorList data) {
+  @javax.annotation.Nonnull
+  public TensorList getFeedback(@javax.annotation.Nonnull final TensorList data) {
     return TensorArray.wrap(data.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i]));
   }
   

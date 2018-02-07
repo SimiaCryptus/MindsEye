@@ -25,7 +25,6 @@ import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
 import com.simiacryptus.mindseye.layers.java.SigmoidActivationLayer;
 import com.simiacryptus.util.Util;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * The type Convolution network eval.
@@ -42,7 +41,7 @@ public abstract class DeepLinear extends NLayerTest {
   }
   
   @Override
-  public void addLayer(final @NotNull PipelineNetwork network, final @NotNull int[] in, final @NotNull int[] dims) {
+  public void addLayer(@javax.annotation.Nonnull final PipelineNetwork network, @javax.annotation.Nonnull final int[] in, @javax.annotation.Nonnull final int[] dims) {
     network.add(new FullyConnectedLayer(in, dims).set(this::random));
     network.add(new BiasLayer(dims));
     network.add(getActivation());
@@ -53,12 +52,14 @@ public abstract class DeepLinear extends NLayerTest {
    *
    * @return the activation
    */
-  public @NotNull NNLayer getActivation() {
+  @javax.annotation.Nonnull
+  public NNLayer getActivation() {
     return new ReLuActivationLayer();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull int[] getInputDims() {
+  public int[] getInputDims() {
     return new int[]{5, 5, 3};
   }
   
@@ -101,8 +102,9 @@ public abstract class DeepLinear extends NLayerTest {
            );
     }
   
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull NNLayer getActivation() {
+    public NNLayer getActivation() {
       return new SigmoidActivationLayer();
     }
   

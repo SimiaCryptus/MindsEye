@@ -23,7 +23,6 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * A base class for a Trainable type which wraps an heapCopy type of the same kind.
@@ -79,14 +78,16 @@ public class TrainableWrapper<T extends Trainable> extends ReferenceCountingBase
     return inner.getLayer();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull TrainableDataMask setMask(final boolean... mask) {
+  public TrainableDataMask setMask(final boolean... mask) {
     ((TrainableDataMask) inner).setMask(mask);
     return this;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull String toString() {
+  public String toString() {
     return getClass().getSimpleName() + "{" +
       "heapCopy=" + inner +
       '}';

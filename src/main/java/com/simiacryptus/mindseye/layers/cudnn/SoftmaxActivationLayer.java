@@ -25,7 +25,6 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +54,7 @@ public class SoftmaxActivationLayer extends NNLayer implements MultiPrecision<So
    *
    * @param json the json
    */
-  protected SoftmaxActivationLayer(final @NotNull JsonObject json) {
+  protected SoftmaxActivationLayer(@javax.annotation.Nonnull final JsonObject json) {
     super(json);
     precision = Precision.valueOf(json.get("precision").getAsString());
   }
@@ -67,7 +66,7 @@ public class SoftmaxActivationLayer extends NNLayer implements MultiPrecision<So
    * @param rs   the rs
    * @return the activation layer
    */
-  public static SoftmaxActivationLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static SoftmaxActivationLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new SoftmaxActivationLayer(json);
   }
   
@@ -76,7 +75,8 @@ public class SoftmaxActivationLayer extends NNLayer implements MultiPrecision<So
    *
    * @return the compatibility layer
    */
-  public @NotNull NNLayer getCompatibilityLayer() {
+  @javax.annotation.Nonnull
+  public NNLayer getCompatibilityLayer() {
     return this.as(com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer.class);
   }
   
@@ -88,9 +88,10 @@ public class SoftmaxActivationLayer extends NNLayer implements MultiPrecision<So
     return getCompatibilityLayer().eval(inObj);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("precision", precision.name());
     return json;
   }
@@ -100,14 +101,16 @@ public class SoftmaxActivationLayer extends NNLayer implements MultiPrecision<So
     return precision;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull SoftmaxActivationLayer setPrecision(final Precision precision) {
+  public SoftmaxActivationLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
   

@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +45,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
    */
   public SimpleActivationLayer() {
     super();
-    setFrozen(true);
+    this.frozen = true;
   }
   
   /**
@@ -54,7 +53,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
    *
    * @param id the id
    */
-  protected SimpleActivationLayer(final @NotNull JsonObject id) {
+  protected SimpleActivationLayer(@javax.annotation.Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -66,18 +65,19 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
    */
   protected abstract void eval(final double x, double[] results);
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNResult eval(final @NotNull NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
     assert 0 < itemCnt;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    final @NotNull Tensor inputGradientA[] = new Tensor[itemCnt];
+    @javax.annotation.Nonnull final Tensor inputGradientA[] = new Tensor[itemCnt];
     return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);
-      final @NotNull Tensor output = new Tensor(inObj[0].getData().getDimensions());
-      final @NotNull Tensor inputGradient = new Tensor(input.dim());
+      @javax.annotation.Nonnull final Tensor output = new Tensor(inObj[0].getData().getDimensions());
+      @javax.annotation.Nonnull final Tensor inputGradient = new Tensor(input.dim());
       inputGradientA[dataIndex] = inputGradient;
-      final @NotNull double[] results = new double[2];
+      @javax.annotation.Nonnull final double[] results = new double[2];
       for (int i = 0; i < input.dim(); i++) {
         eval(input.getData()[i], results);
         inputGradient.set(i, results[1]);
@@ -85,10 +85,10 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
       }
       input.freeRef();
       return output;
-    }).toArray(i -> new Tensor[i])), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
-        @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
-          final @NotNull Tensor passback = new Tensor(data.getDimensions());
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
+          @javax.annotation.Nonnull final Tensor passback = new Tensor(data.getDimensions());
           final @Nullable double[] gradientData = inputGradientA[dataIndex].getData();
           IntStream.range(0, passback.dim()).forEach(i -> {
             final double v = gradientData[i];
@@ -102,15 +102,15 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
         tensorArray.freeRef();
       }
     }) {
-  
+      
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
-        for (@NotNull Tensor tensor : inputGradientA) {
+        for (@javax.annotation.Nonnull Tensor tensor : inputGradientA) {
           tensor.freeRef();
         }
       }
-  
+      
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive();
@@ -118,8 +118,9 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
   

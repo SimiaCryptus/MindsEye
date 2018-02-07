@@ -26,7 +26,6 @@ import com.simiacryptus.util.io.NotebookOutput;
 import org.apache.commons.math3.linear.BlockRealMatrix;
 import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 import java.util.List;
@@ -56,7 +55,8 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
    * @param stream the stream
    * @return covariance covariance
    */
-  public static @NotNull RealMatrix getCovariance(final @NotNull Supplier<Stream<double[]>> stream) {
+  @javax.annotation.Nonnull
+  public static RealMatrix getCovariance(@javax.annotation.Nonnull final Supplier<Stream<double[]>> stream) {
     final int dimension = stream.get().findAny().get().length;
     final List<DoubleStatistics> statList = IntStream.range(0, dimension * dimension)
                                                      .mapToObj(i -> new DoubleStatistics()).collect(Collectors.toList());
@@ -68,7 +68,7 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
       }
       RecycleBin.DOUBLES.recycle(array, array.length);
     });
-    final @NotNull RealMatrix covariance = new BlockRealMatrix(dimension, dimension);
+    @javax.annotation.Nonnull final RealMatrix covariance = new BlockRealMatrix(dimension, dimension);
     for (int i = 0; i < dimension; i++) {
       for (int j = 0; j <= i; j++) {
         final double v = statList.get(i * dimension + j).getAverage();
@@ -101,17 +101,17 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
    * @param components     the components
    * @return the tensor [ ]
    */
-  protected Tensor[] findFeatureSpace(final @NotNull NotebookOutput log, final @NotNull Supplier<Stream<Tensor[]>> featureVectors, final int components) {
+  protected Tensor[] findFeatureSpace(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Supplier<Stream<Tensor[]>> featureVectors, final int components) {
     return log.code(() -> {
       final int column = 1;
-      final @NotNull Tensor[] prototype = featureVectors.get().findAny().get();
-      final @NotNull int[] dimensions = prototype[column].getDimensions();
-      final @NotNull EigenDecomposition decomposition = new EigenDecomposition(FindPCAFeatures.getCovariance(() -> featureVectors.get().map(x -> x[column].getData())));
+      @javax.annotation.Nonnull final Tensor[] prototype = featureVectors.get().findAny().get();
+      @javax.annotation.Nonnull final int[] dimensions = prototype[column].getDimensions();
+      @javax.annotation.Nonnull final EigenDecomposition decomposition = new EigenDecomposition(FindPCAFeatures.getCovariance(() -> featureVectors.get().map(x -> x[column].getData())));
       final int[] orderedVectors = IntStream.range(0, components).mapToObj(x -> x)
                                             .sorted(Comparator.comparing(x -> -decomposition.getRealEigenvalue(x))).mapToInt(x -> x).toArray();
       return IntStream.range(0, orderedVectors.length)
                       .mapToObj(i -> {
-                                  final @NotNull Tensor src = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), dimensions).copy();
+                                  @javax.annotation.Nonnull final Tensor src = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), dimensions).copy();
                                   return src
                                     .scale(1.0 / src.rms())
                                     //.scale((decomposition.getRealEigenvalue(orderedVectors[i]) / decomposition.getRealEigenvalue(orderedVectors[orderedVectors.length - 1])))
@@ -127,8 +127,9 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
    *
    * @return the find feature space
    */
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull FindFeatureSpace invoke() {
+  public FindFeatureSpace invoke() {
     averages = findBandBias();
     vectors = findFeatureSpace(log, () -> getFeatures().map(tensor -> {
       return new Tensor[]{tensor[0], tensor[1].mapCoords((c) -> tensor[1].get(c) - averages[c.getCoords()[2]])};

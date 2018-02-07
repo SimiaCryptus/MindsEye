@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +51,7 @@ public class StaticScalarLossLayer extends NNLayer {
    *
    * @param id the id
    */
-  protected StaticScalarLossLayer(final @NotNull JsonObject id) {
+  protected StaticScalarLossLayer(@javax.annotation.Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -63,12 +62,13 @@ public class StaticScalarLossLayer extends NNLayer {
    * @param rs   the rs
    * @return the static scalar loss layer
    */
-  public static StaticScalarLossLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static StaticScalarLossLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new StaticScalarLossLayer(json);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNResult eval(final @NotNull NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     if (1 != inObj.length) throw new IllegalArgumentException();
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     //if (inObj[0].getData().length() != 1) throw new IllegalArgumentException();
@@ -79,9 +79,9 @@ public class StaticScalarLossLayer extends NNLayer {
       final Tensor a = indata.get(dataIndex);
       final double diff = Math.abs(a.get(0) - getTarget());
       return new Tensor(new double[]{diff}, 1);
-    }).toArray(i -> new Tensor[i])), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (in0.isAlive()) {
-        @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
           final Tensor a = indata.get(dataIndex);
           final double deriv = data.get(dataIndex).get(0) * (a.get(0) - getTarget() < 0 ? -1 : 1);
           return new Tensor(new double[]{deriv}, 1);
@@ -96,8 +96,8 @@ public class StaticScalarLossLayer extends NNLayer {
         indata.freeRef();
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-  
-  
+      
+      
       @Override
       public boolean isAlive() {
         return in0.isAlive();
@@ -106,8 +106,9 @@ public class StaticScalarLossLayer extends NNLayer {
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
@@ -126,13 +127,15 @@ public class StaticScalarLossLayer extends NNLayer {
    * @param target the target
    * @return the target
    */
-  public @NotNull StaticScalarLossLayer setTarget(final double target) {
+  @javax.annotation.Nonnull
+  public StaticScalarLossLayer setTarget(final double target) {
     this.target = target;
     return this;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
 }

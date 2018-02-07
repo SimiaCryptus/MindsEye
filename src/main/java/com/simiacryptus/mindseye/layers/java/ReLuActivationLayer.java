@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.Util;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +50,7 @@ public class ReLuActivationLayer extends NNLayer {
     super();
     weights = new Tensor(1);
     weights.set(0, 1.);
-    setFrozen(true);
+    this.frozen = true;
   }
   
   @Override
@@ -66,7 +65,7 @@ public class ReLuActivationLayer extends NNLayer {
    * @param json      the json
    * @param resources the resources
    */
-  protected ReLuActivationLayer(final @NotNull JsonObject json, Map<String, byte[]> resources) {
+  protected ReLuActivationLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> resources) {
     super(json);
     weights = Tensor.fromJson(json.get("weights"), resources);
   }
@@ -78,7 +77,7 @@ public class ReLuActivationLayer extends NNLayer {
    * @param rs   the rs
    * @return the re lu activation layer
    */
-  public static ReLuActivationLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static ReLuActivationLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ReLuActivationLayer(json, rs);
   }
   
@@ -88,13 +87,15 @@ public class ReLuActivationLayer extends NNLayer {
    * @param f the f
    * @return the re lu activation layer
    */
-  public @NotNull ReLuActivationLayer addWeights(final @NotNull DoubleSupplier f) {
+  @javax.annotation.Nonnull
+  public ReLuActivationLayer addWeights(@javax.annotation.Nonnull final DoubleSupplier f) {
     Util.add(f, weights.getData());
     return this;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNResult eval(final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final NNResult input = inObj[0];
     final TensorList indata = input.getData();
     input.addRef();
@@ -102,7 +103,7 @@ public class ReLuActivationLayer extends NNLayer {
     final int itemCnt = indata.length();
     final Tensor[] output = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       Tensor tensorElement = indata.get(dataIndex);
-      final @NotNull Tensor tensor = tensorElement.multiply(weights.get(0));
+      @javax.annotation.Nonnull final Tensor tensor = tensorElement.multiply(weights.get(0));
       tensorElement.freeRef();
       final @Nullable double[] outputData = tensor.getData();
       for (int i = 0; i < outputData.length; i++) {
@@ -112,14 +113,14 @@ public class ReLuActivationLayer extends NNLayer {
       }
       return tensor;
     }).toArray(i -> new Tensor[i]);
-    return new NNResult(TensorArray.wrap(output), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList delta) -> {
+    return new NNResult(TensorArray.wrap(output), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).parallel().forEach(dataIndex -> {
           Tensor deltaTensor = delta.get(dataIndex);
           final @Nullable double[] deltaData = deltaTensor.getData();
           Tensor inputTensor = indata.get(dataIndex);
           final @Nullable double[] inputData = inputTensor.getData();
-          final @NotNull Tensor weightDelta = new Tensor(weights.getDimensions());
+          @javax.annotation.Nonnull final Tensor weightDelta = new Tensor(weights.getDimensions());
           final @Nullable double[] weightDeltaData = weightDelta.getData();
           for (int i = 0; i < deltaData.length; i++) {
             weightDeltaData[0] += inputData[i] < 0 ? 0 : deltaData[i] * inputData[i];
@@ -132,13 +133,13 @@ public class ReLuActivationLayer extends NNLayer {
       }
       if (input.isAlive()) {
         final double weight = weights.getData()[0];
-        @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).parallel().mapToObj(dataIndex -> {
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).parallel().mapToObj(dataIndex -> {
           Tensor deltaTensor = delta.get(dataIndex);
           final @Nullable double[] deltaData = deltaTensor.getData();
           Tensor inTensor = indata.get(dataIndex);
           final @Nullable double[] inputData = inTensor.getData();
-          final @NotNull int[] dims = inTensor.getDimensions();
-          final @NotNull Tensor passback = new Tensor(dims);
+          @javax.annotation.Nonnull final int[] dims = inTensor.getDimensions();
+          @javax.annotation.Nonnull final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, inputData[i] < 0 ? 0 : deltaData[i] * weight);
           }
@@ -156,18 +157,19 @@ public class ReLuActivationLayer extends NNLayer {
         input.freeRef();
         indata.freeRef();
       }
-  
+      
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();
       }
-  
+      
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, @NotNull DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, @javax.annotation.Nonnull DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.add("weights", weights.toJson(resources, dataSerializer));
     return json;
   }
@@ -187,7 +189,8 @@ public class ReLuActivationLayer extends NNLayer {
    * @param data the data
    * @return the weight
    */
-  public @NotNull ReLuActivationLayer setWeight(final double data) {
+  @javax.annotation.Nonnull
+  public ReLuActivationLayer setWeight(final double data) {
     weights.set(0, data);
     return this;
   }
@@ -198,13 +201,15 @@ public class ReLuActivationLayer extends NNLayer {
    * @param f the f
    * @return the weights
    */
-  public @NotNull ReLuActivationLayer setWeights(final @NotNull DoubleSupplier f) {
+  @javax.annotation.Nonnull
+  public ReLuActivationLayer setWeights(@javax.annotation.Nonnull final DoubleSupplier f) {
     Arrays.parallelSetAll(weights.getData(), i -> f.getAsDouble());
     return this;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList(weights.getData());
   }
   

@@ -23,7 +23,6 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.function.WeakCachedSupplier;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -50,7 +49,7 @@ public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> impl
    * @param network      the network
    * @param trainingSize the training size
    */
-  public SampledArrayTrainable(final @NotNull List<? extends Supplier<Tensor[]>> trainingData, final NNLayer network, final int trainingSize) {
+  public SampledArrayTrainable(@javax.annotation.Nonnull final List<? extends Supplier<Tensor[]>> trainingData, final NNLayer network, final int trainingSize) {
     this(trainingData, network, trainingSize, trainingSize);
   }
   
@@ -62,7 +61,7 @@ public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> impl
    * @param trainingSize the training size
    * @param batchSize    the batch size
    */
-  public SampledArrayTrainable(final @NotNull List<? extends Supplier<Tensor[]>> trainingData, final NNLayer network, final int trainingSize, final int batchSize) {
+  public SampledArrayTrainable(@javax.annotation.Nonnull final List<? extends Supplier<Tensor[]>> trainingData, final NNLayer network, final int trainingSize, final int batchSize) {
     super(new ArrayTrainable(null, network, batchSize));
     if (0 == trainingData.size()) throw new IllegalArgumentException();
     this.trainingData = trainingData;
@@ -77,7 +76,7 @@ public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> impl
    * @param network      the network
    * @param trainingSize the training size
    */
-  public SampledArrayTrainable(final @NotNull Tensor[][] trainingData, final NNLayer network, final int trainingSize) {
+  public SampledArrayTrainable(@javax.annotation.Nonnull final Tensor[][] trainingData, final NNLayer network, final int trainingSize) {
     this(trainingData, network, trainingSize, trainingSize);
   }
   
@@ -89,7 +88,7 @@ public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> impl
    * @param trainingSize the training size
    * @param batchSize    the batch size
    */
-  public SampledArrayTrainable(final @NotNull Tensor[][] trainingData, final NNLayer network, final int trainingSize, final int batchSize) {
+  public SampledArrayTrainable(@javax.annotation.Nonnull final Tensor[][] trainingData, final NNLayer network, final int trainingSize, final int batchSize) {
     super(new ArrayTrainable(network, batchSize));
     if (0 == trainingData.length) throw new IllegalArgumentException();
     this.trainingData = Arrays.stream(trainingData).map(obj -> new WeakCachedSupplier<>(() -> obj)).collect(Collectors.toList());
@@ -97,8 +96,9 @@ public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> impl
     reseed(System.nanoTime());
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull SampledCachedTrainable<? extends SampledTrainable> cached() {
+  public SampledCachedTrainable<? extends SampledTrainable> cached() {
     return new SampledCachedTrainable<>(this);
   }
   
@@ -117,7 +117,8 @@ public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> impl
    * @param minSamples the min samples
    * @return the min samples
    */
-  public @NotNull SampledArrayTrainable setMinSamples(final int minSamples) {
+  @javax.annotation.Nonnull
+  public SampledArrayTrainable setMinSamples(final int minSamples) {
     this.minSamples = minSamples;
     return this;
   }
@@ -134,7 +135,7 @@ public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> impl
     assert 0 < trainingData.size();
     Tensor[][] trainingData;
     if (0 < getTrainingSize() && getTrainingSize() < this.trainingData.size() - 1) {
-      final @NotNull Random random = new Random(seed);
+      @javax.annotation.Nonnull final Random random = new Random(seed);
       trainingData = IntStream.generate(() -> random.nextInt(this.trainingData.size()))
                               .distinct()
                               .mapToObj(i -> this.trainingData.get(i))
@@ -165,8 +166,9 @@ public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> impl
     refreshSampledData();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull SampledTrainable setTrainingSize(final int trainingSize) {
+  public SampledTrainable setTrainingSize(final int trainingSize) {
     this.trainingSize = trainingSize;
     refreshSampledData();
     return this;

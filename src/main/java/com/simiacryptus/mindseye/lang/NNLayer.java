@@ -24,7 +24,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonWriter;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
@@ -44,7 +43,7 @@ import java.util.zip.ZipOutputStream;
 public abstract class NNLayer extends ReferenceCountingBase implements Serializable {
   
   private final UUID id;
-  private boolean frozen = false;
+  protected boolean frozen = false;
   private String name;
   
   /**
@@ -60,13 +59,13 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    *
    * @param json the json
    */
-  protected NNLayer(final @NotNull JsonObject json) {
+  protected NNLayer(@javax.annotation.Nonnull final JsonObject json) {
     if (!getClass().getCanonicalName().equals(json.get("class").getAsString())) {
       throw new IllegalArgumentException(getClass().getCanonicalName() + " != " + json.get("class").getAsString());
     }
     id = UUID.fromString(json.get("id").getAsString());
     if (json.has("isFrozen")) {
-      setFrozen(json.get("isFrozen").getAsBoolean());
+      this.frozen = json.get("isFrozen").getAsBoolean();
     }
     if (json.has("name")) {
       setName(json.get("name").getAsString());
@@ -90,7 +89,8 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    * @param json the json
    * @return the nn layer
    */
-  public static @NotNull NNLayer fromJson(final @NotNull JsonObject json) { return fromJson(json, null);}
+  @javax.annotation.Nonnull
+  public static NNLayer fromJson(@javax.annotation.Nonnull final JsonObject json) { return fromJson(json, null);}
   
   /**
    * From zip nn layer.
@@ -98,10 +98,11 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    * @param zipfile the zipfile
    * @return the nn layer
    */
-  public static @NotNull NNLayer fromZip(final @NotNull ZipFile zipfile) {
+  @javax.annotation.Nonnull
+  public static NNLayer fromZip(@javax.annotation.Nonnull final ZipFile zipfile) {
     Enumeration<? extends ZipEntry> entries = zipfile.entries();
     @Nullable JsonObject json = null;
-    @NotNull HashMap<String, byte[]> resources = new HashMap<>();
+    @javax.annotation.Nonnull HashMap<String, byte[]> resources = new HashMap<>();
     while (entries.hasMoreElements()) {
       ZipEntry zipEntry = entries.nextElement();
       String name = zipEntry.getName();
@@ -128,7 +129,8 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    * @param rs   the rs
    * @return the nn layer
    */
-  public static @NotNull NNLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  @javax.annotation.Nonnull
+  public static NNLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     JsonElement classElement = json.get("class");
     assert null != classElement : json.toString();
     final String className = classElement.getAsString();
@@ -140,7 +142,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
         throw new IllegalArgumentException("Cannot find deserialization method for " + className);
       }
       return (NNLayer) method.invoke(null, json, rs);
-    } catch (@NotNull IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
+    } catch (@javax.annotation.Nonnull IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
       throw new RuntimeException(e);
     }
   }
@@ -152,9 +154,10 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    * @param targetClass the target class
    * @return the t
    */
+  @javax.annotation.Nonnull
   @SuppressWarnings("unchecked")
-  public @NotNull <T extends NNLayer> T as(final @NotNull Class<T> targetClass) {
-    @NotNull HashMap<String, byte[]> resources = new HashMap<>();
+  public <T extends NNLayer> T as(@javax.annotation.Nonnull final Class<T> targetClass) {
+    @javax.annotation.Nonnull HashMap<String, byte[]> resources = new HashMap<>();
     final JsonObject json = getJson(resources, SerialPrecision.Double);
     json.remove("class");
     json.addProperty("class", targetClass.getCanonicalName());
@@ -175,7 +178,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    * @return the nn layer
    */
   public NNLayer copy(SerialPrecision precision) {
-    @NotNull HashMap<String, byte[]> resources = new HashMap<>();
+    @javax.annotation.Nonnull HashMap<String, byte[]> resources = new HashMap<>();
     final JsonObject json = getJson(resources, precision);
     return NNLayer.fromJson(json, resources);
   }
@@ -281,7 +284,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    *
    * @param out the out
    */
-  public final void writeZip(@NotNull File out) {writeZip(out, SerialPrecision.Double);}
+  public final void writeZip(@javax.annotation.Nonnull File out) {writeZip(out, SerialPrecision.Double);}
   
   /**
    * Write zip.
@@ -289,8 +292,8 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    * @param out       the out
    * @param precision the precision
    */
-  public final void writeZip(@NotNull File out, SerialPrecision precision) {
-    try (@NotNull ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(out))) {
+  public final void writeZip(@javax.annotation.Nonnull File out, SerialPrecision precision) {
+    try (@javax.annotation.Nonnull ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(out))) {
       writeZip(zipOutputStream, precision);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -302,7 +305,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    *
    * @param out the out
    */
-  public final void writeZip(@NotNull ZipOutputStream out) {writeZip(out, SerialPrecision.Double);}
+  public final void writeZip(@javax.annotation.Nonnull ZipOutputStream out) {writeZip(out, SerialPrecision.Double);}
   
   /**
    * Write zip.
@@ -310,12 +313,12 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    * @param out       the out
    * @param precision the precision
    */
-  public final void writeZip(@NotNull ZipOutputStream out, SerialPrecision precision) {
+  public final void writeZip(@javax.annotation.Nonnull ZipOutputStream out, SerialPrecision precision) {
     try {
-      @NotNull HashMap<String, byte[]> resources = new HashMap<>();
+      @javax.annotation.Nonnull HashMap<String, byte[]> resources = new HashMap<>();
       JsonObject json = getJson(resources, precision);
       out.putNextEntry(new ZipEntry("model.json"));
-      @NotNull JsonWriter writer = new JsonWriter(new OutputStreamWriter(out));
+      @javax.annotation.Nonnull JsonWriter writer = new JsonWriter(new OutputStreamWriter(out));
       writer.setIndent("  ");
       writer.setHtmlSafe(true);
       writer.setSerializeNulls(false);
@@ -351,9 +354,10 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    *
    * @return the json stub
    */
-  public @NotNull JsonObject getJsonStub() {
+  @javax.annotation.Nonnull
+  public JsonObject getJsonStub() {
     assertAlive();
-    final @NotNull JsonObject json = new JsonObject();
+    @javax.annotation.Nonnull final JsonObject json = new JsonObject();
     json.addProperty("class", getClass().getCanonicalName());
     json.addProperty("id", getId().toString());
     json.addProperty("isFrozen", isFrozen());
@@ -411,7 +415,8 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    *
    * @return the nn layer
    */
-  protected final @NotNull NNLayer self() {
+  @javax.annotation.Nonnull
+  protected final NNLayer self() {
     return this;
   }
   

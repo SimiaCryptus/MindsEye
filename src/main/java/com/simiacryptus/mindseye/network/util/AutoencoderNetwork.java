@@ -34,7 +34,6 @@ import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.orient.LBFGS;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -48,18 +47,29 @@ import java.util.stream.Collectors;
  */
 public class AutoencoderNetwork {
   
-  private final @NotNull PipelineNetwork decoder;
-  private final @NotNull ReLuActivationLayer decoderActivation;
-  private final @NotNull BiasLayer decoderBias;
-  private final @NotNull VariableLayer decoderSynapsePlaceholder;
-  private final @NotNull DropoutNoiseLayer encodedNoise;
-  private final @NotNull PipelineNetwork encoder;
-  private final @NotNull ReLuActivationLayer encoderActivation;
-  private final @NotNull BiasLayer encoderBias;
-  private final @NotNull FullyConnectedLayer encoderSynapse;
+  @javax.annotation.Nonnull
+  private final PipelineNetwork decoder;
+  @javax.annotation.Nonnull
+  private final ReLuActivationLayer decoderActivation;
+  @javax.annotation.Nonnull
+  private final BiasLayer decoderBias;
+  @javax.annotation.Nonnull
+  private final VariableLayer decoderSynapsePlaceholder;
+  @javax.annotation.Nonnull
+  private final DropoutNoiseLayer encodedNoise;
+  @javax.annotation.Nonnull
+  private final PipelineNetwork encoder;
+  @javax.annotation.Nonnull
+  private final ReLuActivationLayer encoderActivation;
+  @javax.annotation.Nonnull
+  private final BiasLayer encoderBias;
+  @javax.annotation.Nonnull
+  private final FullyConnectedLayer encoderSynapse;
   private final int[] innerSize;
-  private final @NotNull GaussianNoiseLayer inputNoise;
-  private final @NotNull AutoencoderNetwork.Builder networkParameters;
+  @javax.annotation.Nonnull
+  private final GaussianNoiseLayer inputNoise;
+  @javax.annotation.Nonnull
+  private final AutoencoderNetwork.Builder networkParameters;
   private final int[] outerSize;
   private NNLayer decoderSynapse;
   
@@ -68,7 +78,7 @@ public class AutoencoderNetwork {
    *
    * @param networkParameters the network parameters
    */
-  protected AutoencoderNetwork(final @NotNull AutoencoderNetwork.Builder networkParameters) {
+  protected AutoencoderNetwork(@javax.annotation.Nonnull final AutoencoderNetwork.Builder networkParameters) {
     this.networkParameters = networkParameters;
     outerSize = networkParameters.getOuterSize();
     innerSize = networkParameters.getInnerSize();
@@ -114,7 +124,7 @@ public class AutoencoderNetwork {
    * @param data the data
    * @return the tensor list
    */
-  public TensorList encode(final @NotNull TensorList data) {
+  public TensorList encode(@javax.annotation.Nonnull final TensorList data) {
     return encoder.getLayer()
                   .eval(NNConstant.batchResultArray(data.stream().map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
                   .getData();
@@ -125,7 +135,8 @@ public class AutoencoderNetwork {
    *
    * @return the decoder
    */
-  public @NotNull NNLayer getDecoder() {
+  @javax.annotation.Nonnull
+  public NNLayer getDecoder() {
     return decoder;
   }
   
@@ -134,7 +145,8 @@ public class AutoencoderNetwork {
    *
    * @return the decoder activation
    */
-  public @NotNull NNLayer getDecoderActivation() {
+  @javax.annotation.Nonnull
+  public NNLayer getDecoderActivation() {
     return decoderActivation;
   }
   
@@ -143,7 +155,8 @@ public class AutoencoderNetwork {
    *
    * @return the decoder bias
    */
-  public @NotNull BiasLayer getDecoderBias() {
+  @javax.annotation.Nonnull
+  public BiasLayer getDecoderBias() {
     return decoderBias;
   }
   
@@ -161,7 +174,8 @@ public class AutoencoderNetwork {
    *
    * @return the encoded noise
    */
-  public @NotNull DropoutNoiseLayer getEncodedNoise() {
+  @javax.annotation.Nonnull
+  public DropoutNoiseLayer getEncodedNoise() {
     return encodedNoise;
   }
   
@@ -170,7 +184,8 @@ public class AutoencoderNetwork {
    *
    * @return the encoder
    */
-  public @NotNull NNLayer getEncoder() {
+  @javax.annotation.Nonnull
+  public NNLayer getEncoder() {
     return encoder;
   }
   
@@ -179,7 +194,8 @@ public class AutoencoderNetwork {
    *
    * @return the encoder activation
    */
-  public @NotNull NNLayer getEncoderActivation() {
+  @javax.annotation.Nonnull
+  public NNLayer getEncoderActivation() {
     return encoderActivation;
   }
   
@@ -188,7 +204,8 @@ public class AutoencoderNetwork {
    *
    * @return the encoder bias
    */
-  public @NotNull BiasLayer getEncoderBias() {
+  @javax.annotation.Nonnull
+  public BiasLayer getEncoderBias() {
     return encoderBias;
   }
   
@@ -197,7 +214,8 @@ public class AutoencoderNetwork {
    *
    * @return the encoder synapse
    */
-  public @NotNull FullyConnectedLayer getEncoderSynapse() {
+  @javax.annotation.Nonnull
+  public FullyConnectedLayer getEncoderSynapse() {
     return encoderSynapse;
   }
   
@@ -215,7 +233,8 @@ public class AutoencoderNetwork {
    *
    * @return the input noise
    */
-  public @NotNull GaussianNoiseLayer getInputNoise() {
+  @javax.annotation.Nonnull
+  public GaussianNoiseLayer getInputNoise() {
     return inputNoise;
   }
   
@@ -241,24 +260,27 @@ public class AutoencoderNetwork {
    *
    * @return the autoencoder network . training parameters
    */
-  public @NotNull AutoencoderNetwork.TrainingParameters train() {
+  @javax.annotation.Nonnull
+  public AutoencoderNetwork.TrainingParameters train() {
     return new AutoencoderNetwork.TrainingParameters() {
+      @javax.annotation.Nonnull
       @Override
-      public @NotNull SimpleLossNetwork getTrainingNetwork() {
-        final @NotNull PipelineNetwork student = new PipelineNetwork();
+      public SimpleLossNetwork getTrainingNetwork() {
+        @javax.annotation.Nonnull final PipelineNetwork student = new PipelineNetwork();
         student.add(encoder);
         student.add(decoder);
         return new SimpleLossNetwork(student, new MeanSqLossLayer());
       }
   
+      @javax.annotation.Nonnull
       @Override
-      protected @NotNull TrainingMonitor wrap(final @NotNull TrainingMonitor monitor) {
+      protected TrainingMonitor wrap(@javax.annotation.Nonnull final TrainingMonitor monitor) {
         return new TrainingMonitor() {
           @Override
           public void log(final String msg) {
             monitor.log(msg);
           }
-  
+      
           @Override
           public void onStepComplete(final Step currentPoint) {
             inputNoise.shuffle();
@@ -301,7 +323,8 @@ public class AutoencoderNetwork {
      *
      * @return the autoencoder network
      */
-    public @NotNull AutoencoderNetwork build() {
+    @javax.annotation.Nonnull
+    public AutoencoderNetwork build() {
       return new AutoencoderNetwork(AutoencoderNetwork.Builder.this);
     }
   
@@ -320,7 +343,8 @@ public class AutoencoderNetwork {
      * @param dropout the dropout
      * @return the dropout
      */
-    public @NotNull AutoencoderNetwork.Builder setDropout(final double dropout) {
+    @javax.annotation.Nonnull
+    public AutoencoderNetwork.Builder setDropout(final double dropout) {
       this.dropout = dropout;
       return this;
     }
@@ -340,7 +364,8 @@ public class AutoencoderNetwork {
      * @param initPeak the init peak
      * @return the init peak
      */
-    public @NotNull AutoencoderNetwork.Builder setInitPeak(final double initPeak) {
+    @javax.annotation.Nonnull
+    public AutoencoderNetwork.Builder setInitPeak(final double initPeak) {
       this.initPeak = initPeak;
       return this;
     }
@@ -360,7 +385,8 @@ public class AutoencoderNetwork {
      * @param initRadius the init radius
      * @return the init radius
      */
-    public @NotNull AutoencoderNetwork.Builder setInitRadius(final double initRadius) {
+    @javax.annotation.Nonnull
+    public AutoencoderNetwork.Builder setInitRadius(final double initRadius) {
       this.initRadius = initRadius;
       return this;
     }
@@ -380,7 +406,8 @@ public class AutoencoderNetwork {
      * @param initStiffness the init stiffness
      * @return the init stiffness
      */
-    public @NotNull AutoencoderNetwork.Builder setInitStiffness(final int initStiffness) {
+    @javax.annotation.Nonnull
+    public AutoencoderNetwork.Builder setInitStiffness(final int initStiffness) {
       this.initStiffness = initStiffness;
       return this;
     }
@@ -409,7 +436,8 @@ public class AutoencoderNetwork {
      * @param noise the noise
      * @return the noise
      */
-    public @NotNull AutoencoderNetwork.Builder setNoise(final double noise) {
+    @javax.annotation.Nonnull
+    public AutoencoderNetwork.Builder setNoise(final double noise) {
       this.noise = noise;
       return this;
     }
@@ -438,7 +466,7 @@ public class AutoencoderNetwork {
      *
      * @param data the data
      */
-    public RecursiveBuilder(final @NotNull TensorList data) {
+    public RecursiveBuilder(@javax.annotation.Nonnull final TensorList data) {
       representations.add(data);
       dimensions.add(data.get(0).getDimensions());
     }
@@ -468,8 +496,9 @@ public class AutoencoderNetwork {
      *
      * @return the nn layer
      */
-    public @NotNull NNLayer echo() {
-      final @NotNull PipelineNetwork network = new PipelineNetwork();
+    @javax.annotation.Nonnull
+    public NNLayer echo() {
+      @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(getEncoder());
       network.add(getDecoder());
       return network;
@@ -480,8 +509,9 @@ public class AutoencoderNetwork {
      *
      * @return the decoder
      */
-    public @NotNull NNLayer getDecoder() {
-      final @NotNull PipelineNetwork network = new PipelineNetwork();
+    @javax.annotation.Nonnull
+    public NNLayer getDecoder() {
+      @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       for (int i = layers.size() - 1; i >= 0; i--) {
         network.add(layers.get(i).getDecoder());
       }
@@ -493,8 +523,9 @@ public class AutoencoderNetwork {
      *
      * @return the encoder
      */
-    public @NotNull NNLayer getEncoder() {
-      final @NotNull PipelineNetwork network = new PipelineNetwork();
+    @javax.annotation.Nonnull
+    public NNLayer getEncoder() {
+      @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       for (int i = 0; i < layers.size(); i++) {
         network.add(layers.get(i).getEncoder());
       }
@@ -506,7 +537,8 @@ public class AutoencoderNetwork {
      *
      * @return the layers
      */
-    public @NotNull List<AutoencoderNetwork> getLayers() {
+    @javax.annotation.Nonnull
+    public List<AutoencoderNetwork> getLayers() {
       return Collections.unmodifiableList(layers);
     }
   
@@ -516,7 +548,8 @@ public class AutoencoderNetwork {
      * @param dims the dims
      * @return the autoencoder network
      */
-    public @NotNull AutoencoderNetwork growLayer(final int... dims) {
+    @javax.annotation.Nonnull
+    public AutoencoderNetwork growLayer(final int... dims) {
       return growLayer(layers.isEmpty() ? 100 : 0, 1, 10, dims);
     }
   
@@ -529,18 +562,19 @@ public class AutoencoderNetwork {
      * @param dims               the dims
      * @return the autoencoder network
      */
-    public @NotNull AutoencoderNetwork growLayer(final int pretrainingSize, final int pretrainingMinutes, final int pretrainIterations, final int[] dims) {
+    @javax.annotation.Nonnull
+    public AutoencoderNetwork growLayer(final int pretrainingSize, final int pretrainingMinutes, final int pretrainIterations, final int[] dims) {
       trainingMode();
-      final @NotNull AutoencoderNetwork newLayer = configure(AutoencoderNetwork.newLayer(dimensions.get(dimensions.size() - 1), dims)).build();
+      @javax.annotation.Nonnull final AutoencoderNetwork newLayer = configure(AutoencoderNetwork.newLayer(dimensions.get(dimensions.size() - 1), dims)).build();
   
       final TensorList data = representations.get(representations.size() - 1);
       dimensions.add(dims);
       layers.add(newLayer);
   
       if (pretrainingSize > 0 && pretrainIterations > 0 && pretrainingMinutes > 0) {
-        final @NotNull ArrayList<Tensor> list = new ArrayList<>(data.stream().collect(Collectors.toList()));
+        @javax.annotation.Nonnull final ArrayList<Tensor> list = new ArrayList<>(data.stream().collect(Collectors.toList()));
         Collections.shuffle(list);
-        final @NotNull Tensor[] pretrainingSet = list.subList(0, pretrainingSize).toArray(new Tensor[]{});
+        @javax.annotation.Nonnull final Tensor[] pretrainingSet = list.subList(0, pretrainingSize).toArray(new Tensor[]{});
         configure(newLayer.train()).setMaxIterations(pretrainIterations).setTimeoutMinutes(pretrainingMinutes).run(TensorArray.create(pretrainingSet));
       }
       newLayer.decoderSynapse = ((FullyConnectedLayer) newLayer.decoderSynapse).getTranspose();
@@ -571,22 +605,24 @@ public class AutoencoderNetwork {
      */
     public void tune() {
       configure(new AutoencoderNetwork.TrainingParameters() {
+        @javax.annotation.Nonnull
         @Override
-        public @NotNull SimpleLossNetwork getTrainingNetwork() {
-          final @NotNull PipelineNetwork student = new PipelineNetwork();
+        public SimpleLossNetwork getTrainingNetwork() {
+          @javax.annotation.Nonnull final PipelineNetwork student = new PipelineNetwork();
           student.add(getEncoder());
           student.add(getDecoder());
           return new SimpleLossNetwork(student, new MeanSqLossLayer());
         }
   
+        @javax.annotation.Nonnull
         @Override
-        protected @NotNull TrainingMonitor wrap(final @NotNull TrainingMonitor monitor) {
+        protected TrainingMonitor wrap(@javax.annotation.Nonnull final TrainingMonitor monitor) {
           return new TrainingMonitor() {
             @Override
             public void log(final String msg) {
               monitor.log(msg);
             }
-  
+      
             @Override
             public void onStepComplete(final Step currentPoint) {
               layers.forEach(layer -> {
@@ -630,7 +666,8 @@ public class AutoencoderNetwork {
      * @param endFitness the end fitness
      * @return the end fitness
      */
-    public @NotNull AutoencoderNetwork.TrainingParameters setEndFitness(final double endFitness) {
+    @javax.annotation.Nonnull
+    public AutoencoderNetwork.TrainingParameters setEndFitness(final double endFitness) {
       this.endFitness = endFitness;
       return this;
     }
@@ -650,7 +687,8 @@ public class AutoencoderNetwork {
      * @param l1normalization the l 1 normalization
      * @return the l 1 normalization
      */
-    public @NotNull AutoencoderNetwork.TrainingParameters setL1normalization(final double l1normalization) {
+    @javax.annotation.Nonnull
+    public AutoencoderNetwork.TrainingParameters setL1normalization(final double l1normalization) {
       this.l1normalization = l1normalization;
       return this;
     }
@@ -670,7 +708,8 @@ public class AutoencoderNetwork {
      * @param l2normalization the l 2 normalization
      * @return the l 2 normalization
      */
-    public @NotNull AutoencoderNetwork.TrainingParameters setL2normalization(final double l2normalization) {
+    @javax.annotation.Nonnull
+    public AutoencoderNetwork.TrainingParameters setL2normalization(final double l2normalization) {
       this.l2normalization = l2normalization;
       return this;
     }
@@ -690,7 +729,8 @@ public class AutoencoderNetwork {
      * @param maxIterations the max iterations
      * @return the max iterations
      */
-    public @NotNull AutoencoderNetwork.TrainingParameters setMaxIterations(final int maxIterations) {
+    @javax.annotation.Nonnull
+    public AutoencoderNetwork.TrainingParameters setMaxIterations(final int maxIterations) {
       this.maxIterations = maxIterations;
       return this;
     }
@@ -710,7 +750,8 @@ public class AutoencoderNetwork {
      * @param monitor the monitor
      * @return the monitor
      */
-    public @NotNull AutoencoderNetwork.TrainingParameters setMonitor(final TrainingMonitor monitor) {
+    @javax.annotation.Nonnull
+    public AutoencoderNetwork.TrainingParameters setMonitor(final TrainingMonitor monitor) {
       this.monitor = monitor;
       return this;
     }
@@ -730,7 +771,8 @@ public class AutoencoderNetwork {
      * @param orient the orient
      * @return the orient
      */
-    public @NotNull AutoencoderNetwork.TrainingParameters setOrient(final OrientationStrategy<?> orient) {
+    @javax.annotation.Nonnull
+    public AutoencoderNetwork.TrainingParameters setOrient(final OrientationStrategy<?> orient) {
       this.orient = orient;
       return this;
     }
@@ -750,7 +792,8 @@ public class AutoencoderNetwork {
      * @param sampleSize the sample size
      * @return the sample size
      */
-    public @NotNull AutoencoderNetwork.TrainingParameters setSampleSize(final int sampleSize) {
+    @javax.annotation.Nonnull
+    public AutoencoderNetwork.TrainingParameters setSampleSize(final int sampleSize) {
       this.sampleSize = sampleSize;
       return this;
     }
@@ -770,7 +813,8 @@ public class AutoencoderNetwork {
      * @param step the runStep
      * @return the runStep
      */
-    public @NotNull AutoencoderNetwork.TrainingParameters setStep(final LineSearchStrategy step) {
+    @javax.annotation.Nonnull
+    public AutoencoderNetwork.TrainingParameters setStep(final LineSearchStrategy step) {
       this.step = step;
       return this;
     }
@@ -790,7 +834,8 @@ public class AutoencoderNetwork {
      * @param timeoutMinutes the timeout minutes
      * @return the timeout minutes
      */
-    public @NotNull AutoencoderNetwork.TrainingParameters setTimeoutMinutes(final int timeoutMinutes) {
+    @javax.annotation.Nonnull
+    public AutoencoderNetwork.TrainingParameters setTimeoutMinutes(final int timeoutMinutes) {
       this.timeoutMinutes = timeoutMinutes;
       return this;
     }
@@ -800,18 +845,19 @@ public class AutoencoderNetwork {
      *
      * @return the training network
      */
-    public abstract @NotNull SimpleLossNetwork getTrainingNetwork();
+    @javax.annotation.Nonnull
+    public abstract SimpleLossNetwork getTrainingNetwork();
   
     /**
      * Run.
      *
      * @param data the data
      */
-    public void run(final @NotNull TensorList data) {
-      final @NotNull SimpleLossNetwork trainingNetwork = getTrainingNetwork();
-      final @NotNull Trainable trainable = new SampledArrayTrainable(data.stream().map(x -> new Tensor[]{x, x}).toArray(i -> new Tensor[i][]), trainingNetwork, getSampleSize());
-      final @NotNull L12Normalizer normalized = new ConstL12Normalizer(trainable).setFactor_L1(getL1normalization()).setFactor_L2(getL2normalization());
-      final @NotNull IterativeTrainer trainer = new IterativeTrainer(normalized);
+    public void run(@javax.annotation.Nonnull final TensorList data) {
+      @javax.annotation.Nonnull final SimpleLossNetwork trainingNetwork = getTrainingNetwork();
+      @javax.annotation.Nonnull final Trainable trainable = new SampledArrayTrainable(data.stream().map(x -> new Tensor[]{x, x}).toArray(i -> new Tensor[i][]), trainingNetwork, getSampleSize());
+      @javax.annotation.Nonnull final L12Normalizer normalized = new ConstL12Normalizer(trainable).setFactor_L1(getL1normalization()).setFactor_L2(getL2normalization());
+      @javax.annotation.Nonnull final IterativeTrainer trainer = new IterativeTrainer(normalized);
       trainer.setOrientation(getOrient());
       trainer.setLineSearchFactory((s) -> getStep());
       final @Nullable TrainingMonitor monitor = getMonitor();
@@ -828,6 +874,7 @@ public class AutoencoderNetwork {
      * @param monitor the monitor
      * @return the training monitor
      */
-    protected abstract @NotNull TrainingMonitor wrap(TrainingMonitor monitor);
+    @javax.annotation.Nonnull
+    protected abstract TrainingMonitor wrap(TrainingMonitor monitor);
   }
 }

@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.lang.cudnn;
 
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +64,7 @@ public class CudaResource<T> extends CudaResourceBase<T> {
           GpuSystem.handle(this.destructor.applyAsInt(ptr));
         }
       });
-    } catch (final @NotNull Throwable e) {
+    } catch (@javax.annotation.Nonnull final Throwable e) {
       logger.debug("Error freeing resource " + this, e);
     }
   }

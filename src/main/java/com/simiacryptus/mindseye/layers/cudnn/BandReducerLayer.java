@@ -27,7 +27,6 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer.PoolingMode;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -54,7 +53,7 @@ public class BandReducerLayer extends NNLayer implements MultiPrecision<BandRedu
    *
    * @param json the json
    */
-  protected BandReducerLayer(final @NotNull JsonObject json) {
+  protected BandReducerLayer(@javax.annotation.Nonnull final JsonObject json) {
     super(json);
     mode = Arrays.stream(PoolingLayer.PoolingMode.values()).filter(i -> i.id == json.get("mode").getAsInt()).findFirst().get();
     precision = Precision.valueOf(json.get("precision").getAsString());
@@ -67,7 +66,7 @@ public class BandReducerLayer extends NNLayer implements MultiPrecision<BandRedu
    * @param rs   the rs
    * @return the pooling layer
    */
-  public static BandReducerLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static BandReducerLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new BandReducerLayer(json);
   }
   
@@ -76,7 +75,8 @@ public class BandReducerLayer extends NNLayer implements MultiPrecision<BandRedu
    *
    * @return the compatibility layer
    */
-  public @NotNull NNLayer getCompatibilityLayer() {
+  @javax.annotation.Nonnull
+  public NNLayer getCompatibilityLayer() {
     throw new RuntimeException("Not Implemented");
   }
   
@@ -86,17 +86,18 @@ public class BandReducerLayer extends NNLayer implements MultiPrecision<BandRedu
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputSize = batch.getDimensions();
-    @NotNull PoolingLayer impl = new PoolingLayer().setMode(mode).setPrecision(precision)
-                                                   .setWindowX(inputSize[1])
-                                                   .setWindowY(inputSize[0]);
+    @javax.annotation.Nonnull PoolingLayer impl = new PoolingLayer().setMode(mode).setPrecision(precision)
+                                                                    .setWindowX(inputSize[1])
+                                                                    .setWindowY(inputSize[0]);
     NNResult result = impl.eval(inObj);
     impl.freeRef();
     return result;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("mode", mode.id);
     json.addProperty("precision", precision.name());
     return json;
@@ -118,7 +119,8 @@ public class BandReducerLayer extends NNLayer implements MultiPrecision<BandRedu
    * @param mode the mode
    * @return the mode
    */
-  public @NotNull BandReducerLayer setMode(final PoolingMode mode) {
+  @javax.annotation.Nonnull
+  public BandReducerLayer setMode(final PoolingMode mode) {
     this.mode = mode;
     return this;
   }
@@ -128,14 +130,16 @@ public class BandReducerLayer extends NNLayer implements MultiPrecision<BandRedu
     return precision;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull BandReducerLayer setPrecision(final Precision precision) {
+  public BandReducerLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
   

@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.network;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.util.Util;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -39,7 +38,8 @@ final class InnerNode extends LazyResult {
   @SuppressWarnings("unused")
   public final String[] createdBy = Util.currentStack();
   private final DAGNetwork dagNetwork;
-  private final @NotNull DAGNode[] inputNodes;
+  @javax.annotation.Nonnull
+  private final DAGNode[] inputNodes;
   private NNLayer layer;
   
   /**
@@ -50,7 +50,7 @@ final class InnerNode extends LazyResult {
    * @param inputNodes the input nodes
    */
   @SafeVarargs
-  InnerNode(final DAGNetwork dagNetwork, final @NotNull NNLayer layer, final DAGNode... inputNodes) {
+  InnerNode(final DAGNetwork dagNetwork, @javax.annotation.Nonnull final NNLayer layer, final DAGNode... inputNodes) {
     this(dagNetwork, layer, UUID.randomUUID(), inputNodes);
   }
   
@@ -63,14 +63,14 @@ final class InnerNode extends LazyResult {
    * @param inputNodes the input nodes
    */
   @SafeVarargs
-  InnerNode(final DAGNetwork dagNetwork, final @NotNull NNLayer layer, final UUID key, final @NotNull DAGNode... inputNodes) {
+  InnerNode(final DAGNetwork dagNetwork, @javax.annotation.Nonnull final NNLayer layer, final UUID key, @javax.annotation.Nonnull final DAGNode... inputNodes) {
     super(key);
     this.dagNetwork = dagNetwork;
     assert null != inputNodes;
     setLayer(layer);
     this.inputNodes = inputNodes;
     assert Arrays.stream(inputNodes).parallel().allMatch(x -> x != null);
-    for (@NotNull DAGNode node : this.inputNodes) {
+    for (@javax.annotation.Nonnull DAGNode node : this.inputNodes) {
       node.addRef();
     }
   }
@@ -88,33 +88,35 @@ final class InnerNode extends LazyResult {
   @Override
   protected NNResult eval(final GraphEvaluationContext ctx) {
     assertAlive();
-    final @NotNull NNLayer innerLayer = getLayer();
+    @javax.annotation.Nonnull final NNLayer innerLayer = getLayer();
     assert Arrays.stream(inputNodes).allMatch(x -> x != null);
-    @NotNull Stream<DAGNode> stream = Arrays.stream(inputNodes);
+    @javax.annotation.Nonnull Stream<DAGNode> stream = Arrays.stream(inputNodes);
     //stream = stream.parallel();
     final NNResult[] in = stream.map(x -> x == null ? null : x.get(ctx)).toArray(i -> new NNResult[i]);
     assert Arrays.stream(in).allMatch(x -> x != null);
     NNResult result = innerLayer.eval(in);
-    for (@NotNull NNResult inputNNResult : in) {
+    for (@javax.annotation.Nonnull NNResult inputNNResult : in) {
       inputNNResult.getData().freeRef();
       inputNNResult.freeRef();
     }
     return result;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull DAGNode[] getInputs() {
+  public DAGNode[] getInputs() {
     return inputNodes;
   }
   
-  @Override
+  @javax.annotation.Nonnull
   @SuppressWarnings("unchecked")
-  public @NotNull <T extends NNLayer> T getLayer() {
+  @Override
+  public <T extends NNLayer> T getLayer() {
     return (T) layer;
   }
   
   @Override
-  public synchronized void setLayer(final @NotNull NNLayer newLayer) {
+  public synchronized void setLayer(@javax.annotation.Nonnull final NNLayer newLayer) {
     assertAlive();
     dagNetwork.assertAlive();
     synchronized (dagNetwork.layersById) {
@@ -138,7 +140,7 @@ final class InnerNode extends LazyResult {
   @Override
   protected void _free() {
     super._free();
-    for (@NotNull DAGNode node : this.inputNodes) {
+    for (@javax.annotation.Nonnull DAGNode node : this.inputNodes) {
       node.freeRef();
     }
     this.layer.freeRef();

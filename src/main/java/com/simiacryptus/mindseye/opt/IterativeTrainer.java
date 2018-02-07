@@ -33,7 +33,6 @@ import com.simiacryptus.mindseye.opt.orient.LBFGS;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.lang.TimedResult;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,7 +90,8 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param currentIteration the current iteration
    * @return the current iteration
    */
-  public @NotNull IterativeTrainer setCurrentIteration(final AtomicInteger currentIteration) {
+  @javax.annotation.Nonnull
+  public IterativeTrainer setCurrentIteration(final AtomicInteger currentIteration) {
     this.currentIteration = currentIteration;
     return this;
   }
@@ -111,7 +111,8 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param iterationsPerSample the iterations per sample
    * @return the iterations per sample
    */
-  public @NotNull IterativeTrainer setIterationsPerSample(final int iterationsPerSample) {
+  @javax.annotation.Nonnull
+  public IterativeTrainer setIterationsPerSample(final int iterationsPerSample) {
     this.iterationsPerSample = iterationsPerSample;
     return this;
   }
@@ -131,7 +132,8 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param lineSearchFactory the line search factory
    * @return the line search factory
    */
-  public @NotNull IterativeTrainer setLineSearchFactory(final Function<String, LineSearchStrategy> lineSearchFactory) {
+  @javax.annotation.Nonnull
+  public IterativeTrainer setLineSearchFactory(final Function<String, LineSearchStrategy> lineSearchFactory) {
     this.lineSearchFactory = lineSearchFactory;
     return this;
   }
@@ -151,7 +153,8 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param maxIterations the max iterations
    * @return the max iterations
    */
-  public @NotNull IterativeTrainer setMaxIterations(final int maxIterations) {
+  @javax.annotation.Nonnull
+  public IterativeTrainer setMaxIterations(final int maxIterations) {
     this.maxIterations = maxIterations;
     return this;
   }
@@ -171,7 +174,8 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param monitor the monitor
    * @return the monitor
    */
-  public @NotNull IterativeTrainer setMonitor(final TrainingMonitor monitor) {
+  @javax.annotation.Nonnull
+  public IterativeTrainer setMonitor(final TrainingMonitor monitor) {
     this.monitor = monitor;
     return this;
   }
@@ -191,7 +195,8 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param orientation the orientation
    * @return the orientation
    */
-  public @NotNull IterativeTrainer setOrientation(final OrientationStrategy<?> orientation) {
+  @javax.annotation.Nonnull
+  public IterativeTrainer setOrientation(final OrientationStrategy<?> orientation) {
     if (null != this.orientation) this.orientation.freeRef();
     this.orientation = orientation;
     return this;
@@ -212,7 +217,8 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param terminateThreshold the terminate threshold
    * @return the terminate threshold
    */
-  public @NotNull IterativeTrainer setTerminateThreshold(final double terminateThreshold) {
+  @javax.annotation.Nonnull
+  public IterativeTrainer setTerminateThreshold(final double terminateThreshold) {
     this.terminateThreshold = terminateThreshold;
     return this;
   }
@@ -232,7 +238,8 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param timeout the timeout
    * @return the timeout
    */
-  public @NotNull IterativeTrainer setTimeout(final Duration timeout) {
+  @javax.annotation.Nonnull
+  public IterativeTrainer setTimeout(final Duration timeout) {
     this.timeout = timeout;
     return this;
   }
@@ -312,13 +319,13 @@ public class IterativeTrainer extends ReferenceCountingBase {
         currentPoint.freeRef();
         currentPoint = measure(true);
         final @Nullable PointSample _currentPoint = currentPoint;
-        final @NotNull TimedResult<LineSearchCursor> timedOrientation = TimedResult.time(() -> orientation.orient(subject, _currentPoint, monitor));
+        @javax.annotation.Nonnull final TimedResult<LineSearchCursor> timedOrientation = TimedResult.time(() -> orientation.orient(subject, _currentPoint, monitor));
         final LineSearchCursor direction = timedOrientation.result;
         final String directionType = direction.getDirectionType();
         final @Nullable PointSample previous = currentPoint;
         previous.addRef();
         try {
-          final @NotNull TimedResult<PointSample> timedLineSearch = TimedResult.time(() -> step(direction, directionType, previous));
+          @javax.annotation.Nonnull final TimedResult<PointSample> timedLineSearch = TimedResult.time(() -> step(direction, directionType, previous));
           currentPoint.freeRef();
           currentPoint = timedLineSearch.result;
           final long now = System.nanoTime();
@@ -377,7 +384,8 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param units  the units
    * @return the timeout
    */
-  public @NotNull IterativeTrainer setTimeout(final int number, final @NotNull TemporalUnit units) {
+  @javax.annotation.Nonnull
+  public IterativeTrainer setTimeout(final int number, @javax.annotation.Nonnull final TemporalUnit units) {
     timeout = Duration.of(number, units);
     return this;
   }
@@ -389,7 +397,8 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param units  the units
    * @return the timeout
    */
-  public @NotNull IterativeTrainer setTimeout(final int number, final @NotNull TimeUnit units) {
+  @javax.annotation.Nonnull
+  public IterativeTrainer setTimeout(final int number, @javax.annotation.Nonnull final TimeUnit units) {
     return setTimeout(number, Util.cvt(units));
   }
   
@@ -401,7 +410,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param previous      the previous
    * @return the point sample
    */
-  public PointSample step(final @NotNull LineSearchCursor direction, final String directionType, final @NotNull PointSample previous) {
+  public PointSample step(@javax.annotation.Nonnull final LineSearchCursor direction, final String directionType, @javax.annotation.Nonnull final PointSample previous) {
     PointSample currentPoint;
     LineSearchStrategy lineSearchStrategy;
     if (lineSearchStrategyMap.containsKey(directionType)) {
@@ -412,7 +421,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
       lineSearchStrategy = lineSearchFactory.apply(direction.getDirectionType());
       lineSearchStrategyMap.put(directionType, lineSearchStrategy);
     }
-    final @NotNull FailsafeLineSearchCursor wrapped = new FailsafeLineSearchCursor(direction, previous, monitor);
+    @javax.annotation.Nonnull final FailsafeLineSearchCursor wrapped = new FailsafeLineSearchCursor(direction, previous, monitor);
     lineSearchStrategy.step(wrapped, monitor).freeRef();
     currentPoint = wrapped.getBest(monitor);
     wrapped.freeRef();

@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -46,7 +45,7 @@ public class ProductInputsLayer extends NNLayer {
    *
    * @param id the id
    */
-  protected ProductInputsLayer(final @NotNull JsonObject id) {
+  protected ProductInputsLayer(@javax.annotation.Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -57,12 +56,13 @@ public class ProductInputsLayer extends NNLayer {
    * @param rs   the rs
    * @return the product inputs layer
    */
-  public static ProductInputsLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static ProductInputsLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ProductInputsLayer(json);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNResult eval(final @NotNull NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     assert inObj.length > 1;
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
@@ -80,10 +80,10 @@ public class ProductInputsLayer extends NNLayer {
                                          final Tensor right = r.get(1 == r.length() ? 0 : i1);
                                          return Tensor.product(left, right);
                                        }).toArray(i -> new Tensor[i]));
-    }).get(), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList delta) -> {
-      for (final @NotNull NNResult input : inObj) {
+    }).get(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+      for (@javax.annotation.Nonnull final NNResult input : inObj) {
         if (input.isAlive()) {
-          @NotNull TensorList passback = Arrays.stream(inObj).parallel().map(x -> x == input ? delta : x.getData()).reduce((l, r) -> {
+          @javax.annotation.Nonnull TensorList passback = Arrays.stream(inObj).parallel().map(x -> x == input ? delta : x.getData()).reduce((l, r) -> {
             return TensorArray.wrap(IntStream.range(0, Math.max(l.length(), r.length())).parallel()
                                              .mapToObj(j -> {
                                                final Tensor left = l.get(1 == l.length() ? 0 : j);
@@ -103,7 +103,7 @@ public class ProductInputsLayer extends NNLayer {
           if (1 == Tensor.dim(inputData.getDimensions()) && 1 < Tensor.dim(passback.getDimensions())) {
             passback = TensorArray.wrap(passback.stream()
                                                 .map((a) -> {
-                                                  @NotNull Tensor b = new Tensor(a.sum());
+                                                  @javax.annotation.Nonnull Tensor b = new Tensor(a.sum());
                                                   a.freeRef();
                                                   return b;
                                                 }).toArray(i -> new Tensor[i]));
@@ -113,33 +113,35 @@ public class ProductInputsLayer extends NNLayer {
         }
       }
     }) {
-  
-  
+      
+      
       @Override
       public boolean isAlive() {
-        for (final @NotNull NNResult element : inObj)
+        for (@javax.annotation.Nonnull final NNResult element : inObj)
           if (element.isAlive()) {
             return true;
           }
         return false;
       }
-  
+      
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
         Arrays.stream(inObj).forEach(x -> x.getData().freeRef());
       }
-  
+      
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
 }

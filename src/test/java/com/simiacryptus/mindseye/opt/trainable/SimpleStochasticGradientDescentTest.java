@@ -30,7 +30,6 @@ import com.simiacryptus.mindseye.opt.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.orient.GradientDescent;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
 
@@ -40,14 +39,14 @@ import java.util.concurrent.TimeUnit;
 public class SimpleStochasticGradientDescentTest extends MnistTestBase {
   
   @Override
-  public void train(final @NotNull NotebookOutput log, final @NotNull NNLayer network, final @NotNull Tensor[][] trainingData, final TrainingMonitor monitor) {
+  public void train(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer network, @javax.annotation.Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.p("Training a model involves a few different components. First, our model is combined mapCoords a loss function. " +
             "Then we take that model and combine it mapCoords our training data to define a trainable object. " +
             "Finally, we use a simple iterative scheme to refine the weights of our model. " +
             "The final output is the last output value of the loss function when evaluating the last batch.");
     log.code(() -> {
-      final @NotNull SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-      final @NotNull Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 10000);
+      @javax.annotation.Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
+      @javax.annotation.Nonnull final Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 10000);
       return new IterativeTrainer(trainable)
         .setMonitor(monitor)
         .setOrientation(new GradientDescent())
@@ -57,8 +56,9 @@ public class SimpleStochasticGradientDescentTest extends MnistTestBase {
     });
   }
   
+  @javax.annotation.Nonnull
   @Override
-  protected @NotNull Class<?> getTargetClass() {
+  protected Class<?> getTargetClass() {
     return SampledArrayTrainable.class;
   }
 }

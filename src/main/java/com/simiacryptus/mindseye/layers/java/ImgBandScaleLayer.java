@@ -23,7 +23,6 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +68,7 @@ public class ImgBandScaleLayer extends NNLayer {
    *
    * @param json the json
    */
-  protected ImgBandScaleLayer(final @NotNull JsonObject json) {
+  protected ImgBandScaleLayer(@javax.annotation.Nonnull final JsonObject json) {
     super(json);
     weights = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
   }
@@ -81,7 +80,7 @@ public class ImgBandScaleLayer extends NNLayer {
    * @param rs   the rs
    * @return the img band scale layer
    */
-  public static ImgBandScaleLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static ImgBandScaleLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ImgBandScaleLayer(json);
   }
   
@@ -91,13 +90,15 @@ public class ImgBandScaleLayer extends NNLayer {
    * @param f the f
    * @return the img band scale layer
    */
-  public @NotNull ImgBandScaleLayer addWeights(final @NotNull DoubleSupplier f) {
+  @javax.annotation.Nonnull
+  public ImgBandScaleLayer addWeights(@javax.annotation.Nonnull final DoubleSupplier f) {
     Util.add(f, getWeights());
     return this;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNResult eval(final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     return eval(inObj[0]);
   }
   
@@ -107,7 +108,8 @@ public class ImgBandScaleLayer extends NNLayer {
    * @param input the input
    * @return the nn result
    */
-  public @NotNull NNResult eval(final @NotNull NNResult input) {
+  @javax.annotation.Nonnull
+  public NNResult eval(@javax.annotation.Nonnull final NNResult input) {
     final @Nullable double[] weights = getWeights();
     final TensorList inData = input.getData();
     inData.addRef();
@@ -122,7 +124,7 @@ public class ImgBandScaleLayer extends NNLayer {
                                                                                         getName(), Arrays.toString(tensor.getDimensions()), weights.length));
                                      }
                                      return tensor.mapCoords(c -> tensor.get(c) * weights[c.getCoords()[2]]);
-                                               }).toArray(i -> new Tensor[i])), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList delta) -> {
+                                               }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         final Delta<NNLayer> deltaBuffer = buffer.get(ImgBandScaleLayer.this, weights);
         IntStream.range(0, delta.length()).forEach(index -> {
@@ -145,9 +147,9 @@ public class ImgBandScaleLayer extends NNLayer {
         });
       }
       if (input.isAlive()) {
-        @NotNull TensorArray tensorArray = TensorArray.wrap(delta.stream()
-                                                                 .map(t -> t.mapCoords((c) -> t.get(c) * weights[c.getCoords()[2]]))
-                                                                 .toArray(i -> new Tensor[i]));
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(delta.stream()
+                                                                                  .map(t -> t.mapCoords((c) -> t.get(c) * weights[c.getCoords()[2]]))
+                                                                                  .toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
@@ -167,9 +169,10 @@ public class ImgBandScaleLayer extends NNLayer {
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.add("bias", JsonUtil.getJson(getWeights()));
     return json;
   }
@@ -192,7 +195,8 @@ public class ImgBandScaleLayer extends NNLayer {
    * @param f the f
    * @return the weights
    */
-  public @NotNull ImgBandScaleLayer setWeights(final @NotNull IntToDoubleFunction f) {
+  @javax.annotation.Nonnull
+  public ImgBandScaleLayer setWeights(@javax.annotation.Nonnull final IntToDoubleFunction f) {
     final @Nullable double[] bias = getWeights();
     for (int i = 0; i < bias.length; i++) {
       bias[i] = f.applyAsDouble(i);
@@ -207,7 +211,8 @@ public class ImgBandScaleLayer extends NNLayer {
    * @param ds the ds
    * @return the nn layer
    */
-  public @NotNull NNLayer set(final @NotNull double[] ds) {
+  @javax.annotation.Nonnull
+  public NNLayer set(@javax.annotation.Nonnull final double[] ds) {
     final @Nullable double[] bias = getWeights();
     for (int i = 0; i < ds.length; i++) {
       bias[i] = ds[i];
@@ -216,8 +221,9 @@ public class ImgBandScaleLayer extends NNLayer {
     return this;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList(getWeights());
   }
 }

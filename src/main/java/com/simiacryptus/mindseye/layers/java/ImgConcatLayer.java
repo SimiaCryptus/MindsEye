@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +53,7 @@ public class ImgConcatLayer extends NNLayer {
    *
    * @param json the json
    */
-  protected ImgConcatLayer(final @NotNull JsonObject json) {
+  protected ImgConcatLayer(@javax.annotation.Nonnull final JsonObject json) {
     super(json);
     JsonElement maxBands = json.get("maxBands");
     if (null != maxBands) setMaxBands(maxBands.getAsInt());
@@ -67,25 +66,25 @@ public class ImgConcatLayer extends NNLayer {
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static ImgConcatLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static ImgConcatLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ImgConcatLayer(json);
   }
   
   @Override
-  public @Nullable NNResult eval(final @NotNull NNResult... inObj) {
+  public @Nullable NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     assert Arrays.stream(inObj).allMatch(x -> x.getData().get(0).getDimensions().length == 3) : "This component is for use mapCoords 3d image tensors only";
     final int numBatches = inObj[0].getData().length();
     assert Arrays.stream(inObj).allMatch(x -> x.getData().length() == numBatches) : "All inputs must use same batch size";
-    final @NotNull int[] outputDims = Arrays.copyOf(inObj[0].getData().get(0).getDimensions(), 3);
+    @javax.annotation.Nonnull final int[] outputDims = Arrays.copyOf(inObj[0].getData().get(0).getDimensions(), 3);
     outputDims[2] = Arrays.stream(inObj).mapToInt(x -> x.getData().get(0).getDimensions()[2]).sum();
     if (maxBands > 0) outputDims[2] = Math.min(maxBands, outputDims[2]);
     assert Arrays.stream(inObj).allMatch(x -> x.getData().get(0).getDimensions()[0] == outputDims[0]) : "Inputs must be same size";
     assert Arrays.stream(inObj).allMatch(x -> x.getData().get(0).getDimensions()[1] == outputDims[1]) : "Inputs must be same size";
   
-    final @NotNull List<Tensor> outputTensors = new ArrayList<>();
+    @javax.annotation.Nonnull final List<Tensor> outputTensors = new ArrayList<>();
     for (int b = 0; b < numBatches; b++) {
-      final @NotNull Tensor outputTensor = new Tensor(outputDims);
+      @javax.annotation.Nonnull final Tensor outputTensor = new Tensor(outputDims);
       int pos = 0;
       final @Nullable double[] outputTensorData = outputTensor.getData();
       for (int i = 0; i < inObj.length; i++) {
@@ -95,16 +94,16 @@ public class ImgConcatLayer extends NNLayer {
       }
       outputTensors.add(outputTensor);
     }
-    return new NNResult(TensorArray.wrap(outputTensors.toArray(new Tensor[]{})), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
+    return new NNResult(TensorArray.wrap(outputTensors.toArray(new Tensor[]{})), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       assert numBatches == data.length();
     
-      final @NotNull List<Tensor[]> splitBatches = new ArrayList<>();
+      @javax.annotation.Nonnull final List<Tensor[]> splitBatches = new ArrayList<>();
       for (int b = 0; b < numBatches; b++) {
         final Tensor tensor = data.get(b);
-        final @NotNull Tensor[] outputTensors2 = new Tensor[inObj.length];
+        @javax.annotation.Nonnull final Tensor[] outputTensors2 = new Tensor[inObj.length];
         int pos = 0;
         for (int i = 0; i < inObj.length; i++) {
-          final @NotNull Tensor dest = new Tensor(inObj[i].getData().get(0).getDimensions());
+          @javax.annotation.Nonnull final Tensor dest = new Tensor(inObj[i].getData().get(0).getDimensions());
           @Nullable double[] tensorData = tensor.getData();
           System.arraycopy(tensorData, pos, dest.getData(), 0, Math.min(dest.size(), tensorData.length - pos));
           pos += dest.size();
@@ -113,7 +112,7 @@ public class ImgConcatLayer extends NNLayer {
         splitBatches.add(outputTensors2);
       }
     
-      final @NotNull Tensor[][] splitData = new Tensor[inObj.length][];
+      @javax.annotation.Nonnull final Tensor[][] splitData = new Tensor[inObj.length][];
       for (int i = 0; i < splitData.length; i++) {
         splitData[i] = new Tensor[numBatches];
       }
@@ -124,7 +123,7 @@ public class ImgConcatLayer extends NNLayer {
       }
   
       for (int i = 0; i < inObj.length; i++) {
-        @NotNull TensorArray tensorArray = TensorArray.wrap(splitData[i]);
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(splitData[i]);
         inObj[i].accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
@@ -137,7 +136,7 @@ public class ImgConcatLayer extends NNLayer {
       
       @Override
       public boolean isAlive() {
-        for (final @NotNull NNResult element : inObj)
+        for (@javax.annotation.Nonnull final NNResult element : inObj)
           if (element.isAlive()) {
             return true;
           }
@@ -147,15 +146,17 @@ public class ImgConcatLayer extends NNLayer {
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull JsonObject json = super.getJsonStub();
     json.addProperty("maxBands", maxBands);
     return json;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
   
@@ -174,7 +175,8 @@ public class ImgConcatLayer extends NNLayer {
    * @param maxBands the max bands
    * @return the max bands
    */
-  public @NotNull ImgConcatLayer setMaxBands(int maxBands) {
+  @javax.annotation.Nonnull
+  public ImgConcatLayer setMaxBands(int maxBands) {
     this.maxBands = maxBands;
     return this;
   }

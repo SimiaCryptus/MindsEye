@@ -20,7 +20,6 @@
 package com.simiacryptus.util.lang;
 
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -45,7 +44,8 @@ public class CodeUtil {
   /**
    * The constant projectRoot.
    */
-  public static @NotNull File projectRoot = new File(System.getProperty("codeRoot", ".."));
+  @javax.annotation.Nonnull
+  public static File projectRoot = new File(System.getProperty("codeRoot", ".."));
   private static final List<File> codeRoots = CodeUtil.loadCodeRoots();
   
   /**
@@ -69,9 +69,10 @@ public class CodeUtil {
    * @param callingFrame the calling frame
    * @return the file
    */
-  public static @NotNull File findFile(final @NotNull StackTraceElement callingFrame) {
-    final @NotNull String[] packagePath = callingFrame.getClassName().split("\\.");
-    final @NotNull String path = Arrays.stream(packagePath).limit(packagePath.length - 1).collect(Collectors.joining(File.separator)) + File.separator + callingFrame.getFileName();
+  @javax.annotation.Nonnull
+  public static File findFile(@javax.annotation.Nonnull final StackTraceElement callingFrame) {
+    @javax.annotation.Nonnull final String[] packagePath = callingFrame.getClassName().split("\\.");
+    @javax.annotation.Nonnull final String path = Arrays.stream(packagePath).limit(packagePath.length - 1).collect(Collectors.joining(File.separator)) + File.separator + callingFrame.getFileName();
     return CodeUtil.findFile(path);
   }
   
@@ -81,9 +82,10 @@ public class CodeUtil {
    * @param path the path
    * @return the file
    */
-  public static @NotNull File findFile(final @NotNull String path) {
+  @javax.annotation.Nonnull
+  public static File findFile(@javax.annotation.Nonnull final String path) {
     for (final File root : CodeUtil.codeRoots) {
-      final @NotNull File file = new File(root, path);
+      @javax.annotation.Nonnull final File file = new File(root, path);
       if (file.exists()) return file;
     }
     throw new RuntimeException(String.format("Not Found: %s; Project Roots = %s", path, CodeUtil.codeRoots));
@@ -95,8 +97,9 @@ public class CodeUtil {
    * @param txt the txt
    * @return the indent
    */
-  public static @NotNull String getIndent(final @NotNull String txt) {
-    final @NotNull Matcher matcher = Pattern.compile("^\\s+").matcher(txt);
+  @javax.annotation.Nonnull
+  public static String getIndent(@javax.annotation.Nonnull final String txt) {
+    @javax.annotation.Nonnull final Matcher matcher = Pattern.compile("^\\s+").matcher(txt);
     return matcher.find() ? matcher.group(0) : "";
   }
   
@@ -107,21 +110,21 @@ public class CodeUtil {
    * @return the heapCopy text
    * @throws IOException the io exception
    */
-  public static String getInnerText(final @NotNull StackTraceElement callingFrame) throws IOException {
+  public static String getInnerText(@javax.annotation.Nonnull final StackTraceElement callingFrame) throws IOException {
     try {
-      final @NotNull File file = CodeUtil.findFile(callingFrame);
+      @javax.annotation.Nonnull final File file = CodeUtil.findFile(callingFrame);
       assert null != file;
       final int start = callingFrame.getLineNumber() - 1;
       final List<String> allLines = Files.readAllLines(file.toPath());
       final String txt = allLines.get(start);
-      final @NotNull String indent = CodeUtil.getIndent(txt);
-      final @NotNull ArrayList<String> lines = new ArrayList<>();
+      @javax.annotation.Nonnull final String indent = CodeUtil.getIndent(txt);
+      @javax.annotation.Nonnull final ArrayList<String> lines = new ArrayList<>();
       for (int i = start + 1; i < allLines.size() && (CodeUtil.getIndent(allLines.get(i)).length() > indent.length() || allLines.get(i).trim().isEmpty()); i++) {
         final String line = allLines.get(i);
         lines.add(line.substring(Math.min(indent.length(), line.length())));
       }
       return lines.stream().collect(Collectors.joining("\n"));
-    } catch (final @NotNull Throwable e) {
+    } catch (@javax.annotation.Nonnull final Throwable e) {
       return "";
     }
   }
@@ -147,7 +150,7 @@ public class CodeUtil {
                                   .map(s -> s.replaceFirst("^[ \t]*[/\\*]+", "").trim())
                                   .filter(x -> !x.isEmpty()).reduce((a, b) -> a + "\n" + b).orElse("");
       return javadoc.replaceAll("<p>", "\n");
-    } catch (final @NotNull Throwable e) {
+    } catch (@javax.annotation.Nonnull final Throwable e) {
       e.printStackTrace();
       return "";
     }

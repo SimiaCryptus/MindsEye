@@ -25,7 +25,6 @@ import com.simiacryptus.mindseye.lang.cudnn.*;
 import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
 import com.simiacryptus.mindseye.layers.java.SigmoidActivationLayer;
 import jcuda.jcudnn.*;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -58,7 +57,7 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
    *
    * @param json the json
    */
-  protected ActivationLayer(final @NotNull JsonObject json) {
+  protected ActivationLayer(@javax.annotation.Nonnull final JsonObject json) {
     super(json);
     mode = json.getAsJsonPrimitive("mode").getAsInt();
     precision = Precision.valueOf(json.get("precision").getAsString());
@@ -69,7 +68,7 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
    *
    * @param mode the mode
    */
-  public ActivationLayer(final @NotNull Mode mode) {
+  public ActivationLayer(@javax.annotation.Nonnull final Mode mode) {
     this(mode.id);
   }
   
@@ -80,7 +79,7 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
    * @param rs   the rs
    * @return the activation layer
    */
-  public static ActivationLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static ActivationLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ActivationLayer(json);
   }
   
@@ -89,7 +88,8 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
    *
    * @return the compatibility layer
    */
-  public @NotNull NNLayer getCompatibilityLayer() {
+  @javax.annotation.Nonnull
+  public NNLayer getCompatibilityLayer() {
     if (mode == Mode.SIGMOID.id) {
       return new SigmoidActivationLayer().setBalanced(false);
     }
@@ -102,7 +102,7 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
   }
   
   @Override
-  public NNResult eval(final @NotNull NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
@@ -115,37 +115,37 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
     batch.addRef();
     try {
       CudaPtr outPtr = GpuSystem.eval(gpu -> {
-        final @NotNull CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
+        @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-        final @NotNull CudaResource<cudnnTensorDescriptor> outputDescriptor = GpuSystem.newTensorDescriptor(
+        @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = GpuSystem.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
         final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
-        final @NotNull CudaPtr outputData = CudaPtr.allocate(gpu.getDeviceNumber(), precision.size * 1l * inputDims * length, MemoryType.Managed, true);
-        final @NotNull CudaResource<cudnnActivationDescriptor> activationDesc = GpuSystem.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
+        @javax.annotation.Nonnull final CudaPtr outputData = CudaPtr.allocate(gpu.getDeviceNumber(), precision.size * 1l * inputDims * length, MemoryType.Managed, true);
+        @javax.annotation.Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = GpuSystem.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
         try {
           GpuSystem.handle(CuDNNHandle.cudnnActivationForward(gpu.getHandle(), activationDesc.getPtr(),
                                                               precision.getPointer(1.0),
                                                               inputDescriptor.getPtr(), inputData.getPtr(),
                                                               precision.getPointer(0.0),
                                                               outputDescriptor.getPtr(), outputData.getPtr()));
-        } catch (final @NotNull Throwable e) {
+        } catch (@javax.annotation.Nonnull final Throwable e) {
           throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
         }
         gpu.registerForCleanup(inputData, inputDescriptor, outputDescriptor, activationDesc);
         return outputData;
         //assert output.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       });
-      return new NNResult(GpuTensorList.create(outPtr, length, outputSize, precision), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList error) -> {
+      return new NNResult(GpuTensorList.create(outPtr, length, outputSize, precision), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
         if (input.isAlive()) {
           final TensorList data = GpuSystem.eval(gpu -> {
             //assert (error.length() == batch.length());
             //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
             final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
-            final @NotNull CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
+            @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
               precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
             final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
-            final @NotNull CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), inputDims * 1l * precision.size * length, MemoryType.Managed, true);
-            final @NotNull CudaResource<cudnnActivationDescriptor> activationDesc = GpuSystem.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
+            @javax.annotation.Nonnull final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), inputDims * 1l * precision.size * length, MemoryType.Managed, true);
+            @javax.annotation.Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = GpuSystem.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
             try {
               GpuSystem.handle(CuDNNHandle.cudnnActivationBackward(gpu.getHandle(), activationDesc.getPtr(),
                                                                    precision.getPointer(1.0),
@@ -154,7 +154,7 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
                                                                    inputDescriptor.getPtr(), inputData.getPtr(),
                                                                    precision.getPointer(0.0),
                                                                    inputDescriptor.getPtr(), passbackBuffer.getPtr()));
-            } catch (final @NotNull Throwable e) {
+            } catch (@javax.annotation.Nonnull final Throwable e) {
               throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
             }
             gpu.registerForCleanup(inputData, errorPtr, inputDescriptor, activationDesc);
@@ -178,14 +178,15 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
           return input.isAlive() || !isFrozen();
         }
       };
-    } catch (final @NotNull Throwable e) {
+    } catch (@javax.annotation.Nonnull final Throwable e) {
       throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
     }
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("mode", mode);
     json.addProperty("precision", precision.name());
     return json;
@@ -196,14 +197,16 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
     return precision;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull ActivationLayer setPrecision(final Precision precision) {
+  public ActivationLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
   

@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +52,7 @@ public class BiasMetaLayer extends NNLayer {
    *
    * @param id the id
    */
-  protected BiasMetaLayer(final @NotNull JsonObject id) {
+  protected BiasMetaLayer(@javax.annotation.Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -64,12 +63,12 @@ public class BiasMetaLayer extends NNLayer {
    * @param rs   the rs
    * @return the bias meta layer
    */
-  public static BiasMetaLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static BiasMetaLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new BiasMetaLayer(json);
   }
   
   @Override
-  public @Nullable NNResult eval(final @NotNull NNResult... inObj) {
+  public @Nullable NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
     final Tensor[] tensors = IntStream.range(0, itemCnt)
                                       .parallel()
@@ -78,19 +77,19 @@ public class BiasMetaLayer extends NNLayer {
     Tensor tensor0 = tensors[0];
     tensor0.addRef();
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    return new NNResult(TensorArray.wrap(tensors), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
+    return new NNResult(TensorArray.wrap(tensors), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
-        @NotNull TensorArray delta = TensorArray.wrap(data.stream().map(t -> t.mapParallel(v -> v)).toArray(i -> new Tensor[i]));
+        @javax.annotation.Nonnull TensorArray delta = TensorArray.wrap(data.stream().map(t -> t.mapParallel(v -> v)).toArray(i -> new Tensor[i]));
         inObj[0].accumulate(buffer, delta);
         delta.freeRef();
       }
       if (inObj[1].isAlive()) {
-        final @NotNull ToDoubleFunction<Coordinate> f = (c) -> {
+        @javax.annotation.Nonnull final ToDoubleFunction<Coordinate> f = (c) -> {
           return IntStream.range(0, itemCnt).mapToDouble(i -> data.get(i).get(c)).sum();
         };
         final @Nullable Tensor passback = tensor0.mapCoords(f);
-        @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, inObj[1].getData().length())
-                                                                     .mapToObj(i -> i == 0 ? passback : passback.map(v -> 0)).toArray(i -> new Tensor[i]));
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, inObj[1].getData().length())
+                                                                                      .mapToObj(i -> i == 0 ? passback : passback.map(v -> 0)).toArray(i -> new Tensor[i]));
         inObj[1].accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
@@ -110,13 +109,15 @@ public class BiasMetaLayer extends NNLayer {
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
 }

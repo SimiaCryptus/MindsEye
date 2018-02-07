@@ -23,7 +23,6 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +62,7 @@ public class SignReducerLayer extends DAGNetwork {
    * @param json the json
    * @param rs   the rs
    */
-  protected SignReducerLayer(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  protected SignReducerLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json, rs);
     head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
   }
@@ -75,7 +74,7 @@ public class SignReducerLayer extends DAGNetwork {
    * @param rs    the rs
    * @return the nn layer
    */
-  public static NNLayer fromJson(final @NotNull JsonObject inner, Map<String, byte[]> rs) {
+  public static NNLayer fromJson(@javax.annotation.Nonnull final JsonObject inner, Map<String, byte[]> rs) {
     return new SignReducerLayer(inner, rs);
   }
   

@@ -19,8 +19,6 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
  * A type-merging class for Trainable objects which are both Sampled and Cached.
  *
@@ -39,8 +37,9 @@ public class SampledCachedTrainable<T extends SampledTrainable> extends CachedTr
     super(inner);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull SampledCachedTrainable<? extends SampledTrainable> cached() {
+  public SampledCachedTrainable<? extends SampledTrainable> cached() {
     return new SampledCachedTrainable<>(this);
   }
   
@@ -55,8 +54,9 @@ public class SampledCachedTrainable<T extends SampledTrainable> extends CachedTr
     return super.reseed(seed);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull SampledTrainable setTrainingSize(final int trainingSize) {
+  public SampledTrainable setTrainingSize(final int trainingSize) {
     if (trainingSize != getTrainingSize()) {
       getInner().setTrainingSize(trainingSize);
       reseed(seed);

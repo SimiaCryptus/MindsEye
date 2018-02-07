@@ -26,7 +26,6 @@ import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.BatchingTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.PrintStream;
@@ -40,15 +39,18 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
   /**
    * The Input dim.
    */
-  protected final @NotNull int[] inputDim;
+  @javax.annotation.Nonnull
+  protected final int[] inputDim;
   /**
    * The Fully connected layer.
    */
-  protected final @NotNull FullyConnectedLayer fullyConnectedLayer;
+  @javax.annotation.Nonnull
+  protected final FullyConnectedLayer fullyConnectedLayer;
   /**
    * The Layer.
    */
-  protected final @NotNull PipelineNetwork layer;
+  @javax.annotation.Nonnull
+  protected final PipelineNetwork layer;
   
   /**
    * Instantiates a new Fully connected layer allocationOverflow.
@@ -57,26 +59,29 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
    * @param outputDims the output dims
    * @param batchBands the batch bands
    */
-  public FullyConnectedLayerTest(@NotNull int[] inputDims, @NotNull int[] outputDims, int batchBands) {
+  public FullyConnectedLayerTest(@javax.annotation.Nonnull int[] inputDims, @javax.annotation.Nonnull int[] outputDims, int batchBands) {
     this.inputDim = inputDims;
     this.fullyConnectedLayer = new FullyConnectedLayer(inputDims, outputDims).setWeightsLog(-2);
     this.layer = this.fullyConnectedLayer.setBatchBands(batchBands).explode();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull int[][] getSmallDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{
       inputDim
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  protected @NotNull Class<?> getTargetClass() {
+  protected Class<?> getTargetClass() {
     return FullyConnectedLayer.class;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     layer.addRef();
     return layer;
   }
@@ -94,7 +99,7 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
   
   @Override
   public void run(NotebookOutput log) {
-    @NotNull String logName = "cuda_" + log.getName() + "_all.log";
+    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all.log";
     log.p(log.file((String) null, logName, "GPU Log"));
     GpuSystem.addLog(new PrintStream(log.file(logName)));
     super.run(log);
@@ -124,7 +129,7 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
      * @param outputDims the output dims
      * @param batchBands the batch bands
      */
-    public Big(@NotNull int[] inputDims, @NotNull int[] outputDims, int batchBands) {
+    public Big(@javax.annotation.Nonnull int[] inputDims, @javax.annotation.Nonnull int[] outputDims, int batchBands) {
       super(inputDims, outputDims, batchBands);
       validateDifferentials = false;
     }

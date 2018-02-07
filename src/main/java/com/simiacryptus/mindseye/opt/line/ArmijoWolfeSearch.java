@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -54,7 +53,8 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
    * @param absoluteTolerance the absolute tolerance
    * @return the absolute tolerance
    */
-  public @NotNull ArmijoWolfeSearch setAbsoluteTolerance(final double absoluteTolerance) {
+  @javax.annotation.Nonnull
+  public ArmijoWolfeSearch setAbsoluteTolerance(final double absoluteTolerance) {
     this.absoluteTolerance = absoluteTolerance;
     return this;
   }
@@ -74,7 +74,8 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
    * @param alpha the alpha
    * @return the alpha
    */
-  public @NotNull ArmijoWolfeSearch setAlpha(final double alpha) {
+  @javax.annotation.Nonnull
+  public ArmijoWolfeSearch setAlpha(final double alpha) {
     this.alpha = alpha;
     return this;
   }
@@ -94,7 +95,8 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
    * @param alphaGrowth the alpha growth
    * @return the alpha growth
    */
-  public @NotNull ArmijoWolfeSearch setAlphaGrowth(final double alphaGrowth) {
+  @javax.annotation.Nonnull
+  public ArmijoWolfeSearch setAlphaGrowth(final double alphaGrowth) {
     this.alphaGrowth = alphaGrowth;
     return this;
   }
@@ -114,7 +116,8 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
    * @param c1 the c 1
    * @return the c 1
    */
-  public @NotNull ArmijoWolfeSearch setC1(final double c1) {
+  @javax.annotation.Nonnull
+  public ArmijoWolfeSearch setC1(final double c1) {
     this.c1 = c1;
     return this;
   }
@@ -134,7 +137,8 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
    * @param c2 the c 2
    * @return the c 2
    */
-  public @NotNull ArmijoWolfeSearch setC2(final double c2) {
+  @javax.annotation.Nonnull
+  public ArmijoWolfeSearch setC2(final double c2) {
     this.c2 = c2;
     return this;
   }
@@ -154,7 +158,8 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
    * @param maxAlpha the max alpha
    * @return the max alpha
    */
-  public @NotNull ArmijoWolfeSearch setMaxAlpha(final double maxAlpha) {
+  @javax.annotation.Nonnull
+  public ArmijoWolfeSearch setMaxAlpha(final double maxAlpha) {
     this.maxAlpha = maxAlpha;
     return this;
   }
@@ -174,7 +179,8 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
    * @param minAlpha the min alpha
    * @return the min alpha
    */
-  public @NotNull ArmijoWolfeSearch setMinAlpha(final double minAlpha) {
+  @javax.annotation.Nonnull
+  public ArmijoWolfeSearch setMinAlpha(final double minAlpha) {
     this.minAlpha = minAlpha;
     return this;
   }
@@ -194,7 +200,8 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
    * @param relativeTolerance the relative tolerance
    * @return the relative tolerance
    */
-  public @NotNull ArmijoWolfeSearch setRelativeTolerance(final double relativeTolerance) {
+  @javax.annotation.Nonnull
+  public ArmijoWolfeSearch setRelativeTolerance(final double relativeTolerance) {
     this.relativeTolerance = relativeTolerance;
     return this;
   }
@@ -218,7 +225,8 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
    * @param strongWolfe the strong wolfe
    * @return the strong wolfe
    */
-  public @NotNull ArmijoWolfeSearch setStrongWolfe(final boolean strongWolfe) {
+  @javax.annotation.Nonnull
+  public ArmijoWolfeSearch setStrongWolfe(final boolean strongWolfe) {
     this.strongWolfe = strongWolfe;
     return this;
   }
@@ -233,7 +241,7 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
   }
   
   @Override
-  public PointSample step(final @NotNull LineSearchCursor cursor, final @NotNull TrainingMonitor monitor) {
+  public PointSample step(@javax.annotation.Nonnull final LineSearchCursor cursor, @javax.annotation.Nonnull final TrainingMonitor monitor) {
     alpha = Math.min(maxAlpha, alpha * alphaGrowth); // Keep memory of alpha from one iteration to next, but have a bias for growing the value
     double mu = 0;
     double nu = Double.POSITIVE_INFINITY;
@@ -330,7 +338,7 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
     }
   }
   
-  private PointSample stepPoint(@NotNull LineSearchCursor cursor, TrainingMonitor monitor, double bestAlpha) {
+  private PointSample stepPoint(@javax.annotation.Nonnull LineSearchCursor cursor, TrainingMonitor monitor, double bestAlpha) {
     LineSearchPoint step = cursor.step(bestAlpha, monitor);
     PointSample point = step.point;
     point.addRef();

@@ -21,7 +21,6 @@ package com.simiacryptus.util.data;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.util.MonitoredItem;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
@@ -51,8 +50,9 @@ public class ScalarStatistics implements MonitoredItem, Serializable {
    * @param data the data
    * @return the scalar statistics
    */
-  public static @NotNull ScalarStatistics stats(final @NotNull double[] data) {
-    final @NotNull ScalarStatistics statistics = new PercentileStatistics();
+  @javax.annotation.Nonnull
+  public static ScalarStatistics stats(@javax.annotation.Nonnull final double[] data) {
+    @javax.annotation.Nonnull final ScalarStatistics statistics = new PercentileStatistics();
     Arrays.stream(data).forEach(statistics::add);
     return statistics;
   }
@@ -63,7 +63,7 @@ public class ScalarStatistics implements MonitoredItem, Serializable {
    * @param values the values
    * @return the scalar statistics
    */
-  public ScalarStatistics add(final @NotNull double... values) {
+  public ScalarStatistics add(@javax.annotation.Nonnull final double... values) {
     double v1 = 0;
     double v2 = 0;
     double vmax = max;
@@ -136,8 +136,9 @@ public class ScalarStatistics implements MonitoredItem, Serializable {
    * @param right the right
    * @return the scalar statistics
    */
-  public final synchronized @NotNull ScalarStatistics add(final @NotNull ScalarStatistics right) {
-    final @NotNull ScalarStatistics sum = new ScalarStatistics();
+  @javax.annotation.Nonnull
+  public final synchronized ScalarStatistics add(@javax.annotation.Nonnull final ScalarStatistics right) {
+    @javax.annotation.Nonnull final ScalarStatistics sum = new ScalarStatistics();
     sum.sum0 += sum0;
     sum.sum0 += right.sum0;
     sum.sum1 += sum1;
@@ -176,8 +177,9 @@ public class ScalarStatistics implements MonitoredItem, Serializable {
    *
    * @return the json
    */
-  public @NotNull JsonObject getJson() {
-    final @NotNull JsonObject json = new JsonObject();
+  @javax.annotation.Nonnull
+  public JsonObject getJson() {
+    @javax.annotation.Nonnull final JsonObject json = new JsonObject();
     json.addProperty("min", min);
     json.addProperty("max", max);
     json.addProperty("negatives", negatives);
@@ -210,7 +212,7 @@ public class ScalarStatistics implements MonitoredItem, Serializable {
   
   @Override
   public Map<String, Object> getMetrics() {
-    final @NotNull HashMap<String, Object> map = new HashMap<>();
+    @javax.annotation.Nonnull final HashMap<String, Object> map = new HashMap<>();
     map.put("count", sum0);
     map.put("negative", negatives);
     map.put("positive", positives);
@@ -256,8 +258,9 @@ public class ScalarStatistics implements MonitoredItem, Serializable {
    * @param right the right
    * @return the scalar statistics
    */
-  public final synchronized @NotNull ScalarStatistics subtract(final @NotNull ScalarStatistics right) {
-    final @NotNull ScalarStatistics sum = new ScalarStatistics();
+  @javax.annotation.Nonnull
+  public final synchronized ScalarStatistics subtract(@javax.annotation.Nonnull final ScalarStatistics right) {
+    @javax.annotation.Nonnull final ScalarStatistics sum = new ScalarStatistics();
     sum.sum0 += sum0;
     sum.sum0 -= right.sum0;
     sum.sum1 += sum1;

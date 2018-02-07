@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNLayer;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
@@ -38,7 +37,7 @@ public class VariableLayer extends WrapperLayer {
    *
    * @param json the json
    */
-  protected VariableLayer(final @NotNull JsonObject json) {
+  protected VariableLayer(@javax.annotation.Nonnull final JsonObject json) {
     super(json);
   }
   
@@ -59,7 +58,7 @@ public class VariableLayer extends WrapperLayer {
    * @param rs   the rs
    * @return the variable layer
    */
-  public static VariableLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static VariableLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new VariableLayer(json);
   }
   
@@ -68,9 +67,10 @@ public class VariableLayer extends WrapperLayer {
     return super.getChildren();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.add("heapCopy", getInner().getJson(resources, dataSerializer));
     return json;
   }

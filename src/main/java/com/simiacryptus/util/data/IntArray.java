@@ -19,7 +19,6 @@
 
 package com.simiacryptus.util.data;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -48,7 +47,7 @@ public class IntArray {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
   
-    final @NotNull IntArray intArray = (IntArray) o;
+    @javax.annotation.Nonnull final IntArray intArray = (IntArray) o;
   
     return Arrays.equals(data, intArray.data);
   }

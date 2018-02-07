@@ -28,7 +28,6 @@ import com.simiacryptus.util.lang.CodeUtil;
 import com.simiacryptus.util.lang.TimedResult;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +66,8 @@ public abstract class NotebookReportBase {
   /**
    * The Absolute url.
    */
-  protected @NotNull String absoluteUrl = "https://github.com/SimiaCryptus/MindsEye/tree/master/src/";
+  @javax.annotation.Nonnull
+  protected String absoluteUrl = "https://github.com/SimiaCryptus/MindsEye/tree/master/src/";
   
   /**
    * Print header string.
@@ -77,7 +77,7 @@ public abstract class NotebookReportBase {
    * @param prefix       the prefix
    * @return the string
    */
-  public static @Nullable String printHeader(@NotNull NotebookOutput log, @Nullable Class<?> networkClass, final String prefix) {
+  public static @Nullable String printHeader(@javax.annotation.Nonnull NotebookOutput log, @Nullable Class<?> networkClass, final String prefix) {
     if (null == networkClass) return null;
     @Nullable String javadoc = CodeUtil.getJavadoc(networkClass);
     log.setFrontMatterProperty(prefix + "_class_short", networkClass.getSimpleName());
@@ -99,10 +99,10 @@ public abstract class NotebookReportBase {
    * @param fn      the fn
    * @param logPath the log path
    */
-  public void run(@NotNull Consumer<NotebookOutput> fn, @NotNull String... logPath) {
-    try (@NotNull NotebookOutput log = getLog(logPath.length == 0 ? new String[]{getClass().getSimpleName()} : logPath)) {
+  public void run(@javax.annotation.Nonnull Consumer<NotebookOutput> fn, @javax.annotation.Nonnull String... logPath) {
+    try (@javax.annotation.Nonnull NotebookOutput log = getLog(logPath.length == 0 ? new String[]{getClass().getSimpleName()} : logPath)) {
       printHeader(log);
-      @NotNull TimedResult<Void> time = TimedResult.time(() -> {
+      @javax.annotation.Nonnull TimedResult<Void> time = TimedResult.time(() -> {
         try {
           fn.accept(log);
           log.setFrontMatterProperty("result", "OK");
@@ -117,7 +117,8 @@ public abstract class NotebookReportBase {
     }
   }
   
-  private @NotNull String getExceptionString(Throwable e) {
+  @javax.annotation.Nonnull
+  private String getExceptionString(Throwable e) {
     if (e instanceof RuntimeException && e.getCause() != null && e.getCause() != e)
       return getExceptionString(e.getCause());
     if (e.getCause() != null && e.getCause() != e)
@@ -130,7 +131,7 @@ public abstract class NotebookReportBase {
    *
    * @param log the log
    */
-  public void printHeader(@NotNull NotebookOutput log) {
+  public void printHeader(@javax.annotation.Nonnull NotebookOutput log) {
     log.setFrontMatterProperty("created_on", new Date().toString());
     log.setFrontMatterProperty("report_type", getReportType().name());
     @Nullable String targetJavadoc = printHeader(log, getTargetClass(), "network");
@@ -154,7 +155,8 @@ public abstract class NotebookReportBase {
    * @param logPath the log path
    * @return the log
    */
-  public @NotNull NotebookOutput getLog(String... logPath) {
+  @javax.annotation.Nonnull
+  public NotebookOutput getLog(String... logPath) {
     try {
       if (useMarkdown) {
         return MarkdownNotebookOutput.get(getTargetClass(),
@@ -162,22 +164,22 @@ public abstract class NotebookReportBase {
                                           logPath);
       }
       else {
-        final @NotNull String directoryName = new SimpleDateFormat("YYYY-MM-dd-HH-mm").format(new Date());
-        final @NotNull File path = new File(Util.mkString(File.separator, "www", directoryName));
+        @javax.annotation.Nonnull final String directoryName = new SimpleDateFormat("YYYY-MM-dd-HH-mm").format(new Date());
+        @javax.annotation.Nonnull final File path = new File(Util.mkString(File.separator, "www", directoryName));
         path.mkdirs();
-        final @NotNull File logFile = new File(path, "index.html");
-        final @NotNull HtmlNotebookOutput log;
+        @javax.annotation.Nonnull final File logFile = new File(path, "index.html");
+        @javax.annotation.Nonnull final HtmlNotebookOutput log;
         if (preferStatic) {
           log = new HtmlNotebookOutput(path, new FileOutputStream(logFile));
           Desktop.getDesktop().browse(logFile.toURI());
         }
         else {
-          final @NotNull StreamNanoHTTPD server = new StreamNanoHTTPD(1999, "text/html", logFile).init();
+          @javax.annotation.Nonnull final StreamNanoHTTPD server = new StreamNanoHTTPD(1999, "text/html", logFile).init();
           log = new HtmlNotebookOutput(path, server.dataReciever);
         }
         return log;
       }
-    } catch (final @NotNull IOException e) {
+    } catch (@javax.annotation.Nonnull final IOException e) {
       throw new RuntimeException(e);
     }
   }

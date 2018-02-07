@@ -19,8 +19,6 @@
 
 package com.simiacryptus.util;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -40,7 +38,8 @@ public class MonitoredObject implements MonitoredItem {
    * @param item the item
    * @return the monitored object
    */
-  public @NotNull MonitoredObject addConst(final String key, final Object item) {
+  @javax.annotation.Nonnull
+  public MonitoredObject addConst(final String key, final Object item) {
     items.put(key, item);
     return this;
   }
@@ -52,7 +51,8 @@ public class MonitoredObject implements MonitoredItem {
    * @param item the item
    * @return the monitored object
    */
-  public @NotNull MonitoredObject addField(final String key, final Supplier<Object> item) {
+  @javax.annotation.Nonnull
+  public MonitoredObject addField(final String key, final Supplier<Object> item) {
     items.put(key, item);
     return this;
   }
@@ -64,7 +64,8 @@ public class MonitoredObject implements MonitoredItem {
    * @param item the item
    * @return the monitored object
    */
-  public @NotNull MonitoredObject addObj(final String key, final MonitoredItem item) {
+  @javax.annotation.Nonnull
+  public MonitoredObject addObj(final String key, final MonitoredItem item) {
     items.put(key, item);
     return this;
   }
@@ -74,8 +75,9 @@ public class MonitoredObject implements MonitoredItem {
    *
    * @return the monitored object
    */
-  public @NotNull MonitoredObject clearConstants() {
-    final @NotNull HashSet<String> keys = new HashSet<>(items.keySet());
+  @javax.annotation.Nonnull
+  public MonitoredObject clearConstants() {
+    @javax.annotation.Nonnull final HashSet<String> keys = new HashSet<>(items.keySet());
     for (final String k : keys) {
       final Object v = items.get(k);
       if (v instanceof MonitoredObject) {
@@ -88,9 +90,10 @@ public class MonitoredObject implements MonitoredItem {
     return this;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull Map<String, Object> getMetrics() {
-    final @NotNull HashMap<String, Object> returnValue = new HashMap<>();
+  public Map<String, Object> getMetrics() {
+    @javax.annotation.Nonnull final HashMap<String, Object> returnValue = new HashMap<>();
     items.entrySet().stream().parallel().forEach(e -> {
       final String k = e.getKey();
       final Object v = e.getValue();

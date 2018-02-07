@@ -28,7 +28,6 @@ import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,19 +67,25 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
     return network;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNLayer build(@NotNull NotebookOutput output) {
+  public NNLayer build(@javax.annotation.Nonnull NotebookOutput output) {
     try {
       return new Callable<NNLayer>() {
         Tensor prototype = new Tensor(224, 224, 3);
         int cnt = 1;
-        @NotNull int[] convolutionOrder = {2, 3, 0, 1};
-        @NotNull int[] fullyconnectedOrder = {0, 1};
-        @NotNull PipelineNetwork model = new PipelineNetwork();
-        @NotNull Precision precision = Precision.Double;
-  
+        @javax.annotation.Nonnull
+        int[] convolutionOrder = {2, 3, 0, 1};
+        @javax.annotation.Nonnull
+        int[] fullyconnectedOrder = {0, 1};
+        @javax.annotation.Nonnull
+        PipelineNetwork model = new PipelineNetwork();
+        @javax.annotation.Nonnull
+        Precision precision = Precision.Double;
+        
+        @javax.annotation.Nonnull
         @Override
-        public @NotNull NNLayer call() throws Exception {
+        public NNLayer call() throws Exception {
           //  model.add(ZeroPadding2D((1,1),input_shape=(3,224,224)))
           output.code(() -> {
             add(new AssertDimensionsLayer(224, 224, 3));
@@ -417,21 +422,21 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           });
           return model;
         }
-  
+        
         protected void add(NNLayer layer) {
           if (layer instanceof Explodable) ((Explodable) layer).explode();
           int numberOfParameters = layer.state().stream().mapToInt(x -> x.length).sum();
           model.add(layer);
-          @NotNull int[] prev_dimensions = prototype.getDimensions();
+          @javax.annotation.Nonnull int[] prev_dimensions = prototype.getDimensions();
           prototype = layer.eval(prototype).getData().get(0);
-          @NotNull int[] new_dimensions = prototype.getDimensions();
+          @javax.annotation.Nonnull int[] new_dimensions = prototype.getDimensions();
           log.info(String.format("Added layer #%d: %s; %s params, dimensions %s (%s) -> %s (%s)", //
                                  cnt++, layer, numberOfParameters, //
                                  Arrays.toString(prev_dimensions), Tensor.dim(prev_dimensions), //
                                  Arrays.toString(new_dimensions), Tensor.dim(new_dimensions)));
         }
       }.call();
-    } catch (final @NotNull RuntimeException e) {
+    } catch (@javax.annotation.Nonnull final RuntimeException e) {
       throw e;
     } catch (Exception e) {
       throw new RuntimeException(e);

@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.Util;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Arrays;
@@ -48,7 +47,7 @@ public abstract class VGG16 extends ImageClassifier {
   public static VGG16 fromS3_HDF5() {
     try {
       return new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5"))));
-    } catch (final @NotNull RuntimeException e) {
+    } catch (@javax.annotation.Nonnull final RuntimeException e) {
       throw e;
     } catch (Throwable e) {
       throw new RuntimeException(e);
@@ -61,18 +60,19 @@ public abstract class VGG16 extends ImageClassifier {
    * @param file the file
    * @return the vgg 16
    */
-  public static VGG16 fromZip(@NotNull File file) {
+  public static VGG16 fromZip(@javax.annotation.Nonnull File file) {
     try {
       return new VGG16_Zip(NNLayer.fromZip(new ZipFile(file)));
-    } catch (final @NotNull RuntimeException e) {
+    } catch (@javax.annotation.Nonnull final RuntimeException e) {
       throw e;
     } catch (Throwable e) {
       throw new RuntimeException(e);
     }
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull Tensor prefilter(Tensor tensor) {
+  public Tensor prefilter(Tensor tensor) {
     tensor = tensor.mapCoords(getBiasFunction(tensor));
     tensor = tensor.mapCoords(getPermuteFunction(tensor));
     return tensor.permuteDimensions(0, 1, 2);
@@ -84,7 +84,8 @@ public abstract class VGG16 extends ImageClassifier {
    * @param tensor the tensor
    * @return the bias function
    */
-  public @NotNull ToDoubleFunction<Coordinate> getBiasFunction(@NotNull Tensor tensor) {
+  @javax.annotation.Nonnull
+  public ToDoubleFunction<Coordinate> getBiasFunction(@javax.annotation.Nonnull Tensor tensor) {
     return c1 -> {
       if (c1.getCoords()[2] == 0) return tensor.get(c1) - 103.939;
       if (c1.getCoords()[2] == 1) return tensor.get(c1) - 116.779;
@@ -99,7 +100,8 @@ public abstract class VGG16 extends ImageClassifier {
    * @param tensor the tensor
    * @return the permute function
    */
-  public @NotNull ToDoubleFunction<Coordinate> getPermuteFunction(@NotNull Tensor tensor) {
+  @javax.annotation.Nonnull
+  public ToDoubleFunction<Coordinate> getPermuteFunction(@javax.annotation.Nonnull Tensor tensor) {
     return c -> {
       if (c.getCoords()[2] == 0) return tensor.get(c.getCoords()[0], c.getCoords()[1], 0);
       if (c.getCoords()[2] == 1) return tensor.get(c.getCoords()[0], c.getCoords()[1], 1);

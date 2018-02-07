@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.util.ArrayUtil;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * This constraint ensures that the L2 magnitude of the weight delta cannot exceed a simple threshold. A simpler version
@@ -45,7 +44,8 @@ public class DistanceConstraint implements TrustRegion {
    * @param max the max
    * @return the max
    */
-  public @NotNull DistanceConstraint setMax(final double max) {
+  @javax.annotation.Nonnull
+  public DistanceConstraint setMax(final double max) {
     this.max = max;
     return this;
   }
@@ -56,13 +56,14 @@ public class DistanceConstraint implements TrustRegion {
    * @param weights the weights
    * @return the double
    */
-  public double length(final @NotNull double[] weights) {
+  public double length(@javax.annotation.Nonnull final double[] weights) {
     return ArrayUtil.magnitude(weights);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull double[] project(final @NotNull double[] weights, final @NotNull double[] point) {
-    final @NotNull double[] delta = ArrayUtil.subtract(point, weights);
+  public double[] project(@javax.annotation.Nonnull final double[] weights, @javax.annotation.Nonnull final double[] point) {
+    @javax.annotation.Nonnull final double[] delta = ArrayUtil.subtract(point, weights);
     final double distance = ArrayUtil.magnitude(delta);
     return distance > max ? ArrayUtil.add(weights, ArrayUtil.multiply(delta, max / distance)) : point;
   }

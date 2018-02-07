@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -46,7 +45,7 @@ public class CrossProductLayer extends NNLayer {
    *
    * @param id the id
    */
-  protected CrossProductLayer(final @NotNull JsonObject id) {
+  protected CrossProductLayer(@javax.annotation.Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -57,7 +56,7 @@ public class CrossProductLayer extends NNLayer {
    * @param rs   the rs
    * @return the cross product layer
    */
-  public static CrossProductLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static CrossProductLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new CrossProductLayer(json);
   }
   
@@ -73,8 +72,9 @@ public class CrossProductLayer extends NNLayer {
     return max * (max - 1) / 2 - (max - x) * (max - x - 1) / 2 + y - x - 1;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNResult eval(final @NotNull NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     assert 1 == inObj.length;
     final NNResult in = inObj[0];
     TensorList indata = in.getData();
@@ -83,7 +83,7 @@ public class CrossProductLayer extends NNLayer {
     return new NNResult(TensorArray.wrap(indata.stream().parallel().map(tensor -> {
       final int inputDim = tensor.dim();
       final int outputDim = (inputDim * inputDim - inputDim) / 2;
-      final @NotNull Tensor result = new Tensor(outputDim);
+      @javax.annotation.Nonnull final Tensor result = new Tensor(outputDim);
       final @Nullable double[] inputData = tensor.getData();
       final @Nullable double[] resultData = result.getData();
       IntStream.range(0, inputDim).forEach(x -> {
@@ -92,14 +92,14 @@ public class CrossProductLayer extends NNLayer {
         });
       });
       return result;
-    }).toArray(i -> new Tensor[i])), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (in.isAlive()) {
         assert data.length() == data.length();
-        @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).parallel().mapToObj(batchIndex -> {
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).parallel().mapToObj(batchIndex -> {
           final Tensor tensor = data.get(batchIndex);
           final int outputDim = tensor.dim();
           final int inputDim = (1 + (int) Math.sqrt(1 + 8 * outputDim)) / 2;
-          final @NotNull Tensor passback = new Tensor(inputDim);
+          @javax.annotation.Nonnull final Tensor passback = new Tensor(inputDim);
           final @Nullable double[] passbackData = passback.getData();
           final @Nullable double[] tensorData = tensor.getData();
           final @Nullable double[] inputData = indata.get(batchIndex).getData();
@@ -124,7 +124,7 @@ public class CrossProductLayer extends NNLayer {
       
       @Override
       public boolean isAlive() {
-        for (final @NotNull NNResult element : inObj)
+        for (@javax.annotation.Nonnull final NNResult element : inObj)
           if (element.isAlive()) {
             return true;
           }
@@ -134,13 +134,15 @@ public class CrossProductLayer extends NNLayer {
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
   

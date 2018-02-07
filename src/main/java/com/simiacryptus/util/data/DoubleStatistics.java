@@ -19,8 +19,6 @@
 
 package com.simiacryptus.util.data;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
 import java.util.stream.Collector;
@@ -33,7 +31,8 @@ public class DoubleStatistics extends DoubleSummaryStatistics {
   /**
    * The Collector.
    */
-  public static @NotNull Collector<Double, DoubleStatistics, DoubleStatistics> COLLECTOR = Collector.of(
+  @javax.annotation.Nonnull
+  public static Collector<Double, DoubleStatistics, DoubleStatistics> COLLECTOR = Collector.of(
     DoubleStatistics::new,
     DoubleStatistics::accept,
     DoubleStatistics::combine,
@@ -43,7 +42,8 @@ public class DoubleStatistics extends DoubleSummaryStatistics {
   /**
    * The Numbers.
    */
-  public static @NotNull Collector<Number, DoubleStatistics, DoubleStatistics> NUMBERS = Collector.of(
+  @javax.annotation.Nonnull
+  public static Collector<Number, DoubleStatistics, DoubleStatistics> NUMBERS = Collector.of(
     DoubleStatistics::new,
     (a, n) -> a.accept(n.doubleValue()),
     DoubleStatistics::combine,
@@ -68,7 +68,8 @@ public class DoubleStatistics extends DoubleSummaryStatistics {
    * @param value the value
    * @return the double statistics
    */
-  public @NotNull DoubleStatistics accept(final @NotNull double[] value) {
+  @javax.annotation.Nonnull
+  public DoubleStatistics accept(@javax.annotation.Nonnull final double[] value) {
     Arrays.stream(value).forEach(this::accept);
     return this;
   }
@@ -79,7 +80,8 @@ public class DoubleStatistics extends DoubleSummaryStatistics {
    * @param other the other
    * @return the double statistics
    */
-  public @NotNull DoubleStatistics combine(final @NotNull DoubleStatistics other) {
+  @javax.annotation.Nonnull
+  public DoubleStatistics combine(@javax.annotation.Nonnull final DoubleStatistics other) {
     super.combine(other);
     simpleSumOfSquare += other.simpleSumOfSquare;
     sumOfSquareWithCompensation(other.sumOfSquare);

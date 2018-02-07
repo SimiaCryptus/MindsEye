@@ -25,7 +25,6 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +67,7 @@ public class RescaledSubnetLayer extends NNLayer implements MultiPrecision<Resca
    * @param json the json
    * @param rs   the rs
    */
-  protected RescaledSubnetLayer(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  protected RescaledSubnetLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json);
     scale = json.get("scale").getAsInt();
     layer = NNLayer.fromJson(json, rs);
@@ -82,7 +81,7 @@ public class RescaledSubnetLayer extends NNLayer implements MultiPrecision<Resca
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static RescaledSubnetLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static RescaledSubnetLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new RescaledSubnetLayer(json, rs);
   }
   
@@ -91,7 +90,8 @@ public class RescaledSubnetLayer extends NNLayer implements MultiPrecision<Resca
    *
    * @return the compatibility layer
    */
-  public @NotNull NNLayer getCompatibilityLayer() {
+  @javax.annotation.Nonnull
+  public NNLayer getCompatibilityLayer() {
     return new com.simiacryptus.mindseye.layers.java.RescaledSubnetLayer(scale, layer);
   }
   
@@ -102,17 +102,19 @@ public class RescaledSubnetLayer extends NNLayer implements MultiPrecision<Resca
     return getCompatibilityLayer().eval(inObj);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("scale", scale);
     json.add("layer", layer.getJson(resources, dataSerializer));
     json.addProperty("precision", precision.name());
     return json;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
   
@@ -121,8 +123,9 @@ public class RescaledSubnetLayer extends NNLayer implements MultiPrecision<Resca
     return precision;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull RescaledSubnetLayer setPrecision(final Precision precision) {
+  public RescaledSubnetLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }

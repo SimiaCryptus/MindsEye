@@ -19,7 +19,6 @@
 
 package com.simiacryptus.util.io;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
@@ -71,7 +70,7 @@ public class AsyncListIterator<T> implements Iterator<T> {
         }
       }
       return null;
-    } catch (final @NotNull InterruptedException e) {
+    } catch (@javax.annotation.Nonnull final InterruptedException e) {
       throw new RuntimeException(e);
     }
   }

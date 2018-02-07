@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +51,7 @@ public class MaxMetaLayer extends NNLayer {
    *
    * @param id the id
    */
-  protected MaxMetaLayer(final @NotNull JsonObject id) {
+  protected MaxMetaLayer(@javax.annotation.Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -63,17 +62,18 @@ public class MaxMetaLayer extends NNLayer {
    * @param rs   the rs
    * @return the max meta layer
    */
-  public static MaxMetaLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static MaxMetaLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new MaxMetaLayer(json);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNResult eval(final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final NNResult input = inObj[0];
     input.addRef();
     final int itemCnt = input.getData().length();
     final int vectorSize = input.getData().get(0).dim();
-    final @NotNull int[] indicies = new int[vectorSize];
+    @javax.annotation.Nonnull final int[] indicies = new int[vectorSize];
     for (int i = 0; i < vectorSize; i++) {
       final int itemNumber = i;
       indicies[i] = IntStream.range(0, itemCnt)
@@ -81,40 +81,42 @@ public class MaxMetaLayer extends NNLayer {
     }
     return new NNResult(TensorArray.wrap(input.getData().get(0).mapIndex((v, c) -> {
       return input.getData().get(indicies[c]).getData()[c];
-    })), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
+    })), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (input.isAlive()) {
         final Tensor delta = data.get(0);
-        final @NotNull Tensor feedback[] = new Tensor[itemCnt];
+        @javax.annotation.Nonnull final Tensor feedback[] = new Tensor[itemCnt];
         Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
         input.getData().get(0).coordStream(true).forEach((inputCoord) -> {
           feedback[indicies[inputCoord.getIndex()]].add(inputCoord, delta.get(inputCoord));
         });
-        @NotNull TensorArray tensorArray = TensorArray.wrap(feedback);
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(feedback);
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
     }) {
-  
+      
       @Override
       public boolean isAlive() {
         return input.isAlive();
       }
-  
+      
       @Override
       protected void _free() {
         input.freeRef();
       }
-  
+      
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
 }

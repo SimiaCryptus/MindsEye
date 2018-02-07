@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * A basic line search cursor representing a linear parametric path.
@@ -51,7 +50,7 @@ public class SimpleLineSearchCursor extends LineSearchCursorBase {
    * @param origin    the origin
    * @param direction the direction
    */
-  public SimpleLineSearchCursor(final Trainable subject, final @NotNull PointSample origin, final DeltaSet<NNLayer> direction) {
+  public SimpleLineSearchCursor(final Trainable subject, @javax.annotation.Nonnull final PointSample origin, final DeltaSet<NNLayer> direction) {
     this.origin = origin.copyFull();
     this.direction = direction;
     this.direction.addRef();
@@ -70,7 +69,8 @@ public class SimpleLineSearchCursor extends LineSearchCursorBase {
    * @param type the type
    * @return the direction type
    */
-  public @NotNull SimpleLineSearchCursor setDirectionType(final String type) {
+  @javax.annotation.Nonnull
+  public SimpleLineSearchCursor setDirectionType(final String type) {
     this.type = type;
     return this;
   }
@@ -94,7 +94,7 @@ public class SimpleLineSearchCursor extends LineSearchCursorBase {
     }
     final PointSample sample = subject.measure(monitor).setRate(alpha);
     final double dot = direction.dot(sample.delta);
-    @NotNull LineSearchPoint lineSearchPoint = new LineSearchPoint(sample, dot);
+    @javax.annotation.Nonnull LineSearchPoint lineSearchPoint = new LineSearchPoint(sample, dot);
     sample.freeRef();
     return lineSearchPoint;
   }

@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.lang;
 
 import com.simiacryptus.util.data.DoubleStatistics;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 import java.util.Map;
@@ -38,7 +37,8 @@ public class StackCounter {
   /**
    * The Stats.
    */
-  @NotNull ConcurrentHashMap<StackFrame, DoubleStatistics> stats = new ConcurrentHashMap<>();
+  @javax.annotation.Nonnull
+  ConcurrentHashMap<StackFrame, DoubleStatistics> stats = new ConcurrentHashMap<>();
   
   /**
    * To string string.
@@ -48,7 +48,7 @@ public class StackCounter {
    * @param fn    the fn
    * @return the string
    */
-  public static String toString(final @NotNull StackCounter left, final @NotNull StackCounter right, final @NotNull BiFunction<DoubleStatistics, DoubleStatistics, Number> fn) {
+  public static String toString(@javax.annotation.Nonnull final StackCounter left, @javax.annotation.Nonnull final StackCounter right, @javax.annotation.Nonnull final BiFunction<DoubleStatistics, DoubleStatistics, Number> fn) {
     Comparator<StackFrame> comparing = Comparator.comparing(key -> {
       return -fn.apply(left.stats.get(key), right.stats.get(key)).doubleValue();
     });
@@ -70,7 +70,7 @@ public class StackCounter {
    */
   public void increment(final long length) {
     final StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-    for (final @NotNull StackTraceElement frame : stackTrace) {
+    for (@javax.annotation.Nonnull final StackTraceElement frame : stackTrace) {
       stats.computeIfAbsent(new StackFrame(frame), f -> new DoubleStatistics()).accept(length);
     }
   }
@@ -81,7 +81,8 @@ public class StackCounter {
    * @param value the value
    * @return the number
    */
-  protected @NotNull Number summaryStat(final @NotNull DoubleStatistics value) {
+  @javax.annotation.Nonnull
+  protected Number summaryStat(@javax.annotation.Nonnull final DoubleStatistics value) {
     return (int) value.getSum();
   }
   
@@ -96,7 +97,7 @@ public class StackCounter {
    * @param fn the fn
    * @return the string
    */
-  public String toString(final @NotNull Function<DoubleStatistics, Number> fn) {
+  public String toString(@javax.annotation.Nonnull final Function<DoubleStatistics, Number> fn) {
     Comparator<Map.Entry<StackFrame, DoubleStatistics>> comparing = Comparator.comparing(e -> -fn.apply(e.getValue()).doubleValue());
     comparing = comparing.thenComparing(Comparator.comparing(e -> e.getKey().toString()));
     return stats.entrySet().stream()
@@ -112,7 +113,7 @@ public class StackCounter {
    * @param fn    the fn
    * @return the string
    */
-  public String toString(final @NotNull StackCounter other, final @NotNull BiFunction<DoubleStatistics, DoubleStatistics, Number> fn) {
+  public String toString(@javax.annotation.Nonnull final StackCounter other, @javax.annotation.Nonnull final BiFunction<DoubleStatistics, DoubleStatistics, Number> fn) {
     return StackCounter.toString(this, other, fn);
   }
   
@@ -142,7 +143,7 @@ public class StackCounter {
      *
      * @param frame the frame
      */
-    public StackFrame(final @NotNull StackTraceElement frame) {
+    public StackFrame(@javax.annotation.Nonnull final StackTraceElement frame) {
       this(frame.getClassName(), frame.getMethodName(), frame.getFileName(), frame.getLineNumber());
     }
   
@@ -166,7 +167,7 @@ public class StackCounter {
       if (this == o) return true;
       if (!(o instanceof StackFrame)) return false;
   
-      final @NotNull StackFrame that = (StackFrame) o;
+      @javax.annotation.Nonnull final StackFrame that = (StackFrame) o;
       
       if (lineNumber != that.lineNumber) return false;
       if (declaringClass != null ? !declaringClass.equals(that.declaringClass) : that.declaringClass != null) {

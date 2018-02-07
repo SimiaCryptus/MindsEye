@@ -41,7 +41,6 @@ import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.SysOutInterceptor;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
@@ -72,10 +71,10 @@ public class DeepDreamDemo extends NotebookReportBase {
    *
    * @param log the log
    */
-  public void run(@NotNull NotebookOutput log) {
+  public void run(@javax.annotation.Nonnull NotebookOutput log) {
   
   
-    @NotNull String logName = "cuda_" + log.getName() + ".log";
+    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
     GpuSystem.addLog(new PrintStream(log.file(logName)));
     
@@ -106,7 +105,7 @@ public class DeepDreamDemo extends NotebookReportBase {
       log.p("Evolve from %s to %s", categories.get(0), categories.get(1));
       int targetCategoryIndex = vgg16Categories.indexOf(categories.get(1));
       Tensor image = images[itemNumber];
-      @NotNull List<Tensor[]> data = Arrays.<Tensor[]>asList(new Tensor[]{
+      @javax.annotation.Nonnull List<Tensor[]> data = Arrays.<Tensor[]>asList(new Tensor[]{
         image, new Tensor(vgg16Categories.size()).set(targetCategoryIndex, 1.0)
       });
       log.code(() -> {
@@ -118,19 +117,19 @@ public class DeepDreamDemo extends NotebookReportBase {
           }
         }
       });
-      @NotNull ArrayList<StepRecord> history = new ArrayList<>();
+      @javax.annotation.Nonnull ArrayList<StepRecord> history = new ArrayList<>();
       log.code(() -> {
-        @NotNull PipelineNetwork clamp = new PipelineNetwork(1);
+        @javax.annotation.Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
         clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
         clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
         clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
         clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-        @NotNull PipelineNetwork supervised = new PipelineNetwork(2);
+        @javax.annotation.Nonnull PipelineNetwork supervised = new PipelineNetwork(2);
         supervised.add(new EntropyLossLayer(),
                        supervised.add(vgg16.getNetwork().freeze(),
                                       supervised.add(clamp, supervised.getInput(0))),
                        supervised.getInput(1));
-        @NotNull Trainable trainable = new ArrayTrainable(supervised, 1).setMask(true, false).setData(data);
+        @javax.annotation.Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setMask(true, false).setData(data);
         new IterativeTrainer(trainable)
           .setMonitor(getTrainingMonitor(history))
           .setOrientation(new QQN())
@@ -151,9 +150,9 @@ public class DeepDreamDemo extends NotebookReportBase {
     
     log.h1("Results");
     log.code(() -> {
-      @NotNull TableOutput tableOutput = new TableOutput();
+      @javax.annotation.Nonnull TableOutput tableOutput = new TableOutput();
       for (int i = 0; i < images.length; i++) {
-        @NotNull HashMap<String, Object> row = new HashMap<>();
+        @javax.annotation.Nonnull HashMap<String, Object> row = new HashMap<>();
         row.put("Image", log.image(images[i].toImage(), ""));
         row.put("Prediction", predictions.get(i).entrySet().stream()
                                          .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
@@ -171,8 +170,9 @@ public class DeepDreamDemo extends NotebookReportBase {
    * @param history the history
    * @return the training monitor
    */
-  public @NotNull TrainingMonitor getTrainingMonitor(@NotNull ArrayList<StepRecord> history) {
-    @NotNull TrainingMonitor monitor1 = TestUtil.getMonitor(history);
+  @javax.annotation.Nonnull
+  public TrainingMonitor getTrainingMonitor(@javax.annotation.Nonnull ArrayList<StepRecord> history) {
+    @javax.annotation.Nonnull TrainingMonitor monitor1 = TestUtil.getMonitor(history);
     return new TrainingMonitor() {
       @Override
       public void clear() {
@@ -208,12 +208,14 @@ public class DeepDreamDemo extends NotebookReportBase {
    *
    * @return the target class
    */
-  protected @NotNull Class<?> getTargetClass() {
+  @javax.annotation.Nonnull
+  protected Class<?> getTargetClass() {
     return VGG16.class;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull ReportType getReportType() {
+  public ReportType getReportType() {
     return ReportType.Demos;
   }
 }

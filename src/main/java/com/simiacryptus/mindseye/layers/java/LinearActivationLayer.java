@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +58,7 @@ public class LinearActivationLayer extends NNLayer {
    * @param json      the json
    * @param resources the resources
    */
-  protected LinearActivationLayer(final @NotNull JsonObject json, Map<String, byte[]> resources) {
+  protected LinearActivationLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> resources) {
     super(json);
     weights = Tensor.fromJson(json.get("weights"), resources);
   }
@@ -71,12 +70,13 @@ public class LinearActivationLayer extends NNLayer {
    * @param rs   the rs
    * @return the linear activation layer
    */
-  public static LinearActivationLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static LinearActivationLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new LinearActivationLayer(json, rs);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNResult eval(final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final TensorList inData = inObj[0].getData();
     inObj[0].addRef();
     inData.addRef();
@@ -87,12 +87,12 @@ public class LinearActivationLayer extends NNLayer {
       final Tensor input = inData.get(dataIndex);
       return input.map(v -> scale * v + bias);
     }).toArray(i -> new Tensor[i]);
-    return new NNResult(TensorArray.wrap(outputA), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList delta) -> {
+    return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).forEach(dataIndex -> {
           final @Nullable double[] deltaData = delta.get(dataIndex).getData();
           final @Nullable double[] inputData = inData.get(dataIndex).getData();
-          final @NotNull Tensor weightDelta = new Tensor(weights.getDimensions());
+          @javax.annotation.Nonnull final Tensor weightDelta = new Tensor(weights.getDimensions());
           for (int i = 0; i < deltaData.length; i++) {
             weightDelta.add(0, deltaData[i] * inputData[inputData.length == 1 ? 0 : i]);
             weightDelta.add(1, deltaData[i]);
@@ -101,10 +101,10 @@ public class LinearActivationLayer extends NNLayer {
         });
       }
       if (inObj[0].isAlive()) {
-        final @NotNull TensorList tensorList = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+        @javax.annotation.Nonnull final TensorList tensorList = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           final @Nullable double[] deltaData = delta.get(dataIndex).getData();
-          final @NotNull int[] dims = inData.get(dataIndex).getDimensions();
-          final @NotNull Tensor passback = new Tensor(dims);
+          @javax.annotation.Nonnull final int[] dims = inData.get(dataIndex).getDimensions();
+          @javax.annotation.Nonnull final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, deltaData[i] * weights.getData()[0]);
           }
@@ -119,13 +119,13 @@ public class LinearActivationLayer extends NNLayer {
       public boolean isAlive() {
         return inObj[0].isAlive() || !isFrozen();
       }
-  
+      
       @Override
       protected void _free() {
         inData.freeRef();
         inObj[0].freeRef();
       }
-  
+      
     };
   }
   
@@ -144,14 +144,16 @@ public class LinearActivationLayer extends NNLayer {
    * @param bias the bias
    * @return the bias
    */
-  public @NotNull LinearActivationLayer setBias(final double bias) {
+  @javax.annotation.Nonnull
+  public LinearActivationLayer setBias(final double bias) {
     weights.set(1, bias);
     return this;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, @NotNull DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, @javax.annotation.Nonnull DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.add("weights", weights.toJson(resources, dataSerializer));
     return json;
   }
@@ -171,13 +173,15 @@ public class LinearActivationLayer extends NNLayer {
    * @param scale the scale
    * @return the scale
    */
-  public @NotNull LinearActivationLayer setScale(final double scale) {
+  @javax.annotation.Nonnull
+  public LinearActivationLayer setScale(final double scale) {
     weights.set(0, scale);
     return this;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList(weights.getData());
   }
   

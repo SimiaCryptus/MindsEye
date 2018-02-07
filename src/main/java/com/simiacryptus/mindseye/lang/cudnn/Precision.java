@@ -23,7 +23,6 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnDataType;
-import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
@@ -63,7 +62,7 @@ public enum Precision {
    * @param data the data
    * @return the double [ ]
    */
-  public static double[] getDoubles(final @NotNull float[] data) {
+  public static double[] getDoubles(@javax.annotation.Nonnull final float[] data) {
     return copy(data, new double[data.length]);
   }
   
@@ -74,7 +73,7 @@ public enum Precision {
    * @param doubles the doubles
    * @return the double [ ]
    */
-  public static double[] copy(@NotNull float[] from, double[] doubles) {
+  public static double[] copy(@javax.annotation.Nonnull float[] from, double[] doubles) {
     for (int i = 0; i < from.length; i++) {
       doubles[i] = from[i];
     }
@@ -87,7 +86,7 @@ public enum Precision {
    * @param data the data
    * @return the float [ ]
    */
-  public static float[] getFloats(final @NotNull double[] data) {
+  public static float[] getFloats(@javax.annotation.Nonnull final double[] data) {
     return copy(data, new float[data.length]);
   }
   
@@ -98,7 +97,7 @@ public enum Precision {
    * @param to   the to
    * @return the float [ ]
    */
-  public static float[] copy(@NotNull double[] from, float[] to) {
+  public static float[] copy(@javax.annotation.Nonnull double[] from, float[] to) {
     for (int i = 0; i < from.length; i++) {
       to[i] = (float) from[i];
     }
@@ -112,7 +111,7 @@ public enum Precision {
    * @param to        the to
    * @param precision the precision
    */
-  public static void copy(@NotNull double[] from, @NotNull byte[] to, Precision precision) {
+  public static void copy(@javax.annotation.Nonnull double[] from, @javax.annotation.Nonnull byte[] to, Precision precision) {
     if (precision == Float) copyFloats(from, to);
     else if (precision == Double) copyDoubles(from, to);
     else throw new RuntimeException();
@@ -125,7 +124,7 @@ public enum Precision {
    * @param to        the to
    * @param precision the precision
    */
-  public static void copy(@NotNull byte[] from, @NotNull double[] to, Precision precision) {
+  public static void copy(@javax.annotation.Nonnull byte[] from, @javax.annotation.Nonnull double[] to, Precision precision) {
     if (precision == Float) copyFloats(from, to);
     else if (precision == Double) copyDoubles(from, to);
     else throw new RuntimeException();
@@ -137,9 +136,9 @@ public enum Precision {
    * @param from the from
    * @param to   the to
    */
-  public static void copyDoubles(@NotNull double[] from, @NotNull byte[] to) {
-    @NotNull DoubleBuffer inBuffer = DoubleBuffer.wrap(from);
-    @NotNull DoubleBuffer outBuffer = ByteBuffer.wrap(to).asDoubleBuffer();
+  public static void copyDoubles(@javax.annotation.Nonnull double[] from, @javax.annotation.Nonnull byte[] to) {
+    @javax.annotation.Nonnull DoubleBuffer inBuffer = DoubleBuffer.wrap(from);
+    @javax.annotation.Nonnull DoubleBuffer outBuffer = ByteBuffer.wrap(to).asDoubleBuffer();
     while (inBuffer.hasRemaining()) {
       outBuffer.put(inBuffer.get());
     }
@@ -151,9 +150,9 @@ public enum Precision {
    * @param from the from
    * @param to   the to
    */
-  public static void copyDoubles(@NotNull byte[] from, @NotNull double[] to) {
-    @NotNull DoubleBuffer inBuffer = ByteBuffer.wrap(from).asDoubleBuffer();
-    @NotNull DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
+  public static void copyDoubles(@javax.annotation.Nonnull byte[] from, @javax.annotation.Nonnull double[] to) {
+    @javax.annotation.Nonnull DoubleBuffer inBuffer = ByteBuffer.wrap(from).asDoubleBuffer();
+    @javax.annotation.Nonnull DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
     while (inBuffer.hasRemaining()) {
       outBuffer.put(inBuffer.get());
     }
@@ -165,9 +164,9 @@ public enum Precision {
    * @param from the from
    * @param to   the to
    */
-  public static void copyFloats(@NotNull double[] from, @NotNull byte[] to) {
-    @NotNull DoubleBuffer inBuffer = DoubleBuffer.wrap(from);
-    @NotNull FloatBuffer outBuffer = ByteBuffer.wrap(to).asFloatBuffer();
+  public static void copyFloats(@javax.annotation.Nonnull double[] from, @javax.annotation.Nonnull byte[] to) {
+    @javax.annotation.Nonnull DoubleBuffer inBuffer = DoubleBuffer.wrap(from);
+    @javax.annotation.Nonnull FloatBuffer outBuffer = ByteBuffer.wrap(to).asFloatBuffer();
     while (inBuffer.hasRemaining()) {
       outBuffer.put((float) inBuffer.get());
     }
@@ -179,9 +178,9 @@ public enum Precision {
    * @param from the from
    * @param to   the to
    */
-  public static void copyFloats(@NotNull byte[] from, @NotNull double[] to) {
-    @NotNull FloatBuffer inBuffer = ByteBuffer.wrap(from).asFloatBuffer();
-    @NotNull DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
+  public static void copyFloats(@javax.annotation.Nonnull byte[] from, @javax.annotation.Nonnull double[] to) {
+    @javax.annotation.Nonnull FloatBuffer inBuffer = ByteBuffer.wrap(from).asFloatBuffer();
+    @javax.annotation.Nonnull DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
     while (inBuffer.hasRemaining()) {
       outBuffer.put(inBuffer.get());
     }
@@ -192,7 +191,8 @@ public enum Precision {
    *
    * @return the compatibility layer
    */
-  public @NotNull NNLayer getCompatibilityLayer() {
+  @javax.annotation.Nonnull
+  public NNLayer getCompatibilityLayer() {
     throw new RuntimeException("Not Implemented");
   }
   
@@ -202,7 +202,7 @@ public enum Precision {
    * @param data the data
    * @return the pointer
    */
-  public Pointer getPointer(final @NotNull double... data) {
+  public Pointer getPointer(@javax.annotation.Nonnull final double... data) {
     switch (this) {
       case Float:
         return Pointer.to(Precision.getFloats(data));
@@ -219,7 +219,7 @@ public enum Precision {
    * @param data the data
    * @return the pointer
    */
-  public Pointer getPointer(final @NotNull float... data) {
+  public Pointer getPointer(@javax.annotation.Nonnull final float... data) {
     switch (this) {
       case Float:
         return Pointer.to(data);

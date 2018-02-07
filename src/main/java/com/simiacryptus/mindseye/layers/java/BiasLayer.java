@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +70,7 @@ public class BiasLayer extends NNLayer {
    *
    * @param json the json
    */
-  protected BiasLayer(final @NotNull JsonObject json) {
+  protected BiasLayer(@javax.annotation.Nonnull final JsonObject json) {
     super(json);
     bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
   }
@@ -83,7 +82,7 @@ public class BiasLayer extends NNLayer {
    * @param rs   the rs
    * @return the bias layer
    */
-  public static BiasLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static BiasLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new BiasLayer(json);
   }
   
@@ -93,7 +92,7 @@ public class BiasLayer extends NNLayer {
    * @param input the input
    * @return the double [ ]
    */
-  public double[] add(final @NotNull double[] input) {
+  public double[] add(@javax.annotation.Nonnull final double[] input) {
     final double[] array = RecycleBin.DOUBLES.obtain(input.length);
     if (1 == bias.length) {
       for (int i = 0; i < array.length; i++) {
@@ -114,13 +113,15 @@ public class BiasLayer extends NNLayer {
    * @param f the f
    * @return the bias layer
    */
-  public @NotNull BiasLayer addWeights(final @NotNull DoubleSupplier f) {
+  @javax.annotation.Nonnull
+  public BiasLayer addWeights(@javax.annotation.Nonnull final DoubleSupplier f) {
     Util.add(f, bias);
     return this;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNResult eval(final @NotNull NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     TensorList input;
     if (0 == inObj.length) {
@@ -132,7 +133,7 @@ public class BiasLayer extends NNLayer {
     return new NNResult(TensorArray.wrap(input.stream().parallel()
                                               .map(r -> new Tensor(add(r.getData()), r.getDimensions()))
                                               .toArray(i -> new Tensor[i])),
-                        (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
+                        (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
                           if (!isFrozen()) {
                             final Delta<NNLayer> deltaBuffer = buffer.get(BiasLayer.this, bias);
                             if (1 == bias.length) {
@@ -154,8 +155,8 @@ public class BiasLayer extends NNLayer {
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-  
-  
+      
+      
       @Override
       public boolean isAlive() {
         return 0 < inObj.length && inObj[0].isAlive() || !isFrozen();
@@ -163,9 +164,10 @@ public class BiasLayer extends NNLayer {
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.add("bias", JsonUtil.getJson(bias));
     return json;
   }
@@ -177,7 +179,8 @@ public class BiasLayer extends NNLayer {
    * @param ds the ds
    * @return the nn layer
    */
-  public @NotNull NNLayer set(final @NotNull double[] ds) {
+  @javax.annotation.Nonnull
+  public NNLayer set(@javax.annotation.Nonnull final double[] ds) {
     for (int i = 0; i < ds.length; i++) {
       bias[i] = ds[i];
     }
@@ -190,7 +193,8 @@ public class BiasLayer extends NNLayer {
    * @param f the f
    * @return the weights
    */
-  public @NotNull BiasLayer setWeights(final @NotNull IntToDoubleFunction f) {
+  @javax.annotation.Nonnull
+  public BiasLayer setWeights(@javax.annotation.Nonnull final IntToDoubleFunction f) {
     for (int i = 0; i < bias.length; i++) {
       bias[i] = f.applyAsDouble(i);
     }
@@ -203,15 +207,17 @@ public class BiasLayer extends NNLayer {
    * @param value the value
    * @return the weights log
    */
-  public @NotNull BiasLayer setWeightsLog(final double value) {
+  @javax.annotation.Nonnull
+  public BiasLayer setWeightsLog(final double value) {
     for (int i = 0; i < bias.length; i++) {
       bias[i] = (FastRandom.random() - 0.5) * Math.pow(10, value);
     }
     return this;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList(bias);
   }
   
@@ -221,7 +227,8 @@ public class BiasLayer extends NNLayer {
    * @param tensor the tensor
    * @return the bias layer
    */
-  public @NotNull BiasLayer set(@NotNull Tensor tensor) {
+  @javax.annotation.Nonnull
+  public BiasLayer set(@javax.annotation.Nonnull Tensor tensor) {
     assert bias.length == tensor.dim();
     for (int i = 0; i < bias.length; i++) {
       bias[i] = tensor.get(i);

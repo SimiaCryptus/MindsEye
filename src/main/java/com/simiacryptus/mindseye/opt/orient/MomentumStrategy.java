@@ -28,7 +28,6 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.util.ArrayUtil;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * A simple momentum module which uses a cumulative decay algorithm to add a momentum term to any orientation strategy
@@ -48,7 +47,8 @@ public class MomentumStrategy extends OrientationStrategyBase<SimpleLineSearchCu
   /**
    * The Prev delta.
    */
-  @NotNull DeltaSet<NNLayer> prevDelta = new DeltaSet<NNLayer>();
+  @javax.annotation.Nonnull
+  DeltaSet<NNLayer> prevDelta = new DeltaSet<NNLayer>();
   private double carryOver = 0.1;
   
   /**
@@ -75,16 +75,18 @@ public class MomentumStrategy extends OrientationStrategyBase<SimpleLineSearchCu
    * @param carryOver the carry over
    * @return the carry over
    */
-  public @NotNull MomentumStrategy setCarryOver(final double carryOver) {
+  @javax.annotation.Nonnull
+  public MomentumStrategy setCarryOver(final double carryOver) {
     this.carryOver = carryOver;
     return this;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull SimpleLineSearchCursor orient(final Trainable subject, final @NotNull PointSample measurement, final TrainingMonitor monitor) {
+  public SimpleLineSearchCursor orient(final Trainable subject, @javax.annotation.Nonnull final PointSample measurement, final TrainingMonitor monitor) {
     final LineSearchCursor orient = inner.orient(subject, measurement, monitor);
     final DeltaSet<NNLayer> direction = ((SimpleLineSearchCursor) orient).direction;
-    final @NotNull DeltaSet<NNLayer> newDelta = new DeltaSet<NNLayer>();
+    @javax.annotation.Nonnull final DeltaSet<NNLayer> newDelta = new DeltaSet<NNLayer>();
     direction.getMap().forEach((layer, delta) -> {
       final DoubleBuffer<NNLayer> prevBuffer = prevDelta.get(layer, delta.target);
       newDelta.get(layer, delta.target).addInPlace(ArrayUtil.add(ArrayUtil.multiply(prevBuffer.getDelta(), carryOver), delta.getDelta()));

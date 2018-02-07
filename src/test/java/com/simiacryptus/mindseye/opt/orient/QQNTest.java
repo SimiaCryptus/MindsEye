@@ -29,7 +29,6 @@ import com.simiacryptus.mindseye.opt.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
 
@@ -39,11 +38,11 @@ import java.util.concurrent.TimeUnit;
 public class QQNTest extends MnistTestBase {
 
   @Override
-  public void train(final @NotNull NotebookOutput log, final @NotNull NNLayer network, final @NotNull Tensor[][] trainingData, final TrainingMonitor monitor) {
+  public void train(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer network, @javax.annotation.Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.code(() -> {
-      final @NotNull SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
+      @javax.annotation.Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       //return new IterativeTrainer(new SampledArrayTrainable(trainingData, supervisedNetwork, 10000))
-      @NotNull ValidatingTrainer trainer = new ValidatingTrainer(
+      @javax.annotation.Nonnull ValidatingTrainer trainer = new ValidatingTrainer(
         new SampledArrayTrainable(trainingData, supervisedNetwork, 1000, 10000),
         new ArrayTrainable(trainingData, supervisedNetwork)
       )
@@ -56,8 +55,9 @@ public class QQNTest extends MnistTestBase {
     });
   }
   
+  @javax.annotation.Nonnull
   @Override
-  protected @NotNull Class<?> getTargetClass() {
+  protected Class<?> getTargetClass() {
     return QQN.class;
   }
 }

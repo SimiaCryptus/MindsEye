@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,7 +56,7 @@ public class ImgCropLayer extends NNLayer {
    *
    * @param json the json
    */
-  protected ImgCropLayer(final @NotNull JsonObject json) {
+  protected ImgCropLayer(@javax.annotation.Nonnull final JsonObject json) {
     super(json);
     sizeX = json.getAsJsonPrimitive("sizeX").getAsInt();
     sizeY = json.getAsJsonPrimitive("sizeY").getAsInt();
@@ -70,9 +69,10 @@ public class ImgCropLayer extends NNLayer {
    * @param outputData the output data
    * @return the tensor
    */
-  public static @NotNull Tensor copy(final @NotNull Tensor inputData, final @NotNull Tensor outputData) {
-    final @NotNull int[] inDim = inputData.getDimensions();
-    final @NotNull int[] outDim = outputData.getDimensions();
+  @javax.annotation.Nonnull
+  public static Tensor copy(@javax.annotation.Nonnull final Tensor inputData, @javax.annotation.Nonnull final Tensor outputData) {
+    @javax.annotation.Nonnull final int[] inDim = inputData.getDimensions();
+    @javax.annotation.Nonnull final int[] outDim = outputData.getDimensions();
     assert 3 == inDim.length;
     assert 3 == outDim.length;
     assert inDim[2] == outDim[2] : Arrays.toString(inDim) + "; " + Arrays.toString(outDim);
@@ -104,12 +104,13 @@ public class ImgCropLayer extends NNLayer {
    * @param rs   the rs
    * @return the img crop layer
    */
-  public static ImgCropLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static ImgCropLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ImgCropLayer(json);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNResult eval(final @NotNull NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
@@ -117,22 +118,22 @@ public class ImgCropLayer extends NNLayer {
     assert 3 == inputDims.length;
     return new NNResult(TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
                                                   .mapToObj(dataIndex -> {
-                                                    final @NotNull Tensor outputDims = new Tensor(sizeX, sizeY, inputDims[2]);
+                                                    @javax.annotation.Nonnull final Tensor outputDims = new Tensor(sizeX, sizeY, inputDims[2]);
                                                     return ImgCropLayer.copy(batch.get(dataIndex), outputDims);
                                                   })
-                                                  .toArray(i -> new Tensor[i])), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList error) -> {
+                                                  .toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       if (input.isAlive()) {
-        @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
-                                                                     .mapToObj(dataIndex -> {
-                                                              final Tensor err = error.get(dataIndex);
-                                                                       final @NotNull Tensor passback = new Tensor(inputDims);
-                                                              return copy(err, passback);
-                                                            }).toArray(i -> new Tensor[i]));
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
+                                                                                      .mapToObj(dataIndex -> {
+                                                                                        final Tensor err = error.get(dataIndex);
+                                                                                        @javax.annotation.Nonnull final Tensor passback = new Tensor(inputDims);
+                                                                                        return copy(err, passback);
+                                                                                      }).toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
     }) {
-  
+      
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
@@ -145,16 +146,18 @@ public class ImgCropLayer extends NNLayer {
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("sizeX", sizeX);
     json.addProperty("sizeY", sizeX);
     return json;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return new ArrayList<>();
   }
   

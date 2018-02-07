@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -46,7 +45,7 @@ public class SumInputsLayer extends NNLayer {
    *
    * @param id the id
    */
-  protected SumInputsLayer(final @NotNull JsonObject id) {
+  protected SumInputsLayer(@javax.annotation.Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -57,12 +56,13 @@ public class SumInputsLayer extends NNLayer {
    * @param rs   the rs
    * @return the sum inputs layer
    */
-  public static SumInputsLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static SumInputsLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new SumInputsLayer(json);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNResult eval(final @NotNull NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     return new NNResult(Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
@@ -79,10 +79,10 @@ public class SumInputsLayer extends NNLayer {
                                          }
                                        })
                                        .toArray(i -> new Tensor[i]));
-    }).get(), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
-      for (final @NotNull NNResult input : inObj) {
+    }).get(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+      for (@javax.annotation.Nonnull final NNResult input : inObj) {
         if (input.isAlive()) {
-          @NotNull TensorList data1 = data;
+          @javax.annotation.Nonnull TensorList data1 = data;
           data1.addRef();
           if (1 < data1.length() && input.getData().length() == 1) {
             data1 = TensorArray.wrap(data1.stream().parallel().map(x -> {
@@ -96,7 +96,7 @@ public class SumInputsLayer extends NNLayer {
             }).get());
           }
           if (1 < data1.get(0).dim() && input.getData().get(0).dim() == 1) {
-            @NotNull TensorArray data2 = TensorArray.wrap(data1.stream().map(t -> new Tensor(new double[]{t.sum()})).toArray(i -> new Tensor[i]));
+            @javax.annotation.Nonnull TensorArray data2 = TensorArray.wrap(data1.stream().map(t -> new Tensor(new double[]{t.sum()})).toArray(i -> new Tensor[i]));
             data1.freeRef();
             data1 = data2;
           }
@@ -114,7 +114,7 @@ public class SumInputsLayer extends NNLayer {
       
       @Override
       public boolean isAlive() {
-        for (final @NotNull NNResult element : inObj)
+        for (@javax.annotation.Nonnull final NNResult element : inObj)
           if (element.isAlive()) {
             return true;
           }
@@ -124,13 +124,15 @@ public class SumInputsLayer extends NNLayer {
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
 }

@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +49,7 @@ public class CrossDotMetaLayer extends NNLayer {
    *
    * @param id the id
    */
-  protected CrossDotMetaLayer(final @NotNull JsonObject id) {
+  protected CrossDotMetaLayer(@javax.annotation.Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -61,19 +60,19 @@ public class CrossDotMetaLayer extends NNLayer {
    * @param rs   the rs
    * @return the cross dot meta layer
    */
-  public static CrossDotMetaLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static CrossDotMetaLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new CrossDotMetaLayer(json);
   }
   
   @Override
-  public @Nullable NNResult eval(final @NotNull NNResult... inObj) {
+  public @Nullable NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     final NNResult input = inObj[0];
     final TensorList indata = input.getData();
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     indata.addRef();
     final int itemCnt = indata.length();
     final int dim = indata.get(0).dim();
-    final @NotNull Tensor results = new Tensor(dim, dim);
+    @javax.annotation.Nonnull final Tensor results = new Tensor(dim, dim);
     for (int i = 0; i < dim; i++) {
       for (int j = 0; j < dim; j++) {
         if (i == j) {
@@ -87,10 +86,10 @@ public class CrossDotMetaLayer extends NNLayer {
         results.set(new int[]{i, j}, v);
       }
     }
-    return new NNResult(TensorArray.wrap(results), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
+    return new NNResult(TensorArray.wrap(results), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (input.isAlive()) {
         final Tensor delta = data.get(0);
-        final @NotNull Tensor feedback[] = new Tensor[itemCnt];
+        @javax.annotation.Nonnull final Tensor feedback[] = new Tensor[itemCnt];
         Arrays.parallelSetAll(feedback, i -> new Tensor(dim));
   
         for (int i = 0; i < dim; i++) {
@@ -107,7 +106,7 @@ public class CrossDotMetaLayer extends NNLayer {
           }
         }
   
-        @NotNull TensorArray tensorArray = TensorArray.wrap(feedback);
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(feedback);
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
@@ -127,13 +126,15 @@ public class CrossDotMetaLayer extends NNLayer {
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
 }

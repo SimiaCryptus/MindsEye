@@ -19,8 +19,6 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
@@ -35,7 +33,7 @@ public final class NNConstant extends NNResult {
    * @param data the data
    */
   public NNConstant(final Tensor... data) {
-    super(TensorArray.create(data), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList tensorList) -> {});
+    super(TensorArray.create(data), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList tensorList) -> {});
   }
   
   /**
@@ -44,7 +42,7 @@ public final class NNConstant extends NNResult {
    * @param tensorList the tensor array
    */
   public NNConstant(final TensorList tensorList) {
-    super(tensorList, (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {});
+    super(tensorList, (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {});
   }
   
   /**
@@ -53,7 +51,7 @@ public final class NNConstant extends NNResult {
    * @param input the batch data
    * @return the nn result [ ]
    */
-  public static NNResult[] batchResultArray(final @NotNull Tensor[]... input) {
+  public static NNResult[] batchResultArray(@javax.annotation.Nonnull final Tensor[]... input) {
     return IntStream.range(0, input[0].length).mapToObj(index -> IntStream.range(0, input.length)
                                                                           .mapToObj(id -> input[id][index])
                                                                           .toArray(i -> new Tensor[i]))
@@ -68,8 +66,8 @@ public final class NNConstant extends NNResult {
    * @param input the input
    * @return the nn result [ ]
    */
-  public static NNResult[] singleResultArray(final @NotNull Tensor[] input) {
-    return Arrays.stream(input).map((final @NotNull Tensor x) -> new NNConstant(TensorArray.create(x))).toArray(i -> new NNResult[i]);
+  public static NNResult[] singleResultArray(@javax.annotation.Nonnull final Tensor[] input) {
+    return Arrays.stream(input).map((@javax.annotation.Nonnull final Tensor x) -> new NNConstant(TensorArray.create(x))).toArray(i -> new NNResult[i]);
   }
   
   /**
@@ -78,8 +76,8 @@ public final class NNConstant extends NNResult {
    * @param input the input
    * @return the nn result [ ]
    */
-  public static NNResult[] singleResultArray(final @NotNull Tensor[][] input) {
-    return Arrays.stream(input).map((final @NotNull Tensor[] x) -> new NNConstant(TensorArray.create(x))).toArray(i -> new NNResult[i]);
+  public static NNResult[] singleResultArray(@javax.annotation.Nonnull final Tensor[][] input) {
+    return Arrays.stream(input).map((@javax.annotation.Nonnull final Tensor[] x) -> new NNConstant(TensorArray.create(x))).toArray(i -> new NNResult[i]);
   }
   
   @Override

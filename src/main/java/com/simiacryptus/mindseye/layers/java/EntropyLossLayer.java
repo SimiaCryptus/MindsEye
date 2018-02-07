@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +51,7 @@ public class EntropyLossLayer extends NNLayer {
    *
    * @param id the id
    */
-  protected EntropyLossLayer(final @NotNull JsonObject id) {
+  protected EntropyLossLayer(@javax.annotation.Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -63,24 +62,25 @@ public class EntropyLossLayer extends NNLayer {
    * @param rs   the rs
    * @return the entropy loss layer
    */
-  public static EntropyLossLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static EntropyLossLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new EntropyLossLayer(json);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNResult eval(final @NotNull NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final double zero_tol = 1e-12;
     final NNResult in0 = inObj[0];
     TensorList indata = in0.getData();
     indata.addRef();
-    final @NotNull Tensor gradient[] = new Tensor[indata.length()];
+    @javax.annotation.Nonnull final Tensor gradient[] = new Tensor[indata.length()];
     final double max_prob = 1.;
     return new NNResult(TensorArray.wrap(IntStream.range(0, indata.length()).mapToObj(dataIndex -> {
       final Tensor l = indata.get(dataIndex);
       final Tensor r = inObj[1].getData().get(dataIndex);
       assert l.dim() == r.dim() : l.dim() + " != " + r.dim();
-      final @NotNull Tensor gradientTensor = new Tensor(l.getDimensions());
+      @javax.annotation.Nonnull final Tensor gradientTensor = new Tensor(l.getDimensions());
       final @Nullable double[] gradientData = gradientTensor.getData();
       double total = 0;
       final @Nullable double[] ld = l.getData();
@@ -98,13 +98,13 @@ public class EntropyLossLayer extends NNLayer {
       }
       assert total >= 0;
       gradient[dataIndex] = gradientTensor;
-      final @NotNull Tensor outValue = new Tensor(new double[]{total}, 1);
+      @javax.annotation.Nonnull final Tensor outValue = new Tensor(new double[]{total}, 1);
       return outValue;
-    }).toArray(i -> new Tensor[i])), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[1].isAlive()) {
-        @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
           final Tensor l = indata.get(dataIndex);
-          final @NotNull Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
+          @javax.annotation.Nonnull final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
           for (int i = 0; i < passback.dim(); i++) {
             final double lv = Math.max(Math.min(l.get(i), max_prob), zero_tol);
             passback.set(i, -data.get(dataIndex).get(0) * Math.log(lv));
@@ -116,8 +116,8 @@ public class EntropyLossLayer extends NNLayer {
       }
       indata.freeRef();
       if (in0.isAlive()) {
-        @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
-          final @NotNull Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
+          @javax.annotation.Nonnull final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, data.get(dataIndex).get(0) * gradient[dataIndex].get(i));
           }
@@ -127,7 +127,7 @@ public class EntropyLossLayer extends NNLayer {
         tensorArray.freeRef();
       }
     }) {
-  
+      
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
@@ -141,13 +141,15 @@ public class EntropyLossLayer extends NNLayer {
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
 }

@@ -19,7 +19,6 @@
 
 package com.simiacryptus.util.lang;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.management.ManagementFactory;
@@ -63,15 +62,15 @@ public class TimedResult<T> {
    * @param fn  the fn
    * @return the timed result
    */
-  public static <T> TimedResult<T> time(final @NotNull UncheckedSupplier<T> fn) {
+  public static <T> TimedResult<T> time(@javax.annotation.Nonnull final UncheckedSupplier<T> fn) {
     long priorGcMs = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
     final long start = System.nanoTime();
     @Nullable T result = null;
     try {
       result = fn.get();
-    } catch (final @NotNull RuntimeException e) {
+    } catch (@javax.annotation.Nonnull final RuntimeException e) {
       throw e;
-    } catch (final @NotNull Exception e) {
+    } catch (@javax.annotation.Nonnull final Exception e) {
       throw new RuntimeException(e);
     }
     long gcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum() - priorGcMs;
@@ -86,14 +85,14 @@ public class TimedResult<T> {
    * @param fn  the fn
    * @return the timed result
    */
-  public static <T> TimedResult<Void> time(final @NotNull UncheckedRunnable<T> fn) {
+  public static <T> TimedResult<Void> time(@javax.annotation.Nonnull final UncheckedRunnable<T> fn) {
     long priorGcMs = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
     final long start = System.nanoTime();
     try {
       fn.get();
-    } catch (final @NotNull RuntimeException e) {
+    } catch (@javax.annotation.Nonnull final RuntimeException e) {
       throw e;
-    } catch (final @NotNull Exception e) {
+    } catch (@javax.annotation.Nonnull final Exception e) {
       throw new RuntimeException(e);
     }
     long gcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum() - priorGcMs;

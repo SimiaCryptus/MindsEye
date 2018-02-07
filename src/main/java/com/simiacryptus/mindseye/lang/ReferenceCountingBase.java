@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +50,8 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   private volatile boolean isFinalized = false;
   private static final int MAX_FREE_WARNINGS = 1;
   
-  private static @NotNull String getString(@Nullable StackTraceElement[] trace) {
+  @javax.annotation.Nonnull
+  private static String getString(@Nullable StackTraceElement[] trace) {
     return null == trace ? "?" : Arrays.stream(trace).map(x -> "at " + x).skip(2).reduce((a, b) -> a + "\n" + b).orElse("<Empty Stack>");
   }
   
@@ -71,7 +71,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
    * @param includeCaller the include caller
    * @return the string
    */
-  public static String detailString(@NotNull ReferenceCountingBase obj, boolean includeCaller) {
+  public static String detailString(@javax.annotation.Nonnull ReferenceCountingBase obj, boolean includeCaller) {
     return obj.detailString(includeCaller);
   }
   
@@ -93,8 +93,8 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   }
   
   private String detailString(boolean includeCaller) {
-    @NotNull ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-    @NotNull PrintStream out = new PrintStream(buffer);
+    @javax.annotation.Nonnull ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    @javax.annotation.Nonnull PrintStream out = new PrintStream(buffer);
     out.print(String.format("Object %s (%d refs, %d frees) ",
                             getClass().getName(), 1 + addRefs.size(), freeRefs.size()));
     if (null != createdBy) {

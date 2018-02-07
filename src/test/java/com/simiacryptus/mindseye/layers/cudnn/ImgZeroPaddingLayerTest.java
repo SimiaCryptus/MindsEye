@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
 
@@ -37,22 +36,25 @@ public abstract class ImgZeroPaddingLayerTest extends CuDNNLayerTestBase {
     validateBatchExecution = false;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull int[][] getSmallDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{
       {8, 8, 1}
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull int[][] getLargeDims(Random random) {
+  public int[][] getLargeDims(Random random) {
     return new int[][]{
       {200, 200, 3}
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return new ImgZeroPaddingLayer(1, 1);
   }
   

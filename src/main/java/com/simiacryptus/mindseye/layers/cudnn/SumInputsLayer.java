@@ -28,7 +28,6 @@ import jcuda.jcudnn.cudnnOpTensorDescriptor;
 import jcuda.jcudnn.cudnnOpTensorOp;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 import jcuda.jcudnn.cudnnTensorFormat;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -56,7 +55,7 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
    *
    * @param json the id
    */
-  protected SumInputsLayer(final @NotNull JsonObject json) {
+  protected SumInputsLayer(@javax.annotation.Nonnull final JsonObject json) {
     super(json);
     precision = Precision.valueOf(json.get("precision").getAsString());
   }
@@ -68,7 +67,7 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
    * @param rs   the rs
    * @return the product inputs layer
    */
-  public static SumInputsLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static SumInputsLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new SumInputsLayer(json);
   }
   
@@ -77,8 +76,9 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
    *
    * @return the compatibility layer
    */
-  public @NotNull NNLayer getCompatibilityLayer() {
-    @NotNull PipelineNetwork network = new PipelineNetwork(2);
+  @javax.annotation.Nonnull
+  public NNLayer getCompatibilityLayer() {
+    @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork(2);
     network.add(new com.simiacryptus.mindseye.layers.java.SumInputsLayer(),
                 network.add(new LinearActivationLayer().setScale(1.0).freeze(), network.getInput(0)),
                 network.add(new LinearActivationLayer().setScale(1.0).freeze(), network.getInput(1)));
@@ -87,7 +87,7 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
   }
   
   @Override
-  public NNResult eval(final @NotNull NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     final int[] dimensions = inObj[0].getData().getDimensions();
     final int length = inObj[0].getData().length();
     if (3 != dimensions.length) {
@@ -100,19 +100,19 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
     }
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     Arrays.stream(inObj).forEach(x -> x.addRef());
-    @NotNull Stream<NNResult> stream0 = Arrays.stream(inObj);
+    @javax.annotation.Nonnull Stream<NNResult> stream0 = Arrays.stream(inObj);
     //stream0 = stream0.parallel();
-    @NotNull TensorList run = stream0.map(x -> x.getData()).map(x -> {
+    @javax.annotation.Nonnull TensorList run = stream0.map(x -> x.getData()).map(x -> {
       x.addRef();
       return x;
     }).reduce((leftData, rightData) -> GpuSystem.eval(gpu -> {
-      final @NotNull CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
-      final @NotNull CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
+      @javax.annotation.Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
+      @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
       final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, leftData);//.moveTo(gpu.getDeviceNumber());
       final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, rightData);//.moveTo(gpu.getDeviceNumber());
       assert lPtr.size == rPtr.size;
-      final @NotNull CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
+      @javax.annotation.Nonnull final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
       CuDNNHandle.cudnnOpTensor(gpu.getHandle(), opDescriptor.getPtr(),
                                 precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                 precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
@@ -120,15 +120,15 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
       gpu.registerForCleanup(lPtr, rPtr, opDescriptor, sizeDescriptor, leftData, rightData);
       return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
     })).get();
-    return new NNResult(run, (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList delta) -> {
-      @NotNull Stream<NNResult> stream1 = Arrays.stream(inObj);
+    return new NNResult(run, (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+      @javax.annotation.Nonnull Stream<NNResult> stream1 = Arrays.stream(inObj);
       // TODO: Fix issue where parallel will cause data corruption
       //stream1 = stream1.parallel();
       stream1.filter(x -> x.isAlive()).forEach(obj -> {
         GpuTensorList tensorList = GpuSystem.eval(gpu -> {
           final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);
-          final @NotNull CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
-          final @NotNull CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
+          @javax.annotation.Nonnull final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
+          @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
             precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
           CuDNNHandle.cudnnAddTensor(gpu.getHandle(),
                                      precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
@@ -149,7 +149,7 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
       
       @Override
       public boolean isAlive() {
-        for (final @NotNull NNResult element : inObj)
+        for (@javax.annotation.Nonnull final NNResult element : inObj)
           if (element.isAlive()) {
             return true;
           }
@@ -159,9 +159,10 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("precision", precision.name());
     return json;
   }
@@ -171,15 +172,17 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
     return precision;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull SumInputsLayer setPrecision(final Precision precision) {
+  public SumInputsLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
   
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
 }

@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +38,8 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
   /**
    * The Layer.
    */
-  public final @NotNull K layer;
+  @javax.annotation.Nonnull
+  public final K layer;
   /**
    * The Target.
    */
@@ -55,7 +55,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    * @param layer  the layer
    * @param target the target
    */
-  public DoubleBuffer(final @NotNull K layer, final double[] target) {
+  public DoubleBuffer(@javax.annotation.Nonnull final K layer, final double[] target) {
     this.layer = layer;
     layer.addRef();
     this.target = target;
@@ -69,7 +69,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    * @param target the target
    * @param delta  the delta
    */
-  public DoubleBuffer(final @NotNull K layer, final double[] target, final double[] delta) {
+  public DoubleBuffer(@javax.annotation.Nonnull final K layer, final double[] target, final double[] delta) {
     this.layer = layer;
     layer.addRef();
     this.target = target;
@@ -83,7 +83,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    * @param r the r
    * @return the boolean
    */
-  public static boolean areEqual(final @NotNull double[] l, final @NotNull double[] r) {
+  public static boolean areEqual(@javax.annotation.Nonnull final double[] l, @javax.annotation.Nonnull final double[] r) {
     if (r.length != l.length) throw new IllegalArgumentException();
     for (int i = 0; i < r.length; i++) {
       if (r[i] != l[i]) return false;
@@ -106,7 +106,8 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    *
    * @return the double array stats facade
    */
-  public @NotNull DoubleArrayStatsFacade deltaStatistics() {
+  @javax.annotation.Nonnull
+  public DoubleArrayStatsFacade deltaStatistics() {
     return new DoubleArrayStatsFacade(getDelta());
   }
   
@@ -116,7 +117,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    * @param right the right
    * @return the double
    */
-  public double dot(final @NotNull DoubleBuffer<K> right) {
+  public double dot(@javax.annotation.Nonnull final DoubleBuffer<K> right) {
     if (this.target != right.target) {
       throw new IllegalArgumentException(String.format("Deltas are not based on same buffer. %s != %s", this.layer, right.layer));
     }
@@ -171,7 +172,8 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    * @param mapper the mapper
    * @return the delta
    */
-  public @NotNull DoubleBuffer<K> map(final @NotNull DoubleUnaryOperator mapper) {
+  @javax.annotation.Nonnull
+  public DoubleBuffer<K> map(@javax.annotation.Nonnull final DoubleUnaryOperator mapper) {
     return new DoubleBuffer<K>(this.layer, this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
   }
   
@@ -181,7 +183,8 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    * @param data the data
    * @return the delta
    */
-  public @NotNull DoubleBuffer<K> set(final @NotNull double[] data) {
+  @javax.annotation.Nonnull
+  public DoubleBuffer<K> set(@javax.annotation.Nonnull final double[] data) {
     assert Arrays.stream(data).allMatch(Double::isFinite);
     Arrays.parallelSetAll(this.getDelta(), i -> data[i]);
     assert Arrays.stream(getDelta()).allMatch(Double::isFinite);
@@ -193,13 +196,15 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    *
    * @return the double array stats facade
    */
-  public @NotNull DoubleArrayStatsFacade targetStatistics() {
+  @javax.annotation.Nonnull
+  public DoubleArrayStatsFacade targetStatistics() {
     return new DoubleArrayStatsFacade(target);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull String toString() {
-    final @NotNull StringBuilder builder = new StringBuilder();
+  public String toString() {
+    @javax.annotation.Nonnull final StringBuilder builder = new StringBuilder();
     builder.append(getClass().getSimpleName());
     builder.append("/");
     builder.append(this.layer);

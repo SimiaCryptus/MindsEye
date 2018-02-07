@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +59,7 @@ public class AvgMetaLayer extends NNLayer {
    * @param json      the json
    * @param resources the resources
    */
-  protected AvgMetaLayer(final @NotNull JsonObject json, Map<String, byte[]> resources) {
+  protected AvgMetaLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> resources) {
     super(json);
     lastResult = Tensor.fromJson(json.get("lastResult"), resources);
     minBatchCount = json.get("minBatchCount").getAsInt();
@@ -73,18 +72,19 @@ public class AvgMetaLayer extends NNLayer {
    * @param rs   the rs
    * @return the avg meta layer
    */
-  public static AvgMetaLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static AvgMetaLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new AvgMetaLayer(json, rs);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNResult eval(final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final NNResult input = inObj[0];
     final int itemCnt = input.getData().length();
     @Nullable Tensor thisResult;
     boolean passback;
     if (null == lastResult || input.getData().length() > minBatchCount) {
-      final @NotNull ToDoubleFunction<Coordinate> f = (c) ->
+      @javax.annotation.Nonnull final ToDoubleFunction<Coordinate> f = (c) ->
         IntStream.range(0, itemCnt)
                  .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
                  .sum() / itemCnt;
@@ -96,17 +96,17 @@ public class AvgMetaLayer extends NNLayer {
       passback = false;
       thisResult = lastResult;
     }
-    return new NNResult(TensorArray.create(thisResult), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
+    return new NNResult(TensorArray.create(thisResult), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (passback && input.isAlive()) {
         final Tensor delta = data.get(0);
-        final @NotNull Tensor feedback[] = new Tensor[itemCnt];
+        @javax.annotation.Nonnull final Tensor feedback[] = new Tensor[itemCnt];
         Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
         thisResult.coordStream(true).forEach((inputCoord) -> {
           for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
             feedback[inputItem].add(inputCoord, delta.get(inputCoord) / itemCnt);
           }
         });
-        @NotNull TensorArray tensorArray = TensorArray.wrap(feedback);
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(feedback);
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
@@ -117,19 +117,20 @@ public class AvgMetaLayer extends NNLayer {
       public boolean isAlive() {
         return input.isAlive();
       }
-    
+      
       @Override
       protected void _free() {
         thisResult.freeRef();
         input.freeRef();
       }
-    
+      
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, @NotNull DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, @javax.annotation.Nonnull DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     if (null != lastResult) {
       json.add("lastResult", lastResult.toJson(resources, dataSerializer));
     }
@@ -152,13 +153,15 @@ public class AvgMetaLayer extends NNLayer {
    * @param minBatchCount the min batch count
    * @return the min batch count
    */
-  public @NotNull AvgMetaLayer setMinBatchCount(final int minBatchCount) {
+  @javax.annotation.Nonnull
+  public AvgMetaLayer setMinBatchCount(final int minBatchCount) {
     this.minBatchCount = minBatchCount;
     return this;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
 }

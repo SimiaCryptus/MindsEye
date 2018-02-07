@@ -23,7 +23,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,7 +54,7 @@ public class ImgBandSelectLayer extends NNLayer {
    *
    * @param json the json
    */
-  protected ImgBandSelectLayer(final @NotNull JsonObject json) {
+  protected ImgBandSelectLayer(@javax.annotation.Nonnull final JsonObject json) {
     super(json);
     final JsonArray jsonArray = json.getAsJsonArray("bands");
     bands = new int[jsonArray.size()];
@@ -71,40 +70,41 @@ public class ImgBandSelectLayer extends NNLayer {
    * @param rs   the rs
    * @return the img band select layer
    */
-  public static ImgBandSelectLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static ImgBandSelectLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ImgBandSelectLayer(json);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNResult eval(final @NotNull NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
-    final @NotNull int[] inputDims = batch.get(0).getDimensions();
+    @javax.annotation.Nonnull final int[] inputDims = batch.get(0).getDimensions();
     assert 3 == inputDims.length;
-    final @NotNull Tensor outputDims = new Tensor(inputDims[0], inputDims[1], bands.length);
+    @javax.annotation.Nonnull final Tensor outputDims = new Tensor(inputDims[0], inputDims[1], bands.length);
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     return new NNResult(TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
                                                   .mapToObj(dataIndex -> outputDims.mapCoords((c) -> {
                                                     int[] coords = c.getCoords();
                                                     return batch.get(dataIndex).get(coords[0], coords[1], bands[coords[2]]);
                                                   }))
-                                                  .toArray(i -> new Tensor[i])), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList error) -> {
+                                                  .toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       if (input.isAlive()) {
-        @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
-                                                                     .mapToObj(dataIndex -> {
-                                                                       final @NotNull Tensor passback = new Tensor(inputDims);
-                                                              final Tensor err = error.get(dataIndex);
-                                                              err.coordStream(false).forEach(c -> {
-                                                                int[] coords = c.getCoords();
-                                                                passback.set(coords[0], coords[1], bands[coords[2]], err.get(c));
-                                                              });
-                                                              return passback;
-                                                            }).toArray(i -> new Tensor[i]));
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
+                                                                                      .mapToObj(dataIndex -> {
+                                                                                        @javax.annotation.Nonnull final Tensor passback = new Tensor(inputDims);
+                                                                                        final Tensor err = error.get(dataIndex);
+                                                                                        err.coordStream(false).forEach(c -> {
+                                                                                          int[] coords = c.getCoords();
+                                                                                          passback.set(coords[0], coords[1], bands[coords[2]], err.get(c));
+                                                                                        });
+                                                                                        return passback;
+                                                                                      }).toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
     }) {
-  
+      
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
@@ -117,10 +117,11 @@ public class ImgBandSelectLayer extends NNLayer {
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
-    final @NotNull JsonArray array = new JsonArray();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @javax.annotation.Nonnull final JsonArray array = new JsonArray();
     for (final int b : bands) {
       array.add(new JsonPrimitive(b));
     }
@@ -129,8 +130,9 @@ public class ImgBandSelectLayer extends NNLayer {
   }
   
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return new ArrayList<>();
   }
   

@@ -27,7 +27,6 @@ import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.util.ArrayUtil;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 
@@ -69,7 +68,7 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
       final Double weight = getRegionPolicy(layer);
       if (null != weight && 0 < weight) {
         final DoubleBuffer<NNLayer> deltaBuffer = direction.get(layer, buffer.target);
-        final @NotNull double[] adjusted = ArrayUtil.multiply(deltaBuffer.getDelta(), weight);
+        @javax.annotation.Nonnull final double[] adjusted = ArrayUtil.multiply(deltaBuffer.getDelta(), weight);
         for (int i = 0; i < adjusted.length; i++) {
           deltaBuffer.getDelta()[i] = adjusted[i];
         }
@@ -99,7 +98,8 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
      *
      * @return the map
      */
-    public @NotNull HashMap<NNLayer, Double> getMap() {
+    @javax.annotation.Nonnull
+    public HashMap<NNLayer, Double> getMap() {
       return map;
     }
   

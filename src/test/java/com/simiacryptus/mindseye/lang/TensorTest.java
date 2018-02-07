@@ -23,7 +23,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.test.TestCategories;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 import org.junit.Test;
@@ -61,8 +60,8 @@ public class TensorTest {
    *
    * @param t the t
    */
-  public void test(final @NotNull Tensor t) {
-    final @NotNull JsonElement json = t.toJson(null, Tensor.json_precision);
+  public void test(@javax.annotation.Nonnull final Tensor t) {
+    @javax.annotation.Nonnull final JsonElement json = t.toJson(null, Tensor.json_precision);
     Assert.assertEquals(Tensor.fromJson(json, null), t);
     parse(json.toString());
   }
@@ -90,7 +89,7 @@ public class TensorTest {
   @Test
   @Category(TestCategories.UnitTest.class)
   public void testShuffleStream() throws Exception {
-    @NotNull HashSet<Object> ids = new HashSet<>();
+    @javax.annotation.Nonnull HashSet<Object> ids = new HashSet<>();
     int max = 10000;
     TestUtil.shuffle(IntStream.range(0, max)).forEach((int i) -> {
       if (i >= 0 && i >= max) throw new AssertionError(i);

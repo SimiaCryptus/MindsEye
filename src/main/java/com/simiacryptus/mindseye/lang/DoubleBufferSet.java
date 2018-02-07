@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
@@ -55,7 +54,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
    *
    * @param toCopy the to copy
    */
-  public DoubleBufferSet(final @NotNull DoubleBufferSet<K, T> toCopy) {
+  public DoubleBufferSet(@javax.annotation.Nonnull final DoubleBufferSet<K, T> toCopy) {
     this(toCopy.map);
   }
   
@@ -64,7 +63,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
    *
    * @param collect the collect
    */
-  public DoubleBufferSet(final @NotNull Map<K, ? extends T> collect) {
+  public DoubleBufferSet(@javax.annotation.Nonnull final Map<K, ? extends T> collect) {
     map.putAll(collect);
     map.forEach((k, v) -> {
       k.addRef();
@@ -77,8 +76,9 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
    *
    * @return the delta setByCoord
    */
+  @javax.annotation.Nonnull
   @SuppressWarnings("unchecked")
-  public @NotNull DoubleBufferSet<K, T> copy() {
+  public DoubleBufferSet<K, T> copy() {
     return map(x -> (T) x.copy());
   }
   
@@ -133,7 +133,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
    * @param ptr   the ptr
    * @return the delta
    */
-  public T get(final K layer, final @NotNull Tensor ptr) {
+  public T get(final K layer, @javax.annotation.Nonnull final Tensor ptr) {
     return get(layer, ptr.getData());
   }
   
@@ -142,7 +142,8 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
    *
    * @return the map
    */
-  public @NotNull ConcurrentHashMap<K, T> getMap() {
+  @javax.annotation.Nonnull
+  public ConcurrentHashMap<K, T> getMap() {
     return map;
   }
   
@@ -152,14 +153,15 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
    * @param mapper the mapper
    * @return the delta setByCoord
    */
-  public @NotNull DoubleBufferSet<K, T> map(final @NotNull Function<T, T> mapper) {
-    final @NotNull DoubleBufferSet<K, T> parent = this;
+  @javax.annotation.Nonnull
+  public DoubleBufferSet<K, T> map(@javax.annotation.Nonnull final Function<T, T> mapper) {
+    @javax.annotation.Nonnull final DoubleBufferSet<K, T> parent = this;
     Stream<Map.Entry<K, T>> stream = map.entrySet().stream();
     if (map.size() > 100) {
       stream = stream.parallel();
     }
     final Map<K, T> newMap = stream.collect(Collectors.toMap(e -> e.getKey(), e -> mapper.apply(e.getValue())));
-    @NotNull Delegate delegate = new Delegate(parent, newMap);
+    @javax.annotation.Nonnull Delegate delegate = new Delegate(parent, newMap);
     newMap.values().forEach(x -> x.freeRef());
     return delegate;
   }
@@ -194,7 +196,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
      * @param parent the parent
      * @param newMap the new map
      */
-    public Delegate(final DoubleBufferSet<K, T> parent, final @NotNull Map<K, T> newMap) {
+    public Delegate(final DoubleBufferSet<K, T> parent, @javax.annotation.Nonnull final Map<K, T> newMap) {
       super(newMap);
       this.parent = parent;
     }

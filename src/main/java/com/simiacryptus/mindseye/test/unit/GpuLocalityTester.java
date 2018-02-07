@@ -31,7 +31,6 @@ import com.simiacryptus.mindseye.test.SimpleGpuEval;
 import com.simiacryptus.mindseye.test.SimpleResult;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +74,7 @@ public class GpuLocalityTester extends ComponentTestBase<ToleranceStatistics> {
    * @param inputPrototype the input prototype
    * @return the tolerance statistics
    */
-  public ToleranceStatistics test(final @Nullable NNLayer reference, final @NotNull Tensor[] inputPrototype) {
+  public ToleranceStatistics test(final @Nullable NNLayer reference, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
     if (null == reference) return new ToleranceStatistics();
     return GpuSystem.eval(gpu -> {
       final TensorList[] heapInput = Arrays.stream(inputPrototype).map(t ->
@@ -88,19 +87,19 @@ public class GpuLocalityTester extends ComponentTestBase<ToleranceStatistics> {
       final SimpleResult fromHeap = SimpleGpuEval.run(reference, gpu, heapInput);
       final SimpleResult fromGPU = SimpleGpuEval.run(reference, gpu, gpuInput);
   
-      final @NotNull ToleranceStatistics outputAgreement = IntStream.range(0, getBatchSize()).mapToObj(batch ->
+      @javax.annotation.Nonnull final ToleranceStatistics outputAgreement = IntStream.range(0, getBatchSize()).mapToObj(batch ->
                                                                                                 new ToleranceStatistics().accumulate(
                                                                                                   fromHeap.getOutput().get(batch).getData(),
                                                                                                   fromGPU.getOutput().get(batch).getData())
-                                                                                                      ).reduce((a, b) -> a.combine(b)).get();
+                                                                                                                       ).reduce((a, b) -> a.combine(b)).get();
       if (!(outputAgreement.absoluteTol.getMax() < tolerance)) {
         logger.info("Batch Output: " + fromHeap.getOutput().stream().map(x -> x.prettyPrint()).collect(Collectors.toList()));
         logger.info("Singular Output: " + fromGPU.getOutput().stream().map(x -> x.prettyPrint()).collect(Collectors.toList()));
         throw new AssertionError("Output Corrupt: " + outputAgreement);
       }
   
-      final @NotNull ToleranceStatistics derivativeAgreement = IntStream.range(0, getBatchSize()).mapToObj(batch -> {
-        @NotNull IntFunction<ToleranceStatistics> statisticsFunction = input ->
+      @javax.annotation.Nonnull final ToleranceStatistics derivativeAgreement = IntStream.range(0, getBatchSize()).mapToObj(batch -> {
+        @javax.annotation.Nonnull IntFunction<ToleranceStatistics> statisticsFunction = input ->
           new ToleranceStatistics().accumulate(
             fromHeap.getDerivative()[input].get(batch).getData(),
             fromGPU.getDerivative()[input].get(batch).getData());
@@ -123,7 +122,7 @@ public class GpuLocalityTester extends ComponentTestBase<ToleranceStatistics> {
    * @return the tolerance statistics
    */
   @Override
-  public ToleranceStatistics test(final @NotNull NotebookOutput log, final NNLayer reference, final @NotNull Tensor... inputPrototype) {
+  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, final NNLayer reference, @javax.annotation.Nonnull final Tensor... inputPrototype) {
     log.h1("Multi-GPU Compatibility");
     log.p("This layer should be able to eval using a GPU context other than the one used to create the inputs.");
     return log.code(() -> {
@@ -146,13 +145,15 @@ public class GpuLocalityTester extends ComponentTestBase<ToleranceStatistics> {
    * @param batchSize the batch size
    * @return the batch size
    */
-  public @NotNull GpuLocalityTester setBatchSize(int batchSize) {
+  @javax.annotation.Nonnull
+  public GpuLocalityTester setBatchSize(int batchSize) {
     this.batchSize = batchSize;
     return this;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull String toString() {
+  public String toString() {
     return "GpuLocalityTester{" +
       "tolerance=" + tolerance +
       ", batchSize=" + batchSize +

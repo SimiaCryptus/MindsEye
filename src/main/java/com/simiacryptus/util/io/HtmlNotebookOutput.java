@@ -26,7 +26,6 @@ import com.simiacryptus.util.lang.TimedResult;
 import com.simiacryptus.util.lang.UncheckedSupplier;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,12 +49,14 @@ public class HtmlNotebookOutput implements NotebookOutput {
   /**
    * The constant DEFAULT_ROOT.
    */
-  public static @NotNull String DEFAULT_ROOT = "https://github.com/SimiaCryptus/utilities/tree/master/";
+  @javax.annotation.Nonnull
+  public static String DEFAULT_ROOT = "https://github.com/SimiaCryptus/utilities/tree/master/";
   /**
    * The Working dir.
    */
   public final File workingDir;
-  private final @NotNull PrintStream primaryOut;
+  @javax.annotation.Nonnull
+  private final PrintStream primaryOut;
   /**
    * The Source root.
    */
@@ -73,7 +74,7 @@ public class HtmlNotebookOutput implements NotebookOutput {
    * @param out             the out
    * @throws FileNotFoundException the file not found exception
    */
-  public HtmlNotebookOutput(final File parentDirectory, final @NotNull OutputStream out) throws FileNotFoundException {
+  public HtmlNotebookOutput(final File parentDirectory, @javax.annotation.Nonnull final OutputStream out) throws FileNotFoundException {
     primaryOut = new PrintStream(out);
     workingDir = parentDirectory;
     out("<html><head><style>\n" +
@@ -93,7 +94,7 @@ public class HtmlNotebookOutput implements NotebookOutput {
    * @throws FileNotFoundException the file not found exception
    */
   public static HtmlNotebookOutput create(final File parentDirectory) throws FileNotFoundException {
-    final @NotNull FileOutputStream out = new FileOutputStream(new File(parentDirectory, "index.html"));
+    @javax.annotation.Nonnull final FileOutputStream out = new FileOutputStream(new File(parentDirectory, "index.html"));
     return new HtmlNotebookOutput(parentDirectory, out) {
       @Override
       public void close() throws IOException {
@@ -111,37 +112,38 @@ public class HtmlNotebookOutput implements NotebookOutput {
     }
   }
   
-  @Override
+  @javax.annotation.Nonnull
   @SuppressWarnings("unchecked")
-  public @NotNull <T> T code(final @NotNull UncheckedSupplier<T> fn, final int maxLog, final int framesNo) {
+  @Override
+  public <T> T code(@javax.annotation.Nonnull final UncheckedSupplier<T> fn, final int maxLog, final int framesNo) {
     try {
       final StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
       final StackTraceElement callingFrame = stackTrace[framesNo];
       final String sourceCode = CodeUtil.getInnerText(callingFrame);
-      final @NotNull SysOutInterceptor.LoggedResult<TimedResult<Object>> result = SysOutInterceptor.withOutput(() -> {
+      @javax.annotation.Nonnull final SysOutInterceptor.LoggedResult<TimedResult<Object>> result = SysOutInterceptor.withOutput(() -> {
         long priorGcMs = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
         final long start = System.nanoTime();
         try {
           @Nullable Object result1 = null;
           try {
             result1 = fn.get();
-          } catch (final @NotNull RuntimeException e) {
+          } catch (@javax.annotation.Nonnull final RuntimeException e) {
             throw e;
-          } catch (final @NotNull Exception e) {
+          } catch (@javax.annotation.Nonnull final Exception e) {
             throw new RuntimeException(e);
           }
           long gcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum() - priorGcMs;
           return new TimedResult<Object>(result1, System.nanoTime() - start, gcTime);
-        } catch (final @NotNull Throwable e) {
+        } catch (@javax.annotation.Nonnull final Throwable e) {
           long gcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum() - priorGcMs;
           return new TimedResult<Object>(e, System.nanoTime() - start, gcTime);
         }
       });
       try {
-        final @NotNull URI resolved = URI.create(sourceRoot).resolve(Util.pathTo(CodeUtil.projectRoot, CodeUtil.findFile(callingFrame)));
+        @javax.annotation.Nonnull final URI resolved = URI.create(sourceRoot).resolve(Util.pathTo(CodeUtil.projectRoot, CodeUtil.findFile(callingFrame)));
         out("<p>Code from <a href='%s#L%s'>%s:%s</a> executed in %.2f seconds: <br/>",
             resolved, callingFrame.getLineNumber(), callingFrame.getFileName(), callingFrame.getLineNumber(), result.obj.seconds());
-      } catch (final @NotNull Exception e) {
+      } catch (@javax.annotation.Nonnull final Exception e) {
         out("<p>Code from %s:%s executed in %.2f seconds: <br/>",
             callingFrame.getFileName(), callingFrame.getLineNumber(), result.obj.seconds());
       }
@@ -163,7 +165,7 @@ public class HtmlNotebookOutput implements NotebookOutput {
         String str;
         boolean escape;
         if (eval instanceof Throwable) {
-          final @NotNull ByteArrayOutputStream out = new ByteArrayOutputStream();
+          @javax.annotation.Nonnull final ByteArrayOutputStream out = new ByteArrayOutputStream();
           ((Throwable) eval).printStackTrace(new PrintStream(out));
           str = new String(out.toByteArray(), "UTF-8");
           escape = true;//
@@ -199,40 +201,44 @@ public class HtmlNotebookOutput implements NotebookOutput {
       }
       out("</p>");
       return (T) eval;
-    } catch (final @NotNull IOException e) {
+    } catch (@javax.annotation.Nonnull final IOException e) {
       throw new RuntimeException(e);
     }
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull OutputStream file(final @NotNull String name) {
+  public OutputStream file(@javax.annotation.Nonnull final String name) {
     try {
       return new FileOutputStream(new File(getResourceDir(), name));
-    } catch (final @NotNull FileNotFoundException e) {
+    } catch (@javax.annotation.Nonnull final FileNotFoundException e) {
       throw new RuntimeException(e);
     }
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull String file(final String data, final String caption) {
+  public String file(final String data, final String caption) {
     return file(data, excerptNumber++ + ".txt", caption);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull String file(byte[] data, @NotNull String filename, String caption) {
+  public String file(byte[] data, @javax.annotation.Nonnull String filename, String caption) {
     try {
       IOUtils.write(data, new FileOutputStream(new File(getResourceDir(), filename)));
-    } catch (final @NotNull IOException e) {
+    } catch (@javax.annotation.Nonnull final IOException e) {
       throw new RuntimeException(e);
     }
     return "<a href='etc/" + filename + "'>" + caption + "</a>";
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull String file(final String data, final @NotNull String fileName, final String caption) {
+  public String file(final String data, @javax.annotation.Nonnull final String fileName, final String caption) {
     try {
       IOUtils.write(data, new FileOutputStream(new File(getResourceDir(), fileName)), Charset.forName("UTF-8"));
-    } catch (final @NotNull IOException e) {
+    } catch (@javax.annotation.Nonnull final IOException e) {
       throw new RuntimeException(e);
     }
     return "<a href='etc/" + fileName + "'>" + caption + "</a>";
@@ -243,14 +249,16 @@ public class HtmlNotebookOutput implements NotebookOutput {
    *
    * @return the resource dir
    */
-  public @NotNull File getResourceDir() {
-    final @NotNull File etc = new File(workingDir, "etc");
+  @javax.annotation.Nonnull
+  public File getResourceDir() {
+    @javax.annotation.Nonnull final File etc = new File(workingDir, "etc");
     etc.mkdirs();
     return etc;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NotebookOutput setMaxOutSize(int size) {
+  public NotebookOutput setMaxOutSize(int size) {
     this.maxOutSize = size;
     return this;
   }
@@ -270,7 +278,8 @@ public class HtmlNotebookOutput implements NotebookOutput {
    * @param sourceRoot the source root
    * @return the source root
    */
-  public @NotNull HtmlNotebookOutput setSourceRoot(final String sourceRoot) {
+  @javax.annotation.Nonnull
+  public HtmlNotebookOutput setSourceRoot(final String sourceRoot) {
     this.sourceRoot = sourceRoot;
     return this;
   }
@@ -290,13 +299,14 @@ public class HtmlNotebookOutput implements NotebookOutput {
     out("<h3>" + fmt + "</h3>", args);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull String image(final @Nullable BufferedImage rawImage, final String caption) throws IOException {
+  public String image(final @Nullable BufferedImage rawImage, final String caption) throws IOException {
     if (null == rawImage) return "";
     new ByteArrayOutputStream();
-    final @NotNull String thisImage = UUID.randomUUID().toString().substring(0, 8);
-    final @NotNull File file = new File(getResourceDir(), "img" + thisImage + ".png");
-    final @NotNull ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    @javax.annotation.Nonnull final String thisImage = UUID.randomUUID().toString().substring(0, 8);
+    @javax.annotation.Nonnull final File file = new File(getResourceDir(), "img" + thisImage + ".png");
+    @javax.annotation.Nonnull final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     ImageIO.write(rawImage, "png", buffer);
     final String pngSrc = Base64.getEncoder().encodeToString(buffer.toByteArray());
     if (pngSrc.length() < 4 * 1024) {
@@ -313,19 +323,19 @@ public class HtmlNotebookOutput implements NotebookOutput {
   }
   
   @Override
-  public String link(final @NotNull File file, final String text) {
+  public String link(@javax.annotation.Nonnull final File file, final String text) {
     @Nullable String path = null;
     try {
       path = workingDir.getCanonicalFile().toPath().relativize(file.getCanonicalFile().toPath()).normalize().toString().replaceAll("\\\\", "/");
-    } catch (final @NotNull IOException e) {
+    } catch (@javax.annotation.Nonnull final IOException e) {
       throw new RuntimeException(e);
     }
     return String.format("<a href=\"%s\">%s</a>", path, text);
   }
   
   @Override
-  public void out(final @NotNull String fmt, final @NotNull Object... args) {
-    final @NotNull String msg = 0 == args.length ? fmt : String.format(fmt, args);
+  public void out(@javax.annotation.Nonnull final String fmt, @javax.annotation.Nonnull final Object... args) {
+    @javax.annotation.Nonnull final String msg = 0 == args.length ? fmt : String.format(fmt, args);
     primaryOut.println(msg);
     primaryOut.flush();
     log.info(msg);
@@ -341,8 +351,9 @@ public class HtmlNotebookOutput implements NotebookOutput {
     return null;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull String getName() {
+  public String getName() {
     return "www";
   }
   
@@ -353,10 +364,11 @@ public class HtmlNotebookOutput implements NotebookOutput {
    * @param string the string
    * @return the string
    */
-  public @NotNull String summarize(final int maxLog, final @NotNull String string) {
+  @javax.annotation.Nonnull
+  public String summarize(final int maxLog, @javax.annotation.Nonnull final String string) {
     if (string.length() > maxLog * 2) {
-      final @NotNull String left = string.substring(0, maxLog);
-      final @NotNull String right = string.substring(string.length() - maxLog);
+      @javax.annotation.Nonnull final String left = string.substring(0, maxLog);
+      @javax.annotation.Nonnull final String right = string.substring(string.length() - maxLog);
       final String link = String.format(file(string, "\n...skipping %s bytes...\n"), string.length() - 2 * maxLog);
       return left + link + right;
     }

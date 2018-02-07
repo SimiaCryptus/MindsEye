@@ -27,7 +27,6 @@ import com.aparapi.device.OpenCLDevice;
 import com.aparapi.internal.opencl.OpenCLPlatform;
 import com.aparapi.opencl.OpenCL;
 import com.aparapi.opencl.OpenCL.Resource;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -66,7 +65,7 @@ public class AparapiTest {
     final List<OpenCLPlatform> platforms = new OpenCLPlatform().getOpenCLPlatforms();
     log.info("Machine contains " + platforms.size() + " OpenCL platforms");
     int platformc = 0;
-    for (final @NotNull OpenCLPlatform platform : platforms) {
+    for (@javax.annotation.Nonnull final OpenCLPlatform platform : platforms) {
       log.info("Platform " + platformc + "{");
       log.info("   Name    : \"" + platform.getName() + "\"");
       log.info("   Vendor  : \"" + platform.getVendor() + "\"");
@@ -74,7 +73,7 @@ public class AparapiTest {
       final List<OpenCLDevice> devices = platform.getOpenCLDevices();
       log.info("   Platform contains " + devices.size() + " OpenCL devices");
       int devicec = 0;
-      for (final @NotNull OpenCLDevice device : devices) {
+      for (@javax.annotation.Nonnull final OpenCLDevice device : devices) {
         log.info("   Device " + devicec + "{");
         log.info("       Type                  : " + device.getType());
         log.info("       GlobalMemSize         : " + device.getGlobalMemSize());
@@ -188,9 +187,9 @@ public class AparapiTest {
   @Ignore
   public void test1() {
   
-    final @NotNull OpenCLDevice openclDevice = (OpenCLDevice) Device.best();
+    @javax.annotation.Nonnull final OpenCLDevice openclDevice = (OpenCLDevice) Device.best();
     // final Convolution convolution = openclDevice.bind(Convolution.class);
-    final @NotNull AparapiTest.TestKernel testKernel = new AparapiTest.TestKernel();
+    @javax.annotation.Nonnull final AparapiTest.TestKernel testKernel = new AparapiTest.TestKernel();
     testKernel.setExecutionMode(EXECUTION_MODE.GPU);
     testKernel.setExplicit(true);
     final Range range = openclDevice.createRange3D(100, 100, 8);
@@ -210,12 +209,12 @@ public class AparapiTest {
    */
   @Test
   public void test2() throws Exception {
-    final @NotNull float inA[] = new float[1024];
-    final @NotNull float inB[] = new float[1024];
+    @javax.annotation.Nonnull final float inA[] = new float[1024];
+    @javax.annotation.Nonnull final float inB[] = new float[1024];
     assert inA.length == inB.length;
-    final @NotNull float[] result = new float[inA.length];
+    @javax.annotation.Nonnull final float[] result = new float[inA.length];
   
-    final @NotNull Kernel kernel = new Kernel() {
+    @javax.annotation.Nonnull final Kernel kernel = new Kernel() {
       @Override
       public void run() {
         final int i = getGlobalId();
@@ -223,7 +222,7 @@ public class AparapiTest {
       }
     };
   
-    final @NotNull Range range = Range.create(result.length);
+    @javax.annotation.Nonnull final Range range = Range.create(result.length);
     kernel.execute(range);
   }
   
@@ -243,18 +242,19 @@ public class AparapiTest {
      * @param _height        the height
      * @return the aparapi eval . convolution
      */
-    @NotNull AparapiTest.Convolution applyConvolution(//
-                                                      Range range, //
-                                                      @OpenCL.GlobalReadOnly("_convMatrix3x3") float[] _convMatrix3x3, //// only read
-                                                      //// from
-                                                      //// filter
-                                                      @OpenCL.GlobalReadOnly("_imagIn") byte[] _imageIn, // only read from filter
-                                                      // (actually char[])
-                                                      @OpenCL.GlobalWriteOnly("_imagOut") byte[] _imageOut, // only written to (never
-                                                      // read) from filter
-                                                      // (actually char[])
-                                                      @OpenCL.Arg("_width") int _width, //
-                                                      @OpenCL.Arg("_height") int _height);
+    @javax.annotation.Nonnull
+    AparapiTest.Convolution applyConvolution(//
+                                             Range range, //
+                                             @OpenCL.GlobalReadOnly("_convMatrix3x3") float[] _convMatrix3x3, //// only read
+                                             //// from
+                                             //// filter
+                                             @OpenCL.GlobalReadOnly("_imagIn") byte[] _imageIn, // only read from filter
+                                             // (actually char[])
+                                             @OpenCL.GlobalWriteOnly("_imagOut") byte[] _imageOut, // only written to (never
+                                             // read) from filter
+                                             // (actually char[])
+                                             @OpenCL.Arg("_width") int _width, //
+                                             @OpenCL.Arg("_height") int _height);
   }
   
   /**

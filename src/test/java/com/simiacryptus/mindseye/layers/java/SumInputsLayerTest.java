@@ -23,7 +23,6 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
 
@@ -35,21 +34,24 @@ public class SumInputsLayerTest {
    * The type N 1 eval.
    */
   public static class N1Test extends LayerTestBase {
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull int[][] getSmallDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {3}, {1}
       };
     }
   
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
+    public NNLayer getLayer(final int[][] inputSize, Random random) {
       return new SumInputsLayer();
     }
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull int[][] getLargeDims(Random random) {
+    public int[][] getLargeDims(Random random) {
       return new int[][]{
         {100}, {1}
       };
@@ -61,21 +63,24 @@ public class SumInputsLayerTest {
    * The type Nn eval.
    */
   public static class NNTest extends LayerTestBase {
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull int[][] getSmallDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {3}, {3}
       };
     }
   
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
+    public NNLayer getLayer(final int[][] inputSize, Random random) {
       return new SumInputsLayer();
     }
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull int[][] getLargeDims(Random random) {
+    public int[][] getLargeDims(Random random) {
       return new int[][]{
         {100}, {100}
       };
@@ -94,11 +99,12 @@ public class SumInputsLayerTest {
     public OnePlusOne() {
       super();
     }
-    
-    
+  
+  
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull NNLayer getLayer(int[][] inputSize, Random random) {
-      @NotNull PipelineNetwork network = new PipelineNetwork();
+    public NNLayer getLayer(int[][] inputSize, Random random) {
+      @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork();
       DAGNode input = network.getInput(0);
       network.add(new SumInputsLayer(), input, input);
       return network;
@@ -108,21 +114,24 @@ public class SumInputsLayerTest {
     public NNLayer getReferenceLayer() {
       return null;
     }
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull int[][] getSmallDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {1, 1, 1}
       };
     }
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull int[][] getLargeDims(Random random) {
+    public int[][] getLargeDims(Random random) {
       return getSmallDims(random);
     }
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    protected @NotNull Class<?> getTargetClass() {
+    protected Class<?> getTargetClass() {
       return SumInputsLayer.class;
     }
     

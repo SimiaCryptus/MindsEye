@@ -26,8 +26,6 @@ package com.simiacryptus.util.io;
 // http://creativecommons.org/licenses/by/3.0/ or send a letter to Creative
 // Commons, 171 Second Street, Suite 300, San Francisco, California, 94105, USA.
 
-import org.jetbrains.annotations.NotNull;
-
 import javax.imageio.*;
 import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.metadata.IIOMetadataNode;
@@ -78,17 +76,17 @@ public class GifSequenceWriter {
     ImageTypeSpecifier imageTypeSpecifier = ImageTypeSpecifier.createFromBufferedImageType(imageType);
     imageMetaData = gifWriter.getDefaultImageMetadata(imageTypeSpecifier, imageWriteParam);
     String metaFormatName = imageMetaData.getNativeMetadataFormatName();
-    @NotNull IIOMetadataNode root = (IIOMetadataNode) imageMetaData.getAsTree(metaFormatName);
-    @NotNull IIOMetadataNode graphicsControlExtensionNode = getNode(root, "GraphicControlExtension");
+    @javax.annotation.Nonnull IIOMetadataNode root = (IIOMetadataNode) imageMetaData.getAsTree(metaFormatName);
+    @javax.annotation.Nonnull IIOMetadataNode graphicsControlExtensionNode = getNode(root, "GraphicControlExtension");
     graphicsControlExtensionNode.setAttribute("disposalMethod", "none");
     graphicsControlExtensionNode.setAttribute("userInputFlag", "FALSE");
     graphicsControlExtensionNode.setAttribute("transparentColorFlag", "FALSE");
     graphicsControlExtensionNode.setAttribute("delayTime", Integer.toString(timeBetweenFramesMS / 10));
     graphicsControlExtensionNode.setAttribute("transparentColorIndex", "0");
-    @NotNull IIOMetadataNode commentsNode = getNode(root, "CommentExtensions");
+    @javax.annotation.Nonnull IIOMetadataNode commentsNode = getNode(root, "CommentExtensions");
     commentsNode.setAttribute("CommentExtension", "Created by MindsEye");
-    @NotNull IIOMetadataNode appEntensionsNode = getNode(root, "ApplicationExtensions");
-    @NotNull IIOMetadataNode child = new IIOMetadataNode("ApplicationExtension");
+    @javax.annotation.Nonnull IIOMetadataNode appEntensionsNode = getNode(root, "ApplicationExtensions");
+    @javax.annotation.Nonnull IIOMetadataNode child = new IIOMetadataNode("ApplicationExtension");
     child.setAttribute("applicationID", "NETSCAPE");
     child.setAttribute("authenticationCode", "2.0");
     
@@ -109,11 +107,11 @@ public class GifSequenceWriter {
    * @param images              the images
    * @throws IOException the io exception
    */
-  public static void write(File gif, int timeBetweenFramesMS, boolean loopContinuously, @NotNull BufferedImage... images) throws IOException {
-    @NotNull ImageOutputStream output = new FileImageOutputStream(gif);
+  public static void write(File gif, int timeBetweenFramesMS, boolean loopContinuously, @javax.annotation.Nonnull BufferedImage... images) throws IOException {
+    @javax.annotation.Nonnull ImageOutputStream output = new FileImageOutputStream(gif);
     try {
-      @NotNull GifSequenceWriter writer = new GifSequenceWriter(output, images[0].getType(), timeBetweenFramesMS, loopContinuously);
-      for (@NotNull BufferedImage image : images) {
+      @javax.annotation.Nonnull GifSequenceWriter writer = new GifSequenceWriter(output, images[0].getType(), timeBetweenFramesMS, loopContinuously);
+      for (@javax.annotation.Nonnull BufferedImage image : images) {
         writer.writeToSequence(image);
       }
       writer.close();
@@ -129,7 +127,7 @@ public class GifSequenceWriter {
    * @return a GIF ImageWriter object
    * @throws IIOException if no GIF image writers are returned
    */
-  private static ImageWriter getWriter(@NotNull String format) throws IIOException {
+  private static ImageWriter getWriter(@javax.annotation.Nonnull String format) throws IIOException {
     Iterator<ImageWriter> iter = ImageIO.getImageWritersBySuffix(format);
     if (!iter.hasNext()) {
       throw new IIOException("No GIF Image Writers Exist");
@@ -146,8 +144,9 @@ public class GifSequenceWriter {
    * @param nodeName the name of the child node.
    * @return the child node, if found or a new node created with the given name.
    */
-  private static @NotNull IIOMetadataNode getNode(
-    @NotNull IIOMetadataNode rootNode,
+  @javax.annotation.Nonnull
+  private static IIOMetadataNode getNode(
+    @javax.annotation.Nonnull IIOMetadataNode rootNode,
     String nodeName) {
     int nNodes = rootNode.getLength();
     for (int i = 0; i < nNodes; i++) {
@@ -156,7 +155,7 @@ public class GifSequenceWriter {
         return ((IIOMetadataNode) rootNode.item(i));
       }
     }
-    @NotNull IIOMetadataNode node = new IIOMetadataNode(nodeName);
+    @javax.annotation.Nonnull IIOMetadataNode node = new IIOMetadataNode(nodeName);
     rootNode.appendChild(node);
     return (node);
   }
@@ -167,7 +166,7 @@ public class GifSequenceWriter {
    * @param img the img
    * @throws IOException the io exception
    */
-  public void writeToSequence(@NotNull RenderedImage img) throws IOException {
+  public void writeToSequence(@javax.annotation.Nonnull RenderedImage img) throws IOException {
     gifWriter.writeToSequence(
       new IIOImage(
         img,

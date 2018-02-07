@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * An exact line search method which ignores the quantity of the derivative, using only sign. Signs are sufficient to
@@ -47,7 +46,8 @@ public class BisectionSearch implements LineSearchStrategy {
    * @param currentRate the current rate
    * @return the current rate
    */
-  public @NotNull BisectionSearch setCurrentRate(final double currentRate) {
+  @javax.annotation.Nonnull
+  public BisectionSearch setCurrentRate(final double currentRate) {
     this.currentRate = currentRate;
     return this;
   }
@@ -67,13 +67,14 @@ public class BisectionSearch implements LineSearchStrategy {
    * @param zeroTol the zero tol
    * @return the zero tol
    */
-  public @NotNull BisectionSearch setZeroTol(final double zeroTol) {
+  @javax.annotation.Nonnull
+  public BisectionSearch setZeroTol(final double zeroTol) {
     this.zeroTol = zeroTol;
     return this;
   }
   
   @Override
-  public PointSample step(final @NotNull LineSearchCursor cursor, final @NotNull TrainingMonitor monitor) {
+  public PointSample step(@javax.annotation.Nonnull final LineSearchCursor cursor, @javax.annotation.Nonnull final TrainingMonitor monitor) {
     
     double leftX = 0;
     double leftValue;

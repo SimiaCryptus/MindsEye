@@ -25,7 +25,6 @@ import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.data.PercentileStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -55,7 +54,7 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
    *
    * @param id the id
    */
-  protected MonitoringSynapse(final @NotNull JsonObject id) {
+  protected MonitoringSynapse(@javax.annotation.Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -66,8 +65,9 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
    * @param rs   the rs
    * @return the monitoring synapse
    */
-  public static @NotNull MonitoringSynapse fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
-    final @NotNull MonitoringSynapse obj = new MonitoringSynapse(json);
+  @javax.annotation.Nonnull
+  public static MonitoringSynapse fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+    @javax.annotation.Nonnull final MonitoringSynapse obj = new MonitoringSynapse(json);
     obj.totalBatches = json.get("totalBatches").getAsInt();
     obj.totalItems = json.get("totalItems").getAsInt();
     obj.backpropStatistics.readJson(json.getAsJsonObject("backpropStatistics"));
@@ -81,7 +81,8 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
    * @param obj the obj
    * @return the monitoring synapse
    */
-  public @NotNull MonitoringSynapse addTo(final @NotNull MonitoredObject obj) {
+  @javax.annotation.Nonnull
+  public MonitoringSynapse addTo(@javax.annotation.Nonnull final MonitoredObject obj) {
     return addTo(obj, getName());
   }
   
@@ -92,14 +93,15 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
    * @param name the name
    * @return the monitoring synapse
    */
-  public @NotNull MonitoringSynapse addTo(final @NotNull MonitoredObject obj, final String name) {
+  @javax.annotation.Nonnull
+  public MonitoringSynapse addTo(@javax.annotation.Nonnull final MonitoredObject obj, final String name) {
     setName(name);
     obj.addObj(getName(), this);
     return this;
   }
   
   @Override
-  public NNResult eval(final @NotNull NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     assert 1 == inObj.length;
     final NNResult input = inObj[0];
     input.getData().addRef();
@@ -112,7 +114,7 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     input.getData().stream().parallel().forEach(t -> {
       forwardStatistics.add(t.getData());
     });
-    return new NNResult(input.getData(), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
+    return new NNResult(input.getData(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       backpropStatistics.clear();
       input.accumulate(buffer, data);
       data.stream().parallel().forEach(t -> {
@@ -134,17 +136,19 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("totalBatches", totalBatches);
     json.addProperty("totalItems", totalItems);
     return json;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull Map<String, Object> getMetrics() {
-    final @NotNull HashMap<String, Object> map = new HashMap<>();
+  public Map<String, Object> getMetrics() {
+    @javax.annotation.Nonnull final HashMap<String, Object> map = new HashMap<>();
     map.put("totalBatches", totalBatches);
     map.put("totalItems", totalItems);
     map.put("forward", forwardStatistics.getMetrics());

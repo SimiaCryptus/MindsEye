@@ -25,7 +25,6 @@ import com.esotericsoftware.kryo.serializers.FieldSerializer;
 import de.javakaffee.kryoserializers.EnumMapSerializer;
 import de.javakaffee.kryoserializers.EnumSetSerializer;
 import de.javakaffee.kryoserializers.KryoReflectionFactorySupport;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -36,11 +35,12 @@ import java.util.EnumSet;
 public class KryoUtil {
   
   private static final ThreadLocal<Kryo> threadKryo = new ThreadLocal<Kryo>() {
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    protected @NotNull Kryo initialValue() {
-      final @NotNull Kryo kryo = new KryoReflectionFactorySupport() {
-        
+    protected Kryo initialValue() {
+      @javax.annotation.Nonnull final Kryo kryo = new KryoReflectionFactorySupport() {
+      
         @Override
         public Serializer<?> getDefaultSerializer(@SuppressWarnings("rawtypes") final Class clazz) {
           if (EnumSet.class.isAssignableFrom(clazz)) {
@@ -55,7 +55,7 @@ public class KryoUtil {
           }
           return serializer;
         }
-        
+      
       };
       return kryo;
     }

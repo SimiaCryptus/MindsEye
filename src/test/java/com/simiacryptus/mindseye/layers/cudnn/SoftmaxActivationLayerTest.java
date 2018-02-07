@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
 
@@ -29,13 +28,15 @@ import java.util.Random;
  */
 public abstract class SoftmaxActivationLayerTest extends CuDNNLayerTestBase {
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull int[][] getSmallDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{{4}};
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return new SoftmaxActivationLayer();
   }
   

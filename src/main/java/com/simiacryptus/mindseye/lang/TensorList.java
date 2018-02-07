@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.IntStream;
@@ -38,7 +37,7 @@ public interface TensorList extends ReferenceCounting {
    * @param right the right
    * @return the tensor list
    */
-  default TensorList add(final @NotNull TensorList right) {
+  default TensorList add(@javax.annotation.Nonnull final TensorList right) {
     if (right.length() == 0) return this;
     if (length() == 0) throw new IllegalArgumentException();
     assert length() == right.length();
@@ -54,7 +53,7 @@ public interface TensorList extends ReferenceCounting {
    * @param b the b
    * @return the tensor
    */
-  default @Nullable Tensor freeSum(@NotNull Tensor a, @NotNull Tensor b) {
+  default @Nullable Tensor freeSum(@javax.annotation.Nonnull Tensor a, @javax.annotation.Nonnull Tensor b) {
     @Nullable Tensor sum = a.add(b);
     a.freeRef();
     b.freeRef();
@@ -67,14 +66,14 @@ public interface TensorList extends ReferenceCounting {
    * @param right the right
    * @return the tensor list
    */
-  default TensorList minus(final @NotNull TensorList right) {
+  default TensorList minus(@javax.annotation.Nonnull final TensorList right) {
     if (right.length() == 0) return this;
     if (length() == 0) throw new IllegalArgumentException();
     assert length() == right.length();
     return TensorArray.wrap(IntStream.range(0, length()).mapToObj(i -> {
       Tensor a = get(i);
       Tensor b = right.get(i);
-      @NotNull Tensor r = a.minus(b);
+      @javax.annotation.Nonnull Tensor r = a.minus(b);
       a.freeRef();
       b.freeRef();
       return r;
@@ -90,7 +89,7 @@ public interface TensorList extends ReferenceCounting {
     return TensorArray.wrap(
       IntStream.range(0, length()).mapToObj(i -> {
         Tensor element = get(i);
-        @NotNull Tensor copy = element.copy();
+        @javax.annotation.Nonnull Tensor copy = element.copy();
         element.freeRef();
         return copy;
       }).toArray(i -> new Tensor[i])
@@ -131,7 +130,8 @@ public interface TensorList extends ReferenceCounting {
    *
    * @return the string
    */
-  default @NotNull String prettyPrint() {
+  @javax.annotation.Nonnull
+  default String prettyPrint() {
     return stream().map(t -> t.prettyPrint()).reduce((a, b) -> a + "\n" + b).get();
   }
   

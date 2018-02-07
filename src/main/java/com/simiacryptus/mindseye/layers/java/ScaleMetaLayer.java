@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +51,7 @@ public class ScaleMetaLayer extends NNLayer {
    *
    * @param id the id
    */
-  protected ScaleMetaLayer(final @NotNull JsonObject id) {
+  protected ScaleMetaLayer(@javax.annotation.Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -63,21 +62,21 @@ public class ScaleMetaLayer extends NNLayer {
    * @param rs   the rs
    * @return the scale meta layer
    */
-  public static ScaleMetaLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static ScaleMetaLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ScaleMetaLayer(json);
   }
   
   @Override
-  public @Nullable NNResult eval(final @NotNull NNResult... inObj) {
+  public @Nullable NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     final Tensor[] tensors = IntStream.range(0, itemCnt).mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).mapIndex((v, c) -> v * inObj[1].getData().get(0).get(c))).toArray(i -> new Tensor[i]);
     Tensor tensor0 = tensors[0];
     tensor0.addRef();
-    return new NNResult(TensorArray.wrap(tensors), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
+    return new NNResult(TensorArray.wrap(tensors), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
-        @NotNull TensorArray tensorArray = TensorArray.wrap(data.stream().map(t -> t.mapIndex((v, c) -> v * inObj[1].getData().get(0).get(c))).toArray(i -> new Tensor[i]));
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(data.stream().map(t -> t.mapIndex((v, c) -> v * inObj[1].getData().get(0).get(c))).toArray(i -> new Tensor[i]));
         inObj[0].accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
@@ -86,8 +85,8 @@ public class ScaleMetaLayer extends NNLayer {
           return IntStream.range(0, itemCnt).mapToDouble(i -> data.get(i).get(c) * inObj[0].getData().get(i).get(c)).sum();
         });
         tensor0.freeRef();
-        @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, inObj[1].getData().length())
-                                                                     .mapToObj(i -> i == 0 ? passback : passback.map(v -> 0)).toArray(i -> new Tensor[i]));
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, inObj[1].getData().length())
+                                                                                      .mapToObj(i -> i == 0 ? passback : passback.map(v -> 0)).toArray(i -> new Tensor[i]));
         inObj[1].accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
@@ -107,13 +106,15 @@ public class ScaleMetaLayer extends NNLayer {
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
 }

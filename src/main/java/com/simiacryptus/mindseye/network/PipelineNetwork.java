@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.java.ConstNNLayer;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -54,7 +53,7 @@ public class PipelineNetwork extends DAGNetwork {
    * @param inputs the inputs
    * @param layers the layers
    */
-  public PipelineNetwork(final int inputs, final @NotNull NNLayer... layers) {
+  public PipelineNetwork(final int inputs, @javax.annotation.Nonnull final NNLayer... layers) {
     super(inputs);
     head = 0 == inputs ? null : getInput().get(0);
     for (final NNLayer layer : layers) {
@@ -68,9 +67,9 @@ public class PipelineNetwork extends DAGNetwork {
    * @param json the json
    * @param rs   the rs
    */
-  protected PipelineNetwork(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  protected PipelineNetwork(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json, rs);
-    final @NotNull UUID headId = UUID.fromString(json.get("head").getAsString());
+    @javax.annotation.Nonnull final UUID headId = UUID.fromString(json.get("head").getAsString());
     assert null != headId;
     head = nodesById.get(headId);
     if (null == head) {
@@ -100,7 +99,7 @@ public class PipelineNetwork extends DAGNetwork {
    * @param rs   the rs
    * @return the pipeline network
    */
-  public static PipelineNetwork fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static PipelineNetwork fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new PipelineNetwork(json, rs);
   }
   
@@ -116,7 +115,7 @@ public class PipelineNetwork extends DAGNetwork {
   }
   
   @Override
-  public @Nullable DAGNode add(final @Nullable NNLayer nextHead, final @NotNull DAGNode... head) {
+  public @Nullable DAGNode add(final @Nullable NNLayer nextHead, @javax.annotation.Nonnull final DAGNode... head) {
     if (null == nextHead && head.length == 1) return head[0];
     if (null == nextHead) return null;
     assert Arrays.stream(head).allMatch(x -> x == null || nodesById.containsKey(x.getId()) || inputNodes.containsKey(x.getId()));
@@ -144,7 +143,7 @@ public class PipelineNetwork extends DAGNetwork {
    * @param layers the layers
    * @return the dag node
    */
-  public DAGNode addAll(DAGNode node, final @NotNull NNLayer... layers) {
+  public DAGNode addAll(DAGNode node, @javax.annotation.Nonnull final NNLayer... layers) {
     for (final NNLayer l : layers) {
       node = add(l, node);
     }
@@ -186,7 +185,8 @@ public class PipelineNetwork extends DAGNetwork {
    * @param obj the obj
    * @return the head
    */
-  public @NotNull PipelineNetwork setHead(final DAGNode obj) {
+  @javax.annotation.Nonnull
+  public PipelineNetwork setHead(final DAGNode obj) {
     head = obj;
     return this;
   }

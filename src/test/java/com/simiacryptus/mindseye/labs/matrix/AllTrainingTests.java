@@ -23,7 +23,6 @@ import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.integration.*;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.TestCategories;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -74,7 +73,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
    *
    * @param log the log
    */
-  public void autoencoder_test(@NotNull NotebookOutput log) {
+  public void autoencoder_test(@javax.annotation.Nonnull NotebookOutput log) {
     log.h1(getDatasetName() + " Denoising Autoencoder");
     intro(log);
     new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, getData(), 100, 0.8).setTimeoutMinutes(timeoutMinutes).run(log);
@@ -108,7 +107,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
    *
    * @param log the log
    */
-  public void classification_test(@NotNull NotebookOutput log) {
+  public void classification_test(@javax.annotation.Nonnull NotebookOutput log) {
     log.h1(getDatasetName() + " Denoising Autoencoder");
     intro(log);
     new ClassifyProblem(fwdFactory, optimizationStrategy, getData(), 100).setBatchSize(batchSize).setTimeoutMinutes(timeoutMinutes).run(log);
@@ -131,7 +130,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
    *
    * @param log the log
    */
-  public void encoding_test(@NotNull NotebookOutput log) {
+  public void encoding_test(@javax.annotation.Nonnull NotebookOutput log) {
     log.h1(getDatasetName() + " Image-to-Vector Encoding");
     intro(log);
     new EncodingProblem(revFactory, optimizationStrategy, getData(), 10).setTimeoutMinutes(timeoutMinutes).run(log);
@@ -160,12 +159,14 @@ public abstract class AllTrainingTests extends NotebookReportBase {
    *
    * @return the data
    */
-  public abstract @NotNull ImageProblemData getData();
+  @javax.annotation.Nonnull
+  public abstract ImageProblemData getData();
   
   /**
    * Gets dataset name.
    *
    * @return the dataset name
    */
-  public abstract @NotNull String getDatasetName();
+  @javax.annotation.Nonnull
+  public abstract String getDatasetName();
 }

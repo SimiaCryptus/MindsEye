@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.IntArray;
 import com.simiacryptus.util.io.JsonUtil;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +67,7 @@ public class MaxDropoutNoiseLayer extends NNLayer {
    *
    * @param json the json
    */
-  protected MaxDropoutNoiseLayer(final @NotNull JsonObject json) {
+  protected MaxDropoutNoiseLayer(@javax.annotation.Nonnull final JsonObject json) {
     super(json);
     kernelSize = JsonUtil.getIntArray(json.getAsJsonArray("kernelSize"));
   }
@@ -80,12 +79,13 @@ public class MaxDropoutNoiseLayer extends NNLayer {
    * @param rs   the rs
    * @return the max dropout noise layer
    */
-  public static MaxDropoutNoiseLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static MaxDropoutNoiseLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new MaxDropoutNoiseLayer(json);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNResult eval(final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
     inObj[0].addRef();
     final Tensor[] mask = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
@@ -100,20 +100,20 @@ public class MaxDropoutNoiseLayer extends NNLayer {
     final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       final @Nullable double[] input = inObj[0].getData().get(dataIndex).getData();
       final @Nullable double[] maskT = mask[dataIndex].getData();
-      final @NotNull Tensor output = new Tensor(inObj[0].getData().get(dataIndex).getDimensions());
+      @javax.annotation.Nonnull final Tensor output = new Tensor(inObj[0].getData().get(dataIndex).getDimensions());
       final @Nullable double[] outputData = output.getData();
       for (int i = 0; i < outputData.length; i++) {
         outputData[i] = input[i] * maskT[i];
       }
       return output;
     }).toArray(i -> new Tensor[i]);
-    return new NNResult(TensorArray.wrap(outputA), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList delta) -> {
+    return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (inObj[0].isAlive()) {
-        @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           final @Nullable double[] deltaData = delta.get(dataIndex).getData();
-          final @NotNull int[] dims = inObj[0].getData().get(dataIndex).getDimensions();
+          @javax.annotation.Nonnull final int[] dims = inObj[0].getData().get(dataIndex).getDimensions();
           final @Nullable double[] maskData = mask[dataIndex].getData();
-          final @NotNull Tensor passback = new Tensor(dims);
+          @javax.annotation.Nonnull final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, maskData[i] * deltaData[i]);
           }
@@ -123,22 +123,22 @@ public class MaxDropoutNoiseLayer extends NNLayer {
         tensorArray.freeRef();
       }
     }) {
-  
+      
       @Override
       protected void _free() {
         inObj[0].freeRef();
       }
-  
+      
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive() || !isFrozen();
       }
-  
+      
     };
   }
   
-  private List<List<Coordinate>> getCellMap(final @NotNull IntArray dims) {
-    return new ArrayList<>(new Tensor(dims.data).coordStream(true).collect(Collectors.groupingBy((final @NotNull Coordinate c) -> {
+  private List<List<Coordinate>> getCellMap(@javax.annotation.Nonnull final IntArray dims) {
+    return new ArrayList<>(new Tensor(dims.data).coordStream(true).collect(Collectors.groupingBy((@javax.annotation.Nonnull final Coordinate c) -> {
       int cellId = 0;
       int max = 0;
       for (int dim = 0; dim < dims.size(); dim++) {
@@ -150,15 +150,17 @@ public class MaxDropoutNoiseLayer extends NNLayer {
     })).values());
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.add("kernelSize", JsonUtil.getJson(kernelSize));
     return json;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
   

@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -42,7 +41,7 @@ public final class BinaryEntropyActivationLayer extends SimpleActivationLayer<Bi
    *
    * @param id the id
    */
-  protected BinaryEntropyActivationLayer(final @NotNull JsonObject id) {
+  protected BinaryEntropyActivationLayer(@javax.annotation.Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -53,7 +52,7 @@ public final class BinaryEntropyActivationLayer extends SimpleActivationLayer<Bi
    * @param rs   the rs
    * @return the binary entropy activation layer
    */
-  public static BinaryEntropyActivationLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static BinaryEntropyActivationLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new BinaryEntropyActivationLayer(json);
   }
   
@@ -68,8 +67,9 @@ public final class BinaryEntropyActivationLayer extends SimpleActivationLayer<Bi
     results[1] = d;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

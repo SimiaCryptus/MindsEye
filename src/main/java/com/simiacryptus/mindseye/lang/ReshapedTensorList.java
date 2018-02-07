@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -30,7 +29,8 @@ import java.util.stream.Stream;
  * tensor to/from a rank-1 array.
  */
 public class ReshapedTensorList extends ReferenceCountingBase implements TensorList {
-  private final @NotNull TensorList data;
+  @javax.annotation.Nonnull
+  private final TensorList data;
   private final int[] dims;
   
   /**
@@ -39,7 +39,7 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
    * @param data  the data
    * @param toDim the to dim
    */
-  public ReshapedTensorList(@NotNull TensorList data, int[] toDim) {
+  public ReshapedTensorList(@javax.annotation.Nonnull TensorList data, int[] toDim) {
     if (Tensor.dim(data.getDimensions()) != Tensor.dim(toDim))
       throw new IllegalArgumentException(Arrays.toString(data.getDimensions()) + " != " + Arrays.toString(toDim));
     this.data = data;
@@ -52,8 +52,9 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
     return data.get(i).reshapeCast(dims);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull int[] getDimensions() {
+  public int[] getDimensions() {
     return Arrays.copyOf(dims, dims.length);
   }
   

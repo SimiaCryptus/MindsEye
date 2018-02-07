@@ -26,7 +26,6 @@ import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.TrainingTester;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import smile.plot.PlotCanvas;
 import smile.plot.ScatterPlot;
@@ -61,8 +60,9 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
    * @param data  the data
    * @return the plot canvas
    */
-  public static @NotNull PlotCanvas plot(final String title, final double[][] data) {
-    final @NotNull PlotCanvas plot = ScatterPlot.plot(data);
+  @javax.annotation.Nonnull
+  public static PlotCanvas plot(final String title, final double[][] data) {
+    @javax.annotation.Nonnull final PlotCanvas plot = ScatterPlot.plot(data);
     plot.setTitle(title);
     plot.setAxisLabels("x", "y");
     plot.setSize(600, 400);
@@ -77,7 +77,8 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
    * @param function the function
    * @return the plot canvas
    */
-  public static @NotNull PlotCanvas plot(final String title, final @NotNull List<double[]> plotData, final Function<double[], double[]> function) {
+  @javax.annotation.Nonnull
+  public static PlotCanvas plot(final String title, @javax.annotation.Nonnull final List<double[]> plotData, final Function<double[], double[]> function) {
     final double[][] data = plotData.stream().map(function).toArray(i -> new double[i][]);
     return ActivationLayerTestBase.plot(title, data);
   }
@@ -94,8 +95,9 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     return layer;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull int[][] getLargeDims(Random random) {
+  public int[][] getLargeDims(Random random) {
     return new int[][]{
       {100, 100, 1}
     };
@@ -117,8 +119,8 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     log.h3("Function Plots");
     final NNLayer layer = getLayer(new int[][]{{1}}, new Random());
     final List<double[]> plotData = scan().mapToObj(x -> {
-      final @NotNull SimpleEval eval = SimpleEval.run(layer, new Tensor(x));
-      @NotNull double[] doubles = {x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};
+      @javax.annotation.Nonnull final SimpleEval eval = SimpleEval.run(layer, new Tensor(x));
+      @javax.annotation.Nonnull double[] doubles = {x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};
       eval.freeRef();
       return doubles;
     }).collect(Collectors.toList());

@@ -42,7 +42,6 @@ import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.GifSequenceWriter;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.SysOutInterceptor;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +82,8 @@ public class EncodingUtil {
   /**
    * The constant out.
    */
-  protected static @NotNull PrintStream rawOut = SysOutInterceptor.INSTANCE.getInner();
+  @javax.annotation.Nonnull
+  protected static PrintStream rawOut = SysOutInterceptor.INSTANCE.getInner();
   
   /**
    * Add column tensor [ ] [ ].
@@ -92,7 +92,7 @@ public class EncodingUtil {
    * @param size         the size
    * @return the tensor [ ] [ ]
    */
-  public static Tensor[][] addColumn(final @NotNull Tensor[][] trainingData, final int... size) {
+  public static Tensor[][] addColumn(@javax.annotation.Nonnull final Tensor[][] trainingData, final int... size) {
     return Arrays.stream(trainingData).map(x -> Stream.concat(
       Arrays.stream(x),
       Stream.of(new Tensor(size).set(() -> 0.0 * (FastRandom.random() - 0.5))))
@@ -107,8 +107,9 @@ public class EncodingUtil {
    * @param learnedColumn    the learned column
    * @return the dag network
    */
-  public static @NotNull DAGNetwork buildTrainingModel(final NNLayer innerModel, final int reproducedColumn, final int learnedColumn) {
-    final @NotNull PipelineNetwork network = new PipelineNetwork(Math.max(learnedColumn, reproducedColumn) + 1);
+  @javax.annotation.Nonnull
+  public static DAGNetwork buildTrainingModel(final NNLayer innerModel, final int reproducedColumn, final int learnedColumn) {
+    @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork(Math.max(learnedColumn, reproducedColumn) + 1);
     // network.add(new NthPowerActivationLayer().setPower(0.5), );
     network.add(new MeanSqLossLayer(),
                 network.add("image", innerModel, network.getInput(learnedColumn)),
@@ -125,10 +126,10 @@ public class EncodingUtil {
    * @param column  the column
    * @return the tensor [ ] [ ]
    */
-  public static Stream<Tensor[]> convolutionFeatures(final @NotNull Stream<Tensor[]> tensors, final int radius, int column) {
-    final @NotNull ThreadLocal<ConvolutionExtractor> extractors = ThreadLocal.withInitial(() -> new ConvolutionExtractor());
+  public static Stream<Tensor[]> convolutionFeatures(@javax.annotation.Nonnull final Stream<Tensor[]> tensors, final int radius, int column) {
+    @javax.annotation.Nonnull final ThreadLocal<ConvolutionExtractor> extractors = ThreadLocal.withInitial(() -> new ConvolutionExtractor());
     return tensors.parallel().flatMap(row -> {
-      final @NotNull Tensor region = new Tensor(radius, radius, row[column].getDimensions()[2]);
+      @javax.annotation.Nonnull final Tensor region = new Tensor(radius, radius, row[column].getDimensions()[2]);
       return IntStream.range(0, row[column].getDimensions()[0] - (radius - 1)).mapToObj(x -> x).parallel().flatMap(x -> {
         return IntStream.range(0, row[column].getDimensions()[column] - (radius - 1)).mapToObj(y -> {
           final ConvolutionExtractor extractor = extractors.get();
@@ -150,14 +151,14 @@ public class EncodingUtil {
    * @param signedComponents the signed components
    * @return the string
    */
-  public static String animatedGif(final @NotNull NotebookOutput log, final @NotNull Tensor baseline, final @NotNull List<Tensor> signedComponents) {
+  public static String animatedGif(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Tensor baseline, @javax.annotation.Nonnull final List<Tensor> signedComponents) {
     int loopTimeMs = 15000;
     int framerate = 12;
     int frames = loopTimeMs * framerate / 1000;
     try {
       double step = 2 * Math.PI / frames;
-      @NotNull String filename = EncodingUtil.gifNumber++ + ".gif";
-      @NotNull File file = new File(log.getResourceDir(), filename);
+      @javax.annotation.Nonnull String filename = EncodingUtil.gifNumber++ + ".gif";
+      @javax.annotation.Nonnull File file = new File(log.getResourceDir(), filename);
       GifSequenceWriter.write(file, loopTimeMs / frames, true,
                               DoubleStream.iterate(0, x -> x + step).limit(frames).parallel().mapToObj(t -> {
                                 return IntStream.range(0, signedComponents.size()).mapToObj(i -> {
@@ -178,31 +179,31 @@ public class EncodingUtil {
    * @param signedComponents the signed components
    * @return the string
    */
-  public static String decompositionSvg(final @NotNull NotebookOutput log, final @NotNull Tensor baseline, final @NotNull List<Tensor> signedComponents) {
+  public static String decompositionSvg(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Tensor baseline, @javax.annotation.Nonnull final List<Tensor> signedComponents) {
     final List<DoubleStatistics> componentStats = signedComponents.stream().map(t -> new DoubleStatistics().accept(t.getData())).collect(Collectors.toList());
-    final @NotNull String positiveFilter = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
+    @javax.annotation.Nonnull final String positiveFilter = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
       String name;
       try {
         name = String.format("component_%s.png", EncodingUtil.imageNumber++);
         ImageIO.write(signedComponents.get(i).map(v -> v > 0 ? v * (0xFF / componentStats.get(i).getMax()) : 0).toImage(), "png", log.file(name));
-      } catch (final @NotNull IOException e) {
+      } catch (@javax.annotation.Nonnull final IOException e) {
         throw new RuntimeException(e);
       }
       return String.format("  <feImage xlink:href=\"%s\" result=\"pos_image_%s\" />\n", name, i);
     }).reduce((a, b) -> a + "\n" + b).get();
   
-    final @NotNull String negativeFilter = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
+    @javax.annotation.Nonnull final String negativeFilter = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
       String name;
       try {
         name = String.format("component_%s.png", EncodingUtil.imageNumber++);
         ImageIO.write(signedComponents.get(i).map(v -> v < 0 ? 0xFF - v * (0xFF / componentStats.get(i).getMin()) : 0).toImage(), "png", log.file(name));
-      } catch (final @NotNull IOException e) {
+      } catch (@javax.annotation.Nonnull final IOException e) {
         throw new RuntimeException(e);
       }
       return String.format("  <feImage xlink:href=\"%s\" result=\"neg_image_%s\" />\n", name, i);
     }).reduce((a, b) -> a + "\n" + b).get();
   
-    final @NotNull String compositingFilters = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
+    @javax.annotation.Nonnull final String compositingFilters = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
       final double fPos = componentStats.get(i).getMax() / 0xFF;
       final double fNeg = componentStats.get(i).getMin() / 0xFF;
       return "  <feComposite in=\"" + (i == 0 ? "FillPaint" : "lastResult") + "\" in2=\"neg_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\"" + -fNeg + "\" k4=\"" + fNeg + "\"/>\n" +
@@ -212,7 +213,7 @@ public class EncodingUtil {
     final int red = (int) baseline.get(0, 0, 0);
     final int green = (int) baseline.get(0, 0, 1);
     final int blue = (int) baseline.get(0, 0, 2);
-    final @NotNull String avgHexColor = Long.toHexString(red + (green << 16) + (blue << 32));
+    @javax.annotation.Nonnull final String avgHexColor = Long.toHexString(red + (green << 8) + (blue << 16));
     return "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n" +
       ("<defs>\n" +
         "<filter id=\"image\" >\n" + (
@@ -234,16 +235,17 @@ public class EncodingUtil {
    * @param factor the factor
    * @return the stream
    */
-  public static @NotNull Stream<Tensor[]> downExplodeTensors(final @NotNull Stream<Tensor[]> stream, final int factor) {
+  @javax.annotation.Nonnull
+  public static Stream<Tensor[]> downExplodeTensors(@javax.annotation.Nonnull final Stream<Tensor[]> stream, final int factor) {
     if (0 >= factor) throw new IllegalArgumentException();
     if (-1 == factor) throw new IllegalArgumentException();
     return 1 == factor ? stream : stream.flatMap(tensor -> IntStream.range(0, factor * factor).mapToObj(subband -> {
-      final @NotNull int[] select = new int[tensor[1].getDimensions()[2]];
+      @javax.annotation.Nonnull final int[] select = new int[tensor[1].getDimensions()[2]];
       final int offset = subband * select.length;
       for (int i = 0; i < select.length; i++) {
         select[i] = offset + i;
       }
-      final @NotNull PipelineNetwork network = new PipelineNetwork();
+      @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new ImgReshapeLayer(factor, factor, false));
       network.add(new ImgBandSelectLayer(select));
       final Tensor result = network.eval(tensor[1]).getData().get(0);
@@ -258,7 +260,8 @@ public class EncodingUtil {
    * @param factor the factor
    * @return the stream
    */
-  public static @NotNull Stream<Tensor> downStackTensors(final @NotNull Stream<Tensor> stream, final int factor) {
+  @javax.annotation.Nonnull
+  public static Stream<Tensor> downStackTensors(@javax.annotation.Nonnull final Stream<Tensor> stream, final int factor) {
     if (0 == factor) throw new IllegalArgumentException();
     if (-1 == factor) throw new IllegalArgumentException();
     return 1 == factor ? stream : stream.map(tensor -> {
@@ -275,12 +278,12 @@ public class EncodingUtil {
    * @param tensor  the tensor
    * @return the tensor
    */
-  public static Tensor findBaseline(final @NotNull PipelineNetwork decoder, final @NotNull Tensor tensor) {
+  public static Tensor findBaseline(@javax.annotation.Nonnull final PipelineNetwork decoder, @javax.annotation.Nonnull final Tensor tensor) {
     try {
       return decoder.eval(tensor.map(x -> 0)).getData().get(0);
-    } catch (final @NotNull RuntimeException e) {
+    } catch (@javax.annotation.Nonnull final RuntimeException e) {
       throw e;
-    } catch (final @NotNull Exception e) {
+    } catch (@javax.annotation.Nonnull final Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -293,18 +296,18 @@ public class EncodingUtil {
    * @param tensor  the tensor
    * @return the tensor
    */
-  public static Tensor findUnitComponent(final PipelineNetwork decoder, final int band, final @NotNull Tensor tensor) {
-    final @NotNull PipelineNetwork decoderBand = new PipelineNetwork();
-    final @NotNull double[] gate = new double[tensor.getDimensions()[2]];
+  public static Tensor findUnitComponent(final PipelineNetwork decoder, final int band, @javax.annotation.Nonnull final Tensor tensor) {
+    @javax.annotation.Nonnull final PipelineNetwork decoderBand = new PipelineNetwork();
+    @javax.annotation.Nonnull final double[] gate = new double[tensor.getDimensions()[2]];
     gate[band] = 1;
     decoderBand.add(new ImgBandScaleLayer(gate));
     decoderBand.add(decoder);
     try {
       return decoderBand.eval(tensor).getData().get(0);
       //return log.image(t.toImage(), "");
-    } catch (final @NotNull RuntimeException e) {
+    } catch (@javax.annotation.Nonnull final RuntimeException e) {
       throw e;
-    } catch (final @NotNull Exception e) {
+    } catch (@javax.annotation.Nonnull final Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -318,7 +321,7 @@ public class EncodingUtil {
    * @param categories the categories
    * @return the tensor [ ] [ ]
    */
-  public static Tensor[][] getImages(final @NotNull NotebookOutput log, final int size, final int maxImages, final @NotNull String... categories) {
+  public static Tensor[][] getImages(@javax.annotation.Nonnull final NotebookOutput log, final int size, final int maxImages, @javax.annotation.Nonnull final String... categories) {
     log.out("Available images and categories:");
     log.code(() -> {
       return Caltech101.trainingDataStream().collect(Collectors.groupingBy(x -> x.label, Collectors.counting()));
@@ -335,9 +338,9 @@ public class EncodingUtil {
           Tensor.fromRGB(img)
         };
       }).sorted(Comparator.comparingInt(a -> System.identityHashCode(a) ^ seed)).limit(maxImages).toArray(i -> new Tensor[i][]);
-    } catch (final @NotNull RuntimeException e) {
+    } catch (@javax.annotation.Nonnull final RuntimeException e) {
       throw e;
-    } catch (final @NotNull IOException e) {
+    } catch (@javax.annotation.Nonnull final IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -348,7 +351,7 @@ public class EncodingUtil {
    * @param history the history
    * @return the monitor
    */
-  public static TrainingMonitor getMonitor(final @NotNull List<StepRecord> history) {
+  public static TrainingMonitor getMonitor(@javax.annotation.Nonnull final List<StepRecord> history) {
     return new TrainingMonitor() {
       @Override
       public void clear() {
@@ -362,7 +365,7 @@ public class EncodingUtil {
       }
       
       @Override
-      public void onStepComplete(final @NotNull Step currentPoint) {
+      public void onStepComplete(@javax.annotation.Nonnull final Step currentPoint) {
         history.add(new StepRecord(currentPoint.point.getMean(), currentPoint.time, currentPoint.iteration));
       }
     };
@@ -375,15 +378,15 @@ public class EncodingUtil {
    * @param network the network
    * @param modelNo the model no
    */
-  public static void printModel(final @NotNull NotebookOutput log, final @NotNull NNLayer network, final int modelNo) {
+  public static void printModel(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer network, final int modelNo) {
     log.out("Learned Model Statistics: ");
     log.code(() -> {
-      final @NotNull ScalarStatistics scalarStatistics = new ScalarStatistics();
+      @javax.annotation.Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
       network.state().stream().flatMapToDouble(x -> Arrays.stream(x))
              .forEach(v -> scalarStatistics.add(v));
       return scalarStatistics.getMetrics();
     });
-    final @NotNull String modelName = "model" + modelNo + ".json";
+    @javax.annotation.Nonnull final String modelName = "model" + modelNo + ".json";
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
   }
   
@@ -396,10 +399,10 @@ public class EncodingUtil {
    * @param col          the col
    * @param tensor       the tensor
    */
-  public static void renderLayer(final @NotNull NotebookOutput log, final @NotNull List<NNLayer> dataPipeline, final @NotNull LinkedHashMap<String, Object> row, final int col, final @NotNull Tensor tensor) {
+  public static void renderLayer(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final List<NNLayer> dataPipeline, @javax.annotation.Nonnull final LinkedHashMap<String, Object> row, final int col, @javax.annotation.Nonnull final Tensor tensor) {
     row.put("Data_" + col, com.simiacryptus.mindseye.test.TestUtil.render(log, tensor, 0 < col));
     if (dataPipeline.size() >= col - 1 && 1 < col) {
-      final @NotNull PipelineNetwork decoder = new PipelineNetwork();
+      @javax.annotation.Nonnull final PipelineNetwork decoder = new PipelineNetwork();
       for (int i = col - 2; i >= 0; i--) {
         decoder.add(dataPipeline.get(i));
       }
@@ -417,9 +420,9 @@ public class EncodingUtil {
       row.put("SVG_" + col, log.file(EncodingUtil.decompositionSvg(log, baseline, signedComponents), "svg" + EncodingUtil.svgNumber++ + ".svg", "SVG Composite Image"));
       row.put("GIF_" + col, EncodingUtil.animatedGif(log, baseline, signedComponents));
   
-      final @NotNull String render = signedComponents.stream()
-                                                     .map(signedContribution -> com.simiacryptus.mindseye.test.TestUtil.render(log, signedContribution, true))
-                                                     .reduce((a, b) -> a + "" + b).get();
+      @javax.annotation.Nonnull final String render = signedComponents.stream()
+                                                                      .map(signedContribution -> com.simiacryptus.mindseye.test.TestUtil.render(log, signedContribution, true))
+                                                                      .reduce((a, b) -> a + "" + b).get();
       row.put("Band_Decode_" + col, render);
     }
   }
@@ -431,8 +434,8 @@ public class EncodingUtil {
    * @param biasLayer        the bias layer
    * @param featureSpace     the feature space
    */
-  public static void setInitialFeatureSpace(final @NotNull ConvolutionLayer convolutionLayer, final @NotNull ImgBandBiasLayer biasLayer, final @NotNull FindFeatureSpace featureSpace) {
-    final @NotNull int[] filterDimensions = convolutionLayer.getKernel().getDimensions();
+  public static void setInitialFeatureSpace(@javax.annotation.Nonnull final ConvolutionLayer convolutionLayer, @javax.annotation.Nonnull final ImgBandBiasLayer biasLayer, @javax.annotation.Nonnull final FindFeatureSpace featureSpace) {
+    @javax.annotation.Nonnull final int[] filterDimensions = convolutionLayer.getKernel().getDimensions();
     final int outputBands = biasLayer.getBias().length;
     assert outputBands == biasLayer.getBias().length;
     final int inputBands = filterDimensions[2] / outputBands;
@@ -441,7 +444,7 @@ public class EncodingUtil {
       return Double.isFinite(v) ? v : biasLayer.getBias()[i];
     });
     final Tensor[] featureSpaceVectors = featureSpace.getVectors();
-    for (final @NotNull Tensor t : featureSpaceVectors) {
+    for (@javax.annotation.Nonnull final Tensor t : featureSpaceVectors) {
       log.info(String.format("Feature Vector %s%n", t.prettyPrint()));
     }
     convolutionLayer.getKernel().setByCoord(c -> {
@@ -469,12 +472,12 @@ public class EncodingUtil {
    * @param dataPipeline the data pipeline
    * @param maxRows      the max rows
    */
-  public static void validationReport(final @NotNull NotebookOutput log, final @NotNull Tensor[][] data, final @NotNull List<NNLayer> dataPipeline, final int maxRows) {
+  public static void validationReport(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Tensor[][] data, @javax.annotation.Nonnull final List<NNLayer> dataPipeline, final int maxRows) {
     log.out("Current dataset and evaluation results: ");
     log.code(() -> {
-      final @NotNull TableOutput table = new TableOutput();
+      @javax.annotation.Nonnull final TableOutput table = new TableOutput();
       Arrays.stream(data).limit(maxRows).map(tensorArray -> {
-        final @NotNull LinkedHashMap<String, Object> row = new LinkedHashMap<>();
+        @javax.annotation.Nonnull final LinkedHashMap<String, Object> row = new LinkedHashMap<>();
         for (int col = 1; col < tensorArray.length; col++) {
           EncodingUtil.renderLayer(log, dataPipeline, row, col, tensorArray[col]);
         }
@@ -504,7 +507,7 @@ public class EncodingUtil {
     public int y;
     
     @Override
-    public double applyAsDouble(final @NotNull Coordinate c) {
+    public double applyAsDouble(@javax.annotation.Nonnull final Coordinate c) {
       final int[] coords = c.getCoords();
       return image[column].get(coords[0] + x, coords[column] + y, coords[2]);
     }

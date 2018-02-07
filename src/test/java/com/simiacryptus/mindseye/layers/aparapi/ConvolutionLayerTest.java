@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.aparapi;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
 
@@ -38,21 +37,24 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
     private final int inputBands = 1;
     private final int outputBands = 1;
   
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
+    public NNLayer getLayer(final int[][] inputSize, Random random) {
       return new ConvolutionLayer(3, 3, inputBands, outputBands, true).setWeights(() -> this.random());
     }
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull int[][] getSmallDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {8, 8, 1}
       };
     }
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull int[][] getLargeDims(Random random) {
-      
+    public int[][] getLargeDims(Random random) {
+    
       return new int[][]{
         {200, 200, inputBands}
       };
@@ -66,15 +68,17 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
    */
   public static class Downsize extends ConvolutionLayerTest {
   
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull int[][] getSmallDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {3, 3, 7}
       };
     }
   
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
+    public NNLayer getLayer(final int[][] inputSize, Random random) {
       return new ConvolutionLayer(3, 3, 7, 3, false).setWeights(() -> this.random());
     }
   
@@ -85,15 +89,17 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
    */
   public static class Upsize extends ConvolutionLayerTest {
   
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull int[][] getSmallDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {3, 3, 2}
       };
     }
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
+    public NNLayer getLayer(final int[][] inputSize, Random random) {
       return new ConvolutionLayer(3, 3, 2, 3, false).setWeights(() -> this.random());
     }
   

@@ -19,7 +19,6 @@
 
 package com.simiacryptus.util.io;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
@@ -61,7 +60,7 @@ public class TeeOutputStream extends OutputStream {
   @Override
   public void close() throws IOException {
     primary.close();
-    for (final @NotNull OutputStream branch : branches) {
+    for (@javax.annotation.Nonnull final OutputStream branch : branches) {
       branch.close();
     }
   }
@@ -69,7 +68,7 @@ public class TeeOutputStream extends OutputStream {
   @Override
   public void flush() throws IOException {
     primary.flush();
-    for (final @NotNull OutputStream branch : branches) {
+    for (@javax.annotation.Nonnull final OutputStream branch : branches) {
       branch.flush();
     }
   }
@@ -80,11 +79,12 @@ public class TeeOutputStream extends OutputStream {
    * @return the piped input stream
    * @throws IOException the io exception
    */
-  public @NotNull PipedInputStream newInputStream() throws IOException {
-    final @NotNull TeeOutputStream outTee = this;
-    final @NotNull AtomicReference<Runnable> onClose = new AtomicReference<>();
-    final @NotNull PipedOutputStream outPipe = new PipedOutputStream();
-    final @NotNull PipedInputStream in = new PipedInputStream() {
+  @javax.annotation.Nonnull
+  public PipedInputStream newInputStream() throws IOException {
+    @javax.annotation.Nonnull final TeeOutputStream outTee = this;
+    @javax.annotation.Nonnull final AtomicReference<Runnable> onClose = new AtomicReference<>();
+    @javax.annotation.Nonnull final PipedOutputStream outPipe = new PipedOutputStream();
+    @javax.annotation.Nonnull final PipedInputStream in = new PipedInputStream() {
       @Override
       public void close() throws IOException {
         outPipe.close();
@@ -92,7 +92,7 @@ public class TeeOutputStream extends OutputStream {
       }
     };
     outPipe.connect(in);
-    final @NotNull OutputStream outAsync = new AsyncOutputStream(outPipe);
+    @javax.annotation.Nonnull final OutputStream outAsync = new AsyncOutputStream(outPipe);
     new Thread(() -> {
       try {
         if (null != heapBuffer) {
@@ -100,7 +100,7 @@ public class TeeOutputStream extends OutputStream {
           outAsync.flush();
         }
         outTee.branches.add(outAsync);
-      } catch (final @NotNull IOException e) {
+      } catch (@javax.annotation.Nonnull final IOException e) {
         e.printStackTrace();
       }
     }).start();
@@ -114,7 +114,7 @@ public class TeeOutputStream extends OutputStream {
   @Override
   public synchronized void write(final byte[] b) throws IOException {
     primary.write(b);
-    for (final @NotNull OutputStream branch : branches) {
+    for (@javax.annotation.Nonnull final OutputStream branch : branches) {
       branch.write(b);
     }
   }
@@ -122,7 +122,7 @@ public class TeeOutputStream extends OutputStream {
   @Override
   public synchronized void write(final byte[] b, final int off, final int len) throws IOException {
     primary.write(b, off, len);
-    for (final @NotNull OutputStream branch : branches) {
+    for (@javax.annotation.Nonnull final OutputStream branch : branches) {
       branch.write(b, off, len);
     }
   }
@@ -130,7 +130,7 @@ public class TeeOutputStream extends OutputStream {
   @Override
   public synchronized void write(final int b) throws IOException {
     primary.write(b);
-    for (final @NotNull OutputStream branch : branches) {
+    for (@javax.annotation.Nonnull final OutputStream branch : branches) {
       branch.write(b);
     }
   }

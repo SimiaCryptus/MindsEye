@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -49,7 +48,7 @@ public final class NthPowerActivationLayer extends NNLayer {
    *
    * @param id the id
    */
-  protected NthPowerActivationLayer(final @NotNull JsonObject id) {
+  protected NthPowerActivationLayer(@javax.annotation.Nonnull final JsonObject id) {
     super(id);
     power = id.get("power").getAsDouble();
   }
@@ -61,11 +60,11 @@ public final class NthPowerActivationLayer extends NNLayer {
    * @param rs   the rs
    * @return the nth power activation layer
    */
-  public static NthPowerActivationLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static NthPowerActivationLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new NthPowerActivationLayer(json);
   }
   
-  private static void nthPower(final double power, final @NotNull Tensor input, final double[] inputData, final double[] gradientData, final double[] outputData) {
+  private static void nthPower(final double power, @javax.annotation.Nonnull final Tensor input, final double[] inputData, final double[] gradientData, final double[] outputData) {
     for (int i = 0; i < input.dim(); i++) {
       final double x = inputData[i];
       final boolean isZero = Math.abs(x) < 1e-20;
@@ -82,7 +81,7 @@ public final class NthPowerActivationLayer extends NNLayer {
     }
   }
   
-  private static void square(final @NotNull Tensor input, final double[] inputData, final double[] gradientData, final double[] outputData) {
+  private static void square(@javax.annotation.Nonnull final Tensor input, final double[] inputData, final double[] gradientData, final double[] outputData) {
     for (int i = 0; i < input.dim(); i++) {
       final double x = inputData[i];
       gradientData[i] = 2 * x;
@@ -90,7 +89,7 @@ public final class NthPowerActivationLayer extends NNLayer {
     }
   }
   
-  private static void squareRoot(final @NotNull Tensor input, final double[] inputData, final double[] gradientData, final double[] outputData) {
+  private static void squareRoot(@javax.annotation.Nonnull final Tensor input, final double[] inputData, final double[] gradientData, final double[] outputData) {
     for (int i = 0; i < input.dim(); i++) {
       final double x = inputData[i];
       final boolean isZero = Math.abs(x) < 1e-20;
@@ -109,7 +108,7 @@ public final class NthPowerActivationLayer extends NNLayer {
     }
   }
   
-  private static void unity(final @NotNull Tensor input, final double[] inputData, final double[] gradientData, final double[] outputData) {
+  private static void unity(@javax.annotation.Nonnull final Tensor input, final double[] inputData, final double[] gradientData, final double[] outputData) {
     for (int i = 0; i < input.dim(); i++) {
       gradientData[i] = 0;
       outputData[i] = 1;
@@ -117,15 +116,15 @@ public final class NthPowerActivationLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final @NotNull NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
     assert 0 < itemCnt;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    final @NotNull Tensor inputGradientA[] = new Tensor[itemCnt];
+    @javax.annotation.Nonnull final Tensor inputGradientA[] = new Tensor[itemCnt];
     return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);
-      final @NotNull Tensor output = new Tensor(inObj[0].getData().get(dataIndex).getDimensions());
-      final @NotNull Tensor gradient = new Tensor(input.dim());
+      @javax.annotation.Nonnull final Tensor output = new Tensor(inObj[0].getData().get(dataIndex).getDimensions());
+      @javax.annotation.Nonnull final Tensor gradient = new Tensor(input.dim());
       final @Nullable double[] inputData = input.getData();
       final @Nullable double[] gradientData = gradient.getData();
       final @Nullable double[] outputData = output.getData();
@@ -143,10 +142,10 @@ public final class NthPowerActivationLayer extends NNLayer {
         NthPowerActivationLayer.nthPower(power, input, inputData, gradientData, outputData);
       }
       return output;
-    }).toArray(i -> new Tensor[i])), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
-        @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
-          final @NotNull Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
+          @javax.annotation.Nonnull final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
           final @Nullable double[] gradientData = inputGradientA[dataIndex].getData();
           IntStream.range(0, passback.dim()).forEach(i -> {
             final double v = gradientData[i];
@@ -173,9 +172,10 @@ public final class NthPowerActivationLayer extends NNLayer {
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("power", power);
     return json;
   }
@@ -195,7 +195,8 @@ public final class NthPowerActivationLayer extends NNLayer {
    * @param power the power
    * @return the power
    */
-  public @NotNull NthPowerActivationLayer setPower(final double power) {
+  @javax.annotation.Nonnull
+  public NthPowerActivationLayer setPower(final double power) {
     this.power = power;
     return this;
   }

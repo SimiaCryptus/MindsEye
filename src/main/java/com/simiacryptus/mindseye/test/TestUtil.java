@@ -35,7 +35,6 @@ import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 import guru.nidi.graphviz.attribute.RankDir;
 import guru.nidi.graphviz.model.*;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +70,7 @@ public class TestUtil {
    *
    * @param network the network
    */
-  public static void addLogging(final @NotNull DAGNetwork network) {
+  public static void addLogging(@javax.annotation.Nonnull final DAGNetwork network) {
     network.visitNodes(node -> {
       if (!(node.getLayer() instanceof LoggingWrapperLayer)) {
         node.setLayer(new LoggingWrapperLayer(node.getLayer()));
@@ -85,7 +84,7 @@ public class TestUtil {
    * @param network        the network
    * @param monitoringRoot the monitoring root
    */
-  public static void addMonitoring(final @NotNull DAGNetwork network, final MonitoredObject monitoringRoot) {
+  public static void addMonitoring(@javax.annotation.Nonnull final DAGNetwork network, final MonitoredObject monitoringRoot) {
     network.visitNodes(node -> {
       if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
         node.setLayer(new MonitoringWrapperLayer(node.getLayer()).addTo(monitoringRoot));
@@ -100,7 +99,7 @@ public class TestUtil {
    * @param trials the trials
    * @return the plot canvas
    */
-  public static PlotCanvas compare(final String title, final @NotNull ProblemRun... trials) {
+  public static PlotCanvas compare(final String title, @javax.annotation.Nonnull final ProblemRun... trials) {
     try {
       final DoubleSummaryStatistics xStatistics = Arrays.stream(trials)
                                                         .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> step.iteration))
@@ -114,9 +113,9 @@ public class TestUtil {
         log.info("No Data");
         return null;
       }
-      final @NotNull double[] lowerBound = {xStatistics.getCount() == 0 ? 0 : xStatistics.getMin(), yStatistics.getCount() < 2 ? 0 : yStatistics.getMin()};
-      final @NotNull double[] upperBound = {xStatistics.getCount() == 0 ? 1 : xStatistics.getMax(), yStatistics.getCount() < 2 ? 1 : yStatistics.getMax()};
-      final @NotNull PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
+      @javax.annotation.Nonnull final double[] lowerBound = {xStatistics.getCount() == 0 ? 0 : xStatistics.getMin(), yStatistics.getCount() < 2 ? 0 : yStatistics.getMin()};
+      @javax.annotation.Nonnull final double[] upperBound = {xStatistics.getCount() == 0 ? 1 : xStatistics.getMax(), yStatistics.getCount() < 2 ? 1 : yStatistics.getMax()};
+      @javax.annotation.Nonnull final PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
       canvas.setTitle(title);
       canvas.setAxisLabels("Iteration", "log10(Fitness)");
       canvas.setSize(600, 400);
@@ -127,7 +126,7 @@ public class TestUtil {
       }
       DoubleSummaryStatistics valueStatistics = filtered.stream().flatMap(x -> x.history.stream()).mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
       log.info(String.format("Plotting range=%s, %s; valueStats=%s", Arrays.toString(lowerBound), Arrays.toString(upperBound), valueStatistics));
-      for (final @NotNull ProblemRun trial : filtered) {
+      for (@javax.annotation.Nonnull final ProblemRun trial : filtered) {
         final double[][] pts = trial.history.stream().map(step -> new double[]{
           step.iteration, Math.log10(Math.max(step.fitness, valueStatistics.getMin()))})
                                             .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
@@ -141,7 +140,7 @@ public class TestUtil {
         }
       }
       return canvas;
-    } catch (final @NotNull Exception e) {
+    } catch (@javax.annotation.Nonnull final Exception e) {
       e.printStackTrace(System.out);
       return null;
     }
@@ -153,9 +152,9 @@ public class TestUtil {
    * @param fn the fn
    * @return the string
    */
-  public static String toString(@NotNull Consumer<PrintStream> fn) {
-    @NotNull ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-    try (@NotNull PrintStream out = new PrintStream(buffer)) {
+  public static String toString(@javax.annotation.Nonnull Consumer<PrintStream> fn) {
+    @javax.annotation.Nonnull ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    try (@javax.annotation.Nonnull PrintStream out = new PrintStream(buffer)) {
       fn.accept(out);
     }
     return new String(buffer.toByteArray(), Charset.forName("UTF-8"));
@@ -168,7 +167,7 @@ public class TestUtil {
    * @param trials the trials
    * @return the plot canvas
    */
-  public static PlotCanvas compareTime(final String title, final @NotNull ProblemRun... trials) {
+  public static PlotCanvas compareTime(final String title, @javax.annotation.Nonnull final ProblemRun... trials) {
     try {
       final DoubleSummaryStatistics[] xStatistics = Arrays.stream(trials)
                                                           .map(x -> x.history.stream().mapToDouble(step -> step.epochTime)
@@ -183,9 +182,9 @@ public class TestUtil {
         log.info("No Data");
         return null;
       }
-      final @NotNull double[] lowerBound = {0, yStatistics.getCount() == 0 ? 0 : yStatistics.getMin()};
-      final @NotNull double[] upperBound = {totalTime / 1000.0, yStatistics.getCount() == 1 ? 0 : yStatistics.getMax()};
-      final @NotNull PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
+      @javax.annotation.Nonnull final double[] lowerBound = {0, yStatistics.getCount() == 0 ? 0 : yStatistics.getMin()};
+      @javax.annotation.Nonnull final double[] upperBound = {totalTime / 1000.0, yStatistics.getCount() == 1 ? 0 : yStatistics.getMax()};
+      @javax.annotation.Nonnull final PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
       canvas.setTitle(title);
       canvas.setAxisLabels("Time", "log10(Fitness)");
       canvas.setSize(600, 400);
@@ -212,7 +211,7 @@ public class TestUtil {
         }
       }
       return canvas;
-    } catch (final @NotNull Exception e) {
+    } catch (@javax.annotation.Nonnull final Exception e) {
       e.printStackTrace(System.out);
       return null;
     }
@@ -224,10 +223,10 @@ public class TestUtil {
    * @param log     the log
    * @param network the network
    */
-  public static void extractPerformance(final @NotNull NotebookOutput log, final @NotNull DAGNetwork network) {
+  public static void extractPerformance(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final DAGNetwork network) {
     log.p("Per-layer Performance Metrics:");
     log.code(() -> {
-      final @NotNull Map<NNLayer, MonitoringWrapperLayer> metrics = new HashMap<>();
+      @javax.annotation.Nonnull final Map<NNLayer, MonitoringWrapperLayer> metrics = new HashMap<>();
       network.visitNodes(node -> {
         if (node.getLayer() instanceof MonitoringWrapperLayer) {
           final MonitoringWrapperLayer layer = node.getLayer();
@@ -254,7 +253,7 @@ public class TestUtil {
    * @param history the history
    * @return the monitor
    */
-  public static TrainingMonitor getMonitor(final @NotNull List<StepRecord> history) {
+  public static TrainingMonitor getMonitor(@javax.annotation.Nonnull final List<StepRecord> history) {
     return new TrainingMonitor() {
       @Override
       public void clear() {
@@ -268,7 +267,7 @@ public class TestUtil {
       }
       
       @Override
-      public void onStepComplete(final @NotNull Step currentPoint) {
+      public void onStepComplete(@javax.annotation.Nonnull final Step currentPoint) {
         history.add(new StepRecord(currentPoint.point.getMean(), currentPoint.time, currentPoint.iteration));
         super.onStepComplete(currentPoint);
       }
@@ -281,7 +280,7 @@ public class TestUtil {
    * @param log     the log
    * @param network the network
    */
-  public static void instrumentPerformance(final NotebookOutput log, final @NotNull DAGNetwork network) {
+  public static void instrumentPerformance(final NotebookOutput log, @javax.annotation.Nonnull final DAGNetwork network) {
     network.visitNodes(node -> {
       if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
         MonitoringWrapperLayer monitoringWrapperLayer = new MonitoringWrapperLayer(node.getLayer()).shouldRecordSignalMetrics(false);
@@ -300,18 +299,18 @@ public class TestUtil {
    * @param history the history
    * @return the plot canvas
    */
-  public static PlotCanvas plot(final @NotNull List<StepRecord> history) {
+  public static PlotCanvas plot(@javax.annotation.Nonnull final List<StepRecord> history) {
     try {
       final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
-      final @NotNull PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
+      @javax.annotation.Nonnull final PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
         step.iteration, java.lang.Math.log10(Math.max(valueStats.getMin(), step.fitness))})
-                                                               .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
-                                                               .toArray(i -> new double[i][]));
+                                                                                .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
+                                                                                .toArray(i -> new double[i][]));
       plot.setTitle("Convergence Plot");
       plot.setAxisLabels("Iteration", "log10(Fitness)");
       plot.setSize(600, 400);
       return plot;
-    } catch (final @NotNull Exception e) {
+    } catch (@javax.annotation.Nonnull final Exception e) {
       e.printStackTrace(System.out);
       return null;
     }
@@ -323,19 +322,19 @@ public class TestUtil {
    * @param history the history
    * @return the plot canvas
    */
-  public static PlotCanvas plotTime(final @NotNull List<StepRecord> history) {
+  public static PlotCanvas plotTime(@javax.annotation.Nonnull final List<StepRecord> history) {
     try {
       final LongSummaryStatistics timeStats = history.stream().mapToLong(x -> x.epochTime).summaryStatistics();
       final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
-      final @NotNull PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
+      @javax.annotation.Nonnull final PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
         (step.epochTime - timeStats.getMin()) / 1000.0, java.lang.Math.log10(Math.max(valueStats.getMin(), step.fitness))})
-                                                               .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
-                                                               .toArray(i -> new double[i][]));
+                                                                                .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
+                                                                                .toArray(i -> new double[i][]));
       plot.setTitle("Convergence Plot");
       plot.setAxisLabels("Time", "log10(Fitness)");
       plot.setSize(600, 400);
       return plot;
-    } catch (final @NotNull Exception e) {
+    } catch (@javax.annotation.Nonnull final Exception e) {
       e.printStackTrace(System.out);
       return null;
     }
@@ -347,12 +346,12 @@ public class TestUtil {
    * @param log  the log
    * @param data the data
    */
-  public static void printDataStatistics(final @NotNull NotebookOutput log, final @NotNull Tensor[][] data) {
+  public static void printDataStatistics(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Tensor[][] data) {
     for (int col = 1; col < data[0].length; col++) {
       final int c = col;
       log.out("Learned Representation Statistics for Column " + col + " (all bands)");
       log.code(() -> {
-        final @NotNull ScalarStatistics scalarStatistics = new ScalarStatistics();
+        @javax.annotation.Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
         Arrays.stream(data)
               .flatMapToDouble(row -> Arrays.stream(row[c].getData()))
               .forEach(v -> scalarStatistics.add(v));
@@ -361,10 +360,10 @@ public class TestUtil {
       final int _col = col;
       log.out("Learned Representation Statistics for Column " + col + " (by band)");
       log.code(() -> {
-        final @NotNull int[] dimensions = data[0][_col].getDimensions();
+        @javax.annotation.Nonnull final int[] dimensions = data[0][_col].getDimensions();
         return IntStream.range(0, dimensions[2]).mapToObj(x -> x).flatMap(b -> {
           return Arrays.stream(data).map(r -> r[_col]).map(tensor -> {
-            final @NotNull ScalarStatistics scalarStatistics = new ScalarStatistics();
+            @javax.annotation.Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
             scalarStatistics.add(new Tensor(dimensions[0], dimensions[1]).setByCoord(coord -> tensor.get(coord.getCoords()[0], coord.getCoords()[1], b)).getData());
             return scalarStatistics;
           });
@@ -379,14 +378,14 @@ public class TestUtil {
    * @param log     the log
    * @param history the history
    */
-  public static void printHistory(final @NotNull NotebookOutput log, final @NotNull List<StepRecord> history) {
+  public static void printHistory(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final List<StepRecord> history) {
     if (!history.isEmpty()) {
       log.out("Convergence Plot: ");
       log.code(() -> {
         final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
-        final @NotNull PlotCanvas plot = ScatterPlot.plot(history.stream().map(step ->
+        @javax.annotation.Nonnull final PlotCanvas plot = ScatterPlot.plot(history.stream().map(step ->
                                                                         new double[]{step.iteration, java.lang.Math.log10(Math.max(valueStats.getMin(), step.fitness))})
-                                                                 .toArray(i -> new double[i][]));
+                                                                                  .toArray(i -> new double[i][]));
         plot.setTitle("Convergence Plot");
         plot.setAxisLabels("Iteration", "log10(Fitness)");
         plot.setSize(600, 400);
@@ -400,7 +399,7 @@ public class TestUtil {
    *
    * @param network the network
    */
-  public static void removeLogging(final @NotNull DAGNetwork network) {
+  public static void removeLogging(@javax.annotation.Nonnull final DAGNetwork network) {
     network.visitNodes(node -> {
       if (node.getLayer() instanceof LoggingWrapperLayer) {
         node.setLayer(((LoggingWrapperLayer) node.getLayer()).getInner());
@@ -413,7 +412,7 @@ public class TestUtil {
    *
    * @param network the network
    */
-  public static void removeMonitoring(final @NotNull DAGNetwork network) {
+  public static void removeMonitoring(@javax.annotation.Nonnull final DAGNetwork network) {
     network.visitNodes(node -> {
       if (node.getLayer() instanceof MonitoringWrapperLayer) {
         node.setLayer(((MonitoringWrapperLayer) node.getLayer()).getInner());
@@ -429,11 +428,11 @@ public class TestUtil {
    * @param normalize the normalize
    * @return the string
    */
-  public static String render(final @NotNull NotebookOutput log, final @NotNull Tensor tensor, final boolean normalize) {
+  public static String render(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Tensor tensor, final boolean normalize) {
     return TestUtil.renderToImages(tensor, normalize).map(image -> {
       try {
         return log.image(image, "");
-      } catch (final @NotNull IOException e) {
+      } catch (@javax.annotation.Nonnull final IOException e) {
         throw new RuntimeException(e);
       }
     }).reduce((a, b) -> a + b).get();
@@ -446,13 +445,13 @@ public class TestUtil {
    * @param normalize the normalize
    * @return the stream
    */
-  public static Stream<BufferedImage> renderToImages(final @NotNull Tensor tensor, final boolean normalize) {
+  public static Stream<BufferedImage> renderToImages(@javax.annotation.Nonnull final Tensor tensor, final boolean normalize) {
     final DoubleStatistics[] statistics = IntStream.range(0, tensor.getDimensions()[2]).mapToObj(band -> {
       return new DoubleStatistics().accept(tensor.coordStream(false)
                                                  .filter(x -> x.getCoords()[2] == band)
                                                  .mapToDouble(c -> tensor.get(c)).toArray());
     }).toArray(i -> new DoubleStatistics[i]);
-    final @NotNull BiFunction<Double, DoubleStatistics, Double> transform = (value, stats) -> {
+    @javax.annotation.Nonnull final BiFunction<Double, DoubleStatistics, Double> transform = (value, stats) -> {
       final double width = Math.sqrt(2) * stats.getStandardDeviation();
       final double centered = value - stats.getAverage();
       final double distance = Math.abs(value - stats.getAverage());
@@ -490,7 +489,8 @@ public class TestUtil {
    * @param size   the size
    * @return the buffered image
    */
-  public static @NotNull BufferedImage resize(final @NotNull BufferedImage source, final int size) {return resize(source, size, false);}
+  @javax.annotation.Nonnull
+  public static BufferedImage resize(@javax.annotation.Nonnull final BufferedImage source, final int size) {return resize(source, size, false);}
   
   /**
    * Resize buffered image.
@@ -500,7 +500,8 @@ public class TestUtil {
    * @param preserveAspect the preserve aspect
    * @return the buffered image
    */
-  public static @NotNull BufferedImage resize(final @NotNull BufferedImage source, final int size, boolean preserveAspect) {
+  @javax.annotation.Nonnull
+  public static BufferedImage resize(@javax.annotation.Nonnull final BufferedImage source, final int size, boolean preserveAspect) {
     if (size < 0) return source;
     return resize(source, size, preserveAspect ? ((int) (size * (source.getHeight() * 1.0 / source.getWidth()))) : size);
   }
@@ -513,9 +514,10 @@ public class TestUtil {
    * @param height the height
    * @return the buffered image
    */
-  public static @NotNull BufferedImage resize(BufferedImage source, int width, int height) {
-    final @NotNull BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-    final @NotNull Graphics2D graphics = (Graphics2D) image.getGraphics();
+  @javax.annotation.Nonnull
+  public static BufferedImage resize(BufferedImage source, int width, int height) {
+    @javax.annotation.Nonnull final BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    @javax.annotation.Nonnull final Graphics2D graphics = (Graphics2D) image.getGraphics();
     graphics.setRenderingHints(new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC));
     graphics.drawImage(source, 0, 0, width, height, null);
     return image;
@@ -529,10 +531,10 @@ public class TestUtil {
    */
   public static String toFormattedJson(final Object metrics) {
     try {
-      final @NotNull ByteArrayOutputStream out = new ByteArrayOutputStream();
+      @javax.annotation.Nonnull final ByteArrayOutputStream out = new ByteArrayOutputStream();
       JsonUtil.writeJson(out, metrics);
       return out.toString();
-    } catch (final @NotNull IOException e1) {
+    } catch (@javax.annotation.Nonnull final IOException e1) {
       throw new RuntimeException(e1);
     }
   }
@@ -543,7 +545,7 @@ public class TestUtil {
    * @param network the network
    * @return the graph
    */
-  public static Graph toGraph(final @NotNull DAGNetwork network) {
+  public static Graph toGraph(@javax.annotation.Nonnull final DAGNetwork network) {
     final List<DAGNode> nodes = network.getNodes();
     final Map<UUID, MutableNode> graphNodes = nodes.stream().collect(Collectors.toMap(node -> node.getId(), node -> {
       String name;
@@ -580,14 +582,14 @@ public class TestUtil {
    * @param stream the stream
    * @return the int stream
    */
-  public static IntStream shuffle(@NotNull IntStream stream) {
+  public static IntStream shuffle(@javax.annotation.Nonnull IntStream stream) {
     // http://primes.utm.edu/lists/small/10000.txt
     long coprimeA = 41387;
     long coprimeB = 9967;
     long ringSize = coprimeA * coprimeB - 1;
-    @NotNull IntToLongFunction fn = x -> (x * coprimeA * coprimeA) % ringSize;
-    @NotNull LongToIntFunction inv = x -> (int) ((x * coprimeB * coprimeB) % ringSize);
-    @NotNull IntUnaryOperator conditions = x -> {
+    @javax.annotation.Nonnull IntToLongFunction fn = x -> (x * coprimeA * coprimeA) % ringSize;
+    @javax.annotation.Nonnull LongToIntFunction inv = x -> (int) ((x * coprimeB * coprimeB) % ringSize);
+    @javax.annotation.Nonnull IntUnaryOperator conditions = x -> {
       assert x < ringSize;
       assert x >= 0;
       return x;
@@ -600,7 +602,7 @@ public class TestUtil {
    *
    * @param runnables the runnables
    */
-  public static void runAllParallel(@NotNull Runnable... runnables) {
+  public static void runAllParallel(@javax.annotation.Nonnull Runnable... runnables) {
     Arrays.stream(runnables)
           .parallel()
           .forEach(Runnable::run);
@@ -611,7 +613,7 @@ public class TestUtil {
    *
    * @param runnables the runnables
    */
-  public static void runAllSerial(@NotNull Runnable... runnables) {
+  public static void runAllSerial(@javax.annotation.Nonnull Runnable... runnables) {
     Arrays.stream(runnables)
           .forEach(Runnable::run);
   }
@@ -623,9 +625,9 @@ public class TestUtil {
    * @param suppliers the suppliers
    * @return the supplier
    */
-  public static <T> Supplier<T> orElse(@NotNull Supplier<T>... suppliers) {
+  public static <T> Supplier<T> orElse(@javax.annotation.Nonnull Supplier<T>... suppliers) {
     return () -> {
-      for (@NotNull Supplier<T> supplier : suppliers) {
+      for (@javax.annotation.Nonnull Supplier<T> supplier : suppliers) {
         T t = supplier.get();
         if (null != t) return t;
       }

@@ -26,7 +26,6 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.util.ArrayUtil;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -49,7 +48,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
   private int maxHistory = 30;
   private int minHistory = 3;
   
-  private static boolean isFinite(final @NotNull DoubleBufferSet<?, ?> delta) {
+  private static boolean isFinite(@javax.annotation.Nonnull final DoubleBufferSet<?, ?> delta) {
     return delta.stream().parallel().flatMapToDouble(y -> Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d));
   }
   
@@ -59,7 +58,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
    * @param measurement the measurement
    * @param monitor     the monitor
    */
-  public void addToHistory(final @NotNull PointSample measurement, final @NotNull TrainingMonitor monitor) {
+  public void addToHistory(@javax.annotation.Nonnull final PointSample measurement, @javax.annotation.Nonnull final TrainingMonitor monitor) {
     if (!LBFGS.isFinite(measurement.delta)) {
       if (verbose) {
         monitor.log("Corrupt measurement");
@@ -79,10 +78,11 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     }
   }
   
-  private @NotNull SimpleLineSearchCursor cursor(final Trainable subject, final @NotNull PointSample measurement, final String type, final DeltaSet<NNLayer> result) {
+  @javax.annotation.Nonnull
+  private SimpleLineSearchCursor cursor(final Trainable subject, @javax.annotation.Nonnull final PointSample measurement, final String type, final DeltaSet<NNLayer> result) {
     return new SimpleLineSearchCursor(subject, measurement, result) {
       @Override
-      public LineSearchPoint step(final double t, final @NotNull TrainingMonitor monitor) {
+      public LineSearchPoint step(final double t, @javax.annotation.Nonnull final TrainingMonitor monitor) {
         final LineSearchPoint measure = super.step(t, monitor);
         addToHistory(measure.point, monitor);
         return measure;
@@ -105,7 +105,8 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
    * @param maxHistory the max history
    * @return the max history
    */
-  public @NotNull LBFGS setMaxHistory(final int maxHistory) {
+  @javax.annotation.Nonnull
+  public LBFGS setMaxHistory(final int maxHistory) {
     this.maxHistory = maxHistory;
     return this;
   }
@@ -125,7 +126,8 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
    * @param minHistory the min history
    * @return the min history
    */
-  public @NotNull LBFGS setMinHistory(final int minHistory) {
+  @javax.annotation.Nonnull
+  public LBFGS setMinHistory(final int minHistory) {
     this.minHistory = minHistory;
     return this;
   }
@@ -138,7 +140,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
    * @param history     the history
    * @return the delta setBytes
    */
-  protected @Nullable DeltaSet<NNLayer> lbfgs(final @NotNull PointSample measurement, final @NotNull TrainingMonitor monitor, final @NotNull List<PointSample> history) {
+  protected @Nullable DeltaSet<NNLayer> lbfgs(@javax.annotation.Nonnull final PointSample measurement, @javax.annotation.Nonnull final TrainingMonitor monitor, @javax.annotation.Nonnull final List<PointSample> history) {
     final DeltaSet<NNLayer> result = measurement.delta.scale(-1);
     if (history.size() > minHistory) {
       if (lbfgs(measurement, monitor, history, result)) {
@@ -161,13 +163,13 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     }
   }
   
-  private boolean lbfgs(@NotNull PointSample measurement, @NotNull TrainingMonitor monitor, @NotNull List<PointSample> history, @NotNull DeltaSet<NNLayer> direction) {
+  private boolean lbfgs(@javax.annotation.Nonnull PointSample measurement, @javax.annotation.Nonnull TrainingMonitor monitor, @javax.annotation.Nonnull List<PointSample> history, @javax.annotation.Nonnull DeltaSet<NNLayer> direction) {
     try {
       DeltaSet<NNLayer> p = measurement.delta.copy();
       if (!p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d)))) {
         throw new IllegalStateException("Non-finite value");
       }
-      final @NotNull double[] alphas = new double[history.size()];
+      @javax.annotation.Nonnull final double[] alphas = new double[history.size()];
       for (int i = history.size() - 2; i >= 0; i--) {
         final DeltaSet<NNLayer> sd = history.get(i + 1).weights.subtract(history.get(i).weights);
         final DeltaSet<NNLayer> yd = history.get(i + 1).delta.subtract(history.get(i).delta);
@@ -211,15 +213,15 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     }
   }
   
-  private void copy(@NotNull DeltaSet<NNLayer> from, @NotNull DeltaSet<NNLayer> to) {
-    for (final @NotNull Map.Entry<NNLayer, Delta<NNLayer>> e : to.getMap().entrySet()) {
+  private void copy(@javax.annotation.Nonnull DeltaSet<NNLayer> from, @javax.annotation.Nonnull DeltaSet<NNLayer> to) {
+    for (@javax.annotation.Nonnull final Map.Entry<NNLayer, Delta<NNLayer>> e : to.getMap().entrySet()) {
       final double[] delta = from.getMap().get(e.getKey()).getDelta();
       Arrays.setAll(e.getValue().getDelta(), j -> delta[j]);
     }
   }
   
   @Override
-  public SimpleLineSearchCursor orient(final Trainable subject, final @NotNull PointSample measurement, final @NotNull TrainingMonitor monitor) {
+  public SimpleLineSearchCursor orient(final Trainable subject, @javax.annotation.Nonnull final PointSample measurement, @javax.annotation.Nonnull final TrainingMonitor monitor) {
 
 //    if (getClass().desiredAssertionStatus()) {
 //      double verify = subject.measure(monitor).getMean();
@@ -230,7 +232,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
 //    }
     
     addToHistory(measurement, monitor);
-    final @NotNull List<PointSample> history = Arrays.asList(this.history.toArray(new PointSample[]{}));
+    @javax.annotation.Nonnull final List<PointSample> history = Arrays.asList(this.history.toArray(new PointSample[]{}));
     final @Nullable DeltaSet<NNLayer> result = lbfgs(measurement, monitor, history);
     SimpleLineSearchCursor returnValue;
     if (null == result) {
@@ -269,7 +271,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
   
   @Override
   protected void _free() {
-    for (@NotNull PointSample pointSample : history) {
+    for (@javax.annotation.Nonnull PointSample pointSample : history) {
       pointSample.freeRef();
     }
   }
@@ -286,13 +288,13 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
      * @param gradient    the gradient
      * @param quasinewton the quasinewton
      */
-    public Stats(@NotNull DeltaSet<NNLayer> gradient, @NotNull DeltaSet<NNLayer> quasinewton) {
+    public Stats(@javax.annotation.Nonnull DeltaSet<NNLayer> gradient, @javax.annotation.Nonnull DeltaSet<NNLayer> quasinewton) {
       mag = Math.sqrt(quasinewton.dot(quasinewton));
       magGrad = Math.sqrt(gradient.dot(gradient));
       dot = gradient.dot(quasinewton) / (mag * magGrad);
       anglesPerLayer = gradient.getMap().entrySet().stream()
                                .filter(e -> !(e.getKey() instanceof PlaceholderLayer)) // This would be too verbose
-                               .map((final @NotNull Map.Entry<NNLayer, Delta<NNLayer>> e) -> {
+                               .map((@javax.annotation.Nonnull final Map.Entry<NNLayer, Delta<NNLayer>> e) -> {
                                  final double[] lbfgsVector = gradient.getMap().get(e.getKey()).getDelta();
                                  for (int index = 0; index < lbfgsVector.length; index++) {
                                    lbfgsVector[index] = Double.isFinite(lbfgsVector[index]) ? lbfgsVector[index] : 0;

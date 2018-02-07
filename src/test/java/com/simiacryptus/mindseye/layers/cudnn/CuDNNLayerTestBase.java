@@ -30,7 +30,6 @@ import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.ComponentTestBase;
 import com.simiacryptus.mindseye.test.unit.GpuLocalityTester;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.PrintStream;
@@ -47,18 +46,19 @@ public abstract class CuDNNLayerTestBase extends LayerTestBase {
   public CuDNNLayerTestBase() {
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull ArrayList<ComponentTest<?>> getBigTests() {
-    @NotNull ArrayList<ComponentTest<?>> copy = new ArrayList<>(super.getBigTests());
+  public ArrayList<ComponentTest<?>> getBigTests() {
+    @javax.annotation.Nonnull ArrayList<ComponentTest<?>> copy = new ArrayList<>(super.getBigTests());
     if (CuDNNHandle.POOL.size() > 1) copy.add(new GpuLocalityTester(1e-3));
     return copy;
   }
   
   @Override
   public void run(NotebookOutput log) {
-    @NotNull String logName = "cuda_" + log.getName() + "_all.log";
+    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all.log";
     log.p(log.file((String) null, logName, "GPU Log"));
-    @NotNull PrintStream apiLog = new PrintStream(log.file(logName));
+    @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
     GpuSystem.addLog(apiLog);
     super.run(log);
     log.p("GpuSystem Statistics:");
@@ -80,10 +80,10 @@ public abstract class CuDNNLayerTestBase extends LayerTestBase {
       }
     
       @Override
-      public ToleranceStatistics test(@NotNull NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
+      public ToleranceStatistics test(@javax.annotation.Nonnull NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
         @Nullable PrintStream apiLog = null;
         try {
-          @NotNull String logName = "cuda_" + log.getName() + "_io.log";
+          @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_io.log";
           log.p(log.file((String) null, logName, "GPU Log"));
           apiLog = new PrintStream(log.file(logName));
           GpuSystem.addLog(apiLog);
@@ -109,10 +109,10 @@ public abstract class CuDNNLayerTestBase extends LayerTestBase {
       }
     
       @Override
-      public ToleranceStatistics test(@NotNull NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
+      public ToleranceStatistics test(@javax.annotation.Nonnull NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
         @Nullable PrintStream apiLog = null;
         try {
-          @NotNull String logName = "cuda_" + log.getName() + "_perf.log";
+          @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_perf.log";
           log.p(log.file((String) null, logName, "GPU Log"));
           apiLog = new PrintStream(log.file(logName));
           GpuSystem.addLog(apiLog);

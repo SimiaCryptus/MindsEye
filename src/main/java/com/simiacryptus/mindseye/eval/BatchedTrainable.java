@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -74,11 +73,11 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
   
   @Override
   public PointSample measure(final TrainingMonitor monitor) {
-    final @NotNull List<Tensor[]> tensors = Arrays.asList(getData());
+    @javax.annotation.Nonnull final List<Tensor[]> tensors = Arrays.asList(getData());
     if (batchSize < tensors.size()) {
       final int batches = (int) Math.ceil(tensors.size() * 1.0 / batchSize);
       final int evenBatchSize = (int) Math.ceil(tensors.size() * 1.0 / batches);
-      final @NotNull List<List<Tensor[]>> collection = Lists.partition(tensors, evenBatchSize);
+      @javax.annotation.Nonnull final List<List<Tensor[]>> collection = Lists.partition(tensors, evenBatchSize);
       return collection.stream().map(trainingData -> {
         if (batchSize < trainingData.size()) {
           throw new RuntimeException();

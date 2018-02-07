@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.network;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Singleton;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
@@ -67,7 +66,7 @@ abstract class LazyResult extends ReferenceCountingBase implements DAGNode {
   protected abstract NNResult eval(GraphEvaluationContext t);
   
   @Override
-  public @Nullable CountingNNResult get(final @NotNull GraphEvaluationContext context) {
+  public @Nullable CountingNNResult get(@javax.annotation.Nonnull final GraphEvaluationContext context) {
     context.assertAlive();
     assertAlive();
     long expectedCount = context.expectedCounts.getOrDefault(id, -1L);

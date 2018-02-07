@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * A particular point in a NNLayer line search phase. Contains both the high-dimensional position and derivative, and
@@ -49,9 +48,10 @@ public class LineSearchPoint extends ReferenceCountingBase {
     this.derivative = derivative;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull String toString() {
-    final @NotNull StringBuffer sb = new StringBuffer("LineSearchPoint{");
+  public String toString() {
+    @javax.annotation.Nonnull final StringBuffer sb = new StringBuffer("LineSearchPoint{");
     sb.append("point=").append(point);
     sb.append(", derivative=").append(derivative);
     sb.append('}');

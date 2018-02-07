@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * The type Test error.
@@ -33,7 +32,8 @@ public class TestError extends RuntimeException {
   /**
    * The Layer.
    */
-  public final @NotNull NNLayer layer;
+  @javax.annotation.Nonnull
+  public final NNLayer layer;
   
   /**
    * Instantiates a new Test error.
@@ -42,7 +42,7 @@ public class TestError extends RuntimeException {
    * @param test  the test
    * @param layer the layer
    */
-  public TestError(Throwable cause, ComponentTest<?> test, @NotNull NNLayer layer) {
+  public TestError(Throwable cause, ComponentTest<?> test, @javax.annotation.Nonnull NNLayer layer) {
     super(String.format("Error in %s with %s", test, layer), cause);
     this.test = test;
     this.test.addRef();

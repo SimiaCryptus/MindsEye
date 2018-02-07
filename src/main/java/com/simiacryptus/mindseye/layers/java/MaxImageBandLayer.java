@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.io.JsonUtil;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +55,7 @@ public class MaxImageBandLayer extends NNLayer {
    * @param id         the id
    * @param kernelDims the kernel dims
    */
-  protected MaxImageBandLayer(final @NotNull JsonObject id, final int... kernelDims) {
+  protected MaxImageBandLayer(@javax.annotation.Nonnull final JsonObject id, final int... kernelDims) {
     super(id);
   }
   
@@ -67,18 +66,19 @@ public class MaxImageBandLayer extends NNLayer {
    * @param rs   the rs
    * @return the max image band layer
    */
-  public static MaxImageBandLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static MaxImageBandLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new MaxImageBandLayer(json,
                                  JsonUtil.getIntArray(json.getAsJsonArray("heapCopy")));
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNResult eval(final @NotNull NNResult... inObj) {
-  
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+    
     assert 1 == inObj.length;
     final NNResult in = inObj[0];
     in.getData().length();
-    final @NotNull int[] inputDims = in.getData().get(0).getDimensions();
+    @javax.annotation.Nonnull final int[] inputDims = in.getData().get(0).getDimensions();
     assert 3 == inputDims.length;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     
@@ -87,17 +87,17 @@ public class MaxImageBandLayer extends NNLayer {
         return data.coordStream(true).filter(e -> e.getCoords()[2] == band).max(Comparator.comparing(c -> data.get(c))).get();
       }).toArray(i -> new Coordinate[i]);
     }).toArray(i -> new Coordinate[i][]);
-  
+    
     return new NNResult(TensorArray.wrap(IntStream.range(0, in.getData().length()).mapToObj(dataIndex -> {
       final DoubleStream doubleStream = IntStream.range(0, inputDims[2]).mapToDouble(band -> {
         final int[] maxCoord = maxCoords[dataIndex][band].getCoords();
         return in.getData().get(dataIndex).get(maxCoord[0], maxCoord[1], band);
       });
       return new Tensor(1, 1, inputDims[2]).set(Tensor.getDoubles(doubleStream, inputDims[2]));
-    }).toArray(i -> new Tensor[i])), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (in.isAlive()) {
-        @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
-          final @NotNull Tensor passback = new Tensor(in.getData().get(dataIndex).getDimensions());
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
+          @javax.annotation.Nonnull final Tensor passback = new Tensor(in.getData().get(dataIndex).getDimensions());
           IntStream.range(0, inputDims[2]).forEach(b -> {
             final int[] maxCoord = maxCoords[dataIndex][b].getCoords();
             passback.set(new int[]{maxCoord[0], maxCoord[1], b}, data.get(dataIndex).get(0, 0, b));
@@ -108,13 +108,13 @@ public class MaxImageBandLayer extends NNLayer {
         tensorArray.freeRef();
       }
     }) {
-    
+      
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-    
-    
+      
+      
       @Override
       public boolean isAlive() {
         return in.isAlive();
@@ -122,14 +122,16 @@ public class MaxImageBandLayer extends NNLayer {
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     return json;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
   
@@ -168,7 +170,7 @@ public class MaxImageBandLayer extends NNLayer {
       if (getClass() != obj.getClass()) {
         return false;
       }
-      final @NotNull MaxImageBandLayer.CalcRegionsParameter other = (MaxImageBandLayer.CalcRegionsParameter) obj;
+      @javax.annotation.Nonnull final MaxImageBandLayer.CalcRegionsParameter other = (MaxImageBandLayer.CalcRegionsParameter) obj;
       if (!Arrays.equals(inputDims, other.inputDims)) {
         return false;
       }

@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
 
@@ -44,20 +43,23 @@ public abstract class ImgConcatLayerTest extends CuDNNLayerTestBase {
     this.precision = precision;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull int[][] getSmallDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{
       {8, 8, 1}, {8, 8, 1}
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return new ImgConcatLayer();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull int[][] getLargeDims(Random random) {
+  public int[][] getLargeDims(Random random) {
     return new int[][]{
       {200, 200, 3}, {200, 200, 3}
     };
@@ -79,21 +81,24 @@ public abstract class ImgConcatLayerTest extends CuDNNLayerTestBase {
     public BandLimitTest() {
       super(Precision.Double);
     }
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull int[][] getSmallDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {1, 1, 3}
       };
     }
   
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull int[][] getLargeDims(Random random) {
+    public int[][] getLargeDims(Random random) {
       return getSmallDims(new Random());
     }
   
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
+    public NNLayer getLayer(final int[][] inputSize, Random random) {
       return new ImgConcatLayer().setMaxBands(2);
     }
   }
@@ -110,21 +115,24 @@ public abstract class ImgConcatLayerTest extends CuDNNLayerTestBase {
     public BandConcatLimitTest() {
       super(Precision.Double);
     }
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull int[][] getSmallDims(Random random) {
+    public int[][] getSmallDims(Random random) {
       return new int[][]{
         {1, 1, 2}, {1, 1, 2}
       };
     }
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull int[][] getLargeDims(Random random) {
+    public int[][] getLargeDims(Random random) {
       return getSmallDims(new Random());
     }
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
+    public NNLayer getLayer(final int[][] inputSize, Random random) {
       return new ImgConcatLayer().setMaxBands(3);
     }
   }

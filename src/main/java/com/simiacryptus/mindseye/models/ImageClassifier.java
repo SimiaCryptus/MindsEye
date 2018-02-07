@@ -25,7 +25,6 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -57,7 +56,7 @@ public abstract class ImageClassifier {
    * @param data       the data
    * @return the list
    */
-  public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @NotNull NNLayer network, int count, @NotNull List<String> categories, int batchSize, Tensor... data) {
+  public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @javax.annotation.Nonnull NNLayer network, int count, @javax.annotation.Nonnull List<String> categories, int batchSize, Tensor... data) {
     return predict(prefilter, network, count, categories, batchSize, true, false, data);
   }
   
@@ -74,8 +73,8 @@ public abstract class ImageClassifier {
    * @param data       the data
    * @return the list
    */
-  public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @NotNull NNLayer network, int count, @NotNull List<String> categories, int batchSize, boolean asyncGC, boolean nullGC, Tensor[] data) {
-    @NotNull Executor garbageman = (!nullGC && asyncGC) ? Executors.newSingleThreadExecutor() : command -> {
+  public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @javax.annotation.Nonnull NNLayer network, int count, @javax.annotation.Nonnull List<String> categories, int batchSize, boolean asyncGC, boolean nullGC, Tensor[] data) {
+    @javax.annotation.Nonnull Executor garbageman = (!nullGC && asyncGC) ? Executors.newSingleThreadExecutor() : command -> {
       if (!nullGC) command.run();
     };
     try {
@@ -91,7 +90,7 @@ public abstract class ImageClassifier {
                                  .sorted(Comparator.comparing(i -> -predictionSignal[i]))
                                  .mapToInt(x -> x).toArray();
           assert categories.size() == predictionSignal.length;
-          @NotNull LinkedHashMap<String, Double> topN = new LinkedHashMap<>();
+          @javax.annotation.Nonnull LinkedHashMap<String, Double> topN = new LinkedHashMap<>();
           for (int i = 0; i < count; i++) {
             int index = order[i];
             topN.put(categories.get(index), predictionSignal[index]);
@@ -115,7 +114,7 @@ public abstract class ImageClassifier {
    * @param data       the data
    * @return the list
    */
-  public List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @NotNull NNLayer network, int count, @NotNull List<String> categories, @NotNull Tensor... data) {
+  public List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @javax.annotation.Nonnull NNLayer network, int count, @javax.annotation.Nonnull List<String> categories, @javax.annotation.Nonnull Tensor... data) {
     return predict(prefilter, network, count, categories, Math.max(data.length, getBatchSize()), data);
   }
   
@@ -125,7 +124,8 @@ public abstract class ImageClassifier {
    * @param tensor the tensor
    * @return the tensor
    */
-  public abstract @NotNull Tensor prefilter(Tensor tensor);
+  @javax.annotation.Nonnull
+  public abstract Tensor prefilter(Tensor tensor);
   
   /**
    * Gets categories.
@@ -153,7 +153,7 @@ public abstract class ImageClassifier {
    * @param data    the data
    * @return the list
    */
-  public List<LinkedHashMap<String, Double>> predict(@NotNull NNLayer network, int count, Tensor[] data) {
+  public List<LinkedHashMap<String, Double>> predict(@javax.annotation.Nonnull NNLayer network, int count, Tensor[] data) {
     return predict(this::prefilter, network, count, getCategories(), data);
   }
   
@@ -179,7 +179,8 @@ public abstract class ImageClassifier {
    * @param batchSize the batch size
    * @return the batch size
    */
-  public @NotNull ImageClassifier setBatchSize(int batchSize) {
+  @javax.annotation.Nonnull
+  public ImageClassifier setBatchSize(int batchSize) {
     this.batchSize = batchSize;
     return this;
   }

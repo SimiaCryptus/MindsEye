@@ -37,7 +37,6 @@ import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.line.StaticLearningRate;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.TimeUnit;
@@ -48,20 +47,21 @@ import java.util.function.DoubleSupplier;
  */
 public abstract class RecursiveSubspaceTest extends MnistTestBase {
   
+  @javax.annotation.Nonnull
   @Override
-  protected @NotNull Class<?> getTargetClass() {
+  protected Class<?> getTargetClass() {
     return RecursiveSubspace.class;
   }
   
   @Override
-  public DAGNetwork buildModel(@NotNull NotebookOutput log) {
+  public DAGNetwork buildModel(@javax.annotation.Nonnull NotebookOutput log) {
     log.h3("Model");
     log.p("We use a multi-level convolution network");
     return log.code(() -> {
-      final @NotNull PipelineNetwork network = new PipelineNetwork();
+      @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       double weight = 1e-3;
   
-      @NotNull DoubleSupplier init = () -> weight * (Math.random() - 0.5);
+      @javax.annotation.Nonnull DoubleSupplier init = () -> weight * (Math.random() - 0.5);
       network.add(new ConvolutionLayer(3, 3, 1, 5).set(init));
       network.add(new ImgBandBiasLayer(5));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
@@ -91,10 +91,10 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
   }
   
   @Override
-  public void train(final @NotNull NotebookOutput log, final @NotNull NNLayer network, final @NotNull Tensor[][] trainingData, final TrainingMonitor monitor) {
+  public void train(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer network, @javax.annotation.Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.code(() -> {
-      final @NotNull SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-      @NotNull ValidatingTrainer trainer = new ValidatingTrainer(
+      @javax.annotation.Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
+      @javax.annotation.Nonnull ValidatingTrainer trainer = new ValidatingTrainer(
         new SampledArrayTrainable(trainingData, supervisedNetwork, 1000, 1000),
         new ArrayTrainable(trainingData, supervisedNetwork, 1000).cached()
       ).setMonitor(monitor);
@@ -113,14 +113,16 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
    *
    * @return the orientation
    */
-  protected abstract @NotNull OrientationStrategy<?> getOrientation();
+  @javax.annotation.Nonnull
+  protected abstract OrientationStrategy<?> getOrientation();
   
   /**
    * The type Baseline.
    */
   public static class Baseline extends RecursiveSubspaceTest {
   
-    public @NotNull OrientationStrategy<?> getOrientation() {
+    @javax.annotation.Nonnull
+    public OrientationStrategy<?> getOrientation() {
       return new LBFGS();
     }
   
@@ -131,12 +133,14 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
    */
   public static class Normalized extends RecursiveSubspaceTest {
   
-    public @NotNull OrientationStrategy<?> getOrientation() {
+    @javax.annotation.Nonnull
+    public OrientationStrategy<?> getOrientation() {
       return new LBFGS();
     }
-    
+  
+    @javax.annotation.Nonnull
     @Override
-    protected @NotNull NNLayer newNormalizationLayer() {
+    protected NNLayer newNormalizationLayer() {
       return new NormalizationMetaLayer();
     }
   }
@@ -146,7 +150,8 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
    */
   public static class Demo extends RecursiveSubspaceTest {
   
-    public @NotNull OrientationStrategy<?> getOrientation() {
+    @javax.annotation.Nonnull
+    public OrientationStrategy<?> getOrientation() {
       return new RecursiveSubspace();
     }
     

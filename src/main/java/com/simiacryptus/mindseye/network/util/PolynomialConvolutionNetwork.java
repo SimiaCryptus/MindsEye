@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ProductLayer;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -55,7 +54,7 @@ public class PolynomialConvolutionNetwork extends PolynomialNetwork {
    * @param json the json
    * @param rs   the rs
    */
-  protected PolynomialConvolutionNetwork(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  protected PolynomialConvolutionNetwork(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json, rs);
     radius = json.get("radius").getAsInt();
     json.get("simple").getAsBoolean();
@@ -68,22 +67,25 @@ public class PolynomialConvolutionNetwork extends PolynomialNetwork {
    * @param rs   the rs
    * @return the polynomial convolution network
    */
-  public static PolynomialConvolutionNetwork fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static PolynomialConvolutionNetwork fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new PolynomialConvolutionNetwork(json, rs);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNLayer newBias(final int[] dims, final double weight) {
+  public NNLayer newBias(final int[] dims, final double weight) {
     return new ImgBandBiasLayer(dims[2]).setWeights(i -> weight);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNLayer newProductLayer() {
+  public NNLayer newProductLayer() {
     return new ProductLayer();
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNLayer newSynapse(final double weight) {
+  public NNLayer newSynapse(final double weight) {
     return new ConvolutionLayer(radius, radius, inputDims[2], outputDims[2]).set(i -> weight * (Math.random() - 0.5));
   }
 }

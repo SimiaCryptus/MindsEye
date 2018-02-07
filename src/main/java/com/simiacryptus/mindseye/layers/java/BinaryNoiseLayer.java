@@ -23,7 +23,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.FastRandom;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +49,8 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
   /**
    * The Mask list.
    */
-  @NotNull List<Tensor> maskList = new ArrayList<>();
+  @javax.annotation.Nonnull
+  List<Tensor> maskList = new ArrayList<>();
   private double value;
   private boolean enabled = true;
   
@@ -76,7 +76,7 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
    *
    * @param json the json
    */
-  protected BinaryNoiseLayer(final @NotNull JsonObject json) {
+  protected BinaryNoiseLayer(@javax.annotation.Nonnull final JsonObject json) {
     super(json);
     value = json.get("value").getAsDouble();
     JsonElement enabled = json.get("enabled");
@@ -90,12 +90,12 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
    * @param rs   the rs
    * @return the binary noise layer
    */
-  public static BinaryNoiseLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static BinaryNoiseLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new BinaryNoiseLayer(json);
   }
   
   @Override
-  public NNResult eval(final @NotNull NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final NNResult input = inObj[0];
     if (!enabled) return input;
@@ -104,12 +104,12 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
       maskList.clear();
     }
     final int length = input.getData().length();
-    final @NotNull Tensor tensorPrototype = new Tensor(dimensions);
+    @javax.annotation.Nonnull final Tensor tensorPrototype = new Tensor(dimensions);
     while (length > maskList.size()) {
       maskList.add(tensorPrototype.map(v -> FastRandom.random() < getValue() ? 0 : (1.0 / getValue())));
     }
-    final @NotNull TensorList mask = TensorArray.create(maskList.stream().limit(length).toArray(i -> new Tensor[i]));
-    return new NNResult(mask, (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
+    @javax.annotation.Nonnull final TensorList mask = TensorArray.create(maskList.stream().limit(length).toArray(i -> new Tensor[i]));
+    return new NNResult(mask, (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       input.accumulate(buffer, data);
     }) {
   
@@ -126,9 +126,10 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
     };
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("value", value);
     json.addProperty("enabled", enabled);
     return json;
@@ -149,7 +150,8 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
    * @param value the value
    * @return the value
    */
-  public @NotNull BinaryNoiseLayer setValue(final double value) {
+  @javax.annotation.Nonnull
+  public BinaryNoiseLayer setValue(final double value) {
     this.value = value;
     shuffle();
     return this;
@@ -166,8 +168,9 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
     this.enabled = false;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull List<double[]> state() {
+  public List<double[]> state() {
     return Arrays.asList();
   }
   

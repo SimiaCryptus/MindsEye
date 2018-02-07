@@ -29,7 +29,6 @@ import com.simiacryptus.mindseye.layers.java.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintStream;
 import java.util.List;
@@ -64,18 +63,21 @@ public abstract class ActivationLayerTest extends CuDNNLayerTestBase {
     return new SingleDerivativeTester(1e-2, 1e-4);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull int[][] getSmallDims(Random random) {
+  public int[][] getSmallDims(Random random) {
     return new int[][]{{8, 8, 1}};
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
+  public NNLayer getLayer(final int[][] inputSize, Random random) {
     return new ActivationLayer(mode).setPrecision(precision);
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull int[][] getLargeDims(Random random) {
+  public int[][] getLargeDims(Random random) {
     return new int[][]{
       {200, 200, 3}
     };
@@ -83,19 +85,19 @@ public abstract class ActivationLayerTest extends CuDNNLayerTestBase {
   
   @Override
   public void run(final NotebookOutput log) {
-    @NotNull String logName = "cuda_" + log.getName() + "_all.log";
+    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all.log";
     log.p(log.file((String) null, logName, "GPU Log"));
     GpuSystem.addLog(new PrintStream(log.file(logName)));
   
     super.run(log);
   
     log.h3("Function Plots");
-    final @NotNull NNLayer layer = getLayer(new int[][]{{8, 8, 1}}, new Random());
+    @javax.annotation.Nonnull final NNLayer layer = getLayer(new int[][]{{8, 8, 1}}, new Random());
     final List<double[]> plotData = IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0).mapToObj(x -> {
-      @NotNull Tensor input = new Tensor(new double[]{x}, 1, 1, 1);
-      final @NotNull SimpleEval eval = SimpleEval.run(layer, input);
+      @javax.annotation.Nonnull Tensor input = new Tensor(new double[]{x}, 1, 1, 1);
+      @javax.annotation.Nonnull final SimpleEval eval = SimpleEval.run(layer, input);
       input.freeRef();
-      @NotNull double[] doubles = {x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};
+      @javax.annotation.Nonnull double[] doubles = {x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};
       eval.freeRef();
       return doubles;
     }).collect(Collectors.toList());

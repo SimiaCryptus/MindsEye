@@ -20,7 +20,6 @@
 package com.simiacryptus.util.io;
 
 import com.simiacryptus.util.lang.UncheckedSupplier;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
 import java.io.Closeable;
@@ -38,7 +37,7 @@ public interface NotebookOutput extends Closeable {
    *
    * @param fn the fn
    */
-  default void code(final @NotNull Runnable fn) {
+  default void code(@javax.annotation.Nonnull final Runnable fn) {
     this.code(() -> {
       fn.run();
       return null;
@@ -51,7 +50,7 @@ public interface NotebookOutput extends Closeable {
    * @param fn   the fn
    * @param size the size
    */
-  default void code(final @NotNull Runnable fn, int size) {
+  default void code(@javax.annotation.Nonnull final Runnable fn, int size) {
     this.code(() -> {
       fn.run();
       return null;
@@ -65,7 +64,7 @@ public interface NotebookOutput extends Closeable {
    * @param maxLog   the max log
    * @param framesNo the frames no
    */
-  default void code(final @NotNull Runnable fn, final int maxLog, final int framesNo) {
+  default void code(@javax.annotation.Nonnull final Runnable fn, final int maxLog, final int framesNo) {
     this.code(() -> {
       fn.run();
       return null;

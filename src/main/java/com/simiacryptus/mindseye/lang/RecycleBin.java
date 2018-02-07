@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.lang;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +53,7 @@ public abstract class RecycleBin<T> {
     }
     
     @Override
-    public void reset(final @NotNull double[] data, long size) {
+    public void reset(@javax.annotation.Nonnull final double[] data, long size) {
       assert data.length == size;
       Arrays.fill(data, 0);
     }
@@ -174,7 +173,8 @@ public abstract class RecycleBin<T> {
    * @param length the length
    * @return the t
    */
-  public abstract @NotNull T create(long length);
+  @javax.annotation.Nonnull
+  public abstract T create(long length);
   
   /**
    * Gets allocations.
@@ -235,7 +235,7 @@ public abstract class RecycleBin<T> {
    *
    * @param out the out
    */
-  public void printAllProfiling(final @NotNull PrintStream out) {
+  public void printAllProfiling(@javax.annotation.Nonnull final PrintStream out) {
     printDetailedProfiling(out);
     printNetProfiling(out);
   }
@@ -245,7 +245,7 @@ public abstract class RecycleBin<T> {
    *
    * @param out the out
    */
-  public void printDetailedProfiling(final @NotNull PrintStream out) {
+  public void printDetailedProfiling(@javax.annotation.Nonnull final PrintStream out) {
     if (null != allocations) {
       out.println("Memory Allocation Profiling:\n\t" + allocations.toString().replaceAll("\n", "\n\t"));
     }
@@ -309,15 +309,16 @@ public abstract class RecycleBin<T> {
    * @param retries the retries
    * @return the t
    */
-  public @NotNull T create(long length, int retries) {
+  @javax.annotation.Nonnull
+  public T create(long length, int retries) {
     try {
-      @NotNull T result = create(length);
+      @javax.annotation.Nonnull T result = create(length);
       @Nullable StackCounter stackCounter = getAllocations(length);
       if (null != stackCounter) {
         stackCounter.increment(length);
       }
       return result;
-    } catch (final @NotNull java.lang.OutOfMemoryError e) {
+    } catch (@javax.annotation.Nonnull final java.lang.OutOfMemoryError e) {
       if (retries <= 0) throw e;
     }
     clearMemory(length);
@@ -419,7 +420,8 @@ public abstract class RecycleBin<T> {
    * @param persistanceMode the persistance mode
    * @return the persistance mode
    */
-  public @NotNull RecycleBin<T> setPersistanceMode(PersistanceMode persistanceMode) {
+  @javax.annotation.Nonnull
+  public RecycleBin<T> setPersistanceMode(PersistanceMode persistanceMode) {
     this.persistanceMode = persistanceMode;
     return this;
   }
@@ -448,7 +450,8 @@ public abstract class RecycleBin<T> {
    * @param threshold the threshold
    * @return the profiling
    */
-  public @NotNull RecycleBin<T> setProfiling(final int threshold) {
+  @javax.annotation.Nonnull
+  public RecycleBin<T> setProfiling(final int threshold) {
     this.profilingThreshold = threshold;
     return this;
   }
@@ -468,7 +471,8 @@ public abstract class RecycleBin<T> {
    * @param minLengthPerBuffer the min bytes per buffer
    * @return the min bytes per buffer
    */
-  public @NotNull RecycleBin<T> setMinLengthPerBuffer(int minLengthPerBuffer) {
+  @javax.annotation.Nonnull
+  public RecycleBin<T> setMinLengthPerBuffer(int minLengthPerBuffer) {
     this.minLengthPerBuffer = minLengthPerBuffer;
     return this;
   }
@@ -488,7 +492,8 @@ public abstract class RecycleBin<T> {
    * @param maxLengthPerBuffer the max bytes per buffer
    * @return the max bytes per buffer
    */
-  public @NotNull RecycleBin<T> setMaxLengthPerBuffer(double maxLengthPerBuffer) {
+  @javax.annotation.Nonnull
+  public RecycleBin<T> setMaxLengthPerBuffer(double maxLengthPerBuffer) {
     this.maxLengthPerBuffer = maxLengthPerBuffer;
     return this;
   }
@@ -508,7 +513,8 @@ public abstract class RecycleBin<T> {
    * @param maxItemsPerBuffer the max items per buffer
    * @return the max items per buffer
    */
-  public @NotNull RecycleBin<T> setMaxItemsPerBuffer(int maxItemsPerBuffer) {
+  @javax.annotation.Nonnull
+  public RecycleBin<T> setMaxItemsPerBuffer(int maxItemsPerBuffer) {
     this.maxItemsPerBuffer = maxItemsPerBuffer;
     return this;
   }

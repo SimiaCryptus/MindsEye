@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -44,7 +43,7 @@ public final class SinewaveActivationLayer extends SimpleActivationLayer<Sinewav
    *
    * @param id the id
    */
-  protected SinewaveActivationLayer(final @NotNull JsonObject id) {
+  protected SinewaveActivationLayer(@javax.annotation.Nonnull final JsonObject id) {
     super(id);
     balanced = id.get("balanced").getAsBoolean();
   }
@@ -56,7 +55,7 @@ public final class SinewaveActivationLayer extends SimpleActivationLayer<Sinewav
    * @param rs   the rs
    * @return the sinewave activation layer
    */
-  public static SinewaveActivationLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+  public static SinewaveActivationLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new SinewaveActivationLayer(json);
   }
   
@@ -72,9 +71,10 @@ public final class SinewaveActivationLayer extends SimpleActivationLayer<Sinewav
     results[1] = d;
   }
   
+  @javax.annotation.Nonnull
   @Override
-  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final @NotNull JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("balanced", balanced);
     return json;
   }
@@ -94,7 +94,8 @@ public final class SinewaveActivationLayer extends SimpleActivationLayer<Sinewav
    * @param balanced the balanced
    * @return the balanced
    */
-  public @NotNull SinewaveActivationLayer setBalanced(final boolean balanced) {
+  @javax.annotation.Nonnull
+  public SinewaveActivationLayer setBalanced(final boolean balanced) {
     this.balanced = balanced;
     return this;
   }

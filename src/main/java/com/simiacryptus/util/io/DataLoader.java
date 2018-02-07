@@ -19,7 +19,6 @@
 
 package com.simiacryptus.util.io;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -70,7 +69,7 @@ public abstract class DataLoader<T> {
     }
     try {
       thread.join();
-    } catch (final @NotNull InterruptedException e) {
+    } catch (@javax.annotation.Nonnull final InterruptedException e) {
       Thread.currentThread().interrupt();
     }
   }
