@@ -89,5 +89,6 @@ final class InputNode extends LazyResult {
   
   @Override
   protected void _free() {
+    super._free();
   }
 }

@@ -282,7 +282,9 @@ public class TestUtil {
   public static void instrumentPerformance(final NotebookOutput log, final DAGNetwork network) {
     network.visitNodes(node -> {
       if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
-        node.setLayer(new MonitoringWrapperLayer(node.getLayer()).shouldRecordSignalMetrics(false));
+        MonitoringWrapperLayer monitoringWrapperLayer = new MonitoringWrapperLayer(node.getLayer()).shouldRecordSignalMetrics(false);
+        node.setLayer(monitoringWrapperLayer);
+        monitoringWrapperLayer.freeRef();
       }
       else {
         ((MonitoringWrapperLayer) node.getLayer()).shouldRecordSignalMetrics(false);

@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
-import com.simiacryptus.util.io.KryoUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -276,7 +275,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     final Tensor baseOutput = component.eval(input2).getDataAndFree().getAndFree(0);
     
     for (int i = 0; i < stateLen; i++) {
-      final NNLayer copy = KryoUtil.kryo().copy(component);
+      final NNLayer copy = component.copy();
       copy.state().get(layerNum)[i] += probeSize;
       final Tensor evalProbe = copy.eval(input2).getDataAndFree().getAndFree(0);
       copy.freeRef();

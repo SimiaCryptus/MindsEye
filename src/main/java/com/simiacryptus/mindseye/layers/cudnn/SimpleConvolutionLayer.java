@@ -109,6 +109,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
     if (kernelSize[1] <= 0) throw new IllegalArgumentException();
     if (kernelSize[2] <= 0) throw new IllegalArgumentException();
     this.kernel = kernel;
+    this.kernel.addRef();
     this.setPaddingX((int) Math.ceil((kernelSize[0] - 1) / 2.0));
     this.setPaddingY((int) Math.ceil((kernelSize[1] - 1) / 2.0));
     
@@ -205,7 +206,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
     final int length = batch.length();
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     batch.addRef();
-  
+    kernel.addRef();
     return new NNResult(GpuSystem.eval(gpu -> {
       try {
         final int deviceNumber = gpu.getDeviceNumber();
@@ -230,7 +231,6 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
         throw new ComponentException(String.format("Error in convolution %s x %s", Arrays.toString(inputSize), Arrays.toString(kernelSize)), e);
       }
     }), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
-      assertAlive();
       delta.assertAlive();
       buffer.assertAlive();
       batch.assertAlive();
@@ -293,6 +293,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
     
       @Override
       protected void _free() {
+        kernel.freeRef();
         batch.freeRef();
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
@@ -302,6 +303,12 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
         return input.isAlive() || !isFrozen();
       }
     };
+  }
+  
+  @Override
+  protected void _free() {
+    super._free();
+    kernel.freeRef();
   }
   
   /**
@@ -622,6 +629,8 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
       this.paddingY = paddingY;
       this.precision = precision;
       this.kernel = kernel;
+      this.kernel.addRef();
+      this.kernel.setFloating(true);
       this.length = length;
       this.inputSize = Arrays.copyOf(inputSize, inputSize.length);
       this.outputSize = Arrays.copyOf(outputSize, outputSize.length);

@@ -79,6 +79,7 @@ class ExplodedConvolutionLeg {
       this.subLayers.add(new SimpleConvolutionLayer(cellKernel).setStrideX(this.convolutionParams.strideX) //
                                                                .setStrideY(this.convolutionParams.strideY) //
                                                                .setPrecision(this.convolutionParams.precision));
+      cellKernel.freeRef();
     }
   }
   

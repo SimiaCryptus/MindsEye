@@ -48,11 +48,11 @@ public abstract class DAGNetwork extends NNLayer {
   /**
    * The Input handles.
    */
-  public final List<UUID> inputHandles;
+  public final List<UUID> inputHandles = new ArrayList<>();
   /**
    * The Input nodes.
    */
-  public final LinkedHashMap<UUID, InputNode> inputNodes;
+  public final LinkedHashMap<UUID, InputNode> inputNodes = new LinkedHashMap<>();
   /**
    * The Labels.
    */
@@ -72,8 +72,6 @@ public abstract class DAGNetwork extends NNLayer {
    * @param inputs the inputs
    */
   public DAGNetwork(final int inputs) {
-    inputHandles = new ArrayList<>();
-    inputNodes = new LinkedHashMap<>();
     for (int i = 0; i < inputs; i++) {
       addInput();
     }
@@ -87,12 +85,11 @@ public abstract class DAGNetwork extends NNLayer {
    */
   protected DAGNetwork(final JsonObject json, Map<String, byte[]> rs) {
     super(json);
-    inputHandles = new ArrayList<>();
-    inputNodes = new LinkedHashMap<>();
     for (final JsonElement item : json.getAsJsonArray("inputs")) {
       final UUID key = UUID.fromString(item.getAsString());
       inputHandles.add(key);
-      inputNodes.put(key, new InputNode(this, key));
+      InputNode replaced = inputNodes.put(key, new InputNode(this, key));
+      if (null != replaced) replaced.freeRef();
     }
     final JsonObject jsonNodes = json.getAsJsonObject("nodes");
     final JsonObject jsonLayers = json.getAsJsonObject("layers");
@@ -160,11 +157,13 @@ public abstract class DAGNetwork extends NNLayer {
     layer.freeRef();
     synchronized (layersById) {
       if (!layersById.containsKey(layer.getId())) {
-        layersById.put(layer.getId(), layer);
+        NNLayer replaced = layersById.put(layer.getId(), layer);
         layer.addRef();
+        if (null != replaced) replaced.freeRef();
       }
     }
-    nodesById.put(node.getId(), node);
+    DAGNode replaced = nodesById.put(node.getId(), node);
+    if (null != replaced) replaced.freeRef();
     if (null != label) {
       labels.put(label, node.getId());
     }
@@ -175,8 +174,9 @@ public abstract class DAGNetwork extends NNLayer {
   @Override
   protected void _free() {
     super._free();
-    nodesById.values().forEach(ReferenceCounting::freeRef);
-    inputNodes.values().forEach(ReferenceCountingBase::freeRef);
+    this.layersById.values().forEach(ReferenceCounting::freeRef);
+    this.nodesById.values().forEach(ReferenceCounting::freeRef);
+    this.inputNodes.values().forEach(ReferenceCountingBase::freeRef);
   }
   
   /**
@@ -187,7 +187,8 @@ public abstract class DAGNetwork extends NNLayer {
   public NNLayer addInput() {
     final UUID key = UUID.randomUUID();
     inputHandles.add(key);
-    inputNodes.put(key, new InputNode(this, key));
+    InputNode replaced = inputNodes.put(key, new InputNode(this, key));
+    if (null != replaced) replaced.freeRef();
     return this;
   }
   
@@ -422,10 +423,12 @@ public abstract class DAGNetwork extends NNLayer {
     final DAGNode[] dependencies = getDependencies(nodeLinks, newNodeId);
     final InnerNode node = new InnerNode(this, layer, newNodeId, dependencies);
     if (!layersById.containsKey(layer.getId())) {
-      layersById.put(layer.getId(), layer);
+      NNLayer replaced = layersById.put(layer.getId(), layer);
       layer.addRef();
+      if (null != replaced) replaced.freeRef();
     }
-    nodesById.put(node.getId(), node);
+    DAGNode replaced = nodesById.put(node.getId(), node);
+    if (null != replaced) replaced.freeRef();
     assertConsistent();
   }
   

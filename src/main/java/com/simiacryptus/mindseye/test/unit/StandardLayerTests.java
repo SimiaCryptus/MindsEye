@@ -126,7 +126,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   public ComponentTest<ToleranceStatistics> getEquivalencyTester() {
     final NNLayer referenceLayer = getReferenceLayer();
     if (null == referenceLayer) return null;
-    return new EquivalencyTester(1e-2, referenceLayer);
+    EquivalencyTester equivalencyTester = new EquivalencyTester(1e-2, referenceLayer);
+    referenceLayer.freeRef();
+    return equivalencyTester;
   }
   
   /**

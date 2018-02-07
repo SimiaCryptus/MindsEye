@@ -86,6 +86,7 @@ final class InnerNode extends LazyResult {
   
   @Override
   protected NNResult eval(final GraphEvaluationContext ctx) {
+    assertAlive();
     final NNLayer innerLayer = getLayer();
     assert Arrays.stream(inputNodes).allMatch(x -> x != null);
     Stream<DAGNode> stream = Arrays.stream(inputNodes);
@@ -112,13 +113,14 @@ final class InnerNode extends LazyResult {
   }
   
   @Override
-  public void setLayer(final NNLayer newLayer) {
+  public synchronized void setLayer(final NNLayer newLayer) {
     assertAlive();
     dagNetwork.assertAlive();
     synchronized (dagNetwork.layersById) {
       if (!dagNetwork.layersById.containsKey(newLayer.getId())) {
-        dagNetwork.layersById.put(newLayer.getId(), newLayer);
+        NNLayer put = dagNetwork.layersById.put(newLayer.getId(), newLayer);
         newLayer.addRef();
+        if (null != put) put.freeRef();
       }
     }
     newLayer.addRef();
@@ -134,6 +136,7 @@ final class InnerNode extends LazyResult {
   
   @Override
   protected void _free() {
+    super._free();
     for (DAGNode node : this.inputNodes) {
       node.freeRef();
     }
