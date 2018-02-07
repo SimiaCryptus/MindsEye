@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,7 +61,7 @@ public class ImgReshapeLayer extends NNLayer {
    *
    * @param json the json
    */
-  protected ImgReshapeLayer(final JsonObject json) {
+  protected ImgReshapeLayer(final @NotNull JsonObject json) {
     super(json);
     kernelSizeX = json.getAsJsonPrimitive("kernelSizeX").getAsInt();
     kernelSizeY = json.getAsJsonPrimitive("kernelSizeY").getAsInt();
@@ -73,9 +75,9 @@ public class ImgReshapeLayer extends NNLayer {
    * @param outputData the output data
    * @return the tensor
    */
-  public static Tensor copyCondense(final Tensor inputData, final Tensor outputData) {
-    final int[] inDim = inputData.getDimensions();
-    final int[] outDim = outputData.getDimensions();
+  public static @NotNull Tensor copyCondense(final @NotNull Tensor inputData, final @NotNull Tensor outputData) {
+    final @NotNull int[] inDim = inputData.getDimensions();
+    final @NotNull int[] outDim = outputData.getDimensions();
     assert 3 == inDim.length;
     assert 3 == outDim.length;
     assert inDim[0] >= outDim[0];
@@ -86,7 +88,7 @@ public class ImgReshapeLayer extends NNLayer {
     final int kernelSizeX = inDim[0] / outDim[0];
     final int kernelSizeY = inDim[0] / outDim[0];
     int index = 0;
-    final double[] outputDataData = outputData.getData();
+    final @Nullable double[] outputDataData = outputData.getData();
     for (int xx = 0; xx < kernelSizeX; xx++) {
       for (int yy = 0; yy < kernelSizeY; yy++) {
         for (int z = 0; z < inDim[2]; z++) {
@@ -108,9 +110,9 @@ public class ImgReshapeLayer extends NNLayer {
    * @param outputData the output data
    * @return the tensor
    */
-  public static Tensor copyExpand(final Tensor inputData, final Tensor outputData) {
-    final int[] inDim = inputData.getDimensions();
-    final int[] outDim = outputData.getDimensions();
+  public static @NotNull Tensor copyExpand(final @NotNull Tensor inputData, final @NotNull Tensor outputData) {
+    final @NotNull int[] inDim = inputData.getDimensions();
+    final @NotNull int[] outDim = outputData.getDimensions();
     assert 3 == inDim.length;
     assert 3 == outDim.length;
     assert inDim[0] <= outDim[0];
@@ -142,18 +144,18 @@ public class ImgReshapeLayer extends NNLayer {
    * @param rs   the rs
    * @return the img reshapeCast layer
    */
-  public static ImgReshapeLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgReshapeLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new ImgReshapeLayer(json);
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public @NotNull NNResult eval(final @NotNull NNResult... inObj) {
     //assert Arrays.stream(inObj).flatMapToDouble(input-> input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
-    final int[] inputDims = batch.get(0).getDimensions();
+    final @NotNull int[] inputDims = batch.get(0).getDimensions();
     assert 3 == inputDims.length;
     assert expand || 0 == inputDims[0] % kernelSizeX;
     assert expand || 0 == inputDims[1] % kernelSizeX;
@@ -172,12 +174,12 @@ public class ImgReshapeLayer extends NNLayer {
     }
     return new NNResult(TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
                                                   .mapToObj(dataIndex -> expand ? ImgReshapeLayer.copyExpand(batch.get(dataIndex), outputDims.copy()) : ImgReshapeLayer.copyCondense(batch.get(dataIndex), outputDims.copy()))
-                                                  .toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
+                                                  .toArray(i -> new Tensor[i])), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList error) -> {
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       if (input.isAlive()) {
-        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
-                                                            .mapToObj(dataIndex -> {
-                                                              final Tensor passback = new Tensor(inputDims);
+        @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
+                                                                     .mapToObj(dataIndex -> {
+                                                                       final @NotNull Tensor passback = new Tensor(inputDims);
                                                               final Tensor err = error.get(dataIndex);
                                                               return expand ? ImgReshapeLayer.copyCondense(err, passback) : ImgReshapeLayer.copyExpand(err, passback);
                                                             }).toArray(i -> new Tensor[i]));
@@ -200,8 +202,8 @@ public class ImgReshapeLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final JsonObject json = super.getJsonStub();
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    final @NotNull JsonObject json = super.getJsonStub();
     json.addProperty("kernelSizeX", kernelSizeX);
     json.addProperty("kernelSizeY", kernelSizeX);
     json.addProperty("expand", expand);
@@ -209,7 +211,7 @@ public class ImgReshapeLayer extends NNLayer {
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return new ArrayList<>();
   }
   

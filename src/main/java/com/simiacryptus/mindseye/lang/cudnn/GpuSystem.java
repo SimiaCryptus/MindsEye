@@ -29,6 +29,8 @@ import jcuda.jcudnn.*;
 import jcuda.runtime.JCuda;
 import jcuda.runtime.cudaDeviceProp;
 import jcuda.runtime.cudaStream_t;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +77,7 @@ public class GpuSystem {
    */
   protected static final ThreadLocal<Integer> currentDevice = new ThreadLocal<Integer>() {
     @Override
-    protected Integer initialValue() {
+    protected @NotNull Integer initialValue() {
       return -1;
     }
   };
@@ -300,7 +302,7 @@ public class GpuSystem {
   /**
    * The constant gpuGeneration.
    */
-  public static AtomicInteger gpuGeneration = new AtomicInteger(0);
+  public static @NotNull AtomicInteger gpuGeneration = new AtomicInteger(0);
   
   /**
    * Instantiates a new Gpu system.
@@ -330,21 +332,21 @@ public class GpuSystem {
    *
    * @param out the out
    */
-  public static void printHeader(PrintStream out) {
-    int[] runtimeVersion = {0};
-    int[] driverVersion = {0};
+  public static void printHeader(@NotNull PrintStream out) {
+    @NotNull int[] runtimeVersion = {0};
+    @NotNull int[] driverVersion = {0};
     JCuda.cudaRuntimeGetVersion(runtimeVersion);
     JCuda.cudaDriverGetVersion(driverVersion);
-    String jCudaVersion = JCuda.getJCudaVersion();
+    @NotNull String jCudaVersion = JCuda.getJCudaVersion();
     out.printf("Time: %s; Driver %s; Runtime %s; Lib %s%n", new Date(), driverVersion[0], runtimeVersion[0], jCudaVersion);
-    long[] free = {0};
-    long[] total = {0};
+    @NotNull long[] free = {0};
+    @NotNull long[] total = {0};
     JCuda.cudaMemGetInfo(free, total);
     out.printf("Cuda Memory: %.1f freeRef, %.1f total%n", free[0] * 1.0 / (1024 * 1024), total[0] * 1.0 / (1024 * 1024));
-    final int[] deviceCount = new int[1];
+    final @NotNull int[] deviceCount = new int[1];
     jcuda.runtime.JCuda.cudaGetDeviceCount(deviceCount);
     IntStream.range(0, deviceCount[0]).forEach(device -> {
-      final cudaDeviceProp deviceProp = new cudaDeviceProp();
+      final @NotNull cudaDeviceProp deviceProp = new cudaDeviceProp();
       JCuda.cudaGetDeviceProperties(deviceProp, device);
       out.printf("Device %d = %s%n", device, deviceProp, free[0], total[0]);
     });
@@ -363,8 +365,8 @@ public class GpuSystem {
    * @param obj the obj
    * @return the map
    */
-  protected static Map<String, String> toMap(DoubleStatistics obj) {
-    HashMap<String, String> map = new HashMap<>();
+  protected static @NotNull Map<String, String> toMap(@NotNull DoubleStatistics obj) {
+    @NotNull HashMap<String, String> map = new HashMap<>();
     if (0 < obj.getCount()) {
       map.put("stddev", Double.toString(obj.getStandardDeviation()));
       map.put("mean", Double.toString(obj.getAverage()));
@@ -387,7 +389,7 @@ public class GpuSystem {
    */
   public static CudaResource<cudnnPoolingDescriptor> createPoolingDescriptor(final int mode, final int poolDims, final int[] windowSize, final int[] padding, final int[] stride) {
     long startTime = System.nanoTime();
-    final cudnnPoolingDescriptor poolingDesc = new cudnnPoolingDescriptor();
+    final @NotNull cudnnPoolingDescriptor poolingDesc = new cudnnPoolingDescriptor();
     int result = JCudnn.cudnnCreatePoolingDescriptor(poolingDesc);
     GpuSystem.log("cudnnCreatePoolingDescriptor", result, poolingDesc);
     GpuSystem.handle(result);
@@ -407,8 +409,8 @@ public class GpuSystem {
    *
    * @return the execution statistics
    */
-  public static final Map<String, Map<String, String>> getExecutionStatistics() {
-    HashMap<String, Map<String, String>> map = new HashMap<>();
+  public static final @NotNull Map<String, Map<String, String>> getExecutionStatistics() {
+    @NotNull HashMap<String, Map<String, String>> map = new HashMap<>();
     map.put("createPoolingDescriptor", toMap(createPoolingDescriptor_execution));
     map.put("cudaDeviceReset", toMap(cudaDeviceReset_execution));
     map.put("cudaFree", toMap(cudaFree_execution));
@@ -585,7 +587,7 @@ public class GpuSystem {
    */
   public static long cudaDeviceGetLimit(final int limit) {
     long startTime = System.nanoTime();
-    long[] pValue = new long[1];
+    @NotNull long[] pValue = new long[1];
     final int result = JCuda.cudaDeviceGetLimit(pValue, limit);
     cudaDeviceGetLimit_execution.accept((System.nanoTime() - startTime) / 1e9);
     GpuSystem.log("cudaDeviceGetLimit(", result, pValue, limit);
@@ -648,7 +650,7 @@ public class GpuSystem {
    */
   public static CudaResource<cudaStream_t> cudaStreamCreate() {
     long startTime = System.nanoTime();
-    cudaStream_t stream = new cudaStream_t();
+    @NotNull cudaStream_t stream = new cudaStream_t();
     int result = JCuda.cudaStreamCreate(stream);
     cudaStreamCreate_execution.accept((System.nanoTime() - startTime) / 1e9);
     GpuSystem.log("cudaStreamCreate", result, stream);
@@ -823,7 +825,7 @@ public class GpuSystem {
    */
   public static int deviceCount() {
     long startTime = System.nanoTime();
-    final int[] deviceCount = new int[1];
+    final @NotNull int[] deviceCount = new int[1];
     final int returnCode = jcuda.runtime.JCuda.cudaGetDeviceCount(deviceCount);
     GpuSystem.log("cudaGetDeviceCount", returnCode, deviceCount);
     deviceCount_execution.accept((System.nanoTime() - startTime) / 1e9);
@@ -850,7 +852,7 @@ public class GpuSystem {
    * @param array the array
    * @return the int [ ]
    */
-  public static int[] getStride(final int[] array) {
+  public static int[] getStride(final @NotNull int[] array) {
     return IntStream.range(0, array.length).map(i -> IntStream.range(i + 1, array.length).map(ii -> array[ii]).reduce((a, b) -> a * b).orElse(1)).toArray();
   }
   
@@ -891,8 +893,8 @@ public class GpuSystem {
    * @param result the result
    * @param args   the args
    */
-  protected static void log(final String method, final Object result, final Object... args) {
-    final String paramString = null == args ? "" : Arrays.stream(args).map(GpuSystem::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
+  protected static void log(final String method, final Object result, final @Nullable Object... args) {
+    final @NotNull String paramString = null == args ? "" : Arrays.stream(args).map(GpuSystem::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
     final String message = String.format("%.6f @ %s: %s(%s) = %s", (System.nanoTime() - GpuSystem.start) / 1e9, Thread.currentThread().getName(), method, paramString, result);
     try {
       GpuSystem.apiLog.forEach(apiLog -> GpuSystem.logThread.submit(() -> apiLog.println(message)));
@@ -907,9 +909,9 @@ public class GpuSystem {
    * @param convDesc      the conv desc
    * @return the int [ ]
    */
-  public static int[] getOutputDims(final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc) {
+  public static @NotNull int[] getOutputDims(final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc) {
     long startTime = System.nanoTime();
-    final int[] tensorOuputDims = new int[4];
+    final @NotNull int[] tensorOuputDims = new int[4];
     final int result = JCudnn.cudnnGetConvolutionNdForwardOutputDim(convDesc, srcTensorDesc, filterDesc, tensorOuputDims.length, tensorOuputDims);
     getOutputDims_execution.accept((System.nanoTime() - startTime) / 1e9);
     GpuSystem.log("cudnnGetConvolutionNdForwardOutputDim", result, convDesc, srcTensorDesc, filterDesc, tensorOuputDims.length, tensorOuputDims);
@@ -927,7 +929,7 @@ public class GpuSystem {
    */
   public static CudaResource<cudnnActivationDescriptor> newActivationDescriptor(final int mode, final int reluNan, final double reluCeil) {
     long startTime = System.nanoTime();
-    final cudnnActivationDescriptor desc = new cudnnActivationDescriptor();
+    final @NotNull cudnnActivationDescriptor desc = new cudnnActivationDescriptor();
     int result = JCudnn.cudnnCreateActivationDescriptor(desc);
     GpuSystem.log("cudnnCreateActivationDescriptor", result, desc);
     GpuSystem.handle(result);
@@ -948,14 +950,14 @@ public class GpuSystem {
    * @param dilation the dilation
    * @return the cuda resource
    */
-  public static CudaResource<cudnnConvolutionDescriptor> newConvolutionNdDescriptor(final int mode, final int dataType, final int[] padding, final int[] stride, final int[] dilation) {
+  public static CudaResource<cudnnConvolutionDescriptor> newConvolutionNdDescriptor(final int mode, final int dataType, final @NotNull int[] padding, final @NotNull int[] stride, final @NotNull int[] dilation) {
     long startTime = System.nanoTime();
     assert padding.length == stride.length;
     assert padding.length == dilation.length;
     assert Arrays.stream(padding).allMatch(x -> x >= 0);
     assert Arrays.stream(stride).allMatch(x -> x > 0);
     assert Arrays.stream(dilation).allMatch(x -> x > 0);
-    final cudnnConvolutionDescriptor convDesc = new cudnnConvolutionDescriptor();
+    final @NotNull cudnnConvolutionDescriptor convDesc = new cudnnConvolutionDescriptor();
     int result = JCudnn.cudnnCreateConvolutionDescriptor(convDesc);
     newConvolutionNdDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     GpuSystem.log("cudnnCreateConvolutionDescriptor", result, convDesc);
@@ -977,7 +979,7 @@ public class GpuSystem {
     GpuSystem.handle(result);
     return new CudaResource<cudnnConvolutionDescriptor>(convDesc, GpuSystem::cudnnDestroyConvolutionDescriptor, getDevice()) {
       @Override
-      public String toString() {
+      public @NotNull String toString() {
         return "cudnnSetConvolutionNdDescriptor(padding=" + Arrays.toString(padding) +
           ";stride=" + Arrays.toString(stride) +
           ";dilation=" + Arrays.toString(dilation) +
@@ -1002,7 +1004,7 @@ public class GpuSystem {
    */
   public static CudaResource<cudnnConvolutionDescriptor> newConvolutions2dDescriptor(final int mode, final int dataType, final int paddingY, final int paddingX, final int strideHeight, final int strideWidth, int dilationY, int dilationX) {
     long startTime = System.nanoTime();
-    final cudnnConvolutionDescriptor convDesc = new cudnnConvolutionDescriptor();
+    final @NotNull cudnnConvolutionDescriptor convDesc = new cudnnConvolutionDescriptor();
     int result = JCudnn.cudnnCreateConvolutionDescriptor(convDesc);
     GpuSystem.log("cudnnCreateConvolutionDescriptor", result, convDesc);
     GpuSystem.handle(result);
@@ -1044,7 +1046,7 @@ public class GpuSystem {
    */
   public static CudaResource<cudnnFilterDescriptor> newFilterDescriptor(final int dataType, final int tensorLayout, final int outputChannels, final int inputChannels, final int height, final int width) {
     long startTime = System.nanoTime();
-    final cudnnFilterDescriptor filterDesc = new cudnnFilterDescriptor();
+    final @NotNull cudnnFilterDescriptor filterDesc = new cudnnFilterDescriptor();
     int result = JCudnn.cudnnCreateFilterDescriptor(filterDesc);
     GpuSystem.log("cudnnCreateFilterDescriptor", result, filterDesc);
     GpuSystem.handle(result);
@@ -1054,7 +1056,7 @@ public class GpuSystem {
     GpuSystem.handle(result);
     return new CudaResource<cudnnFilterDescriptor>(filterDesc, GpuSystem::cudnnDestroyFilterDescriptor, getDevice()) {
       @Override
-      public String toString() {
+      public @NotNull String toString() {
         return "cudnnSetFilter4dDescriptor(dataType=" + dataType +
           ";tensorLayout=" + tensorLayout +
           ";outputChannels=" + outputChannels +
@@ -1073,9 +1075,9 @@ public class GpuSystem {
    * @param dimensions   the dimensions
    * @return the cuda resource
    */
-  public static CudaResource<cudnnFilterDescriptor> newFilterDescriptor(final int dataType, final int tensorLayout, final int[] dimensions) {
+  public static CudaResource<cudnnFilterDescriptor> newFilterDescriptor(final int dataType, final int tensorLayout, final @NotNull int[] dimensions) {
     long startTime = System.nanoTime();
-    final cudnnFilterDescriptor filterDesc = new cudnnFilterDescriptor();
+    final @NotNull cudnnFilterDescriptor filterDesc = new cudnnFilterDescriptor();
     int result = JCudnn.cudnnCreateFilterDescriptor(filterDesc);
     GpuSystem.log("cudnnCreateFilterDescriptor", result, filterDesc);
     GpuSystem.handle(result);
@@ -1085,7 +1087,7 @@ public class GpuSystem {
     GpuSystem.handle(result);
     return new CudaResource<cudnnFilterDescriptor>(filterDesc, GpuSystem::cudnnDestroyFilterDescriptor, getDevice()) {
       @Override
-      public String toString() {
+      public @NotNull String toString() {
         return "cudnnSetFilterNdDescriptor(dataType=" + dataType +
           ";tensorLayout=" + tensorLayout +
           ";dimensions=" + Arrays.toString(dimensions) + ")";
@@ -1102,7 +1104,7 @@ public class GpuSystem {
    */
   public static CudaResource<cudnnOpTensorDescriptor> newOpDescriptor(final int opType, final int dataType) {
     long startTime = System.nanoTime();
-    final cudnnOpTensorDescriptor opDesc = new cudnnOpTensorDescriptor();
+    final @NotNull cudnnOpTensorDescriptor opDesc = new cudnnOpTensorDescriptor();
     int result = JCudnn.cudnnCreateOpTensorDescriptor(opDesc);
     GpuSystem.log("cudnnCreateOpTensorDescriptor", result, opDesc);
     GpuSystem.handle(result);
@@ -1127,7 +1129,7 @@ public class GpuSystem {
   public static CudaResource<cudnnTensorDescriptor> newTensorDescriptor(final int dataType, final int tensorLayout,
                                                                         final int batchCount, final int channels, final int height, final int width) {
     long startTime = System.nanoTime();
-    final cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
+    final @NotNull cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
     int result = JCudnn.cudnnCreateTensorDescriptor(desc);
     GpuSystem.log("cudnnCreateTensorDescriptor", result, desc);
     GpuSystem.handle(result);
@@ -1137,7 +1139,7 @@ public class GpuSystem {
     GpuSystem.handle(result);
     return new CudaResource<cudnnTensorDescriptor>(desc, GpuSystem::cudnnDestroyTensorDescriptor, getDevice()) {
       @Override
-      public String toString() {
+      public @NotNull String toString() {
         return "cudnnSetTensor4dDescriptor(dataType=" + dataType +
           ";tensorLayout=" + tensorLayout +
           ";batchCount=" + batchCount +
@@ -1206,7 +1208,7 @@ public class GpuSystem {
                                                                         final int batchCount, final int channels, final int height, final int width,
                                                                         final int nStride, final int cStride, final int hStride, final int wStride) {
     long startTime = System.nanoTime();
-    final cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
+    final @NotNull cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
     int result = JCudnn.cudnnCreateTensorDescriptor(desc);
     GpuSystem.log("cudnnCreateTensorDescriptor", result, desc);
     GpuSystem.handle(result);
@@ -1252,7 +1254,7 @@ public class GpuSystem {
    * @param n      the n
    * @param action the action
    */
-  public static void withDevice(int n, Runnable action) {
+  public static void withDevice(int n, @NotNull Runnable action) {
     final int currentDevice = getDevice();
     try {
       GpuDevice.setDevice(n);
@@ -1271,7 +1273,7 @@ public class GpuSystem {
    * @param action the action
    * @return the t
    */
-  public static <T> T withDevice(int n, Supplier<T> action) {
+  public static <T> T withDevice(int n, @NotNull Supplier<T> action) {
     if (n < 0) return action.get();
     final int currentDevice = getDevice();
     try {
@@ -1297,7 +1299,7 @@ public class GpuSystem {
    *
    * @param log the log
    */
-  public static void addLog(PrintStream log) {
+  public static void addLog(@NotNull PrintStream log) {
     printHeader(log);
     apiLog.add(log);
   }
@@ -1307,7 +1309,7 @@ public class GpuSystem {
    *
    * @param fn the fn
    */
-  public static void run(final Consumer<CuDNNHandle> fn) {run(fn, true);}
+  public static void run(final @NotNull Consumer<CuDNNHandle> fn) {run(fn, true);}
   
   /**
    * Run.
@@ -1315,16 +1317,16 @@ public class GpuSystem {
    * @param fn          the fn
    * @param synchronize the synchronize
    */
-  public static void run(final Consumer<CuDNNHandle> fn, boolean synchronize) {
+  public static void run(final @NotNull Consumer<CuDNNHandle> fn, boolean synchronize) {
     CuDNNHandle threadlocal = CuDNNHandle.threadContext.get();
     try {
       if (threadlocal != null) {
         try {
           threadlocal.initThread();
           fn.accept(threadlocal);
-        } catch (final RuntimeException e) {
+        } catch (final @NotNull RuntimeException e) {
           throw e;
-        } catch (final Exception e) {
+        } catch (final @NotNull Exception e) {
           throw new RuntimeException(e);
         }
       }
@@ -1334,9 +1336,9 @@ public class GpuSystem {
             CuDNNHandle.threadContext.set(exe);
             exe.initThread();
             fn.accept(exe);
-          } catch (final RuntimeException e) {
+          } catch (final @NotNull RuntimeException e) {
             throw e;
-          } catch (final Exception e) {
+          } catch (final @NotNull Exception e) {
             throw new RuntimeException(e);
           } finally {
             CuDNNHandle.threadContext.remove();
@@ -1355,7 +1357,7 @@ public class GpuSystem {
    * @param fn  the fn
    * @return the t
    */
-  public static <T> T eval(final Function<CuDNNHandle, T> fn) {return eval(fn, true);}
+  public static <T> T eval(final @NotNull Function<CuDNNHandle, T> fn) {return eval(fn, true);}
   
   /**
    * Call t.
@@ -1365,7 +1367,7 @@ public class GpuSystem {
    * @param synchronize the synchronize
    * @return the t
    */
-  public static <T> T eval(final Function<CuDNNHandle, T> fn, boolean synchronize) {
+  public static <T> T eval(final @NotNull Function<CuDNNHandle, T> fn, boolean synchronize) {
     if (CuDNNHandle.POOL.getAll().isEmpty()) {
       return fn.apply(new CuDNNHandle(-1));
     }
@@ -1377,9 +1379,9 @@ public class GpuSystem {
             threadlocal.initThread();
             T result = fn.apply(threadlocal);
             return result;
-          } catch (final RuntimeException e) {
+          } catch (final @NotNull RuntimeException e) {
             throw e;
-          } catch (final Exception e) {
+          } catch (final @NotNull Exception e) {
             throw new RuntimeException(e);
           }
         }
@@ -1390,9 +1392,9 @@ public class GpuSystem {
               exe.initThread();
               T result = fn.apply(exe);
               return result;
-            } catch (final RuntimeException e) {
+            } catch (final @NotNull RuntimeException e) {
               throw e;
-            } catch (final Exception e) {
+            } catch (final @NotNull Exception e) {
               throw new RuntimeException(e);
             } finally {
               CuDNNHandle.threadContext.remove();

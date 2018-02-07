@@ -27,6 +27,7 @@ import jcuda.jcudnn.cudnnPoolingDescriptor;
 import jcuda.jcudnn.cudnnPoolingMode;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 import jcuda.jcudnn.cudnnTensorFormat;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -60,7 +61,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
    *
    * @param json the json
    */
-  protected PoolingLayer(final JsonObject json) {
+  protected PoolingLayer(final @NotNull JsonObject json) {
     super(json);
     mode = Arrays.stream(PoolingMode.values()).filter(i -> i.id == json.get("mode").getAsInt()).findFirst().get();
     windowX = json.get("windowX").getAsInt();
@@ -79,7 +80,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
    * @param rs   the rs
    * @return the pooling layer
    */
-  public static PoolingLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static PoolingLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new PoolingLayer(json);
   }
   
@@ -88,42 +89,42 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
    *
    * @return the compatibility layer
    */
-  public NNLayer getCompatibilityLayer() {
+  public @NotNull NNLayer getCompatibilityLayer() {
     if (mode == PoolingMode.Max) return this.as(com.simiacryptus.mindseye.layers.java.MaxPoolingLayer.class);
     if (mode == PoolingMode.Avg) return this.as(com.simiacryptus.mindseye.layers.java.AvgPoolingLayer.class);
     else throw new RuntimeException("Not Implemented");
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(final @NotNull NNResult... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final int poolDims = 2;
-    final int windowSize[] = {windowX, windowY};
-    final int padding[] = {paddingX, paddingY};
-    final int stride[] = {strideX, strideY};
+    final @NotNull int windowSize[] = {windowX, windowY};
+    final @NotNull int padding[] = {paddingX, paddingY};
+    final @NotNull int stride[] = {strideX, strideY};
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputSize = batch.getDimensions();
     final int length = batch.length();
     batch.addRef();
     final int inputDims = Tensor.dim(inputSize);
-    final int[] outputSize = new int[4];
+    final @NotNull int[] outputSize = new int[4];
     final CudaPtr outputData = GpuSystem.eval(gpu -> {
       try {
         gpu.initThread();
-        final CudaResource<cudnnPoolingDescriptor> poolingDesc = GpuSystem.createPoolingDescriptor(
+        final @NotNull CudaResource<cudnnPoolingDescriptor> poolingDesc = GpuSystem.createPoolingDescriptor(
           mode.id, poolDims, windowSize, padding, stride);
-        final CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
+        final @NotNull CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
         GpuSystem.handle(GpuSystem.cudnnGetPoolingNdForwardOutputDim(poolingDesc.getPtr(), inputDescriptor.getPtr(), 4, outputSize));
         assert inputSize[2] == outputSize[1];
-        final CudaResource<cudnnTensorDescriptor> outputDescriptor = GpuSystem.newTensorDescriptor(
+        final @NotNull CudaResource<cudnnTensorDescriptor> outputDescriptor = GpuSystem.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[0], outputSize[1], outputSize[2], outputSize[3]);
-        final Pointer alpha = precision.getPointer(1.0);
-        final Pointer beta = precision.getPointer(0.0);
+        final @NotNull Pointer alpha = precision.getPointer(1.0);
+        final @NotNull Pointer beta = precision.getPointer(0.0);
         final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
-        final CudaPtr outputTensor = CudaPtr.allocate(gpu.getDeviceNumber(), precision.size * 1l * Tensor.dim(outputSize), MemoryType.Managed, true);
+        final @NotNull CudaPtr outputTensor = CudaPtr.allocate(gpu.getDeviceNumber(), precision.size * 1l * Tensor.dim(outputSize), MemoryType.Managed, true);
         GpuSystem.handle(CuDNNHandle.cudnnPoolingForward(gpu.getHandle(), poolingDesc.getPtr(),
                                                          alpha,
                                                          inputDescriptor.getPtr(), inputData.getPtr(),
@@ -131,26 +132,26 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
                                                          outputDescriptor.getPtr(), outputTensor.getPtr()));
         gpu.registerForCleanup(inputDescriptor, inputData, outputDescriptor, poolingDesc);
         return outputTensor;
-      } catch (final Throwable e) {
+      } catch (final @NotNull Throwable e) {
         throw new ComponentException("Error", e);
       }
     });
     return new NNResult(GpuTensorList.create(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, precision),
-                        (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
+                        (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList error) -> {
                           assert error.length() == batch.length();
                           if (input.isAlive()) {
                             TensorList data = GpuSystem.eval(gpu -> {
-                              final CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
+                              final @NotNull CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
                                 precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-                              final CudaResource<cudnnTensorDescriptor> outputDescriptor = GpuSystem.newTensorDescriptor(
+                              final @NotNull CudaResource<cudnnTensorDescriptor> outputDescriptor = GpuSystem.newTensorDescriptor(
                                 precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[0], outputSize[1], outputSize[2], outputSize[3]);
-                              final CudaResource<cudnnPoolingDescriptor> poolingDesc = GpuSystem.createPoolingDescriptor(
+                              final @NotNull CudaResource<cudnnPoolingDescriptor> poolingDesc = GpuSystem.createPoolingDescriptor(
                                 mode.id, poolDims, windowSize, padding, stride);
-                              final Pointer alpha = precision.getPointer(1.0);
-                              final Pointer beta = precision.getPointer(0.0);
+                              final @NotNull Pointer alpha = precision.getPointer(1.0);
+                              final @NotNull Pointer beta = precision.getPointer(0.0);
                               final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
                               final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
-                              final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), inputDims * 1l * precision.size * length, MemoryType.Managed, true);
+                              final @NotNull CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), inputDims * 1l * precision.size * length, MemoryType.Managed, true);
                               GpuSystem.handle(CuDNNHandle.cudnnPoolingBackward(gpu.getHandle(), poolingDesc.getPtr(),
                                                                                 alpha,
                                                                                 outputDescriptor.getPtr(), outputData.getPtr(),
@@ -181,8 +182,8 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final JsonObject json = super.getJsonStub();
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    final @NotNull JsonObject json = super.getJsonStub();
     json.addProperty("mode", mode.id);
     json.addProperty("windowX", windowX);
     json.addProperty("windowY", windowY);
@@ -209,7 +210,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
    * @param mode the mode
    * @return the mode
    */
-  public PoolingLayer setMode(final PoolingMode mode) {
+  public @NotNull PoolingLayer setMode(final PoolingMode mode) {
     this.mode = mode;
     return this;
   }
@@ -229,7 +230,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
    * @param paddingX the padding x
    * @return the padding x
    */
-  public PoolingLayer setPaddingX(final int paddingX) {
+  public @NotNull PoolingLayer setPaddingX(final int paddingX) {
     this.paddingX = paddingX;
     return this;
   }
@@ -249,7 +250,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
    * @param paddingY the padding y
    * @return the padding y
    */
-  public PoolingLayer setPaddingY(final int paddingY) {
+  public @NotNull PoolingLayer setPaddingY(final int paddingY) {
     this.paddingY = paddingY;
     return this;
   }
@@ -260,7 +261,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
   }
   
   @Override
-  public PoolingLayer setPrecision(final Precision precision) {
+  public @NotNull PoolingLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
@@ -280,7 +281,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
    * @param strideX the stride x
    * @return the stride x
    */
-  public PoolingLayer setStrideX(final int strideX) {
+  public @NotNull PoolingLayer setStrideX(final int strideX) {
     this.strideX = strideX;
     return this;
   }
@@ -300,7 +301,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
    * @param strideY the stride y
    * @return the stride y
    */
-  public PoolingLayer setStrideY(final int strideY) {
+  public @NotNull PoolingLayer setStrideY(final int strideY) {
     this.strideY = strideY;
     return this;
   }
@@ -320,7 +321,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
    * @param windowX the window x
    * @return the window x
    */
-  public PoolingLayer setWindowX(final int windowX) {
+  public @NotNull PoolingLayer setWindowX(final int windowX) {
     this.windowX = windowX;
     return this;
   }
@@ -340,13 +341,13 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
    * @param windowY the window y
    * @return the window y
    */
-  public PoolingLayer setWindowY(final int windowY) {
+  public @NotNull PoolingLayer setWindowY(final int windowY) {
     this.windowY = windowY;
     return this;
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList();
   }
   
@@ -357,7 +358,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
    * @param y the y
    * @return the window xy
    */
-  public PoolingLayer setWindowXY(int x, int y) {
+  public @NotNull PoolingLayer setWindowXY(int x, int y) {
     setWindowY(y);
     setWindowX(x);
     return this;
@@ -370,7 +371,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
    * @param y the y
    * @return the stride xy
    */
-  public PoolingLayer setStrideXY(int x, int y) {
+  public @NotNull PoolingLayer setStrideXY(int x, int y) {
     setStrideX(x);
     setStrideY(y);
     return this;
@@ -383,7 +384,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
    * @param y the y
    * @return the padding xy
    */
-  public PoolingLayer setPaddingXY(int x, int y) {
+  public @NotNull PoolingLayer setPaddingXY(int x, int y) {
     setPaddingX(x);
     setPaddingY(y);
     return this;

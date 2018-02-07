@@ -19,6 +19,8 @@
 
 package com.simiacryptus.util.test;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.function.Function;
 
 /**
@@ -55,13 +57,13 @@ public class LabeledObject<T> {
    * @param f   the f
    * @return the labeled object
    */
-  public <U> LabeledObject<U> map(final Function<T, U> f) {
+  public @NotNull <U> LabeledObject<U> map(final @NotNull Function<T, U> f) {
     return new LabeledObject<>(f.apply(this.data), this.label);
   }
   
   @Override
-  public String toString() {
-    final StringBuffer sb = new StringBuffer("LabeledObject{");
+  public @NotNull String toString() {
+    final @NotNull StringBuffer sb = new StringBuffer("LabeledObject{");
     sb.append("data=").append(data);
     sb.append(", label='").append(label).append('\'');
     sb.append('}');

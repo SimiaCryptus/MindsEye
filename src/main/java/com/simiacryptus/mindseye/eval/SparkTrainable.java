@@ -25,6 +25,7 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.rdd.RDD;
 import org.apache.spark.storage.StorageLevel;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,7 +106,7 @@ public class SparkTrainable extends TrainableBase {
    * @param msg  the msg
    * @param args the args
    */
-  protected static void debug(final String msg, final Object... args) {
+  protected static void debug(final @NotNull String msg, final Object... args) {
     final String format = String.format(msg, args);
     log.info(format);
   }
@@ -117,7 +118,7 @@ public class SparkTrainable extends TrainableBase {
    * @param values the values
    * @return the result
    */
-  protected static SparkTrainable.ReducableResult getResult(final DeltaSet<NNLayer> delta, final double[] values) {
+  protected static SparkTrainable.ReducableResult getResult(final @NotNull DeltaSet<NNLayer> delta, final @NotNull double[] values) {
     final Map<String, double[]> deltas = delta.getMap().entrySet().stream().collect(Collectors.toMap(
       e -> e.getKey().getId().toString(), e -> e.getValue().getDelta()
                                                                                                     ));
@@ -130,10 +131,10 @@ public class SparkTrainable extends TrainableBase {
    * @param partition the partition
    * @return the stream
    */
-  protected static Stream<Tensor[]> getStream(final Iterator<Tensor[]> partition) {
+  protected static Stream<Tensor[]> getStream(final @NotNull Iterator<Tensor[]> partition) {
     final int characteristics = Spliterator.ORDERED;
     final boolean parallel = false;
-    final Spliterator<Tensor[]> spliterator = Spliterators.spliteratorUnknownSize(partition, characteristics);
+    final @NotNull Spliterator<Tensor[]> spliterator = Spliterators.spliteratorUnknownSize(partition, characteristics);
     return StreamSupport.stream(spliterator, parallel);
   }
   
@@ -143,8 +144,8 @@ public class SparkTrainable extends TrainableBase {
    * @param reduce the reduce
    * @return the delta
    */
-  protected DeltaSet<NNLayer> getDelta(final SparkTrainable.ReducableResult reduce) {
-    final DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
+  protected @NotNull DeltaSet<NNLayer> getDelta(final @NotNull SparkTrainable.ReducableResult reduce) {
+    final @NotNull DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
     final Tensor[] prototype = dataRDD.toJavaRDD().take(1).get(0);
     final NNResult result = network.eval(NNConstant.batchResultArray(new Tensor[][]{prototype}));
     result.accumulate(xxx, 0);
@@ -167,7 +168,7 @@ public class SparkTrainable extends TrainableBase {
    * @param partitions the partitions
    * @return the partitions
    */
-  public SparkTrainable setPartitions(final int partitions) {
+  public @NotNull SparkTrainable setPartitions(final int partitions) {
     if (1 > partitions) throw new IllegalArgumentException();
     this.partitions = partitions;
     return this;
@@ -188,7 +189,7 @@ public class SparkTrainable extends TrainableBase {
    * @param storageLevel the storage level
    * @return the storage level
    */
-  public SparkTrainable setStorageLevel(final StorageLevel storageLevel) {
+  public @NotNull SparkTrainable setStorageLevel(final StorageLevel storageLevel) {
     this.storageLevel = storageLevel;
     reseed(seed);
     return this;
@@ -221,7 +222,7 @@ public class SparkTrainable extends TrainableBase {
     if (isVerbose()) {
       log.info(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
     }
-    final DeltaSet<NNLayer> xxx = getDelta(result);
+    final @NotNull DeltaSet<NNLayer> xxx = getDelta(result);
     return new PointSample(xxx, new StateSet<NNLayer>(xxx), result.sum, 0.0, result.count).normalize();
   }
   
@@ -276,16 +277,16 @@ public class SparkTrainable extends TrainableBase {
     }
     
     @Override
-    public Iterator<SparkTrainable.ReducableResult> call(final Iterator<Tensor[]> partition) throws Exception {
+    public @NotNull Iterator<SparkTrainable.ReducableResult> call(final @NotNull Iterator<Tensor[]> partition) throws Exception {
       final long startTime = System.nanoTime();
-      final DataTrainable trainable = new BasicTrainable(network);
+      final @NotNull DataTrainable trainable = new BasicTrainable(network);
       final Tensor[][] tensors = SparkTrainable.getStream(partition).toArray(i -> new Tensor[i][]);
       if (verbose) {
         SparkTrainable.debug("Materialized %s records in %4f sec", tensors.length, (System.nanoTime() - startTime) * 1e-9);
       }
       final PointSample measure = trainable.setData(Arrays.asList(tensors)).measure(new TrainingMonitor() {
         @Override
-        public void log(final String msg) {
+        public void log(final @NotNull String msg) {
           SparkTrainable.debug(msg);
         }
       });
@@ -330,7 +331,7 @@ public class SparkTrainable extends TrainableBase {
      *
      * @param source the source
      */
-    public void accumulate(final DeltaSet<NNLayer> source) {
+    public void accumulate(final @NotNull DeltaSet<NNLayer> source) {
       final Map<String, NNLayer> idIndex = source.getMap().entrySet().stream().collect(Collectors.toMap(
         e -> e.getKey().getId().toString(), e -> e.getKey()
                                                                                                        ));
@@ -343,8 +344,8 @@ public class SparkTrainable extends TrainableBase {
      * @param right the right
      * @return the spark trainable . reducable result
      */
-    public SparkTrainable.ReducableResult add(final SparkTrainable.ReducableResult right) {
-      final HashMap<String, double[]> map = new HashMap<>();
+    public @NotNull SparkTrainable.ReducableResult add(final @NotNull SparkTrainable.ReducableResult right) {
+      final @NotNull HashMap<String, double[]> map = new HashMap<>();
       final Set<String> keys = Stream.concat(deltas.keySet().stream(), right.deltas.keySet().stream()).collect(Collectors.toSet());
       for (final String key : keys) {
         final double[] l = deltas.get(key);
@@ -352,7 +353,7 @@ public class SparkTrainable extends TrainableBase {
         if (null != r) {
           if (null != l) {
             assert l.length == r.length;
-            final double[] x = new double[l.length];
+            final @NotNull double[] x = new double[l.length];
             for (int i = 0; i < l.length; i++) {
               x[i] = l[i] + r[i];
             }

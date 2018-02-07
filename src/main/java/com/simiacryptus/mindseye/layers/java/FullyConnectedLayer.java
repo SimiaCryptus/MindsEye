@@ -26,6 +26,8 @@ import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
 import org.jblas.DoubleMatrix;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,12 +53,12 @@ public class FullyConnectedLayer extends NNLayer {
   /**
    * The Input dims.
    */
-  public final int[] inputDims;
+  public final @Nullable int[] inputDims;
   /**
    * The Output dims.
    */
-  public final int[] outputDims;
-  private final Tensor weights;
+  public final @Nullable int[] outputDims;
+  private final @Nullable Tensor weights;
   
   /**
    * Instantiates a new Fully connected layer.
@@ -74,7 +76,7 @@ public class FullyConnectedLayer extends NNLayer {
    * @param inputDims  the input dims
    * @param outputDims the output dims
    */
-  public FullyConnectedLayer(final int[] inputDims, final int[] outputDims) {
+  public FullyConnectedLayer(final @NotNull int[] inputDims, final @NotNull int[] outputDims) {
     final int inputs = Tensor.dim(inputDims);
     this.inputDims = Arrays.copyOf(inputDims, inputDims.length);
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
@@ -94,7 +96,7 @@ public class FullyConnectedLayer extends NNLayer {
    * @param json      the json
    * @param resources the resources
    */
-  protected FullyConnectedLayer(final JsonObject json, Map<String, byte[]> resources) {
+  protected FullyConnectedLayer(final @NotNull JsonObject json, Map<String, byte[]> resources) {
     super(json);
     outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
     inputDims = JsonUtil.getIntArray(json.getAsJsonArray("inputDims"));
@@ -108,7 +110,7 @@ public class FullyConnectedLayer extends NNLayer {
    * @param cols   the cols
    * @param matrix the matrix
    */
-  public static void crossMultiply(final double[] rows, final double[] cols, final double[] matrix) {
+  public static void crossMultiply(final @NotNull double[] rows, final @NotNull double[] cols, final double[] matrix) {
     int i = 0;
     for (final double c : cols) {
       for (final double r : rows) {
@@ -117,7 +119,14 @@ public class FullyConnectedLayer extends NNLayer {
     }
   }
   
-  public static void crossMultiplyT(final double[] rows, final double[] cols, final double[] matrix) {
+  /**
+   * Cross multiply t.
+   *
+   * @param rows   the rows
+   * @param cols   the cols
+   * @param matrix the matrix
+   */
+  public static void crossMultiplyT(final @NotNull double[] rows, final @NotNull double[] cols, final double[] matrix) {
     int i = 0;
     for (final double r : rows) {
       for (final double c : cols) {
@@ -133,7 +142,7 @@ public class FullyConnectedLayer extends NNLayer {
    * @param rs   the rs
    * @return the fully connected layer
    */
-  public static FullyConnectedLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static FullyConnectedLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new FullyConnectedLayer(json, rs);
   }
   
@@ -144,8 +153,8 @@ public class FullyConnectedLayer extends NNLayer {
    * @param in     the in
    * @param out    the out
    */
-  public static void multiply(final double[] matrix, final double[] in, final double[] out) {
-    final DoubleMatrix matrixObj = new DoubleMatrix(out.length, in.length, matrix);
+  public static void multiply(final double[] matrix, final @NotNull double[] in, final @NotNull double[] out) {
+    final @NotNull DoubleMatrix matrixObj = new DoubleMatrix(out.length, in.length, matrix);
     matrixObj.mmuli(new DoubleMatrix(in.length, 1, in), new DoubleMatrix(out.length, 1, out));
   }
   
@@ -156,21 +165,21 @@ public class FullyConnectedLayer extends NNLayer {
    * @param in     the in
    * @param out    the out
    */
-  public static void multiplyT(final double[] matrix, final double[] in, final double[] out) {
-    DoubleMatrix doubleMatrix = new DoubleMatrix(in.length, out.length, matrix);
-    final DoubleMatrix matrixObj = FullyConnectedLayer.transpose(doubleMatrix);
+  public static void multiplyT(final double[] matrix, final @NotNull double[] in, final @NotNull double[] out) {
+    @NotNull DoubleMatrix doubleMatrix = new DoubleMatrix(in.length, out.length, matrix);
+    final @NotNull DoubleMatrix matrixObj = FullyConnectedLayer.transpose(doubleMatrix);
     matrixObj.mmuli(new DoubleMatrix(in.length, 1, in), new DoubleMatrix(out.length, 1, out));
     RecycleBin.DOUBLES.recycle(matrixObj.data, matrixObj.data.length);
   }
-
+  
   /**
    * Transpose double matrix.
    *
    * @param doubleMatrix the double matrix
    * @return the double matrix
    */
-  public static DoubleMatrix transpose(final DoubleMatrix doubleMatrix) {
-    final DoubleMatrix result = new DoubleMatrix(doubleMatrix.columns, doubleMatrix.rows, RecycleBin.DOUBLES.obtain(doubleMatrix.length));
+  public static @NotNull DoubleMatrix transpose(final @NotNull DoubleMatrix doubleMatrix) {
+    final @NotNull DoubleMatrix result = new DoubleMatrix(doubleMatrix.columns, doubleMatrix.rows, RecycleBin.DOUBLES.obtain(doubleMatrix.length));
     for (int i = 0; i < doubleMatrix.rows; ++i) {
       for (int j = 0; j < doubleMatrix.columns; ++j) {
         result.put(j, i, doubleMatrix.get(i, j));
@@ -180,44 +189,44 @@ public class FullyConnectedLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public @NotNull NNResult eval(final @NotNull NNResult... inObj) {
     final TensorList indata = inObj[0].getData();
     indata.addRef();
-    for (NNResult nnResult : inObj) {
+    for (@NotNull NNResult nnResult : inObj) {
       nnResult.addRef();
     }
     assert Tensor.dim(indata.getDimensions()) == Tensor.dim(this.inputDims) : Arrays.toString(indata.getDimensions()) + " == " + Arrays.toString(this.inputDims);
-    Tensor weights = this.weights;
-    DoubleMatrix doubleMatrix = new DoubleMatrix(Tensor.dim(indata.getDimensions()), Tensor.dim(outputDims), weights.getData());
-    final DoubleMatrix matrixObj = FullyConnectedLayer.transpose(doubleMatrix);
-    TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, indata.length()).parallel().mapToObj(dataIndex -> {
+    @Nullable Tensor weights = this.weights;
+    @NotNull DoubleMatrix doubleMatrix = new DoubleMatrix(Tensor.dim(indata.getDimensions()), Tensor.dim(outputDims), weights.getData());
+    final @NotNull DoubleMatrix matrixObj = FullyConnectedLayer.transpose(doubleMatrix);
+    @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, indata.length()).parallel().mapToObj(dataIndex -> {
       final Tensor input = indata.get(dataIndex);
-      final Tensor output = new Tensor(outputDims);
-      final double[] in = input.getData();
-      final double[] out = output.getData();
+      final @Nullable Tensor output = new Tensor(outputDims);
+      final @Nullable double[] in = input.getData();
+      final @Nullable double[] out = output.getData();
       matrixObj.mmuli(new DoubleMatrix(in.length, 1, in), new DoubleMatrix(out.length, 1, out));
       return output;
     }).toArray(i -> new Tensor[i]));
     RecycleBin.DOUBLES.recycle(matrixObj.data, matrixObj.data.length);
-    return new NNResult(tensorArray, (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+    return new NNResult(tensorArray, (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList delta) -> {
       if (!isFrozen()) {
         final Delta<NNLayer> deltaBuffer = buffer.get(FullyConnectedLayer.this, weights.getData());
         final int threads = 4;
         IntStream.range(0, threads).parallel().mapToObj(x -> x).flatMap(thread -> {
-          final Tensor weightDelta = new Tensor(Tensor.dim(inputDims), Tensor.dim(outputDims));
+          final @NotNull Tensor weightDelta = new Tensor(Tensor.dim(inputDims), Tensor.dim(outputDims));
           return IntStream.range(0, indata.length()).filter(i -> thread == i % threads).mapToObj(dataIndex -> {
-            final double[] deltaData = delta.get(dataIndex).getData();
-            final double[] inputData = indata.get(dataIndex).getData();
+            final @Nullable double[] deltaData = delta.get(dataIndex).getData();
+            final @Nullable double[] inputData = indata.get(dataIndex).getData();
             FullyConnectedLayer.crossMultiplyT(deltaData, inputData, weightDelta.getData());
             return weightDelta.getData();
           });
         }).reduce((a, b) -> ArrayUtil.add(a, b)).map(data -> deltaBuffer.addInPlace(data));
       }
       if (inObj[0].isAlive()) {
-        final TensorList tensorList = TensorArray.wrap(IntStream.range(0, indata.length()).parallel().mapToObj(dataIndex -> {
-          final double[] deltaData = delta.get(dataIndex).getData();
-          final Tensor r = weights;
-          final Tensor passback = new Tensor(indata.get(dataIndex).getDimensions());
+        final @NotNull TensorList tensorList = TensorArray.wrap(IntStream.range(0, indata.length()).parallel().mapToObj(dataIndex -> {
+          final @Nullable double[] deltaData = delta.get(dataIndex).getData();
+          final @Nullable Tensor r = weights;
+          final @NotNull Tensor passback = new Tensor(indata.get(dataIndex).getDimensions());
           FullyConnectedLayer.multiply(r.getData(), deltaData, passback.getData());
           return passback;
         }).toArray(i -> new Tensor[i]));
@@ -229,7 +238,7 @@ public class FullyConnectedLayer extends NNLayer {
       @Override
       protected void _free() {
         indata.freeRef();
-        for (NNResult nnResult : inObj) {
+        for (@NotNull NNResult nnResult : inObj) {
           nnResult.freeRef();
         }
       }
@@ -243,8 +252,8 @@ public class FullyConnectedLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final JsonObject json = super.getJsonStub();
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, @NotNull DataSerializer dataSerializer) {
+    final @NotNull JsonObject json = super.getJsonStub();
     json.add("outputDims", JsonUtil.getJson(outputDims));
     json.add("inputDims", JsonUtil.getJson(inputDims));
     json.add("weights", getWeights().toJson(resources, dataSerializer));
@@ -256,18 +265,19 @@ public class FullyConnectedLayer extends NNLayer {
    *
    * @return the transpose
    */
-  public NNLayer getTranspose() {
+  public @NotNull NNLayer getTranspose() {
     throw new RuntimeException("Not Implemented");
   }
   
   /**
    * The Weights.
-   */ /**
+   */
+  /**
    * Gets weights.
    *
    * @return the weights
    */
-  public Tensor getWeights() {
+  public @Nullable Tensor getWeights() {
     return weights;
   }
   
@@ -277,7 +287,7 @@ public class FullyConnectedLayer extends NNLayer {
    * @param f the f
    * @return the weights
    */
-  public FullyConnectedLayer set(final DoubleSupplier f) {
+  public @NotNull FullyConnectedLayer set(final @NotNull DoubleSupplier f) {
     Arrays.parallelSetAll(getWeights().getData(), i -> f.getAsDouble());
     return this;
   }
@@ -288,7 +298,7 @@ public class FullyConnectedLayer extends NNLayer {
    * @param f the f
    * @return the weights
    */
-  public FullyConnectedLayer set(final IntToDoubleFunction f) {
+  public @NotNull FullyConnectedLayer set(final @NotNull IntToDoubleFunction f) {
     getWeights().set(f);
     return this;
   }
@@ -299,7 +309,7 @@ public class FullyConnectedLayer extends NNLayer {
    * @param f the f
    * @return the weights
    */
-  public FullyConnectedLayer setByCoord(final ToDoubleFunction<Coordinate> f) {
+  public @NotNull FullyConnectedLayer setByCoord(final @NotNull ToDoubleFunction<Coordinate> f) {
     getWeights().coordStream(true).forEach(c -> {
       getWeights().set(c, f.applyAsDouble(c));
     });
@@ -314,7 +324,7 @@ public class FullyConnectedLayer extends NNLayer {
    * @param peak      the peak
    */
   public void initSpacial(final double radius, final double stiffness, final double peak) {
-    setByCoord((final Coordinate in, final Coordinate out) -> {
+    setByCoord((final @NotNull Coordinate in, final @NotNull Coordinate out) -> {
       final double[] doubleCoords = IntStream.range(0, in.getCoords().length).mapToDouble(d -> {
         final double from = in.getCoords()[d] * 1.0 / FullyConnectedLayer.this.inputDims[d];
         final double to = out.getCoords()[d] * 1.0 / FullyConnectedLayer.this.outputDims[d];
@@ -332,7 +342,7 @@ public class FullyConnectedLayer extends NNLayer {
    * @param data the data
    * @return the weights
    */
-  public FullyConnectedLayer set(final double[] data) {
+  public @NotNull FullyConnectedLayer set(final double[] data) {
     getWeights().set(data);
     return this;
   }
@@ -343,7 +353,7 @@ public class FullyConnectedLayer extends NNLayer {
    * @param data the data
    * @return the fully connected layer
    */
-  public FullyConnectedLayer set(final Tensor data) {
+  public @NotNull FullyConnectedLayer set(final @NotNull Tensor data) {
     getWeights().set(data);
     return this;
   }
@@ -354,7 +364,7 @@ public class FullyConnectedLayer extends NNLayer {
    * @param f the f
    * @return the weights
    */
-  public FullyConnectedLayer setByCoord(final ToDoubleBiFunction<Coordinate, Coordinate> f) {
+  public @NotNull FullyConnectedLayer setByCoord(final @NotNull ToDoubleBiFunction<Coordinate, Coordinate> f) {
     new Tensor(inputDims).coordStream(true).forEach(in -> {
       new Tensor(outputDims).coordStream(true).forEach(out -> {
         getWeights().set(new int[]{in.getIndex(), out.getIndex()}, f.applyAsDouble(in, out));
@@ -369,7 +379,7 @@ public class FullyConnectedLayer extends NNLayer {
    * @param value the value
    * @return the weights log
    */
-  public FullyConnectedLayer setWeightsLog(final double value) {
+  public @NotNull FullyConnectedLayer setWeightsLog(final double value) {
     getWeights().coordStream(false).forEach(c -> {
       getWeights().set(c, (FastRandom.random() - 0.5) * Math.pow(10, value));
     });
@@ -377,7 +387,7 @@ public class FullyConnectedLayer extends NNLayer {
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList(getWeights().getData());
   }
   

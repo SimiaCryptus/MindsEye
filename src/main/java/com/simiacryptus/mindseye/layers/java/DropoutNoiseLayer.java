@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,7 +78,7 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
    *
    * @param json the json
    */
-  protected DropoutNoiseLayer(final JsonObject json) {
+  protected DropoutNoiseLayer(final @NotNull JsonObject json) {
     super(json);
     value = json.get("value").getAsDouble();
   }
@@ -88,41 +90,41 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
    * @param rs   the rs
    * @return the dropout noise layer
    */
-  public static DropoutNoiseLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static DropoutNoiseLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new DropoutNoiseLayer(json);
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public @NotNull NNResult eval(final NNResult... inObj) {
     final NNResult inputResult = inObj[0];
     inputResult.addRef();
     final TensorList inputData = inputResult.getData();
     final int itemCnt = inputData.length();
     final Tensor[] mask = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final Random random = new Random(seed);
+      final @NotNull Random random = new Random(seed);
       final Tensor input = inputData.get(dataIndex);
-      final Tensor output = input.map(x -> {
+      final @Nullable Tensor output = input.map(x -> {
         if (seed == -1) return 1;
         return random.nextDouble() < getValue() ? 0 : (1.0 / getValue());
       });
       return output;
     }).toArray(i -> new Tensor[i]);
     return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final double[] input = inputData.get(dataIndex).getData();
-      final double[] maskT = mask[dataIndex].getData();
-      final Tensor output = new Tensor(inputData.get(dataIndex).getDimensions());
-      final double[] outputData = output.getData();
+      final @Nullable double[] input = inputData.get(dataIndex).getData();
+      final @Nullable double[] maskT = mask[dataIndex].getData();
+      final @NotNull Tensor output = new Tensor(inputData.get(dataIndex).getDimensions());
+      final @Nullable double[] outputData = output.getData();
       for (int i = 0; i < outputData.length; i++) {
         outputData[i] = input[i] * maskT[i];
       }
       return output;
-    }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList delta) -> {
       if (inputResult.isAlive()) {
-        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-          final double[] deltaData = delta.get(dataIndex).getData();
-          final int[] dims = inputData.get(dataIndex).getDimensions();
-          final double[] maskData = mask[dataIndex].getData();
-          final Tensor passback = new Tensor(dims);
+        @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+          final @Nullable double[] deltaData = delta.get(dataIndex).getData();
+          final @NotNull int[] dims = inputData.get(dataIndex).getDimensions();
+          final @Nullable double[] maskData = mask[dataIndex].getData();
+          final @NotNull Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, maskData[i] * deltaData[i]);
           }
@@ -147,8 +149,8 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final JsonObject json = super.getJsonStub();
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    final @NotNull JsonObject json = super.getJsonStub();
     json.addProperty("value", value);
     return json;
   }
@@ -168,7 +170,7 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
    * @param value the value
    * @return the value
    */
-  public DropoutNoiseLayer setValue(final double value) {
+  public @NotNull DropoutNoiseLayer setValue(final double value) {
     this.value = value;
     return this;
   }
@@ -184,7 +186,7 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList();
   }
   

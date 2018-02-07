@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.test.integration;
 
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The interface Rev network factory.
@@ -33,5 +34,5 @@ public interface RevNetworkFactory {
    * @param features the features
    * @return the dag network
    */
-  DAGNetwork vectorToImage(NotebookOutput log, int features);
+  @NotNull DAGNetwork vectorToImage(NotebookOutput log, int features);
 }

@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.java;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
 
@@ -31,14 +32,14 @@ import java.util.Random;
 public abstract class RescaledSubnetLayerTest extends LayerTestBase {
   
   @Override
-  public int[][] getSmallDims(Random random) {
+  public @NotNull int[][] getSmallDims(Random random) {
     return new int[][]{
       {6, 6, 1}
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize, Random random) {
+  public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
     return new RescaledSubnetLayer(2, new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random()));
   }
   

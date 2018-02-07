@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.aparapi;
 
 import com.simiacryptus.mindseye.lang.ComponentException;
 import com.simiacryptus.mindseye.lang.RecycleBin;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,10 +45,10 @@ public final class ConvolutionController {
    */
   public static int MAX_BUFFER_SIZE = 1 * 1024 * 1024 / 2;
   private final int[] inputSize;
-  private final int[] kernelSize;
+  private final @NotNull int[] kernelSize;
   private final int[] outputSize;
-  private Integer paddingX = null;
-  private Integer paddingY = null;
+  private @Nullable Integer paddingX = null;
+  private @Nullable Integer paddingY = null;
   
   /**
    * Instantiates a new Convolution controller.
@@ -56,14 +58,14 @@ public final class ConvolutionController {
    * @param paddingX   the padding x
    * @param paddingY   the padding y
    */
-  public ConvolutionController(final int[] inputSize, final int[] kernelSize, final Integer paddingX, Integer paddingY) {
+  public ConvolutionController(final int[] inputSize, final @NotNull int[] kernelSize, final Integer paddingX, Integer paddingY) {
     this.inputSize = inputSize;
     this.kernelSize = kernelSize;
     this.setPaddingX(paddingX);
     this.setPaddingY(paddingY);
     outputSize = IntStream.range(0, kernelSize.length).map(i -> {
       int x;
-      Integer padding;
+      @Nullable Integer padding;
       if (i == 0) {
         padding = paddingX;
       }
@@ -97,7 +99,7 @@ public final class ConvolutionController {
    * @param weights the weights
    * @param output  the output
    */
-  public void backprop(final double[][] input, final double[] weights, final double[][] output) {
+  public void backprop(final @NotNull double[][] input, final @NotNull double[] weights, final @NotNull double[][] output) {
     final int length = input.length;
     assert length == output.length;
     final int inLength = input[0].length;
@@ -120,8 +122,8 @@ public final class ConvolutionController {
             null == paddingX ? (kernelSize[0] - 1) / 2 : paddingX
           };
           ConvolutionController.backpropTask.put(ConvolutionController.convolveTask.kernelOffset);
-          double[] inputBuffer = null;
-          double[] outputBuffer = null;
+          @Nullable double[] inputBuffer = null;
+          @Nullable double[] outputBuffer = null;
           for (int run = 0; run < runs; run++) {
             final int currentIndexOffset = run * inputsPerRun;
             final int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
@@ -162,7 +164,7 @@ public final class ConvolutionController {
           ConvolutionController.backpropTask.kernelSize = null;
           ConvolutionController.backpropTask.weights = null;
         }
-      } catch (final Throwable e) {
+      } catch (final @NotNull Throwable e) {
         throw new ComponentException("Error with " + this, e);
       }
     });
@@ -176,7 +178,7 @@ public final class ConvolutionController {
    * @param weights the weights
    * @param output  the output
    */
-  public void convolve(final double[][] input, final double[] weights, final double[][] output) {
+  public void convolve(final @NotNull double[][] input, final @NotNull double[] weights, final @NotNull double[][] output) {
     final int length = input.length;
     assert length == output.length;
     final int inLength = input[0].length;
@@ -200,8 +202,8 @@ public final class ConvolutionController {
           };
           ConvolutionController.convolveTask.put(ConvolutionController.convolveTask.kernelOffset);
           ConvolutionController.convolveTask.put(ConvolutionController.convolveTask.kernelSize);
-          double[] inputBuffer = null;
-          double[] outputBuffer = null;
+          @Nullable double[] inputBuffer = null;
+          @Nullable double[] outputBuffer = null;
           for (int run = 0; run <= runs; run++) {
             final int currentIndexOffset = run * inputsPerRun;
             final int currentNumItems = run < runs ? inputsPerRun : leftover;
@@ -245,7 +247,7 @@ public final class ConvolutionController {
           ConvolutionController.convolveTask.kernelSize = null;
           ConvolutionController.convolveTask.weights = null;
         }
-      } catch (final Throwable e) {
+      } catch (final @NotNull Throwable e) {
         throw new ComponentException("Error with " + this, e);
       }
     });
@@ -260,7 +262,7 @@ public final class ConvolutionController {
     return outputSize;
   }
   
-  private void gradient(final double[] input, final double[] weights, final int weightSize, final double[] output) {
+  private void gradient(final @NotNull double[] input, final @NotNull double[] weights, final int weightSize, final @NotNull double[] output) {
     assert 0 < input.length;
     assert 0 < weights.length;
     assert 0 < output.length;
@@ -295,7 +297,7 @@ public final class ConvolutionController {
           ConvolutionController.kernelTask.inputSize = null;
           ConvolutionController.kernelTask.kernelSize = null;
         }
-      } catch (final Throwable e) {
+      } catch (final @NotNull Throwable e) {
         throw new ComponentException("Error with " + this, e);
       }
     });
@@ -308,7 +310,7 @@ public final class ConvolutionController {
    * @param weights the weights
    * @param output  the output
    */
-  public void gradient(final double[][] input, final double[] weights, final double[][] output) {
+  public void gradient(final @NotNull double[][] input, final @NotNull double[] weights, final @NotNull double[][] output) {
     final int length = input.length;
     assert length == output.length;
     final int inLength = input[0].length;
@@ -316,8 +318,8 @@ public final class ConvolutionController {
     final int inputsPerRun = Math.min(Math.floorDiv(ConvolutionController.MAX_BUFFER_SIZE, Math.max(inLength, outLength)), length);
     final int runs = length / inputsPerRun;
     final int leftover = length - runs * inputsPerRun;
-    double[] inputBuffer = null;
-    double[] outputBuffer = null;
+    @Nullable double[] inputBuffer = null;
+    @Nullable double[] outputBuffer = null;
     for (int run = 0; run < runs; run++) {
       final int currentIndexOffset = run * inputsPerRun;
       final int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
@@ -351,7 +353,7 @@ public final class ConvolutionController {
   
   @Override
   public String toString() {
-    final StringBuilder builder = new StringBuilder();
+    final @NotNull StringBuilder builder = new StringBuilder();
     builder.append("Convolve [");
     builder.append(Arrays.toString(inputSize));
     builder.append(" x ");
@@ -367,7 +369,7 @@ public final class ConvolutionController {
    *
    * @return the padding x
    */
-  public Integer getPaddingX() {
+  public @Nullable Integer getPaddingX() {
     return paddingX;
   }
   
@@ -385,7 +387,7 @@ public final class ConvolutionController {
    *
    * @return the padding y
    */
-  public Integer getPaddingY() {
+  public @Nullable Integer getPaddingY() {
     return paddingY;
   }
   

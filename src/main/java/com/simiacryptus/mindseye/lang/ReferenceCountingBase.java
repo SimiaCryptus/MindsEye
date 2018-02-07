@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,10 +34,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 /**
- * The base implementation for ReferenceCounting objects.
- * Provides state management and debugging facilities.
- * If assertions are enabled, stack traces are recorded 
- * to provide detailed logs for debugging LifecycleExceptions.
+ * The base implementation for ReferenceCounting objects. Provides state management and debugging facilities. If
+ * assertions are enabled, stack traces are recorded to provide detailed logs for debugging LifecycleExceptions.
  */
 public abstract class ReferenceCountingBase implements ReferenceCounting {
   private static final Logger logger = LoggerFactory.getLogger(ReferenceCountingBase.class);
@@ -44,14 +44,14 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   
   private final AtomicInteger references = new AtomicInteger(1);
   private final AtomicBoolean isFreed = new AtomicBoolean(false);
-  private final StackTraceElement[] createdBy = DEBUG_LIFECYCLE ? Thread.currentThread().getStackTrace() : null;
+  private final @Nullable StackTraceElement[] createdBy = DEBUG_LIFECYCLE ? Thread.currentThread().getStackTrace() : null;
   private static final ConcurrentHashMap<Class<?>, ConcurrentLinkedDeque<Supplier<ReferenceCountingBase>>> leakMap = new ConcurrentHashMap<>();
   private static final PersistanceMode FREE_WARNING_PERSISTANCE = PersistanceMode.Soft;
-  private volatile StackTraceElement[] finalizedBy = null;
+  private volatile @Nullable StackTraceElement[] finalizedBy = null;
   private volatile boolean isFinalized = false;
   private static final int MAX_FREE_WARNINGS = 1;
   
-  private static String getString(StackTraceElement[] trace) {
+  private static @NotNull String getString(@Nullable StackTraceElement[] trace) {
     return null == trace ? "?" : Arrays.stream(trace).map(x -> "at " + x).skip(2).reduce((a, b) -> a + "\n" + b).orElse("<Empty Stack>");
   }
   
@@ -64,10 +64,20 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   
   private final ConcurrentLinkedDeque<StackTraceElement[]> addRefs = new ConcurrentLinkedDeque<>();
   
-  public static String detailString(ReferenceCountingBase obj, boolean includeCaller) {
+  /**
+   * Detail string string.
+   *
+   * @param obj           the obj
+   * @param includeCaller the include caller
+   * @return the string
+   */
+  public static String detailString(@NotNull ReferenceCountingBase obj, boolean includeCaller) {
     return obj.detailString(includeCaller);
   }
   
+  /**
+   * Log free warnings.
+   */
   public static void logFreeWarnings() {
     leakMap.forEach((clazz, queue) -> {
       logger.info(String.format("Objects not freed by reference for %s", clazz.getSimpleName()));
@@ -83,8 +93,8 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   }
   
   private String detailString(boolean includeCaller) {
-    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-    PrintStream out = new PrintStream(buffer);
+    @NotNull ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    @NotNull PrintStream out = new PrintStream(buffer);
     out.print(String.format("Object %s (%d refs, %d frees) ",
                             getClass().getName(), 1 + addRefs.size(), freeRefs.size()));
     if (null != createdBy) {
@@ -163,6 +173,9 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     }
   }
   
+  /**
+   * Free.
+   */
   protected void _free() {}
 
   @Override
@@ -182,10 +195,20 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     }
   }
   
+  /**
+   * Is floating boolean.
+   *
+   * @return the boolean
+   */
   public boolean isFloating() {
     return floating;
   }
   
+  /**
+   * Sets floating.
+   *
+   * @param floating the floating
+   */
   public void setFloating(boolean floating) {
     this.floating = floating;
   }

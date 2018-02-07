@@ -19,6 +19,9 @@
 
 package com.simiacryptus.util.data;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,7 +36,7 @@ public class PercentileStatistics extends ScalarStatistics {
   private final List<double[]> values = new ArrayList<>();
   
   @Override
-  public synchronized ScalarStatistics add(final double... values) {
+  public synchronized @Nullable ScalarStatistics add(final @NotNull double... values) {
     if (null != this.values) {
       this.values.add(Arrays.copyOf(values, values.length));
     }

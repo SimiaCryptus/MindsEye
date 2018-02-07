@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
@@ -65,7 +67,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
    * @param alpha the alpha
    * @return the delta setByCoord
    */
-  public DeltaSet<K> accumulate(final double alpha) {
+  public @NotNull DeltaSet<K> accumulate(final double alpha) {
     stream().forEach(d -> d.accumulate(alpha));
     return this;
   }
@@ -77,7 +79,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
    * @param right the right
    * @return the delta setByCoord
    */
-  public DeltaSet<K> add(final DeltaSet<K> right) {
+  public @NotNull DeltaSet<K> add(final @NotNull DeltaSet<K> right) {
     return this.copy().addInPlace(right);
   }
   
@@ -87,7 +89,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
    * @param right the right
    * @return the delta setByCoord
    */
-  public DeltaSet<K> addInPlace(final DeltaSet<K> right) {
+  public @NotNull DeltaSet<K> addInPlace(final @NotNull DeltaSet<K> right) {
     right.map.forEach(100, (layer, buffer) -> {
       get(layer, buffer.target).addInPlace(buffer).freeRef();
     });
@@ -99,8 +101,8 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
    *
    * @return the state setByCoord
    */
-  public StateSet<K> asState() {
-    final StateSet<K> returnValue = new StateSet<>();
+  public @NotNull StateSet<K> asState() {
+    final @NotNull StateSet<K> returnValue = new StateSet<>();
     map.forEach((layer, delta) -> {
       delta.assertAlive();
       State<K> kState = returnValue.get(layer, delta.target);
@@ -111,7 +113,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
   }
   
   @Override
-  public DeltaSet<K> copy() {
+  public @NotNull DeltaSet<K> copy() {
     return this.map(x -> x.copy());
   }
   
@@ -121,7 +123,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
    * @param right the right
    * @return the double
    */
-  public double dot(final DoubleBufferSet<K, Delta<K>> right) {
+  public double dot(final @NotNull DoubleBufferSet<K, Delta<K>> right) {
     Stream<Map.Entry<K, Delta<K>>> stream = map.entrySet().stream();
     if (100 < map.size()) {
       stream = stream.parallel();
@@ -140,7 +142,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
   }
   
   @Override
-  protected Delta<K> factory(final K layer, final double[] target) {
+  protected @NotNull Delta<K> factory(final K layer, final double[] target) {
     return new Delta<K>(layer, target);
   }
   
@@ -163,9 +165,9 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
   }
   
   @Override
-  public DeltaSet<K> map(final Function<Delta<K>, Delta<K>> mapper) {
+  public @NotNull DeltaSet<K> map(final Function<Delta<K>, Delta<K>> mapper) {
     DoubleBufferSet<K, Delta<K>> map = super.map(mapper);
-    DeltaSet<K> kDeltaSet = new DeltaSet<>(map);
+    @NotNull DeltaSet<K> kDeltaSet = new DeltaSet<>(map);
     map.freeRef();
     return kDeltaSet;
   }
@@ -176,7 +178,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
    * @param f the f
    * @return the delta setByCoord
    */
-  public DeltaSet<K> scale(final double f) {
+  public @NotNull DeltaSet<K> scale(final double f) {
     return map(x -> x.scale(f));
   }
   
@@ -186,7 +188,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
    * @param right the right
    * @return the delta setByCoord
    */
-  public DeltaSet<K> subtract(final DeltaSet<K> right) {
+  public @NotNull DeltaSet<K> subtract(final DeltaSet<K> right) {
     return this.add(new DeltaSet<K>(right).scale(-1));
   }
   
@@ -195,7 +197,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
    *
    * @return the delta setByCoord
    */
-  public DeltaSet<K> unit() {
+  public @NotNull DeltaSet<K> unit() {
     return scale(1.0 / getMagnitude());
   }
   

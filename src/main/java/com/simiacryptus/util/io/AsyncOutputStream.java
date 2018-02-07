@@ -19,6 +19,8 @@
 
 package com.simiacryptus.util.io;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -36,7 +38,7 @@ public class AsyncOutputStream extends FilterOutputStream {
    *
    * @param stream the stream
    */
-  public AsyncOutputStream(final OutputStream stream) {
+  public AsyncOutputStream(final @NotNull OutputStream stream) {
     super(stream);
   }
   
@@ -45,7 +47,7 @@ public class AsyncOutputStream extends FilterOutputStream {
     queue.submit(() -> {
       try {
         out.close();
-      } catch (final IOException e) {
+      } catch (final @NotNull IOException e) {
         throw new RuntimeException(e);
       }
     });
@@ -56,7 +58,7 @@ public class AsyncOutputStream extends FilterOutputStream {
     queue.submit(() -> {
       try {
         out.flush();
-      } catch (final IOException e) {
+      } catch (final @NotNull IOException e) {
         throw new RuntimeException(e);
       }
     });
@@ -64,11 +66,11 @@ public class AsyncOutputStream extends FilterOutputStream {
   
   @Override
   public synchronized void write(final byte[] b, final int off, final int len) throws IOException {
-    final byte[] _b = Arrays.copyOfRange(b, off, Math.min(b.length, off + len));
+    final @NotNull byte[] _b = Arrays.copyOfRange(b, off, Math.min(b.length, off + len));
     queue.submit(() -> {
       try {
         out.write(_b);
-      } catch (final IOException e) {
+      } catch (final @NotNull IOException e) {
         throw new RuntimeException(e);
       }
     });
@@ -79,7 +81,7 @@ public class AsyncOutputStream extends FilterOutputStream {
     queue.submit(() -> {
       try {
         out.write(b);
-      } catch (final IOException e) {
+      } catch (final @NotNull IOException e) {
         throw new RuntimeException(e);
       }
     });

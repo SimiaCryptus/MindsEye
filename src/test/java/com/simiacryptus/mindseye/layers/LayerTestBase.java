@@ -53,6 +53,9 @@ public abstract class LayerTestBase extends StandardLayerTests {
     //GpuController.reset();
   }
   
+  /**
+   * Cleanup.
+   */
   @After
   public void cleanup() {
     System.gc();

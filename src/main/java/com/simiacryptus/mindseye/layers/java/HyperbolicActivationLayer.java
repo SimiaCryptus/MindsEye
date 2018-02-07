@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +41,7 @@ public class HyperbolicActivationLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(HyperbolicActivationLayer.class);
-  private final Tensor weights;
+  private final @Nullable Tensor weights;
   private int negativeMode = 1;
   
   /**
@@ -58,7 +60,7 @@ public class HyperbolicActivationLayer extends NNLayer {
    * @param json      the json
    * @param resources the resources
    */
-  protected HyperbolicActivationLayer(final JsonObject json, Map<String, byte[]> resources) {
+  protected HyperbolicActivationLayer(final @NotNull JsonObject json, Map<String, byte[]> resources) {
     super(json);
     weights = Tensor.fromJson(json.get("weights"), resources);
     negativeMode = json.getAsJsonPrimitive("negativeMode").getAsInt();
@@ -71,12 +73,12 @@ public class HyperbolicActivationLayer extends NNLayer {
    * @param rs   the rs
    * @return the hyperbolic activation layer
    */
-  public static HyperbolicActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static HyperbolicActivationLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new HyperbolicActivationLayer(json, rs);
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public @NotNull NNResult eval(final NNResult... inObj) {
     final TensorList indata = inObj[0].getData();
     indata.addRef();
     inObj[0].addRef();
@@ -88,12 +90,12 @@ public class HyperbolicActivationLayer extends NNLayer {
         final double a = Math.max(0, weights.get(v < 0 ? 1 : 0));
         return sign * (Math.sqrt(Math.pow(a * v, 2) + 1) - a) / a;
       });
-    }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList delta) -> {
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).forEach(dataIndex -> {
-          final double[] deltaData = delta.get(dataIndex).getData();
-          final double[] inputData = indata.get(dataIndex).getData();
-          final Tensor weightDelta = new Tensor(weights.getDimensions());
+          final @Nullable double[] deltaData = delta.get(dataIndex).getData();
+          final @Nullable double[] inputData = indata.get(dataIndex).getData();
+          final @NotNull Tensor weightDelta = new Tensor(weights.getDimensions());
           for (int i = 0; i < deltaData.length; i++) {
             final double d = deltaData[i];
             final double x = inputData[i];
@@ -105,10 +107,10 @@ public class HyperbolicActivationLayer extends NNLayer {
         });
       }
       if (inObj[0].isAlive()) {
-        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-          final double[] deltaData = delta.get(dataIndex).getData();
-          final int[] dims = indata.get(dataIndex).getDimensions();
-          final Tensor passback = new Tensor(dims);
+        @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+          final @Nullable double[] deltaData = delta.get(dataIndex).getData();
+          final @NotNull int[] dims = indata.get(dataIndex).getDimensions();
+          final @NotNull Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
             final double x = indata.get(dataIndex).getData()[i];
             final double d = deltaData[i];
@@ -139,8 +141,8 @@ public class HyperbolicActivationLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final JsonObject json = super.getJsonStub();
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, @NotNull DataSerializer dataSerializer) {
+    final @NotNull JsonObject json = super.getJsonStub();
     json.add("weights", weights.toJson(resources, dataSerializer));
     json.addProperty("negativeMode", negativeMode);
     return json;
@@ -169,7 +171,7 @@ public class HyperbolicActivationLayer extends NNLayer {
    *
    * @return the mode asymetric
    */
-  public HyperbolicActivationLayer setModeAsymetric() {
+  public @NotNull HyperbolicActivationLayer setModeAsymetric() {
     negativeMode = 0;
     return this;
   }
@@ -179,7 +181,7 @@ public class HyperbolicActivationLayer extends NNLayer {
    *
    * @return the mode even
    */
-  public HyperbolicActivationLayer setModeEven() {
+  public @NotNull HyperbolicActivationLayer setModeEven() {
     negativeMode = 1;
     return this;
   }
@@ -189,7 +191,7 @@ public class HyperbolicActivationLayer extends NNLayer {
    *
    * @return the mode odd
    */
-  public HyperbolicActivationLayer setModeOdd() {
+  public @NotNull HyperbolicActivationLayer setModeOdd() {
     negativeMode = -1;
     return this;
   }
@@ -200,14 +202,14 @@ public class HyperbolicActivationLayer extends NNLayer {
    * @param scale the scale
    * @return the scale
    */
-  public HyperbolicActivationLayer setScale(final double scale) {
+  public @NotNull HyperbolicActivationLayer setScale(final double scale) {
     weights.set(0, 1 / scale);
     weights.set(1, 1 / scale);
     return this;
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList(weights.getData());
   }
   

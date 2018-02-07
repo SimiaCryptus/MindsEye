@@ -28,6 +28,8 @@ import com.simiacryptus.util.lang.CodeUtil;
 import com.simiacryptus.util.lang.TimedResult;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +67,7 @@ public abstract class NotebookReportBase {
   /**
    * The Absolute url.
    */
-  protected String absoluteUrl = "https://github.com/SimiaCryptus/MindsEye/tree/master/src/";
+  protected @NotNull String absoluteUrl = "https://github.com/SimiaCryptus/MindsEye/tree/master/src/";
   
   /**
    * Print header string.
@@ -75,9 +77,9 @@ public abstract class NotebookReportBase {
    * @param prefix       the prefix
    * @return the string
    */
-  public static String printHeader(NotebookOutput log, Class<?> networkClass, final String prefix) {
+  public static @Nullable String printHeader(@NotNull NotebookOutput log, @Nullable Class<?> networkClass, final String prefix) {
     if (null == networkClass) return null;
-    String javadoc = CodeUtil.getJavadoc(networkClass);
+    @Nullable String javadoc = CodeUtil.getJavadoc(networkClass);
     log.setFrontMatterProperty(prefix + "_class_short", networkClass.getSimpleName());
     log.setFrontMatterProperty(prefix + "_class_full", networkClass.getCanonicalName());
     log.setFrontMatterProperty(prefix + "_class_doc", javadoc.replaceAll("\n", ""));
@@ -97,10 +99,10 @@ public abstract class NotebookReportBase {
    * @param fn      the fn
    * @param logPath the log path
    */
-  public void run(Consumer<NotebookOutput> fn, String... logPath) {
-    try (NotebookOutput log = getLog(logPath.length == 0 ? new String[]{getClass().getSimpleName()} : logPath)) {
+  public void run(@NotNull Consumer<NotebookOutput> fn, @NotNull String... logPath) {
+    try (@NotNull NotebookOutput log = getLog(logPath.length == 0 ? new String[]{getClass().getSimpleName()} : logPath)) {
       printHeader(log);
-      TimedResult<Void> time = TimedResult.time(() -> {
+      @NotNull TimedResult<Void> time = TimedResult.time(() -> {
         try {
           fn.accept(log);
           log.setFrontMatterProperty("result", "OK");
@@ -115,7 +117,7 @@ public abstract class NotebookReportBase {
     }
   }
   
-  private String getExceptionString(Throwable e) {
+  private @NotNull String getExceptionString(Throwable e) {
     if (e instanceof RuntimeException && e.getCause() != null && e.getCause() != e)
       return getExceptionString(e.getCause());
     if (e.getCause() != null && e.getCause() != e)
@@ -128,11 +130,11 @@ public abstract class NotebookReportBase {
    *
    * @param log the log
    */
-  public void printHeader(NotebookOutput log) {
+  public void printHeader(@NotNull NotebookOutput log) {
     log.setFrontMatterProperty("created_on", new Date().toString());
     log.setFrontMatterProperty("report_type", getReportType().name());
-    String targetJavadoc = printHeader(log, getTargetClass(), "network");
-    String reportJavadoc = printHeader(log, getReportClass(), "report");
+    @Nullable String targetJavadoc = printHeader(log, getTargetClass(), "network");
+    @Nullable String reportJavadoc = printHeader(log, getReportClass(), "report");
     log.p("__Target Description:__ " + StringEscapeUtils.escapeHtml4(targetJavadoc));
     log.p("__Report Description:__ " + StringEscapeUtils.escapeHtml4(reportJavadoc));
   }
@@ -152,7 +154,7 @@ public abstract class NotebookReportBase {
    * @param logPath the log path
    * @return the log
    */
-  public NotebookOutput getLog(String... logPath) {
+  public @NotNull NotebookOutput getLog(String... logPath) {
     try {
       if (useMarkdown) {
         return MarkdownNotebookOutput.get(getTargetClass(),
@@ -160,22 +162,22 @@ public abstract class NotebookReportBase {
                                           logPath);
       }
       else {
-        final String directoryName = new SimpleDateFormat("YYYY-MM-dd-HH-mm").format(new Date());
-        final File path = new File(Util.mkString(File.separator, "www", directoryName));
+        final @NotNull String directoryName = new SimpleDateFormat("YYYY-MM-dd-HH-mm").format(new Date());
+        final @NotNull File path = new File(Util.mkString(File.separator, "www", directoryName));
         path.mkdirs();
-        final File logFile = new File(path, "index.html");
-        final HtmlNotebookOutput log;
+        final @NotNull File logFile = new File(path, "index.html");
+        final @NotNull HtmlNotebookOutput log;
         if (preferStatic) {
           log = new HtmlNotebookOutput(path, new FileOutputStream(logFile));
           Desktop.getDesktop().browse(logFile.toURI());
         }
         else {
-          final StreamNanoHTTPD server = new StreamNanoHTTPD(1999, "text/html", logFile).init();
+          final @NotNull StreamNanoHTTPD server = new StreamNanoHTTPD(1999, "text/html", logFile).init();
           log = new HtmlNotebookOutput(path, server.dataReciever);
         }
         return log;
       }
-    } catch (final IOException e) {
+    } catch (final @NotNull IOException e) {
       throw new RuntimeException(e);
     }
   }

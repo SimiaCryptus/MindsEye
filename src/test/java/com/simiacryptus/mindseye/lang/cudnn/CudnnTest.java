@@ -31,6 +31,7 @@ import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.lang.TimedResult;
 import com.simiacryptus.util.test.SysOutInterceptor;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -60,21 +61,21 @@ public class CudnnTest extends NotebookReportBase {
     run(this::allocationOverflow, "allocationOverflow");
   }
   
-  private void allocationOverflow(NotebookOutput log) {
-    String logName = "cuda_" + log.getName() + ".log";
-    PrintStream apiLog = new PrintStream(log.file(logName));
+  private void allocationOverflow(@NotNull NotebookOutput log) {
+    @NotNull String logName = "cuda_" + log.getName() + ".log";
+    @NotNull PrintStream apiLog = new PrintStream(log.file(logName));
     GpuSystem.addLog(apiLog);
     log.p(log.file((String) null, logName, "GPU Log"));
     CuDNNHandle.forEach(ctx -> {
       log.h1("Device " + ctx.getDeviceNumber() + ": " + GpuDevice.getDeviceName(ctx.getDeviceNumber()));
       try {
         log.code(() -> {
-          ArrayList<Object> list = new ArrayList<>();
+          @NotNull ArrayList<Object> list = new ArrayList<>();
           int maxValue = Integer.MAX_VALUE - 0xFFF;
           int size = 8;
           while (true) {
             int s = size;
-            TimedResult<CudaPtr> timedResult = TimedResult.time(() -> {
+            @NotNull TimedResult<CudaPtr> timedResult = TimedResult.time(() -> {
               return CudaPtr.getCudaPtr(Precision.Double, TensorArray.create(new Tensor(s)));
             });
             logger.info(String.format("Allocated %d in %.4fsec", size, timedResult.seconds()));
@@ -99,9 +100,9 @@ public class CudnnTest extends NotebookReportBase {
     run(this::memoryTransfer, "memoryTransfer");
   }
   
-  private void memoryTransfer(NotebookOutput log) {
-    String logName = "cuda_" + log.getName() + ".log";
-    PrintStream apiLog = new PrintStream(log.file(logName));
+  private void memoryTransfer(@NotNull NotebookOutput log) {
+    @NotNull String logName = "cuda_" + log.getName() + ".log";
+    @NotNull PrintStream apiLog = new PrintStream(log.file(logName));
     GpuSystem.addLog(apiLog);
     log.p(log.file((String) null, logName, "GPU Log"));
     int _size = 8;
@@ -115,24 +116,24 @@ public class CudnnTest extends NotebookReportBase {
     GpuSystem.removeLog(apiLog);
   }
   
-  private void memoryTransfer(NotebookOutput log, int... size) {
-    Supplier<TensorList> factory = () -> TensorArray.wrap(IntStream.range(0, 1).mapToObj(j -> {
-      Tensor tensor = new Tensor(size);
+  private void memoryTransfer(@NotNull NotebookOutput log, int... size) {
+    @NotNull Supplier<TensorList> factory = () -> TensorArray.wrap(IntStream.range(0, 1).mapToObj(j -> {
+      @NotNull Tensor tensor = new Tensor(size);
       Arrays.parallelSetAll(tensor.getData(), this::random);
       return tensor;
     }).toArray(j -> new Tensor[j]));
     TensorList original = factory.get();
     log.code(() -> {
       CudaPtr write = GpuSystem.eval(ctx -> {
-        TimedResult<CudaPtr> timedResult = TimedResult.time(() -> CudaPtr.getCudaPtr(Precision.Double, original));
+        @NotNull TimedResult<CudaPtr> timedResult = TimedResult.time(() -> CudaPtr.getCudaPtr(Precision.Double, original));
         int deviceNumber = ctx.getDeviceNumber();
         logger.info(String.format("Wrote %s bytes in %.4f seconds, Device %d: %s", Arrays.toString(size), timedResult.seconds(), deviceNumber, GpuDevice.getDeviceName(deviceNumber)));
         return timedResult.result;
       });
       CuDNNHandle.forEach(ctx -> {
-        Tensor readCopy = new Tensor(size);
-        TimedResult<CudaPtr> timedResult = TimedResult.time(() -> write.read(Precision.Double, readCopy.getData()));
-        TimedResult<Boolean> timedVerify = TimedResult.time(() -> {
+        @NotNull Tensor readCopy = new Tensor(size);
+        @NotNull TimedResult<CudaPtr> timedResult = TimedResult.time(() -> write.read(Precision.Double, readCopy.getData()));
+        @NotNull TimedResult<Boolean> timedVerify = TimedResult.time(() -> {
           Tensor tensor = original.get(0);
           boolean equals = tensor.equals(readCopy);
           tensor.freeRef();
@@ -158,9 +159,9 @@ public class CudnnTest extends NotebookReportBase {
     run(this::tensorLists, "tensorLists");
   }
   
-  private void tensorLists(NotebookOutput log) {
-    String logName = "cuda_" + log.getName() + ".log";
-    PrintStream apiLog = new PrintStream(log.file(logName));
+  private void tensorLists(@NotNull NotebookOutput log) {
+    @NotNull String logName = "cuda_" + log.getName() + ".log";
+    @NotNull PrintStream apiLog = new PrintStream(log.file(logName));
     GpuSystem.addLog(apiLog);
     log.p(log.file((String) null, logName, "GPU Log"));
     int size = 8;
@@ -177,24 +178,24 @@ public class CudnnTest extends NotebookReportBase {
     GpuSystem.removeLog(apiLog);
   }
   
-  private void testTensorList(NotebookOutput log, int[] dimensions, int length, double tolerance, int accumulations) {
-    Supplier<TensorList> factory = () -> TensorArray.wrap(IntStream.range(0, length).mapToObj(j -> {
-      Tensor tensor = new Tensor(dimensions);
+  private void testTensorList(@NotNull NotebookOutput log, @NotNull int[] dimensions, int length, double tolerance, int accumulations) {
+    @NotNull Supplier<TensorList> factory = () -> TensorArray.wrap(IntStream.range(0, length).mapToObj(j -> {
+      @NotNull Tensor tensor = new Tensor(dimensions);
       Arrays.parallelSetAll(tensor.getData(), this::random);
       return tensor;
     }).toArray(j -> new Tensor[j]));
     log.code(() -> {
-      TimedResult<TensorList> originalTiming = TimedResult.time(() -> factory.get());
+      @NotNull TimedResult<TensorList> originalTiming = TimedResult.time(() -> factory.get());
       logger.info(String.format("Calculated test data in %.4fsec", originalTiming.seconds()));
       TensorList original = originalTiming.result;
-      AtomicReference<TensorList> mutableGpuData = new AtomicReference<>(GpuSystem.eval(ctx -> {
-        TimedResult<CudaPtr> timedResult = TimedResult.time(() -> CudaPtr.getCudaPtr(Precision.Double, original));
+      @NotNull AtomicReference<TensorList> mutableGpuData = new AtomicReference<>(GpuSystem.eval(ctx -> {
+        @NotNull TimedResult<CudaPtr> timedResult = TimedResult.time(() -> CudaPtr.getCudaPtr(Precision.Double, original));
         logger.info(String.format("Wrote %s in %.4f seconds, Device %d: %s", Arrays.toString(dimensions), timedResult.seconds(), ctx.getDeviceNumber(), GpuDevice.getDeviceName(ctx.getDeviceNumber())));
         return GpuTensorList.wrap(timedResult.result, length, dimensions, Precision.Double);
       }));
       CuDNNHandle.forEach(ctx -> {
-        TimedResult<TensorList> timedResult = TimedResult.time(() -> (mutableGpuData.get() instanceof GpuTensorList) ? ((GpuTensorList) mutableGpuData.get()).getHeapCopy() : mutableGpuData.get());
-        TimedResult<Boolean> timedVerify = TimedResult.time(() -> {
+        @NotNull TimedResult<TensorList> timedResult = TimedResult.time(() -> (mutableGpuData.get() instanceof GpuTensorList) ? ((GpuTensorList) mutableGpuData.get()).getHeapCopy() : mutableGpuData.get());
+        @NotNull TimedResult<Boolean> timedVerify = TimedResult.time(() -> {
           TensorList minus = original.minus(timedResult.result);
           double variance = minus.stream().flatMapToDouble(x -> Arrays.stream(x.getData()))
                                  .map(x -> Math.abs(x)).max().getAsDouble();
@@ -207,15 +208,15 @@ public class CudnnTest extends NotebookReportBase {
           Assert.assertTrue(original.prettyPrint() + " != " + timedResult.result.prettyPrint(), timedVerify.result);
         timedResult.result.freeRef();
       });
-      TimedResult<List<TensorList>> accumulantTiming = TimedResult.time(() -> IntStream.range(0, accumulations).mapToObj(x -> factory.get()).collect(Collectors.toList()));
+      @NotNull TimedResult<List<TensorList>> accumulantTiming = TimedResult.time(() -> IntStream.range(0, accumulations).mapToObj(x -> factory.get()).collect(Collectors.toList()));
       logger.info(String.format("Calculated accumulant in %.4fsec", accumulantTiming.seconds()));
       List<TensorList> accumulants = accumulantTiming.result;
       accumulants.stream().forEach(accumulant -> {
         GpuSystem.run(ctx -> {
-          TimedResult<TensorList> timedWrite = TimedResult.time(() -> {
+          @NotNull TimedResult<TensorList> timedWrite = TimedResult.time(() -> {
             return GpuTensorList.wrap(CudaPtr.getCudaPtr(Precision.Double, accumulant), length, dimensions, Precision.Double);
           });
-          TimedResult<Void> timedAccumulation = TimedResult.time(() -> {
+          @NotNull TimedResult<Void> timedAccumulation = TimedResult.time(() -> {
             mutableGpuData.getAndUpdate(x -> x.add(timedWrite.result)).freeRef();
             timedWrite.result.freeRef();
           });
@@ -223,7 +224,7 @@ public class CudnnTest extends NotebookReportBase {
                                     timedAccumulation.seconds(), Arrays.toString(dimensions), timedWrite.seconds(), ctx.getDeviceNumber(), GpuDevice.getDeviceName(ctx.getDeviceNumber())));
         });
       });
-      TimedResult<TensorList> finalResultTiming = TimedResult.time(() -> {
+      @NotNull TimedResult<TensorList> finalResultTiming = TimedResult.time(() -> {
         return accumulants.stream().reduce((a, b) -> freeSum(a, b)).map(x -> {
           TensorList sum = x.add(original);
           x.freeRef();
@@ -237,7 +238,7 @@ public class CudnnTest extends NotebookReportBase {
       logger.info(String.format("Calculated final data in %.4fsec", finalResultTiming.seconds()));
       TensorList finalResult = finalResultTiming.result;
       CuDNNHandle.forEach(ctx -> {
-        TimedResult<Boolean> timedVerify = TimedResult.time(() -> {
+        @NotNull TimedResult<Boolean> timedVerify = TimedResult.time(() -> {
           TensorList minus = finalResult.minus(mutableGpuData.get());
           double diffVal = minus.stream().flatMapToDouble(x -> Arrays.stream(x.getData()))
                                 .map(x -> Math.abs(x)).max().getAsDouble();
@@ -254,7 +255,7 @@ public class CudnnTest extends NotebookReportBase {
     });
   }
   
-  private TensorList freeSum(TensorList a, TensorList b) {
+  private TensorList freeSum(@NotNull TensorList a, @NotNull TensorList b) {
     TensorList sum = a.add(b);
     a.freeRef();
     b.freeRef();
@@ -269,9 +270,9 @@ public class CudnnTest extends NotebookReportBase {
     run(this::tensorLists_multithreaded, "tensorLists_multithreaded");
   }
   
-  private void tensorLists_multithreaded(NotebookOutput log) {
-    String logName = "cuda_" + log.getName() + ".log";
-    PrintStream apiLog = new PrintStream(log.file(logName));
+  private void tensorLists_multithreaded(@NotNull NotebookOutput log) {
+    @NotNull String logName = "cuda_" + log.getName() + ".log";
+    @NotNull PrintStream apiLog = new PrintStream(log.file(logName));
     GpuSystem.addLog(apiLog);
     log.p(log.file((String) null, logName, "GPU Log"));
     int size = 8;
@@ -288,31 +289,31 @@ public class CudnnTest extends NotebookReportBase {
     GpuSystem.removeLog(apiLog);
   }
   
-  private void testTensorListMT(NotebookOutput log, int[] dimensions, int length, double tolerance, int accumulations) {
-    Supplier<TensorList> factory = () -> TensorArray.wrap(IntStream.range(0, length).mapToObj(j -> {
-      Tensor tensor = new Tensor(dimensions);
+  private void testTensorListMT(@NotNull NotebookOutput log, @NotNull int[] dimensions, int length, double tolerance, int accumulations) {
+    @NotNull Supplier<TensorList> factory = () -> TensorArray.wrap(IntStream.range(0, length).mapToObj(j -> {
+      @NotNull Tensor tensor = new Tensor(dimensions);
       Arrays.parallelSetAll(tensor.getData(), this::random);
       return tensor;
     }).toArray(j -> new Tensor[j]));
     log.code(() -> {
-      ListeningExecutorService pool = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(5));
+      @NotNull ListeningExecutorService pool = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(5));
       PrintStream out = SysOutInterceptor.INSTANCE.currentHandler();
       try {
         List<ListenableFuture<Object>> collect = IntStream.range(0, 5).mapToObj(workerNumber -> {
-          TimedResult<TensorList> originalTiming = TimedResult.time(() -> factory.get());
+          @NotNull TimedResult<TensorList> originalTiming = TimedResult.time(() -> factory.get());
           TensorList original = originalTiming.result;
           logger.info(String.format("[%s] Calculated test data in %.4fsec", workerNumber, originalTiming.seconds()));
-          ListenableFuture<TensorList> mutableDataFuture = pool.submit(() -> GpuSystem.eval(ctx -> {
+          @NotNull ListenableFuture<TensorList> mutableDataFuture = pool.submit(() -> GpuSystem.eval(ctx -> {
             PrintStream oldHandler = SysOutInterceptor.INSTANCE.setCurrentHandler(out);
-            TimedResult<CudaPtr> timedResult = TimedResult.time(() -> CudaPtr.getCudaPtr(Precision.Double, original));
+            @NotNull TimedResult<CudaPtr> timedResult = TimedResult.time(() -> CudaPtr.getCudaPtr(Precision.Double, original));
             logger.info(String.format("[%s] Wrote %s in %.4f seconds, Device %d: %s", workerNumber, Arrays.toString(dimensions), timedResult.seconds(), ctx.getDeviceNumber(), GpuDevice.getDeviceName(ctx.getDeviceNumber())));
             SysOutInterceptor.INSTANCE.setCurrentHandler(oldHandler);
             return GpuTensorList.wrap(timedResult.result, length, dimensions, Precision.Double);
           }));
-          TimedResult<List<TensorList>> accumulantTiming = TimedResult.time(() -> IntStream.range(0, accumulations).mapToObj(x -> factory.get()).collect(Collectors.toList()));
+          @NotNull TimedResult<List<TensorList>> accumulantTiming = TimedResult.time(() -> IntStream.range(0, accumulations).mapToObj(x -> factory.get()).collect(Collectors.toList()));
           List<TensorList> accumulants = accumulantTiming.result;
-    
-          TimedResult<TensorList> finalResultTiming = TimedResult.time(() -> {
+  
+          @NotNull TimedResult<TensorList> finalResultTiming = TimedResult.time(() -> {
             return accumulants.stream().map(x -> {
               x.addRef();
               return x;
@@ -329,17 +330,17 @@ public class CudnnTest extends NotebookReportBase {
           });
           
           logger.info(String.format("[%s] Calculated accumulant in %.4fsec", workerNumber, accumulantTiming.seconds()));
-          ListenableFuture<TensorList> accumulated = Futures.transform(mutableDataFuture, (x) -> {
+          @NotNull ListenableFuture<TensorList> accumulated = Futures.transform(mutableDataFuture, (x) -> {
             PrintStream oldHandler = SysOutInterceptor.INSTANCE.setCurrentHandler(out);
-            AtomicReference<TensorList> mutableGpuData = new AtomicReference<>(x);
+            @NotNull AtomicReference<TensorList> mutableGpuData = new AtomicReference<>(x);
             accumulants.stream().parallel().forEach(delta -> {
               GpuSystem.run(ctx -> {
-                TimedResult<GpuTensorList> timedWrite = TimedResult.time(() -> {
+                @NotNull TimedResult<GpuTensorList> timedWrite = TimedResult.time(() -> {
                   CudaPtr cudaPtr = CudaPtr.getCudaPtr(Precision.Double, delta);
                   delta.freeRef();
                   return GpuTensorList.wrap(cudaPtr, length, dimensions, Precision.Double);
                 });
-                TimedResult<Void> timedAccumulation = TimedResult.time(() -> {
+                @NotNull TimedResult<Void> timedAccumulation = TimedResult.time(() -> {
                   mutableGpuData.getAndUpdate(y -> y.add(timedWrite.result)).freeRef();
                   timedWrite.result.freeRef();
                 });
@@ -356,7 +357,7 @@ public class CudnnTest extends NotebookReportBase {
             original.freeRef();
             PrintStream oldHandler = SysOutInterceptor.INSTANCE.setCurrentHandler(out);
             GpuSystem.run(ctx -> {
-              TimedResult<Boolean> timedVerify = TimedResult.time(() -> {
+              @NotNull TimedResult<Boolean> timedVerify = TimedResult.time(() -> {
                 TensorList minus = finalResult.minus(write);
                 double diffVal = minus.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).map(x -> Math.abs(x)).max().getAsDouble();
                 minus.freeRef();
@@ -374,7 +375,7 @@ public class CudnnTest extends NotebookReportBase {
           }, pool);
         }).collect(Collectors.toList());
         List<Object> objects = Futures.allAsList(collect).get();
-      } catch (InterruptedException | ExecutionException e) {
+      } catch (@NotNull InterruptedException | ExecutionException e) {
         throw new RuntimeException(e);
       } finally {
         pool.shutdown();
@@ -387,12 +388,12 @@ public class CudnnTest extends NotebookReportBase {
   }
   
   @Override
-  public ReportType getReportType() {
+  public @NotNull ReportType getReportType() {
     return ReportType.Components;
   }
   
   @Override
-  protected Class<?> getTargetClass() {
+  protected @NotNull Class<?> getTargetClass() {
     return GpuSystem.class;
   }
 }

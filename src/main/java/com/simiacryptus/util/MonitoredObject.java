@@ -19,6 +19,8 @@
 
 package com.simiacryptus.util;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -38,7 +40,7 @@ public class MonitoredObject implements MonitoredItem {
    * @param item the item
    * @return the monitored object
    */
-  public MonitoredObject addConst(final String key, final Object item) {
+  public @NotNull MonitoredObject addConst(final String key, final Object item) {
     items.put(key, item);
     return this;
   }
@@ -50,7 +52,7 @@ public class MonitoredObject implements MonitoredItem {
    * @param item the item
    * @return the monitored object
    */
-  public MonitoredObject addField(final String key, final Supplier<Object> item) {
+  public @NotNull MonitoredObject addField(final String key, final Supplier<Object> item) {
     items.put(key, item);
     return this;
   }
@@ -62,7 +64,7 @@ public class MonitoredObject implements MonitoredItem {
    * @param item the item
    * @return the monitored object
    */
-  public MonitoredObject addObj(final String key, final MonitoredItem item) {
+  public @NotNull MonitoredObject addObj(final String key, final MonitoredItem item) {
     items.put(key, item);
     return this;
   }
@@ -72,8 +74,8 @@ public class MonitoredObject implements MonitoredItem {
    *
    * @return the monitored object
    */
-  public MonitoredObject clearConstants() {
-    final HashSet<String> keys = new HashSet<>(items.keySet());
+  public @NotNull MonitoredObject clearConstants() {
+    final @NotNull HashSet<String> keys = new HashSet<>(items.keySet());
     for (final String k : keys) {
       final Object v = items.get(k);
       if (v instanceof MonitoredObject) {
@@ -87,8 +89,8 @@ public class MonitoredObject implements MonitoredItem {
   }
   
   @Override
-  public Map<String, Object> getMetrics() {
-    final HashMap<String, Object> returnValue = new HashMap<>();
+  public @NotNull Map<String, Object> getMetrics() {
+    final @NotNull HashMap<String, Object> returnValue = new HashMap<>();
     items.entrySet().stream().parallel().forEach(e -> {
       final String k = e.getKey();
       final Object v = e.getValue();

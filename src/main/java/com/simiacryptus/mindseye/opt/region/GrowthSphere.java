@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.util.ArrayUtil;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This trust region restricts a weight vector so that it cannot increase in L2 magnitude beyond a certian amount each
@@ -47,7 +48,7 @@ public class GrowthSphere implements TrustRegion {
    * @param growthFactor the growth factor
    * @return the growth factor
    */
-  public GrowthSphere setGrowthFactor(final double growthFactor) {
+  public @NotNull GrowthSphere setGrowthFactor(final double growthFactor) {
     this.growthFactor = growthFactor;
     return this;
   }
@@ -67,7 +68,7 @@ public class GrowthSphere implements TrustRegion {
    * @param minRadius the min radius
    * @return the min radius
    */
-  public GrowthSphere setMinRadius(final double minRadius) {
+  public @NotNull GrowthSphere setMinRadius(final double minRadius) {
     this.minRadius = minRadius;
     return this;
   }
@@ -97,7 +98,7 @@ public class GrowthSphere implements TrustRegion {
    * @param allowShrink the allow shrink
    * @return the allow shrink
    */
-  public GrowthSphere setAllowShrink(final boolean allowShrink) {
+  public @NotNull GrowthSphere setAllowShrink(final boolean allowShrink) {
     this.allowShrink = allowShrink;
     return this;
   }
@@ -108,12 +109,12 @@ public class GrowthSphere implements TrustRegion {
    * @param weights the weights
    * @return the double
    */
-  public double length(final double[] weights) {
+  public double length(final @NotNull double[] weights) {
     return ArrayUtil.magnitude(weights);
   }
   
   @Override
-  public double[] project(final double[] weights, final double[] point) {
+  public @NotNull double[] project(final @NotNull double[] weights, final @NotNull double[] point) {
     final double stateMagnitude = length(weights);
     final double frontier = getRadius(stateMagnitude);
     final double pointMag = length(point);

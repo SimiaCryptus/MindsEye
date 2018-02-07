@@ -23,6 +23,8 @@ import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.integration.*;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.TestCategories;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -72,7 +74,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
    *
    * @param log the log
    */
-  public void autoencoder_test(NotebookOutput log) {
+  public void autoencoder_test(@NotNull NotebookOutput log) {
     log.h1(getDatasetName() + " Denoising Autoencoder");
     intro(log);
     new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, getData(), 100, 0.8).setTimeoutMinutes(timeoutMinutes).run(log);
@@ -106,7 +108,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
    *
    * @param log the log
    */
-  public void classification_test(NotebookOutput log) {
+  public void classification_test(@NotNull NotebookOutput log) {
     log.h1(getDatasetName() + " Denoising Autoencoder");
     intro(log);
     new ClassifyProblem(fwdFactory, optimizationStrategy, getData(), 100).setBatchSize(batchSize).setTimeoutMinutes(timeoutMinutes).run(log);
@@ -129,7 +131,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
    *
    * @param log the log
    */
-  public void encoding_test(NotebookOutput log) {
+  public void encoding_test(@NotNull NotebookOutput log) {
     log.h1(getDatasetName() + " Image-to-Vector Encoding");
     intro(log);
     new EncodingProblem(revFactory, optimizationStrategy, getData(), 10).setTimeoutMinutes(timeoutMinutes).run(log);
@@ -137,9 +139,9 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   
   @Override
   public void printHeader(NotebookOutput log) {
-    String fwdFactory_javadoc = printHeader(log, fwdFactory.getClass(), "fwd");
-    String optimizationStrategy_javadoc = printHeader(log, optimizationStrategy.getClass(), "opt");
-    String revFactory_javadoc = printHeader(log, revFactory.getClass(), "rev");
+    @Nullable String fwdFactory_javadoc = printHeader(log, fwdFactory.getClass(), "fwd");
+    @Nullable String optimizationStrategy_javadoc = printHeader(log, optimizationStrategy.getClass(), "opt");
+    @Nullable String revFactory_javadoc = printHeader(log, revFactory.getClass(), "rev");
     super.printHeader(log);
     log.p("_Forward Strategy Javadoc_: " + fwdFactory_javadoc);
     log.p("_Reverse Strategy Javadoc_: " + revFactory_javadoc);
@@ -158,12 +160,12 @@ public abstract class AllTrainingTests extends NotebookReportBase {
    *
    * @return the data
    */
-  public abstract ImageProblemData getData();
+  public abstract @NotNull ImageProblemData getData();
   
   /**
    * Gets dataset name.
    *
    * @return the dataset name
    */
-  public abstract String getDatasetName();
+  public abstract @NotNull String getDatasetName();
 }

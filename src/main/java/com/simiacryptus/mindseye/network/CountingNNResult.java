@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.*;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,14 +54,14 @@ class CountingNNResult extends NNResult {
   /**
    * The Inner.
    */
-  private final NNResult inner;
+  private final @NotNull NNResult inner;
   
   /**
    * Instantiates a new Counting nn result.
    *
    * @param inner the heapCopy
    */
-  protected CountingNNResult(final NNResult inner) {
+  protected CountingNNResult(final @NotNull NNResult inner) {
     super(inner.getData(), new CountingAccumulator(inner));
     this.inner = inner;
     inner.addRef();
@@ -82,7 +83,7 @@ class CountingNNResult extends NNResult {
   }
   
   @Override
-  public CountingAccumulator getAccumulator() {
+  public @NotNull CountingAccumulator getAccumulator() {
     return (CountingAccumulator) super.getAccumulator();
   }
   
@@ -101,11 +102,11 @@ class CountingNNResult extends NNResult {
    * The type Counting accumulator.
    */
   static class CountingAccumulator extends ReferenceCountingBase implements BiConsumer<DeltaSet<NNLayer>, TensorList> {
-    private final AtomicInteger references;
-    private final AtomicBoolean hasAccumulated;
+    private final @NotNull AtomicInteger references;
+    private final @NotNull AtomicBoolean hasAccumulated;
     private final NNResult inner;
-    private final Deque<TensorList> passbackBuffers;
-    private final AtomicInteger accumulations;
+    private final @NotNull Deque<TensorList> passbackBuffers;
+    private final @NotNull AtomicInteger accumulations;
   
     /**
      * Instantiates a new Counting accumulator.
@@ -131,7 +132,7 @@ class CountingNNResult extends NNResult {
     }
     
     @Override
-    public void accept(DeltaSet<NNLayer> buffer, TensorList data) {
+    public void accept(DeltaSet<NNLayer> buffer, @NotNull TensorList data) {
       if (1 >= references.get()) {
         if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
         inner.accumulate(buffer, data);
@@ -143,7 +144,7 @@ class CountingNNResult extends NNResult {
           if (passbackBuffers.size() > COMPACTION_SIZE) {
             Stream<TensorList> stream = passbackBuffers.stream();
             //stream = stream.parallel();
-            TensorList reduced = stream.reduce((a, b) -> a.add(b)).get();
+            @NotNull TensorList reduced = stream.reduce((a, b) -> a.add(b)).get();
             passbackBuffers.stream().distinct().filter((TensorList x) -> x != reduced).forEach(t -> t.freeRef());
             passbackBuffers.clear();
             passbackBuffers.add(reduced);
@@ -152,7 +153,7 @@ class CountingNNResult extends NNResult {
             if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
             Stream<TensorList> stream0 = passbackBuffers.stream();
             //stream0 = stream0.parallel();
-            TensorList reduced = stream0.reduce((a, b) -> a.add(b)).get();
+            @NotNull TensorList reduced = stream0.reduce((a, b) -> a.add(b)).get();
             Stream<TensorList> stream1 = passbackBuffers.stream();
             //stream1 = stream1.parallel();
             stream1.distinct().filter((TensorList x) -> x != reduced).forEach(t -> t.freeRef());

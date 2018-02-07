@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.rdd.RDD;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,25 +71,25 @@ public class LocalSparkTrainable extends SparkTrainable {
       try {
         final List<Tensor[]>[] array = javaRDD.collectPartitions(new int[]{partition.index()});
         assert 0 < array.length;
-        if (0 == Arrays.stream(array).mapToInt((final List<Tensor[]> x) -> x.size()).sum()) {
+        if (0 == Arrays.stream(array).mapToInt((final @NotNull List<Tensor[]> x) -> x.size()).sum()) {
           return null;
         }
         assert 0 < Arrays.stream(array).mapToInt(x -> x.stream().mapToInt(y -> y.length).sum()).sum();
         final Stream<Tensor[]> stream = Arrays.stream(array).flatMap(i -> i.stream());
-        final Iterator<Tensor[]> iterator = stream.iterator();
+        final @NotNull Iterator<Tensor[]> iterator = stream.iterator();
         return new PartitionTask(network).call(iterator).next();
-      } catch (final RuntimeException e) {
+      } catch (final @NotNull RuntimeException e) {
         throw e;
-      } catch (final Exception e) {
+      } catch (final @NotNull Exception e) {
         throw new RuntimeException(e);
       }
     }).filter(x -> null != x).collect(Collectors.toList());
     final long time2 = System.nanoTime();
-    final SparkTrainable.ReducableResult result = mapPartitions.stream().reduce(SparkTrainable.ReducableResult::add).get();
+    final @NotNull SparkTrainable.ReducableResult result = mapPartitions.stream().reduce(SparkTrainable.ReducableResult::add).get();
     if (isVerbose()) {
       log.info(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
     }
-    final DeltaSet<NNLayer> xxx = getDelta(result);
+    final @NotNull DeltaSet<NNLayer> xxx = getDelta(result);
     return new PointSample(xxx, new StateSet<NNLayer>(xxx), result.sum, 0.0, result.count).normalize();
   }
   

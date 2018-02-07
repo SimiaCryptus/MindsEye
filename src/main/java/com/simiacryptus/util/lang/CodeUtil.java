@@ -20,6 +20,8 @@
 package com.simiacryptus.util.lang;
 
 import org.apache.commons.io.IOUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,7 +45,7 @@ public class CodeUtil {
   /**
    * The constant projectRoot.
    */
-  public static File projectRoot = new File(System.getProperty("codeRoot", ".."));
+  public static @NotNull File projectRoot = new File(System.getProperty("codeRoot", ".."));
   private static final List<File> codeRoots = CodeUtil.loadCodeRoots();
   
   /**
@@ -52,7 +54,7 @@ public class CodeUtil {
    * @param clazz the clazz
    * @return the file
    */
-  public static File findFile(final Class<?> clazz) {
+  public static @Nullable File findFile(final @Nullable Class<?> clazz) {
     if (null == clazz) return null;
     String name = clazz.getName();
     if (null == name) return null;
@@ -67,9 +69,9 @@ public class CodeUtil {
    * @param callingFrame the calling frame
    * @return the file
    */
-  public static File findFile(final StackTraceElement callingFrame) {
-    final String[] packagePath = callingFrame.getClassName().split("\\.");
-    final String path = Arrays.stream(packagePath).limit(packagePath.length - 1).collect(Collectors.joining(File.separator)) + File.separator + callingFrame.getFileName();
+  public static @NotNull File findFile(final @NotNull StackTraceElement callingFrame) {
+    final @NotNull String[] packagePath = callingFrame.getClassName().split("\\.");
+    final @NotNull String path = Arrays.stream(packagePath).limit(packagePath.length - 1).collect(Collectors.joining(File.separator)) + File.separator + callingFrame.getFileName();
     return CodeUtil.findFile(path);
   }
   
@@ -79,9 +81,9 @@ public class CodeUtil {
    * @param path the path
    * @return the file
    */
-  public static File findFile(final String path) {
+  public static @NotNull File findFile(final @NotNull String path) {
     for (final File root : CodeUtil.codeRoots) {
-      final File file = new File(root, path);
+      final @NotNull File file = new File(root, path);
       if (file.exists()) return file;
     }
     throw new RuntimeException(String.format("Not Found: %s; Project Roots = %s", path, CodeUtil.codeRoots));
@@ -93,8 +95,8 @@ public class CodeUtil {
    * @param txt the txt
    * @return the indent
    */
-  public static String getIndent(final String txt) {
-    final Matcher matcher = Pattern.compile("^\\s+").matcher(txt);
+  public static @NotNull String getIndent(final @NotNull String txt) {
+    final @NotNull Matcher matcher = Pattern.compile("^\\s+").matcher(txt);
     return matcher.find() ? matcher.group(0) : "";
   }
   
@@ -105,21 +107,21 @@ public class CodeUtil {
    * @return the heapCopy text
    * @throws IOException the io exception
    */
-  public static String getInnerText(final StackTraceElement callingFrame) throws IOException {
+  public static String getInnerText(final @NotNull StackTraceElement callingFrame) throws IOException {
     try {
-      final File file = CodeUtil.findFile(callingFrame);
+      final @NotNull File file = CodeUtil.findFile(callingFrame);
       assert null != file;
       final int start = callingFrame.getLineNumber() - 1;
       final List<String> allLines = Files.readAllLines(file.toPath());
       final String txt = allLines.get(start);
-      final String indent = CodeUtil.getIndent(txt);
-      final ArrayList<String> lines = new ArrayList<>();
+      final @NotNull String indent = CodeUtil.getIndent(txt);
+      final @NotNull ArrayList<String> lines = new ArrayList<>();
       for (int i = start + 1; i < allLines.size() && (CodeUtil.getIndent(allLines.get(i)).length() > indent.length() || allLines.get(i).trim().isEmpty()); i++) {
         final String line = allLines.get(i);
         lines.add(line.substring(Math.min(indent.length(), line.length())));
       }
       return lines.stream().collect(Collectors.joining("\n"));
-    } catch (final Throwable e) {
+    } catch (final @NotNull Throwable e) {
       return "";
     }
   }
@@ -130,10 +132,10 @@ public class CodeUtil {
    * @param clazz the clazz
    * @return the javadoc
    */
-  public static String getJavadoc(final Class<?> clazz) {
+  public static String getJavadoc(final @Nullable Class<?> clazz) {
     try {
       if (null == clazz) return null;
-      final File source = CodeUtil.findFile(clazz);
+      final @Nullable File source = CodeUtil.findFile(clazz);
       if (null == source) return clazz.getName() + " not found";
       final List<String> lines = IOUtils.readLines(new FileInputStream(source), Charset.forName("UTF-8"));
       final int classDeclarationLine = IntStream.range(0, lines.size())
@@ -145,7 +147,7 @@ public class CodeUtil {
                                   .map(s -> s.replaceFirst("^[ \t]*[/\\*]+", "").trim())
                                   .filter(x -> !x.isEmpty()).reduce((a, b) -> a + "\n" + b).orElse("");
       return javadoc.replaceAll("<p>", "\n");
-    } catch (final Throwable e) {
+    } catch (final @NotNull Throwable e) {
       e.printStackTrace();
       return "";
     }

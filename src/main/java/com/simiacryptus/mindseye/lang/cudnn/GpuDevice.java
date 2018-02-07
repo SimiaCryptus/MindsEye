@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.lang.cudnn;
 import jcuda.Pointer;
 import jcuda.runtime.JCuda;
 import jcuda.runtime.cudaDeviceProp;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +40,7 @@ public class GpuDevice extends GpuSystem {
   /**
    * The Device name.
    */
-  protected final String deviceName;
+  protected final @Nullable String deviceName;
   /**
    * The Device number.
    */
@@ -99,7 +101,7 @@ public class GpuDevice extends GpuSystem {
   public static cudaDeviceProp getDeviceProperties(final int device) {
     return propertyCache.computeIfAbsent(device, deviceId -> {
       long startTime = System.nanoTime();
-      final cudaDeviceProp deviceProp = new cudaDeviceProp();
+      final @NotNull cudaDeviceProp deviceProp = new cudaDeviceProp();
       final int result = JCuda.cudaGetDeviceProperties(deviceProp, device);
       getDeviceProperties_execution.accept((System.nanoTime() - startTime) / 1e9);
       GpuSystem.log("cudaGetDeviceProperties", result, deviceProp, device);
@@ -161,7 +163,7 @@ public class GpuDevice extends GpuSystem {
    *
    * @return the device name
    */
-  public String getDeviceName() {
+  public @NotNull String getDeviceName() {
     return new String(getDeviceProperties().name, Charset.forName("ASCII")).trim();
   }
 }

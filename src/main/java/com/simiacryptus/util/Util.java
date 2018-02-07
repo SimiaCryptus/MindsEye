@@ -27,6 +27,8 @@ import com.simiacryptus.util.io.TeeInputStream;
 import com.simiacryptus.util.test.LabeledObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import javax.net.ssl.*;
@@ -77,7 +79,7 @@ public class Util {
    * @param f    the f
    * @param data the data
    */
-  public static void add(final DoubleSupplier f, final double[] data) {
+  public static void add(final @NotNull DoubleSupplier f, final @NotNull double[] data) {
     for (int i = 0; i < data.length; i++) {
       data[i] += f.getAsDouble();
     }
@@ -93,10 +95,10 @@ public class Util {
    * @return the stream
    * @throws IOException the io exception
    */
-  public static Stream<byte[]> binaryStream(final String path, final String name, final int skip, final int recordSize) throws IOException {
-    final File file = new File(path, name);
+  public static Stream<byte[]> binaryStream(final String path, final @NotNull String name, final int skip, final int recordSize) throws IOException {
+    final @NotNull File file = new File(path, name);
     final byte[] fileData = org.apache.commons.io.IOUtils.toByteArray(new BufferedInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(file)))));
-    final DataInputStream in = new DataInputStream(new ByteArrayInputStream(fileData));
+    final @NotNull DataInputStream in = new DataInputStream(new ByteArrayInputStream(fileData));
     in.skip(skip);
     return Util.toIterator(new BinaryChunkIterator(in, recordSize));
   }
@@ -109,8 +111,8 @@ public class Util {
    * @param inner the heapCopy
    * @return the function
    */
-  public static <F, T> Function<F, T> cache(final Function<F, T> inner) {
-    final LoadingCache<F, T> cache = CacheBuilder.newBuilder().build(new CacheLoader<F, T>() {
+  public static <F, T> Function<F, T> cache(final @NotNull Function<F, T> inner) {
+    final @NotNull LoadingCache<F, T> cache = CacheBuilder.newBuilder().build(new CacheLoader<F, T>() {
       @Override
       public T load(final F key) throws Exception {
         return inner.apply(key);
@@ -130,7 +132,7 @@ public class Util {
    * @throws KeyStoreException        the key store exception
    * @throws KeyManagementException   the key management exception
    */
-  public static InputStream cacheStream(final String url, final String file) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+  public static InputStream cacheStream(final @NotNull String url, final @NotNull String file) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
     if (new File(file).exists()) {
       return new FileInputStream(file);
     }
@@ -150,7 +152,7 @@ public class Util {
    * @throws KeyStoreException        the key store exception
    * @throws KeyManagementException   the key management exception
    */
-  public static File cacheFile(final String url, final String file) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+  public static File cacheFile(final @NotNull String url, final @NotNull String file) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
     if (!new File(file).exists()) {
       IOUtils.copy(get(url), new FileOutputStream(file));
     }
@@ -166,8 +168,8 @@ public class Util {
    * @throws KeyManagementException   the key management exception
    * @throws IOException              the io exception
    */
-  public static InputStream get(String url) throws NoSuchAlgorithmException, KeyManagementException, IOException {
-    final TrustManager[] trustManagers = {
+  public static InputStream get(@NotNull String url) throws NoSuchAlgorithmException, KeyManagementException, IOException {
+    final @NotNull TrustManager[] trustManagers = {
       new X509TrustManager() {
         @Override
         public void checkClientTrusted(
@@ -180,17 +182,17 @@ public class Util {
         }
         
         @Override
-        public X509Certificate[] getAcceptedIssuers() {
+        public @NotNull X509Certificate[] getAcceptedIssuers() {
           return new X509Certificate[0];
         }
       }
     };
-    final SSLContext ctx = SSLContext.getInstance("TLS");
+    final @NotNull SSLContext ctx = SSLContext.getInstance("TLS");
     ctx.init(null, trustManagers, null);
     final SSLSocketFactory sslFactory = ctx.getSocketFactory();
     final URLConnection urlConnection = new URL(url).openConnection();
     if (urlConnection instanceof HttpsURLConnection) {
-      final HttpsURLConnection conn = (HttpsURLConnection) urlConnection;
+      final @NotNull HttpsURLConnection conn = (HttpsURLConnection) urlConnection;
       conn.setSSLSocketFactory(sslFactory);
       conn.setRequestMethod("GET");
     }
@@ -207,7 +209,7 @@ public class Util {
    * @throws KeyStoreException        the key store exception
    * @throws KeyManagementException   the key management exception
    */
-  public static InputStream cacheStream(final URI url) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+  public static InputStream cacheStream(final @NotNull URI url) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
     return Util.cacheStream(url.toString(), new File(url.getPath()).getName());
   }
   
@@ -221,7 +223,7 @@ public class Util {
    * @throws KeyStoreException        the key store exception
    * @throws KeyManagementException   the key management exception
    */
-  public static File cacheFile(final URI url) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+  public static File cacheFile(final @NotNull URI url) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
     return Util.cacheFile(url.toString(), new File(url.getPath()).getName());
   }
   
@@ -240,7 +242,7 @@ public class Util {
    * @param units the units
    * @return the temporal unit
    */
-  public static TemporalUnit cvt(final TimeUnit units) {
+  public static @NotNull TemporalUnit cvt(final @NotNull TimeUnit units) {
     switch (units) {
       case DAYS:
         return ChronoUnit.DAYS;
@@ -268,7 +270,7 @@ public class Util {
    * @param stream the stream
    * @return the last
    */
-  public static <T> T getLast(final Stream<T> stream) {
+  public static <T> T getLast(final @NotNull Stream<T> stream) {
     final List<T> collect = stream.collect(Collectors.toList());
     final T last = collect.get(collect.size() - 1);
     return last;
@@ -279,7 +281,7 @@ public class Util {
    *
    * @param c the c
    */
-  public static void layout(final Component c) {
+  public static void layout(final @NotNull Component c) {
     c.doLayout();
     if (c instanceof Container) {
       Arrays.stream(((Container) c).getComponents()).forEach(Util::layout);
@@ -293,7 +295,7 @@ public class Util {
    * @param strs      the strs
    * @return the string
    */
-  public static String mkString(final String separator, final String... strs) {
+  public static String mkString(final @NotNull String separator, final String... strs) {
     return Arrays.asList(strs).stream().collect(Collectors.joining(separator));
   }
   
@@ -304,7 +306,7 @@ public class Util {
    * @param to   the to
    * @return the string
    */
-  public static String pathTo(final File from, final File to) {
+  public static String pathTo(final @NotNull File from, final @NotNull File to) {
     return from.toPath().relativize(to.toPath()).toString().replaceAll("\\\\", "/");
   }
   
@@ -316,8 +318,8 @@ public class Util {
    * @return the byte [ ]
    * @throws IOException the io exception
    */
-  public static byte[] read(final DataInputStream i, final int s) throws IOException {
-    final byte[] b = new byte[s];
+  public static @NotNull byte[] read(final @NotNull DataInputStream i, final int s) throws IOException {
+    final @NotNull byte[] b = new byte[s];
     int pos = 0;
     while (b.length > pos) {
       final int read = i.read(b, pos, b.length - pos);
@@ -335,13 +337,13 @@ public class Util {
    * @param fragments the fragments
    * @throws IOException the io exception
    */
-  public static void report(final Stream<String> fragments) throws IOException {
-    final File outDir = new File("reports");
+  public static void report(final @NotNull Stream<String> fragments) throws IOException {
+    final @NotNull File outDir = new File("reports");
     outDir.mkdirs();
     final StackTraceElement caller = Util.getLast(Arrays.stream(Thread.currentThread().getStackTrace())//
                                                         .filter(x -> x.getClassName().contains("simiacryptus")));
-    final File report = new File(outDir, caller.getClassName() + "_" + caller.getLineNumber() + ".html");
-    final PrintStream out = new PrintStream(new FileOutputStream(report));
+    final @NotNull File report = new File(outDir, caller.getClassName() + "_" + caller.getLineNumber() + ".html");
+    final @NotNull PrintStream out = new PrintStream(new FileOutputStream(report));
     out.println("<html><head></head><body>");
     fragments.forEach(out::println);
     out.println("</body></html>");
@@ -365,14 +367,14 @@ public class Util {
    * @param image the image
    * @return the buffered image
    */
-  public static BufferedImage resize(final BufferedImage image) {
+  public static @Nullable BufferedImage resize(final @Nullable BufferedImage image) {
     if (null == image) return image;
     final int width = Math.min(image.getWidth(), 800);
     if (width == image.getWidth()) return image;
     final int height = image.getHeight() * width / image.getWidth();
-    final BufferedImage rerender = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    final @NotNull BufferedImage rerender = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     final Graphics gfx = rerender.getGraphics();
-    final RenderingHints hints = new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+    final @NotNull RenderingHints hints = new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
     ((Graphics2D) gfx).setRenderingHints(hints);
     gfx.drawImage(image, 0, 0, rerender.getWidth(), rerender.getHeight(), null);
     return rerender;
@@ -384,16 +386,16 @@ public class Util {
    * @param component the component
    * @return the buffered image
    */
-  public static BufferedImage toImage(final Component component) {
+  public static BufferedImage toImage(final @NotNull Component component) {
     try {
       Util.layout(component);
-      final BufferedImage img = new BufferedImage(component.getWidth(), component.getHeight(), BufferedImage.TYPE_INT_ARGB_PRE);
+      final @NotNull BufferedImage img = new BufferedImage(component.getWidth(), component.getHeight(), BufferedImage.TYPE_INT_ARGB_PRE);
       final Graphics2D g = img.createGraphics();
       g.setColor(component.getForeground());
       g.setFont(component.getFont());
       component.print(g);
       return img;
-    } catch (final Exception e) {
+    } catch (final @NotNull Exception e) {
       return null;
     }
   }
@@ -415,13 +417,13 @@ public class Util {
    * @param img the img
    * @return the string
    */
-  public static String toInlineImage(final LabeledObject<BufferedImage> img) {
-    final ByteArrayOutputStream b = new ByteArrayOutputStream();
+  public static String toInlineImage(final @NotNull LabeledObject<BufferedImage> img) {
+    final @NotNull ByteArrayOutputStream b = new ByteArrayOutputStream();
     try {
       ImageIO.write(img.data, "PNG", b);
-    } catch (final RuntimeException e) {
+    } catch (final @NotNull RuntimeException e) {
       throw e;
-    } catch (final Exception e) {
+    } catch (final @NotNull Exception e) {
       throw new RuntimeException(e);
     }
     final byte[] byteArray = b.toByteArray();
@@ -436,7 +438,7 @@ public class Util {
    * @param iterator the iterator
    * @return the stream
    */
-  public static <T> Stream<T> toIterator(final Iterator<T> iterator) {
+  public static <T> Stream<T> toIterator(final @NotNull Iterator<T> iterator) {
     return StreamSupport.stream(Spliterators.spliterator(iterator, 1, Spliterator.ORDERED), false);
   }
   
@@ -447,7 +449,7 @@ public class Util {
    * @param iterator the iterator
    * @return the stream
    */
-  public static <T> Stream<T> toStream(final Iterator<T> iterator) {
+  public static <T> Stream<T> toStream(final @NotNull Iterator<T> iterator) {
     return Util.toStream(iterator, 0);
   }
   
@@ -459,7 +461,7 @@ public class Util {
    * @param size     the size
    * @return the stream
    */
-  public static <T> Stream<T> toStream(final Iterator<T> iterator, final int size) {
+  public static <T> Stream<T> toStream(final @NotNull Iterator<T> iterator, final int size) {
     return Util.toStream(iterator, size, false);
   }
   
@@ -472,7 +474,7 @@ public class Util {
    * @param parallel the parallel
    * @return the stream
    */
-  public static <T> Stream<T> toStream(final Iterator<T> iterator, final int size, final boolean parallel) {
+  public static <T> Stream<T> toStream(final @NotNull Iterator<T> iterator, final int size, final boolean parallel) {
     return StreamSupport.stream(Spliterators.spliterator(iterator, size, Spliterator.ORDERED), parallel);
   }
   
@@ -482,11 +484,11 @@ public class Util {
    * @return the uuid
    */
   public static UUID uuid() {
-    String index = Integer.toHexString(Util.idcounter.incrementAndGet());
+    @NotNull String index = Integer.toHexString(Util.idcounter.incrementAndGet());
     while (index.length() < 8) {
       index = "0" + index;
     }
-    final String tempId = Util.jvmId.substring(0, Util.jvmId.length() - index.length()) + index;
+    final @NotNull String tempId = Util.jvmId.substring(0, Util.jvmId.length() - index.length()) + index;
     return UUID.fromString(tempId);
   }
   

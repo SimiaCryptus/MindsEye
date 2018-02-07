@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
 
@@ -36,19 +37,19 @@ public class SumInputsLayerTest {
   public static class N1Test extends LayerTestBase {
     
     @Override
-    public int[][] getSmallDims(Random random) {
+    public @NotNull int[][] getSmallDims(Random random) {
       return new int[][]{
         {3}, {1}
       };
     }
   
     @Override
-    public NNLayer getLayer(final int[][] inputSize, Random random) {
+    public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
       return new SumInputsLayer();
     }
     
     @Override
-    public int[][] getLargeDims(Random random) {
+    public @NotNull int[][] getLargeDims(Random random) {
       return new int[][]{
         {100}, {1}
       };
@@ -62,19 +63,19 @@ public class SumInputsLayerTest {
   public static class NNTest extends LayerTestBase {
     
     @Override
-    public int[][] getSmallDims(Random random) {
+    public @NotNull int[][] getSmallDims(Random random) {
       return new int[][]{
         {3}, {3}
       };
     }
   
     @Override
-    public NNLayer getLayer(final int[][] inputSize, Random random) {
+    public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
       return new SumInputsLayer();
     }
     
     @Override
-    public int[][] getLargeDims(Random random) {
+    public @NotNull int[][] getLargeDims(Random random) {
       return new int[][]{
         {100}, {100}
       };
@@ -96,8 +97,8 @@ public class SumInputsLayerTest {
     
     
     @Override
-    public NNLayer getLayer(int[][] inputSize, Random random) {
-      PipelineNetwork network = new PipelineNetwork();
+    public @NotNull NNLayer getLayer(int[][] inputSize, Random random) {
+      @NotNull PipelineNetwork network = new PipelineNetwork();
       DAGNode input = network.getInput(0);
       network.add(new SumInputsLayer(), input, input);
       return network;
@@ -109,19 +110,19 @@ public class SumInputsLayerTest {
     }
     
     @Override
-    public int[][] getSmallDims(Random random) {
+    public @NotNull int[][] getSmallDims(Random random) {
       return new int[][]{
         {1, 1, 1}
       };
     }
     
     @Override
-    public int[][] getLargeDims(Random random) {
+    public @NotNull int[][] getLargeDims(Random random) {
       return getSmallDims(random);
     }
     
     @Override
-    protected Class<?> getTargetClass() {
+    protected @NotNull Class<?> getTargetClass() {
       return SumInputsLayer.class;
     }
     

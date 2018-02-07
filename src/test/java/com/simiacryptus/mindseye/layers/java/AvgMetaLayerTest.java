@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.MetaLayerTestBase;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
 
@@ -30,19 +31,19 @@ import java.util.Random;
 public abstract class AvgMetaLayerTest extends MetaLayerTestBase {
   
   @Override
-  public int[][] getSmallDims(Random random) {
+  public @NotNull int[][] getSmallDims(Random random) {
     return new int[][]{
       {3}
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize, Random random) {
+  public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
     return new AvgMetaLayer().setMinBatchCount(0);
   }
   
   @Override
-  public int[][] getLargeDims(Random random) {
+  public @NotNull int[][] getLargeDims(Random random) {
     return new int[][]{
       {100}
     };

@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.orient.LBFGS;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.util.Util;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +55,7 @@ public class RoundRobinTrainer {
   private Function<String, ? extends LineSearchStrategy> lineSearchFactory = s -> new ArmijoWolfeSearch();
   private int maxIterations = Integer.MAX_VALUE;
   private TrainingMonitor monitor = new TrainingMonitor();
-  private List<? extends OrientationStrategy<?>> orientations = new ArrayList<>(Arrays.asList(new LBFGS()));
+  private @NotNull List<? extends OrientationStrategy<?>> orientations = new ArrayList<>(Arrays.asList(new LBFGS()));
   private double terminateThreshold;
   private Duration timeout;
   
@@ -84,7 +85,7 @@ public class RoundRobinTrainer {
    * @param currentIteration the current iteration
    * @return the current iteration
    */
-  public RoundRobinTrainer setCurrentIteration(final AtomicInteger currentIteration) {
+  public @NotNull RoundRobinTrainer setCurrentIteration(final AtomicInteger currentIteration) {
     this.currentIteration = currentIteration;
     return this;
   }
@@ -104,7 +105,7 @@ public class RoundRobinTrainer {
    * @param iterationsPerSample the iterations per sample
    * @return the iterations per sample
    */
-  public RoundRobinTrainer setIterationsPerSample(final int iterationsPerSample) {
+  public @NotNull RoundRobinTrainer setIterationsPerSample(final int iterationsPerSample) {
     this.iterationsPerSample = iterationsPerSample;
     return this;
   }
@@ -124,7 +125,7 @@ public class RoundRobinTrainer {
    * @param lineSearchFactory the line search factory
    * @return the line search factory
    */
-  public RoundRobinTrainer setLineSearchFactory(final Function<String, ? extends LineSearchStrategy> lineSearchFactory) {
+  public @NotNull RoundRobinTrainer setLineSearchFactory(final Function<String, ? extends LineSearchStrategy> lineSearchFactory) {
     this.lineSearchFactory = lineSearchFactory;
     return this;
   }
@@ -135,7 +136,7 @@ public class RoundRobinTrainer {
    * @param lineSearchFactory the line search factory
    * @return the line search factory
    */
-  public RoundRobinTrainer setLineSearchFactory(final Supplier<LineSearchStrategy> lineSearchFactory) {
+  public @NotNull RoundRobinTrainer setLineSearchFactory(final @NotNull Supplier<LineSearchStrategy> lineSearchFactory) {
     this.lineSearchFactory = s -> lineSearchFactory.get();
     return this;
   }
@@ -155,7 +156,7 @@ public class RoundRobinTrainer {
    * @param maxIterations the max iterations
    * @return the max iterations
    */
-  public RoundRobinTrainer setMaxIterations(final int maxIterations) {
+  public @NotNull RoundRobinTrainer setMaxIterations(final int maxIterations) {
     this.maxIterations = maxIterations;
     return this;
   }
@@ -175,7 +176,7 @@ public class RoundRobinTrainer {
    * @param monitor the monitor
    * @return the monitor
    */
-  public RoundRobinTrainer setMonitor(final TrainingMonitor monitor) {
+  public @NotNull RoundRobinTrainer setMonitor(final TrainingMonitor monitor) {
     this.monitor = monitor;
     return this;
   }
@@ -185,7 +186,7 @@ public class RoundRobinTrainer {
    *
    * @return the orientations
    */
-  public List<? extends OrientationStrategy<?>> getOrientations() {
+  public @NotNull List<? extends OrientationStrategy<?>> getOrientations() {
     return orientations;
   }
   
@@ -195,7 +196,7 @@ public class RoundRobinTrainer {
    * @param orientations the orientations
    * @return the orientations
    */
-  public RoundRobinTrainer setOrientations(final OrientationStrategy<?>... orientations) {
+  public @NotNull RoundRobinTrainer setOrientations(final OrientationStrategy<?>... orientations) {
     this.orientations = new ArrayList<>(Arrays.asList(orientations));
     return this;
   }
@@ -215,7 +216,7 @@ public class RoundRobinTrainer {
    * @param terminateThreshold the terminate threshold
    * @return the terminate threshold
    */
-  public RoundRobinTrainer setTerminateThreshold(final double terminateThreshold) {
+  public @NotNull RoundRobinTrainer setTerminateThreshold(final double terminateThreshold) {
     this.terminateThreshold = terminateThreshold;
     return this;
   }
@@ -235,7 +236,7 @@ public class RoundRobinTrainer {
    * @param timeout the timeout
    * @return the timeout
    */
-  public RoundRobinTrainer setTimeout(final Duration timeout) {
+  public @NotNull RoundRobinTrainer setTimeout(final Duration timeout) {
     this.timeout = timeout;
     return this;
   }
@@ -274,12 +275,12 @@ public class RoundRobinTrainer {
       subiterationLoop:
       for (int subiteration = 0; subiteration < iterationsPerSample; subiteration++) {
         final PointSample previousOrientations = currentPoint;
-        for (final OrientationStrategy<?> orientation : orientations) {
+        for (final @NotNull OrientationStrategy<?> orientation : orientations) {
           if (currentIteration.incrementAndGet() > maxIterations) {
             break;
           }
           final LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
-          final String directionType = direction.getDirectionType() + "+" + Long.toHexString(System.identityHashCode(orientation));
+          final @NotNull String directionType = direction.getDirectionType() + "+" + Long.toHexString(System.identityHashCode(orientation));
           LineSearchStrategy lineSearchStrategy;
           if (lineSearchStrategyMap.containsKey(directionType)) {
             lineSearchStrategy = lineSearchStrategyMap.get(directionType);
@@ -321,7 +322,7 @@ public class RoundRobinTrainer {
    * @param units  the units
    * @return the timeout
    */
-  public RoundRobinTrainer setTimeout(final int number, final TemporalUnit units) {
+  public @NotNull RoundRobinTrainer setTimeout(final int number, final @NotNull TemporalUnit units) {
     timeout = Duration.of(number, units);
     return this;
   }
@@ -333,7 +334,7 @@ public class RoundRobinTrainer {
    * @param units  the units
    * @return the timeout
    */
-  public RoundRobinTrainer setTimeout(final int number, final TimeUnit units) {
+  public @NotNull RoundRobinTrainer setTimeout(final int number, final @NotNull TimeUnit units) {
     return setTimeout(number, Util.cvt(units));
   }
   

@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +39,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
   /**
    * The Layer.
    */
-  public final K layer;
+  public final @NotNull K layer;
   /**
    * The Target.
    */
@@ -45,7 +47,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
   /**
    * The Delta.
    */
-  protected volatile double[] delta;
+  protected volatile @Nullable double[] delta;
   
   /**
    * Instantiates a new Double buffer.
@@ -53,7 +55,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    * @param layer  the layer
    * @param target the target
    */
-  public DoubleBuffer(final K layer, final double[] target) {
+  public DoubleBuffer(final @NotNull K layer, final double[] target) {
     this.layer = layer;
     layer.addRef();
     this.target = target;
@@ -67,7 +69,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    * @param target the target
    * @param delta  the delta
    */
-  public DoubleBuffer(final K layer, final double[] target, final double[] delta) {
+  public DoubleBuffer(final @NotNull K layer, final double[] target, final double[] delta) {
     this.layer = layer;
     layer.addRef();
     this.target = target;
@@ -81,7 +83,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    * @param r the r
    * @return the boolean
    */
-  public static boolean areEqual(final double[] l, final double[] r) {
+  public static boolean areEqual(final @NotNull double[] l, final @NotNull double[] r) {
     if (r.length != l.length) throw new IllegalArgumentException();
     for (int i = 0; i < r.length; i++) {
       if (r[i] != l[i]) return false;
@@ -94,7 +96,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    *
    * @return the delta
    */
-  public DoubleBuffer<K> copy() {
+  public @Nullable DoubleBuffer<K> copy() {
     assertAlive();
     return new DoubleBuffer<K>(layer, target, RecycleBin.DOUBLES.copyOf(delta, length()));
   }
@@ -104,7 +106,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    *
    * @return the double array stats facade
    */
-  public DoubleArrayStatsFacade deltaStatistics() {
+  public @NotNull DoubleArrayStatsFacade deltaStatistics() {
     return new DoubleArrayStatsFacade(getDelta());
   }
   
@@ -114,15 +116,15 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    * @param right the right
    * @return the double
    */
-  public double dot(final DoubleBuffer<K> right) {
+  public double dot(final @NotNull DoubleBuffer<K> right) {
     if (this.target != right.target) {
       throw new IllegalArgumentException(String.format("Deltas are not based on same buffer. %s != %s", this.layer, right.layer));
     }
     if (!this.layer.equals(right.layer)) {
       throw new IllegalArgumentException(String.format("Deltas are not based on same layer. %s != %s", this.layer, right.layer));
     }
-    final double[] l = this.getDelta();
-    final double[] r = right.getDelta();
+    final @Nullable double[] l = this.getDelta();
+    final @Nullable double[] r = right.getDelta();
     assert l.length == r.length;
     final double[] array = IntStream.range(0, l.length).mapToDouble(i -> l[i] * r[i]).toArray();
     return Arrays.stream(array).summaryStatistics().getSum();
@@ -133,7 +135,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    *
    * @return the double [ ]
    */
-  public double[] getDelta() {
+  public @Nullable double[] getDelta() {
     assertAlive();
     if (null == delta) {
       synchronized (this) {
@@ -169,7 +171,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    * @param mapper the mapper
    * @return the delta
    */
-  public DoubleBuffer<K> map(final DoubleUnaryOperator mapper) {
+  public @NotNull DoubleBuffer<K> map(final @NotNull DoubleUnaryOperator mapper) {
     return new DoubleBuffer<K>(this.layer, this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
   }
   
@@ -179,7 +181,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    * @param data the data
    * @return the delta
    */
-  public DoubleBuffer<K> set(final double[] data) {
+  public @NotNull DoubleBuffer<K> set(final @NotNull double[] data) {
     assert Arrays.stream(data).allMatch(Double::isFinite);
     Arrays.parallelSetAll(this.getDelta(), i -> data[i]);
     assert Arrays.stream(getDelta()).allMatch(Double::isFinite);
@@ -191,13 +193,13 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    *
    * @return the double array stats facade
    */
-  public DoubleArrayStatsFacade targetStatistics() {
+  public @NotNull DoubleArrayStatsFacade targetStatistics() {
     return new DoubleArrayStatsFacade(target);
   }
   
   @Override
-  public String toString() {
-    final StringBuilder builder = new StringBuilder();
+  public @NotNull String toString() {
+    final @NotNull StringBuilder builder = new StringBuilder();
     builder.append(getClass().getSimpleName());
     builder.append("/");
     builder.append(this.layer);

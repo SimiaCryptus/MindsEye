@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.opt.orient.TrustRegionStrategy;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,14 +33,14 @@ import java.util.Map;
  */
 public class LayerTrustRegionMap extends TrustRegionStrategy {
   private final Map<NNLayer, TrustRegion> regionPolicies = new HashMap<>();
-  private TrustRegion defaultRegionPolicy = null;
+  private @Nullable TrustRegion defaultRegionPolicy = null;
   
   /**
    * Gets default region policy.
    *
    * @return the default region policy
    */
-  public TrustRegion getDefaultRegionPolicy() {
+  public @Nullable TrustRegion getDefaultRegionPolicy() {
     return defaultRegionPolicy;
   }
   
@@ -47,7 +49,7 @@ public class LayerTrustRegionMap extends TrustRegionStrategy {
    *
    * @return the region policies
    */
-  public Map<NNLayer, TrustRegion> getRegionPolicies() {
+  public @NotNull Map<NNLayer, TrustRegion> getRegionPolicies() {
     return regionPolicies;
   }
   
@@ -67,7 +69,7 @@ public class LayerTrustRegionMap extends TrustRegionStrategy {
    * @param defaultRegionPolicy the default region policy
    * @return the default region policy
    */
-  public TrustRegionStrategy setDefaultRegionPolicy(final TrustRegion defaultRegionPolicy) {
+  public @NotNull TrustRegionStrategy setDefaultRegionPolicy(final TrustRegion defaultRegionPolicy) {
     this.defaultRegionPolicy = defaultRegionPolicy;
     return this;
   }

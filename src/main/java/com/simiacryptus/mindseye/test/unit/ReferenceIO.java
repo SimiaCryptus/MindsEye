@@ -26,6 +26,8 @@ import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -56,14 +58,14 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
   }
   
   @Override
-  public ToleranceStatistics test(final NotebookOutput log, final NNLayer layer, final Tensor... inputPrototype) {
+  public @Nullable ToleranceStatistics test(final @NotNull NotebookOutput log, final NNLayer layer, final @NotNull Tensor... inputPrototype) {
     if (!referenceIO.isEmpty()) {
       log.h1("Reference Input/Output Pairs");
       log.p("Display pre-setBytes input/output example pairs:");
       referenceIO.forEach((input, output) -> {
         log.code(() -> {
           final SimpleEval eval = SimpleEval.run(layer, input);
-          final DoubleStatistics error = new DoubleStatistics().accept(eval.getOutput().add(output.scale(-1)).getData());
+          final @NotNull DoubleStatistics error = new DoubleStatistics().accept(eval.getOutput().add(output.scale(-1)).getData());
           String format = String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\nError: %s\n--------------------\nDerivative: \n%s",
                                         Arrays.stream(input).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
                                         eval.getOutput().prettyPrint(), error,
@@ -90,7 +92,7 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
   }
   
   @Override
-  public String toString() {
+  public @NotNull String toString() {
     return "ReferenceIO{" +
       "referenceIO=" + referenceIO +
       '}';

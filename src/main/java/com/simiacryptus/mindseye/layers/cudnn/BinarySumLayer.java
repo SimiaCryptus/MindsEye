@@ -30,6 +30,7 @@ import jcuda.jcudnn.cudnnOpTensorDescriptor;
 import jcuda.jcudnn.cudnnOpTensorOp;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 import jcuda.jcudnn.cudnnTensorFormat;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -69,7 +70,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
    *
    * @param json the id
    */
-  protected BinarySumLayer(final JsonObject json) {
+  protected BinarySumLayer(final @NotNull JsonObject json) {
     super(json);
     rightFactor = json.get("rightFactor").getAsDouble();
     leftFactor = json.get("leftFactor").getAsDouble();
@@ -83,7 +84,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
    * @param rs   the rs
    * @return the product inputs layer
    */
-  public static BinarySumLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static BinarySumLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new BinarySumLayer(json);
   }
   
@@ -92,8 +93,8 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
    *
    * @return the compatibility layer
    */
-  public NNLayer getCompatibilityLayer() {
-    PipelineNetwork network = new PipelineNetwork(2);
+  public @NotNull NNLayer getCompatibilityLayer() {
+    @NotNull PipelineNetwork network = new PipelineNetwork(2);
     network.add(new SumInputsLayer(),
                 network.add(new LinearActivationLayer().setScale(this.leftFactor).freeze(), network.getInput(0)),
                 network.add(new LinearActivationLayer().setScale(this.rightFactor).freeze(), network.getInput(1)));
@@ -102,7 +103,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(final @NotNull NNResult... inObj) {
     if (inObj.length == 1) {
       if (rightFactor != 1) throw new IllegalStateException();
       if (leftFactor != 1) throw new IllegalStateException();
@@ -111,7 +112,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
     if (inObj.length > 2) {
       if (rightFactor != 1) throw new IllegalStateException();
       if (leftFactor != 1) throw new IllegalStateException();
-      for (NNResult nnResult : inObj) {
+      for (@NotNull NNResult nnResult : inObj) {
         nnResult.addRef();
         nnResult.getData().addRef();
       }
@@ -140,26 +141,26 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     Arrays.stream(inObj).forEach(x -> x.addRef());
     return new NNResult(GpuSystem.eval(gpu -> {
-      final CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
-      final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
+      final @NotNull CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
+      final @NotNull CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
       final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, leftData);//.moveTo(gpu.getDeviceNumber());
       final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, rightData);//.moveTo(gpu.getDeviceNumber());
       assert lPtr.size == rPtr.size;
-      final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
+      final @NotNull CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
       CuDNNHandle.cudnnOpTensor(gpu.getHandle(), opDescriptor.getPtr(),
                                 precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                 precision.getPointer(rightFactor), sizeDescriptor.getPtr(), rPtr.getPtr(),
                                 precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
       gpu.registerForCleanup(opDescriptor, sizeDescriptor, lPtr, rPtr);
       return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
-    }), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+    }), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList delta) -> {
       TestUtil.runAllSerial(() -> {
         if (inObj[0].isAlive()) {
           GpuTensorList tensorList = GpuSystem.eval(gpu -> {
             final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);
-            final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
-            final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
+            final @NotNull CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
+            final @NotNull CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
               precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
             CuDNNHandle.cudnnAddTensor(gpu.getHandle(),
                                        precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
@@ -174,8 +175,8 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
         if (inObj[1].isAlive()) {
           GpuTensorList tensorList = GpuSystem.eval(gpu -> {
             final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);
-            final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
-            final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
+            final @NotNull CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
+            final @NotNull CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
               precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
             CuDNNHandle.cudnnAddTensor(gpu.getHandle(),
                                        precision.getPointer(rightFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
@@ -197,7 +198,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
   
       @Override
       public boolean isAlive() {
-        for (final NNResult element : inObj)
+        for (final @NotNull NNResult element : inObj)
           if (element.isAlive()) {
             return true;
           }
@@ -208,8 +209,8 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final JsonObject json = super.getJsonStub();
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    final @NotNull JsonObject json = super.getJsonStub();
     json.addProperty("rightFactor", rightFactor);
     json.addProperty("leftFactor", leftFactor);
     json.addProperty("precision", precision.name());
@@ -231,7 +232,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
    * @param leftFactor the left factor
    * @return the left factor
    */
-  public BinarySumLayer setLeftFactor(final double leftFactor) {
+  public @NotNull BinarySumLayer setLeftFactor(final double leftFactor) {
     this.leftFactor = leftFactor;
     return this;
   }
@@ -242,7 +243,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
   }
   
   @Override
-  public BinarySumLayer setPrecision(final Precision precision) {
+  public @NotNull BinarySumLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
@@ -262,13 +263,13 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
    * @param rightFactor the right factor
    * @return the right factor
    */
-  public BinarySumLayer setRightFactor(final double rightFactor) {
+  public @NotNull BinarySumLayer setRightFactor(final double rightFactor) {
     this.rightFactor = rightFactor;
     return this;
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList();
   }
 }

@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.test.integration;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.LabeledObject;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,7 +57,7 @@ public class SupplementedProblemData implements ImageProblemData {
    * @param tensor the tensor
    * @return the tensor
    */
-  protected static Tensor addNoise(final Tensor tensor) {
+  protected static @Nullable Tensor addNoise(final @NotNull Tensor tensor) {
     return tensor.mapParallel((v) -> Math.random() < 0.9 ? v : v + Math.random() * 100);
   }
   
@@ -66,13 +68,13 @@ public class SupplementedProblemData implements ImageProblemData {
    * @param expanded the expanded
    * @param size     the size
    */
-  public static void printSample(final NotebookOutput log, final Tensor[][] expanded, final int size) {
-    final ArrayList<Tensor[]> list = new ArrayList<>(Arrays.asList(expanded));
+  public static void printSample(final @NotNull NotebookOutput log, final Tensor[][] expanded, final int size) {
+    final @NotNull ArrayList<Tensor[]> list = new ArrayList<>(Arrays.asList(expanded));
     Collections.shuffle(list);
     log.p("Expanded Training Data Sample: " + list.stream().limit(size).map(x -> {
       try {
         return log.image(x[0].toGrayImage(), "");
-      } catch (final IOException e) {
+      } catch (final @NotNull IOException e) {
         e.printStackTrace();
         return "";
       }
@@ -87,7 +89,7 @@ public class SupplementedProblemData implements ImageProblemData {
    * @param tensor the tensor
    * @return the tensor
    */
-  protected static Tensor translate(final int dx, final int dy, final Tensor tensor) {
+  protected static Tensor translate(final int dx, final int dy, final @NotNull Tensor tensor) {
     final int sx = tensor.getDimensions()[0];
     final int sy = tensor.getDimensions()[1];
     return new Tensor(tensor.coordStream(true).mapToDouble(c -> {

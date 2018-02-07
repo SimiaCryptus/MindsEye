@@ -19,11 +19,11 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
- * Provides a data serialization interface designed 
- * for converting arrays of doubles to/from arrays of bytes.
- * Implementations may use reduced precision 
- * and other lossy compression techniques.
+ * Provides a data serialization interface designed for converting arrays of doubles to/from arrays of bytes.
+ * Implementations may use reduced precision and other lossy compression techniques.
  */
 public interface DataSerializer {
   
@@ -56,8 +56,8 @@ public interface DataSerializer {
    * @param from the from
    * @return the byte [ ]
    */
-  default byte[] toBytes(double[] from) {
-    byte[] to = new byte[encodedSize(from)];
+  default @NotNull byte[] toBytes(@NotNull double[] from) {
+    @NotNull byte[] to = new byte[encodedSize(from)];
     copy(from, to);
     return to;
   }
@@ -68,7 +68,7 @@ public interface DataSerializer {
    * @param from the from
    * @return the int
    */
-  default int encodedSize(double[] from) {
+  default int encodedSize(@NotNull double[] from) {
     return from.length * getElementSize() + getHeaderSize();
   }
   
@@ -87,8 +87,8 @@ public interface DataSerializer {
    * @param from the from
    * @return the double [ ]
    */
-  default double[] fromBytes(byte[] from) {
-    double[] to = new double[decodedSize(from)];
+  default @NotNull double[] fromBytes(@NotNull byte[] from) {
+    @NotNull double[] to = new double[decodedSize(from)];
     copy(from, to);
     return to;
   }
@@ -99,7 +99,7 @@ public interface DataSerializer {
    * @param from the from
    * @return the int
    */
-  default int decodedSize(byte[] from) {
+  default int decodedSize(@NotNull byte[] from) {
     return (from.length - getHeaderSize()) / getElementSize();
   }
 }

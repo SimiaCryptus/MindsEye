@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A wrapper for a line search cursor which tracks the best-known point.
@@ -39,7 +40,7 @@ public class FailsafeLineSearchCursor extends LineSearchCursorBase {
    * @param previousPoint the previous point
    * @param monitor       the monitor
    */
-  public FailsafeLineSearchCursor(final LineSearchCursor direction, final PointSample previousPoint, final TrainingMonitor monitor) {
+  public FailsafeLineSearchCursor(final LineSearchCursor direction, final @NotNull PointSample previousPoint, final TrainingMonitor monitor) {
     this.direction = direction;
     this.direction.addRef();
     best = previousPoint.copyFull();
@@ -51,7 +52,7 @@ public class FailsafeLineSearchCursor extends LineSearchCursorBase {
    *
    * @param step the runStep
    */
-  public void accumulate(final PointSample step) {
+  public void accumulate(final @NotNull PointSample step) {
     if (null == best || best.getMean() > step.getMean()) {
       monitor.log(String.format("New Minimum: %s > %s", best.getMean(), step.getMean()));
       PointSample newValue = step.copyFull();

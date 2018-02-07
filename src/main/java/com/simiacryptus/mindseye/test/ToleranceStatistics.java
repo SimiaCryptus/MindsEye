@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.util.data.DoubleStatistics;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.stream.IntStream;
 
@@ -61,7 +62,7 @@ public class ToleranceStatistics {
    * @param val    the val
    * @return the tolerance statistics
    */
-  public ToleranceStatistics accumulate(final double target, final double val) {
+  public @NotNull ToleranceStatistics accumulate(final double target, final double val) {
     absoluteTol.accept(Math.abs(target - val));
     if (Double.isFinite(val + target) && val != -target) {
       relativeTol.accept(Math.abs(target - val) / (Math.abs(val) + Math.abs(target)));
@@ -76,7 +77,7 @@ public class ToleranceStatistics {
    * @param val    the val
    * @return the tolerance statistics
    */
-  public ToleranceStatistics accumulate(final double[] target, final double[] val) {
+  public @NotNull ToleranceStatistics accumulate(final @NotNull double[] target, final @NotNull double[] val) {
     if (target.length != val.length) throw new IllegalArgumentException();
     IntStream.range(0, target.length).forEach(i -> accumulate(target[i], val[i]));
     return this;
@@ -88,7 +89,7 @@ public class ToleranceStatistics {
    * @param right the right
    * @return the tolerance statistics
    */
-  public ToleranceStatistics combine(final ToleranceStatistics right) {
+  public @NotNull ToleranceStatistics combine(final @NotNull ToleranceStatistics right) {
     return new ToleranceStatistics(
       absoluteTol.combine(right.absoluteTol),
       relativeTol.combine(right.relativeTol)
@@ -96,7 +97,7 @@ public class ToleranceStatistics {
   }
   
   @Override
-  public String toString() {
+  public @NotNull String toString() {
     return "ToleranceStatistics{" +
       "absoluteTol=" + absoluteTol +
       ", relativeTol=" + relativeTol +

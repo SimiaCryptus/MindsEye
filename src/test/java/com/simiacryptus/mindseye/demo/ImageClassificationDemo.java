@@ -27,6 +27,8 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
 import java.awt.image.BufferedImage;
@@ -56,7 +58,7 @@ public class ImageClassificationDemo extends NotebookReportBase {
    *
    * @param log the log
    */
-  public void run(NotebookOutput log) {
+  public void run(@NotNull NotebookOutput log) {
   
   
     log.h1("Model");
@@ -68,7 +70,7 @@ public class ImageClassificationDemo extends NotebookReportBase {
     log.h1("Data");
     Tensor[] images = log.code(() -> {
       return Caltech101.trainingDataStream().sorted(getShuffleComparator()).map(labeledObj -> {
-        BufferedImage img = labeledObj.data.get();
+        @Nullable BufferedImage img = labeledObj.data.get();
         img = TestUtil.resize(img, 224);
         return Tensor.fromRGB(img);
       }).limit(10).toArray(i1 -> new Tensor[i1]);
@@ -81,9 +83,9 @@ public class ImageClassificationDemo extends NotebookReportBase {
   
     log.h1("Results");
     log.code(() -> {
-      TableOutput tableOutput = new TableOutput();
+      @NotNull TableOutput tableOutput = new TableOutput();
       for (int i = 0; i < images.length; i++) {
-        HashMap<String, Object> row = new HashMap<>();
+        @NotNull HashMap<String, Object> row = new HashMap<>();
         row.put("Image", log.image(images[i].toImage(), ""));
         row.put("Prediction", predictions.get(i).entrySet().stream()
                                          .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
@@ -111,12 +113,12 @@ public class ImageClassificationDemo extends NotebookReportBase {
    *
    * @return the target class
    */
-  protected Class<?> getTargetClass() {
+  protected @NotNull Class<?> getTargetClass() {
     return ImageClassifier.class;
   }
   
   @Override
-  public ReportType getReportType() {
+  public @NotNull ReportType getReportType() {
     return ReportType.Demos;
   }
 }

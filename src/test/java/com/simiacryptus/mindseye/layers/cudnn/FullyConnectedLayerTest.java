@@ -26,6 +26,8 @@ import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.BatchingTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.PrintStream;
 import java.util.Random;
@@ -35,55 +37,64 @@ import java.util.Random;
  */
 public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
   
-  protected final int[] inputDim;
-  protected final FullyConnectedLayer fullyConnectedLayer;
-  protected final PipelineNetwork layer;
+  /**
+   * The Input dim.
+   */
+  protected final @NotNull int[] inputDim;
+  /**
+   * The Fully connected layer.
+   */
+  protected final @NotNull FullyConnectedLayer fullyConnectedLayer;
+  /**
+   * The Layer.
+   */
+  protected final @NotNull PipelineNetwork layer;
   
   /**
    * Instantiates a new Fully connected layer allocationOverflow.
    *
    * @param inputDims  the input dims
    * @param outputDims the output dims
-   * @param batchBands
+   * @param batchBands the batch bands
    */
-  public FullyConnectedLayerTest(int[] inputDims, int[] outputDims, int batchBands) {
+  public FullyConnectedLayerTest(@NotNull int[] inputDims, @NotNull int[] outputDims, int batchBands) {
     this.inputDim = inputDims;
     this.fullyConnectedLayer = new FullyConnectedLayer(inputDims, outputDims).setWeightsLog(-2);
     this.layer = this.fullyConnectedLayer.setBatchBands(batchBands).explode();
   }
   
   @Override
-  public int[][] getSmallDims(Random random) {
+  public @NotNull int[][] getSmallDims(Random random) {
     return new int[][]{
       inputDim
     };
   }
   
   @Override
-  protected Class<?> getTargetClass() {
+  protected @NotNull Class<?> getTargetClass() {
     return FullyConnectedLayer.class;
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize, Random random) {
+  public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
     layer.addRef();
     return layer;
   }
   
   @Override
   public NNLayer getReferenceLayer() {
-    Class<? extends NNLayer> referenceLayerClass = getReferenceLayerClass();
+    @Nullable Class<? extends NNLayer> referenceLayerClass = getReferenceLayerClass();
     return null == referenceLayerClass ? null : this.fullyConnectedLayer.as(referenceLayerClass);
   }
   
   @Override
-  public Class<? extends NNLayer> getReferenceLayerClass() {
+  public @Nullable Class<? extends NNLayer> getReferenceLayerClass() {
     return com.simiacryptus.mindseye.layers.java.FullyConnectedReferenceLayer.class;
   }
   
   @Override
   public void run(NotebookOutput log) {
-    String logName = "cuda_" + log.getName() + "_all.log";
+    @NotNull String logName = "cuda_" + log.getName() + "_all.log";
     log.p(log.file((String) null, logName, "GPU Log"));
     GpuSystem.addLog(new PrintStream(log.file(logName)));
     super.run(log);
@@ -106,7 +117,14 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
    */
   public abstract static class Big extends FullyConnectedLayerTest {
   
-    public Big(int[] inputDims, int[] outputDims, int batchBands) {
+    /**
+     * Instantiates a new Big.
+     *
+     * @param inputDims  the input dims
+     * @param outputDims the output dims
+     * @param batchBands the batch bands
+     */
+    public Big(@NotNull int[] inputDims, @NotNull int[] outputDims, int batchBands) {
       super(inputDims, outputDims, batchBands);
       validateDifferentials = false;
     }
@@ -128,14 +146,14 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
     }
   
     @Override
-    protected ComponentTest<ToleranceStatistics> getJsonTester() {
+    protected @Nullable ComponentTest<ToleranceStatistics> getJsonTester() {
       logger.warn("Disabled Json Test");
       return null;
       //return super.getJsonTester();
     }
   
     @Override
-    public ComponentTest<ToleranceStatistics> getPerformanceTester() {
+    public @Nullable ComponentTest<ToleranceStatistics> getPerformanceTester() {
       logger.warn("Disabled Performance Test");
       return null;
       //return super.getPerformanceTester();

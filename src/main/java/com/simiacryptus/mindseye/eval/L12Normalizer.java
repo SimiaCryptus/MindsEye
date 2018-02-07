@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -76,7 +77,7 @@ public abstract class L12Normalizer extends TrainableBase {
    * @param layers the layers
    * @return the layers
    */
-  public Collection<NNLayer> getLayers(final Collection<NNLayer> layers) {
+  public Collection<NNLayer> getLayers(final @NotNull Collection<NNLayer> layers) {
     return layers.stream()
                  .filter(layer -> {
                    return layer instanceof FullyConnectedLayer;
@@ -88,9 +89,9 @@ public abstract class L12Normalizer extends TrainableBase {
   @Override
   public PointSample measure(final TrainingMonitor monitor) {
     final PointSample innerMeasure = inner.measure(monitor);
-    final DeltaSet<NNLayer> normalizationVector = new DeltaSet<NNLayer>();
+    final @NotNull DeltaSet<NNLayer> normalizationVector = new DeltaSet<NNLayer>();
     double valueAdj = 0;
-    for (final NNLayer layer : getLayers(innerMeasure.delta.getMap().keySet())) {
+    for (final @NotNull NNLayer layer : getLayers(innerMeasure.delta.getMap().keySet())) {
       final double[] weights = innerMeasure.delta.getMap().get(layer).target;
       final double[] gradientAdj = normalizationVector.get(layer, weights).getDelta();
       final double factor_L1 = getL1(layer);

@@ -24,6 +24,8 @@ import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.IntArray;
 import com.simiacryptus.util.io.JsonUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +43,7 @@ public class MaxDropoutNoiseLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MaxDropoutNoiseLayer.class);
-  private final int[] kernelSize;
+  private final @Nullable int[] kernelSize;
   private final Function<IntArray, List<List<Coordinate>>> getCellMap_cached = Util.cache(this::getCellMap);
   
   /**
@@ -66,7 +68,7 @@ public class MaxDropoutNoiseLayer extends NNLayer {
    *
    * @param json the json
    */
-  protected MaxDropoutNoiseLayer(final JsonObject json) {
+  protected MaxDropoutNoiseLayer(final @NotNull JsonObject json) {
     super(json);
     kernelSize = JsonUtil.getIntArray(json.getAsJsonArray("kernelSize"));
   }
@@ -78,17 +80,17 @@ public class MaxDropoutNoiseLayer extends NNLayer {
    * @param rs   the rs
    * @return the max dropout noise layer
    */
-  public static MaxDropoutNoiseLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static MaxDropoutNoiseLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new MaxDropoutNoiseLayer(json);
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public @NotNull NNResult eval(final NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
     inObj[0].addRef();
     final Tensor[] mask = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);
-      final Tensor output = input.map(x -> 0);
+      final @Nullable Tensor output = input.map(x -> 0);
       final List<List<Coordinate>> cells = getCellMap_cached.apply(new IntArray(output.getDimensions()));
       cells.forEach(cell -> {
         output.set(cell.stream().max(Comparator.comparingDouble(c -> input.get(c))).get(), 1);
@@ -96,22 +98,22 @@ public class MaxDropoutNoiseLayer extends NNLayer {
       return output;
     }).toArray(i -> new Tensor[i]);
     final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final double[] input = inObj[0].getData().get(dataIndex).getData();
-      final double[] maskT = mask[dataIndex].getData();
-      final Tensor output = new Tensor(inObj[0].getData().get(dataIndex).getDimensions());
-      final double[] outputData = output.getData();
+      final @Nullable double[] input = inObj[0].getData().get(dataIndex).getData();
+      final @Nullable double[] maskT = mask[dataIndex].getData();
+      final @NotNull Tensor output = new Tensor(inObj[0].getData().get(dataIndex).getDimensions());
+      final @Nullable double[] outputData = output.getData();
       for (int i = 0; i < outputData.length; i++) {
         outputData[i] = input[i] * maskT[i];
       }
       return output;
     }).toArray(i -> new Tensor[i]);
-    return new NNResult(TensorArray.wrap(outputA), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+    return new NNResult(TensorArray.wrap(outputA), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList delta) -> {
       if (inObj[0].isAlive()) {
-        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-          final double[] deltaData = delta.get(dataIndex).getData();
-          final int[] dims = inObj[0].getData().get(dataIndex).getDimensions();
-          final double[] maskData = mask[dataIndex].getData();
-          final Tensor passback = new Tensor(dims);
+        @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+          final @Nullable double[] deltaData = delta.get(dataIndex).getData();
+          final @NotNull int[] dims = inObj[0].getData().get(dataIndex).getDimensions();
+          final @Nullable double[] maskData = mask[dataIndex].getData();
+          final @NotNull Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, maskData[i] * deltaData[i]);
           }
@@ -135,8 +137,8 @@ public class MaxDropoutNoiseLayer extends NNLayer {
     };
   }
   
-  private List<List<Coordinate>> getCellMap(final IntArray dims) {
-    return new ArrayList<>(new Tensor(dims.data).coordStream(true).collect(Collectors.groupingBy((final Coordinate c) -> {
+  private List<List<Coordinate>> getCellMap(final @NotNull IntArray dims) {
+    return new ArrayList<>(new Tensor(dims.data).coordStream(true).collect(Collectors.groupingBy((final @NotNull Coordinate c) -> {
       int cellId = 0;
       int max = 0;
       for (int dim = 0; dim < dims.size(); dim++) {
@@ -149,14 +151,14 @@ public class MaxDropoutNoiseLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final JsonObject json = super.getJsonStub();
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    final @NotNull JsonObject json = super.getJsonStub();
     json.add("kernelSize", JsonUtil.getJson(kernelSize));
     return json;
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList();
   }
   

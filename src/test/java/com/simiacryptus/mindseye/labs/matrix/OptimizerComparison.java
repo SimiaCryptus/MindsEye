@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.integration.*;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.TestCategories;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -82,7 +83,7 @@ public abstract class OptimizerComparison extends NotebookReportBase {
    *
    * @param log the log
    */
-  public void classification(NotebookOutput log) {
+  public void classification(@NotNull NotebookOutput log) {
     compare(log, opt -> {
       return new ClassifyProblem(fwdFactory, opt, data, 10)
         .setTimeoutMinutes(timeoutMinutes).run(log).getHistory();
@@ -114,7 +115,7 @@ public abstract class OptimizerComparison extends NotebookReportBase {
    *
    * @param log the log
    */
-  public void encoding(NotebookOutput log) {
+  public void encoding(@NotNull NotebookOutput log) {
     compare(log, opt -> {
       return new EncodingProblem(revFactory, opt, data, 20)
         .setTimeoutMinutes(timeoutMinutes).setTrainingSize(1000).run(log).getHistory();
@@ -136,18 +137,18 @@ public abstract class OptimizerComparison extends NotebookReportBase {
    * @param timeoutMinutes the timeout minutes
    * @return the timeout minutes
    */
-  public OptimizerComparison setTimeoutMinutes(final int timeoutMinutes) {
+  public @NotNull OptimizerComparison setTimeoutMinutes(final int timeoutMinutes) {
     this.timeoutMinutes = timeoutMinutes;
     return this;
   }
   
   @Override
-  public ReportType getReportType() {
+  public @NotNull ReportType getReportType() {
     return ReportType.Training;
   }
   
   @Override
-  protected Class<?> getTargetClass() {
+  protected @NotNull Class<?> getTargetClass() {
     return OptimizerComparison.class;
   }
 }

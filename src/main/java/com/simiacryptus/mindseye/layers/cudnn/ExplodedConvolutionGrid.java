@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,11 +35,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * The higher level of convolution construction logic. Provides support 
- * for large numbers of input bands by splitting the network into 
- * sub-networks that consider only a subset of the input bands, then 
- * summing the results together. This strategy remains valid so long 
- * as the sub-networks are purely linear.
+ * The higher level of convolution construction logic. Provides support for large numbers of input bands by splitting
+ * the network into sub-networks that consider only a subset of the input bands, then summing the results together. This
+ * strategy remains valid so long as the sub-networks are purely linear.
  */
 class ExplodedConvolutionGrid {
   private static final Logger log = LoggerFactory.getLogger(ExplodedConvolutionGrid.class);
@@ -50,7 +49,7 @@ class ExplodedConvolutionGrid {
   /**
    * The Convolution params.
    */
-  public final ConvolutionParams convolutionParams;
+  public final @NotNull ConvolutionParams convolutionParams;
   
   /**
    * Instantiates a new Exploded network.
@@ -58,7 +57,7 @@ class ExplodedConvolutionGrid {
    * @param convolutionParams the convolution params
    * @param maxBandBatch      the max band batch
    */
-  public ExplodedConvolutionGrid(ConvolutionParams convolutionParams, int maxBandBatch) {
+  public ExplodedConvolutionGrid(@NotNull ConvolutionParams convolutionParams, int maxBandBatch) {
     this.convolutionParams = convolutionParams;
     for (int fromBand = 0; fromBand < convolutionParams.inputBands; fromBand += maxBandBatch) {
       int toBand = Math.min(convolutionParams.inputBands, fromBand + maxBandBatch);
@@ -72,13 +71,13 @@ class ExplodedConvolutionGrid {
    * @param filter the kernel
    * @return the exploded convolution grid
    */
-  public ExplodedConvolutionGrid write(Tensor filter) {
+  public @NotNull ExplodedConvolutionGrid write(@NotNull Tensor filter) {
     if (1 == subLayers.size()) {
       subLayers.get(0).write(filter);
     }
     else {
-      for (ExplodedConvolutionLeg leg : subLayers) {
-        int[] legDims = {convolutionParams.masterFilterDimensions[0], convolutionParams.masterFilterDimensions[1], leg.getInputBands() * convolutionParams.outputBands};
+      for (@NotNull ExplodedConvolutionLeg leg : subLayers) {
+        @NotNull int[] legDims = {convolutionParams.masterFilterDimensions[0], convolutionParams.masterFilterDimensions[1], leg.getInputBands() * convolutionParams.outputBands};
         leg.write(new Tensor(legDims).mapCoords(c -> {
           int[] coords = c.getCoords();
           return filter.get(coords[0], coords[1], getFilterBand(leg, coords[2]));
@@ -94,13 +93,13 @@ class ExplodedConvolutionGrid {
    * @param extractor the extractor
    * @return the tensor
    */
-  public Tensor read(Function<ExplodedConvolutionLeg, Tensor> extractor) {
+  public Tensor read(@NotNull Function<ExplodedConvolutionLeg, Tensor> extractor) {
     if (1 == subLayers.size()) {
       return extractor.apply(subLayers.get(0));
     }
     else {
-      final Tensor filterDelta = new Tensor(convolutionParams.masterFilterDimensions);
-      for (ExplodedConvolutionLeg leg : subLayers) {
+      final @NotNull Tensor filterDelta = new Tensor(convolutionParams.masterFilterDimensions);
+      for (@NotNull ExplodedConvolutionLeg leg : subLayers) {
         extractor.apply(leg).forEach((v, c) -> {
           int[] coords = c.getCoords();
           filterDelta.set(coords[0], coords[1], getFilterBand(leg, coords[2]), v);
@@ -126,11 +125,11 @@ class ExplodedConvolutionGrid {
    * @param remove   the remove
    * @return the tensor
    */
-  public Tensor read(DeltaSet<NNLayer> deltaSet, boolean remove) {
+  public Tensor read(@NotNull DeltaSet<NNLayer> deltaSet, boolean remove) {
     return read(l -> l.read(deltaSet, remove));
   }
   
-  private int getFilterBand(ExplodedConvolutionLeg leg, int legFilterBand) {
+  private int getFilterBand(@NotNull ExplodedConvolutionLeg leg, int legFilterBand) {
     int filterBand = legFilterBand;
     filterBand = filterBand + convolutionParams.outputBands * leg.fromBand;
     return filterBand;
@@ -141,8 +140,8 @@ class ExplodedConvolutionGrid {
    *
    * @return the network
    */
-  public PipelineNetwork getNetwork() {
-    PipelineNetwork network = new PipelineNetwork(1);
+  public @NotNull PipelineNetwork getNetwork() {
+    @NotNull PipelineNetwork network = new PipelineNetwork(1);
     add(network.getInput(0));
     return network;
   }
@@ -153,7 +152,7 @@ class ExplodedConvolutionGrid {
    * @param input the input
    * @return the dag node
    */
-  public DAGNode add(DAGNode input) {
+  public DAGNode add(@NotNull DAGNode input) {
     if (subLayers.size() == 1) {
       return subLayers.get(0).add(input);
     }

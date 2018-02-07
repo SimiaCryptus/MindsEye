@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.aparapi;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
 
@@ -38,19 +39,19 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
     private final int outputBands = 1;
   
     @Override
-    public NNLayer getLayer(final int[][] inputSize, Random random) {
+    public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
       return new ConvolutionLayer(3, 3, inputBands, outputBands, true).setWeights(() -> this.random());
     }
     
     @Override
-    public int[][] getSmallDims(Random random) {
+    public @NotNull int[][] getSmallDims(Random random) {
       return new int[][]{
         {8, 8, 1}
       };
     }
     
     @Override
-    public int[][] getLargeDims(Random random) {
+    public @NotNull int[][] getLargeDims(Random random) {
       
       return new int[][]{
         {200, 200, inputBands}
@@ -66,14 +67,14 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
   public static class Downsize extends ConvolutionLayerTest {
   
     @Override
-    public int[][] getSmallDims(Random random) {
+    public @NotNull int[][] getSmallDims(Random random) {
       return new int[][]{
         {3, 3, 7}
       };
     }
   
     @Override
-    public NNLayer getLayer(final int[][] inputSize, Random random) {
+    public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
       return new ConvolutionLayer(3, 3, 7, 3, false).setWeights(() -> this.random());
     }
   
@@ -85,14 +86,14 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
   public static class Upsize extends ConvolutionLayerTest {
   
     @Override
-    public int[][] getSmallDims(Random random) {
+    public @NotNull int[][] getSmallDims(Random random) {
       return new int[][]{
         {3, 3, 2}
       };
     }
     
     @Override
-    public NNLayer getLayer(final int[][] inputSize, Random random) {
+    public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
       return new ConvolutionLayer(3, 3, 2, 3, false).setWeights(() -> this.random());
     }
   

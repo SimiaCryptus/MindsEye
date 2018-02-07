@@ -23,6 +23,8 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -35,7 +37,7 @@ public abstract class WrapperLayer extends NNLayer {
   /**
    * The Inner.
    */
-  protected NNLayer inner;
+  protected @Nullable NNLayer inner;
   
   /**
    * Instantiates a new Wrapper layer.
@@ -49,7 +51,7 @@ public abstract class WrapperLayer extends NNLayer {
    *
    * @param json the json
    */
-  public WrapperLayer(final JsonObject json) {
+  public WrapperLayer(final @NotNull JsonObject json) {
     super(json);
     inner = NNLayer.fromJson(json.getAsJsonObject("heapCopy"));
   }
@@ -80,13 +82,13 @@ public abstract class WrapperLayer extends NNLayer {
    *
    * @return the heapCopy
    */
-  public final NNLayer getInner() {
+  public final @Nullable NNLayer getInner() {
     return inner;
   }
   
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final JsonObject json = super.getJsonStub();
+    final @NotNull JsonObject json = super.getJsonStub();
     json.add("heapCopy", getInner().getJson(resources, dataSerializer));
     return json;
   }
@@ -98,7 +100,7 @@ public abstract class WrapperLayer extends NNLayer {
   }
   
   @Override
-  public NNLayer setFrozen(final boolean frozen) {
+  public @NotNull NNLayer setFrozen(final boolean frozen) {
     if (inner != null) {
       inner.setFrozen(frozen);
     }
@@ -106,7 +108,7 @@ public abstract class WrapperLayer extends NNLayer {
   }
   
   @Override
-  public List<double[]> state() {
+  public @Nullable List<double[]> state() {
     return inner.state();
   }
 }

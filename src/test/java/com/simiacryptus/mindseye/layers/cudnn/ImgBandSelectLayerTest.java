@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintStream;
 import java.util.Random;
@@ -54,9 +55,9 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
   
   @Override
   public void run(NotebookOutput log) {
-    String logName = "cuda_" + log.getName() + "_all.log";
+    @NotNull String logName = "cuda_" + log.getName() + "_all.log";
     log.p(log.file((String) null, logName, "GPU Log"));
-    PrintStream apiLog = new PrintStream(log.file(logName));
+    @NotNull PrintStream apiLog = new PrintStream(log.file(logName));
     GpuSystem.addLog(apiLog);
     super.run(log);
     apiLog.close();
@@ -64,7 +65,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
   }
   
   @Override
-  public int[][] getSmallDims(Random random) {
+  public @NotNull int[][] getSmallDims(Random random) {
     return new int[][]{
       {1, 1, 2}
     };
@@ -77,7 +78,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
   }
   
   @Override
-  public int[][] getLargeDims(Random random) {
+  public @NotNull int[][] getLargeDims(Random random) {
     return new int[][]{
       {64, 64, 2}
     };

@@ -19,6 +19,9 @@
 
 package com.simiacryptus.util.lang;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.management.ManagementFactory;
 
 /**
@@ -60,15 +63,15 @@ public class TimedResult<T> {
    * @param fn  the fn
    * @return the timed result
    */
-  public static <T> TimedResult<T> time(final UncheckedSupplier<T> fn) {
+  public static <T> TimedResult<T> time(final @NotNull UncheckedSupplier<T> fn) {
     long priorGcMs = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
     final long start = System.nanoTime();
-    T result = null;
+    @Nullable T result = null;
     try {
       result = fn.get();
-    } catch (final RuntimeException e) {
+    } catch (final @NotNull RuntimeException e) {
       throw e;
-    } catch (final Exception e) {
+    } catch (final @NotNull Exception e) {
       throw new RuntimeException(e);
     }
     long gcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum() - priorGcMs;
@@ -83,14 +86,14 @@ public class TimedResult<T> {
    * @param fn  the fn
    * @return the timed result
    */
-  public static <T> TimedResult<Void> time(final UncheckedRunnable<T> fn) {
+  public static <T> TimedResult<Void> time(final @NotNull UncheckedRunnable<T> fn) {
     long priorGcMs = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
     final long start = System.nanoTime();
     try {
       fn.get();
-    } catch (final RuntimeException e) {
+    } catch (final @NotNull RuntimeException e) {
       throw e;
-    } catch (final Exception e) {
+    } catch (final @NotNull Exception e) {
       throw new RuntimeException(e);
     }
     long gcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum() - priorGcMs;

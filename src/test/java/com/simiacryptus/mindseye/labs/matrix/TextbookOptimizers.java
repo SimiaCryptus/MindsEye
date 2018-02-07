@@ -32,6 +32,7 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.integration.MnistProblemData;
 import com.simiacryptus.mindseye.test.integration.OptimizationStrategy;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.List;
@@ -46,10 +47,10 @@ public class TextbookOptimizers extends OptimizerComparison {
   /**
    * The constant conjugate_gradient_descent.
    */
-  public static OptimizationStrategy conjugate_gradient_descent = (log, trainingSubject, validationSubject, monitor) -> {
+  public static @NotNull OptimizationStrategy conjugate_gradient_descent = (log, trainingSubject, validationSubject, monitor) -> {
     log.p("Optimized via the Conjugate Gradient Descent method:");
     return log.code(() -> {
-      final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
+      final @NotNull ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMinTrainingSize(Integer.MAX_VALUE)
         .setMonitor(monitor);
       trainer.getRegimen().get(0)
@@ -61,10 +62,10 @@ public class TextbookOptimizers extends OptimizerComparison {
   /**
    * The constant limited_memory_bfgs.
    */
-  public static OptimizationStrategy limited_memory_bfgs = (log, trainingSubject, validationSubject, monitor) -> {
+  public static @NotNull OptimizationStrategy limited_memory_bfgs = (log, trainingSubject, validationSubject, monitor) -> {
     log.p("Optimized via the Limited-Memory BFGS method:");
     return log.code(() -> {
-      final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
+      final @NotNull ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMinTrainingSize(Integer.MAX_VALUE)
         .setMonitor(monitor);
       trainer.getRegimen().get(0)
@@ -77,10 +78,10 @@ public class TextbookOptimizers extends OptimizerComparison {
   /**
    * The constant orthantwise_quasi_newton.
    */
-  public static OptimizationStrategy orthantwise_quasi_newton = (log, trainingSubject, validationSubject, monitor) -> {
+  public static @NotNull OptimizationStrategy orthantwise_quasi_newton = (log, trainingSubject, validationSubject, monitor) -> {
     log.p("Optimized via the Orthantwise Quasi-Newton search method:");
     return log.code(() -> {
-      final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
+      final @NotNull ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMinTrainingSize(Integer.MAX_VALUE)
         .setMonitor(monitor);
       trainer.getRegimen().get(0)
@@ -93,11 +94,11 @@ public class TextbookOptimizers extends OptimizerComparison {
   /**
    * The constant simple_gradient_descent.
    */
-  public static OptimizationStrategy simple_gradient_descent = (log, trainingSubject, validationSubject, monitor) -> {
+  public static @NotNull OptimizationStrategy simple_gradient_descent = (log, trainingSubject, validationSubject, monitor) -> {
     log.p("Optimized via the Stochastic Gradient Descent method:");
     return log.code(() -> {
       final double rate = 0.05;
-      final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
+      final @NotNull ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMinTrainingSize(Integer.MAX_VALUE)
         .setMaxEpochIterations(100)
         .setMonitor(monitor);
@@ -110,11 +111,11 @@ public class TextbookOptimizers extends OptimizerComparison {
   /**
    * The constant stochastic_gradient_descent.
    */
-  public static OptimizationStrategy stochastic_gradient_descent = (log, trainingSubject, validationSubject, monitor) -> {
+  public static @NotNull OptimizationStrategy stochastic_gradient_descent = (log, trainingSubject, validationSubject, monitor) -> {
     log.p("Optimized via the Stochastic Gradient Descent method with momentum and adaptve learning rate:");
     return log.code(() -> {
       final double carryOver = 0.5;
-      final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
+      final @NotNull ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMaxEpochIterations(100)
         .setMonitor(monitor);
       trainer.getRegimen().get(0)
@@ -132,23 +133,23 @@ public class TextbookOptimizers extends OptimizerComparison {
   }
   
   @Override
-  public void compare(final NotebookOutput log, final Function<OptimizationStrategy, List<StepRecord>> test) {
+  public void compare(final @NotNull NotebookOutput log, final @NotNull Function<OptimizationStrategy, List<StepRecord>> test) {
     log.h1("Textbook Optimizer Comparison");
     log.h2("GD");
-    final ProblemRun gd = new ProblemRun("GD", test.apply(TextbookOptimizers.simple_gradient_descent),
-                                         Color.BLACK, ProblemRun.PlotType.Line);
+    final @NotNull ProblemRun gd = new ProblemRun("GD", test.apply(TextbookOptimizers.simple_gradient_descent),
+                                                  Color.BLACK, ProblemRun.PlotType.Line);
     log.h2("SGD");
-    final ProblemRun sgd = new ProblemRun("SGD", test.apply(TextbookOptimizers.stochastic_gradient_descent),
-                                          Color.GREEN, ProblemRun.PlotType.Line);
+    final @NotNull ProblemRun sgd = new ProblemRun("SGD", test.apply(TextbookOptimizers.stochastic_gradient_descent),
+                                                   Color.GREEN, ProblemRun.PlotType.Line);
     log.h2("CGD");
-    final ProblemRun cgd = new ProblemRun("CjGD", test.apply(TextbookOptimizers.conjugate_gradient_descent),
-                                          Color.BLUE, ProblemRun.PlotType.Line);
+    final @NotNull ProblemRun cgd = new ProblemRun("CjGD", test.apply(TextbookOptimizers.conjugate_gradient_descent),
+                                                   Color.BLUE, ProblemRun.PlotType.Line);
     log.h2("L-BFGS");
-    final ProblemRun lbfgs = new ProblemRun("L-BFGS", test.apply(TextbookOptimizers.limited_memory_bfgs),
-                                            Color.MAGENTA, ProblemRun.PlotType.Line);
+    final @NotNull ProblemRun lbfgs = new ProblemRun("L-BFGS", test.apply(TextbookOptimizers.limited_memory_bfgs),
+                                                     Color.MAGENTA, ProblemRun.PlotType.Line);
     log.h2("OWL-QN");
-    final ProblemRun owlqn = new ProblemRun("OWL-QN", test.apply(TextbookOptimizers.orthantwise_quasi_newton),
-                                            Color.ORANGE, ProblemRun.PlotType.Line);
+    final @NotNull ProblemRun owlqn = new ProblemRun("OWL-QN", test.apply(TextbookOptimizers.orthantwise_quasi_newton),
+                                                     Color.ORANGE, ProblemRun.PlotType.Line);
     log.h2("Comparison");
     log.code(() -> {
       return TestUtil.compare("Convergence Plot", gd, sgd, cgd, lbfgs, owlqn);

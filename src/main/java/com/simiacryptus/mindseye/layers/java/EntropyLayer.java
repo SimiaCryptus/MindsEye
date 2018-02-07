@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -78,7 +79,7 @@ public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
 }

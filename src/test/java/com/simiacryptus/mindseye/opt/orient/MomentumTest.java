@@ -29,6 +29,7 @@ import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
 
@@ -38,10 +39,10 @@ import java.util.concurrent.TimeUnit;
 public class MomentumTest extends MnistTestBase {
   
   @Override
-  public void train(final NotebookOutput log, final NNLayer network, final Tensor[][] trainingData, final TrainingMonitor monitor) {
+  public void train(final @NotNull NotebookOutput log, final @NotNull NNLayer network, final @NotNull Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.code(() -> {
-      final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-      final Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 1000);
+      final @NotNull SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
+      final @NotNull Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 1000);
       return new IterativeTrainer(trainable)
         .setMonitor(monitor)
         .setOrientation(new ValidatingOrientationWrapper(new MomentumStrategy(new GradientDescent()).setCarryOver(0.8)))
@@ -52,7 +53,7 @@ public class MomentumTest extends MnistTestBase {
   }
   
   @Override
-  protected Class<?> getTargetClass() {
+  protected @NotNull Class<?> getTargetClass() {
     return MomentumStrategy.class;
   }
 }

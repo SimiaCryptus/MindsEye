@@ -30,6 +30,8 @@ import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -50,7 +52,7 @@ public abstract class NLayerTest {
   /**
    * The Dim list.
    */
-  final List<int[]> dimList;
+  final @NotNull List<int[]> dimList;
   
   
   /**
@@ -77,9 +79,9 @@ public abstract class NLayerTest {
    * @param dimList the dim list
    * @return the nn layer
    */
-  public NNLayer buildNetwork(final int[]... dimList) {
-    final PipelineNetwork network = new PipelineNetwork(1);
-    int[] last = null;
+  public @NotNull NNLayer buildNetwork(final @NotNull int[]... dimList) {
+    final @NotNull PipelineNetwork network = new PipelineNetwork(1);
+    @Nullable int[] last = null;
     for (final int[] dims : dimList) {
       if (null != last) {
         addLayer(network, last, dims);
@@ -96,7 +98,7 @@ public abstract class NLayerTest {
    * @param b the b
    * @return the int [ ] [ ]
    */
-  public int[][] concat(final int[] a, final List<int[]> b) {
+  public int[][] concat(final int[] a, final @NotNull List<int[]> b) {
     return Stream.concat(Stream.of(a), b.stream()).toArray(i -> new int[i][]);
   }
   
@@ -113,7 +115,7 @@ public abstract class NLayerTest {
    * @param log   the log
    * @param layer the layer
    */
-  public void graphviz(final NotebookOutput log, final NNLayer layer) {
+  public void graphviz(final @NotNull NotebookOutput log, final NNLayer layer) {
     if (layer instanceof DAGNetwork) {
       log.p("This is a network with the following layout:");
       log.code(() -> {
@@ -138,7 +140,7 @@ public abstract class NLayerTest {
    * @param inputDims the input dims
    * @return the tensor [ ]
    */
-  public Tensor[] randomize(final int[][] inputDims) {
+  public Tensor[] randomize(final @NotNull int[][] inputDims) {
     return Arrays.stream(inputDims).map(dim -> new Tensor(dim).set(this::random)).toArray(i -> new Tensor[i]);
   }
   
@@ -149,7 +151,7 @@ public abstract class NLayerTest {
    */
   @Test
   public void test() throws Throwable {
-    try (NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
+    try (@NotNull NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
       test(log);
     }
   }
@@ -159,14 +161,14 @@ public abstract class NLayerTest {
    *
    * @param log the log
    */
-  public void test(final NotebookOutput log) {
+  public void test(final @NotNull NotebookOutput log) {
   
     log.h1("%s", getClass().getSimpleName());
     final int[] inputDims = getInputDims();
-    final ArrayList<int[]> workingSpec = new ArrayList<>();
+    final @NotNull ArrayList<int[]> workingSpec = new ArrayList<>();
     for (final int[] l : dimList) {
       workingSpec.add(l);
-      final NNLayer layer = buildNetwork(concat(inputDims, workingSpec));
+      final @NotNull NNLayer layer = buildNetwork(concat(inputDims, workingSpec));
       graphviz(log, layer);
       test(log, layer, inputDims);
     }
@@ -180,7 +182,7 @@ public abstract class NLayerTest {
    * @param inputDims the input dims
    * @return the double
    */
-  public TrainingTester.ComponentResult test(final NotebookOutput log, final NNLayer layer, final int[]... inputDims) {
+  public @Nullable TrainingTester.ComponentResult test(final @NotNull NotebookOutput log, final @NotNull NNLayer layer, final @NotNull int[]... inputDims) {
     final NNLayer component = layer.copy();
     final Tensor[] randomize = randomize(inputDims);
     new SerializationTest().test(log, component, randomize);

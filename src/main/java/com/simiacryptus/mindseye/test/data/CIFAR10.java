@@ -28,6 +28,8 @@ import com.simiacryptus.util.test.LabeledObject;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.io.input.BoundedInputStream;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
@@ -47,19 +49,19 @@ import java.util.zip.GZIPInputStream;
  */
 public class CIFAR10 {
   
-  private static final DataLoader<LabeledObject<Tensor>> training = new DataLoader<LabeledObject<Tensor>>() {
+  private static final @Nullable DataLoader<LabeledObject<Tensor>> training = new DataLoader<LabeledObject<Tensor>>() {
     @Override
-    protected void read(final List<LabeledObject<Tensor>> queue) {
+    protected void read(final @NotNull List<LabeledObject<Tensor>> queue) {
       try {
-        InputStream stream = null;
+        @Nullable InputStream stream = null;
         try {
           stream = Util.cacheStream(TestUtil.S3_ROOT.resolve("cifar-10-binary.tar.gz"));
-        } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
+        } catch (@NotNull NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
           throw new RuntimeException(e);
         }
         final int recordSize = 3073;
-        final GZIPInputStream inflatedInput = new GZIPInputStream(stream);
-        final TarArchiveInputStream tar = new TarArchiveInputStream(inflatedInput);
+        final @NotNull GZIPInputStream inflatedInput = new GZIPInputStream(stream);
+        final @Nullable TarArchiveInputStream tar = new TarArchiveInputStream(inflatedInput);
         while (0 < inflatedInput.available()) {
           if (Thread.interrupted()) {
             break;
@@ -68,13 +70,13 @@ public class CIFAR10 {
           if (null == nextTarEntry) {
             break;
           }
-          final BinaryChunkIterator iterator = new BinaryChunkIterator(new DataInputStream(new BoundedInputStream(tar, nextTarEntry.getSize())), recordSize);
+          final @NotNull BinaryChunkIterator iterator = new BinaryChunkIterator(new DataInputStream(new BoundedInputStream(tar, nextTarEntry.getSize())), recordSize);
           for (final byte[] chunk : (Iterable<byte[]>) () -> iterator) {
             queue.add(CIFAR10.toImage(chunk).map(img -> Tensor.fromRGB(img)));
           }
         }
         System.err.println("Done loading");
-      } catch (final IOException e) {
+      } catch (final @NotNull IOException e) {
         e.printStackTrace();
         throw new RuntimeException(e);
       }
@@ -89,7 +91,7 @@ public class CIFAR10 {
   }
   
   private static LabeledObject<BufferedImage> toImage(final byte[] b) {
-    final BufferedImage img = new BufferedImage(32, 32, BufferedImage.TYPE_INT_RGB);
+    final @NotNull BufferedImage img = new BufferedImage(32, 32, BufferedImage.TYPE_INT_RGB);
     for (int x = 0; x < img.getWidth(); x++) {
       for (int y = 0; y < img.getHeight(); y++) {
         final int red = 0xFF & b[1 + 1024 * 0 + x + y * 32];

@@ -25,6 +25,8 @@ import com.simiacryptus.util.io.DataLoader;
 import com.simiacryptus.util.lang.SupplierWeakCache;
 import com.simiacryptus.util.test.LabeledObject;
 import org.apache.commons.io.IOUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -46,19 +48,19 @@ import java.util.zip.ZipInputStream;
  */
 public class Caltech101 {
   
-  private static final DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>> training = new DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>>() {
+  private static final @Nullable DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>> training = new DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>>() {
     @Override
-    protected void read(final List<LabeledObject<SupplierWeakCache<BufferedImage>>> queue) {
+    protected void read(final @NotNull List<LabeledObject<SupplierWeakCache<BufferedImage>>> queue) {
       try {
-        InputStream stream = null;
+        @Nullable InputStream stream = null;
         try {
           // Repackaging as a zip is needed - the tar format classes dont work here
           stream = Util.cacheStream(TestUtil.S3_ROOT.resolve("101_ObjectCategories.zip"));
-        } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
+        } catch (@NotNull NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
           throw new RuntimeException(e);
         }
         final boolean continueLoop = true;
-        final ZipInputStream tar = new ZipInputStream(stream);
+        final @Nullable ZipInputStream tar = new ZipInputStream(stream);
         while (continueLoop) {
           if (Thread.interrupted()) {
             break;
@@ -80,12 +82,12 @@ public class Caltech101 {
           queue.add(new LabeledObject<>(new SupplierWeakCache<>(() -> {
             try {
               return ImageIO.read(new ByteArrayInputStream(data));
-            } catch (final IOException e) {
+            } catch (final @NotNull IOException e) {
               throw new RuntimeException(e);
             }
           }), category));
         }
-      } catch (final IOException e) {
+      } catch (final @NotNull IOException e) {
         e.printStackTrace();
         throw new RuntimeException(e);
       }

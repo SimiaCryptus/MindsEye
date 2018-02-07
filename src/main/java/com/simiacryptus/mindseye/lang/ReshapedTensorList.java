@@ -19,15 +19,18 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Arrays;
 import java.util.stream.Stream;
 
 /**
- * A wrapper TensorList data to override the existing tensor layer.
- * Can be used for example to flatten or unflatten a tensor to/from a rank-1 array.
+ * A wrapper TensorList data to override the existing tensor layer. Can be used for example to flatten or unflatten a
+ * tensor to/from a rank-1 array.
  */
 public class ReshapedTensorList extends ReferenceCountingBase implements TensorList {
-  private final TensorList data;
+  private final @NotNull TensorList data;
   private final int[] dims;
   
   /**
@@ -36,7 +39,7 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
    * @param data  the data
    * @param toDim the to dim
    */
-  public ReshapedTensorList(TensorList data, int[] toDim) {
+  public ReshapedTensorList(@NotNull TensorList data, int[] toDim) {
     if (Tensor.dim(data.getDimensions()) != Tensor.dim(toDim))
       throw new IllegalArgumentException(Arrays.toString(data.getDimensions()) + " != " + Arrays.toString(toDim));
     this.data = data;
@@ -45,12 +48,12 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
   }
   
   @Override
-  public Tensor get(int i) {
+  public @Nullable Tensor get(int i) {
     return data.get(i).reshapeCast(dims);
   }
   
   @Override
-  public int[] getDimensions() {
+  public @NotNull int[] getDimensions() {
     return Arrays.copyOf(dims, dims.length);
   }
   

@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The basic supervised network archetype. The network has two inputs; the input and the examplar output. A given
@@ -45,7 +46,7 @@ public class SimpleLossNetwork extends SupervisedNetwork {
    * @param student the student
    * @param loss    the loss
    */
-  public SimpleLossNetwork(final NNLayer student, final NNLayer loss) {
+  public SimpleLossNetwork(final @NotNull NNLayer student, final @NotNull NNLayer loss) {
     super(2);
     studentNode = add(student, getInput(0));
     lossNode = add(loss, studentNode, getInput(1));

@@ -19,6 +19,8 @@
 
 package com.simiacryptus.util.lang;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,7 +34,7 @@ import java.util.function.Function;
  */
 public class StaticResourcePool<T> {
   
-  private final List<T> all;
+  private final @NotNull List<T> all;
   private final java.util.concurrent.LinkedBlockingQueue<T> pool = new java.util.concurrent.LinkedBlockingQueue<>();
   
   /**
@@ -40,7 +42,7 @@ public class StaticResourcePool<T> {
    *
    * @param items the items
    */
-  public StaticResourcePool(final List<T> items) {
+  public StaticResourcePool(final @NotNull List<T> items) {
     super();
     this.all = Collections.unmodifiableList(new ArrayList<>(items));
     pool.addAll(getAll());
@@ -51,12 +53,12 @@ public class StaticResourcePool<T> {
    *
    * @param f the f
    */
-  public void apply(final Consumer<T> f) {
+  public void apply(final @NotNull Consumer<T> f) {
     T poll = this.pool.poll();
     if (null == poll) {
       try {
         poll = this.pool.take();
-      } catch (final InterruptedException e) {
+      } catch (final @NotNull InterruptedException e) {
         throw new RuntimeException(e);
       }
     }
@@ -85,7 +87,7 @@ public class StaticResourcePool<T> {
    *
    * @return the all
    */
-  public List<T> getAll() {
+  public @NotNull List<T> getAll() {
     return all;
   }
   
@@ -96,13 +98,13 @@ public class StaticResourcePool<T> {
    * @param f   the f
    * @return the u
    */
-  public <U> U run(final Function<T, U> f) {
+  public <U> U run(final @NotNull Function<T, U> f) {
     if (all.isEmpty()) throw new IllegalStateException();
     T poll = this.pool.poll();
     if (null == poll) {
       try {
         poll = this.pool.take();
-      } catch (final InterruptedException e) {
+      } catch (final @NotNull InterruptedException e) {
         throw new RuntimeException(e);
       }
     }

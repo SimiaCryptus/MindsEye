@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.util.ArrayUtil;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This highly-constrained region allows ONLY changes to the mean/stddev of the weight vector components. Experimental;
@@ -44,7 +45,7 @@ public class MeanVarianceGradient implements TrustRegion {
    * @param max the max
    * @return the max
    */
-  public MeanVarianceGradient setMax(final double max) {
+  public @NotNull MeanVarianceGradient setMax(final double max) {
     this.max = max;
     return this;
   }
@@ -55,12 +56,12 @@ public class MeanVarianceGradient implements TrustRegion {
    * @param weights the weights
    * @return the double
    */
-  public double length(final double[] weights) {
+  public double length(final @NotNull double[] weights) {
     return ArrayUtil.magnitude(weights);
   }
   
   @Override
-  public double[] project(final double[] weights, final double[] point) {
+  public @NotNull double[] project(final @NotNull double[] weights, final @NotNull double[] point) {
     final double meanWeight = ArrayUtil.mean(weights);
     final double meanPoint = ArrayUtil.mean(point);
     final double varWeights = ArrayUtil.mean(ArrayUtil.op(weights, x -> Math.abs(x - meanWeight)));

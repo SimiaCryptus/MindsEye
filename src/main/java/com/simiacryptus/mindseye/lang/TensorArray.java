@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Arrays;
 import java.util.stream.Stream;
 
@@ -26,16 +28,16 @@ import java.util.stream.Stream;
  * An on-heap implementation of the TensorList data container.
  */
 public class TensorArray extends ReferenceCountingBase implements TensorList {
-  private final Tensor[] data;
+  private final @NotNull Tensor[] data;
   
   /**
    * Instantiates a new Tensor array.
    *
    * @param data the data
    */
-  private TensorArray(final Tensor... data) {
+  private TensorArray(final @NotNull Tensor... data) {
     this.data = data;
-    for (Tensor tensor : data) {
+    for (@NotNull Tensor tensor : data) {
       tensor.addRef();
     }
   }
@@ -56,9 +58,9 @@ public class TensorArray extends ReferenceCountingBase implements TensorList {
    * @param data the data
    * @return the tensor array
    */
-  public static TensorArray wrap(final Tensor... data) {
-    TensorArray tensorArray = TensorArray.create(data);
-    for (Tensor tensor : data) {
+  public static @NotNull TensorArray wrap(final @NotNull Tensor... data) {
+    @NotNull TensorArray tensorArray = TensorArray.create(data);
+    for (@NotNull Tensor tensor : data) {
       tensor.freeRef();
     }
     return tensorArray;
@@ -72,7 +74,7 @@ public class TensorArray extends ReferenceCountingBase implements TensorList {
    * @param data  the data
    * @return the string
    */
-  public static <T> String toString(int limit, T... data) {
+  public static <T> String toString(int limit, @NotNull T... data) {
     return (data.length < limit) ? Arrays.toString(data) : "[" + Arrays.stream(data).limit(limit).map(x -> x.toString()).reduce((a, b) -> a + ", " + b).get() + ", ...]";
   }
   
@@ -84,7 +86,7 @@ public class TensorArray extends ReferenceCountingBase implements TensorList {
   }
   
   @Override
-  public int[] getDimensions() {
+  public @NotNull int[] getDimensions() {
     return data[0].getDimensions();
   }
   
@@ -94,7 +96,7 @@ public class TensorArray extends ReferenceCountingBase implements TensorList {
   }
   
   @Override
-  public Stream<Tensor> stream() {
+  public @NotNull Stream<Tensor> stream() {
     return Arrays.stream(data);
   }
   
@@ -106,12 +108,12 @@ public class TensorArray extends ReferenceCountingBase implements TensorList {
   @Override
   protected void _free() {
     try {
-      for (final Tensor d : data) {
+      for (final @NotNull Tensor d : data) {
         d.freeRef();
       }
-    } catch (final RuntimeException e) {
+    } catch (final @NotNull RuntimeException e) {
       throw e;
-    } catch (final Throwable e) {
+    } catch (final @NotNull Throwable e) {
       throw new RuntimeException(e);
     }
   }

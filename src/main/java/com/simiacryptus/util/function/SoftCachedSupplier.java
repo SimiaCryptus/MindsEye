@@ -19,6 +19,8 @@
 
 package com.simiacryptus.util.function;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.ref.SoftReference;
 import java.util.function.Supplier;
 
@@ -30,7 +32,7 @@ import java.util.function.Supplier;
 public class SoftCachedSupplier<T> implements Supplier<T> {
   
   private final Supplier<T> fn;
-  private volatile SoftReference<T> cached;
+  private volatile @Nullable SoftReference<T> cached;
   
   /**
    * Instantiates a new Soft cached supplier.
@@ -42,8 +44,8 @@ public class SoftCachedSupplier<T> implements Supplier<T> {
   }
   
   @Override
-  public T get() {
-    T obj = null == cached ? null : cached.get();
+  public @Nullable T get() {
+    @Nullable T obj = null == cached ? null : cached.get();
     if (null == obj) {
       synchronized (this) {
         obj = null == cached ? null : cached.get();

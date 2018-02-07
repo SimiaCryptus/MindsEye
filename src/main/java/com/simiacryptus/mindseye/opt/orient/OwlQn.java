@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -75,7 +76,7 @@ public class OwlQn extends OrientationStrategyBase<LineSearchCursor> {
    * @param factor_L1 the factor l 1
    * @return the factor l 1
    */
-  public OwlQn setFactor_L1(final double factor_L1) {
+  public @NotNull OwlQn setFactor_L1(final double factor_L1) {
     this.factor_L1 = factor_L1;
     return this;
   }
@@ -86,7 +87,7 @@ public class OwlQn extends OrientationStrategyBase<LineSearchCursor> {
    * @param layers the layers
    * @return the layers
    */
-  public Collection<NNLayer> getLayers(final Collection<NNLayer> layers) {
+  public Collection<NNLayer> getLayers(final @NotNull Collection<NNLayer> layers) {
     return layers.stream()
                  .filter(layer -> {
                    return layer instanceof FullyConnectedLayer;
@@ -109,17 +110,17 @@ public class OwlQn extends OrientationStrategyBase<LineSearchCursor> {
    * @param zeroTol the zero tol
    * @return the zero tol
    */
-  public OwlQn setZeroTol(final double zeroTol) {
+  public @NotNull OwlQn setZeroTol(final double zeroTol) {
     this.zeroTol = zeroTol;
     return this;
   }
   
   @Override
-  public LineSearchCursor orient(final Trainable subject, final PointSample measurement, final TrainingMonitor monitor) {
-    final SimpleLineSearchCursor gradient = (SimpleLineSearchCursor) inner.orient(subject, measurement, monitor);
+  public @NotNull LineSearchCursor orient(final Trainable subject, final @NotNull PointSample measurement, final TrainingMonitor monitor) {
+    final @NotNull SimpleLineSearchCursor gradient = (SimpleLineSearchCursor) inner.orient(subject, measurement, monitor);
     final DeltaSet<NNLayer> searchDirection = gradient.direction.copy();
-    final DeltaSet<NNLayer> orthant = new DeltaSet<NNLayer>();
-    for (final NNLayer layer : getLayers(gradient.direction.getMap().keySet())) {
+    final @NotNull DeltaSet<NNLayer> orthant = new DeltaSet<NNLayer>();
+    for (final @NotNull NNLayer layer : getLayers(gradient.direction.getMap().keySet())) {
       final double[] weights = gradient.direction.getMap().get(layer).target;
       final double[] delta = gradient.direction.getMap().get(layer).getDelta();
       final double[] searchDir = searchDirection.get(layer, weights).getDelta();
@@ -137,7 +138,7 @@ public class OwlQn extends OrientationStrategyBase<LineSearchCursor> {
     }
     return new SimpleLineSearchCursor(subject, measurement, searchDirection) {
       @Override
-      public LineSearchPoint step(final double alpha, final TrainingMonitor monitor) {
+      public @NotNull LineSearchPoint step(final double alpha, final TrainingMonitor monitor) {
         origin.weights.stream().forEach(d -> d.restore());
         final DeltaSet<NNLayer> currentDirection = direction.copy();
         direction.getMap().forEach((layer, buffer) -> {

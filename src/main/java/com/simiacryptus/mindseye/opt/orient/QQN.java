@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursorBase;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Quadratic Quasi-Newton optimization
@@ -60,7 +61,7 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
    * @param maxHistory the max history
    * @return the max history
    */
-  public QQN setMaxHistory(final int maxHistory) {
+  public @NotNull QQN setMaxHistory(final int maxHistory) {
     inner.setMaxHistory(maxHistory);
     return this;
   }
@@ -80,13 +81,13 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
    * @param minHistory the min history
    * @return the min history
    */
-  public QQN setMinHistory(final int minHistory) {
+  public @NotNull QQN setMinHistory(final int minHistory) {
     inner.setMinHistory(minHistory);
     return this;
   }
   
   @Override
-  public LineSearchCursor orient(final Trainable subject, final PointSample origin, final TrainingMonitor monitor) {
+  public LineSearchCursor orient(final @NotNull Trainable subject, final @NotNull PointSample origin, final @NotNull TrainingMonitor monitor) {
     inner.addToHistory(origin, monitor);
     final SimpleLineSearchCursor lbfgsCursor = inner.orient(subject, origin, monitor);
     final DeltaSet<NNLayer> lbfgs = lbfgsCursor.direction;
@@ -100,7 +101,7 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
       return new LineSearchCursorBase() {
   
         @Override
-        public String getDirectionType() {
+        public @NotNull String getDirectionType() {
           return CURSOR_NAME;
         }
   
@@ -116,7 +117,7 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
         }
   
         @Override
-        public LineSearchPoint step(final double t, final TrainingMonitor monitor) {
+        public @NotNull LineSearchPoint step(final double t, final TrainingMonitor monitor) {
           if (!Double.isFinite(t)) throw new IllegalArgumentException();
           reset();
           position(t).accumulate(1);

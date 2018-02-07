@@ -19,6 +19,9 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Arrays;
 import java.util.function.DoubleUnaryOperator;
 
@@ -32,7 +35,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
   /**
    * The Delta compensation.
    */
-  protected double[] deltaCompensation;
+  protected @Nullable double[] deltaCompensation;
   
   /**
    * Instantiates a new Delta.
@@ -40,7 +43,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param layer  the layer
    * @param target the target
    */
-  public Delta(final K layer, final double[] target) {
+  public Delta(final K layer, final @Nullable double[] target) {
     this(layer, target, null == target ? null : RecycleBin.DOUBLES.obtain(target.length));
   }
   
@@ -51,7 +54,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param target the target
    * @param delta  the delta
    */
-  public Delta(final K layer, final double[] target, final double[] delta) {
+  public Delta(final K layer, final double[] target, final @NotNull double[] delta) {
     this(layer, target, delta, RecycleBin.DOUBLES.obtain(delta.length));
   }
   
@@ -63,7 +66,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param delta             the doubles
    * @param deltaCompensation the delta compensation
    */
-  protected Delta(final K layer, final double[] target, final double[] delta, final double[] deltaCompensation) {
+  protected Delta(final K layer, final @Nullable double[] target, final @Nullable double[] delta, final double[] deltaCompensation) {
     super(layer, target, delta);
     if (null == target) throw new IllegalArgumentException();
     assert null == delta || target.length == delta.length;
@@ -78,7 +81,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param delta            the delta
    * @param dataCompensation the data compensation
    */
-  public static void accumulate(final double[] data, final double[] delta, final double[] dataCompensation) {
+  public static void accumulate(final @NotNull double[] data, final double[] delta, final @Nullable double[] dataCompensation) {
     synchronized (data) {
       for (int i = 0; i < data.length; i++) {
         final double sum = data[i];
@@ -128,7 +131,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param buffer the buffer
    * @return the delta
    */
-  public Delta<K> addInPlace(final Delta<K> buffer) {
+  public @NotNull Delta<K> addInPlace(final @NotNull Delta<K> buffer) {
     assertAlive();
     return addInPlace(buffer.delta).addInPlace(buffer.deltaCompensation);
   }
@@ -139,7 +142,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param data the data
    * @return the delta
    */
-  public Delta<K> addInPlace(final double[] data) {
+  public @NotNull Delta<K> addInPlace(final @NotNull double[] data) {
     assert data.length == this.target.length;
     //assert Arrays.stream(data).allMatch(Double::isFinite);
     Delta.accumulate(getDelta(), data, deltaCompensation);
@@ -149,7 +152,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
   
   
   @Override
-  public Delta<K> copy() {
+  public @NotNull Delta<K> copy() {
     assertAlive();
     return new Delta<K>(layer, target, RecycleBin.DOUBLES.copyOf(delta, length()), RecycleBin.DOUBLES.copyOf(deltaCompensation, length()));
   }
@@ -166,7 +169,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
   }
   
   @Override
-  public Delta<K> map(final DoubleUnaryOperator mapper) {
+  public @NotNull Delta<K> map(final @NotNull DoubleUnaryOperator mapper) {
     return new Delta<K>(layer, target, Arrays.stream(getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
   }
   
@@ -176,12 +179,12 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param f the f
    * @return the delta
    */
-  public Delta<K> scale(final double f) {
+  public @NotNull Delta<K> scale(final double f) {
     return map(x -> x * f);
   }
   
   @Override
-  public Delta<K> set(final double[] data) {
+  public @NotNull Delta<K> set(final double[] data) {
     super.set(data);
     return this;
   }

@@ -25,6 +25,8 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,20 +67,20 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
    * @param inputPrototype the input prototype
    * @return the tolerance statistics
    */
-  public ToleranceStatistics test(final NNLayer subject, final Tensor[] inputPrototype) {
+  public ToleranceStatistics test(final @Nullable NNLayer subject, final @NotNull Tensor[] inputPrototype) {
     if (null == reference || null == subject) return new ToleranceStatistics();
     reference.assertAlive();
     ToleranceStatistics result1;
     final Tensor subjectOutput = SimpleEval.run(subject, inputPrototype).getOutputAndFree();
     final Tensor referenceOutput = SimpleEval.run(reference, inputPrototype).getOutputAndFree();
-    final Tensor error = subjectOutput.minus(referenceOutput);
-    final ToleranceStatistics result = IntStream.range(0, subjectOutput.dim()).mapToObj(i1 -> {
+    final @NotNull Tensor error = subjectOutput.minus(referenceOutput);
+    final @NotNull ToleranceStatistics result = IntStream.range(0, subjectOutput.dim()).mapToObj(i1 -> {
       return new ToleranceStatistics().accumulate(subjectOutput.getData()[i1], referenceOutput.getData()[i1]);
     }).reduce((a, b) -> a.combine(b)).get();
     try {
       if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
       result1 = result;
-    } catch (final Throwable e) {
+    } catch (final @NotNull Throwable e) {
       log.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b)));
       log.info(String.format("Subject Output: %s", subjectOutput.prettyPrint()));
       log.info(String.format("Reference Output: %s", referenceOutput.prettyPrint()));
@@ -107,7 +109,7 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
    * @return the tolerance statistics
    */
   @Override
-  public ToleranceStatistics test(final NotebookOutput output, final NNLayer subject, final Tensor... inputPrototype) {
+  public ToleranceStatistics test(final @NotNull NotebookOutput output, final NNLayer subject, final @NotNull Tensor... inputPrototype) {
     output.h1("Reference Implementation");
     output.p("This layer is an alternate implementation which is expected to behave the same as the following layer:");
     output.code(() -> {
@@ -120,7 +122,7 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
   }
   
   @Override
-  public String toString() {
+  public @NotNull String toString() {
     return "EquivalencyTester{" +
       "reference=" + reference +
       ", tolerance=" + tolerance +

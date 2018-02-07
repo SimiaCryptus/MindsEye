@@ -22,10 +22,10 @@ package com.simiacryptus.mindseye.models;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.io.NullNotebookOutput;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * A network factory designed to be called within a report,
- * with extra details being logged to the report output.
+ * A network factory designed to be called within a report, with extra details being logged to the report output.
  */
 public interface DemoableNetworkFactory {
   
@@ -35,13 +35,13 @@ public interface DemoableNetworkFactory {
    * @param output the output
    * @return the pipeline network
    */
-  NNLayer build(NotebookOutput output);
+  @NotNull NNLayer build(NotebookOutput output);
   
   /**
    * Build pipeline network.
    *
    * @return the pipeline network
    */
-  default NNLayer build() {return build(new NullNotebookOutput());}
+  default @NotNull NNLayer build() {return build(new NullNotebookOutput());}
   
 }

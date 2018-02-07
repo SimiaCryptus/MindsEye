@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -55,8 +56,8 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
    * @param rs   the rs
    * @return the max const layer
    */
-  public static MaxConstLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
-    final MaxConstLayer obj = new MaxConstLayer(json);
+  public static @NotNull MaxConstLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
+    final @NotNull MaxConstLayer obj = new MaxConstLayer(json);
     obj.value = json.get("value").getAsDouble();
     return obj;
   }
@@ -71,8 +72,8 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final JsonObject json = super.getJsonStub();
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    final @NotNull JsonObject json = super.getJsonStub();
     json.addProperty("value", value);
     return json;
   }
@@ -92,7 +93,7 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
    * @param value the value
    * @return the value
    */
-  public MaxConstLayer setValue(final double value) {
+  public @NotNull MaxConstLayer setValue(final double value) {
     this.value = value;
     return this;
   }

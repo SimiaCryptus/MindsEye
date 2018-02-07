@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.network;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Singleton;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -65,12 +67,12 @@ abstract class LazyResult extends ReferenceCountingBase implements DAGNode {
   protected abstract NNResult eval(GraphEvaluationContext t);
   
   @Override
-  public CountingNNResult get(final GraphEvaluationContext context) {
+  public @Nullable CountingNNResult get(final @NotNull GraphEvaluationContext context) {
     context.assertAlive();
     assertAlive();
     long expectedCount = context.expectedCounts.getOrDefault(id, -1L);
     if (!context.calculated.containsKey(id)) {
-      Singleton singleton = null;
+      @Nullable Singleton singleton = null;
       synchronized (context) {
         if (!context.calculated.containsKey(id)) {
           singleton = new Singleton();
@@ -86,7 +88,7 @@ abstract class LazyResult extends ReferenceCountingBase implements DAGNode {
     }
     Supplier<CountingNNResult> resultSupplier = context.calculated.get(id);
     if (null == resultSupplier) throw new IllegalStateException();
-    CountingNNResult nnResult = null == resultSupplier ? null : resultSupplier.get();
+    @Nullable CountingNNResult nnResult = null == resultSupplier ? null : resultSupplier.get();
     if (null == nnResult) throw new IllegalStateException();
     int references = nnResult.getAccumulator().increment();
     if (references <= 0) throw new IllegalStateException();

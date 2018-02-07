@@ -31,6 +31,8 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,12 +51,12 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
   /**
    * The Input dims.
    */
-  public final int[] inputDims;
+  public final @Nullable int[] inputDims;
   /**
    * The Output dims.
    */
-  public final int[] outputDims;
-  private final Tensor weights;
+  public final @Nullable int[] outputDims;
+  private final @Nullable Tensor weights;
   
   private Precision precision = Precision.Double;
   private int batchBands;
@@ -74,7 +76,7 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
    * @param inputDims  the input dims
    * @param outputDims the output dims
    */
-  public FullyConnectedLayer(final int[] inputDims, final int[] outputDims) {
+  public FullyConnectedLayer(final @NotNull int[] inputDims, final @NotNull int[] outputDims) {
     final int inputs = Tensor.dim(inputDims);
     this.inputDims = Arrays.copyOf(inputDims, inputDims.length);
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
@@ -94,11 +96,11 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
    * @param json the json
    * @param rs   the rs
    */
-  protected FullyConnectedLayer(final JsonObject json, Map<String, byte[]> rs) {
+  protected FullyConnectedLayer(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     super(json);
     outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
     inputDims = JsonUtil.getIntArray(json.getAsJsonArray("inputDims"));
-    final Tensor data = Tensor.fromJson(json.get("weights"), rs);
+    final @Nullable Tensor data = Tensor.fromJson(json.get("weights"), rs);
     weights = data;
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
   }
@@ -110,7 +112,7 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static FullyConnectedLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static FullyConnectedLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new FullyConnectedLayer(json, rs);
   }
   
@@ -120,7 +122,7 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
    * @param data the data
    * @return the weights
    */
-  public FullyConnectedLayer set(final double[] data) {
+  public @NotNull FullyConnectedLayer set(final double[] data) {
     weights.set(data);
     return this;
   }
@@ -131,7 +133,7 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
    * @param data the data
    * @return the fully connected layer
    */
-  public FullyConnectedLayer set(final Tensor data) {
+  public @NotNull FullyConnectedLayer set(final @NotNull Tensor data) {
     weights.set(data);
     return this;
   }
@@ -142,7 +144,7 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
    * @param value the value
    * @return the weights log
    */
-  public FullyConnectedLayer setWeightsLog(final double value) {
+  public @NotNull FullyConnectedLayer setWeightsLog(final double value) {
     getWeights().setByCoord(c -> (FastRandom.random() - 0.5) * Math.pow(10, value));
     return this;
   }
@@ -152,7 +154,7 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
    *
    * @return the compatibility layer
    */
-  public NNLayer getCompatibilityLayer() {
+  public @NotNull NNLayer getCompatibilityLayer() {
     return new com.simiacryptus.mindseye.layers.java.FullyConnectedReferenceLayer(inputDims, outputDims).set(getWeights());
   }
   
@@ -167,10 +169,10 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
    *
    * @return the pipeline network
    */
-  public PipelineNetwork explode() {
+  public @NotNull PipelineNetwork explode() {
     int inputVol = Tensor.dim(inputDims);
     int outVol = Tensor.dim(outputDims);
-    PipelineNetwork network = new PipelineNetwork(1);
+    @NotNull PipelineNetwork network = new PipelineNetwork(1);
     network.add(new ReshapeLayer(1, 1, inputVol));
     ExplodedConvolutionGrid grid = new ConvolutionLayer(1, 1, inputVol, outVol)
       .set(this.weights.reshapeCast(1, 1, inputVol * outVol))
@@ -182,18 +184,18 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final JsonObject json = super.getJsonStub();
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, @NotNull DataSerializer dataSerializer) {
+    final @NotNull JsonObject json = super.getJsonStub();
     json.add("outputDims", JsonUtil.getJson(outputDims));
     json.add("inputDims", JsonUtil.getJson(inputDims));
-    Tensor tensor = getWeights();
+    @Nullable Tensor tensor = getWeights();
     json.add("weights", tensor.toJson(resources, dataSerializer));
     json.addProperty("precision", precision.name());
     return json;
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList(getWeights().getData());
   }
   
@@ -203,7 +205,7 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
   }
   
   @Override
-  public FullyConnectedLayer setPrecision(final Precision precision) {
+  public @NotNull FullyConnectedLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
@@ -213,7 +215,7 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
    *
    * @return the weights
    */
-  public Tensor getWeights() {
+  public @Nullable Tensor getWeights() {
     return weights;
   }
   
@@ -223,16 +225,27 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
    * @param f the f
    * @return the weights
    */
-  public FullyConnectedLayer setWeights(final DoubleSupplier f) {
+  public @NotNull FullyConnectedLayer setWeights(final @NotNull DoubleSupplier f) {
     Arrays.parallelSetAll(getWeights().getData(), i -> f.getAsDouble());
     return this;
   }
   
+  /**
+   * Gets batch bands.
+   *
+   * @return the batch bands
+   */
   public int getBatchBands() {
     return batchBands;
   }
   
-  public FullyConnectedLayer setBatchBands(int batchBands) {
+  /**
+   * Sets batch bands.
+   *
+   * @param batchBands the batch bands
+   * @return the batch bands
+   */
+  public @NotNull FullyConnectedLayer setBatchBands(int batchBands) {
     this.batchBands = batchBands;
     return this;
   }

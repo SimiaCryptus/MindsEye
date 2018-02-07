@@ -23,6 +23,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.Util;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -43,9 +45,9 @@ public class ConvolutionLayer extends NNLayer {
   /**
    * The Kernel.
    */
-  public final Tensor kernel;
-  private Integer paddingX = null;
-  private Integer paddingY = null;
+  public final @Nullable Tensor kernel;
+  private @Nullable Integer paddingX = null;
+  private @Nullable Integer paddingY = null;
   
   
   /**
@@ -111,7 +113,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param json      the json
    * @param resources the resources
    */
-  protected ConvolutionLayer(final JsonObject json, Map<String, byte[]> resources) {
+  protected ConvolutionLayer(final @NotNull JsonObject json, Map<String, byte[]> resources) {
     super(json);
     kernel = Tensor.fromJson(json.get("filter"), resources);
     JsonElement paddingX = json.get("paddingX");
@@ -126,11 +128,11 @@ public class ConvolutionLayer extends NNLayer {
    * @param kernel the kernel
    * @param simple the simple
    */
-  protected ConvolutionLayer(final Tensor kernel, final boolean simple) {
+  protected ConvolutionLayer(final @NotNull Tensor kernel, final boolean simple) {
     super();
     this.paddingX = simple ? null : 0;
     this.paddingY = simple ? null : 0;
-    int[] dimensions = kernel.getDimensions();
+    @NotNull int[] dimensions = kernel.getDimensions();
     if (dimensions.length != 3) throw new IllegalArgumentException(Arrays.toString(dimensions));
     if (dimensions[0] <= 0) throw new IllegalArgumentException(Arrays.toString(dimensions));
     if (dimensions[1] <= 0) throw new IllegalArgumentException(Arrays.toString(dimensions));
@@ -146,7 +148,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param rs   the rs
    * @return the convolution layer
    */
-  public static ConvolutionLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static ConvolutionLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new ConvolutionLayer(json, rs);
   }
   
@@ -156,42 +158,42 @@ public class ConvolutionLayer extends NNLayer {
    * @param f the f
    * @return the convolution layer
    */
-  public ConvolutionLayer addWeights(final DoubleSupplier f) {
+  public @NotNull ConvolutionLayer addWeights(final @NotNull DoubleSupplier f) {
     Util.add(f, kernel.getData());
     return this;
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public @NotNull NNResult eval(final @NotNull NNResult... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     batch.addRef();
-    final int[] inputDims = batch.get(0).getDimensions();
-    final int[] kernelDims = kernel.getDimensions();
-    final double[] kernelData = ConvolutionLayer.this.kernel.getData();
-    final ConvolutionController convolutionController = new ConvolutionController(inputDims, kernelDims, paddingX, paddingY);
+    final @NotNull int[] inputDims = batch.get(0).getDimensions();
+    final @NotNull int[] kernelDims = kernel.getDimensions();
+    final @Nullable double[] kernelData = ConvolutionLayer.this.kernel.getData();
+    final @NotNull ConvolutionController convolutionController = new ConvolutionController(inputDims, kernelDims, paddingX, paddingY);
     final Tensor[] output = IntStream.range(0, batch.length())
                                      .mapToObj(dataIndex -> new Tensor(convolutionController.getOutputDims()))
                                      .toArray(i -> new Tensor[i]);
     try {
       final double[][] inputBuffers = batch.stream().map(x -> {
-        double[] data = x.getData();
+        @Nullable double[] data = x.getData();
         x.setFloating(true);
         return data;
       }).toArray(i -> new double[i][]);
       final double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
       convolutionController.convolve(inputBuffers, kernelData, outputBuffers);
-    } catch (final Throwable e) {
+    } catch (final @NotNull Throwable e) {
       throw new RuntimeException("Error mapCoords image res " + Arrays.toString(inputDims), e);
     }
     int outputLength = output.length;
-    return new NNResult(TensorArray.wrap(output), (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
+    return new NNResult(TensorArray.wrap(output), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList error) -> {
       if (!isFrozen()) {
         final double[][] inputBuffers = batch.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
         final double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
-        final Tensor weightGradient = new Tensor(kernelDims);
+        final @NotNull Tensor weightGradient = new Tensor(kernelDims);
         convolutionController.gradient(inputBuffers, weightGradient.getData(), outputBuffers);
   
         buffer.get(ConvolutionLayer.this, kernelData).addInPlace(weightGradient.getData()).freeRef();
@@ -202,7 +204,7 @@ public class ConvolutionLayer extends NNLayer {
         final double[][] inputBuffers = Arrays.stream(inputBufferTensors).map(x -> x.getData()).toArray(i -> new double[i][]);
         final double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
         convolutionController.backprop(inputBuffers, kernelData, outputBuffers);
-        TensorArray tensorArray = TensorArray.wrap(inputBufferTensors);
+        @NotNull TensorArray tensorArray = TensorArray.wrap(inputBufferTensors);
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
@@ -223,8 +225,8 @@ public class ConvolutionLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final JsonObject json = super.getJsonStub();
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, @NotNull DataSerializer dataSerializer) {
+    final @NotNull JsonObject json = super.getJsonStub();
     json.add("filter", kernel.toJson(resources, dataSerializer));
     JsonElement paddingX = json.get("paddingX");
     if (null != paddingX && paddingX.isJsonPrimitive()) this.setPaddingX((paddingX.getAsInt()));
@@ -239,7 +241,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param f the f
    * @return the weights
    */
-  public ConvolutionLayer setWeights(final DoubleSupplier f) {
+  public @NotNull ConvolutionLayer setWeights(final @NotNull DoubleSupplier f) {
     kernel.coordStream(true).forEach(c -> {
       kernel.set(c, f.getAsDouble());
     });
@@ -252,7 +254,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param f the f
    * @return the weights
    */
-  public ConvolutionLayer setWeights(final ToDoubleFunction<Coordinate> f) {
+  public @NotNull ConvolutionLayer setWeights(final @NotNull ToDoubleFunction<Coordinate> f) {
     kernel.coordStream(true).forEach(c -> {
       kernel.set(c, f.applyAsDouble(c));
     });
@@ -260,7 +262,7 @@ public class ConvolutionLayer extends NNLayer {
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList(kernel.getData());
   }
   
@@ -269,7 +271,7 @@ public class ConvolutionLayer extends NNLayer {
    *
    * @return the padding x
    */
-  public Integer getPaddingX() {
+  public @Nullable Integer getPaddingX() {
     return paddingX;
   }
   
@@ -279,7 +281,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param paddingX the padding x
    * @return the padding x
    */
-  public ConvolutionLayer setPaddingX(Integer paddingX) {
+  public @NotNull ConvolutionLayer setPaddingX(Integer paddingX) {
     this.paddingX = paddingX;
     return this;
   }
@@ -289,7 +291,7 @@ public class ConvolutionLayer extends NNLayer {
    *
    * @return the padding y
    */
-  public Integer getPaddingY() {
+  public @Nullable Integer getPaddingY() {
     return paddingY;
   }
   
@@ -299,7 +301,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param paddingY the padding y
    * @return the padding y
    */
-  public ConvolutionLayer setPaddingY(Integer paddingY) {
+  public @NotNull ConvolutionLayer setPaddingY(Integer paddingY) {
     this.paddingY = paddingY;
     return this;
   }

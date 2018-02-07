@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Random;
 
 /**
@@ -33,7 +35,7 @@ public abstract class MaxDropoutNoiseLayerTest extends ActivationLayerTestBase {
   }
   
   @Override
-  public int[][] getSmallDims(Random random) {
+  public @NotNull int[][] getSmallDims(Random random) {
     return new int[][]{
       {8, 8, 1}
     };

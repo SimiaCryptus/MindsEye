@@ -19,13 +19,14 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Supplier;
 
 /**
- * An asynchronous, settable reference buffer.
- * Allows consumers to block until a value is availble.
+ * An asynchronous, settable reference buffer. Allows consumers to block until a value is availble.
  *
  * @param <T> the type parameter
  */
@@ -54,7 +55,7 @@ public class Singleton<T> implements Supplier<T> {
    * @param obj the obj
    * @return the singleton
    */
-  public Singleton<T> set(T obj) {
+  public @NotNull Singleton<T> set(T obj) {
     assert deque.isEmpty();
     deque.add(obj);
     return this;

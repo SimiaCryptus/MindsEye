@@ -28,6 +28,8 @@ import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.apache.commons.io.IOUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -52,7 +54,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
    * @param prettyPrint the pretty print
    * @return the byte [ ]
    */
-  public static byte[] compressGZ(String prettyPrint) {
+  public static byte[] compressGZ(@NotNull String prettyPrint) {
     return compressGZ(prettyPrint.getBytes(Charset.forName("UTF-8")));
   }
   
@@ -63,9 +65,9 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
    * @return the byte [ ]
    */
   public static byte[] compressGZ(byte[] bytes) {
-    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    @NotNull ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     try {
-      try (GZIPOutputStream out = new GZIPOutputStream(byteArrayOutputStream)) {
+      try (@NotNull GZIPOutputStream out = new GZIPOutputStream(byteArrayOutputStream)) {
         IOUtils.write(bytes, out);
       }
     } catch (IOException e) {
@@ -75,7 +77,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   }
   
   @Override
-  public ToleranceStatistics test(final NotebookOutput log, final NNLayer layer, final Tensor... inputPrototype) {
+  public @Nullable ToleranceStatistics test(final @NotNull NotebookOutput log, final @NotNull NNLayer layer, final Tensor... inputPrototype) {
     log.h1("Serialization");
     log.p("This run will demonstrate the layer's JSON serialization, and verify deserialization integrity.");
   
@@ -84,14 +86,14 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     try {
       prettyPrint = log.code(() -> {
         final JsonObject json = layer.getJson();
-        final NNLayer echo = NNLayer.fromJson(json);
+        final @NotNull NNLayer echo = NNLayer.fromJson(json);
         if (echo == null) throw new AssertionError("Failed to deserialize");
         if (layer == echo) throw new AssertionError("Serialization did not copy");
         if (!layer.equals(echo)) throw new AssertionError("Serialization not equal");
         echo.freeRef();
         return new GsonBuilder().setPrettyPrinting().create().toJson(json);
       });
-      String filename = layer.getClass().getSimpleName() + "_" + log.getName() + ".json";
+      @NotNull String filename = layer.getClass().getSimpleName() + "_" + log.getName() + ".json";
       log.p(log.file(prettyPrint, filename, String.format("Wrote Model to %s; %s characters", filename, prettyPrint.length())));
     } catch (RuntimeException e) {
       e.printStackTrace();
@@ -101,13 +103,13 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
       Util.sleep(1000);
     }
     log.p("");
-    Object outSync = new Object();
+    @NotNull Object outSync = new Object();
     if (prettyPrint.isEmpty() || prettyPrint.length() > 1024 * 64)
       Arrays.stream(SerialPrecision.values()).parallel().forEach(precision -> {
         try {
-          File file = new File(log.getResourceDir(), log.getName() + "_" + precision.name() + ".zip");
+          @NotNull File file = new File(log.getResourceDir(), log.getName() + "_" + precision.name() + ".zip");
           layer.writeZip(file, precision);
-          final NNLayer echo = NNLayer.fromZip(new ZipFile(file));
+          final @NotNull NNLayer echo = NNLayer.fromZip(new ZipFile(file));
           getModels().put(precision, echo);
           synchronized (outSync) {
             log.h2(String.format("Zipfile %s", precision.name()));
@@ -137,7 +139,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
    *
    * @return the models
    */
-  public HashMap<SerialPrecision, NNLayer> getModels() {
+  public @NotNull HashMap<SerialPrecision, NNLayer> getModels() {
     return models;
   }
   
@@ -156,13 +158,13 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
    * @param persist the persist
    * @return the persist
    */
-  public SerializationTest setPersist(boolean persist) {
+  public @NotNull SerializationTest setPersist(boolean persist) {
     this.persist = persist;
     return this;
   }
   
   @Override
-  public String toString() {
+  public @NotNull String toString() {
     return "SerializationTest{" +
       "models=" + models +
       ", persist=" + persist +

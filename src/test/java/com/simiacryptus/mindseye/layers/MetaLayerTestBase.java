@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The type Meta layer eval base.
@@ -35,7 +36,7 @@ public abstract class MetaLayerTestBase extends LayerTestBase {
   }
   
   @Override
-  public ComponentTest<ToleranceStatistics> getDerivativeTester() {
+  public @Nullable ComponentTest<ToleranceStatistics> getDerivativeTester() {
     return null;
     //return new BatchDerivativeTester(1e-3, 1e-4, 10);
   }

@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.opt.region;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * A Single-orthant trust region. These are used in OWL-QN to proven effect in training sparse models where an exact
  * value of zero for many weights is desired.
@@ -45,8 +47,8 @@ public class SingleOrthant implements TrustRegion {
   }
   
   @Override
-  public double[] project(final double[] weights, final double[] point) {
-    final double[] returnValue = new double[point.length];
+  public @NotNull double[] project(final double[] weights, final @NotNull double[] point) {
+    final @NotNull double[] returnValue = new double[point.length];
     for (int i = 0; i < point.length; i++) {
       final int positionSign = sign(weights[i]);
       final int directionSign = sign(point[i]);

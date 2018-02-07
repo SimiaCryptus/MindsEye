@@ -25,6 +25,8 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -55,7 +57,7 @@ public abstract class ImageClassifier {
    * @param data       the data
    * @return the list
    */
-  public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, NNLayer network, int count, List<String> categories, int batchSize, Tensor... data) {
+  public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @NotNull NNLayer network, int count, @NotNull List<String> categories, int batchSize, Tensor... data) {
     return predict(prefilter, network, count, categories, batchSize, true, false, data);
   }
   
@@ -72,8 +74,8 @@ public abstract class ImageClassifier {
    * @param data       the data
    * @return the list
    */
-  public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, NNLayer network, int count, List<String> categories, int batchSize, boolean asyncGC, boolean nullGC, Tensor[] data) {
-    Executor garbageman = (!nullGC && asyncGC) ? Executors.newSingleThreadExecutor() : command -> {
+  public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @NotNull NNLayer network, int count, @NotNull List<String> categories, int batchSize, boolean asyncGC, boolean nullGC, Tensor[] data) {
+    @NotNull Executor garbageman = (!nullGC && asyncGC) ? Executors.newSingleThreadExecutor() : command -> {
       if (!nullGC) command.run();
     };
     try {
@@ -84,12 +86,12 @@ public abstract class ImageClassifier {
         List<Tensor> tensorList = nnResult.getData().stream().collect(Collectors.toList());
         garbageman.execute(GpuSystem::cleanMemory);
         return tensorList.stream().map(tensor -> {
-          double[] predictionSignal = tensor.getData();
+          @Nullable double[] predictionSignal = tensor.getData();
           int[] order = IntStream.range(0, 1000).mapToObj(x -> x)
                                  .sorted(Comparator.comparing(i -> -predictionSignal[i]))
                                  .mapToInt(x -> x).toArray();
           assert categories.size() == predictionSignal.length;
-          LinkedHashMap<String, Double> topN = new LinkedHashMap<>();
+          @NotNull LinkedHashMap<String, Double> topN = new LinkedHashMap<>();
           for (int i = 0; i < count; i++) {
             int index = order[i];
             topN.put(categories.get(index), predictionSignal[index]);
@@ -113,7 +115,7 @@ public abstract class ImageClassifier {
    * @param data       the data
    * @return the list
    */
-  public List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, NNLayer network, int count, List<String> categories, Tensor... data) {
+  public List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @NotNull NNLayer network, int count, @NotNull List<String> categories, @NotNull Tensor... data) {
     return predict(prefilter, network, count, categories, Math.max(data.length, getBatchSize()), data);
   }
   
@@ -123,7 +125,7 @@ public abstract class ImageClassifier {
    * @param tensor the tensor
    * @return the tensor
    */
-  public abstract Tensor prefilter(Tensor tensor);
+  public abstract @NotNull Tensor prefilter(Tensor tensor);
   
   /**
    * Gets categories.
@@ -151,7 +153,7 @@ public abstract class ImageClassifier {
    * @param data    the data
    * @return the list
    */
-  public List<LinkedHashMap<String, Double>> predict(NNLayer network, int count, Tensor[] data) {
+  public List<LinkedHashMap<String, Double>> predict(@NotNull NNLayer network, int count, Tensor[] data) {
     return predict(this::prefilter, network, count, getCategories(), data);
   }
   
@@ -177,7 +179,7 @@ public abstract class ImageClassifier {
    * @param batchSize the batch size
    * @return the batch size
    */
-  public ImageClassifier setBatchSize(int batchSize) {
+  public @NotNull ImageClassifier setBatchSize(int batchSize) {
     this.batchSize = batchSize;
     return this;
   }

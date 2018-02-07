@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.models;
 
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintStream;
 
@@ -30,20 +31,20 @@ import java.io.PrintStream;
 public class VGG16_HDF5_Test extends ImageClassifierTestBase {
   
   @Override
-  public ImageClassifier getImageClassifier(NotebookOutput log) {
-    PrintStream apiLog = new PrintStream(log.file("cuda.log"));
+  public ImageClassifier getImageClassifier(@NotNull NotebookOutput log) {
+    @NotNull PrintStream apiLog = new PrintStream(log.file("cuda.log"));
     GpuSystem.addLog(apiLog);
     log.p(log.file((String) null, "cuda.log", "GPU Log"));
     
     return log.code(() -> {
-      VGG16 vgg16_hdf5 = VGG16.fromS3_HDF5();
+      @NotNull VGG16 vgg16_hdf5 = VGG16.fromS3_HDF5();
       ((HasHDF5) vgg16_hdf5).getHDF5().print();
       return vgg16_hdf5;
     });
   }
   
   @Override
-  protected Class<?> getTargetClass() {
+  protected @NotNull Class<?> getTargetClass() {
     return VGG16_HDF5.class;
   }
   

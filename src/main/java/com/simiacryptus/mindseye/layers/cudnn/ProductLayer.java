@@ -23,6 +23,7 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.*;
 import jcuda.jcudnn.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -49,7 +50,7 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
    *
    * @param id the id
    */
-  protected ProductLayer(final JsonObject id) {
+  protected ProductLayer(final @NotNull JsonObject id) {
     super(id);
     this.precision = Precision.valueOf(id.getAsJsonPrimitive("precision").getAsString());
   }
@@ -61,7 +62,7 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
    * @param rs   the rs
    * @return the product inputs layer
    */
-  public static ProductLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static ProductLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new ProductLayer(json);
   }
   
@@ -70,13 +71,13 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
    *
    * @return the compatibility layer
    */
-  public NNLayer getCompatibilityLayer() {
+  public @NotNull NNLayer getCompatibilityLayer() {
     return this.as(com.simiacryptus.mindseye.layers.java.ProductInputsLayer.class);
   }
   
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(final @NotNull NNResult... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     if (inObj.length <= 1) {
       throw new IllegalArgumentException("inObj.length=" + inObj.length);
@@ -98,14 +99,14 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
     }
     return new NNResult(GpuSystem.eval(gpu -> {
       gpu.initThread();
-      final CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
-      final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
+      final @NotNull CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
+      final @NotNull CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
-      final TensorList result1 = Arrays.stream(inObj).map(x -> x.getData()).reduce((l, r) -> {
+      final @NotNull TensorList result1 = Arrays.stream(inObj).map(x -> x.getData()).reduce((l, r) -> {
         final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, l);
         final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, r);
         assert lPtr.size == rPtr.size;
-        final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
+        final @NotNull CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
         GpuSystem.handle(JCudnn.cudnnOpTensor(gpu.getHandle(), opDescriptor.getPtr(),
                                               precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                               precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
@@ -114,22 +115,22 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
         return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
       }).get();
       return result1;
-    }), (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+    }), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList delta) -> {
       for (int index = 0; index < inObj.length; index++) {
         final NNResult input = inObj[index];
         if (input.isAlive()) {
           final int _index = index;
-          TensorList data = IntStream.range(0, inObj.length).mapToObj(i -> i == _index ? delta : inObj[i].getData()).reduce((l, r) -> {
+          @NotNull TensorList data = IntStream.range(0, inObj.length).mapToObj(i -> i == _index ? delta : inObj[i].getData()).reduce((l, r) -> {
             return GpuSystem.eval(gpu -> {
               gpu.initThread();
-              final CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
-              final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
+              final @NotNull CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
+              final @NotNull CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
                 precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
   
               final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, l);
               final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, r);
               assert lPtr.size == rPtr.size;
-              final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
+              final @NotNull CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
               GpuSystem.handle(JCudnn.cudnnOpTensor(gpu.getHandle(), opDescriptor.getPtr(),
                                                     precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
                                                     precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
@@ -155,7 +156,7 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
   
       @Override
       public boolean isAlive() {
-        for (final NNResult element : inObj)
+        for (final @NotNull NNResult element : inObj)
           if (element.isAlive()) {
             return true;
           }
@@ -166,8 +167,8 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    JsonObject json = super.getJsonStub();
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @NotNull JsonObject json = super.getJsonStub();
     json.addProperty("precision", precision.name());
     return json;
   }
@@ -178,13 +179,13 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
   }
   
   @Override
-  public ProductLayer setPrecision(final Precision precision) {
+  public @NotNull ProductLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList();
   }
 }

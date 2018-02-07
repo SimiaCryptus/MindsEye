@@ -23,11 +23,15 @@ package com.simiacryptus.mindseye.lang;
  * A runtime exception when performing an invalid operation on a ReferenceCounted object.
  */
 public class LifecycleException extends RuntimeException {
+  /**
+   * The Obj.
+   */
   public final ReferenceCountingBase obj;
   
   /**
    * Instantiates a new Lifecycle exception.
    *
+   * @param obj the obj
    */
   public LifecycleException(ReferenceCountingBase obj) {
     super("Lifecycle Exception: " + ReferenceCountingBase.detailString(obj, false));

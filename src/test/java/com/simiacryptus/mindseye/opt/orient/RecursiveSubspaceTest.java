@@ -37,6 +37,8 @@ import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.line.StaticLearningRate;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.DoubleSupplier;
@@ -47,19 +49,19 @@ import java.util.function.DoubleSupplier;
 public abstract class RecursiveSubspaceTest extends MnistTestBase {
   
   @Override
-  protected Class<?> getTargetClass() {
+  protected @NotNull Class<?> getTargetClass() {
     return RecursiveSubspace.class;
   }
   
   @Override
-  public DAGNetwork buildModel(NotebookOutput log) {
+  public DAGNetwork buildModel(@NotNull NotebookOutput log) {
     log.h3("Model");
     log.p("We use a multi-level convolution network");
     return log.code(() -> {
-      final PipelineNetwork network = new PipelineNetwork();
+      final @NotNull PipelineNetwork network = new PipelineNetwork();
       double weight = 1e-3;
-
-      DoubleSupplier init = () -> weight * (Math.random() - 0.5);
+  
+      @NotNull DoubleSupplier init = () -> weight * (Math.random() - 0.5);
       network.add(new ConvolutionLayer(3, 3, 1, 5).set(init));
       network.add(new ImgBandBiasLayer(5));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
@@ -84,15 +86,15 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
    *
    * @return the nn layer
    */
-  protected NNLayer newNormalizationLayer() {
+  protected @Nullable NNLayer newNormalizationLayer() {
     return null;
   }
   
   @Override
-  public void train(final NotebookOutput log, final NNLayer network, final Tensor[][] trainingData, final TrainingMonitor monitor) {
+  public void train(final @NotNull NotebookOutput log, final @NotNull NNLayer network, final @NotNull Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.code(() -> {
-      final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-      ValidatingTrainer trainer = new ValidatingTrainer(
+      final @NotNull SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
+      @NotNull ValidatingTrainer trainer = new ValidatingTrainer(
         new SampledArrayTrainable(trainingData, supervisedNetwork, 1000, 1000),
         new ArrayTrainable(trainingData, supervisedNetwork, 1000).cached()
       ).setMonitor(monitor);
@@ -111,14 +113,14 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
    *
    * @return the orientation
    */
-  protected abstract OrientationStrategy<?> getOrientation();
+  protected abstract @NotNull OrientationStrategy<?> getOrientation();
   
   /**
    * The type Baseline.
    */
   public static class Baseline extends RecursiveSubspaceTest {
-    
-    public OrientationStrategy<?> getOrientation() {
+  
+    public @NotNull OrientationStrategy<?> getOrientation() {
       return new LBFGS();
     }
   
@@ -128,13 +130,13 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
    * The type Normalized.
    */
   public static class Normalized extends RecursiveSubspaceTest {
-    
-    public OrientationStrategy<?> getOrientation() {
+  
+    public @NotNull OrientationStrategy<?> getOrientation() {
       return new LBFGS();
     }
     
     @Override
-    protected NNLayer newNormalizationLayer() {
+    protected @NotNull NNLayer newNormalizationLayer() {
       return new NormalizationMetaLayer();
     }
   }
@@ -143,8 +145,8 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
    * The type Demo.
    */
   public static class Demo extends RecursiveSubspaceTest {
-    
-    public OrientationStrategy<?> getOrientation() {
+  
+    public @NotNull OrientationStrategy<?> getOrientation() {
       return new RecursiveSubspace();
     }
     

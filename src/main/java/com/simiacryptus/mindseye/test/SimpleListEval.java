@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.concurrent.Callable;
@@ -29,8 +30,8 @@ import java.util.stream.IntStream;
  * The type Simple list trainAll.
  */
 public class SimpleListEval extends ReferenceCountingBase implements Callable<SimpleResult>, SimpleResult {
-  private final TensorList[] input;
-  private final NNLayer layer;
+  private final @NotNull TensorList[] input;
+  private final @NotNull NNLayer layer;
   private TensorList[] derivative;
   private TensorList output;
   
@@ -40,10 +41,10 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
    * @param layer the layer
    * @param input the input
    */
-  public SimpleListEval(final NNLayer layer, final TensorList... input) {
+  public SimpleListEval(final @NotNull NNLayer layer, final @NotNull TensorList... input) {
     this.layer = layer;
     this.input = input;
-    for (TensorList x : input) x.addRef();
+    for (@NotNull TensorList x : input) x.addRef();
     layer.addRef();
   }
   
@@ -53,7 +54,7 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
    * @param buffer the buffer
    * @param data   the data
    */
-  public static void accumulate(final TensorList buffer, final TensorList data) {
+  public static void accumulate(final @NotNull TensorList buffer, final @NotNull TensorList data) {
     IntStream.range(0, data.length()).forEach(b -> {
       Tensor r = data.get(b);
       Tensor l = buffer.get(b);
@@ -63,14 +64,6 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
     });
   }
   
-  @Override
-  protected void _free() {
-    for (TensorList x : input) x.freeRef();
-    layer.freeRef();
-    for (TensorList x : derivative) x.freeRef();
-    output.freeRef();
-  }
-  
   /**
    * Run simple list trainAll.
    *
@@ -78,19 +71,27 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
    * @param tensor the tensor
    * @return the simple list trainAll
    */
-  public static SimpleResult run(final NNLayer layer, final TensorList... tensor) {
+  public static @NotNull SimpleResult run(final @NotNull NNLayer layer, final TensorList... tensor) {
     return new SimpleListEval(layer, tensor).call();
   }
   
   @Override
-  public SimpleResult call() {
+  protected void _free() {
+    for (@NotNull TensorList x : input) x.freeRef();
+    layer.freeRef();
+    for (@NotNull TensorList x : derivative) x.freeRef();
+    output.freeRef();
+  }
+  
+  @Override
+  public @NotNull SimpleResult call() {
     TensorList[] inputCopy = Arrays.stream(input).map(x -> x.copy()).toArray(i -> new TensorList[i]);
     derivative = Arrays.stream(inputCopy).map(tensorList -> TensorArray.wrap(tensorList.stream()
                                                                                        .map(i -> new Tensor(i.getDimensions()))
                                                                                        .toArray(i -> new Tensor[i]))
                                              ).toArray(i -> new TensorList[i]);
     NNResult[] inputs = IntStream.range(0, inputCopy.length).mapToObj(i -> {
-      return new NNResult(inputCopy[i], (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+      return new NNResult(inputCopy[i], (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
         SimpleListEval.accumulate(derivative[i], data);
       }) {
         @Override
@@ -100,16 +101,16 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
       };
     }).toArray(i -> new NNResult[i]);
     final NNResult eval = layer.eval(inputs);
-    for (NNResult nnResult : inputs) {
+    for (@NotNull NNResult nnResult : inputs) {
       nnResult.freeRef();
     }
     TensorList outputData = eval.getData().copy();
-    for (TensorList tensorList : inputCopy) {
+    for (@NotNull TensorList tensorList : inputCopy) {
       tensorList.freeRef();
     }
     eval.getData().freeRef();
-    TensorList tensorList = getFeedback(outputData);
-    DeltaSet<NNLayer> buffer = new DeltaSet<>();
+    @NotNull TensorList tensorList = getFeedback(outputData);
+    @NotNull DeltaSet<NNLayer> buffer = new DeltaSet<>();
     eval.accumulate(buffer, tensorList);
     buffer.freeRef();
     eval.freeRef();
@@ -134,7 +135,7 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
    * @param data the data
    * @return the feedback
    */
-  public TensorList getFeedback(final TensorList data) {
+  public @NotNull TensorList getFeedback(final @NotNull TensorList data) {
     return TensorArray.wrap(data.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i]));
   }
   
@@ -148,6 +149,11 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
     return output;
   }
   
+  /**
+   * Gets output and free.
+   *
+   * @return the output and free
+   */
   public TensorList getOutputAndFree() {
     output.addRef();
     freeRef();

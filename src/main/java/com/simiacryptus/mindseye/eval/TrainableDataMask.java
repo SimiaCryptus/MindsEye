@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.eval;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * A Trainable supplemental contract exposing a boolean mask which configures which, if any, input columns are to be
  * adjusted by the learning procedure. This can be used to trainCjGD per-row, non-shared parameters.
@@ -29,7 +31,7 @@ public interface TrainableDataMask extends Trainable {
    *
    * @return the boolean [ ]
    */
-  boolean[] getMask();
+  @Nullable boolean[] getMask();
   
   /**
    * Sets mask.

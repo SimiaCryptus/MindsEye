@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,7 +35,7 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public class ConstNNLayer extends NNLayer {
   
-  private Tensor data;
+  private @Nullable Tensor data;
   
   /**
    * Instantiates a new Const nn layer.
@@ -41,7 +43,7 @@ public class ConstNNLayer extends NNLayer {
    * @param json      the json
    * @param resources the resources
    */
-  protected ConstNNLayer(final JsonObject json, Map<String, byte[]> resources) {
+  protected ConstNNLayer(final @NotNull JsonObject json, Map<String, byte[]> resources) {
     super(json);
     data = Tensor.fromJson(json.get("value"), resources);
   }
@@ -64,14 +66,14 @@ public class ConstNNLayer extends NNLayer {
    * @param rs   the rs
    * @return the const nn layer
    */
-  public static ConstNNLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static ConstNNLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new ConstNNLayer(json, rs);
   }
   
   @Override
-  public NNResult eval(final NNResult... array) {
+  public @NotNull NNResult eval(final @NotNull NNResult... array) {
     Arrays.stream(array).forEach(nnResult -> nnResult.addRef());
-    return new NNResult(TensorArray.create(data), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    return new NNResult(TensorArray.create(data), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
       if (!isFrozen()) {
         data.stream().forEach(datum -> {
           buffer.get(ConstNNLayer.this, ConstNNLayer.this.data.getData()).addInPlace(datum.getData());
@@ -96,7 +98,7 @@ public class ConstNNLayer extends NNLayer {
    *
    * @return the data
    */
-  public Tensor getData() {
+  public @Nullable Tensor getData() {
     return data;
   }
   
@@ -110,14 +112,14 @@ public class ConstNNLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final JsonObject json = super.getJsonStub();
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, @NotNull DataSerializer dataSerializer) {
+    final @NotNull JsonObject json = super.getJsonStub();
     json.add("value", data.toJson(resources, dataSerializer));
     return json;
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList(data.getData());
   }
 }

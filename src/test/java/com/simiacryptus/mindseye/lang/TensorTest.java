@@ -23,6 +23,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.test.TestCategories;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -47,9 +49,9 @@ public class TensorTest {
    * @param str the str
    * @return the tensor
    */
-  public Tensor parse(final String str) {
+  public @Nullable Tensor parse(final String str) {
     final JsonElement json = new GsonBuilder().create().fromJson(str, JsonElement.class);
-    final Tensor tensor = Tensor.fromJson(json, null);
+    final @Nullable Tensor tensor = Tensor.fromJson(json, null);
     Assert.assertEquals(json, tensor.toJson(null, Tensor.json_precision));
     return tensor;
   }
@@ -59,8 +61,8 @@ public class TensorTest {
    *
    * @param t the t
    */
-  public void test(final Tensor t) {
-    final JsonElement json = t.toJson(null, Tensor.json_precision);
+  public void test(final @NotNull Tensor t) {
+    final @NotNull JsonElement json = t.toJson(null, Tensor.json_precision);
     Assert.assertEquals(Tensor.fromJson(json, null), t);
     parse(json.toString());
   }
@@ -88,7 +90,7 @@ public class TensorTest {
   @Test
   @Category(TestCategories.UnitTest.class)
   public void testShuffleStream() throws Exception {
-    HashSet<Object> ids = new HashSet<>();
+    @NotNull HashSet<Object> ids = new HashSet<>();
     int max = 10000;
     TestUtil.shuffle(IntStream.range(0, max)).forEach((int i) -> {
       if (i >= 0 && i >= max) throw new AssertionError(i);

@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.test.LabeledObject;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.List;
@@ -35,7 +36,7 @@ import java.util.stream.Stream;
 public class CaltechProblemData implements ImageProblemData {
   
   private final int imageSize;
-  private List<String> labels = null;
+  private @Nullable List<String> labels = null;
   
   /**
    * Instantiates a new Caltech problem data.
@@ -81,7 +82,7 @@ public class CaltechProblemData implements ImageProblemData {
    *
    * @return the labels
    */
-  public List<String> getLabels() {
+  public @Nullable List<String> getLabels() {
     if (null == labels) {
       synchronized (this) {
         if (null == labels) {

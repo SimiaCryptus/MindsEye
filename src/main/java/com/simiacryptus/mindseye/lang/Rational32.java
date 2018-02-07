@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
@@ -44,10 +46,10 @@ public class Rational32 implements DataSerializer {
    * @param maxScalar the max scalar
    * @return the serial precision . rational
    */
-  public static SerialPrecision.Rational toRational(double value, int maxScalar) {
-    SerialPrecision.Rational current = continuedFractions(value, 0);
+  public static @NotNull SerialPrecision.Rational toRational(double value, int maxScalar) {
+    @NotNull SerialPrecision.Rational current = continuedFractions(value, 0);
     for (int i = 0; i < 10; i++) {
-      SerialPrecision.Rational next = continuedFractions(value, i);
+      @NotNull SerialPrecision.Rational next = continuedFractions(value, i);
       if (next.numerator < maxScalar && next.denominator < maxScalar) {
         current = next;
       }
@@ -67,7 +69,7 @@ public class Rational32 implements DataSerializer {
    */
   public static SerialPrecision.Rational continuedFractions(double value, int recursions) {
     if (value < 0) {
-      SerialPrecision.Rational rational = continuedFractions(-value, recursions);
+      @NotNull SerialPrecision.Rational rational = continuedFractions(-value, recursions);
       return new SerialPrecision.Rational(-rational.numerator, rational.denominator);
     }
     else if (0 == value) {
@@ -75,33 +77,33 @@ public class Rational32 implements DataSerializer {
     }
     else if (value >= 1) {
       int scalar = (int) value;
-      SerialPrecision.Rational rational = continuedFractions(value - scalar, recursions);
+      @NotNull SerialPrecision.Rational rational = continuedFractions(value - scalar, recursions);
       return new SerialPrecision.Rational(rational.numerator + (scalar * rational.denominator), rational.denominator);
     }
     else if (recursions <= 0) {
       return new SerialPrecision.Rational((int) Math.round(value), 1);
     }
     else {
-      SerialPrecision.Rational rational = continuedFractions(1.0 / value, recursions - 1);
+      @NotNull SerialPrecision.Rational rational = continuedFractions(1.0 / value, recursions - 1);
       return new SerialPrecision.Rational(rational.denominator, rational.numerator);
     }
   }
   
   @Override
-  public void copy(double[] from, byte[] to) {
+  public void copy(@NotNull double[] from, @NotNull byte[] to) {
     
     DoubleSummaryStatistics stat = Arrays.stream(from).summaryStatistics();
     double center = stat.getAverage();
     double radius = Math.exp(Arrays.stream(from).map(x -> x - center).map(x -> Math.log(Math.abs(x))).average().getAsDouble());
-    java.nio.DoubleBuffer inBuffer = java.nio.DoubleBuffer.wrap(from);
-    FloatBuffer floatBuffer = ByteBuffer.wrap(to).asFloatBuffer();
+    @NotNull java.nio.DoubleBuffer inBuffer = java.nio.DoubleBuffer.wrap(from);
+    @NotNull FloatBuffer floatBuffer = ByteBuffer.wrap(to).asFloatBuffer();
     floatBuffer.put((float) center);
     floatBuffer.put((float) radius);
-    ShortBuffer shortBuffer = ByteBuffer.wrap(to).asShortBuffer();
+    @NotNull ShortBuffer shortBuffer = ByteBuffer.wrap(to).asShortBuffer();
     shortBuffer.position(4);
     while (shortBuffer.hasRemaining()) {
       double v = (inBuffer.get() - center) / radius;
-      SerialPrecision.Rational rational = toRational(v, 0x7FFF);
+      @NotNull SerialPrecision.Rational rational = toRational(v, 0x7FFF);
       assert rational.denominator > 0;
       shortBuffer.put((short) (rational.numerator));
       shortBuffer.put((short) (rational.denominator));
@@ -110,12 +112,12 @@ public class Rational32 implements DataSerializer {
   }
   
   @Override
-  public void copy(byte[] from, double[] to) {
-    java.nio.DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
-    FloatBuffer floatBuffer = ByteBuffer.wrap(from).asFloatBuffer();
+  public void copy(@NotNull byte[] from, @NotNull double[] to) {
+    @NotNull java.nio.DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
+    @NotNull FloatBuffer floatBuffer = ByteBuffer.wrap(from).asFloatBuffer();
     double center = floatBuffer.get();
     double radius = floatBuffer.get();
-    ShortBuffer shortBuffer = ByteBuffer.wrap(from).asShortBuffer();
+    @NotNull ShortBuffer shortBuffer = ByteBuffer.wrap(from).asShortBuffer();
     shortBuffer.position(4);
     while (shortBuffer.hasRemaining()) {
       int numerator = shortBuffer.get();

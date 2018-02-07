@@ -21,6 +21,8 @@ package com.simiacryptus.util.io;
 
 import com.simiacryptus.util.lang.UncheckedSupplier;
 import org.apache.commons.io.IOUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -52,7 +54,7 @@ public class NullNotebookOutput implements NotebookOutput {
   }
   
   @Override
-  public <T> T code(UncheckedSupplier<T> fn, int maxLog, int framesNo) {
+  public <T> T code(@NotNull UncheckedSupplier<T> fn, int maxLog, int framesNo) {
     try {
       return fn.get();
     } catch (Exception e) {
@@ -62,7 +64,7 @@ public class NullNotebookOutput implements NotebookOutput {
   }
   
   @Override
-  public OutputStream file(String name) {
+  public @NotNull OutputStream file(@NotNull String name) {
     try {
       return new FileOutputStream(name);
     } catch (FileNotFoundException e) {
@@ -71,9 +73,9 @@ public class NullNotebookOutput implements NotebookOutput {
   }
   
   @Override
-  public String file(String data, String caption) {
+  public @NotNull String file(@NotNull String data, String caption) {
     try {
-      File file = File.createTempFile("temp", "bin");
+      @NotNull File file = File.createTempFile("temp", "bin");
       IOUtils.write(data.getBytes(Charset.forName("UTF-8")), new FileOutputStream(file));
       return file.getCanonicalPath();
     } catch (IOException e) {
@@ -82,14 +84,14 @@ public class NullNotebookOutput implements NotebookOutput {
   }
   
   @Override
-  public String file(byte[] data, String filename, String caption) {
+  public @NotNull String file(@NotNull byte[] data, @NotNull String filename, String caption) {
     return file(new String(data, Charset.forName("UTF-8")), filename, caption);
   }
   
   @Override
-  public String file(String data, String fileName, String caption) {
+  public @NotNull String file(@NotNull String data, @NotNull String fileName, String caption) {
     try {
-      File file = new File(fileName);
+      @NotNull File file = new File(fileName);
       IOUtils.write(data.getBytes(Charset.forName("UTF-8")), new FileOutputStream(file));
       return file.getCanonicalPath();
     } catch (IOException e) {
@@ -113,12 +115,12 @@ public class NullNotebookOutput implements NotebookOutput {
   }
   
   @Override
-  public String image(BufferedImage rawImage, String caption) throws IOException {
+  public @NotNull String image(BufferedImage rawImage, String caption) throws IOException {
     return "";
   }
   
   @Override
-  public String link(File file, String text) {
+  public @NotNull String link(File file, String text) {
     return "";
   }
   
@@ -128,7 +130,7 @@ public class NullNotebookOutput implements NotebookOutput {
   }
   
   @Override
-  public String getFrontMatterProperty(String key) {
+  public @Nullable String getFrontMatterProperty(String key) {
     return null;
   }
   
@@ -138,12 +140,12 @@ public class NullNotebookOutput implements NotebookOutput {
   }
   
   @Override
-  public File getResourceDir() {
+  public @NotNull File getResourceDir() {
     return new File(".");
   }
   
   @Override
-  public NotebookOutput setMaxOutSize(int size) {
+  public @NotNull NotebookOutput setMaxOutSize(int size) {
     return this;
   }
   

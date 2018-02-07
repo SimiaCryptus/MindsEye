@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Random;
 
@@ -29,10 +31,16 @@ import java.util.Random;
  */
 public abstract class FullyConnectedLayerTest extends LayerTestBase {
   
-  private final FullyConnectedLayer fullyConnectedLayer;
+  private final @NotNull FullyConnectedLayer fullyConnectedLayer;
   private final int inputs;
   private final int outputs;
   
+  /**
+   * Instantiates a new Fully connected layer test.
+   *
+   * @param inputs  the inputs
+   * @param outputs the outputs
+   */
   protected FullyConnectedLayerTest(int inputs, int outputs) {
     fullyConnectedLayer = new FullyConnectedLayer(new int[]{inputs}, new int[]{outputs});
     this.inputs = inputs;
@@ -40,19 +48,19 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
   }
   
   @Override
-  public int[][] getSmallDims(Random random) {
+  public @NotNull int[][] getSmallDims(Random random) {
     return new int[][]{
       {inputs}
     };
   }
   
   @Override
-  public Class<? extends NNLayer> getReferenceLayerClass() {
+  public @Nullable Class<? extends NNLayer> getReferenceLayerClass() {
     return FullyConnectedReferenceLayer.class;
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize, Random random) {
+  public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
     return fullyConnectedLayer;
   }
   
@@ -60,20 +68,29 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
    * Basic Test
    */
   public static class Basic extends FullyConnectedLayerTest {
+    /**
+     * Instantiates a new Basic.
+     */
     public Basic() {super(3, 3);}
   }
   
+  /**
+   * The type Big.
+   */
   public static class Big extends FullyConnectedLayerTest {
+    /**
+     * Instantiates a new Big.
+     */
     public Big() {
       super(25088, 4096);
       validateDifferentials = false;
     }
-  
+    
     @Override
     public Class<? extends NNLayer> getReferenceLayerClass() {
       return null;
     }
-  
+    
   }
   
   

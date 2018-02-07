@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.test.data;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.lang.SupplierWeakCache;
 import com.simiacryptus.util.test.LabeledObject;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
 import java.util.stream.Stream;
@@ -32,7 +33,7 @@ import java.util.stream.Stream;
 public class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
   
   @Override
-  public Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(NotebookOutput log) {
+  public Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(@NotNull NotebookOutput log) {
     return log.code(() -> {
       Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> trainingDataStream = Caltech101.trainingDataStream();
       return trainingDataStream;
@@ -40,7 +41,7 @@ public class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
   }
   
   @Override
-  protected Class<?> getTargetClass() {
+  protected @NotNull Class<?> getTargetClass() {
     return Caltech101.class;
   }
 }

@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.layers.java.SumInputsLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
 import java.util.stream.IntStream;
@@ -56,7 +57,7 @@ public abstract class BinarySumLayerTest extends CuDNNLayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize, Random random) {
+  public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
     return new BinarySumLayer().setPrecision(precision);
   }
   
@@ -104,8 +105,8 @@ public abstract class BinarySumLayerTest extends CuDNNLayerTestBase {
     
     
     @Override
-    public NNLayer getLayer(int[][] inputSize, Random random) {
-      PipelineNetwork network = new PipelineNetwork();
+    public @NotNull NNLayer getLayer(int[][] inputSize, Random random) {
+      @NotNull PipelineNetwork network = new PipelineNetwork();
       DAGNode input = network.getInput(0);
       network.add(new BinarySumLayer(), input, input);
       return network;
@@ -113,21 +114,21 @@ public abstract class BinarySumLayerTest extends CuDNNLayerTestBase {
     
     @Override
     public NNLayer getReferenceLayer() {
-      PipelineNetwork network = new PipelineNetwork();
+      @NotNull PipelineNetwork network = new PipelineNetwork();
       DAGNode input = network.getInput(0);
       network.add(new SumInputsLayer(), input, input);
       return network;
     }
     
     @Override
-    public int[][] getSmallDims(Random random) {
+    public @NotNull int[][] getSmallDims(Random random) {
       return new int[][]{
         {1, 1, 1}
       };
     }
     
     @Override
-    public int[][] getLargeDims(Random random) {
+    public @NotNull int[][] getLargeDims(Random random) {
       return getSmallDims(random);
     }
     
@@ -157,7 +158,7 @@ public abstract class BinarySumLayerTest extends CuDNNLayerTestBase {
     }
   
     @Override
-    public NNLayer getLayer(final int[][] inputSize, Random random) {
+    public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
       return new BinarySumLayer(1.0, -1.0).setPrecision(precision);
     }
   
@@ -198,7 +199,7 @@ public abstract class BinarySumLayerTest extends CuDNNLayerTestBase {
     }
   
     @Override
-    public NNLayer getLayer(final int[][] inputSize, Random random) {
+    public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
       return new BinarySumLayer(0.5, 0.5).setPrecision(precision);
     }
   

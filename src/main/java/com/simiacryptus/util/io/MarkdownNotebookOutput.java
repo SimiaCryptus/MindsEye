@@ -27,6 +27,8 @@ import com.simiacryptus.util.lang.UncheckedSupplier;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,20 +57,20 @@ public class MarkdownNotebookOutput implements NotebookOutput {
   
   private static int excerptNumber = 0;
   private static int imageNumber = 0;
-  private final File fileName;
+  private final @NotNull File fileName;
   private final String name;
-  private final PrintStream primaryOut;
+  private final @NotNull PrintStream primaryOut;
   private final List<String> buffer = new ArrayList<>();
   private final Map<String, String> frontMatter = new HashMap<>();
   /**
    * The Toc.
    */
-  public List<String> toc = new ArrayList<>();
+  public @NotNull List<String> toc = new ArrayList<>();
   /**
    * The Anchor.
    */
   int anchor = 0;
-  private String absoluteUrl = null;
+  private @Nullable String absoluteUrl = null;
   private int maxOutSize = 8 * 1024;
   
   /**
@@ -78,7 +80,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
    * @param name     the name
    * @throws FileNotFoundException the file not found exception
    */
-  public MarkdownNotebookOutput(final File fileName, final String name) throws FileNotFoundException {
+  public MarkdownNotebookOutput(final @NotNull File fileName, final String name) throws FileNotFoundException {
     this.name = name;
     primaryOut = new PrintStream(new FileOutputStream(fileName));
     this.fileName = fileName;
@@ -92,17 +94,17 @@ public class MarkdownNotebookOutput implements NotebookOutput {
    * @param suffix      the suffix
    * @return the markdown notebook output
    */
-  public static MarkdownNotebookOutput get(Class<?> sourceClass, String absoluteUrl, String... suffix) {
+  public static @NotNull MarkdownNotebookOutput get(@NotNull Class<?> sourceClass, @Nullable String absoluteUrl, @NotNull String... suffix) {
     try {
       final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[2];
       final String methodName = callingFrame.getMethodName();
       final String className = sourceClass.getCanonicalName();
-      File path = new File(Util.mkString(File.separator, "reports", className.replaceAll("\\.", "/").replaceAll("\\$", "/")));
+      @NotNull File path = new File(Util.mkString(File.separator, "reports", className.replaceAll("\\.", "/").replaceAll("\\$", "/")));
       for (int i = 0; i < suffix.length - 1; i++) path = new File(path, suffix[i]);
       String testName = suffix.length == 0 ? methodName : suffix[suffix.length - 1];
       path = new File(path, testName + ".md");
       path.getParentFile().mkdirs();
-      MarkdownNotebookOutput notebookOutput = new MarkdownNotebookOutput(path, testName);
+      @NotNull MarkdownNotebookOutput notebookOutput = new MarkdownNotebookOutput(path, testName);
       if (null != absoluteUrl) {
         try {
           String url = new URI(absoluteUrl + "/" + path.toPath().toString().replaceAll("\\\\", "/")).normalize().toString();
@@ -112,7 +114,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
         }
       }
       return notebookOutput;
-    } catch (final FileNotFoundException e) {
+    } catch (final @NotNull FileNotFoundException e) {
       throw new RuntimeException(e);
     }
   }
@@ -127,12 +129,12 @@ public class MarkdownNotebookOutput implements NotebookOutput {
       final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[2];
       final String className = callingFrame.getClassName();
       final String methodName = callingFrame.getMethodName();
-      final String fileName = methodName + ".md";
-      File path = new File(Util.mkString(File.separator, "reports", className.replaceAll("\\.", "/").replaceAll("\\$", "/")));
+      final @NotNull String fileName = methodName + ".md";
+      @NotNull File path = new File(Util.mkString(File.separator, "reports", className.replaceAll("\\.", "/").replaceAll("\\$", "/")));
       path = new File(path, fileName);
       path.getParentFile().mkdirs();
       return new MarkdownNotebookOutput(path, methodName);
-    } catch (final FileNotFoundException e) {
+    } catch (final @NotNull FileNotFoundException e) {
       throw new RuntimeException(e);
     }
   }
@@ -141,7 +143,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
   public void close() throws IOException {
     if (null != primaryOut) {
       primaryOut.close();
-      try (PrintWriter out = new PrintWriter(new FileOutputStream(fileName))) {
+      try (@NotNull PrintWriter out = new PrintWriter(new FileOutputStream(fileName))) {
         if (!frontMatter.isEmpty()) {
           out.println("---");
   
@@ -195,27 +197,27 @@ public class MarkdownNotebookOutput implements NotebookOutput {
     return String.format("p-%d", anchor++);
   }
   
-  @SuppressWarnings("unchecked")
   @Override
-  public <T> T code(final UncheckedSupplier<T> fn, final int maxLog, final int framesNo) {
+  @SuppressWarnings("unchecked")
+  public @NotNull <T> T code(final @NotNull UncheckedSupplier<T> fn, final int maxLog, final int framesNo) {
     try {
       final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[framesNo];
       final String sourceCode = CodeUtil.getInnerText(callingFrame);
-      final SysOutInterceptor.LoggedResult<TimedResult<Object>> result = SysOutInterceptor.withOutput(() -> {
+      final @NotNull SysOutInterceptor.LoggedResult<TimedResult<Object>> result = SysOutInterceptor.withOutput(() -> {
         long priorGcMs = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
         final long start = System.nanoTime();
         try {
-          Object result1 = null;
+          @Nullable Object result1 = null;
           try {
             result1 = fn.get();
-          } catch (final RuntimeException e) {
+          } catch (final @NotNull RuntimeException e) {
             throw e;
-          } catch (final Exception e) {
+          } catch (final @NotNull Exception e) {
             throw new RuntimeException(e);
           }
           long gcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum() - priorGcMs;
           return new TimedResult<Object>(result1, System.nanoTime() - start, gcTime);
-        } catch (final Throwable e) {
+        } catch (final @NotNull Throwable e) {
           long gcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum() - priorGcMs;
           return new TimedResult<Object>(e, System.nanoTime() - start, gcTime);
         }
@@ -243,7 +245,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
         String str;
         boolean escape;
         if (eval instanceof Throwable) {
-          final ByteArrayOutputStream out = new ByteArrayOutputStream();
+          final @NotNull ByteArrayOutputStream out = new ByteArrayOutputStream();
           ((Throwable) eval).printStackTrace(new PrintStream(out));
           str = new String(out.toByteArray(), "UTF-8");
           escape = true;//
@@ -264,7 +266,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
           str = eval.toString();
           escape = true;
         }
-        String fmt = escape ? "    " + summarize(str, maxLog).replaceAll("\n", "\n    ").replaceAll("    ~", "") : str;
+        @NotNull String fmt = escape ? "    " + summarize(str, maxLog).replaceAll("\n", "\n    ").replaceAll("    ~", "") : str;
         if (escape) {
           out("```");
           out(fmt);
@@ -282,37 +284,37 @@ public class MarkdownNotebookOutput implements NotebookOutput {
         }
       }
       return (T) eval;
-    } catch (final IOException e) {
+    } catch (final @NotNull IOException e) {
       throw new RuntimeException(e);
     }
   }
   
   @Override
-  public OutputStream file(final String name) {
+  public @NotNull OutputStream file(final @NotNull String name) {
     try {
       return new FileOutputStream(new File(getResourceDir(), name));
-    } catch (final FileNotFoundException e) {
+    } catch (final @NotNull FileNotFoundException e) {
       throw new RuntimeException(e);
     }
   }
   
   @Override
-  public String file(final String data, final String caption) {
+  public @NotNull String file(final String data, final String caption) {
     return file(data, ++MarkdownNotebookOutput.excerptNumber + ".txt", caption);
   }
   
   @Override
-  public String file(byte[] data, String filename, String caption) {
+  public @NotNull String file(@NotNull byte[] data, @NotNull String filename, String caption) {
     return file(new String(data, Charset.forName("UTF-8")), filename, caption);
   }
   
   @Override
-  public String file(final String data, final String fileName, final String caption) {
+  public @NotNull String file(final @Nullable String data, final @NotNull String fileName, final String caption) {
     try {
       if (null != data) {
         IOUtils.write(data, new FileOutputStream(new File(getResourceDir(), fileName)), Charset.forName("UTF-8"));
       }
-    } catch (final IOException e) {
+    } catch (final @NotNull IOException e) {
       throw new RuntimeException(e);
     }
     return "[" + caption + "](etc/" + fileName + ")";
@@ -323,7 +325,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
    *
    * @return the absolute url
    */
-  public String getAbsoluteUrl() {
+  public @Nullable String getAbsoluteUrl() {
     return absoluteUrl;
   }
   
@@ -333,7 +335,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
    * @param absoluteUrl the absolute url
    * @return the absolute url
    */
-  public MarkdownNotebookOutput setAbsoluteUrl(final String absoluteUrl) {
+  public @NotNull MarkdownNotebookOutput setAbsoluteUrl(final String absoluteUrl) {
     this.absoluteUrl = absoluteUrl;
     return this;
   }
@@ -343,52 +345,52 @@ public class MarkdownNotebookOutput implements NotebookOutput {
    *
    * @return the resource dir
    */
-  public File getResourceDir() {
-    final File etc = new File(fileName.getParentFile(), "etc");
+  public @NotNull File getResourceDir() {
+    final @NotNull File etc = new File(fileName.getParentFile(), "etc");
     etc.mkdirs();
     return etc;
   }
   
   @Override
-  public NotebookOutput setMaxOutSize(int size) {
+  public @NotNull NotebookOutput setMaxOutSize(int size) {
     this.maxOutSize = size;
     return this;
   }
   
   @Override
-  public void h1(final String fmt, final Object... args) {
+  public void h1(final @NotNull String fmt, final Object... args) {
     String anchorId = anchorId();
-    String msg = format(fmt, args);
+    @NotNull String msg = format(fmt, args);
     toc.add(String.format("1. [%s](#%s)", msg, anchorId));
     out("# " + anchor(anchorId) + msg);
   }
   
   @Override
-  public void h2(final String fmt, final Object... args) {
+  public void h2(final @NotNull String fmt, final Object... args) {
     String anchorId = anchorId();
-    String msg = format(fmt, args);
+    @NotNull String msg = format(fmt, args);
     toc.add(String.format("   1. [%s](#%s)", msg, anchorId));
     out("## " + anchor(anchorId) + fmt, args);
   }
   
   @Override
-  public void h3(final String fmt, final Object... args) {
+  public void h3(final @NotNull String fmt, final Object... args) {
     String anchorId = anchorId();
-    String msg = format(fmt, args);
+    @NotNull String msg = format(fmt, args);
     toc.add(String.format("      1. [%s](#%s)", msg, anchorId));
     out("### " + anchor(anchorId) + fmt, args);
   }
   
   @Override
-  public String image(final BufferedImage rawImage, final String caption) throws IOException {
+  public @NotNull String image(final @Nullable BufferedImage rawImage, final String caption) throws IOException {
     if (null == rawImage) return "";
     new ByteArrayOutputStream();
     final int thisImage = ++MarkdownNotebookOutput.imageNumber;
-    final String fileName = name + "." + thisImage + ".png";
-    final File file = new File(getResourceDir(), fileName);
+    final @NotNull String fileName = name + "." + thisImage + ".png";
+    final @NotNull File file = new File(getResourceDir(), fileName);
     final BufferedImage stdImage = Util.resize(rawImage);
     if (stdImage != rawImage) {
-      final String rawName = name + "_raw." + thisImage + ".png";
+      final @NotNull String rawName = name + "_raw." + thisImage + ".png";
       ImageIO.write(rawImage, "png", new File(getResourceDir(), rawName));
     }
     ImageIO.write(stdImage, "png", file);
@@ -396,10 +398,10 @@ public class MarkdownNotebookOutput implements NotebookOutput {
   }
   
   @Override
-  public String link(final File file, final String text) {
+  public @NotNull String link(final @NotNull File file, final String text) {
     try {
       return "[" + text + "](" + codeFile(file) + ")";
-    } catch (final IOException e) {
+    } catch (final @NotNull IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -411,7 +413,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
    * @return the string
    * @throws IOException the io exception
    */
-  public String codeFile(File file) throws IOException {
+  public String codeFile(@NotNull File file) throws IOException {
     Path path = pathToCodeFile(file);
     if (null != getAbsoluteUrl()) {
       try {
@@ -432,7 +434,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
    * @return the path
    * @throws IOException the io exception
    */
-  public Path pathToCodeFile(File file) throws IOException {
+  public Path pathToCodeFile(@NotNull File file) throws IOException {
     return fileName.getCanonicalFile().toPath().relativize(file.getCanonicalFile().toPath());
   }
   
@@ -443,13 +445,13 @@ public class MarkdownNotebookOutput implements NotebookOutput {
    * @return the string
    * @throws IOException the io exception
    */
-  public String linkTo(final File file) throws IOException {
+  public String linkTo(final @NotNull File file) throws IOException {
     return codeFile(file);
   }
   
   @Override
-  public void out(final String fmt, final Object... args) {
-    final String msg = format(fmt, args);
+  public void out(final @NotNull String fmt, final Object... args) {
+    final @NotNull String msg = format(fmt, args);
     buffer.add(msg);
     primaryOut.println(msg);
     log.info(msg);
@@ -462,7 +464,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
    * @param args the args
    * @return the string
    */
-  public String format(String fmt, Object... args) {
+  public @NotNull String format(@NotNull String fmt, @NotNull Object... args) {
     return 0 == args.length ? fmt : String.format(fmt, args);
   }
   
@@ -478,9 +480,9 @@ public class MarkdownNotebookOutput implements NotebookOutput {
    * @param maxLog the max log
    * @return the string
    */
-  public String summarize(String logSrc, final int maxLog) {
+  public @NotNull String summarize(@NotNull String logSrc, final int maxLog) {
     if (logSrc.length() > maxLog * 2) {
-      final String prefix = logSrc.substring(0, maxLog);
+      final @NotNull String prefix = logSrc.substring(0, maxLog);
       logSrc = prefix + String.format(
         (prefix.endsWith("\n") ? "" : "\n") + "~```\n~..." + file(logSrc, "skipping %s bytes") + "...\n~```\n",
         logSrc.length() - 2 * maxLog) + logSrc.substring(logSrc.length() - maxLog);

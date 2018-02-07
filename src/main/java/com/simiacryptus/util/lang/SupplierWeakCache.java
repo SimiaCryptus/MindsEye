@@ -19,6 +19,8 @@
 
 package com.simiacryptus.util.lang;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.ref.WeakReference;
 import java.util.function.Supplier;
 
@@ -29,7 +31,7 @@ import java.util.function.Supplier;
  */
 public class SupplierWeakCache<T> implements Supplier<T> {
   private final Supplier<T> fn;
-  private WeakReference<T> ptr;
+  private @Nullable WeakReference<T> ptr;
   
   /**
    * Instantiates a new Supplier weak cache.
@@ -42,8 +44,8 @@ public class SupplierWeakCache<T> implements Supplier<T> {
   }
   
   @Override
-  public T get() {
-    T x = null == ptr ? null : ptr.get();
+  public @Nullable T get() {
+    @Nullable T x = null == ptr ? null : ptr.get();
     if (null == x) {
       x = fn.get();
       ptr = new WeakReference<>(x);

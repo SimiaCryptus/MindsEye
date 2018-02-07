@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A very basic line search which uses a static rate, searching lower rates when iterations do not result in
@@ -55,7 +57,7 @@ public class StaticLearningRate implements LineSearchStrategy {
    * @param minimumRate the minimum rate
    * @return the minimum rate
    */
-  public StaticLearningRate setMinimumRate(final double minimumRate) {
+  public @NotNull StaticLearningRate setMinimumRate(final double minimumRate) {
     this.minimumRate = minimumRate;
     return this;
   }
@@ -75,17 +77,17 @@ public class StaticLearningRate implements LineSearchStrategy {
    * @param rate the rate
    * @return the rate
    */
-  public StaticLearningRate setRate(final double rate) {
+  public @NotNull StaticLearningRate setRate(final double rate) {
     this.rate = rate;
     return this;
   }
   
   @Override
-  public PointSample step(final LineSearchCursor cursor, final TrainingMonitor monitor) {
+  public PointSample step(final @NotNull LineSearchCursor cursor, final @NotNull TrainingMonitor monitor) {
     double thisRate = rate;
     final LineSearchPoint startPoint = cursor.step(0, monitor);
     final double startValue = startPoint.point.sum; // theta(0)
-    LineSearchPoint lastStep = null;
+    @Nullable LineSearchPoint lastStep = null;
     while (true) {
       if (null != lastStep) lastStep.freeRef();
       lastStep = cursor.step(thisRate, monitor);

@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +57,7 @@ public class SoftmaxActivationLayer extends NNLayer {
    *
    * @param id the id
    */
-  protected SoftmaxActivationLayer(final JsonObject id) {
+  protected SoftmaxActivationLayer(final @NotNull JsonObject id) {
     super(id);
   }
   
@@ -66,21 +68,21 @@ public class SoftmaxActivationLayer extends NNLayer {
    * @param rs   the rs
    * @return the softmax activation layer
    */
-  public static SoftmaxActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static SoftmaxActivationLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new SoftmaxActivationLayer(json);
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public @NotNull NNResult eval(final @NotNull NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
-    final double[] sumA = new double[itemCnt];
+    final @NotNull double[] sumA = new double[itemCnt];
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    final Tensor expA[] = new Tensor[itemCnt];
+    final @NotNull Tensor expA[] = new Tensor[itemCnt];
     final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);
       assert 1 < input.dim() : "input.dim() = " + input.dim();
-      
-      final Tensor exp;
+  
+      final @Nullable Tensor exp;
       final DoubleSummaryStatistics summaryStatistics = DoubleStream.of(input.getData()).filter(x -> Double.isFinite(x)).summaryStatistics();
       final double max = summaryStatistics.getMax();
       //final double min = summaryStatistics.getMin();
@@ -97,12 +99,12 @@ public class SoftmaxActivationLayer extends NNLayer {
       return exp.map(x -> x / sum);
     }).toArray(i -> new Tensor[i]);
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    return new NNResult(TensorArray.wrap(outputA), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(outputA), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
       if (inObj[0].isAlive()) {
         final Tensor[] passbackA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-          final double[] delta = data.get(dataIndex).getData();
-          final double[] expdata = expA[dataIndex].getData();
-          final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
+          final @Nullable double[] delta = data.get(dataIndex).getData();
+          final @Nullable double[] expdata = expA[dataIndex].getData();
+          final @NotNull Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
           final int dim = expdata.length;
           double dot = 0;
           for (int i = 0; i < expdata.length; i++) {
@@ -117,7 +119,7 @@ public class SoftmaxActivationLayer extends NNLayer {
           return passback;
         }).toArray(i -> new Tensor[i]);
         assert Arrays.stream(passbackA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-        TensorArray tensorArray = TensorArray.wrap(passbackA);
+        @NotNull TensorArray tensorArray = TensorArray.wrap(passbackA);
         inObj[0].accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
@@ -137,12 +139,12 @@ public class SoftmaxActivationLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList();
   }
 }

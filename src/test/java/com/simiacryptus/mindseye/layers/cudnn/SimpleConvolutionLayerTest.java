@@ -27,6 +27,8 @@ import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.*;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.PrintStream;
 import java.util.Random;
@@ -65,7 +67,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
   }
   
   @Override
-  public int[][] getSmallDims(Random random) {
+  public @NotNull int[][] getSmallDims(Random random) {
     return new int[][]{
       {radius, radius, bands}
     };
@@ -78,16 +80,16 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
   }
   
   @Override
-  public int[][] getLargeDims(Random random) {
+  public @NotNull int[][] getLargeDims(Random random) {
     return new int[][]{
       {100, 100, bands}
     };
   }
   
   @Override
-  public NNLayer getReferenceLayer() {
-    final ConvolutionLayer convolutionLayer = new ConvolutionLayer(radius, radius, bands, bands, true);
-    final Tensor tensor = new Tensor(layer.kernel.getDimensions());
+  public @Nullable NNLayer getReferenceLayer() {
+    final @NotNull ConvolutionLayer convolutionLayer = new ConvolutionLayer(radius, radius, bands, bands, true);
+    final @NotNull Tensor tensor = new Tensor(layer.kernel.getDimensions());
     tensor.setByCoord(c -> {
       final int band = c.getCoords()[2];
       final int bandX = band % bands;
@@ -192,9 +194,9 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
     
     @Override
     public void run(NotebookOutput log) {
-      String logName = "cuda_" + log.getName() + "_all.log";
+      @NotNull String logName = "cuda_" + log.getName() + "_all.log";
       log.p(log.file((String) null, logName, "GPU Log"));
-      PrintStream apiLog = new PrintStream(log.file(logName));
+      @NotNull PrintStream apiLog = new PrintStream(log.file(logName));
       GpuSystem.addLog(apiLog);
       super.run(log);
       apiLog.close();
@@ -206,12 +208,12 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
     public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
       return null;
     }
-    
-    public ComponentTest<ToleranceStatistics> getPerformanceTester() {
+  
+    public @NotNull ComponentTest<ToleranceStatistics> getPerformanceTester() {
       return new PerformanceTester().setBatches(10).setSamples(1);
     }
-    
-    protected ComponentTest<ToleranceStatistics> getReferenceIOTester() {
+  
+    protected @NotNull ComponentTest<ToleranceStatistics> getReferenceIOTester() {
       return new ReferenceIO(getReferenceIO());
     }
     
@@ -255,19 +257,19 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
     }
     
     @Override
-    public int[][] getLargeDims(Random random) {
+    public @NotNull int[][] getLargeDims(Random random) {
       return new int[][]{
         {30, 30, bands}
       };
     }
-    
-    public ComponentTest<ToleranceStatistics> getPerformanceTester() {
-      ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setBatches(10);
+  
+    public @Nullable ComponentTest<ToleranceStatistics> getPerformanceTester() {
+      @NotNull ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setBatches(10);
       return new ComponentTestBase<ToleranceStatistics>() {
         @Override
-        public ToleranceStatistics test(NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
-          String logName = "cuda_" + log.getName() + "_perf.log";
-          PrintStream apiLog = null;
+        public ToleranceStatistics test(@NotNull NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
+          @NotNull String logName = "cuda_" + log.getName() + "_perf.log";
+          @Nullable PrintStream apiLog = null;
           try {
             apiLog = new PrintStream(log.file(logName));
             GpuSystem.addLog(apiLog);

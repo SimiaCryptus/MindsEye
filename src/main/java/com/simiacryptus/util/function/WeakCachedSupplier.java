@@ -19,6 +19,9 @@
 
 package com.simiacryptus.util.function;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.ref.WeakReference;
 import java.util.function.Supplier;
 
@@ -30,7 +33,7 @@ import java.util.function.Supplier;
 public class WeakCachedSupplier<T> implements Supplier<T> {
   
   private final Supplier<T> fn;
-  private volatile WeakReference<T> cached;
+  private volatile @Nullable WeakReference<T> cached;
   
   /**
    * Instantiates a new Weak cached supplier.
@@ -42,8 +45,8 @@ public class WeakCachedSupplier<T> implements Supplier<T> {
   }
   
   @Override
-  public T get() {
-    T obj = null == cached ? null : cached.get();
+  public @Nullable T get() {
+    @Nullable T obj = null == cached ? null : cached.get();
     if (null == obj) {
       synchronized (this) {
         obj = null == cached ? null : cached.get();
@@ -63,7 +66,7 @@ public class WeakCachedSupplier<T> implements Supplier<T> {
    *
    * @return the soft ref
    */
-  public SoftCachedSupplier<T> getSoftRef() {
+  public @NotNull SoftCachedSupplier<T> getSoftRef() {
     return new SoftCachedSupplier<>(this::get);
   }
 }

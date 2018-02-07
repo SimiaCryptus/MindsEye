@@ -26,6 +26,8 @@ import com.simiacryptus.util.lang.TimedResult;
 import com.simiacryptus.util.lang.UncheckedSupplier;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import org.apache.commons.io.IOUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,12 +50,12 @@ public class HtmlNotebookOutput implements NotebookOutput {
   /**
    * The constant DEFAULT_ROOT.
    */
-  public static String DEFAULT_ROOT = "https://github.com/SimiaCryptus/utilities/tree/master/";
+  public static @NotNull String DEFAULT_ROOT = "https://github.com/SimiaCryptus/utilities/tree/master/";
   /**
    * The Working dir.
    */
   public final File workingDir;
-  private final PrintStream primaryOut;
+  private final @NotNull PrintStream primaryOut;
   /**
    * The Source root.
    */
@@ -71,7 +73,7 @@ public class HtmlNotebookOutput implements NotebookOutput {
    * @param out             the out
    * @throws FileNotFoundException the file not found exception
    */
-  public HtmlNotebookOutput(final File parentDirectory, final OutputStream out) throws FileNotFoundException {
+  public HtmlNotebookOutput(final File parentDirectory, final @NotNull OutputStream out) throws FileNotFoundException {
     primaryOut = new PrintStream(out);
     workingDir = parentDirectory;
     out("<html><head><style>\n" +
@@ -91,7 +93,7 @@ public class HtmlNotebookOutput implements NotebookOutput {
    * @throws FileNotFoundException the file not found exception
    */
   public static HtmlNotebookOutput create(final File parentDirectory) throws FileNotFoundException {
-    final FileOutputStream out = new FileOutputStream(new File(parentDirectory, "index.html"));
+    final @NotNull FileOutputStream out = new FileOutputStream(new File(parentDirectory, "index.html"));
     return new HtmlNotebookOutput(parentDirectory, out) {
       @Override
       public void close() throws IOException {
@@ -109,37 +111,37 @@ public class HtmlNotebookOutput implements NotebookOutput {
     }
   }
   
-  @SuppressWarnings("unchecked")
   @Override
-  public <T> T code(final UncheckedSupplier<T> fn, final int maxLog, final int framesNo) {
+  @SuppressWarnings("unchecked")
+  public @NotNull <T> T code(final @NotNull UncheckedSupplier<T> fn, final int maxLog, final int framesNo) {
     try {
       final StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
       final StackTraceElement callingFrame = stackTrace[framesNo];
       final String sourceCode = CodeUtil.getInnerText(callingFrame);
-      final SysOutInterceptor.LoggedResult<TimedResult<Object>> result = SysOutInterceptor.withOutput(() -> {
+      final @NotNull SysOutInterceptor.LoggedResult<TimedResult<Object>> result = SysOutInterceptor.withOutput(() -> {
         long priorGcMs = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
         final long start = System.nanoTime();
         try {
-          Object result1 = null;
+          @Nullable Object result1 = null;
           try {
             result1 = fn.get();
-          } catch (final RuntimeException e) {
+          } catch (final @NotNull RuntimeException e) {
             throw e;
-          } catch (final Exception e) {
+          } catch (final @NotNull Exception e) {
             throw new RuntimeException(e);
           }
           long gcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum() - priorGcMs;
           return new TimedResult<Object>(result1, System.nanoTime() - start, gcTime);
-        } catch (final Throwable e) {
+        } catch (final @NotNull Throwable e) {
           long gcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum() - priorGcMs;
           return new TimedResult<Object>(e, System.nanoTime() - start, gcTime);
         }
       });
       try {
-        final URI resolved = URI.create(sourceRoot).resolve(Util.pathTo(CodeUtil.projectRoot, CodeUtil.findFile(callingFrame)));
+        final @NotNull URI resolved = URI.create(sourceRoot).resolve(Util.pathTo(CodeUtil.projectRoot, CodeUtil.findFile(callingFrame)));
         out("<p>Code from <a href='%s#L%s'>%s:%s</a> executed in %.2f seconds: <br/>",
             resolved, callingFrame.getLineNumber(), callingFrame.getFileName(), callingFrame.getLineNumber(), result.obj.seconds());
-      } catch (final Exception e) {
+      } catch (final @NotNull Exception e) {
         out("<p>Code from %s:%s executed in %.2f seconds: <br/>",
             callingFrame.getFileName(), callingFrame.getLineNumber(), result.obj.seconds());
       }
@@ -161,7 +163,7 @@ public class HtmlNotebookOutput implements NotebookOutput {
         String str;
         boolean escape;
         if (eval instanceof Throwable) {
-          final ByteArrayOutputStream out = new ByteArrayOutputStream();
+          final @NotNull ByteArrayOutputStream out = new ByteArrayOutputStream();
           ((Throwable) eval).printStackTrace(new PrintStream(out));
           str = new String(out.toByteArray(), "UTF-8");
           escape = true;//
@@ -197,40 +199,40 @@ public class HtmlNotebookOutput implements NotebookOutput {
       }
       out("</p>");
       return (T) eval;
-    } catch (final IOException e) {
+    } catch (final @NotNull IOException e) {
       throw new RuntimeException(e);
     }
   }
   
   @Override
-  public OutputStream file(final String name) {
+  public @NotNull OutputStream file(final @NotNull String name) {
     try {
       return new FileOutputStream(new File(getResourceDir(), name));
-    } catch (final FileNotFoundException e) {
+    } catch (final @NotNull FileNotFoundException e) {
       throw new RuntimeException(e);
     }
   }
   
   @Override
-  public String file(final String data, final String caption) {
+  public @NotNull String file(final String data, final String caption) {
     return file(data, excerptNumber++ + ".txt", caption);
   }
   
   @Override
-  public String file(byte[] data, String filename, String caption) {
+  public @NotNull String file(byte[] data, @NotNull String filename, String caption) {
     try {
       IOUtils.write(data, new FileOutputStream(new File(getResourceDir(), filename)));
-    } catch (final IOException e) {
+    } catch (final @NotNull IOException e) {
       throw new RuntimeException(e);
     }
     return "<a href='etc/" + filename + "'>" + caption + "</a>";
   }
   
   @Override
-  public String file(final String data, final String fileName, final String caption) {
+  public @NotNull String file(final String data, final @NotNull String fileName, final String caption) {
     try {
       IOUtils.write(data, new FileOutputStream(new File(getResourceDir(), fileName)), Charset.forName("UTF-8"));
-    } catch (final IOException e) {
+    } catch (final @NotNull IOException e) {
       throw new RuntimeException(e);
     }
     return "<a href='etc/" + fileName + "'>" + caption + "</a>";
@@ -241,14 +243,14 @@ public class HtmlNotebookOutput implements NotebookOutput {
    *
    * @return the resource dir
    */
-  public File getResourceDir() {
-    final File etc = new File(workingDir, "etc");
+  public @NotNull File getResourceDir() {
+    final @NotNull File etc = new File(workingDir, "etc");
     etc.mkdirs();
     return etc;
   }
   
   @Override
-  public NotebookOutput setMaxOutSize(int size) {
+  public @NotNull NotebookOutput setMaxOutSize(int size) {
     this.maxOutSize = size;
     return this;
   }
@@ -268,7 +270,7 @@ public class HtmlNotebookOutput implements NotebookOutput {
    * @param sourceRoot the source root
    * @return the source root
    */
-  public HtmlNotebookOutput setSourceRoot(final String sourceRoot) {
+  public @NotNull HtmlNotebookOutput setSourceRoot(final String sourceRoot) {
     this.sourceRoot = sourceRoot;
     return this;
   }
@@ -289,12 +291,12 @@ public class HtmlNotebookOutput implements NotebookOutput {
   }
   
   @Override
-  public String image(final BufferedImage rawImage, final String caption) throws IOException {
+  public @NotNull String image(final @Nullable BufferedImage rawImage, final String caption) throws IOException {
     if (null == rawImage) return "";
     new ByteArrayOutputStream();
-    final String thisImage = UUID.randomUUID().toString().substring(0, 8);
-    final File file = new File(getResourceDir(), "img" + thisImage + ".png");
-    final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    final @NotNull String thisImage = UUID.randomUUID().toString().substring(0, 8);
+    final @NotNull File file = new File(getResourceDir(), "img" + thisImage + ".png");
+    final @NotNull ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     ImageIO.write(rawImage, "png", buffer);
     final String pngSrc = Base64.getEncoder().encodeToString(buffer.toByteArray());
     if (pngSrc.length() < 4 * 1024) {
@@ -311,19 +313,19 @@ public class HtmlNotebookOutput implements NotebookOutput {
   }
   
   @Override
-  public String link(final File file, final String text) {
-    String path = null;
+  public String link(final @NotNull File file, final String text) {
+    @Nullable String path = null;
     try {
       path = workingDir.getCanonicalFile().toPath().relativize(file.getCanonicalFile().toPath()).normalize().toString().replaceAll("\\\\", "/");
-    } catch (final IOException e) {
+    } catch (final @NotNull IOException e) {
       throw new RuntimeException(e);
     }
     return String.format("<a href=\"%s\">%s</a>", path, text);
   }
   
   @Override
-  public void out(final String fmt, final Object... args) {
-    final String msg = 0 == args.length ? fmt : String.format(fmt, args);
+  public void out(final @NotNull String fmt, final @NotNull Object... args) {
+    final @NotNull String msg = 0 == args.length ? fmt : String.format(fmt, args);
     primaryOut.println(msg);
     primaryOut.flush();
     log.info(msg);
@@ -335,12 +337,12 @@ public class HtmlNotebookOutput implements NotebookOutput {
   }
   
   @Override
-  public String getFrontMatterProperty(String key) {
+  public @Nullable String getFrontMatterProperty(String key) {
     return null;
   }
   
   @Override
-  public String getName() {
+  public @NotNull String getName() {
     return "www";
   }
   
@@ -351,10 +353,10 @@ public class HtmlNotebookOutput implements NotebookOutput {
    * @param string the string
    * @return the string
    */
-  public String summarize(final int maxLog, final String string) {
+  public @NotNull String summarize(final int maxLog, final @NotNull String string) {
     if (string.length() > maxLog * 2) {
-      final String left = string.substring(0, maxLog);
-      final String right = string.substring(string.length() - maxLog);
+      final @NotNull String left = string.substring(0, maxLog);
+      final @NotNull String right = string.substring(string.length() - maxLog);
       final String link = String.format(file(string, "\n...skipping %s bytes...\n"), string.length() - 2 * maxLog);
       return left + link + right;
     }

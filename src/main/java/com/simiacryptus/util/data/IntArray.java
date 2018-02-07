@@ -19,6 +19,9 @@
 
 package com.simiacryptus.util.data;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Arrays;
 
 /**
@@ -41,11 +44,11 @@ public class IntArray {
   }
   
   @Override
-  public boolean equals(final Object o) {
+  public boolean equals(final @Nullable Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
   
-    final IntArray intArray = (IntArray) o;
+    final @NotNull IntArray intArray = (IntArray) o;
   
     return Arrays.equals(data, intArray.data);
   }

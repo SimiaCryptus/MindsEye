@@ -26,6 +26,7 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.mindseye.test.integration.*;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.IntToDoubleFunction;
 
@@ -37,12 +38,12 @@ public class CaltechTests {
   /**
    * The constant fwd_conv_1.
    */
-  public static FwdNetworkFactory fwd_conv_1 = (log, features) -> {
+  public static @NotNull FwdNetworkFactory fwd_conv_1 = (log, features) -> {
     log.p("The image-to-vector network is a single layer convolutional:");
     return log.code(() -> {
-      final PipelineNetwork network = new PipelineNetwork();
-
-      IntToDoubleFunction weights = i -> 1e-8 * (Math.random() - 0.5);
+      final @NotNull PipelineNetwork network = new PipelineNetwork();
+  
+      @NotNull IntToDoubleFunction weights = i -> 1e-8 * (Math.random() - 0.5);
       network.add(new ConvolutionLayer(3, 3, 3, 10).set(weights));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());
@@ -78,12 +79,12 @@ public class CaltechTests {
   /**
    * The constant rev_conv_1.
    */
-  public static RevNetworkFactory rev_conv_1 = (log, features) -> {
+  public static @NotNull RevNetworkFactory rev_conv_1 = (log, features) -> {
     log.p("The vector-to-image network uses a fully connected layer then a single convolutional layer:");
     return log.code(() -> {
-      final PipelineNetwork network = new PipelineNetwork();
-
-      IntToDoubleFunction weights = i -> 1e-8 * (Math.random() - 0.5);
+      final @NotNull PipelineNetwork network = new PipelineNetwork();
+  
+      @NotNull IntToDoubleFunction weights = i -> 1e-8 * (Math.random() - 0.5);
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{4, 4, 40}).set(weights));
       network.add(new ImgBandBiasLayer(40));
       network.add(new NormalizationMetaLayer());
@@ -140,22 +141,22 @@ public class CaltechTests {
     }
     
     @Override
-    protected Class<?> getTargetClass() {
+    protected @NotNull Class<?> getTargetClass() {
       return Caltech101.class;
     }
     
     @Override
-    public ImageProblemData getData() {
+    public @NotNull ImageProblemData getData() {
       return new CaltechProblemData();
     }
     
     @Override
-    public String getDatasetName() {
+    public @NotNull String getDatasetName() {
       return "Caltech101";
     }
   
     @Override
-    public ReportType getReportType() {
+    public @NotNull ReportType getReportType() {
       return ReportType.Training;
     }
   
@@ -173,7 +174,7 @@ public class CaltechTests {
     }
     
     @Override
-    protected void intro(final NotebookOutput log) {
+    protected void intro(final @NotNull NotebookOutput log) {
       log.p("");
     }
     

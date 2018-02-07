@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -54,7 +55,7 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
    *
    * @param id the id
    */
-  protected GaussianActivationLayer(final JsonObject id) {
+  protected GaussianActivationLayer(final @NotNull JsonObject id) {
     super(id);
     mean = id.get("mean").getAsDouble();
     stddev = id.get("stddev").getAsDouble();
@@ -67,7 +68,7 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
    * @param rs   the rs
    * @return the gaussian activation layer
    */
-  public static GaussianActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static GaussianActivationLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new GaussianActivationLayer(json);
   }
   
@@ -102,8 +103,8 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final JsonObject json = super.getJsonStub();
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    final @NotNull JsonObject json = super.getJsonStub();
     json.addProperty("mean", mean);
     json.addProperty("stddev", stddev);
     return json;

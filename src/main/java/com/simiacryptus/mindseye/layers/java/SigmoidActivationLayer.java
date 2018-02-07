@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -49,7 +50,7 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
    *
    * @param id the id
    */
-  protected SigmoidActivationLayer(final JsonObject id) {
+  protected SigmoidActivationLayer(final @NotNull JsonObject id) {
     super(id);
     balanced = id.get("balanced").getAsBoolean();
   }
@@ -61,7 +62,7 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
    * @param rs   the rs
    * @return the sigmoid activation layer
    */
-  public static SigmoidActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static SigmoidActivationLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new SigmoidActivationLayer(json);
   }
   
@@ -97,8 +98,8 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final JsonObject json = super.getJsonStub();
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    final @NotNull JsonObject json = super.getJsonStub();
     json.addProperty("balanced", balanced);
     return json;
   }
@@ -118,7 +119,7 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
    * @param balanced the balanced
    * @return the balanced
    */
-  public SigmoidActivationLayer setBalanced(final boolean balanced) {
+  public @NotNull SigmoidActivationLayer setBalanced(final boolean balanced) {
     this.balanced = balanced;
     return this;
   }

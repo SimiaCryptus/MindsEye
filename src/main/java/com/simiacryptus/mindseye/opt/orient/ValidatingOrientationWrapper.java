@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursorBase;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This strategy uses finite-difference methods to estimate a numerical derivative, and compares it with the derivative
@@ -52,7 +53,7 @@ public class ValidatingOrientationWrapper extends OrientationStrategyBase<LineSe
   }
   
   @Override
-  public LineSearchCursor orient(final Trainable subject, final PointSample measurement, final TrainingMonitor monitor) {
+  public @NotNull LineSearchCursor orient(final Trainable subject, final PointSample measurement, final TrainingMonitor monitor) {
     final LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
     return new ValidatingLineSearchCursor(cursor);
   }
@@ -91,7 +92,7 @@ public class ValidatingOrientationWrapper extends OrientationStrategyBase<LineSe
     }
   
     @Override
-    public LineSearchPoint step(final double alpha, final TrainingMonitor monitor) {
+    public LineSearchPoint step(final double alpha, final @NotNull TrainingMonitor monitor) {
       final LineSearchPoint primaryPoint = cursor.step(alpha, monitor);
       //monitor.log(String.format("f(%s) = %s",alpha, primaryPoint.point.value));
       test(monitor, primaryPoint, 1e-3);
@@ -107,7 +108,7 @@ public class ValidatingOrientationWrapper extends OrientationStrategyBase<LineSe
      * @param primaryPoint the primary point
      * @param probeSize    the probe size
      */
-    public void test(final TrainingMonitor monitor, final LineSearchPoint primaryPoint, final double probeSize) {
+    public void test(final @NotNull TrainingMonitor monitor, final @NotNull LineSearchPoint primaryPoint, final double probeSize) {
       final double alpha = primaryPoint.point.rate;
       double probeAlpha = alpha + primaryPoint.point.sum * probeSize / primaryPoint.derivative;
       if (!Double.isFinite(probeAlpha) || probeAlpha == alpha) {

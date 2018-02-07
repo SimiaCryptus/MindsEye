@@ -33,6 +33,7 @@ import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.lang.TimedResult;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
@@ -56,10 +57,10 @@ public class ValidatingTrainer {
   
   
   private final AtomicInteger disappointments = new AtomicInteger(0);
-  private final List<TrainingPhase> regimen;
+  private final @NotNull List<TrainingPhase> regimen;
   private final AtomicLong trainingMeasurementTime = new AtomicLong(0);
   private final AtomicLong validatingMeasurementTime = new AtomicLong(0);
-  private final Trainable validationSubject;
+  private final @NotNull Trainable validationSubject;
   private double adjustmentFactor = 0.5;
   private double adjustmentTolerance = 0.1;
   private AtomicInteger currentIteration = new AtomicInteger(0);
@@ -85,7 +86,7 @@ public class ValidatingTrainer {
    * @param trainingSubject   the training subject
    * @param validationSubject the validation subject
    */
-  public ValidatingTrainer(final SampledTrainable trainingSubject, final Trainable validationSubject) {
+  public ValidatingTrainer(final @NotNull SampledTrainable trainingSubject, final @NotNull Trainable validationSubject) {
     regimen = new ArrayList<TrainingPhase>(Arrays.asList(new TrainingPhase(new PerformanceWrapper(trainingSubject))));
     validationSubject.addRef();
     this.validationSubject = new TrainableBase() {
@@ -96,9 +97,9 @@ public class ValidatingTrainer {
   
       @Override
       public PointSample measure(final TrainingMonitor monitor) {
-        final TimedResult<PointSample> time = TimedResult.time(() ->
+        final @NotNull TimedResult<PointSample> time = TimedResult.time(() ->
                                                                  validationSubject.measure(monitor)
-                                                              );
+                                                                       );
         validatingMeasurementTime.addAndGet(time.timeNanos);
         return time.result;
       }
@@ -118,13 +119,13 @@ public class ValidatingTrainer {
     terminateThreshold = Double.NEGATIVE_INFINITY;
   }
   
-  private static String getId(final DoubleBuffer<NNLayer> x) {
+  private static @NotNull String getId(final @NotNull DoubleBuffer<NNLayer> x) {
     final String name = x.layer.getName();
-    final String className = x.layer.getClass().getSimpleName();
+    final @NotNull String className = x.layer.getClass().getSimpleName();
     return name.contains(className) ? className : name;
   }
   
-  private String compare(final PointSample previousPoint, final PointSample nextPoint) {
+  private String compare(final @NotNull PointSample previousPoint, final @NotNull PointSample nextPoint) {
     final StateSet<NNLayer> nextWeights = nextPoint.weights;
     final StateSet<NNLayer> prevWeights = previousPoint.weights;
     return String.format("Overall network state change: %s", prevWeights.stream()
@@ -157,7 +158,7 @@ public class ValidatingTrainer {
    * @param adjustmentFactor the adjustment factor
    * @return the adjustment factor
    */
-  public ValidatingTrainer setAdjustmentFactor(final double adjustmentFactor) {
+  public @NotNull ValidatingTrainer setAdjustmentFactor(final double adjustmentFactor) {
     this.adjustmentFactor = adjustmentFactor;
     return this;
   }
@@ -177,7 +178,7 @@ public class ValidatingTrainer {
    * @param adjustmentTolerance the adjustment tolerance
    * @return the adjustment tolerance
    */
-  public ValidatingTrainer setAdjustmentTolerance(final double adjustmentTolerance) {
+  public @NotNull ValidatingTrainer setAdjustmentTolerance(final double adjustmentTolerance) {
     this.adjustmentTolerance = adjustmentTolerance;
     return this;
   }
@@ -197,7 +198,7 @@ public class ValidatingTrainer {
    * @param currentIteration the current iteration
    * @return the current iteration
    */
-  public ValidatingTrainer setCurrentIteration(final AtomicInteger currentIteration) {
+  public @NotNull ValidatingTrainer setCurrentIteration(final AtomicInteger currentIteration) {
     this.currentIteration = currentIteration;
     return this;
   }
@@ -235,7 +236,7 @@ public class ValidatingTrainer {
    * @param epochIterations the runPhase iterations
    * @return the runPhase iterations
    */
-  public ValidatingTrainer setEpochIterations(final int epochIterations) {
+  public @NotNull ValidatingTrainer setEpochIterations(final int epochIterations) {
     this.epochIterations = epochIterations;
     return this;
   }
@@ -273,7 +274,7 @@ public class ValidatingTrainer {
    * @param maxEpochIterations the max runPhase iterations
    * @return the max runPhase iterations
    */
-  public ValidatingTrainer setMaxEpochIterations(final int maxEpochIterations) {
+  public @NotNull ValidatingTrainer setMaxEpochIterations(final int maxEpochIterations) {
     this.maxEpochIterations = maxEpochIterations;
     return this;
   }
@@ -293,7 +294,7 @@ public class ValidatingTrainer {
    * @param maxIterations the max iterations
    * @return the max iterations
    */
-  public ValidatingTrainer setMaxIterations(final int maxIterations) {
+  public @NotNull ValidatingTrainer setMaxIterations(final int maxIterations) {
     this.maxIterations = maxIterations;
     return this;
   }
@@ -313,7 +314,7 @@ public class ValidatingTrainer {
    * @param maxTrainingSize the max training size
    * @return the max training size
    */
-  public ValidatingTrainer setMaxTrainingSize(final int maxTrainingSize) {
+  public @NotNull ValidatingTrainer setMaxTrainingSize(final int maxTrainingSize) {
     this.maxTrainingSize = maxTrainingSize;
     return this;
   }
@@ -333,7 +334,7 @@ public class ValidatingTrainer {
    * @param minEpochIterations the min runPhase iterations
    * @return the min runPhase iterations
    */
-  public ValidatingTrainer setMinEpochIterations(final int minEpochIterations) {
+  public @NotNull ValidatingTrainer setMinEpochIterations(final int minEpochIterations) {
     this.minEpochIterations = minEpochIterations;
     return this;
   }
@@ -353,7 +354,7 @@ public class ValidatingTrainer {
    * @param minTrainingSize the min training size
    * @return the min training size
    */
-  public ValidatingTrainer setMinTrainingSize(final int minTrainingSize) {
+  public @NotNull ValidatingTrainer setMinTrainingSize(final int minTrainingSize) {
     this.minTrainingSize = minTrainingSize;
     return this;
   }
@@ -373,7 +374,7 @@ public class ValidatingTrainer {
    * @param monitor the monitor
    * @return the monitor
    */
-  public ValidatingTrainer setMonitor(final TrainingMonitor monitor) {
+  public @NotNull ValidatingTrainer setMonitor(final TrainingMonitor monitor) {
     this.monitor = monitor;
     return this;
   }
@@ -393,7 +394,7 @@ public class ValidatingTrainer {
    * @param overtrainingTarget the overtraining target
    * @return the overtraining target
    */
-  public ValidatingTrainer setOvertrainingTarget(final double overtrainingTarget) {
+  public @NotNull ValidatingTrainer setOvertrainingTarget(final double overtrainingTarget) {
     this.overtrainingTarget = overtrainingTarget;
     return this;
   }
@@ -413,7 +414,7 @@ public class ValidatingTrainer {
    * @param pessimism the pessimism
    * @return the pessimism
    */
-  public ValidatingTrainer setPessimism(final double pessimism) {
+  public @NotNull ValidatingTrainer setPessimism(final double pessimism) {
     this.pessimism = pessimism;
     return this;
   }
@@ -423,7 +424,7 @@ public class ValidatingTrainer {
    *
    * @return the regimen
    */
-  public List<TrainingPhase> getRegimen() {
+  public @NotNull List<TrainingPhase> getRegimen() {
     return regimen;
   }
   
@@ -442,7 +443,7 @@ public class ValidatingTrainer {
    * @param terminateThreshold the terminate threshold
    * @return the terminate threshold
    */
-  public ValidatingTrainer setTerminateThreshold(final double terminateThreshold) {
+  public @NotNull ValidatingTrainer setTerminateThreshold(final double terminateThreshold) {
     this.terminateThreshold = terminateThreshold;
     return this;
   }
@@ -462,7 +463,7 @@ public class ValidatingTrainer {
    * @param timeout the timeout
    * @return the timeout
    */
-  public ValidatingTrainer setTimeout(final Duration timeout) {
+  public @NotNull ValidatingTrainer setTimeout(final Duration timeout) {
     this.timeout = timeout;
     return this;
   }
@@ -482,7 +483,7 @@ public class ValidatingTrainer {
    * @param trainingSize the training size
    * @return the training size
    */
-  public ValidatingTrainer setTrainingSize(final int trainingSize) {
+  public @NotNull ValidatingTrainer setTrainingSize(final int trainingSize) {
     this.trainingSize = trainingSize;
     return this;
   }
@@ -502,7 +503,7 @@ public class ValidatingTrainer {
    * @param trainingTarget the training target
    * @return the training target
    */
-  public ValidatingTrainer setTrainingTarget(final double trainingTarget) {
+  public @NotNull ValidatingTrainer setTrainingTarget(final double trainingTarget) {
     this.trainingTarget = trainingTarget;
     return this;
   }
@@ -512,11 +513,11 @@ public class ValidatingTrainer {
    *
    * @return the validation subject
    */
-  public Trainable getValidationSubject() {
+  public @NotNull Trainable getValidationSubject() {
     return validationSubject;
   }
   
-  private PointSample measure(final TrainingPhase phase) {
+  private PointSample measure(final @NotNull TrainingPhase phase) {
     int retries = 0;
     do {
       if (10 < retries++) throw new IterativeStopException();
@@ -526,7 +527,7 @@ public class ValidatingTrainer {
     } while (true);
   }
   
-  private ValidatingTrainer reset(final TrainingPhase phase, final long seed) {
+  private @NotNull ValidatingTrainer reset(final @NotNull TrainingPhase phase, final long seed) {
     if (!phase.trainingSubject.reseed(seed)) throw new IterativeStopException();
     phase.orientation.reset();
     phase.trainingSubject.reseed(seed);
@@ -551,7 +552,7 @@ public class ValidatingTrainer {
           if (layer instanceof StochasticComponent) ((StochasticComponent) layer).clearNoise();
         });
       }
-      final EpochParams epochParams = new EpochParams(timeoutAt, epochIterations, getTrainingSize(), validationSubject.measure(monitor));
+      final @NotNull EpochParams epochParams = new EpochParams(timeoutAt, epochIterations, getTrainingSize(), validationSubject.measure(monitor));
       int epochNumber = 0;
       int iterationNumber = 0;
       int lastImprovement = 0;
@@ -562,7 +563,7 @@ public class ValidatingTrainer {
           break;
         }
         monitor.log(String.format("Epoch parameters: %s, %s", epochParams.trainingSize, epochParams.iterations));
-        final List<TrainingPhase> regimen = getRegimen();
+        final @NotNull List<TrainingPhase> regimen = getRegimen();
         final long seed = System.nanoTime();
         final List<EpochResult> epochResults = IntStream.range(0, regimen.size()).mapToObj(i -> {
           final TrainingPhase phase = getRegimen().get(i);
@@ -636,7 +637,7 @@ public class ValidatingTrainer {
         });
       }
       return epochParams.validation.getMean();
-    } catch (final Throwable e) {
+    } catch (final @NotNull Throwable e) {
       RecycleBin.DOUBLES.printNetProfiling(System.err);
       throw new RuntimeException(e);
     }
@@ -651,7 +652,7 @@ public class ValidatingTrainer {
    * @param seed        the seed
    * @return the runPhase result
    */
-  protected EpochResult runPhase(final EpochParams epochParams, final TrainingPhase phase, final int i, final long seed) {
+  protected @NotNull EpochResult runPhase(final @NotNull EpochParams epochParams, final @NotNull TrainingPhase phase, final int i, final long seed) {
     monitor.log(String.format("Phase %d: %s", i, phase));
     phase.trainingSubject.setTrainingSize(epochParams.trainingSize);
     monitor.log(String.format("resetAndMeasure; trainingSize=%s", epochParams.trainingSize));
@@ -665,7 +666,7 @@ public class ValidatingTrainer {
       }
       final long startTime = System.nanoTime();
       final long prevGcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
-      final StepResult epoch = runStep(currentPoint, phase);
+      final @NotNull StepResult epoch = runStep(currentPoint, phase);
       final long newGcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
       final long endTime = System.nanoTime();
       final String performance = String.format("%s in %.3f seconds; %.3f in orientation, %.3f in gc, %.3f in line search; %.3f trainAll time",
@@ -696,9 +697,9 @@ public class ValidatingTrainer {
    * @param phase         the phase
    * @return the runStep result
    */
-  protected StepResult runStep(final PointSample previousPoint, final TrainingPhase phase) {
+  protected @NotNull StepResult runStep(final @NotNull PointSample previousPoint, final @NotNull TrainingPhase phase) {
     currentIteration.incrementAndGet();
-    final TimedResult<LineSearchCursor> timedOrientation = TimedResult.time(() -> phase.orientation.orient(phase.trainingSubject, previousPoint, monitor));
+    final @NotNull TimedResult<LineSearchCursor> timedOrientation = TimedResult.time(() -> phase.orientation.orient(phase.trainingSubject, previousPoint, monitor));
     final LineSearchCursor direction = timedOrientation.result;
     final String directionType = direction.getDirectionType();
     LineSearchStrategy lineSearchStrategy;
@@ -710,8 +711,8 @@ public class ValidatingTrainer {
       lineSearchStrategy = phase.lineSearchFactory.apply(direction.getDirectionType());
       phase.lineSearchStrategyMap.put(directionType, lineSearchStrategy);
     }
-    final TimedResult<PointSample> timedLineSearch = TimedResult.time(() -> {
-      final FailsafeLineSearchCursor cursor = new FailsafeLineSearchCursor(direction, previousPoint, monitor);
+    final @NotNull TimedResult<PointSample> timedLineSearch = TimedResult.time(() -> {
+      final @NotNull FailsafeLineSearchCursor cursor = new FailsafeLineSearchCursor(direction, previousPoint, monitor);
       lineSearchStrategy.step(cursor, monitor);
       final PointSample restore = cursor.getBest(monitor).restore();
       //cursor.step(restore.rate, monitor);
@@ -732,7 +733,7 @@ public class ValidatingTrainer {
    * @return the line search factory
    */
   @Deprecated
-  public ValidatingTrainer setLineSearchFactory(final Function<String, LineSearchStrategy> lineSearchFactory) {
+  public @NotNull ValidatingTrainer setLineSearchFactory(final Function<String, LineSearchStrategy> lineSearchFactory) {
     getRegimen().get(0).setLineSearchFactory(lineSearchFactory);
     return this;
   }
@@ -744,7 +745,7 @@ public class ValidatingTrainer {
    * @return the orientation
    */
   @Deprecated
-  public ValidatingTrainer setOrientation(final OrientationStrategy<?> orientation) {
+  public @NotNull ValidatingTrainer setOrientation(final OrientationStrategy<?> orientation) {
     getRegimen().get(0).setOrientation(orientation);
     return this;
   }
@@ -756,7 +757,7 @@ public class ValidatingTrainer {
    * @param units  the units
    * @return the timeout
    */
-  public ValidatingTrainer setTimeout(final int number, final TemporalUnit units) {
+  public @NotNull ValidatingTrainer setTimeout(final int number, final @NotNull TemporalUnit units) {
     timeout = Duration.of(number, units);
     return this;
   }
@@ -768,7 +769,7 @@ public class ValidatingTrainer {
    * @param units  the units
    * @return the timeout
    */
-  public ValidatingTrainer setTimeout(final int number, final TimeUnit units) {
+  public @NotNull ValidatingTrainer setTimeout(final int number, final @NotNull TimeUnit units) {
     return setTimeout(number, Util.cvt(units));
   }
   
@@ -779,7 +780,7 @@ public class ValidatingTrainer {
    * @param timeoutMs the timeout ms
    * @return the boolean
    */
-  protected boolean shouldHalt(final TrainingMonitor monitor, final long timeoutMs) {
+  protected boolean shouldHalt(final @NotNull TrainingMonitor monitor, final long timeoutMs) {
     System.currentTimeMillis();
     if (timeoutMs < System.currentTimeMillis()) {
       monitor.log("Training timeout");
@@ -891,7 +892,7 @@ public class ValidatingTrainer {
      * @param lineSearchFactory the line search factory
      * @return the line search factory
      */
-    public TrainingPhase setLineSearchFactory(final Function<String, LineSearchStrategy> lineSearchFactory) {
+    public @NotNull TrainingPhase setLineSearchFactory(final Function<String, LineSearchStrategy> lineSearchFactory) {
       this.lineSearchFactory = lineSearchFactory;
       return this;
     }
@@ -911,7 +912,7 @@ public class ValidatingTrainer {
      * @param lineSearchStrategyMap the line search strategy map
      * @return the line search strategy map
      */
-    public TrainingPhase setLineSearchStrategyMap(final Map<String, LineSearchStrategy> lineSearchStrategyMap) {
+    public @NotNull TrainingPhase setLineSearchStrategyMap(final Map<String, LineSearchStrategy> lineSearchStrategyMap) {
       this.lineSearchStrategyMap = lineSearchStrategyMap;
       return this;
     }
@@ -931,7 +932,7 @@ public class ValidatingTrainer {
      * @param orientation the orientation
      * @return the orientation
      */
-    public TrainingPhase setOrientation(final OrientationStrategy<?> orientation) {
+    public @NotNull TrainingPhase setOrientation(final OrientationStrategy<?> orientation) {
       this.orientation = orientation;
       return this;
     }
@@ -951,13 +952,13 @@ public class ValidatingTrainer {
      * @param trainingSubject the training subject
      * @return the training subject
      */
-    public TrainingPhase setTrainingSubject(final SampledTrainable trainingSubject) {
+    public @NotNull TrainingPhase setTrainingSubject(final SampledTrainable trainingSubject) {
       this.trainingSubject = trainingSubject;
       return this;
     }
   
     @Override
-    public String toString() {
+    public @NotNull String toString() {
       return "TrainingPhase{" +
         "trainingSubject=" + trainingSubject +
         ", orientation=" + orientation +
@@ -977,7 +978,7 @@ public class ValidatingTrainer {
     }
     
     @Override
-    public SampledCachedTrainable<? extends SampledTrainable> cached() {
+    public @NotNull SampledCachedTrainable<? extends SampledTrainable> cached() {
       return new SampledCachedTrainable<>(this);
     }
     
@@ -988,15 +989,15 @@ public class ValidatingTrainer {
     
     @Override
     public PointSample measure(final TrainingMonitor monitor) {
-      final TimedResult<PointSample> time = TimedResult.time(() ->
+      final @NotNull TimedResult<PointSample> time = TimedResult.time(() ->
                                                                getInner().measure(monitor)
-                                                            );
+                                                                     );
       trainingMeasurementTime.addAndGet(time.timeNanos);
       return time.result;
     }
     
     @Override
-    public SampledTrainable setTrainingSize(final int trainingSize) {
+    public @NotNull SampledTrainable setTrainingSize(final int trainingSize) {
       getInner().setTrainingSize(trainingSize);
       return this;
     }

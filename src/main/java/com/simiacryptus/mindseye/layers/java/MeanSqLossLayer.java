@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +52,7 @@ public class MeanSqLossLayer extends NNLayer {
    *
    * @param id the id
    */
-  protected MeanSqLossLayer(final JsonObject id) {
+  protected MeanSqLossLayer(final @NotNull JsonObject id) {
     super(id);
   }
   
@@ -61,12 +63,12 @@ public class MeanSqLossLayer extends NNLayer {
    * @param rs   the rs
    * @return the mean sq loss layer
    */
-  public static MeanSqLossLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static MeanSqLossLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new MeanSqLossLayer(json);
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public @NotNull NNResult eval(final @NotNull NNResult... inObj) {
     if (2 != inObj.length) throw new IllegalArgumentException();
     final int leftLength = inObj[0].getData().length();
     final int rightLength = inObj[1].getData().length();
@@ -74,45 +76,45 @@ public class MeanSqLossLayer extends NNLayer {
     if (leftLength != rightLength && leftLength != 1 && rightLength != 1) {
       throw new IllegalArgumentException(leftLength + " != " + rightLength);
     }
-    final Tensor diffs[] = new Tensor[leftLength];
+    final @NotNull Tensor diffs[] = new Tensor[leftLength];
     return new NNResult(TensorArray.wrap(IntStream.range(0, leftLength).mapToObj(dataIndex -> {
       final Tensor a = inObj[0].getData().get(1 == leftLength ? 0 : dataIndex);
       final Tensor b = inObj[1].getData().get(1 == rightLength ? 0 : dataIndex);
       if (a.dim() != b.dim()) {
         throw new IllegalArgumentException(String.format("%s != %s", Arrays.toString(a.getDimensions()), Arrays.toString(b.getDimensions())));
       }
-      final Tensor r = a.minus(b);
+      final @NotNull Tensor r = a.minus(b);
       a.freeRef();
       b.freeRef();
       diffs[dataIndex] = r;
-      Tensor statsTensor = new Tensor(new double[]{r.sumSq() / r.dim()}, 1);
+      @NotNull Tensor statsTensor = new Tensor(new double[]{r.sumSq() / r.dim()}, 1);
       return statsTensor;
-    }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
       if (inObj[0].isAlive()) {
         Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
           Tensor tensor = data.get(dataIndex);
-          Tensor scale = diffs[dataIndex].scale(tensor.get(0) * 2.0 / diffs[dataIndex].dim());
+          @Nullable Tensor scale = diffs[dataIndex].scale(tensor.get(0) * 2.0 / diffs[dataIndex].dim());
           tensor.freeRef();
           return scale;
         });
         if (1 == leftLength) {
           tensorStream = Stream.of(tensorStream.reduce((a, b) -> a.add(b)).get());
         }
-        final TensorList array = TensorArray.wrap(tensorStream.toArray(i -> new Tensor[i]));
+        final @NotNull TensorList array = TensorArray.wrap(tensorStream.toArray(i -> new Tensor[i]));
         inObj[0].accumulate(buffer, array);
         array.freeRef();
       }
       if (inObj[1].isAlive()) {
         Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
           Tensor tensor = data.get(dataIndex);
-          Tensor scale = diffs[dataIndex].scale(tensor.get(0) * 2.0 / diffs[dataIndex].dim());
+          @Nullable Tensor scale = diffs[dataIndex].scale(tensor.get(0) * 2.0 / diffs[dataIndex].dim());
           tensor.freeRef();
           return scale;
         });
         if (1 == rightLength) {
           tensorStream = Stream.of(tensorStream.reduce((a, b) -> a.add(b)).get());
         }
-        final TensorList array = TensorArray.wrap(tensorStream.map(x -> x.scale(-1)).toArray(i -> new Tensor[i]));
+        final @NotNull TensorList array = TensorArray.wrap(tensorStream.map(x -> x.scale(-1)).toArray(i -> new Tensor[i]));
         inObj[1].accumulate(buffer, array);
         array.freeRef();
       }
@@ -133,12 +135,12 @@ public class MeanSqLossLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList();
   }
 }

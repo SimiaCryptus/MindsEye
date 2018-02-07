@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.lang;
 
 import com.simiacryptus.util.test.TestCategories;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
@@ -106,7 +107,7 @@ public class DataSerializerTest {
    *
    * @param target the target
    */
-  public void test(DataSerializer target) {
+  public void test(@NotNull DataSerializer target) {
     test(target, this::random1, "Uniform");
     test(target, this::random2, "Exponential");
   }
@@ -118,16 +119,16 @@ public class DataSerializerTest {
    * @param f      the f
    * @param name   the name
    */
-  public void test(DataSerializer target, DoubleSupplier f, String name) {
-    double[] source = random(1024, f);
-    double[] result = target.fromBytes(target.toBytes(source));
+  public void test(@NotNull DataSerializer target, @NotNull DoubleSupplier f, String name) {
+    @NotNull double[] source = random(1024, f);
+    @NotNull double[] result = target.fromBytes(target.toBytes(source));
     double rms = IntStream.range(0, source.length).mapToDouble(i -> (source[i] - result[i]) / (source[i] + result[i])).map(x -> x * x).average().getAsDouble();
     log.info(String.format("%s RMS: %s", name, rms));
     //assert rms < 1e-4;
   }
   
-  private double[] random(int i, DoubleSupplier f) {
-    double[] doubles = new double[i];
+  private @NotNull double[] random(int i, @NotNull DoubleSupplier f) {
+    @NotNull double[] doubles = new double[i];
     Arrays.parallelSetAll(doubles, j -> f.getAsDouble());
     return doubles;
   }

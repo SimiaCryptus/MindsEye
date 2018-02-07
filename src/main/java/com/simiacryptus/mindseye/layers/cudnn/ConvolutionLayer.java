@@ -25,6 +25,8 @@ import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,18 +35,20 @@ import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
 /**
- * This is the general convolution layer, allowing any number of input and output bands at high scale. It implements an explosion operation to produce a convolution network whose components have a managabe size and the same overall function.
+ * This is the general convolution layer, allowing any number of input and output bands at high scale. It implements an
+ * explosion operation to produce a convolution network whose components have a managabe size and the same overall
+ * function.
  */
 @SuppressWarnings("serial")
 public class ConvolutionLayer extends NNLayer implements MultiPrecision<ConvolutionLayer>, Explodable {
   
-  private final Tensor kernel;
+  private final @Nullable Tensor kernel;
   private final int inputBands;
   private final int outputBands;
   private int strideX = 1;
   private int strideY = 1;
-  private Integer paddingX = null;
-  private Integer paddingY = null;
+  private @Nullable Integer paddingX = null;
+  private @Nullable Integer paddingY = null;
   private Precision precision = Precision.Double;
   private int batchBands = 128;
   
@@ -81,7 +85,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    * @param json      the json
    * @param resources the resources
    */
-  protected ConvolutionLayer(final JsonObject json, Map<String, byte[]> resources) {
+  protected ConvolutionLayer(final @NotNull JsonObject json, Map<String, byte[]> resources) {
     super(json);
     this.kernel = Tensor.fromJson(json.get("filter"), resources);
     assert getKernel().isValid();
@@ -103,7 +107,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    * @param f    the f
    * @param data the data
    */
-  public static void add(final DoubleSupplier f, final double[] data) {
+  public static void add(final @NotNull DoubleSupplier f, final @NotNull double[] data) {
     for (int i = 0; i < data.length; i++) {
       data[i] += f.getAsDouble();
     }
@@ -116,7 +120,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    * @param rs   the rs
    * @return the convolution layer
    */
-  public static ConvolutionLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static ConvolutionLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new ConvolutionLayer(json, rs);
   }
   
@@ -126,7 +130,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    * @param f the f
    * @return the convolution layer
    */
-  public ConvolutionLayer addWeights(final DoubleSupplier f) {
+  public @NotNull ConvolutionLayer addWeights(final @NotNull DoubleSupplier f) {
     ConvolutionLayer.add(f, getKernel().getData());
     return this;
   }
@@ -136,7 +140,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    *
    * @return the compatibility layer
    */
-  public NNLayer getCompatibilityLayer() {
+  public @NotNull NNLayer getCompatibilityLayer() {
     return this.as(com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class);
   }
   
@@ -164,12 +168,12 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    *
    * @return the convolution params
    */
-  public ConvolutionParams getConvolutionParams() {
+  public @NotNull ConvolutionParams getConvolutionParams() {
     return new ConvolutionParams(inputBands, outputBands, precision, strideX, strideY, paddingX, paddingY, kernel.getDimensions());
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(final @NotNull NNResult... inObj) {
     assert getKernel().isValid();
     assert 1 == inObj.length;
     assert 3 == inObj[0].getData().getDimensions().length;
@@ -185,7 +189,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
     assert inObj[0].getData().length() == resultData.length();
     assert 3 == resultData.getDimensions().length;
     assert outputBands == resultData.getDimensions()[2];
-    return new NNResult(resultData, (final DeltaSet<NNLayer> deltaSet, final TensorList data) -> {
+    return new NNResult(resultData, (final @NotNull DeltaSet<NNLayer> deltaSet, final @NotNull TensorList data) -> {
       result.accumulate(deltaSet, data);
       if (!isFrozen()) {
         deltaSet.get(ConvolutionLayer.this, getKernel().getData()).addInPlace(grid.read(deltaSet, true).getData());
@@ -205,8 +209,8 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final JsonObject json = super.getJsonStub();
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, @NotNull DataSerializer dataSerializer) {
+    final @NotNull JsonObject json = super.getJsonStub();
     json.add("filter", getKernel().toJson(resources, dataSerializer));
     json.addProperty("batchBands", getBatchBands());
     json.addProperty("strideX", getStrideX());
@@ -225,7 +229,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
   }
   
   @Override
-  public ConvolutionLayer setPrecision(final Precision precision) {
+  public @NotNull ConvolutionLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
@@ -236,7 +240,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    * @param f the f
    * @return the weights
    */
-  public ConvolutionLayer set(final DoubleSupplier f) {
+  public @NotNull ConvolutionLayer set(final @NotNull DoubleSupplier f) {
     return set(i -> f.getAsDouble());
   }
   
@@ -246,7 +250,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    * @param tensor the tensor
    * @return the convolution layer
    */
-  public ConvolutionLayer set(final Tensor tensor) {
+  public @NotNull ConvolutionLayer set(final @NotNull Tensor tensor) {
     getKernel().set(tensor);
     return this;
   }
@@ -257,13 +261,13 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    * @param f the f
    * @return the convolution layer
    */
-  public ConvolutionLayer set(final IntToDoubleFunction f) {
+  public @NotNull ConvolutionLayer set(final @NotNull IntToDoubleFunction f) {
     getKernel().set(f);
     return this;
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList(getKernel().getData());
   }
   
@@ -282,7 +286,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    * @param strideX the stride x
    * @return the stride x
    */
-  public ConvolutionLayer setStrideX(int strideX) {
+  public @NotNull ConvolutionLayer setStrideX(int strideX) {
     this.strideX = strideX;
     return this;
   }
@@ -302,7 +306,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    * @param strideY the stride y
    * @return the stride y
    */
-  public ConvolutionLayer setStrideY(int strideY) {
+  public @NotNull ConvolutionLayer setStrideY(int strideY) {
     this.strideY = strideY;
     return this;
   }
@@ -313,7 +317,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    * @param f the f
    * @return the weights log
    */
-  public ConvolutionLayer setWeightsLog(double f) {
+  public @NotNull ConvolutionLayer setWeightsLog(double f) {
     return set(() -> Math.pow(10, f) * (Math.random() - 0.5));
   }
   
@@ -324,7 +328,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    * @param y the y
    * @return the stride xy
    */
-  public ConvolutionLayer setStrideXY(int x, int y) {
+  public @NotNull ConvolutionLayer setStrideXY(int x, int y) {
     return setStrideX(x).setStrideY(y);
   }
   
@@ -335,7 +339,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    * @param y the y
    * @return the padding xy
    */
-  public ConvolutionLayer setPaddingXY(Integer x, Integer y) {
+  public @NotNull ConvolutionLayer setPaddingXY(Integer x, Integer y) {
     return setPaddingX(x).setPaddingY(y);
   }
   
@@ -344,7 +348,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    *
    * @return the padding x
    */
-  public Integer getPaddingX() {
+  public @Nullable Integer getPaddingX() {
     return paddingX;
   }
   
@@ -354,7 +358,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    * @param paddingX the padding x
    * @return the padding x
    */
-  public ConvolutionLayer setPaddingX(Integer paddingX) {
+  public @NotNull ConvolutionLayer setPaddingX(Integer paddingX) {
     this.paddingX = paddingX;
     return this;
   }
@@ -364,7 +368,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    *
    * @return the padding y
    */
-  public Integer getPaddingY() {
+  public @Nullable Integer getPaddingY() {
     return paddingY;
   }
   
@@ -374,7 +378,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    * @param paddingY the padding y
    * @return the padding y
    */
-  public ConvolutionLayer setPaddingY(Integer paddingY) {
+  public @NotNull ConvolutionLayer setPaddingY(Integer paddingY) {
     this.paddingY = paddingY;
     return this;
   }
@@ -384,7 +388,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    *
    * @return the kernel
    */
-  public Tensor getKernel() {
+  public @Nullable Tensor getKernel() {
     return kernel;
   }
   
@@ -404,7 +408,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    * @param batchBands the batch bands
    * @return the batch bands
    */
-  public ConvolutionLayer setBatchBands(int batchBands) {
+  public @NotNull ConvolutionLayer setBatchBands(int batchBands) {
     this.batchBands = batchBands;
     return this;
   }

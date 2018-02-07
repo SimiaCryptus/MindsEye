@@ -29,6 +29,8 @@ import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -48,12 +50,12 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
    */
   public static final String CURSOR_LABEL = "RecursiveSubspace";
   private int iterations = 4;
-  private double[] weights = null;
+  private @Nullable double[] weights = null;
   
   @Override
-  public SimpleLineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
+  public @NotNull SimpleLineSearchCursor orient(@NotNull Trainable subject, @NotNull PointSample measurement, @NotNull TrainingMonitor monitor) {
     PointSample origin = measurement.copyFull().backup();
-    NNLayer macroLayer = buildSubspace(subject, measurement, monitor);
+    @Nullable NNLayer macroLayer = buildSubspace(subject, measurement, monitor);
     train(monitor, macroLayer);
     NNResult eval = macroLayer.eval((NNResult) null);
     macroLayer.freeRef();
@@ -63,7 +65,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
     DeltaSet<NNLayer> delta = backupCopy.subtract(origin.weights);
     backupCopy.freeRef();
     origin.restore();
-    SimpleLineSearchCursor simpleLineSearchCursor = new SimpleLineSearchCursor(subject, origin, delta);
+    @NotNull SimpleLineSearchCursor simpleLineSearchCursor = new SimpleLineSearchCursor(subject, origin, delta);
     delta.freeRef();
     origin.freeRef();
     return simpleLineSearchCursor.setDirectionType(CURSOR_LABEL);
@@ -77,7 +79,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
    * @param monitor     the monitor
    * @return the nn layer
    */
-  public NNLayer buildSubspace(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
+  public @Nullable NNLayer buildSubspace(@NotNull Trainable subject, @NotNull PointSample measurement, @NotNull TrainingMonitor monitor) {
     PointSample origin = measurement.copyFull().backup();
     final DeltaSet<NNLayer> direction = measurement.delta.scale(-1);
     final double magnitude = direction.getMagnitude();
@@ -95,10 +97,10 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
     int size = deltaLayers.size() + (hasPlaceholders ? 1 : 0);
     if (null == weights || weights.length != size) weights = new double[size];
     return new NNLayer() {
-      NNLayer self = this;
+      @NotNull NNLayer self = this;
       
       @Override
-      public NNResult eval(NNResult... array) {
+      public @NotNull NNResult eval(NNResult... array) {
         assertAlive();
         origin.restore();
         IntStream.range(0, deltaLayers.size()).forEach(i -> {
@@ -150,12 +152,12 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
       }
   
       @Override
-      public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+      public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
         throw new IllegalStateException();
       }
       
       @Override
-      public List<double[]> state() {
+      public @Nullable List<double[]> state() {
         return null;
       }
     };
@@ -167,10 +169,10 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
    * @param monitor    the monitor
    * @param macroLayer the macro layer
    */
-  public void train(TrainingMonitor monitor, NNLayer macroLayer) {
-    BasicTrainable inner = new BasicTrainable(macroLayer);
-    Tensor tensor = new Tensor();
-    ArrayTrainable trainable = new ArrayTrainable(inner, new Tensor[][]{{tensor}});
+  public void train(@NotNull TrainingMonitor monitor, NNLayer macroLayer) {
+    @NotNull BasicTrainable inner = new BasicTrainable(macroLayer);
+    @NotNull Tensor tensor = new Tensor();
+    @NotNull ArrayTrainable trainable = new ArrayTrainable(inner, new Tensor[][]{{tensor}});
     inner.freeRef();
     tensor.freeRef();
     new IterativeTrainer(trainable)
@@ -208,7 +210,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
    * @param iterations the iterations
    * @return the iterations
    */
-  public RecursiveSubspace setIterations(int iterations) {
+  public @NotNull RecursiveSubspace setIterations(int iterations) {
     this.iterations = iterations;
     return this;
   }

@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnDataType;
+import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
@@ -62,7 +63,7 @@ public enum Precision {
    * @param data the data
    * @return the double [ ]
    */
-  public static double[] getDoubles(final float[] data) {
+  public static double[] getDoubles(final @NotNull float[] data) {
     return copy(data, new double[data.length]);
   }
   
@@ -73,7 +74,7 @@ public enum Precision {
    * @param doubles the doubles
    * @return the double [ ]
    */
-  public static double[] copy(float[] from, double[] doubles) {
+  public static double[] copy(@NotNull float[] from, double[] doubles) {
     for (int i = 0; i < from.length; i++) {
       doubles[i] = from[i];
     }
@@ -86,7 +87,7 @@ public enum Precision {
    * @param data the data
    * @return the float [ ]
    */
-  public static float[] getFloats(final double[] data) {
+  public static float[] getFloats(final @NotNull double[] data) {
     return copy(data, new float[data.length]);
   }
   
@@ -97,7 +98,7 @@ public enum Precision {
    * @param to   the to
    * @return the float [ ]
    */
-  public static float[] copy(double[] from, float[] to) {
+  public static float[] copy(@NotNull double[] from, float[] to) {
     for (int i = 0; i < from.length; i++) {
       to[i] = (float) from[i];
     }
@@ -111,7 +112,7 @@ public enum Precision {
    * @param to        the to
    * @param precision the precision
    */
-  public static void copy(double[] from, byte[] to, Precision precision) {
+  public static void copy(@NotNull double[] from, @NotNull byte[] to, Precision precision) {
     if (precision == Float) copyFloats(from, to);
     else if (precision == Double) copyDoubles(from, to);
     else throw new RuntimeException();
@@ -124,7 +125,7 @@ public enum Precision {
    * @param to        the to
    * @param precision the precision
    */
-  public static void copy(byte[] from, double[] to, Precision precision) {
+  public static void copy(@NotNull byte[] from, @NotNull double[] to, Precision precision) {
     if (precision == Float) copyFloats(from, to);
     else if (precision == Double) copyDoubles(from, to);
     else throw new RuntimeException();
@@ -136,9 +137,9 @@ public enum Precision {
    * @param from the from
    * @param to   the to
    */
-  public static void copyDoubles(double[] from, byte[] to) {
-    DoubleBuffer inBuffer = DoubleBuffer.wrap(from);
-    DoubleBuffer outBuffer = ByteBuffer.wrap(to).asDoubleBuffer();
+  public static void copyDoubles(@NotNull double[] from, @NotNull byte[] to) {
+    @NotNull DoubleBuffer inBuffer = DoubleBuffer.wrap(from);
+    @NotNull DoubleBuffer outBuffer = ByteBuffer.wrap(to).asDoubleBuffer();
     while (inBuffer.hasRemaining()) {
       outBuffer.put(inBuffer.get());
     }
@@ -150,9 +151,9 @@ public enum Precision {
    * @param from the from
    * @param to   the to
    */
-  public static void copyDoubles(byte[] from, double[] to) {
-    DoubleBuffer inBuffer = ByteBuffer.wrap(from).asDoubleBuffer();
-    DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
+  public static void copyDoubles(@NotNull byte[] from, @NotNull double[] to) {
+    @NotNull DoubleBuffer inBuffer = ByteBuffer.wrap(from).asDoubleBuffer();
+    @NotNull DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
     while (inBuffer.hasRemaining()) {
       outBuffer.put(inBuffer.get());
     }
@@ -164,9 +165,9 @@ public enum Precision {
    * @param from the from
    * @param to   the to
    */
-  public static void copyFloats(double[] from, byte[] to) {
-    DoubleBuffer inBuffer = DoubleBuffer.wrap(from);
-    FloatBuffer outBuffer = ByteBuffer.wrap(to).asFloatBuffer();
+  public static void copyFloats(@NotNull double[] from, @NotNull byte[] to) {
+    @NotNull DoubleBuffer inBuffer = DoubleBuffer.wrap(from);
+    @NotNull FloatBuffer outBuffer = ByteBuffer.wrap(to).asFloatBuffer();
     while (inBuffer.hasRemaining()) {
       outBuffer.put((float) inBuffer.get());
     }
@@ -178,9 +179,9 @@ public enum Precision {
    * @param from the from
    * @param to   the to
    */
-  public static void copyFloats(byte[] from, double[] to) {
-    FloatBuffer inBuffer = ByteBuffer.wrap(from).asFloatBuffer();
-    DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
+  public static void copyFloats(@NotNull byte[] from, @NotNull double[] to) {
+    @NotNull FloatBuffer inBuffer = ByteBuffer.wrap(from).asFloatBuffer();
+    @NotNull DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
     while (inBuffer.hasRemaining()) {
       outBuffer.put(inBuffer.get());
     }
@@ -191,7 +192,7 @@ public enum Precision {
    *
    * @return the compatibility layer
    */
-  public NNLayer getCompatibilityLayer() {
+  public @NotNull NNLayer getCompatibilityLayer() {
     throw new RuntimeException("Not Implemented");
   }
   
@@ -201,7 +202,7 @@ public enum Precision {
    * @param data the data
    * @return the pointer
    */
-  public Pointer getPointer(final double... data) {
+  public Pointer getPointer(final @NotNull double... data) {
     switch (this) {
       case Float:
         return Pointer.to(Precision.getFloats(data));
@@ -218,7 +219,7 @@ public enum Precision {
    * @param data the data
    * @return the pointer
    */
-  public Pointer getPointer(final float... data) {
+  public Pointer getPointer(final @NotNull float... data) {
     switch (this) {
       case Float:
         return Pointer.to(data);

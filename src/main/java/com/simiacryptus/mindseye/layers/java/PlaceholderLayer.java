@@ -24,6 +24,8 @@ import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -36,14 +38,14 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public final class PlaceholderLayer<T> extends NNLayer {
   
-  private final T key;
+  private final @Nullable T key;
   
   /**
    * Instantiates a new Placeholder layer.
    *
    * @param key the key
    */
-  public PlaceholderLayer(final T key) {
+  public PlaceholderLayer(final @Nullable T key) {
     if (null == key) throw new UnsupportedOperationException();
     this.key = key;
     if (this.getKey() instanceof ReferenceCounting) {
@@ -53,22 +55,22 @@ public final class PlaceholderLayer<T> extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNResult... array) {
+  public @NotNull NNResult eval(final NNResult... array) {
     throw new UnsupportedOperationException();
   }
   
   @Override
-  public Object getId() {
+  public @Nullable Object getId() {
     return this.getKey();
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     throw new UnsupportedOperationException();
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     throw new UnsupportedOperationException();
   }
   
@@ -80,7 +82,12 @@ public final class PlaceholderLayer<T> extends NNLayer {
     super._free();
   }
   
-  public T getKey() {
+  /**
+   * Gets key.
+   *
+   * @return the key
+   */
+  public @Nullable T getKey() {
     return key;
   }
 }

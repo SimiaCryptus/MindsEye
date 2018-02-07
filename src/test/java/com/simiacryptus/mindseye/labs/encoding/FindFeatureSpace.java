@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.labs.encoding;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.stream.Stream;
 
@@ -86,5 +87,5 @@ public abstract class FindFeatureSpace {
    *
    * @return the find feature space
    */
-  public abstract FindFeatureSpace invoke();
+  public abstract @NotNull FindFeatureSpace invoke();
 }

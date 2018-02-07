@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,7 +48,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
    *
    * @param toCopy the to copy
    */
-  public StateSet(final DeltaSet<K> toCopy) {
+  public StateSet(final @NotNull DeltaSet<K> toCopy) {
     assert toCopy.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite));
     toCopy.getMap().forEach((layer, layerDelta) -> {
       this.get(layer, layerDelta.target).backup().freeRef();
@@ -82,13 +84,13 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
    * @param right the right
    * @return the state setByCoord
    */
-  public static <K extends ReferenceCounting> StateSet<K> union(final DoubleBufferSet<K, State<K>> left, final DoubleBufferSet<K, State<K>> right) {
+  public static <K extends ReferenceCounting> StateSet<K> union(final @NotNull DoubleBufferSet<K, State<K>> left, final @NotNull DoubleBufferSet<K, State<K>> right) {
     final Map<K, State<K>> collect = Stream.concat(
       left.map.entrySet().stream(),
       right.map.entrySet().stream()
-                                                  ).collect(Collectors.groupingBy((final Map.Entry<K, State<K>> e1) -> e1.getKey(),
-                                                                                  Collectors.mapping((final Map.Entry<K, State<K>> x) -> x.getValue(), Collectors.collectingAndThen(
-                                                                                    Collectors.reducing((final State<K> a, final State<K> b) -> {
+                                                  ).collect(Collectors.groupingBy((final @NotNull Map.Entry<K, State<K>> e1) -> e1.getKey(),
+                                                                                  Collectors.mapping((final @NotNull Map.Entry<K, State<K>> x) -> x.getValue(), Collectors.collectingAndThen(
+                                                                                    Collectors.reducing((final @NotNull State<K> a, final @NotNull State<K> b) -> {
                                                                                       assert a.target == b.target;
                                                                                       assert a.layer.equals(b.layer);
                                                                                       return a;
@@ -102,15 +104,15 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
    * @param right the right
    * @return the delta setByCoord
    */
-  public StateSet<K> add(final DeltaSet<K> right) {
-    final DeltaSet<K> deltas = new DeltaSet<K>();
-    map.forEach(100, (final K layer, final State<K> buffer) -> {
+  public @NotNull StateSet<K> add(final @NotNull DeltaSet<K> right) {
+    final @NotNull DeltaSet<K> deltas = new DeltaSet<K>();
+    map.forEach(100, (final @NotNull K layer, final @NotNull State<K> buffer) -> {
       deltas.get(layer, buffer.target).set(buffer.getDelta()).freeRef();
     });
-    right.map.forEach(100, (final K layer, final Delta<K> buffer) -> {
+    right.map.forEach(100, (final @NotNull K layer, final @NotNull Delta<K> buffer) -> {
       deltas.get(layer, buffer.target).addInPlace(buffer.getDelta()).freeRef();
     });
-    StateSet<K> kStateSet = deltas.asState();
+    @NotNull StateSet<K> kStateSet = deltas.asState();
     deltas.freeRef();
     return kStateSet;
   }
@@ -120,16 +122,16 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
    *
    * @return the delta setByCoord
    */
-  public DeltaSet<K> asVector() {
-    final HashMap<K, Delta<K>> newMap = new HashMap<>();
+  public @NotNull DeltaSet<K> asVector() {
+    final @NotNull HashMap<K, Delta<K>> newMap = new HashMap<>();
     map.forEach((layer, state) -> newMap.put(layer, new Delta<K>(layer, state.target, RecycleBin.DOUBLES.copyOf(state.delta, state.delta.length))));
-    DeltaSet<K> deltaSet = new DeltaSet<>(newMap);
+    @NotNull DeltaSet<K> deltaSet = new DeltaSet<>(newMap);
     newMap.values().forEach(v -> v.freeRef());
     return deltaSet;
   }
   
   @Override
-  public StateSet<K> copy() {
+  public @NotNull StateSet<K> copy() {
     return map(x -> x.copy());
   }
   
@@ -138,7 +140,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
    *
    * @return the state setBytes
    */
-  public StateSet<K> backupCopy() {
+  public @NotNull StateSet<K> backupCopy() {
     return map(l -> l.backupCopy());
   }
   
@@ -147,7 +149,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
    *
    * @return the state setBytes
    */
-  public StateSet<K> backup() {
+  public @NotNull StateSet<K> backup() {
     Stream<Map.Entry<K, State<K>>> stream = map.entrySet().stream();
     if (map.size() > 100) {
       stream = stream.parallel();
@@ -161,7 +163,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
    *
    * @return the state setBytes
    */
-  public StateSet<K> restore() {
+  public @NotNull StateSet<K> restore() {
     Stream<Map.Entry<K, State<K>>> stream = map.entrySet().stream();
     if (map.size() > 100) {
       stream = stream.parallel();
@@ -171,7 +173,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
   }
   
   @Override
-  protected State<K> factory(final K layer, final double[] target) {
+  protected @NotNull State<K> factory(final K layer, final double[] target) {
     return new State<K>(layer, target);
   }
   
@@ -185,13 +187,13 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
   }
   
   @Override
-  public StateSet<K> map(final Function<State<K>, State<K>> mapper) {
+  public @NotNull StateSet<K> map(final @NotNull Function<State<K>, State<K>> mapper) {
     Stream<Map.Entry<K, State<K>>> stream = map.entrySet().stream();
     if (map.size() > 100) {
       stream = stream.parallel();
     }
     final Map<K, State<K>> newMap = stream.collect(Collectors.toMap(e -> e.getKey(), e -> mapper.apply(e.getValue())));
-    StateSet<K> kStateSet = new StateSet<>(newMap);
+    @NotNull StateSet<K> kStateSet = new StateSet<>(newMap);
     newMap.values().forEach(x -> x.freeRef());
     return kStateSet;
   }
@@ -202,7 +204,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
    * @param right the right
    * @return the delta setByCoord
    */
-  public StateSet<K> subtract(final DeltaSet<K> right) {
+  public @NotNull StateSet<K> subtract(final @NotNull DeltaSet<K> right) {
     return this.add(right.scale(-1));
   }
   
@@ -212,13 +214,13 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
    * @param right the right
    * @return the delta setByCoord
    */
-  public DeltaSet<K> subtract(final StateSet<K> right) {
-    DeltaSet<K> rvec = right.asVector();
-    DeltaSet<K> scale = rvec.scale(-1);
+  public @NotNull DeltaSet<K> subtract(final @NotNull StateSet<K> right) {
+    @NotNull DeltaSet<K> rvec = right.asVector();
+    @NotNull DeltaSet<K> scale = rvec.scale(-1);
     rvec.freeRef();
-    StateSet<K> add = this.add(scale);
+    @NotNull StateSet<K> add = this.add(scale);
     scale.freeRef();
-    DeltaSet<K> addVector = add.asVector();
+    @NotNull DeltaSet<K> addVector = add.asVector();
     add.freeRef();
     return addVector;
   }
@@ -230,7 +232,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
    * @param right the right
    * @return the delta setByCoord
    */
-  public DoubleBufferSet<K, State<K>> union(final DoubleBufferSet<K, State<K>> right) {
+  public @NotNull DoubleBufferSet<K, State<K>> union(final @NotNull DoubleBufferSet<K, State<K>> right) {
     return StateSet.union(this, right);
   }
 }

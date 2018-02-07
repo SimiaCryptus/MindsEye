@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
 
@@ -28,9 +29,9 @@ import java.util.Random;
  * The type Fully connected layer eval.
  */
 public abstract class FullyConnectedReferenceLayerTest extends LayerTestBase {
-  private final int[] outputDims;
+  private final @NotNull int[] outputDims;
   private final int[] inputDims;
-  private final FullyConnectedReferenceLayer layer;
+  private final @NotNull FullyConnectedReferenceLayer layer;
   
   
   /**
@@ -39,21 +40,21 @@ public abstract class FullyConnectedReferenceLayerTest extends LayerTestBase {
    * @param inputDims  the input dims
    * @param outputDims the output dims
    */
-  public FullyConnectedReferenceLayerTest(int[] inputDims, int[] outputDims) {
+  public FullyConnectedReferenceLayerTest(int[] inputDims, @NotNull int[] outputDims) {
     this.outputDims = outputDims;
     this.inputDims = inputDims;
     this.layer = new FullyConnectedReferenceLayer(getSmallDims(new Random())[0], outputDims).set(i -> random());
   }
   
   @Override
-  public int[][] getSmallDims(Random random) {
+  public @NotNull int[][] getSmallDims(Random random) {
     return new int[][]{
       inputDims
     };
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize, Random random) {
+  public @NotNull NNLayer getLayer(final int[][] inputSize, Random random) {
     return layer;
   }
   

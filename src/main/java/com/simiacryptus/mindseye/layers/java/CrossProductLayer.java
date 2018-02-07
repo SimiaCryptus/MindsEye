@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -44,7 +46,7 @@ public class CrossProductLayer extends NNLayer {
    *
    * @param id the id
    */
-  protected CrossProductLayer(final JsonObject id) {
+  protected CrossProductLayer(final @NotNull JsonObject id) {
     super(id);
   }
   
@@ -55,7 +57,7 @@ public class CrossProductLayer extends NNLayer {
    * @param rs   the rs
    * @return the cross product layer
    */
-  public static CrossProductLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static CrossProductLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new CrossProductLayer(json);
   }
   
@@ -72,7 +74,7 @@ public class CrossProductLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public @NotNull NNResult eval(final @NotNull NNResult... inObj) {
     assert 1 == inObj.length;
     final NNResult in = inObj[0];
     TensorList indata = in.getData();
@@ -81,26 +83,26 @@ public class CrossProductLayer extends NNLayer {
     return new NNResult(TensorArray.wrap(indata.stream().parallel().map(tensor -> {
       final int inputDim = tensor.dim();
       final int outputDim = (inputDim * inputDim - inputDim) / 2;
-      final Tensor result = new Tensor(outputDim);
-      final double[] inputData = tensor.getData();
-      final double[] resultData = result.getData();
+      final @NotNull Tensor result = new Tensor(outputDim);
+      final @Nullable double[] inputData = tensor.getData();
+      final @Nullable double[] resultData = result.getData();
       IntStream.range(0, inputDim).forEach(x -> {
         IntStream.range(x + 1, inputDim).forEach(y -> {
           resultData[CrossProductLayer.index(x, y, inputDim)] = inputData[x] * inputData[y];
         });
       });
       return result;
-    }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
       if (in.isAlive()) {
         assert data.length() == data.length();
-        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).parallel().mapToObj(batchIndex -> {
+        @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).parallel().mapToObj(batchIndex -> {
           final Tensor tensor = data.get(batchIndex);
           final int outputDim = tensor.dim();
           final int inputDim = (1 + (int) Math.sqrt(1 + 8 * outputDim)) / 2;
-          final Tensor passback = new Tensor(inputDim);
-          final double[] passbackData = passback.getData();
-          final double[] tensorData = tensor.getData();
-          final double[] inputData = indata.get(batchIndex).getData();
+          final @NotNull Tensor passback = new Tensor(inputDim);
+          final @Nullable double[] passbackData = passback.getData();
+          final @Nullable double[] tensorData = tensor.getData();
+          final @Nullable double[] inputData = indata.get(batchIndex).getData();
           IntStream.range(0, inputDim).forEach(x -> {
             IntStream.range(x + 1, inputDim).forEach(y -> {
               passbackData[x] += tensorData[CrossProductLayer.index(x, y, inputDim)] * inputData[y];
@@ -122,7 +124,7 @@ public class CrossProductLayer extends NNLayer {
       
       @Override
       public boolean isAlive() {
-        for (final NNResult element : inObj)
+        for (final @NotNull NNResult element : inObj)
           if (element.isAlive()) {
             return true;
           }
@@ -133,12 +135,12 @@ public class CrossProductLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList();
   }
   

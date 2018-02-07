@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +45,7 @@ public class AvgMetaLayer extends NNLayer {
   /**
    * The Last result.
    */
-  public Tensor lastResult;
+  public @Nullable Tensor lastResult;
   private int minBatchCount = 1;
   
   /**
@@ -58,7 +60,7 @@ public class AvgMetaLayer extends NNLayer {
    * @param json      the json
    * @param resources the resources
    */
-  protected AvgMetaLayer(final JsonObject json, Map<String, byte[]> resources) {
+  protected AvgMetaLayer(final @NotNull JsonObject json, Map<String, byte[]> resources) {
     super(json);
     lastResult = Tensor.fromJson(json.get("lastResult"), resources);
     minBatchCount = json.get("minBatchCount").getAsInt();
@@ -71,18 +73,18 @@ public class AvgMetaLayer extends NNLayer {
    * @param rs   the rs
    * @return the avg meta layer
    */
-  public static AvgMetaLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static AvgMetaLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new AvgMetaLayer(json, rs);
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public @NotNull NNResult eval(final NNResult... inObj) {
     final NNResult input = inObj[0];
     final int itemCnt = input.getData().length();
-    Tensor thisResult;
+    @Nullable Tensor thisResult;
     boolean passback;
     if (null == lastResult || input.getData().length() > minBatchCount) {
-      final ToDoubleFunction<Coordinate> f = (c) ->
+      final @NotNull ToDoubleFunction<Coordinate> f = (c) ->
         IntStream.range(0, itemCnt)
                  .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
                  .sum() / itemCnt;
@@ -94,17 +96,17 @@ public class AvgMetaLayer extends NNLayer {
       passback = false;
       thisResult = lastResult;
     }
-    return new NNResult(TensorArray.create(thisResult), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    return new NNResult(TensorArray.create(thisResult), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
       if (passback && input.isAlive()) {
         final Tensor delta = data.get(0);
-        final Tensor feedback[] = new Tensor[itemCnt];
+        final @NotNull Tensor feedback[] = new Tensor[itemCnt];
         Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
         thisResult.coordStream(true).forEach((inputCoord) -> {
           for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
             feedback[inputItem].add(inputCoord, delta.get(inputCoord) / itemCnt);
           }
         });
-        TensorArray tensorArray = TensorArray.wrap(feedback);
+        @NotNull TensorArray tensorArray = TensorArray.wrap(feedback);
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
@@ -126,8 +128,8 @@ public class AvgMetaLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final JsonObject json = super.getJsonStub();
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, @NotNull DataSerializer dataSerializer) {
+    final @NotNull JsonObject json = super.getJsonStub();
     if (null != lastResult) {
       json.add("lastResult", lastResult.toJson(resources, dataSerializer));
     }
@@ -150,13 +152,13 @@ public class AvgMetaLayer extends NNLayer {
    * @param minBatchCount the min batch count
    * @return the min batch count
    */
-  public AvgMetaLayer setMinBatchCount(final int minBatchCount) {
+  public @NotNull AvgMetaLayer setMinBatchCount(final int minBatchCount) {
     this.minBatchCount = minBatchCount;
     return this;
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList();
   }
 }

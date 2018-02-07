@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.ArrayUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +56,7 @@ public class L1NormalizationLayer extends NNLayer {
    *
    * @param id the id
    */
-  protected L1NormalizationLayer(final JsonObject id) {
+  protected L1NormalizationLayer(final @NotNull JsonObject id) {
     super(id);
   }
   
@@ -65,12 +67,12 @@ public class L1NormalizationLayer extends NNLayer {
    * @param rs   the rs
    * @return the l 1 normalization layer
    */
-  public static L1NormalizationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static L1NormalizationLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new L1NormalizationLayer(json);
   }
   
   @Override
-  public NNResult eval(final NNResult... input) {
+  public @NotNull NNResult eval(final @NotNull NNResult... input) {
     Arrays.stream(input).forEach(nnResult -> nnResult.addRef());
     final NNResult in = input[0];
     final TensorList inData = in.getData();
@@ -80,15 +82,15 @@ public class L1NormalizationLayer extends NNLayer {
       final double sum = value.sum();
       if (!Double.isFinite(sum) || 0 == sum) return value;
       return value.scale(1.0 / sum);
-    }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList outDelta) -> {
+    }).toArray(i -> new Tensor[i])), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList outDelta) -> {
       if (in.isAlive()) {
         final Tensor[] passbackArray = IntStream.range(0, outDelta.length()).mapToObj(dataIndex -> {
-          final double[] value = inData.get(dataIndex).getData();
-          final double[] delta = outDelta.get(dataIndex).getData();
+          final @Nullable double[] value = inData.get(dataIndex).getData();
+          final @Nullable double[] delta = outDelta.get(dataIndex).getData();
           final double dot = ArrayUtil.dot(value, delta);
           final double sum = Arrays.stream(value).sum();
-          final Tensor passback = new Tensor(outDelta.get(dataIndex).getDimensions());
-          final double[] passbackData = passback.getData();
+          final @NotNull Tensor passback = new Tensor(outDelta.get(dataIndex).getDimensions());
+          final @Nullable double[] passbackData = passback.getData();
           if (0 != sum || Double.isFinite(sum)) {
             for (int i = 0; i < value.length; i++) {
               passbackData[i] = (delta[i] - dot / sum) / sum;
@@ -97,7 +99,7 @@ public class L1NormalizationLayer extends NNLayer {
           return passback;
         }).toArray(i -> new Tensor[i]);
         assert Arrays.stream(passbackArray).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-        TensorArray tensorArray = TensorArray.wrap(passbackArray);
+        @NotNull TensorArray tensorArray = TensorArray.wrap(passbackArray);
         in.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
@@ -119,12 +121,12 @@ public class L1NormalizationLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList();
   }
 }

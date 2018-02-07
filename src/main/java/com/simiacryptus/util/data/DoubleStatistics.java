@@ -19,6 +19,8 @@
 
 package com.simiacryptus.util.data;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
 import java.util.stream.Collector;
@@ -31,22 +33,22 @@ public class DoubleStatistics extends DoubleSummaryStatistics {
   /**
    * The Collector.
    */
-  public static Collector<Double, DoubleStatistics, DoubleStatistics> COLLECTOR = Collector.of(
+  public static @NotNull Collector<Double, DoubleStatistics, DoubleStatistics> COLLECTOR = Collector.of(
     DoubleStatistics::new,
     DoubleStatistics::accept,
     DoubleStatistics::combine,
     d -> d
-                                                                                              );
+                                                                                                       );
   
   /**
    * The Numbers.
    */
-  public static Collector<Number, DoubleStatistics, DoubleStatistics> NUMBERS = Collector.of(
+  public static @NotNull Collector<Number, DoubleStatistics, DoubleStatistics> NUMBERS = Collector.of(
     DoubleStatistics::new,
     (a, n) -> a.accept(n.doubleValue()),
     DoubleStatistics::combine,
     d -> d
-                                                                                            );
+                                                                                                     );
   
   private double simpleSumOfSquare; // Used to compute right sum for non-finite inputs
   private double sumOfSquare = 0.0d;
@@ -66,7 +68,7 @@ public class DoubleStatistics extends DoubleSummaryStatistics {
    * @param value the value
    * @return the double statistics
    */
-  public DoubleStatistics accept(final double[] value) {
+  public @NotNull DoubleStatistics accept(final @NotNull double[] value) {
     Arrays.stream(value).forEach(this::accept);
     return this;
   }
@@ -77,7 +79,7 @@ public class DoubleStatistics extends DoubleSummaryStatistics {
    * @param other the other
    * @return the double statistics
    */
-  public DoubleStatistics combine(final DoubleStatistics other) {
+  public @NotNull DoubleStatistics combine(final @NotNull DoubleStatistics other) {
     super.combine(other);
     simpleSumOfSquare += other.simpleSumOfSquare;
     sumOfSquareWithCompensation(other.sumOfSquare);

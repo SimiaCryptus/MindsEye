@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +54,7 @@ public class ImgConcatLayer extends NNLayer {
    *
    * @param json the json
    */
-  protected ImgConcatLayer(final JsonObject json) {
+  protected ImgConcatLayer(final @NotNull JsonObject json) {
     super(json);
     JsonElement maxBands = json.get("maxBands");
     if (null != maxBands) setMaxBands(maxBands.getAsInt());
@@ -65,53 +67,53 @@ public class ImgConcatLayer extends NNLayer {
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static ImgConcatLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgConcatLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new ImgConcatLayer(json);
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public @Nullable NNResult eval(final @NotNull NNResult... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     assert Arrays.stream(inObj).allMatch(x -> x.getData().get(0).getDimensions().length == 3) : "This component is for use mapCoords 3d image tensors only";
     final int numBatches = inObj[0].getData().length();
     assert Arrays.stream(inObj).allMatch(x -> x.getData().length() == numBatches) : "All inputs must use same batch size";
-    final int[] outputDims = Arrays.copyOf(inObj[0].getData().get(0).getDimensions(), 3);
+    final @NotNull int[] outputDims = Arrays.copyOf(inObj[0].getData().get(0).getDimensions(), 3);
     outputDims[2] = Arrays.stream(inObj).mapToInt(x -> x.getData().get(0).getDimensions()[2]).sum();
     if (maxBands > 0) outputDims[2] = Math.min(maxBands, outputDims[2]);
     assert Arrays.stream(inObj).allMatch(x -> x.getData().get(0).getDimensions()[0] == outputDims[0]) : "Inputs must be same size";
     assert Arrays.stream(inObj).allMatch(x -> x.getData().get(0).getDimensions()[1] == outputDims[1]) : "Inputs must be same size";
   
-    final List<Tensor> outputTensors = new ArrayList<>();
+    final @NotNull List<Tensor> outputTensors = new ArrayList<>();
     for (int b = 0; b < numBatches; b++) {
-      final Tensor outputTensor = new Tensor(outputDims);
+      final @NotNull Tensor outputTensor = new Tensor(outputDims);
       int pos = 0;
-      final double[] outputTensorData = outputTensor.getData();
+      final @Nullable double[] outputTensorData = outputTensor.getData();
       for (int i = 0; i < inObj.length; i++) {
-        final double[] data = inObj[i].getData().get(b).getData();
+        final @Nullable double[] data = inObj[i].getData().get(b).getData();
         System.arraycopy(data, 0, outputTensorData, pos, Math.min(data.length, outputTensorData.length - pos));
         pos += data.length;
       }
       outputTensors.add(outputTensor);
     }
-    return new NNResult(TensorArray.wrap(outputTensors.toArray(new Tensor[]{})), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(outputTensors.toArray(new Tensor[]{})), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
       assert numBatches == data.length();
-  
-      final List<Tensor[]> splitBatches = new ArrayList<>();
+    
+      final @NotNull List<Tensor[]> splitBatches = new ArrayList<>();
       for (int b = 0; b < numBatches; b++) {
         final Tensor tensor = data.get(b);
-        final Tensor[] outputTensors2 = new Tensor[inObj.length];
+        final @NotNull Tensor[] outputTensors2 = new Tensor[inObj.length];
         int pos = 0;
         for (int i = 0; i < inObj.length; i++) {
-          final Tensor dest = new Tensor(inObj[i].getData().get(0).getDimensions());
-          double[] tensorData = tensor.getData();
+          final @NotNull Tensor dest = new Tensor(inObj[i].getData().get(0).getDimensions());
+          @Nullable double[] tensorData = tensor.getData();
           System.arraycopy(tensorData, pos, dest.getData(), 0, Math.min(dest.size(), tensorData.length - pos));
           pos += dest.size();
           outputTensors2[i] = dest;
         }
         splitBatches.add(outputTensors2);
       }
-  
-      final Tensor[][] splitData = new Tensor[inObj.length][];
+    
+      final @NotNull Tensor[][] splitData = new Tensor[inObj.length][];
       for (int i = 0; i < splitData.length; i++) {
         splitData[i] = new Tensor[numBatches];
       }
@@ -122,7 +124,7 @@ public class ImgConcatLayer extends NNLayer {
       }
   
       for (int i = 0; i < inObj.length; i++) {
-        TensorArray tensorArray = TensorArray.wrap(splitData[i]);
+        @NotNull TensorArray tensorArray = TensorArray.wrap(splitData[i]);
         inObj[i].accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
@@ -135,7 +137,7 @@ public class ImgConcatLayer extends NNLayer {
       
       @Override
       public boolean isAlive() {
-        for (final NNResult element : inObj)
+        for (final @NotNull NNResult element : inObj)
           if (element.isAlive()) {
             return true;
           }
@@ -146,14 +148,14 @@ public class ImgConcatLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    JsonObject json = super.getJsonStub();
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @NotNull JsonObject json = super.getJsonStub();
     json.addProperty("maxBands", maxBands);
     return json;
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList();
   }
   
@@ -172,7 +174,7 @@ public class ImgConcatLayer extends NNLayer {
    * @param maxBands the max bands
    * @return the max bands
    */
-  public ImgConcatLayer setMaxBands(int maxBands) {
+  public @NotNull ImgConcatLayer setMaxBands(int maxBands) {
     this.maxBands = maxBands;
     return this;
   }

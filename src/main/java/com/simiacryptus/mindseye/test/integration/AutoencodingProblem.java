@@ -36,6 +36,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.LabeledObject;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -80,7 +81,7 @@ public class AutoencodingProblem implements Problem {
   }
   
   @Override
-  public List<StepRecord> getHistory() {
+  public @NotNull List<StepRecord> getHistory() {
     return history;
   }
   
@@ -99,7 +100,7 @@ public class AutoencodingProblem implements Problem {
    * @param timeoutMinutes the timeout minutes
    * @return the timeout minutes
    */
-  public AutoencodingProblem setTimeoutMinutes(final int timeoutMinutes) {
+  public @NotNull AutoencodingProblem setTimeoutMinutes(final int timeoutMinutes) {
     this.timeoutMinutes = timeoutMinutes;
     return this;
   }
@@ -115,7 +116,7 @@ public class AutoencodingProblem implements Problem {
       return data.trainingData().map(labeledObject -> {
         return new Tensor[]{labeledObject.data};
       }).toArray(i -> new Tensor[i][]);
-    } catch (final IOException e) {
+    } catch (final @NotNull IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -126,21 +127,21 @@ public class AutoencodingProblem implements Problem {
    * @param label the label
    * @return the int
    */
-  public int parse(final String label) {
+  public int parse(final @NotNull String label) {
     return Integer.parseInt(label.replaceAll("[^\\d]", ""));
   }
   
   @Override
-  public AutoencodingProblem run(final NotebookOutput log) {
-    
-    final DAGNetwork fwdNetwork = fwdFactory.imageToVector(log, features);
-    final DAGNetwork revNetwork = revFactory.vectorToImage(log, features);
-    
-    final PipelineNetwork echoNetwork = new PipelineNetwork(1);
+  public @NotNull AutoencodingProblem run(final @NotNull NotebookOutput log) {
+  
+    final @NotNull DAGNetwork fwdNetwork = fwdFactory.imageToVector(log, features);
+    final @NotNull DAGNetwork revNetwork = revFactory.vectorToImage(log, features);
+  
+    final @NotNull PipelineNetwork echoNetwork = new PipelineNetwork(1);
     echoNetwork.add(fwdNetwork);
     echoNetwork.add(revNetwork);
-    
-    final PipelineNetwork supervisedNetwork = new PipelineNetwork(1);
+  
+    final @NotNull PipelineNetwork supervisedNetwork = new PipelineNetwork(1);
     supervisedNetwork.add(fwdNetwork);
     final DropoutNoiseLayer dropoutNoiseLayer = new DropoutNoiseLayer().setValue(dropout);
     supervisedNetwork.add(dropoutNoiseLayer);
@@ -162,9 +163,9 @@ public class AutoencodingProblem implements Problem {
       return Graphviz.fromGraph(TestUtil.toGraph(supervisedNetwork))
                      .height(400).width(600).render(Format.PNG).toImage();
     });
-    
-    final TrainingMonitor monitor = new TrainingMonitor() {
-      TrainingMonitor inner = TestUtil.getMonitor(history);
+  
+    final @NotNull TrainingMonitor monitor = new TrainingMonitor() {
+      @NotNull TrainingMonitor inner = TestUtil.getMonitor(history);
   
       @Override
       public void log(final String msg) {
@@ -202,11 +203,11 @@ public class AutoencodingProblem implements Problem {
     TestUtil.extractPerformance(log, supervisedNetwork);
   
     {
-      final String modelName = "encoder_model" + AutoencodingProblem.modelNo++ + ".json";
+      final @NotNull String modelName = "encoder_model" + AutoencodingProblem.modelNo++ + ".json";
       log.p("Saved model as " + log.file(fwdNetwork.getJson().toString(), modelName, modelName));
     }
-    
-    final String modelName = "decoder_model" + AutoencodingProblem.modelNo++ + ".json";
+  
+    final @NotNull String modelName = "decoder_model" + AutoencodingProblem.modelNo++ + ".json";
     log.p("Saved model as " + log.file(revNetwork.getJson().toString(), modelName, modelName));
 
 //    log.h3("Metrics");
@@ -218,7 +219,7 @@ public class AutoencodingProblem implements Problem {
     
     log.p("Here are some re-encoded examples:");
     log.code(() -> {
-      final TableOutput table = new TableOutput();
+      final @NotNull TableOutput table = new TableOutput();
       data.validationData().map(labeledObject -> {
         return toRow(log, labeledObject, echoNetwork.eval(labeledObject.data).getData().get(0).getData());
       }).filter(x -> null != x).limit(10).forEach(table::putRow);
@@ -228,10 +229,10 @@ public class AutoencodingProblem implements Problem {
     log.p("Some rendered unit vectors:");
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
       try {
-        final Tensor input = new Tensor(features).set(featureNumber, 1);
+        final @NotNull Tensor input = new Tensor(features).set(featureNumber, 1);
         final Tensor tensor = revNetwork.eval(input).getData().get(0);
         log.out(log.image(tensor.toImage(), ""));
-      } catch (final IOException e) {
+      } catch (final @NotNull IOException e) {
         throw new RuntimeException(e);
       }
     }
@@ -246,13 +247,13 @@ public class AutoencodingProblem implements Problem {
    * @param predictionSignal the prediction signal
    * @return the linked hash map
    */
-  public LinkedHashMap<String, Object> toRow(final NotebookOutput log, final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
+  public @NotNull LinkedHashMap<String, Object> toRow(final @NotNull NotebookOutput log, final @NotNull LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
     try {
-      final LinkedHashMap<String, Object> row = new LinkedHashMap<>();
+      final @NotNull LinkedHashMap<String, Object> row = new LinkedHashMap<>();
       row.put("Image", log.image(labeledObject.data.toImage(), labeledObject.label));
       row.put("Echo", log.image(new Tensor(predictionSignal, labeledObject.data.getDimensions()).toImage(), labeledObject.label));
       return row;
-    } catch (final IOException e) {
+    } catch (final @NotNull IOException e) {
       throw new RuntimeException(e);
     }
   }

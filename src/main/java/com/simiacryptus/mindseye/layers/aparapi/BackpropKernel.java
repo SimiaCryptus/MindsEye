@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.aparapi;
 
 import com.aparapi.Kernel;
 import com.aparapi.device.Device;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The type Backprop kernel.
@@ -30,11 +32,11 @@ public final class BackpropKernel extends Kernel {
   /**
    * The Input.
    */
-  public double[] input;
+  public @Nullable double[] input;
   /**
    * The Input size.
    */
-  public int[] inputSize;
+  public @Nullable int[] inputSize;
   /**
    * The Kernel offset.
    */
@@ -42,19 +44,19 @@ public final class BackpropKernel extends Kernel {
   /**
    * The Kernel size.
    */
-  public int[] kernelSize;
+  public @Nullable int[] kernelSize;
   /**
    * The Output.
    */
-  public double[] output;
+  public @Nullable double[] output;
   /**
    * The Output size.
    */
-  public int[] outputSize;
+  public @Nullable int[] outputSize;
   /**
    * The Weights.
    */
-  public double[] weights;
+  public @Nullable double[] weights;
   
   /**
    * Instantiates a new Backprop kernel.
@@ -67,7 +69,7 @@ public final class BackpropKernel extends Kernel {
    *
    * @param device the device
    */
-  public void exe(final Device device) {
+  public void exe(final @NotNull Device device) {
     //assert this.outputSize[0] * this.outputSize[1] * this.outputSize[2] == this.output.length;
     //assert this.inputSize[0] * this.inputSize[1] * this.inputSize[2] == this.input.length;
     assert kernelSize[0] * kernelSize[1] * kernelSize[2] == weights.length;

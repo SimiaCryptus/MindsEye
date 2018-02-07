@@ -21,5 +21,10 @@ package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 
+/**
+ * The type Component test base.
+ *
+ * @param <T> the type parameter
+ */
 public abstract class ComponentTestBase<T> extends ReferenceCountingBase implements ComponentTest<T> {
 }

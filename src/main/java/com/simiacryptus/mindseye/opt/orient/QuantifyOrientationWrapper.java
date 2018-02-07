@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.util.data.DoubleStatistics;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
@@ -57,9 +58,9 @@ public class QuantifyOrientationWrapper extends OrientationStrategyBase<LineSear
    * @param x the x
    * @return the id
    */
-  public String getId(final DoubleBuffer<NNLayer> x) {
+  public @NotNull String getId(final @NotNull DoubleBuffer<NNLayer> x) {
     final String name = x.layer.getName();
-    final String className = x.layer.getClass().getSimpleName();
+    final @NotNull String className = x.layer.getClass().getSimpleName();
     return name.contains(className) ? className : name;
 //    if(x.layer instanceof PlaceholderLayer) {
 //      return "Input";
@@ -68,7 +69,7 @@ public class QuantifyOrientationWrapper extends OrientationStrategyBase<LineSear
   }
   
   @Override
-  public LineSearchCursor orient(final Trainable subject, final PointSample measurement, final TrainingMonitor monitor) {
+  public LineSearchCursor orient(final Trainable subject, final PointSample measurement, final @NotNull TrainingMonitor monitor) {
     final LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
     if (cursor instanceof SimpleLineSearchCursor) {
       final DeltaSet<NNLayer> direction = ((SimpleLineSearchCursor) cursor).direction;

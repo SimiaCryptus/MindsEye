@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.util.ArrayUtil;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This strict region allows only raw scaling of weights; it is similar to but more constrained than
@@ -27,7 +28,7 @@ import com.simiacryptus.util.ArrayUtil;
  */
 public class ProportionalityConstraint implements TrustRegion {
   @Override
-  public double[] project(final double[] weights, final double[] point) {
+  public @NotNull double[] project(final @NotNull double[] weights, final @NotNull double[] point) {
     return ArrayUtil.multiply(weights, ArrayUtil.dot(weights, point) / ArrayUtil.dot(weights, weights));
   }
 }

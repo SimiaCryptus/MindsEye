@@ -19,13 +19,16 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.util.function.Supplier;
 
 /**
- * Varying levels of persistence which can be used to provide reference wrappers to an object.
- * Allows the RecycleBin to be configured with the desired reference type.
+ * Varying levels of persistence which can be used to provide reference wrappers to an object. Allows the RecycleBin to
+ * be configured with the desired reference type.
  */
 public enum PersistanceMode {
   /**
@@ -51,7 +54,7 @@ public enum PersistanceMode {
    */
   Strong {
     @Override
-    public <T> Supplier<T> wrap(T obj) {
+    public @NotNull <T> Supplier<T> wrap(T obj) {
       return () -> obj;
     }
   },
@@ -60,7 +63,7 @@ public enum PersistanceMode {
    */
   Null {
     @Override
-    public <T> Supplier<T> wrap(T obj) {
+    public @Nullable <T> Supplier<T> wrap(T obj) {
       return () -> null;
     }
   };
@@ -72,5 +75,5 @@ public enum PersistanceMode {
    * @param obj the obj
    * @return the supplier
    */
-  public abstract <T> Supplier<T> wrap(T obj);
+  public abstract @Nullable <T> Supplier<T> wrap(T obj);
 }

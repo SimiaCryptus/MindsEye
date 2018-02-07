@@ -27,6 +27,8 @@ import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -69,7 +71,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
     this.inputBands = inputBands;
     this.outputBands = outputBands;
     convolutionLayer = new ConvolutionLayer(radius, radius, inputBands, outputBands).setPrecision(precision).setBatchBands(batchBands);
-    Random random = getRandom();
+    @NotNull Random random = getRandom();
     convolutionLayer.getKernel().set(() -> {
       return random(random);
     });
@@ -77,9 +79,9 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   
   @Override
   public void run(NotebookOutput log) {
-    String logName = "cuda_" + log.getName() + "_all.log";
+    @NotNull String logName = "cuda_" + log.getName() + "_all.log";
     log.p(log.file((String) null, logName, "GPU Log"));
-    PrintStream apiLog = new PrintStream(log.file(logName));
+    @NotNull PrintStream apiLog = new PrintStream(log.file(logName));
     GpuSystem.addLog(apiLog);
     super.run(log);
     apiLog.close();
@@ -92,15 +94,15 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   @Test
   public void verifyWeights() {
     ExplodedConvolutionGrid explodedNetwork = this.convolutionLayer.getExplodedNetwork();
-    int[] kernelDims = this.convolutionLayer.getKernel().getDimensions();
-    Tensor testData = new Tensor(kernelDims).map(x -> random());
+    @NotNull int[] kernelDims = this.convolutionLayer.getKernel().getDimensions();
+    @Nullable Tensor testData = new Tensor(kernelDims).map(x -> random());
     explodedNetwork.write(testData);
     Tensor echo = explodedNetwork.read();
     Assert.assertEquals(testData, echo);
   }
   
   @Override
-  public int[][] getSmallDims(Random random) {
+  public @NotNull int[][] getSmallDims(Random random) {
     return new int[][]{
       {3, 3, inputBands}
     };
@@ -112,19 +114,19 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   }
   
   @Override
-  public int[][] getLargeDims(Random random) {
+  public @NotNull int[][] getLargeDims(Random random) {
     return new int[][]{
       {100, 100, inputBands}
     };
   }
   
   @Override
-  public NNLayer getReferenceLayer() {
+  public @Nullable NNLayer getReferenceLayer() {
     return convolutionLayer.as(com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class);
   }
   
   @Override
-  protected Class<?> getTargetClass() {
+  protected @NotNull Class<?> getTargetClass() {
     return ConvolutionLayer.class;
   }
   
@@ -141,14 +143,14 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
     }
   
     @Override
-    public int[][] getSmallDims(Random random) {
+    public @NotNull int[][] getSmallDims(Random random) {
       return new int[][]{
         {1, 1, inputBands}
       };
     }
   
     @Override
-    public int[][] getLargeDims(Random random) {
+    public @NotNull int[][] getLargeDims(Random random) {
       return getSmallDims(random);
     }
     

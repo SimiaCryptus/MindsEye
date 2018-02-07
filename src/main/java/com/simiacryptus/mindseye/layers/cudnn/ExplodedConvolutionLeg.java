@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,12 +32,10 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
- * A lower level of convolution desconstruction logic, implements support 
- * for an arbitrary number of output bands by splitting the convolution 
- * into even batches of input x input kernel dimensions. These results are 
- * then concatenated together as successive image bands. Even at small scale, 
- * this breakdown is required because CuDNN only supports convolutions with 
- * equal input/output band counts.
+ * A lower level of convolution desconstruction logic, implements support for an arbitrary number of output bands by
+ * splitting the convolution into even batches of input x input kernel dimensions. These results are then concatenated
+ * together as successive image bands. Even at small scale, this breakdown is required because CuDNN only supports
+ * convolutions with equal input/output band counts.
  */
 class ExplodedConvolutionLeg {
   private static final Logger log = LoggerFactory.getLogger(ExplodedConvolutionLeg.class);
@@ -48,7 +47,7 @@ class ExplodedConvolutionLeg {
   /**
    * The Sub layers.
    */
-  public final List<SimpleConvolutionLayer> subLayers;
+  public final @NotNull List<SimpleConvolutionLayer> subLayers;
   /**
    * The From band.
    */
@@ -72,10 +71,10 @@ class ExplodedConvolutionLeg {
     this.subLayers = new ArrayList<>();
     int inputBands = getInputBands();
     final int inputBandsSq = inputBands * inputBands;
-    final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
+    final @NotNull int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
     filterDimensions[2] = inputBands * this.convolutionParams.outputBands;
     for (int offset = 0; offset < filterDimensions[2]; offset += inputBandsSq) {
-      final Tensor cellKernel = new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq);
+      final @NotNull Tensor cellKernel = new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq);
       this.subLayers.add(new SimpleConvolutionLayer(cellKernel).setStrideX(this.convolutionParams.strideX) //
                                                                .setStrideY(this.convolutionParams.strideY) //
                                                                .setPrecision(this.convolutionParams.precision));
@@ -90,9 +89,9 @@ class ExplodedConvolutionLeg {
    * @param filter the kernel
    * @return the exploded convolution leg
    */
-  public ExplodedConvolutionLeg write(Tensor filter) {
+  public @NotNull ExplodedConvolutionLeg write(@NotNull Tensor filter) {
     int inputBands = getInputBands();
-    final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
+    final @NotNull int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
     int outputBands = this.convolutionParams.outputBands;
     int squareOutputBands = (int) (Math.ceil(convolutionParams.outputBands * 1.0 / inputBands) * inputBands);
     assert squareOutputBands >= convolutionParams.outputBands : String.format("%d >= %d", squareOutputBands, convolutionParams.outputBands);
@@ -102,7 +101,7 @@ class ExplodedConvolutionLeg {
     final int inputBandsSq = inputBands * inputBands;
     for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
       final int filterBandOffset = layerNumber * inputBandsSq;
-      Tensor kernel = new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq).setByCoord(c -> {
+      @NotNull Tensor kernel = new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq).setByCoord(c -> {
         int[] coords = c.getCoords();
         int filterBand = getFilterBand(filterBandOffset, coords[2], squareOutputBands);
         if (filterBand < filterDimensions[2]) {
@@ -124,15 +123,15 @@ class ExplodedConvolutionLeg {
    * @param extractor the extractor
    * @return the tensor
    */
-  public Tensor read(Function<SimpleConvolutionLayer, Tensor> extractor) {
+  public @NotNull Tensor read(@NotNull Function<SimpleConvolutionLayer, Tensor> extractor) {
     int inputBands = getInputBands();
-    final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
+    final @NotNull int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
     filterDimensions[2] = inputBands * this.convolutionParams.outputBands;
     int outputBands = convolutionParams.outputBands;
     int squareOutputBands = (int) (Math.ceil(convolutionParams.outputBands * 1.0 / inputBands) * inputBands);
     assert squareOutputBands >= convolutionParams.outputBands : String.format("%d >= %d", squareOutputBands, convolutionParams.outputBands);
     assert squareOutputBands % inputBands == 0 : String.format("%d %% %d", squareOutputBands, inputBands);
-    Tensor resultDelta = new Tensor(filterDimensions[0], filterDimensions[1], inputBands * outputBands);
+    @NotNull Tensor resultDelta = new Tensor(filterDimensions[0], filterDimensions[1], inputBands * outputBands);
   
     for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
       int _layerNumber = layerNumber;
@@ -184,7 +183,7 @@ class ExplodedConvolutionLeg {
    * @param remove   the remove
    * @return the tensor
    */
-  public Tensor read(DeltaSet<NNLayer> deltaSet, boolean remove) {
+  public @NotNull Tensor read(@NotNull DeltaSet<NNLayer> deltaSet, boolean remove) {
     return read((sublayer) -> {
       final Delta<NNLayer> subnetDelta = remove ? deltaSet.getMap().remove(sublayer) : deltaSet.getMap().get(sublayer);
       if (null == subnetDelta) throw new RuntimeException("No Delta for " + sublayer);
@@ -197,7 +196,7 @@ class ExplodedConvolutionLeg {
    *
    * @return the tensor
    */
-  public Tensor read() {
+  public @NotNull Tensor read() {
     return read((sublayer) -> {
       return sublayer.kernel;
     });
@@ -209,7 +208,7 @@ class ExplodedConvolutionLeg {
    * @param input the input
    * @return the dag node
    */
-  public DAGNode add(final DAGNode input) {
+  public DAGNode add(final @NotNull DAGNode input) {
     DAGNetwork network = input.getNetwork();
     DAGNode head = input;
     final int[] filterDimensions = this.convolutionParams.masterFilterDimensions;
@@ -232,7 +231,7 @@ class ExplodedConvolutionLeg {
   }
   
   @Override
-  public String toString() {
+  public @NotNull String toString() {
     return "ExplodedConvolutionLeg{" +
       "fromBand=" + fromBand +
       ", toBand=" + toBand +

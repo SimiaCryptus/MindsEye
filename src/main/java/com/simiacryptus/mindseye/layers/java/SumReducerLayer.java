@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +51,7 @@ public class SumReducerLayer extends NNLayer {
    *
    * @param id the id
    */
-  protected SumReducerLayer(final JsonObject id) {
+  protected SumReducerLayer(final @NotNull JsonObject id) {
     super(id);
   }
   
@@ -60,29 +62,29 @@ public class SumReducerLayer extends NNLayer {
    * @param rs   the rs
    * @return the sum reducer layer
    */
-  public static SumReducerLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static SumReducerLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new SumReducerLayer(json);
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public @NotNull NNResult eval(final @NotNull NNResult... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     return new NNResult(TensorArray.wrap(IntStream.range(0, inObj[0].getData().length()).parallel().mapToDouble(dataIndex -> {
       double sum = 0;
-      for (final NNResult element : inObj) {
-        final double[] input = element.getData().get(dataIndex).getData();
+      for (final @NotNull NNResult element : inObj) {
+        final @Nullable double[] input = element.getData().get(dataIndex).getData();
         for (final double element2 : input) {
           sum += element2;
         }
       }
       return sum;
-    }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
-      for (final NNResult in_l : inObj) {
+    }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
+      for (final @NotNull NNResult in_l : inObj) {
         if (in_l.isAlive()) {
-          TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {
+          @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {
             final double delta = data.get(dataIndex).get(0);
-            final Tensor passback = new Tensor(in_l.getData().get(dataIndex).getDimensions());
+            final @NotNull Tensor passback = new Tensor(in_l.getData().get(dataIndex).getDimensions());
             for (int i = 0; i < in_l.getData().get(dataIndex).dim(); i++) {
               passback.set(i, delta);
             }
@@ -102,7 +104,7 @@ public class SumReducerLayer extends NNLayer {
       
       @Override
       public boolean isAlive() {
-        for (final NNResult element : inObj)
+        for (final @NotNull NNResult element : inObj)
           if (element.isAlive()) {
             return true;
           }
@@ -113,12 +115,12 @@ public class SumReducerLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList();
   }
 }

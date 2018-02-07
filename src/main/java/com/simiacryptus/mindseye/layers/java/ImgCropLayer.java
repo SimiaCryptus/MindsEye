@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,7 +57,7 @@ public class ImgCropLayer extends NNLayer {
    *
    * @param json the json
    */
-  protected ImgCropLayer(final JsonObject json) {
+  protected ImgCropLayer(final @NotNull JsonObject json) {
     super(json);
     sizeX = json.getAsJsonPrimitive("sizeX").getAsInt();
     sizeY = json.getAsJsonPrimitive("sizeY").getAsInt();
@@ -69,9 +70,9 @@ public class ImgCropLayer extends NNLayer {
    * @param outputData the output data
    * @return the tensor
    */
-  public static Tensor copy(final Tensor inputData, final Tensor outputData) {
-    final int[] inDim = inputData.getDimensions();
-    final int[] outDim = outputData.getDimensions();
+  public static @NotNull Tensor copy(final @NotNull Tensor inputData, final @NotNull Tensor outputData) {
+    final @NotNull int[] inDim = inputData.getDimensions();
+    final @NotNull int[] outDim = outputData.getDimensions();
     assert 3 == inDim.length;
     assert 3 == outDim.length;
     assert inDim[2] == outDim[2] : Arrays.toString(inDim) + "; " + Arrays.toString(outDim);
@@ -103,12 +104,12 @@ public class ImgCropLayer extends NNLayer {
    * @param rs   the rs
    * @return the img crop layer
    */
-  public static ImgCropLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgCropLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new ImgCropLayer(json);
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public @NotNull NNResult eval(final @NotNull NNResult... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
@@ -116,15 +117,15 @@ public class ImgCropLayer extends NNLayer {
     assert 3 == inputDims.length;
     return new NNResult(TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
                                                   .mapToObj(dataIndex -> {
-                                                    final Tensor outputDims = new Tensor(sizeX, sizeY, inputDims[2]);
+                                                    final @NotNull Tensor outputDims = new Tensor(sizeX, sizeY, inputDims[2]);
                                                     return ImgCropLayer.copy(batch.get(dataIndex), outputDims);
                                                   })
-                                                  .toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList error) -> {
+                                                  .toArray(i -> new Tensor[i])), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList error) -> {
       if (input.isAlive()) {
-        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
-                                                            .mapToObj(dataIndex -> {
+        @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
+                                                                     .mapToObj(dataIndex -> {
                                                               final Tensor err = error.get(dataIndex);
-                                                              final Tensor passback = new Tensor(inputDims);
+                                                                       final @NotNull Tensor passback = new Tensor(inputDims);
                                                               return copy(err, passback);
                                                             }).toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);
@@ -145,15 +146,15 @@ public class ImgCropLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final JsonObject json = super.getJsonStub();
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    final @NotNull JsonObject json = super.getJsonStub();
     json.addProperty("sizeX", sizeX);
     json.addProperty("sizeY", sizeX);
     return json;
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return new ArrayList<>();
   }
   

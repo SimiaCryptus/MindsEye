@@ -23,6 +23,8 @@ import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.lang.TimedResult;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
@@ -42,12 +44,12 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
   /**
    * The Data.
    */
-  protected List<Tensor[]> data;
+  protected @Nullable List<Tensor[]> data;
   
   /**
    * The Mask.
    */
-  boolean[] mask = null;
+  @Nullable boolean[] mask = null;
   private int verbosity = 0;
   
   /**
@@ -68,24 +70,24 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
    * @param mask the mask
    * @return the nn result [ ]
    */
-  public static NNResult[] getNNContext(final List<Tensor[]> data, final boolean[] mask) {
+  public static NNResult[] getNNContext(final @Nullable List<Tensor[]> data, final @Nullable boolean[] mask) {
     if (null == data) throw new IllegalArgumentException();
     if (0 >= data.size()) throw new IllegalArgumentException();
     final int cols = data.get(0).length;
     return IntStream.range(0, cols).mapToObj(col -> {
       final Tensor[] tensors = IntStream.range(0, data.size()).mapToObj(row -> data.get(row)[col]).toArray(i -> new Tensor[i]);
-      TensorArray tensorArray = TensorArray.create(tensors);
+      @NotNull TensorArray tensorArray = TensorArray.create(tensors);
       if (null == mask || col >= mask.length || !mask[col]) {
         return new NNConstant(tensorArray);
       }
       else {
-        return new NNResult(tensorArray, (final DeltaSet<NNLayer> buffer, final TensorList delta) -> {
+        return new NNResult(tensorArray, (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList delta) -> {
           for (int index = 0; index < delta.length(); index++) {
             final Tensor dt = delta.get(index);
             final double[] d = dt.getData();
             final Tensor t = tensors[index];
             final double[] p = t.getData();
-            PlaceholderLayer<double[]> layer = new PlaceholderLayer<>(p);
+            @NotNull PlaceholderLayer<double[]> layer = new PlaceholderLayer<>(p);
             buffer.get(layer, p).addInPlace(d).freeRef();
             dt.freeRef();
             layer.freeRef();
@@ -108,11 +110,11 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
    * @param monitor the monitor
    * @return the point sample
    */
-  protected PointSample eval(final List<Tensor[]> list, final TrainingMonitor monitor) {
-    final TimedResult<PointSample> timedResult = TimedResult.time(() -> {
+  protected PointSample eval(final @NotNull List<Tensor[]> list, final @Nullable TrainingMonitor monitor) {
+    final @NotNull TimedResult<PointSample> timedResult = TimedResult.time(() -> {
       final NNResult[] nnContext = BasicTrainable.getNNContext(list, mask);
       final NNResult result = network.eval(nnContext);
-      for (NNResult nnResult : nnContext) {
+      for (@NotNull NNResult nnResult : nnContext) {
         nnResult.getData().freeRef();
         nnResult.freeRef();
       }
@@ -121,13 +123,13 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
                                                            .flatMapToDouble(x -> Arrays.stream(Arrays.stream(x.getData()).toArray()))
                                                            .summaryStatistics();
       final double sum = statistics.getSum();
-      final DeltaSet<NNLayer> deltaSet = new DeltaSet<NNLayer>();
+      final @NotNull DeltaSet<NNLayer> deltaSet = new DeltaSet<NNLayer>();
       result.accumulate(deltaSet, 1.0);
       resultData.freeRef();
       result.freeRef();
       //log.info(String.format("Evaluated to %s delta buffers, %s mag", DeltaSet<NNLayer>.getMap().size(), DeltaSet<NNLayer>.getMagnitude()));
-      StateSet<NNLayer> stateSet = new StateSet<>(deltaSet);
-      PointSample pointSample = new PointSample(deltaSet, stateSet, sum, 0.0, list.size());
+      @NotNull StateSet<NNLayer> stateSet = new StateSet<>(deltaSet);
+      @NotNull PointSample pointSample = new PointSample(deltaSet, stateSet, sum, 0.0, list.size());
       deltaSet.freeRef();
       stateSet.freeRef();
       return pointSample;
@@ -141,12 +143,12 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
   }
   
   @Override
-  public Tensor[][] getData() {
+  public @NotNull Tensor[][] getData() {
     return data.toArray(new Tensor[][]{});
   }
   
   @Override
-  public boolean[] getMask() {
+  public @Nullable boolean[] getMask() {
     return mask;
   }
   
@@ -162,9 +164,9 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
    * @return the point sample
    */
   @Override
-  public PointSample measure(final TrainingMonitor monitor) {
+  public PointSample measure(final @Nullable TrainingMonitor monitor) {
     assert !data.isEmpty();
-    final TimedResult<PointSample> timedResult = TimedResult.time(() -> eval(data, monitor));
+    final @NotNull TimedResult<PointSample> timedResult = TimedResult.time(() -> eval(data, monitor));
     //          log.info(String.format("Evaluated to %s delta arrays", DeltaSet<NNLayer>.run.size()));
     if (null != monitor && verbosity() > 1) {
       monitor.log(String.format("Evaluated %s items in %.4fs (%s/%s)", data.size(), timedResult.timeNanos / 1e9, timedResult.result.getMean(), timedResult.result.delta.getMagnitude()));
@@ -174,7 +176,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
   }
   
   @Override
-  public synchronized Trainable setData(final List<Tensor[]> sampledData) {
+  public synchronized @NotNull Trainable setData(final @NotNull List<Tensor[]> sampledData) {
     assert !sampledData.isEmpty();
     sampledData.stream().flatMap(x -> Arrays.stream(x)).forEach(x -> x.addRef());
     if (null != this.data) this.data.stream().flatMap(x -> Arrays.stream(x)).forEach(x -> x.freeRef());
@@ -183,7 +185,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
   }
   
   @Override
-  public TrainableDataMask setMask(final boolean... mask) {
+  public @NotNull TrainableDataMask setMask(final boolean... mask) {
     this.mask = mask;
     return this;
   }
@@ -194,7 +196,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
    * @param verbose the verbose
    * @return the verbose
    */
-  public BasicTrainable setVerbosity(final int verbose) {
+  public @NotNull BasicTrainable setVerbosity(final int verbose) {
     verbosity = verbose;
     return this;
   }

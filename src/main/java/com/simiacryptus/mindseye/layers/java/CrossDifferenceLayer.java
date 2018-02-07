@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -44,7 +46,7 @@ public class CrossDifferenceLayer extends NNLayer {
    *
    * @param id the id
    */
-  protected CrossDifferenceLayer(final JsonObject id) {
+  protected CrossDifferenceLayer(final @NotNull JsonObject id) {
     super(id);
   }
   
@@ -55,7 +57,7 @@ public class CrossDifferenceLayer extends NNLayer {
    * @param rs   the rs
    * @return the cross difference layer
    */
-  public static CrossDifferenceLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static CrossDifferenceLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new CrossDifferenceLayer(json);
   }
   
@@ -72,30 +74,30 @@ public class CrossDifferenceLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public @NotNull NNResult eval(final @NotNull NNResult... inObj) {
     assert 1 == inObj.length;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     return new NNResult(TensorArray.wrap(inObj[0].getData().stream().parallel().map(tensor -> {
       final int inputDim = tensor.dim();
       final int outputDim = (inputDim * inputDim - inputDim) / 2;
-      final Tensor result = new Tensor(outputDim);
-      final double[] inputData = tensor.getData();
-      final double[] resultData = result.getData();
+      final @NotNull Tensor result = new Tensor(outputDim);
+      final @Nullable double[] inputData = tensor.getData();
+      final @Nullable double[] resultData = result.getData();
       IntStream.range(0, inputDim).forEach(x -> {
         IntStream.range(x + 1, inputDim).forEach(y -> {
           resultData[CrossDifferenceLayer.index(x, y, inputDim)] = inputData[x] - inputData[y];
         });
       });
       return result;
-    }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
       final NNResult input = inObj[0];
       if (input.isAlive()) {
-        TensorArray tensorArray = TensorArray.wrap(data.stream().parallel().map(tensor -> {
+        @NotNull TensorArray tensorArray = TensorArray.wrap(data.stream().parallel().map(tensor -> {
           final int outputDim = tensor.dim();
           final int inputDim = (1 + (int) Math.sqrt(1 + 8 * outputDim)) / 2;
-          final Tensor passback = new Tensor(inputDim);
-          final double[] passbackData = passback.getData();
-          final double[] tensorData = tensor.getData();
+          final @NotNull Tensor passback = new Tensor(inputDim);
+          final @Nullable double[] passbackData = passback.getData();
+          final @Nullable double[] tensorData = tensor.getData();
           IntStream.range(0, inputDim).forEach(x -> {
             IntStream.range(x + 1, inputDim).forEach(y -> {
               passbackData[x] += tensorData[CrossDifferenceLayer.index(x, y, inputDim)];
@@ -116,7 +118,7 @@ public class CrossDifferenceLayer extends NNLayer {
       
       @Override
       public boolean isAlive() {
-        for (final NNResult element : inObj)
+        for (final @NotNull NNResult element : inObj)
           if (element.isAlive()) {
             return true;
           }
@@ -127,12 +129,12 @@ public class CrossDifferenceLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList();
   }
   

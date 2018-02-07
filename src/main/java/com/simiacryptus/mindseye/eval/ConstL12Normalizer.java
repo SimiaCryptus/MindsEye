@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.eval;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This Trainable wrapper adds additional L1 and L2 terms for weight normalization. Both coefficients are universal for
@@ -41,7 +43,7 @@ public class ConstL12Normalizer extends L12Normalizer implements SampledTrainabl
   }
   
   @Override
-  public SampledCachedTrainable<? extends SampledTrainable> cached() {
+  public @NotNull SampledCachedTrainable<? extends SampledTrainable> cached() {
     return new SampledCachedTrainable<>(this);
   }
   
@@ -65,7 +67,7 @@ public class ConstL12Normalizer extends L12Normalizer implements SampledTrainabl
    * @param factor_L1 the factor l 1
    * @return the factor l 1
    */
-  public ConstL12Normalizer setFactor_L1(final double factor_L1) {
+  public @NotNull ConstL12Normalizer setFactor_L1(final double factor_L1) {
     this.factor_L1 = factor_L1;
     return this;
   }
@@ -85,7 +87,7 @@ public class ConstL12Normalizer extends L12Normalizer implements SampledTrainabl
    * @param factor_L2 the factor l 2
    * @return the factor l 2
    */
-  public ConstL12Normalizer setFactor_L2(final double factor_L2) {
+  public @NotNull ConstL12Normalizer setFactor_L2(final double factor_L2) {
     this.factor_L2 = factor_L2;
     return this;
   }
@@ -102,7 +104,7 @@ public class ConstL12Normalizer extends L12Normalizer implements SampledTrainabl
   }
   
   @Override
-  public boolean[] getMask() {
+  public @Nullable boolean[] getMask() {
     return ((TrainableDataMask) inner).getMask();
   }
   
@@ -112,13 +114,13 @@ public class ConstL12Normalizer extends L12Normalizer implements SampledTrainabl
   }
   
   @Override
-  public ConstL12Normalizer setTrainingSize(final int trainingSize) {
+  public @NotNull ConstL12Normalizer setTrainingSize(final int trainingSize) {
     ((SampledTrainable) inner).setTrainingSize(trainingSize);
     return this;
   }
   
   @Override
-  public TrainableDataMask setMask(final boolean... mask) {
+  public @NotNull TrainableDataMask setMask(final boolean... mask) {
     ((TrainableDataMask) inner).setMask(mask);
     return this;
   }

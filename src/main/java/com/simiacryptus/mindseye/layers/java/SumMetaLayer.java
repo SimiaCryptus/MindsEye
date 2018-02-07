@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +41,7 @@ public class SumMetaLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SumMetaLayer.class);
-  private Tensor lastResult;
+  private @Nullable Tensor lastResult;
   private int minBatches = 1;
   
   /**
@@ -54,7 +56,7 @@ public class SumMetaLayer extends NNLayer {
    * @param json      the id
    * @param resources the resources
    */
-  protected SumMetaLayer(final JsonObject json, Map<String, byte[]> resources) {
+  protected SumMetaLayer(final @NotNull JsonObject json, Map<String, byte[]> resources) {
     super(json);
     lastResult = Tensor.fromJson(json.get("lastResult"), resources);
     minBatches = json.get("minBatches").getAsInt();
@@ -67,35 +69,35 @@ public class SumMetaLayer extends NNLayer {
    * @param rs   the rs
    * @return the sum meta layer
    */
-  public static SumMetaLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static SumMetaLayer fromJson(final @NotNull JsonObject json, Map<String, byte[]> rs) {
     return new SumMetaLayer(json, rs);
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public @Nullable NNResult eval(final @NotNull NNResult... inObj) {
     final NNResult input = inObj[0];
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final int itemCnt = input.getData().length();
     if (null == lastResult || minBatches < itemCnt) {
-      final ToDoubleFunction<Coordinate> f = (c) ->
+      final @NotNull ToDoubleFunction<Coordinate> f = (c) ->
         IntStream.range(0, itemCnt)
                  .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
                  .sum();
       lastResult = input.getData().get(0).mapCoords(f);
     }
-    return new NNResult(TensorArray.wrap(lastResult), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(lastResult), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
       if (input.isAlive()) {
         final Tensor delta = data.get(0);
-        final Tensor feedback[] = new Tensor[itemCnt];
+        final @NotNull Tensor feedback[] = new Tensor[itemCnt];
         Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
-        final ToDoubleFunction<Coordinate> f = (inputCoord) -> {
+        final @NotNull ToDoubleFunction<Coordinate> f = (inputCoord) -> {
           for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
             feedback[inputItem].add(inputCoord, delta.get(inputCoord));
           }
           return 0;
         };
         delta.mapCoords(f);
-        TensorArray tensorArray = TensorArray.wrap(feedback);
+        @NotNull TensorArray tensorArray = TensorArray.wrap(feedback);
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
@@ -115,8 +117,8 @@ public class SumMetaLayer extends NNLayer {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    final JsonObject json = super.getJsonStub();
+  public @NotNull JsonObject getJson(Map<String, byte[]> resources, @NotNull DataSerializer dataSerializer) {
+    final @NotNull JsonObject json = super.getJsonStub();
     if (null != lastResult) {
       json.add("lastResult", lastResult.toJson(resources, dataSerializer));
     }
@@ -139,13 +141,13 @@ public class SumMetaLayer extends NNLayer {
    * @param minBatches the min batches
    * @return the min batches
    */
-  public SumMetaLayer setMinBatches(final int minBatches) {
+  public @NotNull SumMetaLayer setMinBatches(final int minBatches) {
     this.minBatches = minBatches;
     return this;
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList();
   }
 }

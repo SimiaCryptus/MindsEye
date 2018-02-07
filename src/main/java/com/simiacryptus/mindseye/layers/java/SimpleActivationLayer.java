@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +54,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
    *
    * @param id the id
    */
-  protected SimpleActivationLayer(final JsonObject id) {
+  protected SimpleActivationLayer(final @NotNull JsonObject id) {
     super(id);
   }
   
@@ -65,17 +67,17 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
   protected abstract void eval(final double x, double[] results);
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public @NotNull NNResult eval(final @NotNull NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
     assert 0 < itemCnt;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    final Tensor inputGradientA[] = new Tensor[itemCnt];
+    final @NotNull Tensor inputGradientA[] = new Tensor[itemCnt];
     return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);
-      final Tensor output = new Tensor(inObj[0].getData().getDimensions());
-      final Tensor inputGradient = new Tensor(input.dim());
+      final @NotNull Tensor output = new Tensor(inObj[0].getData().getDimensions());
+      final @NotNull Tensor inputGradient = new Tensor(input.dim());
       inputGradientA[dataIndex] = inputGradient;
-      final double[] results = new double[2];
+      final @NotNull double[] results = new double[2];
       for (int i = 0; i < input.dim(); i++) {
         eval(input.getData()[i], results);
         inputGradient.set(i, results[1]);
@@ -83,11 +85,11 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
       }
       input.freeRef();
       return output;
-    }).toArray(i -> new Tensor[i])), (final DeltaSet<NNLayer> buffer, final TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (final @NotNull DeltaSet<NNLayer> buffer, final @NotNull TensorList data) -> {
       if (inObj[0].isAlive()) {
-        TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
-          final Tensor passback = new Tensor(data.getDimensions());
-          final double[] gradientData = inputGradientA[dataIndex].getData();
+        @NotNull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
+          final @NotNull Tensor passback = new Tensor(data.getDimensions());
+          final @Nullable double[] gradientData = inputGradientA[dataIndex].getData();
           IntStream.range(0, passback.dim()).forEach(i -> {
             final double v = gradientData[i];
             if (Double.isFinite(v)) {
@@ -104,7 +106,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
-        for (Tensor tensor : inputGradientA) {
+        for (@NotNull Tensor tensor : inputGradientA) {
           tensor.freeRef();
         }
       }
@@ -117,7 +119,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
   }
   
   @Override
-  public List<double[]> state() {
+  public @NotNull List<double[]> state() {
     return Arrays.asList();
   }
   

@@ -20,6 +20,7 @@
 package com.simiacryptus.util.test;
 
 import com.simiacryptus.util.lang.UncheckedSupplier;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +51,7 @@ public class SysOutInterceptor extends PrintStream {
   };
   private final ThreadLocal<PrintStream> threadHandler = new ThreadLocal<PrintStream>() {
     @Override
-    protected PrintStream initialValue() {
+    protected @NotNull PrintStream initialValue() {
       return getInner();
     }
   };
@@ -62,7 +63,7 @@ public class SysOutInterceptor extends PrintStream {
    *
    * @param out the out
    */
-  private SysOutInterceptor(final PrintStream out) {
+  private SysOutInterceptor(final @NotNull PrintStream out) {
     super(out);
   }
   
@@ -72,19 +73,19 @@ public class SysOutInterceptor extends PrintStream {
    * @param fn the fn
    * @return the logged result
    */
-  public static LoggedResult<Void> withOutput(final Runnable fn) {
+  public static LoggedResult<Void> withOutput(final @NotNull Runnable fn) {
     try {
-      final ByteArrayOutputStream buff = new ByteArrayOutputStream();
-      try (PrintStream ps = new PrintStream(buff)) {
+      final @NotNull ByteArrayOutputStream buff = new ByteArrayOutputStream();
+      try (@NotNull PrintStream ps = new PrintStream(buff)) {
         if (SysOutInterceptor.INSTANCE.isMonitoring.get()) throw new IllegalStateException();
         SysOutInterceptor.INSTANCE.threadHandler.set(ps);
         SysOutInterceptor.INSTANCE.isMonitoring.set(true);
         fn.run();
         return new LoggedResult<>(null, buff.toString());
       }
-    } catch (final RuntimeException e) {
+    } catch (final @NotNull RuntimeException e) {
       throw e;
-    } catch (final Exception e) {
+    } catch (final @NotNull Exception e) {
       throw new RuntimeException(e);
     } finally {
       SysOutInterceptor.INSTANCE.threadHandler.remove();
@@ -99,20 +100,20 @@ public class SysOutInterceptor extends PrintStream {
    * @param fn  the fn
    * @return the logged result
    */
-  public static <T> LoggedResult<T> withOutput(final UncheckedSupplier<T> fn) {
+  public static <T> LoggedResult<T> withOutput(final @NotNull UncheckedSupplier<T> fn) {
     //init();
     final PrintStream prev = SysOutInterceptor.INSTANCE.threadHandler.get();
     try {
-      final ByteArrayOutputStream buff = new ByteArrayOutputStream();
-      try (PrintStream ps = new PrintStream(buff)) {
+      final @NotNull ByteArrayOutputStream buff = new ByteArrayOutputStream();
+      try (@NotNull PrintStream ps = new PrintStream(buff)) {
         SysOutInterceptor.INSTANCE.threadHandler.set(ps);
         final T result = fn.get();
         ps.close();
         return new LoggedResult<>(result, buff.toString());
       }
-    } catch (final RuntimeException e) {
+    } catch (final @NotNull RuntimeException e) {
       throw e;
-    } catch (final Exception e) {
+    } catch (final @NotNull Exception e) {
       throw new RuntimeException(e);
     } finally {
       SysOutInterceptor.INSTANCE.threadHandler.set(prev);
@@ -124,10 +125,10 @@ public class SysOutInterceptor extends PrintStream {
    *
    * @return the sys out interceptor
    */
-  public SysOutInterceptor init() {
+  public @NotNull SysOutInterceptor init() {
     if (!initialized.getAndSet(true)) {
       ch.qos.logback.classic.Logger root = ((ch.qos.logback.classic.Logger) log).getLoggerContext().getLogger("ROOT");
-      ch.qos.logback.core.ConsoleAppender stdout = (ch.qos.logback.core.ConsoleAppender) root.getAppender("STDOUT");
+      @NotNull ch.qos.logback.core.ConsoleAppender stdout = (ch.qos.logback.core.ConsoleAppender) root.getAppender("STDOUT");
       stdout.setOutputStream(this);
       System.setOut(this);
     }
@@ -148,7 +149,7 @@ public class SysOutInterceptor extends PrintStream {
    *
    * @return the heapCopy
    */
-  public PrintStream getInner() {
+  public @NotNull PrintStream getInner() {
     return (PrintStream) out;
   }
   

@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.util.Util;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The type Convolution network eval.
@@ -57,7 +58,7 @@ public abstract class DeepConvolution extends NLayerTest {
   
   
   @Override
-  public void addLayer(final PipelineNetwork network, final int[] in, final int[] out) {
+  public void addLayer(final @NotNull PipelineNetwork network, final int[] in, final int[] out) {
     assert in[0] == out[0];
     assert in[1] == out[1];
     network.add(new ConvolutionLayer(radius, radius, in[2], out[2]).set(i -> random()));
@@ -70,12 +71,12 @@ public abstract class DeepConvolution extends NLayerTest {
    *
    * @return the activation
    */
-  public NNLayer getActivation() {
+  public @NotNull NNLayer getActivation() {
     return new ActivationLayer(ActivationLayer.Mode.RELU);
   }
   
   @Override
-  public int[] getInputDims() {
+  public @NotNull int[] getInputDims() {
     return new int[]{width, height, 3};
   }
   
@@ -138,7 +139,7 @@ public abstract class DeepConvolution extends NLayerTest {
     }
   
     @Override
-    public NNLayer getActivation() {
+    public @NotNull NNLayer getActivation() {
       return new ActivationLayer(ActivationLayer.Mode.SIGMOID);
     }
   

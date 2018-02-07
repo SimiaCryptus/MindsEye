@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -62,7 +63,7 @@ final class InputNode extends LazyResult {
   }
   
   @Override
-  protected NNResult eval(final GraphEvaluationContext context) {
+  protected NNResult eval(final @NotNull GraphEvaluationContext context) {
     assertAlive();
     this.dagNetwork.assertAlive();
     synchronized (context) {

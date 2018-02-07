@@ -30,6 +30,7 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
 
@@ -39,10 +40,10 @@ import java.util.concurrent.TimeUnit;
 public class LBFGSTest extends MnistTestBase {
   
   @Override
-  public void train(final NotebookOutput log, final NNLayer network, final Tensor[][] trainingData, final TrainingMonitor monitor) {
+  public void train(final @NotNull NotebookOutput log, final @NotNull NNLayer network, final @NotNull Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.code(() -> {
-      final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-      ValidatingTrainer trainer = new ValidatingTrainer(
+      final @NotNull SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
+      @NotNull ValidatingTrainer trainer = new ValidatingTrainer(
         new SampledArrayTrainable(trainingData, supervisedNetwork, 1000, 10000),
         new ArrayTrainable(trainingData, supervisedNetwork).cached()
       )
@@ -59,7 +60,7 @@ public class LBFGSTest extends MnistTestBase {
   }
   
   @Override
-  protected Class<?> getTargetClass() {
+  protected @NotNull Class<?> getTargetClass() {
     return LBFGS.class;
   }
 }

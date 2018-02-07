@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Commonly used "loose" criteria for the line search iteration.
@@ -52,7 +54,7 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
    * @param absoluteTolerance the absolute tolerance
    * @return the absolute tolerance
    */
-  public ArmijoWolfeSearch setAbsoluteTolerance(final double absoluteTolerance) {
+  public @NotNull ArmijoWolfeSearch setAbsoluteTolerance(final double absoluteTolerance) {
     this.absoluteTolerance = absoluteTolerance;
     return this;
   }
@@ -72,7 +74,7 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
    * @param alpha the alpha
    * @return the alpha
    */
-  public ArmijoWolfeSearch setAlpha(final double alpha) {
+  public @NotNull ArmijoWolfeSearch setAlpha(final double alpha) {
     this.alpha = alpha;
     return this;
   }
@@ -92,7 +94,7 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
    * @param alphaGrowth the alpha growth
    * @return the alpha growth
    */
-  public ArmijoWolfeSearch setAlphaGrowth(final double alphaGrowth) {
+  public @NotNull ArmijoWolfeSearch setAlphaGrowth(final double alphaGrowth) {
     this.alphaGrowth = alphaGrowth;
     return this;
   }
@@ -112,7 +114,7 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
    * @param c1 the c 1
    * @return the c 1
    */
-  public ArmijoWolfeSearch setC1(final double c1) {
+  public @NotNull ArmijoWolfeSearch setC1(final double c1) {
     this.c1 = c1;
     return this;
   }
@@ -132,7 +134,7 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
    * @param c2 the c 2
    * @return the c 2
    */
-  public ArmijoWolfeSearch setC2(final double c2) {
+  public @NotNull ArmijoWolfeSearch setC2(final double c2) {
     this.c2 = c2;
     return this;
   }
@@ -152,7 +154,7 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
    * @param maxAlpha the max alpha
    * @return the max alpha
    */
-  public ArmijoWolfeSearch setMaxAlpha(final double maxAlpha) {
+  public @NotNull ArmijoWolfeSearch setMaxAlpha(final double maxAlpha) {
     this.maxAlpha = maxAlpha;
     return this;
   }
@@ -172,7 +174,7 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
    * @param minAlpha the min alpha
    * @return the min alpha
    */
-  public ArmijoWolfeSearch setMinAlpha(final double minAlpha) {
+  public @NotNull ArmijoWolfeSearch setMinAlpha(final double minAlpha) {
     this.minAlpha = minAlpha;
     return this;
   }
@@ -192,7 +194,7 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
    * @param relativeTolerance the relative tolerance
    * @return the relative tolerance
    */
-  public ArmijoWolfeSearch setRelativeTolerance(final double relativeTolerance) {
+  public @NotNull ArmijoWolfeSearch setRelativeTolerance(final double relativeTolerance) {
     this.relativeTolerance = relativeTolerance;
     return this;
   }
@@ -216,7 +218,7 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
    * @param strongWolfe the strong wolfe
    * @return the strong wolfe
    */
-  public ArmijoWolfeSearch setStrongWolfe(final boolean strongWolfe) {
+  public @NotNull ArmijoWolfeSearch setStrongWolfe(final boolean strongWolfe) {
     this.strongWolfe = strongWolfe;
     return this;
   }
@@ -231,12 +233,12 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
   }
   
   @Override
-  public PointSample step(final LineSearchCursor cursor, final TrainingMonitor monitor) {
+  public PointSample step(final @NotNull LineSearchCursor cursor, final @NotNull TrainingMonitor monitor) {
     alpha = Math.min(maxAlpha, alpha * alphaGrowth); // Keep memory of alpha from one iteration to next, but have a bias for growing the value
     double mu = 0;
     double nu = Double.POSITIVE_INFINITY;
     final LineSearchPoint startPoint = cursor.step(0, monitor);
-    LineSearchPoint lastStep = null;
+    @Nullable LineSearchPoint lastStep = null;
     try {
       final double startLineDeriv = startPoint.derivative; // theta'(0)
       final double startValue = startPoint.point.getMean(); // theta(0)
@@ -328,7 +330,7 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
     }
   }
   
-  private PointSample stepPoint(LineSearchCursor cursor, TrainingMonitor monitor, double bestAlpha) {
+  private PointSample stepPoint(@NotNull LineSearchCursor cursor, TrainingMonitor monitor, double bestAlpha) {
     LineSearchPoint step = cursor.step(bestAlpha, monitor);
     PointSample point = step.point;
     point.addRef();
