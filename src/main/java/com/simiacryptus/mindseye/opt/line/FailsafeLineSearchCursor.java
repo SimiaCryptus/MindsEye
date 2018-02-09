@@ -53,9 +53,11 @@ public class FailsafeLineSearchCursor extends LineSearchCursorBase {
    */
   public void accumulate(@javax.annotation.Nonnull final PointSample step) {
     if (null == best || best.getMean() > step.getMean()) {
-      monitor.log(String.format("New Minimum: %s > %s", best.getMean(), step.getMean()));
       PointSample newValue = step.copyFull();
-      if (null != this.best) this.best.freeRef();
+      if (null != this.best) {
+        monitor.log(String.format("New Minimum: %s > %s", best.getMean(), step.getMean()));
+        this.best.freeRef();
+      }
       this.best = newValue;
     }
   }

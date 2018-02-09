@@ -104,17 +104,18 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     assert 1 == inObj.length;
     final NNResult input = inObj[0];
-    input.getData().addRef();
+    final TensorList inputdata = input.getData();
     input.addRef();
+    inputdata.addRef();
     System.nanoTime();
     System.nanoTime();
     totalBatches++;
-    totalItems += input.getData().length();
+    totalItems += inputdata.length();
     forwardStatistics.clear();
-    input.getData().stream().parallel().forEach(t -> {
+    inputdata.stream().parallel().forEach(t -> {
       forwardStatistics.add(t.getData());
     });
-    return new NNResult(input.getData(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new NNResult(inputdata, (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       backpropStatistics.clear();
       input.accumulate(buffer, data);
       data.stream().parallel().forEach(t -> {
@@ -130,7 +131,6 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
   
       @Override
       protected void _free() {
-        input.getData().freeRef();
         input.freeRef();
       }
     };

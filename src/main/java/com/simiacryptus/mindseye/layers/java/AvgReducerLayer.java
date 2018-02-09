@@ -68,6 +68,7 @@ public class AvgReducerLayer extends NNLayer {
   @javax.annotation.Nonnull
   @Override
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+    Arrays.stream(inObj).forEach(x -> x.addRef());
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     return new NNResult(TensorArray.wrap(IntStream.range(0, inObj[0].getData().length()).parallel().mapToDouble(dataIndex -> {
       double sum = 0;
@@ -94,7 +95,6 @@ public class AvgReducerLayer extends NNLayer {
           tensorList.freeRef();
         }
       }
-      Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     }) {
       
       @Override

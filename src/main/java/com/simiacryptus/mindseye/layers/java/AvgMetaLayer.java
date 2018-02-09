@@ -76,25 +76,36 @@ public class AvgMetaLayer extends NNLayer {
     return new AvgMetaLayer(json, rs);
   }
   
+  @Override
+  protected void _free() {
+    if (null != lastResult) lastResult.freeRef();
+    super._free();
+  }
+  
   @javax.annotation.Nonnull
   @Override
   public NNResult eval(final NNResult... inObj) {
     final NNResult input = inObj[0];
-    final int itemCnt = input.getData().length();
+    input.addRef();
+    TensorList inputData = input.getData();
+    final int itemCnt = inputData.length();
     @Nullable Tensor thisResult;
     boolean passback;
-    if (null == lastResult || input.getData().length() > minBatchCount) {
+    if (null == lastResult || inputData.length() > minBatchCount) {
       @javax.annotation.Nonnull final ToDoubleFunction<Coordinate> f = (c) ->
         IntStream.range(0, itemCnt)
-                 .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
+                 .mapToDouble(dataIndex -> inputData.get(dataIndex).get(c))
                  .sum() / itemCnt;
-      thisResult = input.getData().get(0).mapCoords(f);
+      thisResult = inputData.get(0).mapCoords(f);
       passback = true;
+      if (null != lastResult) lastResult.freeRef();
       lastResult = thisResult;
+      lastResult.addRef();
     }
     else {
       passback = false;
       thisResult = lastResult;
+      if (null != lastResult) lastResult.freeRef();
     }
     return new NNResult(TensorArray.create(thisResult), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (passback && input.isAlive()) {

@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.lang;
 
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +42,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
   /**
    * The Map.
    */
+  @Nonnull
   protected final ConcurrentHashMap<K, T> map = new ConcurrentHashMap<>();
   
   /**

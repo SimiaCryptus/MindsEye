@@ -33,6 +33,7 @@ import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -398,25 +399,33 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     @javax.annotation.Nonnull HashSet<Invocation> invocations = new HashSet<>();
     smallCopy.visitNodes(node -> {
       NNLayer inner = node.getLayer();
-      node.setLayer(new NNLayer() {
+      inner.addRef();
+      NNLayer wrapper = new NNLayer() {
         @Override
-        public @Nullable NNResult eval(@javax.annotation.Nonnull NNResult... array) {
+        public @Nullable NNResult eval(@Nonnull NNResult... array) {
           if (null == inner) return null;
           NNResult result = inner.eval(array);
           invocations.add(new Invocation(inner, Arrays.stream(array).map(x -> x.getData().getDimensions()).toArray(i -> new int[i][])));
           return result;
         }
-        
+    
         @Override
         public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
           return inner.getJson(resources, dataSerializer);
         }
-        
+    
         @Override
         public @Nullable List<double[]> state() {
           return inner.state();
         }
-      });
+    
+        @Override
+        protected void _free() {
+          inner.freeRef();
+        }
+      };
+      node.setLayer(wrapper);
+      wrapper.freeRef();
     });
     smallCopy.eval(Arrays.stream(smallDims).map(i -> new Tensor(i)).<Tensor>toArray(i -> new Tensor[i]));
     return invocations;

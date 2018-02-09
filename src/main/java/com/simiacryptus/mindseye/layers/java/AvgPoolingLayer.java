@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -128,13 +129,15 @@ public class AvgPoolingLayer extends NNLayer {
     return new NNResult(TensorArray.wrap(outputValues), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (inObj[0].isAlive()) {
         final Tensor[] passback = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+          Tensor tensor = delta.get(dataIndex);
           @javax.annotation.Nonnull final Tensor backSignal = new Tensor(inputDims);
           for (@javax.annotation.Nonnull final Entry<Coordinate, List<int[]>> outputMapping : coordMap.entrySet()) {
-            final double outputValue = delta.get(dataIndex).get(outputMapping.getKey());
+            final double outputValue = tensor.get(outputMapping.getKey());
             for (@javax.annotation.Nonnull final int[] inputCoord : outputMapping.getValue()) {
               backSignal.add(inputCoord, outputValue / kernelSize);
             }
           }
+          tensor.freeRef();
           return backSignal;
         }).toArray(i -> new Tensor[i]);
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(passback);
@@ -240,14 +243,17 @@ public class AvgPoolingLayer extends NNLayer {
     public Map<Coordinate, List<int[]>> load(final IndexMapKey key) throws Exception {
       final int[] ksize = key.kernel;
       final Map<Coordinate, List<int[]>> coordMap = new Tensor(key.output).coordStream(true).collect(Collectors.toMap(o -> o, o -> {
-        return new Tensor(ksize).coordStream(true).map(kernelCoord -> {
+        Tensor blank = new Tensor(ksize);
+        List<int[]> collect = blank.coordStream(true).map(kernelCoord -> {
           int[] coords = o.getCoords();
-          @javax.annotation.Nonnull final int[] r = new int[coords.length];
+          @Nonnull final int[] r = new int[coords.length];
           for (int i = 0; i < coords.length; i++) {
             r[i] = coords[i] * ksize[i] + kernelCoord.getCoords()[i];
           }
           return r;
         }).collect(Collectors.toList());
+        blank.freeRef();
+        return collect;
       }));
       return coordMap;
     }

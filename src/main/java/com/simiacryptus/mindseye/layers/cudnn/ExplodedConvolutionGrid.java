@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
@@ -38,7 +39,7 @@ import java.util.stream.Collectors;
  * the network into sub-networks that consider only a subset of the input bands, then summing the results together. This
  * strategy remains valid so long as the sub-networks are purely linear.
  */
-class ExplodedConvolutionGrid {
+class ExplodedConvolutionGrid extends ReferenceCountingBase {
   private static final Logger log = LoggerFactory.getLogger(ExplodedConvolutionGrid.class);
   
   /**
@@ -65,6 +66,12 @@ class ExplodedConvolutionGrid {
     }
   }
   
+  @Override
+  protected void _free() {
+    subLayers.stream().forEach(x -> x.freeRef());
+    super._free();
+  }
+  
   /**
    * Write exploded convolution grid.
    *
@@ -79,10 +86,12 @@ class ExplodedConvolutionGrid {
     else {
       for (@javax.annotation.Nonnull ExplodedConvolutionLeg leg : subLayers) {
         @javax.annotation.Nonnull int[] legDims = {convolutionParams.masterFilterDimensions[0], convolutionParams.masterFilterDimensions[1], leg.getInputBands() * convolutionParams.outputBands};
-        leg.write(new Tensor(legDims).mapCoords(c -> {
+        Tensor tensor = new Tensor(legDims).mapCoords(c -> {
           int[] coords = c.getCoords();
           return filter.get(coords[0], coords[1], getFilterBand(leg, coords[2]));
-        }, false));
+        }, false);
+        leg.write(tensor);
+        tensor.freeRef();
       }
     }
     return this;
@@ -158,12 +167,14 @@ class ExplodedConvolutionGrid {
     if (subLayers.size() == 1) {
       return subLayers.get(0).add(input);
     }
-    DAGNetwork network = input.getNetwork();
-    List<DAGNode> legs = subLayers.stream().map(l -> {
-      return l.add(network.add(new ImgBandSelectLayer(l.fromBand, l.toBand).setPrecision(convolutionParams.precision), input));
-    }).collect(Collectors.toList());
-    return network.add(new SumInputsLayer().setPrecision(convolutionParams.precision), legs.stream().toArray(i -> new DAGNode[i]));
-    //return network.add(new BinarySumLayer().setPrecision(convolutionParams.precision), legs.stream().toArray(i -> new DAGNode[i]));
+    else {
+      DAGNetwork network = input.getNetwork();
+      List<DAGNode> legs = subLayers.stream().map((ExplodedConvolutionLeg l) -> {
+        return l.add(network.wrap(new ImgBandSelectLayer(l.fromBand, l.toBand).setPrecision(convolutionParams.precision), input));
+      }).collect(Collectors.toList());
+      return network.wrap(new SumInputsLayer().setPrecision(convolutionParams.precision), legs.stream().toArray(i -> new DAGNode[i]));
+      //return network.add(new BinarySumLayer().setPrecision(convolutionParams.precision), legs.stream().toArray(i -> new DAGNode[i]));
+    }
   }
   
   

@@ -71,6 +71,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
     final int itemCnt = inObj[0].getData().length();
     assert 0 < itemCnt;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+    Arrays.stream(inObj).forEach(nnResult -> nnResult.getData().addRef());
     @javax.annotation.Nonnull final Tensor inputGradientA[] = new Tensor[itemCnt];
     return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);
@@ -90,12 +91,14 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
           @javax.annotation.Nonnull final Tensor passback = new Tensor(data.getDimensions());
           final @Nullable double[] gradientData = inputGradientA[dataIndex].getData();
+          Tensor tensor = data.get(dataIndex);
           IntStream.range(0, passback.dim()).forEach(i -> {
             final double v = gradientData[i];
             if (Double.isFinite(v)) {
-              passback.set(i, data.get(dataIndex).getData()[i] * v);
+              passback.set(i, tensor.get(i) * v);
             }
           });
+          tensor.freeRef();
           return passback;
         }).toArray(i -> new Tensor[i]));
         inObj[0].accumulate(buffer, tensorArray);
@@ -106,6 +109,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.getData().freeRef());
         for (@javax.annotation.Nonnull Tensor tensor : inputGradientA) {
           tensor.freeRef();
         }

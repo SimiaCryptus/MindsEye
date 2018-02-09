@@ -142,6 +142,12 @@ public abstract class DAGNetwork extends NNLayer {
     return add(null, nextHead, head);
   }
   
+  public DAGNode wrap(@javax.annotation.Nonnull final NNLayer nextHead, final DAGNode... head) {
+    DAGNode add = add(null, nextHead, head);
+    nextHead.freeRef();
+    return add;
+  }
+  
   /**
    * Add dag node.
    *
@@ -155,7 +161,6 @@ public abstract class DAGNetwork extends NNLayer {
     assertConsistent();
     assert null != getInput();
     @javax.annotation.Nonnull final InnerNode node = new InnerNode(this, layer, head);
-    layer.freeRef();
     synchronized (layersById) {
       if (!layersById.containsKey(layer.getId())) {
         NNLayer replaced = layersById.put(layer.getId(), layer);

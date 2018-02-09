@@ -79,9 +79,9 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
   @javax.annotation.Nonnull
   public NNLayer getCompatibilityLayer() {
     @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork(2);
-    network.add(new com.simiacryptus.mindseye.layers.java.SumInputsLayer(),
-                network.add(new LinearActivationLayer().setScale(1.0).freeze(), network.getInput(0)),
-                network.add(new LinearActivationLayer().setScale(1.0).freeze(), network.getInput(1)));
+    network.wrap(new com.simiacryptus.mindseye.layers.java.SumInputsLayer(),
+                 network.wrap(new LinearActivationLayer().setScale(1.0).freeze(), network.getInput(0)),
+                 network.wrap(new LinearActivationLayer().setScale(1.0).freeze(), network.getInput(1)));
     return network;
     
   }

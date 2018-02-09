@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.opt.orient.TrustRegionStrategy;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,6 +32,7 @@ import java.util.Map;
  * Trust Region configurations.
  */
 public class LayerTrustRegionMap extends TrustRegionStrategy {
+  @Nonnull
   private final Map<NNLayer, TrustRegion> regionPolicies = new HashMap<>();
   private @Nullable TrustRegion defaultRegionPolicy = null;
   

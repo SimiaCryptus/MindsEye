@@ -75,7 +75,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
   
   @Override
   public NNLayer getLayer(final int[][] inputSize, Random random) {
-    layer.freeRef();
+    layer.addRef();
     return layer;
   }
   

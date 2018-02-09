@@ -152,7 +152,9 @@ public class GifSequenceWriter {
     for (int i = 0; i < nNodes; i++) {
       if (rootNode.item(i).getNodeName().compareToIgnoreCase(nodeName)
         == 0) {
-        return ((IIOMetadataNode) rootNode.item(i));
+        IIOMetadataNode item = (IIOMetadataNode) rootNode.item(i);
+        if (null == item) throw new IllegalStateException();
+        return item;
       }
     }
     @javax.annotation.Nonnull IIOMetadataNode node = new IIOMetadataNode(nodeName);

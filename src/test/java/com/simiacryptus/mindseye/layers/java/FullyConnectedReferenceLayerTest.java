@@ -58,6 +58,7 @@ public abstract class FullyConnectedReferenceLayerTest extends LayerTestBase {
   @javax.annotation.Nonnull
   @Override
   public NNLayer getLayer(final int[][] inputSize, Random random) {
+    layer.addRef();
     return layer;
   }
   

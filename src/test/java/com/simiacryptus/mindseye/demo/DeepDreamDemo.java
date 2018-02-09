@@ -125,10 +125,10 @@ public class DeepDreamDemo extends NotebookReportBase {
         clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
         clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
         @javax.annotation.Nonnull PipelineNetwork supervised = new PipelineNetwork(2);
-        supervised.add(new EntropyLossLayer(),
-                       supervised.add(vgg16.getNetwork().freeze(),
-                                      supervised.add(clamp, supervised.getInput(0))),
-                       supervised.getInput(1));
+        supervised.wrap(new EntropyLossLayer(),
+                        supervised.add(vgg16.getNetwork().freeze(),
+                                       supervised.wrap(clamp, supervised.getInput(0))),
+                        supervised.getInput(1));
         @javax.annotation.Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setMask(true, false).setData(data);
         new IterativeTrainer(trainable)
           .setMonitor(getTrainingMonitor(history))

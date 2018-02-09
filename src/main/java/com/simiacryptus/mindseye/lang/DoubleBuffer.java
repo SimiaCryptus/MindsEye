@@ -214,11 +214,12 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
   @Override
   protected void _free() {
     layer.freeRef();
+    @Nullable double[] delta = this.delta;
     if (null != delta) {
       if (RecycleBin.DOUBLES.want(delta.length)) {
-        RecycleBin.DOUBLES.recycle(delta, delta.length);
+        RecycleBin.DOUBLES.recycle(this.delta, delta.length);
       }
-      delta = null;
+      this.delta = null;
     }
   }
 }

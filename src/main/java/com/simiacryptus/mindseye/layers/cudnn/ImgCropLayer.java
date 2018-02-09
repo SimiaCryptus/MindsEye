@@ -147,14 +147,14 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
   /**
    * Copy.
    *
-   * @param nncontext             the nncontext
+   * @param gpu             the gpu
    * @param length                the length
    * @param sourceDimensions      the dim in
    * @param source                the input buffer
    * @param destinationDimensions the dim out
    * @param destination           the output buffer
    */
-  public void copy(@javax.annotation.Nonnull CuDNNHandle nncontext, int length, @javax.annotation.Nonnull int[] sourceDimensions, @javax.annotation.Nonnull CudaPtr source, @javax.annotation.Nonnull int[] destinationDimensions, @javax.annotation.Nonnull CudaPtr destination) {
+  public void copy(@javax.annotation.Nonnull CuDNNHandle gpu, int length, @javax.annotation.Nonnull int[] sourceDimensions, @javax.annotation.Nonnull CudaPtr source, @javax.annotation.Nonnull int[] destinationDimensions, @javax.annotation.Nonnull CudaPtr destination) {
     if (3 != sourceDimensions.length) throw new IllegalArgumentException("inputDimensions.length");
     if (3 != destinationDimensions.length) throw new IllegalArgumentException("dimOut.length");
     if (sourceDimensions[2] != destinationDimensions[2])
@@ -202,12 +202,14 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
     assert sourceOffset + Tensor.dim(viewDim) <= Tensor.dim(sourceDimensions);
     assert destinationOffset + Tensor.dim(viewDim) <= Tensor.dim(destinationDimensions);
   
-    GpuSystem.handle(CuDNNHandle.cudnnTransformTensor(nncontext.getHandle(),
+    GpuSystem.handle(CuDNNHandle.cudnnTransformTensor(gpu.getHandle(),
                                                       precision.getPointer(1.0),
                                                       sourceViewDescriptor.getPtr(), source.getPtr().withByteOffset(sourceOffset * precision.size),
                                                       precision.getPointer(0.0),
                                                       destinationViewDescriptor.getPtr(), destination.getPtr().withByteOffset(destinationOffset * precision.size)
                                                      ));
+    gpu.registerForCleanup(sourceViewDescriptor, destinationViewDescriptor);
+    
   }
   
   /**

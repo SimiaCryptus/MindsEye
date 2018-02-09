@@ -79,13 +79,12 @@ public class SumInputsLayer extends NNLayer {
                                          }
                                        })
                                        .toArray(i -> new Tensor[i]));
-    }).get(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    }).get(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       for (@javax.annotation.Nonnull final NNResult input : inObj) {
         if (input.isAlive()) {
-          @javax.annotation.Nonnull TensorList data1 = data;
-          data1.addRef();
-          if (1 < data1.length() && input.getData().length() == 1) {
-            data1 = TensorArray.wrap(data1.stream().parallel().map(x -> {
+          @javax.annotation.Nonnull TensorList projectedDelta = delta;
+          if (1 < projectedDelta.length() && input.getData().length() == 1) {
+            projectedDelta = TensorArray.wrap(projectedDelta.stream().parallel().map(x -> {
               x.addRef();
               return x;
             }).reduce((a, b) -> {
@@ -95,13 +94,16 @@ public class SumInputsLayer extends NNLayer {
               return c;
             }).get());
           }
-          if (1 < data1.get(0).dim() && input.getData().get(0).dim() == 1) {
-            @javax.annotation.Nonnull TensorArray data2 = TensorArray.wrap(data1.stream().map(t -> new Tensor(new double[]{t.sum()})).toArray(i -> new Tensor[i]));
-            data1.freeRef();
-            data1 = data2;
+          else {
+            projectedDelta.addRef();
           }
-          input.accumulate(buffer, data1);
-          data1.freeRef();
+          if (1 < Tensor.dim(projectedDelta.getDimensions()) && Tensor.dim(input.getData().getDimensions()) == 1) {
+            @javax.annotation.Nonnull TensorArray data2 = TensorArray.wrap(projectedDelta.stream().map(t -> new Tensor(new double[]{t.sum()})).toArray(i -> new Tensor[i]));
+            projectedDelta.freeRef();
+            projectedDelta = data2;
+          }
+          input.accumulate(buffer, projectedDelta);
+          projectedDelta.freeRef();
         }
       }
     }) {

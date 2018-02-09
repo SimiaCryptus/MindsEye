@@ -26,6 +26,8 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.orient.DescribeOrientationWrapper;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+
 /**
  * This exact line search method uses a linear interpolation of the derivative to find the extrema, where dx/dy = 0.
  * Bracketing conditions are established with logic that largely ignores derivatives, due to heuristic observations.
@@ -65,7 +67,7 @@ public class QuadraticSearch implements LineSearchStrategy {
     }
   
     @javax.annotation.Nonnull final LocateInitialRightPoint locateInitialRightPoint = new LocateInitialRightPoint(cursor, monitor, leftPoint).apply();
-    LineSearchPoint rightPoint = locateInitialRightPoint.getRightPoint();
+    @Nonnull LineSearchPoint rightPoint = locateInitialRightPoint.getRightPoint();
     double rightX = locateInitialRightPoint.getRightX();
   
     try {

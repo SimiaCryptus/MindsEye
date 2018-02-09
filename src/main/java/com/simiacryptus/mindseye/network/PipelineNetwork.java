@@ -114,6 +114,24 @@ public class PipelineNetwork extends DAGNetwork {
     return add(nextHead, getHead());
   }
   
+  public @Nullable DAGNode wrap(final @Nullable NNLayer nextHead) {
+    DAGNode add = add(nextHead);
+    nextHead.freeRef();
+    return add;
+  }
+  
+  public @Nullable DAGNode wrap(final @Nullable NNLayer nextHead, @javax.annotation.Nonnull final DAGNode... head) {
+    DAGNode add = add(nextHead, head);
+    nextHead.freeRef();
+    return add;
+  }
+  
+  public @Nullable DAGNode wrap(final String label, final @Nullable NNLayer nextHead, @javax.annotation.Nonnull final DAGNode... head) {
+    DAGNode add = add(label, nextHead, head);
+    nextHead.freeRef();
+    return add;
+  }
+  
   @Override
   public @Nullable DAGNode add(final @Nullable NNLayer nextHead, @javax.annotation.Nonnull final DAGNode... head) {
     if (null == nextHead && head.length == 1) return head[0];

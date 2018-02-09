@@ -95,9 +95,9 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
   @javax.annotation.Nonnull
   public NNLayer getCompatibilityLayer() {
     @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork(2);
-    network.add(new SumInputsLayer(),
-                network.add(new LinearActivationLayer().setScale(this.leftFactor).freeze(), network.getInput(0)),
-                network.add(new LinearActivationLayer().setScale(this.rightFactor).freeze(), network.getInput(1)));
+    network.wrap(new SumInputsLayer(),
+                 network.wrap(new LinearActivationLayer().setScale(this.leftFactor).freeze(), network.getInput(0)),
+                 network.wrap(new LinearActivationLayer().setScale(this.rightFactor).freeze(), network.getInput(1)));
     return network;
     
   }

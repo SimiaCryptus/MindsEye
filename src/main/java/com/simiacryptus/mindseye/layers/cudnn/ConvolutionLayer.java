@@ -152,7 +152,11 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    */
   @Override
   public NNLayer explode() {
-    return getExplodedNetwork().getNetwork();
+    ExplodedConvolutionGrid explodedNetwork = getExplodedNetwork();
+    PipelineNetwork network = explodedNetwork.getNetwork();
+    network.addRef();
+    explodedNetwork.freeRef();
+    return network;
   }
   
   /**

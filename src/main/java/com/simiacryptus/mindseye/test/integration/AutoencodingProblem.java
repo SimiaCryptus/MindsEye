@@ -37,6 +37,7 @@ import com.simiacryptus.util.test.LabeledObject;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -55,6 +56,7 @@ public class AutoencodingProblem implements Problem {
   private final double dropout;
   private final int features;
   private final FwdNetworkFactory fwdFactory;
+  @Nonnull
   private final List<StepRecord> history = new ArrayList<>();
   private final OptimizationStrategy optimizer;
   private final RevNetworkFactory revFactory;

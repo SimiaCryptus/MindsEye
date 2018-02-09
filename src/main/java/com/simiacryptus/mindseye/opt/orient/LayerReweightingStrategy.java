@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.util.ArrayUtil;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 
 /**
@@ -81,7 +82,8 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
    * The type Hash map layer reweighting strategy.
    */
   public static class HashMapLayerReweightingStrategy extends LayerReweightingStrategy {
-
+  
+    @Nonnull
     private final HashMap<NNLayer, Double> map = new HashMap<>();
   
     /**

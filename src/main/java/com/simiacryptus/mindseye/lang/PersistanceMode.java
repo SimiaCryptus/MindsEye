@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.lang;
 
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.util.function.Supplier;
@@ -54,7 +55,7 @@ public enum PersistanceMode {
   Strong {
     @javax.annotation.Nonnull
     @Override
-    public <T> Supplier<T> wrap(T obj) {
+    public <T> Supplier<T> wrap(@Nonnull T obj) {
       return () -> obj;
     }
   },

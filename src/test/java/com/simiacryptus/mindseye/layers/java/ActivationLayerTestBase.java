@@ -92,6 +92,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
   
   @Override
   public NNLayer getLayer(final int[][] inputSize, Random random) {
+    layer.addRef();
     return layer;
   }
   

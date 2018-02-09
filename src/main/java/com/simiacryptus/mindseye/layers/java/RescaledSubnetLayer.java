@@ -54,6 +54,13 @@ public class RescaledSubnetLayer extends NNLayer {
     super();
     this.scale = scale;
     this.subnetwork = subnetwork;
+    this.subnetwork.addRef();
+  }
+  
+  @Override
+  protected void _free() {
+    this.subnetwork.freeRef();
+    super._free();
   }
   
   /**
@@ -90,17 +97,15 @@ public class RescaledSubnetLayer extends NNLayer {
     if (1 == scale) return subnetwork.eval(inObj);
   
     @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
-    final DAGNode condensed = network.add(new ImgReshapeLayer(scale, scale, false));
-    network.add(new ImgConcatLayer(), IntStream.range(0, scale * scale).mapToObj(subband -> {
+    final DAGNode condensed = network.wrap(new ImgReshapeLayer(scale, scale, false));
+    network.wrap(new ImgConcatLayer(), IntStream.range(0, scale * scale).mapToObj(subband -> {
       @javax.annotation.Nonnull final int[] select = new int[inputDims[2]];
       for (int i = 0; i < inputDims[2]; i++) {
         select[i] = subband * inputDims[2] + i;
       }
-      return network.add(subnetwork,
-                         network.add(new ImgBandSelectLayer(select),
-                                     condensed));
+      return network.add(subnetwork, network.wrap(new ImgBandSelectLayer(select), condensed));
     }).toArray(i -> new DAGNode[i]));
-    network.add(new ImgReshapeLayer(scale, scale, true));
+    network.wrap(new ImgReshapeLayer(scale, scale, true));
   
     return network.eval(inObj);
   }

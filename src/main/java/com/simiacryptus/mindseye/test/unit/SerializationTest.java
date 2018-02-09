@@ -30,6 +30,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -44,6 +45,7 @@ import java.util.zip.ZipFile;
  * The type Json run.
  */
 public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
+  @Nonnull
   private final HashMap<SerialPrecision, NNLayer> models = new HashMap<>();
   private boolean persist = false;
   

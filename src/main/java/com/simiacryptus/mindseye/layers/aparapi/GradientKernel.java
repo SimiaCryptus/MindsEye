@@ -79,6 +79,7 @@ public final class GradientKernel extends Kernel {
   public void exe(@javax.annotation.Nonnull final Device device) {
     //assert this.outputSize[0] * this.outputSize[1] * this.outputSize[2] == this.output.length;
     //assert this.inputSize[0] * this.inputSize[1] * this.inputSize[2] == this.input.length;
+    if (null == kernelSize) throw new IllegalStateException();
     assert kernelSize[0] * kernelSize[1] * kernelSize[2] == weightSize;
     execute(device.createRange2D(weightSize, paralellism));
   }

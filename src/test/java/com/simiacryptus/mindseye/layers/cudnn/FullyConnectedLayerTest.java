@@ -190,58 +190,58 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
     }
     
   }
-  
-  
-  /**
-   * Large-dimension test
-   */
-  public static class Big_Temp2 extends Big {
-    /**
-     * Instantiates a new Big.
-     */
-    public Big_Temp2() {
-      super(new int[]{1024}, new int[]{512}, 32);
-    }
-    
-  }
-  
-  /**
-   * Large-dimension test
-   */
-  public static class Big_Temp3 extends Big {
-    /**
-     * Instantiates a new Big.
-     */
-    public Big_Temp3() {
-      super(new int[]{2 * 1024}, new int[]{512}, 32);
-    }
-    
-  }
-  
-  /**
-   * Large-dimension test
-   */
-  public static class Big_Temp0 extends Big {
-    /**
-     * Instantiates a new Big.
-     */
-    public Big_Temp0() {
-      super(new int[]{1024}, new int[]{256}, 32);
-    }
-    
-  }
-  
-  /**
-   * Large-dimension test
-   */
-  public static class Big_Temp1 extends Big {
-    /**
-     * Instantiates a new Big.
-     */
-    public Big_Temp1() {
-      super(new int[]{2 * 1024}, new int[]{256}, 32);
-    }
-    
-  }
-  
+//
+//
+//  /**
+//   * Large-dimension test
+//   */
+//  public static class Big_Temp2 extends Big {
+//    /**
+//     * Instantiates a new Big.
+//     */
+//    public Big_Temp2() {
+//      super(new int[]{1024}, new int[]{512}, 32);
+//    }
+//
+//  }
+//
+//  /**
+//   * Large-dimension test
+//   */
+//  public static class Big_Temp3 extends Big {
+//    /**
+//     * Instantiates a new Big.
+//     */
+//    public Big_Temp3() {
+//      super(new int[]{2 * 1024}, new int[]{512}, 32);
+//    }
+//
+//  }
+//
+//  /**
+//   * Large-dimension test
+//   */
+//  public static class Big_Temp0 extends Big {
+//    /**
+//     * Instantiates a new Big.
+//     */
+//    public Big_Temp0() {
+//      super(new int[]{1024}, new int[]{256}, 32);
+//    }
+//
+//  }
+//
+//  /**
+//   * Large-dimension test
+//   */
+//  public static class Big_Temp1 extends Big {
+//    /**
+//     * Instantiates a new Big.
+//     */
+//    public Big_Temp1() {
+//      super(new int[]{2 * 1024}, new int[]{256}, 32);
+//    }
+//
+//  }
+//
 }

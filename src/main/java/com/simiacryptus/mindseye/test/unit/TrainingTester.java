@@ -569,7 +569,6 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
       if (0 < mask.length) trainable.setMask(mask);
       List<StepRecord> history = opt.apply(log, trainable);
       trainable.freeRef();
-      network.freeRef();
       if (history.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
         if (!network.isFrozen()) {
           log.p("This training run resulted in the following configuration:");
@@ -612,6 +611,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
       else {
         log.p("Training Converged");
       }
+      network.freeRef();
       return history;
     } finally {
       for (@javax.annotation.Nonnull Tensor[] tensors : data) {

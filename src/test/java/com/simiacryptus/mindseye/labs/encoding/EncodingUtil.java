@@ -111,9 +111,9 @@ public class EncodingUtil {
   public static DAGNetwork buildTrainingModel(final NNLayer innerModel, final int reproducedColumn, final int learnedColumn) {
     @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork(Math.max(learnedColumn, reproducedColumn) + 1);
     // network.add(new NthPowerActivationLayer().setPower(0.5), );
-    network.add(new MeanSqLossLayer(),
-                network.add("image", innerModel, network.getInput(learnedColumn)),
-                network.getInput(reproducedColumn));
+    network.wrap(new MeanSqLossLayer(),
+                 network.add("image", innerModel, network.getInput(learnedColumn)),
+                 network.getInput(reproducedColumn));
     //addLogging(network);
     return network;
   }

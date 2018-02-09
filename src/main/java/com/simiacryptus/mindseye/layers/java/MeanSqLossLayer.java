@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -91,30 +92,50 @@ public class MeanSqLossLayer extends NNLayer {
       return statsTensor;
     }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
-        Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
+        List<Tensor> scaledTensors = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
           Tensor tensor = data.get(dataIndex);
           @Nullable Tensor scale = diffs[dataIndex].scale(tensor.get(0) * 2.0 / diffs[dataIndex].dim());
           tensor.freeRef();
           return scale;
-        });
+        }).collect(Collectors.toList());
+        Stream<Tensor> tensorStream = scaledTensors.stream();
         if (1 == leftLength) {
-          tensorStream = Stream.of(tensorStream.reduce((a, b) -> a.add(b)).get());
+          tensorStream = Stream.of(tensorStream.map(x -> {
+            x.addRef();
+            return x;
+          }).reduce((a, b) -> {
+            Tensor c = a.add(b);
+            a.freeRef();
+            b.freeRef();
+            return c;
+          }).get());
         }
         @javax.annotation.Nonnull final TensorList array = TensorArray.wrap(tensorStream.toArray(i -> new Tensor[i]));
+        scaledTensors.forEach(x -> x.freeRef());
         inObj[0].accumulate(buffer, array);
         array.freeRef();
       }
       if (inObj[1].isAlive()) {
-        Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
+        List<Tensor> scaledTensors = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
           Tensor tensor = data.get(dataIndex);
           @Nullable Tensor scale = diffs[dataIndex].scale(tensor.get(0) * 2.0 / diffs[dataIndex].dim());
           tensor.freeRef();
           return scale;
-        });
+        }).collect(Collectors.toList());
+        Stream<Tensor> tensorStream = scaledTensors.stream();
         if (1 == rightLength) {
-          tensorStream = Stream.of(tensorStream.reduce((a, b) -> a.add(b)).get());
+          tensorStream = Stream.of(tensorStream.map(x -> {
+            x.addRef();
+            return x;
+          }).reduce((a, b) -> {
+            Tensor c = a.add(b);
+            a.freeRef();
+            b.freeRef();
+            return c;
+          }).get());
         }
         @javax.annotation.Nonnull final TensorList array = TensorArray.wrap(tensorStream.map(x -> x.scale(-1)).toArray(i -> new Tensor[i]));
+        scaledTensors.forEach(x -> x.freeRef());
         inObj[1].accumulate(buffer, array);
         array.freeRef();
       }

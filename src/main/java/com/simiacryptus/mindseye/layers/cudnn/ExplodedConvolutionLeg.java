@@ -36,7 +36,7 @@ import java.util.function.Function;
  * together as successive image bands. Even at small scale, this breakdown is required because CuDNN only supports
  * convolutions with equal input/output band counts.
  */
-class ExplodedConvolutionLeg {
+class ExplodedConvolutionLeg extends ReferenceCountingBase {
   private static final Logger log = LoggerFactory.getLogger(ExplodedConvolutionLeg.class);
   
   /**
@@ -82,6 +82,11 @@ class ExplodedConvolutionLeg {
     }
   }
   
+  @Override
+  protected void _free() {
+    this.subLayers.forEach(x -> x.freeRef());
+    super._free();
+  }
   
   /**
    * Write exploded convolution leg.
@@ -221,15 +226,15 @@ class ExplodedConvolutionLeg {
       head = network.add(subLayers.get(0), head);
     }
     else {
-      head = network.add(new ImgConcatLayer().setMaxBands(this.convolutionParams.outputBands).setPrecision(this.convolutionParams.precision),
-                         subLayers.stream().map(l -> network.add(l, input)).toArray(i -> new DAGNode[i]));
+      head = network.wrap(new ImgConcatLayer().setMaxBands(this.convolutionParams.outputBands).setPrecision(this.convolutionParams.precision),
+                          subLayers.stream().map(l -> network.add(l, input)).toArray(i -> new DAGNode[i]));
     }
     if (this.convolutionParams.paddingX != null || this.convolutionParams.paddingY != null) {
       int x = ((filterDimensions[0] - 1) / 2);
       if (this.convolutionParams.paddingX != null) x = this.convolutionParams.paddingX - x;
       int y = ((filterDimensions[1] - 1) / 2);
       if (this.convolutionParams.paddingY != null) y = this.convolutionParams.paddingY - y;
-      head = network.add(new ImgZeroPaddingLayer(x, y).setPrecision(convolutionParams.precision), head);
+      head = network.wrap(new ImgZeroPaddingLayer(x, y).setPrecision(convolutionParams.precision), head);
     }
     return head;
   }

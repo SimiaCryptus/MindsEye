@@ -141,7 +141,9 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
       if (method.getDeclaringClass() == NNLayer.class) {
         throw new IllegalArgumentException("Cannot find deserialization method for " + className);
       }
-      return (NNLayer) method.invoke(null, json, rs);
+      NNLayer invoke = (NNLayer) method.invoke(null, json, rs);
+      if (null == invoke) throw new IllegalStateException();
+      return invoke;
     } catch (@javax.annotation.Nonnull IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
       throw new RuntimeException(e);
     }
@@ -178,6 +180,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    * @return the nn layer
    */
   public NNLayer copy(SerialPrecision precision) {
+    assertAlive();
     @javax.annotation.Nonnull HashMap<String, byte[]> resources = new HashMap<>();
     final JsonObject json = getJson(resources, precision);
     return NNLayer.fromJson(json, resources);

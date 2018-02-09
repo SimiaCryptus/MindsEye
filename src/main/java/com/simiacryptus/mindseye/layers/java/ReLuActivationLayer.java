@@ -100,8 +100,9 @@ public class ReLuActivationLayer extends NNLayer {
     final TensorList indata = input.getData();
     input.addRef();
     indata.addRef();
+    weights.addRef();
     final int itemCnt = indata.length();
-    final Tensor[] output = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
+    return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       Tensor tensorElement = indata.get(dataIndex);
       @javax.annotation.Nonnull final Tensor tensor = tensorElement.multiply(weights.get(0));
       tensorElement.freeRef();
@@ -112,8 +113,7 @@ public class ReLuActivationLayer extends NNLayer {
         }
       }
       return tensor;
-    }).toArray(i -> new Tensor[i]);
-    return new NNResult(TensorArray.wrap(output), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).parallel().forEach(dataIndex -> {
           Tensor deltaTensor = delta.get(dataIndex);
@@ -156,6 +156,7 @@ public class ReLuActivationLayer extends NNLayer {
       protected void _free() {
         input.freeRef();
         indata.freeRef();
+        weights.freeRef();
       }
       
       @Override
