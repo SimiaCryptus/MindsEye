@@ -24,10 +24,10 @@ import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.IntArray;
 import com.simiacryptus.util.io.JsonUtil;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -42,7 +42,8 @@ public class MaxDropoutNoiseLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MaxDropoutNoiseLayer.class);
-  private final @Nullable int[] kernelSize;
+  @Nullable
+  private final int[] kernelSize;
   private final Function<IntArray, List<List<Coordinate>>> getCellMap_cached = Util.cache(this::getCellMap);
   
   /**
@@ -86,52 +87,57 @@ public class MaxDropoutNoiseLayer extends NNLayer {
   @javax.annotation.Nonnull
   @Override
   public NNResult eval(final NNResult... inObj) {
-    final int itemCnt = inObj[0].getData().length();
-    inObj[0].addRef();
+    final NNResult in0 = inObj[0];
+    final TensorList data0 = in0.getData();
+    final int itemCnt = data0.length();
+    in0.addRef();
+    data0.addRef();
     final Tensor[] mask = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].getData().get(dataIndex);
-      final @Nullable Tensor output = input.map(x -> 0);
+      @javax.annotation.Nullable final Tensor input = data0.get(dataIndex);
+      @Nullable final Tensor output = input.map(x -> 0);
       final List<List<Coordinate>> cells = getCellMap_cached.apply(new IntArray(output.getDimensions()));
       cells.forEach(cell -> {
         output.set(cell.stream().max(Comparator.comparingDouble(c -> input.get(c))).get(), 1);
       });
+      input.freeRef();
       return output;
     }).toArray(i -> new Tensor[i]);
-    final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final @Nullable double[] input = inObj[0].getData().get(dataIndex).getData();
-      final @Nullable double[] maskT = mask[dataIndex].getData();
-      @javax.annotation.Nonnull final Tensor output = new Tensor(inObj[0].getData().get(dataIndex).getDimensions());
-      final @Nullable double[] outputData = output.getData();
+    return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
+      @Nullable final double[] input = data0.get(dataIndex).getData();
+      @Nullable final double[] maskT = mask[dataIndex].getData();
+      @javax.annotation.Nonnull final Tensor output = new Tensor(data0.get(dataIndex).getDimensions());
+      @Nullable final double[] outputData = output.getData();
       for (int i = 0; i < outputData.length; i++) {
         outputData[i] = input[i] * maskT[i];
       }
       return output;
-    }).toArray(i -> new Tensor[i]);
-    return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
-      if (inObj[0].isAlive()) {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+      if (in0.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-          final @Nullable double[] deltaData = delta.get(dataIndex).getData();
-          @javax.annotation.Nonnull final int[] dims = inObj[0].getData().get(dataIndex).getDimensions();
-          final @Nullable double[] maskData = mask[dataIndex].getData();
+          @Nullable final double[] deltaData = delta.get(dataIndex).getData();
+          @javax.annotation.Nonnull final int[] dims = data0.get(dataIndex).getDimensions();
+          @Nullable final double[] maskData = mask[dataIndex].getData();
           @javax.annotation.Nonnull final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, maskData[i] * deltaData[i]);
           }
           return passback;
         }).toArray(i -> new Tensor[i]));
-        inObj[0].accumulate(buffer, tensorArray);
+        in0.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
     }) {
       
       @Override
       protected void _free() {
-        inObj[0].freeRef();
+        in0.freeRef();
+        data0.freeRef();
+        Arrays.stream(mask).forEach(ReferenceCountingBase::freeRef);
       }
       
       @Override
       public boolean isAlive() {
-        return inObj[0].isAlive() || !isFrozen();
+        return in0.isAlive() || !isFrozen();
       }
       
     };

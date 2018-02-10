@@ -19,10 +19,10 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.function.DoubleUnaryOperator;
 import java.util.stream.IntStream;
@@ -47,7 +47,8 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
   /**
    * The Delta.
    */
-  protected volatile @Nullable double[] delta;
+  @Nullable
+  protected volatile double[] delta;
   
   /**
    * Instantiates a new Double buffer.
@@ -96,7 +97,8 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    *
    * @return the delta
    */
-  public @Nullable DoubleBuffer<K> copy() {
+  @Nullable
+  public DoubleBuffer<K> copy() {
     assertAlive();
     return new DoubleBuffer<K>(layer, target, RecycleBin.DOUBLES.copyOf(delta, length()));
   }
@@ -124,8 +126,8 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
     if (!this.layer.equals(right.layer)) {
       throw new IllegalArgumentException(String.format("Deltas are not based on same layer. %s != %s", this.layer, right.layer));
     }
-    final @Nullable double[] l = this.getDelta();
-    final @Nullable double[] r = right.getDelta();
+    @Nullable final double[] l = this.getDelta();
+    @Nullable final double[] r = right.getDelta();
     assert l.length == r.length;
     final double[] array = IntStream.range(0, l.length).mapToDouble(i -> l[i] * r[i]).toArray();
     return Arrays.stream(array).summaryStatistics().getSum();
@@ -136,7 +138,8 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    *
    * @return the double [ ]
    */
-  public @Nullable double[] getDelta() {
+  @Nullable
+  public double[] getDelta() {
     assertAlive();
     if (null == delta) {
       synchronized (this) {

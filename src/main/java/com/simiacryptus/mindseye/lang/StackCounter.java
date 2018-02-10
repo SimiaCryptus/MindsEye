@@ -54,13 +54,13 @@ public class StackCounter {
     });
     comparing = comparing.thenComparing(Comparator.comparing(key -> key.toString()));
     return Stream.concat(left.stats.keySet().stream(), right.stats.keySet().stream())
-                 .distinct()
-                 .filter(k -> left.stats.containsKey(k) && right.stats.containsKey(k))
-                 .sorted(comparing)
-                 .map(key -> String.format("%s - %s", key.toString(), fn.apply(left.stats.get(key), right.stats.get(key))))
-                 .limit(100)
-                 .reduce((a, b) -> a + "\n" + b)
-                 .orElse("");
+      .distinct()
+      .filter(k -> left.stats.containsKey(k) && right.stats.containsKey(k))
+      .sorted(comparing)
+      .map(key -> String.format("%s - %s", key.toString(), fn.apply(left.stats.get(key), right.stats.get(key))))
+      .limit(100)
+      .reduce((a, b) -> a + "\n" + b)
+      .orElse("");
   }
   
   /**
@@ -101,9 +101,9 @@ public class StackCounter {
     Comparator<Map.Entry<StackFrame, DoubleStatistics>> comparing = Comparator.comparing(e -> -fn.apply(e.getValue()).doubleValue());
     comparing = comparing.thenComparing(Comparator.comparing(e -> e.getKey().toString()));
     return stats.entrySet().stream()
-                .sorted(comparing)
-                .map(e -> String.format("%s - %s", e.getKey().toString(), fn.apply(e.getValue())))
-                .limit(100).reduce((a, b) -> a + "\n" + b).orElse(super.toString());
+      .sorted(comparing)
+      .map(e -> String.format("%s - %s", e.getKey().toString(), fn.apply(e.getValue())))
+      .limit(100).reduce((a, b) -> a + "\n" + b).orElse(super.toString());
   }
   
   /**

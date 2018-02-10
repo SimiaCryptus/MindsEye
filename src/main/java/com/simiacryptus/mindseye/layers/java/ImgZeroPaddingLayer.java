@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -77,7 +78,7 @@ public class ImgZeroPaddingLayer extends NNLayer {
   @Override
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     assert inObj.length == 1;
-    int[] dimensions = inObj[0].getData().getDimensions();
+    @Nonnull int[] dimensions = inObj[0].getData().getDimensions();
     return new ImgCropLayer(dimensions[0] + 2 * this.sizeX, dimensions[1] + 2 * this.sizeY).eval(inObj);
   }
   

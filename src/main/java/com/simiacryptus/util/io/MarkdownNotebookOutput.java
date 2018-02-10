@@ -27,10 +27,10 @@ import com.simiacryptus.util.lang.UncheckedSupplier;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -72,7 +72,8 @@ public class MarkdownNotebookOutput implements NotebookOutput {
    * The Anchor.
    */
   int anchor = 0;
-  private @Nullable String absoluteUrl = null;
+  @Nullable
+  private String absoluteUrl = null;
   private int maxOutSize = 8 * 1024;
   
   /**
@@ -152,10 +153,10 @@ public class MarkdownNotebookOutput implements NotebookOutput {
   
           frontMatter.forEach((key, value) -> {
             String escaped = StringEscapeUtils.escapeJson(value)
-                                              .replaceAll("\n", " ")
-                                              .replaceAll(":", "&#58;")
-                                              .replaceAll("\\{", "\\{")
-                                              .replaceAll("\\}", "\\}");
+              .replaceAll("\n", " ")
+              .replaceAll(":", "&#58;")
+              .replaceAll("\\{", "\\{")
+              .replaceAll("\\}", "\\}");
             out.println(String.format("%s: %s", key, escaped));
           });
           out.println("---");
@@ -226,8 +227,8 @@ public class MarkdownNotebookOutput implements NotebookOutput {
         }
       });
       out(anchor(anchorId()) + "Code from [%s:%s](%s#L%s) executed in %.2f seconds (%.3f gc): ",
-          callingFrame.getFileName(), callingFrame.getLineNumber(),
-          linkTo(CodeUtil.findFile(callingFrame)), callingFrame.getLineNumber(), result.obj.seconds(), result.obj.gc_seconds());
+        callingFrame.getFileName(), callingFrame.getLineNumber(),
+        linkTo(CodeUtil.findFile(callingFrame)), callingFrame.getLineNumber(), result.obj.seconds(), result.obj.gc_seconds());
       String text = sourceCode.replaceAll("\n", "\n  ");
       out("```java");
       out("  " + text);
@@ -316,7 +317,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
   
   @javax.annotation.Nonnull
   @Override
-  public String file(final @Nullable String data, @javax.annotation.Nonnull final String fileName, final String caption) {
+  public String file(@Nullable final String data, @javax.annotation.Nonnull final String fileName, final String caption) {
     try {
       if (null != data) {
         IOUtils.write(data, new FileOutputStream(new File(getResourceDir(), fileName)), Charset.forName("UTF-8"));
@@ -332,7 +333,8 @@ public class MarkdownNotebookOutput implements NotebookOutput {
    *
    * @return the absolute url
    */
-  public @Nullable String getAbsoluteUrl() {
+  @Nullable
+  public String getAbsoluteUrl() {
     return absoluteUrl;
   }
   
@@ -393,13 +395,13 @@ public class MarkdownNotebookOutput implements NotebookOutput {
   
   @javax.annotation.Nonnull
   @Override
-  public String image(final @Nullable BufferedImage rawImage, final String caption) throws IOException {
+  public String image(@Nullable final BufferedImage rawImage, final String caption) throws IOException {
     if (null == rawImage) return "";
     new ByteArrayOutputStream();
     final int thisImage = ++MarkdownNotebookOutput.imageNumber;
     @javax.annotation.Nonnull final String fileName = name + "." + thisImage + ".png";
     @javax.annotation.Nonnull final File file = new File(getResourceDir(), fileName);
-    final BufferedImage stdImage = Util.resize(rawImage);
+    @javax.annotation.Nullable final BufferedImage stdImage = Util.resize(rawImage);
     if (stdImage != rawImage) {
       @javax.annotation.Nonnull final String rawName = name + "_raw." + thisImage + ".png";
       ImageIO.write(rawImage, "png", new File(getResourceDir(), rawName));

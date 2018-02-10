@@ -28,10 +28,11 @@ import com.simiacryptus.util.lang.CodeUtil;
 import com.simiacryptus.util.lang.TimedResult;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -77,7 +78,8 @@ public abstract class NotebookReportBase {
    * @param prefix       the prefix
    * @return the string
    */
-  public static @Nullable String printHeader(@javax.annotation.Nonnull NotebookOutput log, @Nullable Class<?> networkClass, final String prefix) {
+  @Nullable
+  public static String printHeader(@javax.annotation.Nonnull NotebookOutput log, @Nullable Class<?> networkClass, final String prefix) {
     if (null == networkClass) return null;
     @Nullable String javadoc = CodeUtil.getJavadoc(networkClass);
     log.setFrontMatterProperty(prefix + "_class_short", networkClass.getSimpleName());
@@ -91,6 +93,7 @@ public abstract class NotebookReportBase {
    *
    * @return the report type
    */
+  @Nonnull
   public abstract ReportType getReportType();
   
   /**
@@ -160,8 +163,8 @@ public abstract class NotebookReportBase {
     try {
       if (useMarkdown) {
         return MarkdownNotebookOutput.get(getTargetClass(),
-                                          absoluteUrl,
-                                          logPath);
+          absoluteUrl,
+          logPath);
       }
       else {
         @javax.annotation.Nonnull final String directoryName = new SimpleDateFormat("YYYY-MM-dd-HH-mm").format(new Date());

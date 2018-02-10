@@ -25,11 +25,11 @@ import com.google.common.cache.LoadingCache;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.io.JsonUtil;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +48,7 @@ public class AvgPoolingLayer extends NNLayer {
    * The constant indexMapCache.
    */
   public static final LoadingCache<AvgPoolingLayer.IndexMapKey, Map<Coordinate, List<int[]>>> indexMapCache = CacheBuilder.newBuilder()
-                                                                                                                          .build(new LayerCacheLoader());
+    .build(new LayerCacheLoader());
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(AvgPoolingLayer.class);
   private int[] kernelDims;
@@ -91,7 +91,7 @@ public class AvgPoolingLayer extends NNLayer {
    */
   public static AvgPoolingLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new AvgPoolingLayer(json,
-                               JsonUtil.getIntArray(json.getAsJsonArray("heapCopy")));
+      JsonUtil.getIntArray(json.getAsJsonArray("heapCopy")));
   }
   
   private static synchronized Map<Coordinate, List<int[]>> getCoordMap(final int[] kernelDims, final int[] outDims) {
@@ -106,16 +106,16 @@ public class AvgPoolingLayer extends NNLayer {
   @SuppressWarnings("unchecked")
   @Override
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
-    final int kernelSize = new Tensor(kernelDims).dim();
+    final int kernelSize = Tensor.dim(kernelDims);
     final TensorList data = inObj[0].getData();
-    @javax.annotation.Nonnull final int[] inputDims = data.get(0).getDimensions();
+    @javax.annotation.Nonnull final int[] inputDims = data.getDimensions();
     final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
       assert 0 == inputDims[i] % kernelDims[i] : inputDims[i] + ":" + kernelDims[i];
       return inputDims[i] / kernelDims[i];
     }).toArray();
     final Map<Coordinate, List<int[]>> coordMap = AvgPoolingLayer.getCoordMap(kernelDims, newDims);
     final Tensor[] outputValues = IntStream.range(0, data.length()).mapToObj(dataIndex -> {
-      final Tensor input = data.get(dataIndex);
+      @javax.annotation.Nullable final Tensor input = data.get(dataIndex);
       @javax.annotation.Nonnull final Tensor output = new Tensor(newDims);
       for (@javax.annotation.Nonnull final Entry<Coordinate, List<int[]>> entry : coordMap.entrySet()) {
         double sum = entry.getValue().stream().mapToDouble(inputCoord -> input.get(inputCoord)).sum();
@@ -123,13 +123,14 @@ public class AvgPoolingLayer extends NNLayer {
           output.add(entry.getKey(), sum / kernelSize);
         }
       }
+      input.freeRef();
       return output;
     }).toArray(i -> new Tensor[i]);
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     return new NNResult(TensorArray.wrap(outputValues), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (inObj[0].isAlive()) {
         final Tensor[] passback = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-          Tensor tensor = delta.get(dataIndex);
+          @javax.annotation.Nullable Tensor tensor = delta.get(dataIndex);
           @javax.annotation.Nonnull final Tensor backSignal = new Tensor(inputDims);
           for (@javax.annotation.Nonnull final Entry<Coordinate, List<int[]>> outputMapping : coordMap.entrySet()) {
             final double outputValue = tensor.get(outputMapping.getKey());
@@ -211,7 +212,7 @@ public class AvgPoolingLayer extends NNLayer {
     }
     
     @Override
-    public boolean equals(final @Nullable Object obj) {
+    public boolean equals(@Nullable final Object obj) {
       if (this == obj) {
         return true;
       }
@@ -221,7 +222,7 @@ public class AvgPoolingLayer extends NNLayer {
       if (getClass() != obj.getClass()) {
         return false;
       }
-      final @Nullable AvgPoolingLayer.IndexMapKey other = (AvgPoolingLayer.IndexMapKey) obj;
+      @Nullable final AvgPoolingLayer.IndexMapKey other = (AvgPoolingLayer.IndexMapKey) obj;
       if (!Arrays.equals(kernel, other.kernel)) {
         return false;
       }
@@ -243,7 +244,7 @@ public class AvgPoolingLayer extends NNLayer {
     public Map<Coordinate, List<int[]>> load(final IndexMapKey key) throws Exception {
       final int[] ksize = key.kernel;
       final Map<Coordinate, List<int[]>> coordMap = new Tensor(key.output).coordStream(true).collect(Collectors.toMap(o -> o, o -> {
-        Tensor blank = new Tensor(ksize);
+        @Nonnull Tensor blank = new Tensor(ksize);
         List<int[]> collect = blank.coordStream(true).map(kernelCoord -> {
           int[] coords = o.getCoords();
           @Nonnull final int[] r = new int[coords.length];

@@ -31,6 +31,8 @@ import jcuda.jcudnn.cudnnOpTensorOp;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 import jcuda.jcudnn.cudnnTensorFormat;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -96,12 +98,13 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
   public NNLayer getCompatibilityLayer() {
     @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork(2);
     network.wrap(new SumInputsLayer(),
-                 network.wrap(new LinearActivationLayer().setScale(this.leftFactor).freeze(), network.getInput(0)),
-                 network.wrap(new LinearActivationLayer().setScale(this.rightFactor).freeze(), network.getInput(1)));
+      network.wrap(new LinearActivationLayer().setScale(this.leftFactor).freeze(), network.getInput(0)),
+      network.wrap(new LinearActivationLayer().setScale(this.rightFactor).freeze(), network.getInput(1)));
     return network;
     
   }
   
+  @Nullable
   @Override
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     if (inObj.length == 1) {
@@ -117,7 +120,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
         nnResult.getData().addRef();
       }
       return Arrays.stream(inObj).reduce((a, b) -> {
-        NNResult r = eval(a, b);
+        @Nullable NNResult r = eval(a, b);
         a.freeRef();
         a.getData().freeRef();
         b.freeRef();
@@ -128,7 +131,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
     assert (inObj.length == 2);
     final TensorList leftData = inObj[0].getData();
     final TensorList rightData = inObj[1].getData();
-    final int[] dimensions = leftData.getDimensions();
+    @Nonnull final int[] dimensions = leftData.getDimensions();
     final int length = leftData.length();
     if (3 != dimensions.length) {
       throw new IllegalArgumentException("dimensions=" + Arrays.toString(dimensions));
@@ -144,27 +147,27 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
       @javax.annotation.Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
       @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
-      final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, leftData);//.moveTo(gpu.getDeviceNumber());
-      final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, rightData);//.moveTo(gpu.getDeviceNumber());
+      @Nullable final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, leftData);//.moveTo(gpu.getDeviceNumber());
+      @Nullable final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, rightData);//.moveTo(gpu.getDeviceNumber());
       assert lPtr.size == rPtr.size;
       @javax.annotation.Nonnull final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
       CuDNNHandle.cudnnOpTensor(gpu.getHandle(), opDescriptor.getPtr(),
-                                precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
-                                precision.getPointer(rightFactor), sizeDescriptor.getPtr(), rPtr.getPtr(),
-                                precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
+        precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
+        precision.getPointer(rightFactor), sizeDescriptor.getPtr(), rPtr.getPtr(),
+        precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
       gpu.registerForCleanup(opDescriptor, sizeDescriptor, lPtr, rPtr);
       return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
     }), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       TestUtil.runAllSerial(() -> {
         if (inObj[0].isAlive()) {
           GpuTensorList tensorList = GpuSystem.eval(gpu -> {
-            final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);
+            @Nullable final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);
             @javax.annotation.Nonnull final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
             @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
               precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
             CuDNNHandle.cudnnAddTensor(gpu.getHandle(),
-                                       precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
-                                       precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
+              precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
+              precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
             gpu.registerForCleanup(sizeDescriptor, lPtr);
             return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
           });
@@ -174,13 +177,13 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
       }, () -> {
         if (inObj[1].isAlive()) {
           GpuTensorList tensorList = GpuSystem.eval(gpu -> {
-            final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);
+            @Nullable final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);
             @javax.annotation.Nonnull final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
             @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
               precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
             CuDNNHandle.cudnnAddTensor(gpu.getHandle(),
-                                       precision.getPointer(rightFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
-                                       precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
+              precision.getPointer(rightFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
+              precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
             gpu.registerForCleanup(sizeDescriptor, lPtr);
             return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
           });
@@ -189,13 +192,13 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
         }
       });
     }) {
-  
+      
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(x -> x.freeRef());
       }
-  
-  
+      
+      
       @Override
       public boolean isAlive() {
         for (@javax.annotation.Nonnull final NNResult element : inObj)
@@ -204,7 +207,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
           }
         return false;
       }
-  
+      
     };
   }
   

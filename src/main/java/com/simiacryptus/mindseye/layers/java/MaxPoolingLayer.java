@@ -24,10 +24,10 @@ import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.lang.Tuple2;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -109,7 +109,7 @@ public class MaxPoolingLayer extends NNLayer {
    */
   public static MaxPoolingLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new MaxPoolingLayer(json,
-                               JsonUtil.getIntArray(json.getAsJsonArray("heapCopy")));
+      JsonUtil.getIntArray(json.getAsJsonArray("heapCopy")));
   }
   
   @javax.annotation.Nonnull
@@ -133,7 +133,7 @@ public class MaxPoolingLayer extends NNLayer {
     Arrays.stream(outputA).mapToInt(x -> x.dim()).sum();
     @javax.annotation.Nonnull final int[][] gradientMapA = new int[in.getData().length()][];
     IntStream.range(0, in.getData().length()).forEach(dataIndex -> {
-      final Tensor input = in.getData().get(dataIndex);
+      @javax.annotation.Nullable final Tensor input = in.getData().get(dataIndex);
       final Tensor output = outputA[dataIndex];
       @javax.annotation.Nonnull final IntToDoubleFunction keyExtractor = inputCoords -> input.get(inputCoords);
       @javax.annotation.Nonnull final int[] gradientMap = new int[input.dim()];
@@ -159,7 +159,7 @@ public class MaxPoolingLayer extends NNLayer {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
           @javax.annotation.Nonnull final Tensor backSignal = new Tensor(inputDims);
           final int[] ints = gradientMapA[dataIndex];
-          final Tensor datum = data.get(dataIndex);
+          @javax.annotation.Nullable final Tensor datum = data.get(dataIndex);
           for (int i = 0; i < datum.dim(); i++) {
             backSignal.add(ints[i], datum.get(i));
           }
@@ -221,7 +221,7 @@ public class MaxPoolingLayer extends NNLayer {
     }
     
     @Override
-    public boolean equals(final @Nullable Object obj) {
+    public boolean equals(@Nullable final Object obj) {
       if (this == obj) {
         return true;
       }

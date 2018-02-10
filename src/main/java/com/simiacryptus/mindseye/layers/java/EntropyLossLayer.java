@@ -21,10 +21,10 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -77,14 +77,14 @@ public class EntropyLossLayer extends NNLayer {
     @javax.annotation.Nonnull final Tensor gradient[] = new Tensor[indata.length()];
     final double max_prob = 1.;
     return new NNResult(TensorArray.wrap(IntStream.range(0, indata.length()).mapToObj(dataIndex -> {
-      final Tensor l = indata.get(dataIndex);
-      final Tensor r = inObj[1].getData().get(dataIndex);
+      @javax.annotation.Nullable final Tensor l = indata.get(dataIndex);
+      @javax.annotation.Nullable final Tensor r = inObj[1].getData().get(dataIndex);
       assert l.dim() == r.dim() : l.dim() + " != " + r.dim();
       @javax.annotation.Nonnull final Tensor gradientTensor = new Tensor(l.getDimensions());
-      final @Nullable double[] gradientData = gradientTensor.getData();
+      @Nullable final double[] gradientData = gradientTensor.getData();
       double total = 0;
-      final @Nullable double[] ld = l.getData();
-      final @Nullable double[] rd = r.getData();
+      @Nullable final double[] ld = l.getData();
+      @Nullable final double[] rd = r.getData();
       for (int i = 0; i < l.dim(); i++) {
         final double lv = Math.max(Math.min(ld[i], max_prob), zero_tol);
         final double rv = rd[i];
@@ -103,7 +103,7 @@ public class EntropyLossLayer extends NNLayer {
     }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[1].isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
-          final Tensor l = indata.get(dataIndex);
+          @javax.annotation.Nullable final Tensor l = indata.get(dataIndex);
           @javax.annotation.Nonnull final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
           for (int i = 0; i < passback.dim(); i++) {
             final double lv = Math.max(Math.min(l.get(i), max_prob), zero_tol);

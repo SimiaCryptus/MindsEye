@@ -31,10 +31,11 @@ import com.simiacryptus.mindseye.test.SimpleGpuEval;
 import com.simiacryptus.mindseye.test.SimpleResult;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.function.IntFunction;
 import java.util.stream.Collectors;
@@ -74,27 +75,35 @@ public class GpuLocalityTester extends ComponentTestBase<ToleranceStatistics> {
    * @param inputPrototype the input prototype
    * @return the tolerance statistics
    */
-  public ToleranceStatistics test(final @Nullable NNLayer reference, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
+  public ToleranceStatistics test(@Nullable final NNLayer reference, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
     if (null == reference) return new ToleranceStatistics();
     return GpuSystem.eval(gpu -> {
       final TensorList[] heapInput = Arrays.stream(inputPrototype).map(t ->
-                                                                         TensorArray.wrap(IntStream.range(0, getBatchSize()).mapToObj(i -> t.map(v -> getRandom()))
-                                                                                                   .toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
+        TensorArray.wrap(IntStream.range(0, getBatchSize()).mapToObj(i -> t.map(v -> getRandom()))
+          .toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
       TensorList[] gpuInput = Arrays.stream(heapInput).map(original -> {
-        CudaPtr cudaPtr = CudaPtr.getCudaPtr(Precision.Double, original);
+        @javax.annotation.Nullable CudaPtr cudaPtr = CudaPtr.getCudaPtr(Precision.Double, original);
         return GpuTensorList.wrap(cudaPtr, original.length(), original.getDimensions(), Precision.Double);
       }).toArray(i -> new TensorList[i]);
-      final SimpleResult fromHeap = SimpleGpuEval.run(reference, gpu, heapInput);
-      final SimpleResult fromGPU = SimpleGpuEval.run(reference, gpu, gpuInput);
-  
+      @Nonnull final SimpleResult fromHeap = SimpleGpuEval.run(reference, gpu, heapInput);
+      @Nonnull final SimpleResult fromGPU = SimpleGpuEval.run(reference, gpu, gpuInput);
+      
       @javax.annotation.Nonnull final ToleranceStatistics outputAgreement = IntStream.range(0, getBatchSize()).mapToObj(batch ->
-                                                                                                new ToleranceStatistics().accumulate(
-                                                                                                  fromHeap.getOutput().get(batch).getData(),
-                                                                                                  fromGPU.getOutput().get(batch).getData())
-                                                                                                                       ).reduce((a, b) -> a.combine(b)).get();
+        new ToleranceStatistics().accumulate(
+          fromHeap.getOutput().get(batch).getData(),
+          fromGPU.getOutput().get(batch).getData())
+      ).reduce((a, b) -> a.combine(b)).get();
       if (!(outputAgreement.absoluteTol.getMax() < tolerance)) {
-        logger.info("Batch Output: " + fromHeap.getOutput().stream().map(x -> x.prettyPrint()).collect(Collectors.toList()));
-        logger.info("Singular Output: " + fromGPU.getOutput().stream().map(x -> x.prettyPrint()).collect(Collectors.toList()));
+        logger.info("Batch Output: " + fromHeap.getOutput().stream().map(x -> {
+          String str = x.prettyPrint();
+          x.freeRef();
+          return str;
+        }).collect(Collectors.toList()));
+        logger.info("Singular Output: " + fromGPU.getOutput().stream().map(x -> {
+          String str = x.prettyPrint();
+          x.freeRef();
+          return str;
+        }).collect(Collectors.toList()));
         throw new AssertionError("Output Corrupt: " + outputAgreement);
       }
   

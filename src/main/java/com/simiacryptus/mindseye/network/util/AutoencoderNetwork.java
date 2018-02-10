@@ -34,8 +34,8 @@ import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.orient.LBFGS;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -126,8 +126,8 @@ public class AutoencoderNetwork {
    */
   public TensorList encode(@javax.annotation.Nonnull final TensorList data) {
     return encoder.getLayer()
-                  .eval(NNConstant.batchResultArray(data.stream().map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
-                  .getData();
+      .eval(NNConstant.batchResultArray(data.stream().map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
+      .getData();
   }
   
   /**
@@ -280,7 +280,7 @@ public class AutoencoderNetwork {
           public void log(final String msg) {
             monitor.log(msg);
           }
-      
+  
           @Override
           public void onStepComplete(final Step currentPoint) {
             inputNoise.shuffle();
@@ -622,7 +622,7 @@ public class AutoencoderNetwork {
             public void log(final String msg) {
               monitor.log(msg);
             }
-      
+  
             @Override
             public void onStepComplete(final Step currentPoint) {
               layers.forEach(layer -> {
@@ -645,7 +645,8 @@ public class AutoencoderNetwork {
     private double l1normalization = 0.0;
     private double l2normalization = 0.0;
     private int maxIterations = Integer.MAX_VALUE;
-    private @Nullable TrainingMonitor monitor = null;
+    @Nullable
+    private TrainingMonitor monitor = null;
     private OrientationStrategy<?> orient = new LBFGS().setMinHistory(5).setMaxHistory(35);
     private int sampleSize = Integer.MAX_VALUE;
     private LineSearchStrategy step = new ArmijoWolfeSearch().setC2(0.9).setAlpha(1e-4);
@@ -740,7 +741,8 @@ public class AutoencoderNetwork {
      *
      * @return the monitor
      */
-    public @Nullable TrainingMonitor getMonitor() {
+    @Nullable
+    public TrainingMonitor getMonitor() {
       return monitor;
     }
   
@@ -860,7 +862,7 @@ public class AutoencoderNetwork {
       @javax.annotation.Nonnull final IterativeTrainer trainer = new IterativeTrainer(normalized);
       trainer.setOrientation(getOrient());
       trainer.setLineSearchFactory((s) -> getStep());
-      final @Nullable TrainingMonitor monitor = getMonitor();
+      @Nullable final TrainingMonitor monitor = getMonitor();
       trainer.setMonitor(wrap(monitor));
       trainer.setTimeout(getTimeoutMinutes(), TimeUnit.MINUTES);
       trainer.setTerminateThreshold(getEndFitness());

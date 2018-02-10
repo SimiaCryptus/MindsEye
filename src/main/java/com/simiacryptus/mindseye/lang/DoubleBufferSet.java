@@ -19,9 +19,8 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import org.jetbrains.annotations.Nullable;
-
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -114,7 +113,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
    * @param factory the factory
    * @return the t
    */
-  private T get(final @Nullable K layer, final @Nullable Supplier<T> factory) {
+  private T get(@Nullable final K layer, @Nullable final Supplier<T> factory) {
     if (null == map) throw new IllegalArgumentException();
     if (null == factory) throw new IllegalArgumentException();
     if (null == layer) throw new IllegalArgumentException();
@@ -177,6 +176,15 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
     return map.values().stream().filter(n -> null != n).distinct().sorted(Comparator.comparing(y -> System.identityHashCode(y.target)));
   }
   
+  @Override
+  protected void _free() {
+    map.forEach((k, v) -> {
+      k.freeRef();
+      v.freeRef();
+    });
+    map.clear();
+  }
+  
   /**
    * The type Delegate.
    */
@@ -207,14 +215,5 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
     protected T factory(final K layer, final double[] target) {
       return parent.factory(layer, target);
     }
-  }
-  
-  @Override
-  protected void _free() {
-    map.forEach((k, v) -> {
-      k.freeRef();
-      v.freeRef();
-    });
-    map.clear();
   }
 }

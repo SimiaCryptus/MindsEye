@@ -21,10 +21,10 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
@@ -79,16 +79,17 @@ public class SoftmaxActivationLayer extends NNLayer {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     @javax.annotation.Nonnull final Tensor expA[] = new Tensor[itemCnt];
     final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].getData().get(dataIndex);
+      @javax.annotation.Nullable final Tensor input = inObj[0].getData().get(dataIndex);
       assert 1 < input.dim() : "input.dim() = " + input.dim();
-      
-      final @Nullable Tensor exp;
+  
+      @Nullable final Tensor exp;
       final DoubleSummaryStatistics summaryStatistics = DoubleStream.of(input.getData()).filter(x -> Double.isFinite(x)).summaryStatistics();
       final double max = summaryStatistics.getMax();
       //final double min = summaryStatistics.getMin();
-      exp = inObj[0].getData().get(dataIndex).map(x -> Math.exp(x - max)).map(x -> {
+      exp = input.map(x -> Math.exp(x - max)).map(x -> {
         return Double.isFinite(x) ? x : 0;
       });
+      input.freeRef();
       assert Arrays.stream(exp.getData()).allMatch(Double::isFinite);
       assert Arrays.stream(exp.getData()).allMatch(v -> v >= 0);
       //assert exp.sum() > 0;
@@ -96,14 +97,16 @@ public class SoftmaxActivationLayer extends NNLayer {
       assert Double.isFinite(sum);
       expA[dataIndex] = exp;
       sumA[dataIndex] = sum;
-      return exp.map(x -> x / sum);
+      @javax.annotation.Nullable Tensor result = exp.map(x -> x / sum);
+      exp.freeRef();
+      return result;
     }).toArray(i -> new Tensor[i]);
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
     return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
         final Tensor[] passbackA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-          final @Nullable double[] delta = data.get(dataIndex).getData();
-          final @Nullable double[] expdata = expA[dataIndex].getData();
+          @Nullable final double[] delta = data.get(dataIndex).getData();
+          @Nullable final double[] expdata = expA[dataIndex].getData();
           @javax.annotation.Nonnull final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
           final int dim = expdata.length;
           double dot = 0;

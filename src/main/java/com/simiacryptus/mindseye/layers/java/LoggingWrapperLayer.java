@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.IntStream;
@@ -78,8 +79,12 @@ public final class LoggingWrapperLayer extends WrapperLayer {
     final NNResult[] wrappedInput = IntStream.range(0, inObj.length).mapToObj(i -> {
       final NNResult result = inObj[i];
       return new NNResult(result.getData(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
-        @javax.annotation.Nonnull final String formatted = data.stream().map(x -> x.prettyPrint())
-                                                               .reduce((a, b) -> a + "\n" + b).get();
+        @javax.annotation.Nonnull final String formatted = data.stream().map(x -> {
+          String str = x.prettyPrint();
+          x.freeRef();
+          return str;
+        })
+          .reduce((a, b) -> a + "\n" + b).get();
         log.info(String.format("Feedback Output %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
         result.accumulate(buffer, data);
       }) {
@@ -97,19 +102,31 @@ public final class LoggingWrapperLayer extends WrapperLayer {
     }).toArray(i -> new NNResult[i]);
     for (int i = 0; i < inObj.length; i++) {
       final TensorList tensorList = inObj[i].getData();
-      @javax.annotation.Nonnull final String formatted = tensorList.stream().map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).get();
+      @javax.annotation.Nonnull final String formatted = tensorList.stream().map(x -> {
+        String str = x.prettyPrint();
+        x.freeRef();
+        return str;
+      }).reduce((a, b) -> a + "\n" + b).get();
       log.info(String.format("Input %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
     }
-    final NNResult output = getInner().eval(wrappedInput);
+    @Nullable final NNResult output = getInner().eval(wrappedInput);
     {
       final TensorList tensorList = output.getData();
-      @javax.annotation.Nonnull final String formatted = tensorList.stream().map(x -> x.prettyPrint())
-                                                                   .reduce((a, b) -> a + "\n" + b).get();
+      @javax.annotation.Nonnull final String formatted = tensorList.stream().map(x -> {
+        String str = x.prettyPrint();
+        x.freeRef();
+        return str;
+      })
+        .reduce((a, b) -> a + "\n" + b).get();
       log.info(String.format("Output for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
     }
     return new NNResult(output.getData(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
-      @javax.annotation.Nonnull final String formatted = data.stream().map(x -> x.prettyPrint())
-                                                             .reduce((a, b) -> a + "\n" + b).get();
+      @javax.annotation.Nonnull final String formatted = data.stream().map(x -> {
+        String str = x.prettyPrint();
+        x.freeRef();
+        return str;
+      })
+        .reduce((a, b) -> a + "\n" + b).get();
       log.info(String.format("Feedback Input for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
       output.accumulate(buffer, data);
     }) {

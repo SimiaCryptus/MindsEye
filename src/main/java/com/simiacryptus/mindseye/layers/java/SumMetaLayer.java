@@ -21,10 +21,10 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +40,8 @@ public class SumMetaLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SumMetaLayer.class);
-  private @Nullable Tensor lastResult;
+  @Nullable
+  private Tensor lastResult;
   private int minBatches = 1;
   
   /**
@@ -72,21 +73,22 @@ public class SumMetaLayer extends NNLayer {
     return new SumMetaLayer(json, rs);
   }
   
+  @Nullable
   @Override
-  public @Nullable NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     final NNResult input = inObj[0];
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final int itemCnt = input.getData().length();
     if (null == lastResult || minBatches < itemCnt) {
       @javax.annotation.Nonnull final ToDoubleFunction<Coordinate> f = (c) ->
         IntStream.range(0, itemCnt)
-                 .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
-                 .sum();
+          .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
+          .sum();
       lastResult = input.getData().get(0).mapCoords(f);
     }
     return new NNResult(TensorArray.wrap(lastResult), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (input.isAlive()) {
-        final Tensor delta = data.get(0);
+        @javax.annotation.Nullable final Tensor delta = data.get(0);
         @javax.annotation.Nonnull final Tensor feedback[] = new Tensor[itemCnt];
         Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
         @javax.annotation.Nonnull final ToDoubleFunction<Coordinate> f = (inputCoord) -> {
@@ -101,7 +103,7 @@ public class SumMetaLayer extends NNLayer {
         tensorArray.freeRef();
       }
     }) {
-  
+      
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());

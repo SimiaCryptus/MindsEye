@@ -28,6 +28,8 @@ import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer.PoolingMode;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -80,16 +82,17 @@ public class BandReducerLayer extends NNLayer implements MultiPrecision<BandRedu
     throw new RuntimeException("Not Implemented");
   }
   
+  @Nullable
   @Override
   public NNResult eval(final NNResult... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
-    final int[] inputSize = batch.getDimensions();
+    @Nonnull final int[] inputSize = batch.getDimensions();
     @javax.annotation.Nonnull PoolingLayer impl = new PoolingLayer().setMode(mode).setPrecision(precision)
-                                                                    .setWindowX(inputSize[1])
-                                                                    .setWindowY(inputSize[0]);
-    NNResult result = impl.eval(inObj);
+      .setWindowX(inputSize[1])
+      .setWindowY(inputSize[0]);
+    @Nullable NNResult result = impl.eval(inObj);
     impl.freeRef();
     return result;
   }

@@ -24,6 +24,8 @@ import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.*;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +87,7 @@ public class ImgBandSelectLayer extends NNLayer implements MultiPrecision<ImgBan
   }
   
   
+  @Nullable
   @Override
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
@@ -97,7 +100,7 @@ public class ImgBandSelectLayer extends NNLayer implements MultiPrecision<ImgBan
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final TensorList inputData = inObj[0].getData();
-    final int[] inputDimensions = inputData.getDimensions();
+    @Nonnull final int[] inputDimensions = inputData.getDimensions();
     final int length = inputData.length();
     @javax.annotation.Nonnull final int[] outputDimensions = Arrays.copyOf(inputDimensions, 3);
     final int byteOffset = inputDimensions[1] * inputDimensions[0] * getFrom() * precision.size;
@@ -105,13 +108,13 @@ public class ImgBandSelectLayer extends NNLayer implements MultiPrecision<ImgBan
     long size = (length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
     return new NNResult(GpuSystem.eval(gpu -> {
       @javax.annotation.Nonnull final CudaPtr cudaOutput = CudaPtr.allocate(gpu.getDeviceNumber(), size, MemoryType.Managed, true);
-      final CudaPtr cudaInput = CudaPtr.getCudaPtr(precision, inputData);
+      @Nullable final CudaPtr cudaInput = CudaPtr.getCudaPtr(precision, inputData);
       @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(inputDimensions, length, outputDimensions);
       @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(outputDimensions, length, outputDimensions);
       CuDNNHandle.cudnnTransformTensor(gpu.getHandle(),
-                                       precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.getPtr().withByteOffset(byteOffset),
-                                       precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr()
-                                      );
+        precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.getPtr().withByteOffset(byteOffset),
+        precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr()
+      );
       gpu.registerForCleanup(outputDescriptor, inputDescriptor, cudaInput);
       return GpuTensorList.wrap(cudaOutput, length, outputDimensions, precision);
     }), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
@@ -124,13 +127,13 @@ public class ImgBandSelectLayer extends NNLayer implements MultiPrecision<ImgBan
           @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(outputDimensions, length, outputDimensions);
           assert error.length() == inputData.length();
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
-          final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
+          @Nullable final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
           long size1 = (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size);
           @javax.annotation.Nonnull final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), size1, MemoryType.Managed, false);
           CuDNNHandle.cudnnTransformTensor(gpu.getHandle(),
-                                           precision.getPointer(1.0), outputDescriptor.getPtr(), errorPtr.getPtr(),
-                                           precision.getPointer(0.0), inputDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
-                                          );
+            precision.getPointer(1.0), outputDescriptor.getPtr(), errorPtr.getPtr(),
+            precision.getPointer(0.0), inputDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
+          );
           gpu.registerForCleanup(errorPtr, inputDescriptor, outputDescriptor);
           return GpuTensorList.wrap(passbackBuffer, length, inputDimensions, precision);
           //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));

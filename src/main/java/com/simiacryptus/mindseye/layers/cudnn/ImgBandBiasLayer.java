@@ -29,6 +29,7 @@ import jcuda.jcudnn.cudnnTensorFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -100,12 +101,12 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
         return new NNResult(result.getData(), (DeltaSet<NNLayer> buffer, TensorList data) -> {
           throw new IllegalStateException();
         }) {
-      
+  
           @Override
           protected void _free() {
-        
+    
           }
-      
+  
           @Override
           public boolean isAlive() {
             return false;
@@ -166,32 +167,33 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
     return this;
   }
   
+  @Nullable
   @Override
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     Arrays.stream(inObj).forEach(x -> x.addRef());
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
-    @javax.annotation.Nonnull final int[] inputSize = batch.get(0).getDimensions();
+    @javax.annotation.Nonnull final int[] inputSize = batch.getDimensions();
     assert inputSize[2] == bias.length : inputSize[2] + " != " + bias.length;
     @javax.annotation.Nonnull final int[] outputSize = inputSize;
     final int length = batch.length();
-  
+    
     return new NNResult(GpuSystem.eval(gpu -> {
       try {
         @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
         @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> filterDescriptor = GpuSystem.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
-  
+        
         assert 0 < bias.length;
         @javax.annotation.Nonnull final CudaPtr filterPtr = CudaPtr.allocate(gpu.getDeviceNumber(), (long) (bias.length * precision.size), MemoryType.Managed, false).write(precision, bias);
         final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch).asCopy();
         try {
           GpuSystem.handle(CuDNNHandle.cudnnAddTensor(gpu.getHandle(), precision.getPointer(1.0),
-                                                      filterDescriptor.getPtr(), filterPtr.getPtr(),
-                                                      precision.getPointer(1.0),
-                                                      inputDescriptor.getPtr(), inputData.getPtr()));
+            filterDescriptor.getPtr(), filterPtr.getPtr(),
+            precision.getPointer(1.0),
+            inputDescriptor.getPtr(), inputData.getPtr()));
         } catch (@javax.annotation.Nonnull final Throwable e) {
           throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
         }
@@ -209,20 +211,19 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
             precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
           @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> filterDescriptor = GpuSystem.newTensorDescriptor(
             precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
-          final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
+          @Nullable final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
           @javax.annotation.Nonnull final CudaPtr filterBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), bias.length * 1l * precision.size, MemoryType.Managed, false);
           try {
             GpuSystem.handle(CuDNNHandle.cudnnConvolutionBackwardBias(gpu.getHandle(), precision.getPointer(1.0),
-                                                                      inputDescriptor.getPtr(), errorPtr.getPtr(),
-                                                                      precision.getPointer(1.0),
-                                                                      filterDescriptor.getPtr(), filterBuffer.getPtr()));
+              inputDescriptor.getPtr(), errorPtr.getPtr(),
+              precision.getPointer(1.0),
+              filterDescriptor.getPtr(), filterBuffer.getPtr()));
           } catch (@javax.annotation.Nonnull final Throwable e) {
             throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
           }
           @javax.annotation.Nonnull final Tensor weightGradient = CudaPtr.read(filterBuffer, precision, new int[]{1, 1, inputSize[2]});
           //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
-          final Delta<NNLayer> deltaBuffer = buffer.get(ImgBandBiasLayer.this, bias);
-          deltaBuffer.addInPlace(weightGradient.getData());
+          buffer.get(this, bias).addInPlace(weightGradient.getData()).freeRef();
           gpu.registerForCleanup(filterDescriptor, inputDescriptor, errorPtr, filterBuffer, weightGradient);
           //assert Arrays.stream(deltaBuffer.delta).allMatch(Double::isFinite);
         });
@@ -231,12 +232,12 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
         input.accumulate(buffer, error);
       }
     }) {
-    
+      
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-    
+      
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();

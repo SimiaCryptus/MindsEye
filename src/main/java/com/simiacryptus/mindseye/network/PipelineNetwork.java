@@ -24,8 +24,8 @@ import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.java.ConstNNLayer;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
@@ -37,7 +37,8 @@ import java.util.UUID;
 @SuppressWarnings("serial")
 public class PipelineNetwork extends DAGNetwork {
   
-  private @Nullable DAGNode head;
+  @Nullable
+  private DAGNode head;
   
   /**
    * Instantiates a new Pipeline network.
@@ -109,35 +110,54 @@ public class PipelineNetwork extends DAGNetwork {
    * @param nextHead the next head
    * @return the dag node
    */
-  public @Nullable DAGNode add(final @Nullable NNLayer nextHead) {
+  @Nullable
+  public DAGNode add(@Nullable final NNLayer nextHead) {
     if (null == nextHead) return null;
     return add(nextHead, getHead());
   }
   
-  public @Nullable DAGNode wrap(final @Nullable NNLayer nextHead) {
-    DAGNode add = add(nextHead);
+  /**
+   * Wrap dag node.
+   *
+   * @param nextHead the next head
+   * @return the dag node
+   */
+  @Nullable
+  public DAGNode wrap(@Nullable final NNLayer nextHead) {
+    @javax.annotation.Nullable DAGNode add = add(nextHead);
     nextHead.freeRef();
     return add;
   }
   
-  public @Nullable DAGNode wrap(final @Nullable NNLayer nextHead, @javax.annotation.Nonnull final DAGNode... head) {
-    DAGNode add = add(nextHead, head);
+  @Nullable
+  public DAGNode wrap(@Nullable final NNLayer nextHead, @javax.annotation.Nonnull final DAGNode... head) {
+    @javax.annotation.Nullable DAGNode add = add(nextHead, head);
     nextHead.freeRef();
     return add;
   }
   
-  public @Nullable DAGNode wrap(final String label, final @Nullable NNLayer nextHead, @javax.annotation.Nonnull final DAGNode... head) {
+  /**
+   * Wrap dag node.
+   *
+   * @param label    the label
+   * @param nextHead the next head
+   * @param head     the head
+   * @return the dag node
+   */
+  @Nullable
+  public DAGNode wrap(final String label, @Nullable final NNLayer nextHead, @javax.annotation.Nonnull final DAGNode... head) {
     DAGNode add = add(label, nextHead, head);
     nextHead.freeRef();
     return add;
   }
   
+  @Nullable
   @Override
-  public @Nullable DAGNode add(final @Nullable NNLayer nextHead, @javax.annotation.Nonnull final DAGNode... head) {
+  public DAGNode add(@Nullable final NNLayer nextHead, @javax.annotation.Nonnull final DAGNode... head) {
     if (null == nextHead && head.length == 1) return head[0];
     if (null == nextHead) return null;
     assert Arrays.stream(head).allMatch(x -> x == null || nodesById.containsKey(x.getId()) || inputNodes.containsKey(x.getId()));
-    final DAGNode node = super.add(nextHead, head);
+    @javax.annotation.Nullable final DAGNode node = super.add(nextHead, head);
     assert null != getInput();
     setHead(node);
     return node;
@@ -145,7 +165,7 @@ public class PipelineNetwork extends DAGNetwork {
   
   @SafeVarargs
   @Override
-  public final DAGNode add(final String label, final @Nullable NNLayer layer, final DAGNode... head) {
+  public final DAGNode add(final String label, @Nullable final NNLayer layer, final DAGNode... head) {
     if (null == layer) throw new IllegalArgumentException();
     final DAGNode node = super.add(label, layer, head);
     //assert Arrays.stream(head).allMatch(x -> x != null);
@@ -184,13 +204,15 @@ public class PipelineNetwork extends DAGNetwork {
    * @param tensor the tensor
    * @return the dag node
    */
+  @javax.annotation.Nullable
   public DAGNode constValue(final Tensor tensor) {
-    final DAGNode constNode = super.add(new ConstNNLayer(tensor));
+    @javax.annotation.Nullable final DAGNode constNode = super.add(new ConstNNLayer(tensor));
     return constNode;
   }
   
+  @Nullable
   @Override
-  public @Nullable DAGNode getHead() {
+  public DAGNode getHead() {
     if (null == head) {
       head = getInput().get(0);
     }

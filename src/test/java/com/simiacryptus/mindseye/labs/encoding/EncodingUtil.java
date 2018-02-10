@@ -42,10 +42,10 @@ import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.GifSequenceWriter;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.SysOutInterceptor;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -96,7 +96,7 @@ public class EncodingUtil {
     return Arrays.stream(trainingData).map(x -> Stream.concat(
       Arrays.stream(x),
       Stream.of(new Tensor(size).set(() -> 0.0 * (FastRandom.random() - 0.5))))
-                                                      .toArray(i -> new Tensor[i])).toArray(i -> new Tensor[i][]);
+      .toArray(i -> new Tensor[i])).toArray(i -> new Tensor[i][]);
   }
   
   /**
@@ -112,8 +112,8 @@ public class EncodingUtil {
     @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork(Math.max(learnedColumn, reproducedColumn) + 1);
     // network.add(new NthPowerActivationLayer().setPower(0.5), );
     network.wrap(new MeanSqLossLayer(),
-                 network.add("image", innerModel, network.getInput(learnedColumn)),
-                 network.getInput(reproducedColumn));
+      network.add("image", innerModel, network.getInput(learnedColumn)),
+      network.getInput(reproducedColumn));
     //addLogging(network);
     return network;
   }
@@ -160,11 +160,11 @@ public class EncodingUtil {
       @javax.annotation.Nonnull String filename = EncodingUtil.gifNumber++ + ".gif";
       @javax.annotation.Nonnull File file = new File(log.getResourceDir(), filename);
       GifSequenceWriter.write(file, loopTimeMs / frames, true,
-                              DoubleStream.iterate(0, x -> x + step).limit(frames).parallel().mapToObj(t -> {
-                                return IntStream.range(0, signedComponents.size()).mapToObj(i -> {
-                                  return signedComponents.get(i).scale((1 + Math.sin((1 + i) * t)) / 2);
-                                }).reduce((a, b) -> a.add(b)).get().add(baseline).toImage();
-                              }).toArray(i -> new BufferedImage[i]));
+        DoubleStream.iterate(0, x -> x + step).limit(frames).parallel().mapToObj(t -> {
+          return IntStream.range(0, signedComponents.size()).mapToObj(i -> {
+            return signedComponents.get(i).scale((1 + Math.sin((1 + i) * t)) / 2);
+          }).reduce((a, b) -> a.add(b)).get().add(baseline).toImage();
+        }).toArray(i -> new BufferedImage[i]));
       return String.format("<img src=\"etc/%s\" />", filename);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -248,7 +248,7 @@ public class EncodingUtil {
       @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new ImgReshapeLayer(factor, factor, false));
       network.add(new ImgBandSelectLayer(select));
-      final Tensor result = network.eval(tensor[1]).getData().get(0);
+      @javax.annotation.Nullable final Tensor result = network.eval(tensor[1]).getData().get(0);
       return new Tensor[]{tensor[0], result};
     }));
   }
@@ -278,6 +278,7 @@ public class EncodingUtil {
    * @param tensor  the tensor
    * @return the tensor
    */
+  @javax.annotation.Nullable
   public static Tensor findBaseline(@javax.annotation.Nonnull final PipelineNetwork decoder, @javax.annotation.Nonnull final Tensor tensor) {
     try {
       return decoder.eval(tensor.map(x -> 0)).getData().get(0);
@@ -296,6 +297,7 @@ public class EncodingUtil {
    * @param tensor  the tensor
    * @return the tensor
    */
+  @javax.annotation.Nullable
   public static Tensor findUnitComponent(final PipelineNetwork decoder, final int band, @javax.annotation.Nonnull final Tensor tensor) {
     @javax.annotation.Nonnull final PipelineNetwork decoderBand = new PipelineNetwork();
     @javax.annotation.Nonnull final double[] gate = new double[tensor.getDimensions()[2]];
@@ -383,7 +385,7 @@ public class EncodingUtil {
     log.code(() -> {
       @javax.annotation.Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
       network.state().stream().flatMapToDouble(x -> Arrays.stream(x))
-             .forEach(v -> scalarStatistics.add(v));
+        .forEach(v -> scalarStatistics.add(v));
       return scalarStatistics.getMetrics();
     });
     @javax.annotation.Nonnull final String modelName = "model" + modelNo + ".json";
@@ -406,23 +408,23 @@ public class EncodingUtil {
       for (int i = col - 2; i >= 0; i--) {
         decoder.add(dataPipeline.get(i));
       }
-      final Tensor decoded = decoder.eval(tensor).getData().get(0);
+      @javax.annotation.Nullable final Tensor decoded = decoder.eval(tensor).getData().get(0);
       row.put("Decode_" + col, com.simiacryptus.mindseye.test.TestUtil.render(log, decoded, false));
       
       final List<Tensor> rawComponents = IntStream.range(0, tensor.getDimensions()[2])
-                                                  .mapToObj(band -> EncodingUtil.findUnitComponent(decoder, band, tensor))
-                                                  .collect(Collectors.toList());
-      final Tensor baseline = EncodingUtil.findBaseline(decoder, tensor);
+        .mapToObj(band -> EncodingUtil.findUnitComponent(decoder, band, tensor))
+        .collect(Collectors.toList());
+      @javax.annotation.Nullable final Tensor baseline = EncodingUtil.findBaseline(decoder, tensor);
       final List<Tensor> signedComponents = IntStream.range(0, tensor.getDimensions()[2])
-                                                     .mapToObj(band -> rawComponents.get(band).minus(baseline))
-                                                     .collect(Collectors.toList());
+        .mapToObj(band -> rawComponents.get(band).minus(baseline))
+        .collect(Collectors.toList());
       
       row.put("SVG_" + col, log.file(EncodingUtil.decompositionSvg(log, baseline, signedComponents), "svg" + EncodingUtil.svgNumber++ + ".svg", "SVG Composite Image"));
       row.put("GIF_" + col, EncodingUtil.animatedGif(log, baseline, signedComponents));
   
       @javax.annotation.Nonnull final String render = signedComponents.stream()
-                                                                      .map(signedContribution -> com.simiacryptus.mindseye.test.TestUtil.render(log, signedContribution, true))
-                                                                      .reduce((a, b) -> a + "" + b).get();
+        .map(signedContribution -> com.simiacryptus.mindseye.test.TestUtil.render(log, signedContribution, true))
+        .reduce((a, b) -> a + "" + b).get();
       row.put("Band_Decode_" + col, render);
     }
   }

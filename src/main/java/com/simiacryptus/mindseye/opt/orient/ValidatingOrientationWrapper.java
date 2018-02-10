@@ -35,11 +35,6 @@ import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
  */
 public class ValidatingOrientationWrapper extends OrientationStrategyBase<LineSearchCursor> {
   
-  @Override
-  protected void _free() {
-    this.inner.freeRef();
-  }
-  
   private final OrientationStrategy<? extends LineSearchCursor> inner;
   
   /**
@@ -49,6 +44,11 @@ public class ValidatingOrientationWrapper extends OrientationStrategyBase<LineSe
    */
   public ValidatingOrientationWrapper(final OrientationStrategy<? extends LineSearchCursor> inner) {
     this.inner = inner;
+  }
+  
+  @Override
+  protected void _free() {
+    this.inner.freeRef();
   }
   
   @javax.annotation.Nonnull
@@ -75,12 +75,12 @@ public class ValidatingOrientationWrapper extends OrientationStrategyBase<LineSe
       this.cursor = cursor;
       this.cursor.addRef();
     }
-
+  
     @Override
     public String getDirectionType() {
       return cursor.getDirectionType();
     }
-
+  
     @Override
     public DeltaSet<NNLayer> position(final double alpha) {
       return cursor.position(alpha);

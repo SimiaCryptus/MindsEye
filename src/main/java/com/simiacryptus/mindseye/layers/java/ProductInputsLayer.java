@@ -21,8 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -75,21 +75,21 @@ public class ProductInputsLayer extends NNLayer {
     }
     return new NNResult(Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
       return TensorArray.wrap(IntStream.range(0, Math.max(l.length(), r.length())).parallel()
-                                       .mapToObj(i1 -> {
-                                         final Tensor left = l.get(1 == l.length() ? 0 : i1);
-                                         final Tensor right = r.get(1 == r.length() ? 0 : i1);
-                                         return Tensor.product(left, right);
-                                       }).toArray(i -> new Tensor[i]));
+        .mapToObj(i1 -> {
+          @javax.annotation.Nullable final Tensor left = l.get(1 == l.length() ? 0 : i1);
+          @javax.annotation.Nullable final Tensor right = r.get(1 == r.length() ? 0 : i1);
+          return Tensor.product(left, right);
+        }).toArray(i -> new Tensor[i]));
     }).get(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       for (@javax.annotation.Nonnull final NNResult input : inObj) {
         if (input.isAlive()) {
           @javax.annotation.Nonnull TensorList passback = Arrays.stream(inObj).parallel().map(x -> x == input ? delta : x.getData()).reduce((l, r) -> {
             return TensorArray.wrap(IntStream.range(0, Math.max(l.length(), r.length())).parallel()
-                                             .mapToObj(j -> {
-                                               final Tensor left = l.get(1 == l.length() ? 0 : j);
-                                               final Tensor right = r.get(1 == r.length() ? 0 : j);
-                                               return Tensor.product(left, right);
-                                             }).toArray(j -> new Tensor[j]));
+              .mapToObj(j -> {
+                @javax.annotation.Nullable final Tensor left = l.get(1 == l.length() ? 0 : j);
+                @javax.annotation.Nullable final Tensor right = r.get(1 == r.length() ? 0 : j);
+                return Tensor.product(left, right);
+              }).toArray(j -> new Tensor[j]));
           }).get();
           final TensorList inputData = input.getData();
           if (1 == inputData.length() && 1 < passback.length()) {
@@ -102,11 +102,11 @@ public class ProductInputsLayer extends NNLayer {
           }
           if (1 == Tensor.dim(inputData.getDimensions()) && 1 < Tensor.dim(passback.getDimensions())) {
             passback = TensorArray.wrap(passback.stream()
-                                                .map((a) -> {
-                                                  @javax.annotation.Nonnull Tensor b = new Tensor(a.sum());
-                                                  a.freeRef();
-                                                  return b;
-                                                }).toArray(i -> new Tensor[i]));
+              .map((a) -> {
+                @javax.annotation.Nonnull Tensor b = new Tensor(a.sum());
+                a.freeRef();
+                return b;
+              }).toArray(i -> new Tensor[i]));
           }
           input.accumulate(buffer, passback);
           passback.freeRef();

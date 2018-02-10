@@ -120,7 +120,7 @@ public class SparkTrainable extends TrainableBase {
   protected static SparkTrainable.ReducableResult getResult(@javax.annotation.Nonnull final DeltaSet<NNLayer> delta, @javax.annotation.Nonnull final double[] values) {
     final Map<String, double[]> deltas = delta.getMap().entrySet().stream().collect(Collectors.toMap(
       e -> e.getKey().getId().toString(), e -> e.getValue().getDelta()
-                                                                                                    ));
+    ));
     return new SparkTrainable.ReducableResult(deltas, values.length, Arrays.stream(values).sum());
   }
   
@@ -238,8 +238,8 @@ public class SparkTrainable extends TrainableBase {
       sampledRDD.unpersist(false);
     }
     sampledRDD = dataRDD.sample(false, sampleSize * 1.0 / count, System.currentTimeMillis())
-                        .repartition(getPartitions(), null)
-                        .persist(getStorageLevel());
+      .repartition(getPartitions(), null)
+      .persist(getStorageLevel());
     assert !sampledRDD.isEmpty();
     log.info(String.format("Sampled %s items from main dataset of %s (%s) items", sampledRDD.count(), count, sampleSize));
     return true;
@@ -337,7 +337,7 @@ public class SparkTrainable extends TrainableBase {
     public void accumulate(@javax.annotation.Nonnull final DeltaSet<NNLayer> source) {
       final Map<String, NNLayer> idIndex = source.getMap().entrySet().stream().collect(Collectors.toMap(
         e -> e.getKey().getId().toString(), e -> e.getKey()
-                                                                                                       ));
+      ));
       deltas.forEach((k, v) -> source.get(idIndex.get(k), (double[]) null).addInPlace(v));
     }
   

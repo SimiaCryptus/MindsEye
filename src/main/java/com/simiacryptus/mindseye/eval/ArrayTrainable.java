@@ -98,6 +98,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
     }
   }
   
+  @Nullable
   @Override
   public Tensor[][] getData() {
     return trainingData;

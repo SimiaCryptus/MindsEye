@@ -26,6 +26,7 @@ import com.simiacryptus.util.FastRandom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 
 /**
@@ -99,7 +100,7 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final NNResult input = inObj[0];
     if (!enabled) return input;
-    final int[] dimensions = input.getData().getDimensions();
+    @Nonnull final int[] dimensions = input.getData().getDimensions();
     if (maskList.size() > 1 && !Arrays.equals(maskList.get(0).getDimensions(), dimensions)) {
       maskList.clear();
     }

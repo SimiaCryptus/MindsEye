@@ -21,8 +21,8 @@ package com.simiacryptus.util.io;
 
 import com.simiacryptus.util.lang.UncheckedSupplier;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.charset.Charset;
@@ -134,8 +134,9 @@ public class NullNotebookOutput implements NotebookOutput {
   
   }
   
+  @Nullable
   @Override
-  public @Nullable String getFrontMatterProperty(String key) {
+  public String getFrontMatterProperty(String key) {
     return null;
   }
   

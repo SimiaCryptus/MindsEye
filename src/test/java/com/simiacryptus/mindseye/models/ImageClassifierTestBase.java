@@ -72,7 +72,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
     log.p("This is a diagram of the imported network:");
     log.code(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) network))
-                     .height(4000).width(800).render(Format.PNG).toImage();
+        .height(4000).width(800).render(Format.PNG).toImage();
     });
   
     @javax.annotation.Nonnull SerializationTest serializationTest = new SerializationTest();
@@ -98,9 +98,9 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
         row.put("Image", log.image(images[i][1].toImage(), ""));
         modelPredictions.forEach((model, predictions) -> {
           row.put(model, predictions.get(index).entrySet().stream()
-                                    .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
-                                    .reduce((a, b) -> a + "<br/>" + b).get());
-  
+            .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
+            .reduce((a, b) -> a + "<br/>" + b).get());
+          
         });
         tableOutput.putRow(row);
       }
@@ -116,7 +116,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
       System.gc();
       ReferenceCountingBase.logFreeWarnings();
     });
-
+  
   }
   
   /**

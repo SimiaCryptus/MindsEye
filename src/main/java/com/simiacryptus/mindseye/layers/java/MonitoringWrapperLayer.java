@@ -26,8 +26,8 @@ import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.data.PercentileStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.lang.TimedResult;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -128,13 +128,13 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
       return new NNResult(result.getData(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
         passbackNanos.addAndGet(TimedResult.time(() -> result.accumulate(buffer, data)).timeNanos);
       }) {
-      
+  
         @Override
         protected void _free() {
           result.freeRef();
         }
-      
-      
+  
+  
         @Override
         public boolean isAlive() {
           return result.isAlive();
@@ -152,6 +152,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
       forwardSignal.clear();
       output.getData().stream().parallel().forEach(t -> {
         forwardSignal.add(t.getData());
+        t.freeRef();
       });
     }
     return new NNResult(output.getData(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
@@ -159,6 +160,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
         backwardSignal.clear();
         data.stream().parallel().forEach(t -> {
           backwardSignal.add(t.getData());
+          t.freeRef();
         });
       }
       backwardPerformance.add((TimedResult.time(() -> output.accumulate(buffer, data)).timeNanos - passbackNanos.getAndSet(0)) / (items * 1e9));
@@ -250,7 +252,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     final double backpropMedian = backwardPerformance.getPercentile(0.5);
     map.put("avgMsPerItem_Backward", 1000 * batchesPerItem * backpropMean);
     map.put("medianMsPerItem_Backward", 1000 * batchesPerItem * backpropMedian);
-    final @Nullable List<double[]> state = state();
+    @Nullable final List<double[]> state = state();
     @javax.annotation.Nonnull final ScalarStatistics statistics = new PercentileStatistics();
     for (@javax.annotation.Nonnull final double[] s : state) {
       for (final double v : s) {
@@ -266,6 +268,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     return map;
   }
   
+  @javax.annotation.Nullable
   @Override
   public String getName() {
     return getInner().getName();

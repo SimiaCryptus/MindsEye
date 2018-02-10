@@ -24,6 +24,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.lang.*;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -79,27 +81,33 @@ public class ImgBandSelectLayer extends NNLayer {
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
-    @javax.annotation.Nonnull final int[] inputDims = batch.get(0).getDimensions();
+    @javax.annotation.Nonnull final int[] inputDims = batch.getDimensions();
     assert 3 == inputDims.length;
     @javax.annotation.Nonnull final Tensor outputDims = new Tensor(inputDims[0], inputDims[1], bands.length);
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    return new NNResult(TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
-                                                  .mapToObj(dataIndex -> outputDims.mapCoords((c) -> {
-                                                    int[] coords = c.getCoords();
-                                                    return batch.get(dataIndex).get(coords[0], coords[1], bands[coords[2]]);
-                                                  }))
-                                                  .toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+    @Nonnull TensorArray wrap = TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
+      .mapToObj(dataIndex -> outputDims.mapCoords((c) -> {
+        int[] coords = c.getCoords();
+        @Nullable Tensor tensor = batch.get(dataIndex);
+        double v = tensor.get(coords[0], coords[1], bands[coords[2]]);
+        tensor.freeRef();
+        return v;
+      }))
+      .toArray(i -> new Tensor[i]));
+    outputDims.freeRef();
+    return new NNResult(wrap, (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       if (input.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
-                                                                                      .mapToObj(dataIndex -> {
-                                                                                        @javax.annotation.Nonnull final Tensor passback = new Tensor(inputDims);
-                                                                                        final Tensor err = error.get(dataIndex);
-                                                                                        err.coordStream(false).forEach(c -> {
-                                                                                          int[] coords = c.getCoords();
-                                                                                          passback.set(coords[0], coords[1], bands[coords[2]], err.get(c));
-                                                                                        });
-                                                                                        return passback;
-                                                                                      }).toArray(i -> new Tensor[i]));
+          .mapToObj(dataIndex -> {
+            @javax.annotation.Nonnull final Tensor passback = new Tensor(inputDims);
+            @Nullable final Tensor err = error.get(dataIndex);
+            err.coordStream(false).forEach(c -> {
+              int[] coords = c.getCoords();
+              passback.set(coords[0], coords[1], bands[coords[2]], err.get(c));
+            });
+            err.freeRef();
+            return passback;
+          }).toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }

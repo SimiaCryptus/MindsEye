@@ -19,8 +19,7 @@
 
 package com.simiacryptus.util.data;
 
-import org.jetbrains.annotations.Nullable;
-
+import javax.annotation.Nullable;
 import java.util.Arrays;
 
 /**
@@ -43,7 +42,7 @@ public class IntArray {
   }
   
   @Override
-  public boolean equals(final @Nullable Object o) {
+  public boolean equals(@Nullable final Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
   

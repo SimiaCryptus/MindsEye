@@ -23,8 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -51,7 +51,8 @@ public class JsonUtil {
    * @param array the array
    * @return the int [ ]
    */
-  public static @Nullable int[] getIntArray(final @Nullable JsonArray array) {
+  @Nullable
+  public static int[] getIntArray(@Nullable final JsonArray array) {
     if (null == array) return null;
     return IntStream.range(0, array.size()).map(i -> array.get(i).getAsInt()).toArray();
   }
@@ -95,7 +96,7 @@ public class JsonUtil {
    */
   public static void writeJson(@javax.annotation.Nonnull final OutputStream out, final Object obj) throws IOException {
     final ObjectMapper mapper = new ObjectMapper().enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL)
-                                                  .enable(SerializationFeature.INDENT_OUTPUT);
+      .enable(SerializationFeature.INDENT_OUTPUT);
     @javax.annotation.Nonnull final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     mapper.writeValue(buffer, obj);
     out.write(buffer.toByteArray());

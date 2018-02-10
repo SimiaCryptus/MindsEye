@@ -21,10 +21,10 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +40,8 @@ public class LinearActivationLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(LinearActivationLayer.class);
-  private final @Nullable Tensor weights;
+  @Nullable
+  private final Tensor weights;
   
   /**
    * Instantiates a new Linear activation layer.
@@ -77,53 +78,61 @@ public class LinearActivationLayer extends NNLayer {
   @javax.annotation.Nonnull
   @Override
   public NNResult eval(final NNResult... inObj) {
-    final TensorList inData = inObj[0].getData();
-    inObj[0].addRef();
+    final NNResult in0 = inObj[0];
+    final TensorList inData = in0.getData();
+    in0.addRef();
     inData.addRef();
     final int itemCnt = inData.length();
     final double scale = weights.get(0);
     final double bias = weights.get(1);
-    final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final Tensor input = inData.get(dataIndex);
-      return input.map(v -> scale * v + bias);
-    }).toArray(i -> new Tensor[i]);
-    return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
+      @javax.annotation.Nullable final Tensor input = inData.get(dataIndex);
+      @javax.annotation.Nullable Tensor map = input.map(v -> scale * v + bias);
+      input.freeRef();
+      return map;
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).forEach(dataIndex -> {
-          final @Nullable double[] deltaData = delta.get(dataIndex).getData();
-          final @Nullable double[] inputData = inData.get(dataIndex).getData();
+          @javax.annotation.Nullable Tensor deltaT = delta.get(dataIndex);
+          @javax.annotation.Nullable Tensor inputT = inData.get(dataIndex);
+          @Nullable final double[] deltaData = deltaT.getData();
+          @Nullable final double[] inputData = inputT.getData();
           @javax.annotation.Nonnull final Tensor weightDelta = new Tensor(weights.getDimensions());
           for (int i = 0; i < deltaData.length; i++) {
             weightDelta.add(0, deltaData[i] * inputData[inputData.length == 1 ? 0 : i]);
             weightDelta.add(1, deltaData[i]);
           }
           buffer.get(LinearActivationLayer.this, weights.getData()).addInPlace(weightDelta.getData());
+          inputT.freeRef();
+          deltaT.freeRef();
+          weightDelta.freeRef();
         });
       }
-      if (inObj[0].isAlive()) {
+      if (in0.isAlive()) {
         @javax.annotation.Nonnull final TensorList tensorList = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-          final @Nullable double[] deltaData = delta.get(dataIndex).getData();
-          @javax.annotation.Nonnull final int[] dims = inData.get(dataIndex).getDimensions();
-          @javax.annotation.Nonnull final Tensor passback = new Tensor(dims);
+          @javax.annotation.Nullable Tensor tensor = delta.get(dataIndex);
+          @Nullable final double[] deltaData = tensor.getData();
+          @javax.annotation.Nonnull final Tensor passback = new Tensor(inData.getDimensions());
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, deltaData[i] * weights.getData()[0]);
           }
+          tensor.freeRef();
           return passback;
         }).toArray(i -> new Tensor[i]));
-        inObj[0].accumulate(buffer, tensorList);
+        in0.accumulate(buffer, tensorList);
         tensorList.freeRef();
       }
     }) {
       
       @Override
       public boolean isAlive() {
-        return inObj[0].isAlive() || !isFrozen();
+        return in0.isAlive() || !isFrozen();
       }
       
       @Override
       protected void _free() {
         inData.freeRef();
-        inObj[0].freeRef();
+        in0.freeRef();
       }
       
     };

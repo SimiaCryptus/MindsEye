@@ -37,7 +37,7 @@ public class DoubleStatistics extends DoubleSummaryStatistics {
     DoubleStatistics::accept,
     DoubleStatistics::combine,
     d -> d
-                                                                                                       );
+  );
   
   /**
    * The Numbers.
@@ -48,7 +48,7 @@ public class DoubleStatistics extends DoubleSummaryStatistics {
     (a, n) -> a.accept(n.doubleValue()),
     DoubleStatistics::combine,
     d -> d
-                                                                                                     );
+  );
   
   private double simpleSumOfSquare; // Used to compute right sum for non-finite inputs
   private double sumOfSquare = 0.0d;

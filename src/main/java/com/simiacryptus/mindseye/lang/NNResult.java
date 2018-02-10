@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.function.BiConsumer;
 
 /**
@@ -64,8 +66,12 @@ public abstract class NNResult extends ReferenceCountingBase {
    * @param value  the value
    */
   public final void accumulate(final DeltaSet<NNLayer> buffer, final double value) {
-    TensorArray tensorArray = TensorArray.wrap(getData().stream().map(t -> t.map(v -> value))
-                                                        .toArray(i -> new Tensor[i]));
+    @Nonnull TensorArray tensorArray = TensorArray.wrap(getData().stream().map(t -> {
+      @Nullable Tensor map = t.map(v -> value);
+      t.freeRef();
+      return map;
+    })
+      .toArray(i -> new Tensor[i]));
     accumulate(buffer, tensorArray);
     tensorArray.freeRef();
   }

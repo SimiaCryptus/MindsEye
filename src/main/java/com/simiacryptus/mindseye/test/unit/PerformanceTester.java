@@ -27,10 +27,10 @@ import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.lang.TimedResult;
 import com.simiacryptus.util.lang.Tuple2;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -159,13 +159,13 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     if (isTestEvaluation()) {
       @javax.annotation.Nonnull final DoubleStatistics statistics = new DoubleStatistics().accept(performance.stream().mapToDouble(x -> x._1).toArray());
       log.info(String.format("\tEvaluation performance: %.6fs +- %.6fs [%.6fs - %.6fs]",
-                             statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
+        statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
     }
     if (isTestLearning()) {
       @javax.annotation.Nonnull final DoubleStatistics statistics = new DoubleStatistics().accept(performance.stream().mapToDouble(x -> x._2).toArray());
       if (null != statistics) {
         log.info(String.format("\tLearning performance: %.6fs +- %.6fs [%.6fs - %.6fs]",
-                               statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
+          statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
       }
     }
   }
@@ -177,8 +177,9 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
    * @param component      the component
    * @param inputPrototype the input prototype
    */
+  @Nullable
   @Override
-  public @Nullable ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, final NNLayer component, @javax.annotation.Nonnull final Tensor... inputPrototype) {
+  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, final NNLayer component, @javax.annotation.Nonnull final Tensor... inputPrototype) {
     log.h1("Performance");
     if (component instanceof DAGNetwork) {
       TestUtil.instrumentPerformance(log, (DAGNetwork) component);
@@ -205,7 +206,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     final Tensor[][] data = IntStream.range(0, batches).mapToObj(x -> x).flatMap(x -> Stream.<Tensor[]>of(inputPrototype)).toArray(i -> new Tensor[i][]);
     @javax.annotation.Nonnull TimedResult<NNResult> timedEval = TimedResult.time(() -> {
       NNResult[] input = NNConstant.batchResultArray(data);
-      NNResult result = component.eval(input);
+      @javax.annotation.Nullable NNResult result = component.eval(input);
       for (@javax.annotation.Nonnull NNResult nnResult : input) {
         nnResult.freeRef();
         nnResult.getData().freeRef();
@@ -215,7 +216,11 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     final NNResult result = timedEval.result;
     @javax.annotation.Nonnull final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
     long timedBackprop = TimedResult.time(() -> {
-      @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(result.getData().stream().map(x -> x.map(v -> 1.0)).toArray(i -> new Tensor[i]));
+      @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(result.getData().stream().map(x -> {
+        @javax.annotation.Nullable Tensor map = x.map(v -> 1.0);
+        x.freeRef();
+        return map;
+      }).toArray(i -> new Tensor[i]));
       result.accumulate(buffer, tensorArray);
       tensorArray.freeRef();
       return buffer;

@@ -37,11 +37,11 @@ public class SysOutInterceptor extends PrintStream {
    * The constant INSTANCE.
    */
   public static final PrintStream ORIGINAL_OUT = System.out;
-  private static final Logger log = LoggerFactory.getLogger(SysOutInterceptor.class);
   /**
    * The constant INSTANCE.
    */
   public static final SysOutInterceptor INSTANCE = new SysOutInterceptor(ORIGINAL_OUT);
+  private static final Logger log = LoggerFactory.getLogger(SysOutInterceptor.class);
   private final ThreadLocal<Boolean> isMonitoring = new ThreadLocal<Boolean>() {
     @Override
     protected Boolean initialValue() {

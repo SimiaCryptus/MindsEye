@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 
+import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
@@ -41,7 +42,7 @@ public final class SqActivationLayer extends SimpleActivationLayer<SqActivationL
    *
    * @param id the id
    */
-  protected SqActivationLayer(final JsonObject id) {
+  protected SqActivationLayer(@Nonnull final JsonObject id) {
     super(id);
   }
   

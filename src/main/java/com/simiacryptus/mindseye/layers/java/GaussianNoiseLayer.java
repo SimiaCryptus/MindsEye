@@ -21,10 +21,10 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -84,42 +84,47 @@ public class GaussianNoiseLayer extends NNLayer {
   @javax.annotation.Nonnull
   @Override
   public NNResult eval(final NNResult... inObj) {
-    final int itemCnt = inObj[0].getData().length();
-    inObj[0].addRef();
-    inObj[0].getData().addRef();
+    final NNResult in0 = inObj[0];
+    final TensorList inputData = in0.getData();
+    final int itemCnt = inputData.length();
+    in0.addRef();
+    inputData.addRef();
     final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       @javax.annotation.Nonnull final Random random = new Random(seed);
-      final Tensor input = inObj[0].getData().get(dataIndex);
-      final @Nullable Tensor output = input.map(x -> {
+      @javax.annotation.Nullable final Tensor input = inputData.get(dataIndex);
+      @Nullable final Tensor output = input.map(x -> {
         return x + random.nextGaussian() * getValue();
       });
       return output;
     }).toArray(i -> new Tensor[i]);
     return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
-      if (inObj[0].isAlive()) {
+      if (in0.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-          final @Nullable double[] deltaData = delta.get(dataIndex).getData();
-          @javax.annotation.Nonnull final int[] dims = inObj[0].getData().get(dataIndex).getDimensions();
+          Tensor tensor = delta.get(dataIndex);
+          @Nullable final double[] deltaData = tensor.getData();
+          @javax.annotation.Nonnull final int[] dims = inputData.get(dataIndex).getDimensions();
           @javax.annotation.Nonnull final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, deltaData[i]);
           }
+          tensor.freeRef();
           return passback;
         }).toArray(i -> new Tensor[i]));
-        inObj[0].accumulate(buffer, tensorArray);
+        in0.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
     }) {
       
       @Override
       protected void _free() {
-        inObj[0].freeRef();
+        inputData.freeRef();
+        in0.freeRef();
       }
       
       
       @Override
       public boolean isAlive() {
-        return inObj[0].isAlive() || !isFrozen();
+        return in0.isAlive() || !isFrozen();
       }
     };
   }

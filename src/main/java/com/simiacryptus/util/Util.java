@@ -27,8 +27,8 @@ import com.simiacryptus.util.io.TeeInputStream;
 import com.simiacryptus.util.test.LabeledObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import javax.net.ssl.*;
 import java.awt.*;
@@ -343,7 +343,7 @@ public class Util {
     @javax.annotation.Nonnull final File outDir = new File("reports");
     outDir.mkdirs();
     final StackTraceElement caller = Util.getLast(Arrays.stream(Thread.currentThread().getStackTrace())//
-                                                        .filter(x -> x.getClassName().contains("simiacryptus")));
+      .filter(x -> x.getClassName().contains("simiacryptus")));
     @javax.annotation.Nonnull final File report = new File(outDir, caller.getClassName() + "_" + caller.getLineNumber() + ".html");
     @javax.annotation.Nonnull final PrintStream out = new PrintStream(new FileOutputStream(report));
     out.println("<html><head></head><body>");
@@ -369,7 +369,8 @@ public class Util {
    * @param image the image
    * @return the buffered image
    */
-  public static @Nullable BufferedImage resize(final @Nullable BufferedImage image) {
+  @Nullable
+  public static BufferedImage resize(@Nullable final BufferedImage image) {
     if (null == image) return image;
     final int width = Math.min(image.getWidth(), 800);
     if (width == image.getWidth()) return image;

@@ -26,6 +26,8 @@ import jcuda.jcudnn.cudnnTensorDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -93,19 +95,20 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
     return this.as(com.simiacryptus.mindseye.layers.java.ImgCropLayer.class);
   }
   
+  @Nullable
   @Override
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     assert 1 == inObj.length;
     assert 3 == inObj[0].getData().getDimensions().length;
     final int length = inObj[0].getData().length();
-    int[] dimIn = inObj[0].getData().getDimensions();
+    @Nonnull int[] dimIn = inObj[0].getData().getDimensions();
     @javax.annotation.Nonnull final int[] dimOut = Arrays.copyOf(dimIn, 3);
     dimOut[0] = sizeX;
     dimOut[1] = sizeY;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final TensorList outputData = GpuSystem.eval(gpu -> {
-      final CudaPtr inputBuffer = CudaPtr.getCudaPtr(precision, inObj[0].getData());
+      @Nullable final CudaPtr inputBuffer = CudaPtr.getCudaPtr(precision, inObj[0].getData());
       @javax.annotation.Nonnull final CudaPtr outputBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), (long) (length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size), MemoryType.Managed, false);
       copy(gpu, length, dimIn, inputBuffer, dimOut, outputBuffer);
       gpu.registerForCleanup(inputBuffer);
@@ -121,7 +124,7 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
       assert error.length() == inObj[0].getData().length();
       if (inObj[0].isAlive()) {
         final TensorList passbackTensorList = GpuSystem.eval(gpu -> {
-          final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
+          @Nullable final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
           @javax.annotation.Nonnull final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), (long) (length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size), MemoryType.Managed, false);
           copy(gpu, length, dimOut, errorPtr, dimIn, passbackBuffer);
           gpu.registerForCleanup(errorPtr);
@@ -131,12 +134,12 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
         passbackTensorList.freeRef();
       }
     }) {
-  
+      
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-  
+      
       @Override
       public boolean isAlive() {
         return Arrays.stream(inObj).anyMatch(x -> x.isAlive());
@@ -147,7 +150,7 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
   /**
    * Copy.
    *
-   * @param gpu             the gpu
+   * @param gpu                   the gpu
    * @param length                the length
    * @param sourceDimensions      the dim in
    * @param source                the input buffer
@@ -203,11 +206,11 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
     assert destinationOffset + Tensor.dim(viewDim) <= Tensor.dim(destinationDimensions);
   
     GpuSystem.handle(CuDNNHandle.cudnnTransformTensor(gpu.getHandle(),
-                                                      precision.getPointer(1.0),
-                                                      sourceViewDescriptor.getPtr(), source.getPtr().withByteOffset(sourceOffset * precision.size),
-                                                      precision.getPointer(0.0),
-                                                      destinationViewDescriptor.getPtr(), destination.getPtr().withByteOffset(destinationOffset * precision.size)
-                                                     ));
+      precision.getPointer(1.0),
+      sourceViewDescriptor.getPtr(), source.getPtr().withByteOffset(sourceOffset * precision.size),
+      precision.getPointer(0.0),
+      destinationViewDescriptor.getPtr(), destination.getPtr().withByteOffset(destinationOffset * precision.size)
+    ));
     gpu.registerForCleanup(sourceViewDescriptor, destinationViewDescriptor);
     
   }

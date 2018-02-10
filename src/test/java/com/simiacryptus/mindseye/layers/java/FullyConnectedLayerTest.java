@@ -21,8 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Random;
 
 /**
@@ -55,8 +55,9 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
     };
   }
   
+  @Nullable
   @Override
-  public @Nullable Class<? extends NNLayer> getReferenceLayerClass() {
+  public Class<? extends NNLayer> getReferenceLayerClass() {
     return FullyConnectedReferenceLayer.class;
   }
   

@@ -59,7 +59,7 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
   public static RealMatrix getCovariance(@javax.annotation.Nonnull final Supplier<Stream<double[]>> stream) {
     final int dimension = stream.get().findAny().get().length;
     final List<DoubleStatistics> statList = IntStream.range(0, dimension * dimension)
-                                                     .mapToObj(i -> new DoubleStatistics()).collect(Collectors.toList());
+      .mapToObj(i -> new DoubleStatistics()).collect(Collectors.toList());
     stream.get().forEach(array -> {
       for (int i = 0; i < dimension; i++) {
         for (int j = 0; j <= i; j++) {
@@ -108,17 +108,17 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
       @javax.annotation.Nonnull final int[] dimensions = prototype[column].getDimensions();
       @javax.annotation.Nonnull final EigenDecomposition decomposition = new EigenDecomposition(FindPCAFeatures.getCovariance(() -> featureVectors.get().map(x -> x[column].getData())));
       final int[] orderedVectors = IntStream.range(0, components).mapToObj(x -> x)
-                                            .sorted(Comparator.comparing(x -> -decomposition.getRealEigenvalue(x))).mapToInt(x -> x).toArray();
+        .sorted(Comparator.comparing(x -> -decomposition.getRealEigenvalue(x))).mapToInt(x -> x).toArray();
       return IntStream.range(0, orderedVectors.length)
-                      .mapToObj(i -> {
-                                  @javax.annotation.Nonnull final Tensor src = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), dimensions).copy();
-                                  return src
-                                    .scale(1.0 / src.rms())
-                                    //.scale((decomposition.getRealEigenvalue(orderedVectors[i]) / decomposition.getRealEigenvalue(orderedVectors[orderedVectors.length - 1])))
-                                    .scale(Math.sqrt(6. / (components + prototype[column].dim() + 1)))
-                                    ;
-                                }
-                               ).toArray(i -> new Tensor[i]);
+        .mapToObj(i -> {
+            @javax.annotation.Nonnull final Tensor src = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), dimensions).copy();
+            return src
+              .scale(1.0 / src.rms())
+              //.scale((decomposition.getRealEigenvalue(orderedVectors[i]) / decomposition.getRealEigenvalue(orderedVectors[orderedVectors.length - 1])))
+              .scale(Math.sqrt(6. / (components + prototype[column].dim() + 1)))
+              ;
+          }
+        ).toArray(i -> new Tensor[i]);
     });
   }
   

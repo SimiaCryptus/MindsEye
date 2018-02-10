@@ -38,6 +38,8 @@ import com.simiacryptus.util.io.NotebookOutput;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -188,30 +190,30 @@ public class EncodingProblem implements Problem {
     } catch (@javax.annotation.Nonnull final IOException e) {
       throw new RuntimeException(e);
     }
-    
-    final DAGNetwork imageNetwork = revFactory.vectorToImage(log, features);
+  
+    @Nonnull final DAGNetwork imageNetwork = revFactory.vectorToImage(log, features);
     log.h3("Network Diagram");
     log.code(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(imageNetwork))
-                     .height(400).width(600).render(Format.PNG).toImage();
+        .height(400).width(600).render(Format.PNG).toImage();
     });
     
     @javax.annotation.Nonnull final PipelineNetwork trainingNetwork = new PipelineNetwork(2);
-    final DAGNode image = trainingNetwork.add(imageNetwork, trainingNetwork.getInput(0));
-    final DAGNode softmax = trainingNetwork.add(new SoftmaxActivationLayer(), trainingNetwork.getInput(0));
+    @Nullable final DAGNode image = trainingNetwork.add(imageNetwork, trainingNetwork.getInput(0));
+    @Nullable final DAGNode softmax = trainingNetwork.add(new SoftmaxActivationLayer(), trainingNetwork.getInput(0));
     trainingNetwork.add(new SumInputsLayer(),
-                        trainingNetwork.add(new EntropyLossLayer(), softmax, softmax),
-                        trainingNetwork.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
-                                            trainingNetwork.add(new MeanSqLossLayer(), image, trainingNetwork.getInput(1))
-                                           )
-                       );
+      trainingNetwork.add(new EntropyLossLayer(), softmax, softmax),
+      trainingNetwork.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
+        trainingNetwork.add(new MeanSqLossLayer(), image, trainingNetwork.getInput(1))
+      )
+    );
     log.h3("Training");
     log.p("We start by training with a very small population to improve initial convergence performance:");
     TestUtil.instrumentPerformance(log, trainingNetwork);
     @javax.annotation.Nonnull final Tensor[][] primingData = Arrays.copyOfRange(trainingData, 0, 1000);
-    final ValidatingTrainer preTrainer = optimizer.train(log,
-                                                         (SampledTrainable) new SampledArrayTrainable(primingData, trainingNetwork, trainingSize, batchSize).setMinSamples(trainingSize).setMask(true, false),
-                                                         new ArrayTrainable(primingData, trainingNetwork, batchSize), monitor);
+    @Nonnull final ValidatingTrainer preTrainer = optimizer.train(log,
+      (SampledTrainable) new SampledArrayTrainable(primingData, trainingNetwork, trainingSize, batchSize).setMinSamples(trainingSize).setMask(true, false),
+      new ArrayTrainable(primingData, trainingNetwork, batchSize), monitor);
     log.code(() -> {
       preTrainer.setTimeout(timeoutMinutes / 2, TimeUnit.MINUTES).setMaxIterations(batchSize).run();
     });
@@ -219,9 +221,9 @@ public class EncodingProblem implements Problem {
     
     log.p("Then our main training phase:");
     TestUtil.instrumentPerformance(log, trainingNetwork);
-    final ValidatingTrainer mainTrainer = optimizer.train(log,
-                                                          (SampledTrainable) new SampledArrayTrainable(trainingData, trainingNetwork, trainingSize, batchSize).setMinSamples(trainingSize).setMask(true, false),
-                                                          new ArrayTrainable(trainingData, trainingNetwork, batchSize), monitor);
+    @Nonnull final ValidatingTrainer mainTrainer = optimizer.train(log,
+      (SampledTrainable) new SampledArrayTrainable(trainingData, trainingNetwork, trainingSize, batchSize).setMinSamples(trainingSize).setMask(true, false),
+      new ArrayTrainable(trainingData, trainingNetwork, batchSize), monitor);
     log.code(() -> {
       mainTrainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(batchSize).run();
     });
@@ -256,7 +258,7 @@ public class EncodingProblem implements Problem {
       @javax.annotation.Nonnull final TableOutput table = new TableOutput();
       Arrays.stream(trainingData).map(tensorArray -> {
         try {
-          final Tensor predictionSignal = testNetwork.eval(tensorArray).getData().get(0);
+          @Nullable final Tensor predictionSignal = testNetwork.eval(tensorArray).getData().get(0);
           @javax.annotation.Nonnull final LinkedHashMap<String, Object> row = new LinkedHashMap<>();
           row.put("Source", log.image(tensorArray[1].toImage(), ""));
           row.put("Echo", log.image(predictionSignal.toImage(), ""));
@@ -272,7 +274,7 @@ public class EncodingProblem implements Problem {
     log.code(() -> {
       @javax.annotation.Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
       trainingNetwork.state().stream().flatMapToDouble(x -> Arrays.stream(x))
-                     .forEach(v -> scalarStatistics.add(v));
+        .forEach(v -> scalarStatistics.add(v));
       return scalarStatistics.getMetrics();
     });
     
@@ -280,15 +282,15 @@ public class EncodingProblem implements Problem {
     log.code(() -> {
       @javax.annotation.Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
       Arrays.stream(trainingData)
-            .flatMapToDouble(row -> Arrays.stream(row[0].getData()))
-            .forEach(v -> scalarStatistics.add(v));
+        .flatMapToDouble(row -> Arrays.stream(row[0].getData()))
+        .forEach(v -> scalarStatistics.add(v));
       return scalarStatistics.getMetrics();
     });
     
     log.p("Some rendered unit vectors:");
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
       @javax.annotation.Nonnull final Tensor input = new Tensor(features).set(featureNumber, 1);
-      final Tensor tensor = imageNetwork.eval(input).getData().get(0);
+      @Nullable final Tensor tensor = imageNetwork.eval(input).getData().get(0);
       TestUtil.renderToImages(tensor, true).forEach(img -> {
         try {
           log.out(log.image(img, ""));

@@ -28,9 +28,9 @@ import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -77,11 +77,12 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     return byteArrayOutputStream.toByteArray();
   }
   
+  @Nullable
   @Override
-  public @Nullable ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer layer, final Tensor... inputPrototype) {
+  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer layer, final Tensor... inputPrototype) {
     log.h1("Serialization");
     log.p("This run will demonstrate the layer's JSON serialization, and verify deserialization integrity.");
-  
+    
     String prettyPrint = "";
     log.h2("Raw Json");
     try {

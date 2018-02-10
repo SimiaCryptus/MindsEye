@@ -26,10 +26,10 @@ import com.simiacryptus.util.lang.TimedResult;
 import com.simiacryptus.util.lang.UncheckedSupplier;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -78,12 +78,12 @@ public class HtmlNotebookOutput implements NotebookOutput {
     primaryOut = new PrintStream(out);
     workingDir = parentDirectory;
     out("<html><head><style>\n" +
-          "pre {\n" +
-          "    background-color: lightyellow;\n" +
-          "    margin-left: 20pt;\n" +
-          "    font-family: monospace;\n" +
-          "}\n" +
-          "</style></head><body>");
+      "pre {\n" +
+      "    background-color: lightyellow;\n" +
+      "    margin-left: 20pt;\n" +
+      "    font-family: monospace;\n" +
+      "}\n" +
+      "</style></head><body>");
   }
   
   /**
@@ -142,10 +142,10 @@ public class HtmlNotebookOutput implements NotebookOutput {
       try {
         @javax.annotation.Nonnull final URI resolved = URI.create(sourceRoot).resolve(Util.pathTo(CodeUtil.projectRoot, CodeUtil.findFile(callingFrame)));
         out("<p>Code from <a href='%s#L%s'>%s:%s</a> executed in %.2f seconds: <br/>",
-            resolved, callingFrame.getLineNumber(), callingFrame.getFileName(), callingFrame.getLineNumber(), result.obj.seconds());
+          resolved, callingFrame.getLineNumber(), callingFrame.getFileName(), callingFrame.getLineNumber(), result.obj.seconds());
       } catch (@javax.annotation.Nonnull final Exception e) {
         out("<p>Code from %s:%s executed in %.2f seconds: <br/>",
-            callingFrame.getFileName(), callingFrame.getLineNumber(), result.obj.seconds());
+          callingFrame.getFileName(), callingFrame.getLineNumber(), result.obj.seconds());
       }
       out("<pre>");
       out(sourceCode);
@@ -301,7 +301,7 @@ public class HtmlNotebookOutput implements NotebookOutput {
   
   @javax.annotation.Nonnull
   @Override
-  public String image(final @Nullable BufferedImage rawImage, final String caption) throws IOException {
+  public String image(@Nullable final BufferedImage rawImage, final String caption) throws IOException {
     if (null == rawImage) return "";
     new ByteArrayOutputStream();
     @javax.annotation.Nonnull final String thisImage = UUID.randomUUID().toString().substring(0, 8);
@@ -313,7 +313,7 @@ public class HtmlNotebookOutput implements NotebookOutput {
       return "<img src='data:image/png;base64," + pngSrc + "' alt='" + caption + "'/>";
     }
     else {
-      final BufferedImage stdImage = Util.resize(rawImage);
+      @javax.annotation.Nullable final BufferedImage stdImage = Util.resize(rawImage);
       if (stdImage != rawImage) {
         ImageIO.write(rawImage, "png", new File(getResourceDir(), "raw" + thisImage + ".png"));
       }
@@ -346,8 +346,9 @@ public class HtmlNotebookOutput implements NotebookOutput {
     out("<p>" + fmt + "</p>", args);
   }
   
+  @Nullable
   @Override
-  public @Nullable String getFrontMatterProperty(String key) {
+  public String getFrontMatterProperty(String key) {
     return null;
   }
   

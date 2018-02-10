@@ -21,10 +21,10 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -74,7 +74,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
     Arrays.stream(inObj).forEach(nnResult -> nnResult.getData().addRef());
     @javax.annotation.Nonnull final Tensor inputGradientA[] = new Tensor[itemCnt];
     return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].getData().get(dataIndex);
+      @javax.annotation.Nullable final Tensor input = inObj[0].getData().get(dataIndex);
       @javax.annotation.Nonnull final Tensor output = new Tensor(inObj[0].getData().getDimensions());
       @javax.annotation.Nonnull final Tensor inputGradient = new Tensor(input.dim());
       inputGradientA[dataIndex] = inputGradient;
@@ -90,8 +90,8 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
       if (inObj[0].isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
           @javax.annotation.Nonnull final Tensor passback = new Tensor(data.getDimensions());
-          final @Nullable double[] gradientData = inputGradientA[dataIndex].getData();
-          Tensor tensor = data.get(dataIndex);
+          @Nullable final double[] gradientData = inputGradientA[dataIndex].getData();
+          @javax.annotation.Nullable Tensor tensor = data.get(dataIndex);
           IntStream.range(0, passback.dim()).forEach(i -> {
             final double v = gradientData[i];
             if (Double.isFinite(v)) {

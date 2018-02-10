@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.network;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 
 /**
@@ -57,7 +58,7 @@ final class InputNode extends LazyResult {
    * @param nextHead the next head
    * @return the dag node
    */
-  public DAGNode add(final NNLayer nextHead) {
+  public DAGNode add(@Nonnull final NNLayer nextHead) {
     return dagNetwork.add(nextHead, InputNode.this);
   }
   

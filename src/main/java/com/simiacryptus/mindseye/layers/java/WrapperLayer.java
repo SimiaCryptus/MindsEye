@@ -23,8 +23,9 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
@@ -36,7 +37,8 @@ public abstract class WrapperLayer extends NNLayer {
   /**
    * The Inner.
    */
-  protected @Nullable NNLayer inner;
+  @Nullable
+  protected NNLayer inner;
   
   /**
    * Instantiates a new Wrapper layer.
@@ -71,6 +73,7 @@ public abstract class WrapperLayer extends NNLayer {
     super._free();
   }
   
+  @javax.annotation.Nullable
   @Override
   public NNResult eval(final NNResult... array) {
     return inner.eval(array);
@@ -81,10 +84,12 @@ public abstract class WrapperLayer extends NNLayer {
    *
    * @return the heapCopy
    */
-  public final @Nullable NNLayer getInner() {
+  @Nullable
+  public final NNLayer getInner() {
     return inner;
   }
   
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
@@ -106,8 +111,9 @@ public abstract class WrapperLayer extends NNLayer {
     return this;
   }
   
+  @Nullable
   @Override
-  public @Nullable List<double[]> state() {
+  public List<double[]> state() {
     return inner.state();
   }
 }

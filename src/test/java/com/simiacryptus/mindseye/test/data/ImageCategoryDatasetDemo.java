@@ -24,9 +24,9 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.lang.SupplierWeakCache;
 import com.simiacryptus.util.test.LabeledObject;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
+import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Comparator;
@@ -61,7 +61,7 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
     log.h3("Categories");
     log.code(() -> {
       testData.stream().collect(Collectors.groupingBy(x -> x.label, Collectors.counting()))
-              .forEach((k, v) -> ImageCategoryDatasetDemo.logger.info(String.format("%s -> %d", k, v)));
+        .forEach((k, v) -> ImageCategoryDatasetDemo.logger.info(String.format("%s -> %d", k, v)));
     });
     
     log.h3("Sample Data");

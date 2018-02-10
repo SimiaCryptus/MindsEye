@@ -19,8 +19,7 @@
 
 package com.simiacryptus.util.data;
 
-import org.jetbrains.annotations.Nullable;
-
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.stream.IntStream;
@@ -298,10 +297,13 @@ public class DensityTree {
     @javax.annotation.Nonnull
     public final Bounds bounds;
     private final int depth;
-    private @Nullable Node left = null;
-    private @Nullable Node right = null;
-    private @Nullable Rule rule = null;
-  
+    @Nullable
+    private Node left = null;
+    @Nullable
+    private Node right = null;
+    @Nullable
+    private Rule rule = null;
+    
     /**
      * Instantiates a new Node.
      *
@@ -355,9 +357,9 @@ public class DensityTree {
     public String code() {
       if (null != rule) {
         return String.format("// %s\nif(%s) { // Fitness %s\n  %s\n} else {\n  %s\n}",
-                             dataInfo(), rule, rule.fitness,
-                             left.code().replaceAll("\n", "\n  "),
-                             right.code().replaceAll("\n", "\n  "));
+          dataInfo(), rule, rule.fitness,
+          left.code().replaceAll("\n", "\n  "),
+          right.code().replaceAll("\n", "\n  "));
       }
       else {
         return "// " + dataInfo();
@@ -375,7 +377,7 @@ public class DensityTree {
       if (points.length <= splitSizeThreshold) return;
       if (maxDepth <= depth) return;
       this.rule = IntStream.range(0, points[0].length).mapToObj(x -> x).flatMap(dim -> split_ortho(dim)).filter(x -> Double.isFinite(x.fitness))
-                           .max(Comparator.comparing(x -> x.fitness)).orElse(null);
+        .max(Comparator.comparing(x -> x.fitness)).orElse(null);
       if (null == this.rule) return;
       double[][] leftPts = Arrays.stream(this.points).filter(pt -> rule.eval(pt)).toArray(i -> new double[i][]);
       double[][] rightPts = Arrays.stream(this.points).filter(pt -> !rule.eval(pt)).toArray(i -> new double[i][]);
@@ -422,7 +424,8 @@ public class DensityTree {
      *
      * @return the rule
      */
-    public @Nullable Rule getRule() {
+    @Nullable
+    public Rule getRule() {
       return rule;
     }
   
@@ -443,7 +446,8 @@ public class DensityTree {
      *
      * @return the right
      */
-    public @Nullable Node getRight() {
+    @Nullable
+    public Node getRight() {
       return right;
     }
   
@@ -464,7 +468,8 @@ public class DensityTree {
      *
      * @return the left
      */
-    public @Nullable Node getLeft() {
+    @Nullable
+    public Node getLeft() {
       return left;
     }
   

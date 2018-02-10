@@ -26,6 +26,7 @@ package com.simiacryptus.util.io;
 // http://creativecommons.org/licenses/by/3.0/ or send a letter to Creative
 // Commons, 171 Second Street, Suite 300, San Francisco, California, 94105, USA.
 
+import javax.annotation.Nonnull;
 import javax.imageio.*;
 import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.metadata.IIOMetadataNode;
@@ -152,7 +153,7 @@ public class GifSequenceWriter {
     for (int i = 0; i < nNodes; i++) {
       if (rootNode.item(i).getNodeName().compareToIgnoreCase(nodeName)
         == 0) {
-        IIOMetadataNode item = (IIOMetadataNode) rootNode.item(i);
+        @Nonnull IIOMetadataNode item = (IIOMetadataNode) rootNode.item(i);
         if (null == item) throw new IllegalStateException();
         return item;
       }

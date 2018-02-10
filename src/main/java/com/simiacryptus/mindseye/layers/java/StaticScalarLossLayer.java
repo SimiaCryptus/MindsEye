@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -76,13 +77,13 @@ public class StaticScalarLossLayer extends NNLayer {
     TensorList indata = in0.getData();
     indata.addRef();
     return new NNResult(TensorArray.wrap(IntStream.range(0, indata.length()).parallel().mapToObj(dataIndex -> {
-      final Tensor a = indata.get(dataIndex);
+      @Nullable final Tensor a = indata.get(dataIndex);
       final double diff = Math.abs(a.get(0) - getTarget());
       return new Tensor(new double[]{diff}, 1);
     }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (in0.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
-          final Tensor a = indata.get(dataIndex);
+          @Nullable final Tensor a = indata.get(dataIndex);
           final double deriv = data.get(dataIndex).get(0) * (a.get(0) - getTarget() < 0 ? -1 : 1);
           return new Tensor(new double[]{deriv}, 1);
         }).toArray(i -> new Tensor[i]));

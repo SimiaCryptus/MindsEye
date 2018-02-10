@@ -25,6 +25,8 @@ import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -78,13 +80,14 @@ public abstract class L12Normalizer extends TrainableBase {
    */
   public Collection<NNLayer> getLayers(@javax.annotation.Nonnull final Collection<NNLayer> layers) {
     return layers.stream()
-                 .filter(layer -> {
-                   return layer instanceof FullyConnectedLayer;
-                 })
-                 .collect(Collectors.toList());
+      .filter(layer -> {
+        return layer instanceof FullyConnectedLayer;
+      })
+      .collect(Collectors.toList());
   }
   
   
+  @Nonnull
   @Override
   public PointSample measure(final TrainingMonitor monitor) {
     final PointSample innerMeasure = inner.measure(monitor);
@@ -92,7 +95,7 @@ public abstract class L12Normalizer extends TrainableBase {
     double valueAdj = 0;
     for (@javax.annotation.Nonnull final NNLayer layer : getLayers(innerMeasure.delta.getMap().keySet())) {
       final double[] weights = innerMeasure.delta.getMap().get(layer).target;
-      final double[] gradientAdj = normalizationVector.get(layer, weights).getDelta();
+      @Nullable final double[] gradientAdj = normalizationVector.get(layer, weights).getDelta();
       final double factor_L1 = getL1(layer);
       final double factor_L2 = getL2(layer);
       assert null != gradientAdj;

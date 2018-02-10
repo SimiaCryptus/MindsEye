@@ -22,7 +22,8 @@ package com.simiacryptus.mindseye.eval;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nullable;
 
 /**
  * This Trainable wrapper adds additional L1 and L2 terms for weight normalization. Both coefficients are universal for
@@ -105,8 +106,9 @@ public class ConstL12Normalizer extends L12Normalizer implements SampledTrainabl
     return factor_L2;
   }
   
+  @Nullable
   @Override
-  public @Nullable boolean[] getMask() {
+  public boolean[] getMask() {
     return ((TrainableDataMask) inner).getMask();
   }
   

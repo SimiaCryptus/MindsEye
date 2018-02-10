@@ -29,6 +29,8 @@ import jcuda.jcudnn.cudnnOpTensorOp;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 import jcuda.jcudnn.cudnnTensorFormat;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -80,15 +82,16 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
   public NNLayer getCompatibilityLayer() {
     @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork(2);
     network.wrap(new com.simiacryptus.mindseye.layers.java.SumInputsLayer(),
-                 network.wrap(new LinearActivationLayer().setScale(1.0).freeze(), network.getInput(0)),
-                 network.wrap(new LinearActivationLayer().setScale(1.0).freeze(), network.getInput(1)));
+      network.wrap(new LinearActivationLayer().setScale(1.0).freeze(), network.getInput(0)),
+      network.wrap(new LinearActivationLayer().setScale(1.0).freeze(), network.getInput(1)));
     return network;
     
   }
   
+  @Nullable
   @Override
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
-    final int[] dimensions = inObj[0].getData().getDimensions();
+    @Nonnull final int[] dimensions = inObj[0].getData().getDimensions();
     final int length = inObj[0].getData().length();
     if (3 != dimensions.length) {
       throw new IllegalArgumentException("dimensions=" + Arrays.toString(dimensions));
@@ -109,14 +112,14 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
       @javax.annotation.Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
       @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
-      final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, leftData);//.moveTo(gpu.getDeviceNumber());
-      final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, rightData);//.moveTo(gpu.getDeviceNumber());
+      @Nullable final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, leftData);//.moveTo(gpu.getDeviceNumber());
+      @Nullable final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, rightData);//.moveTo(gpu.getDeviceNumber());
       assert lPtr.size == rPtr.size;
       @javax.annotation.Nonnull final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
       CuDNNHandle.cudnnOpTensor(gpu.getHandle(), opDescriptor.getPtr(),
-                                precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
-                                precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
-                                precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
+        precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
+        precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
+        precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
       gpu.registerForCleanup(lPtr, rPtr, opDescriptor, sizeDescriptor, leftData, rightData);
       return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
     })).get();
@@ -126,13 +129,13 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
       //stream1 = stream1.parallel();
       stream1.filter(x -> x.isAlive()).forEach(obj -> {
         GpuTensorList tensorList = GpuSystem.eval(gpu -> {
-          final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);
+          @Nullable final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);
           @javax.annotation.Nonnull final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
           @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
             precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
           CuDNNHandle.cudnnAddTensor(gpu.getHandle(),
-                                     precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
-                                     precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
+            precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
+            precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
           gpu.registerForCleanup(lPtr, sizeDescriptor);
           return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
         });

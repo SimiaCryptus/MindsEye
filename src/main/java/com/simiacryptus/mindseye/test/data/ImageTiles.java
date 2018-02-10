@@ -22,8 +22,8 @@ package com.simiacryptus.mindseye.test.data;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.io.DataLoader;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -139,7 +139,7 @@ public class ImageTiles {
    * @return the list
    */
   @javax.annotation.Nonnull
-  public static List<Tensor> toTiles(final @Nullable BufferedImage image, final int tileWidth, final int tileHeight, final int minSpacingWidth, final int minSpacingHeight, final int maxTileCols, final int maxTileRows) {
+  public static List<Tensor> toTiles(@Nullable final BufferedImage image, final int tileWidth, final int tileHeight, final int minSpacingWidth, final int minSpacingHeight, final int maxTileCols, final int maxTileRows) {
     @javax.annotation.Nonnull final List<Tensor> queue = new ArrayList<>();
     if (null != image) {
       final int xMax = image.getWidth() - tileWidth;

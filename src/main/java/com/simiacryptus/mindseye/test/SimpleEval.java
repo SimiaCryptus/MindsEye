@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.*;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.stream.IntStream;
@@ -33,7 +34,9 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
   private final Tensor[] input;
   @javax.annotation.Nonnull
   private final NNLayer layer;
+  @Nullable
   private Tensor[] derivative;
+  @Nullable
   private Tensor output;
   
   
@@ -79,7 +82,10 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
     derivative = Arrays.stream(inputCopy).map(input -> new Tensor(input.getDimensions())).toArray(i -> new Tensor[i]);
     NNResult[] input = IntStream.range(0, inputCopy.length).mapToObj(i -> {
       return new NNResult(TensorArray.create(inputCopy[i]), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
-        data.stream().forEach(t -> derivative[i].addInPlace(t));
+        data.stream().forEach(t -> {
+          derivative[i].addInPlace(t);
+          t.freeRef();
+        });
       }) {
         @Override
         protected void _free() {
@@ -92,13 +98,13 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
         }
       };
     }).toArray(i -> new NNResult[i]);
-    final NNResult eval = layer.eval(input);
+    @Nullable final NNResult eval = layer.eval(input);
     for (@javax.annotation.Nonnull NNResult nnResult : input) {
       nnResult.getData().freeRef();
       nnResult.freeRef();
     }
     TensorList outputData = eval.getData().copy();
-    Tensor tensor1 = outputData.get(0);
+    @Nullable Tensor tensor1 = outputData.get(0);
     output = tensor1.copy();
     tensor1.freeRef();
     for (@javax.annotation.Nonnull Tensor tensor : inputCopy) {
@@ -120,6 +126,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
    *
    * @return the tensor [ ]
    */
+  @Nullable
   public Tensor[] getDerivative() {
     return derivative;
   }
@@ -132,7 +139,11 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
    */
   @javax.annotation.Nonnull
   public TensorList getFeedback(@javax.annotation.Nonnull final TensorList data) {
-    return TensorArray.wrap(data.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i]));
+    return TensorArray.wrap(data.stream().map(t -> {
+      @Nullable Tensor map = t.map(v -> 1.0);
+      t.freeRef();
+      return map;
+    }).toArray(i -> new Tensor[i]));
   }
   
   /**
@@ -140,6 +151,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
    *
    * @return the output
    */
+  @Nullable
   public Tensor getOutput() {
     return output;
   }
@@ -149,6 +161,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
    *
    * @return the output and free
    */
+  @Nullable
   public Tensor getOutputAndFree() {
     output.addRef();
     freeRef();

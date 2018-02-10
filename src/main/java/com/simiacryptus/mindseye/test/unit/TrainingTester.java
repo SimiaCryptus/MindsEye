@@ -41,11 +41,12 @@ import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.SysOutInterceptor;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import smile.plot.PlotCanvas;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
@@ -107,11 +108,11 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    */
   public static Tensor[][] append(@javax.annotation.Nonnull Tensor[][] left, Tensor[] right) {
     return IntStream.range(0, left.length).mapToObj(i ->
-                                                      Stream.concat(
-                                                        Arrays.stream(left[i]),
-                                                        Stream.of(right[i])
-                                                                   ).toArray(j -> new Tensor[j])
-                                                   ).toArray(j -> new Tensor[j][]);
+      Stream.concat(
+        Arrays.stream(left[i]),
+        Stream.of(right[i])
+      ).toArray(j -> new Tensor[j])
+    ).toArray(j -> new Tensor[j][]);
   }
   
   /**
@@ -122,8 +123,8 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    */
   public static Tensor[][] copy(@javax.annotation.Nonnull Tensor[][] input_gd) {
     return Arrays.stream(input_gd)
-                 .map(t -> Arrays.stream(t).map(v -> v.copy()).toArray(i -> new Tensor[i]))
-                 .toArray(i -> new Tensor[i][]);
+      .map(t -> Arrays.stream(t).map(v -> v.copy()).toArray(i -> new Tensor[i]))
+      .toArray(i -> new Tensor[i][]);
   }
   
   /**
@@ -134,8 +135,8 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    */
   public static Tensor[][] pop(@javax.annotation.Nonnull Tensor[][] data) {
     return Arrays.stream(data)
-                 .map(t -> Arrays.stream(t).limit(t.length - 1).toArray(i -> new Tensor[i]))
-                 .toArray(i -> new Tensor[i][]);
+      .map(t -> Arrays.stream(t).limit(t.length - 1).toArray(i -> new Tensor[i]))
+      .toArray(i -> new Tensor[i][]);
   }
   
   /**
@@ -197,7 +198,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @return the j panel
    */
   @javax.annotation.Nonnull
-  public JPanel grid(final @Nullable TestResult inputLearning, final @Nullable TestResult modelLearning, final @Nullable TestResult completeLearning) {
+  public JPanel grid(@Nullable final TestResult inputLearning, @Nullable final TestResult modelLearning, @Nullable final TestResult completeLearning) {
     int rows = 0;
     if (inputLearning != null) {
       rows++;
@@ -384,7 +385,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    */
   @javax.annotation.Nonnull
   public TestResult testCompleteLearning(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer component, final Random random, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
-    final NNLayer network_target = shuffle(random, component.copy()).freeze();
+    @Nonnull final NNLayer network_target = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
     log.p("In this run, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
     log.code(() -> {
@@ -393,23 +394,22 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     log.p("We simultaneously regress this target input:");
     log.code(() -> {
       return Arrays.stream(input_target)
-                   .flatMap(x -> Arrays.stream(x))
-                   .map(x -> x.prettyPrint())
-                   .reduce((a, b) -> a + "\n" + b)
-                   .orElse("");
+        .flatMap(x -> Arrays.stream(x))
+        .map(x -> x.prettyPrint())
+        .reduce((a, b) -> a + "\n" + b)
+        .orElse("");
     });
     log.p("Which produces the following output:");
     TensorList result = network_target.eval(NNConstant.batchResultArray(input_target)).getData();
-    result.stream().forEach(x -> x.addRef());
     final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
     log.code(() -> {
       return Stream.of(output_target).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
     });
     //if (output_target.length != inputPrototype.length) return null;
     return trainAll("Integrated Convergence", log,
-                    append(shuffleCopy(random, inputPrototype), output_target),
-                    shuffle(random, component.copy()),
-                    buildMask(inputPrototype.length));
+      append(shuffleCopy(random, inputPrototype), output_target),
+      shuffle(random, component.copy()),
+      buildMask(inputPrototype.length));
   }
   
   /**
@@ -423,18 +423,18 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    */
   @javax.annotation.Nonnull
   public TestResult testInputLearning(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer component, final Random random, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
-    final NNLayer network = shuffle(random, component.copy()).freeze();
+    @Nonnull final NNLayer network = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
     log.p("In this run, we use a network to learn this target input, given it's pre-evaluated output:");
     log.code(() -> {
       return Arrays.stream(input_target)
-                   .flatMap(x -> Arrays.stream(x))
-                   .map(x -> x.prettyPrint())
-                   .reduce((a, b) -> a + "\n" + b)
-                   .orElse("");
+        .flatMap(x -> Arrays.stream(x))
+        .map(x -> x.prettyPrint())
+        .reduce((a, b) -> a + "\n" + b)
+        .orElse("");
     });
     NNResult[] array = NNConstant.batchResultArray(input_target);
-    NNResult eval = network.eval(array);
+    @javax.annotation.Nullable NNResult eval = network.eval(array);
     TensorList result = eval.getData();
     eval.freeRef();
     for (@javax.annotation.Nonnull NNResult nnResult : array) {
@@ -447,14 +447,13 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
       }
     }
     final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
-    Arrays.stream(output_target).forEach(x -> x.addRef());
     result.freeRef();
     //if (output_target.length != inputPrototype.length) return null;
     Tensor[][] trainingInput = append(shuffleCopy(random, inputPrototype), output_target);
     @javax.annotation.Nonnull TestResult testResult = trainAll("Input Convergence", log,
-                                                               trainingInput,
-                                                               network,
-                                                               buildMask(inputPrototype.length));
+      trainingInput,
+      network,
+      buildMask(inputPrototype.length));
     network.freeRef();
     Arrays.stream(trainingInput).flatMap(x -> Arrays.stream(x)).forEach(x -> x.freeRef());
     return testResult;
@@ -471,19 +470,18 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    */
   @javax.annotation.Nonnull
   public TestResult testModelLearning(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer component, final Random random, final Tensor[] inputPrototype) {
-    final NNLayer network_target = shuffle(random, component.copy()).freeze();
+    @Nonnull final NNLayer network_target = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
     log.p("In this run, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
     log.code(() -> {
       return network_target.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
     });
     TensorList result = network_target.eval(NNConstant.batchResultArray(input_target)).getData();
-    result.stream().forEach(x -> x.addRef());
     final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
     //if (output_target.length != input_target.length) return null;
     return trainAll("Model Convergence", log,
-                    append(input_target, output_target),
-                    shuffle(random, component.copy()));
+      append(input_target, output_target),
+      shuffle(random, component.copy()));
   }
   
   /**
@@ -552,8 +550,8 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
       return new TestResult(iterPlot, timePlot, result);
     }
     else {
-      final @Nullable PlotCanvas iterPlot = TestUtil.compare(title + " vs Iteration", runs);
-      final @Nullable PlotCanvas timePlot = TestUtil.compareTime(title + " vs Time", runs);
+      @Nullable final PlotCanvas iterPlot = TestUtil.compare(title + " vs Iteration", runs);
+      @Nullable final PlotCanvas timePlot = TestUtil.compareTime(title + " vs Time", runs);
       return new TestResult(iterPlot, timePlot, result);
     }
   }
@@ -562,9 +560,9 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     try {
       int inputs = data[0].length;
       @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork(inputs);
-      network.add(new MeanSqLossLayer(),
-                  network.add(layer, IntStream.range(0, inputs - 1).mapToObj(i -> network.getInput(i)).toArray(i -> new DAGNode[i])),
-                  network.getInput(inputs - 1));
+      network.wrap(new MeanSqLossLayer(),
+        network.add(layer, IntStream.range(0, inputs - 1).mapToObj(i -> network.getInput(i)).toArray(i -> new DAGNode[i])),
+        network.getInput(inputs - 1));
       @javax.annotation.Nonnull ArrayTrainable trainable = new ArrayTrainable(data, network);
       if (0 < mask.length) trainable.setMask(mask);
       List<StepRecord> history = opt.apply(log, trainable);
@@ -580,17 +578,17 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
           log.p("And regressed input:");
           log.code(() -> {
             return Arrays.stream(data)
-                         .flatMap(x -> Arrays.stream(x))
-                         .limit(1)
-                         .map(x -> x.prettyPrint())
-                         .reduce((a, b) -> a + "\n" + b)
-                         .orElse("");
+              .flatMap(x -> Arrays.stream(x))
+              .limit(1)
+              .map(x -> x.prettyPrint())
+              .reduce((a, b) -> a + "\n" + b)
+              .orElse("");
           });
         }
         log.p("To produce the following output:");
         log.code(() -> {
           NNResult[] array = NNConstant.batchResultArray(pop(data));
-          NNResult eval = layer.eval(array);
+          @javax.annotation.Nullable NNResult eval = layer.eval(array);
           for (@javax.annotation.Nonnull NNResult nnResult : array) {
             nnResult.freeRef();
             nnResult.getData().freeRef();
@@ -598,12 +596,16 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
           TensorList tensorList = eval.getData();
           eval.freeRef();
           String str = tensorList.stream()
-                                 .collect(Collectors.toList())
-                                 .stream()
-                                 .limit(1)
-                                 .map(x -> x.prettyPrint())
-                                 .reduce((a, b) -> a + "\n" + b)
-                                 .orElse("");
+            .collect(Collectors.toList())
+            .stream()
+            .limit(1)
+            .map(x -> {
+              String s = x.prettyPrint();
+              x.freeRef();
+              return s;
+            })
+            .reduce((a, b) -> a + "\n" + b)
+            .orElse("");
           tensorList.freeRef();
           return str;
         });
@@ -614,6 +616,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
       network.freeRef();
       return history;
     } finally {
+      layer.freeRef();
       for (@javax.annotation.Nonnull Tensor[] tensors : data) {
         for (@javax.annotation.Nonnull Tensor tensor : tensors) {
           tensor.freeRef();
@@ -810,42 +813,6 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
   }
   
   /**
-   * The type Component result.
-   */
-  public static class ComponentResult {
-    /**
-     * The Complete.
-     */
-    ProblemResult complete;
-    /**
-     * The Input.
-     */
-    ProblemResult input;
-    /**
-     * The Model.
-     */
-    ProblemResult model;
-  
-    /**
-     * Instantiates a new Component result.
-     *
-     * @param input    the input
-     * @param model    the model
-     * @param complete the complete
-     */
-    public ComponentResult(final ProblemResult input, final ProblemResult model, final ProblemResult complete) {
-      this.input = input;
-      this.model = model;
-      this.complete = complete;
-    }
-  
-    @Override
-    public String toString() {
-      return String.format("{\"input\":%s, \"model\":%s, \"complete\":%s}", input, model, complete);
-    }
-  }
-  
-  /**
    * The enum Randomization mode.
    */
   public enum RandomizationMode {
@@ -892,6 +859,42 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
      * @param buffer the buffer
      */
     public abstract void shuffle(Random random, double[] buffer);
+  }
+  
+  /**
+   * The type Component result.
+   */
+  public static class ComponentResult {
+    /**
+     * The Complete.
+     */
+    ProblemResult complete;
+    /**
+     * The Input.
+     */
+    ProblemResult input;
+    /**
+     * The Model.
+     */
+    ProblemResult model;
+    
+    /**
+     * Instantiates a new Component result.
+     *
+     * @param input    the input
+     * @param model    the model
+     * @param complete the complete
+     */
+    public ComponentResult(final ProblemResult input, final ProblemResult model, final ProblemResult complete) {
+      this.input = input;
+      this.model = model;
+      this.complete = complete;
+    }
+    
+    @Override
+    public String toString() {
+      return String.format("{\"input\":%s, \"model\":%s, \"complete\":%s}", input, model, complete);
+    }
   }
   
   /**

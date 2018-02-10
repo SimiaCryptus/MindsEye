@@ -31,9 +31,9 @@ import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -75,7 +75,8 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    *
    * @return the batching tester
    */
-  public @Nullable ComponentTest<ToleranceStatistics> getBatchingTester() {
+  @Nullable
+  public ComponentTest<ToleranceStatistics> getBatchingTester() {
     if (!validateBatchExecution) return null;
     return new BatchingTester(1e-2) {
       @Override
@@ -90,13 +91,14 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    *
    * @return the big tests
    */
+  @Nonnull
   public List<ComponentTest<?>> getBigTests() {
     return Arrays.asList(
       getPerformanceTester(),
       getBatchingTester(),
       getReferenceIOTester(),
       getEquivalencyTester()
-                        );
+    );
   }
   
   /**
@@ -108,7 +110,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   public List<ComponentTest<?>> getFinalTests() {
     return Arrays.asList(
       getTrainingTester()
-                        );
+    );
   }
   
   /**
@@ -116,7 +118,8 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    *
    * @return the derivative tester
    */
-  public @Nullable ComponentTest<ToleranceStatistics> getDerivativeTester() {
+  @Nullable
+  public ComponentTest<ToleranceStatistics> getDerivativeTester() {
     if (!validateDifferentials) return null;
     return new SingleDerivativeTester(1e-3, 1e-4);
   }
@@ -126,8 +129,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    *
    * @return the equivalency tester
    */
-  public @Nullable ComponentTest<ToleranceStatistics> getEquivalencyTester() {
-    final @Nullable NNLayer referenceLayer = getReferenceLayer();
+  @Nullable
+  public ComponentTest<ToleranceStatistics> getEquivalencyTester() {
+    @Nullable final NNLayer referenceLayer = getReferenceLayer();
     if (null == referenceLayer) return null;
     @javax.annotation.Nonnull EquivalencyTester equivalencyTester = new EquivalencyTester(1e-2, referenceLayer);
     referenceLayer.freeRef();
@@ -147,6 +151,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    *
    * @return the json tester
    */
+  @javax.annotation.Nullable
   protected ComponentTest<ToleranceStatistics> getJsonTester() {
     return new SerializationTest();
   }
@@ -170,7 +175,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     return Arrays.asList(
       getJsonTester(),
       getDerivativeTester()
-                        );
+    );
   }
   
   /**
@@ -197,6 +202,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    *
    * @return the performance tester
    */
+  @javax.annotation.Nullable
   public ComponentTest<ToleranceStatistics> getPerformanceTester() {
     return new PerformanceTester();
   }
@@ -206,6 +212,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    *
    * @return the reference io tester
    */
+  @javax.annotation.Nullable
   protected ComponentTest<ToleranceStatistics> getReferenceIOTester() {
     return new ReferenceIO(getReferenceIO());
   }
@@ -215,7 +222,8 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    *
    * @return the reference layer
    */
-  public @Nullable NNLayer getReferenceLayer() {
+  @Nullable
+  public NNLayer getReferenceLayer() {
     return cvt(getLayer(getSmallDims(new Random()), new Random()));
   }
   
@@ -240,7 +248,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   protected final NNLayer cvt(NNLayer layer) {
     if (layer instanceof DAGNetwork) {
       ((DAGNetwork) layer).visitNodes(node -> {
-        NNLayer from = node.getLayer();
+        @javax.annotation.Nullable NNLayer from = node.getLayer();
         node.setLayer(cvt(from));
       });
       return layer;
@@ -267,7 +275,8 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    *
    * @return the reference layer class
    */
-  public @Nullable Class<? extends NNLayer> getReferenceLayerClass() {
+  @Nullable
+  public Class<? extends NNLayer> getReferenceLayerClass() {
     return null;
   }
   
@@ -276,7 +285,8 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    *
    * @return the learning tester
    */
-  public @Nullable ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
+  @Nullable
+  public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
     return isTestTraining() ? new TrainingTester() : null;
   }
   
@@ -327,7 +337,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         log.p("This is a network with the following layout:");
         log.code(() -> {
           return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) smallLayer))
-                         .height(400).width(600).render(Format.PNG).toImage();
+            .height(400).width(600).render(Format.PNG).toImage();
         });
       } catch (Throwable e) {
         logger.info("Error plotting graph", e);
@@ -375,7 +385,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     getFinalTests().stream().filter(x -> null != x).forEach(test -> {
       final NNLayer perfLayer = getLayer(largeDims, new Random(seed));
       perfLayer.assertAlive();
-      NNLayer copy = perfLayer.copy();
+      @Nonnull NNLayer copy = perfLayer.copy();
       Tensor[] randomize = randomize(largeDims);
       test.test(log, copy, randomize);
       for (@javax.annotation.Nonnull Tensor tensor : randomize) {
@@ -398,13 +408,14 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     @javax.annotation.Nonnull DAGNetwork smallCopy = (DAGNetwork) smallLayer.copy();
     @javax.annotation.Nonnull HashSet<Invocation> invocations = new HashSet<>();
     smallCopy.visitNodes(node -> {
-      NNLayer inner = node.getLayer();
+      @javax.annotation.Nullable NNLayer inner = node.getLayer();
       inner.addRef();
-      NNLayer wrapper = new NNLayer() {
+      @javax.annotation.Nullable NNLayer wrapper = new NNLayer() {
+        @Nullable
         @Override
-        public @Nullable NNResult eval(@Nonnull NNResult... array) {
+        public NNResult eval(@Nonnull NNResult... array) {
           if (null == inner) return null;
-          NNResult result = inner.eval(array);
+          @javax.annotation.Nullable NNResult result = inner.eval(array);
           invocations.add(new Invocation(inner, Arrays.stream(array).map(x -> x.getData().getDimensions()).toArray(i -> new int[i][])));
           return result;
         }
@@ -414,8 +425,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
           return inner.getJson(resources, dataSerializer);
         }
     
+        @Nullable
         @Override
-        public @Nullable List<double[]> state() {
+        public List<double[]> state() {
           return inner.state();
         }
     
@@ -494,7 +506,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    */
   public void bigTests(NotebookOutput log, long seed, @javax.annotation.Nonnull NNLayer perfLayer, @javax.annotation.Nonnull ArrayList<TestError> exceptions) {
     getBigTests().stream().filter(x -> null != x).forEach(test -> {
-      NNLayer layer = perfLayer.copy();
+      @Nonnull NNLayer layer = perfLayer.copy();
       try {
         Tensor[] input = randomize(getLargeDims(new Random(seed)));
         test.test(log, layer, input);
@@ -523,7 +535,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    */
   public void bigTests(NotebookOutput log, @javax.annotation.Nonnull ArrayList<TestError> exceptions, @javax.annotation.Nonnull Invocation invocation) {
     getBigTests().stream().filter(x -> null != x).forEach((ComponentTest<?> test) -> {
-      NNLayer layer = invocation.getLayer().copy();
+      @Nonnull NNLayer layer = invocation.getLayer().copy();
       try {
         Tensor[] inputs = randomize(invocation.getDims());
         test.test(log, layer, inputs);
@@ -548,7 +560,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    */
   public void littleTests(NotebookOutput log, @javax.annotation.Nonnull ArrayList<TestError> exceptions, @javax.annotation.Nonnull Invocation invocation) {
     getLittleTests().stream().filter(x -> null != x).forEach((ComponentTest<?> test) -> {
-      NNLayer layer = invocation.getLayer().copy();
+      @Nonnull NNLayer layer = invocation.getLayer().copy();
       try {
         Tensor[] inputs = randomize(invocation.getDims());
         test.test(log, layer, inputs);

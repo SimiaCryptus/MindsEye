@@ -19,9 +19,8 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import org.jetbrains.annotations.Nullable;
-
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.util.function.Supplier;
@@ -63,8 +62,9 @@ public enum PersistanceMode {
    * Disabled persistance mode.
    */
   Null {
+    @Nullable
     @Override
-    public @Nullable <T> Supplier<T> wrap(T obj) {
+    public <T> Supplier<T> wrap(T obj) {
       return () -> null;
     }
   };
@@ -76,5 +76,6 @@ public enum PersistanceMode {
    * @param obj the obj
    * @return the supplier
    */
-  public abstract @Nullable <T> Supplier<T> wrap(T obj);
+  @Nullable
+  public abstract <T> Supplier<T> wrap(T obj);
 }

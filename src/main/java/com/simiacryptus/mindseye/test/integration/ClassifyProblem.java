@@ -36,8 +36,9 @@ import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.LabeledObject;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
@@ -147,7 +148,7 @@ public class ClassifyProblem implements Problem {
    * @return the int [ ]
    */
   public int[] predict(@javax.annotation.Nonnull final NNLayer network, @javax.annotation.Nonnull final LabeledObject<Tensor> labeledObject) {
-    final @Nullable double[] predictionSignal = network.eval(labeledObject.data).getData().get(0).getData();
+    @Nullable final double[] predictionSignal = network.eval(labeledObject.data).getData().get(0).getData();
     return IntStream.range(0, categories).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
   }
   
@@ -156,21 +157,21 @@ public class ClassifyProblem implements Problem {
   public ClassifyProblem run(@javax.annotation.Nonnull final NotebookOutput log) {
     @javax.annotation.Nonnull final TrainingMonitor monitor = TestUtil.getMonitor(history);
     final Tensor[][] trainingData = getTrainingData(log);
-    
-    final DAGNetwork network = fwdFactory.imageToVector(log, categories);
+  
+    @Nonnull final DAGNetwork network = fwdFactory.imageToVector(log, categories);
     log.h3("Network Diagram");
     log.code(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(network))
-                     .height(400).width(600).render(Format.PNG).toImage();
+        .height(400).width(600).render(Format.PNG).toImage();
     });
     
     log.h3("Training");
     @javax.annotation.Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
     TestUtil.instrumentPerformance(log, supervisedNetwork);
     int initialSampleSize = Math.max(trainingData.length / 5, Math.min(10, trainingData.length / 2));
-    final ValidatingTrainer trainer = optimizer.train(log,
-                                                      new SampledArrayTrainable(trainingData, supervisedNetwork, initialSampleSize, getBatchSize()),
-                                                      new ArrayTrainable(trainingData, supervisedNetwork, getBatchSize()), monitor);
+    @Nonnull final ValidatingTrainer trainer = optimizer.train(log,
+      new SampledArrayTrainable(trainingData, supervisedNetwork, initialSampleSize, getBatchSize()),
+      new ArrayTrainable(trainingData, supervisedNetwork, getBatchSize()), monitor);
     log.code(() -> {
       trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(10000).run();
     });
@@ -201,8 +202,8 @@ public class ClassifyProblem implements Problem {
     log.p("If we run our model against the entire validation dataset, we get this accuracy:");
     log.code(() -> {
       return data.validationData().mapToDouble(labeledObject ->
-                                                 predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
-                 .average().getAsDouble() * 100;
+        predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
+        .average().getAsDouble() * 100;
     });
     
     log.p("Let's examine some incorrectly predicted results in more detail:");
@@ -213,7 +214,7 @@ public class ClassifyProblem implements Problem {
           @javax.annotation.Nonnull TensorList batchIn = TensorArray.create(batch.stream().map(x -> x.data).toArray(i -> new Tensor[i]));
           TensorList batchOut = network.eval(new NNConstant(batchIn)).getData();
           return IntStream.range(0, batchOut.length())
-                          .mapToObj(i -> toRow(log, batch.get(i), batchOut.get(i).getData()));
+            .mapToObj(i -> toRow(log, batch.get(i), batchOut.get(i).getData()));
         }).filter(x -> null != x).limit(10).forEach(table::putRow);
         return table;
       } catch (@javax.annotation.Nonnull final IOException e) {
@@ -231,7 +232,8 @@ public class ClassifyProblem implements Problem {
    * @param predictionSignal the prediction signal
    * @return the linked hash map
    */
-  public @Nullable LinkedHashMap<String, Object> toRow(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
+  @Nullable
+  public LinkedHashMap<String, Object> toRow(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
     try {
       final int actualCategory = parse(labeledObject.label);
       final int[] predictionList = IntStream.range(0, categories).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
@@ -239,8 +241,8 @@ public class ClassifyProblem implements Problem {
       @javax.annotation.Nonnull final LinkedHashMap<String, Object> row = new LinkedHashMap<>();
       row.put("Image", log.image(labeledObject.data.toImage(), labeledObject.label));
       row.put("Prediction", Arrays.stream(predictionList).limit(3)
-                                  .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
-                                  .reduce((a, b) -> a + ", " + b).get());
+        .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
+        .reduce((a, b) -> a + ", " + b).get());
       return row;
     } catch (@javax.annotation.Nonnull final IOException e) {
       throw new RuntimeException(e);

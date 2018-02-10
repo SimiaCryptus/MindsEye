@@ -21,10 +21,10 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -73,14 +73,14 @@ public class MeanSqLossLayer extends NNLayer {
     if (2 != inObj.length) throw new IllegalArgumentException();
     final int leftLength = inObj[0].getData().length();
     final int rightLength = inObj[1].getData().length();
-    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+    Arrays.stream(inObj).forEach(ReferenceCountingBase::addRef);
     if (leftLength != rightLength && leftLength != 1 && rightLength != 1) {
       throw new IllegalArgumentException(leftLength + " != " + rightLength);
     }
     @javax.annotation.Nonnull final Tensor diffs[] = new Tensor[leftLength];
     return new NNResult(TensorArray.wrap(IntStream.range(0, leftLength).mapToObj(dataIndex -> {
-      final Tensor a = inObj[0].getData().get(1 == leftLength ? 0 : dataIndex);
-      final Tensor b = inObj[1].getData().get(1 == rightLength ? 0 : dataIndex);
+      @javax.annotation.Nullable final Tensor a = inObj[0].getData().get(1 == leftLength ? 0 : dataIndex);
+      @javax.annotation.Nullable final Tensor b = inObj[1].getData().get(1 == rightLength ? 0 : dataIndex);
       if (a.dim() != b.dim()) {
         throw new IllegalArgumentException(String.format("%s != %s", Arrays.toString(a.getDimensions()), Arrays.toString(b.getDimensions())));
       }
@@ -92,32 +92,28 @@ public class MeanSqLossLayer extends NNLayer {
       return statsTensor;
     }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
-        List<Tensor> scaledTensors = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
-          Tensor tensor = data.get(dataIndex);
-          @Nullable Tensor scale = diffs[dataIndex].scale(tensor.get(0) * 2.0 / diffs[dataIndex].dim());
+        Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
+          @Nullable Tensor tensor = data.get(dataIndex);
+          Tensor diff = diffs[dataIndex];
+          @Nullable Tensor scale = diff.scale(tensor.get(0) * 2.0 / diff.dim());
           tensor.freeRef();
           return scale;
-        }).collect(Collectors.toList());
-        Stream<Tensor> tensorStream = scaledTensors.stream();
+        }).collect(Collectors.toList()).stream();
         if (1 == leftLength) {
-          tensorStream = Stream.of(tensorStream.map(x -> {
-            x.addRef();
-            return x;
-          }).reduce((a, b) -> {
-            Tensor c = a.add(b);
+          tensorStream = Stream.of(tensorStream.reduce((a, b) -> {
+            @javax.annotation.Nullable Tensor c = a.add(b);
             a.freeRef();
             b.freeRef();
             return c;
           }).get());
         }
         @javax.annotation.Nonnull final TensorList array = TensorArray.wrap(tensorStream.toArray(i -> new Tensor[i]));
-        scaledTensors.forEach(x -> x.freeRef());
         inObj[0].accumulate(buffer, array);
         array.freeRef();
       }
       if (inObj[1].isAlive()) {
         List<Tensor> scaledTensors = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
-          Tensor tensor = data.get(dataIndex);
+          @javax.annotation.Nullable Tensor tensor = data.get(dataIndex);
           @Nullable Tensor scale = diffs[dataIndex].scale(tensor.get(0) * 2.0 / diffs[dataIndex].dim());
           tensor.freeRef();
           return scale;
@@ -128,13 +124,17 @@ public class MeanSqLossLayer extends NNLayer {
             x.addRef();
             return x;
           }).reduce((a, b) -> {
-            Tensor c = a.add(b);
+            @javax.annotation.Nullable Tensor c = a.add(b);
             a.freeRef();
             b.freeRef();
             return c;
           }).get());
         }
-        @javax.annotation.Nonnull final TensorList array = TensorArray.wrap(tensorStream.map(x -> x.scale(-1)).toArray(i -> new Tensor[i]));
+        @javax.annotation.Nonnull final TensorList array = TensorArray.wrap(tensorStream.map(x -> {
+          @javax.annotation.Nullable Tensor scale = x.scale(-1);
+          x.freeRef();
+          return scale;
+        }).toArray(i -> new Tensor[i]));
         scaledTensors.forEach(x -> x.freeRef());
         inObj[1].accumulate(buffer, array);
         array.freeRef();

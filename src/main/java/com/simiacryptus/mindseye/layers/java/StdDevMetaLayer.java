@@ -25,6 +25,8 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -53,7 +55,7 @@ public class StdDevMetaLayer extends PipelineNetwork {
     add(new AvgMetaLayer().setMinBatchCount(minBatchCount));
     add(new AvgReducerLayer());
     add(new SqActivationLayer());
-    final DAGNode a = add(new LinearActivationLayer().setScale(-1).freeze());
+    @Nullable final DAGNode a = add(new LinearActivationLayer().setScale(-1).freeze());
     add(new SqActivationLayer(), getInput(0));
     add(new AvgMetaLayer().setMinBatchCount(minBatchCount));
     add(new AvgReducerLayer());
@@ -67,7 +69,7 @@ public class StdDevMetaLayer extends PipelineNetwork {
    * @param json the json
    * @param rs   the rs
    */
-  protected StdDevMetaLayer(final JsonObject json, Map<String, byte[]> rs) {
+  protected StdDevMetaLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json, rs);
   }
   

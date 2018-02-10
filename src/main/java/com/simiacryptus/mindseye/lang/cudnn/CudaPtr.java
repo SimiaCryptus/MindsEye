@@ -32,6 +32,7 @@ import jcuda.runtime.cudaMemcpyKind;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.ExecutionException;
 
 import static jcuda.runtime.cudaMemcpyKind.cudaMemcpyDeviceToHost;
@@ -106,11 +107,12 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    * @param data      the data
    * @return the cuda ptr
    */
+  @Nullable
   public static CudaPtr getCudaPtr(@javax.annotation.Nonnull final Precision precision, @javax.annotation.Nonnull final TensorList data) {
     data.assertAlive();
     if (data instanceof GpuTensorList && precision == ((GpuTensorList) data).getPrecision() && ((GpuTensorList) data).isNative()) {
       @javax.annotation.Nonnull GpuTensorList gpuTensorList = (GpuTensorList) data;
-      final CudaPtr ptr = gpuTensorList.getPtr();
+      @Nullable final CudaPtr ptr = gpuTensorList.getPtr();
       assert null != ptr;
       ptr.addRef();
       return ptr;
@@ -121,7 +123,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
       final double[] inputBuffer = RecycleBin.DOUBLES.obtain(elementLength * listLength);
       for (int i = 0; i < listLength; i++) {
         Tensor tensor = data.get(i);
-        final double[] doubles = tensor.getData();
+        @Nullable final double[] doubles = tensor.getData();
         assert elementLength == doubles.length;
         System.arraycopy(doubles, 0, inputBuffer, i * elementLength, elementLength);
         tensor.freeRef();
@@ -157,7 +159,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
       @javax.annotation.Nonnull TimedResult<Void> timedResult = TimedResult.time(() -> GpuSystem.cleanMemory());
       final long freedMemory = startMemory - metrics.usedMemory.get();
       logger.warn(String.format("Low GPU Memory while allocating %s bytes; %s freed in %.4fs resulting in %s total (triggered by %s)",
-                                size, freedMemory, timedResult.seconds(), metrics.usedMemory.get(), e.getMessage()));
+        size, freedMemory, timedResult.seconds(), metrics.usedMemory.get(), e.getMessage()));
     }
     if (retries < 0) throw new IllegalStateException();
     return acquire(deviceId, size, type, retries - 1);
@@ -180,7 +182,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
         final int length = tensor.dim();
         @javax.annotation.Nonnull final float[] data = new float[length];
         ptr.read(precision, data);
-        final double[] doubles = tensor.getData();
+        @Nullable final double[] doubles = tensor.getData();
         for (int i = 0; i < length; i++) {
           doubles[i] = data[i];
         }

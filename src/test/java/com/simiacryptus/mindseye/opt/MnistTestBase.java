@@ -35,7 +35,6 @@ import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.LabeledObject;
 import com.simiacryptus.util.test.TestCategories;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
@@ -43,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import smile.plot.PlotCanvas;
 import smile.plot.ScatterPlot;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
@@ -118,12 +118,12 @@ public abstract class MnistTestBase extends NotebookReportBase {
   public DAGNetwork buildModel(@javax.annotation.Nonnull final NotebookOutput log) {
     log.h1("Model");
     log.p("This is a very simple model that performs basic logistic regression. " +
-            "It is expected to be trainable to about 91% accuracy on MNIST.");
+      "It is expected to be trainable to about 91% accuracy on MNIST.");
     return log.code(() -> {
       @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new BiasLayer(28, 28, 1));
       network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{10})
-                    .set(() -> 0.001 * (Math.random() - 0.45)));
+        .set(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new SoftmaxActivationLayer());
       return network;
     });
@@ -167,7 +167,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
    * @return the int [ ]
    */
   public int[] predict(@javax.annotation.Nonnull final NNLayer network, @javax.annotation.Nonnull final LabeledObject<Tensor> labeledObject) {
-    final @Nullable double[] predictionSignal = network.eval(labeledObject.data).getData().get(0).getData();
+    @Nullable final double[] predictionSignal = network.eval(labeledObject.data).getData().get(0).getData();
     return IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
   }
   
@@ -268,8 +268,8 @@ public abstract class MnistTestBase extends NotebookReportBase {
     log.p("If we run our model against the entire validation dataset, we get this accuracy:");
     log.code(() -> {
       return MNIST.validationDataStream().mapToDouble(labeledObject ->
-                                                        predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
-                  .average().getAsDouble() * 100;
+        predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
+        .average().getAsDouble() * 100;
     });
     
     log.p("Let's examine some incorrectly predicted results in more detail:");
@@ -279,14 +279,14 @@ public abstract class MnistTestBase extends NotebookReportBase {
         MNIST.validationDataStream().map(labeledObject -> {
           try {
             final int actualCategory = parse(labeledObject.label);
-            final @Nullable double[] predictionSignal = network.eval(labeledObject.data).getData().get(0).getData();
+            @Nullable final double[] predictionSignal = network.eval(labeledObject.data).getData().get(0).getData();
             final int[] predictionList = IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
             if (predictionList[0] == actualCategory) return null; // We will only examine mispredicted rows
             @javax.annotation.Nonnull final LinkedHashMap<String, Object> row = new LinkedHashMap<>();
             row.put("Image", log.image(labeledObject.data.toGrayImage(), labeledObject.label));
             row.put("Prediction", Arrays.stream(predictionList).limit(3)
-                                        .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
-                                        .reduce((a, b) -> a + ", " + b).get());
+              .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
+              .reduce((a, b) -> a + ", " + b).get());
             return row;
           } catch (@javax.annotation.Nonnull final IOException e) {
             throw new RuntimeException(e);

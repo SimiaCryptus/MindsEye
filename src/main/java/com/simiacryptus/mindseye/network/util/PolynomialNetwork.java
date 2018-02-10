@@ -31,8 +31,9 @@ import com.simiacryptus.mindseye.layers.java.NthPowerActivationLayer;
 import com.simiacryptus.mindseye.layers.java.ProductInputsLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -52,11 +53,13 @@ public class PolynomialNetwork extends DAGNetwork {
   /**
    * The Alpha.
    */
-  protected @Nullable NNLayer alpha = null;
+  @Nullable
+  protected NNLayer alpha = null;
   /**
    * The Alpha bias.
    */
-  protected @Nullable NNLayer alphaBias = null;
+  @Nullable
+  protected NNLayer alphaBias = null;
   /**
    * The Corrections.
    */
@@ -151,8 +154,8 @@ public class PolynomialNetwork extends DAGNetwork {
    */
   public void addTerm(final double power) {
     corrections.add(new Correcton(power,
-                                  newBias(outputDims, 1.0),
-                                  newSynapse(0.0)
+      newBias(outputDims, 1.0),
+      newSynapse(0.0)
     ));
   }
   
@@ -182,7 +185,7 @@ public class PolynomialNetwork extends DAGNetwork {
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     assertConsistent();
-    final DAGNode head = getHead();
+    @javax.annotation.Nullable final DAGNode head = getHead();
     final JsonObject json = super.getJson(resources, dataSerializer);
     json.addProperty("head", head.getId().toString());
     if (null != alpha) {
@@ -209,6 +212,7 @@ public class PolynomialNetwork extends DAGNetwork {
    * @param weight the weight
    * @return the nn layer
    */
+  @Nonnull
   public NNLayer newBias(final int[] dims, final double weight) {
     return new BiasLayer(dims).setWeights(i -> weight);
   }
@@ -229,6 +233,7 @@ public class PolynomialNetwork extends DAGNetwork {
    *
    * @return the nn layer
    */
+  @Nonnull
   public NNLayer newProductLayer() {
     return new ProductInputsLayer();
   }
@@ -239,6 +244,7 @@ public class PolynomialNetwork extends DAGNetwork {
    * @param weight the weight
    * @return the nn layer
    */
+  @Nonnull
   public NNLayer newSynapse(final double weight) {
     return new FullyConnectedLayer(inputDims, outputDims).set(() -> weight * (Math.random() - 1));
   }

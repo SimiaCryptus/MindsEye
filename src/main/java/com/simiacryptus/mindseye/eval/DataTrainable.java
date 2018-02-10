@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 /**
@@ -40,5 +41,6 @@ public interface DataTrainable extends Trainable {
    * @param tensors the tensors
    * @return the data
    */
+  @Nonnull
   Trainable setData(List<Tensor[]> tensors);
 }

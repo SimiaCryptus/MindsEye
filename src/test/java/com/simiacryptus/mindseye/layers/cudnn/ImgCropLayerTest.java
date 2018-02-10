@@ -28,8 +28,8 @@ import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.ComponentTestBase;
 import com.simiacryptus.mindseye.test.unit.PerformanceTester;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.Random;
 
@@ -74,8 +74,9 @@ public abstract class ImgCropLayerTest extends CuDNNLayerTestBase {
   }
   
   
+  @Nullable
   @Override
-  public @Nullable ComponentTest<ToleranceStatistics> getPerformanceTester() {
+  public ComponentTest<ToleranceStatistics> getPerformanceTester() {
     @javax.annotation.Nonnull ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setSamples(100).setBatches(10);
     return new ComponentTestBase<ToleranceStatistics>() {
       @Override

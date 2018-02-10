@@ -35,11 +35,6 @@ import com.simiacryptus.util.ArrayUtil;
  */
 public class MomentumStrategy extends OrientationStrategyBase<SimpleLineSearchCursor> {
   
-  @Override
-  protected void _free() {
-    this.inner.freeRef();
-  }
-  
   /**
    * The Inner.
    */
@@ -50,7 +45,6 @@ public class MomentumStrategy extends OrientationStrategyBase<SimpleLineSearchCu
   @javax.annotation.Nonnull
   DeltaSet<NNLayer> prevDelta = new DeltaSet<NNLayer>();
   private double carryOver = 0.1;
-  
   /**
    * Instantiates a new Momentum strategy.
    *
@@ -58,6 +52,11 @@ public class MomentumStrategy extends OrientationStrategyBase<SimpleLineSearchCu
    */
   public MomentumStrategy(final OrientationStrategy<SimpleLineSearchCursor> inner) {
     this.inner = inner;
+  }
+  
+  @Override
+  protected void _free() {
+    this.inner.freeRef();
   }
   
   /**

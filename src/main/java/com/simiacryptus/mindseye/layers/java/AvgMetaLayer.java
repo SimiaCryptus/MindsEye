@@ -21,10 +21,10 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +44,8 @@ public class AvgMetaLayer extends NNLayer {
   /**
    * The Last result.
    */
-  public @Nullable Tensor lastResult;
+  @Nullable
+  public Tensor lastResult;
   private int minBatchCount = 1;
   
   /**
@@ -94,8 +95,8 @@ public class AvgMetaLayer extends NNLayer {
     if (null == lastResult || inputData.length() > minBatchCount) {
       @javax.annotation.Nonnull final ToDoubleFunction<Coordinate> f = (c) ->
         IntStream.range(0, itemCnt)
-                 .mapToDouble(dataIndex -> inputData.get(dataIndex).get(c))
-                 .sum() / itemCnt;
+          .mapToDouble(dataIndex -> inputData.get(dataIndex).get(c))
+          .sum() / itemCnt;
       thisResult = inputData.get(0).mapCoords(f);
       passback = true;
       if (null != lastResult) lastResult.freeRef();
@@ -109,7 +110,7 @@ public class AvgMetaLayer extends NNLayer {
     }
     return new NNResult(TensorArray.create(thisResult), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (passback && input.isAlive()) {
-        final Tensor delta = data.get(0);
+        @javax.annotation.Nullable final Tensor delta = data.get(0);
         @javax.annotation.Nonnull final Tensor feedback[] = new Tensor[itemCnt];
         Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
         thisResult.coordStream(true).forEach((inputCoord) -> {

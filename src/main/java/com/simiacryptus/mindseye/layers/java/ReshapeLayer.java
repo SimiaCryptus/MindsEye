@@ -24,10 +24,11 @@ import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.MultiPrecision;
 import com.simiacryptus.util.io.JsonUtil;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +43,8 @@ public class ReshapeLayer extends NNLayer implements MultiPrecision<ReshapeLayer
   /**
    * The Output dims.
    */
-  public final @Nullable int[] outputDims;
+  @Nullable
+  public final int[] outputDims;
   private Precision precision = Precision.Double;
   
   /**
@@ -84,11 +86,12 @@ public class ReshapeLayer extends NNLayer implements MultiPrecision<ReshapeLayer
     return new ReshapeLayer(json, rs);
   }
   
+  @Nullable
   @Override
-  public @Nullable NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     assert 1 == inObj.length;
     TensorList data = inObj[0].getData();
-    int[] inputDims = data.getDimensions();
+    @Nonnull int[] inputDims = data.getDimensions();
     for (@javax.annotation.Nonnull NNResult nnResult : inObj) {
       nnResult.addRef();
     }
@@ -97,14 +100,14 @@ public class ReshapeLayer extends NNLayer implements MultiPrecision<ReshapeLayer
       inObj[0].accumulate(buffer, tensorList);
       tensorList.freeRef();
     }) {
-  
+      
       @Override
       protected void _free() {
         for (@javax.annotation.Nonnull NNResult nnResult : inObj) {
           nnResult.freeRef();
         }
       }
-  
+      
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive();

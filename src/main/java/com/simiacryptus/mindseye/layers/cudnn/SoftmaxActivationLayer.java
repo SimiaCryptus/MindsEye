@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +82,7 @@ public class SoftmaxActivationLayer extends NNLayer implements MultiPrecision<So
   }
   
   
+  @Nullable
   @Override
   public NNResult eval(final NNResult... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);

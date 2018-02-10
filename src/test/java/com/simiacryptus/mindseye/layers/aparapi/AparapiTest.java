@@ -87,7 +87,7 @@ public class AparapiTest {
       log.info("}");
       platformc++;
     }
-
+  
     final Device bestDevice = Device.best();
     if (bestDevice == null) {
       log.info("OpenCLDevice.best() returned null!");
@@ -102,7 +102,7 @@ public class AparapiTest {
       log.info("   MaxWorkItemDimensions : " + bestDevice.getMaxWorkItemDimensions());
       log.info("}");
     }
-
+  
     final Device firstCPU = Device.firstCPU();
     if (firstCPU == null) {
       log.info("OpenCLDevice.firstCPU() returned null!");
@@ -117,7 +117,7 @@ public class AparapiTest {
       log.info("   MaxWorkItemDimensions : " + firstCPU.getMaxWorkItemDimensions());
       log.info("}");
     }
-
+  
     final Device firstGPU = Device.firstGPU();
     if (firstGPU == null) {
       log.info("OpenCLDevice.firstGPU() returned null!");
@@ -132,7 +132,7 @@ public class AparapiTest {
       log.info("   MaxWorkItemDimensions : " + firstGPU.getMaxWorkItemDimensions());
       log.info("}");
     }
-
+  
     final Device bestGPU = Device.bestGPU();
     if (bestGPU == null) {
       log.info("OpenCLDevice.bestGPU() returned null!");
@@ -244,17 +244,17 @@ public class AparapiTest {
      */
     @javax.annotation.Nonnull
     AparapiTest.Convolution applyConvolution(//
-                                             Range range, //
-                                             @OpenCL.GlobalReadOnly("_convMatrix3x3") float[] _convMatrix3x3, //// only read
-                                             //// from
-                                             //// filter
-                                             @OpenCL.GlobalReadOnly("_imagIn") byte[] _imageIn, // only read from filter
-                                             // (actually char[])
-                                             @OpenCL.GlobalWriteOnly("_imagOut") byte[] _imageOut, // only written to (never
-                                             // read) from filter
-                                             // (actually char[])
-                                             @OpenCL.Arg("_width") int _width, //
-                                             @OpenCL.Arg("_height") int _height);
+      Range range, //
+      @OpenCL.GlobalReadOnly("_convMatrix3x3") float[] _convMatrix3x3, //// only read
+      //// from
+      //// filter
+      @OpenCL.GlobalReadOnly("_imagIn") byte[] _imageIn, // only read from filter
+      // (actually char[])
+      @OpenCL.GlobalWriteOnly("_imagOut") byte[] _imageOut, // only written to (never
+      // read) from filter
+      // (actually char[])
+      @OpenCL.Arg("_width") int _width, //
+      @OpenCL.Arg("_height") int _height);
   }
   
   /**

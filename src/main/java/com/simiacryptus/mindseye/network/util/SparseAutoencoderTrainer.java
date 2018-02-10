@@ -27,6 +27,8 @@ import com.simiacryptus.mindseye.layers.java.SumReducerLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.SupervisedNetwork;
 
+import javax.annotation.Nonnull;
+
 /**
  * The type Sparse autoencoder trainer.
  */
@@ -68,7 +70,7 @@ public class SparseAutoencoderTrainer extends SupervisedNetwork {
    * @param encoder the encoder
    * @param decoder the decoder
    */
-  public SparseAutoencoderTrainer(final NNLayer encoder, final NNLayer decoder) {
+  public SparseAutoencoderTrainer(@Nonnull final NNLayer encoder, @Nonnull final NNLayer decoder) {
     super(1);
     this.encoder = add(encoder, getInput(0));
     this.decoder = add(decoder, this.encoder);

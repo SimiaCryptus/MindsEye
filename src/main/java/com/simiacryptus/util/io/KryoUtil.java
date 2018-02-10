@@ -40,7 +40,7 @@ public class KryoUtil {
     @Override
     protected Kryo initialValue() {
       @javax.annotation.Nonnull final Kryo kryo = new KryoReflectionFactorySupport() {
-      
+  
         @Override
         public Serializer<?> getDefaultSerializer(@SuppressWarnings("rawtypes") final Class clazz) {
           if (EnumSet.class.isAssignableFrom(clazz)) {
@@ -55,7 +55,7 @@ public class KryoUtil {
           }
           return serializer;
         }
-      
+  
       };
       return kryo;
     }

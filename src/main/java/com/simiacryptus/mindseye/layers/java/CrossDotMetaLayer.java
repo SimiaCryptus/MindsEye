@@ -21,10 +21,10 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -64,14 +64,15 @@ public class CrossDotMetaLayer extends NNLayer {
     return new CrossDotMetaLayer(json);
   }
   
+  @Nullable
   @Override
-  public @Nullable NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     final NNResult input = inObj[0];
     final TensorList indata = input.getData();
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     indata.addRef();
     final int itemCnt = indata.length();
-    final int dim = indata.get(0).dim();
+    final int dim = Tensor.dim(indata.getDimensions());
     @javax.annotation.Nonnull final Tensor results = new Tensor(dim, dim);
     for (int i = 0; i < dim; i++) {
       for (int j = 0; j < dim; j++) {
@@ -80,7 +81,7 @@ public class CrossDotMetaLayer extends NNLayer {
         }
         double v = 0;
         for (int k = 0; k < itemCnt; k++) {
-          final @Nullable double[] kk = indata.get(k).getData();
+          @Nullable final double[] kk = indata.get(k).getData();
           v += kk[i] * kk[j];
         }
         results.set(new int[]{i, j}, v);
@@ -88,10 +89,10 @@ public class CrossDotMetaLayer extends NNLayer {
     }
     return new NNResult(TensorArray.wrap(results), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (input.isAlive()) {
-        final Tensor delta = data.get(0);
+        @javax.annotation.Nullable final Tensor delta = data.get(0);
         @javax.annotation.Nonnull final Tensor feedback[] = new Tensor[itemCnt];
         Arrays.parallelSetAll(feedback, i -> new Tensor(dim));
-  
+        
         for (int i = 0; i < dim; i++) {
           for (int j = 0; j < dim; j++) {
             if (i == j) {
@@ -99,13 +100,13 @@ public class CrossDotMetaLayer extends NNLayer {
             }
             final double v = delta.get(i, j);
             for (int k = 0; k < itemCnt; k++) {
-              final @Nullable double[] kk = indata.get(k).getData();
+              @Nullable final double[] kk = indata.get(k).getData();
               feedback[k].add(i, v * kk[j]);
               feedback[k].add(j, v * kk[i]);
             }
           }
         }
-  
+        
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(feedback);
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();

@@ -26,8 +26,8 @@ import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.BatchingTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.Random;
 
@@ -92,8 +92,9 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
     return null == referenceLayerClass ? null : this.fullyConnectedLayer.as(referenceLayerClass);
   }
   
+  @Nullable
   @Override
-  public @Nullable Class<? extends NNLayer> getReferenceLayerClass() {
+  public Class<? extends NNLayer> getReferenceLayerClass() {
     return com.simiacryptus.mindseye.layers.java.FullyConnectedReferenceLayer.class;
   }
   
@@ -150,15 +151,17 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
       }).setBatchSize(5);
     }
   
+    @Nullable
     @Override
-    protected @Nullable ComponentTest<ToleranceStatistics> getJsonTester() {
+    protected ComponentTest<ToleranceStatistics> getJsonTester() {
       logger.warn("Disabled Json Test");
       return null;
       //return super.getJsonTester();
     }
   
+    @Nullable
     @Override
-    public @Nullable ComponentTest<ToleranceStatistics> getPerformanceTester() {
+    public ComponentTest<ToleranceStatistics> getPerformanceTester() {
       logger.warn("Disabled Performance Test");
       return null;
       //return super.getPerformanceTester();

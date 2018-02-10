@@ -26,6 +26,7 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
@@ -54,7 +55,7 @@ public class MeanSqLossLayer extends PipelineNetwork {
    * @param id the id
    * @param rs the rs
    */
-  protected MeanSqLossLayer(final JsonObject id, Map<String, byte[]> rs) {
+  protected MeanSqLossLayer(@Nonnull final JsonObject id, Map<String, byte[]> rs) {
     super(id, rs);
   }
   

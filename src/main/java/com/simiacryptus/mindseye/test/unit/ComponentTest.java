@@ -23,7 +23,8 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nullable;
 
 /**
  * The interface Derivative tester.
@@ -39,6 +40,7 @@ public interface ComponentTest<T> extends ReferenceCounting {
    * @param inputPrototype the input prototype
    * @return the tolerance statistics
    */
-  @Nullable T test(NotebookOutput log, NNLayer component, Tensor... inputPrototype);
+  @Nullable
+  T test(NotebookOutput log, NNLayer component, Tensor... inputPrototype);
   
 }

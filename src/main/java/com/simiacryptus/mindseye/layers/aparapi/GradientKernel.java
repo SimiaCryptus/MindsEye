@@ -21,7 +21,8 @@ package com.simiacryptus.mindseye.layers.aparapi;
 
 import com.aparapi.Kernel;
 import com.aparapi.device.Device;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nullable;
 
 /**
  * The type Gradient kernel.
@@ -31,11 +32,13 @@ public final class GradientKernel extends Kernel {
   /**
    * The Input.
    */
-  public @Nullable double[] input;
+  @Nullable
+  public double[] input;
   /**
    * The Input size.
    */
-  public @Nullable int[] inputSize;
+  @Nullable
+  public int[] inputSize;
   /**
    * The Kernel offset.
    */
@@ -43,15 +46,18 @@ public final class GradientKernel extends Kernel {
   /**
    * The Kernel size.
    */
-  public @Nullable int[] kernelSize;
+  @Nullable
+  public int[] kernelSize;
   /**
    * The Output.
    */
-  public @Nullable double[] output;
+  @Nullable
+  public double[] output;
   /**
    * The Output size.
    */
-  public @Nullable int[] outputSize;
+  @Nullable
+  public int[] outputSize;
   /**
    * The Paralellism.
    */
@@ -59,7 +65,8 @@ public final class GradientKernel extends Kernel {
   /**
    * The Weights.
    */
-  public @Nullable double[] weights;
+  @Nullable
+  public double[] weights;
   /**
    * The Weight size.
    */

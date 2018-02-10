@@ -23,10 +23,11 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +42,8 @@ public class ImgBandBiasLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ImgBandBiasLayer.class);
-  private final @Nullable double[] bias;
+  @Nullable
+  private final double[] bias;
   
   /**
    * Instantiates a new Img band bias layer.
@@ -93,7 +95,7 @@ public class ImgBandBiasLayer extends NNLayer {
   public double[] add(@javax.annotation.Nonnull final double[] input) {
     assert Arrays.stream(input).allMatch(v -> Double.isFinite(v));
     assert null != input;
-    final @Nullable double[] bias = getBias();
+    @Nullable final double[] bias = getBias();
     assert null != bias;
     if (input.length % bias.length != 0) throw new IllegalArgumentException();
     @javax.annotation.Nonnull final double[] array = new double[input.length];
@@ -131,25 +133,27 @@ public class ImgBandBiasLayer extends NNLayer {
    */
   @javax.annotation.Nonnull
   public NNResult eval(@javax.annotation.Nonnull final NNResult input) {
-    final @Nullable double[] bias = getBias();
+    @Nullable final double[] bias = getBias();
     input.addRef();
     return new NNResult(TensorArray.wrap(input.getData().stream().parallel()
-                                              .map(r -> {
-                                                if (r.getDimensions().length != 3) {
-                                                  throw new IllegalArgumentException(Arrays.toString(r.getDimensions()));
-                                                }
-                                                if (r.getDimensions()[2] != bias.length) {
-                                                  throw new IllegalArgumentException(String.format("%s: %s does not have %s bands",
-                                                                                                   getName(), Arrays.toString(r.getDimensions()), bias.length));
-                                                }
-                                                return new Tensor(add(r.getData()), r.getDimensions());
-                                              })
-                                              .toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+      .map(r -> {
+        if (r.getDimensions().length != 3) {
+          throw new IllegalArgumentException(Arrays.toString(r.getDimensions()));
+        }
+        if (r.getDimensions()[2] != bias.length) {
+          throw new IllegalArgumentException(String.format("%s: %s does not have %s bands",
+            getName(), Arrays.toString(r.getDimensions()), bias.length));
+        }
+        @Nonnull Tensor tensor = new Tensor(add(r.getData()), r.getDimensions());
+        r.freeRef();
+        return tensor;
+      })
+      .toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (!isFrozen()) {
         final Delta<NNLayer> deltaBuffer = buffer.get(ImgBandBiasLayer.this, bias);
         data.stream().parallel().forEach(d -> {
           final double[] array = RecycleBin.DOUBLES.obtain(bias.length);
-          final @Nullable double[] signal = d.getData();
+          @Nullable final double[] signal = d.getData();
           final int size = signal.length / bias.length;
           for (int i = 0; i < signal.length; i++) {
             array[i / size] += signal[i];
@@ -157,16 +161,18 @@ public class ImgBandBiasLayer extends NNLayer {
               array[i / size] = 0.0;
             }
           }
+          d.freeRef();
           assert Arrays.stream(array).allMatch(v -> Double.isFinite(v));
           deltaBuffer.addInPlace(array);
           RecycleBin.DOUBLES.recycle(array, array.length);
         });
+        deltaBuffer.freeRef();
       }
       if (input.isAlive()) {
         input.accumulate(buffer, data);
       }
     }) {
-    
+  
       @Override
       protected void _free() {
         input.freeRef();
@@ -184,7 +190,8 @@ public class ImgBandBiasLayer extends NNLayer {
    *
    * @return the double [ ]
    */
-  public @Nullable double[] getBias() {
+  @Nullable
+  public double[] getBias() {
     if (!Arrays.stream(bias).allMatch(v -> Double.isFinite(v))) {
       throw new IllegalStateException(Arrays.toString(bias));
     }
@@ -207,7 +214,7 @@ public class ImgBandBiasLayer extends NNLayer {
    */
   @javax.annotation.Nonnull
   public NNLayer set(@javax.annotation.Nonnull final double[] ds) {
-    final @Nullable double[] bias = getBias();
+    @Nullable final double[] bias = getBias();
     for (int i = 0; i < ds.length; i++) {
       bias[i] = ds[i];
     }
@@ -223,7 +230,7 @@ public class ImgBandBiasLayer extends NNLayer {
    */
   @javax.annotation.Nonnull
   public ImgBandBiasLayer setWeights(@javax.annotation.Nonnull final IntToDoubleFunction f) {
-    final @Nullable double[] bias = getBias();
+    @Nullable final double[] bias = getBias();
     for (int i = 0; i < bias.length; i++) {
       bias[i] = f.applyAsDouble(i);
     }

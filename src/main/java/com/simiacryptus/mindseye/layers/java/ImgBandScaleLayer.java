@@ -23,14 +23,16 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.DoubleSupplier;
+import java.util.function.Function;
 import java.util.function.IntToDoubleFunction;
 import java.util.stream.IntStream;
 
@@ -42,7 +44,8 @@ public class ImgBandScaleLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ImgBandScaleLayer.class);
-  private final @Nullable double[] weights;
+  @Nullable
+  private final double[] weights;
   
   /**
    * Instantiates a new Img band scale layer.
@@ -110,31 +113,34 @@ public class ImgBandScaleLayer extends NNLayer {
    */
   @javax.annotation.Nonnull
   public NNResult eval(@javax.annotation.Nonnull final NNResult input) {
-    final @Nullable double[] weights = getWeights();
+    @Nullable final double[] weights = getWeights();
     final TensorList inData = input.getData();
     inData.addRef();
     input.addRef();
-    return new NNResult(TensorArray.wrap(inData.stream().parallel()
-                                               .map(tensor -> {
-                                     if (tensor.getDimensions().length != 3) {
-                                       throw new IllegalArgumentException(Arrays.toString(tensor.getDimensions()));
-                                     }
-                                     if (tensor.getDimensions()[2] != weights.length) {
-                                       throw new IllegalArgumentException(String.format("%s: %s does not have %s bands",
-                                                                                        getName(), Arrays.toString(tensor.getDimensions()), weights.length));
-                                     }
-                                     return tensor.mapCoords(c -> tensor.get(c) * weights[c.getCoords()[2]]);
-                                               }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    @javax.annotation.Nullable Function<Tensor, Tensor> tensorTensorFunction = tensor -> {
+      if (tensor.getDimensions().length != 3) {
+        throw new IllegalArgumentException(Arrays.toString(tensor.getDimensions()));
+      }
+      if (tensor.getDimensions()[2] != weights.length) {
+        throw new IllegalArgumentException(String.format("%s: %s does not have %s bands",
+          getName(), Arrays.toString(tensor.getDimensions()), weights.length));
+      }
+      @javax.annotation.Nullable Tensor tensor1 = tensor.mapCoords(c -> tensor.get(c) * weights[c.getCoords()[2]]);
+      tensor.freeRef();
+      return tensor1;
+    };
+    Tensor[] data = inData.stream().parallel().map(tensorTensorFunction).toArray(i -> new Tensor[i]);
+    return new NNResult(TensorArray.wrap(data), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         final Delta<NNLayer> deltaBuffer = buffer.get(ImgBandScaleLayer.this, weights);
         IntStream.range(0, delta.length()).forEach(index -> {
-          int[] dimensions = delta.getDimensions();
+          @Nonnull int[] dimensions = delta.getDimensions();
           int z = dimensions[2];
           int y = dimensions[1];
           int x = dimensions[0];
           final double[] array = RecycleBin.DOUBLES.obtain(z);
-          final @Nullable double[] deltaArray = delta.get(index).getData();
-          final @Nullable double[] inputData = inData.get(index).getData();
+          @Nullable final double[] deltaArray = delta.get(index).getData();
+          @Nullable final double[] inputData = inData.get(index).getData();
           for (int i = 0; i < z; i++) {
             for (int j = 0; j < y * x; j++) {
               //array[i] += deltaArray[i + z * j];
@@ -147,21 +153,24 @@ public class ImgBandScaleLayer extends NNLayer {
         });
       }
       if (input.isAlive()) {
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(delta.stream()
-                                                                                  .map(t -> t.mapCoords((c) -> t.get(c) * weights[c.getCoords()[2]]))
-                                                                                  .toArray(i -> new Tensor[i]));
+        Tensor[] tensors = delta.stream().map(t -> {
+          @javax.annotation.Nullable Tensor tensor = t.mapCoords((c) -> t.get(c) * weights[c.getCoords()[2]]);
+          t.freeRef();
+          return tensor;
+        }).toArray(i -> new Tensor[i]);
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(tensors);
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
     }) {
-  
+    
       @Override
       protected void _free() {
         inData.freeRef();
         input.freeRef();
       }
-  
-  
+    
+    
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();
@@ -182,7 +191,8 @@ public class ImgBandScaleLayer extends NNLayer {
    *
    * @return the double [ ]
    */
-  public @Nullable double[] getWeights() {
+  @Nullable
+  public double[] getWeights() {
     if (!Arrays.stream(weights).allMatch(v -> Double.isFinite(v))) {
       throw new IllegalStateException(Arrays.toString(weights));
     }
@@ -197,7 +207,7 @@ public class ImgBandScaleLayer extends NNLayer {
    */
   @javax.annotation.Nonnull
   public ImgBandScaleLayer setWeights(@javax.annotation.Nonnull final IntToDoubleFunction f) {
-    final @Nullable double[] bias = getWeights();
+    @Nullable final double[] bias = getWeights();
     for (int i = 0; i < bias.length; i++) {
       bias[i] = f.applyAsDouble(i);
     }
@@ -213,7 +223,7 @@ public class ImgBandScaleLayer extends NNLayer {
    */
   @javax.annotation.Nonnull
   public NNLayer set(@javax.annotation.Nonnull final double[] ds) {
-    final @Nullable double[] bias = getWeights();
+    @Nullable final double[] bias = getWeights();
     for (int i = 0; i < ds.length; i++) {
       bias[i] = ds[i];
     }

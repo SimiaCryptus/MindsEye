@@ -21,10 +21,10 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -74,7 +74,7 @@ public class ProductLayer extends NNLayer {
     final Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
       double sum = 1;
       for (@javax.annotation.Nonnull final NNResult element : inObj) {
-        final @Nullable double[] input = element.getData().get(dataIndex).getData();
+        @Nullable final double[] input = element.getData().get(dataIndex).getData();
         for (final double element2 : input) {
           sum *= element2;
         }

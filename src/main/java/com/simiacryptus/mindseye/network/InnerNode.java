@@ -23,6 +23,8 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.util.Util;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -81,10 +83,11 @@ final class InnerNode extends LazyResult {
    * @param nextHead the next head
    * @return the dag node
    */
-  public DAGNode add(final NNLayer nextHead) {
+  public DAGNode add(@Nonnull final NNLayer nextHead) {
     return dagNetwork.add(nextHead, InnerNode.this);
   }
   
+  @Nullable
   @Override
   protected NNResult eval(final GraphEvaluationContext ctx) {
     assertAlive();
@@ -94,7 +97,7 @@ final class InnerNode extends LazyResult {
     //stream = stream.parallel();
     final NNResult[] in = stream.map(x -> x == null ? null : x.get(ctx)).toArray(i -> new NNResult[i]);
     assert Arrays.stream(in).allMatch(x -> x != null);
-    NNResult result = innerLayer.eval(in);
+    @Nullable NNResult result = innerLayer.eval(in);
     for (@javax.annotation.Nonnull NNResult inputNNResult : in) {
       inputNNResult.getData().freeRef();
       inputNNResult.freeRef();

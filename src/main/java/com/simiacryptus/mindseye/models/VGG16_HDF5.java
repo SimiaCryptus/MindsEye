@@ -31,6 +31,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 
@@ -72,6 +73,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
   public NNLayer build(@javax.annotation.Nonnull NotebookOutput output) {
     try {
       return new Callable<NNLayer>() {
+        @Nullable
         Tensor prototype = new Tensor(224, 224, 3);
         int cnt = 1;
         @javax.annotation.Nonnull
@@ -96,14 +98,14 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           //  model.add(Convolution2D(64, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 3, 64)
-                  .setPaddingXY(0, 0)
-                  .set(hdf5.readDataSet("param_0", "layer_1")
-                           .permuteDimensions(convolutionOrder))
-               );
+              .setPaddingXY(0, 0)
+              .set(hdf5.readDataSet("param_0", "layer_1")
+                .permuteDimensions(convolutionOrder))
+            );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(64)
-                  .set((hdf5.readDataSet("param_1", "layer_1"))));
+              .set((hdf5.readDataSet("param_1", "layer_1"))));
           });
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
@@ -115,14 +117,14 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           //  model.add(Convolution2D(64, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 64, 64)
-                  .setPaddingXY(0, 0)
-                  .set(hdf5.readDataSet("param_0", "layer_3")
-                           .permuteDimensions(convolutionOrder))
-               );
+              .setPaddingXY(0, 0)
+              .set(hdf5.readDataSet("param_0", "layer_3")
+                .permuteDimensions(convolutionOrder))
+            );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(64)
-                  .set((hdf5.readDataSet("param_1", "layer_3"))));
+              .set((hdf5.readDataSet("param_1", "layer_3"))));
           });
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
@@ -130,9 +132,9 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           //  model.add(MaxPooling2D((2,2), strides=(2,2)))
           output.code(() -> {
             add(new PoolingLayer()
-                  .setMode(PoolingLayer.PoolingMode.Max)
-                  .setWindowXY(2, 2)
-                  .setStrideXY(2, 2));
+              .setMode(PoolingLayer.PoolingMode.Max)
+              .setWindowXY(2, 2)
+              .setStrideXY(2, 2));
           });
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
@@ -141,14 +143,14 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           //  model.add(Convolution2D(128, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 64, 128)
-                  .setPaddingXY(0, 0)
-                  .set(hdf5.readDataSet("param_0", "layer_6")
-                           .permuteDimensions(convolutionOrder))
-               );
+              .setPaddingXY(0, 0)
+              .set(hdf5.readDataSet("param_0", "layer_6")
+                .permuteDimensions(convolutionOrder))
+            );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(128)
-                  .set((hdf5.readDataSet("param_1", "layer_6"))));
+              .set((hdf5.readDataSet("param_1", "layer_6"))));
           });
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
@@ -160,14 +162,14 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           //  model.add(Convolution2D(128, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 128, 128)
-                  .setPaddingXY(0, 0)
-                  .set(hdf5.readDataSet("param_0", "layer_8")
-                           .permuteDimensions(convolutionOrder))
-               );
+              .setPaddingXY(0, 0)
+              .set(hdf5.readDataSet("param_0", "layer_8")
+                .permuteDimensions(convolutionOrder))
+            );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(128)
-                  .set((hdf5.readDataSet("param_1", "layer_8"))));
+              .set((hdf5.readDataSet("param_1", "layer_8"))));
           });
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
@@ -175,9 +177,9 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           //  model.add(MaxPooling2D((2,2), strides=(2,2)))
           output.code(() -> {
             add(new PoolingLayer()
-                  .setMode(PoolingLayer.PoolingMode.Max)
-                  .setWindowXY(2, 2)
-                  .setStrideXY(2, 2));
+              .setMode(PoolingLayer.PoolingMode.Max)
+              .setWindowXY(2, 2)
+              .setStrideXY(2, 2));
           });
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
@@ -186,14 +188,14 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           //  model.add(Convolution2D(256, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 128, 256)
-                  .setPaddingXY(0, 0)
-                  .set(hdf5.readDataSet("param_0", "layer_11")
-                           .permuteDimensions(convolutionOrder))
-               );
+              .setPaddingXY(0, 0)
+              .set(hdf5.readDataSet("param_0", "layer_11")
+                .permuteDimensions(convolutionOrder))
+            );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(256)
-                  .set((hdf5.readDataSet("param_1", "layer_11"))));
+              .set((hdf5.readDataSet("param_1", "layer_11"))));
           });
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
@@ -205,14 +207,14 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           //  model.add(Convolution2D(256, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 256, 256)
-                  .setPaddingXY(0, 0)
-                  .set(hdf5.readDataSet("param_0", "layer_13")
-                           .permuteDimensions(convolutionOrder))
-               );
+              .setPaddingXY(0, 0)
+              .set(hdf5.readDataSet("param_0", "layer_13")
+                .permuteDimensions(convolutionOrder))
+            );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(256)
-                  .set((hdf5.readDataSet("param_1", "layer_13"))));
+              .set((hdf5.readDataSet("param_1", "layer_13"))));
           });
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
@@ -224,14 +226,14 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           //  model.add(Convolution2D(256, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 256, 256)
-                  .setPaddingXY(0, 0)
-                  .set(hdf5.readDataSet("param_0", "layer_15")
-                           .permuteDimensions(convolutionOrder))
-               );
+              .setPaddingXY(0, 0)
+              .set(hdf5.readDataSet("param_0", "layer_15")
+                .permuteDimensions(convolutionOrder))
+            );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(256)
-                  .set((hdf5.readDataSet("param_1", "layer_15"))));
+              .set((hdf5.readDataSet("param_1", "layer_15"))));
           });
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
@@ -239,9 +241,9 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           //  model.add(MaxPooling2D((2,2), strides=(2,2)))
           output.code(() -> {
             add(new PoolingLayer()
-                  .setMode(PoolingLayer.PoolingMode.Max)
-                  .setWindowXY(2, 2)
-                  .setStrideXY(2, 2));
+              .setMode(PoolingLayer.PoolingMode.Max)
+              .setWindowXY(2, 2)
+              .setStrideXY(2, 2));
           });
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
@@ -250,14 +252,14 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           //  model.add(Convolution2D(512, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 256, 512)
-                  .setPaddingXY(0, 0)
-                  .set(hdf5.readDataSet("param_0", "layer_18")
-                           .permuteDimensions(convolutionOrder))
-               );
+              .setPaddingXY(0, 0)
+              .set(hdf5.readDataSet("param_0", "layer_18")
+                .permuteDimensions(convolutionOrder))
+            );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(512)
-                  .set((hdf5.readDataSet("param_1", "layer_18"))));
+              .set((hdf5.readDataSet("param_1", "layer_18"))));
           });
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
@@ -269,14 +271,14 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           //  model.add(Convolution2D(512, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 512, 512)
-                  .setPaddingXY(0, 0)
-                  .set(hdf5.readDataSet("param_0", "layer_20")
-                           .permuteDimensions(convolutionOrder))
-               );
+              .setPaddingXY(0, 0)
+              .set(hdf5.readDataSet("param_0", "layer_20")
+                .permuteDimensions(convolutionOrder))
+            );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(512)
-                  .set((hdf5.readDataSet("param_1", "layer_20"))));
+              .set((hdf5.readDataSet("param_1", "layer_20"))));
           });
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
@@ -288,14 +290,14 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           //  model.add(Convolution2D(512, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 512, 512)
-                  .setPaddingXY(0, 0)
-                  .set(hdf5.readDataSet("param_0", "layer_22")
-                           .permuteDimensions(convolutionOrder))
-               );
+              .setPaddingXY(0, 0)
+              .set(hdf5.readDataSet("param_0", "layer_22")
+                .permuteDimensions(convolutionOrder))
+            );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(512)
-                  .set((hdf5.readDataSet("param_1", "layer_22"))));
+              .set((hdf5.readDataSet("param_1", "layer_22"))));
           });
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
@@ -303,9 +305,9 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           //  model.add(MaxPooling2D((2,2), strides=(2,2)))
           output.code(() -> {
             add(new PoolingLayer()
-                  .setMode(PoolingLayer.PoolingMode.Max)
-                  .setWindowXY(2, 2)
-                  .setStrideXY(2, 2));
+              .setMode(PoolingLayer.PoolingMode.Max)
+              .setWindowXY(2, 2)
+              .setStrideXY(2, 2));
           });
           //  model.add(ZeroPadding2D((1,1)))
           output.code(() -> {
@@ -314,14 +316,14 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           //  model.add(Convolution2D(512, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 512, 512)
-                  .setPaddingXY(0, 0)
-                  .set(hdf5.readDataSet("param_0", "layer_25")
-                           .permuteDimensions(convolutionOrder))
-               );
+              .setPaddingXY(0, 0)
+              .set(hdf5.readDataSet("param_0", "layer_25")
+                .permuteDimensions(convolutionOrder))
+            );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(512)
-                  .set((hdf5.readDataSet("param_1", "layer_25"))));
+              .set((hdf5.readDataSet("param_1", "layer_25"))));
           });
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
@@ -333,14 +335,14 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           //  model.add(Convolution2D(512, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 512, 512)
-                  .setPaddingXY(0, 0)
-                  .set(hdf5.readDataSet("param_0", "layer_27")
-                           .permuteDimensions(convolutionOrder))
-               );
+              .setPaddingXY(0, 0)
+              .set(hdf5.readDataSet("param_0", "layer_27")
+                .permuteDimensions(convolutionOrder))
+            );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(512)
-                  .set((hdf5.readDataSet("param_1", "layer_27"))));
+              .set((hdf5.readDataSet("param_1", "layer_27"))));
           });
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
@@ -352,14 +354,14 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           //  model.add(Convolution2D(512, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 512, 512)
-                  .setPaddingXY(0, 0)
-                  .set(hdf5.readDataSet("param_0", "layer_29")
-                           .permuteDimensions(convolutionOrder))
-               );
+              .setPaddingXY(0, 0)
+              .set(hdf5.readDataSet("param_0", "layer_29")
+                .permuteDimensions(convolutionOrder))
+            );
           });
           output.code(() -> {
             add(new ImgBandBiasLayer(512)
-                  .set((hdf5.readDataSet("param_1", "layer_29"))));
+              .set((hdf5.readDataSet("param_1", "layer_29"))));
           });
           output.code(() -> {
             add(new ActivationLayer(ActivationLayer.Mode.RELU));
@@ -367,48 +369,48 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           //  model.add(MaxPooling2D((2,2), strides=(2,2)))
           output.code(() -> {
             add(new PoolingLayer()
-                  .setMode(PoolingLayer.PoolingMode.Max)
-                  .setWindowXY(2, 2)
-                  .setStrideXY(2, 2));
+              .setMode(PoolingLayer.PoolingMode.Max)
+              .setWindowXY(2, 2)
+              .setStrideXY(2, 2));
           });
           //  model.add(Flatten())
           //  model.add(Dense(4096, activation='relu'))
           output.code(() -> {
             add(new FullyConnectedLayer(new int[]{25088}, new int[]{4096})
-                  .set(hdf5.readDataSet("param_0", "layer_32")
-                           .permuteDimensions(fullyconnectedOrder))
-                  .setName("fullyconnected_32"));
+              .set(hdf5.readDataSet("param_0", "layer_32")
+                .permuteDimensions(fullyconnectedOrder))
+              .setName("fullyconnected_32"));
           });
           output.code(() -> {
             add(new BiasLayer(4096)
-                  .set((hdf5.readDataSet("param_1", "layer_32"))));
+              .set((hdf5.readDataSet("param_1", "layer_32"))));
           });
           //  model.add(Dropout(0.5))
           //model.add(new DropoutNoiseLayer(0.5));
           //  model.add(Dense(4096, activation='relu'))
           output.code(() -> {
             add(new FullyConnectedLayer(new int[]{4096}, new int[]{4096})
-                  .set(hdf5.readDataSet("param_0", "layer_34")
-                           .permuteDimensions(fullyconnectedOrder))
-               );
+              .set(hdf5.readDataSet("param_0", "layer_34")
+                .permuteDimensions(fullyconnectedOrder))
+            );
           });
           output.code(() -> {
             add(new BiasLayer(4096)
-                  .set((hdf5.readDataSet("param_1", "layer_34"))));
+              .set((hdf5.readDataSet("param_1", "layer_34"))));
           });
           //  model.add(Dropout(0.5))
           //model.add(new DropoutNoiseLayer(0.5));
           //  model.add(Dense(1000, activation='softmax'))
           output.code(() -> {
             add(new FullyConnectedLayer(new int[]{4096}, new int[]{1000})
-                  .set(hdf5.readDataSet("param_0", "layer_36")
-                           .permuteDimensions(fullyconnectedOrder))
-                  .setName("fullyconnected_36"));
+              .set(hdf5.readDataSet("param_0", "layer_36")
+                .permuteDimensions(fullyconnectedOrder))
+              .setName("fullyconnected_36"));
           });
           output.code(() -> {
             add(new BiasLayer(1000)
-                  .set((hdf5.readDataSet("param_1", "layer_36")))
-                  .setName("bias_36"));
+              .set((hdf5.readDataSet("param_1", "layer_36")))
+              .setName("bias_36"));
           });
           output.code(() -> {
             add(new SoftmaxActivationLayer());
@@ -431,9 +433,9 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           prototype = layer.eval(prototype).getData().get(0);
           @javax.annotation.Nonnull int[] new_dimensions = prototype.getDimensions();
           log.info(String.format("Added layer #%d: %s; %s params, dimensions %s (%s) -> %s (%s)", //
-                                 cnt++, layer, numberOfParameters, //
-                                 Arrays.toString(prev_dimensions), Tensor.dim(prev_dimensions), //
-                                 Arrays.toString(new_dimensions), Tensor.dim(new_dimensions)));
+            cnt++, layer, numberOfParameters, //
+            Arrays.toString(prev_dimensions), Tensor.dim(prev_dimensions), //
+            Arrays.toString(new_dimensions), Tensor.dim(new_dimensions)));
         }
       }.call();
     } catch (@javax.annotation.Nonnull final RuntimeException e) {

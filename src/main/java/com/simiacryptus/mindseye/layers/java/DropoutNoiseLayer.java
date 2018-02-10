@@ -21,10 +21,10 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -102,18 +102,18 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
     final int itemCnt = inputData.length();
     final Tensor[] mask = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       @javax.annotation.Nonnull final Random random = new Random(seed);
-      final Tensor input = inputData.get(dataIndex);
-      final @Nullable Tensor output = input.map(x -> {
+      @javax.annotation.Nullable final Tensor input = inputData.get(dataIndex);
+      @Nullable final Tensor output = input.map(x -> {
         if (seed == -1) return 1;
         return random.nextDouble() < getValue() ? 0 : (1.0 / getValue());
       });
       return output;
     }).toArray(i -> new Tensor[i]);
     return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final @Nullable double[] input = inputData.get(dataIndex).getData();
-      final @Nullable double[] maskT = mask[dataIndex].getData();
+      @Nullable final double[] input = inputData.get(dataIndex).getData();
+      @Nullable final double[] maskT = mask[dataIndex].getData();
       @javax.annotation.Nonnull final Tensor output = new Tensor(inputData.get(dataIndex).getDimensions());
-      final @Nullable double[] outputData = output.getData();
+      @Nullable final double[] outputData = output.getData();
       for (int i = 0; i < outputData.length; i++) {
         outputData[i] = input[i] * maskT[i];
       }
@@ -121,9 +121,9 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
     }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (inputResult.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-          final @Nullable double[] deltaData = delta.get(dataIndex).getData();
+          @Nullable final double[] deltaData = delta.get(dataIndex).getData();
           @javax.annotation.Nonnull final int[] dims = inputData.get(dataIndex).getDimensions();
-          final @Nullable double[] maskData = mask[dataIndex].getData();
+          @Nullable final double[] maskData = mask[dataIndex].getData();
           @javax.annotation.Nonnull final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, maskData[i] * deltaData[i]);

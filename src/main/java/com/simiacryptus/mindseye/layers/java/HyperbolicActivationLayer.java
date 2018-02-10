@@ -21,10 +21,10 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +40,8 @@ public class HyperbolicActivationLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(HyperbolicActivationLayer.class);
-  private final @Nullable Tensor weights;
+  @Nullable
+  private final Tensor weights;
   private int negativeMode = 1;
   
   /**
@@ -84,17 +85,21 @@ public class HyperbolicActivationLayer extends NNLayer {
     inObj[0].addRef();
     final int itemCnt = indata.length();
     return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final Tensor input = indata.get(dataIndex);
-      return input.map(v -> {
+      @javax.annotation.Nullable final Tensor input = indata.get(dataIndex);
+      @javax.annotation.Nullable Tensor map = input.map(v -> {
         final int sign = v < 0 ? negativeMode : 1;
         final double a = Math.max(0, weights.get(v < 0 ? 1 : 0));
         return sign * (Math.sqrt(Math.pow(a * v, 2) + 1) - a) / a;
       });
+      input.freeRef();
+      return map;
     }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).forEach(dataIndex -> {
-          final @Nullable double[] deltaData = delta.get(dataIndex).getData();
-          final @Nullable double[] inputData = indata.get(dataIndex).getData();
+          @javax.annotation.Nullable Tensor deltaI = delta.get(dataIndex);
+          @javax.annotation.Nullable Tensor inputI = indata.get(dataIndex);
+          @Nullable final double[] deltaData = deltaI.getData();
+          @Nullable final double[] inputData = inputI.getData();
           @javax.annotation.Nonnull final Tensor weightDelta = new Tensor(weights.getDimensions());
           for (int i = 0; i < deltaData.length; i++) {
             final double d = deltaData[i];
@@ -103,21 +108,26 @@ public class HyperbolicActivationLayer extends NNLayer {
             final double a = Math.max(0, weights.getData()[x < 0 ? 1 : 0]);
             weightDelta.add(x < 0 ? 1 : 0, -sign * d / (a * a * Math.sqrt(1 + Math.pow(a * x, 2))));
           }
-          buffer.get(HyperbolicActivationLayer.this, weights.getData()).addInPlace(weightDelta.getData());
+          deltaI.freeRef();
+          inputI.freeRef();
+          buffer.get(HyperbolicActivationLayer.this, weights.getData()).addInPlace(weightDelta.getData()).freeRef();
+          weightDelta.freeRef();
         });
       }
       if (inObj[0].isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-          final @Nullable double[] deltaData = delta.get(dataIndex).getData();
-          @javax.annotation.Nonnull final int[] dims = indata.get(dataIndex).getDimensions();
+          @javax.annotation.Nullable Tensor tensor = indata.get(dataIndex);
+          @Nullable final double[] deltaData = delta.get(dataIndex).getData();
+          @javax.annotation.Nonnull final int[] dims = indata.getDimensions();
           @javax.annotation.Nonnull final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
-            final double x = indata.get(dataIndex).getData()[i];
+            final double x = tensor.getData()[i];
             final double d = deltaData[i];
             final int sign = x < 0 ? negativeMode : 1;
             final double a = Math.max(0, weights.getData()[x < 0 ? 1 : 0]);
             passback.set(i, sign * d * a * x / Math.sqrt(1 + a * x * a * x));
           }
+          tensor.freeRef();
           return passback;
         }).toArray(i -> new Tensor[i]));
         inObj[0].accumulate(buffer, tensorArray);

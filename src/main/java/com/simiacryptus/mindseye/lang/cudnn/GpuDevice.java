@@ -22,10 +22,10 @@ package com.simiacryptus.mindseye.lang.cudnn;
 import jcuda.Pointer;
 import jcuda.runtime.JCuda;
 import jcuda.runtime.cudaDeviceProp;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.nio.charset.Charset;
 
 /**
@@ -39,7 +39,8 @@ public class GpuDevice extends GpuSystem {
   /**
    * The Device name.
    */
-  protected final @Nullable String deviceName;
+  @Nullable
+  protected final String deviceName;
   /**
    * The Device number.
    */

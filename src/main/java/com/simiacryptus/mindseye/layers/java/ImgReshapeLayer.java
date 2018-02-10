@@ -21,8 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -88,7 +88,7 @@ public class ImgReshapeLayer extends NNLayer {
     final int kernelSizeX = inDim[0] / outDim[0];
     final int kernelSizeY = inDim[0] / outDim[0];
     int index = 0;
-    final @Nullable double[] outputDataData = outputData.getData();
+    @Nullable final double[] outputDataData = outputData.getData();
     for (int xx = 0; xx < kernelSizeX; xx++) {
       for (int yy = 0; yy < kernelSizeY; yy++) {
         for (int z = 0; z < inDim[2]; z++) {
@@ -166,25 +166,25 @@ public class ImgReshapeLayer extends NNLayer {
     Tensor outputDims;
     if (expand) {
       outputDims = new Tensor(inputDims[0] * kernelSizeX,
-                              inputDims[1] * kernelSizeY,
-                              inputDims[2] / (kernelSizeX * kernelSizeY));
+        inputDims[1] * kernelSizeY,
+        inputDims[2] / (kernelSizeX * kernelSizeY));
     }
     else {
       outputDims = new Tensor(inputDims[0] / kernelSizeX,
-                              inputDims[1] / kernelSizeY,
-                              inputDims[2] * kernelSizeX * kernelSizeY);
+        inputDims[1] / kernelSizeY,
+        inputDims[2] * kernelSizeX * kernelSizeY);
     }
     return new NNResult(TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
-                                                  .mapToObj(dataIndex -> expand ? ImgReshapeLayer.copyExpand(batch.get(dataIndex), outputDims.copy()) : ImgReshapeLayer.copyCondense(batch.get(dataIndex), outputDims.copy()))
-                                                  .toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+      .mapToObj(dataIndex -> expand ? ImgReshapeLayer.copyExpand(batch.get(dataIndex), outputDims.copy()) : ImgReshapeLayer.copyCondense(batch.get(dataIndex), outputDims.copy()))
+      .toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       if (input.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
-                                                                                      .mapToObj(dataIndex -> {
-                                                                                        @javax.annotation.Nonnull final Tensor passback = new Tensor(inputDims);
-                                                                                        final Tensor err = error.get(dataIndex);
-                                                                                        return expand ? ImgReshapeLayer.copyCondense(err, passback) : ImgReshapeLayer.copyExpand(err, passback);
-                                                                                      }).toArray(i -> new Tensor[i]));
+          .mapToObj(dataIndex -> {
+            @javax.annotation.Nonnull final Tensor passback = new Tensor(inputDims);
+            @javax.annotation.Nullable final Tensor err = error.get(dataIndex);
+            return expand ? ImgReshapeLayer.copyCondense(err, passback) : ImgReshapeLayer.copyExpand(err, passback);
+          }).toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }

@@ -19,8 +19,7 @@
 
 package com.simiacryptus.util.lang;
 
-import org.jetbrains.annotations.Nullable;
-
+import javax.annotation.Nullable;
 import java.lang.management.ManagementFactory;
 
 /**

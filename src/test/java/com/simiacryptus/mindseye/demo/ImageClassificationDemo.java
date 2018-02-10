@@ -27,9 +27,9 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
+import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -87,8 +87,8 @@ public class ImageClassificationDemo extends NotebookReportBase {
         @javax.annotation.Nonnull HashMap<String, Object> row = new HashMap<>();
         row.put("Image", log.image(images[i].toImage(), ""));
         row.put("Prediction", predictions.get(i).entrySet().stream()
-                                         .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
-                                         .reduce((a, b) -> a + "<br/>" + b).get());
+          .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
+          .reduce((a, b) -> a + "<br/>" + b).get());
         tableOutput.putRow(row);
       }
       return tableOutput;

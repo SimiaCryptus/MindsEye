@@ -99,7 +99,10 @@ public class TensorArray extends ReferenceCountingBase implements TensorList {
   @javax.annotation.Nonnull
   @Override
   public Stream<Tensor> stream() {
-    return Arrays.stream(data);
+    return Arrays.stream(data).map(x -> {
+      x.addRef();
+      return x;
+    });
   }
   
   @Override

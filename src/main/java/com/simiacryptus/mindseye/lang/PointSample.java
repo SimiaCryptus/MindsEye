@@ -20,8 +20,8 @@
 package com.simiacryptus.mindseye.lang;
 
 /**
- * Represents an evaluation record used during optimization of a function with one scalar output and many inputs. 
- * We track both a record of the network's state, and a record of the gradient evaluated at that point.
+ * Represents an evaluation record used during optimization of a function with one scalar output and many inputs. We
+ * track both a record of the network's state, and a record of the gradient evaluated at that point.
  */
 public final class PointSample extends ReferenceCountingBase {
   /**
@@ -78,10 +78,10 @@ public final class PointSample extends ReferenceCountingBase {
     assert right.delta.getMap().size() == right.weights.getMap().size();
     assert left.rate == right.rate;
     return new PointSample(left.delta.add(right.delta),
-                           StateSet.union(left.weights, right.weights),
-                           left.sum + right.sum,
-                           left.rate,
-                           left.count + right.count);
+      StateSet.union(left.weights, right.weights),
+      left.sum + right.sum,
+      left.rate,
+      left.count + right.count);
   }
   
   /**
@@ -105,10 +105,10 @@ public final class PointSample extends ReferenceCountingBase {
     assert right.delta.getMap().size() == right.weights.getMap().size();
     assert rate == right.rate;
     return new PointSample(delta.addInPlace(right.delta),
-                           StateSet.union(weights, right.weights),
-                           sum + right.sum,
-                           rate,
-                           count + right.count);
+      StateSet.union(weights, right.weights),
+      sum + right.sum,
+      rate,
+      count + right.count);
   }
   
   /**

@@ -27,8 +27,9 @@ import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.mindseye.opt.orient.GradientDescent;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.util.Util;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
@@ -296,7 +297,7 @@ public class LayerRateDiagnosticTrainer {
         break;
       }
       final PointSample initialPhasePoint = measure();
-
+  
       measure = initialPhasePoint;
       for (int subiteration = 0; subiteration < iterationsPerSample; subiteration++) {
         if (currentIteration.incrementAndGet() > maxIterations) {
@@ -306,10 +307,10 @@ public class LayerRateDiagnosticTrainer {
         {
           @javax.annotation.Nonnull final SimpleLineSearchCursor orient = (SimpleLineSearchCursor) getOrientation().orient(subject, measure, monitor);
           final double stepSize = 1e-12 * orient.origin.sum;
-          final DeltaSet<NNLayer> pointB = orient.step(stepSize, monitor).point.delta.copy();
-          final DeltaSet<NNLayer> pointA = orient.step(0.0, monitor).point.delta.copy();
-          final DeltaSet<NNLayer> d1 = pointA;
-          final DeltaSet<NNLayer> d2 = d1.add(pointB.scale(-1)).scale(1.0 / stepSize);
+          @Nonnull final DeltaSet<NNLayer> pointB = orient.step(stepSize, monitor).point.delta.copy();
+          @Nonnull final DeltaSet<NNLayer> pointA = orient.step(0.0, monitor).point.delta.copy();
+          @Nonnull final DeltaSet<NNLayer> d1 = pointA;
+          @Nonnull final DeltaSet<NNLayer> d2 = d1.add(pointB.scale(-1)).scale(1.0 / stepSize);
           @javax.annotation.Nonnull final Map<NNLayer, Double> steps = new HashMap<>();
           final double overallStepEstimate = d1.getMagnitude() / d2.getMagnitude();
           for (final NNLayer layer : layers) {

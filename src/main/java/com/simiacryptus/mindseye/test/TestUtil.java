@@ -35,12 +35,13 @@ import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 import guru.nidi.graphviz.attribute.RankDir;
 import guru.nidi.graphviz.model.*;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import smile.plot.PlotCanvas;
 import smile.plot.ScatterPlot;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -84,7 +85,7 @@ public class TestUtil {
    * @param network        the network
    * @param monitoringRoot the monitoring root
    */
-  public static void addMonitoring(@javax.annotation.Nonnull final DAGNetwork network, final MonitoredObject monitoringRoot) {
+  public static void addMonitoring(@javax.annotation.Nonnull final DAGNetwork network, @Nonnull final MonitoredObject monitoringRoot) {
     network.visitNodes(node -> {
       if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
         node.setLayer(new MonitoringWrapperLayer(node.getLayer()).addTo(monitoringRoot));
@@ -102,13 +103,13 @@ public class TestUtil {
   public static PlotCanvas compare(final String title, @javax.annotation.Nonnull final ProblemRun... trials) {
     try {
       final DoubleSummaryStatistics xStatistics = Arrays.stream(trials)
-                                                        .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> step.iteration))
-                                                        .filter(Double::isFinite)
-                                                        .summaryStatistics();
+        .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> step.iteration))
+        .filter(Double::isFinite)
+        .summaryStatistics();
       final DoubleSummaryStatistics yStatistics = Arrays.stream(trials)
-                                                        .flatMapToDouble(x -> x.history.stream().filter(y -> y.fitness > 0).mapToDouble(step -> java.lang.Math.log10(step.fitness)))
-                                                        .filter(Double::isFinite)
-                                                        .summaryStatistics();
+        .flatMapToDouble(x -> x.history.stream().filter(y -> y.fitness > 0).mapToDouble(step -> java.lang.Math.log10(step.fitness)))
+        .filter(Double::isFinite)
+        .summaryStatistics();
       if (xStatistics.getCount() == 0) {
         log.info("No Data");
         return null;
@@ -129,8 +130,8 @@ public class TestUtil {
       for (@javax.annotation.Nonnull final ProblemRun trial : filtered) {
         final double[][] pts = trial.history.stream().map(step -> new double[]{
           step.iteration, Math.log10(Math.max(step.fitness, valueStatistics.getMin()))})
-                                            .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
-                                            .toArray(i -> new double[i][]);
+          .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
+          .toArray(i -> new double[i][]);
         if (pts.length > 1) {
           log.info(String.format("Plotting %s points for %s", pts.length, trial.name));
           canvas.add(trial.plot(pts));
@@ -170,14 +171,14 @@ public class TestUtil {
   public static PlotCanvas compareTime(final String title, @javax.annotation.Nonnull final ProblemRun... trials) {
     try {
       final DoubleSummaryStatistics[] xStatistics = Arrays.stream(trials)
-                                                          .map(x -> x.history.stream().mapToDouble(step -> step.epochTime)
-                                                                             .filter(Double::isFinite)
-                                                                             .summaryStatistics()).toArray(i -> new DoubleSummaryStatistics[i]);
+        .map(x -> x.history.stream().mapToDouble(step -> step.epochTime)
+          .filter(Double::isFinite)
+          .summaryStatistics()).toArray(i -> new DoubleSummaryStatistics[i]);
       final double totalTime = Arrays.stream(xStatistics).mapToDouble(x -> x.getMax() - x.getMin()).max().getAsDouble();
       final DoubleSummaryStatistics yStatistics = Arrays.stream(trials)
-                                                        .flatMapToDouble(x -> x.history.stream().filter(y -> y.fitness > 0).mapToDouble(step -> java.lang.Math.log10(step.fitness)))
-                                                        .filter(Double::isFinite)
-                                                        .summaryStatistics();
+        .flatMapToDouble(x -> x.history.stream().filter(y -> y.fitness > 0).mapToDouble(step -> java.lang.Math.log10(step.fitness)))
+        .filter(Double::isFinite)
+        .summaryStatistics();
       if (yStatistics.getCount() == 0) {
         log.info("No Data");
         return null;
@@ -201,7 +202,7 @@ public class TestUtil {
         final double[][] pts = trial.history.stream().map(step -> {
           return new double[]{(step.epochTime - trialStats.getMin()) / 1000.0, Math.log10(Math.max(step.fitness, valueStatistics.getMin()))};
         }).filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
-                                            .toArray(i -> new double[i][]);
+          .toArray(i -> new double[i][]);
         if (pts.length > 1) {
           log.info(String.format("Plotting %s points for %s", pts.length, trial.name));
           canvas.add(trial.plot(pts));
@@ -229,13 +230,13 @@ public class TestUtil {
       @javax.annotation.Nonnull final Map<NNLayer, MonitoringWrapperLayer> metrics = new HashMap<>();
       network.visitNodes(node -> {
         if (node.getLayer() instanceof MonitoringWrapperLayer) {
-          final MonitoringWrapperLayer layer = node.getLayer();
+          @javax.annotation.Nullable final MonitoringWrapperLayer layer = node.getLayer();
           metrics.put(layer.getInner(), layer);
         }
       });
       TestUtil.log.info("Performance: \n\t" + metrics.entrySet().stream().map(e -> {
-        final PercentileStatistics performanceF = e.getValue().getForwardPerformance();
-        final PercentileStatistics performanceB = e.getValue().getBackwardPerformance();
+        @Nonnull final PercentileStatistics performanceF = e.getValue().getForwardPerformance();
+        @Nonnull final PercentileStatistics performanceB = e.getValue().getBackwardPerformance();
         return String.format("%s -> %.6fs +- %.6fs (%d)", e.getKey(), performanceF.getMean(), performanceF.getStdDev(), performanceF.getCount()) +
           (performanceB.getCount() == 0 ? "" : String.format("%n\tBack: %.6fs +- %.6fs (%s)", performanceB.getMean(), performanceB.getStdDev(), performanceB.getCount()));
       }).reduce((a, b) -> a + "\n\t" + b).get());
@@ -283,7 +284,7 @@ public class TestUtil {
   public static void instrumentPerformance(final NotebookOutput log, @javax.annotation.Nonnull final DAGNetwork network) {
     network.visitNodes(node -> {
       if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
-        MonitoringWrapperLayer monitoringWrapperLayer = new MonitoringWrapperLayer(node.getLayer()).shouldRecordSignalMetrics(false);
+        @Nonnull MonitoringWrapperLayer monitoringWrapperLayer = new MonitoringWrapperLayer(node.getLayer()).shouldRecordSignalMetrics(false);
         node.setLayer(monitoringWrapperLayer);
         monitoringWrapperLayer.freeRef();
       }
@@ -304,8 +305,8 @@ public class TestUtil {
       final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
       @javax.annotation.Nonnull final PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
         step.iteration, java.lang.Math.log10(Math.max(valueStats.getMin(), step.fitness))})
-                                                                                .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
-                                                                                .toArray(i -> new double[i][]));
+        .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
+        .toArray(i -> new double[i][]));
       plot.setTitle("Convergence Plot");
       plot.setAxisLabels("Iteration", "log10(Fitness)");
       plot.setSize(600, 400);
@@ -328,8 +329,8 @@ public class TestUtil {
       final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
       @javax.annotation.Nonnull final PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
         (step.epochTime - timeStats.getMin()) / 1000.0, java.lang.Math.log10(Math.max(valueStats.getMin(), step.fitness))})
-                                                                                .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
-                                                                                .toArray(i -> new double[i][]));
+        .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
+        .toArray(i -> new double[i][]));
       plot.setTitle("Convergence Plot");
       plot.setAxisLabels("Time", "log10(Fitness)");
       plot.setSize(600, 400);
@@ -353,8 +354,8 @@ public class TestUtil {
       log.code(() -> {
         @javax.annotation.Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
         Arrays.stream(data)
-              .flatMapToDouble(row -> Arrays.stream(row[c].getData()))
-              .forEach(v -> scalarStatistics.add(v));
+          .flatMapToDouble(row -> Arrays.stream(row[c].getData()))
+          .forEach(v -> scalarStatistics.add(v));
         return scalarStatistics.getMetrics();
       });
       final int _col = col;
@@ -384,8 +385,8 @@ public class TestUtil {
       log.code(() -> {
         final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
         @javax.annotation.Nonnull final PlotCanvas plot = ScatterPlot.plot(history.stream().map(step ->
-                                                                        new double[]{step.iteration, java.lang.Math.log10(Math.max(valueStats.getMin(), step.fitness))})
-                                                                                  .toArray(i -> new double[i][]));
+          new double[]{step.iteration, java.lang.Math.log10(Math.max(valueStats.getMin(), step.fitness))})
+          .toArray(i -> new double[i][]));
         plot.setTitle("Convergence Plot");
         plot.setAxisLabels("Iteration", "log10(Fitness)");
         plot.setSize(600, 400);
@@ -448,8 +449,8 @@ public class TestUtil {
   public static Stream<BufferedImage> renderToImages(@javax.annotation.Nonnull final Tensor tensor, final boolean normalize) {
     final DoubleStatistics[] statistics = IntStream.range(0, tensor.getDimensions()[2]).mapToObj(band -> {
       return new DoubleStatistics().accept(tensor.coordStream(false)
-                                                 .filter(x -> x.getCoords()[2] == band)
-                                                 .mapToDouble(c -> tensor.get(c)).toArray());
+        .filter(x -> x.getCoords()[2] == band)
+        .mapToDouble(c -> tensor.get(c)).toArray());
     }).toArray(i -> new DoubleStatistics[i]);
     @javax.annotation.Nonnull final BiFunction<Double, DoubleStatistics, Double> transform = (value, stats) -> {
       final double width = Math.sqrt(2) * stats.getStandardDeviation();
@@ -477,8 +478,8 @@ public class TestUtil {
       return 0xFF * unitValue;
     };
     tensor.coordStream(true).collect(Collectors.groupingBy(x -> x.getCoords()[2], Collectors.toList()));
-    final @Nullable Tensor normal = tensor.mapCoords((c) -> transform.apply(tensor.get(c), statistics[c.getCoords()[2]]))
-                                          .map(v -> Math.min(0xFF, Math.max(0, v)));
+    @Nullable final Tensor normal = tensor.mapCoords((c) -> transform.apply(tensor.get(c), statistics[c.getCoords()[2]]))
+      .map(v -> Math.min(0xFF, Math.max(0, v)));
     return (normalize ? normal : tensor).toImages().stream();
   }
   
@@ -548,8 +549,8 @@ public class TestUtil {
   public static Graph toGraph(@javax.annotation.Nonnull final DAGNetwork network) {
     final List<DAGNode> nodes = network.getNodes();
     final Map<UUID, MutableNode> graphNodes = nodes.stream().collect(Collectors.toMap(node -> node.getId(), node -> {
-      String name;
-      final NNLayer layer = node.getLayer();
+      @javax.annotation.Nullable String name;
+      @javax.annotation.Nullable final NNLayer layer = node.getLayer();
       if (null == layer) {
         name = node.getId().toString();
       }
@@ -565,7 +566,7 @@ public class TestUtil {
       });
     });
     final Map<UUID, List<UUID>> idMap = stream.collect(Collectors.groupingBy(x -> x[0],
-                                                                             Collectors.mapping(x -> x[1], Collectors.toList())));
+      Collectors.mapping(x -> x[1], Collectors.toList())));
     nodes.forEach(to -> {
       graphNodes.get(to.getId()).addLink(
         idMap.getOrDefault(to.getId(), Arrays.asList()).stream().map(from -> {
@@ -604,8 +605,8 @@ public class TestUtil {
    */
   public static void runAllParallel(@javax.annotation.Nonnull Runnable... runnables) {
     Arrays.stream(runnables)
-          .parallel()
-          .forEach(Runnable::run);
+      .parallel()
+      .forEach(Runnable::run);
   }
   
   /**
@@ -615,7 +616,7 @@ public class TestUtil {
    */
   public static void runAllSerial(@javax.annotation.Nonnull Runnable... runnables) {
     Arrays.stream(runnables)
-          .forEach(Runnable::run);
+      .forEach(Runnable::run);
   }
   
   /**

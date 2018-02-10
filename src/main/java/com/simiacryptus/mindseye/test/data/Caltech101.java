@@ -25,8 +25,8 @@ import com.simiacryptus.util.io.DataLoader;
 import com.simiacryptus.util.lang.SupplierWeakCache;
 import com.simiacryptus.util.test.LabeledObject;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -47,7 +47,8 @@ import java.util.zip.ZipInputStream;
  */
 public class Caltech101 {
   
-  private static final @Nullable DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>> training = new DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>>() {
+  @Nullable
+  private static final DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>> training = new DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>>() {
     @Override
     protected void read(@javax.annotation.Nonnull final List<LabeledObject<SupplierWeakCache<BufferedImage>>> queue) {
       try {
@@ -59,7 +60,7 @@ public class Caltech101 {
           throw new RuntimeException(e);
         }
         final boolean continueLoop = true;
-        final @Nullable ZipInputStream tar = new ZipInputStream(stream);
+        @Nullable final ZipInputStream tar = new ZipInputStream(stream);
         while (continueLoop) {
           if (Thread.interrupted()) {
             break;

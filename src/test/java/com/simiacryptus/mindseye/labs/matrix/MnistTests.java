@@ -50,12 +50,12 @@ public class MnistTests {
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());
       network.add(new FullyConnectedLayer(new int[]{7, 7, 64}, new int[]{1024})
-                    .set(() -> 0.001 * (Math.random() - 0.45)));
+        .set(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new BiasLayer(1024));
       network.add(new ReLuActivationLayer());
       network.add(new DropoutNoiseLayer(0.5));
       network.add(new FullyConnectedLayer(new int[]{1024}, new int[]{features})
-                    .set(() -> 0.001 * (Math.random() - 0.45)));
+        .set(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new BiasLayer(features));
       network.add(new SoftmaxActivationLayer());
       return network;
@@ -108,7 +108,7 @@ public class MnistTests {
       @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new BiasLayer(28, 28, 1));
       network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{features})
-                    .set(() -> 0.001 * (Math.random() - 0.45)));
+        .set(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new SoftmaxActivationLayer());
       return network;
     });
@@ -122,14 +122,14 @@ public class MnistTests {
     return log.code(() -> {
       @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{1024})
-                    .set(() -> 0.25 * (Math.random() - 0.5)));
+        .set(() -> 0.25 * (Math.random() - 0.5)));
       network.add(new DropoutNoiseLayer(0.5));
       network.add(new ReLuActivationLayer());
       network.add(new BiasLayer(1024));
       network.add(new FullyConnectedLayer(new int[]{1024}, new int[]{4, 4, 64})
-                    .set(() -> 0.001 * (Math.random() - 0.45)));
+        .set(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new ReLuActivationLayer());
-  
+
       network.add(new ConvolutionLayer(1, 1, 64, 4 * 64).set(i -> 1e-8 * (Math.random() - 0.5)));
       network.add(new ImgReshapeLayer(2, 2, true));
       network.add(new ImgBandBiasLayer(64));
@@ -152,7 +152,7 @@ public class MnistTests {
     return log.code(() -> {
       @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{28, 28, 1})
-                    .set(() -> 0.25 * (Math.random() - 0.5)));
+        .set(() -> 0.25 * (Math.random() - 0.5)));
       network.add(new BiasLayer(28, 28, 1));
       return network;
     });

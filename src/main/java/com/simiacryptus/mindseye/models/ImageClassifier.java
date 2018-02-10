@@ -25,8 +25,8 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -79,7 +79,7 @@ public abstract class ImageClassifier {
     };
     try {
       return Lists.partition(Arrays.asList(data), batchSize).stream().flatMap(batch -> {
-        NNResult nnResult = network.eval(NNConstant.singleResultArray(new Tensor[][]{
+        @javax.annotation.Nullable NNResult nnResult = network.eval(NNConstant.singleResultArray(new Tensor[][]{
           batch.stream().map(prefilter).toArray(i -> new Tensor[i])
         }));
         List<Tensor> tensorList = nnResult.getData().stream().collect(Collectors.toList());
@@ -87,8 +87,8 @@ public abstract class ImageClassifier {
         return tensorList.stream().map(tensor -> {
           @Nullable double[] predictionSignal = tensor.getData();
           int[] order = IntStream.range(0, 1000).mapToObj(x -> x)
-                                 .sorted(Comparator.comparing(i -> -predictionSignal[i]))
-                                 .mapToInt(x -> x).toArray();
+            .sorted(Comparator.comparing(i -> -predictionSignal[i]))
+            .mapToInt(x -> x).toArray();
           assert categories.size() == predictionSignal.length;
           @javax.annotation.Nonnull LinkedHashMap<String, Double> topN = new LinkedHashMap<>();
           for (int i = 0; i < count; i++) {

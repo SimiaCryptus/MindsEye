@@ -19,8 +19,7 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import org.jetbrains.annotations.Nullable;
-
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
@@ -47,9 +46,13 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
     this.dims = toDim;
   }
   
+  @Nullable
   @Override
-  public @Nullable Tensor get(int i) {
-    return data.get(i).reshapeCast(dims);
+  public Tensor get(int i) {
+    @javax.annotation.Nullable Tensor tensor = data.get(i);
+    @javax.annotation.Nullable Tensor reshapeCast = tensor.reshapeCast(dims);
+    tensor.freeRef();
+    return reshapeCast;
   }
   
   @javax.annotation.Nonnull
@@ -66,7 +69,9 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
   @Override
   public Stream<Tensor> stream() {
     return data.stream().map(t -> {
-      return t.reshapeCast(dims);
+      @javax.annotation.Nullable Tensor tensor = t.reshapeCast(dims);
+      t.freeRef();
+      return tensor;
     });
   }
   

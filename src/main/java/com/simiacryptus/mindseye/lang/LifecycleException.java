@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import javax.annotation.Nonnull;
+
 /**
  * A runtime exception when performing an invalid operation on a ReferenceCounted object.
  */
@@ -26,6 +28,7 @@ public class LifecycleException extends RuntimeException {
   /**
    * The Obj.
    */
+  @Nonnull
   public final ReferenceCountingBase obj;
   
   /**
@@ -33,7 +36,7 @@ public class LifecycleException extends RuntimeException {
    *
    * @param obj the obj
    */
-  public LifecycleException(ReferenceCountingBase obj) {
+  public LifecycleException(@Nonnull ReferenceCountingBase obj) {
     super("Lifecycle Exception: " + ReferenceCountingBase.detailString(obj, false));
     this.obj = obj;
   }

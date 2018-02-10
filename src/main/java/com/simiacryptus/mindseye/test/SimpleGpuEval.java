@@ -28,6 +28,9 @@ import com.simiacryptus.mindseye.lang.cudnn.GpuDevice;
 import com.simiacryptus.mindseye.lang.cudnn.GpuTensorList;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * The type Simple gpu eval.
  */
@@ -42,7 +45,7 @@ public class SimpleGpuEval extends SimpleListEval {
    * @param gpu   the gpu
    * @param input the input
    */
-  public SimpleGpuEval(NNLayer layer, GpuDevice gpu, TensorList... input) {
+  public SimpleGpuEval(@Nonnull NNLayer layer, GpuDevice gpu, TensorList... input) {
     super(layer, input);
     this.gpu = gpu;
   }
@@ -55,15 +58,19 @@ public class SimpleGpuEval extends SimpleListEval {
    * @param tensor the tensor
    * @return the simple result
    */
-  public static SimpleResult run(final NNLayer layer, final GpuDevice gpu, final TensorList... tensor) {
+  public static SimpleResult run(@Nonnull final NNLayer layer, final GpuDevice gpu, final TensorList... tensor) {
     return new SimpleGpuEval(layer, gpu, tensor).call();
   }
   
   @javax.annotation.Nonnull
   @Override
   public TensorList getFeedback(@javax.annotation.Nonnull final TensorList original) {
-    @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(original.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i]));
-    CudaPtr cudaPtr = CudaPtr.getCudaPtr(Precision.Double, tensorArray);
+    @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(original.stream().map(t -> {
+      @Nullable Tensor map = t.map(v -> 1.0);
+      t.freeRef();
+      return map;
+    }).toArray(i -> new Tensor[i]));
+    @Nullable CudaPtr cudaPtr = CudaPtr.getCudaPtr(Precision.Double, tensorArray);
     tensorArray.freeRef();
     return GpuTensorList.wrap(cudaPtr, original.length(), original.getDimensions(), Precision.Double);
   }

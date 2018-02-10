@@ -29,8 +29,9 @@ import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -49,20 +50,21 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
    */
   public static final String CURSOR_LABEL = "RecursiveSubspace";
   private int iterations = 4;
-  private @Nullable double[] weights = null;
+  @Nullable
+  private double[] weights = null;
   
   @javax.annotation.Nonnull
   @Override
   public SimpleLineSearchCursor orient(@javax.annotation.Nonnull Trainable subject, @javax.annotation.Nonnull PointSample measurement, @javax.annotation.Nonnull TrainingMonitor monitor) {
-    PointSample origin = measurement.copyFull().backup();
+    @Nonnull PointSample origin = measurement.copyFull().backup();
     @Nullable NNLayer macroLayer = buildSubspace(subject, measurement, monitor);
     train(monitor, macroLayer);
     NNResult eval = macroLayer.eval((NNResult) null);
     macroLayer.freeRef();
     eval.getData().freeRef();
     eval.freeRef();
-    StateSet<NNLayer> backupCopy = origin.weights.backupCopy();
-    DeltaSet<NNLayer> delta = backupCopy.subtract(origin.weights);
+    @Nonnull StateSet<NNLayer> backupCopy = origin.weights.backupCopy();
+    @Nonnull DeltaSet<NNLayer> delta = backupCopy.subtract(origin.weights);
     backupCopy.freeRef();
     origin.restore();
     @javax.annotation.Nonnull SimpleLineSearchCursor simpleLineSearchCursor = new SimpleLineSearchCursor(subject, origin, delta);
@@ -79,9 +81,10 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
    * @param monitor     the monitor
    * @return the nn layer
    */
-  public @Nullable NNLayer buildSubspace(@javax.annotation.Nonnull Trainable subject, @javax.annotation.Nonnull PointSample measurement, @javax.annotation.Nonnull TrainingMonitor monitor) {
-    PointSample origin = measurement.copyFull().backup();
-    final DeltaSet<NNLayer> direction = measurement.delta.scale(-1);
+  @Nullable
+  public NNLayer buildSubspace(@javax.annotation.Nonnull Trainable subject, @javax.annotation.Nonnull PointSample measurement, @javax.annotation.Nonnull TrainingMonitor monitor) {
+    @Nonnull PointSample origin = measurement.copyFull().backup();
+    @Nonnull final DeltaSet<NNLayer> direction = measurement.delta.scale(-1);
     final double magnitude = direction.getMagnitude();
     if (Math.abs(magnitude) < 1e-10) {
       monitor.log(String.format("Zero gradient: %s", magnitude));
@@ -92,8 +95,8 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
     boolean hasPlaceholders = direction.getMap().entrySet().stream().filter(x -> x.getKey() instanceof PlaceholderLayer).findAny().isPresent();
   
     List<NNLayer> deltaLayers = direction.getMap().entrySet().stream().map(x -> x.getKey())
-                                         .filter(x -> !(x instanceof PlaceholderLayer))
-                                         .collect(Collectors.toList());
+      .filter(x -> !(x instanceof PlaceholderLayer))
+      .collect(Collectors.toList());
     int size = deltaLayers.size() + (hasPlaceholders ? 1 : 0);
     if (null == weights || weights.length != size) weights = new double[size];
     return new NNLayer() {
@@ -110,8 +113,8 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
         });
         if (hasPlaceholders) {
           direction.getMap().entrySet().stream()
-                   .filter(x -> x.getKey() instanceof PlaceholderLayer).distinct()
-                   .forEach(entry -> entry.getValue().accumulate(weights[0]));
+            .filter(x -> x.getKey() instanceof PlaceholderLayer).distinct()
+            .forEach(entry -> entry.getValue().accumulate(weights[0]));
         }
         PointSample measure = subject.measure(monitor);
         double mean = measure.getMean();
@@ -138,7 +141,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
             measure.freeRef();
             direction.freeRef();
           }
-      
+  
           @Override
           public boolean isAlive() {
             return true;
@@ -158,9 +161,10 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
       public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
         throw new IllegalStateException();
       }
-      
+  
+      @Nullable
       @Override
-      public @Nullable List<double[]> state() {
+      public List<double[]> state() {
         return null;
       }
     };

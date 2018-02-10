@@ -81,7 +81,7 @@ public abstract class DeepLinear extends NLayerTest {
         new int[]{3, 3, 1},
         new int[]{2, 2, 1},
         new int[]{2, 2, 1}
-           );
+      );
     }
     
   }
@@ -99,9 +99,9 @@ public abstract class DeepLinear extends NLayerTest {
         new int[]{10},
         new int[]{10},
         new int[]{10}
-           );
+      );
     }
-  
+
     @javax.annotation.Nonnull
     @Override
     public NNLayer getActivation() {
@@ -123,7 +123,7 @@ public abstract class DeepLinear extends NLayerTest {
         new int[]{10},
         new int[]{10},
         new int[]{10}
-           );
+      );
     }
   
   }

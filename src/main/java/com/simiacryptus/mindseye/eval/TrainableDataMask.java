@@ -19,7 +19,8 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * A Trainable supplemental contract exposing a boolean mask which configures which, if any, input columns are to be
@@ -31,7 +32,8 @@ public interface TrainableDataMask extends Trainable {
    *
    * @return the boolean [ ]
    */
-  @Nullable boolean[] getMask();
+  @Nullable
+  boolean[] getMask();
   
   /**
    * Sets mask.
@@ -39,5 +41,6 @@ public interface TrainableDataMask extends Trainable {
    * @param mask the mask
    * @return the mask
    */
+  @Nonnull
   TrainableDataMask setMask(boolean... mask);
 }

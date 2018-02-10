@@ -114,7 +114,7 @@ public abstract class SumInputsLayerTest extends CuDNNLayerTestBase {
     public NNLayer getLayer(int[][] inputSize, Random random) {
       @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork();
       DAGNode input = network.getInput(0);
-      network.add(new BinarySumLayer(), input, input);
+      network.wrap(new BinarySumLayer(), input, input);
       return network;
     }
     
@@ -122,7 +122,7 @@ public abstract class SumInputsLayerTest extends CuDNNLayerTestBase {
     public NNLayer getReferenceLayer() {
       @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork();
       DAGNode input = network.getInput(0);
-      network.add(new SumInputsLayer(), input, input);
+      network.wrap(new SumInputsLayer(), input, input);
       return network;
     }
   

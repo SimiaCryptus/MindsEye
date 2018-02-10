@@ -29,6 +29,8 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -86,10 +88,12 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
     else {
       for (@javax.annotation.Nonnull ExplodedConvolutionLeg leg : subLayers) {
         @javax.annotation.Nonnull int[] legDims = {convolutionParams.masterFilterDimensions[0], convolutionParams.masterFilterDimensions[1], leg.getInputBands() * convolutionParams.outputBands};
-        Tensor tensor = new Tensor(legDims).mapCoords(c -> {
+        @Nonnull Tensor template = new Tensor(legDims);
+        @Nullable Tensor tensor = template.mapCoords(c -> {
           int[] coords = c.getCoords();
           return filter.get(coords[0], coords[1], getFilterBand(leg, coords[2]));
         }, false);
+        template.freeRef();
         leg.write(tensor);
         tensor.freeRef();
       }

@@ -19,8 +19,7 @@
 
 package com.simiacryptus.util.io;
 
-import org.jetbrains.annotations.Nullable;
-
+import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
 
@@ -58,8 +57,9 @@ public class AsyncListIterator<T> implements Iterator<T> {
     return index < queue.size() || thread.isAlive();
   }
   
+  @Nullable
   @Override
-  public @Nullable T next() {
+  public T next() {
     try {
       while (hasNext()) {
         if (++index < queue.size()) {

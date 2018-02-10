@@ -22,10 +22,10 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -70,48 +70,52 @@ public class ImgConcatLayer extends NNLayer {
     return new ImgConcatLayer(json);
   }
   
+  @Nullable
   @Override
-  public @Nullable NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    assert Arrays.stream(inObj).allMatch(x -> x.getData().get(0).getDimensions().length == 3) : "This component is for use mapCoords 3d image tensors only";
+    assert Arrays.stream(inObj).allMatch(x -> x.getData().getDimensions().length == 3) : "This component is for use mapCoords 3d image tensors only";
     final int numBatches = inObj[0].getData().length();
     assert Arrays.stream(inObj).allMatch(x -> x.getData().length() == numBatches) : "All inputs must use same batch size";
-    @javax.annotation.Nonnull final int[] outputDims = Arrays.copyOf(inObj[0].getData().get(0).getDimensions(), 3);
-    outputDims[2] = Arrays.stream(inObj).mapToInt(x -> x.getData().get(0).getDimensions()[2]).sum();
+    @javax.annotation.Nonnull final int[] outputDims = Arrays.copyOf(inObj[0].getData().getDimensions(), 3);
+    outputDims[2] = Arrays.stream(inObj).mapToInt(x -> x.getData().getDimensions()[2]).sum();
     if (maxBands > 0) outputDims[2] = Math.min(maxBands, outputDims[2]);
-    assert Arrays.stream(inObj).allMatch(x -> x.getData().get(0).getDimensions()[0] == outputDims[0]) : "Inputs must be same size";
-    assert Arrays.stream(inObj).allMatch(x -> x.getData().get(0).getDimensions()[1] == outputDims[1]) : "Inputs must be same size";
-  
+    assert Arrays.stream(inObj).allMatch(x -> x.getData().getDimensions()[0] == outputDims[0]) : "Inputs must be same size";
+    assert Arrays.stream(inObj).allMatch(x -> x.getData().getDimensions()[1] == outputDims[1]) : "Inputs must be same size";
+    
     @javax.annotation.Nonnull final List<Tensor> outputTensors = new ArrayList<>();
     for (int b = 0; b < numBatches; b++) {
       @javax.annotation.Nonnull final Tensor outputTensor = new Tensor(outputDims);
       int pos = 0;
-      final @Nullable double[] outputTensorData = outputTensor.getData();
+      @Nullable final double[] outputTensorData = outputTensor.getData();
       for (int i = 0; i < inObj.length; i++) {
-        final @Nullable double[] data = inObj[i].getData().get(b).getData();
+        @javax.annotation.Nullable Tensor tensor = inObj[i].getData().get(b);
+        @Nullable final double[] data = tensor.getData();
         System.arraycopy(data, 0, outputTensorData, pos, Math.min(data.length, outputTensorData.length - pos));
         pos += data.length;
+        tensor.freeRef();
       }
       outputTensors.add(outputTensor);
     }
     return new NNResult(TensorArray.wrap(outputTensors.toArray(new Tensor[]{})), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       assert numBatches == data.length();
-    
+      
       @javax.annotation.Nonnull final List<Tensor[]> splitBatches = new ArrayList<>();
       for (int b = 0; b < numBatches; b++) {
-        final Tensor tensor = data.get(b);
+        @javax.annotation.Nullable final Tensor tensor = data.get(b);
         @javax.annotation.Nonnull final Tensor[] outputTensors2 = new Tensor[inObj.length];
         int pos = 0;
         for (int i = 0; i < inObj.length; i++) {
-          @javax.annotation.Nonnull final Tensor dest = new Tensor(inObj[i].getData().get(0).getDimensions());
+          @javax.annotation.Nonnull final Tensor dest = new Tensor(inObj[i].getData().getDimensions());
           @Nullable double[] tensorData = tensor.getData();
           System.arraycopy(tensorData, pos, dest.getData(), 0, Math.min(dest.size(), tensorData.length - pos));
           pos += dest.size();
           outputTensors2[i] = dest;
         }
+        tensor.freeRef();
         splitBatches.add(outputTensors2);
       }
-    
+      
       @javax.annotation.Nonnull final Tensor[][] splitData = new Tensor[inObj.length][];
       for (int i = 0; i < splitData.length; i++) {
         splitData[i] = new Tensor[numBatches];
@@ -121,14 +125,14 @@ public class ImgConcatLayer extends NNLayer {
           splitData[i][b] = splitBatches.get(b)[i];
         }
       }
-  
+      
       for (int i = 0; i < inObj.length; i++) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(splitData[i]);
         inObj[i].accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
     }) {
-  
+      
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());

@@ -19,8 +19,7 @@
 
 package com.simiacryptus.util.io;
 
-import org.jetbrains.annotations.Nullable;
-
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -33,7 +32,8 @@ import java.util.stream.StreamSupport;
  */
 public abstract class DataLoader<T> {
   private final List<T> queue = Collections.synchronizedList(new ArrayList<>());
-  private volatile @Nullable Thread thread;
+  @Nullable
+  private volatile Thread thread;
   
   /**
    * Clear.
@@ -89,7 +89,7 @@ public abstract class DataLoader<T> {
         }
       }
     }
-    final @Nullable Iterator<T> iterator = new AsyncListIterator<>(queue, thread);
+    @Nullable final Iterator<T> iterator = new AsyncListIterator<>(queue, thread);
     return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.DISTINCT), false).filter(x -> x != null);
   }
 }

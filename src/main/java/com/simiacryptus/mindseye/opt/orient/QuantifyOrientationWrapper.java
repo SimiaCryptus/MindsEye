@@ -26,6 +26,7 @@ import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.util.data.DoubleStatistics;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -34,11 +35,6 @@ import java.util.stream.Collectors;
  * An orientation wrapper which adds additional log statements.
  */
 public class QuantifyOrientationWrapper extends OrientationStrategyBase<LineSearchCursor> {
-  
-  @Override
-  protected void _free() {
-    inner.freeRef();
-  }
   
   private final OrientationStrategy<? extends LineSearchCursor> inner;
   
@@ -49,6 +45,11 @@ public class QuantifyOrientationWrapper extends OrientationStrategyBase<LineSear
    */
   public QuantifyOrientationWrapper(final OrientationStrategy<? extends LineSearchCursor> inner) {
     this.inner = inner;
+  }
+  
+  @Override
+  protected void _free() {
+    inner.freeRef();
   }
   
   /**
@@ -73,20 +74,20 @@ public class QuantifyOrientationWrapper extends OrientationStrategyBase<LineSear
     final LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
     if (cursor instanceof SimpleLineSearchCursor) {
       final DeltaSet<NNLayer> direction = ((SimpleLineSearchCursor) cursor).direction;
-      final StateSet<NNLayer> weights = ((SimpleLineSearchCursor) cursor).origin.weights;
+      @Nonnull final StateSet<NNLayer> weights = ((SimpleLineSearchCursor) cursor).origin.weights;
       final Map<String, String> dataMap = weights.stream()
-                                                 .collect(Collectors.groupingBy(x -> getId(x), Collectors.toList())).entrySet().stream()
-                                                 .collect(Collectors.toMap(x -> x.getKey(), list -> {
-                                                   final List<Double> doubleList = list.getValue().stream().map(weightDelta -> {
-                                                     final DoubleBuffer<NNLayer> dirDelta = direction.getMap().get(weightDelta.layer);
-                                                     final double denominator = weightDelta.deltaStatistics().rms();
-                                                     final double numerator = null == dirDelta ? 0 : dirDelta.deltaStatistics().rms();
-                                                     return numerator / (0 == denominator ? 1 : denominator);
-                                                   }).collect(Collectors.toList());
-                                                   if (1 == doubleList.size())
-                                                     return Double.toString(doubleList.get(0));
-                                                   return new DoubleStatistics().accept(doubleList.stream().mapToDouble(x -> x).toArray()).toString();
-                                                 }));
+        .collect(Collectors.groupingBy(x -> getId(x), Collectors.toList())).entrySet().stream()
+        .collect(Collectors.toMap(x -> x.getKey(), list -> {
+          final List<Double> doubleList = list.getValue().stream().map(weightDelta -> {
+            final DoubleBuffer<NNLayer> dirDelta = direction.getMap().get(weightDelta.layer);
+            final double denominator = weightDelta.deltaStatistics().rms();
+            final double numerator = null == dirDelta ? 0 : dirDelta.deltaStatistics().rms();
+            return numerator / (0 == denominator ? 1 : denominator);
+          }).collect(Collectors.toList());
+          if (1 == doubleList.size())
+            return Double.toString(doubleList.get(0));
+          return new DoubleStatistics().accept(doubleList.stream().mapToDouble(x -> x).toArray()).toString();
+        }));
       monitor.log(String.format("Line search stats: %s", dataMap));
     }
     else {

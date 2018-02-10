@@ -26,6 +26,8 @@ import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
 import com.simiacryptus.mindseye.layers.java.SigmoidActivationLayer;
 import jcuda.jcudnn.*;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -101,6 +103,7 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
     }
   }
   
+  @Nullable
   @Override
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
@@ -108,8 +111,8 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
-    final int[] inputSize = batch.getDimensions();
-    final int[] outputSize = inputSize;
+    @Nonnull final int[] inputSize = batch.getDimensions();
+    @Nonnull final int[] outputSize = inputSize;
     final int length = batch.length();
     final int inputDims = Tensor.dim(inputSize);
     batch.addRef();
@@ -119,15 +122,15 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
         @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = GpuSystem.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-        final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
+        @Nullable final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
         @javax.annotation.Nonnull final CudaPtr outputData = CudaPtr.allocate(gpu.getDeviceNumber(), precision.size * 1l * inputDims * length, MemoryType.Managed, true);
         @javax.annotation.Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = GpuSystem.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
         try {
           GpuSystem.handle(CuDNNHandle.cudnnActivationForward(gpu.getHandle(), activationDesc.getPtr(),
-                                                              precision.getPointer(1.0),
-                                                              inputDescriptor.getPtr(), inputData.getPtr(),
-                                                              precision.getPointer(0.0),
-                                                              outputDescriptor.getPtr(), outputData.getPtr()));
+            precision.getPointer(1.0),
+            inputDescriptor.getPtr(), inputData.getPtr(),
+            precision.getPointer(0.0),
+            outputDescriptor.getPtr(), outputData.getPtr()));
         } catch (@javax.annotation.Nonnull final Throwable e) {
           throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
         }
@@ -140,20 +143,20 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
           final TensorList data = GpuSystem.eval(gpu -> {
             //assert (error.length() == batch.length());
             //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-            final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
+            @Nullable final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
             @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
               precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-            final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
+            @Nullable final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
             @javax.annotation.Nonnull final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), inputDims * 1l * precision.size * length, MemoryType.Managed, true);
             @javax.annotation.Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = GpuSystem.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
             try {
               GpuSystem.handle(CuDNNHandle.cudnnActivationBackward(gpu.getHandle(), activationDesc.getPtr(),
-                                                                   precision.getPointer(1.0),
-                                                                   inputDescriptor.getPtr(), outPtr.getPtr(),
-                                                                   inputDescriptor.getPtr(), errorPtr.getPtr(),
-                                                                   inputDescriptor.getPtr(), inputData.getPtr(),
-                                                                   precision.getPointer(0.0),
-                                                                   inputDescriptor.getPtr(), passbackBuffer.getPtr()));
+                precision.getPointer(1.0),
+                inputDescriptor.getPtr(), outPtr.getPtr(),
+                inputDescriptor.getPtr(), errorPtr.getPtr(),
+                inputDescriptor.getPtr(), inputData.getPtr(),
+                precision.getPointer(0.0),
+                inputDescriptor.getPtr(), passbackBuffer.getPtr()));
             } catch (@javax.annotation.Nonnull final Throwable e) {
               throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
             }
@@ -164,15 +167,15 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
           data.freeRef();
         }
       }) {
-  
+        
         @Override
         protected void _free() {
           batch.freeRef();
           outPtr.freeRef();
           Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
         }
-  
-  
+        
+        
         @Override
         public boolean isAlive() {
           return input.isAlive() || !isFrozen();

@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.function.DoubleUnaryOperator;
 
@@ -38,7 +39,7 @@ public class State<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param layer  the layer
    * @param target the target
    */
-  public State(final K layer, final double[] target) {
+  public State(@Nonnull final K layer, final double[] target) {
     super(layer, target);
   }
   
@@ -49,7 +50,7 @@ public class State<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param target the target
    * @param delta  the delta
    */
-  public State(final K layer, final double[] target, final double[] delta) {
+  public State(@Nonnull final K layer, final double[] target, final double[] delta) {
     super(layer, target, delta);
   }
   

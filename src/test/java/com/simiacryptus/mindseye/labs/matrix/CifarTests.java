@@ -48,7 +48,7 @@ public class CifarTests {
       network.add(new ReLuActivationLayer());
       network.add(new BiasLayer(16, 16, 5));
       network.add(new FullyConnectedLayer(new int[]{16, 16, 5}, new int[]{features})
-                    .set(() -> 0.001 * (Math.random() - 0.45)));
+        .set(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new SoftmaxActivationLayer());
       return network;
     });
@@ -63,7 +63,7 @@ public class CifarTests {
       @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new BiasLayer(32, 32, 3));
       network.add(new FullyConnectedLayer(new int[]{32, 32, 3}, new int[]{features})
-                    .set(() -> 0.001 * (Math.random() - 0.45)));
+        .set(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new SoftmaxActivationLayer());
       return network;
     });
@@ -77,10 +77,10 @@ public class CifarTests {
     return log.code(() -> {
       @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{32, 32, 5})
-                    .set(() -> 0.25 * (Math.random() - 0.5)));
+        .set(() -> 0.25 * (Math.random() - 0.5)));
       network.add(new ReLuActivationLayer());
       network.add(new ConvolutionLayer(3, 3, 5, 3)
-                    .set(i -> 1e-8 * (Math.random() - 0.5)));
+        .set(i -> 1e-8 * (Math.random() - 0.5)));
       network.add(new BiasLayer(32, 32, 3));
       network.add(new ReLuActivationLayer());
       return network;
@@ -95,7 +95,7 @@ public class CifarTests {
     return log.code(() -> {
       @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{32, 32, 3})
-                    .set(() -> 0.25 * (Math.random() - 0.5)));
+        .set(() -> 0.25 * (Math.random() - 0.5)));
       network.add(new BiasLayer(32, 32, 3));
       return network;
     });

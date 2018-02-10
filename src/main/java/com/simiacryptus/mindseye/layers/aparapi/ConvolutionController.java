@@ -21,10 +21,10 @@ package com.simiacryptus.mindseye.layers.aparapi;
 
 import com.simiacryptus.mindseye.lang.ComponentException;
 import com.simiacryptus.mindseye.lang.RecycleBin;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
@@ -47,8 +47,10 @@ public final class ConvolutionController {
   @javax.annotation.Nonnull
   private final int[] kernelSize;
   private final int[] outputSize;
-  private @Nullable Integer paddingX = null;
-  private @Nullable Integer paddingY = null;
+  @Nullable
+  private Integer paddingX = null;
+  @Nullable
+  private Integer paddingY = null;
   
   /**
    * Instantiates a new Convolution controller.
@@ -369,7 +371,8 @@ public final class ConvolutionController {
    *
    * @return the padding x
    */
-  public @Nullable Integer getPaddingX() {
+  @Nullable
+  public Integer getPaddingX() {
     return paddingX;
   }
   
@@ -387,7 +390,8 @@ public final class ConvolutionController {
    *
    * @return the padding y
    */
-  public @Nullable Integer getPaddingY() {
+  @Nullable
+  public Integer getPaddingY() {
     return paddingY;
   }
   

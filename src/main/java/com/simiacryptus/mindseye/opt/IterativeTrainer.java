@@ -33,10 +33,10 @@ import com.simiacryptus.mindseye.opt.orient.LBFGS;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.lang.TimedResult;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
@@ -250,7 +250,8 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param reset the reset
    * @return the point sample
    */
-  public @Nullable PointSample measure(boolean reset) {
+  @Nullable
+  public PointSample measure(boolean reset) {
     @Nullable PointSample currentPoint = null;
     int retries = 0;
     do {
@@ -318,11 +319,11 @@ public class IterativeTrainer extends ReferenceCountingBase {
         }
         currentPoint.freeRef();
         currentPoint = measure(true);
-        final @Nullable PointSample _currentPoint = currentPoint;
+        @Nullable final PointSample _currentPoint = currentPoint;
         @javax.annotation.Nonnull final TimedResult<LineSearchCursor> timedOrientation = TimedResult.time(() -> orientation.orient(subject, _currentPoint, monitor));
         final LineSearchCursor direction = timedOrientation.result;
         final String directionType = direction.getDirectionType();
-        final @Nullable PointSample previous = currentPoint;
+        @Nullable final PointSample previous = currentPoint;
         previous.addRef();
         try {
           @javax.annotation.Nonnull final TimedResult<PointSample> timedLineSearch = TimedResult.time(() -> step(direction, directionType, previous));
@@ -330,7 +331,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
           currentPoint = timedLineSearch.result;
           final long now = System.nanoTime();
           final String perfString = String.format("Total: %.4f; Orientation: %.4f; Line Search: %.4f",
-                                                  now - lastIterationTime / 1e9, timedOrientation.timeNanos / 1e9, timedLineSearch.timeNanos / 1e9);
+            now - lastIterationTime / 1e9, timedOrientation.timeNanos / 1e9, timedLineSearch.timeNanos / 1e9);
           lastIterationTime = now;
           if (previous.getMean() <= currentPoint.getMean()) {
             if (previous.getMean() < currentPoint.getMean()) {
@@ -343,22 +344,22 @@ public class IterativeTrainer extends ReferenceCountingBase {
             }
             if (subject.reseed(System.nanoTime())) {
               monitor.log(String.format("Iteration %s failed, retrying. Error: %s",
-                                        currentIteration.get(), currentPoint.getMean()));
+                currentIteration.get(), currentPoint.getMean()));
               monitor.log(String.format("Previous Error: %s -> %s",
-                                        previous.getRate(), previous.getMean()));
+                previous.getRate(), previous.getMean()));
               break subiterationLoop;
             }
             else {
               monitor.log(String.format("Iteration %s failed, aborting. Error: %s",
-                                        currentIteration.get(), currentPoint.getMean()));
+                currentIteration.get(), currentPoint.getMean()));
               monitor.log(String.format("Previous Error: %s -> %s",
-                                        previous.getRate(), previous.getMean()));
+                previous.getRate(), previous.getMean()));
               break mainLoop;
             }
           }
           else {
             monitor.log(String.format("Iteration %s complete. Error: %s " + perfString,
-                                      currentIteration.get(), currentPoint.getMean()));
+              currentIteration.get(), currentPoint.getMean()));
           }
           monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
         } finally {

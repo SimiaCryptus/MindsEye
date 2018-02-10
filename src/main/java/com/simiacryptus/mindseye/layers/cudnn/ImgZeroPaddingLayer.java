@@ -27,6 +27,8 @@ import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -84,11 +86,15 @@ public class ImgZeroPaddingLayer extends NNLayer implements MultiPrecision<ImgZe
     return new ImgZeroPaddingLayer(json, rs);
   }
   
+  @Nullable
   @Override
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     assert inObj.length == 1;
-    int[] dimensions = inObj[0].getData().getDimensions();
-    return new ImgCropLayer(dimensions[0] + 2 * this.sizeX, dimensions[1] + 2 * this.sizeY).eval(inObj);
+    @Nonnull int[] dimensions = inObj[0].getData().getDimensions();
+    @Nonnull ImgCropLayer imgCropLayer = new ImgCropLayer(dimensions[0] + 2 * this.sizeX, dimensions[1] + 2 * this.sizeY);
+    @Nullable NNResult eval = imgCropLayer.eval(inObj);
+    imgCropLayer.freeRef();
+    return eval;
   }
   
   @javax.annotation.Nonnull

@@ -20,8 +20,8 @@
 package com.simiacryptus.util.lang;
 
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -54,7 +54,8 @@ public class CodeUtil {
    * @param clazz the clazz
    * @return the file
    */
-  public static @Nullable File findFile(final @Nullable Class<?> clazz) {
+  @Nullable
+  public static File findFile(@Nullable final Class<?> clazz) {
     if (null == clazz) return null;
     String name = clazz.getName();
     if (null == name) return null;
@@ -135,20 +136,20 @@ public class CodeUtil {
    * @param clazz the clazz
    * @return the javadoc
    */
-  public static String getJavadoc(final @Nullable Class<?> clazz) {
+  public static String getJavadoc(@Nullable final Class<?> clazz) {
     try {
       if (null == clazz) return null;
-      final @Nullable File source = CodeUtil.findFile(clazz);
+      @Nullable final File source = CodeUtil.findFile(clazz);
       if (null == source) return clazz.getName() + " not found";
       final List<String> lines = IOUtils.readLines(new FileInputStream(source), Charset.forName("UTF-8"));
       final int classDeclarationLine = IntStream.range(0, lines.size())
-                                                .filter(i -> lines.get(i).contains("class " + clazz.getSimpleName())).findFirst().getAsInt();
+        .filter(i -> lines.get(i).contains("class " + clazz.getSimpleName())).findFirst().getAsInt();
       final int firstLine = IntStream.rangeClosed(1, classDeclarationLine).map(i -> classDeclarationLine - i)
-                                     .filter(i -> !lines.get(i).matches("\\s*[/\\*@].*")).findFirst().orElse(-1) + 1;
+        .filter(i -> !lines.get(i).matches("\\s*[/\\*@].*")).findFirst().orElse(-1) + 1;
       final String javadoc = lines.subList(firstLine, classDeclarationLine).stream()
-                                  .filter(s -> s.matches("\\s*[/\\*].*"))
-                                  .map(s -> s.replaceFirst("^[ \t]*[/\\*]+", "").trim())
-                                  .filter(x -> !x.isEmpty()).reduce((a, b) -> a + "\n" + b).orElse("");
+        .filter(s -> s.matches("\\s*[/\\*].*"))
+        .map(s -> s.replaceFirst("^[ \t]*[/\\*]+", "").trim())
+        .filter(x -> !x.isEmpty()).reduce((a, b) -> a + "\n" + b).orElse("");
       return javadoc.replaceAll("<p>", "\n");
     } catch (@javax.annotation.Nonnull final Throwable e) {
       e.printStackTrace();
@@ -160,14 +161,14 @@ public class CodeUtil {
     return Stream.concat(
       Stream.of(CodeUtil.projectRoot),
       Arrays.stream(CodeUtil.projectRoot.listFiles())
-            .filter(file -> file.exists() && file.isDirectory())
-            .collect(Collectors.toList()).stream()).flatMap(x -> scanProject(x).stream())
-                 .distinct().collect(Collectors.toList());
+        .filter(file -> file.exists() && file.isDirectory())
+        .collect(Collectors.toList()).stream()).flatMap(x -> scanProject(x).stream())
+      .distinct().collect(Collectors.toList());
   }
   
   private static List<File> scanProject(File file) {
     return sourceFolders.stream().map(name -> new File(file, name))
-                        .filter(f -> f.exists() && f.isDirectory())
-                        .collect(Collectors.toList());
+      .filter(f -> f.exists() && f.isDirectory())
+      .collect(Collectors.toList());
   }
 }

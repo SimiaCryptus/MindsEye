@@ -22,10 +22,10 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.io.JsonUtil;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -68,7 +68,7 @@ public class MaxImageBandLayer extends NNLayer {
    */
   public static MaxImageBandLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new MaxImageBandLayer(json,
-                                 JsonUtil.getIntArray(json.getAsJsonArray("heapCopy")));
+      JsonUtil.getIntArray(json.getAsJsonArray("heapCopy")));
   }
   
   @javax.annotation.Nonnull
@@ -83,9 +83,11 @@ public class MaxImageBandLayer extends NNLayer {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     
     final Coordinate[][] maxCoords = in.getData().stream().map(data -> {
-      return IntStream.range(0, inputDims[2]).mapToObj(band -> {
+      Coordinate[] coordinates = IntStream.range(0, inputDims[2]).mapToObj(band -> {
         return data.coordStream(true).filter(e -> e.getCoords()[2] == band).max(Comparator.comparing(c -> data.get(c))).get();
       }).toArray(i -> new Coordinate[i]);
+      data.freeRef();
+      return coordinates;
     }).toArray(i -> new Coordinate[i][]);
     
     return new NNResult(TensorArray.wrap(IntStream.range(0, in.getData().length()).mapToObj(dataIndex -> {
@@ -160,7 +162,7 @@ public class MaxImageBandLayer extends NNLayer {
     }
     
     @Override
-    public boolean equals(final @Nullable Object obj) {
+    public boolean equals(@Nullable final Object obj) {
       if (this == obj) {
         return true;
       }

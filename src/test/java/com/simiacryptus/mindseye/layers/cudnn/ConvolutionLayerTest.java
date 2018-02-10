@@ -27,10 +27,11 @@ import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.Random;
 
@@ -92,7 +93,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
    */
   @Test
   public void verifyWeights() {
-    ExplodedConvolutionGrid explodedNetwork = this.convolutionLayer.getExplodedNetwork();
+    @Nonnull ExplodedConvolutionGrid explodedNetwork = this.convolutionLayer.getExplodedNetwork();
     @javax.annotation.Nonnull int[] kernelDims = this.convolutionLayer.getKernel().getDimensions();
     @Nullable Tensor testData = new Tensor(kernelDims).map(x -> random());
     explodedNetwork.write(testData);
@@ -108,6 +109,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
     };
   }
   
+  @Nonnull
   @Override
   public NNLayer getLayer(final int[][] inputSize, Random random) {
     return convolutionLayer.explode();
@@ -121,8 +123,9 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
     };
   }
   
+  @Nullable
   @Override
-  public @Nullable NNLayer getReferenceLayer() {
+  public NNLayer getReferenceLayer() {
     return convolutionLayer.as(com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class);
   }
   

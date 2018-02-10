@@ -23,13 +23,13 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.test.TestCategories;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -48,9 +48,10 @@ public class TensorTest {
    * @param str the str
    * @return the tensor
    */
-  public @Nullable Tensor parse(final String str) {
+  @Nullable
+  public Tensor parse(final String str) {
     final JsonElement json = new GsonBuilder().create().fromJson(str, JsonElement.class);
-    final @Nullable Tensor tensor = Tensor.fromJson(json, null);
+    @Nullable final Tensor tensor = Tensor.fromJson(json, null);
     Assert.assertEquals(json, tensor.toJson(null, Tensor.json_precision));
     return tensor;
   }
@@ -75,7 +76,7 @@ public class TensorTest {
   @Category(TestCategories.UnitTest.class)
   public void testCoordStream() throws Exception {
     final List<String> coordinates = new Tensor(2, 2, 2).coordStream(true)
-                                                        .map(c -> String.format("%s - %s", c.getIndex(), Arrays.toString(c.getCoords()))).collect(Collectors.toList());
+      .map(c -> String.format("%s - %s", c.getIndex(), Arrays.toString(c.getCoords()))).collect(Collectors.toList());
     for (final String c : coordinates) {
       log.info(c);
     }

@@ -28,8 +28,8 @@ import com.simiacryptus.util.test.LabeledObject;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.io.input.BoundedInputStream;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -48,7 +48,8 @@ import java.util.zip.GZIPInputStream;
  */
 public class CIFAR10 {
   
-  private static final @Nullable DataLoader<LabeledObject<Tensor>> training = new DataLoader<LabeledObject<Tensor>>() {
+  @Nullable
+  private static final DataLoader<LabeledObject<Tensor>> training = new DataLoader<LabeledObject<Tensor>>() {
     @Override
     protected void read(@javax.annotation.Nonnull final List<LabeledObject<Tensor>> queue) {
       try {
@@ -60,7 +61,7 @@ public class CIFAR10 {
         }
         final int recordSize = 3073;
         @javax.annotation.Nonnull final GZIPInputStream inflatedInput = new GZIPInputStream(stream);
-        final @Nullable TarArchiveInputStream tar = new TarArchiveInputStream(inflatedInput);
+        @Nullable final TarArchiveInputStream tar = new TarArchiveInputStream(inflatedInput);
         while (0 < inflatedInput.available()) {
           if (Thread.interrupted()) {
             break;

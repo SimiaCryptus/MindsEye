@@ -29,10 +29,10 @@ import jcuda.jcudnn.*;
 import jcuda.runtime.JCuda;
 import jcuda.runtime.cudaDeviceProp;
 import jcuda.runtime.cudaStream_t;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -396,11 +396,11 @@ public class GpuSystem {
     GpuSystem.log("cudnnCreatePoolingDescriptor", result, poolingDesc);
     GpuSystem.handle(result);
     result = JCudnn.cudnnSetPoolingNdDescriptor(poolingDesc,
-                                                mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, poolDims, windowSize,
-                                                padding, stride);
+      mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, poolDims, windowSize,
+      padding, stride);
     GpuSystem.log("cudnnSetPoolingNdDescriptor", result, poolingDesc,
-                  mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, poolDims, windowSize,
-                  padding, stride);
+      mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, poolDims, windowSize,
+      padding, stride);
     GpuSystem.handle(result);
     createPoolingDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     return new CudaResource<>(poolingDesc, GpuSystem::cudnnDestroyPoolingDescriptor, getDevice());
@@ -896,7 +896,7 @@ public class GpuSystem {
    * @param result the result
    * @param args   the args
    */
-  protected static void log(final String method, final Object result, final @Nullable Object... args) {
+  protected static void log(final String method, final Object result, @Nullable final Object... args) {
     @javax.annotation.Nonnull final String paramString = null == args ? "" : Arrays.stream(args).map(GpuSystem::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
     final String message = String.format("%.6f @ %s: %s(%s) = %s", (System.nanoTime() - GpuSystem.start) / 1e9, Thread.currentThread().getName(), method, paramString, result);
     try {
@@ -967,19 +967,19 @@ public class GpuSystem {
     GpuSystem.log("cudnnCreateConvolutionDescriptor", result, convDesc);
     GpuSystem.handle(result);
     result = JCudnn.cudnnSetConvolutionNdDescriptor(convDesc,
-                                                    3,
-                                                    padding,
-                                                    stride,
-                                                    dilation,
-                                                    mode,
-                                                    dataType
-                                                   );
+      3,
+      padding,
+      stride,
+      dilation,
+      mode,
+      dataType
+    );
     GpuSystem.log("cudnnSetConvolutionNdDescriptor", result, convDesc, padding.length,
-                  padding,
-                  stride,
-                  dilation,
-                  mode,
-                  dataType);
+      padding,
+      stride,
+      dilation,
+      mode,
+      dataType);
     GpuSystem.handle(result);
     return new CudaResource<cudnnConvolutionDescriptor>(convDesc, GpuSystem::cudnnDestroyConvolutionDescriptor, getDevice()) {
       @javax.annotation.Nonnull
@@ -1023,17 +1023,17 @@ public class GpuSystem {
       dilationX, // upscale the input in y-direction
       mode
       , dataType
-                                                   );
+    );
     newConvolutions2dDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     GpuSystem.log("cudnnSetConvolution2dDescriptor", result, convDesc,
-                  paddingY, // zero-padding height
-                  paddingX, // zero-padding width
-                  strideHeight, // vertical filter stride
-                  strideWidth, // horizontal filter stride
-                  dilationY, // upscale the input in x-direction
-                  dilationX, // upscale the input in y-direction
-                  mode,
-                  dataType);
+      paddingY, // zero-padding height
+      paddingX, // zero-padding width
+      strideHeight, // vertical filter stride
+      strideWidth, // horizontal filter stride
+      dilationY, // upscale the input in x-direction
+      dilationX, // upscale the input in y-direction
+      mode,
+      dataType);
     GpuSystem.handle(result);
     return new CudaResource<>(convDesc, GpuSystem::cudnnDestroyConvolutionDescriptor, getDevice());
   }
@@ -1134,7 +1134,7 @@ public class GpuSystem {
    * @return the cuda resource
    */
   public static CudaResource<cudnnTensorDescriptor> newTensorDescriptor(final int dataType, final int tensorLayout,
-                                                                        final int batchCount, final int channels, final int height, final int width) {
+    final int batchCount, final int channels, final int height, final int width) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
     int result = JCudnn.cudnnCreateTensorDescriptor(desc);
@@ -1213,8 +1213,8 @@ public class GpuSystem {
    * @return the cuda resource
    */
   public static CudaResource<cudnnTensorDescriptor> newTensorDescriptor(final int dataType,
-                                                                        final int batchCount, final int channels, final int height, final int width,
-                                                                        final int nStride, final int cStride, final int hStride, final int wStride) {
+    final int batchCount, final int channels, final int height, final int width,
+    final int nStride, final int cStride, final int hStride, final int wStride) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
     int result = JCudnn.cudnnCreateTensorDescriptor(desc);

@@ -21,10 +21,10 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -73,10 +73,12 @@ public class SumReducerLayer extends NNLayer {
     return new NNResult(TensorArray.wrap(IntStream.range(0, inObj[0].getData().length()).parallel().mapToDouble(dataIndex -> {
       double sum = 0;
       for (@javax.annotation.Nonnull final NNResult element : inObj) {
-        final @Nullable double[] input = element.getData().get(dataIndex).getData();
+        @javax.annotation.Nullable Tensor tensor = element.getData().get(dataIndex);
+        @Nullable final double[] input = tensor.getData();
         for (final double element2 : input) {
           sum += element2;
         }
+        tensor.freeRef();
       }
       return sum;
     }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
@@ -84,7 +86,7 @@ public class SumReducerLayer extends NNLayer {
         if (in_l.isAlive()) {
           @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {
             final double delta = data.get(dataIndex).get(0);
-            @javax.annotation.Nonnull final Tensor passback = new Tensor(in_l.getData().get(dataIndex).getDimensions());
+            @javax.annotation.Nonnull final Tensor passback = new Tensor(in_l.getData().getDimensions());
             for (int i = 0; i < in_l.getData().get(dataIndex).dim(); i++) {
               passback.set(i, delta);
             }

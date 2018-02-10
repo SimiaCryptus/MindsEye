@@ -78,6 +78,11 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
     return orient;
   }
   
+  @Override
+  protected void _free() {
+    this.inner.freeRef();
+  }
+  
   /**
    * The type Hash map layer reweighting strategy.
    */
@@ -109,16 +114,11 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
     public Double getRegionPolicy(final NNLayer layer) {
       return getMap().get(layer);
     }
-
+  
     @Override
     public void reset() {
       inner.reset();
     }
-  }
-  
-  @Override
-  protected void _free() {
-    this.inner.freeRef();
   }
   
 }

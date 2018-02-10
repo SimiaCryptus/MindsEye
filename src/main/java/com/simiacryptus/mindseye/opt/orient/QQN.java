@@ -29,13 +29,14 @@ import com.simiacryptus.mindseye.opt.line.LineSearchCursorBase;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 
+import javax.annotation.Nonnull;
+
 /**
- * Quadratic Quasi-Newton optimization
- * <p>
- * This method hybridizes pure gradient descent with higher-order quasinewton implementations such as L-BFGS. During
- * each iteration, a quadratic curve is interpolated which aligns with the gradient's direction prediction and
- * intersects with the quasinewton's optimal point prediction. A simple parameteric quadratic function blends both
- * heapCopy cursors into a simple nonlinear path which should combine the stability of both methods.
+ * Quadratic Quasi-Newton optimization This method hybridizes pure gradient descent with higher-order quasinewton
+ * implementations such as L-BFGS. During each iteration, a quadratic curve is interpolated which aligns with the
+ * gradient's direction prediction and intersects with the quasinewton's optimal point prediction. A simple parameteric
+ * quadratic function blends both heapCopy cursors into a simple nonlinear path which should combine the stability of
+ * both methods.
  */
 public class QQN extends OrientationStrategyBase<LineSearchCursor> {
   
@@ -92,11 +93,11 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
     inner.addToHistory(origin, monitor);
     final SimpleLineSearchCursor lbfgsCursor = inner.orient(subject, origin, monitor);
     final DeltaSet<NNLayer> lbfgs = lbfgsCursor.direction;
-    final DeltaSet<NNLayer> gd = origin.delta.scale(-1.0);
+    @Nonnull final DeltaSet<NNLayer> gd = origin.delta.scale(-1.0);
     final double lbfgsMag = lbfgs.getMagnitude();
     final double gdMag = gd.getMagnitude();
     if (Math.abs(lbfgsMag - gdMag) / (lbfgsMag + gdMag) > 1e-2) {
-      final DeltaSet<NNLayer> scaledGradient = gd.scale(lbfgsMag / gdMag);
+      @Nonnull final DeltaSet<NNLayer> scaledGradient = gd.scale(lbfgsMag / gdMag);
       monitor.log(String.format("Returning Quadratic Cursor %s GD, %s QN", gdMag, lbfgsMag));
       gd.freeRef();
       return new LineSearchCursorBase() {
@@ -120,17 +121,17 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
   
         @javax.annotation.Nonnull
         @Override
-        public LineSearchPoint step(final double t, final TrainingMonitor monitor) {
+        public LineSearchPoint step(final double t, @Nonnull final TrainingMonitor monitor) {
           if (!Double.isFinite(t)) throw new IllegalArgumentException();
           reset();
           position(t).accumulate(1);
-          final PointSample sample = subject.measure(monitor).setRate(t);
+          @Nonnull final PointSample sample = subject.measure(monitor).setRate(t);
           //monitor.log(String.format("delta buffers %d %d %d %d %d", sample.delta.run.size(), origin.delta.run.size(), lbfgs.run.size(), gd.run.size(), scaledGradient.run.size()));
           inner.addToHistory(sample, monitor);
-          final DeltaSet<NNLayer> tangent = scaledGradient.scale(1 - 2 * t).add(lbfgs.scale(2 * t));
+          @Nonnull final DeltaSet<NNLayer> tangent = scaledGradient.scale(1 - 2 * t).add(lbfgs.scale(2 * t));
           return new LineSearchPoint(sample, tangent.dot(sample.delta));
         }
-    
+  
         @Override
         public void _free() {
           scaledGradient.freeRef();

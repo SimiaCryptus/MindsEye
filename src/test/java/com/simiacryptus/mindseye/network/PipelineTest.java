@@ -29,9 +29,10 @@ import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -86,6 +87,7 @@ public abstract class PipelineTest {
    *
    * @return the int [ ] [ ]
    */
+  @Nonnull
   public abstract int[] getInputDims();
   
   /**
@@ -99,7 +101,7 @@ public abstract class PipelineTest {
       log.p("This is a network with the following layout:");
       log.code(() -> {
         return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
-                       .height(400).width(600).render(Format.PNG).toImage();
+          .height(400).width(600).render(Format.PNG).toImage();
       });
     }
   }
@@ -160,8 +162,9 @@ public abstract class PipelineTest {
    * @param inputDims the input dims
    * @return the double
    */
-  public @Nullable TrainingTester.ComponentResult test(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer layer, final String header, @javax.annotation.Nonnull final int[]... inputDims) {
-    final NNLayer component = layer.copy();
+  @Nullable
+  public TrainingTester.ComponentResult test(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer layer, final String header, @javax.annotation.Nonnull final int[]... inputDims) {
+    @Nonnull final NNLayer component = layer.copy();
     final Tensor[] randomize = randomize(inputDims);
     new SerializationTest().test(log, component, randomize);
     return new TrainingTester() {

@@ -27,8 +27,8 @@ import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.*;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.Random;
 
@@ -87,8 +87,9 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
     };
   }
   
+  @Nullable
   @Override
-  public @Nullable NNLayer getReferenceLayer() {
+  public NNLayer getReferenceLayer() {
     @javax.annotation.Nonnull final ConvolutionLayer convolutionLayer = new ConvolutionLayer(radius, radius, bands, bands, true);
     @javax.annotation.Nonnull final Tensor tensor = new Tensor(layer.kernel.getDimensions());
     tensor.setByCoord(c -> {
@@ -100,6 +101,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
       return layer.kernel.get(c.getCoords()[0], c.getCoords()[1], bandT);
     });
     convolutionLayer.kernel.set(tensor);
+    tensor.freeRef();
     return convolutionLayer;
   }
   
@@ -267,7 +269,8 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
       };
     }
   
-    public @Nullable ComponentTest<ToleranceStatistics> getPerformanceTester() {
+    @Nullable
+    public ComponentTest<ToleranceStatistics> getPerformanceTester() {
       @javax.annotation.Nonnull ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setBatches(10);
       return new ComponentTestBase<ToleranceStatistics>() {
         @Override
@@ -281,7 +284,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
           } finally {
             log.p(log.file((String) null, logName, "GPU Log"));
             if (null != apiLog) {
-          
+  
               apiLog.close();
               GpuSystem.apiLog.remove(apiLog);
             }

@@ -22,10 +22,10 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.Util;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +41,8 @@ public class ReLuActivationLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ReLuActivationLayer.class);
-  private final @Nullable Tensor weights;
+  @Nullable
+  private final Tensor weights;
   
   /**
    * Instantiates a new Re lu activation layer.
@@ -51,12 +52,6 @@ public class ReLuActivationLayer extends NNLayer {
     weights = new Tensor(1);
     weights.set(0, 1.);
     this.frozen = true;
-  }
-  
-  @Override
-  protected void _free() {
-    weights.freeRef();
-    super._free();
   }
   
   /**
@@ -81,6 +76,12 @@ public class ReLuActivationLayer extends NNLayer {
     return new ReLuActivationLayer(json, rs);
   }
   
+  @Override
+  protected void _free() {
+    weights.freeRef();
+    super._free();
+  }
+  
   /**
    * Add weights re lu activation layer.
    *
@@ -103,10 +104,10 @@ public class ReLuActivationLayer extends NNLayer {
     weights.addRef();
     final int itemCnt = indata.length();
     return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
-      Tensor tensorElement = indata.get(dataIndex);
+      @javax.annotation.Nullable Tensor tensorElement = indata.get(dataIndex);
       @javax.annotation.Nonnull final Tensor tensor = tensorElement.multiply(weights.get(0));
       tensorElement.freeRef();
-      final @Nullable double[] outputData = tensor.getData();
+      @Nullable final double[] outputData = tensor.getData();
       for (int i = 0; i < outputData.length; i++) {
         if (outputData[i] < 0) {
           outputData[i] = 0;
@@ -116,16 +117,16 @@ public class ReLuActivationLayer extends NNLayer {
     }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).parallel().forEach(dataIndex -> {
-          Tensor deltaTensor = delta.get(dataIndex);
-          final @Nullable double[] deltaData = deltaTensor.getData();
-          Tensor inputTensor = indata.get(dataIndex);
-          final @Nullable double[] inputData = inputTensor.getData();
+          @javax.annotation.Nullable Tensor deltaTensor = delta.get(dataIndex);
+          @Nullable final double[] deltaData = deltaTensor.getData();
+          @javax.annotation.Nullable Tensor inputTensor = indata.get(dataIndex);
+          @Nullable final double[] inputData = inputTensor.getData();
           @javax.annotation.Nonnull final Tensor weightDelta = new Tensor(weights.getDimensions());
-          final @Nullable double[] weightDeltaData = weightDelta.getData();
+          @Nullable final double[] weightDeltaData = weightDelta.getData();
           for (int i = 0; i < deltaData.length; i++) {
             weightDeltaData[0] += inputData[i] < 0 ? 0 : deltaData[i] * inputData[i];
           }
-          buffer.get(ReLuActivationLayer.this, weights.getData()).addInPlace(weightDeltaData);
+          buffer.get(ReLuActivationLayer.this, weights.getData()).addInPlace(weightDeltaData).freeRef();
           deltaTensor.freeRef();
           inputTensor.freeRef();
           weightDelta.freeRef();
@@ -134,10 +135,10 @@ public class ReLuActivationLayer extends NNLayer {
       if (input.isAlive()) {
         final double weight = weights.getData()[0];
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).parallel().mapToObj(dataIndex -> {
-          Tensor deltaTensor = delta.get(dataIndex);
-          final @Nullable double[] deltaData = deltaTensor.getData();
-          Tensor inTensor = indata.get(dataIndex);
-          final @Nullable double[] inputData = inTensor.getData();
+          @javax.annotation.Nullable Tensor deltaTensor = delta.get(dataIndex);
+          @Nullable final double[] deltaData = deltaTensor.getData();
+          @javax.annotation.Nullable Tensor inTensor = indata.get(dataIndex);
+          @Nullable final double[] inputData = inTensor.getData();
           @javax.annotation.Nonnull final int[] dims = inTensor.getDimensions();
           @javax.annotation.Nonnull final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {

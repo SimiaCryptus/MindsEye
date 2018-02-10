@@ -21,10 +21,10 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -67,34 +67,40 @@ public class BiasMetaLayer extends NNLayer {
     return new BiasMetaLayer(json);
   }
   
+  @Nullable
   @Override
-  public @Nullable NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
     final Tensor[] tensors = IntStream.range(0, itemCnt)
-                                      .parallel()
-                                      .mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).mapIndex((v, c) -> v + inObj[1].getData().get(0).get(c)))
-                                      .toArray(i -> new Tensor[i]);
+      .parallel()
+      .mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).mapIndex((v, c) -> v + inObj[1].getData().get(0).get(c)))
+      .toArray(i -> new Tensor[i]);
     Tensor tensor0 = tensors[0];
     tensor0.addRef();
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     return new NNResult(TensorArray.wrap(tensors), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
-        @javax.annotation.Nonnull TensorArray delta = TensorArray.wrap(data.stream().map(t -> t.mapParallel(v -> v)).toArray(i -> new Tensor[i]));
-        inObj[0].accumulate(buffer, delta);
-        delta.freeRef();
+        inObj[0].accumulate(buffer, data);
       }
       if (inObj[1].isAlive()) {
         @javax.annotation.Nonnull final ToDoubleFunction<Coordinate> f = (c) -> {
           return IntStream.range(0, itemCnt).mapToDouble(i -> data.get(i).get(c)).sum();
         };
-        final @Nullable Tensor passback = tensor0.mapCoords(f);
+        @Nullable final Tensor passback = tensor0.mapCoords(f);
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, inObj[1].getData().length())
-                                                                                      .mapToObj(i -> i == 0 ? passback : passback.map(v -> 0)).toArray(i -> new Tensor[i]));
+          .mapToObj(i -> {
+            if (i == 0) return passback;
+            else {
+              @javax.annotation.Nullable Tensor map = passback.map(v -> 0);
+              passback.freeRef();
+              return map;
+            }
+          }).toArray(i -> new Tensor[i]));
         inObj[1].accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
     }) {
-  
+      
       @Override
       protected void _free() {
         tensor0.freeRef();

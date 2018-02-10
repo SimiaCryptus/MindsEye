@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 
+import javax.annotation.Nonnull;
+
 /**
  * An interface for CuDNN layers with configurable numeric precision.
  *
@@ -40,5 +42,6 @@ public interface MultiPrecision<T> {
    * @param precision the precision
    * @return the precision
    */
+  @Nonnull
   T setPrecision(Precision precision);
 }

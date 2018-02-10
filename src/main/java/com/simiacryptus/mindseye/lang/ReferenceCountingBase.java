@@ -19,10 +19,10 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -40,29 +40,25 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   private static final Logger logger = LoggerFactory.getLogger(ReferenceCountingBase.class);
   private static final boolean DEBUG_LIFECYCLE = ReferenceCountingBase.class.desiredAssertionStatus();
   private static final boolean SUPPRESS_LOG = false;
-  
-  private final AtomicInteger references = new AtomicInteger(1);
-  private final AtomicBoolean isFreed = new AtomicBoolean(false);
-  private final @Nullable StackTraceElement[] createdBy = DEBUG_LIFECYCLE ? Thread.currentThread().getStackTrace() : null;
   private static final ConcurrentHashMap<Class<?>, ConcurrentLinkedDeque<Supplier<ReferenceCountingBase>>> leakMap = new ConcurrentHashMap<>();
   private static final PersistanceMode FREE_WARNING_PERSISTANCE = PersistanceMode.Soft;
-  private volatile @Nullable StackTraceElement[] finalizedBy = null;
-  private volatile boolean isFinalized = false;
   private static final int MAX_FREE_WARNINGS = 1;
+  private static final long LOAD_TIME = System.nanoTime();
+  private final AtomicInteger references = new AtomicInteger(1);
+  private final AtomicBoolean isFreed = new AtomicBoolean(false);
+  @Nullable
+  private final StackTraceElement[] createdBy = DEBUG_LIFECYCLE ? Thread.currentThread().getStackTrace() : null;
+  private final ConcurrentLinkedDeque<StackTraceElement[]> addRefs = new ConcurrentLinkedDeque<>();
+  private final ConcurrentLinkedDeque<StackTraceElement[]> freeRefs = new ConcurrentLinkedDeque<>();
+  @Nullable
+  private volatile StackTraceElement[] finalizedBy = null;
+  private volatile boolean isFinalized = false;
+  private boolean floating = false;
   
   @javax.annotation.Nonnull
   private static String getString(@Nullable StackTraceElement[] trace) {
     return null == trace ? "?" : Arrays.stream(trace).map(x -> "at " + x).skip(2).reduce((a, b) -> a + "\n" + b).orElse("<Empty Stack>");
   }
-  
-  @Override
-  public void addRef() {
-    assertAlive();
-    if (references.incrementAndGet() <= 1) throw new IllegalStateException();
-    if (DEBUG_LIFECYCLE) addRefs.add(Thread.currentThread().getStackTrace());
-  }
-  
-  private final ConcurrentLinkedDeque<StackTraceElement[]> addRefs = new ConcurrentLinkedDeque<>();
   
   /**
    * Detail string string.
@@ -88,41 +84,43 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     });
   }
   
+  @Override
+  public void addRef() {
+    assertAlive();
+    if (references.incrementAndGet() <= 1) throw new IllegalStateException();
+    if (DEBUG_LIFECYCLE) addRefs.add(Thread.currentThread().getStackTrace());
+  }
+  
   public final boolean isFinalized() {
     return isFreed.get();
   }
-  
+
   private String detailString(boolean includeCaller) {
     @javax.annotation.Nonnull ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     @javax.annotation.Nonnull PrintStream out = new PrintStream(buffer);
     out.print(String.format("Object %s (%d refs, %d frees) ",
-                            getClass().getName(), 1 + addRefs.size(), freeRefs.size()));
+      getClass().getName(), 1 + addRefs.size(), freeRefs.size()));
     if (null != createdBy) {
       out.println(String.format("created by \n\t%s",
-                                getString(createdBy).replaceAll("\n", "\n\t")));
+        getString(createdBy).replaceAll("\n", "\n\t")));
     }
     for (StackTraceElement[] stack : addRefs) {
       out.println(String.format("reference added by \n\t%s",
-                                getString(stack).replaceAll("\n", "\n\t")));
+        getString(stack).replaceAll("\n", "\n\t")));
     }
     for (StackTraceElement[] stack : freeRefs) {
       out.println(String.format("reference removed by \n\t%s",
-                                getString(stack).replaceAll("\n", "\n\t")));
+        getString(stack).replaceAll("\n", "\n\t")));
     }
     if (null != finalizedBy) {
       out.println(String.format("freed by \n\t%s",
-                                getString(this.finalizedBy).replaceAll("\n", "\n\t")));
+        getString(this.finalizedBy).replaceAll("\n", "\n\t")));
     }
     if (includeCaller) out.println(String.format("with current stack \n\t%s",
-                                                 getString(Thread.currentThread().getStackTrace()).replaceAll("\n", "\n\t")));
+      getString(Thread.currentThread().getStackTrace()).replaceAll("\n", "\n\t")));
     out.close();
     return buffer.toString();
   }
-  
-  private static final long LOAD_TIME = System.nanoTime();
-  
-  private final ConcurrentLinkedDeque<StackTraceElement[]> freeRefs = new ConcurrentLinkedDeque<>();
-  private boolean floating = false;
   
   /**
    * Assert alive.
@@ -177,7 +175,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
    * Free.
    */
   protected void _free() {}
-
+  
   @Override
   protected final void finalize() throws Throwable {
     isFinalized = true;

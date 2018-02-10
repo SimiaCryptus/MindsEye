@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 
+import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
@@ -44,7 +45,7 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
    *
    * @param id the id
    */
-  protected MaxConstLayer(final JsonObject id) {
+  protected MaxConstLayer(@Nonnull final JsonObject id) {
     super(id);
   }
   

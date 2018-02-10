@@ -21,8 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +34,8 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public class ConstNNLayer extends NNLayer {
   
-  private @Nullable Tensor data;
+  @Nullable
+  private Tensor data;
   
   /**
    * Instantiates a new Const nn layer.
@@ -76,7 +77,8 @@ public class ConstNNLayer extends NNLayer {
     return new NNResult(TensorArray.create(data), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (!isFrozen()) {
         data.stream().forEach(datum -> {
-          buffer.get(ConstNNLayer.this, ConstNNLayer.this.data.getData()).addInPlace(datum.getData());
+          buffer.get(ConstNNLayer.this, ConstNNLayer.this.data.getData()).addInPlace(datum.getData()).freeRef();
+          datum.freeRef();
         });
       }
     }) {
@@ -98,7 +100,8 @@ public class ConstNNLayer extends NNLayer {
    *
    * @return the data
    */
-  public @Nullable Tensor getData() {
+  @Nullable
+  public Tensor getData() {
     return data;
   }
   

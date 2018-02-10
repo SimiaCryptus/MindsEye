@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
@@ -44,7 +45,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
    *
    * @param toCopy the to copy
    */
-  public DeltaSet(final DoubleBufferSet<K, Delta<K>> toCopy) {
+  public DeltaSet(@Nonnull final DoubleBufferSet<K, Delta<K>> toCopy) {
     super(toCopy);
     assert stream().allMatch(x -> x instanceof Delta);
   }
@@ -54,7 +55,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
    *
    * @param collect the collect
    */
-  public DeltaSet(final Map<K, ? extends Delta<K>> collect) {
+  public DeltaSet(@Nonnull final Map<K, ? extends Delta<K>> collect) {
     super(collect);
     assert stream().allMatch(x -> x instanceof Delta);
   }
@@ -146,7 +147,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
   
   @javax.annotation.Nonnull
   @Override
-  protected Delta<K> factory(final K layer, final double[] target) {
+  protected Delta<K> factory(@Nonnull final K layer, final double[] target) {
     return new Delta<K>(layer, target);
   }
   
@@ -171,7 +172,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
   @javax.annotation.Nonnull
   @Override
   public DeltaSet<K> map(final Function<Delta<K>, Delta<K>> mapper) {
-    DoubleBufferSet<K, Delta<K>> map = super.map(mapper);
+    @Nonnull DoubleBufferSet<K, Delta<K>> map = super.map(mapper);
     @javax.annotation.Nonnull DeltaSet<K> kDeltaSet = new DeltaSet<>(map);
     map.freeRef();
     return kDeltaSet;
@@ -195,7 +196,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
    * @return the delta setByCoord
    */
   @javax.annotation.Nonnull
-  public DeltaSet<K> subtract(final DeltaSet<K> right) {
+  public DeltaSet<K> subtract(@Nonnull final DeltaSet<K> right) {
     return this.add(new DeltaSet<K>(right).scale(-1));
   }
   

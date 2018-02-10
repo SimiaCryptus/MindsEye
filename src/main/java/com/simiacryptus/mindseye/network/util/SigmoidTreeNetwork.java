@@ -26,8 +26,8 @@ import com.simiacryptus.mindseye.layers.java.*;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.util.FastRandom;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -44,14 +44,22 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
    * The Initial fuzzy coeff.
    */
   double initialFuzzyCoeff = 1e-8;
-  private @Nullable NNLayer alpha = null;
-  private @Nullable NNLayer alphaBias = null;
-  private @Nullable NNLayer beta = null;
-  private @Nullable NNLayer betaBias = null;
-  private @Nullable NNLayer gate = null;
-  private @Nullable NNLayer gateBias = null;
-  private @Nullable DAGNode head = null;
-  private @Nullable NodeMode mode = null;
+  @Nullable
+  private NNLayer alpha = null;
+  @Nullable
+  private NNLayer alphaBias = null;
+  @Nullable
+  private NNLayer beta = null;
+  @Nullable
+  private NNLayer betaBias = null;
+  @Nullable
+  private NNLayer gate = null;
+  @Nullable
+  private NNLayer gateBias = null;
+  @Nullable
+  private DAGNode head = null;
+  @Nullable
+  private NodeMode mode = null;
   private boolean skipChildStage = true;
   private boolean skipFuzzy = false;
   
@@ -118,8 +126,8 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
    * @param to   the to
    */
   public void copyState(@javax.annotation.Nonnull final NNLayer from, @javax.annotation.Nonnull final NNLayer to) {
-    final @Nullable List<double[]> alphaState = from.state();
-    final @Nullable List<double[]> betaState = to.state();
+    @Nullable final List<double[]> alphaState = from.state();
+    @Nullable final List<double[]> betaState = to.state();
     for (int i = 0; i < alphaState.size(); i++) {
       final double[] betaBuffer = betaState.get(i);
       final double[] alphaBuffer = alphaState.get(i);
@@ -127,8 +135,9 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
     }
   }
   
+  @Nullable
   @Override
-  public synchronized @Nullable DAGNode getHead() {
+  public synchronized DAGNode getHead() {
     if (null == head) {
       synchronized (this) {
         if (null == head) {
@@ -141,38 +150,38 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
             case Fuzzy: {
               final DAGNode gateNode = add(gate.setFrozen(false), null != gateBias ? add(gateBias.setFrozen(false), input) : input);
               head = add(new ProductInputsLayer(),
-                         add(alpha.setFrozen(false), add(alphaBias.setFrozen(false), input)),
-                         add(new LinearActivationLayer().setScale(2).freeze(),
-                             add(new SigmoidActivationLayer().setBalanced(false), gateNode))
-                        );
+                add(alpha.setFrozen(false), add(alphaBias.setFrozen(false), input)),
+                add(new LinearActivationLayer().setScale(2).freeze(),
+                  add(new SigmoidActivationLayer().setBalanced(false), gateNode))
+              );
               break;
             }
             case Bilinear: {
               final DAGNode gateNode = add(gate.setFrozen(false), null != gateBias ? add(gateBias.setFrozen(false), input) : input);
               head = add(new SumInputsLayer(),
-                         add(new ProductInputsLayer(),
-                             add(alpha.setFrozen(false), add(alphaBias.setFrozen(false), input)),
-                             add(new SigmoidActivationLayer().setBalanced(false), gateNode)
-                            ),
-                         add(new ProductInputsLayer(),
-                             add(beta.setFrozen(false), add(betaBias.setFrozen(false), input)),
-                             add(new SigmoidActivationLayer().setBalanced(false),
-                                 add(new LinearActivationLayer().setScale(-1).freeze(), gateNode))
-                            ));
+                add(new ProductInputsLayer(),
+                  add(alpha.setFrozen(false), add(alphaBias.setFrozen(false), input)),
+                  add(new SigmoidActivationLayer().setBalanced(false), gateNode)
+                ),
+                add(new ProductInputsLayer(),
+                  add(beta.setFrozen(false), add(betaBias.setFrozen(false), input)),
+                  add(new SigmoidActivationLayer().setBalanced(false),
+                    add(new LinearActivationLayer().setScale(-1).freeze(), gateNode))
+                ));
               break;
             }
             case Final:
               final DAGNode gateNode = add(gate.setFrozen(false), null != gateBias ? add(gateBias.setFrozen(false), input) : input);
               head = add(new SumInputsLayer(),
-                         add(new ProductInputsLayer(),
-                             add(alpha, input),
-                             add(new SigmoidActivationLayer().setBalanced(false), gateNode)
-                            ),
-                         add(new ProductInputsLayer(),
-                             add(beta, input),
-                             add(new SigmoidActivationLayer().setBalanced(false),
-                                 add(new LinearActivationLayer().setScale(-1).freeze(), gateNode))
-                            ));
+                add(new ProductInputsLayer(),
+                  add(alpha, input),
+                  add(new SigmoidActivationLayer().setBalanced(false), gateNode)
+                ),
+                add(new ProductInputsLayer(),
+                  add(beta, input),
+                  add(new SigmoidActivationLayer().setBalanced(false),
+                    add(new LinearActivationLayer().setScale(-1).freeze(), gateNode))
+                ));
               break;
           }
         }
@@ -184,7 +193,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     assertConsistent();
-    final @Nullable DAGNode head = getHead();
+    @Nullable final DAGNode head = getHead();
     final JsonObject json = super.getJson(resources, dataSerializer);
     json.addProperty("head", head.getId().toString());
     if (null != alpha) {
@@ -217,7 +226,8 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
    *
    * @return the mode
    */
-  public @Nullable NodeMode getMode() {
+  @Nullable
+  public NodeMode getMode() {
     return mode;
   }
   
@@ -256,7 +266,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
       }
       case Fuzzy: {
         head = null;
-        final @Nullable FullyConnectedLayer alpha = (FullyConnectedLayer) this.alpha;
+        @Nullable final FullyConnectedLayer alpha = (FullyConnectedLayer) this.alpha;
         @javax.annotation.Nonnull final BiasLayer alphaBias = (BiasLayer) this.alphaBias;
         beta = new FullyConnectedLayer(alpha.inputDims, alpha.outputDims).set(() -> {
           return initialFuzzyCoeff * (FastRandom.random() - 0.5);

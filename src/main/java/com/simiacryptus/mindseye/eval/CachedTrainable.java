@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,6 +50,7 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
     super(inner);
   }
   
+  @Nonnull
   @Override
   public CachedTrainable<? extends Trainable> cached() {
     return this;
@@ -102,7 +104,7 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
       if (!result.weights.isDifferent()) {
         if (isVerbose()) {
           log.info(String.format("Returning cached value; %s buffers unchanged since %s => %s",
-                                 result.weights.getMap().size(), result.rate, result.getMean()));
+            result.weights.getMap().size(), result.rate, result.getMean()));
         }
         return result.copyFull();
       }

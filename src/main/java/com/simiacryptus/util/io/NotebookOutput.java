@@ -21,6 +21,8 @@ package com.simiacryptus.util.io;
 
 import com.simiacryptus.util.lang.UncheckedSupplier;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
 import java.io.Closeable;
 import java.io.File;
@@ -111,6 +113,7 @@ public interface NotebookOutput extends Closeable {
    * @param name the name
    * @return the output stream
    */
+  @Nonnull
   OutputStream file(String name);
   
   /**
@@ -120,6 +123,7 @@ public interface NotebookOutput extends Closeable {
    * @param caption the caption
    * @return the string
    */
+  @Nonnull
   String file(String data, String caption);
   
   /**
@@ -130,6 +134,7 @@ public interface NotebookOutput extends Closeable {
    * @param caption  the caption
    * @return the string
    */
+  @Nonnull
   String file(byte[] data, String filename, String caption);
   
   /**
@@ -140,6 +145,7 @@ public interface NotebookOutput extends Closeable {
    * @param caption  the caption
    * @return the string
    */
+  @Nonnull
   String file(String data, String fileName, String caption);
   
   /**
@@ -174,6 +180,7 @@ public interface NotebookOutput extends Closeable {
    * @return the string
    * @throws IOException the io exception
    */
+  @Nonnull
   String image(BufferedImage rawImage, String caption) throws IOException;
   
   /**
@@ -228,7 +235,7 @@ public interface NotebookOutput extends Closeable {
    * @param delimiter the delimiter
    */
   default void appendFrontMatterProperty(String key, String value, String delimiter) {
-    String prior = getFrontMatterProperty(key);
+    @Nullable String prior = getFrontMatterProperty(key);
     if (null == prior) setFrontMatterProperty(key, value);
     else setFrontMatterProperty(key, prior + delimiter + value);
   }
@@ -239,6 +246,7 @@ public interface NotebookOutput extends Closeable {
    * @param key the key
    * @return the front matter property
    */
+  @Nullable
   String getFrontMatterProperty(String key);
   
   /**
@@ -253,6 +261,7 @@ public interface NotebookOutput extends Closeable {
    *
    * @return the resource dir
    */
+  @Nonnull
   File getResourceDir();
   
   /**
@@ -268,5 +277,6 @@ public interface NotebookOutput extends Closeable {
    * @param size the size
    * @return the max out size
    */
+  @Nonnull
   NotebookOutput setMaxOutSize(int size);
 }

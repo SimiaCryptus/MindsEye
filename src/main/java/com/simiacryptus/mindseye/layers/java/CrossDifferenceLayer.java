@@ -21,8 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -81,13 +81,14 @@ public class CrossDifferenceLayer extends NNLayer {
       final int inputDim = tensor.dim();
       final int outputDim = (inputDim * inputDim - inputDim) / 2;
       @javax.annotation.Nonnull final Tensor result = new Tensor(outputDim);
-      final @Nullable double[] inputData = tensor.getData();
-      final @Nullable double[] resultData = result.getData();
+      @Nullable final double[] inputData = tensor.getData();
+      @Nullable final double[] resultData = result.getData();
       IntStream.range(0, inputDim).forEach(x -> {
         IntStream.range(x + 1, inputDim).forEach(y -> {
           resultData[CrossDifferenceLayer.index(x, y, inputDim)] = inputData[x] - inputData[y];
         });
       });
+      tensor.freeRef();
       return result;
     }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       final NNResult input = inObj[0];
@@ -96,14 +97,15 @@ public class CrossDifferenceLayer extends NNLayer {
           final int outputDim = tensor.dim();
           final int inputDim = (1 + (int) Math.sqrt(1 + 8 * outputDim)) / 2;
           @javax.annotation.Nonnull final Tensor passback = new Tensor(inputDim);
-          final @Nullable double[] passbackData = passback.getData();
-          final @Nullable double[] tensorData = tensor.getData();
+          @Nullable final double[] passbackData = passback.getData();
+          @Nullable final double[] tensorData = tensor.getData();
           IntStream.range(0, inputDim).forEach(x -> {
             IntStream.range(x + 1, inputDim).forEach(y -> {
               passbackData[x] += tensorData[CrossDifferenceLayer.index(x, y, inputDim)];
               passbackData[y] += -tensorData[CrossDifferenceLayer.index(x, y, inputDim)];
             });
           });
+          tensor.freeRef();
           return passback;
         }).toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);

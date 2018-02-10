@@ -137,17 +137,17 @@ public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> impl
     if (0 < getTrainingSize() && getTrainingSize() < this.trainingData.size() - 1) {
       @javax.annotation.Nonnull final Random random = new Random(seed);
       trainingData = IntStream.generate(() -> random.nextInt(this.trainingData.size()))
-                              .distinct()
-                              .mapToObj(i -> this.trainingData.get(i))
-                              .filter(x -> x != null && x.get() != null)
-                              .limit(getTrainingSize()).map(x -> x.get())
-                              .toArray(i -> new Tensor[i][]);
+        .distinct()
+        .mapToObj(i -> this.trainingData.get(i))
+        .filter(x -> x != null && x.get() != null)
+        .limit(getTrainingSize()).map(x -> x.get())
+        .toArray(i -> new Tensor[i][]);
     }
     else {
       trainingData = this.trainingData.stream()
-                                      .filter(x -> x != null && x.get() != null)
-                                      .limit(getTrainingSize()).map(x -> x.get())
-                                      .toArray(i -> new Tensor[i][]);
+        .filter(x -> x != null && x.get() != null)
+        .limit(getTrainingSize()).map(x -> x.get())
+        .toArray(i -> new Tensor[i][]);
     }
     getInner().setTrainingData(trainingData);
   }

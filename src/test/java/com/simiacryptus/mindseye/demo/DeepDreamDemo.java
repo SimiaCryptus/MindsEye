@@ -41,9 +41,9 @@ import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.SysOutInterceptor;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
+import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -126,9 +126,9 @@ public class DeepDreamDemo extends NotebookReportBase {
         clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
         @javax.annotation.Nonnull PipelineNetwork supervised = new PipelineNetwork(2);
         supervised.wrap(new EntropyLossLayer(),
-                        supervised.add(vgg16.getNetwork().freeze(),
-                                       supervised.wrap(clamp, supervised.getInput(0))),
-                        supervised.getInput(1));
+          supervised.add(vgg16.getNetwork().freeze(),
+            supervised.wrap(clamp, supervised.getInput(0))),
+          supervised.getInput(1));
         @javax.annotation.Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setMask(true, false).setData(data);
         new IterativeTrainer(trainable)
           .setMonitor(getTrainingMonitor(history))
@@ -155,8 +155,8 @@ public class DeepDreamDemo extends NotebookReportBase {
         @javax.annotation.Nonnull HashMap<String, Object> row = new HashMap<>();
         row.put("Image", log.image(images[i].toImage(), ""));
         row.put("Prediction", predictions.get(i).entrySet().stream()
-                                         .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
-                                         .reduce((a, b) -> a + "<br/>" + b).get());
+          .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
+          .reduce((a, b) -> a + "<br/>" + b).get());
         tableOutput.putRow(row);
       }
       return tableOutput;

@@ -21,10 +21,10 @@ package com.simiacryptus.mindseye.lang;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.concurrent.*;
@@ -160,7 +160,8 @@ public abstract class RecycleBin<T> {
    * @param size     the size
    * @return the double [ ]
    */
-  public @Nullable T copyOf(final @Nullable T original, long size) {
+  @Nullable
+  public T copyOf(@Nullable final T original, long size) {
     if (null == original) return null;
     final T copy = obtain(size);
     System.arraycopy(original, 0, copy, 0, (int) size);
@@ -182,7 +183,8 @@ public abstract class RecycleBin<T> {
    * @param length the length
    * @return the allocations
    */
-  public @Nullable StackCounter getAllocations(final long length) {
+  @Nullable
+  public StackCounter getAllocations(final long length) {
     if (!isProfiling(length)) return null;
     return allocations;
   }
@@ -193,7 +195,8 @@ public abstract class RecycleBin<T> {
    * @param length the length
    * @return the frees
    */
-  public @Nullable StackCounter getFrees(final long length) {
+  @Nullable
+  public StackCounter getFrees(final long length) {
     if (!isProfiling(length)) return null;
     return frees;
   }
@@ -204,7 +207,8 @@ public abstract class RecycleBin<T> {
    * @param length the length
    * @return the recycle get
    */
-  public @Nullable StackCounter getRecycle_put(final long length) {
+  @Nullable
+  public StackCounter getRecycle_put(final long length) {
     if (!isProfiling(length)) return null;
     return recycle_put;
   }
@@ -215,7 +219,8 @@ public abstract class RecycleBin<T> {
    * @param length the length
    * @return the recycle submit
    */
-  public @Nullable StackCounter getRecycle_get(final long length) {
+  @Nullable
+  public StackCounter getRecycle_get(final long length) {
     if (!isProfiling(length)) return null;
     return recycle_get;
   }
@@ -265,11 +270,11 @@ public abstract class RecycleBin<T> {
    *
    * @param out the out
    */
-  public void printNetProfiling(final @Nullable PrintStream out) {
+  public void printNetProfiling(@Nullable final PrintStream out) {
     if (null != out && null != recycle_put && null != recycle_get) {
       out.println("Recycle Bin (Net) Profiling:\n\t" +
-                    StackCounter.toString(recycle_put, recycle_get, (a, b) -> a.getSum() - b.getSum())
-                                .replaceAll("\n", "\n\t"));
+        StackCounter.toString(recycle_put, recycle_get, (a, b) -> a.getSum() - b.getSum())
+          .replaceAll("\n", "\n\t"));
     }
   }
   
@@ -351,7 +356,7 @@ public abstract class RecycleBin<T> {
    * @param data the data
    * @param size the size
    */
-  public void recycle(final @Nullable T data, long size) {
+  public void recycle(@Nullable final T data, long size) {
     if (null != data && size >= getMinLengthPerBuffer() && size <= getMaxLengthPerBuffer()) {
       @Nullable StackCounter stackCounter = getRecycle_put(size);
       if (null != stackCounter) {
@@ -432,6 +437,7 @@ public abstract class RecycleBin<T> {
    * @param data the data
    * @return the reference
    */
+  @javax.annotation.Nullable
   protected Supplier<T> wrap(T data) {
     return persistanceMode.wrap(data);
   }

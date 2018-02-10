@@ -23,8 +23,8 @@ import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.util.lang.StaticResourcePool;
 import jcuda.Pointer;
 import jcuda.jcudnn.*;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -48,6 +48,10 @@ public class CuDNNHandle extends GpuDevice {
     }
   };
   /**
+   * The Thread context.
+   */
+  static final ThreadLocal<CuDNNHandle> threadContext = new ThreadLocal<>();
+  /**
    * The constant gpuContexts.
    */
   private static final boolean DISABLE = Boolean.parseBoolean(System.getProperty("DISABLE_CUDNN", Boolean.toString(false)));
@@ -57,11 +61,8 @@ public class CuDNNHandle extends GpuDevice {
    * The constant POOL.
    */
   public static final StaticResourcePool<CuDNNHandle> POOL = new StaticResourcePool<>(loadGpuContexts());
-  /**
-   * The Thread context.
-   */
-  static final ThreadLocal<CuDNNHandle> threadContext = new ThreadLocal<>();
-  private final @Nullable jcuda.jcudnn.cudnnHandle handle;
+  @Nullable
+  private final jcuda.jcudnn.cudnnHandle handle;
   
   /**
    * Instantiates a new Cu dnn.
@@ -126,19 +127,19 @@ public class CuDNNHandle extends GpuDevice {
     }
     if (System.getProperties().containsKey("gpus")) {
       List<Integer> devices2 = Arrays.stream(System.getProperty("gpus").split(","))
-                                     .map(Integer::parseInt).collect(Collectors.toList());
+        .map(Integer::parseInt).collect(Collectors.toList());
       devices.clear();
       devices.addAll(devices2);
     }
     List<CuDNNHandle> handles = devices.stream()
-                                       .flatMap(i -> {
-                                         try {
-                                           return IntStream.range(0, THREADS_PER_GPU).mapToObj(j -> new CuDNNHandle(i));
-                                         } catch (Throwable e) {
-                                           logger.warn(String.format("Error initializing device %d", i), e);
-                                           return Stream.empty();
-                                         }
-                                       }).collect(Collectors.toList());
+      .flatMap(i -> {
+        try {
+          return IntStream.range(0, THREADS_PER_GPU).mapToObj(j -> new CuDNNHandle(i));
+        } catch (Throwable e) {
+          logger.warn(String.format("Error initializing device %d", i), e);
+          return Stream.empty();
+        }
+      }).collect(Collectors.toList());
     logger.info(String.format("Found %s devices; using %s handles per devices %s; %s handles", deviceCount, THREADS_PER_GPU, devices, handles.size()));
     return handles;
   }
@@ -538,12 +539,12 @@ public class CuDNNHandle extends GpuDevice {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionBackwardDataWorkspaceSize(cudnnHandle,
-                                                                           filterDesc, outputDesc, convDesc, inputDesc,
-                                                                           algorithm, sizeInBytesArray);
+      filterDesc, outputDesc, convDesc, inputDesc,
+      algorithm, sizeInBytesArray);
     allocateBackwardDataWorkspace_execution.accept((System.nanoTime() - startTime) / 1e9);
     GpuSystem.log("cudnnGetConvolutionBackwardDataWorkspaceSize", result, cudnnHandle,
-                  filterDesc, outputDesc, convDesc, inputDesc,
-                  algorithm, sizeInBytesArray);
+      filterDesc, outputDesc, convDesc, inputDesc,
+      algorithm, sizeInBytesArray);
     GpuSystem.handle(result);
     final long workspaceSize = sizeInBytesArray[0];
     final long size = 0 < workspaceSize ? workspaceSize : 0;
@@ -567,12 +568,12 @@ public class CuDNNHandle extends GpuDevice {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionBackwardFilterWorkspaceSize(cudnnHandle,
-                                                                             srcTensorDesc, dstTensorDesc, convDesc, filterDesc,
-                                                                             algorithm, sizeInBytesArray);
+      srcTensorDesc, dstTensorDesc, convDesc, filterDesc,
+      algorithm, sizeInBytesArray);
     allocateBackwardFilterWorkspace_execution.accept((System.nanoTime() - startTime) / 1e9);
     GpuSystem.log("cudnnGetConvolutionBackwardFilterWorkspaceSize", result, cudnnHandle,
-                  srcTensorDesc, dstTensorDesc, convDesc, filterDesc,
-                  algorithm, sizeInBytesArray);
+      srcTensorDesc, dstTensorDesc, convDesc, filterDesc,
+      algorithm, sizeInBytesArray);
     GpuSystem.handle(result);
     final long workspaceSize = sizeInBytesArray[0];
     final long size = 0 < workspaceSize ? workspaceSize : 0;
@@ -596,12 +597,12 @@ public class CuDNNHandle extends GpuDevice {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionForwardWorkspaceSize(cudnnHandle,
-                                                                      srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
-                                                                      algorithm, sizeInBytesArray);
+      srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
+      algorithm, sizeInBytesArray);
     allocateForwardWorkspace_execution.accept((System.nanoTime() - startTime) / 1e9);
     GpuSystem.log("cudnnGetConvolutionForwardWorkspaceSize", result, cudnnHandle,
-                  srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
-                  algorithm, sizeInBytesArray);
+      srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
+      algorithm, sizeInBytesArray);
     GpuSystem.handle(result);
     final long workspaceSize = sizeInBytesArray[0];
     final long size = 0 < workspaceSize ? workspaceSize : 0;
@@ -622,12 +623,12 @@ public class CuDNNHandle extends GpuDevice {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final int algoArray[] = {-1};
     final int result = JCudnn.cudnnGetConvolutionBackwardDataAlgorithm(cudnnHandle,
-                                                                       filterDesc, inputDesc, convDesc, outputDesc,
-                                                                       cudnnConvolutionBwdDataPreference.CUDNN_CONVOLUTION_BWD_DATA_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
+      filterDesc, inputDesc, convDesc, outputDesc,
+      cudnnConvolutionBwdDataPreference.CUDNN_CONVOLUTION_BWD_DATA_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
     getBackwardDataAlgorithm_execution.accept((System.nanoTime() - startTime) / 1e9);
     GpuSystem.log("cudnnGetConvolutionBackwardDataAlgorithm", result, cudnnHandle,
-                  filterDesc, inputDesc, convDesc, outputDesc,
-                  cudnnConvolutionBwdDataPreference.CUDNN_CONVOLUTION_BWD_DATA_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
+      filterDesc, inputDesc, convDesc, outputDesc,
+      cudnnConvolutionBwdDataPreference.CUDNN_CONVOLUTION_BWD_DATA_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
     GpuSystem.handle(result);
     return algoArray[0];
   }
@@ -646,12 +647,12 @@ public class CuDNNHandle extends GpuDevice {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final int algoArray[] = {-1};
     final int result = JCudnn.cudnnGetConvolutionBackwardFilterAlgorithm(cudnnHandle,
-                                                                         inputDesc, outputDesc, convDesc, filterDesc,
-                                                                         cudnnConvolutionBwdFilterPreference.CUDNN_CONVOLUTION_BWD_FILTER_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
+      inputDesc, outputDesc, convDesc, filterDesc,
+      cudnnConvolutionBwdFilterPreference.CUDNN_CONVOLUTION_BWD_FILTER_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
     getBackwardFilterAlgorithm_execution.accept((System.nanoTime() - startTime) / 1e9);
     GpuSystem.log("cudnnGetConvolutionBackwardFilterAlgorithm", result, cudnnHandle,
-                  inputDesc, outputDesc, convDesc, filterDesc,
-                  cudnnConvolutionBwdFilterPreference.CUDNN_CONVOLUTION_BWD_FILTER_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
+      inputDesc, outputDesc, convDesc, filterDesc,
+      cudnnConvolutionBwdFilterPreference.CUDNN_CONVOLUTION_BWD_FILTER_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
     GpuSystem.handle(result);
     return algoArray[0];
   }
@@ -670,12 +671,12 @@ public class CuDNNHandle extends GpuDevice {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final int algoArray[] = {-1};
     final int result = JCudnn.cudnnGetConvolutionForwardAlgorithm(cudnnHandle,
-                                                                  srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
-                                                                  cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
+      srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
+      cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
     getForwardAlgorithm_execution.accept((System.nanoTime() - startTime) / 1e9);
     GpuSystem.log("cudnnGetConvolutionForwardAlgorithm", result, cudnnHandle,
-                  srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
-                  cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
+      srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
+      cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
     GpuSystem.handle(result);
     return algoArray[0];
   }
@@ -709,7 +710,8 @@ public class CuDNNHandle extends GpuDevice {
    *
    * @return the handle
    */
-  public @Nullable cudnnHandle getHandle() {
+  @Nullable
+  public cudnnHandle getHandle() {
     return handle;
   }
 }

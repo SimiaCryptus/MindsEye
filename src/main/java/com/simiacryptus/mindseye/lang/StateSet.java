@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -60,7 +61,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
    *
    * @param toCopy the to copy
    */
-  public StateSet(final DoubleBufferSet<K, State<K>> toCopy) {
+  public StateSet(@Nonnull final DoubleBufferSet<K, State<K>> toCopy) {
     super(toCopy);
     assert stream().allMatch(x -> x instanceof State);
   }
@@ -70,7 +71,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
    *
    * @param collect the collect
    */
-  public StateSet(final Map<K, State<K>> collect) {
+  public StateSet(@Nonnull final Map<K, State<K>> collect) {
     super(collect);
   }
   
@@ -86,13 +87,13 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
     final Map<K, State<K>> collect = Stream.concat(
       left.map.entrySet().stream(),
       right.map.entrySet().stream()
-                                                  ).collect(Collectors.groupingBy((@javax.annotation.Nonnull final Map.Entry<K, State<K>> e1) -> e1.getKey(),
-                                                                                  Collectors.mapping((@javax.annotation.Nonnull final Map.Entry<K, State<K>> x) -> x.getValue(), Collectors.collectingAndThen(
-                                                                                    Collectors.reducing((@javax.annotation.Nonnull final State<K> a, @javax.annotation.Nonnull final State<K> b) -> {
-                                                                                      assert a.target == b.target;
-                                                                                      assert a.layer.equals(b.layer);
-                                                                                      return a;
-                                                                                    }), x -> x.get()))));
+    ).collect(Collectors.groupingBy((@javax.annotation.Nonnull final Map.Entry<K, State<K>> e1) -> e1.getKey(),
+      Collectors.mapping((@javax.annotation.Nonnull final Map.Entry<K, State<K>> x) -> x.getValue(), Collectors.collectingAndThen(
+        Collectors.reducing((@javax.annotation.Nonnull final State<K> a, @javax.annotation.Nonnull final State<K> b) -> {
+          assert a.target == b.target;
+          assert a.layer.equals(b.layer);
+          return a;
+        }), x -> x.get()))));
     return new StateSet<K>(collect);
   }
   
@@ -178,7 +179,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
   
   @javax.annotation.Nonnull
   @Override
-  protected State<K> factory(final K layer, final double[] target) {
+  protected State<K> factory(@Nonnull final K layer, final double[] target) {
     return new State<K>(layer, target);
   }
   

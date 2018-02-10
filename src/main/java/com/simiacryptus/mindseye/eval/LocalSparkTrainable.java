@@ -26,6 +26,7 @@ import org.apache.spark.rdd.RDD;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -61,6 +62,7 @@ public class LocalSparkTrainable extends SparkTrainable {
   }
   
   
+  @Nonnull
   @Override
   public PointSample measure(final TrainingMonitor monitor) {
     final long time1 = System.nanoTime();

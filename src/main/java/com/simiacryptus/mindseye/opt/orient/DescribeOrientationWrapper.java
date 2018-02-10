@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -85,23 +86,23 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
    */
   public static String render(@javax.annotation.Nonnull final StateSet<NNLayer> weights, @javax.annotation.Nonnull final DeltaSet<NNLayer> direction) {
     final Map<String, String> data = weights.stream()
-                                            .collect(Collectors.groupingBy(x -> DescribeOrientationWrapper.getId(x), Collectors.toList())).entrySet().stream()
-                                            .collect(Collectors.toMap(x -> x.getKey(), (@javax.annotation.Nonnull final Map.Entry<String, List<State<NNLayer>>> list) -> {
-                                              final List<State<NNLayer>> deltaList = list.getValue();
-                                              if (1 == deltaList.size()) {
-                                                final State<NNLayer> weightDelta = deltaList.get(0);
-                                                return DescribeOrientationWrapper.render(weightDelta, direction.getMap().get(weightDelta.layer));
-                                              }
-                                              else {
-                                                return deltaList.stream().map(weightDelta -> {
-                                                  return DescribeOrientationWrapper.render(weightDelta, direction.getMap().get(weightDelta.layer));
-                                                }).limit(10)
-                                                                .reduce((a, b) -> a + "\n" + b).orElse("");
-                                              }
-                                            }));
+      .collect(Collectors.groupingBy(x -> DescribeOrientationWrapper.getId(x), Collectors.toList())).entrySet().stream()
+      .collect(Collectors.toMap(x -> x.getKey(), (@javax.annotation.Nonnull final Map.Entry<String, List<State<NNLayer>>> list) -> {
+        final List<State<NNLayer>> deltaList = list.getValue();
+        if (1 == deltaList.size()) {
+          final State<NNLayer> weightDelta = deltaList.get(0);
+          return DescribeOrientationWrapper.render(weightDelta, direction.getMap().get(weightDelta.layer));
+        }
+        else {
+          return deltaList.stream().map(weightDelta -> {
+            return DescribeOrientationWrapper.render(weightDelta, direction.getMap().get(weightDelta.layer));
+          }).limit(10)
+            .reduce((a, b) -> a + "\n" + b).orElse("");
+        }
+      }));
     return data.entrySet().stream().map(e -> String.format("%s = %s", e.getKey(), e.getValue()))
-               .map(str -> str.replaceAll("\n", "\n\t"))
-               .reduce((a, b) -> a + "\n" + b).orElse("");
+      .map(str -> str.replaceAll("\n", "\n\t"))
+      .reduce((a, b) -> a + "\n" + b).orElse("");
   }
   
   @Override
@@ -109,7 +110,7 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
     final LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
     if (cursor instanceof SimpleLineSearchCursor) {
       final DeltaSet<NNLayer> direction = ((SimpleLineSearchCursor) cursor).direction;
-      final StateSet<NNLayer> weights = ((SimpleLineSearchCursor) cursor).origin.weights;
+      @Nonnull final StateSet<NNLayer> weights = ((SimpleLineSearchCursor) cursor).origin.weights;
       final String asString = DescribeOrientationWrapper.render(weights, direction);
       monitor.log(String.format("Orientation Details: %s", asString));
     }

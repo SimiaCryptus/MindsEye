@@ -24,8 +24,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonWriter;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -43,7 +44,11 @@ import java.util.zip.ZipOutputStream;
 public abstract class NNLayer extends ReferenceCountingBase implements Serializable {
   
   private final UUID id;
+  /**
+   * The Frozen.
+   */
   protected boolean frozen = false;
+  @javax.annotation.Nullable
   private String name;
   
   /**
@@ -141,7 +146,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
       if (method.getDeclaringClass() == NNLayer.class) {
         throw new IllegalArgumentException("Cannot find deserialization method for " + className);
       }
-      NNLayer invoke = (NNLayer) method.invoke(null, json, rs);
+      @Nonnull NNLayer invoke = (NNLayer) method.invoke(null, json, rs);
       if (null == invoke) throw new IllegalStateException();
       return invoke;
     } catch (@javax.annotation.Nonnull IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
@@ -171,6 +176,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    *
    * @return the nn layer
    */
+  @Nonnull
   public NNLayer copy() {return copy(SerialPrecision.Double);}
   
   /**
@@ -179,6 +185,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    * @param precision the precision
    * @return the nn layer
    */
+  @Nonnull
   public NNLayer copy(SerialPrecision precision) {
     assertAlive();
     @javax.annotation.Nonnull HashMap<String, byte[]> resources = new HashMap<>();
@@ -187,7 +194,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
   }
   
   @Override
-  public final boolean equals(final @Nullable Object obj) {
+  public final boolean equals(@Nullable final Object obj) {
     if (this == obj) {
       return true;
     }
@@ -197,7 +204,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
     if (getClass() != obj.getClass()) {
       return false;
     }
-    final @Nullable NNLayer other = (NNLayer) obj;
+    @Nullable final NNLayer other = (NNLayer) obj;
     if (getId() == null) {
       if (other.getId() != null) {
         return false;
@@ -215,6 +222,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    * @param array the array
    * @return the nn result
    */
+  @javax.annotation.Nullable
   public abstract NNResult eval(NNResult... array);
   
   /**
@@ -223,7 +231,8 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    * @param array the array
    * @return the nn result
    */
-  public final NNResult eval(final Tensor... array) {
+  @javax.annotation.Nullable
+  public final NNResult eval(@Nonnull final Tensor... array) {
     return eval(NNConstant.singleResultArray(array));
   }
   
@@ -233,7 +242,8 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    * @param array the array
    * @return the nn result
    */
-  public final NNResult eval(final Tensor[][] array) {
+  @javax.annotation.Nullable
+  public final NNResult eval(@Nonnull final Tensor[][] array) {
     return eval(NNConstant.singleResultArray(array));
   }
   
@@ -242,6 +252,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    *
    * @return the nn layer
    */
+  @Nonnull
   public final NNLayer freeze() {
     return setFrozen(true);
   }
@@ -260,6 +271,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    *
    * @return the id
    */
+  @javax.annotation.Nullable
   public Object getId() {
     return id;
   }
@@ -373,6 +385,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    *
    * @return the name
    */
+  @javax.annotation.Nullable
   public String getName() {
     return name;
   }
@@ -383,6 +396,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    * @param name the name
    * @return the name
    */
+  @Nonnull
   public NNLayer setName(final String name) {
     this.name = name;
     return this;
@@ -408,6 +422,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    * @param frozen the frozen
    * @return the frozen
    */
+  @Nonnull
   public NNLayer setFrozen(final boolean frozen) {
     this.frozen = frozen;
     return self();
@@ -428,8 +443,10 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    *
    * @return the list
    */
-  public abstract @Nullable List<double[]> state();
+  @Nullable
+  public abstract List<double[]> state();
   
+  @javax.annotation.Nullable
   @Override
   public final String toString() {
     return getName();

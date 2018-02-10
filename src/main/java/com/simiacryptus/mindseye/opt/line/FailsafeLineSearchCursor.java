@@ -24,6 +24,8 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
+import javax.annotation.Nonnull;
+
 /**
  * A wrapper for a line search cursor which tracks the best-known point.
  */
@@ -53,7 +55,7 @@ public class FailsafeLineSearchCursor extends LineSearchCursorBase {
    */
   public void accumulate(@javax.annotation.Nonnull final PointSample step) {
     if (null == best || best.getMean() > step.getMean()) {
-      PointSample newValue = step.copyFull();
+      @Nonnull PointSample newValue = step.copyFull();
       if (null != this.best) {
         monitor.log(String.format("New Minimum: %s > %s", best.getMean(), step.getMean()));
         this.best.freeRef();

@@ -21,8 +21,9 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -65,29 +66,37 @@ public class SumInputsLayer extends NNLayer {
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
-    return new NNResult(Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
+    return new NNResult(Arrays.stream(inObj).parallel().map(x -> {
+      TensorList data = x.getData();
+      data.addRef();
+      return data;
+    }).reduce((l, r) -> {
       assert l.length() == r.length() || 1 == l.length() || 1 == r.length();
-      return TensorArray.wrap(IntStream.range(0, l.length()).parallel()
-                                       .mapToObj(i -> {
-                                         final Tensor left = l.get(1 == l.length() ? 0 : i);
-                                         final Tensor right = r.get(1 == r.length() ? 0 : i);
-                                         if (right.dim() == 1) {
-                                           return left.mapParallel(v -> v + right.get(0));
-                                         }
-                                         else {
-                                           return left.reduceParallel(right, (v1, v2) -> v1 + v2);
-                                         }
-                                       })
-                                       .toArray(i -> new Tensor[i]));
+      @Nonnull TensorArray sum = TensorArray.wrap(IntStream.range(0, l.length()).parallel()
+        .mapToObj(i -> {
+          @javax.annotation.Nullable final Tensor left = l.get(1 == l.length() ? 0 : i);
+          @javax.annotation.Nullable final Tensor right = r.get(1 == r.length() ? 0 : i);
+          @javax.annotation.Nullable Tensor tensor;
+          if (right.dim() == 1) {
+            tensor = left.mapParallel(v -> v + right.get(0));
+          }
+          else {
+            tensor = left.reduceParallel(right, (v1, v2) -> v1 + v2);
+          }
+          left.freeRef();
+          right.freeRef();
+          return tensor;
+        })
+        .toArray(i -> new Tensor[i]));
+      l.freeRef();
+      r.freeRef();
+      return sum;
     }).get(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       for (@javax.annotation.Nonnull final NNResult input : inObj) {
         if (input.isAlive()) {
           @javax.annotation.Nonnull TensorList projectedDelta = delta;
           if (1 < projectedDelta.length() && input.getData().length() == 1) {
-            projectedDelta = TensorArray.wrap(projectedDelta.stream().parallel().map(x -> {
-              x.addRef();
-              return x;
-            }).reduce((a, b) -> {
+            projectedDelta = TensorArray.wrap(projectedDelta.stream().parallel().reduce((a, b) -> {
               @Nullable Tensor c = a.add(b);
               a.freeRef();
               b.freeRef();
@@ -98,7 +107,8 @@ public class SumInputsLayer extends NNLayer {
             projectedDelta.addRef();
           }
           if (1 < Tensor.dim(projectedDelta.getDimensions()) && Tensor.dim(input.getData().getDimensions()) == 1) {
-            @javax.annotation.Nonnull TensorArray data2 = TensorArray.wrap(projectedDelta.stream().map(t -> new Tensor(new double[]{t.sum()})).toArray(i -> new Tensor[i]));
+            Tensor[] data = projectedDelta.stream().map(t -> new Tensor(new double[]{t.sum()})).toArray(i -> new Tensor[i]);
+            @javax.annotation.Nonnull TensorArray data2 = TensorArray.wrap(data);
             projectedDelta.freeRef();
             projectedDelta = data2;
           }

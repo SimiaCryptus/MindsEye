@@ -19,8 +19,7 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import org.jetbrains.annotations.Nullable;
-
+import javax.annotation.Nullable;
 import java.util.Arrays;
 
 /**
@@ -88,7 +87,7 @@ public final class Coordinate {
   }
   
   @Override
-  public boolean equals(final @Nullable Object obj) {
+  public boolean equals(@Nullable final Object obj) {
     if (this == obj) {
       return true;
     }

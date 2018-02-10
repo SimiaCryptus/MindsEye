@@ -21,8 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -122,12 +122,12 @@ public final class NthPowerActivationLayer extends NNLayer {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     @javax.annotation.Nonnull final Tensor inputGradientA[] = new Tensor[itemCnt];
     return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].getData().get(dataIndex);
-      @javax.annotation.Nonnull final Tensor output = new Tensor(inObj[0].getData().get(dataIndex).getDimensions());
+      @javax.annotation.Nullable final Tensor input = inObj[0].getData().get(dataIndex);
+      @javax.annotation.Nonnull final Tensor output = new Tensor(inObj[0].getData().getDimensions());
       @javax.annotation.Nonnull final Tensor gradient = new Tensor(input.dim());
-      final @Nullable double[] inputData = input.getData();
-      final @Nullable double[] gradientData = gradient.getData();
-      final @Nullable double[] outputData = output.getData();
+      @Nullable final double[] inputData = input.getData();
+      @Nullable final double[] gradientData = gradient.getData();
+      @Nullable final double[] outputData = output.getData();
       inputGradientA[dataIndex] = gradient;
       if (power == 2) {
         NthPowerActivationLayer.square(input, inputData, gradientData, outputData);
@@ -141,18 +141,22 @@ public final class NthPowerActivationLayer extends NNLayer {
       else {
         NthPowerActivationLayer.nthPower(power, input, inputData, gradientData, outputData);
       }
+      input.freeRef();
       return output;
     }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
-          @javax.annotation.Nonnull final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
-          final @Nullable double[] gradientData = inputGradientA[dataIndex].getData();
+          @javax.annotation.Nonnull final Tensor passback = new Tensor(data.getDimensions());
+          @javax.annotation.Nullable final Tensor tensor = data.get(dataIndex);
+          @Nullable double[] tensorData = tensor.getData();
+          @Nullable final double[] gradientData = inputGradientA[dataIndex].getData();
           IntStream.range(0, passback.dim()).forEach(i -> {
             final double v = gradientData[i];
             if (Double.isFinite(v)) {
-              passback.set(i, data.get(dataIndex).getData()[i] * v);
+              passback.set(i, tensorData[i] * v);
             }
           });
+          tensor.freeRef();
           return passback;
         }).toArray(i -> new Tensor[i]));
         inObj[0].accumulate(buffer, tensorArray);
@@ -162,7 +166,8 @@ public final class NthPowerActivationLayer extends NNLayer {
   
       @Override
       protected void _free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+        Arrays.stream(inObj).forEach(ReferenceCountingBase::freeRef);
+        Arrays.stream(inputGradientA).forEach(ReferenceCountingBase::freeRef);
       }
       
       @Override

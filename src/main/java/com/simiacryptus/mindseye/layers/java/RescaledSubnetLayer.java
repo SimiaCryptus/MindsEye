@@ -27,8 +27,8 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.ImgConcatLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +42,8 @@ import java.util.stream.IntStream;
 public class RescaledSubnetLayer extends NNLayer {
   
   private final int scale;
-  private final @Nullable NNLayer subnetwork;
+  @Nullable
+  private final NNLayer subnetwork;
   
   /**
    * Instantiates a new Rescaled subnet layer.
@@ -55,12 +56,6 @@ public class RescaledSubnetLayer extends NNLayer {
     this.scale = scale;
     this.subnetwork = subnetwork;
     this.subnetwork.addRef();
-  }
-  
-  @Override
-  protected void _free() {
-    this.subnetwork.freeRef();
-    super._free();
   }
   
   /**
@@ -88,6 +83,13 @@ public class RescaledSubnetLayer extends NNLayer {
   }
   
   @Override
+  protected void _free() {
+    this.subnetwork.freeRef();
+    super._free();
+  }
+  
+  @javax.annotation.Nullable
+  @Override
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     assert 1 == inObj.length;
     final NNResult input = inObj[0];
@@ -95,9 +97,9 @@ public class RescaledSubnetLayer extends NNLayer {
     @javax.annotation.Nonnull final int[] inputDims = batch.get(0).getDimensions();
     assert 3 == inputDims.length;
     if (1 == scale) return subnetwork.eval(inObj);
-  
+    
     @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
-    final DAGNode condensed = network.wrap(new ImgReshapeLayer(scale, scale, false));
+    @javax.annotation.Nullable final DAGNode condensed = network.wrap(new ImgReshapeLayer(scale, scale, false));
     network.wrap(new ImgConcatLayer(), IntStream.range(0, scale * scale).mapToObj(subband -> {
       @javax.annotation.Nonnull final int[] select = new int[inputDims[2]];
       for (int i = 0; i < inputDims[2]; i++) {
@@ -106,8 +108,10 @@ public class RescaledSubnetLayer extends NNLayer {
       return network.add(subnetwork, network.wrap(new ImgBandSelectLayer(select), condensed));
     }).toArray(i -> new DAGNode[i]));
     network.wrap(new ImgReshapeLayer(scale, scale, true));
-  
-    return network.eval(inObj);
+    
+    NNResult eval = network.eval(inObj);
+    network.freeRef();
+    return eval;
   }
   
   @javax.annotation.Nonnull

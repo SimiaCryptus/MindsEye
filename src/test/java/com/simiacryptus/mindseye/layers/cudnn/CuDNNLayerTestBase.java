@@ -30,8 +30,8 @@ import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.ComponentTestBase;
 import com.simiacryptus.mindseye.test.unit.GpuLocalityTester;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
@@ -69,16 +69,17 @@ public abstract class CuDNNLayerTestBase extends LayerTestBase {
     GpuSystem.apiLog.remove(apiLog);
   }
   
+  @Nullable
   @Override
-  protected @Nullable ComponentTest<ToleranceStatistics> getReferenceIOTester() {
-    final ComponentTest<ToleranceStatistics> inner = super.getReferenceIOTester();
+  protected ComponentTest<ToleranceStatistics> getReferenceIOTester() {
+    @javax.annotation.Nullable final ComponentTest<ToleranceStatistics> inner = super.getReferenceIOTester();
     return new ComponentTestBase<ToleranceStatistics>() {
       @Override
       protected void _free() {
         inner.freeRef();
         super._free();
       }
-    
+      
       @Override
       public ToleranceStatistics test(@javax.annotation.Nonnull NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
         @Nullable PrintStream apiLog = null;
@@ -98,16 +99,17 @@ public abstract class CuDNNLayerTestBase extends LayerTestBase {
     };
   }
   
+  @Nullable
   @Override
-  public @Nullable ComponentTest<ToleranceStatistics> getPerformanceTester() {
-    ComponentTest<ToleranceStatistics> inner = super.getPerformanceTester();
+  public ComponentTest<ToleranceStatistics> getPerformanceTester() {
+    @javax.annotation.Nullable ComponentTest<ToleranceStatistics> inner = super.getPerformanceTester();
     return new ComponentTestBase<ToleranceStatistics>() {
       @Override
       protected void _free() {
         inner.freeRef();
         super._free();
       }
-    
+      
       @Override
       public ToleranceStatistics test(@javax.annotation.Nonnull NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
         @Nullable PrintStream apiLog = null;

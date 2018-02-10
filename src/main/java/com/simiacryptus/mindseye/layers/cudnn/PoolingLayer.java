@@ -28,6 +28,8 @@ import jcuda.jcudnn.cudnnPoolingMode;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 import jcuda.jcudnn.cudnnTensorFormat;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -95,6 +97,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
     else throw new RuntimeException("Not Implemented");
   }
   
+  @Nullable
   @Override
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
@@ -105,7 +108,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
     @javax.annotation.Nonnull final int stride[] = {strideX, strideY};
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
-    final int[] inputSize = batch.getDimensions();
+    @Nonnull final int[] inputSize = batch.getDimensions();
     final int length = batch.length();
     batch.addRef();
     final int inputDims = Tensor.dim(inputSize);
@@ -123,13 +126,13 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[0], outputSize[1], outputSize[2], outputSize[3]);
         @javax.annotation.Nonnull final Pointer alpha = precision.getPointer(1.0);
         @javax.annotation.Nonnull final Pointer beta = precision.getPointer(0.0);
-        final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
+        @Nullable final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
         @javax.annotation.Nonnull final CudaPtr outputTensor = CudaPtr.allocate(gpu.getDeviceNumber(), precision.size * 1l * Tensor.dim(outputSize), MemoryType.Managed, true);
         GpuSystem.handle(CuDNNHandle.cudnnPoolingForward(gpu.getHandle(), poolingDesc.getPtr(),
-                                                         alpha,
-                                                         inputDescriptor.getPtr(), inputData.getPtr(),
-                                                         beta,
-                                                         outputDescriptor.getPtr(), outputTensor.getPtr()));
+          alpha,
+          inputDescriptor.getPtr(), inputData.getPtr(),
+          beta,
+          outputDescriptor.getPtr(), outputTensor.getPtr()));
         gpu.registerForCleanup(inputDescriptor, inputData, outputDescriptor, poolingDesc);
         return outputTensor;
       } catch (@javax.annotation.Nonnull final Throwable e) {
@@ -137,43 +140,43 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
       }
     });
     return new NNResult(GpuTensorList.create(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, precision),
-                        (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
-                          assert error.length() == batch.length();
-                          if (input.isAlive()) {
-                            TensorList data = GpuSystem.eval(gpu -> {
-                              @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
-                                precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-                              @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = GpuSystem.newTensorDescriptor(
-                                precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[0], outputSize[1], outputSize[2], outputSize[3]);
-                              @javax.annotation.Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = GpuSystem.createPoolingDescriptor(
-                                mode.id, poolDims, windowSize, padding, stride);
-                              @javax.annotation.Nonnull final Pointer alpha = precision.getPointer(1.0);
-                              @javax.annotation.Nonnull final Pointer beta = precision.getPointer(0.0);
-                              final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
-                              final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
-                              @javax.annotation.Nonnull final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), inputDims * 1l * precision.size * length, MemoryType.Managed, true);
-                              GpuSystem.handle(CuDNNHandle.cudnnPoolingBackward(gpu.getHandle(), poolingDesc.getPtr(),
-                                                                                alpha,
-                                                                                outputDescriptor.getPtr(), outputData.getPtr(),
-                                                                                outputDescriptor.getPtr(), errorPtr.getPtr(),
-                                                                                inputDescriptor.getPtr(), inputData.getPtr(),
-                                                                                beta,
-                                                                                inputDescriptor.getPtr(), passbackBuffer.getPtr()));
-                              gpu.registerForCleanup(errorPtr, inputData, inputDescriptor, outputDescriptor, poolingDesc);
-                              return GpuTensorList.wrap(passbackBuffer, length, inputSize, precision);
-                            });
-                            input.accumulate(buffer, data);
-                            data.freeRef();
-                          }
-                        }) {
-  
+      (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+        assert error.length() == batch.length();
+        if (input.isAlive()) {
+          TensorList data = GpuSystem.eval(gpu -> {
+            @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
+              precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+            @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = GpuSystem.newTensorDescriptor(
+              precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[0], outputSize[1], outputSize[2], outputSize[3]);
+            @javax.annotation.Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = GpuSystem.createPoolingDescriptor(
+              mode.id, poolDims, windowSize, padding, stride);
+            @javax.annotation.Nonnull final Pointer alpha = precision.getPointer(1.0);
+            @javax.annotation.Nonnull final Pointer beta = precision.getPointer(0.0);
+            @Nullable final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
+            @Nullable final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
+            @javax.annotation.Nonnull final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), inputDims * 1l * precision.size * length, MemoryType.Managed, true);
+            GpuSystem.handle(CuDNNHandle.cudnnPoolingBackward(gpu.getHandle(), poolingDesc.getPtr(),
+              alpha,
+              outputDescriptor.getPtr(), outputData.getPtr(),
+              outputDescriptor.getPtr(), errorPtr.getPtr(),
+              inputDescriptor.getPtr(), inputData.getPtr(),
+              beta,
+              inputDescriptor.getPtr(), passbackBuffer.getPtr()));
+            gpu.registerForCleanup(errorPtr, inputData, inputDescriptor, outputDescriptor, poolingDesc);
+            return GpuTensorList.wrap(passbackBuffer, length, inputSize, precision);
+          });
+          input.accumulate(buffer, data);
+          data.freeRef();
+        }
+      }) {
+      
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
         batch.freeRef();
         outputData.freeRef();
       }
-  
+      
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();

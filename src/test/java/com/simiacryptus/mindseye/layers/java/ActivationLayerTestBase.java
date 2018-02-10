@@ -26,10 +26,11 @@ import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.TrainingTester;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.Nullable;
 import smile.plot.PlotCanvas;
 import smile.plot.ScatterPlot;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Function;
@@ -83,6 +84,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     return ActivationLayerTestBase.plot(title, data);
   }
   
+  @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
@@ -120,7 +122,9 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     log.h3("Function Plots");
     final NNLayer layer = getLayer(new int[][]{{1}}, new Random());
     final List<double[]> plotData = scan().mapToObj(x -> {
-      @javax.annotation.Nonnull final SimpleEval eval = SimpleEval.run(layer, new Tensor(x));
+      @Nonnull Tensor tensor = new Tensor(x);
+      @javax.annotation.Nonnull final SimpleEval eval = SimpleEval.run(layer, tensor);
+      tensor.freeRef();
       @javax.annotation.Nonnull double[] doubles = {x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};
       eval.freeRef();
       return doubles;
@@ -136,8 +140,9 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     
   }
   
+  @Nullable
   @Override
-  public @Nullable ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
+  public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
     return new TrainingTester().setRandomizationMode(TrainingTester.RandomizationMode.Random);
   }
 }

@@ -56,14 +56,14 @@ public class Research extends OptimizerComparison {
       @javax.annotation.Nonnull final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMonitor(monitor);
       trainer.getRegimen().get(0)
-             .setOrientation(new RecursiveSubspace() {
-               @Override
-               public void train(TrainingMonitor monitor, NNLayer subspace) {
-                 //new SingleDerivativeTester(1e-3,1e-4).run(subspace, new Tensor[]{new Tensor()});
-                 super.train(monitor, subspace);
-               }
-             })
-             .setLineSearchFactory(name -> new StaticLearningRate(1.0));
+        .setOrientation(new RecursiveSubspace() {
+          @Override
+          public void train(TrainingMonitor monitor, NNLayer subspace) {
+            //new SingleDerivativeTester(1e-3,1e-4).run(subspace, new Tensor[]{new Tensor()});
+            super.train(monitor, subspace);
+          }
+        })
+        .setLineSearchFactory(name -> new StaticLearningRate(1.0));
       return trainer;
     });
   };
@@ -77,26 +77,26 @@ public class Research extends OptimizerComparison {
       @javax.annotation.Nonnull final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMonitor(monitor);
       trainer.getRegimen().get(0)
-             .setOrientation(new RecursiveSubspace() {
-               @Override
-               public void train(TrainingMonitor monitor, NNLayer subspace) {
-                 //new SingleDerivativeTester(1e-3,1e-4).run(subspace, new Tensor[]{new Tensor()});
-                 @javax.annotation.Nonnull ArrayTrainable trainable = new ArrayTrainable(new BasicTrainable(subspace), new Tensor[][]{{new Tensor()}});
-                 new IterativeTrainer(trainable)
-                   .setOrientation(new QQN())
-                   .setLineSearchFactory(n -> new QuadraticSearch())
-                   .setMonitor(new TrainingMonitor() {
-                     @Override
-                     public void log(String msg) {
-                       monitor.log("\t" + msg);
-                     }
-                   })
-                   .setMaxIterations(getIterations())
-                   .setIterationsPerSample(getIterations())
-                   .runAndFree();
-               }
-             })
-             .setLineSearchFactory(name -> new StaticLearningRate(1.0));
+        .setOrientation(new RecursiveSubspace() {
+          @Override
+          public void train(TrainingMonitor monitor, NNLayer subspace) {
+            //new SingleDerivativeTester(1e-3,1e-4).run(subspace, new Tensor[]{new Tensor()});
+            @javax.annotation.Nonnull ArrayTrainable trainable = new ArrayTrainable(new BasicTrainable(subspace), new Tensor[][]{{new Tensor()}});
+            new IterativeTrainer(trainable)
+              .setOrientation(new QQN())
+              .setLineSearchFactory(n -> new QuadraticSearch())
+              .setMonitor(new TrainingMonitor() {
+                @Override
+                public void log(String msg) {
+                  monitor.log("\t" + msg);
+                }
+              })
+              .setMaxIterations(getIterations())
+              .setIterationsPerSample(getIterations())
+              .runAndFree();
+          }
+        })
+        .setLineSearchFactory(name -> new StaticLearningRate(1.0));
       return trainer;
     });
   };
@@ -111,10 +111,10 @@ public class Research extends OptimizerComparison {
       @javax.annotation.Nonnull final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMonitor(monitor);
       trainer.getRegimen().get(0)
-             .setOrientation(new com.simiacryptus.mindseye.opt.orient.QQN())
-             .setLineSearchFactory(name -> new QuadraticSearch()
-               .setCurrentRate(name.contains("QQN") ? 1.0 : 1e-6)
-               .setRelativeTolerance(2e-1));
+        .setOrientation(new com.simiacryptus.mindseye.opt.orient.QQN())
+        .setLineSearchFactory(name -> new QuadraticSearch()
+          .setCurrentRate(name.contains("QQN") ? 1.0 : 1e-6)
+          .setRelativeTolerance(2e-1));
       return trainer;
     });
   };
@@ -130,9 +130,9 @@ public class Research extends OptimizerComparison {
         .setMinTrainingSize(Integer.MAX_VALUE)
         .setMonitor(monitor);
       trainer.getRegimen().get(0)
-             .setOrientation(new com.simiacryptus.mindseye.opt.orient.LBFGS())
-             .setLineSearchFactory(name -> new QuadraticSearch()
-               .setCurrentRate(name.contains("LBFGS") ? 1.0 : 1e-6));
+        .setOrientation(new com.simiacryptus.mindseye.opt.orient.LBFGS())
+        .setLineSearchFactory(name -> new QuadraticSearch()
+          .setCurrentRate(name.contains("LBFGS") ? 1.0 : 1e-6));
       return trainer;
     });
   };
@@ -151,32 +151,32 @@ public class Research extends OptimizerComparison {
     log.h2("Recursive Subspace (Un-Normalized)");
     fwdFactory = MnistTests.fwd_conv_1;
     @javax.annotation.Nonnull final ProblemRun subspace_1 = new ProblemRun("SS", test.apply(Research.recursive_subspace), Color.LIGHT_GRAY,
-                                                                           ProblemRun.PlotType.Line);
+      ProblemRun.PlotType.Line);
     
     log.h2("Recursive Subspace (Un-Normalized)");
     fwdFactory = MnistTests.fwd_conv_1;
     @javax.annotation.Nonnull final ProblemRun subspace_2 = new ProblemRun("SS+QQN", test.apply(Research.recursive_subspace_2), Color.RED,
-                                                                           ProblemRun.PlotType.Line);
+      ProblemRun.PlotType.Line);
     
     log.h2("QQN (Normalized)");
     fwdFactory = MnistTests.fwd_conv_1_n;
     @javax.annotation.Nonnull final ProblemRun qqn1 = new ProblemRun("QQN", test.apply(Research.quadratic_quasi_newton), Color.DARK_GRAY,
-                                                                     ProblemRun.PlotType.Line);
+      ProblemRun.PlotType.Line);
     
     log.h2("L-BFGS (Strong Line Search) (Normalized)");
     fwdFactory = MnistTests.fwd_conv_1_n;
     @javax.annotation.Nonnull final ProblemRun lbfgs_2 = new ProblemRun("LB-2", test.apply(Research.limited_memory_bfgs), Color.MAGENTA,
-                                                                        ProblemRun.PlotType.Line);
+      ProblemRun.PlotType.Line);
     
     log.h2("L-BFGS (Normalized)");
     fwdFactory = MnistTests.fwd_conv_1_n;
     @javax.annotation.Nonnull final ProblemRun lbfgs_1 = new ProblemRun("LB-1", test.apply(TextbookOptimizers.limited_memory_bfgs), Color.GREEN,
-                                                                        ProblemRun.PlotType.Line);
+      ProblemRun.PlotType.Line);
     
     log.h2("L-BFGS-0 (Un-Normalized)");
     fwdFactory = MnistTests.fwd_conv_1;
     @javax.annotation.Nonnull final ProblemRun rawlbfgs = new ProblemRun("LBFGS-0", test.apply(TextbookOptimizers.limited_memory_bfgs), Color.CYAN,
-                                                                         ProblemRun.PlotType.Line);
+      ProblemRun.PlotType.Line);
     
     log.h2("Comparison");
     log.code(() -> {

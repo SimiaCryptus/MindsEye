@@ -37,8 +37,8 @@ import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.line.StaticLearningRate;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.TimeUnit;
 import java.util.function.DoubleSupplier;
 
@@ -86,7 +86,8 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
    *
    * @return the nn layer
    */
-  protected @Nullable NNLayer newNormalizationLayer() {
+  @Nullable
+  protected NNLayer newNormalizationLayer() {
     return null;
   }
   
@@ -99,8 +100,8 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
         new ArrayTrainable(trainingData, supervisedNetwork, 1000).cached()
       ).setMonitor(monitor);
       trainer.getRegimen().get(0)
-             .setOrientation(getOrientation())
-             .setLineSearchFactory(name -> name.contains("LBFGS") ? new StaticLearningRate(1.0) : new QuadraticSearch());
+        .setOrientation(getOrientation())
+        .setLineSearchFactory(name -> name.contains("LBFGS") ? new StaticLearningRate(1.0) : new QuadraticSearch());
       return trainer
         .setTimeout(15, TimeUnit.MINUTES)
         .setMaxIterations(500)

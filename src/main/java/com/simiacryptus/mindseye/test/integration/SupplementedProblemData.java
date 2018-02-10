@@ -22,8 +22,8 @@ package com.simiacryptus.mindseye.test.integration;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.LabeledObject;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,7 +56,8 @@ public class SupplementedProblemData implements ImageProblemData {
    * @param tensor the tensor
    * @return the tensor
    */
-  protected static @Nullable Tensor addNoise(@javax.annotation.Nonnull final Tensor tensor) {
+  @Nullable
+  protected static Tensor addNoise(@javax.annotation.Nonnull final Tensor tensor) {
     return tensor.mapParallel((v) -> Math.random() < 0.9 ? v : v + Math.random() * 100);
   }
   

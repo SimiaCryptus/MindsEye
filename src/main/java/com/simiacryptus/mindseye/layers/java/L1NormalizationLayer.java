@@ -22,10 +22,10 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.ArrayUtil;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -78,19 +78,19 @@ public class L1NormalizationLayer extends NNLayer {
     final TensorList inData = in.getData();
     inData.addRef();
     return new NNResult(TensorArray.wrap(IntStream.range(0, inData.length()).mapToObj(dataIndex -> {
-      final Tensor value = inData.get(dataIndex);
+      @javax.annotation.Nullable final Tensor value = inData.get(dataIndex);
       final double sum = value.sum();
       if (!Double.isFinite(sum) || 0 == sum) return value;
       return value.scale(1.0 / sum);
     }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList outDelta) -> {
       if (in.isAlive()) {
         final Tensor[] passbackArray = IntStream.range(0, outDelta.length()).mapToObj(dataIndex -> {
-          final @Nullable double[] value = inData.get(dataIndex).getData();
-          final @Nullable double[] delta = outDelta.get(dataIndex).getData();
+          @Nullable final double[] value = inData.get(dataIndex).getData();
+          @Nullable final double[] delta = outDelta.get(dataIndex).getData();
           final double dot = ArrayUtil.dot(value, delta);
           final double sum = Arrays.stream(value).sum();
           @javax.annotation.Nonnull final Tensor passback = new Tensor(outDelta.get(dataIndex).getDimensions());
-          final @Nullable double[] passbackData = passback.getData();
+          @Nullable final double[] passbackData = passback.getData();
           if (0 != sum || Double.isFinite(sum)) {
             for (int i = 0; i < value.length; i++) {
               passbackData[i] = (delta[i] - dot / sum) / sum;

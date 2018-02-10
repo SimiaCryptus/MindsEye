@@ -24,10 +24,11 @@ import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,8 @@ public class BiasLayer extends NNLayer {
   /**
    * The Bias.
    */
-  public final @Nullable double[] bias;
+  @Nullable
+  public final double[] bias;
   
   /**
    * Instantiates a new Bias layer.
@@ -131,25 +133,33 @@ public class BiasLayer extends NNLayer {
       input = inObj[0].getData();
     }
     return new NNResult(TensorArray.wrap(input.stream().parallel()
-                                              .map(r -> new Tensor(add(r.getData()), r.getDimensions()))
-                                              .toArray(i -> new Tensor[i])),
-                        (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
-                          if (!isFrozen()) {
-                            final Delta<NNLayer> deltaBuffer = buffer.get(BiasLayer.this, bias);
-                            if (1 == bias.length) {
-                              data.stream().parallel().forEach(d -> {
-                                final @Nullable double[] array = d.getData();
-                                deltaBuffer.addInPlace(1 == array.length ? array : new double[]{Arrays.stream(array).sum()});
-                              });
-                            }
-                            else {
-                              data.stream().parallel().forEach(d -> deltaBuffer.addInPlace(d.getData()));
-                            }
-                          }
-                          if (0 < inObj.length && inObj[0].isAlive()) {
-                            inObj[0].accumulate(buffer, data);
-                          }
-                        }) {
+      .map(r -> {
+        @Nonnull Tensor tensor = new Tensor(add(r.getData()), r.getDimensions());
+        r.freeRef();
+        return tensor;
+      }).toArray(i -> new Tensor[i])),
+      (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+        if (!isFrozen()) {
+          final Delta<NNLayer> deltaBuffer = buffer.get(BiasLayer.this, bias);
+          if (1 == bias.length) {
+            data.stream().parallel().forEach(d -> {
+              @Nullable final double[] array = d.getData();
+              deltaBuffer.addInPlace(1 == array.length ? array : new double[]{Arrays.stream(array).sum()});
+              d.freeRef();
+            });
+          }
+          else {
+            data.stream().parallel().forEach(d -> {
+              deltaBuffer.addInPlace(d.getData()).freeRef();
+              d.freeRef();
+            });
+          }
+          deltaBuffer.freeRef();
+        }
+        if (0 < inObj.length && inObj[0].isAlive()) {
+          inObj[0].accumulate(buffer, data);
+        }
+      }) {
       
       @Override
       protected void _free() {

@@ -22,8 +22,9 @@ package com.simiacryptus.mindseye.network;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.UUID;
 
@@ -40,6 +41,7 @@ public interface DAGNode extends Serializable, ReferenceCounting {
    * @param buildExeCtx the build exe ctx
    * @return the nn result
    */
+  @javax.annotation.Nullable
   NNResult get(GraphEvaluationContext buildExeCtx);
   
   /**
@@ -54,6 +56,7 @@ public interface DAGNode extends Serializable, ReferenceCounting {
    *
    * @return the dag node [ ]
    */
+  @Nonnull
   default DAGNode[] getInputs() {
     return new DAGNode[]{};
   }
@@ -64,7 +67,8 @@ public interface DAGNode extends Serializable, ReferenceCounting {
    * @param <T> the type parameter
    * @return the layer
    */
-  @Nullable <T extends NNLayer> T getLayer();
+  @Nullable
+  <T extends NNLayer> T getLayer();
   
   
   /**

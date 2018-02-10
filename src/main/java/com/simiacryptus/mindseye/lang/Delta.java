@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import org.jetbrains.annotations.Nullable;
-
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.function.DoubleUnaryOperator;
 
@@ -34,7 +34,8 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
   /**
    * The Delta compensation.
    */
-  protected @Nullable double[] deltaCompensation;
+  @Nullable
+  protected double[] deltaCompensation;
   
   /**
    * Instantiates a new Delta.
@@ -42,7 +43,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param layer  the layer
    * @param target the target
    */
-  public Delta(final K layer, final @Nullable double[] target) {
+  public Delta(@Nonnull final K layer, @Nullable final double[] target) {
     this(layer, target, null == target ? null : RecycleBin.DOUBLES.obtain(target.length));
   }
   
@@ -53,7 +54,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param target the target
    * @param delta  the delta
    */
-  public Delta(final K layer, final double[] target, @javax.annotation.Nonnull final double[] delta) {
+  public Delta(@Nonnull final K layer, final double[] target, @javax.annotation.Nonnull final double[] delta) {
     this(layer, target, delta, RecycleBin.DOUBLES.obtain(delta.length));
   }
   
@@ -65,7 +66,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param delta             the doubles
    * @param deltaCompensation the delta compensation
    */
-  protected Delta(final K layer, final @Nullable double[] target, final @Nullable double[] delta, final double[] deltaCompensation) {
+  protected Delta(@Nonnull final K layer, @Nullable final double[] target, @Nullable final double[] delta, final double[] deltaCompensation) {
     super(layer, target, delta);
     if (null == target) throw new IllegalArgumentException();
     assert null == delta || target.length == delta.length;
@@ -80,7 +81,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param delta            the delta
    * @param dataCompensation the data compensation
    */
-  public static void accumulate(@javax.annotation.Nonnull final double[] data, final double[] delta, final @Nullable double[] dataCompensation) {
+  public static void accumulate(@javax.annotation.Nonnull final double[] data, final double[] delta, @Nullable final double[] dataCompensation) {
     synchronized (data) {
       for (int i = 0; i < data.length; i++) {
         final double sum = data[i];
@@ -116,7 +117,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
   public final void accumulate(final double factor) {
     synchronized (target) {
       assert Arrays.stream(target).allMatch(Double::isFinite);
-      final double[] delta = getDelta();
+      @javax.annotation.Nullable final double[] delta = getDelta();
       for (int i = 0; i < length(); i++) {
         target[i] += delta[i] * factor;
       }

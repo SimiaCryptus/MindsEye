@@ -38,6 +38,7 @@ import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -147,25 +148,25 @@ public class AutoencodingProblem implements Problem {
     
     @javax.annotation.Nonnull final PipelineNetwork supervisedNetwork = new PipelineNetwork(1);
     supervisedNetwork.add(fwdNetwork);
-    final DropoutNoiseLayer dropoutNoiseLayer = new DropoutNoiseLayer().setValue(dropout);
+    @Nonnull final DropoutNoiseLayer dropoutNoiseLayer = new DropoutNoiseLayer().setValue(dropout);
     supervisedNetwork.add(dropoutNoiseLayer);
     supervisedNetwork.add(revNetwork);
     supervisedNetwork.add(new MeanSqLossLayer(),
-                          supervisedNetwork.getHead(),
-                          supervisedNetwork.getInput(0));
+      supervisedNetwork.getHead(),
+      supervisedNetwork.getInput(0));
     
     log.h3("Network Diagrams");
     log.code(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(fwdNetwork))
-                     .height(400).width(600).render(Format.PNG).toImage();
+        .height(400).width(600).render(Format.PNG).toImage();
     });
     log.code(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(revNetwork))
-                     .height(400).width(600).render(Format.PNG).toImage();
+        .height(400).width(600).render(Format.PNG).toImage();
     });
     log.code(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(supervisedNetwork))
-                     .height(400).width(600).render(Format.PNG).toImage();
+        .height(400).width(600).render(Format.PNG).toImage();
     });
     
     @javax.annotation.Nonnull final TrainingMonitor monitor = new TrainingMonitor() {
@@ -191,9 +192,9 @@ public class AutoencodingProblem implements Problem {
     
     log.h3("Training");
     TestUtil.instrumentPerformance(log, supervisedNetwork);
-    final ValidatingTrainer trainer = optimizer.train(log,
-                                                      new SampledArrayTrainable(trainingData, supervisedNetwork, trainingData.length / 2, batchSize),
-                                                      new ArrayTrainable(trainingData, supervisedNetwork, batchSize), monitor);
+    @Nonnull final ValidatingTrainer trainer = optimizer.train(log,
+      new SampledArrayTrainable(trainingData, supervisedNetwork, trainingData.length / 2, batchSize),
+      new ArrayTrainable(trainingData, supervisedNetwork, batchSize), monitor);
     log.code(() -> {
       trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(10000).run();
     });
@@ -235,7 +236,7 @@ public class AutoencodingProblem implements Problem {
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
       try {
         @javax.annotation.Nonnull final Tensor input = new Tensor(features).set(featureNumber, 1);
-        final Tensor tensor = revNetwork.eval(input).getData().get(0);
+        @Nullable final Tensor tensor = revNetwork.eval(input).getData().get(0);
         log.out(log.image(tensor.toImage(), ""));
       } catch (@javax.annotation.Nonnull final IOException e) {
         throw new RuntimeException(e);

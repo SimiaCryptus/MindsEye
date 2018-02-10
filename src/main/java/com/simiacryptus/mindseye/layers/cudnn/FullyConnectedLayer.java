@@ -31,10 +31,11 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -50,12 +51,15 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
   /**
    * The Input dims.
    */
-  public final @Nullable int[] inputDims;
+  @Nullable
+  public final int[] inputDims;
   /**
    * The Output dims.
    */
-  public final @Nullable int[] outputDims;
-  private final @Nullable Tensor weights;
+  @Nullable
+  public final int[] outputDims;
+  @Nullable
+  private final Tensor weights;
   
   private Precision precision = Precision.Double;
   private int batchBands;
@@ -99,7 +103,7 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
     super(json);
     outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
     inputDims = JsonUtil.getIntArray(json.getAsJsonArray("inputDims"));
-    final @Nullable Tensor data = Tensor.fromJson(json.get("weights"), rs);
+    @Nullable final Tensor data = Tensor.fromJson(json.get("weights"), rs);
     weights = data;
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
   }
@@ -161,6 +165,7 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
     return new com.simiacryptus.mindseye.layers.java.FullyConnectedReferenceLayer(inputDims, outputDims).set(getWeights());
   }
   
+  @javax.annotation.Nullable
   @Override
   public NNResult eval(final NNResult... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
@@ -178,11 +183,16 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
     int outVol = Tensor.dim(outputDims);
     @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork(1);
     network.add(new ReshapeLayer(1, 1, inputVol));
-    ExplodedConvolutionGrid grid = new ConvolutionLayer(1, 1, inputVol, outVol)
-      .set(this.weights.reshapeCast(1, 1, inputVol * outVol))
-      .setBatchBands(getBatchBands())
+    @javax.annotation.Nullable Tensor tensor = this.weights.reshapeCast(1, 1, inputVol * outVol);
+    @Nonnull ConvolutionLayer convolutionLayer = new ConvolutionLayer(1, 1, inputVol, outVol)
+      .set(tensor)
+      .setBatchBands(getBatchBands());
+    @Nonnull ExplodedConvolutionGrid grid = convolutionLayer
       .getExplodedNetwork();
+    convolutionLayer.freeRef();
+    tensor.freeRef();
     grid.add(network.getHead());
+    grid.freeRef();
     network.add(new ReshapeLayer(outputDims));
     return network;
   }
@@ -222,7 +232,8 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
    *
    * @return the weights
    */
-  public @Nullable Tensor getWeights() {
+  @Nullable
+  public Tensor getWeights() {
     return weights;
   }
   

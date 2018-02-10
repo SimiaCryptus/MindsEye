@@ -27,10 +27,10 @@ import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.FloatPointer;
 import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacpp.hdf5;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Exception;
@@ -154,7 +154,8 @@ public class Hdf5Archive {
    * @param groups      Array of zero or more ancestor groups from root to parent.
    * @return tensor tensor
    */
-  public @Nullable Tensor readDataSet(String datasetName, @javax.annotation.Nonnull String... groups) {
+  @Nullable
+  public Tensor readDataSet(String datasetName, @javax.annotation.Nonnull String... groups) {
     if (groups.length == 0) {
       return readDataSet(this.file, datasetName);
     }
@@ -171,7 +172,8 @@ public class Hdf5Archive {
    * @param groups        Array of zero or more ancestor groups from root to parent.
    * @return string string
    */
-  public @Nullable String readAttributeAsJson(String attributeName, @javax.annotation.Nonnull String... groups) {
+  @Nullable
+  public String readAttributeAsJson(String attributeName, @javax.annotation.Nonnull String... groups) {
     if (groups.length == 0) {
       return readAttributeAsJson(this.file.openAttribute(attributeName));
     }
@@ -188,7 +190,8 @@ public class Hdf5Archive {
    * @param groups        Array of zero or more ancestor groups from root to parent.
    * @return string string
    */
-  public @Nullable String readAttributeAsString(String attributeName, @javax.annotation.Nonnull String... groups) {
+  @Nullable
+  public String readAttributeAsString(String attributeName, @javax.annotation.Nonnull String... groups) {
     if (groups.length == 0) {
       return readAttributeAsString(this.file.openAttribute(attributeName));
     }
@@ -331,7 +334,8 @@ public class Hdf5Archive {
    * @param datasetName Name of data setBytes
    * @return
    */
-  private @Nullable Tensor readDataSet(@javax.annotation.Nonnull Group fileGroup, String datasetName) {
+  @Nullable
+  private Tensor readDataSet(@javax.annotation.Nonnull Group fileGroup, String datasetName) {
     DataSet dataset = fileGroup.openDataSet(datasetName);
     DataSpace space = dataset.getSpace();
     int nbDims = space.getSimpleExtentNdims();
@@ -422,7 +426,8 @@ public class Hdf5Archive {
    * @param attribute HDF5 attribute to read as JSON formatted string.
    * @return
    */
-  private @Nullable String readAttributeAsJson(@javax.annotation.Nonnull Attribute attribute) {
+  @Nullable
+  private String readAttributeAsJson(@javax.annotation.Nonnull Attribute attribute) {
     VarLenType vl = attribute.getVarLenType();
     int bufferSizeMult = 1;
     @Nullable String s = null;
@@ -461,7 +466,8 @@ public class Hdf5Archive {
    * @param attribute HDF5 attribute to read as string.
    * @return
    */
-  private @Nullable String readAttributeAsString(@javax.annotation.Nonnull Attribute attribute) {
+  @Nullable
+  private String readAttributeAsString(@javax.annotation.Nonnull Attribute attribute) {
     VarLenType vl = attribute.getVarLenType();
     int bufferSizeMult = 1;
     @Nullable String s = null;

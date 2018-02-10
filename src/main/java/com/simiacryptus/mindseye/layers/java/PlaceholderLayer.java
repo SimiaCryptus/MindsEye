@@ -24,8 +24,8 @@ import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
@@ -37,14 +37,15 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public final class PlaceholderLayer<T> extends NNLayer {
   
-  private final @Nullable T key;
+  @Nullable
+  private final T key;
   
   /**
    * Instantiates a new Placeholder layer.
    *
    * @param key the key
    */
-  public PlaceholderLayer(final @Nullable T key) {
+  public PlaceholderLayer(@Nullable final T key) {
     if (null == key) throw new UnsupportedOperationException();
     this.key = key;
     if (this.getKey() instanceof ReferenceCounting) {
@@ -59,8 +60,9 @@ public final class PlaceholderLayer<T> extends NNLayer {
     throw new UnsupportedOperationException();
   }
   
+  @Nullable
   @Override
-  public @Nullable Object getId() {
+  public Object getId() {
     return this.getKey();
   }
   
@@ -89,7 +91,8 @@ public final class PlaceholderLayer<T> extends NNLayer {
    *
    * @return the key
    */
-  public @Nullable T getKey() {
+  @Nullable
+  public T getKey() {
     return key;
   }
 }

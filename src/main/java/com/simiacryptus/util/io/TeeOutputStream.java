@@ -19,8 +19,7 @@
 
 package com.simiacryptus.util.io;
 
-import org.jetbrains.annotations.Nullable;
-
+import javax.annotation.Nullable;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +37,8 @@ public class TeeOutputStream extends OutputStream {
    * The Primary.
    */
   public final OutputStream primary;
-  private final @Nullable ByteArrayOutputStream heapBuffer;
+  @Nullable
+  private final ByteArrayOutputStream heapBuffer;
   
   /**
    * Instantiates a new Tee output stream.

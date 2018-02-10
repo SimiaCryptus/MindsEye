@@ -21,8 +21,8 @@ package com.simiacryptus.util.data;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.util.MonitoredItem;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -63,6 +63,7 @@ public class ScalarStatistics implements MonitoredItem, Serializable {
    * @param values the values
    * @return the scalar statistics
    */
+  @javax.annotation.Nullable
   public ScalarStatistics add(@javax.annotation.Nonnull final double... values) {
     double v1 = 0;
     double v2 = 0;
@@ -239,7 +240,7 @@ public class ScalarStatistics implements MonitoredItem, Serializable {
    *
    * @param json the json
    */
-  public void readJson(final @Nullable JsonObject json) {
+  public void readJson(@Nullable final JsonObject json) {
     if (null == json) return;
     min = json.get("min").getAsDouble();
     max = json.get("max").getAsDouble();

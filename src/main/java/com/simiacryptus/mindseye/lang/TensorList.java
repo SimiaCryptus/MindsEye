@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import org.jetbrains.annotations.Nullable;
-
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -42,8 +42,8 @@ public interface TensorList extends ReferenceCounting {
     if (length() == 0) throw new IllegalArgumentException();
     assert length() == right.length();
     return TensorArray.wrap(IntStream.range(0, length())
-                                     .mapToObj(i -> freeSum(get(i), right.get(i)))
-                                     .toArray(i -> new Tensor[i]));
+      .mapToObj(i -> freeSum(get(i), right.get(i)))
+      .toArray(i -> new Tensor[i]));
   }
   
   /**
@@ -53,7 +53,8 @@ public interface TensorList extends ReferenceCounting {
    * @param b the b
    * @return the tensor
    */
-  default @Nullable Tensor freeSum(@javax.annotation.Nonnull Tensor a, @javax.annotation.Nonnull Tensor b) {
+  @Nullable
+  default Tensor freeSum(@javax.annotation.Nonnull Tensor a, @javax.annotation.Nonnull Tensor b) {
     @Nullable Tensor sum = a.add(b);
     a.freeRef();
     b.freeRef();
@@ -66,13 +67,14 @@ public interface TensorList extends ReferenceCounting {
    * @param right the right
    * @return the tensor list
    */
+  @Nonnull
   default TensorList minus(@javax.annotation.Nonnull final TensorList right) {
     if (right.length() == 0) return this;
     if (length() == 0) throw new IllegalArgumentException();
     assert length() == right.length();
     return TensorArray.wrap(IntStream.range(0, length()).mapToObj(i -> {
-      Tensor a = get(i);
-      Tensor b = right.get(i);
+      @javax.annotation.Nullable Tensor a = get(i);
+      @javax.annotation.Nullable Tensor b = right.get(i);
       @javax.annotation.Nonnull Tensor r = a.minus(b);
       a.freeRef();
       b.freeRef();
@@ -88,12 +90,12 @@ public interface TensorList extends ReferenceCounting {
   default TensorList copy() {
     return TensorArray.wrap(
       IntStream.range(0, length()).mapToObj(i -> {
-        Tensor element = get(i);
+        @javax.annotation.Nullable Tensor element = get(i);
         @javax.annotation.Nonnull Tensor copy = element.copy();
         element.freeRef();
         return copy;
       }).toArray(i -> new Tensor[i])
-                           );
+    );
   }
   
   /**
@@ -102,6 +104,7 @@ public interface TensorList extends ReferenceCounting {
    * @param i the
    * @return the tensor
    */
+  @javax.annotation.Nullable
   Tensor get(int i);
   
   /**
@@ -109,6 +112,7 @@ public interface TensorList extends ReferenceCounting {
    *
    * @return the int [ ]
    */
+  @Nonnull
   int[] getDimensions();
   
   /**
@@ -132,7 +136,11 @@ public interface TensorList extends ReferenceCounting {
    */
   @javax.annotation.Nonnull
   default String prettyPrint() {
-    return stream().map(t -> t.prettyPrint()).reduce((a, b) -> a + "\n" + b).get();
+    return stream().map(t -> {
+      String str = t.prettyPrint();
+      t.freeRef();
+      return str;
+    }).reduce((a, b) -> a + "\n" + b).get();
   }
   
   /**
@@ -141,8 +149,9 @@ public interface TensorList extends ReferenceCounting {
    * @param i the
    * @return the and free
    */
+  @javax.annotation.Nullable
   default Tensor getAndFree(int i) {
-    Tensor tensor = get(i);
+    @javax.annotation.Nullable Tensor tensor = get(i);
     freeRef();
     return tensor;
   }

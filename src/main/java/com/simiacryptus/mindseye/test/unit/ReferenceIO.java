@@ -26,8 +26,9 @@ import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -56,19 +57,20 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
     super._free();
   }
   
+  @Nullable
   @Override
-  public @Nullable ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, final NNLayer layer, @javax.annotation.Nonnull final Tensor... inputPrototype) {
+  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, @Nonnull final NNLayer layer, @javax.annotation.Nonnull final Tensor... inputPrototype) {
     if (!referenceIO.isEmpty()) {
       log.h1("Reference Input/Output Pairs");
       log.p("Display pre-setBytes input/output example pairs:");
       referenceIO.forEach((input, output) -> {
         log.code(() -> {
-          final SimpleEval eval = SimpleEval.run(layer, input);
+          @Nonnull final SimpleEval eval = SimpleEval.run(layer, input);
           @javax.annotation.Nonnull final DoubleStatistics error = new DoubleStatistics().accept(eval.getOutput().add(output.scale(-1)).getData());
           String format = String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\nError: %s\n--------------------\nDerivative: \n%s",
-                                        Arrays.stream(input).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
-                                        eval.getOutput().prettyPrint(), error,
-                                        Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
+            Arrays.stream(input).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
+            eval.getOutput().prettyPrint(), error,
+            Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
           eval.freeRef();
           return format;
         });
@@ -78,11 +80,11 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
       log.h1("Example Input/Output Pair");
       log.p("Display input/output pairs from random executions:");
       log.code(() -> {
-        final SimpleEval eval = SimpleEval.run(layer, inputPrototype);
+        @Nonnull final SimpleEval eval = SimpleEval.run(layer, inputPrototype);
         String format = String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
-                                      Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
-                                      eval.getOutput().prettyPrint(),
-                                      Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
+          Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
+          eval.getOutput().prettyPrint(),
+          Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
         eval.freeRef();
         return format;
       });

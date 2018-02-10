@@ -21,15 +21,15 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.util.ArrayUtil;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
 import org.jblas.DoubleMatrix;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +38,7 @@ import java.util.function.IntToDoubleFunction;
 import java.util.function.ToDoubleBiFunction;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * A dense matrix operator using vector-matrix multiplication. Represents a fully connected layer of synapses, where all
@@ -52,12 +53,15 @@ public class FullyConnectedLayer extends NNLayer {
   /**
    * The Input dims.
    */
-  public final @Nullable int[] inputDims;
+  @Nullable
+  public final int[] inputDims;
   /**
    * The Output dims.
    */
-  public final @Nullable int[] outputDims;
-  private final @Nullable Tensor weights;
+  @Nullable
+  public final int[] outputDims;
+  @Nullable
+  private final Tensor weights;
   
   /**
    * Instantiates a new Fully connected layer.
@@ -188,6 +192,12 @@ public class FullyConnectedLayer extends NNLayer {
     return result;
   }
   
+  @Override
+  protected void _free() {
+    weights.freeRef();
+    super._free();
+  }
+  
   @javax.annotation.Nonnull
   @Override
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
@@ -201,10 +211,10 @@ public class FullyConnectedLayer extends NNLayer {
     @javax.annotation.Nonnull DoubleMatrix doubleMatrix = new DoubleMatrix(Tensor.dim(indata.getDimensions()), Tensor.dim(outputDims), weights.getData());
     @javax.annotation.Nonnull final DoubleMatrix matrixObj = FullyConnectedLayer.transpose(doubleMatrix);
     @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, indata.length()).parallel().mapToObj(dataIndex -> {
-      final Tensor input = indata.get(dataIndex);
-      final @Nullable Tensor output = new Tensor(outputDims);
-      final @Nullable double[] in = input.getData();
-      final @Nullable double[] out = output.getData();
+      @javax.annotation.Nullable final Tensor input = indata.get(dataIndex);
+      @Nullable final Tensor output = new Tensor(outputDims);
+      @Nullable final double[] in = input.getData();
+      @Nullable final double[] out = output.getData();
       matrixObj.mmuli(new DoubleMatrix(in.length, 1, in), new DoubleMatrix(out.length, 1, out));
       return output;
     }).toArray(i -> new Tensor[i]));
@@ -215,18 +225,29 @@ public class FullyConnectedLayer extends NNLayer {
         final int threads = 4;
         IntStream.range(0, threads).parallel().mapToObj(x -> x).flatMap(thread -> {
           @javax.annotation.Nonnull final Tensor weightDelta = new Tensor(Tensor.dim(inputDims), Tensor.dim(outputDims));
-          return IntStream.range(0, indata.length()).filter(i -> thread == i % threads).mapToObj(dataIndex -> {
-            final @Nullable double[] deltaData = delta.get(dataIndex).getData();
-            final @Nullable double[] inputData = indata.get(dataIndex).getData();
+          @Nullable Stream<Tensor> stream = IntStream.range(0, indata.length()).filter(i -> thread == i % threads).mapToObj(dataIndex -> {
+            @Nullable final double[] deltaData = delta.get(dataIndex).getData();
+            @Nullable final double[] inputData = indata.get(dataIndex).getData();
             FullyConnectedLayer.crossMultiplyT(deltaData, inputData, weightDelta.getData());
-            return weightDelta.getData();
+            return weightDelta;
           });
-        }).reduce((a, b) -> ArrayUtil.add(a, b)).map(data -> deltaBuffer.addInPlace(data));
+          return stream;
+        }).reduce((a, b) -> {
+          @javax.annotation.Nullable Tensor c = a.add(b);
+          a.freeRef();
+          b.freeRef();
+          return c;
+        }).map(data -> {
+          @Nonnull Delta<NNLayer> layerDelta = deltaBuffer.addInPlace(data.getData());
+          data.freeRef();
+          return layerDelta;
+        });
+        deltaBuffer.freeRef();
       }
       if (inObj[0].isAlive()) {
         @javax.annotation.Nonnull final TensorList tensorList = TensorArray.wrap(IntStream.range(0, indata.length()).parallel().mapToObj(dataIndex -> {
-          final @Nullable double[] deltaData = delta.get(dataIndex).getData();
-          final @Nullable Tensor r = weights;
+          @Nullable final double[] deltaData = delta.get(dataIndex).getData();
+          @Nullable final Tensor r = weights;
           @javax.annotation.Nonnull final Tensor passback = new Tensor(indata.get(dataIndex).getDimensions());
           FullyConnectedLayer.multiply(r.getData(), deltaData, passback.getData());
           return passback;
@@ -280,7 +301,8 @@ public class FullyConnectedLayer extends NNLayer {
    *
    * @return the weights
    */
-  public @Nullable Tensor getWeights() {
+  @Nullable
+  public Tensor getWeights() {
     return weights;
   }
   
