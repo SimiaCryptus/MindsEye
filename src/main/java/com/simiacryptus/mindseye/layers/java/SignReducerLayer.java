@@ -44,16 +44,16 @@ public class SignReducerLayer extends DAGNetwork {
    */
   public SignReducerLayer() {
     super(1);
-    final DAGNode avgInput = add(new AvgReducerLayer(), getInput(0));
-    final DAGNode stdDevInput = add(new NthPowerActivationLayer().setPower(0.5),
-      add(new SumInputsLayer(),
-        add(new AvgReducerLayer(), add(new SqActivationLayer(), getInput(0))),
-        add(new LinearActivationLayer().setScale(-1), add(new SqActivationLayer(), avgInput))
+    final DAGNode avgInput = wrap(new AvgReducerLayer(), getInput(0));
+    final DAGNode stdDevInput = wrap(new NthPowerActivationLayer().setPower(0.5),
+      wrap(new SumInputsLayer(),
+        wrap(new AvgReducerLayer(), add(new SqActivationLayer(), getInput(0))),
+        wrap(new LinearActivationLayer().setScale(-1), add(new SqActivationLayer(), avgInput))
       ));
-    head = add(new SigmoidActivationLayer().setBalanced(false),
-      add(new ProductInputsLayer(),
+    head = wrap(new SigmoidActivationLayer().setBalanced(false),
+      wrap(new ProductInputsLayer(),
         avgInput,
-        add(new NthPowerActivationLayer().setPower(-1), stdDevInput)));
+        wrap(new NthPowerActivationLayer().setPower(-1), stdDevInput)));
   }
   
   /**

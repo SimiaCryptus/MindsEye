@@ -112,18 +112,14 @@ public class MeanSqLossLayer extends NNLayer {
         array.freeRef();
       }
       if (inObj[1].isAlive()) {
-        List<Tensor> scaledTensors = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
-          @javax.annotation.Nullable Tensor tensor = data.get(dataIndex);
+        Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
+          @Nullable Tensor tensor = data.get(dataIndex);
           @Nullable Tensor scale = diffs[dataIndex].scale(tensor.get(0) * 2.0 / diffs[dataIndex].dim());
           tensor.freeRef();
           return scale;
-        }).collect(Collectors.toList());
-        Stream<Tensor> tensorStream = scaledTensors.stream();
+        }).collect(Collectors.toList()).stream();
         if (1 == rightLength) {
-          tensorStream = Stream.of(tensorStream.map(x -> {
-            x.addRef();
-            return x;
-          }).reduce((a, b) -> {
+          tensorStream = Stream.of(tensorStream.reduce((a, b) -> {
             @javax.annotation.Nullable Tensor c = a.add(b);
             a.freeRef();
             b.freeRef();
@@ -135,7 +131,6 @@ public class MeanSqLossLayer extends NNLayer {
           x.freeRef();
           return scale;
         }).toArray(i -> new Tensor[i]));
-        scaledTensors.forEach(x -> x.freeRef());
         inObj[1].accumulate(buffer, array);
         array.freeRef();
       }

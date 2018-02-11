@@ -113,9 +113,10 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
           precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
           precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
           precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-        gpu.registerForCleanup(lPtr, rPtr, opDescriptor, sizeDescriptor);
+        gpu.registerForCleanup(lPtr, rPtr);
         return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
       }).get();
+      gpu.registerForCleanup(opDescriptor, sizeDescriptor);
       return result1;
     }), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       for (int index = 0; index < inObj.length; index++) {
@@ -124,7 +125,6 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
           final int _index = index;
           @javax.annotation.Nonnull TensorList data = IntStream.range(0, inObj.length).mapToObj(i -> i == _index ? delta : inObj[i].getData()).reduce((l, r) -> {
             return GpuSystem.eval(gpu -> {
-              gpu.initThread();
               @javax.annotation.Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
               @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
                 precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);

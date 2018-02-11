@@ -248,7 +248,7 @@ public class FullyConnectedLayer extends NNLayer {
       if (inObj[0].isAlive()) {
         @javax.annotation.Nonnull final TensorList tensorList = TensorArray.wrap(IntStream.range(0, indata.length()).parallel().mapToObj(dataIndex -> {
           @Nullable final double[] deltaData = delta.get(dataIndex).getData();
-          @javax.annotation.Nonnull final Tensor passback = new Tensor(indata.get(dataIndex).getDimensions());
+          @javax.annotation.Nonnull final Tensor passback = new Tensor(indata.getDimensions());
           FullyConnectedLayer.multiply(this.weights.getData(), deltaData, passback.getData());
           return passback;
         }).toArray(i -> new Tensor[i]));

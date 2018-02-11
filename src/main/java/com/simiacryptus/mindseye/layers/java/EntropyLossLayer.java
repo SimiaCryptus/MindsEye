@@ -96,6 +96,8 @@ public class EntropyLossLayer extends NNLayer {
           gradientData[i] = 0;
         }
       }
+      l.freeRef();
+      r.freeRef();
       assert total >= 0;
       gradient[dataIndex] = gradientTensor;
       @javax.annotation.Nonnull final Tensor outValue = new Tensor(new double[]{total}, 1);
@@ -114,7 +116,6 @@ public class EntropyLossLayer extends NNLayer {
         inObj[1].accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
-      indata.freeRef();
       if (in0.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
           @javax.annotation.Nonnull final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
@@ -130,7 +131,9 @@ public class EntropyLossLayer extends NNLayer {
       
       @Override
       protected void _free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+        indata.freeRef();
+        Arrays.stream(gradient).forEach(ReferenceCountingBase::freeRef);
+        Arrays.stream(inObj).forEach(ReferenceCountingBase::freeRef);
       }
       
       @Override

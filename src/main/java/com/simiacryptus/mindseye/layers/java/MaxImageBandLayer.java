@@ -76,37 +76,44 @@ public class MaxImageBandLayer extends NNLayer {
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     
     assert 1 == inObj.length;
-    final NNResult in = inObj[0];
-    in.getData().length();
-    @javax.annotation.Nonnull final int[] inputDims = in.getData().get(0).getDimensions();
+    final TensorList inputData = inObj[0].getData();
+    inputData.addRef();
+    inputData.length();
+    @javax.annotation.Nonnull final int[] inputDims = inputData.getDimensions();
     assert 3 == inputDims.length;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    
-    final Coordinate[][] maxCoords = in.getData().stream().map(data -> {
+  
+    final Coordinate[][] maxCoords = inputData.stream().map(data -> {
       Coordinate[] coordinates = IntStream.range(0, inputDims[2]).mapToObj(band -> {
         return data.coordStream(true).filter(e -> e.getCoords()[2] == band).max(Comparator.comparing(c -> data.get(c))).get();
       }).toArray(i -> new Coordinate[i]);
       data.freeRef();
       return coordinates;
     }).toArray(i -> new Coordinate[i][]);
-    
-    return new NNResult(TensorArray.wrap(IntStream.range(0, in.getData().length()).mapToObj(dataIndex -> {
+  
+    return new NNResult(TensorArray.wrap(IntStream.range(0, inputData.length()).mapToObj(dataIndex -> {
+      Tensor tensor = inputData.get(dataIndex);
       final DoubleStream doubleStream = IntStream.range(0, inputDims[2]).mapToDouble(band -> {
         final int[] maxCoord = maxCoords[dataIndex][band].getCoords();
-        return in.getData().get(dataIndex).get(maxCoord[0], maxCoord[1], band);
+        double v = tensor.get(maxCoord[0], maxCoord[1], band);
+        return v;
       });
-      return new Tensor(1, 1, inputDims[2]).set(Tensor.getDoubles(doubleStream, inputDims[2]));
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
-      if (in.isAlive()) {
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
-          @javax.annotation.Nonnull final Tensor passback = new Tensor(in.getData().get(dataIndex).getDimensions());
+      Tensor tensor1 = new Tensor(1, 1, inputDims[2]).set(Tensor.getDoubles(doubleStream, inputDims[2]));
+      tensor.freeRef();
+      return tensor1;
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+      if (inObj[0].isAlive()) {
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).parallel().mapToObj(dataIndex -> {
+          Tensor deltaTensor = delta.get(dataIndex);
+          @javax.annotation.Nonnull final Tensor passback = new Tensor(inputData.getDimensions());
           IntStream.range(0, inputDims[2]).forEach(b -> {
             final int[] maxCoord = maxCoords[dataIndex][b].getCoords();
-            passback.set(new int[]{maxCoord[0], maxCoord[1], b}, data.get(dataIndex).get(0, 0, b));
+            passback.set(new int[]{maxCoord[0], maxCoord[1], b}, deltaTensor.get(0, 0, b));
           });
+          deltaTensor.freeRef();
           return passback;
         }).toArray(i -> new Tensor[i]));
-        in.accumulate(buffer, tensorArray);
+        inObj[0].accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
     }) {
@@ -114,12 +121,13 @@ public class MaxImageBandLayer extends NNLayer {
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+        inputData.freeRef();
       }
       
       
       @Override
       public boolean isAlive() {
-        return in.isAlive();
+        return inObj[0].isAlive();
       }
     };
   }

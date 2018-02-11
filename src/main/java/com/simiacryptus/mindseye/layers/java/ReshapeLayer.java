@@ -96,7 +96,6 @@ public class ReshapeLayer extends NNLayer implements MultiPrecision<ReshapeLayer
       nnResult.addRef();
     }
     ReshapedTensorList reshapedTensorList = new ReshapedTensorList(data, outputDims);
-    data.freeRef();
     return new NNResult(reshapedTensorList, (DeltaSet<NNLayer> buffer, TensorList delta) -> {
       @javax.annotation.Nonnull ReshapedTensorList tensorList = new ReshapedTensorList(delta, inputDims);
       inObj[0].accumulate(buffer, tensorList);

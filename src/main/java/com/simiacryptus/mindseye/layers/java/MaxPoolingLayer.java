@@ -27,6 +27,7 @@ import com.simiacryptus.util.lang.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
@@ -84,9 +85,10 @@ public class MaxPoolingLayer extends NNLayer {
     }).toArray();
     @javax.annotation.Nonnull final Tensor output = new Tensor(newDims);
   
-    return output.coordStream(true).map(o -> {
-      final int[] inCoords = new Tensor(p.kernelDims).coordStream(true).mapToInt(kernelCoord -> {
-        @javax.annotation.Nonnull final int[] result = new int[o.getCoords().length];
+    List<Tuple2<Integer, int[]>> tuple2s = output.coordStream(true).map(o -> {
+      Tensor tensor = new Tensor(p.kernelDims);
+      final int[] inCoords = tensor.coordStream(true).mapToInt(kernelCoord -> {
+        @Nonnull final int[] result = new int[o.getCoords().length];
         for (int index = 0; index < o.getCoords().length; index++) {
           final int outputCoordinate = o.getCoords()[index];
           final int kernelSize = p.kernelDims[index];
@@ -96,8 +98,11 @@ public class MaxPoolingLayer extends NNLayer {
         }
         return input.index(result);
       }).toArray();
+      tensor.freeRef();
       return new Tuple2<>(o.getIndex(), inCoords);
     }).collect(Collectors.toList());
+    output.freeRef();
+    return tuple2s;
   }
   
   /**

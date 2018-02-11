@@ -102,7 +102,9 @@ public class AvgMetaLayer extends NNLayer {
             return v;
           })
           .sum() / itemCnt;
-      thisResult = inputData.get(0).mapCoords(f);
+      Tensor tensor = inputData.get(0);
+      thisResult = tensor.mapCoords(f);
+      tensor.freeRef();
       passback = true;
       if (null != lastResult) lastResult.freeRef();
       lastResult = thisResult;
@@ -123,6 +125,7 @@ public class AvgMetaLayer extends NNLayer {
             feedback[inputItem].add(inputCoord, delta.get(inputCoord) / itemCnt);
           }
         });
+        delta.freeRef();
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(feedback);
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();

@@ -27,6 +27,7 @@ import com.simiacryptus.util.io.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Function;
@@ -148,7 +149,8 @@ public class MaxDropoutNoiseLayer extends NNLayer {
   }
   
   private List<List<Coordinate>> getCellMap(@javax.annotation.Nonnull final IntArray dims) {
-    return new ArrayList<>(new Tensor(dims.data).coordStream(true).collect(Collectors.groupingBy((@javax.annotation.Nonnull final Coordinate c) -> {
+    Tensor tensor = new Tensor(dims.data);
+    ArrayList<List<Coordinate>> lists = new ArrayList<>(tensor.coordStream(true).collect(Collectors.groupingBy((@Nonnull final Coordinate c) -> {
       int cellId = 0;
       int max = 0;
       for (int dim = 0; dim < dims.size(); dim++) {
@@ -158,6 +160,8 @@ public class MaxDropoutNoiseLayer extends NNLayer {
       }
       return cellId;
     })).values());
+    tensor.freeRef();
+    return lists;
   }
   
   @javax.annotation.Nonnull

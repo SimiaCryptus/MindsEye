@@ -138,26 +138,26 @@ public class BiasLayer extends NNLayer {
         r.freeRef();
         return tensor;
       }).toArray(i -> new Tensor[i])),
-      (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+      (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
         if (!isFrozen()) {
           final Delta<NNLayer> deltaBuffer = buffer.get(BiasLayer.this, bias);
           if (1 == bias.length) {
-            data.stream().parallel().forEach(d -> {
+            delta.stream().parallel().forEach(d -> {
               @Nullable final double[] array = d.getData();
               deltaBuffer.addInPlace(1 == array.length ? array : new double[]{Arrays.stream(array).sum()});
               d.freeRef();
             });
           }
           else {
-            data.stream().parallel().forEach(d -> {
-              deltaBuffer.addInPlace(d.getData()).freeRef();
+            delta.stream().parallel().forEach(d -> {
+              deltaBuffer.addInPlace(d.getData());
               d.freeRef();
             });
           }
           deltaBuffer.freeRef();
         }
         if (0 < inObj.length && inObj[0].isAlive()) {
-          inObj[0].accumulate(buffer, data);
+          inObj[0].accumulate(buffer, delta);
         }
       }) {
       

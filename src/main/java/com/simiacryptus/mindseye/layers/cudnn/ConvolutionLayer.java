@@ -192,13 +192,16 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
   @javax.annotation.Nullable
   @Override
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
-    assert getKernel().isValid();
+    final Tensor kernel = getKernel();
+    kernel.addRef();
+    assert kernel.isValid();
     assert 1 == inObj.length;
     assert 3 == inObj[0].getData().getDimensions().length;
     assert inputBands == inObj[0].getData().getDimensions()[2];
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     @Nonnull ExplodedConvolutionGrid grid = getExplodedNetwork();
     @Nonnull PipelineNetwork network = grid.getNetwork();
+    grid.freeRef();
     if (isFrozen()) {
       network.freeze();
     }
@@ -210,13 +213,14 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
     return new NNResult(resultData, (@javax.annotation.Nonnull final DeltaSet<NNLayer> deltaSet, @javax.annotation.Nonnull final TensorList data) -> {
       result.accumulate(deltaSet, data);
       if (!isFrozen()) {
-        deltaSet.get(ConvolutionLayer.this, getKernel().getData()).addInPlace(grid.read(deltaSet, true).getData());
+        deltaSet.get(ConvolutionLayer.this, kernel.getData()).addInPlace(grid.read(deltaSet, true).getData());
       }
     }) {
       
       @Override
       protected void _free() {
         result.freeRef();
+        kernel.freeRef();
       }
       
       @Override

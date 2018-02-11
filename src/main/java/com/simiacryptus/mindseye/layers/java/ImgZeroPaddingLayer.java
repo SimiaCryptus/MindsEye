@@ -79,7 +79,10 @@ public class ImgZeroPaddingLayer extends NNLayer {
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     assert inObj.length == 1;
     @Nonnull int[] dimensions = inObj[0].getData().getDimensions();
-    return new ImgCropLayer(dimensions[0] + 2 * this.sizeX, dimensions[1] + 2 * this.sizeY).eval(inObj);
+    ImgCropLayer imgCropLayer = new ImgCropLayer(dimensions[0] + 2 * this.sizeX, dimensions[1] + 2 * this.sizeY);
+    NNResult eval = imgCropLayer.eval(inObj);
+    imgCropLayer.freeRef();
+    return eval;
   }
   
   @javax.annotation.Nonnull

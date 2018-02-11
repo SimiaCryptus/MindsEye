@@ -223,20 +223,20 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
     }
     
   }
-  
-  /**
-   * Demonstration of a suspected GpuSystem bug when using 0 padding with the GPU convolution operation.
-   */
-  public static class Bug extends Bug_Control {
-    /**
-     * Instantiates a new Multi band.
-     */
-    public Bug() {
-      super();
-      layer.setPaddingXY(0, 0);
-    }
-    
-  }
+
+//  /**
+//   * Demonstration of a suspected GpuSystem bug when using 0 padding with the GPU convolution operation.
+//   */
+//  public static class Bug extends Bug_Control {
+//    /**
+//     * Instantiates a new Multi band.
+//     */
+//    public Bug() {
+//      super();
+//      layer.setPaddingXY(0, 0);
+//    }
+//
+//  }
   
   /**
    * Simple 256x256 band 1-pixel "convolution"

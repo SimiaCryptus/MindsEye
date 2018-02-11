@@ -85,9 +85,12 @@ public class SoftmaxActivationLayer extends NNLayer implements MultiPrecision<So
   @Nullable
   @Override
   public NNResult eval(final NNResult... inObj) {
-    if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    NNLayer compatibilityLayer = getCompatibilityLayer();
+    NNResult eval = compatibilityLayer.eval(inObj);
+    compatibilityLayer.freeRef();
+    if (!GpuSystem.isEnabled()) return eval;
     log.debug("Not Implemented: " + getClass().getCanonicalName());
-    return getCompatibilityLayer().eval(inObj);
+    return eval;
   }
   
   @javax.annotation.Nonnull

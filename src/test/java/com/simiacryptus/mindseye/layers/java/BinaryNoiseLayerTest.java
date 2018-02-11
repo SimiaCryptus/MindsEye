@@ -49,11 +49,11 @@ public abstract class BinaryNoiseLayerTest extends LayerTestBase {
   public NNLayer getLayer(final int[][] inputSize, Random random) {
     return new BinaryNoiseLayer();
   }
-  
-  /**
-   * Basic Test
-   */
-  public static class Basic extends BinaryNoiseLayerTest {
-  }
+
+//  /**
+//   * Basic Test
+//   */
+//  public static class Basic extends BinaryNoiseLayerTest {
+//  }
   
 }

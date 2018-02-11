@@ -85,18 +85,18 @@ public class NthPowerActivationLayerTest {
       super(new NthPowerActivationLayer().setPower(Math.PI));
     }
   }
-  
-  /**
-   * Tests x^1/2 aka sqrt(x)
-   */
-  public static class SqrtPowerTest extends ActivationLayerTestBase {
-    /**
-     * Instantiates a new Sqrt power eval.
-     */
-    public SqrtPowerTest() {
-      super(new NthPowerActivationLayer().setPower(0.5));
-    }
-  }
+
+//  /**
+//   * Tests x^1/2 aka sqrt(x)
+//   */
+//  public static class SqrtPowerTest extends ActivationLayerTestBase {
+//    /**
+//     * Instantiates a new Sqrt power eval.
+//     */
+//    public SqrtPowerTest() {
+//      super(new NthPowerActivationLayer().setPower(0.5));
+//    }
+//  }
   
   /**
    * Tests x^2

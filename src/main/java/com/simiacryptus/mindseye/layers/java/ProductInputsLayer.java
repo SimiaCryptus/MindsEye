@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
@@ -113,20 +114,24 @@ public class ProductInputsLayer extends NNLayer {
           }).get();
           final TensorList inputData = input.getData();
           if (1 == inputData.length() && 1 < passback.length()) {
-            passback = TensorArray.wrap(passback.stream().reduce((a, b) -> {
+            TensorArray newValue = TensorArray.wrap(passback.stream().reduce((a, b) -> {
               @Nullable Tensor c = a.add(b);
               a.freeRef();
               b.freeRef();
               return c;
             }).get());
+            passback.freeRef();
+            passback = newValue;
           }
           if (1 == Tensor.dim(inputData.getDimensions()) && 1 < Tensor.dim(passback.getDimensions())) {
-            passback = TensorArray.wrap(passback.stream()
+            TensorArray newValue = TensorArray.wrap(passback.stream()
               .map((a) -> {
-                @javax.annotation.Nonnull Tensor b = new Tensor(a.sum());
+                @Nonnull Tensor b = new Tensor(a.sum());
                 a.freeRef();
                 return b;
               }).toArray(i -> new Tensor[i]));
+            passback.freeRef();
+            passback = newValue;
           }
           input.accumulate(buffer, passback);
           passback.freeRef();

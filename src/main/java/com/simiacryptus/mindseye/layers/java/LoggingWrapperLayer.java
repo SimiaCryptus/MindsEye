@@ -133,6 +133,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
   
       @Override
       protected void _free() {
+        output.freeRef();
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
   

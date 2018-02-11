@@ -89,6 +89,7 @@ public class HyperbolicActivationLayer extends NNLayer {
     final TensorList indata = inObj[0].getData();
     indata.addRef();
     inObj[0].addRef();
+    weights.addRef();
     final int itemCnt = indata.length();
     return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       @javax.annotation.Nullable final Tensor input = indata.get(dataIndex);
@@ -147,6 +148,7 @@ public class HyperbolicActivationLayer extends NNLayer {
       protected void _free() {
         indata.freeRef();
         inObj[0].freeRef();
+        weights.freeRef();
       }
       
       

@@ -419,7 +419,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         public NNResult eval(@Nonnull NNResult... array) {
           if (null == inner) return null;
           @javax.annotation.Nullable NNResult result = inner.eval(array);
-          result.getData().freeRef();
           invocations.add(new Invocation(inner, Arrays.stream(array).map(x -> x.getData().getDimensions()).toArray(i -> new int[i][])));
           return result;
         }
@@ -444,12 +443,15 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       wrapper.freeRef();
     });
     Tensor[] input = Arrays.stream(smallDims).map(i -> new Tensor(i)).toArray(i -> new Tensor[i]);
-    NNResult eval = smallCopy.eval(input);
-    eval.freeRef();
-    eval.getData().freeRef();
-    Arrays.stream(input).forEach(ReferenceCountingBase::freeRef);
-    smallCopy.freeRef();
-    return invocations;
+    try {
+      NNResult eval = smallCopy.eval(input);
+      eval.freeRef();
+      eval.getData().freeRef();
+      return invocations;
+    } finally {
+      Arrays.stream(input).forEach(ReferenceCountingBase::freeRef);
+      smallCopy.freeRef();
+    }
   }
   
   /**
@@ -500,10 +502,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     final NNLayer perfLayer = getLayer(getLargeDims(new Random(seed)), new Random(seed));
     bigTests(log, seed, perfLayer, exceptions);
     perfLayer.freeRef();
-    log.code(() -> {
-      System.gc();
-      ReferenceCountingBase.logFreeWarnings();
-    });
     return exceptions;
   }
   

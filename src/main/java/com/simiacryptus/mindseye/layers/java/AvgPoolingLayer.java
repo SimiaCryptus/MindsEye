@@ -243,7 +243,8 @@ public class AvgPoolingLayer extends NNLayer {
     @Override
     public Map<Coordinate, List<int[]>> load(final IndexMapKey key) throws Exception {
       final int[] ksize = key.kernel;
-      final Map<Coordinate, List<int[]>> coordMap = new Tensor(key.output).coordStream(true).collect(Collectors.toMap(o -> o, o -> {
+      Tensor tensor = new Tensor(key.output);
+      final Map<Coordinate, List<int[]>> coordMap = tensor.coordStream(true).collect(Collectors.toMap(o -> o, o -> {
         @Nonnull Tensor blank = new Tensor(ksize);
         List<int[]> collect = blank.coordStream(true).map(kernelCoord -> {
           int[] coords = o.getCoords();
@@ -256,6 +257,7 @@ public class AvgPoolingLayer extends NNLayer {
         blank.freeRef();
         return collect;
       }));
+      tensor.freeRef();
       return coordMap;
     }
   }

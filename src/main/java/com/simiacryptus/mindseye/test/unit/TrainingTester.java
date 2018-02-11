@@ -477,6 +477,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     });
     TensorList result = network_target.eval(NNConstant.batchResultArray(input_target)).getData();
     final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
+    result.freeRef();
     //if (output_target.length != input_target.length) return null;
     return trainAll("Model Convergence", log,
       append(input_target, output_target),

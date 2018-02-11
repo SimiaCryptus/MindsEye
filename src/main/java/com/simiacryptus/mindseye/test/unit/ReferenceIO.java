@@ -66,7 +66,11 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
       referenceIO.forEach((input, output) -> {
         log.code(() -> {
           @Nonnull final SimpleEval eval = SimpleEval.run(layer, input);
-          @javax.annotation.Nonnull final DoubleStatistics error = new DoubleStatistics().accept(eval.getOutput().add(output.scale(-1)).getData());
+          Tensor scale = output.scale(-1);
+          Tensor add = eval.getOutput().add(scale);
+          scale.freeRef();
+          @javax.annotation.Nonnull final DoubleStatistics error = new DoubleStatistics().accept(add.getData());
+          add.freeRef();
           String format = String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\nError: %s\n--------------------\nDerivative: \n%s",
             Arrays.stream(input).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
             eval.getOutput().prettyPrint(), error,

@@ -77,25 +77,25 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
      */
     public Basic() {super(3, 3);}
   }
-  
-  /**
-   * The type Big.
-   */
-  public static class Big extends FullyConnectedLayerTest {
-    /**
-     * Instantiates a new Big.
-     */
-    public Big() {
-      super(25088, 4096);
-      validateDifferentials = false;
-    }
-    
-    @Override
-    public Class<? extends NNLayer> getReferenceLayerClass() {
-      return null;
-    }
-    
-  }
+
+//  /**
+//   * The type Big.
+//   */
+//  public static class Big extends FullyConnectedLayerTest {
+//    /**
+//     * Instantiates a new Big.
+//     */
+//    public Big() {
+//      super(25088, 4096);
+//      validateDifferentials = false;
+//    }
+//
+//    @Override
+//    public Class<? extends NNLayer> getReferenceLayerClass() {
+//      return null;
+//    }
+//
+//  }
   
   
 }

@@ -27,11 +27,9 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 
 /**
  * The base implementation for ReferenceCounting objects. Provides state management and debugging facilities. If
@@ -41,9 +39,6 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   private static final Logger logger = LoggerFactory.getLogger(ReferenceCountingBase.class);
   private static final boolean DEBUG_LIFECYCLE = Boolean.parseBoolean(System.getProperty("DEBUG_LIFECYCLE", Boolean.toString(TestUtil.CONSERVATIVE)));
   private static final boolean SUPPRESS_LOG = false;
-  private static final ConcurrentHashMap<Class<?>, ConcurrentLinkedDeque<Supplier<ReferenceCountingBase>>> leakMap = new ConcurrentHashMap<>();
-  private static final PersistanceMode FREE_WARNING_PERSISTANCE = PersistanceMode.Soft;
-  private static final int MAX_FREE_WARNINGS = 1;
   private static final long LOAD_TIME = System.nanoTime();
   private final AtomicInteger references = new AtomicInteger(1);
   private final AtomicBoolean isFreed = new AtomicBoolean(false);
@@ -70,19 +65,6 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
    */
   public static String detailString(@javax.annotation.Nonnull ReferenceCountingBase obj, boolean includeCaller) {
     return obj.detailString(includeCaller);
-  }
-  
-  /**
-   * Log free warnings.
-   */
-  public static void logFreeWarnings() {
-    leakMap.forEach((clazz, queue) -> {
-      logger.info(String.format("Objects not freed by reference for %s", clazz.getSimpleName()));
-      queue.forEach(obj -> {
-        ReferenceCountingBase base = obj.get();
-        if (null != base) logger.warn(base.detailString(false));
-      });
-    });
   }
   
   @Override
@@ -182,9 +164,6 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     isFinalized = true;
     if (!isFreed.getAndSet(true)) {
       if (!isFloating()) {
-        ConcurrentLinkedDeque<Supplier<ReferenceCountingBase>> deque = leakMap.computeIfAbsent(getClass(), clazz -> new ConcurrentLinkedDeque<>());
-        deque.add(FREE_WARNING_PERSISTANCE.wrap(this));
-        while (deque.size() > MAX_FREE_WARNINGS) deque.remove();
         if (DEBUG_LIFECYCLE && logger.isDebugEnabled()) {
           logger.debug(String.format("Instance Reclaimed by GC at %.9f: %s", (System.nanoTime() - LOAD_TIME) / 1e9, detailString(false)));
         }

@@ -52,15 +52,15 @@ public class StdDevMetaLayer extends PipelineNetwork {
    */
   public StdDevMetaLayer(final int minBatchCount) {
     super(1);
-    add(new AvgMetaLayer().setMinBatchCount(minBatchCount));
-    add(new AvgReducerLayer());
-    add(new SqActivationLayer());
-    @Nullable final DAGNode a = add(new LinearActivationLayer().setScale(-1).freeze());
-    add(new SqActivationLayer(), getInput(0));
-    add(new AvgMetaLayer().setMinBatchCount(minBatchCount));
-    add(new AvgReducerLayer());
-    add(new SumInputsLayer(), getHead(), a);
-    add(new NthPowerActivationLayer().setPower(0.5));
+    wrap(new AvgMetaLayer().setMinBatchCount(minBatchCount));
+    wrap(new AvgReducerLayer());
+    wrap(new SqActivationLayer());
+    @Nullable final DAGNode a = wrap(new LinearActivationLayer().setScale(-1).freeze());
+    wrap(new SqActivationLayer(), getInput(0));
+    wrap(new AvgMetaLayer().setMinBatchCount(minBatchCount));
+    wrap(new AvgReducerLayer());
+    wrap(new SumInputsLayer(), getHead(), a);
+    wrap(new NthPowerActivationLayer().setPower(0.5));
   }
   
   /**

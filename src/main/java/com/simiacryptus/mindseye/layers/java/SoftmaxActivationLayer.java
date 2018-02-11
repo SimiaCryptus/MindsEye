@@ -86,8 +86,9 @@ public class SoftmaxActivationLayer extends NNLayer {
       final DoubleSummaryStatistics summaryStatistics = DoubleStream.of(input.getData()).filter(x -> Double.isFinite(x)).summaryStatistics();
       final double max = summaryStatistics.getMax();
       //final double min = summaryStatistics.getMin();
-      exp = input.map(x -> Math.exp(x - max)).map(x -> {
-        return Double.isFinite(x) ? x : 0;
+      exp = input.map(x -> {
+        double xx = Math.exp(x - max);
+        return Double.isFinite(xx) ? xx : 0;
       });
       input.freeRef();
       assert Arrays.stream(exp.getData()).allMatch(Double::isFinite);
@@ -104,9 +105,10 @@ public class SoftmaxActivationLayer extends NNLayer {
     return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
         final Tensor[] passbackA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-          @Nullable final double[] delta = data.get(dataIndex).getData();
+          Tensor deltaTensor = data.get(dataIndex);
+          @Nullable final double[] delta = deltaTensor.getData();
           @Nullable final double[] expdata = expA[dataIndex].getData();
-          @javax.annotation.Nonnull final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
+          @javax.annotation.Nonnull final Tensor passback = new Tensor(data.getDimensions());
           final int dim = expdata.length;
           double dot = 0;
           for (int i = 0; i < expdata.length; i++) {
@@ -118,6 +120,7 @@ public class SoftmaxActivationLayer extends NNLayer {
             value = (sum * delta[i] - dot) * expdata[i] / (sum * sum);
             passback.set(i, value);
           }
+          deltaTensor.freeRef();
           return passback;
         }).toArray(i -> new Tensor[i]);
         assert Arrays.stream(passbackA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));

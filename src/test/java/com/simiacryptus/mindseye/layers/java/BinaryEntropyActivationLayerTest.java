@@ -42,11 +42,11 @@ public abstract class BinaryEntropyActivationLayerTest extends ActivationLayerTe
   public DoubleStream scan() {
     return IntStream.range(50, 450).mapToDouble(x -> x * 1.0 / 500.0);
   }
-  
-  /**
-   * Basic Test
-   */
-  public static class Basic extends BinaryEntropyActivationLayerTest {
-  }
+
+//  /**
+//   * Basic Test
+//   */
+//  public static class Basic extends BinaryEntropyActivationLayerTest {
+//  }
   
 }

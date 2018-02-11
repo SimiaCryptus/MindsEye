@@ -660,7 +660,6 @@ public class ValidatingTrainer {
       }
       return epochParams.validation.getMean();
     } catch (@javax.annotation.Nonnull final Throwable e) {
-      RecycleBin.DOUBLES.printNetProfiling(System.err);
       throw new RuntimeException(e);
     }
   }

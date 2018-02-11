@@ -49,6 +49,7 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
   @Nullable
   @Override
   public Tensor get(int i) {
+    assertAlive();
     @javax.annotation.Nullable Tensor tensor = data.get(i);
     @javax.annotation.Nullable Tensor reshapeCast = tensor.reshapeCast(dims);
     tensor.freeRef();
