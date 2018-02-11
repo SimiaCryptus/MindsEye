@@ -98,7 +98,6 @@ public class SoftmaxActivationLayer extends NNLayer {
       expA[dataIndex] = exp;
       sumA[dataIndex] = sum;
       @javax.annotation.Nullable Tensor result = exp.map(x -> x / sum);
-      exp.freeRef();
       return result;
     }).toArray(i -> new Tensor[i]);
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
@@ -130,7 +129,8 @@ public class SoftmaxActivationLayer extends NNLayer {
       
       @Override
       protected void _free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+        Arrays.stream(expA).forEach(ReferenceCountingBase::freeRef);
+        Arrays.stream(inObj).forEach(ReferenceCountingBase::freeRef);
       }
       
       @Override

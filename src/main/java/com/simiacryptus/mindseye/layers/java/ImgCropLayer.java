@@ -120,8 +120,11 @@ public class ImgCropLayer extends NNLayer {
     assert 3 == inputDims.length;
     return new NNResult(TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
       .mapToObj(dataIndex -> {
-        @javax.annotation.Nonnull final Tensor outputDims = new Tensor(sizeX, sizeY, inputDims[2]);
-        return ImgCropLayer.copy(batch.get(dataIndex), outputDims);
+        @javax.annotation.Nonnull final Tensor outputData = new Tensor(sizeX, sizeY, inputDims[2]);
+        Tensor inputData = batch.get(dataIndex);
+        ImgCropLayer.copy(inputData, outputData);
+        inputData.freeRef();
+        return outputData;
       })
       .toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       if (input.isAlive()) {
@@ -129,7 +132,9 @@ public class ImgCropLayer extends NNLayer {
           .mapToObj(dataIndex -> {
             @Nullable final Tensor err = error.get(dataIndex);
             @javax.annotation.Nonnull final Tensor passback = new Tensor(inputDims);
-            return copy(err, passback);
+            copy(err, passback);
+            err.freeRef();
+            return passback;
           }).toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();

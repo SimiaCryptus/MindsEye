@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.*;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
+import com.simiacryptus.mindseye.test.TestUtil;
 import jcuda.jcudnn.cudnnOpTensorDescriptor;
 import jcuda.jcudnn.cudnnOpTensorOp;
 import jcuda.jcudnn.cudnnTensorDescriptor;
@@ -103,9 +104,8 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
     }
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     Arrays.stream(inObj).forEach(x -> x.addRef());
-    @javax.annotation.Nonnull Stream<NNResult> stream0 = Arrays.stream(inObj);
     //stream0 = stream0.parallel();
-    @javax.annotation.Nonnull TensorList run = stream0.map(x -> x.getData()).map(x -> {
+    @javax.annotation.Nonnull TensorList run = Arrays.stream(inObj).map(x -> x.getData()).map(x -> {
       x.addRef();
       return x;
     }).reduce((leftData, rightData) -> GpuSystem.eval(gpu -> {
@@ -126,7 +126,7 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
     return new NNResult(run, (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       @javax.annotation.Nonnull Stream<NNResult> stream1 = Arrays.stream(inObj);
       // TODO: Fix issue where parallel will cause data corruption
-      //stream1 = stream1.parallel();
+      if (!TestUtil.CONSERVATIVE) stream1 = stream1.parallel();
       stream1.filter(x -> x.isAlive()).forEach(obj -> {
         GpuTensorList tensorList = GpuSystem.eval(gpu -> {
           @Nullable final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);

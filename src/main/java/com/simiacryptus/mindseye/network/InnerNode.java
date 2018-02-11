@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.Util;
 
 import javax.annotation.Nonnull;
@@ -94,7 +95,7 @@ final class InnerNode extends LazyResult {
     @javax.annotation.Nonnull final NNLayer innerLayer = getLayer();
     assert Arrays.stream(inputNodes).allMatch(x -> x != null);
     @javax.annotation.Nonnull Stream<DAGNode> stream = Arrays.stream(inputNodes);
-    //stream = stream.parallel();
+    if (!TestUtil.CONSERVATIVE) stream = stream.parallel();
     final NNResult[] in = stream.map(x -> x == null ? null : x.get(ctx)).toArray(i -> new NNResult[i]);
     assert Arrays.stream(in).allMatch(x -> x != null);
     @Nullable NNResult result = innerLayer.eval(in);

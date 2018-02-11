@@ -103,24 +103,28 @@ public class MaxDropoutNoiseLayer extends NNLayer {
       return output;
     }).toArray(i -> new Tensor[i]);
     return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      @Nullable final double[] input = data0.get(dataIndex).getData();
+      Tensor inputData = data0.get(dataIndex);
+      @Nullable final double[] input = inputData.getData();
       @Nullable final double[] maskT = mask[dataIndex].getData();
-      @javax.annotation.Nonnull final Tensor output = new Tensor(data0.get(dataIndex).getDimensions());
+      @javax.annotation.Nonnull final Tensor output = new Tensor(inputData.getDimensions());
       @Nullable final double[] outputData = output.getData();
       for (int i = 0; i < outputData.length; i++) {
         outputData[i] = input[i] * maskT[i];
       }
+      inputData.freeRef();
       return output;
     }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (in0.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-          @Nullable final double[] deltaData = delta.get(dataIndex).getData();
-          @javax.annotation.Nonnull final int[] dims = data0.get(dataIndex).getDimensions();
+          Tensor deltaTensor = delta.get(dataIndex);
+          @Nullable final double[] deltaData = deltaTensor.getData();
+          @javax.annotation.Nonnull final int[] dims = data0.getDimensions();
           @Nullable final double[] maskData = mask[dataIndex].getData();
           @javax.annotation.Nonnull final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, maskData[i] * deltaData[i]);
           }
+          deltaTensor.freeRef();
           return passback;
         }).toArray(i -> new Tensor[i]));
         in0.accumulate(buffer, tensorArray);

@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.*;
+import com.simiacryptus.mindseye.test.TestUtil;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 
 import javax.annotation.Nonnull;
@@ -137,7 +138,7 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
       assert delta.length() == inObj[0].getData().length();
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
       @javax.annotation.Nonnull IntStream stream = IntStream.range(0, inObj.length);
-      //stream = stream.parallel();
+      if (!TestUtil.CONSERVATIVE) stream = stream.parallel();
       stream.forEach(i -> {
         final NNResult input = inObj[i];
         @Nonnull int[] inputDimensions = input.getData().getDimensions();

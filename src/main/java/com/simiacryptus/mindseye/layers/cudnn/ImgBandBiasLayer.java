@@ -214,18 +214,21 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
           @Nullable final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
           @javax.annotation.Nonnull final CudaPtr filterBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), bias.length * 1l * precision.size, MemoryType.Managed, false);
           try {
-            GpuSystem.handle(CuDNNHandle.cudnnConvolutionBackwardBias(gpu.getHandle(), precision.getPointer(1.0),
-              inputDescriptor.getPtr(), errorPtr.getPtr(),
-              precision.getPointer(1.0),
-              filterDescriptor.getPtr(), filterBuffer.getPtr()));
-          } catch (@javax.annotation.Nonnull final Throwable e) {
-            throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
+            try {
+              GpuSystem.handle(CuDNNHandle.cudnnConvolutionBackwardBias(gpu.getHandle(), precision.getPointer(1.0),
+                inputDescriptor.getPtr(), errorPtr.getPtr(),
+                precision.getPointer(1.0),
+                filterDescriptor.getPtr(), filterBuffer.getPtr()));
+            } catch (@javax.annotation.Nonnull final Throwable e) {
+              throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
+            }
+            @javax.annotation.Nonnull final Tensor weightGradient = CudaPtr.read(filterBuffer, precision, new int[]{1, 1, inputSize[2]});
+            //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
+            buffer.get(this, bias).addInPlace(weightGradient.getData()).freeRef();
+            gpu.registerForCleanup(weightGradient);
+          } finally {
+            gpu.registerForCleanup(filterDescriptor, inputDescriptor, errorPtr, filterBuffer);
           }
-          @javax.annotation.Nonnull final Tensor weightGradient = CudaPtr.read(filterBuffer, precision, new int[]{1, 1, inputSize[2]});
-          //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
-          buffer.get(this, bias).addInPlace(weightGradient.getData()).freeRef();
-          gpu.registerForCleanup(filterDescriptor, inputDescriptor, errorPtr, filterBuffer, weightGradient);
-          //assert Arrays.stream(deltaBuffer.delta).allMatch(Double::isFinite);
         });
       }
       if (input.isAlive()) {

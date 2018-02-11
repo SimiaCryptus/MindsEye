@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import com.simiacryptus.mindseye.test.TestUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +39,7 @@ import java.util.function.Supplier;
  */
 public abstract class ReferenceCountingBase implements ReferenceCounting {
   private static final Logger logger = LoggerFactory.getLogger(ReferenceCountingBase.class);
-  private static final boolean DEBUG_LIFECYCLE = ReferenceCountingBase.class.desiredAssertionStatus();
+  private static final boolean DEBUG_LIFECYCLE = Boolean.parseBoolean(System.getProperty("DEBUG_LIFECYCLE", Boolean.toString(TestUtil.CONSERVATIVE)));
   private static final boolean SUPPRESS_LOG = false;
   private static final ConcurrentHashMap<Class<?>, ConcurrentLinkedDeque<Supplier<ReferenceCountingBase>>> leakMap = new ConcurrentHashMap<>();
   private static final PersistanceMode FREE_WARNING_PERSISTANCE = PersistanceMode.Soft;

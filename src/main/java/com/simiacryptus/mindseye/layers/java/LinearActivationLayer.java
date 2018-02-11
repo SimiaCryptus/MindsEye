@@ -64,6 +64,12 @@ public class LinearActivationLayer extends NNLayer {
     weights = Tensor.fromJson(json.get("weights"), resources);
   }
   
+  @Override
+  protected void _free() {
+    weights.freeRef();
+    super._free();
+  }
+  
   /**
    * From json linear activation layer.
    *
@@ -85,6 +91,7 @@ public class LinearActivationLayer extends NNLayer {
     final int itemCnt = inData.length();
     final double scale = weights.get(0);
     final double bias = weights.get(1);
+    weights.addRef();
     return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       @javax.annotation.Nullable final Tensor input = inData.get(dataIndex);
       @javax.annotation.Nullable Tensor map = input.map(v -> scale * v + bias);
@@ -102,7 +109,7 @@ public class LinearActivationLayer extends NNLayer {
             weightDelta.add(0, deltaData[i] * inputData[inputData.length == 1 ? 0 : i]);
             weightDelta.add(1, deltaData[i]);
           }
-          buffer.get(LinearActivationLayer.this, weights.getData()).addInPlace(weightDelta.getData());
+          buffer.get(LinearActivationLayer.this, weights.getData()).addInPlace(weightDelta.getData()).freeRef();
           inputT.freeRef();
           deltaT.freeRef();
           weightDelta.freeRef();
@@ -131,6 +138,7 @@ public class LinearActivationLayer extends NNLayer {
       
       @Override
       protected void _free() {
+        weights.freeRef();
         inData.freeRef();
         in0.freeRef();
       }

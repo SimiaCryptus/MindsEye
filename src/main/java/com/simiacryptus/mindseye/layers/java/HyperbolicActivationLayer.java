@@ -77,6 +77,12 @@ public class HyperbolicActivationLayer extends NNLayer {
     return new HyperbolicActivationLayer(json, rs);
   }
   
+  @Override
+  protected void _free() {
+    weights.freeRef();
+    super._free();
+  }
+  
   @javax.annotation.Nonnull
   @Override
   public NNResult eval(final NNResult... inObj) {
@@ -116,18 +122,20 @@ public class HyperbolicActivationLayer extends NNLayer {
       }
       if (inObj[0].isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-          @javax.annotation.Nullable Tensor tensor = indata.get(dataIndex);
-          @Nullable final double[] deltaData = delta.get(dataIndex).getData();
+          @javax.annotation.Nullable Tensor inputTensor = indata.get(dataIndex);
+          Tensor deltaTensor = delta.get(dataIndex);
+          @Nullable final double[] deltaData = deltaTensor.getData();
           @javax.annotation.Nonnull final int[] dims = indata.getDimensions();
           @javax.annotation.Nonnull final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
-            final double x = tensor.getData()[i];
+            final double x = inputTensor.getData()[i];
             final double d = deltaData[i];
             final int sign = x < 0 ? negativeMode : 1;
             final double a = Math.max(0, weights.getData()[x < 0 ? 1 : 0]);
             passback.set(i, sign * d * a * x / Math.sqrt(1 + a * x * a * x));
           }
-          tensor.freeRef();
+          deltaTensor.freeRef();
+          inputTensor.freeRef();
           return passback;
         }).toArray(i -> new Tensor[i]));
         inObj[0].accumulate(buffer, tensorArray);

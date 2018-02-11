@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.test.TestUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A result type for evaluating the backpropigation phase of an Acyclic Directed Graph. Since the result of a given
@@ -146,11 +148,10 @@ class CountingNNResult extends NNResult {
         data.addRef();
         synchronized (passbackBuffers) {
           if (passbackBuffers.size() > COMPACTION_SIZE) {
-            //stream = stream.parallel();
-            @javax.annotation.Nonnull TensorList reduced = passbackBuffers.stream().map(x -> {
-              //x.addRef();
-              return x;
-            }).reduce((a, b) -> {
+            Stream<TensorList> stream = passbackBuffers.stream();
+            if (!TestUtil.CONSERVATIVE) stream = stream.parallel();
+            //x.addRef();
+            @javax.annotation.Nonnull TensorList reduced = stream.reduce((a, b) -> {
               TensorList c = a.add(b);
               a.freeRef();
               b.freeRef();
@@ -163,17 +164,15 @@ class CountingNNResult extends NNResult {
           if (accumulations.incrementAndGet() == references.get()) {
             if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
             //stream0 = stream0.parallel();
-            @javax.annotation.Nonnull TensorList reduced = passbackBuffers.stream().map(x -> {
-              //x.addRef();
-              return x;
-            }).reduce((a, b) -> {
+            //x.addRef();
+            Stream<TensorList> stream = passbackBuffers.stream();
+            if (!TestUtil.CONSERVATIVE) stream = stream.parallel();
+            @javax.annotation.Nonnull TensorList reduced = stream.reduce((a, b) -> {
               TensorList c = a.add(b);
               a.freeRef();
               b.freeRef();
               return c;
             }).get();
-            //stream1 = stream1.parallel();
-            //passbackBuffers.stream().distinct().filter((TensorList x) -> x != reduced).forEach(t -> t.freeRef());
             inner.accumulate(buffer, reduced);
             reduced.freeRef();
             accumulations.set(0);

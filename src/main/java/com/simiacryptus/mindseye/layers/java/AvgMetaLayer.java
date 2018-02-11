@@ -95,7 +95,12 @@ public class AvgMetaLayer extends NNLayer {
     if (null == lastResult || inputData.length() > minBatchCount) {
       @javax.annotation.Nonnull final ToDoubleFunction<Coordinate> f = (c) ->
         IntStream.range(0, itemCnt)
-          .mapToDouble(dataIndex -> inputData.get(dataIndex).get(c))
+          .mapToDouble(dataIndex -> {
+            Tensor tensor = inputData.get(dataIndex);
+            double v = tensor.get(c);
+            tensor.freeRef();
+            return v;
+          })
           .sum() / itemCnt;
       thisResult = inputData.get(0).mapCoords(f);
       passback = true;

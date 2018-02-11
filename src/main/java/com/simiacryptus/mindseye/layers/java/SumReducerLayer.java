@@ -87,7 +87,7 @@ public class SumReducerLayer extends NNLayer {
           @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {
             final double delta = data.get(dataIndex).get(0);
             @javax.annotation.Nonnull final Tensor passback = new Tensor(in_l.getData().getDimensions());
-            for (int i = 0; i < in_l.getData().get(dataIndex).dim(); i++) {
+            for (int i = 0; i < Tensor.dim(in_l.getData().getDimensions()); i++) {
               passback.set(i, delta);
             }
             return passback;

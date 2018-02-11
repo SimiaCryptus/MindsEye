@@ -272,6 +272,7 @@ public abstract class DAGNetwork extends NNLayer {
   @javax.annotation.Nullable
   @Override
   public NNResult eval(final NNResult... input) {
+    assertAlive();
     @javax.annotation.Nonnull GraphEvaluationContext buildExeCtx = buildExeCtx(input);
     @javax.annotation.Nullable NNResult nnResult = getHead().get(buildExeCtx);
     buildExeCtx.freeRef();

@@ -68,6 +68,7 @@ public class QuadraticSearch implements LineSearchStrategy {
   
     @javax.annotation.Nonnull final LocateInitialRightPoint locateInitialRightPoint = new LocateInitialRightPoint(cursor, monitor, leftPoint).apply();
     @Nonnull LineSearchPoint rightPoint = locateInitialRightPoint.getRightPoint();
+    rightPoint.addRef();
     double rightX = locateInitialRightPoint.getRightX();
   
     try {
@@ -387,37 +388,41 @@ public class QuadraticSearch implements LineSearchStrategy {
     @javax.annotation.Nonnull
     public LocateInitialRightPoint apply() {
       @Nullable LineSearchPoint lastPoint = null;
-      int loops = 0;
-      while (true) {
+      try {
+        int loops = 0;
+        while (true) {
+          if (null != lastPoint) lastPoint.freeRef();
+          lastPoint = thisPoint;
+          lastPoint.addRef();
+          if (isSame(cursor, monitor, initialPoint, thisPoint)) {
+            monitor.log(String.format("%s ~= %s", initialPoint.point.rate, thisX));
+            return this;
+          }
+          else if (thisPoint.point.getMean() > initialPoint.point.getMean()) {
+            thisX = thisX / 13;
+          }
+          else if (thisPoint.derivative < initialDerivFactor * thisPoint.derivative) {
+            thisX = thisX * 7;
+          }
+          else {
+            monitor.log(String.format("%s <= %s", thisPoint.point.getMean(), initialPoint.point.getMean()));
+            return this;
+          }
+      
+          if (null != thisPoint) thisPoint.freeRef();
+          thisPoint = cursor.step(thisX, monitor);
+          if (isSame(cursor, monitor, lastPoint, thisPoint)) {
+            monitor.log(String.format("%s ~= %s", lastPoint.point.rate, thisX));
+            return this;
+          }
+          monitor.log(String.format("F(%s) = %s, delta = %s", thisX, thisPoint, thisPoint.point.getMean() - initialPoint.point.getMean()));
+          if (loops++ > 50) {
+            monitor.log(String.format("Loops = %s", loops));
+            return this;
+          }
+        }
+      } finally {
         if (null != lastPoint) lastPoint.freeRef();
-        lastPoint = thisPoint;
-        lastPoint.addRef();
-        if (isSame(cursor, monitor, initialPoint, thisPoint)) {
-          monitor.log(String.format("%s ~= %s", initialPoint.point.rate, thisX));
-          return this;
-        }
-        else if (thisPoint.point.getMean() > initialPoint.point.getMean()) {
-          thisX = thisX / 13;
-        }
-        else if (thisPoint.derivative < initialDerivFactor * thisPoint.derivative) {
-          thisX = thisX * 7;
-        }
-        else {
-          monitor.log(String.format("%s <= %s", thisPoint.point.getMean(), initialPoint.point.getMean()));
-          return this;
-        }
-  
-        if (null != thisPoint) thisPoint.freeRef();
-        thisPoint = cursor.step(thisX, monitor);
-        if (isSame(cursor, monitor, lastPoint, thisPoint)) {
-          monitor.log(String.format("%s ~= %s", lastPoint.point.rate, thisX));
-          return this;
-        }
-        monitor.log(String.format("F(%s) = %s, delta = %s", thisX, thisPoint, thisPoint.point.getMean() - initialPoint.point.getMean()));
-        if (loops++ > 50) {
-          monitor.log(String.format("Loops = %s", loops));
-          return this;
-        }
       }
     }
   

@@ -67,29 +67,49 @@ public class ProductInputsLayer extends NNLayer {
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     for (int i = 1; i < inObj.length; i++) {
-      final int dim0 = Tensor.dim(inObj[0].getData().get(0).getDimensions());
-      final int dimI = Tensor.dim(inObj[i].getData().get(0).getDimensions());
+      final int dim0 = Tensor.dim(inObj[0].getData().getDimensions());
+      final int dimI = Tensor.dim(inObj[i].getData().getDimensions());
       if (dim0 != 1 && dimI != 1 && dim0 != dimI) {
-        throw new IllegalArgumentException(Arrays.toString(inObj[0].getData().get(0).getDimensions()) + " != " + Arrays.toString(inObj[i].getData().get(0).getDimensions()));
+        throw new IllegalArgumentException(Arrays.toString(inObj[0].getData().getDimensions()) + " != " + Arrays.toString(inObj[i].getData().getDimensions()));
       }
     }
-    return new NNResult(Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
-      return TensorArray.wrap(IntStream.range(0, Math.max(l.length(), r.length())).parallel()
+    return new NNResult(Arrays.stream(inObj).parallel().map(x -> {
+      TensorList data = x.getData();
+      data.addRef();
+      return data;
+    }).reduce((l, r) -> {
+      TensorArray productArray = TensorArray.wrap(IntStream.range(0, Math.max(l.length(), r.length())).parallel()
         .mapToObj(i1 -> {
-          @javax.annotation.Nullable final Tensor left = l.get(1 == l.length() ? 0 : i1);
-          @javax.annotation.Nullable final Tensor right = r.get(1 == r.length() ? 0 : i1);
-          return Tensor.product(left, right);
+          @Nullable final Tensor left = l.get(1 == l.length() ? 0 : i1);
+          @Nullable final Tensor right = r.get(1 == r.length() ? 0 : i1);
+          Tensor product = Tensor.product(left, right);
+          left.freeRef();
+          right.freeRef();
+          return product;
         }).toArray(i -> new Tensor[i]));
+      l.freeRef();
+      r.freeRef();
+      return productArray;
     }).get(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       for (@javax.annotation.Nonnull final NNResult input : inObj) {
         if (input.isAlive()) {
-          @javax.annotation.Nonnull TensorList passback = Arrays.stream(inObj).parallel().map(x -> x == input ? delta : x.getData()).reduce((l, r) -> {
-            return TensorArray.wrap(IntStream.range(0, Math.max(l.length(), r.length())).parallel()
+          @javax.annotation.Nonnull TensorList passback = Arrays.stream(inObj).parallel().map(x -> {
+            TensorList tensorList = x == input ? delta : x.getData();
+            tensorList.addRef();
+            return tensorList;
+          }).reduce((l, r) -> {
+            TensorArray productList = TensorArray.wrap(IntStream.range(0, Math.max(l.length(), r.length())).parallel()
               .mapToObj(j -> {
-                @javax.annotation.Nullable final Tensor left = l.get(1 == l.length() ? 0 : j);
-                @javax.annotation.Nullable final Tensor right = r.get(1 == r.length() ? 0 : j);
-                return Tensor.product(left, right);
+                @Nullable final Tensor left = l.get(1 == l.length() ? 0 : j);
+                @Nullable final Tensor right = r.get(1 == r.length() ? 0 : j);
+                Tensor product = Tensor.product(left, right);
+                left.freeRef();
+                right.freeRef();
+                return product;
               }).toArray(j -> new Tensor[j]));
+            l.freeRef();
+            r.freeRef();
+            return productList;
           }).get();
           final TensorList inputData = input.getData();
           if (1 == inputData.length() && 1 < passback.length()) {

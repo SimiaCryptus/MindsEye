@@ -151,6 +151,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
             resultDelta.set(coords[0], coords[1], filterBand, v);
           }
         }, false);
+        deltaTensor.freeRef();
       }
     }
     return resultDelta;

@@ -133,7 +133,7 @@ public class FullyConnectedReferenceLayer extends NNLayer {
     indata.addRef();
     @Nonnull int[] inputDimensions = indata.getDimensions();
     assert Tensor.dim(inputDimensions) == Tensor.dim(this.inputDims) : Arrays.toString(inputDimensions) + " == " + Arrays.toString(this.inputDims);
-    
+    weights.addRef();
     return new NNResult(TensorArray.wrap(IntStream.range(0, indata.length()).mapToObj(index -> {
       @javax.annotation.Nullable final Tensor input = indata.get(index);
       @Nullable final Tensor output = new Tensor(outputDims);
@@ -145,39 +145,42 @@ public class FullyConnectedReferenceLayer extends NNLayer {
         double value = prev + w * i;
         output.set(coords[1], value);
       });
+      input.freeRef();
       return output;
     }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         final Delta<NNLayer> deltaBuffer = buffer.get(FullyConnectedReferenceLayer.this, getWeights().getData());
         Tensor[] array = IntStream.range(0, indata.length()).mapToObj(i -> {
-          @javax.annotation.Nullable final Tensor input = indata.get(i);
-          @javax.annotation.Nullable final Tensor output = delta.get(i);
+          @javax.annotation.Nullable final Tensor inputTensor = indata.get(i);
+          @javax.annotation.Nullable final Tensor deltaTensor = delta.get(i);
           @javax.annotation.Nonnull Tensor weights = new Tensor(FullyConnectedReferenceLayer.this.weights.getDimensions());
           weights.coordStream(false).forEach(c -> {
             int[] coords = c.getCoords();
-            weights.set(c, input.get(coords[0]) * output.get(coords[1]));
+            weights.set(c, inputTensor.get(coords[0]) * deltaTensor.get(coords[1]));
           });
+          inputTensor.freeRef();
+          deltaTensor.freeRef();
           return weights;
         }).toArray(i -> new Tensor[i]);
-        deltaBuffer.addInPlace(Arrays.stream(array).map(x -> {
-          x.addRef();
-          return x;
-        }).reduce((a, b) -> {
+        Tensor tensor = Arrays.stream(array).reduce((a, b) -> {
           Tensor c = a.add(b);
           a.freeRef();
           b.freeRef();
           return c;
-        }).get().getData());
+        }).get();
+        deltaBuffer.addInPlace(tensor.getData()).freeRef();
+        tensor.freeRef();
       }
       if (inputResult.isAlive()) {
         @javax.annotation.Nonnull final TensorList tensorList = TensorArray.wrap(IntStream.range(0, indata.length()).mapToObj(i -> {
-          @Nullable final Tensor input = new Tensor(inputDims);
-          @javax.annotation.Nullable final Tensor output = delta.get(i);
+          @Nullable final Tensor inputTensor = new Tensor(inputDims);
+          @javax.annotation.Nullable final Tensor deltaTensor = delta.get(i);
           weights.coordStream(false).forEach(c -> {
             int[] coords = c.getCoords();
-            input.set(coords[0], input.get(coords[0]) + weights.get(c) * output.get(coords[1]));
+            inputTensor.set(coords[0], inputTensor.get(coords[0]) + weights.get(c) * deltaTensor.get(coords[1]));
           });
-          return input;
+          deltaTensor.freeRef();
+          return inputTensor;
         }).toArray(i -> new Tensor[i]));
         inputResult.accumulate(buffer, tensorList);
         tensorList.freeRef();
@@ -188,6 +191,7 @@ public class FullyConnectedReferenceLayer extends NNLayer {
       protected void _free() {
         indata.freeRef();
         inputResult.freeRef();
+        weights.freeRef();
       }
       
       @Override

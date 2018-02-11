@@ -94,6 +94,12 @@ public abstract class ImgCropLayerTest extends CuDNNLayerTestBase {
           }
         }
       }
+  
+      @Override
+      protected void _free() {
+        inner.freeRef();
+        super._free();
+      }
     };
   }
   

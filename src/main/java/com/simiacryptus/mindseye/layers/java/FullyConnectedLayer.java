@@ -207,28 +207,29 @@ public class FullyConnectedLayer extends NNLayer {
       nnResult.addRef();
     }
     assert Tensor.dim(indata.getDimensions()) == Tensor.dim(this.inputDims) : Arrays.toString(indata.getDimensions()) + " == " + Arrays.toString(this.inputDims);
-    @Nullable Tensor weights = this.weights;
-    @javax.annotation.Nonnull DoubleMatrix doubleMatrix = new DoubleMatrix(Tensor.dim(indata.getDimensions()), Tensor.dim(outputDims), weights.getData());
+    @javax.annotation.Nonnull DoubleMatrix doubleMatrix = new DoubleMatrix(Tensor.dim(indata.getDimensions()), Tensor.dim(outputDims), this.weights.getData());
     @javax.annotation.Nonnull final DoubleMatrix matrixObj = FullyConnectedLayer.transpose(doubleMatrix);
     @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, indata.length()).parallel().mapToObj(dataIndex -> {
       @javax.annotation.Nullable final Tensor input = indata.get(dataIndex);
       @Nullable final Tensor output = new Tensor(outputDims);
-      @Nullable final double[] in = input.getData();
-      @Nullable final double[] out = output.getData();
-      matrixObj.mmuli(new DoubleMatrix(in.length, 1, in), new DoubleMatrix(out.length, 1, out));
+      matrixObj.mmuli(new DoubleMatrix(input.dim(), 1, input.getData()), new DoubleMatrix(output.dim(), 1, output.getData()));
+      input.freeRef();
       return output;
     }).toArray(i -> new Tensor[i]));
     RecycleBin.DOUBLES.recycle(matrixObj.data, matrixObj.data.length);
+    this.weights.addRef();
     return new NNResult(tensorArray, (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
-        final Delta<NNLayer> deltaBuffer = buffer.get(FullyConnectedLayer.this, weights.getData());
+        final Delta<NNLayer> deltaBuffer = buffer.get(FullyConnectedLayer.this, this.weights.getData());
         final int threads = 4;
         IntStream.range(0, threads).parallel().mapToObj(x -> x).flatMap(thread -> {
-          @javax.annotation.Nonnull final Tensor weightDelta = new Tensor(Tensor.dim(inputDims), Tensor.dim(outputDims));
           @Nullable Stream<Tensor> stream = IntStream.range(0, indata.length()).filter(i -> thread == i % threads).mapToObj(dataIndex -> {
-            @Nullable final double[] deltaData = delta.get(dataIndex).getData();
-            @Nullable final double[] inputData = indata.get(dataIndex).getData();
-            FullyConnectedLayer.crossMultiplyT(deltaData, inputData, weightDelta.getData());
+            @javax.annotation.Nonnull final Tensor weightDelta = new Tensor(Tensor.dim(inputDims), Tensor.dim(outputDims));
+            Tensor deltaTensor = delta.get(dataIndex);
+            Tensor inputTensor = indata.get(dataIndex);
+            FullyConnectedLayer.crossMultiplyT(deltaTensor.getData(), inputTensor.getData(), weightDelta.getData());
+            inputTensor.freeRef();
+            deltaTensor.freeRef();
             return weightDelta;
           });
           return stream;
@@ -247,9 +248,8 @@ public class FullyConnectedLayer extends NNLayer {
       if (inObj[0].isAlive()) {
         @javax.annotation.Nonnull final TensorList tensorList = TensorArray.wrap(IntStream.range(0, indata.length()).parallel().mapToObj(dataIndex -> {
           @Nullable final double[] deltaData = delta.get(dataIndex).getData();
-          @Nullable final Tensor r = weights;
           @javax.annotation.Nonnull final Tensor passback = new Tensor(indata.get(dataIndex).getDimensions());
-          FullyConnectedLayer.multiply(r.getData(), deltaData, passback.getData());
+          FullyConnectedLayer.multiply(this.weights.getData(), deltaData, passback.getData());
           return passback;
         }).toArray(i -> new Tensor[i]));
         inObj[0].accumulate(buffer, tensorList);
@@ -263,6 +263,7 @@ public class FullyConnectedLayer extends NNLayer {
         for (@javax.annotation.Nonnull NNResult nnResult : inObj) {
           nnResult.freeRef();
         }
+        FullyConnectedLayer.this.weights.freeRef();
       }
       
       @Override

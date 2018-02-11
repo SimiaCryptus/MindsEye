@@ -53,7 +53,6 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -596,8 +595,6 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
           TensorList tensorList = eval.getData();
           eval.freeRef();
           String str = tensorList.stream()
-            .collect(Collectors.toList())
-            .stream()
             .limit(1)
             .map(x -> {
               String s = x.prettyPrint();

@@ -65,6 +65,7 @@ public class TestUtil {
    */
   public static final URI S3_ROOT = URI.create("https://s3-us-west-2.amazonaws.com/simiacryptus/");
   private static final Logger log = LoggerFactory.getLogger(TestUtil.class);
+  public static final boolean CONSERVATIVE = Boolean.parseBoolean(System.getProperty("CONSERVATIVE", Boolean.toString(TestUtil.class.desiredAssertionStatus())));
   
   /**
    * Add logging.

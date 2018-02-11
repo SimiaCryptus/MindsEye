@@ -368,12 +368,14 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         for (@javax.annotation.Nonnull Invocation invocation : getInvocations(smallLayer, smallDims)) {
           log.h2("Small SubTest: " + invocation.getLayer().getClass().getSimpleName());
           littleTests(log, exceptions, invocation);
+          invocation.freeRef();
         }
       }
       if (largeLayer instanceof DAGNetwork) {
         for (@javax.annotation.Nonnull Invocation invocation : getInvocations(largeLayer, largeDims)) {
           log.h2("Large SubTest: " + invocation.getLayer().getClass().getSimpleName());
           bigTests(log, exceptions, invocation);
+          invocation.freeRef();
         }
       }
     }
@@ -388,6 +390,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       @Nonnull NNLayer copy = perfLayer.copy();
       Tensor[] randomize = randomize(largeDims);
       test.test(log, copy, randomize);
+      test.freeRef();
       for (@javax.annotation.Nonnull Tensor tensor : randomize) {
         tensor.freeRef();
       }
@@ -416,6 +419,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         public NNResult eval(@Nonnull NNResult... array) {
           if (null == inner) return null;
           @javax.annotation.Nullable NNResult result = inner.eval(array);
+          result.getData().freeRef();
           invocations.add(new Invocation(inner, Arrays.stream(array).map(x -> x.getData().getDimensions()).toArray(i -> new int[i][])));
           return result;
         }
@@ -439,7 +443,12 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       node.setLayer(wrapper);
       wrapper.freeRef();
     });
-    smallCopy.eval(Arrays.stream(smallDims).map(i -> new Tensor(i)).<Tensor>toArray(i -> new Tensor[i]));
+    Tensor[] input = Arrays.stream(smallDims).map(i -> new Tensor(i)).toArray(i -> new Tensor[i]);
+    NNResult eval = smallCopy.eval(input);
+    eval.freeRef();
+    eval.getData().freeRef();
+    Arrays.stream(input).forEach(ReferenceCountingBase::freeRef);
+    smallCopy.freeRef();
     return invocations;
   }
   
@@ -484,7 +493,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     final NNLayer layer = getLayer(getSmallDims(new Random(seed)), new Random(seed));
     @javax.annotation.Nonnull ArrayList<TestError> exceptions = new ArrayList<>();
     log.p(String.format("Using Seed %d", seed));
-    littleTests(log, exceptions, new Invocation(layer, getSmallDims(new Random(seed))));
+    Invocation invocation = new Invocation(layer, getSmallDims(new Random(seed)));
+    littleTests(log, exceptions, invocation);
+    invocation.freeRef();
     layer.freeRef();
     final NNLayer perfLayer = getLayer(getLargeDims(new Random(seed)), new Random(seed));
     bigTests(log, seed, perfLayer, exceptions);
@@ -509,9 +520,12 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       @Nonnull NNLayer layer = perfLayer.copy();
       try {
         Tensor[] input = randomize(getLargeDims(new Random(seed)));
-        test.test(log, layer, input);
-        for (@javax.annotation.Nonnull Tensor t : input) {
-          t.freeRef();
+        try {
+          test.test(log, layer, input);
+        } finally {
+          for (@javax.annotation.Nonnull Tensor t : input) {
+            t.freeRef();
+          }
         }
       } catch (LifecycleException e) {
         throw e;
@@ -621,13 +635,20 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     return new Random(seed);
   }
   
-  private static class Invocation {
+  private static class Invocation extends ReferenceCountingBase {
     private final NNLayer layer;
     private final int[][] smallDims;
     
     private Invocation(NNLayer layer, int[][] smallDims) {
       this.layer = layer;
       this.smallDims = smallDims;
+      this.layer.addRef();
+    }
+    
+    @Override
+    protected void _free() {
+      this.layer.freeRef();
+      super._free();
     }
   
     /**

@@ -95,6 +95,7 @@ public class GaussianNoiseLayer extends NNLayer {
       @Nullable final Tensor output = input.map(x -> {
         return x + random.nextGaussian() * getValue();
       });
+      input.freeRef();
       return output;
     }).toArray(i -> new Tensor[i]);
     return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
@@ -102,8 +103,7 @@ public class GaussianNoiseLayer extends NNLayer {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           Tensor tensor = delta.get(dataIndex);
           @Nullable final double[] deltaData = tensor.getData();
-          @javax.annotation.Nonnull final int[] dims = inputData.get(dataIndex).getDimensions();
-          @javax.annotation.Nonnull final Tensor passback = new Tensor(dims);
+          @javax.annotation.Nonnull final Tensor passback = new Tensor(inputData.getDimensions());
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, deltaData[i]);
           }
