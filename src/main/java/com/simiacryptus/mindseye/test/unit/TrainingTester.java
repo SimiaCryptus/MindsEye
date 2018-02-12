@@ -574,53 +574,57 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
         network.getInput(inputs - 1));
       @javax.annotation.Nonnull ArrayTrainable trainable = new ArrayTrainable(data, network);
       if (0 < mask.length) trainable.setMask(mask);
-      List<StepRecord> history = opt.apply(log, trainable);
-      trainable.freeRef();
-      if (history.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
-        if (!network.isFrozen()) {
-          log.p("This training run resulted in the following configuration:");
+      List<StepRecord> history;
+      try {
+        history = opt.apply(log, trainable);
+        if (history.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
+          if (!network.isFrozen()) {
+            log.p("This training run resulted in the following configuration:");
+            log.code(() -> {
+              return network.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
+            });
+          }
+          if (0 < mask.length) {
+            log.p("And regressed input:");
+            log.code(() -> {
+              return Arrays.stream(data)
+                .flatMap(x -> Arrays.stream(x))
+                .limit(1)
+                .map(x -> x.prettyPrint())
+                .reduce((a, b) -> a + "\n" + b)
+                .orElse("");
+            });
+          }
+          log.p("To produce the following output:");
           log.code(() -> {
-            return network.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
-          });
-        }
-        if (0 < mask.length) {
-          log.p("And regressed input:");
-          log.code(() -> {
-            return Arrays.stream(data)
-              .flatMap(x -> Arrays.stream(x))
+            NNResult[] array = NNConstant.batchResultArray(pop(data));
+            @javax.annotation.Nullable NNResult eval = layer.eval(array);
+            for (@javax.annotation.Nonnull NNResult nnResult : array) {
+              nnResult.freeRef();
+              nnResult.getData().freeRef();
+            }
+            TensorList tensorList = eval.getData();
+            eval.freeRef();
+            String str = tensorList.stream()
               .limit(1)
-              .map(x -> x.prettyPrint())
+              .map(x -> {
+                String s = x.prettyPrint();
+                x.freeRef();
+                return s;
+              })
               .reduce((a, b) -> a + "\n" + b)
               .orElse("");
+            tensorList.freeRef();
+            return str;
           });
         }
-        log.p("To produce the following output:");
-        log.code(() -> {
-          NNResult[] array = NNConstant.batchResultArray(pop(data));
-          @javax.annotation.Nullable NNResult eval = layer.eval(array);
-          for (@javax.annotation.Nonnull NNResult nnResult : array) {
-            nnResult.freeRef();
-            nnResult.getData().freeRef();
-          }
-          TensorList tensorList = eval.getData();
-          eval.freeRef();
-          String str = tensorList.stream()
-            .limit(1)
-            .map(x -> {
-              String s = x.prettyPrint();
-              x.freeRef();
-              return s;
-            })
-            .reduce((a, b) -> a + "\n" + b)
-            .orElse("");
-          tensorList.freeRef();
-          return str;
-        });
+        else {
+          log.p("Training Converged");
+        }
+      } finally {
+        trainable.freeRef();
+        network.freeRef();
       }
-      else {
-        log.p("Training Converged");
-      }
-      network.freeRef();
       return history;
     } finally {
       layer.freeRef();
