@@ -399,7 +399,12 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
         .orElse("");
     });
     log.p("Which produces the following output:");
-    TensorList result = network_target.eval(NNConstant.batchResultArray(input_target)).getData();
+    NNResult[] inputs = NNConstant.batchResultArray(input_target);
+    NNResult eval = network_target.eval(inputs);
+    network_target.freeRef();
+    Arrays.stream(inputs).forEach(ReferenceCountingBase::freeRef);
+    TensorList result = eval.getData();
+    eval.freeRef();
     final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
     log.code(() -> {
       return Stream.of(output_target).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
@@ -475,7 +480,11 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     log.code(() -> {
       return network_target.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
     });
-    TensorList result = network_target.eval(NNConstant.batchResultArray(input_target)).getData();
+    NNResult[] array = NNConstant.batchResultArray(input_target);
+    NNResult eval = network_target.eval(array);
+    Arrays.stream(array).forEach(ReferenceCountingBase::freeRef);
+    TensorList result = eval.getData();
+    eval.freeRef();
     final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
     result.freeRef();
     //if (output_target.length != input_target.length) return null;

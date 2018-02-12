@@ -92,8 +92,7 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
     strides = Tensor.getSkips(dims);
     //this.data = data;// Arrays.copyOf(data, data.length);
     if (null != data) {
-      this.data = RecycleBin.DOUBLES.obtain(data.length);// Arrays.copyOf(data, data.length);
-      System.arraycopy(data, 0, this.data, 0, data.length);
+      this.data = RecycleBin.DOUBLES.copyOf(data, data.length);
     }
     assert isValid();
     //assert (null == data || Tensor.dim(dims) == data.length);

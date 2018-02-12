@@ -107,27 +107,31 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
         if (seed == -1) return 1;
         return random.nextDouble() < getValue() ? 0 : (1.0 / getValue());
       });
+      input.freeRef();
       return output;
     }).toArray(i -> new Tensor[i]);
     return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      @Nullable final double[] input = inputData.get(dataIndex).getData();
+      Tensor inputTensor = inputData.get(dataIndex);
+      @Nullable final double[] input = inputTensor.getData();
       @Nullable final double[] maskT = mask[dataIndex].getData();
-      @javax.annotation.Nonnull final Tensor output = new Tensor(inputData.get(dataIndex).getDimensions());
+      @javax.annotation.Nonnull final Tensor output = new Tensor(inputTensor.getDimensions());
       @Nullable final double[] outputData = output.getData();
       for (int i = 0; i < outputData.length; i++) {
         outputData[i] = input[i] * maskT[i];
       }
+      inputTensor.freeRef();
       return output;
     }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (inputResult.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-          @Nullable final double[] deltaData = delta.get(dataIndex).getData();
-          @javax.annotation.Nonnull final int[] dims = inputData.get(dataIndex).getDimensions();
+          Tensor deltaTensor = delta.get(dataIndex);
+          @Nullable final double[] deltaData = deltaTensor.getData();
           @Nullable final double[] maskData = mask[dataIndex].getData();
-          @javax.annotation.Nonnull final Tensor passback = new Tensor(dims);
+          @javax.annotation.Nonnull final Tensor passback = new Tensor(deltaTensor.getDimensions());
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, maskData[i] * deltaData[i]);
           }
+          deltaTensor.freeRef();
           return passback;
         }).toArray(i -> new Tensor[i]));
         inputResult.accumulate(buffer, tensorArray);
@@ -138,6 +142,7 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
       @Override
       protected void _free() {
         inputResult.freeRef();
+        Arrays.stream(mask).forEach(ReferenceCountingBase::freeRef);
       }
       
       @Override

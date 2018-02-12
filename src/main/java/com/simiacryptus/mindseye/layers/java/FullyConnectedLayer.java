@@ -206,6 +206,7 @@ public class FullyConnectedLayer extends NNLayer {
     for (@javax.annotation.Nonnull NNResult nnResult : inObj) {
       nnResult.addRef();
     }
+    FullyConnectedLayer.this.addRef();
     assert Tensor.dim(indata.getDimensions()) == Tensor.dim(this.inputDims) : Arrays.toString(indata.getDimensions()) + " == " + Arrays.toString(this.inputDims);
     @javax.annotation.Nonnull DoubleMatrix doubleMatrix = new DoubleMatrix(Tensor.dim(indata.getDimensions()), Tensor.dim(outputDims), this.weights.getData());
     @javax.annotation.Nonnull final DoubleMatrix matrixObj = FullyConnectedLayer.transpose(doubleMatrix);
@@ -247,9 +248,10 @@ public class FullyConnectedLayer extends NNLayer {
       }
       if (inObj[0].isAlive()) {
         @javax.annotation.Nonnull final TensorList tensorList = TensorArray.wrap(IntStream.range(0, indata.length()).parallel().mapToObj(dataIndex -> {
-          @Nullable final double[] deltaData = delta.get(dataIndex).getData();
+          Tensor deltaTensor = delta.get(dataIndex);
           @javax.annotation.Nonnull final Tensor passback = new Tensor(indata.getDimensions());
-          FullyConnectedLayer.multiply(this.weights.getData(), deltaData, passback.getData());
+          FullyConnectedLayer.multiply(this.weights.getData(), deltaTensor.getData(), passback.getData());
+          deltaTensor.freeRef();
           return passback;
         }).toArray(i -> new Tensor[i]));
         inObj[0].accumulate(buffer, tensorList);
@@ -260,6 +262,7 @@ public class FullyConnectedLayer extends NNLayer {
       @Override
       protected void _free() {
         indata.freeRef();
+        FullyConnectedLayer.this.freeRef();
         for (@javax.annotation.Nonnull NNResult nnResult : inObj) {
           nnResult.freeRef();
         }

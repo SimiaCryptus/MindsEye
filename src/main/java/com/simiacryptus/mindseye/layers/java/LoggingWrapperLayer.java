@@ -20,10 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,10 +72,10 @@ public final class LoggingWrapperLayer extends WrapperLayer {
   
   @Override
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
-    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final NNResult[] wrappedInput = IntStream.range(0, inObj.length).mapToObj(i -> {
-      final NNResult result = inObj[i];
-      return new NNResult(result.getData(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+      final NNResult inputToWrap = inObj[i];
+      inputToWrap.addRef();
+      return new NNResult(inputToWrap.getData(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
         @javax.annotation.Nonnull final String formatted = data.stream().map(x -> {
           String str = x.prettyPrint();
           x.freeRef();
@@ -86,17 +83,17 @@ public final class LoggingWrapperLayer extends WrapperLayer {
         })
           .reduce((a, b) -> a + "\n" + b).get();
         log.info(String.format("Feedback Output %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
-        result.accumulate(buffer, data);
+        inputToWrap.accumulate(buffer, data);
       }) {
   
         @Override
         protected void _free() {
-          Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+          inputToWrap.freeRef();
         }
         
         @Override
         public boolean isAlive() {
-          return result.isAlive();
+          return inputToWrap.isAlive();
         }
       };
     }).toArray(i -> new NNResult[i]);
@@ -110,6 +107,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
       log.info(String.format("Input %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
     }
     @Nullable final NNResult output = getInner().eval(wrappedInput);
+    Arrays.stream(wrappedInput).forEach(ReferenceCountingBase::freeRef);
     {
       final TensorList tensorList = output.getData();
       @javax.annotation.Nonnull final String formatted = tensorList.stream().map(x -> {
@@ -134,7 +132,6 @@ public final class LoggingWrapperLayer extends WrapperLayer {
       @Override
       protected void _free() {
         output.freeRef();
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
   
   

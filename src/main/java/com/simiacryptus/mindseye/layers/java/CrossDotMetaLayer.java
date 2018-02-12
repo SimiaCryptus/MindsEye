@@ -81,15 +81,17 @@ public class CrossDotMetaLayer extends NNLayer {
         }
         double v = 0;
         for (int k = 0; k < itemCnt; k++) {
-          @Nullable final double[] kk = indata.get(k).getData();
+          Tensor tensor = indata.get(k);
+          @Nullable final double[] kk = tensor.getData();
           v += kk[i] * kk[j];
+          tensor.freeRef();
         }
         results.set(new int[]{i, j}, v);
       }
     }
-    return new NNResult(TensorArray.wrap(results), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(results), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (input.isAlive()) {
-        @javax.annotation.Nullable final Tensor delta = data.get(0);
+        @javax.annotation.Nullable final Tensor deltaTensor = delta.get(0);
         @javax.annotation.Nonnull final Tensor feedback[] = new Tensor[itemCnt];
         Arrays.parallelSetAll(feedback, i -> new Tensor(dim));
         
@@ -98,14 +100,17 @@ public class CrossDotMetaLayer extends NNLayer {
             if (i == j) {
               continue;
             }
-            final double v = delta.get(i, j);
+            final double v = deltaTensor.get(i, j);
             for (int k = 0; k < itemCnt; k++) {
-              @Nullable final double[] kk = indata.get(k).getData();
+              Tensor tensor = indata.get(k);
+              @Nullable final double[] kk = tensor.getData();
               feedback[k].add(i, v * kk[j]);
               feedback[k].add(j, v * kk[i]);
+              tensor.freeRef();
             }
           }
         }
+        deltaTensor.freeRef();
         
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(feedback);
         input.accumulate(buffer, tensorArray);

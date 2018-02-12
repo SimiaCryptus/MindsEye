@@ -40,7 +40,10 @@ public abstract class MonitoringWrapperTest extends LayerTestBase {
   @javax.annotation.Nonnull
   @Override
   public NNLayer getLayer(final int[][] inputSize, Random random) {
-    return new MonitoringWrapperLayer(new MonitoringSynapse());
+    MonitoringSynapse inner = new MonitoringSynapse();
+    MonitoringWrapperLayer wrapperLayer = new MonitoringWrapperLayer(inner);
+    inner.freeRef();
+    return wrapperLayer;
   }
   
   /**

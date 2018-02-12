@@ -74,6 +74,7 @@ public class ConstNNLayer extends NNLayer {
   @Override
   public NNResult eval(@javax.annotation.Nonnull final NNResult... array) {
     Arrays.stream(array).forEach(nnResult -> nnResult.addRef());
+    ConstNNLayer.this.addRef();
     return new NNResult(TensorArray.create(data), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (!isFrozen()) {
         data.stream().forEach(datum -> {
@@ -86,6 +87,7 @@ public class ConstNNLayer extends NNLayer {
       @Override
       protected void _free() {
         Arrays.stream(array).forEach(nnResult -> nnResult.freeRef());
+        ConstNNLayer.this.freeRef();
       }
       
       @Override

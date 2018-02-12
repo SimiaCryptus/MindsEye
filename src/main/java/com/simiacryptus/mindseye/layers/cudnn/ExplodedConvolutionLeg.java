@@ -196,7 +196,8 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
     return read((sublayer) -> {
       final Delta<NNLayer> subnetDelta = remove ? deltaSet.getMap().remove(sublayer) : deltaSet.getMap().get(sublayer);
       if (null == subnetDelta) throw new RuntimeException("No Delta for " + sublayer);
-      return new Tensor(subnetDelta.getDelta(), sublayer.kernel.getDimensions());
+      double[] delta = subnetDelta.getDelta();
+      return new Tensor(delta, sublayer.kernel.getDimensions());
     });
   }
   
@@ -208,7 +209,9 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
   @javax.annotation.Nonnull
   public Tensor read() {
     return read((sublayer) -> {
-      return sublayer.kernel;
+      Tensor kernel = sublayer.kernel;
+      kernel.addRef();
+      return kernel;
     });
   }
   

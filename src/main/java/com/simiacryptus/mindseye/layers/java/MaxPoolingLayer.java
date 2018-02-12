@@ -101,6 +101,7 @@ public class MaxPoolingLayer extends NNLayer {
       tensor.freeRef();
       return new Tuple2<>(o.getIndex(), inCoords);
     }).collect(Collectors.toList());
+    input.freeRef();
     output.freeRef();
     return tuple2s;
   }
@@ -125,8 +126,8 @@ public class MaxPoolingLayer extends NNLayer {
     
     final NNResult in = inObj[0];
     in.getData().length();
-    
-    @javax.annotation.Nonnull final int[] inputDims = in.getData().get(0).getDimensions();
+  
+    @javax.annotation.Nonnull final int[] inputDims = in.getData().getDimensions();
     final List<Tuple2<Integer, int[]>> regions = MaxPoolingLayer.calcRegionsCache.apply(new MaxPoolingLayer.CalcRegionsParameter(inputDims, kernelDims));
     final Tensor[] outputA = IntStream.range(0, in.getData().length()).mapToObj(dataIndex -> {
       final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
@@ -157,6 +158,7 @@ public class MaxPoolingLayer extends NNLayer {
         gradientMap[from] = toMax;
         output.set(from, input.get(toMax));
       });
+      input.freeRef();
       gradientMapA[dataIndex] = gradientMap;
     });
     return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
@@ -168,6 +170,7 @@ public class MaxPoolingLayer extends NNLayer {
           for (int i = 0; i < datum.dim(); i++) {
             backSignal.add(ints[i], datum.get(i));
           }
+          datum.freeRef();
           return backSignal;
         }).toArray(i -> new Tensor[i]));
         in.accumulate(buffer, tensorArray);

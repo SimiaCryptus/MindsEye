@@ -54,12 +54,7 @@ public final class NNConstant extends NNResult {
   public static NNResult[] batchResultArray(@javax.annotation.Nonnull final Tensor[]... input) {
     if (null == input) throw new IllegalArgumentException();
     return IntStream.range(0, input[0].length).mapToObj(index -> IntStream.range(0, input.length)
-      .mapToObj(id -> {
-        Tensor[] tensors1 = input[id];
-        if (null == tensors1)
-          throw new IllegalArgumentException();
-        return tensors1[index];
-      })
+      .mapToObj(id -> input[id][index])
       .toArray(i -> new Tensor[i]))
       .map(tensors -> TensorArray.create(tensors))
       .map(tensorArray -> new NNConstant(tensorArray))

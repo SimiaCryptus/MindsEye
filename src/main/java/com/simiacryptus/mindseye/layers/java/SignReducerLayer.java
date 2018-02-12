@@ -47,8 +47,8 @@ public class SignReducerLayer extends DAGNetwork {
     final DAGNode avgInput = wrap(new AvgReducerLayer(), getInput(0));
     final DAGNode stdDevInput = wrap(new NthPowerActivationLayer().setPower(0.5),
       wrap(new SumInputsLayer(),
-        wrap(new AvgReducerLayer(), add(new SqActivationLayer(), getInput(0))),
-        wrap(new LinearActivationLayer().setScale(-1), add(new SqActivationLayer(), avgInput))
+        wrap(new AvgReducerLayer(), wrap(new SqActivationLayer(), getInput(0))),
+        wrap(new LinearActivationLayer().setScale(-1), wrap(new SqActivationLayer(), avgInput))
       ));
     head = wrap(new SigmoidActivationLayer().setBalanced(false),
       wrap(new ProductInputsLayer(),

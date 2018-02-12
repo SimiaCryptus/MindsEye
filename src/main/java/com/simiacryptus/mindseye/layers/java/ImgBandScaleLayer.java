@@ -139,18 +139,23 @@ public class ImgBandScaleLayer extends NNLayer {
           int y = dimensions[1];
           int x = dimensions[0];
           final double[] array = RecycleBin.DOUBLES.obtain(z);
-          @Nullable final double[] deltaArray = delta.get(index).getData();
-          @Nullable final double[] inputData = inData.get(index).getData();
+          Tensor deltaTensor = delta.get(index);
+          @Nullable final double[] deltaArray = deltaTensor.getData();
+          Tensor inputTensor = inData.get(index);
+          @Nullable final double[] inputData = inputTensor.getData();
           for (int i = 0; i < z; i++) {
             for (int j = 0; j < y * x; j++) {
               //array[i] += deltaArray[i + z * j];
               array[i] += deltaArray[i * x * y + j] * inputData[i * x * y + j];
             }
           }
+          inputTensor.freeRef();
+          deltaTensor.freeRef();
           assert Arrays.stream(array).allMatch(v -> Double.isFinite(v));
           deltaBuffer.addInPlace(array);
           RecycleBin.DOUBLES.recycle(array, array.length);
         });
+        deltaBuffer.freeRef();
       }
       if (input.isAlive()) {
         Tensor[] tensors = delta.stream().map(t -> {

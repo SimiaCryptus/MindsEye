@@ -157,7 +157,7 @@ public class ImgReshapeLayer extends NNLayer {
     
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
-    @javax.annotation.Nonnull final int[] inputDims = batch.get(0).getDimensions();
+    @javax.annotation.Nonnull final int[] inputDims = batch.getDimensions();
     assert 3 == inputDims.length;
     assert expand || 0 == inputDims[0] % kernelSizeX;
     assert expand || 0 == inputDims[1] % kernelSizeX;
@@ -174,16 +174,25 @@ public class ImgReshapeLayer extends NNLayer {
         inputDims[1] / kernelSizeY,
         inputDims[2] * kernelSizeX * kernelSizeY);
     }
-    return new NNResult(TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
-      .mapToObj(dataIndex -> expand ? ImgReshapeLayer.copyExpand(batch.get(dataIndex), outputDims.copy()) : ImgReshapeLayer.copyCondense(batch.get(dataIndex), outputDims.copy()))
-      .toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+    TensorArray data = TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
+      .mapToObj(dataIndex -> {
+        Tensor inputData = batch.get(dataIndex);
+        Tensor tensor = expand ? ImgReshapeLayer.copyExpand(inputData, outputDims.copy()) : ImgReshapeLayer.copyCondense(inputData, outputDims.copy());
+        inputData.freeRef();
+        return tensor;
+      })
+      .toArray(i -> new Tensor[i]));
+    outputDims.freeRef();
+    return new NNResult(data, (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       if (input.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
           .mapToObj(dataIndex -> {
             @javax.annotation.Nonnull final Tensor passback = new Tensor(inputDims);
             @javax.annotation.Nullable final Tensor err = error.get(dataIndex);
-            return expand ? ImgReshapeLayer.copyCondense(err, passback) : ImgReshapeLayer.copyExpand(err, passback);
+            Tensor tensor = expand ? ImgReshapeLayer.copyCondense(err, passback) : ImgReshapeLayer.copyExpand(err, passback);
+            err.freeRef();
+            return tensor;
           }).toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();

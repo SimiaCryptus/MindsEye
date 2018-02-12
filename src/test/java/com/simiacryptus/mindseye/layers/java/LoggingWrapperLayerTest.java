@@ -47,7 +47,10 @@ public abstract class LoggingWrapperLayerTest extends LayerTestBase {
   @javax.annotation.Nonnull
   @Override
   public NNLayer getLayer(final int[][] inputSize, Random random) {
-    return new LoggingWrapperLayer(new LinearActivationLayer());
+    LinearActivationLayer inner = new LinearActivationLayer();
+    LoggingWrapperLayer loggingWrapperLayer = new LoggingWrapperLayer(inner);
+    inner.freeRef();
+    return loggingWrapperLayer;
   }
   
   /**

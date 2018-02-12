@@ -92,7 +92,7 @@ class CountingNNResult extends NNResult {
   @Override
   protected void _free() {
     inner.freeRef();
-    getAccumulator().freeRef();
+    ((CountingAccumulator) accumulator).freeRef();
   }
   
   @Override
@@ -139,6 +139,7 @@ class CountingNNResult extends NNResult {
     
     @Override
     public void accept(DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull TensorList data) {
+      assertAlive();
       if (1 >= references.get()) {
         if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
         inner.accumulate(buffer, data);

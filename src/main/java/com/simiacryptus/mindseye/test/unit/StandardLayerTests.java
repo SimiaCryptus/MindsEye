@@ -389,13 +389,16 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       perfLayer.assertAlive();
       @Nonnull NNLayer copy = perfLayer.copy();
       Tensor[] randomize = randomize(largeDims);
-      test.test(log, copy, randomize);
-      test.freeRef();
-      for (@javax.annotation.Nonnull Tensor tensor : randomize) {
-        tensor.freeRef();
+      try {
+        test.test(log, copy, randomize);
+      } finally {
+        test.freeRef();
+        for (@javax.annotation.Nonnull Tensor tensor : randomize) {
+          tensor.freeRef();
+        }
+        perfLayer.freeRef();
+        copy.freeRef();
       }
-      perfLayer.freeRef();
-      copy.freeRef();
     });
   }
   
@@ -534,6 +537,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       } finally {
         layer.freeRef();
         test.freeRef();
+        System.gc();
       }
     });
   }
@@ -559,6 +563,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       } finally {
         test.freeRef();
         layer.freeRef();
+        System.gc();
       }
     });
   }
@@ -584,6 +589,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       } finally {
         layer.freeRef();
         test.freeRef();
+        System.gc();
       }
     });
   }

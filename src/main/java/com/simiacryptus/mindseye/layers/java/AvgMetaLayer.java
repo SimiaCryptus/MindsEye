@@ -113,7 +113,7 @@ public class AvgMetaLayer extends NNLayer {
     else {
       passback = false;
       thisResult = lastResult;
-      if (null != lastResult) lastResult.freeRef();
+      thisResult.freeRef();
     }
     return new NNResult(TensorArray.create(thisResult), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (passback && input.isAlive()) {

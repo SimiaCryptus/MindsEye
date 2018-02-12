@@ -92,9 +92,8 @@ public class RescaledSubnetLayer extends NNLayer {
   @Override
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     assert 1 == inObj.length;
-    final NNResult input = inObj[0];
-    final TensorList batch = input.getData();
-    @javax.annotation.Nonnull final int[] inputDims = batch.get(0).getDimensions();
+    final TensorList batch = inObj[0].getData();
+    @javax.annotation.Nonnull final int[] inputDims = batch.getDimensions();
     assert 3 == inputDims.length;
     if (1 == scale) return subnetwork.eval(inObj);
     

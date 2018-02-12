@@ -93,23 +93,26 @@ public class CrossProductLayer extends NNLayer {
       });
       tensor.freeRef();
       return result;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (in.isAlive()) {
-        assert data.length() == data.length();
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).parallel().mapToObj(batchIndex -> {
-          @javax.annotation.Nullable final Tensor tensor = data.get(batchIndex);
-          final int outputDim = tensor.dim();
+        assert delta.length() == delta.length();
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).parallel().mapToObj(batchIndex -> {
+          @javax.annotation.Nullable final Tensor deltaTensor = delta.get(batchIndex);
+          final int outputDim = deltaTensor.dim();
           final int inputDim = (1 + (int) Math.sqrt(1 + 8 * outputDim)) / 2;
           @javax.annotation.Nonnull final Tensor passback = new Tensor(inputDim);
           @Nullable final double[] passbackData = passback.getData();
-          @Nullable final double[] tensorData = tensor.getData();
-          @Nullable final double[] inputData = indata.get(batchIndex).getData();
+          @Nullable final double[] tensorData = deltaTensor.getData();
+          Tensor inputTensor = indata.get(batchIndex);
+          @Nullable final double[] inputData = inputTensor.getData();
           IntStream.range(0, inputDim).forEach(x -> {
             IntStream.range(x + 1, inputDim).forEach(y -> {
               passbackData[x] += tensorData[CrossProductLayer.index(x, y, inputDim)] * inputData[y];
               passbackData[y] += tensorData[CrossProductLayer.index(x, y, inputDim)] * inputData[x];
             });
           });
+          deltaTensor.freeRef();
+          inputTensor.freeRef();
           return passback;
         }).toArray(i -> new Tensor[i]));
         in.accumulate(buffer, tensorArray);

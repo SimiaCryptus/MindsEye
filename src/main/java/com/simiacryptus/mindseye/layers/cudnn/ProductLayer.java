@@ -104,7 +104,11 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
       @javax.annotation.Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
       @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
-      @javax.annotation.Nonnull final TensorList result1 = Arrays.stream(inObj).map(x -> x.getData()).reduce((l, r) -> {
+      @javax.annotation.Nonnull final TensorList result1 = Arrays.stream(inObj).map(x -> {
+        TensorList data = x.getData();
+        data.addRef();
+        return data;
+      }).reduce((l, r) -> {
         @Nullable final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, l);
         @Nullable final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, r);
         assert lPtr.size == rPtr.size;
@@ -113,7 +117,7 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
           precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
           precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
           precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-        gpu.registerForCleanup(lPtr, rPtr);
+        gpu.registerForCleanup(lPtr, rPtr, l, r);
         return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
       }).get();
       gpu.registerForCleanup(opDescriptor, sizeDescriptor);
@@ -123,7 +127,11 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
         final NNResult input = inObj[index];
         if (input.isAlive()) {
           final int _index = index;
-          @javax.annotation.Nonnull TensorList data = IntStream.range(0, inObj.length).mapToObj(i -> i == _index ? delta : inObj[i].getData()).reduce((l, r) -> {
+          @javax.annotation.Nonnull TensorList data = IntStream.range(0, inObj.length).mapToObj(i -> {
+            TensorList tensorList = i == _index ? delta : inObj[i].getData();
+            tensorList.addRef();
+            return tensorList;
+          }).reduce((l, r) -> {
             return GpuSystem.eval(gpu -> {
               @javax.annotation.Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
               @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
@@ -137,7 +145,7 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
                 precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
                 precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
                 precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-              gpu.registerForCleanup(lPtr, rPtr, opDescriptor, sizeDescriptor);
+              gpu.registerForCleanup(lPtr, rPtr, opDescriptor, sizeDescriptor, l, r);
               return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
             });
           }).get();

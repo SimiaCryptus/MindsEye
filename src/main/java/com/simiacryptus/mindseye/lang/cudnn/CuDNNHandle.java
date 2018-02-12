@@ -41,12 +41,8 @@ public class CuDNNHandle extends GpuDevice {
   /**
    * The constant CLEANUP.
    */
-  public static final ThreadLocal<LinkedBlockingDeque<ReferenceCounting>> CLEANUP = new ThreadLocal<LinkedBlockingDeque<ReferenceCounting>>() {
-    @Override
-    protected LinkedBlockingDeque<ReferenceCounting> initialValue() {
-      return new LinkedBlockingDeque<>();
-    }
-  };
+  public final LinkedBlockingDeque<ReferenceCounting> CLEANUP = new LinkedBlockingDeque<>();
+  
   /**
    * The Thread context.
    */
@@ -688,8 +684,7 @@ public class CuDNNHandle extends GpuDevice {
    */
   public void registerForCleanup(@javax.annotation.Nonnull ReferenceCounting... objs) {
     Arrays.stream(objs).forEach(ReferenceCounting::assertAlive);
-    LinkedBlockingDeque<ReferenceCounting> list = CLEANUP.get();
-    Arrays.stream(objs).forEach(list::add);
+    Arrays.stream(objs).forEach(CLEANUP::add);
   }
   
   @javax.annotation.Nonnull

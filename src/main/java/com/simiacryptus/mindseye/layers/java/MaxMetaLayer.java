@@ -73,25 +73,35 @@ public class MaxMetaLayer extends NNLayer {
     final NNResult input = inObj[0];
     input.addRef();
     final int itemCnt = input.getData().length();
-    final int vectorSize = input.getData().get(0).dim();
+    final Tensor input0Tensor = input.getData().get(0);
+    final int vectorSize = input0Tensor.dim();
     @javax.annotation.Nonnull final int[] indicies = new int[vectorSize];
     for (int i = 0; i < vectorSize; i++) {
       final int itemNumber = i;
       indicies[i] = IntStream.range(0, itemCnt)
-        .mapToObj(x -> x).max(Comparator.comparing(dataIndex -> input.getData().get(dataIndex).getData()[itemNumber])).get();
+        .mapToObj(x -> x).max(Comparator.comparing(dataIndex -> {
+          Tensor tensor = input.getData().get(dataIndex);
+          double v = tensor.getData()[itemNumber];
+          tensor.freeRef();
+          return v;
+        })).get();
     }
-    return new NNResult(TensorArray.wrap(input.getData().get(0).mapIndex((v, c) -> {
-      return input.getData().get(indicies[c]).getData()[c];
+    return new NNResult(TensorArray.wrap(input0Tensor.mapIndex((v, c) -> {
+      Tensor tensor = input.getData().get(indicies[c]);
+      double v1 = tensor.getData()[c];
+      tensor.freeRef();
+      return v1;
     })), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (input.isAlive()) {
         @Nullable final Tensor delta = data.get(0);
         @javax.annotation.Nonnull final Tensor feedback[] = new Tensor[itemCnt];
         Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
-        input.getData().get(0).coordStream(true).forEach((inputCoord) -> {
+        input0Tensor.coordStream(true).forEach((inputCoord) -> {
           feedback[indicies[inputCoord.getIndex()]].add(inputCoord, delta.get(inputCoord));
         });
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(feedback);
         input.accumulate(buffer, tensorArray);
+        delta.freeRef();
         tensorArray.freeRef();
       }
     }) {
@@ -104,6 +114,7 @@ public class MaxMetaLayer extends NNLayer {
       @Override
       protected void _free() {
         input.freeRef();
+        input0Tensor.freeRef();
       }
       
     };

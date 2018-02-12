@@ -111,6 +111,7 @@ public abstract class NNResult extends ReferenceCountingBase {
    * @return the accumulator
    */
   public BiConsumer<DeltaSet<NNLayer>, TensorList> getAccumulator() {
+    assertAlive();
     return accumulator;
   }
   

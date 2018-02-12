@@ -1380,8 +1380,8 @@ public class GpuSystem {
       return fn.apply(new CuDNNHandle(-1));
     }
     else {
+      CuDNNHandle threadlocal = CuDNNHandle.threadContext.get();
       try {
-        CuDNNHandle threadlocal = CuDNNHandle.threadContext.get();
         if (threadlocal != null) {
           try {
             threadlocal.initThread();
@@ -1394,11 +1394,11 @@ public class GpuSystem {
           }
         }
         else {
-          return CuDNNHandle.POOL.run(exe -> {
+          return CuDNNHandle.POOL.run(gpu -> {
             try {
-              CuDNNHandle.threadContext.set(exe);
-              exe.initThread();
-              T result = fn.apply(exe);
+              CuDNNHandle.threadContext.set(gpu);
+              gpu.initThread();
+              T result = fn.apply(gpu);
               return result;
             } catch (@javax.annotation.Nonnull final RuntimeException e) {
               throw e;
@@ -1406,14 +1406,14 @@ public class GpuSystem {
               throw new RuntimeException(e);
             } finally {
               CuDNNHandle.threadContext.remove();
+              LinkedBlockingDeque<ReferenceCounting> deque = gpu.CLEANUP;
+              deque.stream().forEach(x -> x.freeRef());
+              deque.clear();
             }
           });
         }
       } finally {
         if (synchronize) GpuSystem.cudaDeviceSynchronize();
-        LinkedBlockingDeque<ReferenceCounting> deque = CuDNNHandle.CLEANUP.get();
-        deque.stream().forEach(x -> x.freeRef());
-        deque.clear();
       }
     }
   }

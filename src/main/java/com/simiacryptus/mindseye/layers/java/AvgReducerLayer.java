@@ -73,21 +73,26 @@ public class AvgReducerLayer extends NNLayer {
     return new NNResult(TensorArray.wrap(IntStream.range(0, inObj[0].getData().length()).parallel().mapToDouble(dataIndex -> {
       double sum = 0;
       for (@javax.annotation.Nonnull final NNResult element : inObj) {
-        @Nullable final double[] input = element.getData().get(dataIndex).getData();
+        Tensor tensor = element.getData().get(dataIndex);
+        @Nullable final double[] input = tensor.getData();
         for (final double element2 : input) {
           sum += element2 / input.length;
         }
+        tensor.freeRef();
       }
       return sum;
-    }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       for (@javax.annotation.Nonnull final NNResult in_l : inObj) {
         if (in_l.isAlive()) {
-          @javax.annotation.Nonnull final TensorList tensorList = TensorArray.wrap(IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {
-            final double delta = data.get(dataIndex).get(0);
-            @javax.annotation.Nonnull final Tensor passback = new Tensor(in_l.getData().get(dataIndex).getDimensions());
-            final int dim = in_l.getData().get(dataIndex).dim();
+          TensorList inData = in_l.getData();
+          @javax.annotation.Nonnull final TensorList tensorList = TensorArray.wrap(IntStream.range(0, inData.length()).parallel().mapToObj(dataIndex -> {
+            Tensor deltaTensor = delta.get(dataIndex);
+            final double deltaV = deltaTensor.get(0);
+            deltaTensor.freeRef();
+            @javax.annotation.Nonnull final Tensor passback = new Tensor(inData.getDimensions());
+            final int dim = passback.dim();
             for (int i = 0; i < dim; i++) {
-              passback.set(i, delta / dim);
+              passback.set(i, deltaV / dim);
             }
             return passback;
           }).toArray(i -> new Tensor[i]));
@@ -99,7 +104,8 @@ public class AvgReducerLayer extends NNLayer {
       
       @Override
       protected void _free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+        Arrays.stream(inObj).forEach(ReferenceCountingBase::freeRef);
+        Arrays.stream(inObj).map(NNResult::getData).forEach(ReferenceCounting::freeRef);
       }
       
       @Override

@@ -70,28 +70,33 @@ public class ProductLayer extends NNLayer {
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
-    @javax.annotation.Nonnull final double[] sum_A = new double[inObj[0].getData().length()];
-    final Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
+    final NNResult in0 = inObj[0];
+    @javax.annotation.Nonnull final double[] sum_A = new double[in0.getData().length()];
+    final Tensor[] outputA = IntStream.range(0, in0.getData().length()).mapToObj(dataIndex -> {
       double sum = 1;
       for (@javax.annotation.Nonnull final NNResult element : inObj) {
-        @Nullable final double[] input = element.getData().get(dataIndex).getData();
+        Tensor tensor = element.getData().get(dataIndex);
+        @Nullable final double[] input = tensor.getData();
         for (final double element2 : input) {
           sum *= element2;
         }
+        tensor.freeRef();
       }
       sum_A[dataIndex] = sum;
       return new Tensor(new double[]{sum}, 1);
     }).toArray(i -> new Tensor[i]);
-    Arrays.stream(inObj).forEach(x -> x.getData().addRef());
-    return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       for (@javax.annotation.Nonnull final NNResult in_l : inObj) {
         if (in_l.isAlive()) {
-          @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
-            final double delta = data.get(dataIndex).get(0);
-            @javax.annotation.Nonnull final Tensor passback = new Tensor(in_l.getData().get(dataIndex).getDimensions());
-            for (int i = 0; i < in_l.getData().get(dataIndex).dim(); i++) {
-              passback.set(i, delta * sum_A[dataIndex] / in_l.getData().get(dataIndex).getData()[i]);
+          @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+            Tensor dataTensor = delta.get(dataIndex);
+            Tensor lTensor = in_l.getData().get(dataIndex);
+            @javax.annotation.Nonnull final Tensor passback = new Tensor(lTensor.getDimensions());
+            for (int i = 0; i < lTensor.dim(); i++) {
+              passback.set(i, dataTensor.get(0) * sum_A[dataIndex] / lTensor.getData()[i]);
             }
+            dataTensor.freeRef();
+            lTensor.freeRef();
             return passback;
           }).toArray(i -> new Tensor[i]));
           in_l.accumulate(buffer, tensorArray);

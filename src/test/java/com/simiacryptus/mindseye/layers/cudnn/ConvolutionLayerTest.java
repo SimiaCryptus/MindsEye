@@ -98,6 +98,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
     @Nullable Tensor testData = new Tensor(kernelDims).map(x -> random());
     explodedNetwork.write(testData);
     Tensor echo = explodedNetwork.read();
+    explodedNetwork.freeRef();
     Assert.assertEquals(testData, echo);
   }
   

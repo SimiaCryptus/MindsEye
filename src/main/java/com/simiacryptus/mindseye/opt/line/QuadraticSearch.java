@@ -178,6 +178,7 @@ public class QuadraticSearch implements LineSearchStrategy {
     final LineSearchPoint verifyB = cursor.step(b.point.rate, monitor);
     final boolean validB = isSame(b.point.getMean(), verifyB.point.getMean(), 1.0);
     monitor.log(String.format("Verify %s: %s (%s)", b.point.rate, verifyB.point.getMean(), validB));
+    verifyB.freeRef();
     if (!validA && !validB) return "Non-Reproducable Function Found";
     if (validA && validB) return "Function Discontinuity Found";
     if (!validA) {

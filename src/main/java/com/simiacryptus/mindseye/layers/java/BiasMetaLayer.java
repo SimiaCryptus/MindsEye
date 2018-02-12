@@ -71,10 +71,19 @@ public class BiasMetaLayer extends NNLayer {
   @Override
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     final int itemCnt = inObj[0].getData().length();
+    Tensor tensor1 = inObj[1].getData().get(0);
     final Tensor[] tensors = IntStream.range(0, itemCnt)
       .parallel()
-      .mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).mapIndex((v, c) -> v + inObj[1].getData().get(0).get(c)))
+      .mapToObj(dataIndex -> {
+        Tensor tensor = inObj[0].getData().get(dataIndex);
+        Tensor mapIndex = tensor.mapIndex((v, c) -> {
+          return v + tensor1.get(c);
+        });
+        tensor.freeRef();
+        return mapIndex;
+      })
       .toArray(i -> new Tensor[i]);
+    tensor1.freeRef();
     Tensor tensor0 = tensors[0];
     tensor0.addRef();
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
@@ -84,7 +93,12 @@ public class BiasMetaLayer extends NNLayer {
       }
       if (inObj[1].isAlive()) {
         @javax.annotation.Nonnull final ToDoubleFunction<Coordinate> f = (c) -> {
-          return IntStream.range(0, itemCnt).mapToDouble(i -> data.get(i).get(c)).sum();
+          return IntStream.range(0, itemCnt).mapToDouble(i -> {
+            Tensor tensor = data.get(i);
+            double v = tensor.get(c);
+            tensor.freeRef();
+            return v;
+          }).sum();
         };
         @Nullable final Tensor passback = tensor0.mapCoords(f);
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, inObj[1].getData().length())

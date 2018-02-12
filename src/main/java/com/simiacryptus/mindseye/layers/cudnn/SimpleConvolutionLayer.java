@@ -215,6 +215,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
     Arrays.stream(inObj).forEach(ReferenceCountingBase::addRef);
     batch.addRef();
     kernel.addRef();
+    SimpleConvolutionLayer.this.addRef();
     return new NNResult(GpuSystem.eval(gpu -> {
       try {
         final int deviceNumber = gpu.getDeviceNumber();
@@ -304,6 +305,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
         kernel.freeRef();
         batch.freeRef();
         Arrays.stream(inObj).forEach(ReferenceCountingBase::freeRef);
+        SimpleConvolutionLayer.this.freeRef();
       }
       
       @Override

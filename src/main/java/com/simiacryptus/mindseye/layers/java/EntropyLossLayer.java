@@ -102,26 +102,31 @@ public class EntropyLossLayer extends NNLayer {
       gradient[dataIndex] = gradientTensor;
       @javax.annotation.Nonnull final Tensor outValue = new Tensor(new double[]{total}, 1);
       return outValue;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (inObj[1].isAlive()) {
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
-          @javax.annotation.Nullable final Tensor l = indata.get(dataIndex);
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+          Tensor deltaTensor = delta.get(dataIndex);
+          @javax.annotation.Nullable final Tensor inputTensor = indata.get(dataIndex);
           @javax.annotation.Nonnull final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
           for (int i = 0; i < passback.dim(); i++) {
-            final double lv = Math.max(Math.min(l.get(i), max_prob), zero_tol);
-            passback.set(i, -data.get(dataIndex).get(0) * Math.log(lv));
+            final double lv = Math.max(Math.min(inputTensor.get(i), max_prob), zero_tol);
+            passback.set(i, -deltaTensor.get(0) * Math.log(lv));
           }
+          inputTensor.freeRef();
+          deltaTensor.freeRef();
           return passback;
         }).toArray(i -> new Tensor[i]));
         inObj[1].accumulate(buffer, tensorArray);
         tensorArray.freeRef();
       }
       if (in0.isAlive()) {
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+          Tensor tensor = delta.get(dataIndex);
           @javax.annotation.Nonnull final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
           for (int i = 0; i < passback.dim(); i++) {
-            passback.set(i, data.get(dataIndex).get(0) * gradient[dataIndex].get(i));
+            passback.set(i, tensor.get(0) * gradient[dataIndex].get(i));
           }
+          tensor.freeRef();
           return passback;
         }).toArray(i -> new Tensor[i]));
         in0.accumulate(buffer, tensorArray);
