@@ -64,7 +64,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
   /**
    * The Logger.
    */
-  static final Logger log = LoggerFactory.getLogger(TrainingTester.class);
+  static final Logger logger = LoggerFactory.getLogger(TrainingTester.class);
   
   private int batches = 3;
   private RandomizationMode randomizationMode = RandomizationMode.Permute;
@@ -88,7 +88,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
       @Override
       public void log(final String msg) {
         SysOutInterceptor.ORIGINAL_OUT.println(msg);
-        log.info(msg);
+        logger.info(msg);
       }
   
       @Override
@@ -106,6 +106,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @return the tensor [ ] [ ]
    */
   public static Tensor[][] append(@javax.annotation.Nonnull Tensor[][] left, Tensor[] right) {
+    if (left.length != right.length) throw new IllegalArgumentException(left.length + "!=" + right.length);
     return IntStream.range(0, left.length).mapToObj(i ->
       Stream.concat(
         Arrays.stream(left[i]),
@@ -425,7 +426,6 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param inputPrototype the input prototype
    * @return the run result
    */
-  @javax.annotation.Nonnull
   public TestResult testInputLearning(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer component, final Random random, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
     @Nonnull final NNLayer network = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
@@ -440,7 +440,15 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     NNResult[] array = NNConstant.batchResultArray(input_target);
     @javax.annotation.Nullable NNResult eval = network.eval(array);
     TensorList result = eval.getData();
+    final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
+    result.freeRef();
     eval.freeRef();
+  
+    if (output_target.length != getBatches()) {
+      logger.info(String.format("Meta layers not supported. %d != %d", output_target.length, getBatches()));
+      return null;
+    }
+    
     for (@javax.annotation.Nonnull NNResult nnResult : array) {
       nnResult.getData().freeRef();
       nnResult.freeRef();
@@ -450,8 +458,6 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
         tensor.freeRef();
       }
     }
-    final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
-    result.freeRef();
     //if (output_target.length != inputPrototype.length) return null;
     Tensor[][] trainingInput = append(shuffleCopy(random, inputPrototype), output_target);
     @javax.annotation.Nonnull TestResult testResult = trainAll("Input Convergence", log,

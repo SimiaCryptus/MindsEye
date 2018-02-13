@@ -61,7 +61,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * The Validate differentials.
    */
   protected boolean validateDifferentials = true;
-  private boolean testTraining = false;
+  private boolean testTraining = true;
   
   /**
    * Instantiates a new Standard layer tests.
