@@ -29,7 +29,7 @@
     </parent>
 
     <artifactId>mindseye</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
     <description>Neural Networks with Java 8 and CuDNN</description>
     <scm>
         <url>https://github.com/SimiaCryptus/MindsEye/</url>
@@ -55,7 +55,7 @@
             <dependency>
                 <groupId>com.simiacryptus</groupId>
                 <artifactId>java-util</artifactId>
-                <version>1.3</version>
+                <version>1.4.0</version>
             </dependency>
             <dependency>
                 <groupId>junit</groupId>
