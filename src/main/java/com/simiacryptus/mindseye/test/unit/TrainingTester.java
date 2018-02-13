@@ -458,7 +458,6 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
       trainingInput,
       network,
       buildMask(inputPrototype.length));
-    network.freeRef();
     Arrays.stream(trainingInput).flatMap(x -> Arrays.stream(x)).forEach(x -> x.freeRef());
     return testResult;
   }
@@ -530,38 +529,42 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    */
   @javax.annotation.Nonnull
   public TestResult trainAll(String title, @javax.annotation.Nonnull NotebookOutput log, @javax.annotation.Nonnull Tensor[][] trainingInput, @javax.annotation.Nonnull NNLayer layer, boolean... mask) {
-    log.h3("Gradient Descent");
-    final List<StepRecord> gd = train(log, this::trainGD, layer.copy(), copy(trainingInput), mask);
-    log.h3("Conjugate Gradient Descent");
-    final List<StepRecord> cjgd = train(log, this::trainCjGD, layer.copy(), copy(trainingInput), mask);
-    log.h3("Limited-Memory BFGS");
-    final List<StepRecord> lbfgs = train(log, this::trainLBFGS, layer.copy(), copy(trainingInput), mask);
-    log.h3("Experimental Optimizer");
-    final List<StepRecord> magic = train(log, this::trainMagic, layer.copy(), copy(trainingInput), mask);
-    @javax.annotation.Nonnull final ProblemRun[] runs = {
-      new ProblemRun("GD", gd, Color.GRAY, ProblemRun.PlotType.Line),
-      new ProblemRun("CjGD", cjgd, Color.CYAN, ProblemRun.PlotType.Line),
-      new ProblemRun("LBFGS", lbfgs, Color.GREEN, ProblemRun.PlotType.Line),
-      new ProblemRun("Experimental", magic, Color.MAGENTA, ProblemRun.PlotType.Line)
-    };
-    @javax.annotation.Nonnull ProblemResult result = new ProblemResult();
-    result.put("GD", new TrainingResult(getResultType(gd), min(gd)));
-    result.put("CjGD", new TrainingResult(getResultType(cjgd), min(cjgd)));
-    result.put("LBFGS", new TrainingResult(getResultType(lbfgs), min(lbfgs)));
-    result.put("Experimental", new TrainingResult(getResultType(magic), min(magic)));
-    if (verbose) {
-      final PlotCanvas iterPlot = log.code(() -> {
-        return TestUtil.compare(title + " vs Iteration", runs);
-      });
-      final PlotCanvas timePlot = log.code(() -> {
-        return TestUtil.compareTime(title + " vs Time", runs);
-      });
-      return new TestResult(iterPlot, timePlot, result);
-    }
-    else {
-      @Nullable final PlotCanvas iterPlot = TestUtil.compare(title + " vs Iteration", runs);
-      @Nullable final PlotCanvas timePlot = TestUtil.compareTime(title + " vs Time", runs);
-      return new TestResult(iterPlot, timePlot, result);
+    try {
+      log.h3("Gradient Descent");
+      final List<StepRecord> gd = train(log, this::trainGD, layer.copy(), copy(trainingInput), mask);
+      log.h3("Conjugate Gradient Descent");
+      final List<StepRecord> cjgd = train(log, this::trainCjGD, layer.copy(), copy(trainingInput), mask);
+      log.h3("Limited-Memory BFGS");
+      final List<StepRecord> lbfgs = train(log, this::trainLBFGS, layer.copy(), copy(trainingInput), mask);
+      log.h3("Experimental Optimizer");
+      final List<StepRecord> magic = train(log, this::trainMagic, layer.copy(), copy(trainingInput), mask);
+      @javax.annotation.Nonnull final ProblemRun[] runs = {
+        new ProblemRun("GD", gd, Color.GRAY, ProblemRun.PlotType.Line),
+        new ProblemRun("CjGD", cjgd, Color.CYAN, ProblemRun.PlotType.Line),
+        new ProblemRun("LBFGS", lbfgs, Color.GREEN, ProblemRun.PlotType.Line),
+        new ProblemRun("Experimental", magic, Color.MAGENTA, ProblemRun.PlotType.Line)
+      };
+      @javax.annotation.Nonnull ProblemResult result = new ProblemResult();
+      result.put("GD", new TrainingResult(getResultType(gd), min(gd)));
+      result.put("CjGD", new TrainingResult(getResultType(cjgd), min(cjgd)));
+      result.put("LBFGS", new TrainingResult(getResultType(lbfgs), min(lbfgs)));
+      result.put("Experimental", new TrainingResult(getResultType(magic), min(magic)));
+      if (verbose) {
+        final PlotCanvas iterPlot = log.code(() -> {
+          return TestUtil.compare(title + " vs Iteration", runs);
+        });
+        final PlotCanvas timePlot = log.code(() -> {
+          return TestUtil.compareTime(title + " vs Time", runs);
+        });
+        return new TestResult(iterPlot, timePlot, result);
+      }
+      else {
+        @Nullable final PlotCanvas iterPlot = TestUtil.compare(title + " vs Iteration", runs);
+        @Nullable final PlotCanvas timePlot = TestUtil.compareTime(title + " vs Time", runs);
+        return new TestResult(iterPlot, timePlot, result);
+      }
+    } finally {
+      layer.freeRef();
     }
   }
   
@@ -888,7 +891,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
      * The Model.
      */
     ProblemResult model;
-    
+  
     /**
      * Instantiates a new Component result.
      *
@@ -977,14 +980,14 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
      * The Map.
      */
     Map<String, TrainingResult> map;
-    
+  
     /**
      * Instantiates a new Problem result.
      */
     public ProblemResult() {
       this.map = new HashMap<>();
     }
-    
+  
     /**
      * Put problem result.
      *

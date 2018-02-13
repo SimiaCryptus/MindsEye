@@ -287,9 +287,11 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @return the double
    */
   public double runAndFree() {
-    double result = run();
-    freeRef();
-    return result;
+    try {
+      return run();
+    } finally {
+      freeRef();
+    }
   }
   
   /**

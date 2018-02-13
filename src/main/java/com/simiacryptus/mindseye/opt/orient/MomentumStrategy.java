@@ -45,6 +45,7 @@ public class MomentumStrategy extends OrientationStrategyBase<SimpleLineSearchCu
   @javax.annotation.Nonnull
   DeltaSet<NNLayer> prevDelta = new DeltaSet<NNLayer>();
   private double carryOver = 0.1;
+  
   /**
    * Instantiates a new Momentum strategy.
    *

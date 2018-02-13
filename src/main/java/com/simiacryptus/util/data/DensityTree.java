@@ -303,7 +303,7 @@ public class DensityTree {
     private Node right = null;
     @Nullable
     private Rule rule = null;
-    
+  
     /**
      * Instantiates a new Node.
      *
