@@ -40,7 +40,7 @@ public enum MemoryType {
       if (size > CudaPtr.MAX) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
-      cudaDeviceProp properties = CudaPtr.getCurrentDeviceProperties();
+      cudaDeviceProp properties = GpuDevice.getDeviceProperties(GpuSystem.getDevice());
       if (properties.managedMemory == 1) {
         GpuSystem.handle(GpuSystem.cudaMallocManaged(pointer, size, cudaMemAttachGlobal));
         GpuSystem.cudaDeviceSynchronize();
@@ -52,7 +52,7 @@ public enum MemoryType {
     
     @Override
     void free(Pointer ptr, int deviceId) {
-      GpuDevice.cudaFree(ptr, deviceId);
+      GpuDevice.cudaFree(deviceId, ptr);
     }
   },
   /**
@@ -66,7 +66,7 @@ public enum MemoryType {
     
     @Override
     void free(Pointer ptr, int deviceId) {
-      GpuDevice.cudaFree(ptr, deviceId);
+      GpuDevice.cudaFree(deviceId, ptr);
     }
   },
   /**
@@ -81,7 +81,7 @@ public enum MemoryType {
       if (size > CudaPtr.MAX) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
-      cudaDeviceProp properties = CudaPtr.getCurrentDeviceProperties();
+      cudaDeviceProp properties = GpuDevice.getDeviceProperties(GpuSystem.getDevice());
       if (properties.canMapHostMemory == 1) {
         GpuSystem.handle(GpuSystem.cudaHostAlloc(pointer, size, cudaHostAllocDefault));
       }
@@ -107,7 +107,7 @@ public enum MemoryType {
       if (size > CudaPtr.MAX) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
-      cudaDeviceProp properties = CudaPtr.getCurrentDeviceProperties();
+      cudaDeviceProp properties = GpuDevice.getDeviceProperties(GpuSystem.getDevice());
       if (properties.canMapHostMemory == 1) {
         GpuSystem.handle(GpuSystem.cudaHostAlloc(pointer, size, cudaHostAllocWriteCombined));
       }

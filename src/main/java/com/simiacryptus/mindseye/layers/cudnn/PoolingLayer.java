@@ -128,7 +128,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
         @javax.annotation.Nonnull final Pointer beta = precision.getPointer(0.0);
         @Nullable final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
         @javax.annotation.Nonnull final CudaPtr outputTensor = CudaPtr.allocate(gpu.getDeviceNumber(), precision.size * 1l * Tensor.dim(outputSize), MemoryType.Managed, true);
-        GpuSystem.handle(CuDNNHandle.cudnnPoolingForward(gpu.getHandle(), poolingDesc.getPtr(),
+        GpuSystem.handle(gpu.cudnnPoolingForward(poolingDesc.getPtr(),
           alpha,
           inputDescriptor.getPtr(), inputData.getPtr(),
           beta,
@@ -155,7 +155,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
             @Nullable final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
             @Nullable final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
             @javax.annotation.Nonnull final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), inputDims * 1l * precision.size * length, MemoryType.Managed, true);
-            GpuSystem.handle(CuDNNHandle.cudnnPoolingBackward(gpu.getHandle(), poolingDesc.getPtr(),
+            GpuSystem.handle(gpu.cudnnPoolingBackward(poolingDesc.getPtr(),
               alpha,
               outputDescriptor.getPtr(), outputData.getPtr(),
               outputDescriptor.getPtr(), errorPtr.getPtr(),

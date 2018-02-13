@@ -122,7 +122,7 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
           @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(length, inputBands, inputDimensions, inputDimensions);
           @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(length, inputBands, inputDimensions, outputDimensions);
           int byteOffset = inputDimensions[1] * inputDimensions[0] * bandOffset * precision.size;
-          CuDNNHandle.cudnnTransformTensor(gpu.getHandle(),
+          gpu.cudnnTransformTensor(
             precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.getPtr(),
             precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr().withByteOffset(byteOffset)
           );
@@ -159,7 +159,7 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
             @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(length, inputBands, viewDimensions, inputDimensions);
             @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(length, inputBands, viewDimensions, outputDimensions);
             int byteOffset = outputDimensions[1] * outputDimensions[0] * bandOffset * precision.size;
-            CuDNNHandle.cudnnTransformTensor(gpu.getHandle(),
+            gpu.cudnnTransformTensor(
               precision.getPointer(1.0), outputDescriptor.getPtr(), cudaDelta.getPtr().withByteOffset(byteOffset),
               precision.getPointer(0.0), inputDescriptor.getPtr(), cudaBackprop.getPtr()
             );

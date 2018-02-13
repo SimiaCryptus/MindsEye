@@ -409,7 +409,7 @@ public class QuadraticSearch implements LineSearchStrategy {
             monitor.log(String.format("%s <= %s", thisPoint.point.getMean(), initialPoint.point.getMean()));
             return this;
           }
-      
+  
           if (null != thisPoint) thisPoint.freeRef();
           thisPoint = cursor.step(thisX, monitor);
           if (isSame(cursor, monitor, lastPoint, thisPoint)) {

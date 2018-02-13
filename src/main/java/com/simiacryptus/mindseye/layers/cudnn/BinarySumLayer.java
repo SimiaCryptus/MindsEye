@@ -151,7 +151,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
       @Nullable final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, rightData);//.moveTo(gpu.getDeviceNumber());
       assert lPtr.size == rPtr.size;
       @javax.annotation.Nonnull final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
-      CuDNNHandle.cudnnOpTensor(gpu.getHandle(), opDescriptor.getPtr(),
+      gpu.cudnnOpTensor(opDescriptor.getPtr(),
         precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
         precision.getPointer(rightFactor), sizeDescriptor.getPtr(), rPtr.getPtr(),
         precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
@@ -166,7 +166,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
             @Nonnull final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
             @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
               precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
-            CuDNNHandle.cudnnAddTensor(gpu.getHandle(),
+            gpu.cudnnAddTensor(
               precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
               precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
             gpu.registerForCleanup(sizeDescriptor, lPtr);
@@ -183,7 +183,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
             @Nonnull final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
             @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
               precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
-            CuDNNHandle.cudnnAddTensor(gpu.getHandle(),
+            gpu.cudnnAddTensor(
               precision.getPointer(rightFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
               precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
             gpu.registerForCleanup(sizeDescriptor, lPtr);

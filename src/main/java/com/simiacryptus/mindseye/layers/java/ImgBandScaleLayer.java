@@ -168,14 +168,14 @@ public class ImgBandScaleLayer extends NNLayer {
         tensorArray.freeRef();
       }
     }) {
-    
+  
       @Override
       protected void _free() {
         inData.freeRef();
         input.freeRef();
       }
-    
-    
+  
+  
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();

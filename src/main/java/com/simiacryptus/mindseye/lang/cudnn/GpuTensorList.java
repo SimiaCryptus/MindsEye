@@ -154,7 +154,7 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
               @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
                 this.precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, getLength(), d2, d1, d0);
               @javax.annotation.Nonnull final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
-              CuDNNHandle.cudnnOpTensor(gpu.getHandle(), opDescriptor.getPtr(),
+              gpu.cudnnOpTensor(opDescriptor.getPtr(),
                 precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
                 precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
                 precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());

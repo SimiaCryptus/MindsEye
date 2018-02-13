@@ -34,7 +34,7 @@ public class SumInputsLayerTest {
    * The type N 1 eval.
    */
   public static class N1Test extends LayerTestBase {
-  
+
     @javax.annotation.Nonnull
     @Override
     public int[][] getSmallDims(Random random) {

@@ -27,7 +27,6 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.util.lang.TimedResult;
 import jcuda.Pointer;
-import jcuda.runtime.cudaDeviceProp;
 import jcuda.runtime.cudaMemcpyKind;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -196,15 +195,6 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     return tensor;
   }
   
-  
-  /**
-   * Gets current device properties.
-   *
-   * @return the current device properties
-   */
-  static cudaDeviceProp getCurrentDeviceProperties() {
-    return GpuDevice.getDeviceProperties(GpuSystem.getDevice());
-  }
   
   /**
    * Gets gpu stats.

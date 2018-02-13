@@ -102,7 +102,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
       }
     }
     try {
-    
+  
       @Nonnull IntFunction<ToleranceStatistics> toleranceStatisticsIntFunction = batch -> {
         @javax.annotation.Nullable Tensor batchTensor = asABatch.getOutput().get(batch);
         @Nonnull ToleranceStatistics accumulate = new ToleranceStatistics().accumulate(
@@ -123,7 +123,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
         logger.info("Singular Output: " + oneAtATime.stream().map(x -> x.getOutput().prettyPrint()).collect(Collectors.toList()));
         throw new AssertionError("Output Corrupt: " + outputAgreement);
       }
-    
+  
       @javax.annotation.Nonnull final ToleranceStatistics derivativeAgreement = IntStream.range(0, getBatchSize()).mapToObj(batch -> {
         @javax.annotation.Nonnull IntFunction<ToleranceStatistics> statisticsFunction = input -> {
           @javax.annotation.Nullable Tensor a = asABatch.getDerivative()[input].get(batch);
@@ -140,7 +140,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
         };
         return IntStream.range(0, inputPrototype.length).mapToObj(statisticsFunction).reduce((a, b) -> a.combine(b)).get();
       }).reduce((a, b) -> a.combine(b)).get();
-    
+  
       if (!(derivativeAgreement.absoluteTol.getMax() < tolerance)) {
         throw new AssertionError("Derivatives Corrupt: " + derivativeAgreement);
       }

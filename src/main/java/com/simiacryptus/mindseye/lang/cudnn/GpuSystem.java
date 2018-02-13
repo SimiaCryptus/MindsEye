@@ -883,7 +883,6 @@ public class GpuSystem {
       runtime.gc();
       GpuTensorList.evictAllToHeap();
       runtime.gc();
-      runtime.runFinalization();
     } catch (Throwable e) {
       logger.warn("Error while cleaning memory", e);
     }

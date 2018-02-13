@@ -126,7 +126,7 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
         @javax.annotation.Nonnull final CudaPtr outputData = CudaPtr.allocate(gpu.getDeviceNumber(), precision.size * 1l * inputDims * length, MemoryType.Managed, true);
         @javax.annotation.Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = GpuSystem.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
         try {
-          GpuSystem.handle(CuDNNHandle.cudnnActivationForward(gpu.getHandle(), activationDesc.getPtr(),
+          GpuSystem.handle(gpu.cudnnActivationForward(activationDesc.getPtr(),
             precision.getPointer(1.0),
             inputDescriptor.getPtr(), inputData.getPtr(),
             precision.getPointer(0.0),
@@ -150,7 +150,7 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
             @javax.annotation.Nonnull final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), inputDims * 1l * precision.size * length, MemoryType.Managed, true);
             @javax.annotation.Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = GpuSystem.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
             try {
-              GpuSystem.handle(CuDNNHandle.cudnnActivationBackward(gpu.getHandle(), activationDesc.getPtr(),
+              GpuSystem.handle(gpu.cudnnActivationBackward(activationDesc.getPtr(),
                 precision.getPointer(1.0),
                 inputDescriptor.getPtr(), outPtr.getPtr(),
                 inputDescriptor.getPtr(), errorPtr.getPtr(),

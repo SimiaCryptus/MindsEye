@@ -425,18 +425,18 @@ public abstract class StandardLayerTests extends NotebookReportBase {
           invocations.add(new Invocation(inner, Arrays.stream(array).map(x -> x.getData().getDimensions()).toArray(i -> new int[i][])));
           return result;
         }
-    
+  
         @Override
         public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
           return inner.getJson(resources, dataSerializer);
         }
-    
+  
         @Nullable
         @Override
         public List<double[]> state() {
           return inner.state();
         }
-    
+  
         @Override
         protected void _free() {
           inner.freeRef();

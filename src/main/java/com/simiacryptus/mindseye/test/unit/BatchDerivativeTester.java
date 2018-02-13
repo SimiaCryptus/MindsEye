@@ -439,13 +439,13 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     @javax.annotation.Nullable final NNResult eval = frozen.eval(new NNResult(TensorArray.create(inputPrototype), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       reachedInputFeedback.set(true);
     }) {
-    
+  
       @Override
       public boolean isAlive() {
         return true;
       }
-    
-    
+  
+  
     });
     @javax.annotation.Nonnull final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
     TensorList tensorList = eval.getData().copy();
@@ -475,12 +475,12 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     @javax.annotation.Nullable final NNResult eval = frozen.eval(new NNResult(TensorArray.create(inputPrototype), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       reachedInputFeedback.set(true);
     }) {
-    
+  
       @Override
       public boolean isAlive() {
         return true;
       }
-    
+  
     });
     @javax.annotation.Nonnull final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
     TensorList data = eval.getData();

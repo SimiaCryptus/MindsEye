@@ -52,7 +52,7 @@ public abstract class DeepConvolution extends NLayerTest {
   public DeepConvolution(int radius, final int[]... dimList) {
     super(dimList);
     this.radius = radius;
-
+  
   }
   
   

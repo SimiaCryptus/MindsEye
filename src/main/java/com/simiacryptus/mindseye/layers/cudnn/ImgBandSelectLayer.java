@@ -111,7 +111,7 @@ public class ImgBandSelectLayer extends NNLayer implements MultiPrecision<ImgBan
       @Nullable final CudaPtr cudaInput = CudaPtr.getCudaPtr(precision, inputData);
       @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(inputDimensions, length, outputDimensions);
       @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(outputDimensions, length, outputDimensions);
-      CuDNNHandle.cudnnTransformTensor(gpu.getHandle(),
+      gpu.cudnnTransformTensor(
         precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.getPtr().withByteOffset(byteOffset),
         precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr()
       );
@@ -130,7 +130,7 @@ public class ImgBandSelectLayer extends NNLayer implements MultiPrecision<ImgBan
           @Nullable final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
           long size1 = (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size);
           @javax.annotation.Nonnull final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), size1, MemoryType.Managed, false);
-          CuDNNHandle.cudnnTransformTensor(gpu.getHandle(),
+          gpu.cudnnTransformTensor(
             precision.getPointer(1.0), outputDescriptor.getPtr(), errorPtr.getPtr(),
             precision.getPointer(0.0), inputDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
           );

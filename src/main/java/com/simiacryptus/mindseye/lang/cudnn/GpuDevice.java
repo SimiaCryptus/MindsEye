@@ -67,11 +67,11 @@ public class GpuDevice extends GpuSystem {
   /**
    * Cuda freeRef int.
    *
-   * @param devPtr   the dev ptr
    * @param deviceId the device id
+   * @param devPtr   the dev ptr
    * @return the int
    */
-  public static int cudaFree(final Pointer devPtr, int deviceId) {
+  public static int cudaFree(int deviceId, final Pointer devPtr) {
     long startTime = System.nanoTime();
     return GpuSystem.withDevice(deviceId, () -> {
       final int result = JCuda.cudaFree(devPtr);

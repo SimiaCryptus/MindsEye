@@ -167,84 +167,84 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
       //return super.getPerformanceTester();
     }
   }
-
-//  /**
-//   * Large-dimension test using the size of the largest layer in VGG16
-//   */
-//  public static class Big_VGG extends Big {
-//    /**
-//     * Instantiates a new Big.
-//     */
-//    public Big_VGG() {
-//      super(new int[]{25088}, new int[]{4096}, 512);
-//    }
-//
-//  }
-
-//  /**
-//   * Large-dimension test
-//   */
-//  public static class Big1 extends Big {
-//    /**
-//     * Instantiates a new Big.
-//     */
-//    public Big1() {
-//      super(new int[]{2 * 1024}, new int[]{2 * 1024}, 512);
-//    }
-//
-//  }
-//
-//
-//  /**
-//   * Large-dimension test
-//   */
-//  public static class Big_Temp2 extends Big {
-//    /**
-//     * Instantiates a new Big.
-//     */
-//    public Big_Temp2() {
-//      super(new int[]{1024}, new int[]{512}, 32);
-//    }
-//
-//  }
-//
-//  /**
-//   * Large-dimension test
-//   */
-//  public static class Big_Temp3 extends Big {
-//    /**
-//     * Instantiates a new Big.
-//     */
-//    public Big_Temp3() {
-//      super(new int[]{2 * 1024}, new int[]{512}, 32);
-//    }
-//
-//  }
-//
-//  /**
-//   * Large-dimension test
-//   */
-//  public static class Big_Temp0 extends Big {
-//    /**
-//     * Instantiates a new Big.
-//     */
-//    public Big_Temp0() {
-//      super(new int[]{1024}, new int[]{256}, 32);
-//    }
-//
-//  }
-//
-//  /**
-//   * Large-dimension test
-//   */
-//  public static class Big_Temp1 extends Big {
-//    /**
-//     * Instantiates a new Big.
-//     */
-//    public Big_Temp1() {
-//      super(new int[]{2 * 1024}, new int[]{256}, 32);
-//    }
-//
-//  }
-//
+  
+  /**
+   * Large-dimension test using the size of the largest layer in VGG16
+   */
+  public static class Big_VGG extends Big {
+    /**
+     * Instantiates a new Big.
+     */
+    public Big_VGG() {
+      super(new int[]{25088}, new int[]{4096}, 512);
+    }
+    
+  }
+  
+  /**
+   * Large-dimension test
+   */
+  public static class Big1 extends Big {
+    /**
+     * Instantiates a new Big.
+     */
+    public Big1() {
+      super(new int[]{2 * 1024}, new int[]{2 * 1024}, 512);
+    }
+    
+  }
+  
+  
+  /**
+   * Large-dimension test
+   */
+  public static class Big_Temp2 extends Big {
+    /**
+     * Instantiates a new Big.
+     */
+    public Big_Temp2() {
+      super(new int[]{1024}, new int[]{512}, 32);
+    }
+    
+  }
+  
+  /**
+   * Large-dimension test
+   */
+  public static class Big_Temp3 extends Big {
+    /**
+     * Instantiates a new Big.
+     */
+    public Big_Temp3() {
+      super(new int[]{2 * 1024}, new int[]{512}, 32);
+    }
+    
+  }
+  
+  /**
+   * Large-dimension test
+   */
+  public static class Big_Temp0 extends Big {
+    /**
+     * Instantiates a new Big.
+     */
+    public Big_Temp0() {
+      super(new int[]{1024}, new int[]{256}, 32);
+    }
+    
+  }
+  
+  /**
+   * Large-dimension test
+   */
+  public static class Big_Temp1 extends Big {
+    /**
+     * Instantiates a new Big.
+     */
+    public Big_Temp1() {
+      super(new int[]{2 * 1024}, new int[]{256}, 32);
+    }
+    
+  }
+  
 }

@@ -64,11 +64,11 @@ public class TestUtil {
    * The constant S3_ROOT.
    */
   public static final URI S3_ROOT = URI.create("https://s3-us-west-2.amazonaws.com/simiacryptus/");
-  private static final Logger log = LoggerFactory.getLogger(TestUtil.class);
   /**
    * The constant CONSERVATIVE.
    */
-  public static final boolean CONSERVATIVE = Boolean.parseBoolean(System.getProperty("CONSERVATIVE", Boolean.toString(TestUtil.class.desiredAssertionStatus())));
+  public static final boolean CONSERVATIVE = false && Boolean.parseBoolean(System.getProperty("CONSERVATIVE", Boolean.toString(TestUtil.class.desiredAssertionStatus())));
+  private static final Logger log = LoggerFactory.getLogger(TestUtil.class);
   
   /**
    * Add logging.

@@ -42,26 +42,26 @@ public class CaltechTests {
     log.p("The image-to-vector network is a single layer convolutional:");
     return log.code(() -> {
       @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
-
+  
       @javax.annotation.Nonnull IntToDoubleFunction weights = i -> 1e-8 * (Math.random() - 0.5);
       network.add(new ConvolutionLayer(3, 3, 3, 10).set(weights));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());
       network.add(new ImgCropLayer(126, 126));
       network.add(new NormalizationMetaLayer());
-
+  
       network.add(new ConvolutionLayer(3, 3, 10, 20).set(weights));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());
       network.add(new ImgCropLayer(62, 62));
       network.add(new NormalizationMetaLayer());
-
+  
       network.add(new ConvolutionLayer(5, 5, 20, 30).set(weights));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());
       network.add(new ImgCropLayer(18, 18));
       network.add(new NormalizationMetaLayer());
-
+  
       network.add(new ConvolutionLayer(3, 3, 30, 40).set(weights));
       network.add(new PoolingLayer().setWindowX(4).setWindowY(4).setMode(PoolingLayer.PoolingMode.Avg));
       network.add(new ReLuActivationLayer());
@@ -89,7 +89,7 @@ public class CaltechTests {
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{4, 4, 40}).set(weights));
       network.add(new ImgBandBiasLayer(40));
       network.add(new NormalizationMetaLayer());
-
+  
       network.add(new ConvolutionLayer(3, 3, 40, 160).set(weights));
       network.add(new ImgReshapeLayer(2, 2, true)); // 8x8x40
       network.add(new ReLuActivationLayer());

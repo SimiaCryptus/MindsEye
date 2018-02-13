@@ -77,7 +77,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   public final boolean isFinalized() {
     return isFreed.get();
   }
-
+  
   private String detailString(boolean includeCaller) {
     @javax.annotation.Nonnull ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     @javax.annotation.Nonnull PrintStream out = new PrintStream(buffer);

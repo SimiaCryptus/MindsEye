@@ -205,7 +205,7 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
     assert sourceOffset + Tensor.dim(viewDim) <= Tensor.dim(sourceDimensions);
     assert destinationOffset + Tensor.dim(viewDim) <= Tensor.dim(destinationDimensions);
   
-    GpuSystem.handle(CuDNNHandle.cudnnTransformTensor(gpu.getHandle(),
+    GpuSystem.handle(gpu.cudnnTransformTensor(
       precision.getPointer(1.0),
       sourceViewDescriptor.getPtr(), source.getPtr().withByteOffset(sourceOffset * precision.size),
       precision.getPointer(0.0),

@@ -186,8 +186,8 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
 //                  monitor.log(String.format("%s: normalMagSq = %s, newAlphaDerivSq = %s, originalAlphaDerivSq = %s", layer, normalMagSq, newAlphaDerivSq, originalAlphaDerivSq));
                 }
               }
-          
-          
+  
+  
             }
           }
         });

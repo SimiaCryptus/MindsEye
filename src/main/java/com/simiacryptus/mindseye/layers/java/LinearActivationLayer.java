@@ -64,12 +64,6 @@ public class LinearActivationLayer extends NNLayer {
     weights = Tensor.fromJson(json.get("weights"), resources);
   }
   
-  @Override
-  protected void _free() {
-    weights.freeRef();
-    super._free();
-  }
-  
   /**
    * From json linear activation layer.
    *
@@ -79,6 +73,12 @@ public class LinearActivationLayer extends NNLayer {
    */
   public static LinearActivationLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new LinearActivationLayer(json, rs);
+  }
+  
+  @Override
+  protected void _free() {
+    weights.freeRef();
+    super._free();
   }
   
   @javax.annotation.Nonnull
