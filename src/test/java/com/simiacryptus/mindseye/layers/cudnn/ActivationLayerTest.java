@@ -101,6 +101,7 @@ public abstract class ActivationLayerTest extends CuDNNLayerTestBase {
       eval.freeRef();
       return doubles;
     }).collect(Collectors.toList());
+    layer.freeRef();
   
     log.code(() -> {
       return ActivationLayerTestBase.plot("Value Plot", plotData, x -> new double[]{x[0], x[1]});
