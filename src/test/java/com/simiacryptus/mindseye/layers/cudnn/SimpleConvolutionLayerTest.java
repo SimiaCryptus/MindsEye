@@ -235,25 +235,32 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
       super();
       layer.setPaddingXY(0, 0);
     }
-    
+  
   }
   
   /**
    * Simple 256x256 band 1-pixel "convolution"
    */
-  public static class Big extends SimpleConvolutionLayerTest {
+  public static class Big0 extends Big {
+    public Big0() {
+      super(1, 2048, Precision.Double);
+    }
+  }
+  
+  /**
+   * Simple 256x256 band 1-pixel "convolution"
+   */
+  public abstract static class Big extends SimpleConvolutionLayerTest {
     /**
      * Instantiates a new Multi band.
+     * @param radius
+     * @param bands
+     * @param aDouble
      */
-    public Big() {
-      super(3, 128, Precision.Double);
+    public Big(int radius, int bands, Precision aDouble) {
+      super(radius, bands, aDouble);
       validateDifferentials = false;
-    }
-    
-    @Override
-    public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
-//      return null;
-      return super.getTrainingTester();
+      setTestTraining(false);
     }
     
     @Override
@@ -269,36 +276,31 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
       };
     }
   
-    @Nullable
-    public ComponentTest<ToleranceStatistics> getPerformanceTester() {
-      @javax.annotation.Nonnull ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setBatches(10);
-      return new ComponentTestBase<ToleranceStatistics>() {
+    @Override
+    public ComponentTest<ToleranceStatistics> getBatchingTester() {
+      if (!validateBatchExecution) return null;
+      return (new BatchingTester(1e-2) {
         @Override
-        public ToleranceStatistics test(@javax.annotation.Nonnull NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
-          @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_perf.log";
-          @Nullable PrintStream apiLog = null;
-          try {
-            apiLog = new PrintStream(log.file(logName));
-            GpuSystem.addLog(apiLog);
-            return inner.test(log, component, inputPrototype);
-          } finally {
-            log.p(log.file((String) null, logName, "GPU Log"));
-            if (null != apiLog) {
-  
-              apiLog.close();
-              GpuSystem.apiLog.remove(apiLog);
-            }
-          }
+        public double getRandom() {
+          return random();
         }
-  
-        @Override
-        protected void _free() {
-          inner.freeRef();
-          super._free();
-        }
-      };
+      }).setBatchSize(5);
     }
-    
+  
+    @Nullable
+    @Override
+    protected ComponentTest<ToleranceStatistics> getJsonTester() {
+      logger.warn("Disabled Json Test");
+      return null;
+    }
+  
+    @Nullable
+    @Override
+    public ComponentTest<ToleranceStatistics> getPerformanceTester() {
+      logger.warn("Disabled Performance Test");
+      return null;
+    }
+  
   }
   
 }

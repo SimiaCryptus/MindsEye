@@ -24,8 +24,12 @@ import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.java.SumInputsLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
+import com.simiacryptus.mindseye.test.ToleranceStatistics;
+import com.simiacryptus.mindseye.test.unit.BatchingTester;
+import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
+import javax.annotation.Nullable;
 import java.util.Random;
 import java.util.stream.IntStream;
 
@@ -137,13 +141,12 @@ public abstract class SumInputsLayerTest extends CuDNNLayerTestBase {
   /**
    * Adds using double (64-bit) precision, C = A + B
    */
-  public static class Big_Double_Add extends SumInputsLayerTest {
+  public static class Big_Double_Add extends Big {
     /**
      * Instantiates a new Double.
      */
     public Big_Double_Add() {
-      super(Precision.Double, 512, 4);
-      validateDifferentials = false;
+      super(Precision.Double, 1024, 2);
     }
   }
   
@@ -173,6 +176,48 @@ public abstract class SumInputsLayerTest extends CuDNNLayerTestBase {
       return new SingleDerivativeTester(1e-2, 1e-3);
     }
     
+  }
+  
+  /**
+   * Basic Test
+   */
+  public abstract static class Big extends SumInputsLayerTest {
+    
+    public Big(final Precision precision, int inputBands, int inputs) {
+      super(precision, inputBands, inputs);
+      validateDifferentials = false;
+      setTestTraining(false);
+    }
+    
+    @Override
+    public Class<? extends NNLayer> getReferenceLayerClass() {
+      return null;
+    }
+    
+    @Override
+    public ComponentTest<ToleranceStatistics> getBatchingTester() {
+      if (!validateBatchExecution) return null;
+      return (new BatchingTester(1e-2) {
+        @Override
+        public double getRandom() {
+          return random();
+        }
+      }).setBatchSize(5);
+    }
+    
+    @Nullable
+    @Override
+    protected ComponentTest<ToleranceStatistics> getJsonTester() {
+      logger.warn("Disabled Json Test");
+      return null;
+    }
+    
+    @Nullable
+    @Override
+    public ComponentTest<ToleranceStatistics> getPerformanceTester() {
+      logger.warn("Disabled Performance Test");
+      return null;
+    }
   }
   
 }

@@ -27,7 +27,6 @@ import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.SimpleListEval;
 import com.simiacryptus.mindseye.test.SimpleResult;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
-import com.simiacryptus.util.data.DensityTree;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.slf4j.Logger;
@@ -132,7 +131,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
           logger.info("Error: " + diff.prettyPrint());
           logger.info("Scalar Statistics: " + new ScalarStatistics().add(diff.getData()).getMetrics());
           double[][] points = Arrays.stream(diff.getData()).mapToObj(x -> new double[]{x}).toArray(i -> new double[i][]);
-          logger.info("Density: " + new DensityTree("x").setMinSplitFract(1e-8).setSplitSizeThreshold(2).new Node(points));
+          //logger.info("Density: " + new DensityTree("x").setMinSplitFract(1e-8).setSplitSizeThreshold(2).new Node(points));
           diff.freeRef();
           @Nonnull ToleranceStatistics toleranceStatistics = new ToleranceStatistics().accumulate(a.getData(), b.getData());
           a.freeRef();
