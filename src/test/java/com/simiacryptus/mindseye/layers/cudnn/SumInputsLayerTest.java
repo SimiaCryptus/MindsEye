@@ -38,21 +38,25 @@ public abstract class SumInputsLayerTest extends CuDNNLayerTestBase {
    * The Precision.
    */
   final Precision precision;
+  int inputBands;
+  int inputs;
   
   /**
    * Instantiates a new Product layer run.
    *
    * @param precision the precision
+   * @param inputBands
+   * @param inputs
    */
-  public SumInputsLayerTest(final Precision precision) {
+  public SumInputsLayerTest(final Precision precision, int inputBands, int inputs) {
     this.precision = precision;
+    this.inputBands = inputBands;
+    this.inputs = inputs;
   }
   
   @Override
   public int[][] getSmallDims(Random random) {
-    return new int[][]{
-      {8, 8, 1}, {8, 8, 1}
-    };
+    return IntStream.range(0, inputs).mapToObj(i -> new int[]{2, 2, inputBands}).toArray(i -> new int[i][]);
   }
   
   @javax.annotation.Nonnull
@@ -63,9 +67,7 @@ public abstract class SumInputsLayerTest extends CuDNNLayerTestBase {
   
   @Override
   public int[][] getLargeDims(Random random) {
-    return new int[][]{
-      {200, 200, 3}, {200, 200, 3}
-    };
+    return IntStream.range(0, inputs).mapToObj(i -> new int[]{200, 200, inputBands}).toArray(i -> new int[i][]);
   }
   
   @Override
@@ -81,17 +83,7 @@ public abstract class SumInputsLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Double.
      */
     public Double_List() {
-      super(Precision.Double);
-    }
-    
-    @Override
-    public int[][] getSmallDims(Random random) {
-      return IntStream.range(0, 5).mapToObj(i -> new int[]{2, 2, 2}).toArray(i -> new int[i][]);
-    }
-    
-    @Override
-    public int[][] getLargeDims(Random random) {
-      return IntStream.range(0, 5).mapToObj(i -> new int[]{200, 200, 3}).toArray(i -> new int[i][]);
+      super(Precision.Double, 1, 5);
     }
     
   }
@@ -145,12 +137,22 @@ public abstract class SumInputsLayerTest extends CuDNNLayerTestBase {
   /**
    * Adds using double (64-bit) precision, C = A + B
    */
+  public static class Big_Double_Add extends SumInputsLayerTest {
+    /**
+     * Instantiates a new Double.
+     */
+    public Big_Double_Add() {
+      super(Precision.Double, 512, 4);
+      validateDifferentials = false;
+    }
+  }
+  
   public static class Double_Add extends SumInputsLayerTest {
     /**
      * Instantiates a new Double.
      */
     public Double_Add() {
-      super(Precision.Double);
+      super(Precision.Double, 1, 2);
     }
   }
   
@@ -163,7 +165,7 @@ public abstract class SumInputsLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Float.
      */
     public Float_Add() {
-      super(Precision.Float);
+      super(Precision.Float, 1, 2);
     }
     
     @Override

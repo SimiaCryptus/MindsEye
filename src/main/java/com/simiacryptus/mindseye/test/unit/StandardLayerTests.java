@@ -366,14 +366,16 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     if (!exceptions.isEmpty()) {
       if (smallLayer instanceof DAGNetwork) {
         for (@javax.annotation.Nonnull Invocation invocation : getInvocations(smallLayer, smallDims)) {
-          log.h2("Small SubTest: " + invocation.getLayer().getClass().getSimpleName());
+          log.h1("Small SubTests: " + invocation.getLayer().getClass().getSimpleName());
+          log.p(Arrays.deepToString(invocation.getDims()));
           littleTests(log, exceptions, invocation);
           invocation.freeRef();
         }
       }
       if (largeLayer instanceof DAGNetwork) {
         for (@javax.annotation.Nonnull Invocation invocation : getInvocations(largeLayer, largeDims)) {
-          log.h2("Large SubTest: " + invocation.getLayer().getClass().getSimpleName());
+          log.h1("Large SubTests: " + invocation.getLayer().getClass().getSimpleName());
+          log.p(Arrays.deepToString(invocation.getDims()));
           bigTests(log, exceptions, invocation);
           invocation.freeRef();
         }

@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 
 import java.util.Random;
+import java.util.stream.IntStream;
 
 /**
  * The type Img concat layer run.
@@ -33,22 +34,26 @@ public abstract class ImgConcatLayerTest extends CuDNNLayerTestBase {
    * The Precision.
    */
   final Precision precision;
+  int inputs;
+  int bandsPerInput;
   
   /**
    * Instantiates a new Img concat layer run.
    *
    * @param precision the precision
+   * @param inputs
+   * @param bandsPerInput
    */
-  public ImgConcatLayerTest(final Precision precision) {
+  public ImgConcatLayerTest(final Precision precision, int inputs, int bandsPerInput) {
     this.precision = precision;
+    this.inputs = inputs;
+    this.bandsPerInput = bandsPerInput;
   }
   
   @javax.annotation.Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
-    return new int[][]{
-      {8, 8, 1}, {8, 8, 1}
-    };
+    return IntStream.range(0, inputs).mapToObj(x -> new int[]{8, 8, bandsPerInput}).toArray(i -> new int[i][]);
   }
   
   @javax.annotation.Nonnull
@@ -60,9 +65,7 @@ public abstract class ImgConcatLayerTest extends CuDNNLayerTestBase {
   @javax.annotation.Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
-    return new int[][]{
-      {200, 200, 3}, {200, 200, 3}
-    };
+    return IntStream.range(0, inputs).mapToObj(x -> new int[]{200, 200, bandsPerInput}).toArray(i -> new int[i][]);
   }
   
   @Override
@@ -79,7 +82,7 @@ public abstract class ImgConcatLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Band limit run.
      */
     public BandLimitTest() {
-      super(Precision.Double);
+      super(Precision.Double, 2, 1);
     }
   
     @javax.annotation.Nonnull
@@ -113,7 +116,7 @@ public abstract class ImgConcatLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Band limit run.
      */
     public BandConcatLimitTest() {
-      super(Precision.Double);
+      super(Precision.Double, 2, 1);
     }
   
     @javax.annotation.Nonnull
@@ -145,7 +148,20 @@ public abstract class ImgConcatLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Double.
      */
     public Double() {
-      super(Precision.Double);
+      super(Precision.Double, 2, 1);
+    }
+  }
+  
+  /**
+   * Basic 64-bit run
+   */
+  public static class BigDouble extends ImgConcatLayerTest {
+    /**
+     * Instantiates a new Double.
+     */
+    public BigDouble() {
+      super(Precision.Double, 2, 64);
+      validateDifferentials = false;
     }
   }
   
@@ -157,7 +173,7 @@ public abstract class ImgConcatLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Float.
      */
     public Float() {
-      super(Precision.Float);
+      super(Precision.Float, 2, 1);
     }
   }
   

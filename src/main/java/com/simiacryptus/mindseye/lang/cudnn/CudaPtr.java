@@ -153,7 +153,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     } catch (@javax.annotation.Nonnull final ThreadDeath e) {
       throw e;
     } catch (@javax.annotation.Nonnull final Throwable e) {
-      if (retries <= 0) throw new RuntimeException(e);
+      if (retries <= 0) throw new RuntimeException(String.format(String.format("Error allocating %d bytes", size)), e);
       final long startMemory = metrics.usedMemory.get();
       @javax.annotation.Nonnull TimedResult<Void> timedResult = TimedResult.time(() -> GpuSystem.cleanMemory());
       final long freedMemory = startMemory - metrics.usedMemory.get();

@@ -492,7 +492,10 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     eval.freeRef();
     final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
     result.freeRef();
-    //if (output_target.length != input_target.length) return null;
+    if (output_target.length != input_target.length) {
+      logger.info("Batch layers not supported");
+      return null;
+    }
     return trainAll("Model Convergence", log,
       append(input_target, output_target),
       shuffle(random, component.copy()));

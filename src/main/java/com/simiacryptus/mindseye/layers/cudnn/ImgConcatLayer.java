@@ -103,7 +103,7 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
       nnResult.getData().addRef();
     }
     return new NNResult(GpuSystem.eval(gpu -> {
-      final long outputSize = (length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
+      final long outputSize = ((long) length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
       @javax.annotation.Nonnull final CudaPtr cudaOutput = CudaPtr.allocate(gpu.getDeviceNumber(), outputSize, MemoryType.Managed, true);
       for (int i = 0; i < inObj.length; i++) {
         final TensorList input = inObj[i].getData();

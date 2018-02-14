@@ -229,7 +229,7 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Big.
      */
     public Big_Temp0() {
-      super(new int[]{1024}, new int[]{256}, 32);
+      super(new int[]{128}, new int[]{128}, 256);
     }
     
   }

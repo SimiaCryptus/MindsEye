@@ -42,15 +42,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
    */
   ImgBandSelectLayer layer;
   
-  /**
-   * Instantiates a new Img concat layer run.
-   *
-   * @param precision the precision
-   */
-  public ImgBandSelectLayerTest(final Precision precision) {
-    this.precision = precision;
-    layer = new ImgBandSelectLayer(1, 2).setPrecision(precision);
-  }
+  int inputBands;
   
   @Override
   public void run(NotebookOutput log) {
@@ -63,11 +55,24 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
     GpuSystem.apiLog.remove(apiLog);
   }
   
+  /**
+   * Instantiates a new Img concat layer run.
+   *
+   * @param precision   the precision
+   * @param inputBands
+   * @param outputBands
+   */
+  public ImgBandSelectLayerTest(final Precision precision, int inputBands, int outputBands) {
+    this.precision = precision;
+    layer = new ImgBandSelectLayer(0, outputBands).setPrecision(precision);
+    this.inputBands = inputBands;
+  }
+
   @javax.annotation.Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {1, 1, 2}
+      {1, 1, inputBands}
     };
   }
   
@@ -81,7 +86,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {64, 64, 2}
+      {64, 64, inputBands}
     };
   }
   
@@ -98,7 +103,19 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
      * Instantiates a new Double.
      */
     public Double() {
-      super(Precision.Double);
+      super(Precision.Double, 2, 1);
+    }
+  }
+  
+  /**
+   * Basic 64-bit run
+   */
+  public static class BigDouble extends ImgBandSelectLayerTest {
+    /**
+     * Instantiates a new Double.
+     */
+    public BigDouble() {
+      super(Precision.Double, 1024, 256);
     }
   }
   
@@ -110,7 +127,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
      * Instantiates a new Float.
      */
     public Float() {
-      super(Precision.Float);
+      super(Precision.Float, 2, 1);
     }
   }
   
