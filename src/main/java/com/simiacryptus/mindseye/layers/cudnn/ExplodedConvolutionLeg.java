@@ -74,11 +74,9 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
     @javax.annotation.Nonnull final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
     filterDimensions[2] = inputBands * this.convolutionParams.outputBands;
     for (int offset = 0; offset < filterDimensions[2]; offset += inputBandsSq) {
-      @javax.annotation.Nonnull final Tensor cellKernel = new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq);
-      this.subLayers.add(new SimpleConvolutionLayer(cellKernel).setStrideX(this.convolutionParams.strideX) //
+      this.subLayers.add(new SimpleConvolutionLayer(filterDimensions[0], filterDimensions[1], inputBandsSq).setStrideX(this.convolutionParams.strideX) //
         .setStrideY(this.convolutionParams.strideY) //
         .setPrecision(this.convolutionParams.precision));
-      cellKernel.freeRef();
     }
   }
   
@@ -116,7 +114,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
         else {
           return 0;
         }
-      }, false);
+      }, true);
       subLayers.get(layerNumber).set(kernel);
       kernel.freeRef();
     }

@@ -95,6 +95,20 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
     }
   }
   
+  public static void evictToHeap(int deviceId) {
+    synchronized (INSTANCES) {
+      @javax.annotation.Nonnull Iterator<WeakReference<GpuTensorList>> iterator = INSTANCES.iterator();
+      while (iterator.hasNext()) {
+        @Nullable GpuTensorList next = iterator.next().get();
+        if (null != next && !next.isFinalized() && next.getDeviceId() == deviceId) next.evictToHeap();
+      }
+    }
+  }
+  
+  private int getDeviceId() {
+    return null == ptr ? -1 : ptr.getDeviceId();
+  }
+  
   private static void addInstance(GpuTensorList self) {
     long now = System.currentTimeMillis();
     if (now - lastCleanTime > 1000) {

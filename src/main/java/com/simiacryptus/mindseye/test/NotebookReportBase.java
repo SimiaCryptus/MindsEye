@@ -162,9 +162,7 @@ public abstract class NotebookReportBase {
   public NotebookOutput getLog(String... logPath) {
     try {
       if (useMarkdown) {
-        return MarkdownNotebookOutput.get(getTargetClass(),
-          absoluteUrl,
-          logPath);
+        return MarkdownNotebookOutput.get(getTargetClass(), absoluteUrl, logPath);
       }
       else {
         @javax.annotation.Nonnull final String directoryName = new SimpleDateFormat("YYYY-MM-dd-HH-mm").format(new Date());

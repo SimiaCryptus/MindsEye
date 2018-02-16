@@ -30,14 +30,14 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.ref.WeakReference;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * This convolution layer only supports an equal number of input and output bands. It is used as the foundational
@@ -63,6 +63,8 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
   private Precision precision = Precision.Double;
   private int strideX = 1;
   private int strideY = 1;
+  private static final Set<WeakReference<SimpleConvolutionLayer>> instances = new HashSet<>();
+  private final Map<Integer, CudaPtr> gpuFilters = new ConcurrentHashMap<>();
   
   /**
    * Instantiates a new Convolution layer.
@@ -92,6 +94,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
    */
   protected SimpleConvolutionLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> resources) {
     super(json);
+    instances.add(new WeakReference<>(this));
     kernel = Tensor.fromJson(json.get("filter"), resources);
     strideX = json.get("strideX").getAsInt();
     strideY = json.get("strideY").getAsInt();
@@ -107,6 +110,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
    */
   protected SimpleConvolutionLayer(@javax.annotation.Nonnull final Tensor kernel) {
     super();
+    instances.add(new WeakReference<>(this));
     @javax.annotation.Nonnull int[] kernelSize = kernel.getDimensions();
     if (kernelSize.length != 3) throw new IllegalArgumentException();
     if (kernelSize[0] <= 0) throw new IllegalArgumentException();
@@ -201,6 +205,10 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
     return outputSize[2] == outputDims[1];
   }
   
+  public static Stream<SimpleConvolutionLayer> getInstances() {
+    return instances.stream().map(x -> x.get()).filter(x -> x != null && !x.isFinalized());
+  }
+  
   @javax.annotation.Nullable
   @Override
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
@@ -222,8 +230,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
         @Nullable CudaFwdParameters cudaParameters = obtainFwd(new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu));
         assert 0 < kernel.getData().length;
         assert kernelSize[0] * kernelSize[1] * kernelSize[2] == kernel.getData().length;
-        @javax.annotation.Nonnull CudaPtr filterPtr = CudaPtr.allocate(deviceNumber, (long) (kernel.getData().length * precision.size), MemoryType.Device, true)
-          .write(precision, kernel.getData());
+        @Nonnull CudaPtr filterPtr = getCudaFilter(deviceNumber);
         @javax.annotation.Nullable final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
         @javax.annotation.Nonnull final CudaPtr outputBuffer = CudaPtr.allocate(deviceNumber, Tensor.dim(cudaParameters.outputDims) * 1l * length * precision.size, MemoryType.Managed, true);
         GpuSystem.handle(gpu.cudnnConvolutionForward(precision.getPointer(1.0),
@@ -266,6 +273,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
             }
             @javax.annotation.Nonnull final Tensor weightGradient = CudaPtr.read(filterPtr, precision, kernel.getDimensions());
             buffer.get(SimpleConvolutionLayer.this, kernel.getData()).addInPlace(weightGradient.getData()).freeRef();
+            clearCudaFilters();
             gpu.registerForCleanup(weightGradient, inputData, filterPtr, errorPtr);
           }
         });
@@ -276,8 +284,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
             @javax.annotation.Nonnull final CudaPtr inputBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), Tensor.dim(batch.getDimensions()) * 1l * length * precision.size, MemoryType.Managed, true);
             try {
               @javax.annotation.Nullable final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, delta);
-              @javax.annotation.Nonnull final CudaPtr filterPtr = CudaPtr.allocate(gpu.getDeviceNumber(), (long) (kernel.getData().length * precision.size), MemoryType.Device, true)
-                .write(precision, kernel.getData());
+              @Nonnull final CudaPtr filterPtr = getCudaFilter(gpu.getDeviceNumber());
               GpuSystem.handle(gpu.cudnnConvolutionBackwardData(precision.getPointer(1.0),
                 cudaParameters.filterDescriptor.getPtr(), filterPtr.getPtr(),
                 cudaParameters.outputDescriptor.getPtr(), errorPtr.getPtr(),
@@ -313,6 +320,40 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
         return input.isAlive() || !isFrozen();
       }
     };
+  }
+  
+  public void clearDeviceData(final int deviceId) {
+    CudaPtr remove = gpuFilters.remove(deviceId);
+    if (null != remove) remove.freeRef();
+  }
+  
+  
+  @Nonnull
+  private synchronized CudaPtr getCudaFilter(final int deviceNumber) {
+    CudaPtr cudaPtr;
+    if (!gpuFilters.containsKey(deviceNumber)) {
+      synchronized (this) {
+        if (!gpuFilters.containsKey(deviceNumber)) {
+          double[] data = kernel.getData();
+          cudaPtr = CudaPtr.allocate(deviceNumber, (long) data.length * precision.size, MemoryType.Device, true).write(precision, data);
+          gpuFilters.put(deviceNumber, cudaPtr);
+        }
+        else {
+          cudaPtr = gpuFilters.get(deviceNumber);
+        }
+      }
+    }
+    else {
+      cudaPtr = gpuFilters.get(deviceNumber);
+    }
+    cudaPtr.addRef();
+    return cudaPtr;
+  }
+  
+  @Nonnull
+  private synchronized void clearCudaFilters() {
+    gpuFilters.forEach((i, c) -> c.freeRef());
+    gpuFilters.clear();
   }
   
   @Override

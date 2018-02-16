@@ -336,7 +336,7 @@ public class EncodingUtil {
     try {
       return Caltech101.trainingDataStream().filter(x -> {
         return categories.length == 0 || Arrays.asList(categories).contains(x.label);
-      }).map(labeledObj -> {
+      }).parallel().map(labeledObj -> {
         @Nullable BufferedImage img = labeledObj.data.get();
         img = TestUtil.resize(img, size);
         return new Tensor[]{

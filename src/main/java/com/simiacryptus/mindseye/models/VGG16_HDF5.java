@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.*;
 import com.simiacryptus.mindseye.layers.java.AssertDimensionsLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
-import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -421,21 +420,26 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
                 ((MultiPrecision) layer).setPrecision(precision);
               }
             });
+            return precision;
           });
           return model;
         }
         
         protected void add(NNLayer layer) {
-          if (layer instanceof Explodable) ((Explodable) layer).explode();
-          int numberOfParameters = layer.state().stream().mapToInt(x -> x.length).sum();
-          model.add(layer);
-          @javax.annotation.Nonnull int[] prev_dimensions = prototype.getDimensions();
-          prototype = layer.eval(prototype).getData().get(0);
-          @javax.annotation.Nonnull int[] new_dimensions = prototype.getDimensions();
-          log.info(String.format("Added layer #%d: %s; %s params, dimensions %s (%s) -> %s (%s)", //
-            cnt++, layer, numberOfParameters, //
-            Arrays.toString(prev_dimensions), Tensor.dim(prev_dimensions), //
-            Arrays.toString(new_dimensions), Tensor.dim(new_dimensions)));
+          if (layer instanceof Explodable) {
+            add(((Explodable) layer).explode());
+          }
+          else {
+            int numberOfParameters = layer.state().stream().mapToInt(x -> x.length).sum();
+            model.add(layer);
+            @javax.annotation.Nonnull int[] prev_dimensions = prototype.getDimensions();
+            prototype = layer.eval(prototype).getData().get(0);
+            @javax.annotation.Nonnull int[] new_dimensions = prototype.getDimensions();
+            log.info(String.format("Added layer #%d: %s; %s params, dimensions %s (%s) -> %s (%s)", //
+              cnt++, layer, numberOfParameters, //
+              Arrays.toString(prev_dimensions), Tensor.dim(prev_dimensions), //
+              Arrays.toString(new_dimensions), Tensor.dim(new_dimensions)));
+          }
         }
       }.call();
     } catch (@javax.annotation.Nonnull final RuntimeException e) {

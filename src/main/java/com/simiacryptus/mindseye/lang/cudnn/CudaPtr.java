@@ -24,6 +24,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.layers.cudnn.SimpleConvolutionLayer;
 import com.simiacryptus.util.lang.TimedResult;
 import jcuda.Pointer;
 import jcuda.runtime.cudaMemcpyKind;
@@ -139,6 +140,13 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     }
     if (deviceId >= 0 && GpuSystem.getDevice() != deviceId) throw new IllegalArgumentException();
     final GpuStats metrics = CudaPtr.getGpuStats(deviceId);
+    if (metrics.usedMemory.get() > metrics.highMemoryThreshold) {
+      synchronized (CudaPtr.class) {
+        logger.info(String.format("Clearing memory for device %s while allocating %s bytes", deviceId, size));
+        SimpleConvolutionLayer.getInstances().forEach(x -> x.clearDeviceData(deviceId));
+        GpuTensorList.evictToHeap(deviceId);
+      }
+    }
     try {
       @javax.annotation.Nonnull Pointer pointer = new Pointer();
       type.alloc(size, pointer);
@@ -272,7 +280,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     }
     else {
       GpuSystem.cudaMemcpy(precision.getPointer(destination), getPtr().withByteOffset((long) offset * precision.size), (long) destination.length * precision.size, cudaMemcpyDeviceToHost);
-      CudaPtr.getGpuStats(deviceId).memoryReads.addAndGet(destination.length * precision.size);
+      CudaPtr.getGpuStats(deviceId).memoryReads.addAndGet((long) destination.length * precision.size);
     }
     return this;
   }
@@ -309,7 +317,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     }
     else {
       GpuSystem.cudaMemcpy(precision.getPointer(destination), getPtr().withByteOffset((long) offset * precision.size), (long) destination.length * precision.size, cudaMemcpyDeviceToHost);
-      CudaPtr.getGpuStats(deviceId).memoryReads.addAndGet(size);
+      CudaPtr.getGpuStats(deviceId).memoryReads.addAndGet((long) destination.length * precision.size);
     }
     return this;
   }
@@ -335,9 +343,9 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   @javax.annotation.Nonnull
   public CudaPtr write(@javax.annotation.Nonnull final Precision precision, @javax.annotation.Nonnull final double[] data, int offset) {
     if (size < (long) (offset + data.length) * precision.size)
-      throw new IllegalArgumentException(String.format("%d != %d * %d", size, data.length, precision.size));
-    GpuSystem.cudaMemcpy(getPtr().withByteOffset((long) offset * precision.size), precision.getPointer(data), data.length * precision.size, cudaMemcpyKind.cudaMemcpyHostToDevice);
-    CudaPtr.getGpuStats(deviceId).memoryWrites.addAndGet(data.length);
+      throw new IllegalArgumentException(String.format("%d != (%d + %d) * %d", size, offset, data.length, precision.size));
+    GpuSystem.cudaMemcpy(getPtr().withByteOffset((long) offset * precision.size), precision.getPointer(data), (long) data.length * precision.size, cudaMemcpyKind.cudaMemcpyHostToDevice);
+    CudaPtr.getGpuStats(deviceId).memoryWrites.addAndGet((long) data.length * precision.size);
     return this;
   }
   
@@ -363,8 +371,8 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   public CudaPtr write(@javax.annotation.Nonnull final Precision precision, @javax.annotation.Nonnull final float[] data, int offset) {
     if (size < (long) (offset + data.length) * precision.size)
       throw new IllegalArgumentException(String.format("%d != %d * %d", size, data.length, precision.size));
-    GpuSystem.cudaMemcpy(getPtr().withByteOffset((long) offset * precision.size), precision.getPointer(data), data.length * precision.size, cudaMemcpyKind.cudaMemcpyHostToDevice);
-    CudaPtr.getGpuStats(deviceId).memoryWrites.addAndGet(data.length);
+    GpuSystem.cudaMemcpy(getPtr().withByteOffset((long) offset * precision.size), precision.getPointer(data), (long) data.length * precision.size, cudaMemcpyKind.cudaMemcpyHostToDevice);
+    CudaPtr.getGpuStats(deviceId).memoryWrites.addAndGet((long) data.length * precision.size);
     return this;
   }
   

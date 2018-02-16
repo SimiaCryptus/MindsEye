@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * The higher level of convolution construction logic. Provides support for large numbers of input bands by splitting
@@ -62,10 +63,11 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
    */
   public ExplodedConvolutionGrid(@javax.annotation.Nonnull ConvolutionParams convolutionParams, int maxBandBatch) {
     this.convolutionParams = convolutionParams;
-    for (int fromBand = 0; fromBand < convolutionParams.inputBands; fromBand += maxBandBatch) {
-      int toBand = Math.min(convolutionParams.inputBands, fromBand + maxBandBatch);
-      subLayers.add(new ExplodedConvolutionLeg(convolutionParams, fromBand, toBand));
-    }
+    int rows = maxBandBatch == 0 ? 1 : (int) (Math.ceil((double) convolutionParams.inputBands / maxBandBatch));
+    IntStream.range(0, rows).map(x -> 0 == maxBandBatch ? x : (x * maxBandBatch)).mapToObj(fromBand -> {
+      int toBand = Math.min(convolutionParams.inputBands, fromBand + ((maxBandBatch == 0) ? convolutionParams.inputBands : maxBandBatch));
+      return new ExplodedConvolutionLeg(convolutionParams, fromBand, toBand);
+    }).collect(Collectors.toList()).stream().forEach(subLayers::add);
   }
   
   @Override
@@ -92,7 +94,7 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
         @Nullable Tensor tensor = template.mapCoords(c -> {
           int[] coords = c.getCoords();
           return filter.get(coords[0], coords[1], getFilterBand(leg, coords[2]));
-        }, false);
+        }, true);
         template.freeRef();
         leg.write(tensor);
         tensor.freeRef();
