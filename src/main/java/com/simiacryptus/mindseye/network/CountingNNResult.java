@@ -25,9 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
@@ -110,7 +109,7 @@ class CountingNNResult extends NNResult {
     private final AtomicBoolean hasAccumulated;
     private final NNResult inner;
     @javax.annotation.Nonnull
-    private final Deque<TensorList> passbackBuffers;
+    private final LinkedList<TensorList> passbackBuffers;
     @javax.annotation.Nonnull
     private final AtomicInteger accumulations;
   
@@ -124,7 +123,7 @@ class CountingNNResult extends NNResult {
       this.inner.addRef();
       references = new AtomicInteger(0);
       hasAccumulated = new AtomicBoolean(false);
-      passbackBuffers = new LinkedBlockingDeque<>();
+      passbackBuffers = new LinkedList<>();
       accumulations = new AtomicInteger(0);
     }
   
@@ -145,9 +144,9 @@ class CountingNNResult extends NNResult {
         inner.accumulate(buffer, data);
       }
       else {
-        passbackBuffers.add(data);
-        data.addRef();
         synchronized (passbackBuffers) {
+          passbackBuffers.add(data);
+          data.addRef();
           if (passbackBuffers.size() > COMPACTION_SIZE) {
             Stream<TensorList> stream = passbackBuffers.stream();
             if (!TestUtil.CONSERVATIVE) stream = stream.parallel();

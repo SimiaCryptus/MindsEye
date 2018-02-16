@@ -343,59 +343,19 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   /**
    * The type Big temp 0.
    */
-  public static class Big_Temp0 extends VBig {
+  public static class Big0 extends VeryBigTest {
     /**
      * Instantiates a new Big.
      */
-    public Big_Temp0() {this(512);}
+    public Big0() {this(512);}
     
     /**
      * Instantiates a new Big.
      *
      * @param size
      */
-    private Big_Temp0(int size) {
-      super(1, 4 * size, 4 * size, Precision.Double, size);
-    }
-    
-  }
-  
-  /**
-   * Large-dimension test
-   */
-  public static class Big_Temp_Bug1 extends VBig {
-    /**
-     * Instantiates a new Big.
-     */
-    public Big_Temp_Bug1() {this(128);}
-    
-    /**
-     * Instantiates a new Big.
-     *
-     * @param size
-     */
-    private Big_Temp_Bug1(int size) {
-      super(1, 8 * size, 4 * size, Precision.Float, size);
-    }
-    
-  }
-  
-  /**
-   * Large-dimension test
-   */
-  public static class Big_Temp_Bug0 extends VBig {
-    /**
-     * Instantiates a new Big.
-     */
-    public Big_Temp_Bug0() {this(128);}
-    
-    /**
-     * Instantiates a new Big.
-     *
-     * @param size
-     */
-    private Big_Temp_Bug0(int size) {
-      super(1, 4 * size, 8 * size, Precision.Float, size);
+    private Big0(int size) {
+      super(1, 16 * size, 16 * size, Precision.Double, size);
     }
     
   }
@@ -403,7 +363,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   /**
    * Basic Test
    */
-  public abstract static class VBig extends Big {
+  public abstract static class VeryBigTest extends Big {
     
     /**
      * Instantiates a new V big.
@@ -414,7 +374,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
      * @param precision   the precision
      * @param batchBands  the batch bands
      */
-    protected VBig(final int radius, final int inputBands, final int outputBands, final Precision precision, final int batchBands) {
+    protected VeryBigTest(final int radius, final int inputBands, final int outputBands, final Precision precision, final int batchBands) {
       super(radius, inputBands, outputBands, precision, batchBands);
     }
     
