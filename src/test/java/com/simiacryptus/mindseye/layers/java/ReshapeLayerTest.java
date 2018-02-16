@@ -88,7 +88,8 @@ public abstract class ReshapeLayerTest extends LayerTestBase {
     /**
      * Instantiates a new Big 0.
      */
-    public Big0() {super(new int[]{1, 1, 256}, new int[]{1, 1, 256});}
+    public Big0() {super(256);}
+  
   }
   
   /**
@@ -115,7 +116,9 @@ public abstract class ReshapeLayerTest extends LayerTestBase {
    * The type Big.
    */
   public abstract static class Big extends ReshapeLayerTest {
-    
+  
+    public Big(int size) {this(new int[]{1, 1, size}, new int[]{1, 1, size});}
+
     /**
      * Instantiates a new Big.
      *

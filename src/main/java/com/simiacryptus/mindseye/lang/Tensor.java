@@ -98,12 +98,16 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
     //assert (null == data || Tensor.dim(dims) == data.length);
   }
   
+  private Tensor(int[] dims, @Nullable double[] data) {
+    this(dims, Tensor.getSkips(dims), data);
+  }
+  
   private Tensor(int[] dimensions, int[] strides, @Nullable double[] data) {
     if (Tensor.dim(dimensions) >= Integer.MAX_VALUE) throw new IllegalArgumentException();
     assert null == data || data.length == Tensor.dim(dimensions);
     this.dimensions = dimensions;
     this.strides = strides;
-    this.data = data;
+    this.data = null == data ? null : RecycleBin.DOUBLES.copyOf(data, data.length);
     assert isValid();
   }
   
@@ -1610,7 +1614,7 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
   public Tensor reshapeCast(@javax.annotation.Nonnull int... dims) {
     if (0 == dims.length) throw new IllegalArgumentException();
     if (dim(dims) != dim()) throw new IllegalArgumentException();
-    return new Tensor(dims, Tensor.getSkips(dims), getData());
+    return new Tensor(dims, getData());
   }
   
   /**

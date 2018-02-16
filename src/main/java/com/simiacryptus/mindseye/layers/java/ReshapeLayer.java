@@ -21,8 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import com.simiacryptus.mindseye.layers.cudnn.MultiPrecision;
 import com.simiacryptus.util.io.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,14 +36,13 @@ import java.util.Map;
  * inputs are connected to all outputs via seperate coefficients.
  */
 @SuppressWarnings("serial")
-public class ReshapeLayer extends NNLayer implements MultiPrecision<ReshapeLayer> {
+public class ReshapeLayer extends NNLayer {
   private static final Logger log = LoggerFactory.getLogger(ReshapeLayer.class);
   /**
    * The Output dims.
    */
   @Nullable
   public final int[] outputDims;
-  private Precision precision = Precision.Double;
   
   /**
    * Instantiates a new Img concat layer.
@@ -72,7 +69,6 @@ public class ReshapeLayer extends NNLayer implements MultiPrecision<ReshapeLayer
   protected ReshapeLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json);
     outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
-    this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
   }
   
   /**
@@ -95,8 +91,7 @@ public class ReshapeLayer extends NNLayer implements MultiPrecision<ReshapeLayer
     for (@javax.annotation.Nonnull NNResult nnResult : inObj) {
       nnResult.addRef();
     }
-    ReshapedTensorList reshapedTensorList = new ReshapedTensorList(data, outputDims);
-    return new NNResult(reshapedTensorList, (DeltaSet<NNLayer> buffer, TensorList delta) -> {
+    return new NNResult(new ReshapedTensorList(data, outputDims), (DeltaSet<NNLayer> buffer, TensorList delta) -> {
       @javax.annotation.Nonnull ReshapedTensorList tensorList = new ReshapedTensorList(delta, inputDims);
       inObj[0].accumulate(buffer, tensorList);
       tensorList.freeRef();
@@ -122,7 +117,6 @@ public class ReshapeLayer extends NNLayer implements MultiPrecision<ReshapeLayer
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.add("outputDims", JsonUtil.getJson(outputDims));
-    json.addProperty("precision", precision.name());
     return json;
   }
   
@@ -132,15 +126,4 @@ public class ReshapeLayer extends NNLayer implements MultiPrecision<ReshapeLayer
     return Arrays.asList();
   }
   
-  @Override
-  public Precision getPrecision() {
-    return precision;
-  }
-  
-  @javax.annotation.Nonnull
-  @Override
-  public ReshapeLayer setPrecision(final Precision precision) {
-    this.precision = precision;
-    return this;
-  }
 }
