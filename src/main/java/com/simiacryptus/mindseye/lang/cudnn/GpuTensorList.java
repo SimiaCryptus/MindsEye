@@ -27,6 +27,7 @@ import jcuda.jcudnn.cudnnTensorFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
@@ -136,31 +137,20 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
   }
   
   @Override
-  public synchronized TensorList add(@javax.annotation.Nonnull final TensorList right) {
+  public synchronized TensorList addAndFree(@javax.annotation.Nonnull final TensorList right) {
+    assertAlive();
+    if (1 < currentRefCount()) {
+      TensorList sum = add(right);
+      freeRef();
+      return sum;
+    }
     assert length() == right.length();
     if (heapCopy == null) {
       if (right instanceof GpuTensorList) {
         @javax.annotation.Nonnull final GpuTensorList nativeRight = (GpuTensorList) right;
         if (nativeRight.precision == this.precision) {
           if (nativeRight.heapCopy == null) {
-            return GpuSystem.eval(gpu -> {
-              assert getDimensions().length <= 3;
-              int d2 = getDimensions().length < 3 ? 1 : getDimensions()[2];
-              int d1 = getDimensions().length < 2 ? 1 : getDimensions()[1];
-              int d0 = getDimensions()[0];
-              @Nullable CudaPtr rPtr = nativeRight.getPtr();
-              @Nullable CudaPtr lPtr = GpuTensorList.this.getPtr();
-              @javax.annotation.Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, this.precision.code);
-              @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
-                this.precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, getLength(), d2, d1, d0);
-              @javax.annotation.Nonnull final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
-              gpu.cudnnOpTensor(opDescriptor.getPtr(),
-                precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
-                precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
-                precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-              gpu.registerForCleanup(opDescriptor, sizeDescriptor);
-              return GpuTensorList.wrap(outputPtr, getLength(), getDimensions(), this.precision);
-            });
+            return gpuAddInPlace(nativeRight);
           }
         }
       }
@@ -171,11 +161,76 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
     return TensorArray.wrap(IntStream.range(0, length()).mapToObj(i -> {
       Tensor a = get(i);
       Tensor b = right.get(i);
-      @javax.annotation.Nullable Tensor r = a.add(b);
-      a.freeRef();
+      @javax.annotation.Nullable Tensor r = a.addAndFree(b);
       b.freeRef();
       return r;
     }).toArray(i -> new Tensor[i]));
+  }
+  
+  @Override
+  public synchronized TensorList add(@javax.annotation.Nonnull final TensorList right) {
+    assertAlive();
+    assert length() == right.length();
+    if (heapCopy == null) {
+      if (right instanceof GpuTensorList) {
+        @javax.annotation.Nonnull final GpuTensorList nativeRight = (GpuTensorList) right;
+        if (nativeRight.precision == this.precision) {
+          if (nativeRight.heapCopy == null) {
+            return gpuAdd(nativeRight);
+          }
+        }
+      }
+    }
+    if (right.length() == 0) return this;
+    if (length() == 0) throw new IllegalArgumentException();
+    assert length() == right.length();
+    return TensorArray.wrap(IntStream.range(0, length()).mapToObj(i -> {
+      Tensor a = get(i);
+      Tensor b = right.get(i);
+      @javax.annotation.Nullable Tensor r = a.addAndFree(b);
+      b.freeRef();
+      return r;
+    }).toArray(i -> new Tensor[i]));
+  }
+  
+  private GpuTensorList gpuAddInPlace(final GpuTensorList nativeRight) {
+    return GpuSystem.eval(gpu -> {
+      assert getDimensions().length <= 3;
+      int d2 = getDimensions().length < 3 ? 1 : getDimensions()[2];
+      int d1 = getDimensions().length < 2 ? 1 : getDimensions()[1];
+      int d0 = getDimensions()[0];
+      @Nonnull CudaPtr rPtr = nativeRight.getPtr();
+      @Nonnull CudaPtr lPtr = GpuTensorList.this.getPtr();
+      @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
+        this.precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, getLength(), d2, d1, d0);
+      gpu.cudnnAddTensor(
+        precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
+        precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr()
+      );
+      gpu.registerForCleanup(sizeDescriptor, rPtr, lPtr);
+      return GpuTensorList.this;
+    });
+  }
+  
+  private GpuTensorList gpuAdd(final GpuTensorList nativeRight) {
+    return GpuSystem.eval(gpu -> {
+      assert getDimensions().length <= 3;
+      int d2 = getDimensions().length < 3 ? 1 : getDimensions()[2];
+      int d1 = getDimensions().length < 2 ? 1 : getDimensions()[1];
+      int d0 = getDimensions()[0];
+      @Nonnull CudaPtr rPtr = nativeRight.getPtr();
+      @Nonnull CudaPtr lPtr = GpuTensorList.this.getPtr();
+      @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, this.precision.code);
+      @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
+        this.precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, getLength(), d2, d1, d0);
+      @Nonnull final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
+      gpu.cudnnOpTensor(opDescriptor.getPtr(),
+        precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
+        precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
+        precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
+      gpu.registerForCleanup(opDescriptor, sizeDescriptor, rPtr, lPtr);
+      return GpuTensorList.wrap(outputPtr, getLength(), getDimensions(), this.precision);
+    });
   }
   
   @Override
@@ -210,9 +265,9 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
    */
   @Nullable
   private TensorList heapCopy() {
-    if (null == heapCopy) {
+    if (null == heapCopy || heapCopy.isFinalized()) {
       synchronized (this) {
-        if (null == heapCopy) {
+        if (null == heapCopy || heapCopy.isFinalized()) {
           final int itemLength = Tensor.dim(getDimensions());
           final double[] outputBuffer = RecycleBin.DOUBLES.obtain(itemLength * getLength());
           assert 0 < outputBuffer.length;
@@ -221,7 +276,9 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
             .toArray(i -> new Tensor[i]);
           final double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
           assert getLength() == outputBuffers.length;
-          getPtr().read(precision, outputBuffer);
+          CudaPtr ptr = getPtr();
+          ptr.read(precision, outputBuffer);
+          ptr.freeRef();
           for (int i = 0; i < getLength(); i++) {
             assert itemLength == outputBuffers[0 + i].length;
             System.arraycopy(outputBuffer, i * itemLength, outputBuffers[0 + i], 0, itemLength);
@@ -269,7 +326,9 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
   @Override
   public TensorList copy() {
     return GpuSystem.eval(gpu -> {
-      CudaPtr copyPtr = getPtr().copyTo(gpu.getDeviceNumber());
+      CudaPtr ptr = getPtr();
+      CudaPtr copyPtr = ptr.copyTo(gpu.getDeviceNumber());
+      ptr.freeRef();
       @javax.annotation.Nonnull GpuTensorList gpuTensorList = new GpuTensorList(copyPtr, getLength(), getDimensions(), precision);
       copyPtr.freeRef();
       return gpuTensorList;
@@ -277,13 +336,15 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
   }
   
   @Override
-  protected synchronized void _free() {
-    if (null != ptr) {
-      ptr.freeRef();
-      ptr = null;
-    }
-    if (null != heapCopy) {
-      heapCopy.freeRef();
+  protected void _free() {
+    synchronized (this) {
+      if (null != ptr) {
+        ptr.freeRef();
+        ptr = null;
+      }
+      if (null != heapCopy) {
+        heapCopy.freeRef();
+      }
     }
   }
   
@@ -291,12 +352,14 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
    * Evict to heap.
    */
   public synchronized void evictToHeap() {
-    if (null == getHeapCopy()) {
-      throw new IllegalStateException();
-    }
-    if (null != ptr && !ptr.isFinalized()) {
-      ptr.freeRef();
-      ptr = null;
+    synchronized (this) {
+      if (null == getHeapCopy()) {
+        throw new IllegalStateException();
+      }
+      if (null != ptr && !ptr.isFinalized()) {
+        ptr.freeRef();
+        ptr = null;
+      }
     }
   }
   
@@ -305,7 +368,7 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
    *
    * @return the ptr
    */
-  @Nullable
+  @Nonnull
   public CudaPtr getPtr() {
     if ((null == ptr || ptr.isFinalized()) && null != heapCopy && !heapCopy.isFinalized()) {
       synchronized (this) {
@@ -314,6 +377,15 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
         }
       }
     }
+    if (null == ptr) {
+      if (null == heapCopy) {
+        throw new IllegalStateException("No data");
+      }
+      else if (heapCopy.isFinalized()) {
+        throw new IllegalStateException("Local data has been freed");
+      }
+    }
+    ptr.addRef();
     return ptr;
   }
   

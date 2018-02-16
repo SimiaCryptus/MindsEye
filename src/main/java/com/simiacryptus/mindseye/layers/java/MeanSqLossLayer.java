@@ -101,8 +101,7 @@ public class MeanSqLossLayer extends NNLayer {
         }).collect(Collectors.toList()).stream();
         if (1 == leftLength) {
           tensorStream = Stream.of(tensorStream.reduce((a, b) -> {
-            @javax.annotation.Nullable Tensor c = a.add(b);
-            a.freeRef();
+            @javax.annotation.Nullable Tensor c = a.addAndFree(b);
             b.freeRef();
             return c;
           }).get());
@@ -120,8 +119,7 @@ public class MeanSqLossLayer extends NNLayer {
         }).collect(Collectors.toList()).stream();
         if (1 == rightLength) {
           tensorStream = Stream.of(tensorStream.reduce((a, b) -> {
-            @javax.annotation.Nullable Tensor c = a.add(b);
-            a.freeRef();
+            @javax.annotation.Nullable Tensor c = a.addAndFree(b);
             b.freeRef();
             return c;
           }).get());

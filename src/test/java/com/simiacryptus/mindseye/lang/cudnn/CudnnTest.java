@@ -260,8 +260,7 @@ public class CudnnTest extends NotebookReportBase {
   }
   
   private TensorList freeSum(@javax.annotation.Nonnull TensorList a, @javax.annotation.Nonnull TensorList b) {
-    TensorList sum = a.add(b);
-    a.freeRef();
+    TensorList sum = a.addAndFree(b);
     b.freeRef();
     return sum;
   }
@@ -303,7 +302,7 @@ public class CudnnTest extends NotebookReportBase {
       @javax.annotation.Nonnull ListeningExecutorService pool = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(5));
       PrintStream out = SysOutInterceptor.INSTANCE.currentHandler();
       try {
-        List<ListenableFuture<Object>> collect = IntStream.range(0, 5).mapToObj(workerNumber -> {
+        List<ListenableFuture<Object>> collect = IntStream.range(0, 16).mapToObj(workerNumber -> {
           @javax.annotation.Nonnull TimedResult<TensorList> originalTiming = TimedResult.time(() -> factory.get());
           TensorList original = originalTiming.result;
           logger.info(String.format("[%s] Calculated test data in %.4fsec", workerNumber, originalTiming.seconds()));
@@ -345,7 +344,13 @@ public class CudnnTest extends NotebookReportBase {
                   return GpuTensorList.wrap(cudaPtr, length, dimensions, Precision.Double);
                 });
                 @javax.annotation.Nonnull TimedResult<Void> timedAccumulation = TimedResult.time(() -> {
-                  mutableGpuData.getAndUpdate(y -> y.add(timedWrite.result)).freeRef();
+                  synchronized (mutableGpuData) {
+                    mutableGpuData.getAndUpdate(y -> {
+                      TensorList add = y.add(timedWrite.result);
+                      y.freeRef();
+                      return add;
+                    });
+                  }
                   timedWrite.result.freeRef();
                 });
                 logger.info(String.format("[%s] Wrote in %.4f seconds and accumulated %s in %.4f seconds, Device %d: %s", workerNumber,

@@ -97,8 +97,7 @@ public class SumInputsLayer extends NNLayer {
           @javax.annotation.Nonnull TensorList projectedDelta = delta;
           if (1 < projectedDelta.length() && input.getData().length() == 1) {
             projectedDelta = TensorArray.wrap(projectedDelta.stream().parallel().reduce((a, b) -> {
-              @Nullable Tensor c = a.add(b);
-              a.freeRef();
+              @Nullable Tensor c = a.addAndFree(b);
               b.freeRef();
               return c;
             }).get());

@@ -115,8 +115,7 @@ public class ProductInputsLayer extends NNLayer {
           final TensorList inputData = input.getData();
           if (1 == inputData.length() && 1 < passback.length()) {
             TensorArray newValue = TensorArray.wrap(passback.stream().reduce((a, b) -> {
-              @Nullable Tensor c = a.add(b);
-              a.freeRef();
+              @Nullable Tensor c = a.addAndFree(b);
               b.freeRef();
               return c;
             }).get());

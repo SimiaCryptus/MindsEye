@@ -42,15 +42,21 @@ public abstract class SumInputsLayerTest extends CuDNNLayerTestBase {
    * The Precision.
    */
   final Precision precision;
+  /**
+   * The Input bands.
+   */
   int inputBands;
+  /**
+   * The Inputs.
+   */
   int inputs;
   
   /**
    * Instantiates a new Product layer run.
    *
-   * @param precision the precision
-   * @param inputBands
-   * @param inputs
+   * @param precision  the precision
+   * @param inputBands the input bands
+   * @param inputs     the inputs
    */
   public SumInputsLayerTest(final Precision precision, int inputBands, int inputs) {
     this.precision = precision;
@@ -146,10 +152,13 @@ public abstract class SumInputsLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Double.
      */
     public Big_Double_Add() {
-      super(Precision.Double, 1024, 2);
+      super(Precision.Double, 256, 8);
     }
   }
   
+  /**
+   * The type Double add.
+   */
   public static class Double_Add extends SumInputsLayerTest {
     /**
      * Instantiates a new Double.
@@ -182,7 +191,14 @@ public abstract class SumInputsLayerTest extends CuDNNLayerTestBase {
    * Basic Test
    */
   public abstract static class Big extends SumInputsLayerTest {
-    
+  
+    /**
+     * Instantiates a new Big.
+     *
+     * @param precision  the precision
+     * @param inputBands the input bands
+     * @param inputs     the inputs
+     */
     public Big(final Precision precision, int inputBands, int inputs) {
       super(precision, inputBands, inputs);
       validateDifferentials = false;
@@ -218,6 +234,7 @@ public abstract class SumInputsLayerTest extends CuDNNLayerTestBase {
       logger.warn("Disabled Performance Test");
       return null;
     }
+  
   }
   
 }

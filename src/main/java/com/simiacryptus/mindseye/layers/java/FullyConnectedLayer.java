@@ -235,8 +235,7 @@ public class FullyConnectedLayer extends NNLayer {
           });
           return stream;
         }).reduce((a, b) -> {
-          @javax.annotation.Nullable Tensor c = a.add(b);
-          a.freeRef();
+          @javax.annotation.Nullable Tensor c = a.addAndFree(b);
           b.freeRef();
           return c;
         }).map(data -> {

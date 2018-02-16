@@ -31,6 +31,13 @@ package com.simiacryptus.mindseye.lang;
 public interface ReferenceCounting {
   
   /**
+   * Current ref count int.
+   *
+   * @return the int
+   */
+  int currentRefCount();
+  
+  /**
    * Add ref.
    */
   void addRef();

@@ -113,7 +113,6 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
       @javax.annotation.Nonnull GpuTensorList gpuTensorList = (GpuTensorList) data;
       @Nullable final CudaPtr ptr = gpuTensorList.getPtr();
       assert null != ptr;
-      ptr.addRef();
       return ptr;
     }
     else {

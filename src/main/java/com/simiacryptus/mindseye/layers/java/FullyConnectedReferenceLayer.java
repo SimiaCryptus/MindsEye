@@ -163,8 +163,7 @@ public class FullyConnectedReferenceLayer extends NNLayer {
           return weights;
         }).toArray(i -> new Tensor[i]);
         Tensor tensor = Arrays.stream(array).reduce((a, b) -> {
-          Tensor c = a.add(b);
-          a.freeRef();
+          Tensor c = a.addAndFree(b);
           b.freeRef();
           return c;
         }).get();

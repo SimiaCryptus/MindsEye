@@ -68,6 +68,11 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   }
   
   @Override
+  public int currentRefCount() {
+    return references.get();
+  }
+  
+  @Override
   public void addRef() {
     assertAlive();
     if (references.incrementAndGet() <= 1) throw new IllegalStateException();

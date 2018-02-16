@@ -42,6 +42,9 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
    */
   ImgBandSelectLayer layer;
   
+  /**
+   * The Input bands.
+   */
   int inputBands;
   
   @Override
@@ -59,8 +62,8 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
    * Instantiates a new Img concat layer run.
    *
    * @param precision   the precision
-   * @param inputBands
-   * @param outputBands
+   * @param inputBands  the input bands
+   * @param outputBands the output bands
    */
   public ImgBandSelectLayerTest(final Precision precision, int inputBands, int outputBands) {
     this.precision = precision;

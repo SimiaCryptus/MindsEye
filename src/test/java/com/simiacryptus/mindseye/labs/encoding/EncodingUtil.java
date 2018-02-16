@@ -163,7 +163,11 @@ public class EncodingUtil {
         DoubleStream.iterate(0, x -> x + step).limit(frames).parallel().mapToObj(t -> {
           return IntStream.range(0, signedComponents.size()).mapToObj(i -> {
             return signedComponents.get(i).scale((1 + Math.sin((1 + i) * t)) / 2);
-          }).reduce((a, b) -> a.add(b)).get().add(baseline).toImage();
+          }).reduce((a, b) -> {
+            Tensor add = a.addAndFree(b);
+            b.freeRef();
+            return add;
+          }).get().add(baseline).toImage();
         }).toArray(i -> new BufferedImage[i]));
       return String.format("<img src=\"etc/%s\" />", filename);
     } catch (IOException e) {

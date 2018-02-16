@@ -242,6 +242,9 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
    * Simple 256x256 band 1-pixel "convolution"
    */
   public static class Big0 extends Big {
+    /**
+     * Instantiates a new Big 0.
+     */
     public Big0() {
       super(1, 2048, Precision.Double);
     }
@@ -253,9 +256,10 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
   public abstract static class Big extends SimpleConvolutionLayerTest {
     /**
      * Instantiates a new Multi band.
-     * @param radius
-     * @param bands
-     * @param aDouble
+     *
+     * @param radius  the radius
+     * @param bands   the bands
+     * @param aDouble the a double
      */
     public Big(int radius, int bands, Precision aDouble) {
       super(radius, bands, aDouble);

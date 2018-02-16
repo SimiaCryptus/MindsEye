@@ -21,7 +21,12 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.test.ToleranceStatistics;
+import com.simiacryptus.mindseye.test.unit.BatchingTester;
+import com.simiacryptus.mindseye.test.unit.ComponentTest;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Random;
 import java.util.stream.IntStream;
 
@@ -34,15 +39,21 @@ public abstract class ImgConcatLayerTest extends CuDNNLayerTestBase {
    * The Precision.
    */
   final Precision precision;
+  /**
+   * The Inputs.
+   */
   int inputs;
+  /**
+   * The Bands per input.
+   */
   int bandsPerInput;
   
   /**
    * Instantiates a new Img concat layer run.
    *
-   * @param precision the precision
-   * @param inputs
-   * @param bandsPerInput
+   * @param precision     the precision
+   * @param inputs        the inputs
+   * @param bandsPerInput the bands per input
    */
   public ImgConcatLayerTest(final Precision precision, int inputs, int bandsPerInput) {
     this.precision = precision;
@@ -155,13 +166,83 @@ public abstract class ImgConcatLayerTest extends CuDNNLayerTestBase {
   /**
    * Basic 64-bit run
    */
-  public static class BigDouble extends ImgConcatLayerTest {
+  public static class BigDouble extends Big {
     /**
      * Instantiates a new Double.
      */
     public BigDouble() {
-      super(Precision.Double, 2, 64);
-      validateDifferentials = false;
+      super(Precision.Double, 8, 512);
+    }
+  }
+  
+  /**
+   * The type Big.
+   */
+  public static class Big extends ImgConcatLayerTest {
+    /**
+     * The Small size.
+     */
+    int smallSize;
+    /**
+     * The Lasrge size.
+     */
+    int lasrgeSize;
+    
+    /**
+     * Instantiates a new Big.
+     *
+     * @param precision     the precision
+     * @param inputs        the inputs
+     * @param bandsPerInput the bands per input
+     */
+    public Big(final Precision precision, final int inputs, final int bandsPerInput) {
+      super(precision, inputs, bandsPerInput);
+      this.validateDifferentials = false;
+      setTestTraining(false);
+      this.lasrgeSize = 8;
+      this.smallSize = 2;
+    }
+    
+    @Override
+    public ComponentTest<ToleranceStatistics> getBatchingTester() {
+      if (!validateBatchExecution) return null;
+      return (new BatchingTester(1e-2) {
+        @Override
+        public double getRandom() {
+          return random();
+        }
+      }).setBatchSize(5);
+    }
+    
+    
+    @Nullable
+    @Override
+    protected ComponentTest<ToleranceStatistics> getJsonTester() {
+      logger.warn("Disabled Json Test");
+      return null;
+    }
+    
+    @Nullable
+    @Override
+    public ComponentTest<ToleranceStatistics> getPerformanceTester() {
+      logger.warn("Disabled Performance Test");
+      return null;
+    }
+    
+    @Nonnull
+    @Override
+    public int[][] getSmallDims(final Random random) {
+      return IntStream.range(0, inputs).mapToObj(x -> {
+        return new int[]{smallSize, smallSize, bandsPerInput};
+      }).toArray(i -> new int[i][]);
+    }
+    
+    @Nonnull
+    @Override
+    public int[][] getLargeDims(final Random random) {
+      return IntStream.range(0, inputs).mapToObj(x -> {
+        return new int[]{lasrgeSize, lasrgeSize, bandsPerInput};
+      }).toArray(i -> new int[i][]);
     }
   }
   

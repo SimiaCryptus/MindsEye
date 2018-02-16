@@ -210,29 +210,6 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
     }
   }
   
-  /**
-   * Add tensor.
-   *
-   * @param left  the left
-   * @param right the right
-   * @return the tensor
-   */
-  @javax.annotation.Nonnull
-  public static Tensor add(@javax.annotation.Nonnull final Tensor left, @javax.annotation.Nonnull final Tensor right) {
-    if (left.dim() == 1 && right.dim() != 1) return Tensor.add(right, left);
-    assert Arrays.equals(left.getDimensions(), right.getDimensions());
-    @javax.annotation.Nonnull final Tensor result = new Tensor(left.getDimensions());
-    @Nullable final double[] resultData = result.getData();
-    @Nullable final double[] leftData = left.getData();
-    @Nullable final double[] rightData = right.getData();
-    for (int i = 0; i < resultData.length; i++) {
-      final double l = leftData[i];
-      final double r = rightData[1 == rightData.length ? 0 : i];
-      resultData[i] = l + r;
-    }
-    return result;
-  }
-  
   private static double bound8bit(final double value) {
     final int max = 0xFF;
     final int min = 0;
@@ -557,6 +534,24 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
   public Tensor add(@javax.annotation.Nonnull final Tensor right) {
     assert Arrays.equals(getDimensions(), right.getDimensions());
     return mapCoords((c) -> get(c) + right.get(c));
+  }
+  
+  /**
+   * Add and free tensor.
+   *
+   * @param right the right
+   * @return the tensor
+   */
+  @Nullable
+  public Tensor addAndFree(@javax.annotation.Nonnull final Tensor right) {
+    if (1 == currentRefCount()) {
+      addInPlace(right);
+      return this;
+    }
+    else {
+      assert Arrays.equals(getDimensions(), right.getDimensions());
+      return mapCoordsAndFree((c) -> get(c) + right.get(c));
+    }
   }
   
   /**
@@ -930,6 +925,15 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
   public Tensor mapCoords(@javax.annotation.Nonnull final ToDoubleFunction<Coordinate> f) {return mapCoords(f, false);}
   
   /**
+   * Map coords and free tensor.
+   *
+   * @param f the f
+   * @return the tensor
+   */
+  @Nullable
+  public Tensor mapCoordsAndFree(@javax.annotation.Nonnull final ToDoubleFunction<Coordinate> f) {return mapCoordsAndFree(f, false);}
+  
+  /**
    * Map coords tensor.
    *
    * @param f        the f
@@ -939,6 +943,20 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
   @Nullable
   public Tensor mapCoords(@javax.annotation.Nonnull final ToDoubleFunction<Coordinate> f, boolean parallel) {
     return new Tensor(Tensor.getDoubles(coordStream(parallel).mapToDouble(i -> f.applyAsDouble(i)), dim()), dimensions);
+  }
+  
+  /**
+   * Map coords and free tensor.
+   *
+   * @param f        the f
+   * @param parallel the parallel
+   * @return the tensor
+   */
+  @Nullable
+  public Tensor mapCoordsAndFree(@javax.annotation.Nonnull final ToDoubleFunction<Coordinate> f, boolean parallel) {
+    Tensor tensor = new Tensor(Tensor.getDoubles(coordStream(parallel).mapToDouble(i -> f.applyAsDouble(i)), dim()), dimensions);
+    freeRef();
+    return tensor;
   }
   
   /**

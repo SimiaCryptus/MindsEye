@@ -153,8 +153,7 @@ class CountingNNResult extends NNResult {
             if (!TestUtil.CONSERVATIVE) stream = stream.parallel();
             //x.addRef();
             @javax.annotation.Nonnull TensorList reduced = stream.reduce((a, b) -> {
-              TensorList c = a.add(b);
-              a.freeRef();
+              TensorList c = a.addAndFree(b);
               b.freeRef();
               return c;
             }).get();
@@ -169,8 +168,7 @@ class CountingNNResult extends NNResult {
             Stream<TensorList> stream = passbackBuffers.stream();
             if (!TestUtil.CONSERVATIVE) stream = stream.parallel();
             @javax.annotation.Nonnull TensorList reduced = stream.reduce((a, b) -> {
-              TensorList c = a.add(b);
-              a.freeRef();
+              TensorList c = a.addAndFree(b);
               b.freeRef();
               return c;
             }).get();

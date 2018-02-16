@@ -477,7 +477,6 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param inputPrototype the input prototype
    * @return the run result
    */
-  @javax.annotation.Nonnull
   public TestResult testModelLearning(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer component, final Random random, final Tensor[] inputPrototype) {
     @Nonnull final NNLayer network_target = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);

@@ -48,7 +48,7 @@ public class GpuLocalityTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger logger = LoggerFactory.getLogger(GpuLocalityTester.class);
   
   private final double tolerance;
-  private int batchSize = 10;
+  private int batchSize = 1;
   
   /**
    * Instantiates a new Batching tester.

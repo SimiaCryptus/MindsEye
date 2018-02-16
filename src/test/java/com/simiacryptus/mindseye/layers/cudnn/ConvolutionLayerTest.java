@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
+import com.simiacryptus.mindseye.test.unit.BatchingTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -336,6 +337,154 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
     public ComponentTest<ToleranceStatistics> getDerivativeTester() {
       if (!validateDifferentials) return null;
       return new SingleDerivativeTester(1e-1, 1e-4);
+    }
+  }
+  
+  /**
+   * The type Big temp 0.
+   */
+  public static class Big_Temp0 extends VBig {
+    /**
+     * Instantiates a new Big.
+     */
+    public Big_Temp0() {this(512);}
+    
+    /**
+     * Instantiates a new Big.
+     *
+     * @param size
+     */
+    private Big_Temp0(int size) {
+      super(1, 4 * size, 4 * size, Precision.Double, size);
+    }
+    
+  }
+  
+  /**
+   * Large-dimension test
+   */
+  public static class Big_Temp_Bug1 extends VBig {
+    /**
+     * Instantiates a new Big.
+     */
+    public Big_Temp_Bug1() {this(128);}
+    
+    /**
+     * Instantiates a new Big.
+     *
+     * @param size
+     */
+    private Big_Temp_Bug1(int size) {
+      super(1, 8 * size, 4 * size, Precision.Float, size);
+    }
+    
+  }
+  
+  /**
+   * Large-dimension test
+   */
+  public static class Big_Temp_Bug0 extends VBig {
+    /**
+     * Instantiates a new Big.
+     */
+    public Big_Temp_Bug0() {this(128);}
+    
+    /**
+     * Instantiates a new Big.
+     *
+     * @param size
+     */
+    private Big_Temp_Bug0(int size) {
+      super(1, 4 * size, 8 * size, Precision.Float, size);
+    }
+    
+  }
+  
+  /**
+   * Basic Test
+   */
+  public abstract static class VBig extends Big {
+    
+    /**
+     * Instantiates a new V big.
+     *
+     * @param radius      the radius
+     * @param inputBands  the input bands
+     * @param outputBands the output bands
+     * @param precision   the precision
+     * @param batchBands  the batch bands
+     */
+    protected VBig(final int radius, final int inputBands, final int outputBands, final Precision precision, final int batchBands) {
+      super(radius, inputBands, outputBands, precision, batchBands);
+    }
+    
+    @Nonnull
+    @Override
+    public int[][] getSmallDims(final Random random) {
+      return new int[][]{
+        {1, 1, inputBands}
+      };
+    }
+    
+    @Nonnull
+    @Override
+    public int[][] getLargeDims(final Random random) {
+      return new int[][]{
+        {1, 1, inputBands}
+      };
+    }
+  }
+  
+  /**
+   * Basic Test
+   */
+  public abstract static class Big extends ConvolutionLayerTest {
+    
+    /**
+     * Instantiates a new Big.
+     *
+     * @param radius      the radius
+     * @param inputBands  the input bands
+     * @param outputBands the output bands
+     * @param precision   the precision
+     * @param batchBands  the batch bands
+     */
+    public Big(final int radius, final int inputBands, final int outputBands, final Precision precision, int batchBands) {
+      super(radius, inputBands, outputBands, precision, batchBands);
+      validateDifferentials = false;
+    }
+    
+    @Nullable
+    @Override
+    public NNLayer getReferenceLayer() {
+      return null;
+    }
+    
+    @Override
+    public ComponentTest<ToleranceStatistics> getBatchingTester() {
+      if (!validateBatchExecution) return null;
+      return (new BatchingTester(1e-2) {
+        @Override
+        public double getRandom() {
+          return random();
+        }
+      }).setBatchSize(5);
+    }
+    
+    @Nullable
+    @Override
+    protected ComponentTest<ToleranceStatistics> getJsonTester() {
+      logger.warn("Disabled Json Test");
+      return null;
+      //return super.getJsonTester();
+    }
+    
+    @Nullable
+    @Override
+    public ComponentTest<ToleranceStatistics> getPerformanceTester() {
+      logger.warn("Disabled Performance Test");
+      return null;
+      //return super.getPerformanceTester();
     }
   }
   

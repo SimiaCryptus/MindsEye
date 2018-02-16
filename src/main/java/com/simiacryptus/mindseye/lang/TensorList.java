@@ -47,6 +47,18 @@ public interface TensorList extends ReferenceCounting {
   }
   
   /**
+   * Add and free tensor list.
+   *
+   * @param right the right
+   * @return the tensor list
+   */
+  default TensorList addAndFree(@javax.annotation.Nonnull final TensorList right) {
+    TensorList add = add(right);
+    freeRef();
+    return add;
+  }
+  
+  /**
    * Free sum tensor.
    *
    * @param a the a
@@ -55,8 +67,7 @@ public interface TensorList extends ReferenceCounting {
    */
   @Nullable
   default Tensor freeSum(@javax.annotation.Nonnull Tensor a, @javax.annotation.Nonnull Tensor b) {
-    @Nullable Tensor sum = a.add(b);
-    a.freeRef();
+    @Nullable Tensor sum = a.addAndFree(b);
     b.freeRef();
     return sum;
   }
