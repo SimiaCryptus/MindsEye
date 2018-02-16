@@ -243,7 +243,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
    */
   public static class Big0 extends Big {
     /**
-     * Instantiates a new Big 0.
+     * Instantiates a new BigTests 0.
      */
     public Big0() {
       super(1, 2048, Precision.Double);

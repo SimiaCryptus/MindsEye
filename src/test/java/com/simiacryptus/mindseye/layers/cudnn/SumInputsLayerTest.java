@@ -193,7 +193,7 @@ public abstract class SumInputsLayerTest extends CuDNNLayerTestBase {
   public abstract static class Big extends SumInputsLayerTest {
   
     /**
-     * Instantiates a new Big.
+     * Instantiates a new BigTests.
      *
      * @param precision  the precision
      * @param inputBands the input bands

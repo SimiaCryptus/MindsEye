@@ -341,16 +341,16 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   }
   
   /**
-   * The type Big temp 0.
+   * The type BigTests temp 0.
    */
   public static class Big0 extends VeryBigTest {
     /**
-     * Instantiates a new Big.
+     * Instantiates a new BigTests.
      */
     public Big0() {this(512);}
     
     /**
-     * Instantiates a new Big.
+     * Instantiates a new BigTests.
      *
      * @param size
      */
@@ -401,7 +401,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   public abstract static class Big extends ConvolutionLayerTest {
     
     /**
-     * Instantiates a new Big.
+     * Instantiates a new BigTests.
      *
      * @param radius      the radius
      * @param inputBands  the input bands

@@ -176,9 +176,9 @@ public abstract class ImgConcatLayerTest extends CuDNNLayerTestBase {
   }
   
   /**
-   * The type Big.
+   * The type BigTests.
    */
-  public static class Big extends ImgConcatLayerTest {
+  public abstract static class Big extends ImgConcatLayerTest {
     /**
      * The Small size.
      */
@@ -189,7 +189,7 @@ public abstract class ImgConcatLayerTest extends CuDNNLayerTestBase {
     int lasrgeSize;
     
     /**
-     * Instantiates a new Big.
+     * Instantiates a new BigTests.
      *
      * @param precision     the precision
      * @param inputs        the inputs

@@ -79,13 +79,13 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
   }
 
 //  /**
-//   * The type Big.
+//   * The type BigTests.
 //   */
-//  public static class Big extends FullyConnectedLayerTest {
+//  public static class BigTests extends FullyConnectedLayerTest {
 //    /**
-//     * Instantiates a new Big.
+//     * Instantiates a new BigTests.
 //     */
-//    public Big() {
+//    public BigTests() {
 //      super(25088, 4096);
 //      validateDifferentials = false;
 //    }

@@ -82,45 +82,45 @@ public abstract class ReshapeLayerTest extends LayerTestBase {
   }
   
   /**
-   * The type Big 0.
+   * The type BigTests 0.
    */
   public static class Big0 extends Big {
     /**
-     * Instantiates a new Big 0.
+     * Instantiates a new BigTests 0.
      */
     public Big0() {super(256);}
   
   }
   
   /**
-   * The type Big 1.
+   * The type BigTests 1.
    */
   public static class Big1 extends Big {
     /**
-     * Instantiates a new Big 1.
+     * Instantiates a new BigTests 1.
      */
     public Big1() {super(new int[]{4, 4, 256}, new int[]{1, 1, 2048});}
   }
   
   /**
-   * The type Big 2.
+   * The type BigTests 2.
    */
   public static class Big2 extends Big {
     /**
-     * Instantiates a new Big 2.
+     * Instantiates a new BigTests 2.
      */
     public Big2() {super(new int[]{1, 1, 2048}, new int[]{4, 4, 256});}
   }
   
   /**
-   * The type Big.
+   * The type BigTests.
    */
   public abstract static class Big extends ReshapeLayerTest {
   
     public Big(int size) {this(new int[]{1, 1, size}, new int[]{1, 1, size});}
 
     /**
-     * Instantiates a new Big.
+     * Instantiates a new BigTests.
      *
      * @param inputDims  the input dims
      * @param outputDims the output dims
