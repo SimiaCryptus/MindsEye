@@ -19,7 +19,10 @@
 
 package com.simiacryptus.mindseye.lang.cudnn;
 
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorArray;
+import com.simiacryptus.mindseye.lang.TensorList;
 import jcuda.jcudnn.cudnnOpTensorDescriptor;
 import jcuda.jcudnn.cudnnOpTensorOp;
 import jcuda.jcudnn.cudnnTensorDescriptor;
@@ -269,22 +272,14 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
       synchronized (this) {
         if (null == heapCopy || heapCopy.isFinalized()) {
           final int itemLength = Tensor.dim(getDimensions());
-          final double[] outputBuffer = RecycleBin.DOUBLES.obtain(itemLength * getLength());
-          assert 0 < outputBuffer.length;
           final Tensor[] output = IntStream.range(0, getLength())
             .mapToObj(dataIndex -> new Tensor(getDimensions()))
             .toArray(i -> new Tensor[i]);
-          final double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
-          assert getLength() == outputBuffers.length;
           CudaPtr ptr = getPtr();
-          ptr.read(precision, outputBuffer);
-          ptr.freeRef();
           for (int i = 0; i < getLength(); i++) {
-            assert itemLength == outputBuffers[0 + i].length;
-            System.arraycopy(outputBuffer, i * itemLength, outputBuffers[0 + i], 0, itemLength);
+            ptr.read(precision, output[i].getData(), i * itemLength);
           }
-          //assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-          RecycleBin.DOUBLES.recycle(outputBuffer, outputBuffer.length);
+          ptr.freeRef();
           heapCopy = TensorArray.wrap(output);
         }
       }
