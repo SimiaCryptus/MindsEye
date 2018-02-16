@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import static jcuda.runtime.cudaMemcpyKind.cudaMemcpyDeviceToHost;
 
@@ -140,11 +141,14 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     }
     if (deviceId >= 0 && GpuSystem.getDevice() != deviceId) throw new IllegalArgumentException();
     final GpuStats metrics = CudaPtr.getGpuStats(deviceId);
-    if (metrics.usedMemory.get() > metrics.highMemoryThreshold) {
-      synchronized (CudaPtr.class) {
+    synchronized (CudaPtr.class) {
+      if (metrics.usedMemory.get() + size > metrics.highMemoryThreshold) {
         logger.info(String.format("Clearing memory for device %s while allocating %s bytes", deviceId, size));
-        SimpleConvolutionLayer.getInstances().forEach(x -> x.clearDeviceData(deviceId));
+        logLoad();
+        long bytes = SimpleConvolutionLayer.getInstances().mapToLong(x -> x.clearDeviceData(deviceId)).count();
+        logger.info(String.format("Cleared %s bytes from ConvolutionFilters for device %s", bytes, deviceId));
         GpuTensorList.evictToHeap(deviceId);
+        logLoad();
       }
     }
     try {
@@ -165,6 +169,12 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     }
     if (retries < 0) throw new IllegalStateException();
     return acquire(deviceId, size, type, retries - 1);
+  }
+  
+  private static void logLoad() {
+    logger.info(String.format("Current Load: %s", METRICS.asMap().entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> {
+      return String.format("%d bytes", e.getValue().usedMemory.get());
+    }))));
   }
   
   /**

@@ -97,6 +97,7 @@ public class Hdf5Archive {
       @Nullable Tensor tensor = hdf5.readDataSet(datasetName, path);
       log.info(String.format("%sDataset %s: %s", prefix, datasetName, Arrays.toString(tensor.getDimensions())));
       if (printData) log.info(String.format("%s%s", prefix, tensor.prettyPrint().replaceAll("\n", "\n" + prefix)));
+      tensor.freeRef();
     }
     hdf5.getAttributes(path).forEach((k, v) -> {
       log.info((String.format("%sAttribute: %s => %s", prefix, k, v)));

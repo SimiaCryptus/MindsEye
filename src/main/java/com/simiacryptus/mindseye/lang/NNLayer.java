@@ -233,7 +233,10 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    */
   @javax.annotation.Nullable
   public final NNResult eval(@Nonnull final Tensor... array) {
-    return eval(NNConstant.singleResultArray(array));
+    NNResult[] input = NNConstant.singleResultArray(array);
+    NNResult eval = eval(input);
+    Arrays.stream(input).forEach(ReferenceCountingBase::freeRef);
+    return eval;
   }
   
   /**
@@ -244,7 +247,10 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    */
   @javax.annotation.Nullable
   public final NNResult eval(@Nonnull final Tensor[][] array) {
-    return eval(NNConstant.singleResultArray(array));
+    NNResult[] input = NNConstant.singleResultArray(array);
+    NNResult eval = eval(input);
+    Arrays.stream(input).forEach(ReferenceCountingBase::freeRef);
+    return eval;
   }
   
   /**

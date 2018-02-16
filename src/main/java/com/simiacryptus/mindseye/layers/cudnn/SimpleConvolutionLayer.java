@@ -322,9 +322,15 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
     };
   }
   
-  public void clearDeviceData(final int deviceId) {
+  public long clearDeviceData(final int deviceId) {
     CudaPtr remove = gpuFilters.remove(deviceId);
-    if (null != remove) remove.freeRef();
+    if (null != remove) {
+      remove.freeRef();
+      return remove.size;
+    }
+    else {
+      return 0;
+    }
   }
   
   

@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import com.simiacryptus.mindseye.lang.cudnn.Precision;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.stream.IntStream;
@@ -165,5 +167,13 @@ public interface TensorList extends ReferenceCounting {
     @javax.annotation.Nullable Tensor tensor = get(i);
     freeRef();
     return tensor;
+  }
+  
+  default int getElements() {
+    return length() * Tensor.dim(getDimensions());
+  }
+  
+  default int getBytes(Precision precision) {
+    return length() * Tensor.dim(getDimensions()) * precision.size;
   }
 }

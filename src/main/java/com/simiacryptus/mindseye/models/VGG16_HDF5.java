@@ -19,7 +19,9 @@
 package com.simiacryptus.mindseye.models;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.*;
 import com.simiacryptus.mindseye.layers.java.AssertDimensionsLayer;
@@ -433,7 +435,12 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
             int numberOfParameters = layer.state().stream().mapToInt(x -> x.length).sum();
             model.add(layer);
             @javax.annotation.Nonnull int[] prev_dimensions = prototype.getDimensions();
-            prototype = layer.eval(prototype).getData().get(0);
+            NNResult eval = layer.eval(prototype);
+            TensorList data = eval.getData();
+            if (null != prototype) prototype.freeRef();
+            prototype = data.get(0);
+            eval.freeRef();
+            data.freeRef();
             @javax.annotation.Nonnull int[] new_dimensions = prototype.getDimensions();
             log.info(String.format("Added layer #%d: %s; %s params, dimensions %s (%s) -> %s (%s)", //
               cnt++, layer, numberOfParameters, //
