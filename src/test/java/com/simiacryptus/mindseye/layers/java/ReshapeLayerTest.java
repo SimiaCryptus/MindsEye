@@ -99,7 +99,7 @@ public abstract class ReshapeLayerTest extends LayerTestBase {
     /**
      * Instantiates a new BigTests 1.
      */
-    public Big1() {super(new int[]{4, 4, 256}, new int[]{1, 1, 2048});}
+    public Big1() {super(new int[]{4, 4, 256}, new int[]{1, 1, 2 * 2048});}
   }
   
   /**
@@ -109,7 +109,7 @@ public abstract class ReshapeLayerTest extends LayerTestBase {
     /**
      * Instantiates a new BigTests 2.
      */
-    public Big2() {super(new int[]{1, 1, 2048}, new int[]{4, 4, 256});}
+    public Big2() {super(new int[]{1, 1, 2 * 2048}, new int[]{4, 4, 256});}
   }
   
   /**
