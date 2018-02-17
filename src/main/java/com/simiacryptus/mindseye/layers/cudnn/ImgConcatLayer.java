@@ -83,7 +83,7 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
   
   @Nullable
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public NNResult evalAndFree(@javax.annotation.Nonnull final NNResult... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
@@ -97,10 +97,6 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
     outputDimensions[2] = Arrays.stream(inObj).mapToInt(x -> x.getData().getDimensions()[2]).sum();
     if (0 < maxBands && outputDimensions[2] > maxBands) {
       outputDimensions[2] = maxBands;
-    }
-    for (@javax.annotation.Nonnull NNResult nnResult : inObj) {
-      nnResult.addRef();
-      nnResult.getData().addRef();
     }
     return new NNResult(GpuSystem.eval(gpu -> {
       final long outputSize = ((long) length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);

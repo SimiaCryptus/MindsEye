@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import java.util.UUID;
+
 /**
  * Interface for objects with reference counting. Reference counted objects will be freed when the last reference is
  * freed, in a guaranteed-once-only manner. In general, valid reference counting behavior can be maintained by observing
@@ -48,6 +50,13 @@ public interface ReferenceCounting {
   default void freeRef() {}
   
   /**
+   * Add ref.
+   *
+   * @param obj the obj
+   */
+  void addRef(ReferenceCounting obj);
+  
+  /**
    * Is finalized boolean.
    *
    * @return the boolean
@@ -59,4 +68,17 @@ public interface ReferenceCounting {
    */
   void assertAlive();
   
+  /**
+   * Free ref.
+   *
+   * @param obj the obj
+   */
+  void freeRef(ReferenceCounting obj);
+  
+  /**
+   * Gets object id.
+   *
+   * @return the object id
+   */
+  UUID getObjectId();
 }

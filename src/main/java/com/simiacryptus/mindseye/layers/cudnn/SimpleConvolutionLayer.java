@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.*;
@@ -205,6 +206,11 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
     return outputSize[2] == outputDims[1];
   }
   
+  /**
+   * Gets instances.
+   *
+   * @return the instances
+   */
   public static Stream<SimpleConvolutionLayer> getInstances() {
     return instances.stream().map(x -> x.get()).filter(x -> x != null && !x.isFinalized());
   }
@@ -220,7 +226,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
     @javax.annotation.Nonnull final int[] kernelSize = kernel.getDimensions();
     final int[] outputSize = getOutputSize(inputSize);
     final int length = batch.length();
-    Arrays.stream(inObj).forEach(ReferenceCountingBase::addRef);
+    Arrays.stream(inObj).forEach(ReferenceCounting::addRef);
     batch.addRef();
     kernel.addRef();
     SimpleConvolutionLayer.this.addRef();
@@ -311,7 +317,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
       protected void _free() {
         kernel.freeRef();
         batch.freeRef();
-        Arrays.stream(inObj).forEach(ReferenceCountingBase::freeRef);
+        Arrays.stream(inObj).forEach(ReferenceCounting::freeRef);
         SimpleConvolutionLayer.this.freeRef();
       }
       
@@ -322,11 +328,22 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
     };
   }
   
-  public long clearDeviceData(final int deviceId) {
+  /**
+   * Evict device data long.
+   *
+   * @param deviceId the device id
+   * @return the long
+   */
+  public long evictDeviceData(final int deviceId) {
     CudaPtr remove = gpuFilters.remove(deviceId);
     if (null != remove) {
-      remove.freeRef();
-      return remove.size;
+      if (1 == remove.currentRefCount()) {
+        remove.freeRef();
+        return remove.size;
+      }
+      else {
+        return 0;
+      }
     }
     else {
       return 0;
@@ -429,7 +446,13 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, @javax.annotation.Nonnull DataSerializer dataSerializer) {
     @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
-    json.add("filter", kernel.toJson(resources, dataSerializer));
+    JsonElement value;
+    try {
+      value = kernel.toJson(resources, dataSerializer);
+    } catch (Throwable e) {
+      throw new RuntimeException("Error serializing convolution" + Arrays.toString(this.kernel.getDimensions()), e);
+    }
+    json.add("filter", value);
     json.addProperty("strideX", strideX);
     json.addProperty("strideY", strideY);
     json.addProperty("paddingX", getPaddingX());
@@ -478,6 +501,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
   @javax.annotation.Nonnull
   @Override
   public SimpleConvolutionLayer setPrecision(final Precision precision) {
+    clearCudaFilters();
     this.precision = precision;
     return this;
   }

@@ -100,16 +100,23 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
   public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     assert 1 == inObj.length;
-    assert 3 == inObj[0].getData().getDimensions().length;
-    final int length = inObj[0].getData().length();
-    @Nonnull int[] dimIn = inObj[0].getData().getDimensions();
+    final NNResult in = inObj[0];
+    assert 3 == in.getData().getDimensions().length;
+    final int length = in.getData().length();
+    @Nonnull int[] dimIn = in.getData().getDimensions();
+    if (dimIn[0] == sizeX && dimIn[1] == sizeY) {
+      in.addRef();
+      in.getData().addRef();
+      return in;
+    }
     @javax.annotation.Nonnull final int[] dimOut = Arrays.copyOf(dimIn, 3);
     dimOut[0] = sizeX;
     dimOut[1] = sizeY;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final TensorList outputData = GpuSystem.eval(gpu -> {
-      @Nullable final CudaPtr inputBuffer = CudaPtr.getCudaPtr(precision, inObj[0].getData());
-      @javax.annotation.Nonnull final CudaPtr outputBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), (long) (length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size), MemoryType.Managed, false);
+      @Nullable final CudaPtr inputBuffer = CudaPtr.getCudaPtr(precision, in.getData());
+      boolean dirty = dimOut[0] <= dimIn[0] && dimOut[1] <= dimIn[1];
+      @javax.annotation.Nonnull final CudaPtr outputBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), (long) (length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size), MemoryType.Managed, dirty);
       copy(gpu, length, dimIn, inputBuffer, dimOut, outputBuffer);
       gpu.registerForCleanup(inputBuffer);
       return GpuTensorList.wrap(outputBuffer, length, dimOut, precision);
@@ -121,16 +128,17 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
       if (error.length() != outputData.length()) {
         throw new AssertionError(error.length() + " != " + outputData.length());
       }
-      assert error.length() == inObj[0].getData().length();
-      if (inObj[0].isAlive()) {
+      assert error.length() == in.getData().length();
+      if (in.isAlive()) {
         final TensorList passbackTensorList = GpuSystem.eval(gpu -> {
           @Nullable final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
-          @javax.annotation.Nonnull final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), (long) (length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size), MemoryType.Managed, false);
+          boolean dirty = dimOut[0] >= dimIn[0] && dimOut[1] >= dimIn[1];
+          @javax.annotation.Nonnull final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), (long) (length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size), MemoryType.Managed, dirty);
           copy(gpu, length, dimOut, errorPtr, dimIn, passbackBuffer);
           gpu.registerForCleanup(errorPtr);
           return GpuTensorList.wrap(passbackBuffer, length, dimIn, precision);
         });
-        inObj[0].accumulate(buffer, passbackTensorList);
+        in.accumulate(buffer, passbackTensorList);
         passbackTensorList.freeRef();
       }
     }) {

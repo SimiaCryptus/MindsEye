@@ -104,7 +104,7 @@ public class AvgReducerLayer extends NNLayer {
       
       @Override
       protected void _free() {
-        Arrays.stream(inObj).forEach(ReferenceCountingBase::freeRef);
+        Arrays.stream(inObj).forEach(ReferenceCounting::freeRef);
         Arrays.stream(inObj).map(NNResult::getData).forEach(ReferenceCounting::freeRef);
       }
       

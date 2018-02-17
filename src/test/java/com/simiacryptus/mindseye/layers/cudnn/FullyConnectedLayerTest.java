@@ -133,6 +133,7 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
     public BigTests(@javax.annotation.Nonnull int[] inputDims, @javax.annotation.Nonnull int[] outputDims, int batchBands) {
       super(inputDims, outputDims, batchBands);
       validateDifferentials = false;
+      setTestTraining(false);
     }
   
     @Override
@@ -176,7 +177,7 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new BigTests.
      */
     public Big_VGG() {
-      super(new int[]{25088}, new int[]{4096}, 512);
+      super(new int[]{25088}, new int[]{4096}, 0);
     }
     
   }

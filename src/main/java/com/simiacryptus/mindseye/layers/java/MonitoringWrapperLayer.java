@@ -142,7 +142,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
       };
     }).toArray(i -> new NNResult[i]);
     @javax.annotation.Nonnull TimedResult<NNResult> timedResult = TimedResult.time(() -> getInner().eval(wrappedInput));
-    Arrays.stream(wrappedInput).forEach(ReferenceCountingBase::freeRef);
+    Arrays.stream(wrappedInput).forEach(ReferenceCounting::freeRef);
     final NNResult output = timedResult.result;
     forwardPerformance.add((timedResult.timeNanos) / 1000000000.0);
     totalBatches++;

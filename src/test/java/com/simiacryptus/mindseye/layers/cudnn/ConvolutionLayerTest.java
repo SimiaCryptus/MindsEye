@@ -35,6 +35,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.Random;
+import java.util.stream.Stream;
 
 /**
  * The type Convolution layer run.
@@ -100,7 +101,17 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
     explodedNetwork.write(testData);
     Tensor echo = explodedNetwork.read();
     explodedNetwork.freeRef();
-    Assert.assertEquals(testData, echo);
+    if (!testData.equals(echo)) {
+      Tensor minus = testData.minus(echo);
+      print(minus.coordStream(false).filter(x -> minus.get(x) != 0).map(x -> String.format("%s=%s", x, minus.get(x))));
+      minus.freeRef();
+      Assert.assertEquals(testData, echo);
+    }
+  }
+  
+  private void print(final Stream<String> stream) {
+    stream.forEach(x -> System.out.println("Zero: " + x));
+    //System.out.println("Zeros: " + stream.reduce((a,b)->a+","+b).get());
   }
   
   @javax.annotation.Nonnull
@@ -364,7 +375,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
    * Basic Test
    */
   public abstract static class VeryBigTest extends Big {
-    
+  
     /**
      * Instantiates a new V big.
      *
@@ -399,7 +410,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
    * Basic Test
    */
   public abstract static class Big extends ConvolutionLayerTest {
-    
+  
     /**
      * Instantiates a new BigTests.
      *

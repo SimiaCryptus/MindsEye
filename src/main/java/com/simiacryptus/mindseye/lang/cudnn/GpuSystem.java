@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.simiacryptus.mindseye.lang.RecycleBin;
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.data.DoubleStatistics;
@@ -871,24 +870,6 @@ public class GpuSystem {
   }
   
   /**
-   * Clean memory.
-   *
-   * @return the future
-   */
-  public static void cleanMemory() {
-    try {
-      logger.warn("Cleaning Memory");
-      Runtime runtime = Runtime.getRuntime();
-      RecycleBin.DOUBLES.clear();
-      runtime.gc();
-      GpuTensorList.evictAllToHeap();
-      runtime.gc();
-    } catch (Throwable e) {
-      logger.warn("Error while cleaning memory", e);
-    }
-  }
-  
-  /**
    * Log.
    *
    * @param method the method
@@ -1224,35 +1205,6 @@ public class GpuSystem {
     GpuSystem.log("cudnnSetTensor4dDescriptorEx", result, desc, dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride);
     GpuSystem.handle(result);
     return new CudaResource<>(desc, GpuSystem::cudnnDestroyTensorDescriptor, getDevice());
-  }
-  
-  /**
-   * Reset all GPUs and Heap Memory
-   */
-  public static void reset() {
-    synchronized (GpuSystem.class) {
-      cleanMemory();
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      }
-      try {
-        IntStream.range(0, GpuSystem.deviceCount()).forEach(deviceNumber -> GpuSystem.withDevice(deviceNumber, () -> {
-          logger.warn(String.format("Resetting Device %d", deviceNumber));
-          CudaPtr.getGpuStats(deviceNumber).usedMemory.set(0);
-          cudaDeviceReset();
-        }));
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-      gpuGeneration.incrementAndGet();
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      }
-    }
   }
   
   /**

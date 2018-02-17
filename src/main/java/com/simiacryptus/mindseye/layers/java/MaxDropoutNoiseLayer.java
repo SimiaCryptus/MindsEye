@@ -137,7 +137,7 @@ public class MaxDropoutNoiseLayer extends NNLayer {
       protected void _free() {
         in0.freeRef();
         data0.freeRef();
-        Arrays.stream(mask).forEach(ReferenceCountingBase::freeRef);
+        Arrays.stream(mask).forEach(ReferenceCounting::freeRef);
       }
       
       @Override

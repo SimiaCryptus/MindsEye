@@ -107,7 +107,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
       log.info(String.format("Input %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
     }
     @Nullable final NNResult output = getInner().eval(wrappedInput);
-    Arrays.stream(wrappedInput).forEach(ReferenceCountingBase::freeRef);
+    Arrays.stream(wrappedInput).forEach(ReferenceCounting::freeRef);
     {
       final TensorList tensorList = output.getData();
       @javax.annotation.Nonnull final String formatted = tensorList.stream().map(x -> {

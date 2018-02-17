@@ -24,16 +24,12 @@ import com.simiacryptus.mindseye.lang.NNConstant;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -74,16 +70,12 @@ public abstract class ImageClassifier {
    * @return the list
    */
   public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @javax.annotation.Nonnull NNLayer network, int count, @javax.annotation.Nonnull List<String> categories, int batchSize, boolean asyncGC, boolean nullGC, Tensor[] data) {
-    @javax.annotation.Nonnull Executor garbageman = (!nullGC && asyncGC) ? Executors.newSingleThreadExecutor() : command -> {
-      if (!nullGC) command.run();
-    };
     try {
       return Lists.partition(Arrays.asList(data), batchSize).stream().flatMap(batch -> {
         @javax.annotation.Nullable NNResult nnResult = network.eval(NNConstant.singleResultArray(new Tensor[][]{
           batch.stream().map(prefilter).toArray(i -> new Tensor[i])
         }));
         List<Tensor> tensorList = nnResult.getData().stream().collect(Collectors.toList());
-        garbageman.execute(GpuSystem::cleanMemory);
         return tensorList.stream().map(tensor -> {
           @Nullable double[] predictionSignal = tensor.getData();
           int[] order = IntStream.range(0, 1000).mapToObj(x -> x)
@@ -100,7 +92,6 @@ public abstract class ImageClassifier {
         });
       }).collect(Collectors.toList());
     } finally {
-      if (garbageman instanceof ExecutorService) {((ExecutorService) garbageman).shutdown();}
     }
   }
   

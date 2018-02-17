@@ -223,7 +223,19 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
    * @return the nn result
    */
   @javax.annotation.Nullable
-  public abstract NNResult eval(NNResult... array);
+  public NNResult eval(NNResult... array) {
+    Arrays.stream(array).forEach(ReferenceCounting::addRef);
+    Arrays.stream(array).map(NNResult::getData).forEach(ReferenceCounting::addRef);
+    return evalAndFree(array);
+  }
+  
+  @javax.annotation.Nullable
+  public NNResult evalAndFree(NNResult... array) {
+    NNResult result = eval(array);
+    Arrays.stream(array).forEach(ReferenceCounting::freeRef);
+    Arrays.stream(array).map(NNResult::getData).forEach(ReferenceCounting::freeRef);
+    return result;
+  }
   
   /**
    * Eval nn result.
@@ -235,7 +247,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
   public final NNResult eval(@Nonnull final Tensor... array) {
     NNResult[] input = NNConstant.singleResultArray(array);
     NNResult eval = eval(input);
-    Arrays.stream(input).forEach(ReferenceCountingBase::freeRef);
+    Arrays.stream(input).forEach(ReferenceCounting::freeRef);
     return eval;
   }
   
@@ -249,7 +261,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
   public final NNResult eval(@Nonnull final Tensor[][] array) {
     NNResult[] input = NNConstant.singleResultArray(array);
     NNResult eval = eval(input);
-    Arrays.stream(input).forEach(ReferenceCountingBase::freeRef);
+    Arrays.stream(input).forEach(ReferenceCounting::freeRef);
     return eval;
   }
   

@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.lang;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -336,7 +335,7 @@ public abstract class RecycleBin<T> {
     long size = getSize();
     logger.warn(String.format("Allocation of length %d failed; %s/%s used memory; %s items in recycle buffer; Clearing memory", length, previous, max, size));
     clear();
-    GpuSystem.cleanMemory();
+    System.gc();
     long after = Runtime.getRuntime().freeMemory();
     logger.warn(String.format("Clearing memory freed %s/%s bytes", previous - after, max));
   }

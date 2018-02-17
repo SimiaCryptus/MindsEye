@@ -78,13 +78,13 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
         Tensor prototype = new Tensor(224, 224, 3);
         int cnt = 1;
         @javax.annotation.Nonnull
-        int[] convolutionOrder = {2, 3, 0, 1};
+        int[] convolutionOrder = {2, 3, 1, 0};
         @javax.annotation.Nonnull
-        int[] fullyconnectedOrder = {0, 1};
+        int[] fullyconnectedOrder = {1, 0};
         @javax.annotation.Nonnull
         PipelineNetwork model = new PipelineNetwork();
         @javax.annotation.Nonnull
-        Precision precision = Precision.Double;
+        Precision precision = Precision.Float;
         
         @javax.annotation.Nonnull
         @Override

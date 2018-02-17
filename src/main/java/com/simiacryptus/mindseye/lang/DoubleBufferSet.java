@@ -67,8 +67,8 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
   public DoubleBufferSet(@javax.annotation.Nonnull final Map<K, ? extends T> collect) {
     map.putAll(collect);
     map.forEach((k, v) -> {
-      k.addRef();
-      v.addRef();
+      k.addRef(this);
+      v.addRef(this);
     });
   }
   
@@ -119,7 +119,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
     if (null == layer) throw new IllegalArgumentException();
     synchronized (map) {
       T v = map.computeIfAbsent(layer, l -> {
-        l.addRef();
+        l.addRef(this);
         return factory.get();
       });
       v.addRef();

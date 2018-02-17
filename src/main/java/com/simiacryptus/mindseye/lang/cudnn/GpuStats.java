@@ -42,5 +42,8 @@ public class GpuStats {
    */
   public final AtomicLong usedMemory = new AtomicLong(0);
   
-  public final int highMemoryThreshold = 6 * 1024 * 1024 * 1024;
+  /**
+   * The High memory threshold.
+   */
+  public final long highMemoryThreshold = 6L * 1024 * 1024 * 1024;
 }

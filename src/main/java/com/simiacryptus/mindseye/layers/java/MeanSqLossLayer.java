@@ -73,7 +73,7 @@ public class MeanSqLossLayer extends NNLayer {
     if (2 != inObj.length) throw new IllegalArgumentException();
     final int leftLength = inObj[0].getData().length();
     final int rightLength = inObj[1].getData().length();
-    Arrays.stream(inObj).forEach(ReferenceCountingBase::addRef);
+    Arrays.stream(inObj).forEach(ReferenceCounting::addRef);
     if (leftLength != rightLength && leftLength != 1 && rightLength != 1) {
       throw new IllegalArgumentException(leftLength + " != " + rightLength);
     }
@@ -136,8 +136,8 @@ public class MeanSqLossLayer extends NNLayer {
       
       @Override
       protected void _free() {
-        Arrays.stream(inObj).forEach(ReferenceCountingBase::freeRef);
-        Arrays.stream(diffs).forEach(ReferenceCountingBase::freeRef);
+        Arrays.stream(inObj).forEach(ReferenceCounting::freeRef);
+        Arrays.stream(diffs).forEach(ReferenceCounting::freeRef);
       }
       
       @Override

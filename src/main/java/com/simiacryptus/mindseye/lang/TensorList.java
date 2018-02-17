@@ -169,10 +169,21 @@ public interface TensorList extends ReferenceCounting {
     return tensor;
   }
   
+  /**
+   * Gets elements.
+   *
+   * @return the elements
+   */
   default int getElements() {
     return length() * Tensor.dim(getDimensions());
   }
   
+  /**
+   * Gets bytes.
+   *
+   * @param precision the precision
+   * @return the bytes
+   */
   default int getBytes(Precision precision) {
     return length() * Tensor.dim(getDimensions()) * precision.size;
   }

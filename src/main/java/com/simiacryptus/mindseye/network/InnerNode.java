@@ -98,11 +98,7 @@ final class InnerNode extends LazyResult {
     if (!TestUtil.CONSERVATIVE) stream = stream.parallel();
     final NNResult[] in = stream.map(x -> x == null ? null : x.get(ctx)).toArray(i -> new NNResult[i]);
     assert Arrays.stream(in).allMatch(x -> x != null);
-    @Nullable NNResult result = innerLayer.eval(in);
-    for (@javax.annotation.Nonnull NNResult inputNNResult : in) {
-      inputNNResult.getData().freeRef();
-      inputNNResult.freeRef();
-    }
+    @Nullable NNResult result = innerLayer.evalAndFree(in);
     return result;
   }
   

@@ -40,7 +40,7 @@ public class TrainableWrapper<T extends Trainable> extends ReferenceCountingBase
    */
   public TrainableWrapper(final T inner) {
     this.inner = inner;
-    this.inner.addRef();
+    this.inner.addRef(this);
   }
   
   @Override

@@ -191,7 +191,7 @@ public abstract class DAGNetwork extends NNLayer {
     super._free();
     this.layersById.values().forEach(ReferenceCounting::freeRef);
     this.nodesById.values().forEach(ReferenceCounting::freeRef);
-    this.inputNodes.values().forEach(ReferenceCountingBase::freeRef);
+    this.inputNodes.values().forEach(ReferenceCounting::freeRef);
   }
   
   /**

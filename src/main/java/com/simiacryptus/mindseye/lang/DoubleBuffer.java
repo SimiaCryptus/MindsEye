@@ -58,7 +58,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    */
   public DoubleBuffer(@javax.annotation.Nonnull final K layer, final double[] target) {
     this.layer = layer;
-    layer.addRef();
+    layer.addRef(this);
     this.target = target;
     this.delta = null;
   }
@@ -72,7 +72,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    */
   public DoubleBuffer(@javax.annotation.Nonnull final K layer, final double[] target, final double[] delta) {
     this.layer = layer;
-    layer.addRef();
+    layer.addRef(this);
     this.target = target;
     this.delta = delta;
   }

@@ -91,7 +91,7 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
   
   @Nullable
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public NNResult evalAndFree(@javax.annotation.Nonnull final NNResult... inObj) {
     @Nonnull final int[] dimensions = inObj[0].getData().getDimensions();
     final int length = inObj[0].getData().length();
     if (3 != dimensions.length) {
@@ -103,12 +103,8 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
       }
     }
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
-    Arrays.stream(inObj).forEach(x -> x.addRef());
     //stream0 = stream0.parallel();
-    @javax.annotation.Nonnull TensorList run = Arrays.stream(inObj).map(x -> x.getData()).map(x -> {
-      x.addRef();
-      return x;
-    }).reduce((leftData, rightData) -> GpuSystem.eval(gpu -> {
+    @javax.annotation.Nonnull TensorList run = Arrays.stream(inObj).map(x -> x.getData()).reduce((leftData, rightData) -> GpuSystem.eval(gpu -> {
       @javax.annotation.Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
       @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);

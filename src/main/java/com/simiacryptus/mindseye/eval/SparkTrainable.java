@@ -93,7 +93,7 @@ public class SparkTrainable extends TrainableBase {
   public SparkTrainable(final RDD<Tensor[]> trainingData, final NNLayer network, final int sampleSize) {
     dataRDD = trainingData;
     this.network = network;
-    this.network.addRef();
+    this.network.addRef(this);
     this.sampleSize = sampleSize;
     setPartitions(Math.max(1, dataRDD.sparkContext().executorEnvs().size()));
     reseed(seed);

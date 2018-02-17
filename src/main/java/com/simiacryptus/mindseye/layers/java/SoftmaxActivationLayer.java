@@ -132,8 +132,8 @@ public class SoftmaxActivationLayer extends NNLayer {
       
       @Override
       protected void _free() {
-        Arrays.stream(expA).forEach(ReferenceCountingBase::freeRef);
-        Arrays.stream(inObj).forEach(ReferenceCountingBase::freeRef);
+        Arrays.stream(expA).forEach(ReferenceCounting::freeRef);
+        Arrays.stream(inObj).forEach(ReferenceCounting::freeRef);
       }
       
       @Override

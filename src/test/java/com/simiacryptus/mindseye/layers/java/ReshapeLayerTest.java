@@ -117,6 +117,11 @@ public abstract class ReshapeLayerTest extends LayerTestBase {
    */
   public abstract static class Big extends ReshapeLayerTest {
   
+    /**
+     * Instantiates a new Big.
+     *
+     * @param size the size
+     */
     public Big(int size) {this(new int[]{1, 1, size}, new int[]{1, 1, size});}
 
     /**

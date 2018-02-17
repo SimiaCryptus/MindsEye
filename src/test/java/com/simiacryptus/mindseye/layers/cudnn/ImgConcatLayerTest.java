@@ -187,7 +187,7 @@ public abstract class ImgConcatLayerTest extends CuDNNLayerTestBase {
      * The Lasrge size.
      */
     int lasrgeSize;
-    
+  
     /**
      * Instantiates a new BigTests.
      *

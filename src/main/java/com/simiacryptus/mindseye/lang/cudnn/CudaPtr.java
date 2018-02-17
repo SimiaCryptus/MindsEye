@@ -25,6 +25,7 @@ import com.google.common.cache.LoadingCache;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.SimpleConvolutionLayer;
+import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.lang.TimedResult;
 import jcuda.Pointer;
 import jcuda.runtime.cudaMemcpyKind;
@@ -130,6 +131,8 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     }
   }
   
+  private static final long MAX_TOTAL_MEMORY = 8 * GiB;
+  
   @javax.annotation.Nonnull
   private static Pointer acquire(int deviceId, long size, @javax.annotation.Nonnull MemoryType type, int retries) {
     if (retries < 0) throw new IllegalArgumentException();
@@ -141,14 +144,13 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     }
     if (deviceId >= 0 && GpuSystem.getDevice() != deviceId) throw new IllegalArgumentException();
     final GpuStats metrics = CudaPtr.getGpuStats(deviceId);
+    long totalGpuMem = METRICS.asMap().values().stream().mapToLong(x -> x.usedMemory.get()).sum();
     synchronized (CudaPtr.class) {
-      if (metrics.usedMemory.get() + size > metrics.highMemoryThreshold) {
-        logger.info(String.format("Clearing memory for device %s while allocating %s bytes", deviceId, size));
-        logLoad();
-        long bytes = SimpleConvolutionLayer.getInstances().mapToLong(x -> x.clearDeviceData(deviceId)).count();
-        logger.info(String.format("Cleared %s bytes from ConvolutionFilters for device %s", bytes, deviceId));
-        GpuTensorList.evictToHeap(deviceId);
-        logLoad();
+      long resultingTotalMemory = totalGpuMem + size;
+      long resultingDeviceMemory = metrics.usedMemory.get() + size;
+      if (resultingDeviceMemory > metrics.highMemoryThreshold || resultingTotalMemory > MAX_TOTAL_MEMORY) {
+        logger.info(String.format("Clearing memory for device %s while allocating %s bytes (%s > %s)", deviceId, size, resultingDeviceMemory, metrics.highMemoryThreshold));
+        clearMemory(deviceId);
       }
     }
     try {
@@ -160,15 +162,34 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     } catch (@javax.annotation.Nonnull final ThreadDeath e) {
       throw e;
     } catch (@javax.annotation.Nonnull final Throwable e) {
-      if (retries <= 0) throw new RuntimeException(String.format(String.format("Error allocating %d bytes", size)), e);
+      if (retries <= 0)
+        throw new RuntimeException(String.format(String.format("Error allocating %d bytes; %s currently allocated to device %s", size, metrics.usedMemory, deviceId)), e);
       final long startMemory = metrics.usedMemory.get();
-      @javax.annotation.Nonnull TimedResult<Void> timedResult = TimedResult.time(() -> GpuSystem.cleanMemory());
+      @javax.annotation.Nonnull TimedResult<Void> timedResult = TimedResult.time(() -> clearMemory(deviceId));
       final long freedMemory = startMemory - metrics.usedMemory.get();
       logger.warn(String.format("Low GPU Memory while allocating %s bytes; %s freed in %.4fs resulting in %s total (triggered by %s)",
         size, freedMemory, timedResult.seconds(), metrics.usedMemory.get(), e.getMessage()));
     }
     if (retries < 0) throw new IllegalStateException();
     return acquire(deviceId, size, type, retries - 1);
+  }
+  
+  /**
+   * Clear memory.
+   *
+   * @param deviceId the device id
+   */
+  public static void clearMemory(final int deviceId) {
+    if (TestUtil.CONSERVATIVE) {
+      logLoad();
+      logger.info(String.format("Running Garbage Collector"));
+      System.gc();
+    }
+    logLoad();
+    long bytes = SimpleConvolutionLayer.getInstances().mapToLong(x -> x.evictDeviceData(deviceId)).sum();
+    logger.info(String.format("Cleared %s bytes from ConvolutionFilters for device %s", bytes, deviceId));
+    GpuTensorList.evictToHeap(deviceId);
+    logLoad();
   }
   
   private static void logLoad() {
@@ -273,7 +294,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    *
    * @param precision   the precision
    * @param destination the data
-   * @param offset
+   * @param offset      the offset
    * @return the cuda ptr
    */
   @javax.annotation.Nonnull
@@ -310,7 +331,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    *
    * @param precision   the precision
    * @param destination the data
-   * @param offset
+   * @param offset      the offset
    * @return the cuda ptr
    */
   @javax.annotation.Nonnull
@@ -347,7 +368,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    *
    * @param precision the precision
    * @param data      the data
-   * @param offset
+   * @param offset    the offset
    * @return the cuda ptr
    */
   @javax.annotation.Nonnull
@@ -374,7 +395,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    *
    * @param precision the precision
    * @param data      the data
-   * @param offset
+   * @param offset    the offset
    * @return the cuda ptr
    */
   @javax.annotation.Nonnull

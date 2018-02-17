@@ -26,7 +26,6 @@ import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.mindseye.test.unit.SerializationTest;
 import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import guru.nidi.graphviz.engine.Format;
@@ -34,6 +33,8 @@ import guru.nidi.graphviz.engine.Graphviz;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * The type Image classifier run base.
@@ -64,6 +65,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
    * @param log the log
    */
   public void run(@javax.annotation.Nonnull NotebookOutput log) {
+    Future<Tensor[][]> submit = Executors.newSingleThreadExecutor().submit(() -> EncodingUtil.getImages(log, 224, 10));
     ImageClassifier vgg16 = getImageClassifier(log);
     @javax.annotation.Nonnull NNLayer network = ((DemoableNetworkFactory) vgg16).build(log);
   
@@ -73,19 +75,25 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
       return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) network))
         .height(4000).width(800).render(Format.PNG).toImage();
     });
-  
-    @javax.annotation.Nonnull SerializationTest serializationTest = new SerializationTest();
-    serializationTest.setPersist(true);
-    serializationTest.test(log, network, (Tensor[]) null);
+
+//    @javax.annotation.Nonnull SerializationTest serializationTest = new SerializationTest();
+//    serializationTest.setPersist(true);
+//    serializationTest.test(log, network, (Tensor[]) null);
   
     log.h1("Predictions");
-    Tensor[][] images = EncodingUtil.getImages(log, 224, 10);
+    Tensor[][] images;
+    try {
+      images = submit.get();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
     @javax.annotation.Nonnull Map<String, List<LinkedHashMap<String, Double>>> modelPredictions = new HashMap<>();
     modelPredictions.put("Source", predict(log, vgg16, network, images));
-    serializationTest.getModels().forEach((precision, model) -> {
-      log.h2(precision.name());
-      modelPredictions.put(precision.name(), predict(log, vgg16, model, images));
-    });
+
+//    serializationTest.getModels().forEach((precision, model) -> {
+//      log.h2(precision.name());
+//      modelPredictions.put(precision.name(), predict(log, vgg16, model, images));
+//    });
   
     log.h1("Result");
   

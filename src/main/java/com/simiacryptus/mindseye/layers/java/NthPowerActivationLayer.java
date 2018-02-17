@@ -166,8 +166,8 @@ public final class NthPowerActivationLayer extends NNLayer {
   
       @Override
       protected void _free() {
-        Arrays.stream(inObj).forEach(ReferenceCountingBase::freeRef);
-        Arrays.stream(inputGradientA).forEach(ReferenceCountingBase::freeRef);
+        Arrays.stream(inObj).forEach(ReferenceCounting::freeRef);
+        Arrays.stream(inputGradientA).forEach(ReferenceCounting::freeRef);
       }
       
       @Override

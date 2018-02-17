@@ -454,7 +454,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       eval.getData().freeRef();
       return invocations;
     } finally {
-      Arrays.stream(input).forEach(ReferenceCountingBase::freeRef);
+      Arrays.stream(input).forEach(ReferenceCounting::freeRef);
       smallCopy.freeRef();
     }
   }

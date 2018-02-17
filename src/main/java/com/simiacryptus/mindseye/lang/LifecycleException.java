@@ -29,7 +29,7 @@ public class LifecycleException extends RuntimeException {
    * The Obj.
    */
   @Nonnull
-  public final ReferenceCountingBase obj;
+  public final ReferenceCounting obj;
   
   /**
    * Instantiates a new Lifecycle exception.

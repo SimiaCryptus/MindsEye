@@ -137,8 +137,8 @@ public class EntropyLossLayer extends NNLayer {
       @Override
       protected void _free() {
         indata.freeRef();
-        Arrays.stream(gradient).forEach(ReferenceCountingBase::freeRef);
-        Arrays.stream(inObj).forEach(ReferenceCountingBase::freeRef);
+        Arrays.stream(gradient).forEach(ReferenceCounting::freeRef);
+        Arrays.stream(inObj).forEach(ReferenceCounting::freeRef);
       }
       
       @Override

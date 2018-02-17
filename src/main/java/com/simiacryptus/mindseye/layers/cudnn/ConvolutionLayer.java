@@ -53,7 +53,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
   @Nullable
   private Integer paddingY = null;
   private Precision precision = Precision.Double;
-  private int batchBands = 128;
+  private int batchBands = 0;
   
   /**
    * Instantiates a new Convolution layer.
@@ -166,6 +166,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
     @Nonnull ExplodedConvolutionGrid explodedNetwork = getExplodedNetwork();
     @Nonnull PipelineNetwork network = explodedNetwork.getNetwork();
     explodedNetwork.freeRef();
+    network.setName(getName());
     return network;
   }
   
@@ -176,7 +177,14 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    */
   @Nonnull
   public ExplodedConvolutionGrid getExplodedNetwork() {
-    return new ExplodedConvolutionGrid(getConvolutionParams(), getBatchBands()).write(kernel);
+    int batchBands = getBatchBands();
+    if (0 == batchBands) {
+      batchBands = inputBands;
+    }
+    if (batchBands > outputBands * 2) {
+      batchBands = outputBands;
+    }
+    return new ExplodedConvolutionGrid(getConvolutionParams(), batchBands).write(kernel);
   }
   
   /**

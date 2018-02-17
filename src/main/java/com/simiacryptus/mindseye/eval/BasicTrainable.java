@@ -61,7 +61,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
    */
   public BasicTrainable(final NNLayer network) {
     this.network = network;
-    this.network.addRef();
+    this.network.addRef(this);
     data = null;
   }
   
@@ -185,11 +185,11 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
   
   @javax.annotation.Nonnull
   @Override
-  public synchronized Trainable setData(@javax.annotation.Nonnull final List<Tensor[]> sampledData) {
-    assert !sampledData.isEmpty();
-    sampledData.stream().flatMap(x -> Arrays.stream(x)).forEach(x -> x.addRef());
+  public synchronized Trainable setData(@javax.annotation.Nonnull final List<Tensor[]> data) {
+    assert !data.isEmpty();
+    data.stream().flatMap(x -> Arrays.stream(x)).forEach(x -> x.addRef(this));
     if (null != this.data) this.data.stream().flatMap(x -> Arrays.stream(x)).forEach(x -> x.freeRef());
-    data = sampledData;
+    this.data = data;
     return this;
   }
   

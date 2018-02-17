@@ -83,25 +83,15 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
   }
   
   /**
-   * Evict all to heap.
+   * Evict to heap.
+   *
+   * @param deviceId the device id
    */
-  public static void evictAllToHeap() {
-    synchronized (INSTANCES) {
-      @javax.annotation.Nonnull Iterator<WeakReference<GpuTensorList>> iterator = INSTANCES.iterator();
-      while (iterator.hasNext()) {
-        @Nullable GpuTensorList next = iterator.next().get();
-        if (null != next && !next.isFinalized()) next.evictToHeap();
-      }
-    }
-  }
-  
   public static void evictToHeap(int deviceId) {
     long size;
     synchronized (INSTANCES) {
-      size = INSTANCES.stream().map(x -> x.get()).filter(x -> null != x).filter(x -> !x.isFinalized()).filter(x -> x.getDeviceId() == deviceId).mapToLong(next -> {
-        next.evictToHeap();
-        return next.getElements();
-      }).sum();
+      size = INSTANCES.stream().map(x -> x.get()).filter(x -> null != x && !x.isFinalized() && (x.getDeviceId() == deviceId || deviceId < 0 || x.getDeviceId() < 0))
+        .mapToLong(GpuTensorList::evictToHeap).sum();
     }
     logger.info(String.format("Cleared %s bytes from GpuTensorLists for device %s", size, deviceId));
   }
@@ -361,15 +351,24 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
   
   /**
    * Evict to heap.
+   *
+   * @return the long
    */
-  public synchronized void evictToHeap() {
+  public synchronized long evictToHeap() {
     synchronized (this) {
       if (null == heapCopy()) {
         throw new IllegalStateException();
       }
-      if (null != ptr && !ptr.isFinalized()) {
+      if (null != ptr && !ptr.isFinalized() && 1 == ptr.currentRefCount()) {
+        long elements = getElements();
+        assert 0 < length;
+        assert 0 < elements : Arrays.toString(dimensions);
         ptr.freeRef();
         ptr = null;
+        return elements * getPrecision().size;
+      }
+      else {
+        return 0;
       }
     }
   }

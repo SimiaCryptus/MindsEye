@@ -403,7 +403,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     NNResult[] inputs = NNConstant.batchResultArray(input_target);
     NNResult eval = network_target.eval(inputs);
     network_target.freeRef();
-    Arrays.stream(inputs).forEach(ReferenceCountingBase::freeRef);
+    Arrays.stream(inputs).forEach(ReferenceCounting::freeRef);
     TensorList result = eval.getData();
     eval.freeRef();
     final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
@@ -486,7 +486,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     });
     NNResult[] array = NNConstant.batchResultArray(input_target);
     NNResult eval = network_target.eval(array);
-    Arrays.stream(array).forEach(ReferenceCountingBase::freeRef);
+    Arrays.stream(array).forEach(ReferenceCounting::freeRef);
     TensorList result = eval.getData();
     eval.freeRef();
     final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);

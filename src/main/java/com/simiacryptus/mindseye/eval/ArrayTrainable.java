@@ -56,7 +56,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
     this.trainingData = trainingData;
     for (@javax.annotation.Nonnull Tensor[] tensors : trainingData) {
       for (@javax.annotation.Nonnull Tensor tensor : tensors) {
-        tensor.addRef();
+        tensor.addRef(this);
       }
     }
   }
@@ -93,7 +93,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
     this.trainingData = trainingData;
     for (@javax.annotation.Nonnull Tensor[] tensors : trainingData) {
       for (@javax.annotation.Nonnull Tensor tensor : tensors) {
-        tensor.addRef();
+        tensor.addRef(this);
       }
     }
   }
@@ -119,7 +119,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
   public Trainable setData(@javax.annotation.Nonnull final List<Tensor[]> tensors) {
     for (@javax.annotation.Nonnull Tensor[] ts : tensors) {
       for (@javax.annotation.Nonnull Tensor tensor : ts) {
-        tensor.addRef();
+        tensor.addRef(this);
       }
     }
     if (null != trainingData) for (@javax.annotation.Nonnull Tensor[] ts : trainingData) {
@@ -139,7 +139,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
   public void setTrainingData(@javax.annotation.Nonnull final Tensor[][] tensors) {
     for (@javax.annotation.Nonnull Tensor[] ts : tensors) {
       for (@javax.annotation.Nonnull Tensor tensor : ts) {
-        tensor.addRef();
+        tensor.addRef(this);
       }
     }
     if (null != trainingData) for (@javax.annotation.Nonnull Tensor[] ts : trainingData) {

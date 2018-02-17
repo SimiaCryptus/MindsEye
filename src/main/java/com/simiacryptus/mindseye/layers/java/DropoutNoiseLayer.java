@@ -142,7 +142,7 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
       @Override
       protected void _free() {
         inputResult.freeRef();
-        Arrays.stream(mask).forEach(ReferenceCountingBase::freeRef);
+        Arrays.stream(mask).forEach(ReferenceCounting::freeRef);
       }
       
       @Override
