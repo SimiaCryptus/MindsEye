@@ -81,15 +81,15 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
   
   @Nullable
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public Result eval(final Result... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
-    final NNResult input = inObj[0];
+    final Result input = inObj[0];
     final TensorList batch = input.getData();
     @Nonnull final int[] inputSize = batch.getDimensions();
     @javax.annotation.Nonnull PoolingLayer impl = new PoolingLayer().setMode(mode).setPrecision(precision)
       .setWindowX(inputSize[1])
       .setWindowY(inputSize[0]);
-    @Nullable NNResult result = impl.eval(inObj);
+    @Nullable Result result = impl.eval(inObj);
     impl.freeRef();
     return result;
   }

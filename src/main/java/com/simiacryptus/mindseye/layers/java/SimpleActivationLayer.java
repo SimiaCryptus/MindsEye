@@ -67,14 +67,14 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     final TensorList indata0 = inObj[0].getData();
     final int itemCnt = indata0.length();
     assert 0 < itemCnt;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     Arrays.stream(inObj).forEach(nnResult -> nnResult.getData().addRef());
     @javax.annotation.Nonnull final Tensor inputGradientA[] = new Tensor[itemCnt];
-    return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
+    return new Result(TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       @javax.annotation.Nullable final Tensor input = indata0.get(dataIndex);
       @javax.annotation.Nonnull final Tensor output = new Tensor(indata0.getDimensions());
       @javax.annotation.Nonnull final Tensor inputGradient = new Tensor(input.dim());

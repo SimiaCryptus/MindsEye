@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.lang.cudnn;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.simiacryptus.mindseye.lang.RegisteredObjectBase;
 import com.simiacryptus.mindseye.lang.ReshapedTensorList;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
@@ -190,7 +191,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
       System.gc();
     }
     logLoad();
-    long bytes = SimpleConvolutionLayer.getInstances().mapToLong(x -> x.evictDeviceData(deviceId)).sum();
+    long bytes = RegisteredObjectBase.getLivingInstances(SimpleConvolutionLayer.class).mapToLong(x -> x.evictDeviceData(deviceId)).sum();
     logger.info(String.format("Cleared %s bytes from ConvolutionFilters for device %s", bytes, deviceId));
     GpuTensorList.evictToHeap(deviceId);
     logLoad();

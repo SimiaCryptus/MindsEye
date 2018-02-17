@@ -89,7 +89,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
   
   @Nullable
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     assert getFrom() < getTo();
@@ -106,7 +106,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
     final int byteOffset = inputDimensions[1] * inputDimensions[0] * getFrom() * precision.size;
     outputDimensions[2] = getTo() - getFrom();
     long size = (length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
-    return new NNResult(GpuSystem.eval(gpu -> {
+    return new Result(GpuSystem.eval(gpu -> {
       @javax.annotation.Nonnull final CudaPtr cudaOutput = CudaPtr.allocate(gpu.getDeviceNumber(), size, MemoryType.Managed, true);
       @Nullable final CudaPtr cudaInput = CudaPtr.getCudaPtr(precision, inputData);
       @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(inputDimensions, length, outputDimensions);

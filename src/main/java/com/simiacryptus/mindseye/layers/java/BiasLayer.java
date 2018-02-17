@@ -123,7 +123,7 @@ public class BiasLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     TensorList input;
     if (0 == inObj.length) {
@@ -132,7 +132,7 @@ public class BiasLayer extends LayerBase {
     else {
       input = inObj[0].getData();
     }
-    return new NNResult(TensorArray.wrap(input.stream().parallel()
+    return new Result(TensorArray.wrap(input.stream().parallel()
       .map(r -> {
         @Nonnull Tensor tensor = new Tensor(add(r.getData()), r.getDimensions());
         r.freeRef();

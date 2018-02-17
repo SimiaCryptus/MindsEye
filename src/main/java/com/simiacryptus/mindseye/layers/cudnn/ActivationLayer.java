@@ -105,11 +105,11 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
   
   @Nullable
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
-    final NNResult input = inObj[0];
+    final Result input = inObj[0];
     final TensorList batch = input.getData();
     @Nonnull final int[] inputSize = batch.getDimensions();
     @Nonnull final int[] outputSize = inputSize;
@@ -138,7 +138,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
         return outputData;
         //assert output.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       });
-      return new NNResult(GpuTensorList.create(outPtr, length, outputSize, precision), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+      return new Result(GpuTensorList.create(outPtr, length, outputSize, precision), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
         if (input.isAlive()) {
           final TensorList data = GpuSystem.eval(gpu -> {
             //assert (error.length() == batch.length());

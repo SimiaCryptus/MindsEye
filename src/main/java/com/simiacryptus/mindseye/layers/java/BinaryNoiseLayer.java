@@ -96,9 +96,9 @@ public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
   }
   
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    final NNResult input = inObj[0];
+    final Result input = inObj[0];
     if (!enabled) return input;
     @Nonnull final int[] dimensions = input.getData().getDimensions();
     if (maskList.size() > 1 && !Arrays.equals(maskList.get(0).getDimensions(), dimensions)) {
@@ -110,7 +110,7 @@ public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
       maskList.add(tensorPrototype.map(v -> FastRandom.random() < getValue() ? 0 : (1.0 / getValue())));
     }
     @javax.annotation.Nonnull final TensorList mask = TensorArray.create(maskList.stream().limit(length).toArray(i -> new Tensor[i]));
-    return new NNResult(mask, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new Result(mask, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       input.accumulate(buffer, data);
     }) {
   

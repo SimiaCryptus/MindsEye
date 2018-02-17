@@ -96,9 +96,9 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
   
       @javax.annotation.Nonnull
       @Override
-      public NNResult eval(NNResult... array) {
-        @javax.annotation.Nonnull NNResult result = inner.eval(array);
-        return new NNResult(result.getData(), (DeltaSet<Layer> buffer, TensorList data) -> {
+      public Result eval(Result... array) {
+        @javax.annotation.Nonnull Result result = inner.eval(array);
+        return new Result(result.getData(), (DeltaSet<Layer> buffer, TensorList data) -> {
           throw new IllegalStateException();
         }) {
   
@@ -169,17 +169,17 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
   
   @Nullable
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     Arrays.stream(inObj).forEach(x -> x.addRef());
-    final NNResult input = inObj[0];
+    final Result input = inObj[0];
     final TensorList batch = input.getData();
     @javax.annotation.Nonnull final int[] inputSize = batch.getDimensions();
     assert inputSize[2] == bias.length : inputSize[2] + " != " + bias.length;
     @javax.annotation.Nonnull final int[] outputSize = inputSize;
     final int length = batch.length();
-    
-    return new NNResult(GpuSystem.eval(gpu -> {
+  
+    return new Result(GpuSystem.eval(gpu -> {
       try {
         @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);

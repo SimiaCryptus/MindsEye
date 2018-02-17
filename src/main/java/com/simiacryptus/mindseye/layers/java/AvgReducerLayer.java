@@ -67,12 +67,12 @@ public class AvgReducerLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     Arrays.stream(inObj).forEach(x -> x.addRef());
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
-    return new NNResult(TensorArray.wrap(IntStream.range(0, inObj[0].getData().length()).parallel().mapToDouble(dataIndex -> {
+    return new Result(TensorArray.wrap(IntStream.range(0, inObj[0].getData().length()).parallel().mapToDouble(dataIndex -> {
       double sum = 0;
-      for (@javax.annotation.Nonnull final NNResult element : inObj) {
+      for (@javax.annotation.Nonnull final Result element : inObj) {
         Tensor tensor = element.getData().get(dataIndex);
         @Nullable final double[] input = tensor.getData();
         for (final double element2 : input) {
@@ -82,7 +82,7 @@ public class AvgReducerLayer extends LayerBase {
       }
       return sum;
     }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
-      for (@javax.annotation.Nonnull final NNResult in_l : inObj) {
+      for (@javax.annotation.Nonnull final Result in_l : inObj) {
         if (in_l.isAlive()) {
           TensorList inData = in_l.getData();
           @javax.annotation.Nonnull final TensorList tensorList = TensorArray.wrap(IntStream.range(0, inData.length()).parallel().mapToObj(dataIndex -> {
@@ -105,12 +105,12 @@ public class AvgReducerLayer extends LayerBase {
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(ReferenceCounting::freeRef);
-        Arrays.stream(inObj).map(NNResult::getData).forEach(ReferenceCounting::freeRef);
+        Arrays.stream(inObj).map(Result::getData).forEach(ReferenceCounting::freeRef);
       }
       
       @Override
       public boolean isAlive() {
-        for (@javax.annotation.Nonnull final NNResult element : inObj)
+        for (@javax.annotation.Nonnull final Result element : inObj)
           if (element.isAlive()) {
             return true;
           }

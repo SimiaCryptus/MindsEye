@@ -74,13 +74,13 @@ public class CrossProductLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     assert 1 == inObj.length;
-    final NNResult in = inObj[0];
+    final Result in = inObj[0];
     TensorList indata = in.getData();
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     indata.addRef();
-    return new NNResult(TensorArray.wrap(indata.stream().parallel().map(tensor -> {
+    return new Result(TensorArray.wrap(indata.stream().parallel().map(tensor -> {
       final int inputDim = tensor.dim();
       final int outputDim = (inputDim * inputDim - inputDim) / 2;
       @javax.annotation.Nonnull final Tensor result = new Tensor(outputDim);
@@ -128,7 +128,7 @@ public class CrossProductLayer extends LayerBase {
       
       @Override
       public boolean isAlive() {
-        for (@javax.annotation.Nonnull final NNResult element : inObj)
+        for (@javax.annotation.Nonnull final Result element : inObj)
           if (element.isAlive()) {
             return true;
           }

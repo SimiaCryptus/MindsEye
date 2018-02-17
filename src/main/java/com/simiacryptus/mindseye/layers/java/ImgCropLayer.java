@@ -112,13 +112,13 @@ public class ImgCropLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    final NNResult input = inObj[0];
+    final Result input = inObj[0];
     final TensorList batch = input.getData();
     @Nonnull final int[] inputDims = batch.getDimensions();
     assert 3 == inputDims.length;
-    return new NNResult(TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
+    return new Result(TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
       .mapToObj(dataIndex -> {
         @javax.annotation.Nonnull final Tensor outputData = new Tensor(sizeX, sizeY, inputDims[2]);
         Tensor inputData = batch.get(dataIndex);

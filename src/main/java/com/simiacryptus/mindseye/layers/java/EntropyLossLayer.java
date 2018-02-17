@@ -68,15 +68,15 @@ public class EntropyLossLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final double zero_tol = 1e-12;
-    final NNResult in0 = inObj[0];
+    final Result in0 = inObj[0];
     TensorList indata = in0.getData();
     indata.addRef();
     @javax.annotation.Nonnull final Tensor gradient[] = new Tensor[indata.length()];
     final double max_prob = 1.;
-    return new NNResult(TensorArray.wrap(IntStream.range(0, indata.length()).mapToObj(dataIndex -> {
+    return new Result(TensorArray.wrap(IntStream.range(0, indata.length()).mapToObj(dataIndex -> {
       @javax.annotation.Nullable final Tensor l = indata.get(dataIndex);
       @javax.annotation.Nullable final Tensor r = inObj[1].getData().get(dataIndex);
       assert l.dim() == r.dim() : l.dim() + " != " + r.dim();

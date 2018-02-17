@@ -87,8 +87,8 @@ public class MaxDropoutNoiseLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(final NNResult... inObj) {
-    final NNResult in0 = inObj[0];
+  public Result eval(final Result... inObj) {
+    final Result in0 = inObj[0];
     final TensorList data0 = in0.getData();
     final int itemCnt = data0.length();
     in0.addRef();
@@ -103,7 +103,7 @@ public class MaxDropoutNoiseLayer extends LayerBase {
       input.freeRef();
       return output;
     }).toArray(i -> new Tensor[i]);
-    return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
+    return new Result(TensorArray.wrap(IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       Tensor inputData = data0.get(dataIndex);
       @Nullable final double[] input = inputData.getData();
       @Nullable final double[] maskT = mask[dataIndex].getData();

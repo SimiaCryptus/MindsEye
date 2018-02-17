@@ -69,7 +69,7 @@ public class MeanSqLossLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     if (2 != inObj.length) throw new IllegalArgumentException();
     final int leftLength = inObj[0].getData().length();
     final int rightLength = inObj[1].getData().length();
@@ -78,7 +78,7 @@ public class MeanSqLossLayer extends LayerBase {
       throw new IllegalArgumentException(leftLength + " != " + rightLength);
     }
     @javax.annotation.Nonnull final Tensor diffs[] = new Tensor[leftLength];
-    return new NNResult(TensorArray.wrap(IntStream.range(0, leftLength).mapToObj(dataIndex -> {
+    return new Result(TensorArray.wrap(IntStream.range(0, leftLength).mapToObj(dataIndex -> {
       @javax.annotation.Nullable final Tensor a = inObj[0].getData().get(1 == leftLength ? 0 : dataIndex);
       @javax.annotation.Nullable final Tensor b = inObj[1].getData().get(1 == rightLength ? 0 : dataIndex);
       if (a.dim() != b.dim()) {

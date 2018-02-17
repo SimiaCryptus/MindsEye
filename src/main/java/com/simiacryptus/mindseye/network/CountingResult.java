@@ -38,11 +38,11 @@ import java.util.stream.Stream;
  * compoent in a network can be used multiple times, we can improve efficiency of backprop by accumulating all the
  * backpropigating delta signals into a single signal before evaluating further backwards.
  */
-class CountingNNResult extends NNResult {
+class CountingResult extends Result {
   /**
    * The constant logger.
    */
-  protected static final Logger logger = LoggerFactory.getLogger(CountingNNResult.class);
+  protected static final Logger logger = LoggerFactory.getLogger(CountingResult.class);
   private static final int COMPACTION_SIZE = 4;
   
   /**
@@ -54,14 +54,14 @@ class CountingNNResult extends NNResult {
    * The Inner.
    */
   @javax.annotation.Nonnull
-  private final NNResult inner;
+  private final Result inner;
   
   /**
    * Instantiates a new Counting nn result.
    *
    * @param inner the heapCopy
    */
-  protected CountingNNResult(@javax.annotation.Nonnull final NNResult inner) {
+  protected CountingResult(@javax.annotation.Nonnull final Result inner) {
     super(inner.getData(), new CountingAccumulator(inner));
     this.inner = inner;
     inner.addRef();
@@ -107,7 +107,7 @@ class CountingNNResult extends NNResult {
     private final AtomicInteger references;
     @javax.annotation.Nonnull
     private final AtomicBoolean hasAccumulated;
-    private final NNResult inner;
+    private final Result inner;
     @javax.annotation.Nonnull
     private final LinkedList<TensorList> passbackBuffers;
     @javax.annotation.Nonnull
@@ -118,7 +118,7 @@ class CountingNNResult extends NNResult {
      *
      * @param inner the inner
      */
-    public CountingAccumulator(NNResult inner) {
+    public CountingAccumulator(Result inner) {
       this.inner = inner;
       this.inner.addRef();
       references = new AtomicInteger(0);

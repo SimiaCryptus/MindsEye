@@ -164,10 +164,10 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   
   @javax.annotation.Nullable
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public Result eval(final Result... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     PipelineNetwork explode = explode();
-    NNResult eval = explode.eval(inObj);
+    Result eval = explode.eval(inObj);
     explode.freeRef();
     return eval;
   }

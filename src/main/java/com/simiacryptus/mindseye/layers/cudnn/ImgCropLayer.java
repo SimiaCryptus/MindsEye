@@ -97,10 +97,10 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
   
   @Nullable
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     assert 1 == inObj.length;
-    final NNResult in = inObj[0];
+    final Result in = inObj[0];
     assert 3 == in.getData().getDimensions().length;
     final int length = in.getData().length();
     @Nonnull int[] dimIn = in.getData().getDimensions();
@@ -121,7 +121,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
       gpu.registerForCleanup(inputBuffer);
       return GpuTensorList.wrap(outputBuffer, length, dimOut, precision);
     });
-    return new NNResult(outputData, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+    return new Result(outputData, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
         throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
       }

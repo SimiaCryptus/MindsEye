@@ -50,6 +50,13 @@ public interface ReferenceCounting {
   default void freeRef() {}
   
   /**
+   * Claim ref.
+   *
+   * @param obj the obj
+   */
+  void claimRef(ReferenceCounting obj);
+  
+  /**
    * Add ref.
    *
    * @param obj the obj

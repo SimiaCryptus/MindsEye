@@ -33,7 +33,7 @@ import java.util.UUID;
  * composability; see DAGNetwork for composition details.
  */
 @SuppressWarnings("serial")
-public abstract class LayerBase extends ReferenceCountingBase implements Layer {
+public abstract class LayerBase extends RegisteredObjectBase implements Layer {
   
   private final UUID id;
   /**

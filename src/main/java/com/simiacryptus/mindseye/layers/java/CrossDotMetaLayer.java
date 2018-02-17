@@ -66,8 +66,8 @@ public class CrossDotMetaLayer extends LayerBase {
   
   @Nullable
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
-    final NNResult input = inObj[0];
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+    final Result input = inObj[0];
     final TensorList indata = input.getData();
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     indata.addRef();
@@ -89,7 +89,7 @@ public class CrossDotMetaLayer extends LayerBase {
         results.set(new int[]{i, j}, v);
       }
     }
-    return new NNResult(TensorArray.wrap(results), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    return new Result(TensorArray.wrap(results), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (input.isAlive()) {
         @javax.annotation.Nullable final Tensor deltaTensor = delta.get(0);
         @javax.annotation.Nonnull final Tensor feedback[] = new Tensor[itemCnt];

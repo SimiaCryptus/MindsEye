@@ -67,12 +67,12 @@ public class SumReducerLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
-    return new NNResult(TensorArray.wrap(IntStream.range(0, inObj[0].getData().length()).parallel().mapToDouble(dataIndex -> {
+    return new Result(TensorArray.wrap(IntStream.range(0, inObj[0].getData().length()).parallel().mapToDouble(dataIndex -> {
       double sum = 0;
-      for (@javax.annotation.Nonnull final NNResult element : inObj) {
+      for (@javax.annotation.Nonnull final Result element : inObj) {
         @javax.annotation.Nullable Tensor tensor = element.getData().get(dataIndex);
         @Nullable final double[] input = tensor.getData();
         for (final double element2 : input) {
@@ -82,7 +82,7 @@ public class SumReducerLayer extends LayerBase {
       }
       return sum;
     }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
-      for (@javax.annotation.Nonnull final NNResult in_l : inObj) {
+      for (@javax.annotation.Nonnull final Result in_l : inObj) {
         if (in_l.isAlive()) {
           @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {
             final double delta = data.get(dataIndex).get(0);
@@ -106,7 +106,7 @@ public class SumReducerLayer extends LayerBase {
       
       @Override
       public boolean isAlive() {
-        for (@javax.annotation.Nonnull final NNResult element : inObj)
+        for (@javax.annotation.Nonnull final Result element : inObj)
           if (element.isAlive()) {
             return true;
           }

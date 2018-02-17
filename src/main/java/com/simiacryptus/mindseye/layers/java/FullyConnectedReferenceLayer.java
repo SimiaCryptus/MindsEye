@@ -126,15 +126,15 @@ public class FullyConnectedReferenceLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(final NNResult... inObj) {
-    final NNResult inputResult = inObj[0];
+  public Result eval(final Result... inObj) {
+    final Result inputResult = inObj[0];
     final TensorList indata = inputResult.getData();
     inputResult.addRef();
     indata.addRef();
     @Nonnull int[] inputDimensions = indata.getDimensions();
     assert Tensor.dim(inputDimensions) == Tensor.dim(this.inputDims) : Arrays.toString(inputDimensions) + " == " + Arrays.toString(this.inputDims);
     weights.addRef();
-    return new NNResult(TensorArray.wrap(IntStream.range(0, indata.length()).mapToObj(index -> {
+    return new Result(TensorArray.wrap(IntStream.range(0, indata.length()).mapToObj(index -> {
       @javax.annotation.Nullable final Tensor input = indata.get(index);
       @Nullable final Tensor output = new Tensor(outputDims);
       weights.coordStream(false).forEach(c -> {

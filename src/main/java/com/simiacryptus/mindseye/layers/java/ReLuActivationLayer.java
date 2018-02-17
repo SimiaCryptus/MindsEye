@@ -96,14 +96,14 @@ public class ReLuActivationLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(final NNResult... inObj) {
-    final NNResult input = inObj[0];
+  public Result eval(final Result... inObj) {
+    final Result input = inObj[0];
     final TensorList indata = input.getData();
     input.addRef();
     indata.addRef();
     weights.addRef();
     final int itemCnt = indata.length();
-    return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
+    return new Result(TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       @javax.annotation.Nullable Tensor tensorElement = indata.get(dataIndex);
       @javax.annotation.Nonnull final Tensor tensor = tensorElement.multiply(weights.get(0));
       tensorElement.freeRef();

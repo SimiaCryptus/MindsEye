@@ -200,11 +200,11 @@ public class FullyConnectedLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     final TensorList indata = inObj[0].getData();
     indata.addRef();
-    for (@javax.annotation.Nonnull NNResult nnResult : inObj) {
-      nnResult.addRef();
+    for (@javax.annotation.Nonnull Result result : inObj) {
+      result.addRef();
     }
     FullyConnectedLayer.this.addRef();
     assert Tensor.dim(indata.getDimensions()) == Tensor.dim(this.inputDims) : Arrays.toString(indata.getDimensions()) + " == " + Arrays.toString(this.inputDims);
@@ -219,7 +219,7 @@ public class FullyConnectedLayer extends LayerBase {
     }).toArray(i -> new Tensor[i]));
     RecycleBin.DOUBLES.recycle(matrixObj.data, matrixObj.data.length);
     this.weights.addRef();
-    return new NNResult(tensorArray, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    return new Result(tensorArray, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         final Delta<Layer> deltaBuffer = buffer.get(FullyConnectedLayer.this, this.weights.getData());
         final int threads = 4;
@@ -262,8 +262,8 @@ public class FullyConnectedLayer extends LayerBase {
       protected void _free() {
         indata.freeRef();
         FullyConnectedLayer.this.freeRef();
-        for (@javax.annotation.Nonnull NNResult nnResult : inObj) {
-          nnResult.freeRef();
+        for (@javax.annotation.Nonnull Result result : inObj) {
+          result.freeRef();
         }
         FullyConnectedLayer.this.weights.freeRef();
       }

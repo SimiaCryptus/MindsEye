@@ -67,14 +67,14 @@ public class ProductLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
-    final NNResult in0 = inObj[0];
+    final Result in0 = inObj[0];
     @javax.annotation.Nonnull final double[] sum_A = new double[in0.getData().length()];
     final Tensor[] outputA = IntStream.range(0, in0.getData().length()).mapToObj(dataIndex -> {
       double sum = 1;
-      for (@javax.annotation.Nonnull final NNResult element : inObj) {
+      for (@javax.annotation.Nonnull final Result element : inObj) {
         Tensor tensor = element.getData().get(dataIndex);
         @Nullable final double[] input = tensor.getData();
         for (final double element2 : input) {
@@ -85,8 +85,8 @@ public class ProductLayer extends LayerBase {
       sum_A[dataIndex] = sum;
       return new Tensor(new double[]{sum}, 1);
     }).toArray(i -> new Tensor[i]);
-    return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
-      for (@javax.annotation.Nonnull final NNResult in_l : inObj) {
+    return new Result(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+      for (@javax.annotation.Nonnull final Result in_l : inObj) {
         if (in_l.isAlive()) {
           @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
             Tensor dataTensor = delta.get(dataIndex);
@@ -114,7 +114,7 @@ public class ProductLayer extends LayerBase {
       
       @Override
       public boolean isAlive() {
-        for (@javax.annotation.Nonnull final NNResult element : inObj)
+        for (@javax.annotation.Nonnull final Result element : inObj)
           if (element.isAlive()) {
             return true;
           }

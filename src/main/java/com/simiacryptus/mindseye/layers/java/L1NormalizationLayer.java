@@ -72,12 +72,12 @@ public class L1NormalizationLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... input) {
+  public Result eval(@javax.annotation.Nonnull final Result... input) {
     Arrays.stream(input).forEach(nnResult -> nnResult.addRef());
-    final NNResult in = input[0];
+    final Result in = input[0];
     final TensorList inData = in.getData();
     inData.addRef();
-    return new NNResult(TensorArray.wrap(IntStream.range(0, inData.length()).mapToObj(dataIndex -> {
+    return new Result(TensorArray.wrap(IntStream.range(0, inData.length()).mapToObj(dataIndex -> {
       @javax.annotation.Nullable final Tensor value = inData.get(dataIndex);
       try {
         final double sum = value.sum();

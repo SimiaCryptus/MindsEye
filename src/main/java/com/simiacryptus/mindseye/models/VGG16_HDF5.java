@@ -19,7 +19,7 @@
 package com.simiacryptus.mindseye.models;
 
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
@@ -439,7 +439,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
             int numberOfParameters = layer.state().stream().mapToInt(x -> x.length).sum();
             model.add(layer);
             @javax.annotation.Nonnull int[] prev_dimensions = prototype.getDimensions();
-            NNResult eval = layer.eval(prototype);
+            Result eval = layer.eval(prototype);
             TensorList data = eval.getData();
             if (null != prototype) prototype.freeRef();
             prototype = data.get(0);

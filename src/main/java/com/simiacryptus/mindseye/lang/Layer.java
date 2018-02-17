@@ -152,9 +152,9 @@ public interface Layer extends ReferenceCounting, Serializable {
    * @return the nn result
    */
   @javax.annotation.Nullable
-  default NNResult eval(NNResult... array) {
+  default Result eval(Result... array) {
     Arrays.stream(array).forEach(ReferenceCounting::addRef);
-    Arrays.stream(array).map(NNResult::getData).forEach(ReferenceCounting::addRef);
+    Arrays.stream(array).map(Result::getData).forEach(ReferenceCounting::addRef);
     return evalAndFree(array);
   }
   
@@ -165,10 +165,10 @@ public interface Layer extends ReferenceCounting, Serializable {
    * @return the nn result
    */
   @javax.annotation.Nullable
-  default NNResult evalAndFree(NNResult... array) {
-    NNResult result = eval(array);
+  default Result evalAndFree(Result... array) {
+    Result result = eval(array);
     Arrays.stream(array).forEach(ReferenceCounting::freeRef);
-    Arrays.stream(array).map(NNResult::getData).forEach(ReferenceCounting::freeRef);
+    Arrays.stream(array).map(Result::getData).forEach(ReferenceCounting::freeRef);
     return result;
   }
   
@@ -179,11 +179,11 @@ public interface Layer extends ReferenceCounting, Serializable {
    * @return the nn result
    */
   @javax.annotation.Nullable
-  default NNResult eval(@Nonnull final Tensor... array) {
-    NNResult[] input = NNConstant.singleResultArray(array);
-    NNResult eval = eval(input);
+  default Result eval(@Nonnull final Tensor... array) {
+    Result[] input = ConstantResult.singleResultArray(array);
+    Result eval = eval(input);
     Arrays.stream(input).forEach(ReferenceCounting::freeRef);
-    Arrays.stream(input).map(NNResult::getData).forEach(ReferenceCounting::freeRef);
+    Arrays.stream(input).map(Result::getData).forEach(ReferenceCounting::freeRef);
     return eval;
   }
   
@@ -194,11 +194,11 @@ public interface Layer extends ReferenceCounting, Serializable {
    * @return the nn result
    */
   @javax.annotation.Nullable
-  default NNResult eval(@Nonnull final Tensor[][] array) {
-    NNResult[] input = NNConstant.singleResultArray(array);
-    NNResult eval = eval(input);
+  default Result eval(@Nonnull final Tensor[][] array) {
+    Result[] input = ConstantResult.singleResultArray(array);
+    Result eval = eval(input);
     Arrays.stream(input).forEach(ReferenceCounting::freeRef);
-    Arrays.stream(input).map(NNResult::getData).forEach(ReferenceCounting::freeRef);
+    Arrays.stream(input).map(Result::getData).forEach(ReferenceCounting::freeRef);
     return eval;
   }
   

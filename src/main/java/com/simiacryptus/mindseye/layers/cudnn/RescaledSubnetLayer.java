@@ -23,7 +23,7 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import org.slf4j.Logger;
@@ -99,7 +99,7 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
   
   @Nullable
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public Result eval(final Result... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     log.warn("Not Implemented: " + getClass().getCanonicalName());
     return getCompatibilityLayer().eval(inObj);

@@ -25,7 +25,7 @@ import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.Result;
 
 import java.util.Arrays;
 import java.util.List;
@@ -73,11 +73,11 @@ public class AssertDimensionsLayer extends LayerBase {
   }
   
   @Override
-  public NNResult evalAndFree(@javax.annotation.Nonnull final NNResult... array) {
+  public Result evalAndFree(@javax.annotation.Nonnull final Result... array) {
     if (0 == array.length) {
       throw new IllegalArgumentException();
     }
-    NNResult input = array[0];
+    Result input = array[0];
     if (0 == input.getData().length()) {
       throw new IllegalArgumentException();
     }

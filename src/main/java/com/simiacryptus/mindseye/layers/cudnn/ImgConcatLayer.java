@@ -83,7 +83,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
   
   @Nullable
   @Override
-  public NNResult evalAndFree(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result evalAndFree(@javax.annotation.Nonnull final Result... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
@@ -98,7 +98,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
     if (0 < maxBands && outputDimensions[2] > maxBands) {
       outputDimensions[2] = maxBands;
     }
-    return new NNResult(GpuSystem.eval(gpu -> {
+    return new Result(GpuSystem.eval(gpu -> {
       final long outputSize = ((long) length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
       @javax.annotation.Nonnull final CudaPtr cudaOutput = CudaPtr.allocate(gpu.getDeviceNumber(), outputSize, MemoryType.Managed, true);
       for (int i = 0; i < inObj.length; i++) {
@@ -136,7 +136,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
       @javax.annotation.Nonnull IntStream stream = IntStream.range(0, inObj.length);
       if (!TestUtil.CONSERVATIVE) stream = stream.parallel();
       stream.forEach(i -> {
-        final NNResult input = inObj[i];
+        final Result input = inObj[i];
         @Nonnull int[] inputDimensions = input.getData().getDimensions();
         assert 3 == inputDimensions.length;
         assert delta.length() == input.getData().length();
@@ -171,9 +171,9 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
       
       @Override
       protected void _free() {
-        for (@javax.annotation.Nonnull NNResult nnResult : inObj) {
-          nnResult.freeRef();
-          nnResult.getData().freeRef();
+        for (@javax.annotation.Nonnull Result result : inObj) {
+          result.freeRef();
+          result.getData().freeRef();
         }
       }
       

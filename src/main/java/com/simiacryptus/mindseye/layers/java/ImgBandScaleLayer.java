@@ -101,7 +101,7 @@ public class ImgBandScaleLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public Result eval(final Result... inObj) {
     return eval(inObj[0]);
   }
   
@@ -112,7 +112,7 @@ public class ImgBandScaleLayer extends LayerBase {
    * @return the nn result
    */
   @javax.annotation.Nonnull
-  public NNResult eval(@javax.annotation.Nonnull final NNResult input) {
+  public Result eval(@javax.annotation.Nonnull final Result input) {
     @Nullable final double[] weights = getWeights();
     final TensorList inData = input.getData();
     inData.addRef();
@@ -130,7 +130,7 @@ public class ImgBandScaleLayer extends LayerBase {
       return tensor1;
     };
     Tensor[] data = inData.stream().parallel().map(tensorTensorFunction).toArray(i -> new Tensor[i]);
-    return new NNResult(TensorArray.wrap(data), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    return new Result(TensorArray.wrap(data), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         final Delta<Layer> deltaBuffer = buffer.get(ImgBandScaleLayer.this, weights);
         IntStream.range(0, delta.length()).forEach(index -> {

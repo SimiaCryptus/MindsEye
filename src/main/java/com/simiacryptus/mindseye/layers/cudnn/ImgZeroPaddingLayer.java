@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +88,7 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
   
   @Nullable
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     if (sizeX == 0 && sizeY == 0) {
       inObj[0].getData().addRef();
       inObj[0].addRef();
@@ -97,7 +97,7 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
     assert inObj.length == 1;
     @Nonnull int[] dimensions = inObj[0].getData().getDimensions();
     @Nonnull ImgCropLayer imgCropLayer = new ImgCropLayer(dimensions[0] + 2 * this.sizeX, dimensions[1] + 2 * this.sizeY).setPrecision(precision);
-    @Nullable NNResult eval = imgCropLayer.eval(inObj);
+    @Nullable Result eval = imgCropLayer.eval(inObj);
     imgCropLayer.freeRef();
     return eval;
   }

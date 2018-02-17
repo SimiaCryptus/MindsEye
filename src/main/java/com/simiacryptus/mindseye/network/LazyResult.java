@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
+import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.Singleton;
 
 import javax.annotation.Nullable;
@@ -64,11 +64,11 @@ abstract class LazyResult extends ReferenceCountingBase implements DAGNode {
    * @return the nn result
    */
   @javax.annotation.Nullable
-  protected abstract NNResult eval(GraphEvaluationContext t);
+  protected abstract Result eval(GraphEvaluationContext t);
   
   @Nullable
   @Override
-  public CountingNNResult get(@javax.annotation.Nonnull final GraphEvaluationContext context) {
+  public CountingResult get(@javax.annotation.Nonnull final GraphEvaluationContext context) {
     context.assertAlive();
     assertAlive();
     long expectedCount = context.expectedCounts.getOrDefault(id, -1L);
@@ -81,20 +81,20 @@ abstract class LazyResult extends ReferenceCountingBase implements DAGNode {
         }
       }
       if (null != singleton) {
-        @javax.annotation.Nullable NNResult result = eval(context);
+        @javax.annotation.Nullable Result result = eval(context);
         if (null == result) throw new IllegalStateException();
-        singleton.set(new CountingNNResult(result));
+        singleton.set(new CountingResult(result));
         result.freeRef();
       }
     }
-    Supplier<CountingNNResult> resultSupplier = context.calculated.get(id);
+    Supplier<CountingResult> resultSupplier = context.calculated.get(id);
     if (null == resultSupplier) throw new IllegalStateException();
-    @Nullable CountingNNResult nnResult = null == resultSupplier ? null : resultSupplier.get();
+    @Nullable CountingResult nnResult = null == resultSupplier ? null : resultSupplier.get();
     if (null == nnResult) throw new IllegalStateException();
     int references = nnResult.getAccumulator().increment();
     if (references <= 0) throw new IllegalStateException();
     if (expectedCount >= 0 && references > expectedCount) throw new IllegalStateException();
-    if (references > 0) {
+    if (expectedCount == -1 || references < expectedCount) {
       nnResult.addRef();
       nnResult.getData().addRef();
     }

@@ -212,7 +212,7 @@ public class ClassifyProblem implements Problem {
         @javax.annotation.Nonnull final TableOutput table = new TableOutput();
         Lists.partition(data.validationData().collect(Collectors.toList()), 100).stream().flatMap(batch -> {
           @javax.annotation.Nonnull TensorList batchIn = TensorArray.create(batch.stream().map(x -> x.data).toArray(i -> new Tensor[i]));
-          TensorList batchOut = network.eval(new NNConstant(batchIn)).getData();
+          TensorList batchOut = network.eval(new ConstantResult(batchIn)).getData();
           return IntStream.range(0, batchOut.length())
             .mapToObj(i -> toRow(log, batch.get(i), batchOut.get(i).getData()));
         }).filter(x -> null != x).limit(10).forEach(table::putRow);

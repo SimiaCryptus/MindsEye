@@ -121,7 +121,7 @@ public class ImgBandBiasLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public Result eval(final Result... inObj) {
     return eval(inObj[0]);
   }
   
@@ -132,10 +132,10 @@ public class ImgBandBiasLayer extends LayerBase {
    * @return the nn result
    */
   @javax.annotation.Nonnull
-  public NNResult eval(@javax.annotation.Nonnull final NNResult input) {
+  public Result eval(@javax.annotation.Nonnull final Result input) {
     @Nullable final double[] bias = getBias();
     input.addRef();
-    return new NNResult(TensorArray.wrap(input.getData().stream().parallel()
+    return new Result(TensorArray.wrap(input.getData().stream().parallel()
       .map(r -> {
         if (r.getDimensions().length != 3) {
           throw new IllegalArgumentException(Arrays.toString(r.getDimensions()));

@@ -83,8 +83,8 @@ public class LinearActivationLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(final NNResult... inObj) {
-    final NNResult in0 = inObj[0];
+  public Result eval(final Result... inObj) {
+    final Result in0 = inObj[0];
     final TensorList inData = in0.getData();
     in0.addRef();
     inData.addRef();
@@ -92,7 +92,7 @@ public class LinearActivationLayer extends LayerBase {
     final double scale = weights.get(0);
     final double bias = weights.get(1);
     weights.addRef();
-    return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
+    return new Result(TensorArray.wrap(IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       @javax.annotation.Nullable final Tensor input = inData.get(dataIndex);
       @javax.annotation.Nullable Tensor map = input.map(v -> scale * v + bias);
       input.freeRef();

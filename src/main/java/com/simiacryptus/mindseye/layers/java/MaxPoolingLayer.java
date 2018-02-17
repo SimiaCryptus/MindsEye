@@ -120,11 +120,11 @@ public class MaxPoolingLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    
-    final NNResult in = inObj[0];
+  
+    final Result in = inObj[0];
     in.getData().length();
   
     @javax.annotation.Nonnull final int[] inputDims = in.getData().getDimensions();
@@ -161,7 +161,7 @@ public class MaxPoolingLayer extends LayerBase {
       input.freeRef();
       gradientMapA[dataIndex] = gradientMap;
     });
-    return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new Result(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (in.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
           @javax.annotation.Nonnull final Tensor backSignal = new Tensor(inputDims);

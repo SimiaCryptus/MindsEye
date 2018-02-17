@@ -116,12 +116,12 @@ public final class NthPowerActivationLayer extends LayerBase {
   }
   
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     final int itemCnt = inObj[0].getData().length();
     assert 0 < itemCnt;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     @javax.annotation.Nonnull final Tensor inputGradientA[] = new Tensor[itemCnt];
-    return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
+    return new Result(TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       @javax.annotation.Nullable final Tensor input = inObj[0].getData().get(dataIndex);
       @javax.annotation.Nonnull final Tensor output = new Tensor(inObj[0].getData().getDimensions());
       @javax.annotation.Nonnull final Tensor gradient = new Tensor(input.dim());

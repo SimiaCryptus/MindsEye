@@ -95,8 +95,8 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(final NNResult... inObj) {
-    final NNResult inputResult = inObj[0];
+  public Result eval(final Result... inObj) {
+    final Result inputResult = inObj[0];
     inputResult.addRef();
     final TensorList inputData = inputResult.getData();
     final int itemCnt = inputData.length();
@@ -110,7 +110,7 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
       input.freeRef();
       return output;
     }).toArray(i -> new Tensor[i]);
-    return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
+    return new Result(TensorArray.wrap(IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       Tensor inputTensor = inputData.get(dataIndex);
       @Nullable final double[] input = inputTensor.getData();
       @Nullable final double[] maskT = mask[dataIndex].getData();

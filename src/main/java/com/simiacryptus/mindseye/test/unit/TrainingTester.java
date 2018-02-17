@@ -400,8 +400,8 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
         .orElse("");
     });
     log.p("Which produces the following output:");
-    NNResult[] inputs = NNConstant.batchResultArray(input_target);
-    NNResult eval = network_target.eval(inputs);
+    Result[] inputs = ConstantResult.batchResultArray(input_target);
+    Result eval = network_target.eval(inputs);
     network_target.freeRef();
     Arrays.stream(inputs).forEach(ReferenceCounting::freeRef);
     TensorList result = eval.getData();
@@ -437,8 +437,8 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
         .reduce((a, b) -> a + "\n" + b)
         .orElse("");
     });
-    NNResult[] array = NNConstant.batchResultArray(input_target);
-    @javax.annotation.Nullable NNResult eval = network.eval(array);
+    Result[] array = ConstantResult.batchResultArray(input_target);
+    @javax.annotation.Nullable Result eval = network.eval(array);
     TensorList result = eval.getData();
     final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
     result.freeRef();
@@ -448,8 +448,8 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
       logger.info(String.format("Meta layers not supported. %d != %d", output_target.length, getBatches()));
       return null;
     }
-    
-    for (@javax.annotation.Nonnull NNResult nnResult : array) {
+  
+    for (@javax.annotation.Nonnull Result nnResult : array) {
       nnResult.getData().freeRef();
       nnResult.freeRef();
     }
@@ -484,8 +484,8 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     log.code(() -> {
       return network_target.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
     });
-    NNResult[] array = NNConstant.batchResultArray(input_target);
-    NNResult eval = network_target.eval(array);
+    Result[] array = ConstantResult.batchResultArray(input_target);
+    Result eval = network_target.eval(array);
     Arrays.stream(array).forEach(ReferenceCounting::freeRef);
     TensorList result = eval.getData();
     eval.freeRef();
@@ -608,11 +608,11 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
           }
           log.p("To produce the following output:");
           log.code(() -> {
-            NNResult[] array = NNConstant.batchResultArray(pop(data));
-            @javax.annotation.Nullable NNResult eval = layer.eval(array);
-            for (@javax.annotation.Nonnull NNResult nnResult : array) {
-              nnResult.freeRef();
-              nnResult.getData().freeRef();
+            Result[] array = ConstantResult.batchResultArray(pop(data));
+            @javax.annotation.Nullable Result eval = layer.eval(array);
+            for (@javax.annotation.Nonnull Result result : array) {
+              result.freeRef();
+              result.getData().freeRef();
             }
             TensorList tensorList = eval.getData();
             eval.freeRef();

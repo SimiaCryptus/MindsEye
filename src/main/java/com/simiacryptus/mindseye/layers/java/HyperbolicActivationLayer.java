@@ -85,14 +85,14 @@ public class HyperbolicActivationLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public Result eval(final Result... inObj) {
     final TensorList indata = inObj[0].getData();
     indata.addRef();
     inObj[0].addRef();
     weights.addRef();
     HyperbolicActivationLayer.this.addRef();
     final int itemCnt = indata.length();
-    return new NNResult(TensorArray.wrap(IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
+    return new Result(TensorArray.wrap(IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       @javax.annotation.Nullable final Tensor input = indata.get(dataIndex);
       @javax.annotation.Nullable Tensor map = input.map(v -> {
         final int sign = v < 0 ? negativeMode : 1;

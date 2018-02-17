@@ -63,7 +63,7 @@ public class ProductInputsLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     assert inObj.length > 1;
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
@@ -74,7 +74,7 @@ public class ProductInputsLayer extends LayerBase {
         throw new IllegalArgumentException(Arrays.toString(inObj[0].getData().getDimensions()) + " != " + Arrays.toString(inObj[i].getData().getDimensions()));
       }
     }
-    return new NNResult(Arrays.stream(inObj).parallel().map(x -> {
+    return new Result(Arrays.stream(inObj).parallel().map(x -> {
       TensorList data = x.getData();
       data.addRef();
       return data;
@@ -92,7 +92,7 @@ public class ProductInputsLayer extends LayerBase {
       r.freeRef();
       return productArray;
     }).get(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
-      for (@javax.annotation.Nonnull final NNResult input : inObj) {
+      for (@javax.annotation.Nonnull final Result input : inObj) {
         if (input.isAlive()) {
           @javax.annotation.Nonnull TensorList passback = Arrays.stream(inObj).parallel().map(x -> {
             TensorList tensorList = x == input ? delta : x.getData();
@@ -141,7 +141,7 @@ public class ProductInputsLayer extends LayerBase {
       
       @Override
       public boolean isAlive() {
-        for (@javax.annotation.Nonnull final NNResult element : inObj)
+        for (@javax.annotation.Nonnull final Result element : inObj)
           if (element.isAlive()) {
             return true;
           }

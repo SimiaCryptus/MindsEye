@@ -246,15 +246,15 @@ public abstract class DAGNetwork extends LayerBase {
    * @return the graph evaluation context
    */
   @javax.annotation.Nonnull
-  public GraphEvaluationContext buildExeCtx(@javax.annotation.Nonnull final NNResult... inputs) {
+  public GraphEvaluationContext buildExeCtx(@javax.annotation.Nonnull final Result... inputs) {
     assert inputs.length == inputHandles.size() : inputs.length + " != " + inputHandles.size();
     @javax.annotation.Nonnull final GraphEvaluationContext context = new GraphEvaluationContext();
     for (int i = 0; i < inputs.length; i++) {
       UUID key = inputHandles.get(i);
-      NNResult input = inputs[i];
+      Result input = inputs[i];
       if (!context.calculated.containsKey(key)) {
         input.getData().addRef();
-        context.calculated.put(key, new Singleton<CountingNNResult>().set(new CountingNNResult(input)));
+        context.calculated.put(key, new Singleton<CountingResult>().set(new CountingResult(input)));
       }
     }
     context.expectedCounts.putAll(getNodes().stream().flatMap(t -> {
@@ -271,16 +271,16 @@ public abstract class DAGNetwork extends LayerBase {
   
   @javax.annotation.Nullable
   @Override
-  public NNResult eval(final NNResult... input) {
+  public Result eval(final Result... input) {
     assertAlive();
     @javax.annotation.Nonnull GraphEvaluationContext buildExeCtx = buildExeCtx(input);
-    @javax.annotation.Nullable NNResult nnResult;
+    @javax.annotation.Nullable Result result;
     try {
-      nnResult = getHead().get(buildExeCtx);
+      result = getHead().get(buildExeCtx);
     } finally {
       buildExeCtx.freeRef();
     }
-    return nnResult;
+    return result;
   }
   
   /**

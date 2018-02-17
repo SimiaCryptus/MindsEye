@@ -73,7 +73,7 @@ public class MaxImageBandLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     
     assert 1 == inObj.length;
     final TensorList inputData = inObj[0].getData();
@@ -91,7 +91,7 @@ public class MaxImageBandLayer extends LayerBase {
       return coordinates;
     }).toArray(i -> new Coordinate[i][]);
   
-    return new NNResult(TensorArray.wrap(IntStream.range(0, inputData.length()).mapToObj(dataIndex -> {
+    return new Result(TensorArray.wrap(IntStream.range(0, inputData.length()).mapToObj(dataIndex -> {
       Tensor tensor = inputData.get(dataIndex);
       final DoubleStream doubleStream = IntStream.range(0, inputDims[2]).mapToDouble(band -> {
         final int[] maxCoord = maxCoords[dataIndex][band].getCoords();

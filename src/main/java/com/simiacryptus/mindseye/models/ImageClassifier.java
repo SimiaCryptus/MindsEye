@@ -73,13 +73,13 @@ public abstract class ImageClassifier {
         Tensor[][] input = {
           batch.stream().map(prefilter).toArray(i -> new Tensor[i])
         };
-        NNResult[] inputs = NNConstant.singleResultArray(input);
-        @Nullable NNResult nnResult = network.eval(inputs);
-        nnResult.freeRef();
-        TensorList resultData = nnResult.getData();
+        Result[] inputs = ConstantResult.singleResultArray(input);
+        @Nullable Result result = network.eval(inputs);
+        result.freeRef();
+        TensorList resultData = result.getData();
         Arrays.stream(input).flatMap(Arrays::stream).forEach(ReferenceCounting::freeRef);
         Arrays.stream(inputs).forEach(ReferenceCounting::freeRef);
-        Arrays.stream(inputs).map(NNResult::getData).forEach(ReferenceCounting::freeRef);
+        Arrays.stream(inputs).map(Result::getData).forEach(ReferenceCounting::freeRef);
   
         List<LinkedHashMap<String, Double>> maps = resultData.stream().map(tensor -> {
           @Nullable double[] predictionSignal = tensor.getData();

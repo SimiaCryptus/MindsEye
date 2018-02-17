@@ -31,14 +31,15 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 /**
  * This convolution layer only supports an equal number of input and output bands. It is used as the foundational
@@ -64,7 +65,6 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   private Precision precision = Precision.Double;
   private int strideX = 1;
   private int strideY = 1;
-  private static final Set<WeakReference<SimpleConvolutionLayer>> instances = new HashSet<>();
   private final Map<Integer, CudaPtr> gpuFilters = new ConcurrentHashMap<>();
   
   /**
@@ -83,6 +83,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
    */
   public SimpleConvolutionLayer(final int width, final int height, final int bands) {
     this(new Tensor(width, height, bands));
+    kernel.freeRef();
     assert !false || 0 == (width - 1) % 2 : "Simple kernels must have odd width";
     assert !false || 0 == (height - 1) % 2 : "Simple kernels must have odd height";
   }
@@ -95,7 +96,6 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
    */
   protected SimpleConvolutionLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> resources) {
     super(json);
-    instances.add(new WeakReference<>(this));
     kernel = Tensor.fromJson(json.get("filter"), resources);
     strideX = json.get("strideX").getAsInt();
     strideY = json.get("strideY").getAsInt();
@@ -111,14 +111,13 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
    */
   protected SimpleConvolutionLayer(@javax.annotation.Nonnull final Tensor kernel) {
     super();
-    instances.add(new WeakReference<>(this));
     @javax.annotation.Nonnull int[] kernelSize = kernel.getDimensions();
     if (kernelSize.length != 3) throw new IllegalArgumentException();
     if (kernelSize[0] <= 0) throw new IllegalArgumentException();
     if (kernelSize[1] <= 0) throw new IllegalArgumentException();
     if (kernelSize[2] <= 0) throw new IllegalArgumentException();
     this.kernel = kernel;
-    this.kernel.addRef();
+    this.kernel.addRef(this);
     this.setPaddingX((int) Math.ceil((kernelSize[0] - 1) / 2.0));
     this.setPaddingY((int) Math.ceil((kernelSize[1] - 1) / 2.0));
     
@@ -206,21 +205,12 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     return outputSize[2] == outputDims[1];
   }
   
-  /**
-   * Gets instances.
-   *
-   * @return the instances
-   */
-  public static Stream<SimpleConvolutionLayer> getInstances() {
-    return instances.stream().map(x -> x.get()).filter(x -> x != null && !x.isFinalized());
-  }
-  
   @javax.annotation.Nullable
   @Override
-  public NNResult evalAndFree(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result evalAndFree(@javax.annotation.Nonnull final Result... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
-    
-    final NNResult input = inObj[0];
+  
+    final Result input = inObj[0];
     final TensorList inputData = input.getData();
     @Nonnull final int[] inputSize = inputData.getDimensions();
     @javax.annotation.Nonnull final int[] kernelSize = kernel.getDimensions();
@@ -228,7 +218,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     final int length = inputData.length();
     kernel.addRef();
     SimpleConvolutionLayer.this.addRef();
-    return new NNResult(GpuSystem.eval(gpu -> {
+    return new Result(GpuSystem.eval(gpu -> {
       try {
         final int deviceNumber = gpu.getDeviceNumber();
         @Nullable CudaFwdParameters cudaParameters = obtainFwd(new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu));
@@ -379,9 +369,9 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   
   @Override
   protected void _free() {
+    kernel.freeRef(this);
     clearCudaFilters();
     super._free();
-    kernel.freeRef();
   }
   
   /**
@@ -407,10 +397,10 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     return new LayerBase() {
       @javax.annotation.Nonnull
       @Override
-      public NNResult eval(@javax.annotation.Nonnull NNResult... array) {
+      public Result eval(@javax.annotation.Nonnull Result... array) {
         Arrays.stream(array).forEach(x -> x.addRef());
-        @Nonnull NNResult result = convolutionLayer.eval(array);
-        return new NNResult(result.getData(), (DeltaSet<Layer> buffer, TensorList data) -> {
+        @Nonnull Result result = convolutionLayer.eval(array);
+        return new Result(result.getData(), (DeltaSet<Layer> buffer, TensorList data) -> {
           throw new IllegalStateException();
         }) {
   

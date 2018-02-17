@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.Result;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -76,11 +76,11 @@ public class ImgZeroPaddingLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     assert inObj.length == 1;
     @Nonnull int[] dimensions = inObj[0].getData().getDimensions();
     ImgCropLayer imgCropLayer = new ImgCropLayer(dimensions[0] + 2 * this.sizeX, dimensions[1] + 2 * this.sizeY);
-    NNResult eval = imgCropLayer.eval(inObj);
+    Result eval = imgCropLayer.eval(inObj);
     imgCropLayer.freeRef();
     return eval;
   }

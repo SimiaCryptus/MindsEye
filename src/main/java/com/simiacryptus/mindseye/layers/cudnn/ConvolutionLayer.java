@@ -200,7 +200,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   
   @javax.annotation.Nullable
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     final Tensor kernel = getKernel();
     kernel.addRef();
     assert kernel.isValid();
@@ -213,14 +213,14 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     if (isFrozen()) {
       network.freeze();
     }
-    final NNResult result = network.eval(inObj);
+    final Result result = network.eval(inObj);
     network.freeRef();
     final TensorList resultData = result.getData();
     assert inObj[0].getData().length() == resultData.length();
     assert 3 == resultData.getDimensions().length;
     assert outputBands == resultData.getDimensions()[2];
     ConvolutionLayer.this.addRef();
-    return new NNResult(resultData, (@javax.annotation.Nonnull final DeltaSet<Layer> deltaSet, @javax.annotation.Nonnull final TensorList delta) -> {
+    return new Result(resultData, (@javax.annotation.Nonnull final DeltaSet<Layer> deltaSet, @javax.annotation.Nonnull final TensorList delta) -> {
       result.accumulate(deltaSet, delta);
       if (!isFrozen()) {
         Tensor read = grid.read(deltaSet, true);

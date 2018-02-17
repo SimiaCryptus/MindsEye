@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 /**
  * An on-heap implementation of the TensorList data container.
  */
-public class TensorArray extends ReferenceCountingBase implements TensorList {
+public class TensorArray extends RegisteredObjectBase implements TensorList {
   @javax.annotation.Nonnull
   private final Tensor[] data;
   

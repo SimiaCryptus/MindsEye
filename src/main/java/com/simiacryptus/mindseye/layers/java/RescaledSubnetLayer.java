@@ -87,7 +87,7 @@ public class RescaledSubnetLayer extends LayerBase {
   
   @javax.annotation.Nullable
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     assert 1 == inObj.length;
     final TensorList batch = inObj[0].getData();
     @javax.annotation.Nonnull final int[] inputDims = batch.getDimensions();
@@ -104,8 +104,8 @@ public class RescaledSubnetLayer extends LayerBase {
       return network.add(subnetwork, network.wrap(new ImgBandSelectLayer(select), condensed));
     }).toArray(i -> new DAGNode[i]));
     network.wrap(new ImgReshapeLayer(scale, scale, true));
-    
-    NNResult eval = network.eval(inObj);
+  
+    Result eval = network.eval(inObj);
     network.freeRef();
     return eval;
   }

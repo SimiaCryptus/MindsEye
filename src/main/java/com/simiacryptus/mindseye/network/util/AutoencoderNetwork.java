@@ -126,7 +126,7 @@ public class AutoencoderNetwork {
    */
   public TensorList encode(@javax.annotation.Nonnull final TensorList data) {
     return encoder.getLayer()
-      .eval(NNConstant.batchResultArray(data.stream().map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
+      .eval(ConstantResult.batchResultArray(data.stream().map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
       .getData();
   }
   

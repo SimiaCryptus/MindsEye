@@ -29,23 +29,18 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.lang.ref.WeakReference;
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
  * A TensorList data object stored on a GPU with a configurable precision.
  */
-public class GpuTensorList extends ReferenceCountingBase implements TensorList {
+public class GpuTensorList extends RegisteredObjectBase implements TensorList {
   /**
    * The constant logger.
    */
   protected static final Logger logger = LoggerFactory.getLogger(GpuTensorList.class);
-  private static final ConcurrentLinkedDeque<WeakReference<GpuTensorList>> INSTANCES = new ConcurrentLinkedDeque<>();
-  private static long lastCleanTime = 0;
   @javax.annotation.Nonnull
   private final int[] dimensions;
   private final int length;
@@ -75,8 +70,6 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
     assert ptr.size == (long) length * Tensor.dim(dimensions) * precision.size;
     assert ptr.getPtr() != null;
     //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-    @javax.annotation.Nonnull GpuTensorList self = this;
-    addInstance(self);
   }
   
   /**
@@ -86,8 +79,9 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
    */
   public static void evictToHeap(int deviceId) {
     long size;
-    synchronized (INSTANCES) {
-      size = INSTANCES.stream().map(x -> x.get()).filter(x -> null != x && !x.isFinalized() && (x.getDeviceId() == deviceId || deviceId < 0 || x.getDeviceId() < 0))
+    synchronized (GpuTensorList.class) {
+      size = RegisteredObjectBase.getLivingInstances(GpuTensorList.class)
+        .filter(x -> (x.getDeviceId() == deviceId || deviceId < 0 || x.getDeviceId() < 0))
         .mapToLong(GpuTensorList::evictToHeap).sum();
     }
     logger.info(String.format("Cleared %s bytes from GpuTensorLists for device %s", size, deviceId));
@@ -95,21 +89,6 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
   
   private int getDeviceId() {
     return null == ptr ? -1 : ptr.getDeviceId();
-  }
-  
-  private static void addInstance(GpuTensorList self) {
-    long now = System.currentTimeMillis();
-    if (now - lastCleanTime > 1000) {
-      synchronized (INSTANCES) {
-        @javax.annotation.Nonnull Iterator<WeakReference<GpuTensorList>> iterator = INSTANCES.iterator();
-        while (iterator.hasNext()) {
-          @Nullable GpuTensorList next = iterator.next().get();
-          if (null == next) iterator.remove();
-        }
-        lastCleanTime = now;
-      }
-    }
-    INSTANCES.add(new WeakReference<>(self));
   }
   
   /**

@@ -78,8 +78,8 @@ public class ImgBandSelectLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
-    final NNResult input = inObj[0];
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+    final Result input = inObj[0];
     final TensorList batch = input.getData();
     @javax.annotation.Nonnull final int[] inputDims = batch.getDimensions();
     assert 3 == inputDims.length;
@@ -95,7 +95,7 @@ public class ImgBandSelectLayer extends LayerBase {
       }))
       .toArray(i -> new Tensor[i]));
     outputDims.freeRef();
-    return new NNResult(wrap, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+    return new Result(wrap, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       if (input.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
           .mapToObj(dataIndex -> {

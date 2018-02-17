@@ -168,10 +168,10 @@ public class ConvolutionLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    
-    final NNResult input = inObj[0];
+  
+    final Result input = inObj[0];
     final TensorList batch = input.getData();
     batch.addRef();
     @javax.annotation.Nonnull final int[] inputDims = batch.get(0).getDimensions();
@@ -193,7 +193,7 @@ public class ConvolutionLayer extends LayerBase {
       throw new RuntimeException("Error mapCoords image res " + Arrays.toString(inputDims), e);
     }
     int outputLength = output.length;
-    return new NNResult(TensorArray.wrap(output), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+    return new Result(TensorArray.wrap(output), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       if (!isFrozen()) {
         final double[][] inputBuffers = batch.stream().map(x -> {
           @Nullable double[] data = x.getData();

@@ -40,21 +40,21 @@ class GraphEvaluationContext extends ReferenceCountingBase {
   /**
    * The Calculated.
    */
-  final Map<UUID, Supplier<CountingNNResult>> calculated = new ConcurrentHashMap<>();
+  final Map<UUID, Supplier<CountingResult>> calculated = new ConcurrentHashMap<>();
   
   @Override
   protected synchronized void _free() {
     calculated.entrySet().stream().filter(e -> {
-      Supplier<CountingNNResult> x = e.getValue();
-      CountingNNResult countingNNResult = x.get();
+      Supplier<CountingResult> x = e.getValue();
+      CountingResult countingNNResult = x.get();
       if (expectedCounts.containsKey(e.getKey())) {
-        return expectedCounts.get(e.getKey()) < countingNNResult.getAccumulator().getCount();
+        return expectedCounts.get(e.getKey()) > countingNNResult.getAccumulator().getCount();
       }
       else {
         return true;
       }
     }).forEach(x -> {
-      CountingNNResult result = x.getValue().get();
+      CountingResult result = x.getValue().get();
       result.freeRef();
       result.getData().freeRef();
     });

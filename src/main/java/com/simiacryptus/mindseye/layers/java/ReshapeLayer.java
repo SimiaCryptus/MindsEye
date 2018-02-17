@@ -84,13 +84,13 @@ public class ReshapeLayer extends LayerBase {
   
   @Nullable
   @Override
-  public NNResult evalAndFree(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result evalAndFree(@javax.annotation.Nonnull final Result... inObj) {
     assert 1 == inObj.length;
     TensorList data = inObj[0].getData();
     @Nonnull int[] inputDims = data.getDimensions();
     ReshapedTensorList reshapedTensorList = new ReshapedTensorList(data, outputDims);
     data.freeRef();
-    return new NNResult(reshapedTensorList, (DeltaSet<Layer> buffer, TensorList delta) -> {
+    return new Result(reshapedTensorList, (DeltaSet<Layer> buffer, TensorList delta) -> {
       @javax.annotation.Nonnull ReshapedTensorList tensorList = new ReshapedTensorList(delta, inputDims);
       inObj[0].accumulate(buffer, tensorList);
       tensorList.freeRef();
@@ -98,8 +98,8 @@ public class ReshapeLayer extends LayerBase {
       
       @Override
       protected void _free() {
-        for (@javax.annotation.Nonnull NNResult nnResult : inObj) {
-          nnResult.freeRef();
+        for (@javax.annotation.Nonnull Result result : inObj) {
+          result.freeRef();
         }
       }
       

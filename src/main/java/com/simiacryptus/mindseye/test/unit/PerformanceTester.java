@@ -204,20 +204,20 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   @javax.annotation.Nonnull
   protected Tuple2<Double, Double> testPerformance(@javax.annotation.Nonnull final Layer component, final Tensor... inputPrototype) {
     final Tensor[][] data = IntStream.range(0, batches).mapToObj(x -> x).flatMap(x -> Stream.<Tensor[]>of(inputPrototype)).toArray(i -> new Tensor[i][]);
-    @javax.annotation.Nonnull TimedResult<NNResult> timedEval = TimedResult.time(() -> {
-      NNResult[] input = NNConstant.batchResultArray(data);
-      @javax.annotation.Nullable NNResult result;
+    @javax.annotation.Nonnull TimedResult<Result> timedEval = TimedResult.time(() -> {
+      Result[] input = ConstantResult.batchResultArray(data);
+      @javax.annotation.Nullable Result result;
       try {
         result = component.eval(input);
       } finally {
-        for (@javax.annotation.Nonnull NNResult nnResult : input) {
+        for (@javax.annotation.Nonnull Result nnResult : input) {
           nnResult.freeRef();
           nnResult.getData().freeRef();
         }
       }
       return result;
     });
-    final NNResult result = timedEval.result;
+    final Result result = timedEval.result;
     @javax.annotation.Nonnull final DeltaSet<Layer> buffer = new DeltaSet<Layer>();
     try {
       long timedBackprop = TimedResult.time(() -> {

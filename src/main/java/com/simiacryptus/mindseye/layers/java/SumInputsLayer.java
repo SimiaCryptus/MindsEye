@@ -63,10 +63,10 @@ public class SumInputsLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
-    return new NNResult(Arrays.stream(inObj).parallel().map(x -> {
+    return new Result(Arrays.stream(inObj).parallel().map(x -> {
       TensorList data = x.getData();
       data.addRef();
       return data;
@@ -92,7 +92,7 @@ public class SumInputsLayer extends LayerBase {
       r.freeRef();
       return sum;
     }).get(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
-      for (@javax.annotation.Nonnull final NNResult input : inObj) {
+      for (@javax.annotation.Nonnull final Result input : inObj) {
         if (input.isAlive()) {
           @javax.annotation.Nonnull TensorList projectedDelta = delta;
           if (1 < projectedDelta.length() && input.getData().length() == 1) {
@@ -125,7 +125,7 @@ public class SumInputsLayer extends LayerBase {
       
       @Override
       public boolean isAlive() {
-        for (@javax.annotation.Nonnull final NNResult element : inObj)
+        for (@javax.annotation.Nonnull final Result element : inObj)
           if (element.isAlive()) {
             return true;
           }

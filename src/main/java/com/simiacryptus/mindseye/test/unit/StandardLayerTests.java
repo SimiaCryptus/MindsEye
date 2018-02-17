@@ -421,9 +421,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       @javax.annotation.Nullable Layer wrapper = new LayerBase() {
         @Nullable
         @Override
-        public NNResult eval(@Nonnull NNResult... array) {
+        public Result eval(@Nonnull Result... array) {
           if (null == inner) return null;
-          @javax.annotation.Nullable NNResult result = inner.eval(array);
+          @javax.annotation.Nullable Result result = inner.eval(array);
           invocations.add(new Invocation(inner, Arrays.stream(array).map(x -> x.getData().getDimensions()).toArray(i -> new int[i][])));
           return result;
         }
@@ -449,7 +449,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     });
     Tensor[] input = Arrays.stream(smallDims).map(i -> new Tensor(i)).toArray(i -> new Tensor[i]);
     try {
-      NNResult eval = smallCopy.eval(input);
+      Result eval = smallCopy.eval(input);
       eval.freeRef();
       eval.getData().freeRef();
       return invocations;

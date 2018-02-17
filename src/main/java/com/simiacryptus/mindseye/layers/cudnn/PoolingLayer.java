@@ -99,14 +99,14 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   
   @Nullable
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final int poolDims = 2;
     @javax.annotation.Nonnull final int windowSize[] = {windowX, windowY};
     @javax.annotation.Nonnull final int padding[] = {paddingX, paddingY};
     @javax.annotation.Nonnull final int stride[] = {strideX, strideY};
-    final NNResult input = inObj[0];
+    final Result input = inObj[0];
     final TensorList batch = input.getData();
     @Nonnull final int[] inputSize = batch.getDimensions();
     final int length = batch.length();
@@ -139,7 +139,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
         throw new ComponentException("Error", e);
       }
     });
-    return new NNResult(GpuTensorList.create(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, precision),
+    return new Result(GpuTensorList.create(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, precision),
       (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
         assert error.length() == batch.length();
         if (input.isAlive()) {

@@ -72,7 +72,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
    * @param mask the mask
    * @return the nn result [ ]
    */
-  public static NNResult[] getNNContext(@Nullable final List<Tensor[]> data, @Nullable final boolean[] mask) {
+  public static Result[] getNNContext(@Nullable final List<Tensor[]> data, @Nullable final boolean[] mask) {
     if (null == data) throw new IllegalArgumentException();
     if (0 >= data.size()) throw new IllegalArgumentException();
     final int cols = data.get(0).length;
@@ -80,10 +80,10 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
       final Tensor[] tensors = IntStream.range(0, data.size()).mapToObj(row -> data.get(row)[col]).toArray(i -> new Tensor[i]);
       @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.create(tensors);
       if (null == mask || col >= mask.length || !mask[col]) {
-        return new NNConstant(tensorArray);
+        return new ConstantResult(tensorArray);
       }
       else {
-        return new NNResult(tensorArray, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+        return new Result(tensorArray, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
           for (int index = 0; index < delta.length(); index++) {
             final Tensor dt = delta.get(index);
             @javax.annotation.Nullable final double[] d = dt.getData();
@@ -102,7 +102,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
           }
         };
       }
-    }).toArray(x1 -> new NNResult[x1]);
+    }).toArray(x1 -> new Result[x1]);
   }
   
   /**
@@ -115,9 +115,9 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
   @Nonnull
   protected PointSample eval(@javax.annotation.Nonnull final List<Tensor[]> list, @Nullable final TrainingMonitor monitor) {
     @javax.annotation.Nonnull final TimedResult<PointSample> timedResult = TimedResult.time(() -> {
-      final NNResult[] nnContext = BasicTrainable.getNNContext(list, mask);
-      final NNResult result = network.eval(nnContext);
-      for (@javax.annotation.Nonnull NNResult nnResult : nnContext) {
+      final Result[] nnContext = BasicTrainable.getNNContext(list, mask);
+      final Result result = network.eval(nnContext);
+      for (@javax.annotation.Nonnull Result nnResult : nnContext) {
         nnResult.getData().freeRef();
         nnResult.freeRef();
       }

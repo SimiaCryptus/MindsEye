@@ -83,8 +83,8 @@ public class GaussianNoiseLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(final NNResult... inObj) {
-    final NNResult in0 = inObj[0];
+  public Result eval(final Result... inObj) {
+    final Result in0 = inObj[0];
     final TensorList inputData = in0.getData();
     final int itemCnt = inputData.length();
     in0.addRef();
@@ -98,7 +98,7 @@ public class GaussianNoiseLayer extends LayerBase {
       input.freeRef();
       return output;
     }).toArray(i -> new Tensor[i]);
-    return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    return new Result(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (in0.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           Tensor tensor = delta.get(dataIndex);

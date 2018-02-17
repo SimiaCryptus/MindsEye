@@ -147,7 +147,7 @@ public class SparkTrainable extends TrainableBase {
   protected DeltaSet<Layer> getDelta(@javax.annotation.Nonnull final SparkTrainable.ReducableResult reduce) {
     @javax.annotation.Nonnull final DeltaSet<Layer> xxx = new DeltaSet<Layer>();
     final Tensor[] prototype = dataRDD.toJavaRDD().take(1).get(0);
-    final NNResult result = network.eval(NNConstant.batchResultArray(new Tensor[][]{prototype}));
+    final Result result = network.eval(ConstantResult.batchResultArray(new Tensor[][]{prototype}));
     result.accumulate(xxx, 0);
     reduce.accumulate(xxx);
     return xxx;

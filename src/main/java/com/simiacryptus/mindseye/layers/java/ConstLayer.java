@@ -72,10 +72,10 @@ public class ConstLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... array) {
+  public Result eval(@javax.annotation.Nonnull final Result... array) {
     Arrays.stream(array).forEach(nnResult -> nnResult.addRef());
     ConstLayer.this.addRef();
-    return new NNResult(TensorArray.create(data), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new Result(TensorArray.create(data), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (!isFrozen()) {
         data.stream().forEach(datum -> {
           buffer.get(ConstLayer.this, ConstLayer.this.data.getData()).addInPlace(datum.getData()).freeRef();

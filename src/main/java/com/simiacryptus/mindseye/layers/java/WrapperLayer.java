@@ -23,7 +23,7 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.Result;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -76,7 +76,7 @@ public abstract class WrapperLayer extends LayerBase {
   
   @javax.annotation.Nullable
   @Override
-  public NNResult eval(final NNResult... array) {
+  public Result eval(final Result... array) {
     return inner.eval(array);
   }
   

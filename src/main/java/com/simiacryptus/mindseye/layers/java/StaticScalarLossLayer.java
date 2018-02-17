@@ -69,14 +69,14 @@ public class StaticScalarLossLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     if (1 != inObj.length) throw new IllegalArgumentException();
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     //if (inObj[0].getData().length() != 1) throw new IllegalArgumentException();
-    final NNResult in0 = inObj[0];
+    final Result in0 = inObj[0];
     TensorList indata = in0.getData();
     indata.addRef();
-    return new NNResult(TensorArray.wrap(IntStream.range(0, indata.length()).parallel().mapToObj(dataIndex -> {
+    return new Result(TensorArray.wrap(IntStream.range(0, indata.length()).parallel().mapToObj(dataIndex -> {
       @Nullable final Tensor a = indata.get(dataIndex);
       final double diff = Math.abs(a.get(0) - getTarget());
       a.freeRef();

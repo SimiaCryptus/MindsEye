@@ -69,8 +69,8 @@ public class MaxMetaLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(final NNResult... inObj) {
-    final NNResult input = inObj[0];
+  public Result eval(final Result... inObj) {
+    final Result input = inObj[0];
     input.addRef();
     final int itemCnt = input.getData().length();
     final Tensor input0Tensor = input.getData().get(0);
@@ -86,7 +86,7 @@ public class MaxMetaLayer extends LayerBase {
           return v;
         })).get();
     }
-    return new NNResult(TensorArray.wrap(input0Tensor.mapIndex((v, c) -> {
+    return new Result(TensorArray.wrap(input0Tensor.mapIndex((v, c) -> {
       Tensor tensor = input.getData().get(indicies[c]);
       double v1 = tensor.getData()[c];
       tensor.freeRef();

@@ -73,7 +73,7 @@ public class SoftmaxActivationLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     final int itemCnt = inObj[0].getData().length();
     @javax.annotation.Nonnull final double[] sumA = new double[itemCnt];
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
@@ -102,7 +102,7 @@ public class SoftmaxActivationLayer extends LayerBase {
       return result;
     }).toArray(i -> new Tensor[i]);
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new Result(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
         final Tensor[] passbackA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
           Tensor deltaTensor = data.get(dataIndex);

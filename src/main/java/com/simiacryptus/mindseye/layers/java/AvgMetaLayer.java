@@ -85,8 +85,8 @@ public class AvgMetaLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(final NNResult... inObj) {
-    final NNResult input = inObj[0];
+  public Result eval(final Result... inObj) {
+    final Result input = inObj[0];
     input.addRef();
     TensorList inputData = input.getData();
     final int itemCnt = inputData.length();
@@ -115,7 +115,7 @@ public class AvgMetaLayer extends LayerBase {
       thisResult = lastResult;
       thisResult.freeRef();
     }
-    return new NNResult(TensorArray.create(thisResult), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new Result(TensorArray.create(thisResult), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (passback && input.isAlive()) {
         @javax.annotation.Nullable final Tensor delta = data.get(0);
         @javax.annotation.Nonnull final Tensor feedback[] = new Tensor[itemCnt];

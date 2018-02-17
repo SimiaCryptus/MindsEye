@@ -72,7 +72,7 @@ public class ImgConcatLayer extends LayerBase {
   
   @Nullable
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     assert Arrays.stream(inObj).allMatch(x -> x.getData().getDimensions().length == 3) : "This component is for use mapCoords 3d image tensors only";
     final int numBatches = inObj[0].getData().length();
@@ -97,7 +97,7 @@ public class ImgConcatLayer extends LayerBase {
       }
       outputTensors.add(outputTensor);
     }
-    return new NNResult(TensorArray.wrap(outputTensors.toArray(new Tensor[]{})), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new Result(TensorArray.wrap(outputTensors.toArray(new Tensor[]{})), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       assert numBatches == data.length();
       
       @javax.annotation.Nonnull final List<Tensor[]> splitBatches = new ArrayList<>();
@@ -140,7 +140,7 @@ public class ImgConcatLayer extends LayerBase {
       
       @Override
       public boolean isAlive() {
-        for (@javax.annotation.Nonnull final NNResult element : inObj)
+        for (@javax.annotation.Nonnull final Result element : inObj)
           if (element.isAlive()) {
             return true;
           }

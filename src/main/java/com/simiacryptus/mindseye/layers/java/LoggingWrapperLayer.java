@@ -71,11 +71,11 @@ public final class LoggingWrapperLayer extends WrapperLayer {
   }
   
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
-    final NNResult[] wrappedInput = IntStream.range(0, inObj.length).mapToObj(i -> {
-      final NNResult inputToWrap = inObj[i];
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+    final Result[] wrappedInput = IntStream.range(0, inObj.length).mapToObj(i -> {
+      final Result inputToWrap = inObj[i];
       inputToWrap.addRef();
-      return new NNResult(inputToWrap.getData(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+      return new Result(inputToWrap.getData(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
         @javax.annotation.Nonnull final String formatted = data.stream().map(x -> {
           String str = x.prettyPrint();
           x.freeRef();
@@ -96,7 +96,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
           return inputToWrap.isAlive();
         }
       };
-    }).toArray(i -> new NNResult[i]);
+    }).toArray(i -> new Result[i]);
     for (int i = 0; i < inObj.length; i++) {
       final TensorList tensorList = inObj[i].getData();
       @javax.annotation.Nonnull final String formatted = tensorList.stream().map(x -> {
@@ -106,7 +106,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
       }).reduce((a, b) -> a + "\n" + b).get();
       log.info(String.format("Input %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
     }
-    @Nullable final NNResult output = getInner().eval(wrappedInput);
+    @Nullable final Result output = getInner().eval(wrappedInput);
     Arrays.stream(wrappedInput).forEach(ReferenceCounting::freeRef);
     {
       final TensorList tensorList = output.getData();
@@ -118,7 +118,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
         .reduce((a, b) -> a + "\n" + b).get();
       log.info(String.format("Output for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
     }
-    return new NNResult(output.getData(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new Result(output.getData(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       @javax.annotation.Nonnull final String formatted = data.stream().map(x -> {
         String str = x.prettyPrint();
         x.freeRef();

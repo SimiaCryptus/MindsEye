@@ -23,7 +23,7 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import org.slf4j.Logger;
@@ -85,9 +85,9 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
   
   @Nullable
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public Result eval(final Result... inObj) {
     Layer compatibilityLayer = getCompatibilityLayer();
-    NNResult eval = compatibilityLayer.eval(inObj);
+    Result eval = compatibilityLayer.eval(inObj);
     compatibilityLayer.freeRef();
     if (!GpuSystem.isEnabled()) return eval;
     log.debug("Not Implemented: " + getClass().getCanonicalName());

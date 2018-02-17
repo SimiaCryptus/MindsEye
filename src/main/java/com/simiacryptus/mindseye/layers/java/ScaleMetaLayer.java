@@ -68,14 +68,14 @@ public class ScaleMetaLayer extends LayerBase {
   
   @Nullable
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     final int itemCnt = inObj[0].getData().length();
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     final Tensor[] tensors = IntStream.range(0, itemCnt).mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).mapIndex((v, c) -> v * inObj[1].getData().get(0).get(c))).toArray(i -> new Tensor[i]);
     Tensor tensor0 = tensors[0];
     tensor0.addRef();
-    return new NNResult(TensorArray.wrap(tensors), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new Result(TensorArray.wrap(tensors), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(data.stream().map(t -> {
           @javax.annotation.Nullable Tensor t1 = inObj[1].getData().get(0);

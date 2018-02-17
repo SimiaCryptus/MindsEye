@@ -106,7 +106,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
   
   @Nullable
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result evalAndFree(@javax.annotation.Nonnull final Result... inObj) {
     if (inObj.length == 1) {
       if (rightFactor != 1) throw new IllegalStateException();
       if (leftFactor != 1) throw new IllegalStateException();
@@ -115,16 +115,8 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
     if (inObj.length > 2) {
       if (rightFactor != 1) throw new IllegalStateException();
       if (leftFactor != 1) throw new IllegalStateException();
-      for (@javax.annotation.Nonnull NNResult nnResult : inObj) {
-        nnResult.addRef();
-        nnResult.getData().addRef();
-      }
       return Arrays.stream(inObj).reduce((a, b) -> {
-        @Nullable NNResult r = eval(a, b);
-        a.freeRef();
-        a.getData().freeRef();
-        b.freeRef();
-        b.getData().freeRef();
+        @Nullable Result r = evalAndFree(a, b);
         return r;
       }).get();
     }
@@ -141,9 +133,8 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
         throw new IllegalArgumentException(Arrays.toString(dimensions) + " != " + Arrays.toString(inObj[i].getData().getDimensions()));
       }
     }
-    if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
-    Arrays.stream(inObj).forEach(x -> x.addRef());
-    return new NNResult(GpuSystem.eval(gpu -> {
+    if (!GpuSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
+    return new Result(GpuSystem.eval(gpu -> {
       @javax.annotation.Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
       @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
@@ -158,8 +149,8 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
       gpu.registerForCleanup(opDescriptor, sizeDescriptor, lPtr, rPtr);
       return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
     }), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
-  
-      Runnable l = () -> {
+    
+      Runnable a = () -> {
         if (inObj[0].isAlive()) {
           GpuTensorList tensorList = GpuSystem.eval(gpu -> {
             @Nullable final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, delta);
@@ -193,19 +184,21 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
           tensorList.freeRef();
         }
       };
-      if (TestUtil.CONSERVATIVE) TestUtil.runAllSerial(l, b);
-      else TestUtil.runAllParallel(l, b);
+      if (TestUtil.CONSERVATIVE) TestUtil.runAllSerial(a, b);
+      else TestUtil.runAllParallel(a, b);
     }) {
       
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(x -> x.freeRef());
+        leftData.freeRef();
+        rightData.freeRef();
       }
       
       
       @Override
       public boolean isAlive() {
-        for (@javax.annotation.Nonnull final NNResult element : inObj)
+        for (@javax.annotation.Nonnull final Result element : inObj)
           if (element.isAlive()) {
             return true;
           }

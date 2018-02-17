@@ -75,8 +75,8 @@ public class SumMetaLayer extends LayerBase {
   
   @Nullable
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
-    final NNResult input = inObj[0];
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+    final Result input = inObj[0];
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final int itemCnt = input.getData().length();
     if (null == lastResult || minBatches < itemCnt) {
@@ -86,7 +86,7 @@ public class SumMetaLayer extends LayerBase {
           .sum();
       lastResult = input.getData().get(0).mapCoords(f);
     }
-    return new NNResult(TensorArray.wrap(lastResult), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new Result(TensorArray.wrap(lastResult), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (input.isAlive()) {
         @javax.annotation.Nullable final Tensor delta = data.get(0);
         @javax.annotation.Nonnull final Tensor feedback[] = new Tensor[itemCnt];

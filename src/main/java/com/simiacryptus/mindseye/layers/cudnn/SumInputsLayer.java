@@ -91,7 +91,7 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
   
   @Nullable
   @Override
-  public NNResult evalAndFree(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result evalAndFree(@javax.annotation.Nonnull final Result... inObj) {
     @Nonnull final int[] dimensions = inObj[0].getData().getDimensions();
     final int length = inObj[0].getData().length();
     if (3 != dimensions.length) {
@@ -107,8 +107,8 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
     @javax.annotation.Nonnull TensorList run = Arrays.stream(inObj).map(x -> x.getData()).reduce((leftData, rightData) -> GpuSystem.eval(gpu -> {
       return addAndFree(gpu, dimensions, length, leftData, rightData);
     })).get();
-    return new NNResult(run, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
-      @javax.annotation.Nonnull Stream<NNResult> stream1 = Arrays.stream(inObj);
+    return new Result(run, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+      @javax.annotation.Nonnull Stream<Result> stream1 = Arrays.stream(inObj);
       // TODO: Fix issue where parallel will cause data corruption
       if (!TestUtil.CONSERVATIVE) stream1 = stream1.parallel();
       stream1.filter(x -> x.isAlive()).forEach(obj -> {
@@ -124,7 +124,7 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
       
       @Override
       public boolean isAlive() {
-        for (@javax.annotation.Nonnull final NNResult element : inObj)
+        for (@javax.annotation.Nonnull final Result element : inObj)
           if (element.isAlive()) {
             return true;
           }

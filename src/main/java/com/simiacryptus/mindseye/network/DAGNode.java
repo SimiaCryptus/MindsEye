@@ -20,8 +20,8 @@
 package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
+import com.simiacryptus.mindseye.lang.Result;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -42,7 +42,7 @@ public interface DAGNode extends Serializable, ReferenceCounting {
    * @return the nn result
    */
   @javax.annotation.Nullable
-  NNResult get(GraphEvaluationContext buildExeCtx);
+  Result get(GraphEvaluationContext buildExeCtx);
   
   /**
    * Gets id.

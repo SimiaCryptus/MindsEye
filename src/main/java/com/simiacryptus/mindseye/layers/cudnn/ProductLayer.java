@@ -80,7 +80,7 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
   
   @Nullable
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     if (inObj.length <= 1) {
       throw new IllegalArgumentException("inObj.length=" + inObj.length);
@@ -100,7 +100,7 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
         throw new IllegalArgumentException(Arrays.toString(dimensions) + " != " + Arrays.toString(data.getDimensions()));
       }
     }
-    return new NNResult(GpuSystem.eval(gpu -> {
+    return new Result(GpuSystem.eval(gpu -> {
       @javax.annotation.Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = GpuSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
       @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = GpuSystem.newTensorDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
@@ -124,7 +124,7 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
       return result1;
     }), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       for (int index = 0; index < inObj.length; index++) {
-        final NNResult input = inObj[index];
+        final Result input = inObj[index];
         if (input.isAlive()) {
           final int _index = index;
           @javax.annotation.Nonnull TensorList data = IntStream.range(0, inObj.length).mapToObj(i -> {
@@ -166,7 +166,7 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
       
       @Override
       public boolean isAlive() {
-        for (@javax.annotation.Nonnull final NNResult element : inObj)
+        for (@javax.annotation.Nonnull final Result element : inObj)
           if (element.isAlive()) {
             return true;
           }

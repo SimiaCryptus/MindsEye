@@ -120,10 +120,10 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   }
   
   @Override
-  public NNResult evalAndFree(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result evalAndFree(@javax.annotation.Nonnull final Result... inObj) {
     @javax.annotation.Nonnull final AtomicLong passbackNanos = new AtomicLong(0);
-    final NNResult[] wrappedInput = Arrays.stream(inObj).map(result -> {
-      return new NNResult(result.getData(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    final Result[] wrappedInput = Arrays.stream(inObj).map(result -> {
+      return new Result(result.getData(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
         passbackNanos.addAndGet(TimedResult.time(() -> result.accumulate(buffer, data)).timeNanos);
       }) {
   
@@ -138,10 +138,9 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
           return result.isAlive();
         }
       };
-    }).toArray(i -> new NNResult[i]);
-    @javax.annotation.Nonnull TimedResult<NNResult> timedResult = TimedResult.time(() -> getInner().eval(wrappedInput));
-    Arrays.stream(wrappedInput).forEach(ReferenceCounting::freeRef);
-    final NNResult output = timedResult.result;
+    }).toArray(i -> new Result[i]);
+    @javax.annotation.Nonnull TimedResult<Result> timedResult = TimedResult.time(() -> getInner().evalAndFree(wrappedInput));
+    final Result output = timedResult.result;
     forwardPerformance.add((timedResult.timeNanos) / 1000000000.0);
     totalBatches++;
     final int items = Arrays.stream(inObj).mapToInt(x -> x.getData().length()).max().orElse(1);
@@ -153,7 +152,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
         t.freeRef();
       });
     }
-    return new NNResult(output.getData(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new Result(output.getData(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (recordSignalMetrics) {
         backwardSignal.clear();
         data.stream().parallel().forEach(t -> {

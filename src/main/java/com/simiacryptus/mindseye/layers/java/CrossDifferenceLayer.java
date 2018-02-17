@@ -74,10 +74,10 @@ public class CrossDifferenceLayer extends LayerBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     assert 1 == inObj.length;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    return new NNResult(TensorArray.wrap(inObj[0].getData().stream().parallel().map(tensor -> {
+    return new Result(TensorArray.wrap(inObj[0].getData().stream().parallel().map(tensor -> {
       final int inputDim = tensor.dim();
       final int outputDim = (inputDim * inputDim - inputDim) / 2;
       @javax.annotation.Nonnull final Tensor result = new Tensor(outputDim);
@@ -91,7 +91,7 @@ public class CrossDifferenceLayer extends LayerBase {
       tensor.freeRef();
       return result;
     }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
-      final NNResult input = inObj[0];
+      final Result input = inObj[0];
       if (input.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(data.stream().parallel().map(tensor -> {
           final int outputDim = tensor.dim();
@@ -120,7 +120,7 @@ public class CrossDifferenceLayer extends LayerBase {
       
       @Override
       public boolean isAlive() {
-        for (@javax.annotation.Nonnull final NNResult element : inObj)
+        for (@javax.annotation.Nonnull final Result element : inObj)
           if (element.isAlive()) {
             return true;
           }

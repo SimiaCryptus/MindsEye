@@ -101,9 +101,9 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
   }
   
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     assert 1 == inObj.length;
-    final NNResult input = inObj[0];
+    final Result input = inObj[0];
     final TensorList inputdata = input.getData();
     input.addRef();
     inputdata.addRef();
@@ -116,7 +116,7 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
       forwardStatistics.add(t.getData());
       t.freeRef();
     });
-    return new NNResult(inputdata, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new Result(inputdata, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       backpropStatistics.clear();
       input.accumulate(buffer, data);
       data.stream().parallel().forEach(t -> {

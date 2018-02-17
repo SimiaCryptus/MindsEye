@@ -59,7 +59,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
     @Nonnull PointSample origin = measurement.copyFull().backup();
     @Nullable Layer macroLayer = buildSubspace(subject, measurement, monitor);
     train(monitor, macroLayer);
-    NNResult eval = macroLayer.eval((NNResult) null);
+    Result eval = macroLayer.eval((Result) null);
     macroLayer.freeRef();
     eval.getData().freeRef();
     eval.freeRef();
@@ -105,7 +105,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
   
       @javax.annotation.Nonnull
       @Override
-      public NNResult eval(NNResult... array) {
+      public Result eval(Result... array) {
         assertAlive();
         origin.restore();
         IntStream.range(0, deltaLayers.size()).forEach(i -> {
@@ -120,7 +120,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
         double mean = measure.getMean();
         monitor.log(String.format("RecursiveSubspace: %s <- %s", mean, Arrays.toString(weights)));
         direction.addRef();
-        return new NNResult(TensorArray.wrap(new Tensor(mean)), (DeltaSet<Layer> buffer, TensorList data) -> {
+        return new Result(TensorArray.wrap(new Tensor(mean)), (DeltaSet<Layer> buffer, TensorList data) -> {
           DoubleStream deltaStream = deltaLayers.stream().mapToDouble(layer -> {
             Delta<Layer> a = direction.getMap().get(layer);
             Delta<Layer> b = measure.delta.getMap().get(layer);

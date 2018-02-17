@@ -28,7 +28,7 @@ import java.util.function.BiConsumer;
  * evaluated to determine the learning gradient. Does not hold a reference on the result data object, allowing that data
  * to be freed when possible while preserving the gradient callback.
  */
-public abstract class NNResult extends ReferenceCountingBase {
+public abstract class Result extends ReferenceCountingBase {
   /**
    * The Data.
    */
@@ -44,7 +44,7 @@ public abstract class NNResult extends ReferenceCountingBase {
    * @param data        the data
    * @param accumulator the accumulator
    */
-  public NNResult(final TensorList data, BiConsumer<DeltaSet<Layer>, TensorList> accumulator) {
+  public Result(final TensorList data, BiConsumer<DeltaSet<Layer>, TensorList> accumulator) {
     super();
     this.data = data;
     this.accumulator = accumulator;

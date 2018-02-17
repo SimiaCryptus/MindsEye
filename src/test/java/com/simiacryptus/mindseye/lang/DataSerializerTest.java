@@ -91,17 +91,6 @@ public class DataSerializerTest {
   }
   
   /**
-   * Test rational 32.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  @Category(TestCategories.UnitTest.class)
-  public void testRational32() throws Exception {
-    test(new Rational32());
-  }
-  
-  /**
    * Test.
    *
    * @param target the target

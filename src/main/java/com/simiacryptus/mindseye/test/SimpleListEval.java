@@ -99,8 +99,8 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
       })
       .toArray(i -> new Tensor[i]))
     ).toArray(i -> new TensorList[i]);
-    NNResult[] inputs = IntStream.range(0, inputCopy.length).mapToObj(i -> {
-      return new NNResult(inputCopy[i], (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    Result[] inputs = IntStream.range(0, inputCopy.length).mapToObj(i -> {
+      return new Result(inputCopy[i], (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
         SimpleListEval.accumulate(derivative[i], data);
       }) {
         @Override
@@ -108,10 +108,10 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
           return true;
         }
       };
-    }).toArray(i -> new NNResult[i]);
-    @Nullable final NNResult eval = layer.eval(inputs);
-    for (@javax.annotation.Nonnull NNResult nnResult : inputs) {
-      nnResult.freeRef();
+    }).toArray(i -> new Result[i]);
+    @Nullable final Result eval = layer.eval(inputs);
+    for (@javax.annotation.Nonnull Result result : inputs) {
+      result.freeRef();
     }
     TensorList outputData = eval.getData().copy();
     for (@javax.annotation.Nonnull TensorList tensorList : inputCopy) {
