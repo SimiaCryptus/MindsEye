@@ -235,7 +235,8 @@ public class TestUtil {
       network.visitNodes(node -> {
         if (node.getLayer() instanceof MonitoringWrapperLayer) {
           @javax.annotation.Nullable final MonitoringWrapperLayer layer = node.getLayer();
-          metrics.put(layer.getInner().toString(), layer);
+          NNLayer inner = layer.getInner();
+          metrics.put(inner + " (" + inner.getClass().getName() + ")", layer);
         }
       });
       TestUtil.log.info("Performance: \n\t" + metrics.entrySet().stream().sorted(Comparator.comparing(x -> -x.getValue().getForwardPerformance().getMean())).map(e -> {

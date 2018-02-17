@@ -19,10 +19,7 @@
 
 package com.simiacryptus.mindseye.lang.cudnn;
 
-import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import jcuda.jcudnn.cudnnOpTensorDescriptor;
 import jcuda.jcudnn.cudnnOpTensorOp;
 import jcuda.jcudnn.cudnnTensorDescriptor;
@@ -147,6 +144,7 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
   @Override
   public synchronized TensorList addAndFree(@javax.annotation.Nonnull final TensorList right) {
     assertAlive();
+    if (right instanceof ReshapedTensorList) return addAndFree(((ReshapedTensorList) right).getInner());
     if (1 < currentRefCount()) {
       TensorList sum = add(right);
       freeRef();
@@ -179,6 +177,7 @@ public class GpuTensorList extends ReferenceCountingBase implements TensorList {
   public synchronized TensorList add(@javax.annotation.Nonnull final TensorList right) {
     assertAlive();
     assert length() == right.length();
+    if (right instanceof ReshapedTensorList) return add(((ReshapedTensorList) right).getInner());
     if (heapCopy == null) {
       if (right instanceof GpuTensorList) {
         @javax.annotation.Nonnull final GpuTensorList nativeRight = (GpuTensorList) right;

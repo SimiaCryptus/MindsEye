@@ -654,6 +654,10 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
     this.kernel.set(kernel);
   }
   
+  public int[] getKernelDimensions() {
+    return kernel.getDimensions();
+  }
+  
   private static class SimpleConvolutionParameters {
     /**
      * The Length.

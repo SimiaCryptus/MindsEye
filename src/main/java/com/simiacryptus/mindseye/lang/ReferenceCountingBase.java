@@ -39,7 +39,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class ReferenceCountingBase implements ReferenceCounting {
   private static final Logger logger = LoggerFactory.getLogger(ReferenceCountingBase.class);
   private static final boolean DEBUG_LIFECYCLE = false || Boolean.parseBoolean(System.getProperty("DEBUG_LIFECYCLE", Boolean.toString(TestUtil.CONSERVATIVE)));
-  private static final boolean SUPPRESS_LOG = false;
   private static final long LOAD_TIME = System.nanoTime();
   private static final UUID jvmId = UUID.randomUUID();
   
@@ -145,11 +144,8 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
       throw new LifecycleException(this);
     }
     if (isFinalized()) {
-      if (!SUPPRESS_LOG) {
-        //SUPPRESS_LOG = true;
-        logger.warn(String.format("Using freed reference for %s", getClass().getSimpleName()));
-        logger.warn(detailString(true));
-      }
+      logger.warn(String.format("Using freed reference for %s", getClass().getSimpleName()));
+      logger.warn(detailString(true));
       throw new LifecycleException(this);
     }
   }
@@ -167,11 +163,8 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     }
     int refs = references.decrementAndGet();
     if (refs < 0) {
-      if (!SUPPRESS_LOG) {
-        //SUPPRESS_LOG = true;
-        logger.warn(String.format("Error freeing reference for %s", getClass().getSimpleName()));
-        logger.warn(detailString(true));
-      }
+      logger.warn(String.format("Error freeing reference for %s", getClass().getSimpleName()));
+      logger.warn(detailString(true));
       throw new LifecycleException(this);
     }
     else if (refs == 0) {

@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -29,20 +30,20 @@ import java.util.stream.Stream;
  */
 public class ReshapedTensorList extends ReferenceCountingBase implements TensorList {
   @javax.annotation.Nonnull
-  private final TensorList data;
+  private final TensorList inner;
   private final int[] dims;
   
   /**
    * Instantiates a new Reshaped tensor list.
    *
-   * @param data  the data
+   * @param inner  the data
    * @param toDim the to dim
    */
-  public ReshapedTensorList(@javax.annotation.Nonnull TensorList data, int[] toDim) {
-    if (Tensor.dim(data.getDimensions()) != Tensor.dim(toDim))
-      throw new IllegalArgumentException(Arrays.toString(data.getDimensions()) + " != " + Arrays.toString(toDim));
-    this.data = data;
-    this.data.addRef(this);
+  public ReshapedTensorList(@javax.annotation.Nonnull TensorList inner, int[] toDim) {
+    if (Tensor.dim(inner.getDimensions()) != Tensor.dim(toDim))
+      throw new IllegalArgumentException(Arrays.toString(inner.getDimensions()) + " != " + Arrays.toString(toDim));
+    this.inner = inner;
+    this.inner.addRef(this);
     this.dims = toDim;
   }
   
@@ -50,7 +51,7 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
   @Override
   public Tensor get(int i) {
     assertAlive();
-    @javax.annotation.Nullable Tensor tensor = data.get(i);
+    @javax.annotation.Nullable Tensor tensor = inner.get(i);
     @javax.annotation.Nullable Tensor reshapeCast = tensor.reshapeCast(dims);
     tensor.freeRef();
     return reshapeCast;
@@ -64,12 +65,12 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
   
   @Override
   public int length() {
-    return data.length();
+    return inner.length();
   }
   
   @Override
   public Stream<Tensor> stream() {
-    return data.stream().map(t -> {
+    return inner.stream().map(t -> {
       @javax.annotation.Nullable Tensor tensor = t.reshapeCast(dims);
       t.freeRef();
       return tensor;
@@ -78,6 +79,11 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
   
   @Override
   protected void _free() {
-    data.freeRef();
+    inner.freeRef();
+  }
+  
+  @Nonnull
+  public TensorList getInner() {
+    return inner;
   }
 }

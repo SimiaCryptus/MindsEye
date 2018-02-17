@@ -79,7 +79,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
         Tensor prototype = new Tensor(224, 224, 3);
         int cnt = 1;
         @javax.annotation.Nonnull
-        int[] convolutionOrder = {2, 3, 1, 0};
+        int[] convolutionOrder = {2, 3, 0, 1};
         @javax.annotation.Nonnull
         int[] fullyconnectedOrder = {1, 0};
         @javax.annotation.Nonnull
@@ -428,24 +428,10 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
         }
         
         protected void add(NNLayer layer) {
-          if (layer.getName().contains(layer.getId().toString())) {
-            if (layer instanceof ConvolutionLayer) {
-              layer.setName(layer.getClass().getSimpleName() + ((ConvolutionLayer) layer).getConvolutionParams());
-            }
-            else if (layer instanceof FullyConnectedLayer) {
-              layer.setName(String.format("%s:%sx%s",
-                layer.getClass().getSimpleName(),
-                Arrays.toString(((FullyConnectedLayer) layer).inputDims),
-                Arrays.toString(((FullyConnectedLayer) layer).outputDims)));
-            }
-            else if (layer instanceof BiasLayer) {
-              layer.setName(String.format("%s:%s",
-                layer.getClass().getSimpleName(),
-                ((BiasLayer) layer).bias.length));
-            }
-          }
+          name(layer);
           if (layer instanceof Explodable) {
             DAGNetwork explode = ((Explodable) layer).explode();
+            explode.visitNodes(node -> name(node.getLayer()));
             log.info(String.format("Exploded %s to %s (%s nodes)", layer.getName(), explode.getClass().getSimpleName(), explode.getNodes().size()));
             add(explode);
           }
@@ -471,6 +457,29 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
       throw e;
     } catch (Exception e) {
       throw new RuntimeException(e);
+    }
+  }
+  
+  private void name(final NNLayer layer) {
+    if (layer.getName().contains(layer.getId().toString())) {
+      if (layer instanceof ConvolutionLayer) {
+        layer.setName(layer.getClass().getSimpleName() + ((ConvolutionLayer) layer).getConvolutionParams());
+      }
+      else if (layer instanceof SimpleConvolutionLayer) {
+        layer.setName(String.format("%s: %s", layer.getClass().getSimpleName(),
+          Arrays.toString(((SimpleConvolutionLayer) layer).getKernelDimensions())));
+      }
+      else if (layer instanceof FullyConnectedLayer) {
+        layer.setName(String.format("%s:%sx%s",
+          layer.getClass().getSimpleName(),
+          Arrays.toString(((FullyConnectedLayer) layer).inputDims),
+          Arrays.toString(((FullyConnectedLayer) layer).outputDims)));
+      }
+      else if (layer instanceof BiasLayer) {
+        layer.setName(String.format("%s:%s",
+          layer.getClass().getSimpleName(),
+          ((BiasLayer) layer).bias.length));
+      }
     }
   }
   

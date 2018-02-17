@@ -63,9 +63,11 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
    */
   public ExplodedConvolutionGrid(@javax.annotation.Nonnull ConvolutionParams convolutionParams, int maxBandBatch) {
     this.convolutionParams = convolutionParams;
-    int rows = maxBandBatch == 0 ? 1 : (int) (Math.ceil((double) convolutionParams.inputBands / maxBandBatch));
-    IntStream.range(0, rows).map(x -> 0 == maxBandBatch ? x : (x * maxBandBatch)).mapToObj(fromBand -> {
-      int toBand = Math.min(convolutionParams.inputBands, fromBand + ((maxBandBatch == 0) ? convolutionParams.inputBands : maxBandBatch));
+    int bandWidth = (maxBandBatch == 0) ? convolutionParams.inputBands : maxBandBatch;
+    int rows = (int) Math.ceil((double) convolutionParams.inputBands / bandWidth);
+    IntStream.range(0, rows).map(x -> x * bandWidth).mapToObj(fromBand -> {
+      int toBand = Math.min(convolutionParams.inputBands, fromBand + bandWidth);
+      if (fromBand >= toBand) throw new RuntimeException(fromBand + " >= " + toBand);
       return new ExplodedConvolutionLeg(convolutionParams, fromBand, toBand);
     }).collect(Collectors.toList()).stream().forEach(subLayers::add);
   }
@@ -94,7 +96,7 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
         @Nullable Tensor tensor = template.mapCoords(c -> {
           int[] coords = c.getCoords();
           return filter.get(coords[0], coords[1], getFilterBand(leg, coords[2]));
-        }, true);
+        }, false);
         template.freeRef();
         leg.write(tensor);
         tensor.freeRef();

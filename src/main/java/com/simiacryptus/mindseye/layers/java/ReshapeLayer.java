@@ -84,14 +84,13 @@ public class ReshapeLayer extends NNLayer {
   
   @Nullable
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public NNResult evalAndFree(@javax.annotation.Nonnull final NNResult... inObj) {
     assert 1 == inObj.length;
     TensorList data = inObj[0].getData();
     @Nonnull int[] inputDims = data.getDimensions();
-    for (@javax.annotation.Nonnull NNResult nnResult : inObj) {
-      nnResult.addRef();
-    }
-    return new NNResult(new ReshapedTensorList(data, outputDims), (DeltaSet<NNLayer> buffer, TensorList delta) -> {
+    ReshapedTensorList reshapedTensorList = new ReshapedTensorList(data, outputDims);
+    data.freeRef();
+    return new NNResult(reshapedTensorList, (DeltaSet<NNLayer> buffer, TensorList delta) -> {
       @javax.annotation.Nonnull ReshapedTensorList tensorList = new ReshapedTensorList(delta, inputDims);
       inObj[0].accumulate(buffer, tensorList);
       tensorList.freeRef();

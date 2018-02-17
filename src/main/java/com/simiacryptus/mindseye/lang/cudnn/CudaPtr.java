@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.lang.cudnn;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.simiacryptus.mindseye.lang.ReshapedTensorList;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.SimpleConvolutionLayer;
@@ -112,6 +113,9 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   @Nullable
   public static CudaPtr getCudaPtr(@javax.annotation.Nonnull final Precision precision, @javax.annotation.Nonnull final TensorList data) {
     data.assertAlive();
+    if (data instanceof ReshapedTensorList) {
+      return getCudaPtr(precision, ((ReshapedTensorList) data).getInner());
+    }
     if (data instanceof GpuTensorList && precision == ((GpuTensorList) data).getPrecision() && ((GpuTensorList) data).isNative()) {
       @javax.annotation.Nonnull GpuTensorList gpuTensorList = (GpuTensorList) data;
       @Nullable final CudaPtr ptr = gpuTensorList.getPtr();
