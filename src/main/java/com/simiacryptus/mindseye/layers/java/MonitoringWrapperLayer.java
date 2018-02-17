@@ -120,11 +120,9 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   }
   
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
-    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+  public NNResult evalAndFree(@javax.annotation.Nonnull final NNResult... inObj) {
     @javax.annotation.Nonnull final AtomicLong passbackNanos = new AtomicLong(0);
     final NNResult[] wrappedInput = Arrays.stream(inObj).map(result -> {
-      result.addRef();
       return new NNResult(result.getData(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
         passbackNanos.addAndGet(TimedResult.time(() -> result.accumulate(buffer, data)).timeNanos);
       }) {

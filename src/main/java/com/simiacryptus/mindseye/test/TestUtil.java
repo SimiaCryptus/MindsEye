@@ -236,7 +236,12 @@ public class TestUtil {
         if (node.getLayer() instanceof MonitoringWrapperLayer) {
           @javax.annotation.Nullable final MonitoringWrapperLayer layer = node.getLayer();
           NNLayer inner = layer.getInner();
-          metrics.put(inner + " (" + inner.getClass().getName() + ")", layer);
+          String str = inner.toString();
+          str += " class=" + inner.getClass().getName();
+//          if(inner instanceof MultiPrecision<?>) {
+//            str += "; precision=" + ((MultiPrecision) inner).getPrecision().name();
+//          }
+          metrics.put(str, layer);
         }
       });
       TestUtil.log.info("Performance: \n\t" + metrics.entrySet().stream().sorted(Comparator.comparing(x -> -x.getValue().getForwardPerformance().getMean())).map(e -> {

@@ -151,7 +151,7 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
             viewDimensions[2] = inputBands;
             @Nullable final CudaPtr cudaDelta = CudaPtr.getCudaPtr(precision, delta);
             long inputSize = (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size);
-            @javax.annotation.Nonnull final CudaPtr cudaBackprop = CudaPtr.allocate(gpu.getDeviceNumber(), inputSize, MemoryType.Managed, false);
+            @javax.annotation.Nonnull final CudaPtr cudaBackprop = CudaPtr.allocate(gpu.getDeviceNumber(), inputSize, MemoryType.Managed, (inputBands + bandOffset) > outputDimensions[2]);
             @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(length, inputBands, viewDimensions, inputDimensions);
             @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(length, inputBands, viewDimensions, outputDimensions);
             int byteOffset = outputDimensions[1] * outputDimensions[0] * bandOffset * precision.size;

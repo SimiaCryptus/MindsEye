@@ -96,7 +96,7 @@ public class ImgZeroPaddingLayer extends NNLayer implements MultiPrecision<ImgZe
     }
     assert inObj.length == 1;
     @Nonnull int[] dimensions = inObj[0].getData().getDimensions();
-    @Nonnull ImgCropLayer imgCropLayer = new ImgCropLayer(dimensions[0] + 2 * this.sizeX, dimensions[1] + 2 * this.sizeY);
+    @Nonnull ImgCropLayer imgCropLayer = new ImgCropLayer(dimensions[0] + 2 * this.sizeX, dimensions[1] + 2 * this.sizeY).setPrecision(precision);
     @Nullable NNResult eval = imgCropLayer.eval(inObj);
     imgCropLayer.freeRef();
     return eval;

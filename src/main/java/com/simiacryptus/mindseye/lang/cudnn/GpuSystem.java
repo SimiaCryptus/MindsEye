@@ -37,7 +37,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -1318,6 +1317,8 @@ public class GpuSystem {
    */
   public static <T> T eval(@javax.annotation.Nonnull final Function<CuDNNHandle, T> fn) {return eval(fn, true);}
   
+  private static final ExecutorService garbageTruck = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("gpu-free-%d").setDaemon(true).build());
+
   /**
    * Call t.
    *
@@ -1357,9 +1358,11 @@ public class GpuSystem {
               throw new RuntimeException(e);
             } finally {
               CuDNNHandle.threadContext.remove();
-              LinkedBlockingDeque<ReferenceCounting> deque = gpu.CLEANUP;
-              deque.stream().forEach(x -> x.freeRef());
-              deque.clear();
+              ArrayList<ReferenceCounting> toFree = new ArrayList<>();
+              gpu.CLEANUP.drainTo(toFree);
+              garbageTruck.submit(() -> {
+                toFree.stream().forEach(ReferenceCounting::freeRef);
+              });
             }
           });
         }

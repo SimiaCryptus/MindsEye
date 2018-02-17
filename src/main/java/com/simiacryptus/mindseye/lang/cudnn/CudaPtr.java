@@ -116,7 +116,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     if (data instanceof ReshapedTensorList) {
       return getCudaPtr(precision, ((ReshapedTensorList) data).getInner());
     }
-    if (data instanceof GpuTensorList && precision == ((GpuTensorList) data).getPrecision() && ((GpuTensorList) data).isNative()) {
+    if (data instanceof GpuTensorList && precision == ((GpuTensorList) data).getPrecision()) {
       @javax.annotation.Nonnull GpuTensorList gpuTensorList = (GpuTensorList) data;
       @Nullable final CudaPtr ptr = gpuTensorList.getPtr();
       assert null != ptr;
