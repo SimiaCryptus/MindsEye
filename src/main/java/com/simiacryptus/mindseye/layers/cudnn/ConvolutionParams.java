@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 
+import java.util.Arrays;
+
 /**
  * Contains the parameters of a convolution
  */
@@ -81,4 +83,17 @@ public class ConvolutionParams {
     this.masterFilterDimensions = masterFilterDimensions;
   }
   
+  @Override
+  public String toString() {
+    return "{" +
+      "inputBands=" + inputBands +
+      ", outputBands=" + outputBands +
+      ", filterDimensions=" + Arrays.toString(masterFilterDimensions) +
+      ", precision=" + precision +
+      (strideX == 1 ? "" : (", strideX=" + strideX)) +
+      (strideY == 1 ? "" : (", strideY=" + strideY)) +
+      ", paddingX=" + paddingX +
+      ", paddingY=" + paddingY +
+      '}';
+  }
 }

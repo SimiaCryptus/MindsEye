@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 
 /**
  * An (NNLayer) object which can be exploded into an equivalent network with more fine-grained components.
@@ -30,5 +30,5 @@ public interface Explodable {
    *
    * @return the nn layer
    */
-  NNLayer explode();
+  DAGNetwork explode();
 }

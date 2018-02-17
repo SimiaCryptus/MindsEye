@@ -217,17 +217,15 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
   
   @javax.annotation.Nullable
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... inObj) {
+  public NNResult evalAndFree(@javax.annotation.Nonnull final NNResult... inObj) {
     if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     
     final NNResult input = inObj[0];
-    final TensorList batch = input.getData();
-    @Nonnull final int[] inputSize = batch.getDimensions();
+    final TensorList inputData = input.getData();
+    @Nonnull final int[] inputSize = inputData.getDimensions();
     @javax.annotation.Nonnull final int[] kernelSize = kernel.getDimensions();
     final int[] outputSize = getOutputSize(inputSize);
-    final int length = batch.length();
-    Arrays.stream(inObj).forEach(ReferenceCounting::addRef);
-    batch.addRef();
+    final int length = inputData.length();
     kernel.addRef();
     SimpleConvolutionLayer.this.addRef();
     return new NNResult(GpuSystem.eval(gpu -> {
@@ -237,17 +235,17 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
         assert 0 < kernel.getData().length;
         assert kernelSize[0] * kernelSize[1] * kernelSize[2] == kernel.getData().length;
         @Nonnull CudaPtr filterPtr = getCudaFilter(deviceNumber);
-        @javax.annotation.Nullable final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
+        @javax.annotation.Nullable final CudaPtr inputBuffer = CudaPtr.getCudaPtr(precision, inputData);
         @javax.annotation.Nonnull final CudaPtr outputBuffer = CudaPtr.allocate(deviceNumber, Tensor.dim(cudaParameters.outputDims) * 1l * length * precision.size, MemoryType.Managed, true);
         GpuSystem.handle(gpu.cudnnConvolutionForward(precision.getPointer(1.0),
-          cudaParameters.inputDescriptor.getPtr(), inputData.getPtr(),
+          cudaParameters.inputDescriptor.getPtr(), inputBuffer.getPtr(),
           cudaParameters.filterDescriptor.getPtr(), filterPtr.getPtr(),
           cudaParameters.convolutionDescriptor.getPtr(),
           cudaParameters.forwardAlgorithm,
           cudaParameters.forwardWorkspace.getPtr(),
           cudaParameters.forwardWorkspace.size,
           precision.getPointer(0.0), cudaParameters.outputDescriptor.getPtr(), outputBuffer.getPtr()));
-        gpu.registerForCleanup(filterPtr, inputData);
+        gpu.registerForCleanup(filterPtr, inputBuffer);
         return GpuTensorList.wrap(outputBuffer, length, cudaParameters.outputDims, precision);
       } catch (@javax.annotation.Nonnull final Throwable e) {
         throw new ComponentException(String.format("Error in convolution %s x %s", Arrays.toString(inputSize), Arrays.toString(kernelSize)), e);
@@ -255,19 +253,19 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
     }), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       delta.assertAlive();
       buffer.assertAlive();
-      batch.assertAlive();
-      assert delta.length() == batch.length();
+      inputData.assertAlive();
+      assert delta.length() == inputData.length();
       TestUtil.runAllSerial(() -> {
         GpuSystem.run(gpu -> {
           if (!isFrozen()) {
             @Nullable CudaRevParameters cudaParameters = obtainRev(new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu));
             assert cudaParameters.precision == precision;
             @javax.annotation.Nullable final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, delta);
-            @javax.annotation.Nullable final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
+            @javax.annotation.Nullable final CudaPtr inputPtr = CudaPtr.getCudaPtr(precision, inputData);
             @javax.annotation.Nonnull CudaPtr filterPtr = CudaPtr.allocate(gpu.getDeviceNumber(), kernel.dim() * 1l * precision.size, MemoryType.Device, true);
             try {
               GpuSystem.handle(gpu.cudnnConvolutionBackwardFilter(cudaParameters.precision.getPointer(1.0),
-                cudaParameters.inputDescriptor.getPtr(), inputData.getPtr(),
+                cudaParameters.inputDescriptor.getPtr(), inputPtr.getPtr(),
                 cudaParameters.outputDescriptor.getPtr(), errorPtr.getPtr(),
                 cudaParameters.convolutionDescriptor.getPtr(),
                 cudaParameters.backwardFilterAlgorithm,
@@ -280,14 +278,14 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
             @javax.annotation.Nonnull final Tensor weightGradient = CudaPtr.read(filterPtr, precision, kernel.getDimensions());
             buffer.get(SimpleConvolutionLayer.this, kernel.getData()).addInPlace(weightGradient.getData()).freeRef();
             clearCudaFilters();
-            gpu.registerForCleanup(weightGradient, inputData, filterPtr, errorPtr);
+            gpu.registerForCleanup(weightGradient, inputPtr, filterPtr, errorPtr);
           }
         });
       }, () -> {
         if (input.isAlive()) {
           final TensorList inputBufferTensors = GpuSystem.eval(gpu -> {
             @Nullable CudaRevParameters cudaParameters = obtainRev(new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu));
-            @javax.annotation.Nonnull final CudaPtr inputBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), Tensor.dim(batch.getDimensions()) * 1l * length * precision.size, MemoryType.Managed, true);
+            @javax.annotation.Nonnull final CudaPtr inputBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), Tensor.dim(inputData.getDimensions()) * 1l * length * precision.size, MemoryType.Managed, true);
             try {
               @javax.annotation.Nullable final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, delta);
               @Nonnull final CudaPtr filterPtr = getCudaFilter(gpu.getDeviceNumber());
@@ -316,7 +314,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
       @Override
       protected void _free() {
         kernel.freeRef();
-        batch.freeRef();
+        inputData.freeRef();
         Arrays.stream(inObj).forEach(ReferenceCounting::freeRef);
         SimpleConvolutionLayer.this.freeRef();
       }

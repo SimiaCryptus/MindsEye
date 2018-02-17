@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.layers.cudnn.*;
 import com.simiacryptus.mindseye.layers.java.AssertDimensionsLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.slf4j.Logger;
@@ -379,8 +380,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           output.code(() -> {
             add(new FullyConnectedLayer(new int[]{25088}, new int[]{4096})
               .set(hdf5.readDataSet("param_0", "layer_32")
-                .permuteDimensions(fullyconnectedOrder))
-              .setName("fullyconnected_32"));
+                .permuteDimensions(fullyconnectedOrder)));
           });
           output.code(() -> {
             add(new BiasLayer(4096)
@@ -405,13 +405,11 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           output.code(() -> {
             add(new FullyConnectedLayer(new int[]{4096}, new int[]{1000})
               .set(hdf5.readDataSet("param_0", "layer_36")
-                .permuteDimensions(fullyconnectedOrder))
-              .setName("fullyconnected_36"));
+                .permuteDimensions(fullyconnectedOrder)));
           });
           output.code(() -> {
             add(new BiasLayer(1000)
-              .set((hdf5.readDataSet("param_1", "layer_36")))
-              .setName("bias_36"));
+              .set((hdf5.readDataSet("param_1", "layer_36"))));
           });
           output.code(() -> {
             add(new SoftmaxActivationLayer());
@@ -424,12 +422,32 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
             });
             return precision;
           });
+          if (null != prototype) prototype.freeRef();
+          prototype = null;
           return model;
         }
         
         protected void add(NNLayer layer) {
+          if (layer.getName().contains(layer.getId().toString())) {
+            if (layer instanceof ConvolutionLayer) {
+              layer.setName(layer.getClass().getSimpleName() + ((ConvolutionLayer) layer).getConvolutionParams());
+            }
+            else if (layer instanceof FullyConnectedLayer) {
+              layer.setName(String.format("%s:%sx%s",
+                layer.getClass().getSimpleName(),
+                Arrays.toString(((FullyConnectedLayer) layer).inputDims),
+                Arrays.toString(((FullyConnectedLayer) layer).outputDims)));
+            }
+            else if (layer instanceof BiasLayer) {
+              layer.setName(String.format("%s:%s",
+                layer.getClass().getSimpleName(),
+                ((BiasLayer) layer).bias.length));
+            }
+          }
           if (layer instanceof Explodable) {
-            add(((Explodable) layer).explode());
+            DAGNetwork explode = ((Explodable) layer).explode();
+            log.info(String.format("Exploded %s to %s (%s nodes)", layer.getName(), explode.getClass().getSimpleName(), explode.getNodes().size()));
+            add(explode);
           }
           else {
             int numberOfParameters = layer.state().stream().mapToInt(x -> x.length).sum();

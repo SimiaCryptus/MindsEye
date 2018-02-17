@@ -519,8 +519,12 @@ public abstract class DAGNetwork extends NNLayer {
    */
   public void visitNodes(@javax.annotation.Nonnull final Consumer<DAGNode> visitor) {
     nodesById.values().forEach(node -> {
-      if (node.getLayer() instanceof DAGNetwork) {
-        ((DAGNetwork) node.getLayer()).visitNodes(visitor);
+      NNLayer layer = node.getLayer();
+      while (layer instanceof WrapperLayer) {
+        layer = ((WrapperLayer) layer).getInner();
+      }
+      if (layer instanceof DAGNetwork) {
+        ((DAGNetwork) layer).visitNodes(visitor);
       }
       visitor.accept(node);
     });

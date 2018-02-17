@@ -74,8 +74,10 @@ public abstract class VGG16 extends ImageClassifier {
   @Override
   public Tensor prefilter(Tensor tensor) {
     tensor = tensor.mapCoords(getBiasFunction(tensor));
-    tensor = tensor.mapCoords(getPermuteFunction(tensor));
-    return tensor.permuteDimensions(0, 1, 2);
+    tensor = tensor.mapCoordsAndFree(getPermuteFunction(tensor));
+    Tensor permuteDimensions = tensor.permuteDimensions(0, 1, 2);
+    tensor.freeRef();
+    return permuteDimensions;
   }
   
   /**

@@ -72,7 +72,7 @@ public class AssertDimensionsLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(@javax.annotation.Nonnull final NNResult... array) {
+  public NNResult evalAndFree(@javax.annotation.Nonnull final NNResult... array) {
     if (0 == array.length) {
       throw new IllegalArgumentException();
     }
@@ -84,8 +84,6 @@ public class AssertDimensionsLayer extends NNLayer {
     if (!Arrays.equals(inputDims, dims)) {
       throw new IllegalArgumentException(Arrays.toString(inputDims) + " != " + Arrays.toString(dims));
     }
-    input.addRef();
-    input.getData().addRef();
     return input;
   }
   

@@ -231,17 +231,17 @@ public class TestUtil {
   public static void extractPerformance(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final DAGNetwork network) {
     log.p("Per-layer Performance Metrics:");
     log.code(() -> {
-      @javax.annotation.Nonnull final Map<NNLayer, MonitoringWrapperLayer> metrics = new HashMap<>();
+      @javax.annotation.Nonnull final Map<String, MonitoringWrapperLayer> metrics = new HashMap<>();
       network.visitNodes(node -> {
         if (node.getLayer() instanceof MonitoringWrapperLayer) {
           @javax.annotation.Nullable final MonitoringWrapperLayer layer = node.getLayer();
-          metrics.put(layer.getInner(), layer);
+          metrics.put(layer.getInner().toString(), layer);
         }
       });
-      TestUtil.log.info("Performance: \n\t" + metrics.entrySet().stream().map(e -> {
+      TestUtil.log.info("Performance: \n\t" + metrics.entrySet().stream().sorted(Comparator.comparing(x -> -x.getValue().getForwardPerformance().getMean())).map(e -> {
         @Nonnull final PercentileStatistics performanceF = e.getValue().getForwardPerformance();
         @Nonnull final PercentileStatistics performanceB = e.getValue().getBackwardPerformance();
-        return String.format("%s -> %.6fs +- %.6fs (%d)", e.getKey(), performanceF.getMean(), performanceF.getStdDev(), performanceF.getCount()) +
+        return String.format("%.6fs +- %.6fs (%d) <- %s", performanceF.getMean(), performanceF.getStdDev(), performanceF.getCount(), e.getKey()) +
           (performanceB.getCount() == 0 ? "" : String.format("%n\tBack: %.6fs +- %.6fs (%s)", performanceB.getMean(), performanceB.getStdDev(), performanceB.getCount()));
       }).reduce((a, b) -> a + "\n\t" + b).get());
     });
@@ -287,13 +287,14 @@ public class TestUtil {
    */
   public static void instrumentPerformance(final NotebookOutput log, @javax.annotation.Nonnull final DAGNetwork network) {
     network.visitNodes(node -> {
-      if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
-        @Nonnull MonitoringWrapperLayer monitoringWrapperLayer = new MonitoringWrapperLayer(node.getLayer()).shouldRecordSignalMetrics(false);
-        node.setLayer(monitoringWrapperLayer);
-        monitoringWrapperLayer.freeRef();
+      NNLayer layer = node.getLayer();
+      if (layer instanceof MonitoringWrapperLayer) {
+        ((MonitoringWrapperLayer) layer).shouldRecordSignalMetrics(false);
       }
       else {
-        ((MonitoringWrapperLayer) node.getLayer()).shouldRecordSignalMetrics(false);
+        @Nonnull MonitoringWrapperLayer monitoringWrapperLayer = new MonitoringWrapperLayer(layer).shouldRecordSignalMetrics(false);
+        node.setLayer(monitoringWrapperLayer);
+        monitoringWrapperLayer.freeRef();
       }
     });
   }

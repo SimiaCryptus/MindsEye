@@ -24,6 +24,7 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 import javax.annotation.Nonnull;
@@ -79,7 +80,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
     if (getKernel().getDimensions()[2] <= 0) throw new IllegalArgumentException();
     this.inputBands = inputBands;
     this.outputBands = outputBands;
-    setBatchBands((int) Math.min(512, Math.pow(2, Math.floor(10 * Math.log(Math.sqrt((2 * 1024.0 * 1024.0) / (width * height))) / Math.log(2)) / 10)));
+    setBatchBands((int) Math.min(2 * 1024, Math.pow(2, Math.floor(10 * Math.log(Math.sqrt((512 * 1024.0 * 1024.0) / (width * height))) / Math.log(2)) / 10)));
   }
   
   /**
@@ -162,7 +163,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    */
   @Nonnull
   @Override
-  public NNLayer explode() {
+  public DAGNetwork explode() {
     @Nonnull ExplodedConvolutionGrid explodedNetwork = getExplodedNetwork();
     @Nonnull PipelineNetwork network = explodedNetwork.getNetwork();
     explodedNetwork.freeRef();

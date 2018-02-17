@@ -248,6 +248,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
     NNResult[] input = NNConstant.singleResultArray(array);
     NNResult eval = eval(input);
     Arrays.stream(input).forEach(ReferenceCounting::freeRef);
+    Arrays.stream(input).map(NNResult::getData).forEach(ReferenceCounting::freeRef);
     return eval;
   }
   
@@ -262,6 +263,7 @@ public abstract class NNLayer extends ReferenceCountingBase implements Serializa
     NNResult[] input = NNConstant.singleResultArray(array);
     NNResult eval = eval(input);
     Arrays.stream(input).forEach(ReferenceCounting::freeRef);
+    Arrays.stream(input).map(NNResult::getData).forEach(ReferenceCounting::freeRef);
     return eval;
   }
   

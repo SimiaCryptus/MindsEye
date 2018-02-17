@@ -20,11 +20,9 @@
 package com.simiacryptus.mindseye.models;
 
 import com.google.common.collect.Lists;
-import com.simiacryptus.mindseye.lang.NNConstant;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
-import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.*;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -72,24 +70,33 @@ public abstract class ImageClassifier {
   public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @javax.annotation.Nonnull NNLayer network, int count, @javax.annotation.Nonnull List<String> categories, int batchSize, boolean asyncGC, boolean nullGC, Tensor[] data) {
     try {
       return Lists.partition(Arrays.asList(data), batchSize).stream().flatMap(batch -> {
-        @javax.annotation.Nullable NNResult nnResult = network.eval(NNConstant.singleResultArray(new Tensor[][]{
+        Tensor[][] input = {
           batch.stream().map(prefilter).toArray(i -> new Tensor[i])
-        }));
-        List<Tensor> tensorList = nnResult.getData().stream().collect(Collectors.toList());
-        return tensorList.stream().map(tensor -> {
+        };
+        NNResult[] inputs = NNConstant.singleResultArray(input);
+        @Nullable NNResult nnResult = network.eval(inputs);
+        nnResult.freeRef();
+        TensorList resultData = nnResult.getData();
+        Arrays.stream(input).flatMap(Arrays::stream).forEach(ReferenceCounting::freeRef);
+        Arrays.stream(inputs).forEach(ReferenceCounting::freeRef);
+        Arrays.stream(inputs).map(NNResult::getData).forEach(ReferenceCounting::freeRef);
+  
+        List<LinkedHashMap<String, Double>> maps = resultData.stream().map(tensor -> {
           @Nullable double[] predictionSignal = tensor.getData();
           int[] order = IntStream.range(0, 1000).mapToObj(x -> x)
             .sorted(Comparator.comparing(i -> -predictionSignal[i]))
             .mapToInt(x -> x).toArray();
           assert categories.size() == predictionSignal.length;
-          @javax.annotation.Nonnull LinkedHashMap<String, Double> topN = new LinkedHashMap<>();
+          @Nonnull LinkedHashMap<String, Double> topN = new LinkedHashMap<>();
           for (int i = 0; i < count; i++) {
             int index = order[i];
             topN.put(categories.get(index), predictionSignal[index]);
           }
           tensor.freeRef();
           return topN;
-        });
+        }).collect(Collectors.toList());
+        resultData.freeRef();
+        return maps.stream();
       }).collect(Collectors.toList());
     } finally {
     }

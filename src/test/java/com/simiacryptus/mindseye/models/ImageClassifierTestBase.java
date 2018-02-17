@@ -89,7 +89,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
     }
     @javax.annotation.Nonnull Map<String, List<LinkedHashMap<String, Double>>> modelPredictions = new HashMap<>();
     modelPredictions.put("Source", predict(log, vgg16, network, images));
-
+    network.freeRef();
 //    serializationTest.getModels().forEach((precision, model) -> {
 //      log.h2(precision.name());
 //      modelPredictions.put(precision.name(), predict(log, vgg16, model, images));
