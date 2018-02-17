@@ -91,7 +91,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
   public ArrayTrainable(@Nullable final Tensor[][] trainingData, final Layer network, final int batchSize) {
     super(network, batchSize);
     this.trainingData = trainingData;
-    for (@javax.annotation.Nonnull Tensor[] tensors : trainingData) {
+    if (null != trainingData) for (@javax.annotation.Nonnull Tensor[] tensors : trainingData) {
       for (@javax.annotation.Nonnull Tensor tensor : tensors) {
         tensor.addRef(this);
       }
