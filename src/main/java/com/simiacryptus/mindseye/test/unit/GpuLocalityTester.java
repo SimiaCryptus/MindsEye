@@ -19,10 +19,7 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.GpuTensorList;
@@ -87,6 +84,7 @@ public class GpuLocalityTester extends ComponentTestBase<ToleranceStatistics> {
       }).toArray(i -> new TensorList[i]);
       @Nonnull final SimpleResult fromHeap = SimpleGpuEval.run(reference, gpu, heapInput);
       @Nonnull final SimpleResult fromGPU = SimpleGpuEval.run(reference, gpu, gpuInput);
+      Arrays.stream(gpuInput).forEach(ReferenceCounting::freeRef);
       
       @javax.annotation.Nonnull final ToleranceStatistics outputAgreement = IntStream.range(0, getBatchSize()).mapToObj(batch ->
         new ToleranceStatistics().accumulate(
@@ -108,12 +106,19 @@ public class GpuLocalityTester extends ComponentTestBase<ToleranceStatistics> {
       }
   
       @javax.annotation.Nonnull final ToleranceStatistics derivativeAgreement = IntStream.range(0, getBatchSize()).mapToObj(batch -> {
-        @javax.annotation.Nonnull IntFunction<ToleranceStatistics> statisticsFunction = input ->
-          new ToleranceStatistics().accumulate(
-            fromHeap.getDerivative()[input].get(batch).getData(),
-            fromGPU.getDerivative()[input].get(batch).getData());
+        @javax.annotation.Nonnull IntFunction<ToleranceStatistics> statisticsFunction = input -> {
+          Tensor b = fromGPU.getDerivative()[input].get(batch);
+          Tensor a = fromHeap.getDerivative()[input].get(batch);
+          ToleranceStatistics statistics = new ToleranceStatistics().accumulate(a.getData(), b.getData());
+          a.freeRef();
+          b.freeRef();
+          return statistics;
+        };
         return IntStream.range(0, heapInput.length).mapToObj(statisticsFunction).reduce((a, b) -> a.combine(b)).get();
       }).reduce((a, b) -> a.combine(b)).get();
+      fromGPU.freeRef();
+      fromHeap.freeRef();
+      Arrays.stream(heapInput).forEach(x -> x.freeRef());
       if (!(derivativeAgreement.absoluteTol.getMax() < tolerance)) {
         throw new AssertionError("Derivatives Corrupt: " + derivativeAgreement);
       }

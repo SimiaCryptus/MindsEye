@@ -81,10 +81,10 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
   
   @Override
   protected void _free() {
-    for (@javax.annotation.Nonnull TensorList x : input) x.freeRef();
+    if (null != input) for (@javax.annotation.Nonnull TensorList x : input) x.freeRef();
     layer.freeRef();
-    for (@javax.annotation.Nonnull TensorList x : derivative) x.freeRef();
-    output.freeRef();
+    if (null != derivative) for (@javax.annotation.Nonnull TensorList x : derivative) x.freeRef();
+    if (null != output) output.freeRef();
   }
   
   @javax.annotation.Nonnull

@@ -125,10 +125,12 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
         out.println(String.format("reference removed by %s\n\t%s", linkStr,
           getString(stack).replaceAll("\n", "\n\t")));
       }
-      ReferenceCounting linkObj = freeRefObjs.get(freeRefObjs.size() - 1);
-      String linkStr = this == linkObj ? "" : linkObj.getObjectId().toString();
-      out.println(String.format("freed by %s\n\t%s", linkStr,
-        getString(this.finalizedBy).replaceAll("\n", "\n\t")));
+      if (freeRefObjs.size() > 0) {
+        ReferenceCounting linkObj = freeRefObjs.get(freeRefObjs.size() - 1);
+        String linkStr = this == linkObj ? "" : linkObj.getObjectId().toString();
+        out.println(String.format("freed by %s\n\t%s", linkStr,
+          getString(this.finalizedBy).replaceAll("\n", "\n\t")));
+      }
     }
     if (includeCaller) out.println(String.format("with current stack \n\t%s",
       getString(Thread.currentThread().getStackTrace()).replaceAll("\n", "\n\t")));
