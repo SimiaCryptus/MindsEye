@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.test.unit;
 
 import com.google.gson.GsonBuilder;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
@@ -38,7 +38,7 @@ import java.util.stream.IntStream;
 public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger log = LoggerFactory.getLogger(EquivalencyTester.class);
   
-  private final NNLayer reference;
+  private final Layer reference;
   private final double tolerance;
   
   /**
@@ -47,7 +47,7 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
    * @param tolerance      the tolerance
    * @param referenceLayer the reference layer
    */
-  public EquivalencyTester(final double tolerance, final NNLayer referenceLayer) {
+  public EquivalencyTester(final double tolerance, final Layer referenceLayer) {
     this.tolerance = tolerance;
     this.reference = referenceLayer;
     this.reference.addRef();
@@ -66,7 +66,7 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
    * @param inputPrototype the input prototype
    * @return the tolerance statistics
    */
-  public ToleranceStatistics test(@Nullable final NNLayer subject, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
+  public ToleranceStatistics test(@Nullable final Layer subject, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
     if (null == reference || null == subject) return new ToleranceStatistics();
     reference.assertAlive();
     ToleranceStatistics result1;
@@ -108,7 +108,7 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
    * @return the tolerance statistics
    */
   @Override
-  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput output, final NNLayer subject, @javax.annotation.Nonnull final Tensor... inputPrototype) {
+  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput output, final Layer subject, @javax.annotation.Nonnull final Tensor... inputPrototype) {
     output.h1("Reference Implementation");
     output.p("This layer is an alternate implementation which is expected to behave the same as the following layer:");
     output.code(() -> {

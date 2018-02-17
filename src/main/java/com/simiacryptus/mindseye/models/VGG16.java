@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.models;
 
 import com.simiacryptus.mindseye.lang.Coordinate;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.Util;
@@ -62,7 +62,7 @@ public abstract class VGG16 extends ImageClassifier {
    */
   public static VGG16 fromZip(@javax.annotation.Nonnull File file) {
     try {
-      return new VGG16_Zip(NNLayer.fromZip(new ZipFile(file)));
+      return new VGG16_Zip(Layer.fromZip(new ZipFile(file)));
     } catch (@javax.annotation.Nonnull final RuntimeException e) {
       throw e;
     } catch (Throwable e) {
@@ -1121,17 +1121,17 @@ public abstract class VGG16 extends ImageClassifier {
    * The type Vgg 16 zip.
    */
   static class VGG16_Zip extends VGG16 {
-    
-    private final NNLayer network;
-    
-    private VGG16_Zip(NNLayer network) {this.network = network;}
+  
+    private final Layer network;
+  
+    private VGG16_Zip(Layer network) {this.network = network;}
     
     /**
      * Gets network.
      *
      * @return the network
      */
-    public NNLayer getNetwork() {
+    public Layer getNetwork() {
       return this.network;
     }
     

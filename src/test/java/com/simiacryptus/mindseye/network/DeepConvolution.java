@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
@@ -71,7 +71,7 @@ public abstract class DeepConvolution extends NLayerTest {
    * @return the activation
    */
   @javax.annotation.Nonnull
-  public NNLayer getActivation() {
+  public Layer getActivation() {
     return new ActivationLayer(ActivationLayer.Mode.RELU);
   }
   
@@ -141,7 +141,7 @@ public abstract class DeepConvolution extends NLayerTest {
   
     @javax.annotation.Nonnull
     @Override
-    public NNLayer getActivation() {
+    public Layer getActivation() {
       return new ActivationLayer(ActivationLayer.Mode.SIGMOID);
     }
   

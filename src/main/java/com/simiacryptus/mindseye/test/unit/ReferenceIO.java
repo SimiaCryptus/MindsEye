@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.SimpleEval;
@@ -59,7 +59,7 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
   
   @Nullable
   @Override
-  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, @Nonnull final NNLayer layer, @javax.annotation.Nonnull final Tensor... inputPrototype) {
+  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, @Nonnull final Layer layer, @javax.annotation.Nonnull final Tensor... inputPrototype) {
     if (!referenceIO.isEmpty()) {
       log.h1("Reference Input/Output Pairs");
       log.p("Display pre-setBytes input/output example pairs:");

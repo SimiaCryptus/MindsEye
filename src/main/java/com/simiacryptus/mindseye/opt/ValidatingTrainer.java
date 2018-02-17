@@ -112,7 +112,7 @@ public class ValidatingTrainer {
       }
   
       @Override
-      public NNLayer getLayer() {
+      public Layer getLayer() {
         return validationSubject.getLayer();
       }
     };
@@ -122,20 +122,20 @@ public class ValidatingTrainer {
   }
   
   @javax.annotation.Nonnull
-  private static String getId(@javax.annotation.Nonnull final DoubleBuffer<NNLayer> x) {
+  private static String getId(@javax.annotation.Nonnull final DoubleBuffer<Layer> x) {
     final String name = x.layer.getName();
     @javax.annotation.Nonnull final String className = x.layer.getClass().getSimpleName();
     return name.contains(className) ? className : name;
   }
   
   private String compare(@javax.annotation.Nonnull final PointSample previousPoint, @javax.annotation.Nonnull final PointSample nextPoint) {
-    @Nonnull final StateSet<NNLayer> nextWeights = nextPoint.weights;
-    @Nonnull final StateSet<NNLayer> prevWeights = previousPoint.weights;
+    @Nonnull final StateSet<Layer> nextWeights = nextPoint.weights;
+    @Nonnull final StateSet<Layer> prevWeights = previousPoint.weights;
     return String.format("Overall network state change: %s", prevWeights.stream()
       .collect(Collectors.groupingBy(x -> ValidatingTrainer.getId(x), Collectors.toList())).entrySet().stream()
       .collect(Collectors.toMap(x -> x.getKey(), list -> {
         final List<Double> doubleList = list.getValue().stream().map(prevWeight -> {
-          final DoubleBuffer<NNLayer> dirDelta = nextWeights.getMap().get(prevWeight.layer);
+          final DoubleBuffer<Layer> dirDelta = nextWeights.getMap().get(prevWeight.layer);
           final double numerator = prevWeight.deltaStatistics().rms();
           final double denominator = null == dirDelta ? 0 : dirDelta.deltaStatistics().rms();
           return numerator / (0 == denominator ? 1 : denominator);

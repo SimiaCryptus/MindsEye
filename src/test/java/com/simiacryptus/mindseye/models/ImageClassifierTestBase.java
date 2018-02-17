@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.models;
 
 import com.simiacryptus.mindseye.labs.encoding.EncodingUtil;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.network.DAGNetwork;
@@ -67,7 +67,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
   public void run(@javax.annotation.Nonnull NotebookOutput log) {
     Future<Tensor[][]> submit = Executors.newSingleThreadExecutor().submit(() -> EncodingUtil.getImages(log, 224, 10));
     ImageClassifier vgg16 = getImageClassifier(log);
-    @javax.annotation.Nonnull NNLayer network = ((DemoableNetworkFactory) vgg16).build(log);
+    @javax.annotation.Nonnull Layer network = ((DemoableNetworkFactory) vgg16).build(log);
   
     log.h1("Network Diagram");
     log.p("This is a diagram of the imported network:");
@@ -130,7 +130,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
    * @param images  the images
    * @return the list
    */
-  public List<LinkedHashMap<String, Double>> predict(@javax.annotation.Nonnull NotebookOutput log, @javax.annotation.Nonnull ImageClassifier vgg16, @javax.annotation.Nonnull NNLayer network, @javax.annotation.Nonnull Tensor[][] images) {
+  public List<LinkedHashMap<String, Double>> predict(@javax.annotation.Nonnull NotebookOutput log, @javax.annotation.Nonnull ImageClassifier vgg16, @javax.annotation.Nonnull Layer network, @javax.annotation.Nonnull Tensor[][] images) {
     TestUtil.instrumentPerformance(log, (DAGNetwork) network);
     List<LinkedHashMap<String, Double>> predictions = log.code(() -> {
       Tensor[] data = Arrays.stream(images).map(x -> x[1]).toArray(i -> new Tensor[i]);

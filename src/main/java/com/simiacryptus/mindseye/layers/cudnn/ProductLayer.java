@@ -36,7 +36,7 @@ import java.util.stream.IntStream;
  * layers, such as the square needed in MeanSqLossLayer.
  */
 @SuppressWarnings("serial")
-public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer> {
+public class ProductLayer extends LayerBase implements MultiPrecision<ProductLayer> {
   
   private Precision precision = Precision.Double;
   
@@ -73,7 +73,7 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
    * @return the compatibility layer
    */
   @javax.annotation.Nonnull
-  public NNLayer getCompatibilityLayer() {
+  public Layer getCompatibilityLayer() {
     return this.as(com.simiacryptus.mindseye.layers.java.ProductInputsLayer.class);
   }
   
@@ -122,7 +122,7 @@ public class ProductLayer extends NNLayer implements MultiPrecision<ProductLayer
       }).get();
       gpu.registerForCleanup(opDescriptor, sizeDescriptor);
       return result1;
-    }), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       for (int index = 0; index < inObj.length; index++) {
         final NNResult input = inObj[index];
         if (input.isAlive()) {

@@ -43,7 +43,7 @@ import java.util.stream.IntStream;
  * inputs are connected to all outputs via seperate coefficients.
  */
 @SuppressWarnings("serial")
-public class FullyConnectedReferenceLayer extends NNLayer {
+public class FullyConnectedReferenceLayer extends LayerBase {
   
   
   @SuppressWarnings("unused")
@@ -147,9 +147,9 @@ public class FullyConnectedReferenceLayer extends NNLayer {
       });
       input.freeRef();
       return output;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
-        final Delta<NNLayer> deltaBuffer = buffer.get(FullyConnectedReferenceLayer.this, getWeights().getData());
+        final Delta<Layer> deltaBuffer = buffer.get(FullyConnectedReferenceLayer.this, getWeights().getData());
         Tensor[] array = IntStream.range(0, indata.length()).mapToObj(i -> {
           @javax.annotation.Nullable final Tensor inputTensor = indata.get(i);
           @javax.annotation.Nullable final Tensor deltaTensor = delta.get(i);

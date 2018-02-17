@@ -40,7 +40,7 @@ import java.util.function.IntToDoubleFunction;
  * Adds a scalar offset to the input based on color band (3rd tensor dimension)
  */
 @SuppressWarnings("serial")
-public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandBiasLayer> {
+public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBandBiasLayer> {
   /**
    * The Log.
    */
@@ -88,9 +88,9 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
    * @return the compatibility layer
    */
   @javax.annotation.Nonnull
-  public NNLayer getCompatibilityLayer() {
+  public Layer getCompatibilityLayer() {
     log.info("Using compatibility layer for " + this);
-    return new NNLayer() {
+    return new LayerBase() {
       @javax.annotation.Nonnull
       com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer inner = this.as(com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer.class);
   
@@ -98,7 +98,7 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
       @Override
       public NNResult eval(NNResult... array) {
         @javax.annotation.Nonnull NNResult result = inner.eval(array);
-        return new NNResult(result.getData(), (DeltaSet<NNLayer> buffer, TensorList data) -> {
+        return new NNResult(result.getData(), (DeltaSet<Layer> buffer, TensorList data) -> {
           throw new IllegalStateException();
         }) {
   
@@ -202,7 +202,7 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
       } catch (@javax.annotation.Nonnull final Throwable e) {
         throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
       }
-    }), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+    }), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       assert error.length() == batch.length();
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
       if (!isFrozen()) {
@@ -286,7 +286,7 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
    * @return the nn layer
    */
   @javax.annotation.Nonnull
-  public NNLayer set(@javax.annotation.Nonnull final double[] ds) {
+  public Layer set(@javax.annotation.Nonnull final double[] ds) {
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(ds).allMatch(Double::isFinite);
     final double[] bias = getBias();
@@ -305,7 +305,7 @@ public class ImgBandBiasLayer extends NNLayer implements MultiPrecision<ImgBandB
    * @return the nn layer
    */
   @javax.annotation.Nonnull
-  public NNLayer set(@javax.annotation.Nonnull final Tensor ds) {
+  public Layer set(@javax.annotation.Nonnull final Tensor ds) {
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(ds).allMatch(Double::isFinite);
     final double[] bias = getBias();

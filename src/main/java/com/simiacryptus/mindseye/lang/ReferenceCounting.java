@@ -81,4 +81,11 @@ public interface ReferenceCounting {
    * @return the object id
    */
   UUID getObjectId();
+  
+  /**
+   * Sets floating.
+   *
+   * @param floating the floating
+   */
+  void setFloating(boolean floating);
 }

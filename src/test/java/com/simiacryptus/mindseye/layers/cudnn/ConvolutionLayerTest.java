@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
@@ -97,7 +97,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   public void verifyWeights() {
     @Nonnull ExplodedConvolutionGrid explodedNetwork = this.convolutionLayer.getExplodedNetwork();
     @javax.annotation.Nonnull int[] kernelDims = this.convolutionLayer.getKernel().getDimensions();
-    @Nullable Tensor testData = new Tensor(kernelDims).map(x -> random());
+    @Nullable Tensor testData = new Tensor(kernelDims).mapAndFree(x -> random());
     explodedNetwork.write(testData);
     Tensor echo = explodedNetwork.read();
     explodedNetwork.freeRef();
@@ -107,6 +107,8 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
       minus.freeRef();
       Assert.assertEquals(testData, echo);
     }
+    echo.freeRef();
+    testData.freeRef();
   }
   
   private void print(final Stream<String> stream) {
@@ -124,7 +126,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   
   @Nonnull
   @Override
-  public NNLayer getLayer(final int[][] inputSize, Random random) {
+  public Layer getLayer(final int[][] inputSize, Random random) {
     return convolutionLayer.explode();
   }
   
@@ -138,7 +140,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   
   @Nullable
   @Override
-  public NNLayer getReferenceLayer() {
+  public Layer getReferenceLayer() {
     return convolutionLayer.as(com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class);
   }
   
@@ -301,7 +303,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
 //
   
     @Override
-    public NNLayer getReferenceLayer() {
+    public Layer getReferenceLayer() {
       // BUG: Reference aparapi implementation does not seem to implement nonstandard padding correctly
       return null;
     }
@@ -427,7 +429,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
     
     @Nullable
     @Override
-    public NNLayer getReferenceLayer() {
+    public Layer getReferenceLayer() {
       return null;
     }
     

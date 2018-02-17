@@ -36,7 +36,7 @@ import java.util.stream.Stream;
  * An RMS-differencing loss function without the final square root.
  */
 @SuppressWarnings("serial")
-public class MeanSqLossLayer extends NNLayer {
+public class MeanSqLossLayer extends LayerBase {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MeanSqLossLayer.class);
@@ -90,7 +90,7 @@ public class MeanSqLossLayer extends NNLayer {
       diffs[dataIndex] = r;
       @javax.annotation.Nonnull Tensor statsTensor = new Tensor(new double[]{r.sumSq() / r.dim()}, 1);
       return statsTensor;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
         Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
           @Nullable Tensor tensor = data.get(dataIndex);

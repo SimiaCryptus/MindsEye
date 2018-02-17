@@ -59,7 +59,7 @@ public class QuantifyOrientationWrapper extends OrientationStrategyBase<LineSear
    * @return the id
    */
   @javax.annotation.Nonnull
-  public String getId(@javax.annotation.Nonnull final DoubleBuffer<NNLayer> x) {
+  public String getId(@javax.annotation.Nonnull final DoubleBuffer<Layer> x) {
     final String name = x.layer.getName();
     @javax.annotation.Nonnull final String className = x.layer.getClass().getSimpleName();
     return name.contains(className) ? className : name;
@@ -73,13 +73,13 @@ public class QuantifyOrientationWrapper extends OrientationStrategyBase<LineSear
   public LineSearchCursor orient(final Trainable subject, final PointSample measurement, @javax.annotation.Nonnull final TrainingMonitor monitor) {
     final LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
     if (cursor instanceof SimpleLineSearchCursor) {
-      final DeltaSet<NNLayer> direction = ((SimpleLineSearchCursor) cursor).direction;
-      @Nonnull final StateSet<NNLayer> weights = ((SimpleLineSearchCursor) cursor).origin.weights;
+      final DeltaSet<Layer> direction = ((SimpleLineSearchCursor) cursor).direction;
+      @Nonnull final StateSet<Layer> weights = ((SimpleLineSearchCursor) cursor).origin.weights;
       final Map<String, String> dataMap = weights.stream()
         .collect(Collectors.groupingBy(x -> getId(x), Collectors.toList())).entrySet().stream()
         .collect(Collectors.toMap(x -> x.getKey(), list -> {
           final List<Double> doubleList = list.getValue().stream().map(weightDelta -> {
-            final DoubleBuffer<NNLayer> dirDelta = direction.getMap().get(weightDelta.layer);
+            final DoubleBuffer<Layer> dirDelta = direction.getMap().get(weightDelta.layer);
             final double denominator = weightDelta.deltaStatistics().rms();
             final double numerator = null == dirDelta ? 0 : dirDelta.deltaStatistics().rms();
             return numerator / (0 == denominator ? 1 : denominator);

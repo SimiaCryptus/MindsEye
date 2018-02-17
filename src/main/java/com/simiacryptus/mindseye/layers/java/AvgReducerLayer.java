@@ -34,7 +34,7 @@ import java.util.stream.IntStream;
  * Computes the average value across all elements of each input tensor. The output dimensions are always 1x1x1.
  */
 @SuppressWarnings("serial")
-public class AvgReducerLayer extends NNLayer {
+public class AvgReducerLayer extends LayerBase {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SumReducerLayer.class);
@@ -81,7 +81,7 @@ public class AvgReducerLayer extends NNLayer {
         tensor.freeRef();
       }
       return sum;
-    }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       for (@javax.annotation.Nonnull final NNResult in_l : inObj) {
         if (in_l.isAlive()) {
           TensorList inData = in_l.getData();

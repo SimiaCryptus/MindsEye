@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.google.common.collect.Lists;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
@@ -56,7 +56,7 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
    * @param network   the network
    * @param batchSize the batch size
    */
-  public BatchedTrainable(final NNLayer network, final int batchSize) {
+  public BatchedTrainable(final Layer network, final int batchSize) {
     this(new BasicTrainable(network), batchSize);
     getInner().freeRef();
   }

@@ -147,7 +147,7 @@ public class ClassifyProblem implements Problem {
    * @param labeledObject the labeled object
    * @return the int [ ]
    */
-  public int[] predict(@javax.annotation.Nonnull final NNLayer network, @javax.annotation.Nonnull final LabeledObject<Tensor> labeledObject) {
+  public int[] predict(@javax.annotation.Nonnull final Layer network, @javax.annotation.Nonnull final LabeledObject<Tensor> labeledObject) {
     @Nullable final double[] predictionSignal = network.eval(labeledObject.data).getData().get(0).getData();
     return IntStream.range(0, categories).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
   }

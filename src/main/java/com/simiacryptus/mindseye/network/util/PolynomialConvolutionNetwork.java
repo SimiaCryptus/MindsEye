@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.network.util;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ProductLayer;
@@ -73,19 +73,19 @@ public class PolynomialConvolutionNetwork extends PolynomialNetwork {
   
   @javax.annotation.Nonnull
   @Override
-  public NNLayer newBias(final int[] dims, final double weight) {
+  public Layer newBias(final int[] dims, final double weight) {
     return new ImgBandBiasLayer(dims[2]).setWeights(i -> weight);
   }
   
   @javax.annotation.Nonnull
   @Override
-  public NNLayer newProductLayer() {
+  public Layer newProductLayer() {
     return new ProductLayer();
   }
   
   @javax.annotation.Nonnull
   @Override
-  public NNLayer newSynapse(final double weight) {
+  public Layer newSynapse(final double weight) {
     return new ConvolutionLayer(radius, radius, inputDims[2], outputDims[2]).set(i -> weight * (Math.random() - 0.5));
   }
 }

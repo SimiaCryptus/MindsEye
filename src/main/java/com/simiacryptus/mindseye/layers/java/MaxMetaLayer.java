@@ -35,7 +35,7 @@ import java.util.stream.IntStream;
  * The type Max meta layer.
  */
 @SuppressWarnings("serial")
-public class MaxMetaLayer extends NNLayer {
+public class MaxMetaLayer extends LayerBase {
   
   
   @SuppressWarnings("unused")
@@ -91,7 +91,7 @@ public class MaxMetaLayer extends NNLayer {
       double v1 = tensor.getData()[c];
       tensor.freeRef();
       return v1;
-    })), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    })), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (input.isAlive()) {
         @Nullable final Tensor delta = data.get(0);
         @javax.annotation.Nonnull final Tensor feedback[] = new Tensor[itemCnt];

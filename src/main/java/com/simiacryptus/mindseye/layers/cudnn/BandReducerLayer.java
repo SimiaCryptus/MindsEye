@@ -20,10 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer.PoolingMode;
@@ -38,7 +35,7 @@ import java.util.Map;
  * Similar to the pooling layer, but the pool size is always the image size. The output dimensions are always 1x1xN.
  */
 @SuppressWarnings("serial")
-public class BandReducerLayer extends NNLayer implements MultiPrecision<BandReducerLayer> {
+public class BandReducerLayer extends LayerBase implements MultiPrecision<BandReducerLayer> {
   
   private PoolingLayer.PoolingMode mode = PoolingLayer.PoolingMode.Max;
   private Precision precision = Precision.Double;
@@ -78,7 +75,7 @@ public class BandReducerLayer extends NNLayer implements MultiPrecision<BandRedu
    * @return the compatibility layer
    */
   @javax.annotation.Nonnull
-  public NNLayer getCompatibilityLayer() {
+  public Layer getCompatibilityLayer() {
     throw new RuntimeException("Not Implemented");
   }
   

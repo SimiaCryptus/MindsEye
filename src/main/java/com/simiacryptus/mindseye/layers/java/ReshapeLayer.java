@@ -36,7 +36,7 @@ import java.util.Map;
  * inputs are connected to all outputs via seperate coefficients.
  */
 @SuppressWarnings("serial")
-public class ReshapeLayer extends NNLayer {
+public class ReshapeLayer extends LayerBase {
   private static final Logger log = LoggerFactory.getLogger(ReshapeLayer.class);
   /**
    * The Output dims.
@@ -90,7 +90,7 @@ public class ReshapeLayer extends NNLayer {
     @Nonnull int[] inputDims = data.getDimensions();
     ReshapedTensorList reshapedTensorList = new ReshapedTensorList(data, outputDims);
     data.freeRef();
-    return new NNResult(reshapedTensorList, (DeltaSet<NNLayer> buffer, TensorList delta) -> {
+    return new NNResult(reshapedTensorList, (DeltaSet<Layer> buffer, TensorList delta) -> {
       @javax.annotation.Nonnull ReshapedTensorList tensorList = new ReshapedTensorList(delta, inputDims);
       inObj[0].accumulate(buffer, tensorList);
       tensorList.freeRef();

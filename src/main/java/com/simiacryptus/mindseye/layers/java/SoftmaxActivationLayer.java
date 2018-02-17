@@ -36,7 +36,7 @@ import java.util.stream.IntStream;
  * The classic "softmax" layer. All outputs will sum to 1 and be proportional to the log of the input.
  */
 @SuppressWarnings("serial")
-public class SoftmaxActivationLayer extends NNLayer {
+public class SoftmaxActivationLayer extends LayerBase {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SoftmaxActivationLayer.class);
@@ -102,7 +102,7 @@ public class SoftmaxActivationLayer extends NNLayer {
       return result;
     }).toArray(i -> new Tensor[i]);
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
         final Tensor[] passbackA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
           Tensor deltaTensor = data.get(dataIndex);

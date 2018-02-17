@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
@@ -85,7 +85,7 @@ public class FailsafeLineSearchCursor extends LineSearchCursorBase {
   }
   
   @Override
-  public DeltaSet<NNLayer> position(final double alpha) {
+  public DeltaSet<Layer> position(final double alpha) {
     return direction.position(alpha);
   }
   

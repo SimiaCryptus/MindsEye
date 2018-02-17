@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.opt.orient;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.DoubleBuffer;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
@@ -43,7 +43,7 @@ public class MomentumStrategy extends OrientationStrategyBase<SimpleLineSearchCu
    * The Prev delta.
    */
   @javax.annotation.Nonnull
-  DeltaSet<NNLayer> prevDelta = new DeltaSet<NNLayer>();
+  DeltaSet<Layer> prevDelta = new DeltaSet<Layer>();
   private double carryOver = 0.1;
   
   /**
@@ -85,10 +85,10 @@ public class MomentumStrategy extends OrientationStrategyBase<SimpleLineSearchCu
   @Override
   public SimpleLineSearchCursor orient(final Trainable subject, @javax.annotation.Nonnull final PointSample measurement, final TrainingMonitor monitor) {
     final LineSearchCursor orient = inner.orient(subject, measurement, monitor);
-    final DeltaSet<NNLayer> direction = ((SimpleLineSearchCursor) orient).direction;
-    @javax.annotation.Nonnull final DeltaSet<NNLayer> newDelta = new DeltaSet<NNLayer>();
+    final DeltaSet<Layer> direction = ((SimpleLineSearchCursor) orient).direction;
+    @javax.annotation.Nonnull final DeltaSet<Layer> newDelta = new DeltaSet<Layer>();
     direction.getMap().forEach((layer, delta) -> {
-      final DoubleBuffer<NNLayer> prevBuffer = prevDelta.get(layer, delta.target);
+      final DoubleBuffer<Layer> prevBuffer = prevDelta.get(layer, delta.target);
       newDelta.get(layer, delta.target).addInPlace(ArrayUtil.add(ArrayUtil.multiply(prevBuffer.getDelta(), carryOver), delta.getDelta()));
     });
     prevDelta = newDelta;

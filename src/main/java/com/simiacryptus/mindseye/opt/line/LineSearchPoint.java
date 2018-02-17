@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 
 /**
- * A particular point in a NNLayer line search phase. Contains both the high-dimensional position and derivative, and
+ * A particular point in a LayerBase line search phase. Contains both the high-dimensional position and derivative, and
  * the simplified one-dimensional positiion and derivative.
  */
 public class LineSearchPoint extends ReferenceCountingBase {

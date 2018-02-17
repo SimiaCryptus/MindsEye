@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
@@ -46,7 +46,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
    */
   public final int bands;
   /**
-   * The Layer.
+   * The LayerBase.
    */
   SimpleConvolutionLayer layer;
   
@@ -74,7 +74,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize, Random random) {
+  public Layer getLayer(final int[][] inputSize, Random random) {
     layer.addRef();
     return layer;
   }
@@ -89,7 +89,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
   
   @Nullable
   @Override
-  public NNLayer getReferenceLayer() {
+  public Layer getReferenceLayer() {
     @javax.annotation.Nonnull final ConvolutionLayer convolutionLayer = new ConvolutionLayer(radius, radius, bands, bands, true);
     @javax.annotation.Nonnull final Tensor tensor = new Tensor(layer.kernel.getDimensions());
     tensor.setByCoord(c -> {
@@ -268,7 +268,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
     }
     
     @Override
-    public NNLayer getReferenceLayer() {
+    public Layer getReferenceLayer() {
       return null;
     }
   

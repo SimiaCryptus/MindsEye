@@ -33,7 +33,7 @@ import java.util.stream.IntStream;
  * many common signed rational values, such as +/-0.5, +/-1.0, 2.0, etc
  */
 @SuppressWarnings("serial")
-public final class NthPowerActivationLayer extends NNLayer {
+public final class NthPowerActivationLayer extends LayerBase {
   
   private double power = 1.0;
   
@@ -143,7 +143,7 @@ public final class NthPowerActivationLayer extends NNLayer {
       }
       input.freeRef();
       return output;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
           @javax.annotation.Nonnull final Tensor passback = new Tensor(data.getDimensions());

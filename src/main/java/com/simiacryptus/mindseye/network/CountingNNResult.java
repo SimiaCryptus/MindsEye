@@ -102,7 +102,7 @@ class CountingNNResult extends NNResult {
   /**
    * The type Counting accumulator.
    */
-  static class CountingAccumulator extends ReferenceCountingBase implements BiConsumer<DeltaSet<NNLayer>, TensorList> {
+  static class CountingAccumulator extends ReferenceCountingBase implements BiConsumer<DeltaSet<Layer>, TensorList> {
     @javax.annotation.Nonnull
     private final AtomicInteger references;
     @javax.annotation.Nonnull
@@ -135,9 +135,18 @@ class CountingNNResult extends NNResult {
     public int increment() {
       return this.references.incrementAndGet();
     }
-    
+  
+    /**
+     * Gets count.
+     *
+     * @return the count
+     */
+    public int getCount() {
+      return this.references.get();
+    }
+  
     @Override
-    public void accept(DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull TensorList data) {
+    public void accept(DeltaSet<Layer> buffer, @javax.annotation.Nonnull TensorList data) {
       assertAlive();
       if (1 >= references.get()) {
         if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();

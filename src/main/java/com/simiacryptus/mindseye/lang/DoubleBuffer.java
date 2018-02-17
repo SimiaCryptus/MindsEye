@@ -36,7 +36,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DoubleBuffer.class);
   /**
-   * The Layer.
+   * The LayerBase.
    */
   @javax.annotation.Nonnull
   public final K layer;

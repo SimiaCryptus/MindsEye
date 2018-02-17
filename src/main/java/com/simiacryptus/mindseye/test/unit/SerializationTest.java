@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.test.unit;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.SerialPrecision;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
@@ -46,7 +46,7 @@ import java.util.zip.ZipFile;
  */
 public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
-  private final HashMap<SerialPrecision, NNLayer> models = new HashMap<>();
+  private final HashMap<SerialPrecision, Layer> models = new HashMap<>();
   private boolean persist = false;
   
   /**
@@ -79,7 +79,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   
   @Nullable
   @Override
-  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer layer, final Tensor... inputPrototype) {
+  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer layer, final Tensor... inputPrototype) {
     log.h1("Serialization");
     log.p("This run will demonstrate the layer's JSON serialization, and verify deserialization integrity.");
     
@@ -88,7 +88,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     try {
       prettyPrint = log.code(() -> {
         final JsonObject json = layer.getJson();
-        @javax.annotation.Nonnull final NNLayer echo = NNLayer.fromJson(json);
+        @javax.annotation.Nonnull final Layer echo = Layer.fromJson(json);
         if (echo == null) throw new AssertionError("Failed to deserialize");
         if (layer == echo) throw new AssertionError("Serialization did not copy");
         if (!layer.equals(echo)) throw new AssertionError("Serialization not equal");
@@ -111,7 +111,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
         try {
           @javax.annotation.Nonnull File file = new File(log.getResourceDir(), log.getName() + "_" + precision.name() + ".zip");
           layer.writeZip(file, precision);
-          @javax.annotation.Nonnull final NNLayer echo = NNLayer.fromZip(new ZipFile(file));
+          @javax.annotation.Nonnull final Layer echo = Layer.fromZip(new ZipFile(file));
           getModels().put(precision, echo);
           synchronized (outSync) {
             log.h2(String.format("Zipfile %s", precision.name()));
@@ -141,7 +141,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
    * @return the models
    */
   @javax.annotation.Nonnull
-  public HashMap<SerialPrecision, NNLayer> getModels() {
+  public HashMap<SerialPrecision, Layer> getModels() {
     return models;
   }
   

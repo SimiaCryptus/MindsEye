@@ -35,7 +35,7 @@ import java.util.stream.IntStream;
  * using the first input as a distribution, but using the second input distribution for the encoding scheme.
  */
 @SuppressWarnings("serial")
-public class EntropyLossLayer extends NNLayer {
+public class EntropyLossLayer extends LayerBase {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(EntropyLossLayer.class);
@@ -102,7 +102,7 @@ public class EntropyLossLayer extends NNLayer {
       gradient[dataIndex] = gradientTensor;
       @javax.annotation.Nonnull final Tensor outValue = new Tensor(new double[]{total}, 1);
       return outValue;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (inObj[1].isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           Tensor deltaTensor = delta.get(dataIndex);

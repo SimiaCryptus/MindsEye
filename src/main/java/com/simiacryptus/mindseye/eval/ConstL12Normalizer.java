@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer;
 
@@ -49,7 +49,7 @@ public class ConstL12Normalizer extends L12Normalizer implements SampledTrainabl
   }
   
   @Override
-  public NNLayer getLayer() {
+  public Layer getLayer() {
     return inner.getLayer();
   }
   
@@ -96,13 +96,13 @@ public class ConstL12Normalizer extends L12Normalizer implements SampledTrainabl
   }
   
   @Override
-  protected double getL1(final NNLayer layer) {
+  protected double getL1(final Layer layer) {
     if (supress(layer)) return 0;
     return factor_L1;
   }
   
   @Override
-  protected double getL2(final NNLayer layer) {
+  protected double getL2(final Layer layer) {
     return factor_L2;
   }
   
@@ -131,7 +131,7 @@ public class ConstL12Normalizer extends L12Normalizer implements SampledTrainabl
     return this;
   }
   
-  private boolean supress(final NNLayer layer) {
+  private boolean supress(final Layer layer) {
     if (layer instanceof BiasLayer) return false;
     if (layer instanceof ImgBandBiasLayer) return false;
     return false;

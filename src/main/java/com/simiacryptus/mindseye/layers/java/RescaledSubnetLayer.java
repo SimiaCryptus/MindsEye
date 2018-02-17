@@ -20,10 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.ImgConcatLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -39,11 +36,11 @@ import java.util.stream.IntStream;
  * across larger image regions.
  */
 @SuppressWarnings("serial")
-public class RescaledSubnetLayer extends NNLayer {
+public class RescaledSubnetLayer extends LayerBase {
   
   private final int scale;
   @Nullable
-  private final NNLayer subnetwork;
+  private final Layer subnetwork;
   
   /**
    * Instantiates a new Rescaled subnet layer.
@@ -51,7 +48,7 @@ public class RescaledSubnetLayer extends NNLayer {
    * @param scale      the scale
    * @param subnetwork the subnetwork
    */
-  public RescaledSubnetLayer(final int scale, final NNLayer subnetwork) {
+  public RescaledSubnetLayer(final int scale, final Layer subnetwork) {
     super();
     this.scale = scale;
     this.subnetwork = subnetwork;
@@ -68,7 +65,7 @@ public class RescaledSubnetLayer extends NNLayer {
     super(json);
     scale = json.getAsJsonPrimitive("scale").getAsInt();
     JsonObject subnetwork = json.getAsJsonObject("subnetwork");
-    this.subnetwork = subnetwork == null ? null : NNLayer.fromJson(subnetwork, rs);
+    this.subnetwork = subnetwork == null ? null : Layer.fromJson(subnetwork, rs);
   }
   
   /**

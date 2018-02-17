@@ -71,7 +71,7 @@ public class AutoencoderNetwork {
   @javax.annotation.Nonnull
   private final AutoencoderNetwork.Builder networkParameters;
   private final int[] outerSize;
-  private NNLayer decoderSynapse;
+  private Layer decoderSynapse;
   
   /**
    * Instantiates a new Autoencoder network.
@@ -136,7 +136,7 @@ public class AutoencoderNetwork {
    * @return the decoder
    */
   @javax.annotation.Nonnull
-  public NNLayer getDecoder() {
+  public Layer getDecoder() {
     return decoder;
   }
   
@@ -146,7 +146,7 @@ public class AutoencoderNetwork {
    * @return the decoder activation
    */
   @javax.annotation.Nonnull
-  public NNLayer getDecoderActivation() {
+  public Layer getDecoderActivation() {
     return decoderActivation;
   }
   
@@ -165,7 +165,7 @@ public class AutoencoderNetwork {
    *
    * @return the decoder synapse
    */
-  public NNLayer getDecoderSynapse() {
+  public Layer getDecoderSynapse() {
     return decoderSynapse;
   }
   
@@ -185,7 +185,7 @@ public class AutoencoderNetwork {
    * @return the encoder
    */
   @javax.annotation.Nonnull
-  public NNLayer getEncoder() {
+  public Layer getEncoder() {
     return encoder;
   }
   
@@ -195,7 +195,7 @@ public class AutoencoderNetwork {
    * @return the encoder activation
    */
   @javax.annotation.Nonnull
-  public NNLayer getEncoderActivation() {
+  public Layer getEncoderActivation() {
     return encoderActivation;
   }
   
@@ -497,7 +497,7 @@ public class AutoencoderNetwork {
      * @return the nn layer
      */
     @javax.annotation.Nonnull
-    public NNLayer echo() {
+    public Layer echo() {
       @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(getEncoder());
       network.add(getDecoder());
@@ -510,7 +510,7 @@ public class AutoencoderNetwork {
      * @return the decoder
      */
     @javax.annotation.Nonnull
-    public NNLayer getDecoder() {
+    public Layer getDecoder() {
       @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       for (int i = layers.size() - 1; i >= 0; i--) {
         network.add(layers.get(i).getDecoder());
@@ -524,7 +524,7 @@ public class AutoencoderNetwork {
      * @return the encoder
      */
     @javax.annotation.Nonnull
-    public NNLayer getEncoder() {
+    public Layer getEncoder() {
       @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
       for (int i = 0; i < layers.size(); i++) {
         network.add(layers.get(i).getEncoder());

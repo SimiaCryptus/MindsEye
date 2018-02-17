@@ -32,7 +32,7 @@ import java.util.stream.IntStream;
  * The type Cross product layer.
  */
 @SuppressWarnings("serial")
-public class CrossProductLayer extends NNLayer {
+public class CrossProductLayer extends LayerBase {
   
   /**
    * Instantiates a new Cross product layer.
@@ -93,7 +93,7 @@ public class CrossProductLayer extends NNLayer {
       });
       tensor.freeRef();
       return result;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (in.isAlive()) {
         assert delta.length() == delta.length();
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).parallel().mapToObj(batchIndex -> {

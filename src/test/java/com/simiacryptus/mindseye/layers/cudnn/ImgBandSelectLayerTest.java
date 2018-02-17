@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
@@ -38,7 +38,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
    */
   final Precision precision;
   /**
-   * The Layer.
+   * The LayerBase.
    */
   ImgBandSelectLayer layer;
   
@@ -80,7 +80,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize, Random random) {
+  public Layer getLayer(final int[][] inputSize, Random random) {
     layer.addRef();
     return layer;
   }
@@ -94,7 +94,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
   }
   
   @Override
-  public NNLayer getReferenceLayer() {
+  public Layer getReferenceLayer() {
     return layer.getCompatibilityLayer();
   }
   

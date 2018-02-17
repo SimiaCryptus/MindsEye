@@ -24,7 +24,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.NthPowerActivationLayer;
@@ -54,12 +54,12 @@ public class PolynomialNetwork extends DAGNetwork {
    * The Alpha.
    */
   @Nullable
-  protected NNLayer alpha = null;
+  protected Layer alpha = null;
   /**
    * The Alpha bias.
    */
   @Nullable
-  protected NNLayer alphaBias = null;
+  protected Layer alphaBias = null;
   /**
    * The Corrections.
    */
@@ -201,7 +201,7 @@ public class PolynomialNetwork extends DAGNetwork {
       elements.add(c.getJson());
     }
     json.add("corrections", elements);
-    assert null != NNLayer.fromJson(json) : "Smoke eval deserialization";
+    assert null != Layer.fromJson(json) : "Smoke eval deserialization";
     return json;
   }
   
@@ -213,7 +213,7 @@ public class PolynomialNetwork extends DAGNetwork {
    * @return the nn layer
    */
   @Nonnull
-  public NNLayer newBias(final int[] dims, final double weight) {
+  public Layer newBias(final int[] dims, final double weight) {
     return new BiasLayer(dims).setWeights(i -> weight);
   }
   
@@ -224,7 +224,7 @@ public class PolynomialNetwork extends DAGNetwork {
    * @return the nn layer
    */
   @javax.annotation.Nonnull
-  public NNLayer newNthPowerLayer(final double power) {
+  public Layer newNthPowerLayer(final double power) {
     return new NthPowerActivationLayer().setPower(power);
   }
   
@@ -234,7 +234,7 @@ public class PolynomialNetwork extends DAGNetwork {
    * @return the nn layer
    */
   @Nonnull
-  public NNLayer newProductLayer() {
+  public Layer newProductLayer() {
     return new ProductInputsLayer();
   }
   
@@ -245,7 +245,7 @@ public class PolynomialNetwork extends DAGNetwork {
    * @return the nn layer
    */
   @Nonnull
-  public NNLayer newSynapse(final double weight) {
+  public Layer newSynapse(final double weight) {
     return new FullyConnectedLayer(inputDims, outputDims).set(() -> weight * (Math.random() - 1));
   }
   
@@ -256,11 +256,11 @@ public class PolynomialNetwork extends DAGNetwork {
     /**
      * The Bias.
      */
-    public final NNLayer bias;
+    public final Layer bias;
     /**
      * The Factor.
      */
-    public final NNLayer factor;
+    public final Layer factor;
     /**
      * The Power.
      */
@@ -273,7 +273,7 @@ public class PolynomialNetwork extends DAGNetwork {
      * @param bias   the bias
      * @param factor the factor
      */
-    public Correcton(final double power, final NNLayer bias, final NNLayer factor) {
+    public Correcton(final double power, final Layer bias, final Layer factor) {
       this.power = power;
       this.bias = bias;
       this.factor = factor;

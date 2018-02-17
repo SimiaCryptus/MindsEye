@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.aparapi;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 import java.util.Random;
@@ -39,7 +39,7 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
   
     @javax.annotation.Nonnull
     @Override
-    public NNLayer getLayer(final int[][] inputSize, Random random) {
+    public Layer getLayer(final int[][] inputSize, Random random) {
       return new ConvolutionLayer(3, 3, inputBands, outputBands, true).setWeights(() -> this.random());
     }
   
@@ -78,7 +78,7 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
   
     @javax.annotation.Nonnull
     @Override
-    public NNLayer getLayer(final int[][] inputSize, Random random) {
+    public Layer getLayer(final int[][] inputSize, Random random) {
       return new ConvolutionLayer(3, 3, 7, 3, false).setWeights(() -> this.random());
     }
   
@@ -99,7 +99,7 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
   
     @javax.annotation.Nonnull
     @Override
-    public NNLayer getLayer(final int[][] inputSize, Random random) {
+    public Layer getLayer(final int[][] inputSize, Random random) {
       return new ConvolutionLayer(3, 3, 2, 3, false).setWeights(() -> this.random());
     }
   

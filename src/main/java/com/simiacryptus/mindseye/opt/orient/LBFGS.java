@@ -80,7 +80,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
   }
   
   @javax.annotation.Nonnull
-  private SimpleLineSearchCursor cursor(final Trainable subject, @javax.annotation.Nonnull final PointSample measurement, final String type, final DeltaSet<NNLayer> result) {
+  private SimpleLineSearchCursor cursor(final Trainable subject, @javax.annotation.Nonnull final PointSample measurement, final String type, final DeltaSet<Layer> result) {
     return new SimpleLineSearchCursor(subject, measurement, result) {
       @Override
       public LineSearchPoint step(final double t, @javax.annotation.Nonnull final TrainingMonitor monitor) {
@@ -142,8 +142,8 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
    * @return the delta setBytes
    */
   @Nullable
-  protected DeltaSet<NNLayer> lbfgs(@javax.annotation.Nonnull final PointSample measurement, @javax.annotation.Nonnull final TrainingMonitor monitor, @javax.annotation.Nonnull final List<PointSample> history) {
-    @Nonnull final DeltaSet<NNLayer> result = measurement.delta.scale(-1);
+  protected DeltaSet<Layer> lbfgs(@javax.annotation.Nonnull final PointSample measurement, @javax.annotation.Nonnull final TrainingMonitor monitor, @javax.annotation.Nonnull final List<PointSample> history) {
+    @Nonnull final DeltaSet<Layer> result = measurement.delta.scale(-1);
     if (history.size() > minHistory) {
       if (lbfgs(measurement, monitor, history, result)) {
         this.history.forEach(x -> x.freeRef());
@@ -165,16 +165,16 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     }
   }
   
-  private boolean lbfgs(@javax.annotation.Nonnull PointSample measurement, @javax.annotation.Nonnull TrainingMonitor monitor, @javax.annotation.Nonnull List<PointSample> history, @javax.annotation.Nonnull DeltaSet<NNLayer> direction) {
+  private boolean lbfgs(@javax.annotation.Nonnull PointSample measurement, @javax.annotation.Nonnull TrainingMonitor monitor, @javax.annotation.Nonnull List<PointSample> history, @javax.annotation.Nonnull DeltaSet<Layer> direction) {
     try {
-      @Nonnull DeltaSet<NNLayer> p = measurement.delta.copy();
+      @Nonnull DeltaSet<Layer> p = measurement.delta.copy();
       if (!p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d)))) {
         throw new IllegalStateException("Non-finite value");
       }
       @javax.annotation.Nonnull final double[] alphas = new double[history.size()];
       for (int i = history.size() - 2; i >= 0; i--) {
-        @Nonnull final DeltaSet<NNLayer> sd = history.get(i + 1).weights.subtract(history.get(i).weights);
-        @Nonnull final DeltaSet<NNLayer> yd = history.get(i + 1).delta.subtract(history.get(i).delta);
+        @Nonnull final DeltaSet<Layer> sd = history.get(i + 1).weights.subtract(history.get(i).weights);
+        @Nonnull final DeltaSet<Layer> yd = history.get(i + 1).delta.subtract(history.get(i).delta);
         final double denominator = sd.dot(yd);
         if (0 == denominator) {
           throw new IllegalStateException("Orientation vanished.");
@@ -185,15 +185,15 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
           throw new IllegalStateException("Non-finite value");
         }
       }
-      @Nonnull final DeltaSet<NNLayer> sk = history.get(history.size() - 1).weights.subtract(history.get(history.size() - 2).weights);
-      @Nonnull final DeltaSet<NNLayer> yk = history.get(history.size() - 1).delta.subtract(history.get(history.size() - 2).delta);
+      @Nonnull final DeltaSet<Layer> sk = history.get(history.size() - 1).weights.subtract(history.get(history.size() - 2).weights);
+      @Nonnull final DeltaSet<Layer> yk = history.get(history.size() - 1).delta.subtract(history.get(history.size() - 2).delta);
       p = p.scale(sk.dot(yk) / yk.dot(yk));
       if (!p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d)))) {
         throw new IllegalStateException("Non-finite value");
       }
       for (int i = 0; i < history.size() - 1; i++) {
-        @Nonnull final DeltaSet<NNLayer> sd = history.get(i + 1).weights.subtract(history.get(i).weights);
-        @Nonnull final DeltaSet<NNLayer> yd = history.get(i + 1).delta.subtract(history.get(i).delta);
+        @Nonnull final DeltaSet<Layer> sd = history.get(i + 1).weights.subtract(history.get(i).weights);
+        @Nonnull final DeltaSet<Layer> yd = history.get(i + 1).delta.subtract(history.get(i).delta);
         final double beta = p.dot(yd) / sd.dot(yd);
         p = p.add(sd.scale(alphas[i] - beta));
         if (!p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d)))) {
@@ -215,8 +215,8 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     }
   }
   
-  private void copy(@javax.annotation.Nonnull DeltaSet<NNLayer> from, @javax.annotation.Nonnull DeltaSet<NNLayer> to) {
-    for (@javax.annotation.Nonnull final Map.Entry<NNLayer, Delta<NNLayer>> e : to.getMap().entrySet()) {
+  private void copy(@javax.annotation.Nonnull DeltaSet<Layer> from, @javax.annotation.Nonnull DeltaSet<Layer> to) {
+    for (@javax.annotation.Nonnull final Map.Entry<Layer, Delta<Layer>> e : to.getMap().entrySet()) {
       @javax.annotation.Nullable final double[] delta = from.getMap().get(e.getKey()).getDelta();
       Arrays.setAll(e.getValue().getDelta(), j -> delta[j]);
     }
@@ -235,10 +235,10 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     
     addToHistory(measurement, monitor);
     @javax.annotation.Nonnull final List<PointSample> history = Arrays.asList(this.history.toArray(new PointSample[]{}));
-    @Nullable final DeltaSet<NNLayer> result = lbfgs(measurement, monitor, history);
+    @Nullable final DeltaSet<Layer> result = lbfgs(measurement, monitor, history);
     SimpleLineSearchCursor returnValue;
     if (null == result) {
-      @Nonnull DeltaSet<NNLayer> scale = measurement.delta.scale(-1);
+      @Nonnull DeltaSet<Layer> scale = measurement.delta.scale(-1);
       returnValue = cursor(subject, measurement, "GD", scale);
       scale.freeRef();
     }
@@ -290,13 +290,13 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
      * @param gradient    the gradient
      * @param quasinewton the quasinewton
      */
-    public Stats(@javax.annotation.Nonnull DeltaSet<NNLayer> gradient, @javax.annotation.Nonnull DeltaSet<NNLayer> quasinewton) {
+    public Stats(@javax.annotation.Nonnull DeltaSet<Layer> gradient, @javax.annotation.Nonnull DeltaSet<Layer> quasinewton) {
       mag = Math.sqrt(quasinewton.dot(quasinewton));
       magGrad = Math.sqrt(gradient.dot(gradient));
       dot = gradient.dot(quasinewton) / (mag * magGrad);
       anglesPerLayer = gradient.getMap().entrySet().stream()
         .filter(e -> !(e.getKey() instanceof PlaceholderLayer)) // This would be too verbose
-        .map((@javax.annotation.Nonnull final Map.Entry<NNLayer, Delta<NNLayer>> e) -> {
+        .map((@javax.annotation.Nonnull final Map.Entry<Layer, Delta<Layer>> e) -> {
           @javax.annotation.Nullable final double[] lbfgsVector = gradient.getMap().get(e.getKey()).getDelta();
           for (int index = 0; index < lbfgsVector.length; index++) {
             lbfgsVector[index] = Double.isFinite(lbfgsVector[index]) ? lbfgsVector[index] : 0;

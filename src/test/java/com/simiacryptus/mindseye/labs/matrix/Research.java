@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.labs.matrix;
 
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.BasicTrainable;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
@@ -58,7 +58,7 @@ public class Research extends OptimizerComparison {
       trainer.getRegimen().get(0)
         .setOrientation(new RecursiveSubspace() {
           @Override
-          public void train(TrainingMonitor monitor, NNLayer subspace) {
+          public void train(TrainingMonitor monitor, Layer subspace) {
             //new SingleDerivativeTester(1e-3,1e-4).run(subspace, new Tensor[]{new Tensor()});
             super.train(monitor, subspace);
           }
@@ -79,7 +79,7 @@ public class Research extends OptimizerComparison {
       trainer.getRegimen().get(0)
         .setOrientation(new RecursiveSubspace() {
           @Override
-          public void train(TrainingMonitor monitor, NNLayer subspace) {
+          public void train(TrainingMonitor monitor, Layer subspace) {
             //new SingleDerivativeTester(1e-3,1e-4).run(subspace, new Tensor[]{new Tensor()});
             @javax.annotation.Nonnull ArrayTrainable trainable = new ArrayTrainable(new BasicTrainable(subspace), new Tensor[][]{{new Tensor()}});
             new IterativeTrainer(trainable)

@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.network.util;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.java.*;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
@@ -45,17 +45,17 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
    */
   double initialFuzzyCoeff = 1e-8;
   @Nullable
-  private NNLayer alpha = null;
+  private Layer alpha = null;
   @Nullable
-  private NNLayer alphaBias = null;
+  private Layer alphaBias = null;
   @Nullable
-  private NNLayer beta = null;
+  private Layer beta = null;
   @Nullable
-  private NNLayer betaBias = null;
+  private Layer betaBias = null;
   @Nullable
-  private NNLayer gate = null;
+  private Layer gate = null;
   @Nullable
-  private NNLayer gateBias = null;
+  private Layer gateBias = null;
   @Nullable
   private DAGNode head = null;
   @Nullable
@@ -101,7 +101,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
    * @param alpha     the alpha
    * @param alphaBias the alpha bias
    */
-  public SigmoidTreeNetwork(final NNLayer alpha, final NNLayer alphaBias) {
+  public SigmoidTreeNetwork(final Layer alpha, final Layer alphaBias) {
     super(1);
     this.alpha = alpha;
     this.alphaBias = alphaBias;
@@ -125,7 +125,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
    * @param from the from
    * @param to   the to
    */
-  public void copyState(@javax.annotation.Nonnull final NNLayer from, @javax.annotation.Nonnull final NNLayer to) {
+  public void copyState(@javax.annotation.Nonnull final Layer from, @javax.annotation.Nonnull final Layer to) {
     @Nullable final List<double[]> alphaState = from.state();
     @Nullable final List<double[]> betaState = to.state();
     for (int i = 0; i < alphaState.size(); i++) {
@@ -217,7 +217,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
     json.addProperty("mode", getMode().name());
     json.addProperty("skipChildStage", skipChildStage());
     json.addProperty("skipFuzzy", isSkipFuzzy());
-    assert null != NNLayer.fromJson(json) : "Smoke eval deserialization";
+    assert null != Layer.fromJson(json) : "Smoke eval deserialization";
     return json;
   }
   

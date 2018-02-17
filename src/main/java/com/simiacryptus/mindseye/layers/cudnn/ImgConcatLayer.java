@@ -37,7 +37,7 @@ import java.util.stream.IntStream;
  * color bands. (e.g. Used in Inception modules in GoogLeNet.)
  */
 @SuppressWarnings("serial")
-public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatLayer> {
+public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConcatLayer> {
   
   private int maxBands = -1;
   private Precision precision = Precision.Double;
@@ -76,7 +76,7 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
    * @return the compatibility layer
    */
   @javax.annotation.Nonnull
-  public NNLayer getCompatibilityLayer() {
+  public Layer getCompatibilityLayer() {
     return this.as(com.simiacryptus.mindseye.layers.java.ImgConcatLayer.class);
   }
   
@@ -126,7 +126,7 @@ public class ImgConcatLayer extends NNLayer implements MultiPrecision<ImgConcatL
         }
       }
       return GpuTensorList.wrap(cudaOutput, length, outputDimensions, precision);
-    }), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!Arrays.equals(delta.getDimensions(), outputDimensions)) {
         throw new AssertionError(Arrays.toString(delta.getDimensions()) + " != " + Arrays.toString(outputDimensions));
       }

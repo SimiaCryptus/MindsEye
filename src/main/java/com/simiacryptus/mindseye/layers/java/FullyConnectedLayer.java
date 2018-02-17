@@ -45,7 +45,7 @@ import java.util.stream.Stream;
  * inputs are connected to all outputs via seperate coefficients.
  */
 @SuppressWarnings("serial")
-public class FullyConnectedLayer extends NNLayer {
+public class FullyConnectedLayer extends LayerBase {
   
   
   @SuppressWarnings("unused")
@@ -219,9 +219,9 @@ public class FullyConnectedLayer extends NNLayer {
     }).toArray(i -> new Tensor[i]));
     RecycleBin.DOUBLES.recycle(matrixObj.data, matrixObj.data.length);
     this.weights.addRef();
-    return new NNResult(tensorArray, (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    return new NNResult(tensorArray, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
-        final Delta<NNLayer> deltaBuffer = buffer.get(FullyConnectedLayer.this, this.weights.getData());
+        final Delta<Layer> deltaBuffer = buffer.get(FullyConnectedLayer.this, this.weights.getData());
         final int threads = 4;
         IntStream.range(0, threads).parallel().mapToObj(x -> x).flatMap(thread -> {
           @Nullable Stream<Tensor> stream = IntStream.range(0, indata.length()).filter(i -> thread == i % threads).mapToObj(dataIndex -> {
@@ -239,7 +239,7 @@ public class FullyConnectedLayer extends NNLayer {
           b.freeRef();
           return c;
         }).map(data -> {
-          @Nonnull Delta<NNLayer> layerDelta = deltaBuffer.addInPlace(data.getData());
+          @Nonnull Delta<Layer> layerDelta = deltaBuffer.addInPlace(data.getData());
           data.freeRef();
           return layerDelta;
         });
@@ -292,7 +292,7 @@ public class FullyConnectedLayer extends NNLayer {
    * @return the transpose
    */
   @javax.annotation.Nonnull
-  public NNLayer getTranspose() {
+  public Layer getTranspose() {
     throw new RuntimeException("Not Implemented");
   }
   

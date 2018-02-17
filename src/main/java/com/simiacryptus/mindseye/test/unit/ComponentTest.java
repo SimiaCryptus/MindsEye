@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -41,6 +41,6 @@ public interface ComponentTest<T> extends ReferenceCounting {
    * @return the tolerance statistics
    */
   @Nullable
-  T test(NotebookOutput log, NNLayer component, Tensor... inputPrototype);
+  T test(NotebookOutput log, Layer component, Tensor... inputPrototype);
   
 }

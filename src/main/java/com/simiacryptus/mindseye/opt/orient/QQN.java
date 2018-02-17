@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
@@ -92,12 +92,12 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
   public LineSearchCursor orient(@javax.annotation.Nonnull final Trainable subject, @javax.annotation.Nonnull final PointSample origin, @javax.annotation.Nonnull final TrainingMonitor monitor) {
     inner.addToHistory(origin, monitor);
     final SimpleLineSearchCursor lbfgsCursor = inner.orient(subject, origin, monitor);
-    final DeltaSet<NNLayer> lbfgs = lbfgsCursor.direction;
-    @Nonnull final DeltaSet<NNLayer> gd = origin.delta.scale(-1.0);
+    final DeltaSet<Layer> lbfgs = lbfgsCursor.direction;
+    @Nonnull final DeltaSet<Layer> gd = origin.delta.scale(-1.0);
     final double lbfgsMag = lbfgs.getMagnitude();
     final double gdMag = gd.getMagnitude();
     if (Math.abs(lbfgsMag - gdMag) / (lbfgsMag + gdMag) > 1e-2) {
-      @Nonnull final DeltaSet<NNLayer> scaledGradient = gd.scale(lbfgsMag / gdMag);
+      @Nonnull final DeltaSet<Layer> scaledGradient = gd.scale(lbfgsMag / gdMag);
       monitor.log(String.format("Returning Quadratic Cursor %s GD, %s QN", gdMag, lbfgsMag));
       gd.freeRef();
       return new LineSearchCursorBase() {
@@ -109,7 +109,7 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
         }
   
         @Override
-        public DeltaSet<NNLayer> position(final double t) {
+        public DeltaSet<Layer> position(final double t) {
           if (!Double.isFinite(t)) throw new IllegalArgumentException();
           return scaledGradient.scale(t - t * t).add(lbfgs.scale(t * t));
         }
@@ -128,7 +128,7 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
           @Nonnull final PointSample sample = subject.measure(monitor).setRate(t);
           //monitor.log(String.format("delta buffers %d %d %d %d %d", sample.delta.run.size(), origin.delta.run.size(), lbfgs.run.size(), gd.run.size(), scaledGradient.run.size()));
           inner.addToHistory(sample, monitor);
-          @Nonnull final DeltaSet<NNLayer> tangent = scaledGradient.scale(1 - 2 * t).add(lbfgs.scale(2 * t));
+          @Nonnull final DeltaSet<Layer> tangent = scaledGradient.scale(1 - 2 * t).add(lbfgs.scale(2 * t));
           return new LineSearchPoint(sample, tangent.dot(sample.delta));
         }
   

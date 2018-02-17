@@ -38,7 +38,7 @@ import java.util.stream.IntStream;
  * Aparapi, it is not as fast as GpuSystem-powered layers.
  */
 @SuppressWarnings("serial")
-public class ConvolutionLayer extends NNLayer {
+public class ConvolutionLayer extends LayerBase {
   
   
   /**
@@ -193,7 +193,7 @@ public class ConvolutionLayer extends NNLayer {
       throw new RuntimeException("Error mapCoords image res " + Arrays.toString(inputDims), e);
     }
     int outputLength = output.length;
-    return new NNResult(TensorArray.wrap(output), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+    return new NNResult(TensorArray.wrap(output), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       if (!isFrozen()) {
         final double[][] inputBuffers = batch.stream().map(x -> {
           @Nullable double[] data = x.getData();

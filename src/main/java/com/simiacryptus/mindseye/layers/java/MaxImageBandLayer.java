@@ -37,7 +37,7 @@ import java.util.stream.IntStream;
  * Selects the highest value in each color band, emitting a 1x1xN tensor.
  */
 @SuppressWarnings("serial")
-public class MaxImageBandLayer extends NNLayer {
+public class MaxImageBandLayer extends LayerBase {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MaxImageBandLayer.class);
@@ -101,7 +101,7 @@ public class MaxImageBandLayer extends NNLayer {
       Tensor tensor1 = new Tensor(1, 1, inputDims[2]).set(Tensor.getDoubles(doubleStream, inputDims[2]));
       tensor.freeRef();
       return tensor1;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (inObj[0].isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).parallel().mapToObj(dataIndex -> {
           Tensor deltaTensor = delta.get(dataIndex);

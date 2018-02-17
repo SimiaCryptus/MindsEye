@@ -190,9 +190,9 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
    * @return the tensor
    */
   @javax.annotation.Nonnull
-  public Tensor read(@javax.annotation.Nonnull DeltaSet<NNLayer> deltaSet, boolean remove) {
+  public Tensor read(@javax.annotation.Nonnull DeltaSet<Layer> deltaSet, boolean remove) {
     return read((sublayer) -> {
-      final Delta<NNLayer> subnetDelta = remove ? deltaSet.getMap().remove(sublayer) : deltaSet.getMap().get(sublayer);
+      final Delta<Layer> subnetDelta = remove ? deltaSet.getMap().remove(sublayer) : deltaSet.getMap().get(sublayer);
       if (null == subnetDelta) throw new RuntimeException("No Delta for " + sublayer);
       double[] delta = subnetDelta.getDelta();
       return new Tensor(delta, sublayer.kernel.getDimensions());

@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.test;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.java.LoggingWrapperLayer;
 import com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer;
@@ -235,7 +235,7 @@ public class TestUtil {
       network.visitNodes(node -> {
         if (node.getLayer() instanceof MonitoringWrapperLayer) {
           @javax.annotation.Nullable final MonitoringWrapperLayer layer = node.getLayer();
-          NNLayer inner = layer.getInner();
+          Layer inner = layer.getInner();
           String str = inner.toString();
           str += " class=" + inner.getClass().getName();
 //          if(inner instanceof MultiPrecision<?>) {
@@ -293,7 +293,7 @@ public class TestUtil {
    */
   public static void instrumentPerformance(final NotebookOutput log, @javax.annotation.Nonnull final DAGNetwork network) {
     network.visitNodes(node -> {
-      NNLayer layer = node.getLayer();
+      Layer layer = node.getLayer();
       if (layer instanceof MonitoringWrapperLayer) {
         ((MonitoringWrapperLayer) layer).shouldRecordSignalMetrics(false);
       }
@@ -561,12 +561,12 @@ public class TestUtil {
     final List<DAGNode> nodes = network.getNodes();
     final Map<UUID, MutableNode> graphNodes = nodes.stream().collect(Collectors.toMap(node -> node.getId(), node -> {
       @javax.annotation.Nullable String name;
-      @javax.annotation.Nullable final NNLayer layer = node.getLayer();
+      @javax.annotation.Nullable final Layer layer = node.getLayer();
       if (null == layer) {
         name = node.getId().toString();
       }
       else {
-        final Class<? extends NNLayer> layerClass = layer.getClass();
+        final Class<? extends Layer> layerClass = layer.getClass();
         name = layerClass.getSimpleName() + "\n" + layer.getId();
       }
       return Factory.mutNode(name);

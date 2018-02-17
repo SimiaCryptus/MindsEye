@@ -25,7 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * The type Layer run base.
+ * The type LayerBase run base.
  */
 public abstract class LayerTestBase extends StandardLayerTests {
   

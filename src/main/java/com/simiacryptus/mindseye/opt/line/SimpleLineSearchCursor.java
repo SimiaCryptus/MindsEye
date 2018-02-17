@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
@@ -34,7 +34,7 @@ public class SimpleLineSearchCursor extends LineSearchCursorBase {
   /**
    * The Direction.
    */
-  public final DeltaSet<NNLayer> direction;
+  public final DeltaSet<Layer> direction;
   /**
    * The Origin.
    */
@@ -53,7 +53,7 @@ public class SimpleLineSearchCursor extends LineSearchCursorBase {
    * @param origin    the origin
    * @param direction the direction
    */
-  public SimpleLineSearchCursor(final Trainable subject, @javax.annotation.Nonnull final PointSample origin, final DeltaSet<NNLayer> direction) {
+  public SimpleLineSearchCursor(final Trainable subject, @javax.annotation.Nonnull final PointSample origin, final DeltaSet<Layer> direction) {
     this.origin = origin.copyFull();
     this.direction = direction;
     this.direction.addRef();
@@ -80,7 +80,7 @@ public class SimpleLineSearchCursor extends LineSearchCursorBase {
   
   @Nonnull
   @Override
-  public DeltaSet<NNLayer> position(final double alpha) {
+  public DeltaSet<Layer> position(final double alpha) {
     return direction.scale(alpha);
   }
   

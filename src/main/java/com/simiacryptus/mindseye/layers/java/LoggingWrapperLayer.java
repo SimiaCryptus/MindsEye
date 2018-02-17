@@ -55,7 +55,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
    *
    * @param inner the heapCopy
    */
-  public LoggingWrapperLayer(final NNLayer inner) {
+  public LoggingWrapperLayer(final Layer inner) {
     super(inner);
   }
   
@@ -75,7 +75,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
     final NNResult[] wrappedInput = IntStream.range(0, inObj.length).mapToObj(i -> {
       final NNResult inputToWrap = inObj[i];
       inputToWrap.addRef();
-      return new NNResult(inputToWrap.getData(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+      return new NNResult(inputToWrap.getData(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
         @javax.annotation.Nonnull final String formatted = data.stream().map(x -> {
           String str = x.prettyPrint();
           x.freeRef();
@@ -118,7 +118,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
         .reduce((a, b) -> a + "\n" + b).get();
       log.info(String.format("Output for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
     }
-    return new NNResult(output.getData(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new NNResult(output.getData(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       @javax.annotation.Nonnull final String formatted = data.stream().map(x -> {
         String str = x.prettyPrint();
         x.freeRef();

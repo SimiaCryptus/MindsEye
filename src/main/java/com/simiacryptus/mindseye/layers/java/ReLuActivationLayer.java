@@ -36,7 +36,7 @@ import java.util.stream.IntStream;
  * Rectified Linear Unit. y=(x&lt;0)?0:x
  */
 @SuppressWarnings("serial")
-public class ReLuActivationLayer extends NNLayer {
+public class ReLuActivationLayer extends LayerBase {
   
   
   @SuppressWarnings("unused")
@@ -114,7 +114,7 @@ public class ReLuActivationLayer extends NNLayer {
         }
       }
       return tensor;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).parallel().forEach(dataIndex -> {
           @javax.annotation.Nullable Tensor deltaTensor = delta.get(dataIndex);

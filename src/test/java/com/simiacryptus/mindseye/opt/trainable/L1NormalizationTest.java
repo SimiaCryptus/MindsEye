@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.opt.trainable;
 import com.simiacryptus.mindseye.eval.L12Normalizer;
 import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
@@ -39,22 +39,22 @@ import java.util.concurrent.TimeUnit;
 public class L1NormalizationTest extends MnistTestBase {
   
   @Override
-  public void train(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer network, @javax.annotation.Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
+  public void train(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer network, @javax.annotation.Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.code(() -> {
       @javax.annotation.Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       @javax.annotation.Nonnull final Trainable trainable = new L12Normalizer(new SampledArrayTrainable(trainingData, supervisedNetwork, 1000)) {
         @Override
-        public NNLayer getLayer() {
+        public Layer getLayer() {
           return inner.getLayer();
         }
   
         @Override
-        protected double getL1(final NNLayer layer) {
+        protected double getL1(final Layer layer) {
           return 1.0;
         }
         
         @Override
-        protected double getL2(final NNLayer layer) {
+        protected double getL2(final Layer layer) {
           return 0;
         }
       };

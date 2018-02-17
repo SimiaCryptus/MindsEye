@@ -32,7 +32,7 @@ import java.util.Map;
  * processes.
  */
 @SuppressWarnings("serial")
-public class ConstNNLayer extends NNLayer {
+public class ConstLayer extends LayerBase {
   
   @Nullable
   private Tensor data;
@@ -43,7 +43,7 @@ public class ConstNNLayer extends NNLayer {
    * @param json      the json
    * @param resources the resources
    */
-  protected ConstNNLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> resources) {
+  protected ConstLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> resources) {
     super(json);
     data = Tensor.fromJson(json.get("value"), resources);
   }
@@ -53,7 +53,7 @@ public class ConstNNLayer extends NNLayer {
    *
    * @param data the data
    */
-  public ConstNNLayer(final Tensor data) {
+  public ConstLayer(final Tensor data) {
     super();
     this.data = data;
     this.frozen = true;
@@ -66,19 +66,19 @@ public class ConstNNLayer extends NNLayer {
    * @param rs   the rs
    * @return the const nn layer
    */
-  public static ConstNNLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
-    return new ConstNNLayer(json, rs);
+  public static ConstLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+    return new ConstLayer(json, rs);
   }
   
   @javax.annotation.Nonnull
   @Override
   public NNResult eval(@javax.annotation.Nonnull final NNResult... array) {
     Arrays.stream(array).forEach(nnResult -> nnResult.addRef());
-    ConstNNLayer.this.addRef();
-    return new NNResult(TensorArray.create(data), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    ConstLayer.this.addRef();
+    return new NNResult(TensorArray.create(data), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (!isFrozen()) {
         data.stream().forEach(datum -> {
-          buffer.get(ConstNNLayer.this, ConstNNLayer.this.data.getData()).addInPlace(datum.getData()).freeRef();
+          buffer.get(ConstLayer.this, ConstLayer.this.data.getData()).addInPlace(datum.getData()).freeRef();
           datum.freeRef();
         });
       }
@@ -87,12 +87,12 @@ public class ConstNNLayer extends NNLayer {
       @Override
       protected void _free() {
         Arrays.stream(array).forEach(nnResult -> nnResult.freeRef());
-        ConstNNLayer.this.freeRef();
+        ConstLayer.this.freeRef();
       }
       
       @Override
       public boolean isAlive() {
-        return !ConstNNLayer.this.isFrozen();
+        return !ConstLayer.this.isFrozen();
       }
     };
   }

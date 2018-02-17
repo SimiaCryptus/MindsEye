@@ -35,7 +35,7 @@ import java.util.stream.IntStream;
  * The type Bias meta layer.
  */
 @SuppressWarnings("serial")
-public class BiasMetaLayer extends NNLayer {
+public class BiasMetaLayer extends LayerBase {
   
   
   @SuppressWarnings("unused")
@@ -87,7 +87,7 @@ public class BiasMetaLayer extends NNLayer {
     Tensor tensor0 = tensors[0];
     tensor0.addRef();
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    return new NNResult(TensorArray.wrap(tensors), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(tensors), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
         inObj[0].accumulate(buffer, data);
       }

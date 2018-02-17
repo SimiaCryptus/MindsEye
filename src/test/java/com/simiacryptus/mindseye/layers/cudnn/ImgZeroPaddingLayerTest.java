@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 
 import java.util.Random;
 
@@ -54,12 +54,12 @@ public abstract class ImgZeroPaddingLayerTest extends CuDNNLayerTestBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNLayer getLayer(final int[][] inputSize, Random random) {
+  public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgZeroPaddingLayer(1, 1);
   }
   
   @Override
-  public Class<? extends NNLayer> getReferenceLayerClass() {
+  public Class<? extends Layer> getReferenceLayerClass() {
     return com.simiacryptus.mindseye.layers.java.ImgZeroPaddingLayer.class;
   }
   

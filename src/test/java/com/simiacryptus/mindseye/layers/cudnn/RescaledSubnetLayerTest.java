@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -69,12 +69,12 @@ public abstract class RescaledSubnetLayerTest extends LayerTestBase // CuDNNLaye
   
   @javax.annotation.Nonnull
   @Override
-  public NNLayer getLayer(final int[][] inputSize, Random random) {
+  public Layer getLayer(final int[][] inputSize, Random random) {
     return new RescaledSubnetLayer(2, convolutionLayer.set(() -> this.random()));
   }
   
   @Override
-  public Class<? extends NNLayer> getReferenceLayerClass() {
+  public Class<? extends Layer> getReferenceLayerClass() {
     return com.simiacryptus.mindseye.layers.java.RescaledSubnetLayer.class;
   }
   

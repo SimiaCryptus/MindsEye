@@ -19,14 +19,14 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.NNResult;
 
 import javax.annotation.Nonnull;
 import java.util.UUID;
 
 /**
- * A node providing access to given inputs for NNLayer evaluation.
+ * A node providing access to given inputs for LayerBase evaluation.
  */
 @SuppressWarnings("serial")
 final class InputNode extends LazyResult {
@@ -58,7 +58,7 @@ final class InputNode extends LazyResult {
    * @param nextHead the next head
    * @return the dag node
    */
-  public DAGNode add(@Nonnull final NNLayer nextHead) {
+  public DAGNode add(@Nonnull final Layer nextHead) {
     return dagNetwork.add(nextHead, InputNode.this);
   }
   
@@ -74,12 +74,12 @@ final class InputNode extends LazyResult {
   }
   
   @Override
-  public <T extends NNLayer> T getLayer() {
+  public <T extends Layer> T getLayer() {
     return null;
   }
   
   @Override
-  public void setLayer(final NNLayer layer) {
+  public void setLayer(final Layer layer) {
     throw new IllegalStateException();
   }
   

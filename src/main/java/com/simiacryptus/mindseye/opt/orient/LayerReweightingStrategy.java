@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.opt.orient;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.DoubleBuffer;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
@@ -44,7 +44,7 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
   
   
   /**
-   * Instantiates a new Layer reweighting strategy.
+   * Instantiates a new LayerBase reweighting strategy.
    *
    * @param inner the heapCopy
    */
@@ -58,17 +58,17 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
    * @param layer the layer
    * @return the region policy
    */
-  public abstract Double getRegionPolicy(NNLayer layer);
+  public abstract Double getRegionPolicy(Layer layer);
   
   @Override
   public SimpleLineSearchCursor orient(final Trainable subject, final PointSample measurement, final TrainingMonitor monitor) {
     final SimpleLineSearchCursor orient = inner.orient(subject, measurement, monitor);
-    final DeltaSet<NNLayer> direction = orient.direction;
+    final DeltaSet<Layer> direction = orient.direction;
     direction.getMap().forEach((layer, buffer) -> {
       if (null == buffer.getDelta()) return;
       final Double weight = getRegionPolicy(layer);
       if (null != weight && 0 < weight) {
-        final DoubleBuffer<NNLayer> deltaBuffer = direction.get(layer, buffer.target);
+        final DoubleBuffer<Layer> deltaBuffer = direction.get(layer, buffer.target);
         @javax.annotation.Nonnull final double[] adjusted = ArrayUtil.multiply(deltaBuffer.getDelta(), weight);
         for (int i = 0; i < adjusted.length; i++) {
           deltaBuffer.getDelta()[i] = adjusted[i];
@@ -89,7 +89,7 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
   public static class HashMapLayerReweightingStrategy extends LayerReweightingStrategy {
   
     @Nonnull
-    private final HashMap<NNLayer, Double> map = new HashMap<>();
+    private final HashMap<Layer, Double> map = new HashMap<>();
   
     /**
      * Instantiates a new Hash map layer reweighting strategy.
@@ -106,12 +106,12 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
      * @return the map
      */
     @javax.annotation.Nonnull
-    public HashMap<NNLayer, Double> getMap() {
+    public HashMap<Layer, Double> getMap() {
       return map;
     }
   
     @Override
-    public Double getRegionPolicy(final NNLayer layer) {
+    public Double getRegionPolicy(final Layer layer) {
       return getMap().get(layer);
     }
   

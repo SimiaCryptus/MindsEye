@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
@@ -42,7 +42,7 @@ public interface LineSearchCursor extends ReferenceCounting {
    * @param alpha the alpha
    * @return the delta setByCoord
    */
-  DeltaSet<NNLayer> position(double alpha);
+  DeltaSet<Layer> position(double alpha);
   
   /**
    * Reset.

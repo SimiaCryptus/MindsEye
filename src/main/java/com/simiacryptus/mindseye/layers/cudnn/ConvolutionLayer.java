@@ -41,7 +41,7 @@ import java.util.function.IntToDoubleFunction;
  * function.
  */
 @SuppressWarnings("serial")
-public class ConvolutionLayer extends NNLayer implements MultiPrecision<ConvolutionLayer>, Explodable {
+public class ConvolutionLayer extends LayerBase implements MultiPrecision<ConvolutionLayer>, Explodable {
   
   @Nullable
   private final Tensor kernel;
@@ -152,7 +152,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
    * @return the compatibility layer
    */
   @javax.annotation.Nonnull
-  public NNLayer getCompatibilityLayer() {
+  public Layer getCompatibilityLayer() {
     return this.as(com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class);
   }
   
@@ -220,7 +220,7 @@ public class ConvolutionLayer extends NNLayer implements MultiPrecision<Convolut
     assert 3 == resultData.getDimensions().length;
     assert outputBands == resultData.getDimensions()[2];
     ConvolutionLayer.this.addRef();
-    return new NNResult(resultData, (@javax.annotation.Nonnull final DeltaSet<NNLayer> deltaSet, @javax.annotation.Nonnull final TensorList delta) -> {
+    return new NNResult(resultData, (@javax.annotation.Nonnull final DeltaSet<Layer> deltaSet, @javax.annotation.Nonnull final TensorList delta) -> {
       result.accumulate(deltaSet, delta);
       if (!isFrozen()) {
         Tensor read = grid.read(deltaSet, true);

@@ -40,7 +40,7 @@ import java.util.stream.IntStream;
  * Scales the input using per-color-band coefficients
  */
 @SuppressWarnings("serial")
-public class ImgBandScaleLayer extends NNLayer {
+public class ImgBandScaleLayer extends LayerBase {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ImgBandScaleLayer.class);
@@ -130,9 +130,9 @@ public class ImgBandScaleLayer extends NNLayer {
       return tensor1;
     };
     Tensor[] data = inData.stream().parallel().map(tensorTensorFunction).toArray(i -> new Tensor[i]);
-    return new NNResult(TensorArray.wrap(data), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    return new NNResult(TensorArray.wrap(data), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
-        final Delta<NNLayer> deltaBuffer = buffer.get(ImgBandScaleLayer.this, weights);
+        final Delta<Layer> deltaBuffer = buffer.get(ImgBandScaleLayer.this, weights);
         IntStream.range(0, delta.length()).forEach(index -> {
           @Nonnull int[] dimensions = delta.getDimensions();
           int z = dimensions[2];
@@ -227,7 +227,7 @@ public class ImgBandScaleLayer extends NNLayer {
    * @return the nn layer
    */
   @javax.annotation.Nonnull
-  public NNLayer set(@javax.annotation.Nonnull final double[] ds) {
+  public Layer set(@javax.annotation.Nonnull final double[] ds) {
     @Nullable final double[] bias = getWeights();
     for (int i = 0; i < ds.length; i++) {
       bias[i] = ds[i];

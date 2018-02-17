@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.BatchingTester;
@@ -69,7 +69,7 @@ public abstract class ImgConcatLayerTest extends CuDNNLayerTestBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNLayer getLayer(final int[][] inputSize, Random random) {
+  public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgConcatLayer();
   }
   
@@ -80,7 +80,7 @@ public abstract class ImgConcatLayerTest extends CuDNNLayerTestBase {
   }
   
   @Override
-  public Class<? extends NNLayer> getReferenceLayerClass() {
+  public Class<? extends Layer> getReferenceLayerClass() {
     return com.simiacryptus.mindseye.layers.java.ImgConcatLayer.class;
   }
   
@@ -112,7 +112,7 @@ public abstract class ImgConcatLayerTest extends CuDNNLayerTestBase {
   
     @javax.annotation.Nonnull
     @Override
-    public NNLayer getLayer(final int[][] inputSize, Random random) {
+    public Layer getLayer(final int[][] inputSize, Random random) {
       return new ImgConcatLayer().setMaxBands(2);
     }
   }
@@ -146,7 +146,7 @@ public abstract class ImgConcatLayerTest extends CuDNNLayerTestBase {
   
     @javax.annotation.Nonnull
     @Override
-    public NNLayer getLayer(final int[][] inputSize, Random random) {
+    public Layer getLayer(final int[][] inputSize, Random random) {
       return new ImgConcatLayer().setMaxBands(3);
     }
   }

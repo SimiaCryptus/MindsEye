@@ -33,7 +33,7 @@ import java.util.stream.IntStream;
  * Multiplies all inputs together, element-by-element.
  */
 @SuppressWarnings("serial")
-public class ProductInputsLayer extends NNLayer {
+public class ProductInputsLayer extends LayerBase {
   
   /**
    * Instantiates a new Product inputs layer.
@@ -91,7 +91,7 @@ public class ProductInputsLayer extends NNLayer {
       l.freeRef();
       r.freeRef();
       return productArray;
-    }).get(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }).get(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       for (@javax.annotation.Nonnull final NNResult input : inObj) {
         if (input.isAlive()) {
           @javax.annotation.Nonnull TensorList passback = Arrays.stream(inObj).parallel().map(x -> {

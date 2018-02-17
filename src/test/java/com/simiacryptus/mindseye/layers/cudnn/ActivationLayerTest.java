@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
@@ -71,7 +71,7 @@ public abstract class ActivationLayerTest extends CuDNNLayerTestBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNLayer getLayer(final int[][] inputSize, Random random) {
+  public Layer getLayer(final int[][] inputSize, Random random) {
     return new ActivationLayer(mode).setPrecision(precision);
   }
   
@@ -92,7 +92,7 @@ public abstract class ActivationLayerTest extends CuDNNLayerTestBase {
     super.run(log);
   
     log.h3("Function Plots");
-    @javax.annotation.Nonnull final NNLayer layer = getLayer(new int[][]{{8, 8, 1}}, new Random());
+    @javax.annotation.Nonnull final Layer layer = getLayer(new int[][]{{8, 8, 1}}, new Random());
     final List<double[]> plotData = IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0).mapToObj(x -> {
       @javax.annotation.Nonnull Tensor input = new Tensor(new double[]{x}, 1, 1, 1);
       @javax.annotation.Nonnull final SimpleEval eval = SimpleEval.run(layer, input);
@@ -125,7 +125,7 @@ public abstract class ActivationLayerTest extends CuDNNLayerTestBase {
     }
   
     @Override
-    public NNLayer getReferenceLayer() {
+    public Layer getReferenceLayer() {
       return new ReLuActivationLayer();
     }
   }
@@ -142,7 +142,7 @@ public abstract class ActivationLayerTest extends CuDNNLayerTestBase {
     }
   
     @Override
-    public NNLayer getReferenceLayer() {
+    public Layer getReferenceLayer() {
       return new ReLuActivationLayer();
     }
   }
@@ -159,7 +159,7 @@ public abstract class ActivationLayerTest extends CuDNNLayerTestBase {
     }
   
     @Override
-    public NNLayer getReferenceLayer() {
+    public Layer getReferenceLayer() {
       return new SigmoidActivationLayer().setBalanced(false);
     }
   }
@@ -176,7 +176,7 @@ public abstract class ActivationLayerTest extends CuDNNLayerTestBase {
     }
   
     @Override
-    public NNLayer getReferenceLayer() {
+    public Layer getReferenceLayer() {
       return new SigmoidActivationLayer().setBalanced(false);
     }
   }

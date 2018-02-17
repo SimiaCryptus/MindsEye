@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 public class QuadraticLineSearchTest extends MnistTestBase {
   
   @Override
-  public void train(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer network, @javax.annotation.Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
+  public void train(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer network, @javax.annotation.Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.code(() -> {
       @javax.annotation.Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       @javax.annotation.Nonnull final Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 1000);

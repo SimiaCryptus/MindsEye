@@ -39,7 +39,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Layer run base.
+ * The type LayerBase run base.
  */
 public abstract class StandardLayerTests extends NotebookReportBase {
   
@@ -131,7 +131,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    */
   @Nullable
   public ComponentTest<ToleranceStatistics> getEquivalencyTester() {
-    @Nullable final NNLayer referenceLayer = getReferenceLayer();
+    @Nullable final Layer referenceLayer = getReferenceLayer();
     if (null == referenceLayer) return null;
     @javax.annotation.Nonnull EquivalencyTester equivalencyTester = new EquivalencyTester(1e-2, referenceLayer);
     referenceLayer.freeRef();
@@ -163,7 +163,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * @param random    the random
    * @return the layer
    */
-  public abstract NNLayer getLayer(int[][] inputSize, Random random);
+  public abstract Layer getLayer(int[][] inputSize, Random random);
   
   /**
    * Gets little tests.
@@ -223,7 +223,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * @return the reference layer
    */
   @Nullable
-  public NNLayer getReferenceLayer() {
+  public Layer getReferenceLayer() {
     return cvt(getLayer(getSmallDims(new Random()), new Random()));
   }
   
@@ -232,9 +232,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    *
    * @return the test class
    */
-  public Class<? extends NNLayer> getTestClass() {
-    NNLayer layer = getLayer(getSmallDims(new Random()), new Random());
-    Class<? extends NNLayer> layerClass = layer.getClass();
+  public Class<? extends Layer> getTestClass() {
+    Layer layer = getLayer(getSmallDims(new Random()), new Random());
+    Class<? extends Layer> layerClass = layer.getClass();
     layer.freeRef();
     return layerClass;
   }
@@ -245,22 +245,22 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * @param layer the layer
    * @return the nn layer
    */
-  protected final NNLayer cvt(NNLayer layer) {
+  protected final Layer cvt(Layer layer) {
     if (layer instanceof DAGNetwork) {
       ((DAGNetwork) layer).visitNodes(node -> {
-        @javax.annotation.Nullable NNLayer from = node.getLayer();
+        @javax.annotation.Nullable Layer from = node.getLayer();
         node.setLayer(cvt(from));
       });
       return layer;
     }
     else if (getTestClass().isAssignableFrom(layer.getClass())) {
-      @Nullable Class<? extends NNLayer> referenceLayerClass = getReferenceLayerClass();
+      @Nullable Class<? extends Layer> referenceLayerClass = getReferenceLayerClass();
       if (null == referenceLayerClass) {
         layer.freeRef();
         return null;
       }
       else {
-        @javax.annotation.Nonnull NNLayer cast = layer.as(referenceLayerClass);
+        @javax.annotation.Nonnull Layer cast = layer.as(referenceLayerClass);
         layer.freeRef();
         return cast;
       }
@@ -276,7 +276,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * @return the reference layer class
    */
   @Nullable
-  public Class<? extends NNLayer> getReferenceLayerClass() {
+  public Class<? extends Layer> getReferenceLayerClass() {
     return null;
   }
   
@@ -328,9 +328,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   public void run(@javax.annotation.Nonnull final NotebookOutput log) {
     long seed = (long) (Math.random() * Long.MAX_VALUE);
     int[][] smallDims = getSmallDims(new Random(seed));
-    final NNLayer smallLayer = getLayer(smallDims, new Random(seed));
+    final Layer smallLayer = getLayer(smallDims, new Random(seed));
     int[][] largeDims = getLargeDims(new Random(seed));
-    final NNLayer largeLayer = getLayer(largeDims, new Random(seed));
+    final Layer largeLayer = getLayer(largeDims, new Random(seed));
     if (smallLayer instanceof DAGNetwork) {
       try {
         log.h1("Network Diagram");
@@ -345,7 +345,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     }
     else if (smallLayer instanceof Explodable) {
       try {
-        NNLayer explode = ((Explodable) smallLayer).explode();
+        Layer explode = ((Explodable) smallLayer).explode();
         if (explode instanceof DAGNetwork) {
           log.h1("Exploded Network Diagram");
           log.p("This is a network with the following layout:");
@@ -387,9 +387,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       throwException(exceptions);
     });
     getFinalTests().stream().filter(x -> null != x).forEach(test -> {
-      final NNLayer perfLayer = getLayer(largeDims, new Random(seed));
+      final Layer perfLayer = getLayer(largeDims, new Random(seed));
       perfLayer.assertAlive();
-      @Nonnull NNLayer copy = perfLayer.copy();
+      @Nonnull Layer copy = perfLayer.copy();
       Tensor[] randomize = randomize(largeDims);
       try {
         test.test(log, copy, randomize);
@@ -412,13 +412,13 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * @return the invocations
    */
   @javax.annotation.Nonnull
-  public Collection<Invocation> getInvocations(@javax.annotation.Nonnull NNLayer smallLayer, @javax.annotation.Nonnull int[][] smallDims) {
+  public Collection<Invocation> getInvocations(@javax.annotation.Nonnull Layer smallLayer, @javax.annotation.Nonnull int[][] smallDims) {
     @javax.annotation.Nonnull DAGNetwork smallCopy = (DAGNetwork) smallLayer.copy();
     @javax.annotation.Nonnull HashSet<Invocation> invocations = new HashSet<>();
     smallCopy.visitNodes(node -> {
-      @javax.annotation.Nullable NNLayer inner = node.getLayer();
+      @javax.annotation.Nullable Layer inner = node.getLayer();
       inner.addRef();
-      @javax.annotation.Nullable NNLayer wrapper = new NNLayer() {
+      @javax.annotation.Nullable Layer wrapper = new LayerBase() {
         @Nullable
         @Override
         public NNResult eval(@Nonnull NNResult... array) {
@@ -468,7 +468,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     long timeout = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(3);
     while (System.currentTimeMillis() < timeout) {
       long seed = (long) (Math.random() * Long.MAX_VALUE);
-      final NNLayer layer = getLayer(getSmallDims(new Random(seed)), new Random(seed));
+      final Layer layer = getLayer(getSmallDims(new Random(seed)), new Random(seed));
       throwException(standardTests(log, seed));
     }
   }
@@ -480,7 +480,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    */
   public void throwException(@javax.annotation.Nonnull ArrayList<TestError> exceptions) {
     for (@javax.annotation.Nonnull TestError exception : exceptions) {
-      logger.info(String.format("Layer: %s", exception.layer));
+      logger.info(String.format("LayerBase: %s", exception.layer));
       logger.info("Error", exception);
     }
     for (Throwable exception : exceptions) {
@@ -497,14 +497,14 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    */
   @javax.annotation.Nonnull
   public ArrayList<TestError> standardTests(@javax.annotation.Nonnull NotebookOutput log, long seed) {
-    final NNLayer layer = getLayer(getSmallDims(new Random(seed)), new Random(seed));
+    final Layer layer = getLayer(getSmallDims(new Random(seed)), new Random(seed));
     @javax.annotation.Nonnull ArrayList<TestError> exceptions = new ArrayList<>();
     log.p(String.format("Using Seed %d", seed));
     Invocation invocation = new Invocation(layer, getSmallDims(new Random(seed)));
     littleTests(log, exceptions, invocation);
     invocation.freeRef();
     layer.freeRef();
-    final NNLayer perfLayer = getLayer(getLargeDims(new Random(seed)), new Random(seed));
+    final Layer perfLayer = getLayer(getLargeDims(new Random(seed)), new Random(seed));
     bigTests(log, seed, perfLayer, exceptions);
     perfLayer.freeRef();
     return exceptions;
@@ -518,9 +518,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * @param perfLayer  the perf layer
    * @param exceptions the exceptions
    */
-  public void bigTests(NotebookOutput log, long seed, @javax.annotation.Nonnull NNLayer perfLayer, @javax.annotation.Nonnull ArrayList<TestError> exceptions) {
+  public void bigTests(NotebookOutput log, long seed, @javax.annotation.Nonnull Layer perfLayer, @javax.annotation.Nonnull ArrayList<TestError> exceptions) {
     getBigTests().stream().filter(x -> null != x).forEach(test -> {
-      @Nonnull NNLayer layer = perfLayer.copy();
+      @Nonnull Layer layer = perfLayer.copy();
       try {
         Tensor[] input = randomize(getLargeDims(new Random(seed)));
         try {
@@ -553,7 +553,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    */
   public void bigTests(NotebookOutput log, @javax.annotation.Nonnull ArrayList<TestError> exceptions, @javax.annotation.Nonnull Invocation invocation) {
     getBigTests().stream().filter(x -> null != x).forEach((ComponentTest<?> test) -> {
-      @Nonnull NNLayer layer = invocation.getLayer().copy();
+      @Nonnull Layer layer = invocation.getLayer().copy();
       try {
         Tensor[] inputs = randomize(invocation.getDims());
         test.test(log, layer, inputs);
@@ -579,7 +579,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    */
   public void littleTests(NotebookOutput log, @javax.annotation.Nonnull ArrayList<TestError> exceptions, @javax.annotation.Nonnull Invocation invocation) {
     getLittleTests().stream().filter(x -> null != x).forEach((ComponentTest<?> test) -> {
-      @Nonnull NNLayer layer = invocation.getLayer().copy();
+      @Nonnull Layer layer = invocation.getLayer().copy();
       try {
         Tensor[] inputs = randomize(invocation.getDims());
         test.test(log, layer, inputs);
@@ -598,8 +598,8 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   
   @Override
   protected Class<?> getTargetClass() {
-    NNLayer layer = getLayer(getSmallDims(new Random()), new Random());
-    Class<? extends NNLayer> layerClass = layer.getClass();
+    Layer layer = getLayer(getSmallDims(new Random()), new Random());
+    Class<? extends Layer> layerClass = layer.getClass();
     layer.freeRef();
     return layerClass;
   }
@@ -642,10 +642,10 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   }
   
   private static class Invocation extends ReferenceCountingBase {
-    private final NNLayer layer;
+    private final Layer layer;
     private final int[][] smallDims;
-    
-    private Invocation(NNLayer layer, int[][] smallDims) {
+  
+    private Invocation(Layer layer, int[][] smallDims) {
       this.layer = layer;
       this.smallDims = smallDims;
       this.layer.addRef();
@@ -662,7 +662,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
      *
      * @return the layer
      */
-    public NNLayer getLayer() {
+    public Layer getLayer() {
       return layer;
     }
   

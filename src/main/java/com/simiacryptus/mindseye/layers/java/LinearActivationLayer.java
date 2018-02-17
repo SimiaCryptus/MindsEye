@@ -35,7 +35,7 @@ import java.util.stream.IntStream;
  * frozen by default.
  */
 @SuppressWarnings("serial")
-public class LinearActivationLayer extends NNLayer {
+public class LinearActivationLayer extends LayerBase {
   
   
   @SuppressWarnings("unused")
@@ -97,7 +97,7 @@ public class LinearActivationLayer extends NNLayer {
       @javax.annotation.Nullable Tensor map = input.map(v -> scale * v + bias);
       input.freeRef();
       return map;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).forEach(dataIndex -> {
           @javax.annotation.Nullable Tensor deltaT = delta.get(dataIndex);

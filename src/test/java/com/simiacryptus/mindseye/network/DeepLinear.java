@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
@@ -53,7 +53,7 @@ public abstract class DeepLinear extends NLayerTest {
    * @return the activation
    */
   @javax.annotation.Nonnull
-  public NNLayer getActivation() {
+  public Layer getActivation() {
     return new ReLuActivationLayer();
   }
   
@@ -104,7 +104,7 @@ public abstract class DeepLinear extends NLayerTest {
 
     @javax.annotation.Nonnull
     @Override
-    public NNLayer getActivation() {
+    public Layer getActivation() {
       return new SigmoidActivationLayer();
     }
   

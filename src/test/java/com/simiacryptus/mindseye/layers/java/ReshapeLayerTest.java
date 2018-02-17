@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.BatchingTester;
@@ -57,7 +57,7 @@ public abstract class ReshapeLayerTest extends LayerTestBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNLayer getLayer(final int[][] inputSize, Random random) {
+  public Layer getLayer(final int[][] inputSize, Random random) {
     return new ReshapeLayer(outputDims);
   }
   
@@ -123,7 +123,7 @@ public abstract class ReshapeLayerTest extends LayerTestBase {
      * @param size the size
      */
     public Big(int size) {this(new int[]{1, 1, size}, new int[]{1, 1, size});}
-
+  
     /**
      * Instantiates a new BigTests.
      *
@@ -136,7 +136,7 @@ public abstract class ReshapeLayerTest extends LayerTestBase {
     }
     
     @Override
-    public Class<? extends NNLayer> getReferenceLayerClass() {
+    public Class<? extends Layer> getReferenceLayerClass() {
       return null;
     }
     

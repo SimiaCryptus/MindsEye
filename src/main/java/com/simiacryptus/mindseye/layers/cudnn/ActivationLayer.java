@@ -37,7 +37,7 @@ import java.util.Map;
  * determined by a univariate function, e.g. ReLU or Sigmoid.
  */
 @SuppressWarnings("serial")
-public class ActivationLayer extends NNLayer implements MultiPrecision<ActivationLayer> {
+public class ActivationLayer extends LayerBase implements MultiPrecision<ActivationLayer> {
   /**
    * The Mode.
    */
@@ -91,7 +91,7 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
    * @return the compatibility layer
    */
   @javax.annotation.Nonnull
-  public NNLayer getCompatibilityLayer() {
+  public Layer getCompatibilityLayer() {
     if (mode == Mode.SIGMOID.id) {
       return new SigmoidActivationLayer().setBalanced(false);
     }
@@ -138,7 +138,7 @@ public class ActivationLayer extends NNLayer implements MultiPrecision<Activatio
         return outputData;
         //assert output.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       });
-      return new NNResult(GpuTensorList.create(outPtr, length, outputSize, precision), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+      return new NNResult(GpuTensorList.create(outPtr, length, outputSize, precision), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
         if (input.isAlive()) {
           final TensorList data = GpuSystem.eval(gpu -> {
             //assert (error.length() == batch.length());

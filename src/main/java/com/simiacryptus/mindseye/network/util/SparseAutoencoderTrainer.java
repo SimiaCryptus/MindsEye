@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.network.util;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.java.BinaryNoiseLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
@@ -70,7 +70,7 @@ public class SparseAutoencoderTrainer extends SupervisedNetwork {
    * @param encoder the encoder
    * @param decoder the decoder
    */
-  public SparseAutoencoderTrainer(@Nonnull final NNLayer encoder, @Nonnull final NNLayer decoder) {
+  public SparseAutoencoderTrainer(@Nonnull final Layer encoder, @Nonnull final Layer decoder) {
     super(1);
     this.encoder = add(encoder, getInput(0));
     this.decoder = add(decoder, this.encoder);

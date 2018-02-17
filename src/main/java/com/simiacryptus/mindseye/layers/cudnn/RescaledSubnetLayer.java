@@ -21,7 +21,8 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.LayerBase;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
@@ -38,11 +39,11 @@ import java.util.Map;
  * across larger image regions. Implemented via GpuSystem.
  */
 @SuppressWarnings("serial")
-public class RescaledSubnetLayer extends NNLayer implements MultiPrecision<RescaledSubnetLayer> {
+public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<RescaledSubnetLayer> {
   private static final Logger log = LoggerFactory.getLogger(RescaledSubnetLayer.class);
   
   private int scale;
-  private NNLayer layer;
+  private Layer layer;
   private Precision precision = Precision.Double;
   
   /**
@@ -57,7 +58,7 @@ public class RescaledSubnetLayer extends NNLayer implements MultiPrecision<Resca
    * @param scale the scale
    * @param layer the layer
    */
-  public RescaledSubnetLayer(int scale, NNLayer layer) {
+  public RescaledSubnetLayer(int scale, Layer layer) {
     this.scale = scale;
     this.layer = layer;
   }
@@ -71,7 +72,7 @@ public class RescaledSubnetLayer extends NNLayer implements MultiPrecision<Resca
   protected RescaledSubnetLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json);
     scale = json.get("scale").getAsInt();
-    layer = NNLayer.fromJson(json, rs);
+    layer = Layer.fromJson(json, rs);
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
   }
   
@@ -92,7 +93,7 @@ public class RescaledSubnetLayer extends NNLayer implements MultiPrecision<Resca
    * @return the compatibility layer
    */
   @javax.annotation.Nonnull
-  public NNLayer getCompatibilityLayer() {
+  public Layer getCompatibilityLayer() {
     return new com.simiacryptus.mindseye.layers.java.RescaledSubnetLayer(scale, layer);
   }
   

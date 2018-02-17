@@ -35,7 +35,7 @@ import java.util.stream.IntStream;
  * Adds uniform random gaussian noise to all input elements.
  */
 @SuppressWarnings("serial")
-public class GaussianNoiseLayer extends NNLayer {
+public class GaussianNoiseLayer extends LayerBase {
   
   
   /**
@@ -98,7 +98,7 @@ public class GaussianNoiseLayer extends NNLayer {
       input.freeRef();
       return output;
     }).toArray(i -> new Tensor[i]);
-    return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (in0.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           Tensor tensor = delta.get(dataIndex);

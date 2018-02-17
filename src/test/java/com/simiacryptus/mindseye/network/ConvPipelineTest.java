@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.java.*;
@@ -45,8 +45,8 @@ public class ConvPipelineTest extends PipelineTest {
    *
    * @return the nn layer [ ]
    */
-  public static NNLayer[] buildList_1() {
-    @javax.annotation.Nonnull final ArrayList<NNLayer> network = new ArrayList<NNLayer>();
+  public static Layer[] buildList_1() {
+    @javax.annotation.Nonnull final ArrayList<Layer> network = new ArrayList<Layer>();
     
     network.add(new ConvolutionLayer(3, 3, 3, 10).set(i -> 1e-8 * (Math.random() - 0.5)));
     network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
@@ -71,8 +71,8 @@ public class ConvPipelineTest extends PipelineTest {
     network.add(new ImgBandBiasLayer(40));
     network.add(new FullyConnectedLayer(new int[]{4, 4, 40}, new int[]{100}).set(() -> 0.001 * (Math.random() - 0.45)));
     network.add(new SoftmaxActivationLayer());
-    
-    return network.toArray(new NNLayer[]{});
+  
+    return network.toArray(new Layer[]{});
   }
   
   @javax.annotation.Nonnull

@@ -35,7 +35,7 @@ import java.util.Map;
  * A diagnostic pass-through layer that collects value statistics of forward and backprop signals.
  */
 @SuppressWarnings("serial")
-public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
+public final class MonitoringSynapse extends LayerBase implements MonitoredItem {
   
   private final ScalarStatistics backpropStatistics = new PercentileStatistics();
   private final ScalarStatistics forwardStatistics = new PercentileStatistics();
@@ -116,7 +116,7 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
       forwardStatistics.add(t.getData());
       t.freeRef();
     });
-    return new NNResult(inputdata, (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new NNResult(inputdata, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       backpropStatistics.clear();
       input.accumulate(buffer, data);
       data.stream().parallel().forEach(t -> {

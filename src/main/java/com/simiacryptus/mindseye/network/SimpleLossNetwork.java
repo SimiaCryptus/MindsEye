@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 
 import javax.annotation.Nullable;
 
@@ -49,7 +49,7 @@ public class SimpleLossNetwork extends SupervisedNetwork {
    * @param student the student
    * @param loss    the loss
    */
-  public SimpleLossNetwork(@javax.annotation.Nonnull final NNLayer student, @javax.annotation.Nonnull final NNLayer loss) {
+  public SimpleLossNetwork(@javax.annotation.Nonnull final Layer student, @javax.annotation.Nonnull final Layer loss) {
     super(2);
     studentNode = add(student, getInput(0));
     lossNode = add(loss, studentNode, getInput(1));

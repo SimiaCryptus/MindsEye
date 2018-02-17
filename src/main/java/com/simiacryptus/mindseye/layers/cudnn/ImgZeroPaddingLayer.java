@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.LayerBase;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import org.slf4j.Logger;
@@ -38,7 +38,7 @@ import java.util.Map;
  * number of color bands, and the area outside the source image will be setWeights to 0.
  */
 @SuppressWarnings("serial")
-public class ImgZeroPaddingLayer extends NNLayer implements MultiPrecision<ImgZeroPaddingLayer> {
+public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<ImgZeroPaddingLayer> {
   private static final Logger log = LoggerFactory.getLogger(ImgZeroPaddingLayer.class);
   
   private int sizeX;

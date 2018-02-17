@@ -34,7 +34,7 @@ import java.util.stream.IntStream;
  * spacial dimension across N^2 color bands.
  */
 @SuppressWarnings("serial")
-public class ImgReshapeLayer extends NNLayer {
+public class ImgReshapeLayer extends LayerBase {
   
   
   private final boolean expand;
@@ -183,7 +183,7 @@ public class ImgReshapeLayer extends NNLayer {
       })
       .toArray(i -> new Tensor[i]));
     outputDims.freeRef();
-    return new NNResult(data, (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+    return new NNResult(data, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       if (input.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()

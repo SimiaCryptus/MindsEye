@@ -41,7 +41,7 @@ import java.util.stream.IntStream;
  * The type Max subsample layer.
  */
 @SuppressWarnings("serial")
-public class MaxPoolingLayer extends NNLayer {
+public class MaxPoolingLayer extends LayerBase {
   
   private static final Function<MaxPoolingLayer.CalcRegionsParameter, List<Tuple2<Integer, int[]>>> calcRegionsCache = Util.cache(MaxPoolingLayer::calcRegions);
   @SuppressWarnings("unused")
@@ -161,7 +161,7 @@ public class MaxPoolingLayer extends NNLayer {
       input.freeRef();
       gradientMapA[dataIndex] = gradientMap;
     });
-    return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (in.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
           @javax.annotation.Nonnull final Tensor backSignal = new Tensor(inputDims);

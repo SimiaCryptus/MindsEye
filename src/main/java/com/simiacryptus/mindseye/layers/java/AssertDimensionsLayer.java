@@ -23,7 +23,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.LayerBase;
 import com.simiacryptus.mindseye.lang.NNResult;
 
 import java.util.Arrays;
@@ -35,7 +36,7 @@ import java.util.stream.IntStream;
  * This layer is a pass-thru except that it throws an error if the dimensions are not consistent with its setting.
  */
 @SuppressWarnings("serial")
-public class AssertDimensionsLayer extends NNLayer {
+public class AssertDimensionsLayer extends LayerBase {
   
   private final int[] dims;
   
@@ -88,7 +89,7 @@ public class AssertDimensionsLayer extends NNLayer {
   }
   
   @Override
-  public List<NNLayer> getChildren() {
+  public List<Layer> getChildren() {
     return super.getChildren();
   }
   

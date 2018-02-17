@@ -39,7 +39,7 @@ import java.util.function.IntToDoubleFunction;
  * Adds a bias tensor to the input. Expects a single input of the same dimension as the bias tensor.
  */
 @SuppressWarnings("serial")
-public class BiasLayer extends NNLayer {
+public class BiasLayer extends LayerBase {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(BiasLayer.class);
@@ -138,9 +138,9 @@ public class BiasLayer extends NNLayer {
         r.freeRef();
         return tensor;
       }).toArray(i -> new Tensor[i])),
-      (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+      (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
         if (!isFrozen()) {
-          final Delta<NNLayer> deltaBuffer = buffer.get(BiasLayer.this, bias);
+          final Delta<Layer> deltaBuffer = buffer.get(BiasLayer.this, bias);
           if (1 == bias.length) {
             delta.stream().parallel().forEach(d -> {
               @Nullable final double[] array = d.getData();
@@ -190,7 +190,7 @@ public class BiasLayer extends NNLayer {
    * @return the nn layer
    */
   @javax.annotation.Nonnull
-  public NNLayer set(@javax.annotation.Nonnull final double[] ds) {
+  public Layer set(@javax.annotation.Nonnull final double[] ds) {
     for (int i = 0; i < ds.length; i++) {
       bias[i] = ds[i];
     }

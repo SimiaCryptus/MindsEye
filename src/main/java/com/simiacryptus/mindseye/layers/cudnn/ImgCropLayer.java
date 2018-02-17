@@ -37,7 +37,7 @@ import java.util.Map;
  * color bands.
  */
 @SuppressWarnings("serial")
-public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer> {
+public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLayer> {
   private static final Logger log = LoggerFactory.getLogger(ImgCropLayer.class);
   
   private int sizeX;
@@ -91,7 +91,7 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
    * @return the compatibility layer
    */
   @javax.annotation.Nonnull
-  public NNLayer getCompatibilityLayer() {
+  public Layer getCompatibilityLayer() {
     return this.as(com.simiacryptus.mindseye.layers.java.ImgCropLayer.class);
   }
   
@@ -121,7 +121,7 @@ public class ImgCropLayer extends NNLayer implements MultiPrecision<ImgCropLayer
       gpu.registerForCleanup(inputBuffer);
       return GpuTensorList.wrap(outputBuffer, length, dimOut, precision);
     });
-    return new NNResult(outputData, (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+    return new NNResult(outputData, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
         throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
       }

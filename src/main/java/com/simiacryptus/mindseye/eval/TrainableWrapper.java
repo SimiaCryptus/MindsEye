@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
@@ -74,7 +74,7 @@ public class TrainableWrapper<T extends Trainable> extends ReferenceCountingBase
   }
   
   @Override
-  public NNLayer getLayer() {
+  public Layer getLayer() {
     return inner.getLayer();
   }
   

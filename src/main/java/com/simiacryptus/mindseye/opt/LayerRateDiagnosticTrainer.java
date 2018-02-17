@@ -46,7 +46,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class LayerRateDiagnosticTrainer {
   
   
-  private final Map<NNLayer, LayerStats> layerRates = new HashMap<>();
+  private final Map<Layer, LayerStats> layerRates = new HashMap<>();
   private final Trainable subject;
   private AtomicInteger currentIteration = new AtomicInteger(0);
   private int iterationsPerSample = 1;
@@ -58,7 +58,7 @@ public class LayerRateDiagnosticTrainer {
   private Duration timeout;
   
   /**
-   * Instantiates a new Layer rate diagnostic trainer.
+   * Instantiates a new LayerBase rate diagnostic trainer.
    *
    * @param subject the subject
    */
@@ -70,8 +70,8 @@ public class LayerRateDiagnosticTrainer {
   }
   
   @javax.annotation.Nonnull
-  private DeltaSet<NNLayer> filterDirection(@javax.annotation.Nonnull final DeltaSet<NNLayer> direction, @javax.annotation.Nonnull final NNLayer layer) {
-    @javax.annotation.Nonnull final DeltaSet<NNLayer> maskedDelta = new DeltaSet<NNLayer>();
+  private DeltaSet<Layer> filterDirection(@javax.annotation.Nonnull final DeltaSet<Layer> direction, @javax.annotation.Nonnull final Layer layer) {
+    @javax.annotation.Nonnull final DeltaSet<Layer> maskedDelta = new DeltaSet<Layer>();
     direction.getMap().forEach((layer2, delta) -> maskedDelta.get(layer2, delta.target));
     maskedDelta.get(layer, layer.state().get(0)).addInPlace(direction.get(layer, (double[]) null).getDelta());
     return maskedDelta;
@@ -125,7 +125,7 @@ public class LayerRateDiagnosticTrainer {
    * @return the layer rates
    */
   @javax.annotation.Nonnull
-  public Map<NNLayer, LayerStats> getLayerRates() {
+  public Map<Layer, LayerStats> getLayerRates() {
     return layerRates;
   }
   
@@ -288,10 +288,10 @@ public class LayerRateDiagnosticTrainer {
    * @return the map
    */
   @javax.annotation.Nonnull
-  public Map<NNLayer, LayerStats> run() {
+  public Map<Layer, LayerStats> run() {
     final long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     PointSample measure = measure();
-    @javax.annotation.Nonnull final ArrayList<NNLayer> layers = new ArrayList<>(measure.weights.getMap().keySet());
+    @javax.annotation.Nonnull final ArrayList<Layer> layers = new ArrayList<>(measure.weights.getMap().keySet());
     while (timeoutMs > System.currentTimeMillis() && measure.sum > terminateThreshold) {
       if (currentIteration.get() > maxIterations) {
         break;
@@ -307,15 +307,15 @@ public class LayerRateDiagnosticTrainer {
         {
           @javax.annotation.Nonnull final SimpleLineSearchCursor orient = (SimpleLineSearchCursor) getOrientation().orient(subject, measure, monitor);
           final double stepSize = 1e-12 * orient.origin.sum;
-          @Nonnull final DeltaSet<NNLayer> pointB = orient.step(stepSize, monitor).point.delta.copy();
-          @Nonnull final DeltaSet<NNLayer> pointA = orient.step(0.0, monitor).point.delta.copy();
-          @Nonnull final DeltaSet<NNLayer> d1 = pointA;
-          @Nonnull final DeltaSet<NNLayer> d2 = d1.add(pointB.scale(-1)).scale(1.0 / stepSize);
-          @javax.annotation.Nonnull final Map<NNLayer, Double> steps = new HashMap<>();
+          @Nonnull final DeltaSet<Layer> pointB = orient.step(stepSize, monitor).point.delta.copy();
+          @Nonnull final DeltaSet<Layer> pointA = orient.step(0.0, monitor).point.delta.copy();
+          @Nonnull final DeltaSet<Layer> d1 = pointA;
+          @Nonnull final DeltaSet<Layer> d2 = d1.add(pointB.scale(-1)).scale(1.0 / stepSize);
+          @javax.annotation.Nonnull final Map<Layer, Double> steps = new HashMap<>();
           final double overallStepEstimate = d1.getMagnitude() / d2.getMagnitude();
-          for (final NNLayer layer : layers) {
-            final DoubleBuffer<NNLayer> a = d2.get(layer, (double[]) null);
-            final DoubleBuffer<NNLayer> b = d1.get(layer, (double[]) null);
+          for (final Layer layer : layers) {
+            final DoubleBuffer<Layer> a = d2.get(layer, (double[]) null);
+            final DoubleBuffer<Layer> b = d1.get(layer, (double[]) null);
             final double bmag = Math.sqrt(b.deltaStatistics().sumSq());
             final double amag = Math.sqrt(a.deltaStatistics().sumSq());
             final double dot = a.dot(b) / (amag * bmag);
@@ -330,9 +330,9 @@ public class LayerRateDiagnosticTrainer {
         @Nullable SimpleLineSearchCursor bestOrient = null;
         @Nullable PointSample bestPoint = null;
         layerLoop:
-        for (@javax.annotation.Nonnull final NNLayer layer : layers) {
+        for (@javax.annotation.Nonnull final Layer layer : layers) {
           @javax.annotation.Nonnull SimpleLineSearchCursor orient = (SimpleLineSearchCursor) getOrientation().orient(subject, measure, monitor);
-          @javax.annotation.Nonnull final DeltaSet<NNLayer> direction = filterDirection(orient.direction, layer);
+          @javax.annotation.Nonnull final DeltaSet<Layer> direction = filterDirection(orient.direction, layer);
           if (direction.getMagnitude() == 0) {
             monitor.log(String.format("Zero derivative for layer %s; skipping", layer));
             continue layerLoop;
@@ -396,7 +396,7 @@ public class LayerRateDiagnosticTrainer {
   }
   
   /**
-   * The type Layer stats.
+   * The type LayerBase stats.
    */
   public static class LayerStats {
     /**
@@ -409,7 +409,7 @@ public class LayerRateDiagnosticTrainer {
     public final double rate;
   
     /**
-     * Instantiates a new Layer stats.
+     * Instantiates a new LayerBase stats.
      *
      * @param rate  the rate
      * @param delta the delta

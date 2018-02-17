@@ -34,7 +34,7 @@ import java.util.stream.IntStream;
  * The type Product layer.
  */
 @SuppressWarnings("serial")
-public class ProductLayer extends NNLayer {
+public class ProductLayer extends LayerBase {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ProductLayer.class);
@@ -85,7 +85,7 @@ public class ProductLayer extends NNLayer {
       sum_A[dataIndex] = sum;
       return new Tensor(new double[]{sum}, 1);
     }).toArray(i -> new Tensor[i]);
-    return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    return new NNResult(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       for (@javax.annotation.Nonnull final NNResult in_l : inObj) {
         if (in_l.isAlive()) {
           @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {

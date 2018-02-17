@@ -42,7 +42,7 @@ import java.util.stream.IntStream;
  * A local-pooling layer which sets all elements to the average value.
  */
 @SuppressWarnings("serial")
-public class AvgPoolingLayer extends NNLayer {
+public class AvgPoolingLayer extends LayerBase {
   
   /**
    * The constant indexMapCache.
@@ -127,7 +127,7 @@ public class AvgPoolingLayer extends NNLayer {
       return output;
     }).toArray(i -> new Tensor[i]);
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    return new NNResult(TensorArray.wrap(outputValues), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    return new NNResult(TensorArray.wrap(outputValues), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (inObj[0].isAlive()) {
         final Tensor[] passback = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           @javax.annotation.Nullable Tensor tensor = delta.get(dataIndex);

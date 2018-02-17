@@ -18,7 +18,7 @@
  */
 package com.simiacryptus.mindseye.models;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
@@ -45,7 +45,7 @@ import java.util.concurrent.Callable;
 class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
   private static final Logger log = LoggerFactory.getLogger(Hdf5Archive.class);
   private final Hdf5Archive hdf5;
-  private volatile NNLayer network;
+  private volatile Layer network;
   
   /**
    * Instantiates a new Vgg 16 hdf 5.
@@ -59,7 +59,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
    *
    * @return the network
    */
-  public NNLayer getNetwork() {
+  public Layer getNetwork() {
     if (null == network) {
       synchronized (this) {
         if (null == network) {
@@ -72,9 +72,9 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
   
   @javax.annotation.Nonnull
   @Override
-  public NNLayer build(@javax.annotation.Nonnull NotebookOutput output) {
+  public Layer build(@javax.annotation.Nonnull NotebookOutput output) {
     try {
-      return new Callable<NNLayer>() {
+      return new Callable<Layer>() {
         @Nullable
         Tensor prototype = new Tensor(224, 224, 3);
         int cnt = 1;
@@ -89,7 +89,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
         
         @javax.annotation.Nonnull
         @Override
-        public NNLayer call() throws Exception {
+        public Layer call() throws Exception {
           //  model.add(ZeroPadding2D((1,1),input_shape=(3,224,224)))
           output.code(() -> {
             add(new AssertDimensionsLayer(224, 224, 3));
@@ -426,8 +426,8 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           prototype = null;
           return model;
         }
-        
-        protected void add(NNLayer layer) {
+    
+        protected void add(Layer layer) {
           name(layer);
           if (layer instanceof Explodable) {
             DAGNetwork explode = ((Explodable) layer).explode();
@@ -460,7 +460,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
     }
   }
   
-  private void name(final NNLayer layer) {
+  private void name(final Layer layer) {
     if (layer.getName().contains(layer.getId().toString())) {
       if (layer instanceof ConvolutionLayer) {
         layer.setName(layer.getClass().getSimpleName() + ((ConvolutionLayer) layer).getConvolutionParams());

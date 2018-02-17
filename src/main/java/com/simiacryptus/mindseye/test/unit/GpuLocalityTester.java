@@ -72,7 +72,7 @@ public class GpuLocalityTester extends ComponentTestBase<ToleranceStatistics> {
    * @param inputPrototype the input prototype
    * @return the tolerance statistics
    */
-  public ToleranceStatistics test(@Nullable final NNLayer reference, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
+  public ToleranceStatistics test(@Nullable final Layer reference, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
     if (null == reference) return new ToleranceStatistics();
     return GpuSystem.eval(gpu -> {
       final TensorList[] heapInput = Arrays.stream(inputPrototype).map(t ->
@@ -85,11 +85,15 @@ public class GpuLocalityTester extends ComponentTestBase<ToleranceStatistics> {
       @Nonnull final SimpleResult fromHeap = SimpleGpuEval.run(reference, gpu, heapInput);
       @Nonnull final SimpleResult fromGPU = SimpleGpuEval.run(reference, gpu, gpuInput);
       Arrays.stream(gpuInput).forEach(ReferenceCounting::freeRef);
-      
-      @javax.annotation.Nonnull final ToleranceStatistics outputAgreement = IntStream.range(0, getBatchSize()).mapToObj(batch ->
-        new ToleranceStatistics().accumulate(
-          fromHeap.getOutput().get(batch).getData(),
-          fromGPU.getOutput().get(batch).getData())
+  
+      @javax.annotation.Nonnull final ToleranceStatistics outputAgreement = IntStream.range(0, getBatchSize()).mapToObj(batch -> {
+          Tensor a = fromHeap.getOutput().get(batch);
+          Tensor b = fromGPU.getOutput().get(batch);
+          ToleranceStatistics statistics = new ToleranceStatistics().accumulate(a.getData(), b.getData());
+          a.freeRef();
+          b.freeRef();
+          return statistics;
+        }
       ).reduce((a, b) -> a.combine(b)).get();
       if (!(outputAgreement.absoluteTol.getMax() < tolerance)) {
         logger.info("Batch Output: " + fromHeap.getOutput().stream().map(x -> {
@@ -136,7 +140,7 @@ public class GpuLocalityTester extends ComponentTestBase<ToleranceStatistics> {
    * @return the tolerance statistics
    */
   @Override
-  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, final NNLayer reference, @javax.annotation.Nonnull final Tensor... inputPrototype) {
+  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, final Layer reference, @javax.annotation.Nonnull final Tensor... inputPrototype) {
     log.h1("Multi-GPU Compatibility");
     log.p("This layer should be able to eval using a GPU context other than the one used to create the inputs.");
     return log.code(() -> {

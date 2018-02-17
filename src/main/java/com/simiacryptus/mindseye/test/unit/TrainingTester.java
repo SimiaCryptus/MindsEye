@@ -279,7 +279,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @return the nn layer
    */
   @javax.annotation.Nonnull
-  private NNLayer shuffle(final Random random, @javax.annotation.Nonnull final NNLayer testComponent) {
+  private Layer shuffle(final Random random, @javax.annotation.Nonnull final Layer testComponent) {
     testComponent.state().forEach(buffer -> {
       randomizationMode.shuffle(random, buffer);
     });
@@ -311,7 +311,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param inputPrototype the input prototype
    */
   @Override
-  public ComponentResult test(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer component, @javax.annotation.Nonnull final Tensor... inputPrototype) {
+  public ComponentResult test(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer component, @javax.annotation.Nonnull final Tensor... inputPrototype) {
     printHeader(log);
     final boolean testModel = !component.state().isEmpty();
     if (testModel && isZero(component.state().stream().flatMapToDouble(x1 -> Arrays.stream(x1)))) {
@@ -384,8 +384,8 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @return the run result
    */
   @javax.annotation.Nonnull
-  public TestResult testCompleteLearning(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer component, final Random random, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
-    @Nonnull final NNLayer network_target = shuffle(random, component.copy()).freeze();
+  public TestResult testCompleteLearning(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer component, final Random random, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
+    @Nonnull final Layer network_target = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
     log.p("In this run, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
     log.code(() -> {
@@ -426,8 +426,8 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param inputPrototype the input prototype
    * @return the run result
    */
-  public TestResult testInputLearning(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer component, final Random random, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
-    @Nonnull final NNLayer network = shuffle(random, component.copy()).freeze();
+  public TestResult testInputLearning(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer component, final Random random, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
+    @Nonnull final Layer network = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
     log.p("In this run, we use a network to learn this target input, given it's pre-evaluated output:");
     log.code(() -> {
@@ -477,8 +477,8 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param inputPrototype the input prototype
    * @return the run result
    */
-  public TestResult testModelLearning(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer component, final Random random, final Tensor[] inputPrototype) {
-    @Nonnull final NNLayer network_target = shuffle(random, component.copy()).freeze();
+  public TestResult testModelLearning(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer component, final Random random, final Tensor[] inputPrototype) {
+    @Nonnull final Layer network_target = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
     log.p("In this run, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
     log.code(() -> {
@@ -536,7 +536,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @return the run result
    */
   @javax.annotation.Nonnull
-  public TestResult trainAll(String title, @javax.annotation.Nonnull NotebookOutput log, @javax.annotation.Nonnull Tensor[][] trainingInput, @javax.annotation.Nonnull NNLayer layer, boolean... mask) {
+  public TestResult trainAll(String title, @javax.annotation.Nonnull NotebookOutput log, @javax.annotation.Nonnull Tensor[][] trainingInput, @javax.annotation.Nonnull Layer layer, boolean... mask) {
     try {
       log.h3("Gradient Descent");
       final List<StepRecord> gd = train(log, this::trainGD, layer.copy(), copy(trainingInput), mask);
@@ -576,7 +576,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     }
   }
   
-  private List<StepRecord> train(@javax.annotation.Nonnull NotebookOutput log, @javax.annotation.Nonnull BiFunction<NotebookOutput, Trainable, List<StepRecord>> opt, @javax.annotation.Nonnull NNLayer layer, @javax.annotation.Nonnull Tensor[][] data, @javax.annotation.Nonnull boolean... mask) {
+  private List<StepRecord> train(@javax.annotation.Nonnull NotebookOutput log, @javax.annotation.Nonnull BiFunction<NotebookOutput, Trainable, List<StepRecord>> opt, @javax.annotation.Nonnull Layer layer, @javax.annotation.Nonnull Tensor[][] data, @javax.annotation.Nonnull boolean... mask) {
     try {
       int inputs = data[0].length;
       @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork(inputs);
@@ -753,7 +753,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
           .setLineSearchFactory(label -> new StaticLearningRate(1.0))
           .setOrientation(new RecursiveSubspace() {
             @Override
-            public void train(@javax.annotation.Nonnull TrainingMonitor monitor, NNLayer macroLayer) {
+            public void train(@javax.annotation.Nonnull TrainingMonitor monitor, Layer macroLayer) {
               @javax.annotation.Nonnull Tensor[][] nullData = {{new Tensor()}};
               @javax.annotation.Nonnull BasicTrainable inner = new BasicTrainable(macroLayer);
               @javax.annotation.Nonnull ArrayTrainable trainable1 = new ArrayTrainable(inner, nullData);

@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
@@ -47,7 +47,7 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
   @javax.annotation.Nonnull
   protected final FullyConnectedLayer fullyConnectedLayer;
   /**
-   * The Layer.
+   * The LayerBase.
    */
   @javax.annotation.Nonnull
   protected final PipelineNetwork layer;
@@ -81,20 +81,20 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNLayer getLayer(final int[][] inputSize, Random random) {
+  public Layer getLayer(final int[][] inputSize, Random random) {
     layer.addRef();
     return layer;
   }
   
   @Override
-  public NNLayer getReferenceLayer() {
-    @Nullable Class<? extends NNLayer> referenceLayerClass = getReferenceLayerClass();
+  public Layer getReferenceLayer() {
+    @Nullable Class<? extends Layer> referenceLayerClass = getReferenceLayerClass();
     return null == referenceLayerClass ? null : this.fullyConnectedLayer.as(referenceLayerClass);
   }
   
   @Nullable
   @Override
-  public Class<? extends NNLayer> getReferenceLayerClass() {
+  public Class<? extends Layer> getReferenceLayerClass() {
     return com.simiacryptus.mindseye.layers.java.FullyConnectedReferenceLayer.class;
   }
   
@@ -137,7 +137,7 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
     }
   
     @Override
-    public Class<? extends NNLayer> getReferenceLayerClass() {
+    public Class<? extends Layer> getReferenceLayerClass() {
       return null;
     }
   

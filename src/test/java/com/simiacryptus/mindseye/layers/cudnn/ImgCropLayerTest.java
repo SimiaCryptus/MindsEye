@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -64,12 +64,12 @@ public abstract class ImgCropLayerTest extends CuDNNLayerTestBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNLayer getLayer(final int[][] inputSize, Random random) {
+  public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgCropLayer(5, 5);
   }
   
   @Override
-  public Class<? extends NNLayer> getReferenceLayerClass() {
+  public Class<? extends Layer> getReferenceLayerClass() {
     return com.simiacryptus.mindseye.layers.java.ImgCropLayer.class;
   }
   
@@ -80,7 +80,7 @@ public abstract class ImgCropLayerTest extends CuDNNLayerTestBase {
     @javax.annotation.Nonnull ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setSamples(100).setBatches(10);
     return new ComponentTestBase<ToleranceStatistics>() {
       @Override
-      public ToleranceStatistics test(@javax.annotation.Nonnull NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
+      public ToleranceStatistics test(@javax.annotation.Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
         @Nullable PrintStream apiLog = null;
         try {
           apiLog = new PrintStream(log.file("cuda_perf.log"));
@@ -117,7 +117,7 @@ public abstract class ImgCropLayerTest extends CuDNNLayerTestBase {
   
     @javax.annotation.Nonnull
     @Override
-    public NNLayer getLayer(int[][] inputSize, Random random) {
+    public Layer getLayer(int[][] inputSize, Random random) {
       @javax.annotation.Nonnull ImgCropLayer imgCropLayer = new ImgCropLayer(4, 5);
       //return wrap(imgCropLayer);
       return imgCropLayer;
@@ -130,7 +130,7 @@ public abstract class ImgCropLayerTest extends CuDNNLayerTestBase {
      * @return the nn layer
      */
     @javax.annotation.Nonnull
-    public NNLayer wrap(ImgCropLayer imgCropLayer) {
+    public Layer wrap(ImgCropLayer imgCropLayer) {
       @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork();
       network.add(imgCropLayer);
       return network;
@@ -138,7 +138,7 @@ public abstract class ImgCropLayerTest extends CuDNNLayerTestBase {
   
     @javax.annotation.Nonnull
     @Override
-    public Class<? extends NNLayer> getTestClass() {
+    public Class<? extends Layer> getTestClass() {
       return ImgCropLayer.class;
     }
     

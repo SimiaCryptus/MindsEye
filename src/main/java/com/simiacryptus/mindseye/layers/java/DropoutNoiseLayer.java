@@ -35,7 +35,7 @@ import java.util.stream.IntStream;
  * Randomly selects a fraction of the inputs and sets all other elements to zero.
  */
 @SuppressWarnings("serial")
-public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
+public class DropoutNoiseLayer extends LayerBase implements StochasticComponent {
   
   
   /**
@@ -121,7 +121,7 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
       }
       inputTensor.freeRef();
       return output;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (inputResult.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           Tensor deltaTensor = delta.get(dataIndex);

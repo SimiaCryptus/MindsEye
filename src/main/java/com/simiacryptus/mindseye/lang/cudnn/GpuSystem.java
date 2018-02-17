@@ -1318,7 +1318,7 @@ public class GpuSystem {
   public static <T> T eval(@javax.annotation.Nonnull final Function<CuDNNHandle, T> fn) {return eval(fn, true);}
   
   private static final ExecutorService garbageTruck = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("gpu-free-%d").setDaemon(true).build());
-
+  
   /**
    * Call t.
    *

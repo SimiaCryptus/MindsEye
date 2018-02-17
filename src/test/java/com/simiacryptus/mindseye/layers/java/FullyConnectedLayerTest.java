@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 import javax.annotation.Nullable;
@@ -57,13 +57,13 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
   
   @Nullable
   @Override
-  public Class<? extends NNLayer> getReferenceLayerClass() {
+  public Class<? extends Layer> getReferenceLayerClass() {
     return FullyConnectedReferenceLayer.class;
   }
   
   @javax.annotation.Nonnull
   @Override
-  public NNLayer getLayer(final int[][] inputSize, Random random) {
+  public Layer getLayer(final int[][] inputSize, Random random) {
     fullyConnectedLayer.addRef();
     return fullyConnectedLayer;
   }
@@ -91,7 +91,7 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
 //    }
 //
 //    @Override
-//    public Class<? extends NNLayer> getReferenceLayerClass() {
+//    public Class<? extends LayerBase> getReferenceLayerClass() {
 //      return null;
 //    }
 //

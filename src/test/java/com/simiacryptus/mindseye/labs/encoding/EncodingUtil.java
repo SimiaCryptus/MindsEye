@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.labs.encoding;
 
 import com.simiacryptus.mindseye.lang.Coordinate;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
@@ -108,7 +108,7 @@ public class EncodingUtil {
    * @return the dag network
    */
   @javax.annotation.Nonnull
-  public static DAGNetwork buildTrainingModel(final NNLayer innerModel, final int reproducedColumn, final int learnedColumn) {
+  public static DAGNetwork buildTrainingModel(final Layer innerModel, final int reproducedColumn, final int learnedColumn) {
     @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork(Math.max(learnedColumn, reproducedColumn) + 1);
     // network.add(new NthPowerActivationLayer().setPower(0.5), );
     network.wrap(new MeanSqLossLayer(),
@@ -384,7 +384,7 @@ public class EncodingUtil {
    * @param network the network
    * @param modelNo the model no
    */
-  public static void printModel(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer network, final int modelNo) {
+  public static void printModel(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer network, final int modelNo) {
     log.out("Learned Model Statistics: ");
     log.code(() -> {
       @javax.annotation.Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
@@ -405,7 +405,7 @@ public class EncodingUtil {
    * @param col          the col
    * @param tensor       the tensor
    */
-  public static void renderLayer(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final List<NNLayer> dataPipeline, @javax.annotation.Nonnull final LinkedHashMap<String, Object> row, final int col, @javax.annotation.Nonnull final Tensor tensor) {
+  public static void renderLayer(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final List<Layer> dataPipeline, @javax.annotation.Nonnull final LinkedHashMap<String, Object> row, final int col, @javax.annotation.Nonnull final Tensor tensor) {
     row.put("Data_" + col, com.simiacryptus.mindseye.test.TestUtil.render(log, tensor, 0 < col));
     if (dataPipeline.size() >= col - 1 && 1 < col) {
       @javax.annotation.Nonnull final PipelineNetwork decoder = new PipelineNetwork();
@@ -478,7 +478,7 @@ public class EncodingUtil {
    * @param dataPipeline the data pipeline
    * @param maxRows      the max rows
    */
-  public static void validationReport(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Tensor[][] data, @javax.annotation.Nonnull final List<NNLayer> dataPipeline, final int maxRows) {
+  public static void validationReport(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Tensor[][] data, @javax.annotation.Nonnull final List<Layer> dataPipeline, final int maxRows) {
     log.out("Current dataset and evaluation results: ");
     log.code(() -> {
       @javax.annotation.Nonnull final TableOutput table = new TableOutput();

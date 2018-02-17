@@ -42,7 +42,7 @@ import java.util.stream.Stream;
  * used to implement a summation layer, a difference layer, a scaling layer, or any combination.
  */
 @SuppressWarnings("serial")
-public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsLayer> {
+public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInputsLayer> {
   
   private Precision precision = Precision.Double;
   
@@ -80,7 +80,7 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
    * @return the compatibility layer
    */
   @javax.annotation.Nonnull
-  public NNLayer getCompatibilityLayer() {
+  public Layer getCompatibilityLayer() {
     @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork(2);
     network.wrap(new com.simiacryptus.mindseye.layers.java.SumInputsLayer(),
       network.wrap(new LinearActivationLayer().setScale(1.0).freeze(), network.getInput(0)),
@@ -107,7 +107,7 @@ public class SumInputsLayer extends NNLayer implements MultiPrecision<SumInputsL
     @javax.annotation.Nonnull TensorList run = Arrays.stream(inObj).map(x -> x.getData()).reduce((leftData, rightData) -> GpuSystem.eval(gpu -> {
       return addAndFree(gpu, dimensions, length, leftData, rightData);
     })).get();
-    return new NNResult(run, (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    return new NNResult(run, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       @javax.annotation.Nonnull Stream<NNResult> stream1 = Arrays.stream(inObj);
       // TODO: Fix issue where parallel will cause data corruption
       if (!TestUtil.CONSERVATIVE) stream1 = stream1.parallel();

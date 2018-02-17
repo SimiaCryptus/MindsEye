@@ -32,7 +32,7 @@ public final class PointSample extends ReferenceCountingBase {
    * The Delta.
    */
   @javax.annotation.Nonnull
-  public final DeltaSet<NNLayer> delta;
+  public final DeltaSet<Layer> delta;
   /**
    * The Sum.
    */
@@ -41,7 +41,7 @@ public final class PointSample extends ReferenceCountingBase {
    * The Weights.
    */
   @javax.annotation.Nonnull
-  public final StateSet<NNLayer> weights;
+  public final StateSet<Layer> weights;
   /**
    * The Rate.
    */
@@ -56,7 +56,7 @@ public final class PointSample extends ReferenceCountingBase {
    * @param rate    the rate
    * @param count   the count
    */
-  public PointSample(@javax.annotation.Nonnull final DeltaSet<NNLayer> delta, @javax.annotation.Nonnull final StateSet<NNLayer> weights, final double sum, final double rate, final int count) {
+  public PointSample(@javax.annotation.Nonnull final DeltaSet<Layer> delta, @javax.annotation.Nonnull final StateSet<Layer> weights, final double sum, final double rate, final int count) {
     assert delta.getMap().size() == weights.getMap().size();
     this.delta = new DeltaSet<>(delta);
     this.weights = new StateSet<>(weights);
@@ -127,8 +127,8 @@ public final class PointSample extends ReferenceCountingBase {
    */
   @javax.annotation.Nonnull
   public PointSample copyFull() {
-    @javax.annotation.Nonnull DeltaSet<NNLayer> deltaCopy = delta.copy();
-    @javax.annotation.Nonnull StateSet<NNLayer> weightsCopy = weights.copy();
+    @javax.annotation.Nonnull DeltaSet<Layer> deltaCopy = delta.copy();
+    @javax.annotation.Nonnull StateSet<Layer> weightsCopy = weights.copy();
     @javax.annotation.Nonnull PointSample pointSample = new PointSample(deltaCopy, weightsCopy, sum, rate, count);
     deltaCopy.freeRef();
     weightsCopy.freeRef();
@@ -177,7 +177,7 @@ public final class PointSample extends ReferenceCountingBase {
       return this;
     }
     else {
-      @javax.annotation.Nonnull DeltaSet<NNLayer> scale = delta.scale(1.0 / count);
+      @javax.annotation.Nonnull DeltaSet<Layer> scale = delta.scale(1.0 / count);
       @javax.annotation.Nonnull PointSample pointSample = new PointSample(scale, weights, sum / count, rate, 1);
       scale.freeRef();
       return pointSample;

@@ -21,7 +21,8 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.LayerBase;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
@@ -37,7 +38,7 @@ import java.util.Map;
  * The classic "softmax" layer. All outputs will sum to 1 and be proportional to the log of the input.
  */
 @SuppressWarnings("serial")
-public class SoftmaxActivationLayer extends NNLayer implements MultiPrecision<SoftmaxActivationLayer> {
+public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<SoftmaxActivationLayer> {
   private static final Logger log = LoggerFactory.getLogger(SoftmaxActivationLayer.class);
   
   private Precision precision = Precision.Double;
@@ -77,7 +78,7 @@ public class SoftmaxActivationLayer extends NNLayer implements MultiPrecision<So
    * @return the compatibility layer
    */
   @javax.annotation.Nonnull
-  public NNLayer getCompatibilityLayer() {
+  public Layer getCompatibilityLayer() {
     return this.as(com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer.class);
   }
   
@@ -85,7 +86,7 @@ public class SoftmaxActivationLayer extends NNLayer implements MultiPrecision<So
   @Nullable
   @Override
   public NNResult eval(final NNResult... inObj) {
-    NNLayer compatibilityLayer = getCompatibilityLayer();
+    Layer compatibilityLayer = getCompatibilityLayer();
     NNResult eval = compatibilityLayer.eval(inObj);
     compatibilityLayer.freeRef();
     if (!GpuSystem.isEnabled()) return eval;

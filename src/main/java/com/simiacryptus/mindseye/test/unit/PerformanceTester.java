@@ -148,7 +148,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
    * @param component      the component
    * @param inputPrototype the input prototype
    */
-  public void test(@javax.annotation.Nonnull final NNLayer component, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
+  public void test(@javax.annotation.Nonnull final Layer component, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
     log.info(String.format("%s batch length, %s trials", batches, samples));
     log.info("Input Dimensions:");
     Arrays.stream(inputPrototype).map(t -> "\t" + Arrays.toString(t.getDimensions())).forEach(System.out::println);
@@ -179,7 +179,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
    */
   @Nullable
   @Override
-  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, final NNLayer component, @javax.annotation.Nonnull final Tensor... inputPrototype) {
+  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, final Layer component, @javax.annotation.Nonnull final Tensor... inputPrototype) {
     log.h1("Performance");
     if (component instanceof DAGNetwork) {
       TestUtil.instrumentPerformance(log, (DAGNetwork) component);
@@ -202,33 +202,40 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
    * @return the double statistics
    */
   @javax.annotation.Nonnull
-  protected Tuple2<Double, Double> testPerformance(@javax.annotation.Nonnull final NNLayer component, final Tensor... inputPrototype) {
+  protected Tuple2<Double, Double> testPerformance(@javax.annotation.Nonnull final Layer component, final Tensor... inputPrototype) {
     final Tensor[][] data = IntStream.range(0, batches).mapToObj(x -> x).flatMap(x -> Stream.<Tensor[]>of(inputPrototype)).toArray(i -> new Tensor[i][]);
     @javax.annotation.Nonnull TimedResult<NNResult> timedEval = TimedResult.time(() -> {
       NNResult[] input = NNConstant.batchResultArray(data);
-      @javax.annotation.Nullable NNResult result = component.eval(input);
-      for (@javax.annotation.Nonnull NNResult nnResult : input) {
-        nnResult.freeRef();
-        nnResult.getData().freeRef();
+      @javax.annotation.Nullable NNResult result;
+      try {
+        result = component.eval(input);
+      } finally {
+        for (@javax.annotation.Nonnull NNResult nnResult : input) {
+          nnResult.freeRef();
+          nnResult.getData().freeRef();
+        }
       }
       return result;
     });
     final NNResult result = timedEval.result;
-    @javax.annotation.Nonnull final DeltaSet<NNLayer> buffer = new DeltaSet<NNLayer>();
-    long timedBackprop = TimedResult.time(() -> {
-      @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(result.getData().stream().map(x -> {
-        @javax.annotation.Nullable Tensor map = x.map(v -> 1.0);
-        x.freeRef();
-        return map;
-      }).toArray(i -> new Tensor[i]));
-      result.accumulate(buffer, tensorArray);
-      tensorArray.freeRef();
-      return buffer;
-    }).timeNanos;
-    buffer.freeRef();
-    result.freeRef();
-    result.getData().freeRef();
-    return new Tuple2<>(timedEval.timeNanos / 1e9, timedBackprop / 1e9);
+    @javax.annotation.Nonnull final DeltaSet<Layer> buffer = new DeltaSet<Layer>();
+    try {
+      long timedBackprop = TimedResult.time(() -> {
+        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(result.getData().stream().map(x -> {
+          @javax.annotation.Nullable Tensor map = x.map(v -> 1.0);
+          x.freeRef();
+          return map;
+        }).toArray(i -> new Tensor[i]));
+        result.accumulate(buffer, tensorArray);
+        tensorArray.freeRef();
+        return buffer;
+      }).timeNanos;
+      return new Tuple2<>(timedEval.timeNanos / 1e9, timedBackprop / 1e9);
+    } finally {
+      buffer.freeRef();
+      result.freeRef();
+      result.getData().freeRef();
+    }
   }
   
   @javax.annotation.Nonnull

@@ -34,7 +34,7 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
   @javax.annotation.Nonnull
   private final TensorList[] input;
   @javax.annotation.Nonnull
-  private final NNLayer layer;
+  private final Layer layer;
   private TensorList[] derivative;
   private TensorList output;
   
@@ -44,7 +44,7 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
    * @param layer the layer
    * @param input the input
    */
-  public SimpleListEval(@javax.annotation.Nonnull final NNLayer layer, @javax.annotation.Nonnull final TensorList... input) {
+  public SimpleListEval(@javax.annotation.Nonnull final Layer layer, @javax.annotation.Nonnull final TensorList... input) {
     this.layer = layer;
     this.input = input;
     for (@javax.annotation.Nonnull TensorList x : input) x.addRef();
@@ -75,7 +75,7 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
    * @return the simple list trainAll
    */
   @javax.annotation.Nonnull
-  public static SimpleResult run(@javax.annotation.Nonnull final NNLayer layer, final TensorList... tensor) {
+  public static SimpleResult run(@javax.annotation.Nonnull final Layer layer, final TensorList... tensor) {
     return new SimpleListEval(layer, tensor).call();
   }
   
@@ -100,7 +100,7 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
       .toArray(i -> new Tensor[i]))
     ).toArray(i -> new TensorList[i]);
     NNResult[] inputs = IntStream.range(0, inputCopy.length).mapToObj(i -> {
-      return new NNResult(inputCopy[i], (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+      return new NNResult(inputCopy[i], (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
         SimpleListEval.accumulate(derivative[i], data);
       }) {
         @Override
@@ -119,7 +119,7 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
     }
     eval.getData().freeRef();
     @javax.annotation.Nonnull TensorList tensorList = getFeedback(outputData);
-    @javax.annotation.Nonnull DeltaSet<NNLayer> buffer = new DeltaSet<>();
+    @javax.annotation.Nonnull DeltaSet<Layer> buffer = new DeltaSet<>();
     eval.accumulate(buffer, tensorList);
     buffer.freeRef();
     eval.freeRef();

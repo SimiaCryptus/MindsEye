@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 import java.util.Random;
@@ -43,7 +43,7 @@ public class TargetValueLayerTest {
   
     @javax.annotation.Nonnull
     @Override
-    public NNLayer getLayer(final int[][] inputSize, Random random) {
+    public Layer getLayer(final int[][] inputSize, Random random) {
       return new TargetValueLayer(0.0, 0.1, 0.2);
     }
   }

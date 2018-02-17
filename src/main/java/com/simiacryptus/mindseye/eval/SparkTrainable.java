@@ -50,7 +50,7 @@ public class SparkTrainable extends TrainableBase {
   /**
    * The Network.
    */
-  protected final NNLayer network;
+  protected final Layer network;
   /**
    * The Sample size.
    */
@@ -79,7 +79,7 @@ public class SparkTrainable extends TrainableBase {
    * @param trainingData the training data
    * @param network      the network
    */
-  public SparkTrainable(final RDD<Tensor[]> trainingData, final NNLayer network) {
+  public SparkTrainable(final RDD<Tensor[]> trainingData, final Layer network) {
     this(trainingData, network, -1);
   }
   
@@ -90,7 +90,7 @@ public class SparkTrainable extends TrainableBase {
    * @param network      the network
    * @param sampleSize   the sample size
    */
-  public SparkTrainable(final RDD<Tensor[]> trainingData, final NNLayer network, final int sampleSize) {
+  public SparkTrainable(final RDD<Tensor[]> trainingData, final Layer network, final int sampleSize) {
     dataRDD = trainingData;
     this.network = network;
     this.network.addRef(this);
@@ -117,7 +117,7 @@ public class SparkTrainable extends TrainableBase {
    * @param values the values
    * @return the result
    */
-  protected static SparkTrainable.ReducableResult getResult(@javax.annotation.Nonnull final DeltaSet<NNLayer> delta, @javax.annotation.Nonnull final double[] values) {
+  protected static SparkTrainable.ReducableResult getResult(@javax.annotation.Nonnull final DeltaSet<Layer> delta, @javax.annotation.Nonnull final double[] values) {
     final Map<String, double[]> deltas = delta.getMap().entrySet().stream().collect(Collectors.toMap(
       e -> e.getKey().getId().toString(), e -> e.getValue().getDelta()
     ));
@@ -144,8 +144,8 @@ public class SparkTrainable extends TrainableBase {
    * @return the delta
    */
   @javax.annotation.Nonnull
-  protected DeltaSet<NNLayer> getDelta(@javax.annotation.Nonnull final SparkTrainable.ReducableResult reduce) {
-    @javax.annotation.Nonnull final DeltaSet<NNLayer> xxx = new DeltaSet<NNLayer>();
+  protected DeltaSet<Layer> getDelta(@javax.annotation.Nonnull final SparkTrainable.ReducableResult reduce) {
+    @javax.annotation.Nonnull final DeltaSet<Layer> xxx = new DeltaSet<Layer>();
     final Tensor[] prototype = dataRDD.toJavaRDD().take(1).get(0);
     final NNResult result = network.eval(NNConstant.batchResultArray(new Tensor[][]{prototype}));
     result.accumulate(xxx, 0);
@@ -224,8 +224,8 @@ public class SparkTrainable extends TrainableBase {
     if (isVerbose()) {
       log.info(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
     }
-    @javax.annotation.Nonnull final DeltaSet<NNLayer> xxx = getDelta(result);
-    return new PointSample(xxx, new StateSet<NNLayer>(xxx), result.sum, 0.0, result.count).normalize();
+    @javax.annotation.Nonnull final DeltaSet<Layer> xxx = getDelta(result);
+    return new PointSample(xxx, new StateSet<Layer>(xxx), result.sum, 0.0, result.count).normalize();
   }
   
   @Override
@@ -246,7 +246,7 @@ public class SparkTrainable extends TrainableBase {
   }
   
   @Override
-  public NNLayer getLayer() {
+  public Layer getLayer() {
     return network;
   }
   
@@ -263,7 +263,7 @@ public class SparkTrainable extends TrainableBase {
     /**
      * The Network.
      */
-    final NNLayer network;
+    final Layer network;
     /**
      * The Verbose.
      */
@@ -274,7 +274,7 @@ public class SparkTrainable extends TrainableBase {
      *
      * @param network the network
      */
-    protected PartitionTask(final NNLayer network) {
+    protected PartitionTask(final Layer network) {
       this.network = network;
     }
   
@@ -334,8 +334,8 @@ public class SparkTrainable extends TrainableBase {
      *
      * @param source the source
      */
-    public void accumulate(@javax.annotation.Nonnull final DeltaSet<NNLayer> source) {
-      final Map<String, NNLayer> idIndex = source.getMap().entrySet().stream().collect(Collectors.toMap(
+    public void accumulate(@javax.annotation.Nonnull final DeltaSet<Layer> source) {
+      final Map<String, Layer> idIndex = source.getMap().entrySet().stream().collect(Collectors.toMap(
         e -> e.getKey().getId().toString(), e -> e.getKey()
       ));
       deltas.forEach((k, v) -> source.get(idIndex.get(k), (double[]) null).addInPlace(v));

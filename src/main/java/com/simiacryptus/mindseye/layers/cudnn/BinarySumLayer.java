@@ -42,7 +42,7 @@ import java.util.Map;
  * used to implement a summation layer, a difference layer, a scaling layer, or any combination.
  */
 @SuppressWarnings("serial")
-public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumLayer> {
+public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySumLayer> {
   
   private double leftFactor;
   private Precision precision = Precision.Double;
@@ -95,7 +95,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
    * @return the compatibility layer
    */
   @javax.annotation.Nonnull
-  public NNLayer getCompatibilityLayer() {
+  public Layer getCompatibilityLayer() {
     @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork(2);
     network.wrap(new SumInputsLayer(),
       network.wrap(new LinearActivationLayer().setScale(this.leftFactor).freeze(), network.getInput(0)),
@@ -157,7 +157,7 @@ public class BinarySumLayer extends NNLayer implements MultiPrecision<BinarySumL
         precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
       gpu.registerForCleanup(opDescriptor, sizeDescriptor, lPtr, rPtr);
       return GpuTensorList.wrap(outputPtr, length, dimensions, precision);
-    }), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
   
       Runnable l = () -> {
         if (inObj[0].isAlive()) {

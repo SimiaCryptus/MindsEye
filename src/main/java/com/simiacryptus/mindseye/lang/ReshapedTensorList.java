@@ -36,7 +36,7 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
   /**
    * Instantiates a new Reshaped tensor list.
    *
-   * @param inner  the data
+   * @param inner the data
    * @param toDim the to dim
    */
   public ReshapedTensorList(@javax.annotation.Nonnull TensorList inner, int[] toDim) {
@@ -82,6 +82,11 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
     inner.freeRef();
   }
   
+  /**
+   * Gets inner.
+   *
+   * @return the inner
+   */
   @Nonnull
   public TensorList getInner() {
     return inner;

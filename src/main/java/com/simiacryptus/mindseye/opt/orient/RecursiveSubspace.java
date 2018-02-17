@@ -57,14 +57,14 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
   @Override
   public SimpleLineSearchCursor orient(@javax.annotation.Nonnull Trainable subject, @javax.annotation.Nonnull PointSample measurement, @javax.annotation.Nonnull TrainingMonitor monitor) {
     @Nonnull PointSample origin = measurement.copyFull().backup();
-    @Nullable NNLayer macroLayer = buildSubspace(subject, measurement, monitor);
+    @Nullable Layer macroLayer = buildSubspace(subject, measurement, monitor);
     train(monitor, macroLayer);
     NNResult eval = macroLayer.eval((NNResult) null);
     macroLayer.freeRef();
     eval.getData().freeRef();
     eval.freeRef();
-    @Nonnull StateSet<NNLayer> backupCopy = origin.weights.backupCopy();
-    @Nonnull DeltaSet<NNLayer> delta = backupCopy.subtract(origin.weights);
+    @Nonnull StateSet<Layer> backupCopy = origin.weights.backupCopy();
+    @Nonnull DeltaSet<Layer> delta = backupCopy.subtract(origin.weights);
     backupCopy.freeRef();
     origin.restore();
     @javax.annotation.Nonnull SimpleLineSearchCursor simpleLineSearchCursor = new SimpleLineSearchCursor(subject, origin, delta);
@@ -82,9 +82,9 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
    * @return the nn layer
    */
   @Nullable
-  public NNLayer buildSubspace(@javax.annotation.Nonnull Trainable subject, @javax.annotation.Nonnull PointSample measurement, @javax.annotation.Nonnull TrainingMonitor monitor) {
+  public Layer buildSubspace(@javax.annotation.Nonnull Trainable subject, @javax.annotation.Nonnull PointSample measurement, @javax.annotation.Nonnull TrainingMonitor monitor) {
     @Nonnull PointSample origin = measurement.copyFull().backup();
-    @Nonnull final DeltaSet<NNLayer> direction = measurement.delta.scale(-1);
+    @Nonnull final DeltaSet<Layer> direction = measurement.delta.scale(-1);
     final double magnitude = direction.getMagnitude();
     if (Math.abs(magnitude) < 1e-10) {
       monitor.log(String.format("Zero gradient: %s", magnitude));
@@ -94,14 +94,14 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
     }
     boolean hasPlaceholders = direction.getMap().entrySet().stream().filter(x -> x.getKey() instanceof PlaceholderLayer).findAny().isPresent();
   
-    List<NNLayer> deltaLayers = direction.getMap().entrySet().stream().map(x -> x.getKey())
+    List<Layer> deltaLayers = direction.getMap().entrySet().stream().map(x -> x.getKey())
       .filter(x -> !(x instanceof PlaceholderLayer))
       .collect(Collectors.toList());
     int size = deltaLayers.size() + (hasPlaceholders ? 1 : 0);
     if (null == weights || weights.length != size) weights = new double[size];
-    return new NNLayer() {
+    return new LayerBase() {
       @javax.annotation.Nonnull
-      NNLayer self = this;
+      Layer self = this;
   
       @javax.annotation.Nonnull
       @Override
@@ -120,17 +120,17 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
         double mean = measure.getMean();
         monitor.log(String.format("RecursiveSubspace: %s <- %s", mean, Arrays.toString(weights)));
         direction.addRef();
-        return new NNResult(TensorArray.wrap(new Tensor(mean)), (DeltaSet<NNLayer> buffer, TensorList data) -> {
+        return new NNResult(TensorArray.wrap(new Tensor(mean)), (DeltaSet<Layer> buffer, TensorList data) -> {
           DoubleStream deltaStream = deltaLayers.stream().mapToDouble(layer -> {
-            Delta<NNLayer> a = direction.getMap().get(layer);
-            Delta<NNLayer> b = measure.delta.getMap().get(layer);
+            Delta<Layer> a = direction.getMap().get(layer);
+            Delta<Layer> b = measure.delta.getMap().get(layer);
             return b.dot(a) / Math.max(Math.sqrt(a.dot(a)), 1e-8);
           });
           if (hasPlaceholders) {
             deltaStream = DoubleStream.concat(DoubleStream.of(
               direction.getMap().keySet().stream().filter(x -> x instanceof PlaceholderLayer).distinct().mapToDouble(layer -> {
-                Delta<NNLayer> a = direction.getMap().get(layer);
-                Delta<NNLayer> b = measure.delta.getMap().get(layer);
+                Delta<Layer> a = direction.getMap().get(layer);
+                Delta<Layer> b = measure.delta.getMap().get(layer);
                 return b.dot(a) / Math.max(Math.sqrt(a.dot(a)), 1e-8);
               }).sum()), deltaStream);
           }
@@ -176,7 +176,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
    * @param monitor    the monitor
    * @param macroLayer the macro layer
    */
-  public void train(@javax.annotation.Nonnull TrainingMonitor monitor, NNLayer macroLayer) {
+  public void train(@javax.annotation.Nonnull TrainingMonitor monitor, Layer macroLayer) {
     @javax.annotation.Nonnull BasicTrainable inner = new BasicTrainable(macroLayer);
     @javax.annotation.Nonnull Tensor tensor = new Tensor();
     @javax.annotation.Nonnull ArrayTrainable trainable = new ArrayTrainable(inner, new Tensor[][]{{tensor}});

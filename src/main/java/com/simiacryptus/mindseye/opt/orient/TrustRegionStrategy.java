@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.opt.orient;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.DoubleBuffer;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
@@ -78,7 +78,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
    * @param b the b
    * @return the double
    */
-  public static double dot(@javax.annotation.Nonnull final List<DoubleBuffer<NNLayer>> a, @javax.annotation.Nonnull final List<DoubleBuffer<NNLayer>> b) {
+  public static double dot(@javax.annotation.Nonnull final List<DoubleBuffer<Layer>> a, @javax.annotation.Nonnull final List<DoubleBuffer<Layer>> b) {
     assert a.size() == b.size();
     return IntStream.range(0, a.size()).mapToDouble(i -> a.get(i).dot(b.get(i))).sum();
   }
@@ -110,12 +110,12 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
   }
   
   /**
-   * Gets the Trust Region for a particular Layer
+   * Gets the Trust Region for a particular LayerBase
    *
    * @param layer the layer
    * @return the region policy
    */
-  public abstract TrustRegion getRegionPolicy(NNLayer layer);
+  public abstract TrustRegion getRegionPolicy(Layer layer);
   
   @javax.annotation.Nonnull
   @Override
@@ -134,17 +134,17 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
   
       @Nonnull
       @Override
-      public DeltaSet<NNLayer> position(final double alpha) {
+      public DeltaSet<Layer> position(final double alpha) {
         reset();
-        @Nonnull final DeltaSet<NNLayer> adjustedPosVector = cursor.position(alpha);
+        @Nonnull final DeltaSet<Layer> adjustedPosVector = cursor.position(alpha);
         project(adjustedPosVector, new TrainingMonitor());
         return adjustedPosVector;
       }
   
       @Nonnull
-      public DeltaSet<NNLayer> project(@javax.annotation.Nonnull final DeltaSet<NNLayer> deltaIn, final TrainingMonitor monitor) {
-        final DeltaSet<NNLayer> originalAlphaDerivative = cursor.direction;
-        @Nonnull final DeltaSet<NNLayer> newAlphaDerivative = originalAlphaDerivative.copy();
+      public DeltaSet<Layer> project(@javax.annotation.Nonnull final DeltaSet<Layer> deltaIn, final TrainingMonitor monitor) {
+        final DeltaSet<Layer> originalAlphaDerivative = cursor.direction;
+        @Nonnull final DeltaSet<Layer> newAlphaDerivative = originalAlphaDerivative.copy();
         deltaIn.getMap().forEach((layer, buffer) -> {
           @javax.annotation.Nullable final double[] delta = buffer.getDelta();
           if (null == delta) return;
@@ -155,7 +155,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
           final TrustRegion region = getRegionPolicy(layer);
           if (null != region) {
             final Stream<double[]> zz = history.stream().map((@javax.annotation.Nonnull final PointSample x) -> {
-              final DoubleBuffer<NNLayer> d = x.weights.getMap().get(layer);
+              final DoubleBuffer<Layer> d = x.weights.getMap().get(layer);
               @Nullable final double[] z = null == d ? null : d.getDelta();
               return z;
             });
@@ -203,8 +203,8 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
       @Override
       public LineSearchPoint step(final double alpha, final TrainingMonitor monitor) {
         cursor.reset();
-        @Nonnull final DeltaSet<NNLayer> adjustedPosVector = cursor.position(alpha);
-        @Nonnull final DeltaSet<NNLayer> adjustedGradient = project(adjustedPosVector, monitor);
+        @Nonnull final DeltaSet<Layer> adjustedPosVector = cursor.position(alpha);
+        @Nonnull final DeltaSet<Layer> adjustedGradient = project(adjustedPosVector, monitor);
         adjustedPosVector.accumulate(1);
         @Nonnull final PointSample sample = subject.measure(monitor).setRate(alpha);
         return new LineSearchPoint(sample, adjustedGradient.dot(sample.delta));

@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 public class QQNTest extends MnistTestBase {
 
   @Override
-  public void train(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer network, @javax.annotation.Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
+  public void train(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer network, @javax.annotation.Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.code(() -> {
       @javax.annotation.Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       //return new IterativeTrainer(new SampledArrayTrainable(trainingData, supervisedNetwork, 10000))

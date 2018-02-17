@@ -35,7 +35,7 @@ import java.util.Map;
  * Concatenates two or more images with the same resolution so the output contains all input color bands.
  */
 @SuppressWarnings("serial")
-public class ImgConcatLayer extends NNLayer {
+public class ImgConcatLayer extends LayerBase {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ImgConcatLayer.class);
@@ -97,7 +97,7 @@ public class ImgConcatLayer extends NNLayer {
       }
       outputTensors.add(outputTensor);
     }
-    return new NNResult(TensorArray.wrap(outputTensors.toArray(new Tensor[]{})), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(outputTensors.toArray(new Tensor[]{})), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       assert numBatches == data.length();
       
       @javax.annotation.Nonnull final List<Tensor[]> splitBatches = new ArrayList<>();

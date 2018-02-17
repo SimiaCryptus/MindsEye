@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 
 import javax.annotation.Nullable;
@@ -67,7 +67,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
    * @param network   the network
    * @param batchSize the batch size
    */
-  public ArrayTrainable(final NNLayer network, final int batchSize) {
+  public ArrayTrainable(final Layer network, final int batchSize) {
     this(null, network, batchSize);
   }
   
@@ -77,7 +77,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
    * @param trainingData the training data
    * @param network      the network
    */
-  public ArrayTrainable(@javax.annotation.Nonnull final Tensor[][] trainingData, final NNLayer network) {
+  public ArrayTrainable(@javax.annotation.Nonnull final Tensor[][] trainingData, final Layer network) {
     this(trainingData, network, trainingData.length);
   }
   
@@ -88,7 +88,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
    * @param network      the network
    * @param batchSize    the batch size
    */
-  public ArrayTrainable(@Nullable final Tensor[][] trainingData, final NNLayer network, final int batchSize) {
+  public ArrayTrainable(@Nullable final Tensor[][] trainingData, final Layer network, final int batchSize) {
     super(network, batchSize);
     this.trainingData = trainingData;
     for (@javax.annotation.Nonnull Tensor[] tensors : trainingData) {

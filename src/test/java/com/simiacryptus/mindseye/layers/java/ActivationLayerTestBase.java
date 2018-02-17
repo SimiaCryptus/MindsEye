@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.test.SimpleEval;
@@ -43,14 +43,14 @@ import java.util.stream.IntStream;
  */
 public abstract class ActivationLayerTestBase extends LayerTestBase {
   
-  private final NNLayer layer;
+  private final Layer layer;
   
   /**
    * Instantiates a new Activation layer run base.
    *
    * @param layer the layer
    */
-  public ActivationLayerTestBase(final NNLayer layer) {
+  public ActivationLayerTestBase(final Layer layer) {
     this.layer = layer;
   }
   
@@ -93,7 +93,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer(final int[][] inputSize, Random random) {
+  public Layer getLayer(final int[][] inputSize, Random random) {
     layer.addRef();
     return layer;
   }
@@ -120,7 +120,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     super.run(log);
     
     log.h3("Function Plots");
-    final NNLayer layer = getLayer(new int[][]{{1}}, new Random());
+    final Layer layer = getLayer(new int[][]{{1}}, new Random());
     final List<double[]> plotData = scan().mapToObj(x -> {
       @Nonnull Tensor tensor = new Tensor(x);
       @javax.annotation.Nonnull final SimpleEval eval = SimpleEval.run(layer, tensor);

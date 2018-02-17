@@ -39,7 +39,7 @@ import java.util.Map;
  * Max or Avg operation.
  */
 @SuppressWarnings("serial")
-public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer> {
+public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLayer> {
   
   private PoolingMode mode = PoolingMode.Max;
   private int paddingX = 0;
@@ -91,7 +91,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
    * @return the compatibility layer
    */
   @javax.annotation.Nonnull
-  public NNLayer getCompatibilityLayer() {
+  public Layer getCompatibilityLayer() {
     if (mode == PoolingMode.Max) return this.as(com.simiacryptus.mindseye.layers.java.MaxPoolingLayer.class);
     if (mode == PoolingMode.Avg) return this.as(com.simiacryptus.mindseye.layers.java.AvgPoolingLayer.class);
     else throw new RuntimeException("Not Implemented");
@@ -140,7 +140,7 @@ public class PoolingLayer extends NNLayer implements MultiPrecision<PoolingLayer
       }
     });
     return new NNResult(GpuTensorList.create(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, precision),
-      (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+      (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
         assert error.length() == batch.length();
         if (input.isAlive()) {
           TensorList data = GpuSystem.eval(gpu -> {

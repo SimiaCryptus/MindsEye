@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
 
@@ -29,9 +29,9 @@ import java.io.Serializable;
 import java.util.UUID;
 
 /**
- * This is a logical node used within a network graph definition. It is associated with a NNLayer WITHOUT a 1:1 relation
- * assumtion; i.e. the same logical layer CAN be used twice in the same graph. Also, the layer assigned to a node can be
- * updated, which can be useful for adding/removing instrumentation wrappers.
+ * This is a logical node used within a network graph definition. It is associated with a LayerBase WITHOUT a 1:1
+ * relation assumtion; i.e. the same logical layer CAN be used twice in the same graph. Also, the layer assigned to a
+ * node can be updated, which can be useful for adding/removing instrumentation wrappers.
  */
 public interface DAGNode extends Serializable, ReferenceCounting {
   
@@ -68,7 +68,7 @@ public interface DAGNode extends Serializable, ReferenceCounting {
    * @return the layer
    */
   @Nullable
-  <T extends NNLayer> T getLayer();
+  <T extends Layer> T getLayer();
   
   
   /**
@@ -76,7 +76,7 @@ public interface DAGNode extends Serializable, ReferenceCounting {
    *
    * @param layer the layer
    */
-  void setLayer(NNLayer layer);
+  void setLayer(Layer layer);
   
   /**
    * Gets network.

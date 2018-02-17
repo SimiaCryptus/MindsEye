@@ -36,7 +36,7 @@ public abstract class NNResult extends ReferenceCountingBase {
   /**
    * The Accumulator.
    */
-  protected final BiConsumer<DeltaSet<NNLayer>, TensorList> accumulator;
+  protected final BiConsumer<DeltaSet<Layer>, TensorList> accumulator;
   
   /**
    * Instantiates a new Nn result.
@@ -44,7 +44,7 @@ public abstract class NNResult extends ReferenceCountingBase {
    * @param data        the data
    * @param accumulator the accumulator
    */
-  public NNResult(final TensorList data, BiConsumer<DeltaSet<NNLayer>, TensorList> accumulator) {
+  public NNResult(final TensorList data, BiConsumer<DeltaSet<Layer>, TensorList> accumulator) {
     super();
     this.data = data;
     this.accumulator = accumulator;
@@ -55,7 +55,7 @@ public abstract class NNResult extends ReferenceCountingBase {
    *
    * @param buffer the buffer
    */
-  public final void accumulate(final DeltaSet<NNLayer> buffer) {
+  public final void accumulate(final DeltaSet<Layer> buffer) {
     accumulate(buffer, 1.0);
   }
   
@@ -65,7 +65,7 @@ public abstract class NNResult extends ReferenceCountingBase {
    * @param buffer the buffer
    * @param value  the value
    */
-  public final void accumulate(final DeltaSet<NNLayer> buffer, final double value) {
+  public final void accumulate(final DeltaSet<Layer> buffer, final double value) {
     @Nonnull TensorArray tensorArray = TensorArray.wrap(getData().stream().map(t -> {
       @Nullable Tensor map = t.map(v -> value);
       t.freeRef();
@@ -83,7 +83,7 @@ public abstract class NNResult extends ReferenceCountingBase {
    * @param buffer the buffer
    * @param delta  the delta
    */
-  public final void accumulate(DeltaSet<NNLayer> buffer, TensorList delta) {
+  public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
     getAccumulator().accept(buffer, delta);
   }
   
@@ -110,7 +110,7 @@ public abstract class NNResult extends ReferenceCountingBase {
    *
    * @return the accumulator
    */
-  public BiConsumer<DeltaSet<NNLayer>, TensorList> getAccumulator() {
+  public BiConsumer<DeltaSet<Layer>, TensorList> getAccumulator() {
     assertAlive();
     return accumulator;
   }

@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.eval.SampledTrainable;
 import com.simiacryptus.mindseye.eval.TrainableDataMask;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
@@ -66,7 +66,7 @@ public class ImageDecompositionLab {
    * The MnistProblemData pipeline.
    */
   @javax.annotation.Nonnull
-  public List<NNLayer> dataPipeline = new ArrayList<>();
+  public List<Layer> dataPipeline = new ArrayList<>();
   /**
    * The Display image.
    */
@@ -169,28 +169,28 @@ public class ImageDecompositionLab {
         throw new RuntimeException(e);
       }
     }).forEach(str -> log.p(str));
-    
-    log.h1("First Layer");
+  
+    log.h1("First LayerBase");
     @javax.annotation.Nonnull final InitializationStep step0 = log.code(() -> {
       return new InitializationStep(log, trainingImages,
         size, pretrainMinutes, timeoutMinutes, 3, 9, 5);
     }).invoke(); // output: 260
-    
-    log.h1("Second Layer");
+  
+    log.h1("Second LayerBase");
     @javax.annotation.Nonnull final AddLayerStep step1 = log.code(() -> {
       return new AddLayerStep(log, step0.trainingData, step0.model,
         2, step0.toSize, pretrainMinutes * 2, timeoutMinutes,
         step0.band1, 18, 3, 4);
     }).invoke(); // output: 274
-    
-    log.h1("Third Layer");
+  
+    log.h1("Third LayerBase");
     @javax.annotation.Nonnull final AddLayerStep step2 = log.code(() -> {
       return new AddLayerStep(log, step1.trainingData, step1.integrationModel,
         3, step1.toSize, pretrainMinutes * 3, timeoutMinutes,
         step1.band2, 48, 3, 1);
     }).invoke(); // 276
-    
-    log.h1("Fourth Layer");
+  
+    log.h1("Fourth LayerBase");
     @javax.annotation.Nonnull final AddLayerStep step3 = log.code(() -> {
       return new AddLayerStep(log, step2.trainingData, step2.integrationModel,
         4, step2.toSize, pretrainMinutes * 4, timeoutMinutes,
@@ -214,7 +214,7 @@ public class ImageDecompositionLab {
    * @param timeoutMinutes the timeout minutes
    * @param mask           the mask
    */
-  protected void train(@javax.annotation.Nonnull final NotebookOutput log, final TrainingMonitor monitor, final NNLayer network, @javax.annotation.Nonnull final Tensor[][] data, final int timeoutMinutes, final boolean... mask) {
+  protected void train(@javax.annotation.Nonnull final NotebookOutput log, final TrainingMonitor monitor, final Layer network, @javax.annotation.Nonnull final Tensor[][] data, final int timeoutMinutes, final boolean... mask) {
     log.out("Training for %s minutes, mask=%s", timeoutMinutes, Arrays.toString(mask));
     log.code(() -> {
       @javax.annotation.Nonnull SampledTrainable trainingSubject = new SampledArrayTrainable(data, network, data.length);
@@ -271,7 +271,7 @@ public class ImageDecompositionLab {
      */
     public final PipelineNetwork integrationModel;
     /**
-     * The Layer number.
+     * The LayerBase number.
      */
     public final int layerNumber;
     /**
@@ -656,7 +656,7 @@ public class ImageDecompositionLab {
     /**
      * The Model.
      */
-    public final NNLayer model;
+    public final Layer model;
     /**
      * The Monitor.
      */
@@ -686,7 +686,7 @@ public class ImageDecompositionLab {
      * @param model              the model
      * @param representationDims the representation dims
      */
-    public TranscodeStep(@javax.annotation.Nonnull final NotebookOutput log, final String category, final int imageCount, final int size, final int trainMinutes, final NNLayer model, final int... representationDims) {
+    public TranscodeStep(@javax.annotation.Nonnull final NotebookOutput log, final String category, final int imageCount, final int size, final int trainMinutes, final Layer model, final int... representationDims) {
       this.category = category;
       this.imageCount = imageCount;
       this.log = log;

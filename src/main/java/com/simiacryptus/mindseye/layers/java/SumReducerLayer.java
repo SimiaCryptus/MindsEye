@@ -34,7 +34,7 @@ import java.util.stream.IntStream;
  * Sums all input values to produce a single-element output.
  */
 @SuppressWarnings("serial")
-public class SumReducerLayer extends NNLayer {
+public class SumReducerLayer extends LayerBase {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SumReducerLayer.class);
@@ -81,7 +81,7 @@ public class SumReducerLayer extends NNLayer {
         tensor.freeRef();
       }
       return sum;
-    }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       for (@javax.annotation.Nonnull final NNResult in_l : inObj) {
         if (in_l.isAlive()) {
           @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {

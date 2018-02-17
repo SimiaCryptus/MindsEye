@@ -35,7 +35,7 @@ import java.util.stream.IntStream;
  * resemble: x^2, abs(x), x^3, x However, at high +/- x, the behavior is nearly linear.
  */
 @SuppressWarnings("serial")
-public class HyperbolicActivationLayer extends NNLayer {
+public class HyperbolicActivationLayer extends LayerBase {
   
   
   @SuppressWarnings("unused")
@@ -101,7 +101,7 @@ public class HyperbolicActivationLayer extends NNLayer {
       });
       input.freeRef();
       return map;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).forEach(dataIndex -> {
           @javax.annotation.Nullable Tensor deltaI = delta.get(dataIndex);

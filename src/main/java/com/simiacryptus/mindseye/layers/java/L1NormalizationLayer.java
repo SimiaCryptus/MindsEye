@@ -35,7 +35,7 @@ import java.util.stream.IntStream;
  * Normalizes the input so that the L1 magnitude (ie sum of abs) is 1.
  */
 @SuppressWarnings("serial")
-public class L1NormalizationLayer extends NNLayer {
+public class L1NormalizationLayer extends LayerBase {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(L1NormalizationLayer.class);
@@ -91,7 +91,7 @@ public class L1NormalizationLayer extends NNLayer {
       } finally {
         value.freeRef();
       }
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList outDelta) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList outDelta) -> {
       if (in.isAlive()) {
         final Tensor[] passbackArray = IntStream.range(0, outDelta.length()).mapToObj(dataIndex -> {
           Tensor inputTensor = inData.get(dataIndex);

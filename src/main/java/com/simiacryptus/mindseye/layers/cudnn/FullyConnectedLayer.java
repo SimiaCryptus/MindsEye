@@ -20,10 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
-import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.java.ReshapeLayer;
@@ -46,7 +43,7 @@ import java.util.function.DoubleSupplier;
  * inputs are connected to all outputs via seperate coefficients.
  */
 @SuppressWarnings("serial")
-public class FullyConnectedLayer extends NNLayer implements MultiPrecision<FullyConnectedLayer>, Explodable {
+public class FullyConnectedLayer extends LayerBase implements MultiPrecision<FullyConnectedLayer>, Explodable {
   private static final Logger log = LoggerFactory.getLogger(FullyConnectedLayer.class);
   /**
    * The Input dims.
@@ -161,7 +158,7 @@ public class FullyConnectedLayer extends NNLayer implements MultiPrecision<Fully
    * @return the compatibility layer
    */
   @javax.annotation.Nonnull
-  public NNLayer getCompatibilityLayer() {
+  public Layer getCompatibilityLayer() {
     return new com.simiacryptus.mindseye.layers.java.FullyConnectedReferenceLayer(inputDims, outputDims).set(getWeights());
   }
   

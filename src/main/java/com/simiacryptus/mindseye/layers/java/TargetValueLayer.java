@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
@@ -49,7 +49,7 @@ public class TargetValueLayer extends DAGNetwork {
    */
   public TargetValueLayer(final double... values) {
     super(1);
-    target = add(new ConstNNLayer(new Tensor(values)));
+    target = add(new ConstLayer(new Tensor(values)));
     head = add(new MeanSqLossLayer(), getInput(0), target);
   }
   
@@ -72,7 +72,7 @@ public class TargetValueLayer extends DAGNetwork {
    * @param rs    the rs
    * @return the nn layer
    */
-  public static NNLayer fromJson(@javax.annotation.Nonnull final JsonObject inner, Map<String, byte[]> rs) {
+  public static Layer fromJson(@javax.annotation.Nonnull final JsonObject inner, Map<String, byte[]> rs) {
     return new TargetValueLayer(inner, rs);
   }
   
@@ -96,7 +96,7 @@ public class TargetValueLayer extends DAGNetwork {
    */
   @javax.annotation.Nonnull
   public TargetValueLayer setTarget(final double... value) {
-    target.<ConstNNLayer>getLayer().setData(new Tensor(value));
+    target.<ConstLayer>getLayer().setData(new Tensor(value));
     return this;
   }
 }

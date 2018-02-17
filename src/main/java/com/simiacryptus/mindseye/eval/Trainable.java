@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
@@ -62,6 +62,6 @@ public interface Trainable extends ReferenceCounting {
    *
    * @return the layer
    */
-  NNLayer getLayer();
+  Layer getLayer();
   
 }

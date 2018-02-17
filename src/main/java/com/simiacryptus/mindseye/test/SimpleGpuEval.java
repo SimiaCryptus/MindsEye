@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.test;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
@@ -45,7 +45,7 @@ public class SimpleGpuEval extends SimpleListEval {
    * @param gpu   the gpu
    * @param input the input
    */
-  public SimpleGpuEval(@Nonnull NNLayer layer, GpuDevice gpu, TensorList... input) {
+  public SimpleGpuEval(@Nonnull Layer layer, GpuDevice gpu, TensorList... input) {
     super(layer, input);
     this.gpu = gpu;
   }
@@ -58,7 +58,7 @@ public class SimpleGpuEval extends SimpleListEval {
    * @param tensor the tensor
    * @return the simple result
    */
-  public static SimpleResult run(@Nonnull final NNLayer layer, final GpuDevice gpu, final TensorList... tensor) {
+  public static SimpleResult run(@Nonnull final Layer layer, final GpuDevice gpu, final TensorList... tensor) {
     return new SimpleGpuEval(layer, gpu, tensor).call();
   }
   

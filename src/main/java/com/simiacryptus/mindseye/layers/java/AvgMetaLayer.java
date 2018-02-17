@@ -36,7 +36,7 @@ import java.util.stream.IntStream;
  * always be one.
  */
 @SuppressWarnings("serial")
-public class AvgMetaLayer extends NNLayer {
+public class AvgMetaLayer extends LayerBase {
   
   
   @SuppressWarnings("unused")
@@ -115,7 +115,7 @@ public class AvgMetaLayer extends NNLayer {
       thisResult = lastResult;
       thisResult.freeRef();
     }
-    return new NNResult(TensorArray.create(thisResult), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new NNResult(TensorArray.create(thisResult), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (passback && input.isAlive()) {
         @javax.annotation.Nullable final Tensor delta = data.get(0);
         @javax.annotation.Nonnull final Tensor feedback[] = new Tensor[itemCnt];

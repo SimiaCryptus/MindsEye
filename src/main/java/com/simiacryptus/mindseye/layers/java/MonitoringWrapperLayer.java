@@ -79,7 +79,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
    *
    * @param inner the heapCopy
    */
-  public MonitoringWrapperLayer(final NNLayer inner) {
+  public MonitoringWrapperLayer(final Layer inner) {
     super(inner);
   }
   
@@ -123,7 +123,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   public NNResult evalAndFree(@javax.annotation.Nonnull final NNResult... inObj) {
     @javax.annotation.Nonnull final AtomicLong passbackNanos = new AtomicLong(0);
     final NNResult[] wrappedInput = Arrays.stream(inObj).map(result -> {
-      return new NNResult(result.getData(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+      return new NNResult(result.getData(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
         passbackNanos.addAndGet(TimedResult.time(() -> result.accumulate(buffer, data)).timeNanos);
       }) {
   
@@ -153,7 +153,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
         t.freeRef();
       });
     }
-    return new NNResult(output.getData(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new NNResult(output.getData(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (recordSignalMetrics) {
         backwardSignal.clear();
         data.stream().parallel().forEach(t -> {
@@ -282,7 +282,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   
   @javax.annotation.Nonnull
   @Override
-  public NNLayer setName(final String name) {
+  public Layer setName(final String name) {
     if (null != getInner()) {
       getInner().setName(name);
     }

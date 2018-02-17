@@ -35,7 +35,7 @@ import java.util.stream.IntStream;
  * The type Sum meta layer.
  */
 @SuppressWarnings("serial")
-public class SumMetaLayer extends NNLayer {
+public class SumMetaLayer extends LayerBase {
   
   
   @SuppressWarnings("unused")
@@ -86,7 +86,7 @@ public class SumMetaLayer extends NNLayer {
           .sum();
       lastResult = input.getData().get(0).mapCoords(f);
     }
-    return new NNResult(TensorArray.wrap(lastResult), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(lastResult), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (input.isAlive()) {
         @javax.annotation.Nullable final Tensor delta = data.get(0);
         @javax.annotation.Nonnull final Tensor feedback[] = new Tensor[itemCnt];

@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
@@ -62,7 +62,7 @@ public abstract class L12Normalizer extends TrainableBase {
    * @param layer the layer
    * @return the l 1
    */
-  protected abstract double getL1(NNLayer layer);
+  protected abstract double getL1(Layer layer);
   
   /**
    * Gets l 2.
@@ -70,7 +70,7 @@ public abstract class L12Normalizer extends TrainableBase {
    * @param layer the layer
    * @return the l 2
    */
-  protected abstract double getL2(NNLayer layer);
+  protected abstract double getL2(Layer layer);
   
   /**
    * Gets layers.
@@ -78,7 +78,7 @@ public abstract class L12Normalizer extends TrainableBase {
    * @param layers the layers
    * @return the layers
    */
-  public Collection<NNLayer> getLayers(@javax.annotation.Nonnull final Collection<NNLayer> layers) {
+  public Collection<Layer> getLayers(@javax.annotation.Nonnull final Collection<Layer> layers) {
     return layers.stream()
       .filter(layer -> {
         return layer instanceof FullyConnectedLayer;
@@ -91,9 +91,9 @@ public abstract class L12Normalizer extends TrainableBase {
   @Override
   public PointSample measure(final TrainingMonitor monitor) {
     final PointSample innerMeasure = inner.measure(monitor);
-    @javax.annotation.Nonnull final DeltaSet<NNLayer> normalizationVector = new DeltaSet<NNLayer>();
+    @javax.annotation.Nonnull final DeltaSet<Layer> normalizationVector = new DeltaSet<Layer>();
     double valueAdj = 0;
-    for (@javax.annotation.Nonnull final NNLayer layer : getLayers(innerMeasure.delta.getMap().keySet())) {
+    for (@javax.annotation.Nonnull final Layer layer : getLayers(innerMeasure.delta.getMap().keySet())) {
       final double[] weights = innerMeasure.delta.getMap().get(layer).target;
       @Nullable final double[] gradientAdj = normalizationVector.get(layer, weights).getDelta();
       final double factor_L1 = getL1(layer);

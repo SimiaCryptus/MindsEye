@@ -40,7 +40,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
   /**
    * The Network.
    */
-  protected final NNLayer network;
+  protected final Layer network;
   /**
    * The Data.
    */
@@ -59,7 +59,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
    *
    * @param network the network
    */
-  public BasicTrainable(final NNLayer network) {
+  public BasicTrainable(final Layer network) {
     this.network = network;
     this.network.addRef(this);
     data = null;
@@ -83,7 +83,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
         return new NNConstant(tensorArray);
       }
       else {
-        return new NNResult(tensorArray, (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+        return new NNResult(tensorArray, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
           for (int index = 0; index < delta.length(); index++) {
             final Tensor dt = delta.get(index);
             @javax.annotation.Nullable final double[] d = dt.getData();
@@ -129,15 +129,19 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
           return Arrays.stream(array);
         }).summaryStatistics();
       final double sum = statistics.getSum();
-      @javax.annotation.Nonnull final DeltaSet<NNLayer> deltaSet = new DeltaSet<NNLayer>();
-      result.accumulate(deltaSet, 1.0);
-      resultData.freeRef();
-      result.freeRef();
-      //log.info(String.format("Evaluated to %s delta buffers, %s mag", DeltaSet<NNLayer>.getMap().size(), DeltaSet<NNLayer>.getMagnitude()));
-      @javax.annotation.Nonnull StateSet<NNLayer> stateSet = new StateSet<>(deltaSet);
-      @javax.annotation.Nonnull PointSample pointSample = new PointSample(deltaSet, stateSet, sum, 0.0, list.size());
-      deltaSet.freeRef();
-      stateSet.freeRef();
+      @javax.annotation.Nonnull final DeltaSet<Layer> deltaSet = new DeltaSet<Layer>();
+      @javax.annotation.Nonnull PointSample pointSample;
+      try {
+        result.accumulate(deltaSet, 1.0);
+        //log.info(String.format("Evaluated to %s delta buffers, %s mag", DeltaSet<LayerBase>.getMap().size(), DeltaSet<LayerBase>.getMagnitude()));
+        @javax.annotation.Nonnull StateSet<Layer> stateSet = new StateSet<>(deltaSet);
+        pointSample = new PointSample(deltaSet, stateSet, sum, 0.0, list.size());
+        stateSet.freeRef();
+      } finally {
+        resultData.freeRef();
+        result.freeRef();
+        deltaSet.freeRef();
+      }
       return pointSample;
     });
     if (null != monitor && verbosity() > 0) {
@@ -161,7 +165,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
   }
   
   @Override
-  public NNLayer getLayer() {
+  public Layer getLayer() {
     return network;
   }
   
@@ -175,7 +179,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
   public PointSample measure(@Nullable final TrainingMonitor monitor) {
     assert !data.isEmpty();
     @javax.annotation.Nonnull final TimedResult<PointSample> timedResult = TimedResult.time(() -> eval(data, monitor));
-    //          log.info(String.format("Evaluated to %s delta arrays", DeltaSet<NNLayer>.run.size()));
+    //          log.info(String.format("Evaluated to %s delta arrays", DeltaSet<LayerBase>.run.size()));
     if (null != monitor && verbosity() > 1) {
       monitor.log(String.format("Evaluated %s items in %.4fs (%s/%s)", data.size(), timedResult.timeNanos / 1e9, timedResult.result.getMean(), timedResult.result.delta.getMagnitude()));
     }

@@ -33,7 +33,7 @@ import java.util.Map;
  * The type Cross dot meta layer.
  */
 @SuppressWarnings("serial")
-public class CrossDotMetaLayer extends NNLayer {
+public class CrossDotMetaLayer extends LayerBase {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(CrossDotMetaLayer.class);
@@ -89,7 +89,7 @@ public class CrossDotMetaLayer extends NNLayer {
         results.set(new int[]{i, j}, v);
       }
     }
-    return new NNResult(TensorArray.wrap(results), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    return new NNResult(TensorArray.wrap(results), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (input.isAlive()) {
         @javax.annotation.Nullable final Tensor deltaTensor = delta.get(0);
         @javax.annotation.Nonnull final Tensor feedback[] = new Tensor[itemCnt];

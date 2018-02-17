@@ -32,7 +32,7 @@ import java.util.stream.IntStream;
  * The type Cross difference layer.
  */
 @SuppressWarnings("serial")
-public class CrossDifferenceLayer extends NNLayer {
+public class CrossDifferenceLayer extends LayerBase {
   
   /**
    * Instantiates a new Cross difference layer.
@@ -90,7 +90,7 @@ public class CrossDifferenceLayer extends NNLayer {
       });
       tensor.freeRef();
       return result;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       final NNResult input = inObj[0];
       if (input.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(data.stream().parallel().map(tensor -> {

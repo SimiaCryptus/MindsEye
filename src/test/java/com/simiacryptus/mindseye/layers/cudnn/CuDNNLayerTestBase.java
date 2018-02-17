@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CuDNNHandle;
 import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
@@ -81,7 +81,7 @@ public abstract class CuDNNLayerTestBase extends LayerTestBase {
       }
       
       @Override
-      public ToleranceStatistics test(@javax.annotation.Nonnull NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
+      public ToleranceStatistics test(@javax.annotation.Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
         @Nullable PrintStream apiLog = null;
         try {
           @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_io.log";
@@ -111,7 +111,7 @@ public abstract class CuDNNLayerTestBase extends LayerTestBase {
       }
       
       @Override
-      public ToleranceStatistics test(@javax.annotation.Nonnull NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
+      public ToleranceStatistics test(@javax.annotation.Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
         @Nullable PrintStream apiLog = null;
         try {
           @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_perf.log";

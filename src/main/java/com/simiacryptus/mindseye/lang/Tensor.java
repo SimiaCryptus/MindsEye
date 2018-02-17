@@ -920,6 +920,28 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
   }
   
   /**
+   * Map and free tensor.
+   *
+   * @param f the f
+   * @return the tensor
+   */
+  @Nullable
+  public Tensor mapAndFree(@javax.annotation.Nonnull final java.util.function.DoubleUnaryOperator f) {
+    @Nullable final double[] data = getData();
+    @javax.annotation.Nonnull final double[] cpy = new double[data.length];
+    for (int i = 0; i < data.length; i++) {
+      final double x = data[i];
+      // assert Double.isFinite(x);
+      final double v = f.applyAsDouble(x);
+      // assert Double.isFinite(v);
+      cpy[i] = v;
+    }
+    Tensor tensor = new Tensor(cpy, dimensions);
+    this.freeRef();
+    return tensor;
+  }
+  
+  /**
    * Map coords tensor.
    *
    * @param f the f

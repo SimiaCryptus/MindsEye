@@ -33,7 +33,7 @@ import java.util.stream.IntStream;
  * Sums all inputs together, element-by-element, assuming they all have the same dimension.
  */
 @SuppressWarnings("serial")
-public class SumInputsLayer extends NNLayer {
+public class SumInputsLayer extends LayerBase {
   
   /**
    * Instantiates a new Sum inputs layer.
@@ -91,7 +91,7 @@ public class SumInputsLayer extends NNLayer {
       l.freeRef();
       r.freeRef();
       return sum;
-    }).get(), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }).get(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       for (@javax.annotation.Nonnull final NNResult input : inObj) {
         if (input.isAlive()) {
           @javax.annotation.Nonnull TensorList projectedDelta = delta;

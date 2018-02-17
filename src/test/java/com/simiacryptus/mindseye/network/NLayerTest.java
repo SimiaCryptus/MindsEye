@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.unit.SerializationTest;
@@ -81,7 +81,7 @@ public abstract class NLayerTest {
    * @return the nn layer
    */
   @javax.annotation.Nonnull
-  public NNLayer buildNetwork(@javax.annotation.Nonnull final int[]... dimList) {
+  public Layer buildNetwork(@javax.annotation.Nonnull final int[]... dimList) {
     @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork(1);
     @Nullable int[] last = null;
     for (final int[] dims : dimList) {
@@ -118,7 +118,7 @@ public abstract class NLayerTest {
    * @param log   the log
    * @param layer the layer
    */
-  public void graphviz(@javax.annotation.Nonnull final NotebookOutput log, final NNLayer layer) {
+  public void graphviz(@javax.annotation.Nonnull final NotebookOutput log, final Layer layer) {
     if (layer instanceof DAGNetwork) {
       log.p("This is a network with the following layout:");
       log.code(() -> {
@@ -171,7 +171,7 @@ public abstract class NLayerTest {
     @javax.annotation.Nonnull final ArrayList<int[]> workingSpec = new ArrayList<>();
     for (final int[] l : dimList) {
       workingSpec.add(l);
-      @javax.annotation.Nonnull final NNLayer layer = buildNetwork(concat(inputDims, workingSpec));
+      @javax.annotation.Nonnull final Layer layer = buildNetwork(concat(inputDims, workingSpec));
       graphviz(log, layer);
       test(log, layer, inputDims);
     }
@@ -186,8 +186,8 @@ public abstract class NLayerTest {
    * @return the double
    */
   @Nullable
-  public TrainingTester.ComponentResult test(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer layer, @javax.annotation.Nonnull final int[]... inputDims) {
-    @Nonnull final NNLayer component = layer.copy();
+  public TrainingTester.ComponentResult test(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer layer, @javax.annotation.Nonnull final int[]... inputDims) {
+    @Nonnull final Layer component = layer.copy();
     final Tensor[] randomize = randomize(inputDims);
     new SerializationTest().test(log, component, randomize);
     return new TrainingTester().test(log, component, randomize);

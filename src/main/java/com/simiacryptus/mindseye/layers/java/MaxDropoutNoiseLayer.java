@@ -39,7 +39,7 @@ import java.util.stream.IntStream;
  * signal, but does not reduce resolution.
  */
 @SuppressWarnings("serial")
-public class MaxDropoutNoiseLayer extends NNLayer {
+public class MaxDropoutNoiseLayer extends LayerBase {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MaxDropoutNoiseLayer.class);
@@ -114,7 +114,7 @@ public class MaxDropoutNoiseLayer extends NNLayer {
       }
       inputData.freeRef();
       return output;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (in0.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           Tensor deltaTensor = delta.get(dataIndex);

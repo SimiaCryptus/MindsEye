@@ -34,7 +34,7 @@ import java.util.stream.IntStream;
  * The type Scale meta layer.
  */
 @SuppressWarnings("serial")
-public class ScaleMetaLayer extends NNLayer {
+public class ScaleMetaLayer extends LayerBase {
   
   
   @SuppressWarnings("unused")
@@ -75,7 +75,7 @@ public class ScaleMetaLayer extends NNLayer {
     final Tensor[] tensors = IntStream.range(0, itemCnt).mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).mapIndex((v, c) -> v * inObj[1].getData().get(0).get(c))).toArray(i -> new Tensor[i]);
     Tensor tensor0 = tensors[0];
     tensor0.addRef();
-    return new NNResult(TensorArray.wrap(tensors), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new NNResult(TensorArray.wrap(tensors), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(data.stream().map(t -> {
           @javax.annotation.Nullable Tensor t1 = inObj[1].getData().get(0);

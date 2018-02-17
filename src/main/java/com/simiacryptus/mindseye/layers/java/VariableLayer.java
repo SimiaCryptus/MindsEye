@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 
 import java.util.List;
 import java.util.Map;
@@ -46,7 +46,7 @@ public class VariableLayer extends WrapperLayer {
    *
    * @param inner the heapCopy
    */
-  public VariableLayer(final NNLayer inner) {
+  public VariableLayer(final Layer inner) {
     super();
     setInner(inner);
   }
@@ -63,7 +63,7 @@ public class VariableLayer extends WrapperLayer {
   }
   
   @Override
-  public List<NNLayer> getChildren() {
+  public List<Layer> getChildren() {
     return super.getChildren();
   }
   
@@ -80,7 +80,7 @@ public class VariableLayer extends WrapperLayer {
    *
    * @param inner the heapCopy
    */
-  public final void setInner(final NNLayer inner) {
+  public final void setInner(final Layer inner) {
     this.inner = inner;
   }
   

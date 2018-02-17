@@ -33,7 +33,7 @@ import java.util.*;
  * The type Binary noise layer.
  */
 @SuppressWarnings("serial")
-public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
+public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
   
   
   /**
@@ -110,7 +110,7 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
       maskList.add(tensorPrototype.map(v -> FastRandom.random() < getValue() ? 0 : (1.0 / getValue())));
     }
     @javax.annotation.Nonnull final TensorList mask = TensorArray.create(maskList.stream().limit(length).toArray(i -> new Tensor[i]));
-    return new NNResult(mask, (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new NNResult(mask, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       input.accumulate(buffer, data);
     }) {
   

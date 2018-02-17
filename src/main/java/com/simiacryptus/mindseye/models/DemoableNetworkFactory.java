@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.models;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.io.NullNotebookOutput;
 
@@ -35,7 +35,7 @@ public interface DemoableNetworkFactory {
    * @return the pipeline network
    */
   @javax.annotation.Nonnull
-  NNLayer build(NotebookOutput output);
+  Layer build(NotebookOutput output);
   
   /**
    * Build pipeline network.
@@ -43,6 +43,6 @@ public interface DemoableNetworkFactory {
    * @return the pipeline network
    */
   @javax.annotation.Nonnull
-  default NNLayer build() {return build(new NullNotebookOutput());}
+  default Layer build() {return build(new NullNotebookOutput());}
   
 }

@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import org.slf4j.Logger;
@@ -74,7 +74,7 @@ public class SignReducerLayer extends DAGNetwork {
    * @param rs    the rs
    * @return the nn layer
    */
-  public static NNLayer fromJson(@javax.annotation.Nonnull final JsonObject inner, Map<String, byte[]> rs) {
+  public static Layer fromJson(@javax.annotation.Nonnull final JsonObject inner, Map<String, byte[]> rs) {
     return new SignReducerLayer(inner, rs);
   }
   

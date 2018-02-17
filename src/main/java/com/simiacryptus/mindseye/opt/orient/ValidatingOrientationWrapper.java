@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
@@ -82,7 +82,7 @@ public class ValidatingOrientationWrapper extends OrientationStrategyBase<LineSe
     }
   
     @Override
-    public DeltaSet<NNLayer> position(final double alpha) {
+    public DeltaSet<Layer> position(final double alpha) {
       return cursor.position(alpha);
     }
   

@@ -35,7 +35,7 @@ import java.util.stream.IntStream;
  * color bands.
  */
 @SuppressWarnings("serial")
-public class ImgCropLayer extends NNLayer {
+public class ImgCropLayer extends LayerBase {
   
   
   private final int sizeX;
@@ -126,7 +126,7 @@ public class ImgCropLayer extends NNLayer {
         inputData.freeRef();
         return outputData;
       })
-      .toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+      .toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       if (input.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
           .mapToObj(dataIndex -> {

@@ -46,7 +46,7 @@ public class LocalSparkTrainable extends SparkTrainable {
    * @param trainingData the training data
    * @param network      the network
    */
-  public LocalSparkTrainable(final RDD<Tensor[]> trainingData, final NNLayer network) {
+  public LocalSparkTrainable(final RDD<Tensor[]> trainingData, final Layer network) {
     super(trainingData, network);
   }
   
@@ -57,7 +57,7 @@ public class LocalSparkTrainable extends SparkTrainable {
    * @param network      the network
    * @param sampleSize   the sample size
    */
-  public LocalSparkTrainable(final RDD<Tensor[]> trainingData, final NNLayer network, final int sampleSize) {
+  public LocalSparkTrainable(final RDD<Tensor[]> trainingData, final Layer network, final int sampleSize) {
     super(trainingData, network, sampleSize);
   }
   
@@ -90,8 +90,8 @@ public class LocalSparkTrainable extends SparkTrainable {
     if (isVerbose()) {
       log.info(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
     }
-    @javax.annotation.Nonnull final DeltaSet<NNLayer> xxx = getDelta(result);
-    return new PointSample(xxx, new StateSet<NNLayer>(xxx), result.sum, 0.0, result.count).normalize();
+    @javax.annotation.Nonnull final DeltaSet<Layer> xxx = getDelta(result);
+    return new PointSample(xxx, new StateSet<Layer>(xxx), result.sum, 0.0, result.count).normalize();
   }
   
 }

@@ -36,7 +36,7 @@ import java.util.stream.IntStream;
  * Selects specific color bands from the input, producing an image with the same resolution but fewer bands.
  */
 @SuppressWarnings("serial")
-public class ImgBandSelectLayer extends NNLayer {
+public class ImgBandSelectLayer extends LayerBase {
   
   
   private final int[] bands;
@@ -95,7 +95,7 @@ public class ImgBandSelectLayer extends NNLayer {
       }))
       .toArray(i -> new Tensor[i]));
     outputDims.freeRef();
-    return new NNResult(wrap, (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+    return new NNResult(wrap, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       if (input.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
           .mapToObj(dataIndex -> {

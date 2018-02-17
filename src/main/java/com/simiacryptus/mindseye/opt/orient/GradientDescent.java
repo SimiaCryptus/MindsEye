@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
@@ -36,7 +36,7 @@ public class GradientDescent extends OrientationStrategyBase<SimpleLineSearchCur
   @javax.annotation.Nonnull
   @Override
   public SimpleLineSearchCursor orient(final Trainable subject, @javax.annotation.Nonnull final PointSample measurement, @javax.annotation.Nonnull final TrainingMonitor monitor) {
-    @Nonnull final DeltaSet<NNLayer> direction = measurement.delta.scale(-1);
+    @Nonnull final DeltaSet<Layer> direction = measurement.delta.scale(-1);
     final double magnitude = direction.getMagnitude();
     if (Math.abs(magnitude) < 1e-10) {
       monitor.log(String.format("Zero gradient: %s", magnitude));

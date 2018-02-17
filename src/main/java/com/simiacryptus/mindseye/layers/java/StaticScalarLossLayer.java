@@ -34,7 +34,7 @@ import java.util.stream.IntStream;
  * The type Static scalar loss layer.
  */
 @SuppressWarnings("serial")
-public class StaticScalarLossLayer extends NNLayer {
+public class StaticScalarLossLayer extends LayerBase {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(StaticScalarLossLayer.class);
@@ -81,7 +81,7 @@ public class StaticScalarLossLayer extends NNLayer {
       final double diff = Math.abs(a.get(0) - getTarget());
       a.freeRef();
       return new Tensor(new double[]{diff}, 1);
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (in0.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
           @Nullable final Tensor a = indata.get(dataIndex);

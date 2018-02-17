@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.network.DAGNetwork;
@@ -118,10 +118,12 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
     else {
       @javax.annotation.Nonnull final Tensor filterDelta = new Tensor(convolutionParams.masterFilterDimensions);
       for (@javax.annotation.Nonnull ExplodedConvolutionLeg leg : subLayers) {
-        extractor.apply(leg).forEach((v, c) -> {
+        Tensor tensor = extractor.apply(leg);
+        tensor.forEach((v, c) -> {
           int[] coords = c.getCoords();
           filterDelta.set(coords[0], coords[1], getFilterBand(leg, coords[2]), v);
         }, false);
+        tensor.freeRef();
       }
       return filterDelta;
     }
@@ -143,7 +145,7 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
    * @param remove   the remove
    * @return the tensor
    */
-  public Tensor read(@javax.annotation.Nonnull DeltaSet<NNLayer> deltaSet, boolean remove) {
+  public Tensor read(@javax.annotation.Nonnull DeltaSet<Layer> deltaSet, boolean remove) {
     return read(l -> l.read(deltaSet, remove));
   }
   

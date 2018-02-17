@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.LayerBase;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
 
@@ -35,7 +35,7 @@ import java.util.Map;
  * @param <T> the type parameter
  */
 @SuppressWarnings("serial")
-public final class PlaceholderLayer<T> extends NNLayer {
+public final class PlaceholderLayer<T> extends LayerBase {
   
   @Nullable
   private final T key;

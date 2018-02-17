@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.opt;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
@@ -166,7 +166,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
    * @param labeledObject the labeled object
    * @return the int [ ]
    */
-  public int[] predict(@javax.annotation.Nonnull final NNLayer network, @javax.annotation.Nonnull final LabeledObject<Tensor> labeledObject) {
+  public int[] predict(@javax.annotation.Nonnull final Layer network, @javax.annotation.Nonnull final LabeledObject<Tensor> labeledObject) {
     @Nullable final double[] predictionSignal = network.eval(labeledObject.data).getData().get(0).getData();
     return IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
   }
@@ -192,7 +192,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
    * @param history        the history
    * @param network        the network
    */
-  public void report(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final MonitoredObject monitoringRoot, @javax.annotation.Nonnull final List<Step> history, @javax.annotation.Nonnull final NNLayer network) {
+  public void report(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final MonitoredObject monitoringRoot, @javax.annotation.Nonnull final List<Step> history, @javax.annotation.Nonnull final Layer network) {
     
     if (!history.isEmpty()) {
       log.code(() -> {
@@ -255,7 +255,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
    * @param trainingData the training data
    * @param monitor      the monitor
    */
-  public abstract void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor);
+  public abstract void train(NotebookOutput log, Layer network, Tensor[][] trainingData, TrainingMonitor monitor);
   
   /**
    * Validate.
@@ -263,7 +263,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
    * @param log     the log
    * @param network the network
    */
-  public void validate(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final NNLayer network) {
+  public void validate(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer network) {
     log.h1("Validation");
     log.p("If we run our model against the entire validation dataset, we get this accuracy:");
     log.code(() -> {

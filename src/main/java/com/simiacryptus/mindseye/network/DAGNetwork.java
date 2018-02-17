@@ -42,7 +42,7 @@ import java.util.stream.Stream;
  * Directed Acyclical Graph Network The base class for all conventional network wiring.
  */
 @SuppressWarnings("serial")
-public abstract class DAGNetwork extends NNLayer {
+public abstract class DAGNetwork extends LayerBase {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DAGNetwork.class);
@@ -61,7 +61,7 @@ public abstract class DAGNetwork extends NNLayer {
   /**
    * The Layers by id.
    */
-  protected final LinkedHashMap<Object, NNLayer> layersById = new LinkedHashMap<>();
+  protected final LinkedHashMap<Object, Layer> layersById = new LinkedHashMap<>();
   /**
    * The Nodes by id.
    */
@@ -96,16 +96,16 @@ public abstract class DAGNetwork extends NNLayer {
     final JsonObject jsonLayers = json.getAsJsonObject("layers");
     final JsonObject jsonLinks = json.getAsJsonObject("links");
     final JsonObject jsonLabels = json.getAsJsonObject("labels");
-    @javax.annotation.Nonnull final Map<UUID, NNLayer> source_layersByNodeId = new HashMap<>();
-    @javax.annotation.Nonnull final Map<UUID, NNLayer> source_layersByLayerId = new HashMap<>();
+    @javax.annotation.Nonnull final Map<UUID, Layer> source_layersByNodeId = new HashMap<>();
+    @javax.annotation.Nonnull final Map<UUID, Layer> source_layersByLayerId = new HashMap<>();
     for (@javax.annotation.Nonnull final Entry<String, JsonElement> e : jsonLayers.entrySet()) {
-      @javax.annotation.Nonnull NNLayer value = NNLayer.fromJson(e.getValue().getAsJsonObject(), rs);
+      @javax.annotation.Nonnull Layer value = Layer.fromJson(e.getValue().getAsJsonObject(), rs);
       source_layersByLayerId.put(UUID.fromString(e.getKey()), value);
     }
     for (@javax.annotation.Nonnull final Entry<String, JsonElement> e : jsonNodes.entrySet()) {
       @javax.annotation.Nonnull final UUID nodeId = UUID.fromString(e.getKey());
       @javax.annotation.Nonnull final UUID layerId = UUID.fromString(e.getValue().getAsString());
-      final NNLayer layer = source_layersByLayerId.get(layerId);
+      final Layer layer = source_layersByLayerId.get(layerId);
       assert null != layer;
       source_layersByNodeId.put(nodeId, layer);
     }
@@ -139,7 +139,7 @@ public abstract class DAGNetwork extends NNLayer {
    * @return the dag node
    */
   @javax.annotation.Nullable
-  public DAGNode add(@javax.annotation.Nonnull final NNLayer nextHead, final DAGNode... head) {
+  public DAGNode add(@javax.annotation.Nonnull final Layer nextHead, final DAGNode... head) {
     return add(null, nextHead, head);
   }
   
@@ -151,7 +151,7 @@ public abstract class DAGNetwork extends NNLayer {
    * @return the dag node
    */
   @javax.annotation.Nullable
-  public DAGNode wrap(@javax.annotation.Nonnull final NNLayer nextHead, final DAGNode... head) {
+  public DAGNode wrap(@javax.annotation.Nonnull final Layer nextHead, final DAGNode... head) {
     DAGNode add = add(null, nextHead, head);
     nextHead.freeRef();
     return add;
@@ -165,14 +165,14 @@ public abstract class DAGNetwork extends NNLayer {
    * @param head  the head
    * @return the dag node
    */
-  public DAGNode add(@Nullable final String label, @javax.annotation.Nonnull final NNLayer layer, final DAGNode... head) {
+  public DAGNode add(@Nullable final String label, @javax.annotation.Nonnull final Layer layer, final DAGNode... head) {
     assertAlive();
     assertConsistent();
     assert null != getInput();
     @javax.annotation.Nonnull final InnerNode node = new InnerNode(this, layer, head);
     synchronized (layersById) {
       if (!layersById.containsKey(layer.getId())) {
-        NNLayer replaced = layersById.put(layer.getId(), layer);
+        Layer replaced = layersById.put(layer.getId(), layer);
         layer.addRef();
         if (null != replaced) replaced.freeRef();
       }
@@ -200,7 +200,7 @@ public abstract class DAGNetwork extends NNLayer {
    * @return the nn layer
    */
   @javax.annotation.Nonnull
-  public NNLayer addInput() {
+  public Layer addInput() {
     @javax.annotation.Nonnull final UUID key = UUID.randomUUID();
     inputHandles.add(key);
     InputNode replaced = inputNodes.put(key, new InputNode(this, key));
@@ -219,7 +219,7 @@ public abstract class DAGNetwork extends NNLayer {
       assert nodesById.containsKey(e.getValue());
     }
     for (@javax.annotation.Nonnull final Entry<UUID, DAGNode> e : nodesById.entrySet()) {
-      @Nullable final NNLayer layer = e.getValue().getLayer();
+      @Nullable final Layer layer = e.getValue().getLayer();
       assert layersById.containsKey(layer.getId());
       assert layersById.get(layer.getId()) == layer;
     }
@@ -274,8 +274,12 @@ public abstract class DAGNetwork extends NNLayer {
   public NNResult eval(final NNResult... input) {
     assertAlive();
     @javax.annotation.Nonnull GraphEvaluationContext buildExeCtx = buildExeCtx(input);
-    @javax.annotation.Nullable NNResult nnResult = getHead().get(buildExeCtx);
-    buildExeCtx.freeRef();
+    @javax.annotation.Nullable NNResult nnResult;
+    try {
+      nnResult = getHead().get(buildExeCtx);
+    } finally {
+      buildExeCtx.freeRef();
+    }
     return nnResult;
   }
   
@@ -298,9 +302,9 @@ public abstract class DAGNetwork extends NNLayer {
    */
   @Nullable
   @SuppressWarnings("unchecked")
-  public <T extends NNLayer> T getByName(@Nullable final String name) {
+  public <T extends Layer> T getByName(@Nullable final String name) {
     if (null == name) return null;
-    @javax.annotation.Nonnull final AtomicReference<NNLayer> result = new AtomicReference<>();
+    @javax.annotation.Nonnull final AtomicReference<Layer> result = new AtomicReference<>();
     visitLayers(n -> {
       if (name.equals(n.getName())) {
         result.set(n);
@@ -325,7 +329,7 @@ public abstract class DAGNetwork extends NNLayer {
   }
   
   @Override
-  public List<NNLayer> getChildren() {
+  public List<Layer> getChildren() {
     return layersById.values().stream().flatMap(l -> l.getChildren().stream()).distinct().sorted(Comparator.comparing(l -> l.getId().toString())).collect(Collectors.toList());
   }
   
@@ -381,7 +385,7 @@ public abstract class DAGNetwork extends NNLayer {
     nodesById.values().forEach(node -> {
       @javax.annotation.Nonnull final JsonArray linkArray = new JsonArray();
       Arrays.stream(node.getInputs()).forEach((@javax.annotation.Nonnull final DAGNode input) -> linkArray.add(new JsonPrimitive(input.getId().toString())));
-      @Nullable final NNLayer layer = node.getLayer();
+      @Nullable final Layer layer = node.getLayer();
       @javax.annotation.Nonnull final String nodeId = node.getId().toString();
       final String layerId = layer.getId().toString();
       nodeMap.addProperty(nodeId, layerId);
@@ -406,7 +410,7 @@ public abstract class DAGNetwork extends NNLayer {
    * @return the layer
    */
   @javax.annotation.Nonnull
-  public NNLayer getLayer() {
+  public Layer getLayer() {
     return this;
   }
   
@@ -430,10 +434,10 @@ public abstract class DAGNetwork extends NNLayer {
     ).collect(Collectors.toList());
   }
   
-  private synchronized void initLinks(@javax.annotation.Nonnull final Map<UUID, List<UUID>> nodeLinks, @javax.annotation.Nonnull final Map<UUID, NNLayer> layersByNodeId, final UUID newNodeId) {
+  private synchronized void initLinks(@javax.annotation.Nonnull final Map<UUID, List<UUID>> nodeLinks, @javax.annotation.Nonnull final Map<UUID, Layer> layersByNodeId, final UUID newNodeId) {
     if (layersById.containsKey(newNodeId)) return;
     if (inputNodes.containsKey(newNodeId)) return;
-    final NNLayer layer = layersByNodeId.get(newNodeId);
+    final Layer layer = layersByNodeId.get(newNodeId);
     if (layer == null) {
       throw new IllegalArgumentException(String.format("%s is linked to but not defined", newNodeId));
     }
@@ -447,7 +451,7 @@ public abstract class DAGNetwork extends NNLayer {
     final DAGNode[] dependencies = getDependencies(nodeLinks, newNodeId);
     @javax.annotation.Nonnull final InnerNode node = new InnerNode(this, layer, newNodeId, dependencies);
     if (!layersById.containsKey(layer.getId())) {
-      NNLayer replaced = layersById.put(layer.getId(), layer);
+      Layer replaced = layersById.put(layer.getId(), layer);
       layer.addRef();
       if (null != replaced) replaced.freeRef();
     }
@@ -462,7 +466,7 @@ public abstract class DAGNetwork extends NNLayer {
    * @return the nn layer
    */
   @javax.annotation.Nonnull
-  public NNLayer removeLastInput() {
+  public Layer removeLastInput() {
     final int index = inputHandles.size() - 1;
     final UUID key = inputHandles.remove(index);
     InputNode remove = inputNodes.remove(key);
@@ -500,7 +504,7 @@ public abstract class DAGNetwork extends NNLayer {
    *
    * @param visitor the visitor
    */
-  public void visitLayers(@javax.annotation.Nonnull final Consumer<NNLayer> visitor) {
+  public void visitLayers(@javax.annotation.Nonnull final Consumer<Layer> visitor) {
     layersById.values().forEach(layer -> {
       if (layer instanceof DAGNetwork) {
         ((DAGNetwork) layer).visitLayers(visitor);
@@ -519,7 +523,7 @@ public abstract class DAGNetwork extends NNLayer {
    */
   public void visitNodes(@javax.annotation.Nonnull final Consumer<DAGNode> visitor) {
     nodesById.values().forEach(node -> {
-      NNLayer layer = node.getLayer();
+      Layer layer = node.getLayer();
       while (layer instanceof WrapperLayer) {
         layer = ((WrapperLayer) layer).getInner();
       }

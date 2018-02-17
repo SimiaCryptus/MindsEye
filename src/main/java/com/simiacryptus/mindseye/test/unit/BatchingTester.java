@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
@@ -75,7 +75,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
    * @return the tolerance statistics
    */
   @Nonnull
-  public ToleranceStatistics test(@Nullable final NNLayer reference, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
+  public ToleranceStatistics test(@Nullable final Layer reference, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
     if (null == reference) return new ToleranceStatistics();
   
     final TensorList[] inputTensorLists = Arrays.stream(inputPrototype).map(t ->
@@ -159,7 +159,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
    * @return the tolerance statistics
    */
   @Override
-  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, final NNLayer reference, @javax.annotation.Nonnull final Tensor... inputPrototype) {
+  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, final Layer reference, @javax.annotation.Nonnull final Tensor... inputPrototype) {
     log.h1("Batch Execution");
     log.p("Most layers, including this one, should behave the same no matter how the items are split between batches. We verify this:");
     return log.code(() -> {

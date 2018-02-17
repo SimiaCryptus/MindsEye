@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.java.SumInputsLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
@@ -71,7 +71,7 @@ public abstract class SumInputsLayerTest extends CuDNNLayerTestBase {
   
   @javax.annotation.Nonnull
   @Override
-  public NNLayer getLayer(final int[][] inputSize, Random random) {
+  public Layer getLayer(final int[][] inputSize, Random random) {
     return new com.simiacryptus.mindseye.layers.cudnn.SumInputsLayer().setPrecision(precision);
   }
   
@@ -81,7 +81,7 @@ public abstract class SumInputsLayerTest extends CuDNNLayerTestBase {
   }
   
   @Override
-  public Class<? extends NNLayer> getReferenceLayerClass() {
+  public Class<? extends Layer> getReferenceLayerClass() {
     return com.simiacryptus.mindseye.layers.java.SumInputsLayer.class;
   }
   
@@ -113,7 +113,7 @@ public abstract class SumInputsLayerTest extends CuDNNLayerTestBase {
   
     @javax.annotation.Nonnull
     @Override
-    public NNLayer getLayer(int[][] inputSize, Random random) {
+    public Layer getLayer(int[][] inputSize, Random random) {
       @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork();
       DAGNode input = network.getInput(0);
       network.wrap(new BinarySumLayer(), input, input);
@@ -121,7 +121,7 @@ public abstract class SumInputsLayerTest extends CuDNNLayerTestBase {
     }
     
     @Override
-    public NNLayer getReferenceLayer() {
+    public Layer getReferenceLayer() {
       @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork();
       DAGNode input = network.getInput(0);
       network.wrap(new SumInputsLayer(), input, input);
@@ -206,7 +206,7 @@ public abstract class SumInputsLayerTest extends CuDNNLayerTestBase {
     }
     
     @Override
-    public Class<? extends NNLayer> getReferenceLayerClass() {
+    public Class<? extends Layer> getReferenceLayerClass() {
       return null;
     }
     

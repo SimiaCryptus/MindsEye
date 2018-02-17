@@ -45,7 +45,7 @@ import java.util.stream.Stream;
  * component for ConvolutionLayer, since the GpuSystem api has this restriction (in recent versions).
  */
 @SuppressWarnings("serial")
-public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<SimpleConvolutionLayer> {
+public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<SimpleConvolutionLayer> {
   
   /**
    * The Log.
@@ -250,7 +250,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
       } catch (@javax.annotation.Nonnull final Throwable e) {
         throw new ComponentException(String.format("Error in convolution %s x %s", Arrays.toString(inputSize), Arrays.toString(kernelSize)), e);
       }
-    }), (@javax.annotation.Nonnull final DeltaSet<NNLayer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       delta.assertAlive();
       buffer.assertAlive();
       inputData.assertAlive();
@@ -379,6 +379,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
   
   @Override
   protected void _free() {
+    clearCudaFilters();
     super._free();
     kernel.freeRef();
   }
@@ -389,7 +390,7 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
    * @return the compatibility layer
    */
   @javax.annotation.Nonnull
-  public NNLayer getCompatibilityLayer() {
+  public Layer getCompatibilityLayer() {
     log.info(String.format("Using compatibility layer for %s", this));
     int bands = (int) Math.sqrt(this.kernel.getDimensions()[2]);
     @javax.annotation.Nonnull final com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer convolutionLayer = new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(this.kernel.getDimensions()[0], this.kernel.getDimensions()[1], this.kernel.getDimensions()[2], true);
@@ -403,13 +404,13 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
       return kernel.get(c.getCoords()[0], c.getCoords()[1], bandT);
     });
     convolutionLayer.kernel.set(tensor);
-    return new NNLayer() {
+    return new LayerBase() {
       @javax.annotation.Nonnull
       @Override
       public NNResult eval(@javax.annotation.Nonnull NNResult... array) {
         Arrays.stream(array).forEach(x -> x.addRef());
         @Nonnull NNResult result = convolutionLayer.eval(array);
-        return new NNResult(result.getData(), (DeltaSet<NNLayer> buffer, TensorList data) -> {
+        return new NNResult(result.getData(), (DeltaSet<Layer> buffer, TensorList data) -> {
           throw new IllegalStateException();
         }) {
   
@@ -654,6 +655,11 @@ public class SimpleConvolutionLayer extends NNLayer implements MultiPrecision<Si
     this.kernel.set(kernel);
   }
   
+  /**
+   * Get kernel dimensions int [ ].
+   *
+   * @return the int [ ]
+   */
   public int[] getKernelDimensions() {
     return kernel.getDimensions();
   }
