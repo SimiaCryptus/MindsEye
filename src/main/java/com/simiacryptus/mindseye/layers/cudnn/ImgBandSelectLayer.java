@@ -97,7 +97,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
     assert getTo() > 0;
     assert 1 == inObj.length;
     assert 3 == inObj[0].getData().getDimensions().length;
-    if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final TensorList inputData = inObj[0].getData();
     @Nonnull final int[] inputDimensions = inputData.getDimensions();
@@ -106,7 +106,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
     final int byteOffset = inputDimensions[1] * inputDimensions[0] * getFrom() * precision.size;
     outputDimensions[2] = getTo() - getFrom();
     long size = (length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
-    return new Result(GpuSystem.eval(gpu -> {
+    return new Result(CudaSystem.eval(gpu -> {
       @javax.annotation.Nonnull final CudaPtr cudaOutput = CudaPtr.allocate(gpu.getDeviceNumber(), size, MemoryType.Managed, true);
       @Nullable final CudaPtr cudaInput = CudaPtr.getCudaPtr(precision, inputData);
       @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(inputDimensions, length, outputDimensions);
@@ -116,13 +116,13 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
         precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr()
       );
       gpu.registerForCleanup(outputDescriptor, inputDescriptor, cudaInput);
-      return GpuTensorList.wrap(cudaOutput, length, outputDimensions, precision);
+      return CudaTensorList.wrap(cudaOutput, length, outputDimensions, precision);
     }), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       if (!Arrays.equals(error.getDimensions(), outputDimensions)) {
         throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputDimensions));
       }
       if (inObj[0].isAlive()) {
-        final TensorList passbackTensorList = GpuSystem.eval(gpu -> {
+        final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
           @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(inputDimensions, length, outputDimensions);
           @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(outputDimensions, length, outputDimensions);
           assert error.length() == inputData.length();
@@ -135,7 +135,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
             precision.getPointer(0.0), inputDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
           );
           gpu.registerForCleanup(errorPtr, inputDescriptor, outputDescriptor);
-          return GpuTensorList.wrap(passbackBuffer, length, inputDimensions, precision);
+          return CudaTensorList.wrap(passbackBuffer, length, inputDimensions, precision);
           //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         });
         inObj[0].accumulate(buffer, passbackTensorList);
@@ -165,7 +165,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
    */
   @javax.annotation.Nonnull
   public CudaResource<cudnnTensorDescriptor> getTensorDescriptor(int[] inputDimensions, int length, int[] outputDimensions) {
-    return GpuSystem.newTensorDescriptor(
+    return CudaSystem.newTensorDescriptor(
       precision.code, length, outputDimensions[2], outputDimensions[1], outputDimensions[0], //
       inputDimensions[2] * inputDimensions[1] * inputDimensions[0], //
       inputDimensions[1] * inputDimensions[0], //

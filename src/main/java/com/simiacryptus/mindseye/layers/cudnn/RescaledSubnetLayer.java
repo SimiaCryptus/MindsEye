@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.LayerBase;
 import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +36,7 @@ import java.util.Map;
 
 /**
  * This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work
- * across larger image regions. Implemented via GpuSystem.
+ * across larger image regions. Implemented via CudaSystem.
  */
 @SuppressWarnings("serial")
 public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<RescaledSubnetLayer> {
@@ -100,7 +100,7 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
   @Nullable
   @Override
   public Result eval(final Result... inObj) {
-    if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     log.warn("Not Implemented: " + getClass().getCanonicalName());
     return getCompatibilityLayer().eval(inObj);
   }

@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.demo;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
@@ -76,7 +76,7 @@ public class DeepDreamDemo extends NotebookReportBase {
   
     @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
-    GpuSystem.addLog(new PrintStream(log.file(logName)));
+    CudaSystem.addLog(new PrintStream(log.file(logName)));
     
     log.h1("Model");
     ImageClassifier vgg16 = log.code(() -> {

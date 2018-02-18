@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.LayerBase;
 import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +89,7 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
     Layer compatibilityLayer = getCompatibilityLayer();
     Result eval = compatibilityLayer.eval(inObj);
     compatibilityLayer.freeRef();
-    if (!GpuSystem.isEnabled()) return eval;
+    if (!CudaSystem.isEnabled()) return eval;
     log.debug("Not Implemented: " + getClass().getCanonicalName());
     return eval;
   }

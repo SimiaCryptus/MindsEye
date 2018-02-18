@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.java.ReshapeLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -165,7 +165,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   @javax.annotation.Nullable
   @Override
   public Result eval(final Result... inObj) {
-    if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     PipelineNetwork explode = explode();
     Result eval = explode.eval(inObj);
     explode.freeRef();

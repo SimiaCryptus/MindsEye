@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
@@ -200,10 +200,10 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
       @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all.log";
       log.p(log.file((String) null, logName, "GPU Log"));
       @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
-      GpuSystem.addLog(apiLog);
+      CudaSystem.addLog(apiLog);
       super.run(log);
       apiLog.close();
-      GpuSystem.apiLog.remove(apiLog);
+      CudaSystem.apiLog.remove(apiLog);
     }
     
     
@@ -225,7 +225,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
   }
   
   /**
-   * Demonstration of a suspected GpuSystem bug when using 0 padding with the GPU convolution operation.
+   * Demonstration of a suspected CudaSystem bug when using 0 padding with the GPU convolution operation.
    */
   public static class Bug extends Bug_Control {
     /**

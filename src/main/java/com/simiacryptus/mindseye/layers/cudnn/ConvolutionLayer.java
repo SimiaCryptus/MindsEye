@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -207,7 +207,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     assert 1 == inObj.length;
     assert 3 == inObj[0].getData().getDimensions().length;
     assert inputBands == inObj[0].getData().getDimensions()[2];
-    if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     @Nonnull ExplodedConvolutionGrid grid = getExplodedNetwork();
     @Nonnull PipelineNetwork network = grid.getNetwork();
     if (isFrozen()) {

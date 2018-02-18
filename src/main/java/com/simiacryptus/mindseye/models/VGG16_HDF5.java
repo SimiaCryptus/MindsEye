@@ -90,6 +90,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
         @javax.annotation.Nonnull
         @Override
         public Layer call() throws Exception {
+  
           //  model.add(ZeroPadding2D((1,1),input_shape=(3,224,224)))
           output.code(() -> {
             add(new AssertDimensionsLayer(224, 224, 3));
@@ -97,6 +98,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           output.code(() -> {
             add(new ImgZeroPaddingLayer(1, 1));
           });
+  
           //  model.add(Convolution2D(64, 3, 3, activation='relu'))
           output.code(() -> {
             add(new ConvolutionLayer(3, 3, 3, 64)

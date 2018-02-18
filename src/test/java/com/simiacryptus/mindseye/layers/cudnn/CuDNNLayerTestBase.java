@@ -21,8 +21,8 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.cudnn.CuDNNHandle;
-import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
+import com.simiacryptus.mindseye.lang.cudnn.CudnnHandle;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
@@ -50,7 +50,7 @@ public abstract class CuDNNLayerTestBase extends LayerTestBase {
   @Override
   public ArrayList<ComponentTest<?>> getBigTests() {
     @javax.annotation.Nonnull ArrayList<ComponentTest<?>> copy = new ArrayList<>(super.getBigTests());
-    if (CuDNNHandle.POOL.size() > 1) copy.add(new GpuLocalityTester(1e-3));
+    if (CudnnHandle.POOL.size() > 1) copy.add(new GpuLocalityTester(1e-3));
     return copy;
   }
   
@@ -59,14 +59,14 @@ public abstract class CuDNNLayerTestBase extends LayerTestBase {
     @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all.log";
     log.p(log.file((String) null, logName, "GPU Log"));
     @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
-    GpuSystem.addLog(apiLog);
+    CudaSystem.addLog(apiLog);
     super.run(log);
-    log.p("GpuSystem Statistics:");
+    log.p("CudaSystem Statistics:");
     log.code(() -> {
-      return TestUtil.toFormattedJson(GpuSystem.getExecutionStatistics());
+      return TestUtil.toFormattedJson(CudaSystem.getExecutionStatistics());
     });
     apiLog.close();
-    GpuSystem.apiLog.remove(apiLog);
+    CudaSystem.apiLog.remove(apiLog);
   }
   
   @Nullable
@@ -87,12 +87,12 @@ public abstract class CuDNNLayerTestBase extends LayerTestBase {
           @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_io.log";
           log.p(log.file((String) null, logName, "GPU Log"));
           apiLog = new PrintStream(log.file(logName));
-          GpuSystem.addLog(apiLog);
+          CudaSystem.addLog(apiLog);
           return inner.test(log, component, inputPrototype);
         } finally {
           if (null != apiLog) {
             apiLog.close();
-            GpuSystem.apiLog.remove(apiLog);
+            CudaSystem.apiLog.remove(apiLog);
           }
         }
       }
@@ -117,12 +117,12 @@ public abstract class CuDNNLayerTestBase extends LayerTestBase {
           @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_perf.log";
           log.p(log.file((String) null, logName, "GPU Log"));
           apiLog = new PrintStream(log.file(logName));
-          GpuSystem.addLog(apiLog);
+          CudaSystem.addLog(apiLog);
           return inner.test(log, component, inputPrototype);
         } finally {
           if (null != apiLog) {
             apiLog.close();
-            GpuSystem.apiLog.remove(apiLog);
+            CudaSystem.apiLog.remove(apiLog);
           }
         }
       }

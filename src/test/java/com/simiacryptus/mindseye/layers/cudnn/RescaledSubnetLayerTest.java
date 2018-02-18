@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Ignore;
@@ -53,10 +53,10 @@ public abstract class RescaledSubnetLayerTest extends LayerTestBase // CuDNNLaye
     @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all.log";
     log.p(log.file((String) null, logName, "GPU Log"));
     @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
-    GpuSystem.addLog(apiLog);
+    CudaSystem.addLog(apiLog);
     super.run(log);
     apiLog.close();
-    GpuSystem.apiLog.remove(apiLog);
+    CudaSystem.apiLog.remove(apiLog);
   }
   
   @javax.annotation.Nonnull

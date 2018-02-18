@@ -98,7 +98,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
   @Nullable
   @Override
   public Result eval(@javax.annotation.Nonnull final Result... inObj) {
-    if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     assert 1 == inObj.length;
     final Result in = inObj[0];
     assert 3 == in.getData().getDimensions().length;
@@ -113,13 +113,13 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
     dimOut[0] = sizeX;
     dimOut[1] = sizeY;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    final TensorList outputData = GpuSystem.eval(gpu -> {
+    final TensorList outputData = CudaSystem.eval(gpu -> {
       @Nullable final CudaPtr inputBuffer = CudaPtr.getCudaPtr(precision, in.getData());
       boolean dirty = dimOut[0] <= dimIn[0] && dimOut[1] <= dimIn[1];
       @javax.annotation.Nonnull final CudaPtr outputBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), (long) (length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size), MemoryType.Managed, dirty);
       copy(gpu, length, dimIn, inputBuffer, dimOut, outputBuffer);
       gpu.registerForCleanup(inputBuffer);
-      return GpuTensorList.wrap(outputBuffer, length, dimOut, precision);
+      return CudaTensorList.wrap(outputBuffer, length, dimOut, precision);
     });
     return new Result(outputData, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
@@ -130,13 +130,13 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
       }
       assert error.length() == in.getData().length();
       if (in.isAlive()) {
-        final TensorList passbackTensorList = GpuSystem.eval(gpu -> {
+        final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
           @Nullable final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
           boolean dirty = dimOut[0] >= dimIn[0] && dimOut[1] >= dimIn[1];
           @javax.annotation.Nonnull final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), (long) (length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size), MemoryType.Managed, dirty);
           copy(gpu, length, dimOut, errorPtr, dimIn, passbackBuffer);
           gpu.registerForCleanup(errorPtr);
-          return GpuTensorList.wrap(passbackBuffer, length, dimIn, precision);
+          return CudaTensorList.wrap(passbackBuffer, length, dimIn, precision);
         });
         in.accumulate(buffer, passbackTensorList);
         passbackTensorList.freeRef();
@@ -165,14 +165,14 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
    * @param destinationDimensions the dim out
    * @param destination           the output buffer
    */
-  public void copy(@javax.annotation.Nonnull CuDNNHandle gpu, int length, @javax.annotation.Nonnull int[] sourceDimensions, @javax.annotation.Nonnull CudaPtr source, @javax.annotation.Nonnull int[] destinationDimensions, @javax.annotation.Nonnull CudaPtr destination) {
+  public void copy(@javax.annotation.Nonnull CudnnHandle gpu, int length, @javax.annotation.Nonnull int[] sourceDimensions, @javax.annotation.Nonnull CudaPtr source, @javax.annotation.Nonnull int[] destinationDimensions, @javax.annotation.Nonnull CudaPtr destination) {
     if (3 != sourceDimensions.length) throw new IllegalArgumentException("inputDimensions.length");
     if (3 != destinationDimensions.length) throw new IllegalArgumentException("dimOut.length");
     if (sourceDimensions[2] != destinationDimensions[2])
       throw new IllegalArgumentException(String.format("%d != %d", sourceDimensions[2], destinationDimensions[2]));
     //log.info(String.format("offset=%d,%d", offsetX, offsetY));
     @javax.annotation.Nonnull final int[] viewDim = getViewDimensions(sourceDimensions, destinationDimensions);
-    @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sourceViewDescriptor = GpuSystem.newTensorDescriptor(
+    @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sourceViewDescriptor = CudaSystem.newTensorDescriptor(
       precision.code,//
       length,//
       viewDim[2],//
@@ -182,7 +182,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
       sourceDimensions[1] * sourceDimensions[0],//
       sourceDimensions[0],//
       1);
-    @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> destinationViewDescriptor = GpuSystem.newTensorDescriptor(
+    @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> destinationViewDescriptor = CudaSystem.newTensorDescriptor(
       precision.code,//
       length,//
       viewDim[2],//
@@ -213,7 +213,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
     assert sourceOffset + Tensor.dim(viewDim) <= Tensor.dim(sourceDimensions);
     assert destinationOffset + Tensor.dim(viewDim) <= Tensor.dim(destinationDimensions);
   
-    GpuSystem.handle(gpu.cudnnTransformTensor(
+    CudaSystem.handle(gpu.cudnnTransformTensor(
       precision.getPointer(1.0),
       sourceViewDescriptor.getPtr(), source.getPtr().withByteOffset(sourceOffset * precision.size),
       precision.getPointer(0.0),

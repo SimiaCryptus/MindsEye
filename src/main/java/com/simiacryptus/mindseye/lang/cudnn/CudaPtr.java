@@ -48,11 +48,11 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   /**
    * The constant METRICS.
    */
-  public static final LoadingCache<Integer, GpuStats> METRICS = CacheBuilder.newBuilder().build(new CacheLoader<Integer, GpuStats>() {
+  public static final LoadingCache<Integer, DeviceMetrics> METRICS = CacheBuilder.newBuilder().build(new CacheLoader<Integer, DeviceMetrics>() {
     @javax.annotation.Nonnull
     @Override
-    public GpuStats load(final Integer integer) throws Exception {
-      return new GpuStats();
+    public DeviceMetrics load(final Integer integer) throws Exception {
+      return new DeviceMetrics();
     }
   });
   /**
@@ -117,16 +117,16 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     if (data instanceof ReshapedTensorList) {
       return getCudaPtr(precision, ((ReshapedTensorList) data).getInner());
     }
-    if (data instanceof GpuTensorList && precision == ((GpuTensorList) data).getPrecision()) {
-      @javax.annotation.Nonnull GpuTensorList gpuTensorList = (GpuTensorList) data;
-      @Nullable final CudaPtr ptr = gpuTensorList.getPtr();
+    if (data instanceof CudaTensorList && precision == ((CudaTensorList) data).getPrecision()) {
+      @javax.annotation.Nonnull CudaTensorList cudaTensorList = (CudaTensorList) data;
+      @Nullable final CudaPtr ptr = cudaTensorList.getPtr();
       assert null != ptr;
       return ptr;
     }
     else {
       final int listLength = data.length();
       final int elementLength = Tensor.dim(data.getDimensions());
-      @javax.annotation.Nonnull final CudaPtr ptr = CudaPtr.allocate(GpuSystem.getDevice(), (long) elementLength * listLength * precision.size, MemoryType.Managed, true);
+      @javax.annotation.Nonnull final CudaPtr ptr = CudaPtr.allocate(CudaSystem.getDevice(), (long) elementLength * listLength * precision.size, MemoryType.Managed, true);
       for (int i = 0; i < listLength; i++) {
         Tensor tensor = data.get(i);
         ptr.write(precision, tensor.getData(), i * elementLength);
@@ -147,8 +147,8 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     if (size > CudaPtr.MAX) {
       throw new OutOfMemoryError("Allocated block is too large: " + size);
     }
-    if (deviceId >= 0 && GpuSystem.getDevice() != deviceId) throw new IllegalArgumentException();
-    final GpuStats metrics = CudaPtr.getGpuStats(deviceId);
+    if (deviceId >= 0 && CudaSystem.getDevice() != deviceId) throw new IllegalArgumentException();
+    final DeviceMetrics metrics = CudaPtr.getGpuStats(deviceId);
     long totalGpuMem = METRICS.asMap().values().stream().mapToLong(x -> x.usedMemory.get()).sum();
     synchronized (CudaPtr.class) {
       long resultingTotalMemory = totalGpuMem + size;
@@ -193,7 +193,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
     logLoad();
     long bytes = RegisteredObjectBase.getLivingInstances(SimpleConvolutionLayer.class).mapToLong(x -> x.evictDeviceData(deviceId)).sum();
     logger.info(String.format("Cleared %s bytes from ConvolutionFilters for device %s", bytes, deviceId));
-    GpuTensorList.evictToHeap(deviceId);
+    CudaTensorList.evictToHeap(deviceId);
     logLoad();
   }
   
@@ -213,7 +213,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    */
   @javax.annotation.Nonnull
   public static Tensor read(@javax.annotation.Nonnull final CudaPtr ptr, @javax.annotation.Nonnull final Precision precision, final int[] dimensions) {
-    GpuSystem.cudaDeviceSynchronize();
+    CudaSystem.cudaDeviceSynchronize();
     @javax.annotation.Nonnull final Tensor tensor = new Tensor(dimensions);
     switch (precision) {
       case Float:
@@ -241,8 +241,8 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    * @param deviceId the device id
    * @return the gpu stats
    */
-  public static GpuStats getGpuStats(final int deviceId) {
-    GpuStats devivceMemCtr;
+  public static DeviceMetrics getGpuStats(final int deviceId) {
+    DeviceMetrics devivceMemCtr;
     try {
       devivceMemCtr = CudaPtr.METRICS.get(deviceId);
     } catch (@javax.annotation.Nonnull final ExecutionException e) {
@@ -258,9 +258,9 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
    * @return the cuda ptr
    */
   public CudaPtr copyTo(int deviceId) {
-    return GpuSystem.withDevice(deviceId, () -> {
+    return CudaSystem.withDevice(deviceId, () -> {
       @javax.annotation.Nonnull CudaPtr copy = allocate(deviceId, size, MemoryType.Managed, false);
-      GpuSystem.cudaMemcpy(copy.getPtr(), this.getPtr(), size, cudaMemcpyKind.cudaMemcpyDeviceToDevice);
+      CudaSystem.cudaMemcpy(copy.getPtr(), this.getPtr(), size, cudaMemcpyKind.cudaMemcpyDeviceToDevice);
       return copy;
     });
   }
@@ -315,7 +315,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
       }
     }
     else {
-      GpuSystem.cudaMemcpy(precision.getPointer(destination), getPtr().withByteOffset((long) offset * precision.size), (long) destination.length * precision.size, cudaMemcpyDeviceToHost);
+      CudaSystem.cudaMemcpy(precision.getPointer(destination), getPtr().withByteOffset((long) offset * precision.size), (long) destination.length * precision.size, cudaMemcpyDeviceToHost);
       CudaPtr.getGpuStats(deviceId).memoryReads.addAndGet((long) destination.length * precision.size);
     }
     return this;
@@ -352,7 +352,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
       }
     }
     else {
-      GpuSystem.cudaMemcpy(precision.getPointer(destination), getPtr().withByteOffset((long) offset * precision.size), (long) destination.length * precision.size, cudaMemcpyDeviceToHost);
+      CudaSystem.cudaMemcpy(precision.getPointer(destination), getPtr().withByteOffset((long) offset * precision.size), (long) destination.length * precision.size, cudaMemcpyDeviceToHost);
       CudaPtr.getGpuStats(deviceId).memoryReads.addAndGet((long) destination.length * precision.size);
     }
     return this;
@@ -380,7 +380,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   public CudaPtr write(@javax.annotation.Nonnull final Precision precision, @javax.annotation.Nonnull final double[] data, int offset) {
     if (size < (long) (offset + data.length) * precision.size)
       throw new IllegalArgumentException(String.format("%d != (%d + %d) * %d", size, offset, data.length, precision.size));
-    GpuSystem.cudaMemcpy(getPtr().withByteOffset((long) offset * precision.size), precision.getPointer(data), (long) data.length * precision.size, cudaMemcpyKind.cudaMemcpyHostToDevice);
+    CudaSystem.cudaMemcpy(getPtr().withByteOffset((long) offset * precision.size), precision.getPointer(data), (long) data.length * precision.size, cudaMemcpyKind.cudaMemcpyHostToDevice);
     CudaPtr.getGpuStats(deviceId).memoryWrites.addAndGet((long) data.length * precision.size);
     return this;
   }
@@ -407,7 +407,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   public CudaPtr write(@javax.annotation.Nonnull final Precision precision, @javax.annotation.Nonnull final float[] data, int offset) {
     if (size < (long) (offset + data.length) * precision.size)
       throw new IllegalArgumentException(String.format("%d != %d * %d", size, data.length, precision.size));
-    GpuSystem.cudaMemcpy(getPtr().withByteOffset((long) offset * precision.size), precision.getPointer(data), (long) data.length * precision.size, cudaMemcpyKind.cudaMemcpyHostToDevice);
+    CudaSystem.cudaMemcpy(getPtr().withByteOffset((long) offset * precision.size), precision.getPointer(data), (long) data.length * precision.size, cudaMemcpyKind.cudaMemcpyHostToDevice);
     CudaPtr.getGpuStats(deviceId).memoryWrites.addAndGet((long) data.length * precision.size);
     return this;
   }
@@ -433,7 +433,7 @@ public class CudaPtr extends CudaResourceBase<Pointer> {
   
   @javax.annotation.Nonnull
   private CudaPtr clear() {
-    GpuSystem.cudaMemset(getPtr(), 0, size);
+    CudaSystem.cudaMemset(getPtr(), 0, size);
     return this;
   }
   

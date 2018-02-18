@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.BatchingTester;
@@ -84,10 +84,10 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
     @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all.log";
     log.p(log.file((String) null, logName, "GPU Log"));
     @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
-    GpuSystem.addLog(apiLog);
+    CudaSystem.addLog(apiLog);
     super.run(log);
     apiLog.close();
-    GpuSystem.apiLog.remove(apiLog);
+    CudaSystem.apiLog.remove(apiLog);
   }
   
   /**
@@ -277,7 +277,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   
   /**
    * Tests with no zero-padding; the output will be radius-1 smaller than the input. This currently tests a workaround
-   * where GpuSystem does not seem to support convolutions that change resolution.
+   * where CudaSystem does not seem to support convolutions that change resolution.
    */
   public static class NoPadding extends ConvolutionLayerTest {
     /**

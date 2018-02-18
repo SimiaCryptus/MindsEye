@@ -23,9 +23,9 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
 import com.simiacryptus.mindseye.lang.cudnn.CudaPtr;
-import com.simiacryptus.mindseye.lang.cudnn.GpuDevice;
-import com.simiacryptus.mindseye.lang.cudnn.GpuTensorList;
+import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 
 import javax.annotation.Nonnull;
@@ -36,7 +36,7 @@ import javax.annotation.Nullable;
  */
 public class SimpleGpuEval extends SimpleListEval {
   
-  private final GpuDevice gpu;
+  private final CudaDevice gpu;
   
   /**
    * Instantiates a new Simple gpu eval.
@@ -45,7 +45,7 @@ public class SimpleGpuEval extends SimpleListEval {
    * @param gpu   the gpu
    * @param input the input
    */
-  public SimpleGpuEval(@Nonnull Layer layer, GpuDevice gpu, TensorList... input) {
+  public SimpleGpuEval(@Nonnull Layer layer, CudaDevice gpu, TensorList... input) {
     super(layer, input);
     this.gpu = gpu;
   }
@@ -58,7 +58,7 @@ public class SimpleGpuEval extends SimpleListEval {
    * @param tensor the tensor
    * @return the simple result
    */
-  public static SimpleResult run(@Nonnull final Layer layer, final GpuDevice gpu, final TensorList... tensor) {
+  public static SimpleResult run(@Nonnull final Layer layer, final CudaDevice gpu, final TensorList... tensor) {
     return new SimpleGpuEval(layer, gpu, tensor).call();
   }
   
@@ -72,7 +72,7 @@ public class SimpleGpuEval extends SimpleListEval {
     }).toArray(i -> new Tensor[i]));
     @Nullable CudaPtr cudaPtr = CudaPtr.getCudaPtr(Precision.Double, tensorArray);
     tensorArray.freeRef();
-    return GpuTensorList.wrap(cudaPtr, original.length(), original.getDimensions(), Precision.Double);
+    return CudaTensorList.wrap(cudaPtr, original.length(), original.getDimensions(), Precision.Double);
   }
   
 }

@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer.PoolingMode;
 
@@ -82,7 +82,7 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
   @Nullable
   @Override
   public Result eval(final Result... inObj) {
-    if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     final Result input = inObj[0];
     final TensorList batch = input.getData();
     @Nonnull final int[] inputSize = batch.getDimensions();

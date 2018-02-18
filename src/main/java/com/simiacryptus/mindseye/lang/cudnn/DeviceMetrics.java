@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * The type Gpu stats.
  */
-public class GpuStats {
+public class DeviceMetrics {
   /**
    * The Memory reads.
    */

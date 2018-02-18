@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.BatchingTester;
@@ -102,7 +102,7 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
   public void run(NotebookOutput log) {
     @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all.log";
     log.p(log.file((String) null, logName, "GPU Log"));
-    GpuSystem.addLog(new PrintStream(log.file(logName)));
+    CudaSystem.addLog(new PrintStream(log.file(logName)));
     super.run(log);
   }
   

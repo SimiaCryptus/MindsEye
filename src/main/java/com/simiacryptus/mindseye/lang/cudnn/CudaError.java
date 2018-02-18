@@ -23,12 +23,12 @@ package com.simiacryptus.mindseye.lang.cudnn;
  * A low-level exception occured while executing GPU instructions
  */
 @SuppressWarnings("serial")
-public class GpuError extends RuntimeException {
+public class CudaError extends RuntimeException {
   
   /**
    * Instantiates a new Gpu error.
    */
-  public GpuError() {
+  public CudaError() {
   }
   
   /**
@@ -36,7 +36,7 @@ public class GpuError extends RuntimeException {
    *
    * @param message the message
    */
-  public GpuError(final String message) {
+  public CudaError(final String message) {
     super(message);
   }
   
@@ -46,7 +46,7 @@ public class GpuError extends RuntimeException {
    * @param message the message
    * @param cause   the cause
    */
-  public GpuError(final String message, final Throwable cause) {
+  public CudaError(final String message, final Throwable cause) {
     super(message, cause);
   }
   
@@ -58,7 +58,7 @@ public class GpuError extends RuntimeException {
    * @param enableSuppression  the enable suppression
    * @param writableStackTrace the writable stack trace
    */
-  public GpuError(final String message, final Throwable cause, final boolean enableSuppression, final boolean writableStackTrace) {
+  public CudaError(final String message, final Throwable cause, final boolean enableSuppression, final boolean writableStackTrace) {
     super(message, cause, enableSuppression, writableStackTrace);
   }
   
@@ -67,7 +67,7 @@ public class GpuError extends RuntimeException {
    *
    * @param cause the cause
    */
-  public GpuError(final Throwable cause) {
+  public CudaError(final Throwable cause) {
     super(cause);
   }
 }

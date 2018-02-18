@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.test.unit;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.lang.cudnn.GpuError;
+import com.simiacryptus.mindseye.lang.cudnn.CudaError;
 import com.simiacryptus.mindseye.layers.cudnn.Explodable;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
@@ -532,7 +532,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         }
       } catch (LifecycleException e) {
         throw e;
-      } catch (GpuError e) {
+      } catch (CudaError e) {
         throw e;
       } catch (Throwable e) {
         exceptions.add(new TestError(e, test, layer));

@@ -84,7 +84,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
   @Nullable
   @Override
   public Result evalAndFree(@javax.annotation.Nonnull final Result... inObj) {
-    if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     assert 3 == inObj[0].getData().getDimensions().length;
@@ -98,7 +98,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
     if (0 < maxBands && outputDimensions[2] > maxBands) {
       outputDimensions[2] = maxBands;
     }
-    return new Result(GpuSystem.eval(gpu -> {
+    return new Result(CudaSystem.eval(gpu -> {
       final long outputSize = ((long) length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
       @javax.annotation.Nonnull final CudaPtr cudaOutput = CudaPtr.allocate(gpu.getDeviceNumber(), outputSize, MemoryType.Managed, true);
       for (int i = 0; i < inObj.length; i++) {
@@ -125,7 +125,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
           gpu.registerForCleanup(cudaInput, inputDescriptor, outputDescriptor);
         }
       }
-      return GpuTensorList.wrap(cudaOutput, length, outputDimensions, precision);
+      return CudaTensorList.wrap(cudaOutput, length, outputDimensions, precision);
     }), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!Arrays.equals(delta.getDimensions(), outputDimensions)) {
         throw new AssertionError(Arrays.toString(delta.getDimensions()) + " != " + Arrays.toString(outputDimensions));
@@ -146,7 +146,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
         int inputBands = maxBands <= 0 ? inputDimensions[2] : Math.min(inputDimensions[2], maxBands - bandOffset);
         if (inputBands > 0 && input.isAlive()) {
           assert inputBands <= inputDimensions[2];
-          final TensorList passbackTensorList = GpuSystem.eval(gpu -> {
+          final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
             @javax.annotation.Nonnull int[] viewDimensions = Arrays.copyOf(inputDimensions, inputDimensions.length);
             viewDimensions[2] = inputBands;
             @Nullable final CudaPtr cudaDelta = CudaPtr.getCudaPtr(precision, delta);
@@ -160,7 +160,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
               precision.getPointer(0.0), inputDescriptor.getPtr(), cudaBackprop.getPtr()
             );
             gpu.registerForCleanup(cudaDelta, inputDescriptor, outputDescriptor);
-            return GpuTensorList.wrap(cudaBackprop, length, inputDimensions, precision);
+            return CudaTensorList.wrap(cudaBackprop, length, inputDimensions, precision);
           });
           input.accumulate(buffer, passbackTensorList);
           passbackTensorList.freeRef();
@@ -195,7 +195,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
    */
   @javax.annotation.Nonnull
   public CudaResource<cudnnTensorDescriptor> getTensorDescriptor(int length, int inputBands, int[] imageDimensions, int[] strideDimensions) {
-    return GpuSystem.newTensorDescriptor(
+    return CudaSystem.newTensorDescriptor(
       precision.code, length, inputBands, imageDimensions[1], imageDimensions[0], //
       strideDimensions[2] * strideDimensions[1] * strideDimensions[0], //
       strideDimensions[1] * strideDimensions[0], //

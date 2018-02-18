@@ -31,11 +31,11 @@ import java.nio.charset.Charset;
 /**
  * The type Gpu device.
  */
-public class GpuDevice extends GpuSystem {
+public class CudaDevice extends CudaSystem {
   /**
    * The constant logger.
    */
-  protected static final Logger logger = LoggerFactory.getLogger(CuDNNHandle.class);
+  protected static final Logger logger = LoggerFactory.getLogger(CudnnHandle.class);
   /**
    * The Device name.
    */
@@ -52,7 +52,7 @@ public class GpuDevice extends GpuSystem {
    *
    * @param deviceNumber the device number
    */
-  public GpuDevice(final int deviceNumber) {
+  public CudaDevice(final int deviceNumber) {
     super();
     this.deviceNumber = deviceNumber;
     if (0 <= this.deviceNumber) {
@@ -73,9 +73,9 @@ public class GpuDevice extends GpuSystem {
    */
   public static int cudaFree(int deviceId, final Pointer devPtr) {
     long startTime = System.nanoTime();
-    return GpuSystem.withDevice(deviceId, () -> {
+    return CudaSystem.withDevice(deviceId, () -> {
       final int result = JCuda.cudaFree(devPtr);
-      GpuSystem.log("cudaFree", result, devPtr);
+      CudaSystem.log("cudaFree", result, devPtr);
       cudaFree_execution.accept((System.nanoTime() - startTime) / 1e9);
       handle(result);
       return result;
@@ -89,7 +89,7 @@ public class GpuDevice extends GpuSystem {
    * @return the device name
    */
   public static String getDeviceName(final int device) {
-    return new String(GpuDevice.getDeviceProperties(device).name, Charset.forName("ASCII")).trim();
+    return new String(CudaDevice.getDeviceProperties(device).name, Charset.forName("ASCII")).trim();
   }
   
   /**
@@ -104,7 +104,7 @@ public class GpuDevice extends GpuSystem {
       @javax.annotation.Nonnull final cudaDeviceProp deviceProp = new cudaDeviceProp();
       final int result = JCuda.cudaGetDeviceProperties(deviceProp, device);
       getDeviceProperties_execution.accept((System.nanoTime() - startTime) / 1e9);
-      GpuSystem.log("cudaGetDeviceProperties", result, deviceProp, device);
+      CudaSystem.log("cudaGetDeviceProperties", result, deviceProp, device);
       return deviceProp;
     });
   }
@@ -120,9 +120,9 @@ public class GpuDevice extends GpuSystem {
       long startTime = System.nanoTime();
       final int result = JCuda.cudaSetDevice(cudaDeviceId);
       setDevice_execution.accept((System.nanoTime() - startTime) / 1e9);
-      GpuSystem.log("cudaSetDevice", result, cudaDeviceId);
-      GpuSystem.handle(result);
-      GpuSystem.currentDevice.set(cudaDeviceId);
+      CudaSystem.log("cudaSetDevice", result, cudaDeviceId);
+      CudaSystem.handle(result);
+      CudaSystem.currentDevice.set(cudaDeviceId);
     }
   }
   

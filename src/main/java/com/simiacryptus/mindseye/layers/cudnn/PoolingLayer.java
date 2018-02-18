@@ -100,7 +100,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   @Nullable
   @Override
   public Result eval(@javax.annotation.Nonnull final Result... inObj) {
-    if (!GpuSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final int poolDims = 2;
     @javax.annotation.Nonnull final int windowSize[] = {windowX, windowY};
@@ -113,22 +113,22 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     batch.addRef();
     final int inputDims = Tensor.dim(inputSize);
     @javax.annotation.Nonnull final int[] outputSize = new int[4];
-    final CudaPtr outputData = GpuSystem.eval(gpu -> {
+    final CudaPtr outputData = CudaSystem.eval(gpu -> {
       try {
         gpu.initThread();
-        @javax.annotation.Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = GpuSystem.createPoolingDescriptor(
+        @javax.annotation.Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = CudaSystem.createPoolingDescriptor(
           mode.id, poolDims, windowSize, padding, stride);
-        @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
+        @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = CudaSystem.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-        GpuSystem.handle(GpuSystem.cudnnGetPoolingNdForwardOutputDim(poolingDesc.getPtr(), inputDescriptor.getPtr(), 4, outputSize));
+        CudaSystem.handle(CudaSystem.cudnnGetPoolingNdForwardOutputDim(poolingDesc.getPtr(), inputDescriptor.getPtr(), 4, outputSize));
         assert inputSize[2] == outputSize[1];
-        @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = GpuSystem.newTensorDescriptor(
+        @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = CudaSystem.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[0], outputSize[1], outputSize[2], outputSize[3]);
         @javax.annotation.Nonnull final Pointer alpha = precision.getPointer(1.0);
         @javax.annotation.Nonnull final Pointer beta = precision.getPointer(0.0);
         @Nullable final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
         @javax.annotation.Nonnull final CudaPtr outputTensor = CudaPtr.allocate(gpu.getDeviceNumber(), precision.size * 1l * Tensor.dim(outputSize), MemoryType.Managed, true);
-        GpuSystem.handle(gpu.cudnnPoolingForward(poolingDesc.getPtr(),
+        CudaSystem.handle(gpu.cudnnPoolingForward(poolingDesc.getPtr(),
           alpha,
           inputDescriptor.getPtr(), inputData.getPtr(),
           beta,
@@ -139,23 +139,23 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
         throw new ComponentException("Error", e);
       }
     });
-    return new Result(GpuTensorList.create(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, precision),
+    return new Result(CudaTensorList.create(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, precision),
       (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
         assert error.length() == batch.length();
         if (input.isAlive()) {
-          TensorList data = GpuSystem.eval(gpu -> {
-            @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = GpuSystem.newTensorDescriptor(
+          TensorList data = CudaSystem.eval(gpu -> {
+            @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = CudaSystem.newTensorDescriptor(
               precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-            @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = GpuSystem.newTensorDescriptor(
+            @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = CudaSystem.newTensorDescriptor(
               precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[0], outputSize[1], outputSize[2], outputSize[3]);
-            @javax.annotation.Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = GpuSystem.createPoolingDescriptor(
+            @javax.annotation.Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = CudaSystem.createPoolingDescriptor(
               mode.id, poolDims, windowSize, padding, stride);
             @javax.annotation.Nonnull final Pointer alpha = precision.getPointer(1.0);
             @javax.annotation.Nonnull final Pointer beta = precision.getPointer(0.0);
             @Nullable final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
             @Nullable final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
             @javax.annotation.Nonnull final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), inputDims * 1l * precision.size * length, MemoryType.Managed, true);
-            GpuSystem.handle(gpu.cudnnPoolingBackward(poolingDesc.getPtr(),
+            CudaSystem.handle(gpu.cudnnPoolingBackward(poolingDesc.getPtr(),
               alpha,
               outputDescriptor.getPtr(), outputData.getPtr(),
               outputDescriptor.getPtr(), errorPtr.getPtr(),
@@ -163,7 +163,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
               beta,
               inputDescriptor.getPtr(), passbackBuffer.getPtr()));
             gpu.registerForCleanup(errorPtr, inputData, inputDescriptor, outputDescriptor, poolingDesc);
-            return GpuTensorList.wrap(passbackBuffer, length, inputSize, precision);
+            return CudaTensorList.wrap(passbackBuffer, length, inputSize, precision);
           });
           input.accumulate(buffer, data);
           data.freeRef();

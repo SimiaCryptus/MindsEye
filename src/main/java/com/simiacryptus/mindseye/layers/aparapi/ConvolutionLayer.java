@@ -35,7 +35,7 @@ import java.util.stream.IntStream;
 /**
  * This convolution layer is often used as the reference implementation for other convolution implementation. It uses
  * OpenCL via Aparapi to compile Java into GPU-accellerated kernels. Due to its simple implementation and limitations of
- * Aparapi, it is not as fast as GpuSystem-powered layers.
+ * Aparapi, it is not as fast as CudaSystem-powered layers.
  */
 @SuppressWarnings("serial")
 public class ConvolutionLayer extends LayerBase {

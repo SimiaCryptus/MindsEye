@@ -21,8 +21,8 @@ package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.CudaPtr;
-import com.simiacryptus.mindseye.lang.cudnn.GpuSystem;
-import com.simiacryptus.mindseye.lang.cudnn.GpuTensorList;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
+import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.test.SimpleGpuEval;
 import com.simiacryptus.mindseye.test.SimpleResult;
@@ -74,13 +74,13 @@ public class GpuLocalityTester extends ComponentTestBase<ToleranceStatistics> {
    */
   public ToleranceStatistics test(@Nullable final Layer reference, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
     if (null == reference) return new ToleranceStatistics();
-    return GpuSystem.eval(gpu -> {
+    return CudaSystem.eval(gpu -> {
       final TensorList[] heapInput = Arrays.stream(inputPrototype).map(t ->
         TensorArray.wrap(IntStream.range(0, getBatchSize()).mapToObj(i -> t.map(v -> getRandom()))
           .toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
       TensorList[] gpuInput = Arrays.stream(heapInput).map(original -> {
         @javax.annotation.Nullable CudaPtr cudaPtr = CudaPtr.getCudaPtr(Precision.Double, original);
-        return GpuTensorList.wrap(cudaPtr, original.length(), original.getDimensions(), Precision.Double);
+        return CudaTensorList.wrap(cudaPtr, original.length(), original.getDimensions(), Precision.Double);
       }).toArray(i -> new TensorList[i]);
       @Nonnull final SimpleResult fromHeap = SimpleGpuEval.run(reference, gpu, heapInput);
       @Nonnull final SimpleResult fromGPU = SimpleGpuEval.run(reference, gpu, gpuInput);

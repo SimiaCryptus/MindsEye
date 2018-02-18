@@ -33,7 +33,7 @@ public abstract class CudaResourceBase<T> extends ReferenceCountingBase {
   /**
    * The Obj generation.
    */
-  public final int objGeneration = GpuSystem.gpuGeneration.get();
+  public final int objGeneration = CudaSystem.gpuGeneration.get();
   /**
    * The Ptr.
    */
@@ -67,7 +67,7 @@ public abstract class CudaResourceBase<T> extends ReferenceCountingBase {
    * @return the boolean
    */
   public boolean isActiveObj() {
-    return objGeneration == GpuSystem.gpuGeneration.get();
+    return objGeneration == CudaSystem.gpuGeneration.get();
   }
   
 }
