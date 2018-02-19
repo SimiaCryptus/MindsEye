@@ -92,7 +92,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
     log.info("Using compatibility layer for " + this);
     return new LayerBase() {
       @javax.annotation.Nonnull
-      com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer inner = this.as(com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer.class);
+      com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer inner = ImgBandBiasLayer.this.as(com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer.class);
   
       @javax.annotation.Nonnull
       @Override

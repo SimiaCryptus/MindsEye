@@ -39,15 +39,16 @@ import java.util.stream.Stream;
  */
 public class CudnnHandle extends CudaDevice {
   /**
-   * The constant POOL.
-   */
-  public static final StaticResourcePool<CudnnHandle> POOL = new StaticResourcePool<>(loadGpuContexts());
-  /**
    * The constant gpuContexts.
    */
   private static final boolean DISABLE = Boolean.parseBoolean(System.getProperty("DISABLE_CUDNN", Boolean.toString(false)));
   private static final boolean FORCE_SINGLE_GPU = Boolean.parseBoolean(System.getProperty("FORCE_SINGLE_GPU", Boolean.toString(false)));
   private static final int THREADS_PER_GPU = Integer.parseInt(System.getProperty("THREADS_PER_GPU", Integer.toString(3)));
+  
+  /**
+   * The constant POOL.
+   */
+  public static final StaticResourcePool<CudnnHandle> POOL = new StaticResourcePool<>(loadGpuContexts());
   /**
    * The Thread context.
    */
@@ -471,7 +472,6 @@ public class CudnnHandle extends CudaDevice {
    * @param algorithm  the algorithm
    * @return the cuda ptr
    */
-  @javax.annotation.Nonnull
   public CudaPtr allocateBackwardDataWorkspace(final int deviceId, final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc, final int algorithm) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final long sizeInBytesArray[] = {0};
@@ -483,9 +483,8 @@ public class CudnnHandle extends CudaDevice {
       filterDesc, outputDesc, convDesc, inputDesc,
       algorithm, sizeInBytesArray);
     CudaSystem.handle(result);
-    final long workspaceSize = sizeInBytesArray[0];
-    final long size = 0 < workspaceSize ? workspaceSize : 0;
-    return CudaPtr.allocate(deviceId, size, MemoryType.Device, true);
+    final long size = sizeInBytesArray[0];
+    return CudaPtr.allocate(deviceId, Math.max(1, size), MemoryType.Device, true);
   }
   
   /**
@@ -499,7 +498,6 @@ public class CudnnHandle extends CudaDevice {
    * @param algorithm     the algorithm
    * @return the cuda ptr
    */
-  @javax.annotation.Nonnull
   public CudaPtr allocateBackwardFilterWorkspace(final int deviceId, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final long sizeInBytesArray[] = {0};
@@ -511,9 +509,8 @@ public class CudnnHandle extends CudaDevice {
       srcTensorDesc, dstTensorDesc, convDesc, filterDesc,
       algorithm, sizeInBytesArray);
     CudaSystem.handle(result);
-    final long workspaceSize = sizeInBytesArray[0];
-    final long size = 0 < workspaceSize ? workspaceSize : 0;
-    return CudaPtr.allocate(deviceId, size, MemoryType.Device, true);
+    final long size = sizeInBytesArray[0];
+    return CudaPtr.allocate(deviceId, Math.max(1, size), MemoryType.Device, true);
   }
   
   /**
@@ -527,7 +524,6 @@ public class CudnnHandle extends CudaDevice {
    * @param algorithm     the algorithm
    * @return the cuda ptr
    */
-  @javax.annotation.Nonnull
   public CudaPtr allocateForwardWorkspace(final int deviceId, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final long sizeInBytesArray[] = {0};
@@ -539,9 +535,8 @@ public class CudnnHandle extends CudaDevice {
       srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
       algorithm, sizeInBytesArray);
     CudaSystem.handle(result);
-    final long workspaceSize = sizeInBytesArray[0];
-    final long size = 0 < workspaceSize ? workspaceSize : 0;
-    return CudaPtr.allocate(deviceId, size, MemoryType.Device, true);
+    final long size = sizeInBytesArray[0];
+    return CudaPtr.allocate(deviceId, Math.max(1, size), MemoryType.Device, true);
   }
   
   /**

@@ -232,8 +232,8 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
           cudaParameters.filterDescriptor.getPtr(), filterPtr.getPtr(),
           cudaParameters.convolutionDescriptor.getPtr(),
           cudaParameters.forwardAlgorithm,
-          cudaParameters.forwardWorkspace.getPtr(),
-          cudaParameters.forwardWorkspace.size,
+          null == cudaParameters.forwardWorkspace ? null : cudaParameters.forwardWorkspace.getPtr(),
+          null == cudaParameters.forwardWorkspace ? 0 : cudaParameters.forwardWorkspace.size,
           precision.getPointer(0.0), cudaParameters.outputDescriptor.getPtr(), outputBuffer.getPtr()));
         gpu.registerForCleanup(filterPtr, inputBuffer);
         return CudaTensorList.wrap(outputBuffer, length, cudaParameters.outputDims, precision);
@@ -275,6 +275,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
         if (input.isAlive()) {
           final TensorList inputBufferTensors = CudaSystem.eval(gpu -> {
             @Nullable CudaRevParameters cudaParameters = obtainRev(new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu));
+            assert cudaParameters != null;
             @javax.annotation.Nonnull final CudaPtr inputBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), Tensor.dim(inputData.getDimensions()) * 1l * length * precision.size, MemoryType.Managed, true);
             try {
               @javax.annotation.Nullable final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, delta);

@@ -69,7 +69,7 @@ public abstract class ImageClassifier {
    */
   public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @javax.annotation.Nonnull Layer network, int count, @javax.annotation.Nonnull List<String> categories, int batchSize, boolean asyncGC, boolean nullGC, Tensor[] data) {
     try {
-      return Lists.partition(Arrays.asList(data), batchSize).stream().flatMap(batch -> {
+      return Lists.partition(Arrays.asList(data), 1).stream().flatMap(batch -> {
         Tensor[][] input = {
           batch.stream().map(prefilter).toArray(i -> new Tensor[i])
         };

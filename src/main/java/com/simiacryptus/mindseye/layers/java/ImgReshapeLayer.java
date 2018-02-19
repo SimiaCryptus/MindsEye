@@ -89,9 +89,9 @@ public class ImgReshapeLayer extends LayerBase {
     final int kernelSizeY = inDim[0] / outDim[0];
     int index = 0;
     @Nullable final double[] outputDataData = outputData.getData();
-    for (int xx = 0; xx < kernelSizeX; xx++) {
-      for (int yy = 0; yy < kernelSizeY; yy++) {
-        for (int z = 0; z < inDim[2]; z++) {
+    for (int z = 0; z < inDim[2]; z++) {
+      for (int xx = 0; xx < kernelSizeX; xx++) {
+        for (int yy = 0; yy < kernelSizeY; yy++) {
           for (int y = 0; y < inDim[1]; y += kernelSizeY) {
             for (int x = 0; x < inDim[0]; x += kernelSizeX) {
               outputDataData[index++] = inputData.get(x + xx, y + yy, z);
@@ -124,9 +124,9 @@ public class ImgReshapeLayer extends LayerBase {
     final int kernelSizeX = outDim[0] / inDim[0];
     final int kernelSizeY = outDim[0] / inDim[0];
     int index = 0;
-    for (int xx = 0; xx < kernelSizeX; xx++) {
-      for (int yy = 0; yy < kernelSizeY; yy++) {
-        for (int z = 0; z < outDim[2]; z++) {
+    for (int z = 0; z < outDim[2]; z++) {
+      for (int xx = 0; xx < kernelSizeX; xx++) {
+        for (int yy = 0; yy < kernelSizeY; yy++) {
           for (int y = 0; y < outDim[1]; y += kernelSizeY) {
             for (int x = 0; x < outDim[0]; x += kernelSizeX) {
               outputData.set(x + xx, y + yy, z, inputData.getData()[index++]);
@@ -159,8 +159,8 @@ public class ImgReshapeLayer extends LayerBase {
     final TensorList batch = input.getData();
     @javax.annotation.Nonnull final int[] inputDims = batch.getDimensions();
     assert 3 == inputDims.length;
-    assert expand || 0 == inputDims[0] % kernelSizeX;
-    assert expand || 0 == inputDims[1] % kernelSizeX;
+    assert expand || 0 == inputDims[0] % kernelSizeX : (inputDims[0] + " % " + kernelSizeX);
+    assert expand || 0 == inputDims[1] % kernelSizeY : (inputDims[1] + " % " + kernelSizeY);
     assert !expand || 0 == inputDims[2] % (kernelSizeX * kernelSizeY);
     //assert input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     Tensor outputDims;

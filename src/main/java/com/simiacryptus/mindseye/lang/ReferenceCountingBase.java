@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class ReferenceCountingBase implements ReferenceCounting {
   
   private static final Logger logger = LoggerFactory.getLogger(ReferenceCountingBase.class);
-  private static final boolean DEBUG_LIFECYCLE = false || Boolean.parseBoolean(System.getProperty("DEBUG_LIFECYCLE", Boolean.toString(TestUtil.CONSERVATIVE)));
+  private static final boolean DEBUG_LIFECYCLE = true || Boolean.parseBoolean(System.getProperty("DEBUG_LIFECYCLE", Boolean.toString(TestUtil.CONSERVATIVE)));
   private static final long LOAD_TIME = System.nanoTime();
   private static final UUID jvmId = UUID.randomUUID();
   
@@ -145,7 +145,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
         UUID linkObj = freeRefObjs.isEmpty() ? objectId : freeRefObjs.get(freeRefObjs.size() - 1);
         String linkStr = objectId.equals(linkObj) ? "" : linkObj.toString();
         out.println(String.format("freed by %s\n\t%s", linkStr,
-          getString(freeRefs.get(freeRefs.size() - 1)).replaceAll("\n", "\n\t")));
+          (0 == freeRefs.size() ? "" : getString(freeRefs.get(freeRefs.size() - 1))).replaceAll("\n", "\n\t")));
       }
     }
     if (includeCaller) out.println(String.format("with current stack \n\t%s",

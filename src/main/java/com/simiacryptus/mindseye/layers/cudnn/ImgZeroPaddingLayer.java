@@ -73,6 +73,8 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
     sizeX = json.get("sizeX").getAsInt();
     sizeY = json.get("sizeY").getAsInt();
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
+    assert sizeY >= 0;
+    assert sizeX >= 0;
   }
   
   /**

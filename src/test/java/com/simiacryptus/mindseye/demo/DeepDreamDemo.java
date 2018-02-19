@@ -87,9 +87,9 @@ public class DeepDreamDemo extends NotebookReportBase {
     Tensor[] images = log.code(() -> {
       return Caltech101.trainingDataStream().sorted(getShuffleComparator()).map(labeledObj -> {
         @Nullable BufferedImage img = labeledObj.data.get();
-        img = TestUtil.resize(img, 224);
+        //img = TestUtil.resize(img, 224);
         return Tensor.fromRGB(img);
-      }).limit(10).toArray(i1 -> new Tensor[i1]);
+      }).limit(50).toArray(i1 -> new Tensor[i1]);
     });
     
     log.h1("Prediction");

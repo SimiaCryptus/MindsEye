@@ -148,6 +148,7 @@ class CountingResult extends Result {
     @Override
     public void accept(DeltaSet<Layer> buffer, @javax.annotation.Nonnull TensorList data) {
       assertAlive();
+      data.assertAlive();
       if (1 >= references.get()) {
         if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
         inner.accumulate(buffer, data);
@@ -180,10 +181,10 @@ class CountingResult extends Result {
               b.freeRef();
               return c;
             }).get();
+            passbackBuffers.clear();
             inner.accumulate(buffer, reduced);
             reduced.freeRef();
             accumulations.set(0);
-            passbackBuffers.clear();
           }
         }
       }
@@ -192,7 +193,7 @@ class CountingResult extends Result {
     @Override
     protected void _free() {
       synchronized (passbackBuffers) {
-        passbackBuffers.stream().distinct().forEach(t -> t.freeRef());
+        passbackBuffers.stream().forEach(t -> t.freeRef());
         passbackBuffers.clear();
       }
       this.inner.freeRef();

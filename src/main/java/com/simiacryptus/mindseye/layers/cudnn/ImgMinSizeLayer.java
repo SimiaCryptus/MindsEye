@@ -38,19 +38,17 @@ import java.util.Map;
  * number of color bands, and the area outside the source image will be setWeights to 0.
  */
 @SuppressWarnings("serial")
-public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<ImgModulusPaddingLayer> {
-  private static final Logger log = LoggerFactory.getLogger(ImgModulusPaddingLayer.class);
+public class ImgMinSizeLayer extends LayerBase implements MultiPrecision<ImgMinSizeLayer> {
+  private static final Logger log = LoggerFactory.getLogger(ImgMinSizeLayer.class);
   
   private int sizeX;
   private int sizeY;
-  private int offsetX;
-  private int offsetY;
   private Precision precision = Precision.Double;
   
   /**
    * Instantiates a new Img concat layer.
    */
-  private ImgModulusPaddingLayer() {
+  private ImgMinSizeLayer() {
   }
   
   /**
@@ -59,15 +57,9 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
    * @param sizeX the size x
    * @param sizeY the size y
    */
-  public ImgModulusPaddingLayer(int sizeX, int sizeY, int offsetX, int offsetY) {
+  public ImgMinSizeLayer(int sizeX, int sizeY) {
     this.sizeX = sizeX;
     this.sizeY = sizeY;
-    this.offsetX = offsetX;
-    this.offsetY = offsetY;
-  }
-  
-  public ImgModulusPaddingLayer(int sizeX, int sizeY) {
-    this(sizeX, sizeY, 0, 0);
   }
   
   /**
@@ -76,12 +68,10 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
    * @param json the json
    * @param rs   the rs
    */
-  protected ImgModulusPaddingLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected ImgMinSizeLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json);
     sizeX = json.get("sizeX").getAsInt();
     sizeY = json.get("sizeY").getAsInt();
-    offsetX = json.get("offsetX").getAsInt();
-    offsetY = json.get("offsetY").getAsInt();
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
   }
   
@@ -92,8 +82,8 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static ImgModulusPaddingLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
-    return new ImgModulusPaddingLayer(json, rs);
+  public static ImgMinSizeLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+    return new ImgMinSizeLayer(json, rs);
   }
   
   @Nullable
@@ -103,21 +93,9 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
     @Nonnull int[] dimensions = inObj[0].getData().getDimensions();
     int inputWidth = dimensions[0];
     int inputHeight = dimensions[1];
-  
-    int sizeX = Math.abs(this.sizeX);
-    int paddingX = sizeX - ((inputWidth - offsetX) % sizeX);
-    while (paddingX < 0) paddingX += sizeX;
-    while (paddingX >= sizeX) paddingX -= sizeX;
-    if (this.sizeX < 0 && (paddingX + inputWidth) > sizeX) paddingX -= sizeX;
-  
-    int sizeY = Math.abs(this.sizeY);
-    int paddingY = sizeY - ((inputHeight - offsetY) % sizeY);
-    while (paddingY < 0) paddingY += sizeY;
-    while (paddingY >= sizeY) paddingY -= sizeY;
-    if (this.sizeY < 0 && (paddingY + inputHeight) > sizeY) paddingY -= sizeY;
     
-    int ouputWidth = inputWidth + paddingX;
-    int outputHeight = inputHeight + paddingY;
+    int ouputWidth = Math.max(inputWidth, sizeX);
+    int outputHeight = Math.max(inputHeight, sizeY);
     assert ouputWidth > 0;
     assert outputHeight > 0;
     if (ouputWidth == inputWidth) {
@@ -140,8 +118,6 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("sizeY", sizeY);
     json.addProperty("sizeX", sizeX);
-    json.addProperty("offsetX", offsetX);
-    json.addProperty("offsetY", offsetY);
     json.addProperty("precision", precision.name());
     return json;
   }
@@ -159,16 +135,9 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
   
   @Nonnull
   @Override
-  public ImgModulusPaddingLayer setPrecision(final Precision precision) {
+  public ImgMinSizeLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
   
-  public int getOffsetX() {
-    return offsetX;
-  }
-  
-  public void setOffsetX(int offsetX) {
-    this.offsetX = offsetX;
-  }
 }

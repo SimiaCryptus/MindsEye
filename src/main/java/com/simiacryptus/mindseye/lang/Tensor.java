@@ -38,7 +38,7 @@ import java.util.stream.*;
  * handling in MindsEye, and may have some odd-looking or suprising optimizations.
  */
 @SuppressWarnings("serial")
-public class Tensor extends ReferenceCountingBase implements Serializable {
+public final class Tensor extends ReferenceCountingBase implements Serializable {
   
   /**
    * The constant json_precision.
@@ -64,7 +64,7 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
   /**
    * Instantiates a new Tensor.
    */
-  protected Tensor() {
+  private Tensor() {
     super();
     data = null;
     strides = null;
@@ -88,7 +88,7 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
    */
   public Tensor(@Nullable final double[] data, @javax.annotation.Nonnull final int... dims) {
     if (Tensor.dim(dims) > Integer.MAX_VALUE) throw new IllegalArgumentException();
-    dimensions = Arrays.copyOf(dims, dims.length);
+    dimensions = (null == dims || 0 == dims.length) ? new int[]{data.length} : Arrays.copyOf(dims, dims.length);
     strides = Tensor.getSkips(dims);
     //this.data = data;// Arrays.copyOf(data, data.length);
     if (null != data) {
@@ -138,8 +138,9 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
    *
    * @param dims the dims
    */
-  public Tensor(final int... dims) {
+  public Tensor(@Nonnull final int... dims) {
     this((double[]) null, dims);
+    assert dims.length > 0;
   }
   
   /**
@@ -763,6 +764,7 @@ public class Tensor extends ReferenceCountingBase implements Serializable {
    *
    * @return the int [ ]
    */
+  @Nonnull
   public final int[] getDimensions() {
     return Arrays.copyOf(dimensions, dimensions.length);
   }

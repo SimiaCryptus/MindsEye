@@ -116,7 +116,10 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
     final TensorList outputData = CudaSystem.eval(gpu -> {
       @Nullable final CudaPtr inputBuffer = CudaPtr.getCudaPtr(precision, in.getData());
       boolean dirty = dimOut[0] <= dimIn[0] && dimOut[1] <= dimIn[1];
-      @javax.annotation.Nonnull final CudaPtr outputBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), (long) (length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size), MemoryType.Managed, dirty);
+      assert dimOut[0] > 0;
+      assert dimOut[1] > 0;
+      assert dimOut[2] > 0;
+      @javax.annotation.Nonnull final CudaPtr outputBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), (long) length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size, MemoryType.Managed, dirty);
       copy(gpu, length, dimIn, inputBuffer, dimOut, outputBuffer);
       gpu.registerForCleanup(inputBuffer);
       return CudaTensorList.wrap(outputBuffer, length, dimOut, precision);

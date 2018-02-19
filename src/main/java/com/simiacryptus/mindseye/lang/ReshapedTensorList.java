@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.lang;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
@@ -47,12 +46,12 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
     this.dims = toDim;
   }
   
-  @Nullable
+  @Nonnull
   @Override
   public Tensor get(int i) {
     assertAlive();
-    @javax.annotation.Nullable Tensor tensor = inner.get(i);
-    @javax.annotation.Nullable Tensor reshapeCast = tensor.reshapeCast(dims);
+    @javax.annotation.Nonnull Tensor tensor = inner.get(i);
+    @javax.annotation.Nonnull Tensor reshapeCast = tensor.reshapeCast(dims);
     tensor.freeRef();
     return reshapeCast;
   }

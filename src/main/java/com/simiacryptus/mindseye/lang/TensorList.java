@@ -55,6 +55,8 @@ public interface TensorList extends ReferenceCounting {
    * @return the tensor list
    */
   default TensorList addAndFree(@javax.annotation.Nonnull final TensorList right) {
+    assertAlive();
+    right.assertAlive();
     TensorList add = add(right);
     freeRef();
     return add;
@@ -117,7 +119,7 @@ public interface TensorList extends ReferenceCounting {
    * @param i the
    * @return the tensor
    */
-  @javax.annotation.Nullable
+  @javax.annotation.Nonnull
   Tensor get(int i);
   
   /**
@@ -162,7 +164,7 @@ public interface TensorList extends ReferenceCounting {
    * @param i the
    * @return the and free
    */
-  @javax.annotation.Nullable
+  @javax.annotation.Nonnull
   default Tensor getAndFree(int i) {
     @javax.annotation.Nullable Tensor tensor = get(i);
     freeRef();

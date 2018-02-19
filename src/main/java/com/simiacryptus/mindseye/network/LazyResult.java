@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.network;
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.Singleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
@@ -33,6 +35,7 @@ import java.util.function.Supplier;
  */
 @SuppressWarnings("serial")
 abstract class LazyResult extends ReferenceCountingBase implements DAGNode {
+  private static final Logger log = LoggerFactory.getLogger(LazyResult.class);
   
   /**
    * The Id.
@@ -81,10 +84,15 @@ abstract class LazyResult extends ReferenceCountingBase implements DAGNode {
         }
       }
       if (null != singleton) {
-        @javax.annotation.Nullable Result result = eval(context);
-        if (null == result) throw new IllegalStateException();
-        singleton.set(new CountingResult(result));
-        result.freeRef();
+        try {
+          @javax.annotation.Nullable Result result = eval(context);
+          if (null == result) throw new IllegalStateException();
+          singleton.set(new CountingResult(result));
+          result.freeRef();
+        } catch (Throwable e) {
+          log.warn("Error execuing network component", e);
+          singleton.set(e);
+        }
       }
     }
     Supplier<CountingResult> resultSupplier = context.calculated.get(id);

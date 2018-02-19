@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
@@ -35,8 +36,12 @@ public class TensorArray extends RegisteredObjectBase implements TensorList {
    * @param data the data
    */
   private TensorArray(@javax.annotation.Nonnull final Tensor... data) {
-    this.data = data;
+    assert null != data;
+    assert 0 < data.length;
+    this.data = Arrays.copyOf(data, data.length);
     for (@javax.annotation.Nonnull Tensor tensor : data) {
+      assert null != data;
+      assert Arrays.equals(tensor.getDimensions(), this.data[0].getDimensions()) : Arrays.toString(tensor.getDimensions()) + " != " + Arrays.toString(tensor.getDimensions());
       tensor.addRef();
     }
   }
@@ -79,6 +84,7 @@ public class TensorArray extends RegisteredObjectBase implements TensorList {
   }
   
   @Override
+  @Nonnull
   public Tensor get(final int i) {
     Tensor datum = data[i];
     datum.addRef();

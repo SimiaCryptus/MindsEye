@@ -155,6 +155,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
   @Override
   public synchronized TensorList add(@javax.annotation.Nonnull final TensorList right) {
     assertAlive();
+    right.assertAlive();
     assert length() == right.length();
     if (right instanceof ReshapedTensorList) return add(((ReshapedTensorList) right).getInner());
     if (heapCopy == null) {
@@ -220,6 +221,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
   }
   
   @Override
+  @Nonnull
   public Tensor get(final int i) {
     assertAlive();
     return heapCopy().get(i);

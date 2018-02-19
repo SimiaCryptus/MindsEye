@@ -45,7 +45,6 @@ import com.simiacryptus.util.test.SysOutInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -55,6 +54,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
@@ -328,6 +328,10 @@ public class EncodingUtil {
    * @return the tensor [ ] [ ]
    */
   public static Tensor[][] getImages(@javax.annotation.Nonnull final NotebookOutput log, final int size, final int maxImages, @javax.annotation.Nonnull final String... categories) {
+    return getImages(log, img -> 0 >= size ? img : TestUtil.resize(img, size), maxImages, categories);
+  }
+  
+  public static Tensor[][] getImages(@javax.annotation.Nonnull final NotebookOutput log, final Function<BufferedImage, BufferedImage> fn, final int maxImages, @javax.annotation.Nonnull final String[] categories) {
     log.out("Available images and categories:");
     log.code(() -> {
       return Caltech101.trainingDataStream().collect(Collectors.groupingBy(x -> x.label, Collectors.counting()));
@@ -337,11 +341,9 @@ public class EncodingUtil {
       return Caltech101.trainingDataStream().filter(x -> {
         return categories.length == 0 || Arrays.asList(categories).contains(x.label);
       }).parallel().map(labeledObj -> {
-        @Nullable BufferedImage img = labeledObj.data.get();
-        img = TestUtil.resize(img, size);
         return new Tensor[]{
-          0 == categories.length ? new Tensor() : new Tensor(categories.length).set(Arrays.asList(categories).indexOf(labeledObj.label), 1.0),
-          Tensor.fromRGB(img)
+          new Tensor(Math.max(1, categories.length)).set(Math.max(0, Arrays.asList(categories).indexOf(labeledObj.label)), 1.0),
+          Tensor.fromRGB(fn.apply(labeledObj.data.get()))
         };
       }).sorted(Comparator.comparingInt(a -> System.identityHashCode(a) ^ seed)).limit(maxImages).toArray(i -> new Tensor[i][]);
     } catch (@javax.annotation.Nonnull final RuntimeException e) {

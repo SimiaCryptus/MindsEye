@@ -65,7 +65,17 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
    * @param log the log
    */
   public void run(@javax.annotation.Nonnull NotebookOutput log) {
-    Future<Tensor[][]> submit = Executors.newSingleThreadExecutor().submit(() -> EncodingUtil.getImages(log, 224, 10));
+    Future<Tensor[][]> submit = Executors.newSingleThreadExecutor()
+      .submit(() -> Arrays.stream(EncodingUtil.getImages(log, img -> {
+        return img;
+//        return TestUtil.resize(img, 224, 224);
+//        if(img.getWidth()>img.getHeight()) {
+//          return TestUtil.resize(img, 224, img.getHeight() * 224 / img.getWidth());
+//        } else {
+//          return TestUtil.resize(img, img.getWidth() * 224 / img.getHeight(), 224);
+//        }
+      }, 10, new String[]{}))
+        .toArray(i -> new Tensor[i][]));
     ImageClassifier vgg16 = getImageClassifier(log);
     @javax.annotation.Nonnull Layer network = ((DemoableNetworkFactory) vgg16).build(log);
   
