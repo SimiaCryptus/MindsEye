@@ -84,7 +84,7 @@ public abstract class RescaledSubnetLayerTest extends LayerTestBase // CuDNNLaye
   public static class Basic extends RescaledSubnetLayerTest {
     @Override
     @Test(timeout = 15 * 60 * 1000)
-    @Ignore // Crashing Bug!?!?
+    @Ignore // Crashing SpanBug!?!?
     public void test() throws Throwable {
       super.test();
     }

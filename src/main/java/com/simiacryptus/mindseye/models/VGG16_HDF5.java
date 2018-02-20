@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
-import java.util.concurrent.Callable;
 
 /**
  * Details about this network architecture can be found in the following arXiv paper: Very Deep Convolutional Networks
@@ -46,6 +45,18 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
   private static final Logger log = LoggerFactory.getLogger(Hdf5Archive.class);
   private final Hdf5Archive hdf5;
   private volatile Layer network;
+  
+  @Nullable
+  Tensor prototype = new Tensor(224, 224, 3);
+  int cnt = 1;
+  @javax.annotation.Nonnull
+  int[] convolutionOrder = {3, 2, 0, 1};
+  @javax.annotation.Nonnull
+  int[] fullyconnectedOrder = {1, 0};
+  @javax.annotation.Nonnull
+  PipelineNetwork model = new PipelineNetwork();
+  @javax.annotation.Nonnull
+  Precision precision = Precision.Double;
   
   /**
    * Instantiates a new Vgg 16 hdf 5.
@@ -70,396 +81,26 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
     return network;
   }
   
-  @javax.annotation.Nonnull
-  @Override
-  public Layer build(@javax.annotation.Nonnull NotebookOutput output) {
+  private static Tensor update(final Layer layer, final Tensor prevPrototype, int cnt) {
+    int numberOfParameters = layer.state().stream().mapToInt(x -> x.length).sum();
+    @javax.annotation.Nonnull int[] prev_dimensions = prevPrototype.getDimensions();
+    Result eval = layer.eval(prevPrototype);
+    TensorList data = eval.getData();
+    if (null != prevPrototype) prevPrototype.freeRef();
     try {
-      return new Callable<Layer>() {
-        @Nullable
-        Tensor prototype = new Tensor(224, 224, 3);
-        int cnt = 1;
-        @javax.annotation.Nonnull
-        int[] convolutionOrder = {3, 2, 0, 1};
-        @javax.annotation.Nonnull
-        int[] fullyconnectedOrder = {1, 0};
-        @javax.annotation.Nonnull
-        PipelineNetwork model = new PipelineNetwork();
-        @javax.annotation.Nonnull
-        Precision precision = Precision.Double;
-        
-        @javax.annotation.Nonnull
-        @Override
-        public Layer call() throws Exception {
-          phase0();
-          phase1();
-          phase2();
-          phase3();
-          output.code(() -> {
-            model.visitLayers(layer -> {
-              if (layer instanceof MultiPrecision) {
-                ((MultiPrecision) layer).setPrecision(precision);
-              }
-            });
-            return precision;
-          });
-          if (null != prototype) prototype.freeRef();
-          prototype = null;
-          return model;
-        }
-  
-        private void phase0() {
-          output.code(() -> {
-            add(new ImgMinSizeLayer(224, 224));
-          });
-        }
-  
-        private void phase1() {
-          //  model.add(Convolution2D(64, 3, 3, activation='relu'))
-          output.code(() -> {
-            add(new ConvolutionLayer(3, 3, 3, 64)
-              .setPaddingXY(0, 0)
-              .set(hdf5.readDataSet("param_0", "layer_1")
-                .permuteDimensions(convolutionOrder))
-            );
-          });
-          output.code(() -> {
-            add(new ImgBandBiasLayer(64)
-              .set((hdf5.readDataSet("param_1", "layer_1"))));
-          });
-          output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU));
-          });
-    
-          //  model.add(Convolution2D(64, 3, 3, activation='relu'))
-          output.code(() -> {
-            add(new ConvolutionLayer(3, 3, 64, 64)
-              .setPaddingXY(0, 0)
-              .set(hdf5.readDataSet("param_0", "layer_3")
-                .permuteDimensions(convolutionOrder))
-            );
-          });
-          output.code(() -> {
-            add(new ImgBandBiasLayer(64)
-              .set((hdf5.readDataSet("param_1", "layer_3"))));
-          });
-          output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU));
-          });
-    
-          output.code(() -> {
-            add(new ImgModulusPaddingLayer(2, 2));
-          });
-          output.code(() -> {
-            add(new PoolingLayer()
-              .setMode(PoolingLayer.PoolingMode.Max)
-              .setWindowXY(2, 2)
-              .setStrideXY(2, 2));
-          });
-    
-          //  model.add(Convolution2D(128, 3, 3, activation='relu'))
-          output.code(() -> {
-            add(new ConvolutionLayer(3, 3, 64, 128)
-              .setPaddingXY(0, 0)
-              .set(hdf5.readDataSet("param_0", "layer_6")
-                .permuteDimensions(convolutionOrder))
-            );
-          });
-          output.code(() -> {
-            add(new ImgBandBiasLayer(128)
-              .set((hdf5.readDataSet("param_1", "layer_6"))));
-          });
-          output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU));
-          });
-    
-          //  model.add(Convolution2D(128, 3, 3, activation='relu'))
-          output.code(() -> {
-            add(new ConvolutionLayer(3, 3, 128, 128)
-              .setPaddingXY(0, 0)
-              .set(hdf5.readDataSet("param_0", "layer_8")
-                .permuteDimensions(convolutionOrder))
-            );
-          });
-          output.code(() -> {
-            add(new ImgBandBiasLayer(128)
-              .set((hdf5.readDataSet("param_1", "layer_8"))));
-          });
-          output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU));
-          });
-    
-          //  model.add(MaxPooling2D((2,2), strides=(2,2)))
-          output.code(() -> {
-            add(new ImgModulusPaddingLayer(2, 2));
-          });
-          output.code(() -> {
-            add(new PoolingLayer()
-              .setMode(PoolingLayer.PoolingMode.Max)
-              .setWindowXY(2, 2)
-              .setStrideXY(2, 2));
-          });
-    
-          //  model.add(Convolution2D(256, 3, 3, activation='relu'))
-          output.code(() -> {
-            add(new ConvolutionLayer(3, 3, 128, 256)
-              .setPaddingXY(0, 0)
-              .set(hdf5.readDataSet("param_0", "layer_11")
-                .permuteDimensions(convolutionOrder))
-            );
-          });
-          output.code(() -> {
-            add(new ImgBandBiasLayer(256)
-              .set((hdf5.readDataSet("param_1", "layer_11"))));
-          });
-          output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU));
-          });
-    
-          //  model.add(Convolution2D(256, 3, 3, activation='relu'))
-          output.code(() -> {
-            add(new ConvolutionLayer(3, 3, 256, 256)
-              .setPaddingXY(0, 0)
-              .set(hdf5.readDataSet("param_0", "layer_13")
-                .permuteDimensions(convolutionOrder))
-            );
-          });
-          output.code(() -> {
-            add(new ImgBandBiasLayer(256)
-              .set((hdf5.readDataSet("param_1", "layer_13"))));
-          });
-          output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU));
-          });
-    
-          //  model.add(Convolution2D(256, 3, 3, activation='relu'))
-          output.code(() -> {
-            add(new ConvolutionLayer(3, 3, 256, 256)
-              .setPaddingXY(0, 0)
-              .set(hdf5.readDataSet("param_0", "layer_15")
-                .permuteDimensions(convolutionOrder))
-            );
-          });
-          output.code(() -> {
-            add(new ImgBandBiasLayer(256)
-              .set((hdf5.readDataSet("param_1", "layer_15"))));
-          });
-          output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU));
-          });
-    
-    
-          //  model.add(MaxPooling2D((2,2), strides=(2,2)))
-          output.code(() -> {
-            add(new ImgModulusPaddingLayer(2, 2));
-          });
-          output.code(() -> {
-            add(new PoolingLayer()
-              .setMode(PoolingLayer.PoolingMode.Max)
-              .setWindowXY(2, 2)
-              .setStrideXY(2, 2));
-          });
-    
-          //  model.add(Convolution2D(512, 3, 3, activation='relu'))
-          output.code(() -> {
-            add(new ConvolutionLayer(3, 3, 256, 512)
-              .setPaddingXY(0, 0)
-              .set(hdf5.readDataSet("param_0", "layer_18")
-                .permuteDimensions(convolutionOrder))
-            );
-          });
-          output.code(() -> {
-            add(new ImgBandBiasLayer(512)
-              .set((hdf5.readDataSet("param_1", "layer_18"))));
-          });
-          output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU));
-          });
-    
-          //  model.add(Convolution2D(512, 3, 3, activation='relu'))
-          output.code(() -> {
-            add(new ConvolutionLayer(3, 3, 512, 512)
-              .setPaddingXY(0, 0)
-              .set(hdf5.readDataSet("param_0", "layer_20")
-                .permuteDimensions(convolutionOrder))
-            );
-          });
-          output.code(() -> {
-            add(new ImgBandBiasLayer(512)
-              .set((hdf5.readDataSet("param_1", "layer_20"))));
-          });
-          output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU));
-          });
-    
-          //  model.add(Convolution2D(512, 3, 3, activation='relu'))
-          output.code(() -> {
-            add(new ConvolutionLayer(3, 3, 512, 512)
-              .setPaddingXY(0, 0)
-              .set(hdf5.readDataSet("param_0", "layer_22")
-                .permuteDimensions(convolutionOrder))
-            );
-          });
-          output.code(() -> {
-            add(new ImgBandBiasLayer(512)
-              .set((hdf5.readDataSet("param_1", "layer_22"))));
-          });
-          output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU));
-          });
-    
-          //  model.add(MaxPooling2D((2,2), strides=(2,2)))
-          output.code(() -> {
-            add(new ImgModulusPaddingLayer(2, 2));
-          });
-          output.code(() -> {
-            add(new PoolingLayer()
-              .setMode(PoolingLayer.PoolingMode.Max)
-              .setWindowXY(2, 2)
-              .setStrideXY(2, 2));
-          });
-    
-          //  model.add(Convolution2D(512, 3, 3, activation='relu'))
-          output.code(() -> {
-            add(new ConvolutionLayer(3, 3, 512, 512)
-              .setPaddingXY(0, 0)
-              .set(hdf5.readDataSet("param_0", "layer_25")
-                .permuteDimensions(convolutionOrder))
-            );
-          });
-          output.code(() -> {
-            add(new ImgBandBiasLayer(512)
-              .set((hdf5.readDataSet("param_1", "layer_25"))));
-          });
-          output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU));
-          });
-    
-          //  model.add(Convolution2D(512, 3, 3, activation='relu'))
-          output.code(() -> {
-            add(new ConvolutionLayer(3, 3, 512, 512)
-              .setPaddingXY(0, 0)
-              .set(hdf5.readDataSet("param_0", "layer_27")
-                .permuteDimensions(convolutionOrder))
-            );
-          });
-          output.code(() -> {
-            add(new ImgBandBiasLayer(512)
-              .set((hdf5.readDataSet("param_1", "layer_27"))));
-          });
-          output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU));
-          });
-    
-          //  model.add(Convolution2D(512, 3, 3, activation='relu'))
-          output.code(() -> {
-            add(new ConvolutionLayer(3, 3, 512, 512)
-              .setPaddingXY(0, 0)
-              .set(hdf5.readDataSet("param_0", "layer_29")
-                .permuteDimensions(convolutionOrder))
-            );
-          });
-    
-          output.code(() -> {
-            add(new ImgBandBiasLayer(512)
-              .set((hdf5.readDataSet("param_1", "layer_29"))));
-          });
-          output.code(() -> {
-            add(new ActivationLayer(ActivationLayer.Mode.RELU));
-          });
-        }
-  
-        private void phase3() {
-          output.code(() -> {
-            add(new ConvolutionLayer(1, 1, 4096, 1000)
-              .setPaddingXY(0, 0)
-              .set(hdf5.readDataSet("param_0", "layer_36")
-                .permuteDimensions(fullyconnectedOrder))
-            );
-          });
-          output.code(() -> {
-            add(new ImgBandBiasLayer(1000)
-              .set((hdf5.readDataSet("param_1", "layer_36"))));
-          });
-    
-    
-          output.code(() -> {
-            add(new BandReducerLayer()
-              .setMode(PoolingLayer.PoolingMode.Max));
-          });
-    
-    
-          output.code(() -> {
-            add(new SoftmaxActivationLayer());
-          });
-        }
-  
-        private void phase2() {
-          output.code(() -> {
-            add(new ImgModulusPaddingLayer(7, 7));
-          });
-          output.code(() -> {
-            add(new ImgReshapeLayer(7, 7, false));
-          });
-    
-          output.code(() -> {
-            add(new ConvolutionLayer(1, 1, 25088, 4096)
-              .setPaddingXY(0, 0)
-              .set(hdf5.readDataSet("param_0", "layer_32")
-                .permuteDimensions(fullyconnectedOrder))
-            );
-          });
-          output.code(() -> {
-            add(new ImgBandBiasLayer(4096)
-              .set((hdf5.readDataSet("param_1", "layer_32"))));
-          });
-    
-          output.code(() -> {
-            add(new ConvolutionLayer(1, 1, 4096, 4096)
-              .setPaddingXY(0, 0)
-              .set(hdf5.readDataSet("param_0", "layer_34")
-                .permuteDimensions(fullyconnectedOrder))
-            );
-          });
-          output.code(() -> {
-            add(new ImgBandBiasLayer(4096)
-              .set((hdf5.readDataSet("param_1", "layer_34"))));
-          });
-        }
-  
-        protected void add(Layer layer) {
-          name(layer);
-          if (layer instanceof Explodable) {
-            DAGNetwork explode = ((Explodable) layer).explode();
-            explode.visitNodes(node -> name(node.getLayer()));
-            log.info(String.format("Exploded %s to %s (%s nodes)", layer.getName(), explode.getClass().getSimpleName(), explode.getNodes().size()));
-            add(explode);
-          }
-          else {
-            int numberOfParameters = layer.state().stream().mapToInt(x -> x.length).sum();
-            model.add(layer);
-            @javax.annotation.Nonnull int[] prev_dimensions = prototype.getDimensions();
-            Result eval = layer.eval(prototype);
-            TensorList data = eval.getData();
-            if (null != prototype) prototype.freeRef();
-            prototype = data.get(0);
-            eval.freeRef();
-            data.freeRef();
-            @javax.annotation.Nonnull int[] new_dimensions = prototype.getDimensions();
-            log.info(String.format("Added layer #%d: %s; %s params, dimensions %s (%s) -> %s (%s)", //
-              cnt++, layer, numberOfParameters, //
-              Arrays.toString(prev_dimensions), Tensor.dim(prev_dimensions), //
-              Arrays.toString(new_dimensions), Tensor.dim(new_dimensions)));
-          }
-        }
-      }.call();
-    } catch (@javax.annotation.Nonnull final RuntimeException e) {
-      throw e;
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+      @javax.annotation.Nonnull int[] new_dimensions = prevPrototype.getDimensions();
+      log.info(String.format("Added layer #%d: %s; %s params, dimensions %s (%s) -> %s (%s)", //
+        cnt, layer, numberOfParameters, //
+        Arrays.toString(prev_dimensions), Tensor.dim(prev_dimensions), //
+        Arrays.toString(new_dimensions), Tensor.dim(new_dimensions)));
+      return data.get(0);
+    } finally {
+      eval.freeRef();
+      data.freeRef();
     }
   }
   
-  private void name(final Layer layer) {
+  private static void name(final Layer layer) {
     if (layer.getName().contains(layer.getId().toString())) {
       if (layer instanceof ConvolutionLayer) {
         layer.setName(layer.getClass().getSimpleName() + ((ConvolutionLayer) layer).getConvolutionParams());
@@ -479,6 +120,219 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
           layer.getClass().getSimpleName(),
           ((BiasLayer) layer).bias.length));
       }
+    }
+  }
+  
+  @javax.annotation.Nonnull
+  @Override
+  public Layer build(@javax.annotation.Nonnull NotebookOutput output) {
+    try {
+      phase0(output);
+      phase1(output);
+      phase2(output, true);
+      phase3(output);
+      setPrecision(output);
+      if (null != prototype) prototype.freeRef();
+      prototype = null;
+      return model;
+    } catch (@javax.annotation.Nonnull final RuntimeException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  private void setPrecision(@javax.annotation.Nonnull final NotebookOutput output) {
+    output.code(() -> {
+      model.visitLayers(layer -> {
+        if (layer instanceof MultiPrecision) {
+          ((MultiPrecision) layer).setPrecision(precision);
+        }
+      });
+      return precision;
+    });
+  }
+  
+  private void phase0(@javax.annotation.Nonnull NotebookOutput output) {
+    output.code(() -> {
+      add(new ImgMinSizeLayer(226, 226));
+    });
+  }
+  
+  private void phase1(@javax.annotation.Nonnull NotebookOutput output) {
+    phase1a(output);
+    phase1b(output);
+    phase1c(output);
+    phase1d(output);
+    phase1e(output);
+  }
+  
+  private void phase1a(@javax.annotation.Nonnull final NotebookOutput output) {
+    addConvolutionLayer(output, 3, 3, 64, ActivationLayer.Mode.RELU, "layer_1");
+    addConvolutionLayer(output, 3, 64, 64, ActivationLayer.Mode.RELU, "layer_3");
+  }
+  
+  private void phase1b(@javax.annotation.Nonnull final NotebookOutput output) {
+    addPoolingLayer(output);
+    addConvolutionLayer(output, 3, 64, 128, ActivationLayer.Mode.RELU, "layer_6");
+    addConvolutionLayer(output, 3, 128, 128, ActivationLayer.Mode.RELU, "layer_8");
+  }
+  
+  private void phase1c(@javax.annotation.Nonnull final NotebookOutput output) {
+    addPoolingLayer(output);
+    addConvolutionLayer(output, 3, 128, 256, ActivationLayer.Mode.RELU, "layer_11");
+    addConvolutionLayer(output, 3, 256, 256, ActivationLayer.Mode.RELU, "layer_13");
+    addConvolutionLayer(output, 3, 256, 256, ActivationLayer.Mode.RELU, "layer_15");
+  }
+  
+  private void phase1d(@javax.annotation.Nonnull final NotebookOutput output) {
+    addPoolingLayer(output);
+    addConvolutionLayer(output, 3, 256, 512, ActivationLayer.Mode.RELU, "layer_18");
+    addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_20");
+    addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_22");
+  }
+  
+  private void phase1e(@javax.annotation.Nonnull final NotebookOutput output) {
+    addPoolingLayer(output);
+    addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_25");
+    addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_27");
+    addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_29");
+  }
+  
+  private void addPoolingLayer(@javax.annotation.Nonnull final NotebookOutput output) {
+    output.code(() -> {
+      add(new ImgModulusPaddingLayer(2, 2));
+    });
+    output.code(() -> {
+      add(new PoolingLayer()
+        .setMode(PoolingLayer.PoolingMode.Max)
+        .setWindowXY(2, 2)
+        .setStrideXY(2, 2));
+    });
+  }
+  
+  private void addConvolutionLayer(@javax.annotation.Nonnull final NotebookOutput output, final int radius, final int inputBands, final int outputBands, final ActivationLayer.Mode activationMode, final String hdf_group) {
+    output.code(() -> {
+      add(new ConvolutionLayer(radius, radius, inputBands, outputBands)
+        .setPaddingXY(0, 0)
+        .set(hdf5.readDataSet("param_0", hdf_group)
+          .permuteDimensions(convolutionOrder))
+      );
+    });
+    output.code(() -> {
+      add(new ImgBandBiasLayer(outputBands)
+        .set((hdf5.readDataSet("param_1", hdf_group))));
+    });
+    output.code(() -> {
+      add(new ActivationLayer(activationMode));
+    });
+  }
+  
+  private void phase2(@javax.annotation.Nonnull NotebookOutput output, boolean dense) {
+    phase2a(output);
+    phase2b(output, dense);
+  }
+  
+  private void phase2b(@javax.annotation.Nonnull final NotebookOutput output, final boolean dense) {
+    output.code(() -> {
+      add(new ImgMinSizeLayer(7, 7));
+    });
+    
+    if (dense) {
+      output.code(() -> {
+        add(new ConvolutionLayer(7, 7, 512, 4096)
+          .setStrideXY(1, 1)
+          .setPaddingXY(0, 0)
+          .set(hdf5.readDataSet("param_0", "layer_32")
+            .reshapeCast(7, 7, 512, 4096).permuteDimensions(0, 1, 3, 2)
+          )
+        );
+      });
+    }
+    else {
+      output.code(() -> {
+        add(new ImgModulusPaddingLayer(7, 7));
+      });
+      output.code(() -> {
+        add(new ImgReshapeLayer(7, 7, false));
+      });
+      output.code(() -> {
+        add(new ConvolutionLayer(1, 1, 25088, 4096)
+          .setPaddingXY(0, 0)
+          .set(hdf5.readDataSet("param_0", "layer_32")
+            .permuteDimensions(fullyconnectedOrder))
+        );
+      });
+    }
+    
+    output.code(() -> {
+      add(new ImgBandBiasLayer(4096)
+        .set((hdf5.readDataSet("param_1", "layer_32"))));
+    });
+    output.code(() -> {
+      add(new ActivationLayer(ActivationLayer.Mode.RELU));
+    });
+  }
+  
+  private void phase2a(@javax.annotation.Nonnull final NotebookOutput output) {
+    //  model.add(MaxPooling2D((2,2), strides=(2,2)))
+    addPoolingLayer(output);
+  }
+  
+  private void phase3(@javax.annotation.Nonnull NotebookOutput output) {
+    
+    output.code(() -> {
+      add(new ConvolutionLayer(1, 1, 4096, 4096)
+        .setPaddingXY(0, 0)
+        .set(hdf5.readDataSet("param_0", "layer_34")
+          .permuteDimensions(fullyconnectedOrder))
+      );
+    });
+    output.code(() -> {
+      add(new ImgBandBiasLayer(4096)
+        .set((hdf5.readDataSet("param_1", "layer_34"))));
+    });
+    output.code(() -> {
+      add(new ActivationLayer(ActivationLayer.Mode.RELU));
+    });
+    
+    output.code(() -> {
+      add(new ConvolutionLayer(1, 1, 4096, 1000)
+        .setPaddingXY(0, 0)
+        .set(hdf5.readDataSet("param_0", "layer_36")
+          .permuteDimensions(fullyconnectedOrder))
+      );
+    });
+    output.code(() -> {
+      add(new ImgBandBiasLayer(1000)
+        .set((hdf5.readDataSet("param_1", "layer_36"))));
+    });
+    
+    output.code(() -> {
+      add(new BandReducerLayer()
+        .setMode(PoolingLayer.PoolingMode.Max));
+    });
+    
+    output.code(() -> {
+      add(new SoftmaxActivationLayer());
+    });
+  }
+  
+  protected void add(Layer layer) {
+    add(layer, model);
+  }
+  
+  protected void add(Layer layer, PipelineNetwork model) {
+    name(layer);
+    if (layer instanceof Explodable) {
+      DAGNetwork explode = ((Explodable) layer).explode();
+      explode.visitNodes(node -> name(node.getLayer()));
+      log.info(String.format("Exploded %s to %s (%s nodes)", layer.getName(), explode.getClass().getSimpleName(), explode.getNodes().size()));
+      add(explode);
+    }
+    else {
+      model.add(layer);
+      this.prototype = update(layer, this.prototype, cnt++);
     }
   }
   

@@ -45,6 +45,8 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
    * The Bands.
    */
   public final int bands;
+  public int largeRadius;
+  public int smallRadius;
   /**
    * The LayerBase.
    */
@@ -57,19 +59,22 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
    * @param radius    the radius
    * @param bands     the bands
    * @param precision the precision
+   * @param stride
    */
-  protected SimpleConvolutionLayerTest(final int radius, final int bands, final Precision precision) {
+  protected SimpleConvolutionLayerTest(final int radius, final int bands, final Precision precision, int stride) {
     this.radius = radius;
     this.bands = bands;
-    layer = new SimpleConvolutionLayer(radius, radius, bands * bands).setPrecision(precision);
+    layer = new SimpleConvolutionLayer(radius, radius, bands * bands).setPrecision(precision).setStrideX(stride).setStrideY(stride);
     layer.kernel.set(() -> random());
+    smallRadius = this.radius;
+    largeRadius = 100;
   }
   
   @javax.annotation.Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {radius, radius, bands}
+      {smallRadius, smallRadius, bands}
     };
   }
   
@@ -83,7 +88,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {100, 100, bands}
+      {largeRadius, largeRadius, bands}
     };
   }
   
@@ -113,7 +118,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Image.
      */
     public Basic() {
-      super(1, 1, Precision.Double);
+      super(1, 1, Precision.Double, 1);
     }
   }
   
@@ -125,7 +130,8 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Image.
      */
     public Image() {
-      super(3, 3, Precision.Double);
+      super(3, 3, Precision.Double, 1);
+      largeRadius = smallRadius = 5;
     }
   }
   
@@ -137,7 +143,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Image float.
      */
     public Image_Float() {
-      super(3, 3, Precision.Float);
+      super(3, 3, Precision.Float, 1);
     }
   
     @Override
@@ -155,19 +161,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Matrix.
      */
     public Matrix() {
-      super(3, 1, Precision.Double);
-    }
-  }
-  
-  /**
-   * The type Temp.
-   */
-  public static class Temp extends SimpleConvolutionLayerTest {
-    /**
-     * Instantiates a new Matrix.
-     */
-    public Temp() {
-      super(1, 3, Precision.Double);
+      super(3, 1, Precision.Double, 1);
     }
   }
   
@@ -179,7 +173,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Multi band.
      */
     public MultiBand() {
-      super(1, 3, Precision.Double);
+      super(1, 3, Precision.Double, 1);
     }
   }
   
@@ -191,7 +185,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Multi band.
      */
     public Bug_Control() {
-      super(3, 8, Precision.Double);
+      super(3, 8, Precision.Double, 1);
       validateDifferentials = false;
     }
     
@@ -227,15 +221,29 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
   /**
    * Demonstration of a suspected CudaSystem bug when using 0 padding with the GPU convolution operation.
    */
-  public static class Bug extends Bug_Control {
+  public static class PaddingBug extends Bug_Control {
     /**
      * Instantiates a new Multi band.
      */
-    public Bug() {
+    public PaddingBug() {
       super();
       layer.setPaddingXY(0, 0);
     }
   
+  }
+  
+  /**
+   * Typical 3x3 image convolution (64-bit)
+   */
+  public static class SpanBug extends Bug_Control {
+    /**
+     * Instantiates a new Image.
+     */
+    public SpanBug() {
+      layer.setStrideX(2);
+      layer.setStrideY(2);
+      largeRadius = smallRadius = 5;
+    }
   }
   
   /**
@@ -262,7 +270,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
      * @param aDouble the a double
      */
     public Big(int radius, int bands, Precision aDouble) {
-      super(radius, bands, aDouble);
+      super(radius, bands, aDouble, 1);
       validateDifferentials = false;
       setTestTraining(false);
     }

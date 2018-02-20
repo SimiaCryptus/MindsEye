@@ -206,7 +206,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     assert kernel.isValid();
     assert 1 == inObj.length;
     assert 3 == inObj[0].getData().getDimensions().length;
-    assert inputBands == inObj[0].getData().getDimensions()[2];
+    assert inputBands == inObj[0].getData().getDimensions()[2] : Arrays.toString(inObj[0].getData().getDimensions()) + "[2] != " + inputBands;
     if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     @Nonnull ExplodedConvolutionGrid grid = getExplodedNetwork();
     @Nonnull PipelineNetwork network = grid.getNetwork();

@@ -70,7 +70,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     @javax.annotation.Nonnull final Tensor result = new Tensor(inputDims, outputPrototype.dim());
     for (int j = 0; j < outputPrototype.dim(); j++) {
       final int j_ = j;
-      @javax.annotation.Nonnull final PlaceholderLayer<Tensor> inputKey = new PlaceholderLayer<Tensor>(new Tensor());
+      @javax.annotation.Nonnull final PlaceholderLayer<Tensor> inputKey = new PlaceholderLayer<Tensor>(new Tensor(1));
       inputKey.getKey().freeRef();
       final Result[] copyInput = Arrays.stream(inputPrototype).map(x -> new Result(TensorArray.create(x), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {}) {
         

@@ -67,12 +67,13 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
    * @param outputBands the output bands
    * @param precision   the precision
    * @param batchBands  the batch bands
+   * @param stride
    */
-  protected ConvolutionLayerTest(final int radius, final int inputBands, final int outputBands, final Precision precision, int batchBands) {
+  protected ConvolutionLayerTest(final int radius, final int inputBands, final int outputBands, final Precision precision, int batchBands, int stride) {
     this.radius = radius;
     this.inputBands = inputBands;
     this.outputBands = outputBands;
-    convolutionLayer = new ConvolutionLayer(radius, radius, inputBands, outputBands).setPrecision(precision).setBatchBands(batchBands);
+    convolutionLayer = new ConvolutionLayer(radius, radius, inputBands, outputBands).setPrecision(precision).setBatchBands(batchBands).setStrideXY(stride, stride);
     @javax.annotation.Nonnull Random random = getRandom();
     convolutionLayer.getKernel().set(() -> {
       return random(random);
@@ -159,7 +160,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Asymmetric run.
      */
     public BandExpand() {
-      super(1, 3, 2, Precision.Double, 16);
+      super(1, 3, 2, Precision.Double, 16, 1);
     }
   
     @javax.annotation.Nonnull
@@ -187,36 +188,9 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Asymmetric run.
      */
     public BandLimit() {
-      super(1, 3, 2, Precision.Double, 16);
+      super(1, 3, 2, Precision.Double, 16, 1);
     }
 
-//    @Override
-//    public int[][] getDims(Random random) {
-//      return new int[][]{
-//        {10, 10, inputBands}
-//      };
-//    }
-//
-//    @Override
-//    public int[][] getLargeDims(Random random) {
-//      return getDims(random);
-//    }
-  
-  }
-  
-  /**
-   * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
-   */
-  public static class Temp extends ConvolutionLayerTest {
-  
-    /**
-     * Instantiates a new Asymmetric run.
-     */
-    public Temp() {
-      super(1, 4, 4, Precision.Double, 2);
-      validateDifferentials = false;
-    }
-    
   }
   
   /**
@@ -228,7 +202,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Asymmetric run.
      */
     public SqGrid() {
-      super(3, 4, 4, Precision.Double, 2);
+      super(3, 4, 4, Precision.Double, 2, 1);
     }
     
   }
@@ -242,7 +216,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Asymmetric run.
      */
     public IrregularGrid() {
-      super(3, 5, 3, Precision.Double, 2);
+      super(3, 5, 3, Precision.Double, 2, 1);
     }
     
   }
@@ -256,7 +230,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Asymmetric run.
      */
     public BandReduceTest() {
-      super(3, 6, 3, Precision.Double, 16);
+      super(3, 6, 3, Precision.Double, 16, 1);
     }
     
   }
@@ -270,7 +244,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Double.
      */
     public Double() {
-      super(3, 4, 4, Precision.Double, 16);
+      super(3, 4, 4, Precision.Double, 16, 1);
     }
     
   }
@@ -284,24 +258,10 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Double.
      */
     public NoPadding() {
-      super(3, 3, 3, Precision.Double, 16);
+      super(3, 3, 3, Precision.Double, 16, 1);
       convolutionLayer.setPaddingXY(0, 0);
     }
 
-//
-//    @Override
-//    public int[][] getDims(Random random) {
-//      return new int[][]{
-//        {50, 50, inputBands}
-//      };
-//    }
-//
-//    @Override
-//    public int[][] getLargeDims(Random random) {
-//      return getDims(random);
-//    }
-//
-  
     @Override
     public Layer getReferenceLayer() {
       // BUG: Reference aparapi implementation does not seem to implement nonstandard padding correctly
@@ -317,7 +277,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Float.
      */
     public Float() {
-      super(1, 2, 2, Precision.Float, 16);
+      super(1, 2, 2, Precision.Float, 16, 1);
     }
   }
   
@@ -330,7 +290,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Irregular run.
      */
     public IrregularTest() {
-      super(3, 7, 5, Precision.Double, 16);
+      super(3, 7, 5, Precision.Double, 16, 1);
     }
   }
   
@@ -343,7 +303,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new Irregular run float.
      */
     public IrregularTest_Float() {
-      super(3, 7, 5, Precision.Float, 16);
+      super(3, 7, 5, Precision.Float, 16, 1);
     }
   
     @Override
@@ -423,7 +383,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
      * @param batchBands  the batch bands
      */
     public Big(final int radius, final int inputBands, final int outputBands, final Precision precision, int batchBands) {
-      super(radius, inputBands, outputBands, precision, batchBands);
+      super(radius, inputBands, outputBands, precision, batchBands, 1);
       validateDifferentials = false;
     }
     

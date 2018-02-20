@@ -254,22 +254,6 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   }
   
   /**
-   * Reorder dimensions tensor.
-   *
-   * @param tensor the tensor
-   * @param fn     the fn
-   * @return the tensor
-   */
-  @javax.annotation.Nonnull
-  public static Tensor reorderDimensions(@javax.annotation.Nonnull Tensor tensor, @javax.annotation.Nonnull UnaryOperator<int[]> fn) {
-    @javax.annotation.Nonnull Tensor result = new Tensor(fn.apply(tensor.getDimensions()));
-    tensor.coordStream(false).forEach(c -> {
-      result.set(fn.apply(c.getCoords()), tensor.get(c));
-    });
-    return result;
-  }
-  
-  /**
    * From rgb tensor.
    *
    * @param img the img
@@ -420,19 +404,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    */
   @javax.annotation.Nonnull
   public static Tensor reverseDimensions(@javax.annotation.Nonnull Tensor tensor) {
-    return reorderDimensions(tensor, Tensor::reverse);
-  }
-  
-  /**
-   * Permute dimensions tensor.
-   *
-   * @param tensor the tensor
-   * @param key    the key
-   * @return the tensor
-   */
-  @javax.annotation.Nonnull
-  public static Tensor permuteDimensions(@javax.annotation.Nonnull Tensor tensor, @javax.annotation.Nonnull int... key) {
-    return reorderDimensions(tensor, in -> permute(key, in));
+    return tensor.rearrange(Tensor::reverse);
   }
   
   /**
@@ -440,13 +412,23 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    *
    * @param key  the key
    * @param data the data
+   * @param dimensions
    * @return the int [ ]
    */
   @javax.annotation.Nonnull
-  public static int[] permute(@javax.annotation.Nonnull int[] key, int[] data) {
+  public static int[] permute(@Nonnull int[] key, int[] data, final int[] dimensions) {
     @javax.annotation.Nonnull int[] copy = new int[key.length];
     for (int i = 0; i < key.length; i++) {
-      copy[i] = data[key[i]];
+      int k = key[i];
+      if (k == Integer.MAX_VALUE) {
+        copy[i] = dimensions[0] - data[0] - 1;
+      }
+      else if (k < 0) {
+        copy[i] = dimensions[-k] - data[-k] - 1;
+      }
+      else {
+        copy[i] = data[k];
+      }
     }
     return copy;
   }
@@ -475,6 +457,33 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     String prettyPrint = t.prettyPrint();
     t.freeRef();
     return prettyPrint;
+  }
+  
+  /**
+   * Reorder dimensions tensor.
+   *
+   * @param fn the fn
+   * @return the tensor
+   */
+  @Nonnull
+  public Tensor rearrange(@Nonnull UnaryOperator<int[]> fn) {return rearrange(fn, fn.apply(getDimensions()));}
+  
+  /**
+   * Reorder dimensions tensor.
+   *
+   * @param fn         the fn
+   * @param outputDims
+   * @return the tensor
+   */
+  @Nonnull
+  public Tensor rearrange(@Nonnull UnaryOperator<int[]> fn, int[] outputDims) {
+    @Nonnull Tensor result = new Tensor(outputDims);
+    coordStream(false).forEach(c -> {
+      int[] inCoords = c.getCoords();
+      int[] outCoords = fn.apply(inCoords);
+      result.set(outCoords, get(c));
+    });
+    return result;
   }
   
   /**
@@ -1614,18 +1623,10 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    */
   @javax.annotation.Nonnull
   public Tensor permuteDimensions(int... key) {
-    return permuteDimensions(this, key);
-  }
-  
-  /**
-   * Reorder dimensions tensor.
-   *
-   * @param fn the fn
-   * @return the tensor
-   */
-  @javax.annotation.Nonnull
-  public Tensor reorderDimensions(@javax.annotation.Nonnull UnaryOperator<int[]> fn) {
-    return reorderDimensions(this, fn);
+    int[] inputDims = getDimensions();
+    int[] absKey = Arrays.stream(key).map(a -> a == Integer.MAX_VALUE ? 0 : Math.abs(a)).toArray();
+    int[] outputDims = permute(absKey, inputDims, inputDims);
+    return rearrange(in -> permute(key, in, inputDims), outputDims);
   }
   
   /**

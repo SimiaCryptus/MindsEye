@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.models;
 import com.simiacryptus.mindseye.labs.encoding.EncodingUtil;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
@@ -123,11 +122,11 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
       }
       return tableOutput;
     }, 256 * 1024);
-  
-    log.p("CudaSystem Statistics:");
-    log.code(() -> {
-      return TestUtil.toFormattedJson(CudaSystem.getExecutionStatistics());
-    });
+
+//    log.p("CudaSystem Statistics:");
+//    log.code(() -> {
+//      return TestUtil.toFormattedJson(CudaSystem.getExecutionStatistics());
+//    });
   
   }
   
