@@ -60,6 +60,7 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
   public ImgZeroPaddingLayer(int sizeX, int sizeY) {
     this.sizeX = sizeX;
     this.sizeY = sizeY;
+    assert sizeY != 0 || sizeX != 0;
   }
   
   /**
@@ -73,8 +74,7 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
     sizeX = json.get("sizeX").getAsInt();
     sizeY = json.get("sizeY").getAsInt();
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
-    assert sizeY >= 0;
-    assert sizeX >= 0;
+    assert sizeY != 0 || sizeX != 0;
   }
   
   /**

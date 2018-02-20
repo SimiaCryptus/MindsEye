@@ -41,10 +41,10 @@ import java.util.Arrays;
  * for Large-Scale Image Recognition K. Simonyan, A. Zisserman arXiv:1409.1556 Please cite the paper if you use the
  * models.
  */
-class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
-  private static final Logger log = LoggerFactory.getLogger(Hdf5Archive.class);
-  private final Hdf5Archive hdf5;
-  private volatile Layer network;
+public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
+  protected static final Logger log = LoggerFactory.getLogger(Hdf5Archive.class);
+  protected final Hdf5Archive hdf5;
+  protected volatile Layer network;
   
   @Nullable
   Tensor prototype = new Tensor(224, 224, 3);
@@ -54,6 +54,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
   @javax.annotation.Nonnull
   int[] fullyconnectedOrder = {1, 0};
   @javax.annotation.Nonnull
+  protected
   PipelineNetwork model = new PipelineNetwork();
   @javax.annotation.Nonnull
   Precision precision = Precision.Double;
@@ -81,7 +82,39 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
     return network;
   }
   
-  private static Tensor update(final Layer layer, final Tensor prevPrototype, int cnt) {
+  @javax.annotation.Nonnull
+  @Override
+  public Layer build(@javax.annotation.Nonnull NotebookOutput output) {
+    try {
+      phase0(output);
+      phase1(output);
+      phase2(output, true);
+      phase3(output);
+      setPrecision(output);
+      if (null != prototype) prototype.freeRef();
+      prototype = null;
+      return model;
+    } catch (@javax.annotation.Nonnull final RuntimeException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  protected static void add(Layer layer, PipelineNetwork model) {
+    name(layer);
+    if (layer instanceof Explodable) {
+      DAGNetwork explode = ((Explodable) layer).explode();
+      explode.visitNodes(node -> name(node.getLayer()));
+      log.info(String.format("Exploded %s to %s (%s nodes)", layer.getName(), explode.getClass().getSimpleName(), explode.getNodes().size()));
+      add(explode, model);
+    }
+    else {
+      model.add(layer);
+    }
+  }
+  
+  protected static Tensor evaluatePrototype(final Layer layer, final Tensor prevPrototype, int cnt) {
     int numberOfParameters = layer.state().stream().mapToInt(x -> x.length).sum();
     @javax.annotation.Nonnull int[] prev_dimensions = prevPrototype.getDimensions();
     Result eval = layer.eval(prevPrototype);
@@ -100,7 +133,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
     }
   }
   
-  private static void name(final Layer layer) {
+  protected static void name(final Layer layer) {
     if (layer.getName().contains(layer.getId().toString())) {
       if (layer instanceof ConvolutionLayer) {
         layer.setName(layer.getClass().getSimpleName() + ((ConvolutionLayer) layer).getConvolutionParams());
@@ -123,26 +156,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
     }
   }
   
-  @javax.annotation.Nonnull
-  @Override
-  public Layer build(@javax.annotation.Nonnull NotebookOutput output) {
-    try {
-      phase0(output);
-      phase1(output);
-      phase2(output, true);
-      phase3(output);
-      setPrecision(output);
-      if (null != prototype) prototype.freeRef();
-      prototype = null;
-      return model;
-    } catch (@javax.annotation.Nonnull final RuntimeException e) {
-      throw e;
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-  
-  private void setPrecision(@javax.annotation.Nonnull final NotebookOutput output) {
+  protected void setPrecision(@javax.annotation.Nonnull final NotebookOutput output) {
     output.code(() -> {
       model.visitLayers(layer -> {
         if (layer instanceof MultiPrecision) {
@@ -153,13 +167,13 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
     });
   }
   
-  private void phase0(@javax.annotation.Nonnull NotebookOutput output) {
+  protected void phase0(@javax.annotation.Nonnull NotebookOutput output) {
     output.code(() -> {
       add(new ImgMinSizeLayer(226, 226));
     });
   }
   
-  private void phase1(@javax.annotation.Nonnull NotebookOutput output) {
+  protected void phase1(@javax.annotation.Nonnull NotebookOutput output) {
     phase1a(output);
     phase1b(output);
     phase1c(output);
@@ -167,39 +181,39 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
     phase1e(output);
   }
   
-  private void phase1a(@javax.annotation.Nonnull final NotebookOutput output) {
+  protected void phase1a(@javax.annotation.Nonnull final NotebookOutput output) {
     addConvolutionLayer(output, 3, 3, 64, ActivationLayer.Mode.RELU, "layer_1");
     addConvolutionLayer(output, 3, 64, 64, ActivationLayer.Mode.RELU, "layer_3");
   }
   
-  private void phase1b(@javax.annotation.Nonnull final NotebookOutput output) {
+  protected void phase1b(@javax.annotation.Nonnull final NotebookOutput output) {
     addPoolingLayer(output);
     addConvolutionLayer(output, 3, 64, 128, ActivationLayer.Mode.RELU, "layer_6");
     addConvolutionLayer(output, 3, 128, 128, ActivationLayer.Mode.RELU, "layer_8");
   }
   
-  private void phase1c(@javax.annotation.Nonnull final NotebookOutput output) {
+  protected void phase1c(@javax.annotation.Nonnull final NotebookOutput output) {
     addPoolingLayer(output);
     addConvolutionLayer(output, 3, 128, 256, ActivationLayer.Mode.RELU, "layer_11");
     addConvolutionLayer(output, 3, 256, 256, ActivationLayer.Mode.RELU, "layer_13");
     addConvolutionLayer(output, 3, 256, 256, ActivationLayer.Mode.RELU, "layer_15");
   }
   
-  private void phase1d(@javax.annotation.Nonnull final NotebookOutput output) {
+  protected void phase1d(@javax.annotation.Nonnull final NotebookOutput output) {
     addPoolingLayer(output);
     addConvolutionLayer(output, 3, 256, 512, ActivationLayer.Mode.RELU, "layer_18");
     addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_20");
     addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_22");
   }
   
-  private void phase1e(@javax.annotation.Nonnull final NotebookOutput output) {
+  protected void phase1e(@javax.annotation.Nonnull final NotebookOutput output) {
     addPoolingLayer(output);
     addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_25");
     addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_27");
     addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_29");
   }
   
-  private void addPoolingLayer(@javax.annotation.Nonnull final NotebookOutput output) {
+  protected void addPoolingLayer(@javax.annotation.Nonnull final NotebookOutput output) {
     output.code(() -> {
       add(new ImgModulusPaddingLayer(2, 2));
     });
@@ -211,7 +225,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
     });
   }
   
-  private void addConvolutionLayer(@javax.annotation.Nonnull final NotebookOutput output, final int radius, final int inputBands, final int outputBands, final ActivationLayer.Mode activationMode, final String hdf_group) {
+  protected void addConvolutionLayer(@javax.annotation.Nonnull final NotebookOutput output, final int radius, final int inputBands, final int outputBands, final ActivationLayer.Mode activationMode, final String hdf_group) {
     output.code(() -> {
       add(new ConvolutionLayer(radius, radius, inputBands, outputBands)
         .setPaddingXY(0, 0)
@@ -228,12 +242,12 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
     });
   }
   
-  private void phase2(@javax.annotation.Nonnull NotebookOutput output, boolean dense) {
+  protected void phase2(@javax.annotation.Nonnull NotebookOutput output, boolean dense) {
     phase2a(output);
     phase2b(output, dense);
   }
   
-  private void phase2b(@javax.annotation.Nonnull final NotebookOutput output, final boolean dense) {
+  protected void phase2b(@javax.annotation.Nonnull final NotebookOutput output, final boolean dense) {
     output.code(() -> {
       add(new ImgMinSizeLayer(7, 7));
     });
@@ -274,12 +288,12 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
     });
   }
   
-  private void phase2a(@javax.annotation.Nonnull final NotebookOutput output) {
+  protected void phase2a(@javax.annotation.Nonnull final NotebookOutput output) {
     //  model.add(MaxPooling2D((2,2), strides=(2,2)))
     addPoolingLayer(output);
   }
   
-  private void phase3(@javax.annotation.Nonnull NotebookOutput output) {
+  protected void phase3(@javax.annotation.Nonnull NotebookOutput output) {
     
     output.code(() -> {
       add(new ConvolutionLayer(1, 1, 4096, 4096)
@@ -310,7 +324,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
     
     output.code(() -> {
       add(new BandReducerLayer()
-        .setMode(PoolingLayer.PoolingMode.Max));
+        .setMode(PoolingLayer.PoolingMode.Avg));
     });
     
     output.code(() -> {
@@ -320,20 +334,7 @@ class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
   
   protected void add(Layer layer) {
     add(layer, model);
-  }
-  
-  protected void add(Layer layer, PipelineNetwork model) {
-    name(layer);
-    if (layer instanceof Explodable) {
-      DAGNetwork explode = ((Explodable) layer).explode();
-      explode.visitNodes(node -> name(node.getLayer()));
-      log.info(String.format("Exploded %s to %s (%s nodes)", layer.getName(), explode.getClass().getSimpleName(), explode.getNodes().size()));
-      add(explode);
-    }
-    else {
-      model.add(layer);
-      this.prototype = update(layer, this.prototype, cnt++);
-    }
+    this.prototype = evaluatePrototype(layer, this.prototype, cnt++);
   }
   
   /**
