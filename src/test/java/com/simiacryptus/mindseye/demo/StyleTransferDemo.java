@@ -36,7 +36,6 @@ import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
-import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.mindseye.opt.orient.RecursiveSubspace;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
@@ -121,7 +120,7 @@ public class StyleTransferDemo extends NotebookReportBase {
       control.stream().flatMap(f -> loadTiles(f, 1.0, 0.0)),
       target.stream().flatMap(f -> loadTiles(f, 0.0, 1.0))
     ) //
-      //.limit(10)
+      .limit(10)
       .toArray(i -> new Tensor[i][]);
   
     Tensor[][] inputData = Stream.concat(
@@ -146,21 +145,21 @@ public class StyleTransferDemo extends NotebookReportBase {
   
     log.h1("Model Training");
   
+    @javax.annotation.Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+    @javax.annotation.Nonnull PipelineNetwork supervised1 = new PipelineNetwork(2);
+    supervised1.wrap(new EntropyLossLayer(),
+      supervised1.add(trainedCategorizer, supervised1.getInput(0)),
+      supervised1.getInput(1));
+    new IterativeTrainer(new SampledArrayTrainable(preprocessedTrainingData, supervised1, 10, 1))
+      .setMonitor(getTrainingMonitor(history))
+      .setOrientation(new RecursiveSubspace())
+      .setLineSearchFactory(name -> new ArmijoWolfeSearch())
+      .setTimeout(60, TimeUnit.MINUTES)
+      .runAndFree();
     log.code(() -> {
-      @javax.annotation.Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-      @javax.annotation.Nonnull PipelineNetwork supervised = new PipelineNetwork(2);
-      supervised.wrap(new EntropyLossLayer(),
-        supervised.add(trainedCategorizer, supervised.getInput(0)),
-        supervised.getInput(1));
-      @javax.annotation.Nonnull Trainable trainable = new SampledArrayTrainable(preprocessedTrainingData, supervised, 10, 1);
-      new IterativeTrainer(trainable)
-        .setMonitor(getTrainingMonitor(history))
-        .setOrientation(new RecursiveSubspace())
-        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-        .setTimeout(30, TimeUnit.MINUTES)
-        .runAndFree();
       return TestUtil.plot(history);
     });
+    fullNetwork.freeze();
   
     log.h1("Output Processing");
     for (int itemNumber = 0; itemNumber < inputData.length; itemNumber++) {
@@ -175,24 +174,24 @@ public class StyleTransferDemo extends NotebookReportBase {
           }
         }
       });
-      @javax.annotation.Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+      history.clear();
+      @javax.annotation.Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
+      clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+      clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+      clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+      clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+      @javax.annotation.Nonnull PipelineNetwork supervised2 = new PipelineNetwork(2);
+      supervised2.wrap(new EntropyLossLayer(),
+        supervised2.add(fullNetwork, supervised2.wrap(clamp, supervised2.getInput(0))),
+        supervised2.getInput(1));
+      @javax.annotation.Nonnull Trainable trainable = new ArrayTrainable(supervised2, 1).setMask(true, false).setData(data);
+      new IterativeTrainer(trainable)
+        .setMonitor(getTrainingMonitor(history))
+        .setOrientation(new QQN())
+        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
+        .setTimeout(15, TimeUnit.MINUTES)
+        .runAndFree();
       log.code(() -> {
-        @javax.annotation.Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
-        clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-        clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-        clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-        clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-        @javax.annotation.Nonnull PipelineNetwork supervised = new PipelineNetwork(2);
-        supervised.wrap(new EntropyLossLayer(),
-          supervised.add(fullNetwork, supervised.wrap(clamp, supervised.getInput(0))),
-          supervised.getInput(1));
-        @javax.annotation.Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setMask(true, false).setData(data);
-        new IterativeTrainer(trainable)
-          .setMonitor(getTrainingMonitor(history))
-          .setOrientation(new QQN())
-          .setLineSearchFactory(name -> new QuadraticSearch().setCurrentRate(1))
-          .setTimeout(15, TimeUnit.MINUTES)
-          .runAndFree();
         return TestUtil.plot(history);
       });
     

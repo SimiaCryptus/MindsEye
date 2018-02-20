@@ -26,8 +26,8 @@ import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
-import com.simiacryptus.mindseye.models.ImageClassifier;
 import com.simiacryptus.mindseye.models.VGG16;
+import com.simiacryptus.mindseye.models.VGG16_HDF5;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.Step;
@@ -79,8 +79,8 @@ public class DeepDreamDemo extends NotebookReportBase {
     CudaSystem.addLog(new PrintStream(log.file(logName)));
     
     log.h1("Model");
-    ImageClassifier vgg16 = log.code(() -> {
-      return VGG16.fromS3_HDF5();
+    VGG16_HDF5 vgg16 = log.code(() -> {
+      return VGG16.fromS3_HDF5().setLarge(false);
     });
     
     log.h1("Data");
@@ -134,7 +134,7 @@ public class DeepDreamDemo extends NotebookReportBase {
           .setMonitor(getTrainingMonitor(history))
           .setOrientation(new QQN())
           .setLineSearchFactory(name -> new QuadraticSearch().setCurrentRate(1))
-          .setTimeout(15, TimeUnit.MINUTES)
+          .setTimeout(60, TimeUnit.MINUTES)
           .runAndFree();
         return TestUtil.plot(history);
       });

@@ -58,6 +58,8 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
   PipelineNetwork model = new PipelineNetwork();
   @javax.annotation.Nonnull
   Precision precision = Precision.Double;
+  private boolean large = true;
+  private boolean dense = true;
   
   /**
    * Instantiates a new Vgg 16 hdf 5.
@@ -87,8 +89,8 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
   public Layer build(@javax.annotation.Nonnull NotebookOutput output) {
     try {
       phase0(output);
-      phase1(output);
-      phase2(output, true);
+      phase1(output, large);
+      phase2(output, dense, large);
       phase3(output);
       setPrecision(output);
       if (null != prototype) prototype.freeRef();
@@ -173,12 +175,12 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
     });
   }
   
-  protected void phase1(@javax.annotation.Nonnull NotebookOutput output) {
+  protected void phase1(@javax.annotation.Nonnull NotebookOutput output, final boolean large) {
     phase1a(output);
     phase1b(output);
-    phase1c(output);
-    phase1d(output);
-    phase1e(output);
+    phase1c(output, large);
+    phase1d(output, large);
+    phase1e(output, large);
   }
   
   protected void phase1a(@javax.annotation.Nonnull final NotebookOutput output) {
@@ -187,41 +189,48 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
   }
   
   protected void phase1b(@javax.annotation.Nonnull final NotebookOutput output) {
-    addPoolingLayer(output);
+    addPoolingLayer(output, true);
     addConvolutionLayer(output, 3, 64, 128, ActivationLayer.Mode.RELU, "layer_6");
     addConvolutionLayer(output, 3, 128, 128, ActivationLayer.Mode.RELU, "layer_8");
   }
   
-  protected void phase1c(@javax.annotation.Nonnull final NotebookOutput output) {
-    addPoolingLayer(output);
+  protected void phase1c(@javax.annotation.Nonnull final NotebookOutput output, final boolean large) {
+    addPoolingLayer(output, large);
     addConvolutionLayer(output, 3, 128, 256, ActivationLayer.Mode.RELU, "layer_11");
     addConvolutionLayer(output, 3, 256, 256, ActivationLayer.Mode.RELU, "layer_13");
     addConvolutionLayer(output, 3, 256, 256, ActivationLayer.Mode.RELU, "layer_15");
   }
   
-  protected void phase1d(@javax.annotation.Nonnull final NotebookOutput output) {
-    addPoolingLayer(output);
+  protected void phase1d(@javax.annotation.Nonnull final NotebookOutput output, final boolean large) {
+    addPoolingLayer(output, large);
     addConvolutionLayer(output, 3, 256, 512, ActivationLayer.Mode.RELU, "layer_18");
     addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_20");
     addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_22");
   }
   
-  protected void phase1e(@javax.annotation.Nonnull final NotebookOutput output) {
-    addPoolingLayer(output);
+  protected void phase1e(@javax.annotation.Nonnull final NotebookOutput output, final boolean large) {
+    addPoolingLayer(output, large);
     addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_25");
     addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_27");
     addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_29");
   }
   
-  protected void phase2(@javax.annotation.Nonnull NotebookOutput output, boolean dense) {
+  protected void phase2(@javax.annotation.Nonnull NotebookOutput output, boolean dense, final boolean large) {
     phase2a(output);
-    phase2b(output, dense);
+    phase2b(output, dense, large);
   }
   
-  protected void phase2b(@javax.annotation.Nonnull final NotebookOutput output, final boolean dense) {
-    output.code(() -> {
-      add(new ImgMinSizeLayer(7, 7));
-    });
+  protected void phase2b(@javax.annotation.Nonnull final NotebookOutput output, final boolean dense, final boolean large) {
+    if (large) {
+      output.code(() -> {
+        add(new ImgModulusPaddingLayer(7, 7));
+      });
+    }
+    else {
+      output.code(() -> {
+        add(new ImgModulusPaddingLayer(-7, -7));
+      });
+    }
     
     if (dense) {
       output.code(() -> {
@@ -261,7 +270,7 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
   
   protected void phase2a(@javax.annotation.Nonnull final NotebookOutput output) {
     //  model.add(MaxPooling2D((2,2), strides=(2,2)))
-    addPoolingLayer(output);
+    addPoolingLayer(output, true);
   }
   
   protected void phase3(@javax.annotation.Nonnull NotebookOutput output) {
@@ -303,10 +312,17 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
     });
   }
   
-  protected void addPoolingLayer(@javax.annotation.Nonnull final NotebookOutput output) {
-    output.code(() -> {
-      add(new ImgModulusPaddingLayer(2, 2));
-    });
+  protected void addPoolingLayer(@javax.annotation.Nonnull final NotebookOutput output, final boolean large) {
+    if (large) {
+      output.code(() -> {
+        add(new ImgModulusPaddingLayer(2, 2));
+      });
+    }
+    else {
+      output.code(() -> {
+        add(new ImgModulusPaddingLayer(-2, -2));
+      });
+    }
     output.code(() -> {
       add(new PoolingLayer()
         .setMode(PoolingLayer.PoolingMode.Max)
@@ -345,5 +361,23 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
   @Override
   public Hdf5Archive getHDF5() {
     return hdf5;
+  }
+  
+  public boolean isLarge() {
+    return large;
+  }
+  
+  public VGG16_HDF5 setLarge(boolean large) {
+    this.large = large;
+    return this;
+  }
+  
+  public boolean isDense() {
+    return dense;
+  }
+  
+  public VGG16_HDF5 setDense(boolean dense) {
+    this.dense = dense;
+    return this;
   }
 }
