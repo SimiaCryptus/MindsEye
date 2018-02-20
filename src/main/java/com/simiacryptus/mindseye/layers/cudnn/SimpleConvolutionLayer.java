@@ -459,28 +459,32 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
    */
   public int[] getOutputSize(final int... inputSize) {
     @javax.annotation.Nonnull final int[] kernelSize = kernel.getDimensions();
-    return IntStream.range(0, kernelSize.length).map(i -> {
-      int x;
-      if (i == kernelSize.length - 1) {
-        //assert kernelSize[i] == inputSize[i];
-        x = kernelSize[i] / inputSize[i];
-      }
-      else {
-        int padding;
-        if (i == 0) {
-          padding = this.paddingX;
-        }
-        else if (i == 1) {
-          padding = this.paddingY;
+    try {
+      return IntStream.range(0, kernelSize.length).map(i -> {
+        int x;
+        if (i == kernelSize.length - 1) {
+          //assert kernelSize[i] == inputSize[i];
+          x = kernelSize[i] / inputSize[i];
         }
         else {
-          throw new IllegalStateException();
+          int padding;
+          if (i == 0) {
+            padding = this.paddingX;
+          }
+          else if (i == 1) {
+            padding = this.paddingY;
+          }
+          else {
+            throw new IllegalStateException();
+          }
+          x = inputSize[i] - (kernelSize[i] - 1) + padding * 2;
         }
-        x = inputSize[i] - (kernelSize[i] - 1) + padding * 2;
-      }
-      assert 0 < x;
-      return x;
-    }).toArray();
+        assert 0 < x;
+        return x;
+      }).toArray();
+    } catch (Throwable e) {
+      throw new RuntimeException(String.format("Error with convolution %s x %s", Arrays.toString(inputSize), Arrays.toString(kernelSize)), e);
+    }
   }
   
   @Override

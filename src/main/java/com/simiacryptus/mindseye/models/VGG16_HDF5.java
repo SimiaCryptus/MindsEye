@@ -213,35 +213,6 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
     addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_29");
   }
   
-  protected void addPoolingLayer(@javax.annotation.Nonnull final NotebookOutput output) {
-    output.code(() -> {
-      add(new ImgModulusPaddingLayer(2, 2));
-    });
-    output.code(() -> {
-      add(new PoolingLayer()
-        .setMode(PoolingLayer.PoolingMode.Max)
-        .setWindowXY(2, 2)
-        .setStrideXY(2, 2));
-    });
-  }
-  
-  protected void addConvolutionLayer(@javax.annotation.Nonnull final NotebookOutput output, final int radius, final int inputBands, final int outputBands, final ActivationLayer.Mode activationMode, final String hdf_group) {
-    output.code(() -> {
-      add(new ConvolutionLayer(radius, radius, inputBands, outputBands)
-        .setPaddingXY(0, 0)
-        .set(hdf5.readDataSet("param_0", hdf_group)
-          .permuteDimensions(convolutionOrder))
-      );
-    });
-    output.code(() -> {
-      add(new ImgBandBiasLayer(outputBands)
-        .set((hdf5.readDataSet("param_1", hdf_group))));
-    });
-    output.code(() -> {
-      add(new ActivationLayer(activationMode));
-    });
-  }
-  
   protected void phase2(@javax.annotation.Nonnull NotebookOutput output, boolean dense) {
     phase2a(output);
     phase2b(output, dense);
@@ -329,6 +300,35 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
     
     output.code(() -> {
       add(new SoftmaxActivationLayer());
+    });
+  }
+  
+  protected void addPoolingLayer(@javax.annotation.Nonnull final NotebookOutput output) {
+    output.code(() -> {
+      add(new ImgModulusPaddingLayer(2, 2));
+    });
+    output.code(() -> {
+      add(new PoolingLayer()
+        .setMode(PoolingLayer.PoolingMode.Max)
+        .setWindowXY(2, 2)
+        .setStrideXY(2, 2));
+    });
+  }
+  
+  protected void addConvolutionLayer(@javax.annotation.Nonnull final NotebookOutput output, final int radius, final int inputBands, final int outputBands, final ActivationLayer.Mode activationMode, final String hdf_group) {
+    output.code(() -> {
+      add(new ConvolutionLayer(radius, radius, inputBands, outputBands)
+        .setPaddingXY(0, 0)
+        .set(hdf5.readDataSet("param_0", hdf_group)
+          .permuteDimensions(convolutionOrder))
+      );
+    });
+    output.code(() -> {
+      add(new ImgBandBiasLayer(outputBands)
+        .set((hdf5.readDataSet("param_1", hdf_group))));
+    });
+    output.code(() -> {
+      add(new ActivationLayer(activationMode));
     });
   }
   

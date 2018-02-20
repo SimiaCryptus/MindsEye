@@ -117,8 +117,8 @@ public class DeepDreamDemo extends NotebookReportBase {
           }
         }
       });
-      @javax.annotation.Nonnull ArrayList<StepRecord> history = new ArrayList<>();
       log.code(() -> {
+        @javax.annotation.Nonnull ArrayList<StepRecord> history = new ArrayList<>();
         @javax.annotation.Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
         clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
         clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
@@ -136,8 +136,6 @@ public class DeepDreamDemo extends NotebookReportBase {
           .setLineSearchFactory(name -> new QuadraticSearch().setCurrentRate(1))
           .setTimeout(15, TimeUnit.MINUTES)
           .runAndFree();
-      });
-      log.code(() -> {
         return TestUtil.plot(history);
       });
       try {

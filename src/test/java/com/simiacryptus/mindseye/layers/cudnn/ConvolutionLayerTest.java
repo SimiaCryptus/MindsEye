@@ -321,7 +321,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
      * Instantiates a new BigTests.
      */
     public Big0() {this(512);}
-    
+  
     /**
      * Instantiates a new BigTests.
      *
@@ -330,7 +330,31 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
     private Big0(int size) {
       super(1, 16 * size, 16 * size, Precision.Double, size);
     }
+  
+  }
+  
+  public static class Big1 extends VeryBigTest {
+    /**
+     * Instantiates a new BigTests.
+     */
+    public Big1() {this(1024);}
     
+    /**
+     * Instantiates a new BigTests.
+     *
+     * @param size
+     */
+    private Big1(int size) {
+      super(1, size, size, Precision.Float, size);
+    }
+    
+    @Nonnull
+    @Override
+    public int[][] getLargeDims(final Random random) {
+      return new int[][]{
+        {100, 100, inputBands}
+      };
+    }
   }
   
   /**

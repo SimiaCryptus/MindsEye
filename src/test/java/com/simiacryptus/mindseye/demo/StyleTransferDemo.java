@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.demo;
 
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
+import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
@@ -44,6 +45,7 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.ImageTiles;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.util.lang.TimedResult;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import org.junit.Test;
 
@@ -58,6 +60,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -84,27 +87,17 @@ public class StyleTransferDemo extends NotebookReportBase {
    * @param log the log
    */
   public void run(@javax.annotation.Nonnull NotebookOutput log) {
-    
+  
     List<String> control = Arrays.asList("H:\\SimiaCryptus\\Artistry\\portraits\\photos");
     List<String> target = Arrays.asList("H:\\SimiaCryptus\\Artistry\\portraits\\picasso");
     String input = "H:\\SimiaCryptus\\Artistry\\portraits\\photos\\1280px-Winter_baby_10-months-old.jpg";
-    
+  
     @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
-    
-    PipelineNetwork trainedCategorizer = new PipelineNetwork();
-    trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 4096)
-      .setPaddingXY(0, 0).setWeightsLog(-4));
-    trainedCategorizer.add(new ImgBandBiasLayer(4096).setWeightsLog(-4));
-    trainedCategorizer.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 2)
-      .setPaddingXY(0, 0).setWeightsLog(-4));
-    trainedCategorizer.add(new ImgBandBiasLayer(2).setWeightsLog(-4));
-    trainedCategorizer.add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
-    trainedCategorizer.add(new SoftmaxActivationLayer());
-    
+  
     log.h1("Model");
+    PipelineNetwork trainedCategorizer = buildCategorizer();
     Layer fullNetwork = log.code(() -> {
       try {
         return new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
@@ -122,37 +115,15 @@ public class StyleTransferDemo extends NotebookReportBase {
         throw new RuntimeException(e);
       }
     }).getNetwork().freeze();
-    
     //textureNetork = new RescaledSubnetLayer(2,textureNetork);
-    
-    
+  
     Tensor[][] rawTrainingData = Stream.concat(
-      control.stream().flatMap(f ->
-        Arrays.stream(new File(f).listFiles()).flatMap(img -> {
-          BufferedImage image;
-          try {
-            image = ImageIO.read(img);
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-          return ImageTiles.toTiles(image, 250, 250, 250, 250, Integer.MAX_VALUE, Integer.MAX_VALUE).stream().map(t -> {
-            return new Tensor[]{t, new Tensor(1.0, 0.0)};
-          });
-        })),
-      target.stream().flatMap(f ->
-        Arrays.stream(new File(f).listFiles()).flatMap(img -> {
-          BufferedImage image;
-          try {
-            image = ImageIO.read(img);
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-          return ImageTiles.toTiles(image, 250, 250, 250, 250, Integer.MAX_VALUE, Integer.MAX_VALUE).stream().map(t -> {
-            return new Tensor[]{t, new Tensor(0.0, 1.0)};
-          });
-        }))
-    ).toArray(i -> new Tensor[i][]);
-    
+      control.stream().flatMap(f -> loadTiles(f, 1.0, 0.0)),
+      target.stream().flatMap(f -> loadTiles(f, 0.0, 1.0))
+    ) //
+      //.limit(10)
+      .toArray(i -> new Tensor[i][]);
+  
     Tensor[][] inputData = Stream.concat(
       Stream.of(input).map(img -> {
         try {
@@ -162,32 +133,35 @@ public class StyleTransferDemo extends NotebookReportBase {
         }
       }),
       Stream.empty()
-    ).toArray(i -> new Tensor[i][]);
-    
-    
-    Tensor[][] preprocessedTrainingData = Arrays.stream(rawTrainingData).map(x -> {
-      return new Tensor[]{textureNetork.eval(x[0]).getDataAndFree().getAndFree(0), x[1]};
+    ) //
+      .flatMap(ts -> ImageTiles.toTiles(ts[0].toImage(), 250, 250, 250, 250, Integer.MAX_VALUE, Integer.MAX_VALUE).stream().map(t -> new Tensor[]{t, ts[1]}))
+      .toArray(i -> new Tensor[i][]);
+  
+    Tensor[][] preprocessedTrainingData = IntStream.range(0, rawTrainingData.length).mapToObj(i -> {
+      Tensor[] x = rawTrainingData[i];
+      TimedResult<Tensor[]> timedResult = TimedResult.time(() -> new Tensor[]{textureNetork.eval(x[0]).getDataAndFree().getAndFree(0), x[1]});
+      logger.info(String.format("Preprocessed record %d/%d in %.3f", i, rawTrainingData.length, timedResult.seconds()));
+      return timedResult.result;
     }).toArray(i -> new Tensor[i][]);
-    
-    
+  
     log.h1("Model Training");
-    
+  
     log.code(() -> {
       @javax.annotation.Nonnull ArrayList<StepRecord> history = new ArrayList<>();
       @javax.annotation.Nonnull PipelineNetwork supervised = new PipelineNetwork(2);
       supervised.wrap(new EntropyLossLayer(),
-        supervised.add(fullNetwork, supervised.getInput(0)),
+        supervised.add(trainedCategorizer, supervised.getInput(0)),
         supervised.getInput(1));
-      @javax.annotation.Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setMask(true, false).setData(Arrays.asList(preprocessedTrainingData));
+      @javax.annotation.Nonnull Trainable trainable = new SampledArrayTrainable(preprocessedTrainingData, supervised, 10, 1);
       new IterativeTrainer(trainable)
         .setMonitor(getTrainingMonitor(history))
         .setOrientation(new RecursiveSubspace())
         .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-        .setTimeout(15, TimeUnit.MINUTES)
+        .setTimeout(30, TimeUnit.MINUTES)
         .runAndFree();
       return TestUtil.plot(history);
     });
-    
+  
     log.h1("Output Processing");
     for (int itemNumber = 0; itemNumber < inputData.length; itemNumber++) {
       log.h1("Image " + itemNumber);
@@ -221,15 +195,44 @@ public class StyleTransferDemo extends NotebookReportBase {
           .runAndFree();
         return TestUtil.plot(history);
       });
-      
+    
       try {
         log.p(log.image(inputData[itemNumber][0].toImage(), "result"));
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
     }
-    
+  
     log.setFrontMatterProperty("status", "OK");
+  }
+  
+  private Stream<Tensor[]> loadTiles(final String f, final double... category) {
+    return Arrays.stream(new File(f).listFiles()).flatMap(img -> {
+      BufferedImage image;
+      try {
+        image = ImageIO.read(img);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      return ImageTiles.toTiles(image, 250, 250, 250, 250, Integer.MAX_VALUE, Integer.MAX_VALUE).stream().map(t -> {
+        return new Tensor[]{t, new Tensor(category)};
+      });
+    });
+  }
+  
+  @Nonnull
+  private PipelineNetwork buildCategorizer() {
+    PipelineNetwork trainedCategorizer = new PipelineNetwork();
+    trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 4096)
+      .setPaddingXY(0, 0).setWeightsLog(-4));
+    trainedCategorizer.add(new ImgBandBiasLayer(4096).setWeightsLog(-4));
+    trainedCategorizer.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+    trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 2)
+      .setPaddingXY(0, 0).setWeightsLog(-4));
+    trainedCategorizer.add(new ImgBandBiasLayer(2).setWeightsLog(-4));
+    trainedCategorizer.add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
+    trainedCategorizer.add(new SoftmaxActivationLayer());
+    return trainedCategorizer;
   }
   
   /**
@@ -240,22 +243,22 @@ public class StyleTransferDemo extends NotebookReportBase {
    */
   @javax.annotation.Nonnull
   public TrainingMonitor getTrainingMonitor(@javax.annotation.Nonnull ArrayList<StepRecord> history) {
-    @javax.annotation.Nonnull TrainingMonitor monitor1 = TestUtil.getMonitor(history);
+    @javax.annotation.Nonnull TrainingMonitor monitor = TestUtil.getMonitor(history);
     return new TrainingMonitor() {
       @Override
       public void clear() {
-        monitor1.clear();
+        monitor.clear();
       }
       
       @Override
       public void log(String msg) {
         SysOutInterceptor.ORIGINAL_OUT.println(msg);
-        monitor1.log(msg);
+        monitor.log(msg);
       }
       
       @Override
       public void onStepComplete(Step currentPoint) {
-        monitor1.onStepComplete(currentPoint);
+        monitor.onStepComplete(currentPoint);
       }
     };
   }
