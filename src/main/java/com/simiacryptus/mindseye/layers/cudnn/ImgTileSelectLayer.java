@@ -42,8 +42,8 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
   private int positionX;
   private int positionY;
   
-  private int width;
-  private int height;
+  private int sizeY;
+  private int sizeX;
   private Precision precision = Precision.Double;
   
   /**
@@ -55,12 +55,12 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
   /**
    * Instantiates a new Img crop layer.
    *
-   * @param width  the size x
-   * @param height the size y
+   * @param sizeY  the size x
+   * @param sizeX the size y
    */
-  public ImgTileSelectLayer(int width, int height, final int positionX, final int positionY) {
-    this.width = width;
-    this.height = height;
+  public ImgTileSelectLayer(int sizeX, int sizeY, final int positionX, final int positionY) {
+    this.sizeY = sizeY;
+    this.sizeX = sizeX;
     this.positionX = positionX;
     this.positionY = positionY;
   }
@@ -73,8 +73,8 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
    */
   protected ImgTileSelectLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json);
-    width = json.get("width").getAsInt();
-    height = json.get("height").getAsInt();
+    sizeY = json.get("sizeX").getAsInt();
+    sizeX = json.get("sizeY").getAsInt();
     positionX = json.get("positionX").getAsInt();
     positionY = json.get("positionY").getAsInt();
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
@@ -110,12 +110,12 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
     assert 3 == in.getData().getDimensions().length;
     final int length = in.getData().length();
     @Nonnull int[] dimIn = in.getData().getDimensions();
-    if (dimIn[0] == width && dimIn[1] == height) {
+    if (dimIn[0] == sizeY && dimIn[1] == sizeX) {
       in.addRef();
       in.getData().addRef();
       return in;
     }
-    @Nonnull final int[] dimOut = getViewDimensions(dimIn, new int[]{width, height, dimIn[2]}, new int[]{positionX, positionY, 0});
+    @Nonnull final int[] dimOut = getViewDimensions(dimIn, new int[]{sizeY, sizeX, dimIn[2]}, new int[]{positionX, positionY, 0});
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final TensorList outputData = CudaSystem.eval(gpu -> {
       @Nullable final CudaPtr inputBuffer = CudaPtr.getCudaPtr(precision, in.getData());
@@ -204,16 +204,16 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
     int destinationOffset = 0;
   
     if (positionX < 0) {
-      destinationOffset += Math.abs(positionX) / 2;
+      destinationOffset += Math.abs(positionX);
     }
     else {
-      sourceOffset += Math.abs(positionX) / 2;
+      sourceOffset += Math.abs(positionX);
     }
     if (positionY < 0) {
-      destinationOffset += destinationDimensions[0] * Math.abs((positionY) / 2);
+      destinationOffset += destinationDimensions[0] * Math.abs((positionY));
     }
     else {
-      sourceOffset += sourceDimensions[0] * (Math.abs(positionY) / 2);
+      sourceOffset += sourceDimensions[0] * (Math.abs(positionY));
     }
     assert sourceOffset >= 0;
     assert destinationOffset >= 0;
@@ -252,8 +252,8 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
-    json.addProperty("height", height);
-    json.addProperty("width", width);
+    json.addProperty("sizeX", sizeX);
+    json.addProperty("sizeY", sizeY);
     json.addProperty("positionX", positionX);
     json.addProperty("positionY", positionY);
     json.addProperty("precision", precision.name());

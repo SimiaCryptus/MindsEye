@@ -260,16 +260,16 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
     int destinationOffset = 0;
     
     if (positionX > 0) {
-      destinationOffset += Math.abs(positionX) / 2;
+      destinationOffset += Math.abs(positionX);
     }
     else {
-      sourceOffset += Math.abs(positionX) / 2;
+      sourceOffset += Math.abs(positionX);
     }
     if (positionY > 0) {
-      destinationOffset += destinationDimensions[0] * Math.abs((positionY) / 2);
+      destinationOffset += destinationDimensions[0] * Math.abs((positionY));
     }
     else {
-      sourceOffset += sourceDimensions[0] * (Math.abs(positionY) / 2);
+      sourceOffset += sourceDimensions[0] * (Math.abs(positionY));
     }
     assert sourceOffset >= 0;
     assert destinationOffset >= 0;

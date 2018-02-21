@@ -69,9 +69,9 @@ public class ImgPixelSumLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public Result eval(final Result... inObj) {
+  public Result evalAndFree(final Result... inObj) {
     assert 1 == inObj.length;
-    return eval(inObj[0]);
+    return evalAndFree(inObj[0]);
   }
   
   /**
@@ -81,28 +81,30 @@ public class ImgPixelSumLayer extends LayerBase {
    * @return the nn result
    */
   @Nonnull
-  public Result eval(@Nonnull final Result input) {
-    final TensorList inData = input.getData();
-    inData.addRef();
-    input.addRef();
-    int[] inputDims = input.getData().getDimensions();
+  public Result evalAndFree(@Nonnull final Result input) {
+    final TensorList inputData = input.getData();
+    int[] inputDims = inputData.getDimensions();
     assert 3 == inputDims.length;
-    return new Result(TensorArray.wrap(input.getData().stream().map(tensor -> {
-      return new Tensor(inputDims[0], inputDims[1], 1).setByCoord(c -> {
+    return new Result(TensorArray.wrap(inputData.stream().map(tensor -> {
+      Tensor result = new Tensor(inputDims[0], inputDims[1], 1).setByCoord(c -> {
         return IntStream.range(0, inputDims[2]).mapToDouble(i -> {
           int[] coords = c.getCoords();
           return tensor.get(coords[0], coords[1], i);
         }).sum();
       });
+      tensor.freeRef();
+      return result;
     }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       if (input.isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(delta.stream().map(deltaTensor -> {
           int[] deltaDims = deltaTensor.getDimensions();
-          return new Tensor(deltaDims[0], deltaDims[1], inputDims[2])
+          Tensor result = new Tensor(deltaDims[0], deltaDims[1], inputDims[2])
             .setByCoord(c -> {
               int[] coords = c.getCoords();
               return deltaTensor.get(coords[0], coords[1], 0);
             });
+          deltaTensor.freeRef();
+          return result;
         }).toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
@@ -111,7 +113,7 @@ public class ImgPixelSumLayer extends LayerBase {
       
       @Override
       protected void _free() {
-        inData.freeRef();
+        inputData.freeRef();
         input.freeRef();
       }
       

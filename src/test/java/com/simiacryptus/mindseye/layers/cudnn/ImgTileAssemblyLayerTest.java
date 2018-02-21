@@ -20,15 +20,15 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 
+import javax.annotation.Nullable;
 import java.util.Random;
 
 
 /**
  * The type Img crop layer eval.
  */
-public abstract class ImgTileAssemblyLayerTest extends LayerTestBase {
+public abstract class ImgTileAssemblyLayerTest extends CuDNNLayerTestBase {
   
   /**
    * Instantiates a new Img crop layer eval.
@@ -42,6 +42,7 @@ public abstract class ImgTileAssemblyLayerTest extends LayerTestBase {
   public int[][] getSmallDims(Random random) {
     return new int[][]{
       {2, 2, 1}, {1, 2, 1}, {2, 2, 1}, {1, 2, 1}, {2, 1, 1}, {1, 1, 1}
+//      {3, 3, 1}, {3, 3, 1}, {3, 3, 1}, {3, 3, 1}, {3, 3, 1}, {3, 3, 1}, {3, 3, 1}, {3, 3, 1}, {3, 3, 1}
     };
   }
   
@@ -49,6 +50,12 @@ public abstract class ImgTileAssemblyLayerTest extends LayerTestBase {
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgTileAssemblyLayer(2, 3);
+  }
+  
+  @Nullable
+  @Override
+  public Class<? extends Layer> getReferenceLayerClass() {
+    return com.simiacryptus.mindseye.layers.java.ImgTileAssemblyLayer.class;
   }
   
   /**

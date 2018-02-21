@@ -167,8 +167,8 @@ public interface Layer extends ReferenceCounting, Serializable {
   @javax.annotation.Nullable
   default Result evalAndFree(Result... array) {
     Result result = eval(array);
-    Arrays.stream(array).forEach(ReferenceCounting::freeRef);
     Arrays.stream(array).map(Result::getData).forEach(ReferenceCounting::freeRef);
+    Arrays.stream(array).forEach(ReferenceCounting::freeRef);
     return result;
   }
   

@@ -20,15 +20,15 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 
+import javax.annotation.Nullable;
 import java.util.Random;
 
 
 /**
  * The type Img crop layer eval.
  */
-public abstract class ImgTileSelectLayerTest extends LayerTestBase {
+public abstract class ImgTileSelectLayerTest extends CuDNNLayerTestBase {
   
   /**
    * Instantiates a new Img crop layer eval.
@@ -41,7 +41,7 @@ public abstract class ImgTileSelectLayerTest extends LayerTestBase {
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {8, 8, 1}
+      {8, 8, 4}
     };
   }
   
@@ -49,6 +49,12 @@ public abstract class ImgTileSelectLayerTest extends LayerTestBase {
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgTileSelectLayer(3, 2, 2, 3);
+  }
+  
+  @Nullable
+  @Override
+  public Class<? extends Layer> getReferenceLayerClass() {
+    return com.simiacryptus.mindseye.layers.java.ImgTileSelectLayer.class;
   }
   
   /**

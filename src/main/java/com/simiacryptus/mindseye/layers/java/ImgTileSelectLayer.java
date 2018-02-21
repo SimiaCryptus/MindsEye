@@ -49,14 +49,14 @@ public class ImgTileSelectLayer extends LayerBase {
    * @param sizeX     the size x
    * @param sizeY     the size y
    * @param positionX
-   * @param height
+   * @param positionY
    */
-  public ImgTileSelectLayer(final int sizeX, final int sizeY, final int positionX, final int height) {
+  public ImgTileSelectLayer(final int sizeX, final int sizeY, final int positionX, final int positionY) {
     super();
     this.sizeX = sizeX;
     this.sizeY = sizeY;
     this.positionX = positionX;
-    this.positionY = height;
+    this.positionY = positionY;
   }
   
   /**

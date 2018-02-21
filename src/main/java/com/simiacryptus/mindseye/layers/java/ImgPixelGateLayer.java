@@ -91,22 +91,30 @@ public class ImgPixelGateLayer extends LayerBase {
     int[] inputDims = inputData.getDimensions();
     assert 3 == inputDims.length;
     return new Result(TensorArray.wrap(IntStream.range(0, inputData.length()).mapToObj(i -> {
-      Tensor tensor = inputData.get(i);
-      return new Tensor(inputDims[0], inputDims[1], 1).setByCoord(c -> {
+      Tensor inputTensor = inputData.get(i);
+      Tensor gateTensor = gateData.get(i);
+      Tensor result = new Tensor(inputDims[0], inputDims[1], 1).setByCoord(c -> {
         return IntStream.range(0, inputDims[2]).mapToDouble(b -> {
           int[] coords = c.getCoords();
-          return tensor.get(coords[0], coords[1], b) * gateData.get(i).get(coords[0], coords[1], 0);
+          return inputTensor.get(coords[0], coords[1], b) * gateTensor.get(coords[0], coords[1], 0);
         }).sum();
       });
+      inputTensor.freeRef();
+      gateTensor.freeRef();
+      return result;
     }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       if (input.isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(i -> {
           Tensor deltaTensor = delta.get(i);
-          return new Tensor(input.getData().getDimensions())
+          Tensor gateTensor = gateData.get(i);
+          Tensor result = new Tensor(input.getData().getDimensions())
             .setByCoord(c -> {
               int[] coords = c.getCoords();
-              return deltaTensor.get(coords[0], coords[1], 0) * gateData.get(i).get(coords[0], coords[1], 0);
+              return deltaTensor.get(coords[0], coords[1], 0) * gateTensor.get(coords[0], coords[1], 0);
             });
+          deltaTensor.freeRef();
+          gateTensor.freeRef();
+          return result;
         }).toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);
         tensorArray.freeRef();
@@ -114,11 +122,15 @@ public class ImgPixelGateLayer extends LayerBase {
       if (gate.isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(i -> {
           Tensor deltaTensor = delta.get(i);
-          return new Tensor(gateData.getDimensions())
+          Tensor inputTensor = inputData.get(i);
+          Tensor result = new Tensor(gateData.getDimensions())
             .setByCoord(c -> IntStream.range(0, inputDims[2]).mapToDouble(b -> {
               int[] coords = c.getCoords();
-              return deltaTensor.get(coords[0], coords[1], 0) * input.getData().get(i).get(coords[0], coords[1], b);
+              return deltaTensor.get(coords[0], coords[1], 0) * inputTensor.get(coords[0], coords[1], b);
             }).sum());
+          deltaTensor.freeRef();
+          inputTensor.freeRef();
+          return result;
         }).toArray(i -> new Tensor[i]));
         gate.accumulate(buffer, tensorArray);
         tensorArray.freeRef();

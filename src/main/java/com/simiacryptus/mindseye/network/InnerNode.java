@@ -71,7 +71,7 @@ final class InnerNode extends LazyResult {
     this.dagNetwork = dagNetwork;
     assert null != inputNodes;
     setLayer(layer);
-    this.inputNodes = inputNodes;
+    this.inputNodes = Arrays.copyOf(inputNodes, inputNodes.length);
     assert Arrays.stream(inputNodes).parallel().allMatch(x -> x != null);
     for (@javax.annotation.Nonnull DAGNode node : this.inputNodes) {
       node.addRef();

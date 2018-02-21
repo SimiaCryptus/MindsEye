@@ -32,7 +32,7 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
+import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.StepRecord;
@@ -133,7 +133,7 @@ public class DeepDreamDemo extends NotebookReportBase {
         new IterativeTrainer(trainable)
           .setMonitor(getTrainingMonitor(history))
           .setOrientation(new QQN())
-          .setLineSearchFactory(name -> new QuadraticSearch().setCurrentRate(1))
+          .setLineSearchFactory(name -> new ArmijoWolfeSearch())
           .setTimeout(60, TimeUnit.MINUTES)
           .runAndFree();
         return TestUtil.plot(history);

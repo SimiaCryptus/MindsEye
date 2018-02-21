@@ -20,14 +20,14 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 
+import javax.annotation.Nullable;
 import java.util.Random;
 
 /**
  * The type Rascaled subnet layer eval.
  */
-public abstract class ImgTileSubnetLayerTest extends LayerTestBase {
+public abstract class ImgTileSubnetLayerTest extends CuDNNLayerTestBase {
   
   @javax.annotation.Nonnull
   @Override
@@ -40,7 +40,14 @@ public abstract class ImgTileSubnetLayerTest extends LayerTestBase {
   @javax.annotation.Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
-    return new ImgTileSubnetLayer(new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random()), 3, 3, 2, 2);
+    return new ImgTileSubnetLayer(new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random()),
+      3, 3, 2, 2);
+  }
+  
+  @Nullable
+  @Override
+  public Class<? extends Layer> getReferenceLayerClass() {
+    return com.simiacryptus.mindseye.layers.java.ImgTileSubnetLayer.class;
   }
   
   /**

@@ -156,6 +156,7 @@ public class ImgPixelSoftmaxLayer extends LayerBase {
             });
           } finally {
             expTensor.freeRef();
+            deltaTensor.freeRef();
           }
         }).toArray(i -> new Tensor[i]));
         

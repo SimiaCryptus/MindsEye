@@ -104,12 +104,13 @@ public class ImgTileSubnetLayer extends LayerBase {
   public Result eval(@javax.annotation.Nonnull final Result... inObj) {
     assert 1 == inObj.length;
     @javax.annotation.Nonnull final int[] inputDims = inObj[0].getData().getDimensions();
+    int cols = (int) (Math.ceil((inputDims[0] - width) * 1.0 / strideX) + 1);
+    int rows = (int) (Math.ceil((inputDims[1] - height) * 1.0 / strideY) + 1);
+    if (cols == 1 && rows == 1) return subnetwork.eval(inObj);
     assert 3 == inputDims.length;
     @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
     ArrayList<DAGNode> nodes = new ArrayList<>();
-    int cols = (int) (Math.floor((inputDims[0] - width) * 1.0 / strideX) + 1);
-    int rows = (int) (Math.floor((inputDims[1] - height) * 1.0 / strideY) + 1);
-    if (cols == 1 && rows == 1) return subnetwork.eval(inObj);
+    DAGNode input = network.getInput(0);
     for (int row = 0; row < rows; row++) {
       for (int col = 0; col < cols; col++) {
         int positionX = col * strideX;
@@ -118,10 +119,15 @@ public class ImgTileSubnetLayer extends LayerBase {
         assert positionY >= 0;
         assert positionX < inputDims[0];
         assert positionY < inputDims[1];
-        nodes.add(network.wrap(new ImgTileSelectLayer(width, height, positionX, positionY), network.getInput(0)));
+        nodes.add(
+          network.add(subnetwork,
+            network.wrap(
+              new ImgTileSelectLayer(width, height, positionX, positionY),
+              input))
+        );
       }
     }
-    network.wrap(new ImgTileAssemblyLayer(cols, rows), nodes.toArray(new DAGNode[]{}));
+    network.wrap(new com.simiacryptus.mindseye.layers.java.ImgTileAssemblyLayer(cols, rows), nodes.toArray(new DAGNode[]{}));
     Result eval = network.eval(inObj);
     network.freeRef();
     return eval;

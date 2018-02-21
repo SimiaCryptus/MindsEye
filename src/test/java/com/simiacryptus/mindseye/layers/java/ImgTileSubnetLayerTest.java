@@ -41,7 +41,10 @@ public abstract class ImgTileSubnetLayerTest extends LayerTestBase {
   @javax.annotation.Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
-    return new ImgTileSubnetLayer(new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random()), 3, 3, 2, 2);
+    ConvolutionLayer subnetwork = new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random());
+    ImgTileSubnetLayer tileSubnetLayer = new ImgTileSubnetLayer(subnetwork, 3, 3, 2, 2);
+    subnetwork.freeRef();
+    return tileSubnetLayer;
   }
   
   /**
