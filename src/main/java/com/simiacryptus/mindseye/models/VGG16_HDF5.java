@@ -106,9 +106,14 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
   protected static void add(Layer layer, PipelineNetwork model) {
     name(layer);
     if (layer instanceof Explodable) {
-      DAGNetwork explode = ((Explodable) layer).explode();
-      explode.visitNodes(node -> name(node.getLayer()));
-      log.info(String.format("Exploded %s to %s (%s nodes)", layer.getName(), explode.getClass().getSimpleName(), explode.getNodes().size()));
+      Layer explode = ((Explodable) layer).explode();
+      if (explode instanceof DAGNetwork) {
+        ((DAGNetwork) explode).visitNodes(node -> name(node.getLayer()));
+        log.info(String.format("Exploded %s to %s (%s nodes)", layer.getName(), explode.getClass().getSimpleName(), ((DAGNetwork) explode).getNodes().size()));
+      }
+      else {
+        log.info(String.format("Exploded %s to %s (%s nodes)", layer.getName(), explode.getClass().getSimpleName(), explode.getName()));
+      }
       add(explode, model);
     }
     else {

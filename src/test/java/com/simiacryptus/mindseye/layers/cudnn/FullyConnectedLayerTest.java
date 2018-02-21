@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.BatchingTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
@@ -50,7 +49,7 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
    * The LayerBase.
    */
   @javax.annotation.Nonnull
-  protected final PipelineNetwork layer;
+  protected final Layer layer;
   
   /**
    * Instantiates a new Fully connected layer allocationOverflow.

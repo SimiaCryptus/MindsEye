@@ -35,22 +35,28 @@ import java.util.stream.IntStream;
  * color bands.
  */
 @SuppressWarnings("serial")
-public class ImgCropLayer extends LayerBase {
+public class ImgTileSelectLayer extends LayerBase {
   
   
   private final int sizeX;
   private final int sizeY;
+  private final int positionX;
+  private final int positionY;
   
   /**
    * Instantiates a new Img crop layer.
    *
-   * @param sizeX the size x
-   * @param sizeY the size y
+   * @param sizeX     the size x
+   * @param sizeY     the size y
+   * @param positionX
+   * @param height
    */
-  public ImgCropLayer(final int sizeX, final int sizeY) {
+  public ImgTileSelectLayer(final int sizeX, final int sizeY, final int positionX, final int height) {
     super();
     this.sizeX = sizeX;
     this.sizeY = sizeY;
+    this.positionX = positionX;
+    this.positionY = height;
   }
   
   /**
@@ -58,10 +64,12 @@ public class ImgCropLayer extends LayerBase {
    *
    * @param json the json
    */
-  protected ImgCropLayer(@javax.annotation.Nonnull final JsonObject json) {
+  protected ImgTileSelectLayer(@Nonnull final JsonObject json) {
     super(json);
     sizeX = json.getAsJsonPrimitive("sizeX").getAsInt();
     sizeY = json.getAsJsonPrimitive("sizeY").getAsInt();
+    positionX = json.getAsJsonPrimitive("positionX").getAsInt();
+    positionY = json.getAsJsonPrimitive("positionY").getAsInt();
   }
   
   /**
@@ -69,22 +77,20 @@ public class ImgCropLayer extends LayerBase {
    *
    * @param inputData  the input data
    * @param outputData the output data
+   * @param posX
+   * @param posY
    * @return the tensor
    */
-  @javax.annotation.Nonnull
-  public static Tensor copy(@javax.annotation.Nonnull final Tensor inputData, @javax.annotation.Nonnull final Tensor outputData) {
-    @javax.annotation.Nonnull final int[] inDim = inputData.getDimensions();
-    @javax.annotation.Nonnull final int[] outDim = outputData.getDimensions();
+  @Nonnull
+  public static Tensor copy(@Nonnull final Tensor inputData, @Nonnull final Tensor outputData, final int posX, final int posY) {
+    @Nonnull final int[] inDim = inputData.getDimensions();
+    @Nonnull final int[] outDim = outputData.getDimensions();
     assert 3 == inDim.length;
     assert 3 == outDim.length;
     assert inDim[2] == outDim[2] : Arrays.toString(inDim) + "; " + Arrays.toString(outDim);
-    double fx = (inDim[0] - outDim[0]) / 2.0;
-    double fy = (inDim[1] - outDim[1]) / 2.0;
-    final int paddingX = (int) (fx < 0 ? Math.ceil(fx) : Math.floor(fx));
-    final int paddingY = (int) (fy < 0 ? Math.ceil(fy) : Math.floor(fy));
     outputData.coordStream(true).forEach((c) -> {
-      int x = c.getCoords()[0] + paddingX;
-      int y = c.getCoords()[1] + paddingY;
+      int x = c.getCoords()[0] + posX;
+      int y = c.getCoords()[1] + posY;
       int z = c.getCoords()[2];
       int width = inputData.getDimensions()[0];
       int height = inputData.getDimensions()[1];
@@ -106,13 +112,13 @@ public class ImgCropLayer extends LayerBase {
    * @param rs   the rs
    * @return the img crop layer
    */
-  public static ImgCropLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
-    return new ImgCropLayer(json);
+  public static ImgTileSelectLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+    return new ImgTileSelectLayer(json);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final Result input = inObj[0];
     final TensorList batch = input.getData();
@@ -120,19 +126,19 @@ public class ImgCropLayer extends LayerBase {
     assert 3 == inputDims.length;
     return new Result(TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
       .mapToObj(dataIndex -> {
-        @javax.annotation.Nonnull final Tensor outputData = new Tensor(sizeX, sizeY, inputDims[2]);
+        @Nonnull final Tensor outputData = new Tensor(sizeX, sizeY, inputDims[2]);
         Tensor inputData = batch.get(dataIndex);
-        ImgCropLayer.copy(inputData, outputData);
+        copy(inputData, outputData, positionX, positionY);
         inputData.freeRef();
         return outputData;
       })
-      .toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+      .toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
       if (input.isAlive()) {
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
+        @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
           .mapToObj(dataIndex -> {
             @Nullable final Tensor err = error.get(dataIndex);
-            @javax.annotation.Nonnull final Tensor passback = new Tensor(inputDims);
-            copy(err, passback);
+            @Nonnull final Tensor passback = new Tensor(inputDims);
+            copy(err, passback, -positionX, -positionY);
             err.freeRef();
             return passback;
           }).toArray(i -> new Tensor[i]));
@@ -153,16 +159,18 @@ public class ImgCropLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("sizeX", sizeX);
     json.addProperty("sizeY", sizeY);
+    json.addProperty("positionX", positionX);
+    json.addProperty("positionY", positionY);
     return json;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return new ArrayList<>();

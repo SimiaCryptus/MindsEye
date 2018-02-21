@@ -17,18 +17,36 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn;
+package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
+
+import java.util.Random;
 
 /**
- * An (LayerBase) object which can be exploded into an equivalent network with more fine-grained components.
+ * The type Img band select layer eval.
  */
-public interface Explodable {
+public abstract class ImgPixelGateLayerTest extends LayerTestBase {
+  
+  @javax.annotation.Nonnull
+  @Override
+  public int[][] getSmallDims(Random random) {
+    return new int[][]{
+      {2, 2, 3}, {2, 2, 1}
+    };
+  }
+  
+  @javax.annotation.Nonnull
+  @Override
+  public Layer getLayer(final int[][] inputSize, Random random) {
+    return new ImgPixelGateLayer();
+  }
+  
   /**
-   * Explode nn layer.
-   *
-   * @return the nn layer
+   * Basic Test
    */
-  Layer explode();
+  public static class Basic extends ImgPixelGateLayerTest {
+  }
+  
 }

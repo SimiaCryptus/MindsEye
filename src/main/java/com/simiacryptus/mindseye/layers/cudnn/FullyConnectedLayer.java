@@ -166,7 +166,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   @Override
   public Result eval(final Result... inObj) {
     if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
-    PipelineNetwork explode = explode();
+    Layer explode = explode();
     Result eval = explode.eval(inObj);
     explode.freeRef();
     return eval;
@@ -178,7 +178,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
    * @return the pipeline network
    */
   @javax.annotation.Nonnull
-  public PipelineNetwork explode() {
+  public Layer explode() {
     int inputVol = Tensor.dim(inputDims);
     int outVol = Tensor.dim(outputDims);
     @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork(1);

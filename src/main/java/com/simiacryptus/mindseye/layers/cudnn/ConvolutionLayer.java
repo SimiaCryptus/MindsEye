@@ -24,7 +24,7 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import com.simiacryptus.mindseye.network.DAGNetwork;
+import com.simiacryptus.mindseye.layers.java.ImgTileSubnetLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 import javax.annotation.Nonnull;
@@ -163,12 +163,14 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    */
   @Nonnull
   @Override
-  public DAGNetwork explode() {
+  public Layer explode() {
     @Nonnull ExplodedConvolutionGrid explodedNetwork = getExplodedNetwork();
     @Nonnull PipelineNetwork network = explodedNetwork.getNetwork();
     explodedNetwork.freeRef();
     network.setName(getName());
-    return network;
+    int maxSize = (int) Math.sqrt(1e6 / Math.max(inputBands, outputBands));
+    int[] kernelDims = getKernel().getDimensions();
+    return new ImgTileSubnetLayer(network, maxSize, maxSize, maxSize - ((kernelDims[0] - 1) / 2), maxSize - ((kernelDims[1] - 1) / 2));
   }
   
   /**
