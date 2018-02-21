@@ -124,9 +124,10 @@ public class ImgTileSelectLayer extends LayerBase {
     final TensorList batch = input.getData();
     @Nonnull final int[] inputDims = batch.getDimensions();
     assert 3 == inputDims.length;
+    @Nonnull final int[] dimOut = getViewDimensions(inputDims, new int[]{sizeY, sizeX, inputDims[2]}, new int[]{positionX, positionY, 0});
     return new Result(TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
       .mapToObj(dataIndex -> {
-        @Nonnull final Tensor outputData = new Tensor(sizeX, sizeY, inputDims[2]);
+        @Nonnull final Tensor outputData = new Tensor(dimOut);
         Tensor inputData = batch.get(dataIndex);
         copy(inputData, outputData, positionX, positionY);
         inputData.freeRef();
@@ -157,6 +158,16 @@ public class ImgTileSelectLayer extends LayerBase {
         return input.isAlive() || !isFrozen();
       }
     };
+  }
+  
+  @Nonnull
+  public int[] getViewDimensions(int[] sourceDimensions, int[] destinationDimensions, int[] offset) {
+    @Nonnull final int[] viewDim = new int[3];
+    Arrays.parallelSetAll(viewDim, i ->
+      Math.min(sourceDimensions[i], destinationDimensions[i] + offset[i]) -
+        Math.max(offset[i], 0)
+    );
+    return viewDim;
   }
   
   @Nonnull

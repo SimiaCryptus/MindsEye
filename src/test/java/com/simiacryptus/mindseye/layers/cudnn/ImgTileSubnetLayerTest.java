@@ -37,10 +37,12 @@ public abstract class ImgTileSubnetLayerTest extends CuDNNLayerTestBase {
     };
   }
   
+  private final ConvolutionLayer convolutionLayer = new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random());
+  
   @javax.annotation.Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
-    return new ImgTileSubnetLayer(new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random()),
+    return new ImgTileSubnetLayer(convolutionLayer,
       3, 3, 2, 2);
   }
   

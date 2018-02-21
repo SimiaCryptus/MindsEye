@@ -100,14 +100,14 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
   public Result eval(@Nonnull final Result... inObj) {
     if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     final TensorList prototype = inObj[0].getData();
-    int[] inputDimensions = prototype.getDimensions();
-    assert 3 == inputDimensions.length;
-    final int length = prototype.length();
-    if (inputDimensions[0] == columns && inputDimensions[1] == rows) {
+    if (1 == inObj.length) {
       inObj[0].addRef();
       prototype.addRef();
       return inObj[0];
     }
+    int[] inputDimensions = prototype.getDimensions();
+    assert 3 == inputDimensions.length;
+    final int length = prototype.length();
     int[] outputDims = getOutputDims(inObj);
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final TensorList outputData = CudaSystem.eval(gpu -> {

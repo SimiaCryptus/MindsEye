@@ -41,14 +41,14 @@ public abstract class ImgTileSelectLayerTest extends CuDNNLayerTestBase {
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {8, 8, 4}
+      {8, 8, 1}
     };
   }
   
   @javax.annotation.Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
-    return new ImgTileSelectLayer(3, 2, 2, 3);
+    return new ImgTileSelectLayer(4, 4, 6, 5);
   }
   
   @Nullable
