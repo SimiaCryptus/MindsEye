@@ -193,8 +193,9 @@ public class ImgTileAssemblyLayer extends LayerBase {
       int positionX = 0;
       int rowHeight = 0;
       for (int col = 0; col < columns; col++) {
-        rowHeight = Math.max(rowHeight, inObj[inputIndex].getData().getDimensions()[1]);
-        positionX += inObj[inputIndex].getData().getDimensions()[0];
+        int[] dimensions = inObj[inputIndex].getData().getDimensions();
+        rowHeight = Math.max(rowHeight, dimensions[1]);
+        positionX += dimensions[0];
         inputIndex += 1;
       }
       totalHeight += rowHeight;

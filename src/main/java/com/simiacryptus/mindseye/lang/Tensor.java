@@ -501,7 +501,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    * @param tensor the tensor
    */
   public void addInPlace(@javax.annotation.Nonnull final Tensor tensor) {
-    assert Arrays.equals(getDimensions(), tensor.getDimensions());
+    assert Arrays.equals(getDimensions(), tensor.getDimensions()) : Arrays.toString(getDimensions()) + " != " + Arrays.toString(tensor.getDimensions());
     setParallelByIndex(c -> get(c) + tensor.get(c));
   }
   
