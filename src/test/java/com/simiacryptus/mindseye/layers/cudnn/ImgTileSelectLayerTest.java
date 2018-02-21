@@ -48,7 +48,7 @@ public abstract class ImgTileSelectLayerTest extends LayerTestBase {
   @javax.annotation.Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
-    return new ImgTileSelectLayer(3, 3, 2, 2);
+    return new ImgTileSelectLayer(3, 2, 2, 3);
   }
   
   /**

@@ -115,13 +115,11 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
       in.getData().addRef();
       return in;
     }
-    @Nonnull final int[] dimOut = Arrays.copyOf(dimIn, 3);
-    dimOut[0] = width;
-    dimOut[1] = height;
+    @Nonnull final int[] dimOut = getViewDimensions(dimIn, new int[]{width, height, dimIn[2]}, new int[]{positionX, positionY, 0});
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final TensorList outputData = CudaSystem.eval(gpu -> {
       @Nullable final CudaPtr inputBuffer = CudaPtr.getCudaPtr(precision, in.getData());
-      boolean dirty = dimOut[0] <= dimIn[0] && dimOut[1] <= dimIn[1];
+      boolean dirty = dimOut[0] == dimIn[0] && dimOut[1] == dimIn[1];
       assert dimOut[0] > 0;
       assert dimOut[1] > 0;
       assert dimOut[2] > 0;
@@ -204,14 +202,14 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
       1);
     int sourceOffset = 0;
     int destinationOffset = 0;
-    
-    if (positionX > 0) {
+  
+    if (positionX < 0) {
       destinationOffset += Math.abs(positionX) / 2;
     }
     else {
       sourceOffset += Math.abs(positionX) / 2;
     }
-    if (positionY > 0) {
+    if (positionY < 0) {
       destinationOffset += destinationDimensions[0] * Math.abs((positionY) / 2);
     }
     else {
@@ -244,7 +242,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
   public int[] getViewDimensions(int[] sourceDimensions, int[] destinationDimensions, int[] offset) {
     @Nonnull final int[] viewDim = new int[3];
     Arrays.parallelSetAll(viewDim, i ->
-      Math.min(sourceDimensions[i] + offset[i], destinationDimensions[i]) -
+      Math.min(sourceDimensions[i], destinationDimensions[i] + offset[i]) -
         Math.max(offset[i], 0)
     );
     return viewDim;

@@ -352,7 +352,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
     @Override
     public int[][] getLargeDims(final Random random) {
       return new int[][]{
-        {100, 100, inputBands}
+        {256, 128, inputBands}
       };
     }
   }

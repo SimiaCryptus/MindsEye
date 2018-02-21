@@ -116,8 +116,8 @@ public class ImgTileSubnetLayer extends LayerBase {
         int positionY = row * strideY;
         assert positionX >= 0;
         assert positionY >= 0;
-        assert positionX < width;
-        assert positionY < height;
+        assert positionX < inputDims[0];
+        assert positionY < inputDims[1];
         nodes.add(network.wrap(new ImgTileSelectLayer(width, height, positionX, positionY), network.getInput(0)));
       }
     }
