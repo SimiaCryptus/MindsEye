@@ -67,7 +67,7 @@ public class TestUtil {
   /**
    * The constant CONSERVATIVE.
    */
-  public static final boolean CONSERVATIVE = true && Boolean.parseBoolean(System.getProperty("CONSERVATIVE", Boolean.toString(TestUtil.class.desiredAssertionStatus())));
+  public static final boolean CONSERVATIVE = false || Boolean.parseBoolean(System.getProperty("CONSERVATIVE", Boolean.toString(TestUtil.class.desiredAssertionStatus())));
   private static final Logger log = LoggerFactory.getLogger(TestUtil.class);
   
   /**
