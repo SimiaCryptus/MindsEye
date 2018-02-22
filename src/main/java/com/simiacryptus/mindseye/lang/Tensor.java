@@ -107,7 +107,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     assert null == data || data.length == Tensor.dim(dimensions);
     this.dimensions = dimensions;
     this.strides = strides;
-    this.data = null == data ? null : RecycleBin.DOUBLES.copyOf(data, data.length);
+    this.data = data;
     assert isValid();
   }
   
@@ -1623,10 +1623,17 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    */
   @javax.annotation.Nonnull
   public Tensor permuteDimensions(int... key) {
+    assertAlive();
     int[] inputDims = getDimensions();
     int[] absKey = Arrays.stream(key).map(a -> a == Integer.MAX_VALUE ? 0 : Math.abs(a)).toArray();
     int[] outputDims = permute(absKey, inputDims, inputDims);
     return rearrange(in -> permute(key, in, inputDims), outputDims);
+  }
+  
+  public Tensor permuteDimensionsAndFree(int... key) {
+    Tensor result = permuteDimensions(key);
+    this.freeRef();
+    return result;
   }
   
   /**
@@ -1639,7 +1646,16 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public Tensor reshapeCast(@javax.annotation.Nonnull int... dims) {
     if (0 == dims.length) throw new IllegalArgumentException();
     if (dim(dims) != dim()) throw new IllegalArgumentException();
-    return new Tensor(dims, getData());
+    double[] data = getData();
+    return new Tensor(dims, null == data ? null : RecycleBin.DOUBLES.copyOf(data, data.length));
+  }
+  
+  @Nullable
+  public Tensor reshapeCastAndFree(@javax.annotation.Nonnull int... dims) {
+    if (0 == dims.length) throw new IllegalArgumentException();
+    if (dim(dims) != dim()) throw new IllegalArgumentException();
+    double[] data = getData();
+    return new Tensor(dims, data);
   }
   
   /**

@@ -296,6 +296,13 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     return this;
   }
   
+  @javax.annotation.Nonnull
+  public ConvolutionLayer setAndFree(@javax.annotation.Nonnull final Tensor tensor) {
+    set(tensor);
+    tensor.freeRef();
+    return this;
+  }
+  
   /**
    * Set convolution layer.
    *

@@ -88,6 +88,7 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
     return new ImgZeroPaddingLayer(json, rs);
   }
   
+  public StackTraceElement[] createdBy = Thread.currentThread().getStackTrace();
   @Nullable
   @Override
   public Result eval(@javax.annotation.Nonnull final Result... inObj) {

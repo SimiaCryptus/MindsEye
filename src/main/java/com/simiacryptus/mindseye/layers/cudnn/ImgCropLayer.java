@@ -59,6 +59,8 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
   public ImgCropLayer(int sizeX, int sizeY) {
     this.sizeX = sizeX;
     this.sizeY = sizeY;
+    assert 0 < sizeX;
+    assert 0 < sizeY;
   }
   
   /**
@@ -72,6 +74,8 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
     sizeX = json.get("sizeX").getAsInt();
     sizeY = json.get("sizeY").getAsInt();
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
+    assert 0 < sizeX;
+    assert 0 < sizeY;
   }
   
   /**

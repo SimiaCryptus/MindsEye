@@ -57,7 +57,7 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
   protected
   PipelineNetwork model = new PipelineNetwork();
   @javax.annotation.Nonnull
-  Precision precision = Precision.Double;
+  Precision precision = Precision.Float;
   private boolean large = true;
   private boolean dense = true;
   
@@ -107,17 +107,21 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
     name(layer);
     if (layer instanceof Explodable) {
       Layer explode = ((Explodable) layer).explode();
-      if (explode instanceof DAGNetwork) {
-        ((DAGNetwork) explode).visitNodes(node -> name(node.getLayer()));
-        log.info(String.format("Exploded %s to %s (%s nodes)", layer.getName(), explode.getClass().getSimpleName(), ((DAGNetwork) explode).getNodes().size()));
+      try {
+        if (explode instanceof DAGNetwork) {
+          ((DAGNetwork) explode).visitNodes(node -> name(node.getLayer()));
+          log.info(String.format("Exploded %s to %s (%s nodes)", layer.getName(), explode.getClass().getSimpleName(), ((DAGNetwork) explode).getNodes().size()));
+        }
+        else {
+          log.info(String.format("Exploded %s to %s (%s nodes)", layer.getName(), explode.getClass().getSimpleName(), explode.getName()));
+        }
+        add(explode, model);
+      } finally {
+        layer.freeRef();
       }
-      else {
-        log.info(String.format("Exploded %s to %s (%s nodes)", layer.getName(), explode.getClass().getSimpleName(), explode.getName()));
-      }
-      add(explode, model);
     }
     else {
-      model.add(layer);
+      model.wrap(layer);
     }
   }
   
@@ -242,8 +246,8 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
         add(new ConvolutionLayer(7, 7, 512, 4096)
           .setStrideXY(1, 1)
           .setPaddingXY(0, 0)
-          .set(hdf5.readDataSet("param_0", "layer_32")
-            .reshapeCast(7, 7, 512, 4096).permuteDimensions(0, 1, 3, 2)
+          .setAndFree(hdf5.readDataSet("param_0", "layer_32")
+            .reshapeCast(7, 7, 512, 4096).permuteDimensionsAndFree(0, 1, 3, 2)
           )
         );
       });
@@ -258,15 +262,15 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
       output.code(() -> {
         add(new ConvolutionLayer(1, 1, 25088, 4096)
           .setPaddingXY(0, 0)
-          .set(hdf5.readDataSet("param_0", "layer_32")
-            .permuteDimensions(fullyconnectedOrder))
+          .setAndFree(hdf5.readDataSet("param_0", "layer_32")
+            .permuteDimensionsAndFree(fullyconnectedOrder))
         );
       });
     }
     
     output.code(() -> {
       add(new ImgBandBiasLayer(4096)
-        .set((hdf5.readDataSet("param_1", "layer_32"))));
+        .setAndFree((hdf5.readDataSet("param_1", "layer_32"))));
     });
     output.code(() -> {
       add(new ActivationLayer(ActivationLayer.Mode.RELU));
@@ -283,13 +287,13 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
     output.code(() -> {
       add(new ConvolutionLayer(1, 1, 4096, 4096)
         .setPaddingXY(0, 0)
-        .set(hdf5.readDataSet("param_0", "layer_34")
-          .permuteDimensions(fullyconnectedOrder))
+        .setAndFree(hdf5.readDataSet("param_0", "layer_34")
+          .permuteDimensionsAndFree(fullyconnectedOrder))
       );
     });
     output.code(() -> {
       add(new ImgBandBiasLayer(4096)
-        .set((hdf5.readDataSet("param_1", "layer_34"))));
+        .setAndFree((hdf5.readDataSet("param_1", "layer_34"))));
     });
     output.code(() -> {
       add(new ActivationLayer(ActivationLayer.Mode.RELU));
@@ -298,13 +302,13 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
     output.code(() -> {
       add(new ConvolutionLayer(1, 1, 4096, 1000)
         .setPaddingXY(0, 0)
-        .set(hdf5.readDataSet("param_0", "layer_36")
-          .permuteDimensions(fullyconnectedOrder))
+        .setAndFree(hdf5.readDataSet("param_0", "layer_36")
+          .permuteDimensionsAndFree(fullyconnectedOrder))
       );
     });
     output.code(() -> {
       add(new ImgBandBiasLayer(1000)
-        .set((hdf5.readDataSet("param_1", "layer_36"))));
+        .setAndFree((hdf5.readDataSet("param_1", "layer_36"))));
     });
     
     output.code(() -> {
@@ -340,13 +344,13 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
     output.code(() -> {
       add(new ConvolutionLayer(radius, radius, inputBands, outputBands)
         .setPaddingXY(0, 0)
-        .set(hdf5.readDataSet("param_0", hdf_group)
-          .permuteDimensions(convolutionOrder))
+        .setAndFree(hdf5.readDataSet("param_0", hdf_group)
+          .permuteDimensionsAndFree(convolutionOrder))
       );
     });
     output.code(() -> {
       add(new ImgBandBiasLayer(outputBands)
-        .set((hdf5.readDataSet("param_1", hdf_group))));
+        .setAndFree((hdf5.readDataSet("param_1", hdf_group))));
     });
     output.code(() -> {
       add(new ActivationLayer(activationMode));
@@ -354,8 +358,8 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
   }
   
   protected void add(Layer layer) {
-    add(layer, model);
     this.prototype = evaluatePrototype(layer, this.prototype, cnt++);
+    add(layer, model);
   }
   
   /**

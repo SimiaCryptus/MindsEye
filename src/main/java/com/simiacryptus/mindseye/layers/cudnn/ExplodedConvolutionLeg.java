@@ -233,11 +233,14 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
     }
     if (this.convolutionParams.paddingX != null || this.convolutionParams.paddingY != null) {
       int x = ((filterDimensions[0] - 1) / 2);
-      if (this.convolutionParams.paddingX != null) x = this.convolutionParams.paddingX - x;
+      if (this.convolutionParams.paddingX != null) x = this.convolutionParams.paddingX + x;
       int y = ((filterDimensions[1] - 1) / 2);
-      if (this.convolutionParams.paddingY != null) y = this.convolutionParams.paddingY - y;
-      if (x != 0 || y != 0)
+      if (this.convolutionParams.paddingY != null) y = this.convolutionParams.paddingY + y;
+      if (x != 0 || y != 0) {
+        assert 0 <= x;
+        assert 0 <= y;
         head = network.wrap(new ImgZeroPaddingLayer(x, y).setPrecision(convolutionParams.precision), head);
+      }
     }
     return head;
   }

@@ -19,36 +19,24 @@
 
 package com.simiacryptus.mindseye.demo;
 
-import com.simiacryptus.mindseye.eval.ArrayTrainable;
-import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
-import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
-import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
-import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.opt.IterativeTrainer;
-import com.simiacryptus.mindseye.opt.Step;
-import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
-import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
-import com.simiacryptus.mindseye.test.StepRecord;
-import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.test.SysOutInterceptor;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -104,47 +92,15 @@ public class DeepDreamDemo extends NotebookReportBase {
       log.p("Predictions: %s", categories);
       log.p("Evolve from %s to %s", categories.get(0), categories.get(1));
       int targetCategoryIndex = vgg16Categories.indexOf(categories.get(1));
+      int totalCategories = vgg16Categories.size();
       Tensor image = images[itemNumber];
-      @javax.annotation.Nonnull List<Tensor[]> data = Arrays.<Tensor[]>asList(new Tensor[]{
-        image, new Tensor(vgg16Categories.size()).set(targetCategoryIndex, 1.0)
-      });
-      log.code(() -> {
-        for (Tensor[] tensors : data) {
-          try {
-            logger.info(log.image(tensors[0].toImage(), "") + tensors[1]);
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        }
-      });
-      log.code(() -> {
-        @javax.annotation.Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-        @javax.annotation.Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
-        clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-        clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-        clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-        clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-        @javax.annotation.Nonnull PipelineNetwork supervised = new PipelineNetwork(2);
-        supervised.wrap(new EntropyLossLayer(),
-          supervised.add(vgg16.getNetwork().freeze(),
-            supervised.wrap(clamp, supervised.getInput(0))),
-          supervised.getInput(1));
-        @javax.annotation.Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setMask(true, false).setData(data);
-        new IterativeTrainer(trainable)
-          .setMonitor(getTrainingMonitor(history))
-          .setOrientation(new QQN())
-          .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-          .setTimeout(60, TimeUnit.MINUTES)
-          .runAndFree();
-        return TestUtil.plot(history);
-      });
+      vgg16.deepDream(log, image, targetCategoryIndex, totalCategories);
       try {
         log.p(log.image(image.toImage(), "result"));
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
     }
-    
     
     log.h1("Results");
     log.code(() -> {
@@ -160,34 +116,6 @@ public class DeepDreamDemo extends NotebookReportBase {
       return tableOutput;
     }, 256 * 1024);
     log.setFrontMatterProperty("status", "OK");
-  }
-  
-  /**
-   * Gets training monitor.
-   *
-   * @param history the history
-   * @return the training monitor
-   */
-  @javax.annotation.Nonnull
-  public TrainingMonitor getTrainingMonitor(@javax.annotation.Nonnull ArrayList<StepRecord> history) {
-    @javax.annotation.Nonnull TrainingMonitor monitor1 = TestUtil.getMonitor(history);
-    return new TrainingMonitor() {
-      @Override
-      public void clear() {
-        monitor1.clear();
-      }
-      
-      @Override
-      public void log(String msg) {
-        SysOutInterceptor.ORIGINAL_OUT.println(msg);
-        monitor1.log(msg);
-      }
-      
-      @Override
-      public void onStepComplete(Step currentPoint) {
-        monitor1.onStepComplete(currentPoint);
-      }
-    };
   }
   
   /**

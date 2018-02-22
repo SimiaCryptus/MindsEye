@@ -317,6 +317,13 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
     return this;
   }
   
+  @javax.annotation.Nonnull
+  public Layer setAndFree(@javax.annotation.Nonnull final Tensor ds) {
+    set(ds);
+    ds.freeRef();
+    return this;
+  }
+  
   /**
    * Sets weights.
    *
