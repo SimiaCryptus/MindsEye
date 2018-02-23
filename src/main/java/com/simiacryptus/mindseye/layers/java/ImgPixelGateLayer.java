@@ -78,6 +78,7 @@ public class ImgPixelGateLayer extends LayerBase {
    * Eval nn result.
    *
    * @param input the input
+   * @param gate  the gate
    * @return the nn result
    */
   @Nonnull

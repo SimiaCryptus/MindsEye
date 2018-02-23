@@ -34,7 +34,7 @@ import java.util.stream.Stream;
  * A calculation node, to be evaluated by a network once the inputs are available.
  */
 @SuppressWarnings("serial")
-final class InnerNode extends LazyResult {
+public final class InnerNode extends LazyResult {
   /**
    * The Created by.
    */
@@ -44,6 +44,7 @@ final class InnerNode extends LazyResult {
   @javax.annotation.Nonnull
   private final DAGNode[] inputNodes;
   private Layer layer;
+  private boolean parallel = true;
   
   /**
    * Instantiates a new Inner node.
@@ -95,7 +96,7 @@ final class InnerNode extends LazyResult {
     @javax.annotation.Nonnull final Layer innerLayer = getLayer();
     assert Arrays.stream(inputNodes).allMatch(x -> x != null);
     @javax.annotation.Nonnull Stream<DAGNode> stream = Arrays.stream(inputNodes);
-    if (!TestUtil.CONSERVATIVE) stream = stream.parallel();
+    if (!TestUtil.CONSERVATIVE && parallel) stream = stream.parallel();
     final Result[] in = stream.map(x -> x == null ? null : x.get(ctx)).toArray(i -> new Result[i]);
     assert Arrays.stream(in).allMatch(x -> x != null);
     @Nullable Result result = innerLayer.evalAndFree(in);
@@ -144,5 +145,25 @@ final class InnerNode extends LazyResult {
       node.freeRef();
     }
     this.layer.freeRef();
+  }
+  
+  /**
+   * Is parallel boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isParallel() {
+    return parallel;
+  }
+  
+  /**
+   * Sets parallel.
+   *
+   * @param parallel the parallel
+   * @return the parallel
+   */
+  public InnerNode setParallel(boolean parallel) {
+    this.parallel = parallel;
+    return this;
   }
 }

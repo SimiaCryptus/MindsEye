@@ -101,18 +101,18 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
       }
     }
     return new Result(CudaSystem.eval(gpu -> {
-      @javax.annotation.Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = CudaSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
-      @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CudaSystem.newTensorDescriptor(
+      @javax.annotation.Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
+      @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = gpu.newTensorDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
       @javax.annotation.Nonnull final TensorList result1 = Arrays.stream(inObj).map(x -> {
         TensorList data = x.getData();
         data.addRef();
         return data;
       }).reduce((l, r) -> {
-        @Nullable final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, l);
-        @Nullable final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, r);
+        @Nullable final CudaPtr lPtr = gpu.getPtr(precision, l, MemoryType.Device);
+        @Nullable final CudaPtr rPtr = gpu.getPtr(precision, r, MemoryType.Device);
         assert lPtr.size == rPtr.size;
-        @javax.annotation.Nonnull final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
+        @javax.annotation.Nonnull final CudaPtr outputPtr = gpu.allocate(lPtr.size, MemoryType.Device, true);
         CudaSystem.handle(JCudnn.cudnnOpTensor(gpu.getHandle(), opDescriptor.getPtr(),
           precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
           precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
@@ -133,14 +133,14 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
             return tensorList;
           }).reduce((l, r) -> {
             return CudaSystem.eval(gpu -> {
-              @javax.annotation.Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = CudaSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
-              @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CudaSystem.newTensorDescriptor(
+              @javax.annotation.Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
+              @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = gpu.newTensorDescriptor(
                 precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
-              
-              @Nullable final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, l);
-              @Nullable final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, r);
+  
+              @Nullable final CudaPtr lPtr = gpu.getPtr(precision, l, MemoryType.Device);
+              @Nullable final CudaPtr rPtr = gpu.getPtr(precision, r, MemoryType.Device);
               assert lPtr.size == rPtr.size;
-              @javax.annotation.Nonnull final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
+              @javax.annotation.Nonnull final CudaPtr outputPtr = gpu.allocate(lPtr.size, MemoryType.Device, true);
               CudaSystem.handle(JCudnn.cudnnOpTensor(gpu.getHandle(), opDescriptor.getPtr(),
                 precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
                 precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),

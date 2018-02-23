@@ -55,8 +55,10 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
   /**
    * Instantiates a new Img crop layer.
    *
-   * @param sizeY  the size x
-   * @param sizeX the size y
+   * @param sizeX     the size y
+   * @param sizeY     the size x
+   * @param positionX the position x
+   * @param positionY the position y
    */
   public ImgTileSelectLayer(int sizeX, int sizeY, final int positionX, final int positionY) {
     this.sizeY = sizeY;
@@ -118,12 +120,12 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
     @Nonnull final int[] dimOut = getViewDimensions(dimIn, new int[]{sizeY, sizeX, dimIn[2]}, new int[]{positionX, positionY, 0});
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final TensorList outputData = CudaSystem.eval(gpu -> {
-      @Nullable final CudaPtr inputBuffer = CudaPtr.getCudaPtr(precision, in.getData());
+      @Nullable final CudaPtr inputBuffer = gpu.getPtr(precision, in.getData(), MemoryType.Device);
       boolean dirty = dimOut[0] == dimIn[0] && dimOut[1] == dimIn[1];
       assert dimOut[0] > 0;
       assert dimOut[1] > 0;
       assert dimOut[2] > 0;
-      @Nonnull final CudaPtr outputBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), (long) length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size, MemoryType.Managed, dirty);
+      @Nonnull final CudaPtr outputBuffer = gpu.allocate((long) length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size, MemoryType.Managed, dirty);
       copy(gpu, length, dimIn, inputBuffer, dimOut, outputBuffer, this.positionX, this.positionY);
       gpu.registerForCleanup(inputBuffer);
       return CudaTensorList.wrap(outputBuffer, length, dimOut, precision);
@@ -138,9 +140,9 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
       assert error.length() == in.getData().length();
       if (in.isAlive()) {
         final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
-          @Nullable final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
+          @Nullable final CudaPtr errorPtr = gpu.getPtr(precision, error, MemoryType.Device);
           boolean dirty = dimOut[0] >= dimIn[0] && dimOut[1] >= dimIn[1];
-          @Nonnull final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), (long) (length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size), MemoryType.Managed, dirty);
+          @Nonnull final CudaPtr passbackBuffer = gpu.allocate((long) (length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size), MemoryType.Managed, dirty);
           copy(gpu, length, dimOut, errorPtr, dimIn, passbackBuffer, -this.positionX, -this.positionY);
           gpu.registerForCleanup(errorPtr);
           return CudaTensorList.wrap(passbackBuffer, length, dimIn, precision);
@@ -171,6 +173,9 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
    * @param source                the input buffer
    * @param destinationDimensions the dim out
    * @param destination           the output buffer
+   * @param positionX             the position x
+   * @param positionY             the position y
+   * @return the int [ ]
    */
   public int[] copy(@Nonnull CudnnHandle gpu, int length, @Nonnull int[] sourceDimensions, @Nonnull CudaPtr source, @Nonnull int[] destinationDimensions, @Nonnull CudaPtr destination, int positionX, int positionY) {
     if (3 != sourceDimensions.length) throw new IllegalArgumentException("inputDimensions.length");
@@ -180,7 +185,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
       throw new IllegalArgumentException(String.format("%d != %d", bands, destinationDimensions[2]));
     //log.info(String.format("offset=%d,%d", offsetX, offsetY));
     @Nonnull final int[] viewDim = getViewDimensions(sourceDimensions, destinationDimensions, new int[]{positionX, positionY, 0});
-    @Nonnull final CudaResource<cudnnTensorDescriptor> sourceViewDescriptor = CudaSystem.newTensorDescriptor(
+    @Nonnull final CudaResource<cudnnTensorDescriptor> sourceViewDescriptor = gpu.newTensorDescriptor(
       precision.code,//
       length,//
       viewDim[2],//
@@ -190,7 +195,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
       sourceDimensions[1] * sourceDimensions[0],//
       sourceDimensions[0],//
       1);
-    @Nonnull final CudaResource<cudnnTensorDescriptor> destinationViewDescriptor = CudaSystem.newTensorDescriptor(
+    @Nonnull final CudaResource<cudnnTensorDescriptor> destinationViewDescriptor = gpu.newTensorDescriptor(
       precision.code,//
       length,//
       viewDim[2],//
@@ -236,6 +241,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
    *
    * @param sourceDimensions      the source dimensions
    * @param destinationDimensions the destination dimensions
+   * @param offset                the offset
    * @return the int [ ]
    */
   @Nonnull

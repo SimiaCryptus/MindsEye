@@ -48,8 +48,8 @@ public class ImgTileSelectLayer extends LayerBase {
    *
    * @param sizeX     the size x
    * @param sizeY     the size y
-   * @param positionX
-   * @param positionY
+   * @param positionX the position x
+   * @param positionY the position y
    */
   public ImgTileSelectLayer(final int sizeX, final int sizeY, final int positionX, final int positionY) {
     super();
@@ -77,8 +77,8 @@ public class ImgTileSelectLayer extends LayerBase {
    *
    * @param inputData  the input data
    * @param outputData the output data
-   * @param posX
-   * @param posY
+   * @param posX       the pos x
+   * @param posY       the pos y
    * @return the tensor
    */
   @Nonnull
@@ -160,6 +160,14 @@ public class ImgTileSelectLayer extends LayerBase {
     };
   }
   
+  /**
+   * Get view dimensions int [ ].
+   *
+   * @param sourceDimensions      the source dimensions
+   * @param destinationDimensions the destination dimensions
+   * @param offset                the offset
+   * @return the int [ ]
+   */
   @Nonnull
   public int[] getViewDimensions(int[] sourceDimensions, int[] destinationDimensions, int[] offset) {
     @Nonnull final int[] viewDim = new int[3];

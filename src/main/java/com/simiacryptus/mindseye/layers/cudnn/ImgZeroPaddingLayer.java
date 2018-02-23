@@ -40,7 +40,10 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<ImgZeroPaddingLayer> {
   private static final Logger log = LoggerFactory.getLogger(ImgZeroPaddingLayer.class);
-  
+  /**
+   * The Created by.
+   */
+  public StackTraceElement[] createdBy = Thread.currentThread().getStackTrace();
   private int sizeX;
   private int sizeY;
   private Precision precision = Precision.Double;
@@ -88,7 +91,6 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
     return new ImgZeroPaddingLayer(json, rs);
   }
   
-  public StackTraceElement[] createdBy = Thread.currentThread().getStackTrace();
   @Nullable
   @Override
   public Result eval(@javax.annotation.Nonnull final Result... inObj) {

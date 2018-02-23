@@ -42,7 +42,7 @@ public class ImgPixelSoftmaxLayer extends LayerBase {
   /**
    * Instantiates a new Img band scale layer.
    */
-  protected ImgPixelSoftmaxLayer() {
+  public ImgPixelSoftmaxLayer() {
     super();
   }
   
@@ -82,15 +82,15 @@ public class ImgPixelSoftmaxLayer extends LayerBase {
    */
   @Nonnull
   public Result eval(@Nonnull final Result input) {
-    final TensorList inData = input.getData();
-    inData.addRef();
+    final TensorList inputData = input.getData();
+    inputData.addRef();
     input.addRef();
-    int[] inputDims = input.getData().getDimensions();
+    int[] inputDims = inputData.getDimensions();
     assert 3 == inputDims.length;
     final int inputBands = inputDims[2];
     final int width = inputDims[0];
     final int height = inputDims[1];
-    TensorArray maxima = TensorArray.wrap(input.getData().stream().map(inputTensor -> {
+    TensorArray maxima = TensorArray.wrap(inputData.stream().map(inputTensor -> {
       try {
         return new Tensor(width, height, 1).setByCoord(c -> {
           return IntStream.range(0, inputBands).mapToDouble(band -> {
@@ -102,8 +102,8 @@ public class ImgPixelSoftmaxLayer extends LayerBase {
         inputTensor.freeRef();
       }
     }).toArray(i -> new Tensor[i]));
-    TensorArray exps = TensorArray.wrap(IntStream.range(0, input.getData().length()).mapToObj(index -> {
-      final Tensor inputTensor = input.getData().get(index);
+    TensorArray exps = TensorArray.wrap(IntStream.range(0, inputData.length()).mapToObj(index -> {
+      final Tensor inputTensor = inputData.get(index);
       Tensor maxTensor = maxima.get(index);
       try {
         return new Tensor(inputDims).setByCoord(c -> {
@@ -128,7 +128,7 @@ public class ImgPixelSoftmaxLayer extends LayerBase {
         expTensor.freeRef();
       }
     }).toArray(i -> new Tensor[i]));
-    TensorArray output = TensorArray.wrap(IntStream.range(0, input.getData().length()).mapToObj(index -> {
+    TensorArray output = TensorArray.wrap(IntStream.range(0, inputData.length()).mapToObj(index -> {
       Tensor sumTensor = sums.get(index);
       Tensor expTensor = exps.get(index);
       try {
@@ -143,8 +143,8 @@ public class ImgPixelSoftmaxLayer extends LayerBase {
     }).toArray(i -> new Tensor[i]));
     return new Result(output, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       if (input.isAlive()) {
-        
-        TensorArray dots = TensorArray.wrap(IntStream.range(0, input.getData().length()).mapToObj(index -> {
+  
+        TensorArray dots = TensorArray.wrap(IntStream.range(0, inputData.length()).mapToObj(index -> {
           final Tensor deltaTensor = delta.get(index);
           Tensor expTensor = exps.get(index);
           try {
@@ -159,8 +159,8 @@ public class ImgPixelSoftmaxLayer extends LayerBase {
             deltaTensor.freeRef();
           }
         }).toArray(i -> new Tensor[i]));
-        
-        TensorArray passback = TensorArray.wrap(IntStream.range(0, input.getData().length()).mapToObj(index -> {
+  
+        TensorArray passback = TensorArray.wrap(IntStream.range(0, inputData.length()).mapToObj(index -> {
           final Tensor deltaTensor = delta.get(index);
           final Tensor expTensor = exps.get(index);
           Tensor sumTensor = sums.get(index);
@@ -190,7 +190,7 @@ public class ImgPixelSoftmaxLayer extends LayerBase {
       
       @Override
       protected void _free() {
-        inData.freeRef();
+        inputData.freeRef();
         input.freeRef();
         sums.freeRef();
         exps.freeRef();

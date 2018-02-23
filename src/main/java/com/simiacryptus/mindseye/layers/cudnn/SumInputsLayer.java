@@ -135,16 +135,18 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
   }
   
   @Nonnull
-  private CudaTensorList addAndFree(final CudnnHandle gpu, final int[] dimensions, final int length, final TensorList leftData, final TensorList rightData) {
-    if (leftData.currentRefCount() == 1) return addInPlaceAndFree(gpu, dimensions, length, leftData, rightData);
-    if (rightData.currentRefCount() == 1) return addInPlaceAndFree(gpu, dimensions, length, rightData, leftData);
-    @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = CudaSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
-    @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CudaSystem.newTensorDescriptor(
+  private TensorList addAndFree(final CudnnHandle gpu, final int[] dimensions, final int length, final TensorList leftData, final TensorList rightData) {
+    if (leftData.currentRefCount() == 1 && leftData instanceof CudaTensorList)
+      return addInPlaceAndFree(gpu, dimensions, length, (CudaTensorList) leftData, rightData);
+    if (rightData.currentRefCount() == 1 && rightData instanceof CudaTensorList)
+      return addInPlaceAndFree(gpu, dimensions, length, (CudaTensorList) rightData, leftData);
+    @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
+    @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = gpu.newTensorDescriptor(
       precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
-    @Nullable final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, leftData);//.moveTo(gpu.getDeviceNumber());
-    @Nullable final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, rightData);//.moveTo(gpu.getDeviceNumber());
+    @Nullable final CudaPtr lPtr = gpu.getPtr(precision, leftData, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
+    @Nullable final CudaPtr rPtr = gpu.getPtr(precision, rightData, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
     assert lPtr.size == rPtr.size;
-    @Nonnull final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
+    @Nonnull final CudaPtr outputPtr = gpu.allocate(lPtr.size, MemoryType.Managed, true);
     gpu.cudnnOpTensor(opDescriptor.getPtr(),
       precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
       precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
@@ -154,17 +156,17 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
   }
   
   @Nonnull
-  private CudaTensorList addInPlaceAndFree(final CudnnHandle gpu, final int[] dimensions, final int length, final TensorList leftData, final TensorList rightData) {
-    @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CudaSystem.newTensorDescriptor(
+  private TensorList addInPlaceAndFree(final CudnnHandle gpu, final int[] dimensions, final int length, final CudaTensorList leftData, final TensorList rightData) {
+    @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = gpu.newTensorDescriptor(
       precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
-    @Nullable final CudaPtr lPtr = CudaPtr.getCudaPtr(precision, leftData);//.moveTo(gpu.getDeviceNumber());
-    @Nullable final CudaPtr rPtr = CudaPtr.getCudaPtr(precision, rightData);//.moveTo(gpu.getDeviceNumber());
+    @Nullable final CudaPtr lPtr = gpu.getPtr(precision, leftData, MemoryType.Managed);//.moveTo(gpu.getDeviceNumber());
+    @Nullable final CudaPtr rPtr = gpu.getPtr(precision, rightData, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
     assert lPtr.size == rPtr.size;
     gpu.cudnnAddTensor(
       precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
       precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr());
-    gpu.registerForCleanup(rPtr, sizeDescriptor, leftData, rightData);
-    return CudaTensorList.wrap(lPtr, length, dimensions, precision);
+    gpu.registerForCleanup(rPtr, lPtr, sizeDescriptor, rightData);
+    return leftData;
   }
   
   @javax.annotation.Nonnull

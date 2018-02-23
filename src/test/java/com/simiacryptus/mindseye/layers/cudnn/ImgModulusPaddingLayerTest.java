@@ -29,16 +29,25 @@ import java.util.Random;
  */
 public abstract class ImgModulusPaddingLayerTest extends CuDNNLayerTestBase {
   
+  /**
+   * The Input size.
+   */
   final int inputSize;
+  /**
+   * The Modulus.
+   */
   final int modulus;
+  /**
+   * The Offset.
+   */
   final int offset;
   
   /**
    * Instantiates a new Img modulus padding layer test.
    *
-   * @param inputSize
-   * @param modulus
-   * @param offset
+   * @param inputSize the input size
+   * @param modulus   the modulus
+   * @param offset    the offset
    */
   public ImgModulusPaddingLayerTest(int inputSize, int modulus, int offset) {
     validateBatchExecution = false;
@@ -78,6 +87,9 @@ public abstract class ImgModulusPaddingLayerTest extends CuDNNLayerTestBase {
    * Basic Test
    */
   public static class Basic extends ImgModulusPaddingLayerTest {
+    /**
+     * Instantiates a new Basic.
+     */
     public Basic() {super(2, 3, 0);}
   }
   

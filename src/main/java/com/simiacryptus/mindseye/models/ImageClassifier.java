@@ -147,6 +147,41 @@ public abstract class ImageClassifier {
     };
   }
   
+  /**
+   * Deep dream.
+   *
+   * @param log   the log
+   * @param image the image
+   */
+  public void deepDream(@Nonnull final NotebookOutput log, final Tensor image) {
+    log.code(() -> {
+      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+      @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
+      clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+      clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+      clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+      clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+      @Nonnull PipelineNetwork supervised = new PipelineNetwork(1);
+      supervised.add(getNetwork().freeze(), supervised.wrap(clamp, supervised.getInput(0)));
+      @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setMask(true).setData(Arrays.<Tensor[]>asList(new Tensor[]{image}));
+      new IterativeTrainer(trainable)
+        .setMonitor(getTrainingMonitor(history))
+        .setOrientation(new QQN())
+        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
+        .setTimeout(60, TimeUnit.MINUTES)
+        .runAndFree();
+      return TestUtil.plot(history);
+    });
+  }
+  
+  /**
+   * Deep dream.
+   *
+   * @param log                 the log
+   * @param image               the image
+   * @param targetCategoryIndex the target category index
+   * @param totalCategories     the total categories
+   */
   public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories) {
     @Nonnull List<Tensor[]> data = Arrays.<Tensor[]>asList(new Tensor[]{
       image, new Tensor(totalCategories).set(targetCategoryIndex, 1.0)

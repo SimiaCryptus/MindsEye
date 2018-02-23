@@ -39,24 +39,23 @@ import java.util.stream.Stream;
  */
 public class CudnnHandle extends CudaDevice {
   /**
+   * The Thread context.
+   */
+  static final ThreadLocal<CudnnHandle> threadContext = new ThreadLocal<>();
+  /**
    * The constant gpuContexts.
    */
   private static final boolean DISABLE = Boolean.parseBoolean(System.getProperty("DISABLE_CUDNN", Boolean.toString(false)));
   private static final boolean FORCE_SINGLE_GPU = Boolean.parseBoolean(System.getProperty("FORCE_SINGLE_GPU", Boolean.toString(false)));
-  private static final int THREADS_PER_GPU = Integer.parseInt(System.getProperty("THREADS_PER_GPU", Integer.toString(3)));
-  
+  private static final int STREAMS_PER_GPU = Integer.parseInt(System.getProperty("THREADS_PER_GPU", Integer.toString(6)));
   /**
    * The constant POOL.
    */
   public static final StaticResourcePool<CudnnHandle> POOL = new StaticResourcePool<>(loadGpuContexts());
   /**
-   * The Thread context.
-   */
-  static final ThreadLocal<CudnnHandle> threadContext = new ThreadLocal<>();
-  /**
    * The constant CLEANUP.
    */
-  public final LinkedBlockingDeque<ReferenceCounting> CLEANUP = new LinkedBlockingDeque<>();
+  public final LinkedBlockingDeque<ReferenceCounting> cleanup = new LinkedBlockingDeque<>();
   @Nullable
   private final jcuda.jcudnn.cudnnHandle handle;
   
@@ -67,7 +66,7 @@ public class CudnnHandle extends CudaDevice {
    */
   CudnnHandle(final int deviceNumber) {
     super(deviceNumber);
-    if (0 <= this.deviceNumber) {
+    if (0 <= this.deviceId) {
       initThread();
       handle = new cudnnHandle();
       JCudnn.cudnnCreate(getHandle());
@@ -130,13 +129,13 @@ public class CudnnHandle extends CudaDevice {
     List<CudnnHandle> handles = devices.stream()
       .flatMap(i -> {
         try {
-          return IntStream.range(0, THREADS_PER_GPU).mapToObj(j -> new CudnnHandle(i));
+          return IntStream.range(0, STREAMS_PER_GPU).mapToObj(j -> new CudnnHandle(i));
         } catch (Throwable e) {
           logger.warn(String.format("Error initializing device %d", i), e);
           return Stream.empty();
         }
       }).collect(Collectors.toList());
-    logger.info(String.format("Found %s devices; using %s handles per devices %s; %s handles", deviceCount, THREADS_PER_GPU, devices, handles.size()));
+    logger.info(String.format("Found %s devices; using %s handles per devices %s; %s handles", deviceCount, STREAMS_PER_GPU, devices, handles.size()));
     return handles;
   }
   
@@ -472,7 +471,7 @@ public class CudnnHandle extends CudaDevice {
    * @param algorithm  the algorithm
    * @return the cuda ptr
    */
-  public CudaPtr allocateBackwardDataWorkspace(final int deviceId, final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc, final int algorithm) {
+  public CudaPtr allocateBackwardDataWorkspace(final CudaDevice deviceId, final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc, final int algorithm) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionBackwardDataWorkspaceSize(handle,
@@ -484,7 +483,7 @@ public class CudnnHandle extends CudaDevice {
       algorithm, sizeInBytesArray);
     CudaSystem.handle(result);
     final long size = sizeInBytesArray[0];
-    return CudaPtr.allocate(deviceId, Math.max(1, size), MemoryType.Device, true);
+    return deviceId.allocate(Math.max(1, size), MemoryType.Device, true);
   }
   
   /**
@@ -498,7 +497,7 @@ public class CudnnHandle extends CudaDevice {
    * @param algorithm     the algorithm
    * @return the cuda ptr
    */
-  public CudaPtr allocateBackwardFilterWorkspace(final int deviceId, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
+  public CudaPtr allocateBackwardFilterWorkspace(final CudaDevice deviceId, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionBackwardFilterWorkspaceSize(handle,
@@ -510,7 +509,7 @@ public class CudnnHandle extends CudaDevice {
       algorithm, sizeInBytesArray);
     CudaSystem.handle(result);
     final long size = sizeInBytesArray[0];
-    return CudaPtr.allocate(deviceId, Math.max(1, size), MemoryType.Device, true);
+    return deviceId.allocate(Math.max(1, size), MemoryType.Device, true);
   }
   
   /**
@@ -524,7 +523,7 @@ public class CudnnHandle extends CudaDevice {
    * @param algorithm     the algorithm
    * @return the cuda ptr
    */
-  public CudaPtr allocateForwardWorkspace(final int deviceId, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
+  public CudaPtr allocateForwardWorkspace(final CudaDevice deviceId, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionForwardWorkspaceSize(handle,
@@ -536,7 +535,7 @@ public class CudnnHandle extends CudaDevice {
       algorithm, sizeInBytesArray);
     CudaSystem.handle(result);
     final long size = sizeInBytesArray[0];
-    return CudaPtr.allocate(deviceId, Math.max(1, size), MemoryType.Device, true);
+    return deviceId.allocate(Math.max(1, size), MemoryType.Device, true);
   }
   
   /**
@@ -546,9 +545,10 @@ public class CudnnHandle extends CudaDevice {
    * @param filterDesc the filter desc
    * @param convDesc   the conv desc
    * @param outputDesc the weight desc
+   * @param memoryLimitInBytes
    * @return the backward data algorithm
    */
-  public int getBackwardDataAlgorithm(final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc) {
+  public int getBackwardDataAlgorithm(final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc, final int memoryLimitInBytes) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final int algoArray[] = {-1};
     final int result = JCudnn.cudnnGetConvolutionBackwardDataAlgorithm(handle,
@@ -569,9 +569,10 @@ public class CudnnHandle extends CudaDevice {
    * @param filterDesc the filter desc
    * @param convDesc   the conv desc
    * @param outputDesc the output desc
+   * @param memoryLimitInBytes
    * @return the backward filter algorithm
    */
-  public int getBackwardFilterAlgorithm(final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc) {
+  public int getBackwardFilterAlgorithm(final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc, final int memoryLimitInBytes) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final int algoArray[] = {-1};
     final int result = JCudnn.cudnnGetConvolutionBackwardFilterAlgorithm(handle,
@@ -592,9 +593,10 @@ public class CudnnHandle extends CudaDevice {
    * @param filterDesc    the filter desc
    * @param convDesc      the conv desc
    * @param dstTensorDesc the dst tensor desc
+   * @param memoryLimitInBytes
    * @return the forward algorithm
    */
-  public int getForwardAlgorithm(final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc) {
+  public int getForwardAlgorithm(final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int memoryLimitInBytes) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final int algoArray[] = {-1};
     final int result = JCudnn.cudnnGetConvolutionForwardAlgorithm(handle,
@@ -650,13 +652,13 @@ public class CudnnHandle extends CudaDevice {
    */
   public void registerForCleanup(@javax.annotation.Nonnull ReferenceCounting... objs) {
     Arrays.stream(objs).forEach(ReferenceCounting::assertAlive);
-    Arrays.stream(objs).forEach(CLEANUP::add);
+    Arrays.stream(objs).forEach(cleanup::add);
   }
   
   @javax.annotation.Nonnull
   @Override
   public String toString() {
-    return getClass().getSimpleName() + "{" + deviceNumber + "; " + deviceName + "}@" + Long.toHexString(System.identityHashCode(this));
+    return getClass().getSimpleName() + "{" + deviceId + "; " + deviceName + "}@" + Long.toHexString(System.identityHashCode(this));
   }
   
   @Override

@@ -42,6 +42,9 @@ import java.util.function.IntToDoubleFunction;
 @SuppressWarnings("serial")
 public class ConvolutionLayer extends LayerBase implements MultiPrecision<ConvolutionLayer>, Explodable {
   
+  public static final double MAX_IO_ELEMENTS = 1e6;
+  public static final int WORKSPACE_SIZE_LIMIT = 32 * 1024 * 1024;
+  
   @Nullable
   private final Tensor kernel;
   private final int inputBands;
@@ -164,9 +167,15 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   @Override
   public Layer explode() {
     @Nonnull ExplodedConvolutionGrid explodedNetwork = getExplodedNetwork();
-    @Nonnull PipelineNetwork network = explodedNetwork.getNetwork();
+    @Nonnull Layer network = explodedNetwork.getNetwork();
     explodedNetwork.freeRef();
     network.setName(getName());
+    //network = getTileSubnet(network);
+    return network;
+  }
+  
+  @Nonnull
+  private Layer getTileSubnet(final Layer network) {
     int maxSize = (int) Math.sqrt(1e6 / Math.min(Math.max(inputBands, outputBands), batchBands));
     int[] kernelDims = getKernel().getDimensions();
     return new ImgTileSubnetLayer(network, maxSize, maxSize, maxSize - ((kernelDims[0] - 1) / 2), maxSize - ((kernelDims[1] - 1) / 2));
@@ -296,6 +305,12 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     return this;
   }
   
+  /**
+   * Sets and free.
+   *
+   * @param tensor the tensor
+   * @return the and free
+   */
   @javax.annotation.Nonnull
   public ConvolutionLayer setAndFree(@javax.annotation.Nonnull final Tensor tensor) {
     set(tensor);

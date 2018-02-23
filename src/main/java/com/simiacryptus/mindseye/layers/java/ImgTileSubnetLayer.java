@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,8 +50,11 @@ public class ImgTileSubnetLayer extends LayerBase {
   /**
    * Instantiates a new Rescaled subnet layer.
    *
-   * @param height     the scale
    * @param subnetwork the subnetwork
+   * @param width      the width
+   * @param height     the scale
+   * @param strideX    the stride x
+   * @param strideY    the stride y
    */
   public ImgTileSubnetLayer(final Layer subnetwork, final int width, final int height, final int strideX, final int strideY) {
     super();
@@ -62,6 +66,13 @@ public class ImgTileSubnetLayer extends LayerBase {
     this.subnetwork.addRef();
   }
   
+  /**
+   * Instantiates a new Img tile subnet layer.
+   *
+   * @param subnetwork the subnetwork
+   * @param width      the width
+   * @param height     the height
+   */
   public ImgTileSubnetLayer(final Layer subnetwork, final int width, final int height) {
     this(subnetwork, width, height, width, height);
   }
@@ -152,5 +163,11 @@ public class ImgTileSubnetLayer extends LayerBase {
     return new ArrayList<>();
   }
   
+  @Nonnull
+  @Override
+  public Layer setFrozen(final boolean frozen) {
+    subnetwork.setFrozen(frozen);
+    return super.setFrozen(frozen);
+  }
   
 }

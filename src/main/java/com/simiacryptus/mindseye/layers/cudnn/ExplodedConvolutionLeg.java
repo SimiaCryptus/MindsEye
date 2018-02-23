@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.network.DAGNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,7 +48,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
    * The Sub layers.
    */
   @javax.annotation.Nonnull
-  public final List<SimpleConvolutionLayer> subLayers;
+  public final List<Layer> subLayers;
   /**
    * The From band.
    */
@@ -74,10 +75,20 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
     @javax.annotation.Nonnull final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
     filterDimensions[2] = inputBands * this.convolutionParams.outputBands;
     for (int offset = 0; offset < filterDimensions[2]; offset += inputBandsSq) {
-      this.subLayers.add(new SimpleConvolutionLayer(filterDimensions[0], filterDimensions[1], inputBandsSq).setStrideX(this.convolutionParams.strideX) //
+      SimpleConvolutionLayer simpleConvolutionLayer = new SimpleConvolutionLayer(filterDimensions[0], filterDimensions[1], inputBandsSq) //
+        .setStrideX(this.convolutionParams.strideX) //
         .setStrideY(this.convolutionParams.strideY) //
-        .setPrecision(this.convolutionParams.precision));
+        .setPrecision(this.convolutionParams.precision);
+      this.subLayers.add(getTileSubnet(simpleConvolutionLayer, filterDimensions[0], filterDimensions[1]));
+      //this.subLayers.add(simpleConvolutionLayer);
     }
+  }
+  
+  @Nonnull
+  private Layer getTileSubnet(final SimpleConvolutionLayer network, int inputBands, int outputBands) {
+    int maxSize = (int) Math.sqrt(ConvolutionLayer.MAX_IO_ELEMENTS / Math.max(inputBands, outputBands));
+    int[] kernelDims = network.getKernelDimensions();
+    return new ImgTileSubnetLayer(network, maxSize, maxSize, maxSize - ((kernelDims[0] - 1) / 2), maxSize - ((kernelDims[1] - 1) / 2)).setPrecision(network.getPrecision());
   }
   
   @Override
@@ -115,7 +126,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
           return 0;
         }
       }, true);
-      subLayers.get(layerNumber).set(kernel);
+      ((SimpleConvolutionLayer) ((ImgTileSubnetLayer) subLayers.get(layerNumber)).subnetwork).set(kernel);
       kernel.freeRef();
     }
     return this;
@@ -140,7 +151,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
   
     for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
       int _layerNumber = layerNumber;
-      Tensor deltaTensor = extractor.apply(subLayers.get(layerNumber));
+      Tensor deltaTensor = extractor.apply(((SimpleConvolutionLayer) ((ImgTileSubnetLayer) subLayers.get(layerNumber)).subnetwork));
       if (null != deltaTensor) {
         deltaTensor.forEach((v, c) -> {
           int[] coords = c.getCoords();

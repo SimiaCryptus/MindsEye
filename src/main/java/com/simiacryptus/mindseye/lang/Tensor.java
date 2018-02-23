@@ -410,9 +410,9 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   /**
    * Permute int [ ].
    *
-   * @param key  the key
-   * @param data the data
-   * @param dimensions
+   * @param key        the key
+   * @param data       the data
+   * @param dimensions the dimensions
    * @return the int [ ]
    */
   @javax.annotation.Nonnull
@@ -472,7 +472,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    * Reorder dimensions tensor.
    *
    * @param fn         the fn
-   * @param outputDims
+   * @param outputDims the output dims
    * @return the tensor
    */
   @Nonnull
@@ -1630,6 +1630,12 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     return rearrange(in -> permute(key, in, inputDims), outputDims);
   }
   
+  /**
+   * Permute dimensions and free tensor.
+   *
+   * @param key the key
+   * @return the tensor
+   */
   public Tensor permuteDimensionsAndFree(int... key) {
     Tensor result = permuteDimensions(key);
     this.freeRef();
@@ -1650,6 +1656,12 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     return new Tensor(dims, null == data ? null : RecycleBin.DOUBLES.copyOf(data, data.length));
   }
   
+  /**
+   * Reshape cast and free tensor.
+   *
+   * @param dims the dims
+   * @return the tensor
+   */
   @Nullable
   public Tensor reshapeCastAndFree(@javax.annotation.Nonnull int... dims) {
     if (0 == dims.length) throw new IllegalArgumentException();

@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.lang.cudnn;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.test.TestUtil;
@@ -35,6 +36,7 @@ import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -65,10 +67,6 @@ public class CudaSystem {
    * The constant propertyCache.
    */
   protected static final ConcurrentHashMap<Integer, cudaDeviceProp> propertyCache = new ConcurrentHashMap<>();
-  /**
-   * The constant memoryLimitInBytes.
-   */
-  protected static final int memoryLimitInBytes = 32 * 1024 * 1024;
   /**
    * The constant currentDevice.
    */
@@ -297,18 +295,20 @@ public class CudaSystem {
    * The constant syncLock.
    */
   protected static final Object syncLock = new Object();
+  private static final Executor garbageTruck = MoreExecutors.directExecutor();
+  //Executors.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("gpu-free-%d").setDaemon(true).build());
   /**
    * The constant gpuGeneration.
    */
   @javax.annotation.Nonnull
   public static AtomicInteger gpuGeneration = new AtomicInteger(0);
   
+  
   /**
    * Instantiates a new Gpu system.
    */
   protected CudaSystem() {
   }
-  
   
   /**
    * Log header.
@@ -375,33 +375,6 @@ public class CudaSystem {
       map.put("count", Double.toString(obj.getCount()));
     }
     return map;
-  }
-  
-  /**
-   * Create pooling descriptor cuda resource.
-   *
-   * @param mode       the mode
-   * @param poolDims   the pool dims
-   * @param windowSize the window size
-   * @param padding    the padding
-   * @param stride     the stride
-   * @return the cuda resource
-   */
-  public static CudaResource<cudnnPoolingDescriptor> createPoolingDescriptor(final int mode, final int poolDims, final int[] windowSize, final int[] padding, final int[] stride) {
-    long startTime = System.nanoTime();
-    @javax.annotation.Nonnull final cudnnPoolingDescriptor poolingDesc = new cudnnPoolingDescriptor();
-    int result = JCudnn.cudnnCreatePoolingDescriptor(poolingDesc);
-    CudaSystem.log("cudnnCreatePoolingDescriptor", result, poolingDesc);
-    CudaSystem.handle(result);
-    result = JCudnn.cudnnSetPoolingNdDescriptor(poolingDesc,
-      mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, poolDims, windowSize,
-      padding, stride);
-    CudaSystem.log("cudnnSetPoolingNdDescriptor", result, poolingDesc,
-      mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, poolDims, windowSize,
-      padding, stride);
-    CudaSystem.handle(result);
-    createPoolingDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    return new CudaResource<>(poolingDesc, CudaSystem::cudnnDestroyPoolingDescriptor, getDevice());
   }
   
   /**
@@ -698,7 +671,7 @@ public class CudaSystem {
   public static void cudaMemset(final Pointer mem, final int c, final long count) {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaMemset(mem, c, count);
-    cudaDeviceSynchronize();
+    //cudaDeviceSynchronize();
     cudaMemset_execution.accept((System.nanoTime() - startTime) / 1e9);
     CudaSystem.log("cudaMemset", result, mem, c, count);
     handle(result);
@@ -814,7 +787,7 @@ public class CudaSystem {
    *
    * @return the device
    */
-  public static int getDevice() {
+  public static int getThreadDevice() {
     final Integer integer = CudaSystem.currentDevice.get();
     return integer == null ? -1 : integer;
   }
@@ -864,7 +837,9 @@ public class CudaSystem {
    */
   public static void handle(final int returnCode) {
     if (returnCode != cudnnStatus.CUDNN_STATUS_SUCCESS) {
-      throw new CudaError("returnCode = " + cudnnStatus.stringFor(returnCode));
+      CudaError cudaError = new CudaError("returnCode = " + cudnnStatus.stringFor(returnCode));
+      logger.warn("Cuda Error", cudaError);
+      throw cudaError;
     }
   }
   
@@ -877,7 +852,7 @@ public class CudaSystem {
    */
   protected static void log(final String method, final Object result, @Nullable final Object... args) {
     @javax.annotation.Nonnull final String paramString = null == args ? "" : Arrays.stream(args).map(CudaSystem::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
-    final String message = String.format("%.6f @ %s: %s(%s) = %s", (System.nanoTime() - CudaSystem.start) / 1e9, Thread.currentThread().getName(), method, paramString, result);
+    final String message = String.format("%.6f @ %s(%d): %s(%s) = %s", (System.nanoTime() - CudaSystem.start) / 1e9, Thread.currentThread().getName(), currentDevice.get(), method, paramString, result);
     try {
       CudaSystem.apiLog.forEach(apiLog -> CudaSystem.logThread.submit(() -> apiLog.println(message)));
     } catch (ConcurrentModificationException e) {}
@@ -900,241 +875,6 @@ public class CudaSystem {
     CudaSystem.log("cudnnGetConvolutionNdForwardOutputDim", result, convDesc, srcTensorDesc, filterDesc, tensorOuputDims.length, tensorOuputDims);
     CudaSystem.handle(result);
     return tensorOuputDims;
-  }
-  
-  /**
-   * New activation descriptor cuda resource.
-   *
-   * @param mode     the mode
-   * @param reluNan  the relu nan
-   * @param reluCeil the relu ceil
-   * @return the cuda resource
-   */
-  public static CudaResource<cudnnActivationDescriptor> newActivationDescriptor(final int mode, final int reluNan, final double reluCeil) {
-    long startTime = System.nanoTime();
-    @javax.annotation.Nonnull final cudnnActivationDescriptor desc = new cudnnActivationDescriptor();
-    int result = JCudnn.cudnnCreateActivationDescriptor(desc);
-    CudaSystem.log("cudnnCreateActivationDescriptor", result, desc);
-    CudaSystem.handle(result);
-    result = JCudnn.cudnnSetActivationDescriptor(desc, mode, reluNan, reluCeil);
-    newActivationDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudnnSetActivationDescriptor", result, desc, mode, reluNan, reluCeil);
-    CudaSystem.handle(result);
-    return new CudaResource<>(desc, CudaSystem::cudnnDestroyActivationDescriptor, getDevice());
-  }
-  
-  /**
-   * New convolution nd descriptor cuda resource.
-   *
-   * @param mode     the mode
-   * @param dataType the data type
-   * @param padding  the padding
-   * @param stride   the stride
-   * @param dilation the dilation
-   * @return the cuda resource
-   */
-  public static CudaResource<cudnnConvolutionDescriptor> newConvolutionNdDescriptor(final int mode, final int dataType, @javax.annotation.Nonnull final int[] padding, @javax.annotation.Nonnull final int[] stride, @javax.annotation.Nonnull final int[] dilation) {
-    long startTime = System.nanoTime();
-    assert padding.length == stride.length;
-    assert padding.length == dilation.length;
-    assert Arrays.stream(padding).allMatch(x -> x >= 0);
-    assert Arrays.stream(stride).allMatch(x -> x > 0);
-    assert Arrays.stream(dilation).allMatch(x -> x > 0);
-    @javax.annotation.Nonnull final cudnnConvolutionDescriptor convDesc = new cudnnConvolutionDescriptor();
-    int result = JCudnn.cudnnCreateConvolutionDescriptor(convDesc);
-    newConvolutionNdDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudnnCreateConvolutionDescriptor", result, convDesc);
-    CudaSystem.handle(result);
-    result = JCudnn.cudnnSetConvolutionNdDescriptor(convDesc,
-      3,
-      padding,
-      stride,
-      dilation,
-      mode,
-      dataType
-    );
-    CudaSystem.log("cudnnSetConvolutionNdDescriptor", result, convDesc, padding.length,
-      padding,
-      stride,
-      dilation,
-      mode,
-      dataType);
-    CudaSystem.handle(result);
-    return new CudaResource<cudnnConvolutionDescriptor>(convDesc, CudaSystem::cudnnDestroyConvolutionDescriptor, getDevice()) {
-      @javax.annotation.Nonnull
-      @Override
-      public String toString() {
-        return "cudnnSetConvolutionNdDescriptor(padding=" + Arrays.toString(padding) +
-          ";stride=" + Arrays.toString(stride) +
-          ";dilation=" + Arrays.toString(dilation) +
-          ";mode=" + mode +
-          ";dataType=" + dataType + ")";
-      }
-    };
-  }
-  
-  /**
-   * New convolutions 2 d descriptor cuda resource.
-   *
-   * @param mode         the mode
-   * @param dataType     the data type
-   * @param paddingY     the padding y
-   * @param paddingX     the padding x
-   * @param strideHeight the stride height
-   * @param strideWidth  the stride width
-   * @param dilationY    the dilation y
-   * @param dilationX    the dilation x
-   * @return the cuda resource
-   */
-  public static CudaResource<cudnnConvolutionDescriptor> newConvolutions2dDescriptor(final int mode, final int dataType, final int paddingY, final int paddingX, final int strideHeight, final int strideWidth, int dilationY, int dilationX) {
-    long startTime = System.nanoTime();
-    @javax.annotation.Nonnull final cudnnConvolutionDescriptor convDesc = new cudnnConvolutionDescriptor();
-    int result = JCudnn.cudnnCreateConvolutionDescriptor(convDesc);
-    CudaSystem.log("cudnnCreateConvolutionDescriptor", result, convDesc);
-    CudaSystem.handle(result);
-    result = JCudnn.cudnnSetConvolution2dDescriptor(
-      convDesc,
-      paddingY, // zero-padding height
-      paddingX, // zero-padding width
-      strideHeight, // vertical filter stride
-      strideWidth, // horizontal filter stride
-      dilationY, // upscale the input in x-direction
-      dilationX, // upscale the input in y-direction
-      mode
-      , dataType
-    );
-    newConvolutions2dDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudnnSetConvolution2dDescriptor", result, convDesc,
-      paddingY, // zero-padding height
-      paddingX, // zero-padding width
-      strideHeight, // vertical filter stride
-      strideWidth, // horizontal filter stride
-      dilationY, // upscale the input in x-direction
-      dilationX, // upscale the input in y-direction
-      mode,
-      dataType);
-    CudaSystem.handle(result);
-    return new CudaResource<>(convDesc, CudaSystem::cudnnDestroyConvolutionDescriptor, getDevice());
-  }
-  
-  /**
-   * New filter descriptor cuda resource.
-   *
-   * @param dataType       the data type
-   * @param tensorLayout   the tensor layout
-   * @param outputChannels the output channels
-   * @param inputChannels  the input channels
-   * @param height         the height
-   * @param width          the width
-   * @return the cuda resource
-   */
-  public static CudaResource<cudnnFilterDescriptor> newFilterDescriptor(final int dataType, final int tensorLayout, final int outputChannels, final int inputChannels, final int height, final int width) {
-    long startTime = System.nanoTime();
-    @javax.annotation.Nonnull final cudnnFilterDescriptor filterDesc = new cudnnFilterDescriptor();
-    int result = JCudnn.cudnnCreateFilterDescriptor(filterDesc);
-    CudaSystem.log("cudnnCreateFilterDescriptor", result, filterDesc);
-    CudaSystem.handle(result);
-    result = JCudnn.cudnnSetFilter4dDescriptor(filterDesc, dataType, tensorLayout, outputChannels, inputChannels, height, width);
-    newFilterDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudnnSetFilter4dDescriptor", result, filterDesc, dataType, tensorLayout, outputChannels, inputChannels, height, width);
-    CudaSystem.handle(result);
-    return new CudaResource<cudnnFilterDescriptor>(filterDesc, CudaSystem::cudnnDestroyFilterDescriptor, getDevice()) {
-      @javax.annotation.Nonnull
-      @Override
-      public String toString() {
-        return "cudnnSetFilter4dDescriptor(dataType=" + dataType +
-          ";tensorLayout=" + tensorLayout +
-          ";outputChannels=" + outputChannels +
-          ";inputChannels=" + inputChannels +
-          ";height=" + height +
-          ";=width" + width + ")";
-      }
-    };
-  }
-  
-  /**
-   * New filter descriptor cuda resource.
-   *
-   * @param dataType     the data type
-   * @param tensorLayout the tensor layout
-   * @param dimensions   the dimensions
-   * @return the cuda resource
-   */
-  public static CudaResource<cudnnFilterDescriptor> newFilterDescriptor(final int dataType, final int tensorLayout, @javax.annotation.Nonnull final int[] dimensions) {
-    long startTime = System.nanoTime();
-    @javax.annotation.Nonnull final cudnnFilterDescriptor filterDesc = new cudnnFilterDescriptor();
-    int result = JCudnn.cudnnCreateFilterDescriptor(filterDesc);
-    CudaSystem.log("cudnnCreateFilterDescriptor", result, filterDesc);
-    CudaSystem.handle(result);
-    result = JCudnn.cudnnSetFilterNdDescriptor(filterDesc, dataType, tensorLayout, dimensions.length, dimensions);
-    newFilterDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudnnSetFilterNdDescriptor", result, filterDesc, dataType, tensorLayout, dimensions.length, dimensions);
-    CudaSystem.handle(result);
-    return new CudaResource<cudnnFilterDescriptor>(filterDesc, CudaSystem::cudnnDestroyFilterDescriptor, getDevice()) {
-      @javax.annotation.Nonnull
-      @Override
-      public String toString() {
-        return "cudnnSetFilterNdDescriptor(dataType=" + dataType +
-          ";tensorLayout=" + tensorLayout +
-          ";dimensions=" + Arrays.toString(dimensions) + ")";
-      }
-    };
-  }
-  
-  /**
-   * New op descriptor cuda resource.
-   *
-   * @param opType   the op type
-   * @param dataType the data type
-   * @return the cuda resource
-   */
-  public static CudaResource<cudnnOpTensorDescriptor> newOpDescriptor(final int opType, final int dataType) {
-    long startTime = System.nanoTime();
-    @javax.annotation.Nonnull final cudnnOpTensorDescriptor opDesc = new cudnnOpTensorDescriptor();
-    int result = JCudnn.cudnnCreateOpTensorDescriptor(opDesc);
-    CudaSystem.log("cudnnCreateOpTensorDescriptor", result, opDesc);
-    CudaSystem.handle(result);
-    result = JCudnn.cudnnSetOpTensorDescriptor(opDesc, opType, dataType, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN);
-    newOpDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudnnSetOpTensorDescriptor", result, opDesc, opType, dataType, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN);
-    CudaSystem.handle(result);
-    return new CudaResource<>(opDesc, CudaSystem::cudnnDestroyOpTensorDescriptor, getDevice());
-  }
-  
-  /**
-   * New tensor descriptor cuda resource.
-   *
-   * @param dataType     the data type
-   * @param tensorLayout the tensor layout
-   * @param batchCount   the batch count
-   * @param channels     the channels
-   * @param height       the height
-   * @param width        the width
-   * @return the cuda resource
-   */
-  public static CudaResource<cudnnTensorDescriptor> newTensorDescriptor(final int dataType, final int tensorLayout,
-    final int batchCount, final int channels, final int height, final int width) {
-    long startTime = System.nanoTime();
-    @javax.annotation.Nonnull final cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
-    int result = JCudnn.cudnnCreateTensorDescriptor(desc);
-    CudaSystem.log("cudnnCreateTensorDescriptor", result, desc);
-    CudaSystem.handle(result);
-    result = JCudnn.cudnnSetTensor4dDescriptor(desc, tensorLayout, dataType, batchCount, channels, height, width);
-    newTensorDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudnnSetTensor4dDescriptor", result, desc, tensorLayout, dataType, batchCount, channels, height, width);
-    CudaSystem.handle(result);
-    return new CudaResource<cudnnTensorDescriptor>(desc, CudaSystem::cudnnDestroyTensorDescriptor, getDevice()) {
-      @javax.annotation.Nonnull
-      @Override
-      public String toString() {
-        return "cudnnSetTensor4dDescriptor(dataType=" + dataType +
-          ";tensorLayout=" + tensorLayout +
-          ";batchCount=" + batchCount +
-          ";channels=" + channels +
-          ";height=" + height +
-          ";=width" + width + ")";
-      }
-    };
   }
   
   /**
@@ -1178,42 +918,13 @@ public class CudaSystem {
   }
   
   /**
-   * New tensor descriptor cuda resource.
-   *
-   * @param dataType   the data type
-   * @param batchCount the batch count
-   * @param channels   the channels
-   * @param height     the height
-   * @param width      the width
-   * @param nStride    the n stride
-   * @param cStride    the c stride
-   * @param hStride    the h stride
-   * @param wStride    the w stride
-   * @return the cuda resource
-   */
-  public static CudaResource<cudnnTensorDescriptor> newTensorDescriptor(final int dataType,
-    final int batchCount, final int channels, final int height, final int width,
-    final int nStride, final int cStride, final int hStride, final int wStride) {
-    long startTime = System.nanoTime();
-    @javax.annotation.Nonnull final cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
-    int result = JCudnn.cudnnCreateTensorDescriptor(desc);
-    CudaSystem.log("cudnnCreateTensorDescriptor", result, desc);
-    CudaSystem.handle(result);
-    result = JCudnn.cudnnSetTensor4dDescriptorEx(desc, dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride);
-    newTensorDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudnnSetTensor4dDescriptorEx", result, desc, dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride);
-    CudaSystem.handle(result);
-    return new CudaResource<>(desc, CudaSystem::cudnnDestroyTensorDescriptor, getDevice());
-  }
-  
-  /**
    * With device.
    *
    * @param n      the n
    * @param action the action
    */
   public static void withDevice(int n, @javax.annotation.Nonnull Runnable action) {
-    final int currentDevice = getDevice();
+    final int currentDevice = getThreadDevice();
     try {
       CudaDevice.setDevice(n);
       action.run();
@@ -1226,16 +937,16 @@ public class CudaSystem {
   /**
    * With device t.
    *
-   * @param <T>    the type parameter
-   * @param n      the n
-   * @param action the action
+   * @param <T>      the type parameter
+   * @param deviceId the n
+   * @param action   the action
    * @return the t
    */
-  public static <T> T withDevice(int n, @javax.annotation.Nonnull Supplier<T> action) {
-    if (n < 0) return action.get();
-    final int currentDevice = getDevice();
+  public static <T> T withDevice(int deviceId, @javax.annotation.Nonnull Supplier<T> action) {
+    assert deviceId >= 0;
+    final int currentDevice = getThreadDevice();
     try {
-      CudaDevice.setDevice(n);
+      CudaDevice.setDevice(deviceId);
       return action.get();
     } finally {
       if (currentDevice >= 0) CudaDevice.setDevice(currentDevice);
@@ -1277,34 +988,33 @@ public class CudaSystem {
    */
   public static void run(@javax.annotation.Nonnull final Consumer<CudnnHandle> fn, boolean synchronize) {
     CudnnHandle threadlocal = CudnnHandle.threadContext.get();
-    try {
-      if (threadlocal != null) {
+    if (threadlocal != null) {
+      try {
+        threadlocal.initThread();
+        fn.accept(threadlocal);
+      } catch (@javax.annotation.Nonnull final RuntimeException e) {
+        throw e;
+      } catch (@javax.annotation.Nonnull final Exception e) {
+        throw new RuntimeException(e);
+      } finally {
+        cleanup(threadlocal, synchronize);
+      }
+    }
+    else {
+      CudnnHandle.POOL.apply(gpu -> {
         try {
-          threadlocal.initThread();
-          fn.accept(threadlocal);
+          CudnnHandle.threadContext.set(gpu);
+          gpu.initThread();
+          fn.accept(gpu);
         } catch (@javax.annotation.Nonnull final RuntimeException e) {
           throw e;
         } catch (@javax.annotation.Nonnull final Exception e) {
           throw new RuntimeException(e);
+        } finally {
+          CudnnHandle.threadContext.remove();
+          cleanup(gpu, synchronize);
         }
-      }
-      else {
-        CudnnHandle.POOL.apply(exe -> {
-          try {
-            CudnnHandle.threadContext.set(exe);
-            exe.initThread();
-            fn.accept(exe);
-          } catch (@javax.annotation.Nonnull final RuntimeException e) {
-            throw e;
-          } catch (@javax.annotation.Nonnull final Exception e) {
-            throw new RuntimeException(e);
-          } finally {
-            CudnnHandle.threadContext.remove();
-          }
-        });
-      }
-    } finally {
-      if (synchronize) CudaSystem.cudaDeviceSynchronize();
+      });
     }
   }
   
@@ -1316,8 +1026,6 @@ public class CudaSystem {
    * @return the t
    */
   public static <T> T eval(@javax.annotation.Nonnull final Function<CudnnHandle, T> fn) {return eval(fn, true);}
-  
-  private static final ExecutorService garbageTruck = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("gpu-free-%d").setDaemon(true).build());
   
   /**
    * Call t.
@@ -1333,42 +1041,48 @@ public class CudaSystem {
     }
     else {
       CudnnHandle threadlocal = CudnnHandle.threadContext.get();
-      try {
-        if (threadlocal != null) {
+      if (threadlocal != null) {
+        try {
+          threadlocal.initThread();
+          T result = fn.apply(threadlocal);
+          return result;
+        } catch (@javax.annotation.Nonnull final RuntimeException e) {
+          throw e;
+        } catch (@javax.annotation.Nonnull final Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
+      else {
+        return CudnnHandle.POOL.run(gpu -> {
           try {
-            threadlocal.initThread();
-            T result = fn.apply(threadlocal);
+            CudnnHandle.threadContext.set(gpu);
+            gpu.initThread();
+            T result = fn.apply(gpu);
             return result;
           } catch (@javax.annotation.Nonnull final RuntimeException e) {
             throw e;
           } catch (@javax.annotation.Nonnull final Exception e) {
             throw new RuntimeException(e);
+          } finally {
+            cleanup(gpu, synchronize);
           }
-        }
-        else {
-          return CudnnHandle.POOL.run(gpu -> {
-            try {
-              CudnnHandle.threadContext.set(gpu);
-              gpu.initThread();
-              T result = fn.apply(gpu);
-              return result;
-            } catch (@javax.annotation.Nonnull final RuntimeException e) {
-              throw e;
-            } catch (@javax.annotation.Nonnull final Exception e) {
-              throw new RuntimeException(e);
-            } finally {
-              CudnnHandle.threadContext.remove();
-              ArrayList<ReferenceCounting> toFree = new ArrayList<>();
-              gpu.CLEANUP.drainTo(toFree);
-              garbageTruck.submit(() -> {
-                toFree.stream().forEach(ReferenceCounting::freeRef);
-              });
-            }
-          });
-        }
-      } finally {
-        if (synchronize) CudaSystem.cudaDeviceSynchronize();
+        });
       }
     }
+  }
+  
+  private static void cleanup(final CudnnHandle gpu, final boolean synchronize) {
+    if (synchronize) CudaSystem.cudaDeviceSynchronize();
+    CudnnHandle.threadContext.remove();
+    ArrayList<ReferenceCounting> toFree = new ArrayList<>();
+    gpu.cleanup.drainTo(toFree);
+//    garbageTruck.execute(() -> {
+//      try {
+//      } catch (Throwable e) {
+//        logger.warn("Error cleaning up", e);
+//        throw e;
+//      }
+//    });
+    toFree.stream().forEach(ReferenceCounting::freeRef);
   }
 }

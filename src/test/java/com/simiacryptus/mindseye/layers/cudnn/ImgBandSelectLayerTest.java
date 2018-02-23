@@ -47,17 +47,6 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
    */
   int inputBands;
   
-  @Override
-  public void run(NotebookOutput log) {
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all.log";
-    log.p(log.file((String) null, logName, "GPU Log"));
-    @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
-    CudaSystem.addLog(apiLog);
-    super.run(log);
-    apiLog.close();
-    CudaSystem.apiLog.remove(apiLog);
-  }
-  
   /**
    * Instantiates a new Img concat layer run.
    *
@@ -69,6 +58,17 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
     this.precision = precision;
     layer = new ImgBandSelectLayer(0, outputBands).setPrecision(precision);
     this.inputBands = inputBands;
+  }
+  
+  @Override
+  public void run(NotebookOutput log) {
+    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all.log";
+    log.p(log.file((String) null, logName, "GPU Log"));
+    @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
+    CudaSystem.addLog(apiLog);
+    super.run(log);
+    apiLog.close();
+    CudaSystem.apiLog.remove(apiLog);
   }
 
   @javax.annotation.Nonnull

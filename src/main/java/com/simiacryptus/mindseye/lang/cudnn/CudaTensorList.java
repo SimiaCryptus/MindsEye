@@ -87,10 +87,6 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     logger.info(String.format("Cleared %s bytes from GpuTensorLists for device %s", size, deviceId));
   }
   
-  private int getDeviceId() {
-    return null == ptr ? -1 : ptr.getDeviceId();
-  }
-  
   /**
    * Wrap gpu tensor list.
    *
@@ -118,6 +114,10 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    */
   public static CudaTensorList create(final CudaPtr ptr, final int length, @javax.annotation.Nonnull final int[] dimensions, @javax.annotation.Nonnull final Precision precision) {
     return new CudaTensorList(ptr, length, dimensions, precision);
+  }
+  
+  private int getDeviceId() {
+    return null == ptr ? -1 : ptr.getDeviceId();
   }
   
   @Override
@@ -186,9 +186,9 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
       int d2 = getDimensions().length < 3 ? 1 : getDimensions()[2];
       int d1 = getDimensions().length < 2 ? 1 : getDimensions()[1];
       int d0 = getDimensions()[0];
-      @Nonnull CudaPtr rPtr = nativeRight.getPtr();
-      @Nonnull CudaPtr lPtr = CudaTensorList.this.getPtr();
-      @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CudaSystem.newTensorDescriptor(
+      @Nonnull CudaPtr rPtr = nativeRight.getPtr(gpu);
+      @Nonnull CudaPtr lPtr = CudaTensorList.this.getPtr(gpu);
+      @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = gpu.newTensorDescriptor(
         this.precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, getLength(), d2, d1, d0);
       gpu.cudnnAddTensor(
         precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
@@ -205,12 +205,12 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
       int d2 = getDimensions().length < 3 ? 1 : getDimensions()[2];
       int d1 = getDimensions().length < 2 ? 1 : getDimensions()[1];
       int d0 = getDimensions()[0];
-      @Nonnull CudaPtr rPtr = nativeRight.getPtr();
-      @Nonnull CudaPtr lPtr = CudaTensorList.this.getPtr();
-      @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = CudaSystem.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, this.precision.code);
-      @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = CudaSystem.newTensorDescriptor(
+      @Nonnull CudaPtr rPtr = nativeRight.getPtr(gpu).moveTo(gpu, MemoryType.Managed);
+      @Nonnull CudaPtr lPtr = CudaTensorList.this.getPtr(gpu).moveTo(gpu, MemoryType.Managed);
+      @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, this.precision.code);
+      @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = gpu.newTensorDescriptor(
         this.precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, getLength(), d2, d1, d0);
-      @Nonnull final CudaPtr outputPtr = CudaPtr.allocate(gpu.getDeviceNumber(), lPtr.size, MemoryType.Managed, true);
+      @Nonnull final CudaPtr outputPtr = gpu.allocate(lPtr.size, MemoryType.Managed, true);
       gpu.cudnnOpTensor(opDescriptor.getPtr(),
         precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
         precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
@@ -260,11 +260,13 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
           final Tensor[] output = IntStream.range(0, getLength())
             .mapToObj(dataIndex -> new Tensor(getDimensions()))
             .toArray(i -> new Tensor[i]);
-          CudaPtr ptr = getPtr();
-          for (int i = 0; i < getLength(); i++) {
-            ptr.read(precision, output[i].getData(), i * itemLength);
-          }
-          ptr.freeRef();
+          CudnnHandle.run(gpu -> {
+            CudaPtr ptr = getPtr(gpu);
+            for (int i = 0; i < getLength(); i++) {
+              ptr.read(precision, output[i].getData(), i * itemLength);
+            }
+            gpu.registerForCleanup(ptr);
+          });
           heapCopy = TensorArray.wrap(output);
         }
       }
@@ -306,8 +308,8 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
   @Override
   public TensorList copy() {
     return CudaSystem.eval(gpu -> {
-      CudaPtr ptr = getPtr();
-      CudaPtr copyPtr = ptr.copyTo(gpu.getDeviceNumber());
+      CudaPtr ptr = getPtr(gpu);
+      CudaPtr copyPtr = ptr.copyTo(gpu, MemoryType.Managed);
       ptr.freeRef();
       @javax.annotation.Nonnull CudaTensorList cudaTensorList = new CudaTensorList(copyPtr, getLength(), getDimensions(), precision);
       copyPtr.freeRef();
@@ -356,14 +358,15 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
   /**
    * The Ptr.
    *
+   * @param deviceId the device id
    * @return the ptr
    */
   @Nonnull
-  public CudaPtr getPtr() {
+  public CudaPtr getPtr(final CudaDevice deviceId) {
     if ((null == ptr || ptr.isFinalized()) && null != heapCopy && !heapCopy.isFinalized()) {
       synchronized (this) {
         if ((null == ptr || ptr.isFinalized()) && null != heapCopy && !heapCopy.isFinalized()) {
-          ptr = CudaPtr.getCudaPtr(precision, heapCopy);
+          ptr = deviceId.getPtr(precision, heapCopy, MemoryType.Managed);
         }
       }
     }

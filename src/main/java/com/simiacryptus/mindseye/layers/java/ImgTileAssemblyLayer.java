@@ -69,8 +69,8 @@ public class ImgTileAssemblyLayer extends LayerBase {
    *
    * @param inputData  the input data
    * @param outputData the output data
-   * @param positionX
-   * @param positionY
+   * @param positionX  the position x
+   * @param positionY  the position y
    * @return the tensor
    */
   @Nonnull

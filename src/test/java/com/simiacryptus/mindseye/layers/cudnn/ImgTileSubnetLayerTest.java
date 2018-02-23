@@ -29,6 +29,8 @@ import java.util.Random;
  */
 public abstract class ImgTileSubnetLayerTest extends CuDNNLayerTestBase {
   
+  private final ConvolutionLayer convolutionLayer = new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random());
+  
   @javax.annotation.Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
@@ -36,8 +38,6 @@ public abstract class ImgTileSubnetLayerTest extends CuDNNLayerTestBase {
       {6, 6, 1}
     };
   }
-  
-  private final ConvolutionLayer convolutionLayer = new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random());
   
   @javax.annotation.Nonnull
   @Override

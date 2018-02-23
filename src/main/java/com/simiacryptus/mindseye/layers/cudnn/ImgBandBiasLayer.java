@@ -169,50 +169,55 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
   
   @Nullable
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
-    Arrays.stream(inObj).forEach(x -> x.addRef());
+  public Result evalAndFree(@javax.annotation.Nonnull final Result... inObj) {
+    assert 1 == inObj.length;
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     final Result input = inObj[0];
-    final TensorList batch = input.getData();
-    @javax.annotation.Nonnull final int[] inputSize = batch.getDimensions();
+    final TensorList inputData;
+    if (1 < input.getData().currentRefCount()) {
+      inputData = input.getData().copy();
+    }
+    else {
+      inputData = input.getData();
+    }
+    @javax.annotation.Nonnull final int[] inputSize = inputData.getDimensions();
     assert inputSize[2] == bias.length : inputSize[2] + " != " + bias.length;
     @javax.annotation.Nonnull final int[] outputSize = inputSize;
-    final int length = batch.length();
-  
+    final int length = inputData.length();
+    
     return new Result(CudaSystem.eval(gpu -> {
       try {
-        @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = CudaSystem.newTensorDescriptor(
+        @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = gpu.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-        @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> filterDescriptor = CudaSystem.newTensorDescriptor(
+        @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> filterDescriptor = gpu.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
         
         assert 0 < bias.length;
-        @javax.annotation.Nonnull final CudaPtr filterPtr = CudaPtr.allocate(gpu.getDeviceNumber(), (long) (bias.length * precision.size), MemoryType.Managed, true).write(precision, bias);
-        final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
+        @javax.annotation.Nonnull final CudaPtr filterPtr = gpu.allocate((long) (bias.length * precision.size), MemoryType.Device, true).write(precision, bias);
+        final CudaPtr inputPtr = gpu.getPtr(precision, inputData, MemoryType.Device);
         try {
           CudaSystem.handle(gpu.cudnnAddTensor(precision.getPointer(1.0),
             filterDescriptor.getPtr(), filterPtr.getPtr(),
-            precision.getPointer(1.0),
-            inputDescriptor.getPtr(), inputData.getPtr()));
+            precision.getPointer(1.0), inputDescriptor.getPtr(), inputPtr.getPtr()));
         } catch (@javax.annotation.Nonnull final Throwable e) {
           throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
         }
         gpu.registerForCleanup(inputDescriptor, filterPtr, filterDescriptor);
-        return CudaTensorList.wrap(inputData, length, outputSize, precision);
+        return CudaTensorList.wrap(inputPtr, length, outputSize, precision);
       } catch (@javax.annotation.Nonnull final Throwable e) {
         throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
       }
     }), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
-      assert error.length() == batch.length();
+      assert error.length() == inputData.length();
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
       if (!isFrozen()) {
         CudaSystem.run(gpu -> {
-          @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = CudaSystem.newTensorDescriptor(
+          @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = gpu.newTensorDescriptor(
             precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-          @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> filterDescriptor = CudaSystem.newTensorDescriptor(
+          @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> filterDescriptor = gpu.newTensorDescriptor(
             precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
-          @Nullable final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
-          @javax.annotation.Nonnull final CudaPtr filterBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), bias.length * 1l * precision.size, MemoryType.Managed, false);
+          @Nullable final CudaPtr errorPtr = gpu.getPtr(precision, error, MemoryType.Device);
+          @javax.annotation.Nonnull final CudaPtr filterBuffer = gpu.allocate(bias.length * 1l * precision.size, MemoryType.Device, false);
           try {
             try {
               CudaSystem.handle(gpu.cudnnConvolutionBackwardBias(precision.getPointer(1.0),
@@ -222,7 +227,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
             } catch (@javax.annotation.Nonnull final Throwable e) {
               throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
             }
-            @javax.annotation.Nonnull final Tensor weightGradient = CudaPtr.read(filterBuffer, precision, new int[]{1, 1, inputSize[2]});
+            @javax.annotation.Nonnull final Tensor weightGradient = filterBuffer.read(precision, new int[]{1, 1, inputSize[2]});
             //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
             buffer.get(this, bias).addInPlace(weightGradient.getData()).freeRef();
             gpu.registerForCleanup(weightGradient);
@@ -238,7 +243,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
       
       @Override
       protected void _free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+        input.freeRef();
       }
       
       @Override
@@ -317,6 +322,12 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
     return this;
   }
   
+  /**
+   * Sets and free.
+   *
+   * @param ds the ds
+   * @return the and free
+   */
   @javax.annotation.Nonnull
   public Layer setAndFree(@javax.annotation.Nonnull final Tensor ds) {
     set(ds);

@@ -118,13 +118,13 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
     batch.addRef();
     try {
       CudaPtr outPtr = CudaSystem.eval(gpu -> {
-        @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = CudaSystem.newTensorDescriptor(
+        @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = gpu.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-        @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = CudaSystem.newTensorDescriptor(
+        @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = gpu.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-        @Nullable final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
-        @javax.annotation.Nonnull final CudaPtr outputData = CudaPtr.allocate(gpu.getDeviceNumber(), precision.size * 1l * inputDims * length, MemoryType.Managed, true);
-        @javax.annotation.Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = CudaSystem.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
+        @Nullable final CudaPtr inputData = gpu.getPtr(precision, batch, MemoryType.Device);
+        @javax.annotation.Nonnull final CudaPtr outputData = gpu.allocate(precision.size * 1l * inputDims * length, MemoryType.Managed, true);
+        @javax.annotation.Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = gpu.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
         try {
           CudaSystem.handle(gpu.cudnnActivationForward(activationDesc.getPtr(),
             precision.getPointer(1.0),
@@ -143,12 +143,12 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
           final TensorList data = CudaSystem.eval(gpu -> {
             //assert (error.length() == batch.length());
             //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-            @Nullable final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
-            @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = CudaSystem.newTensorDescriptor(
+            @Nullable final CudaPtr inputData = gpu.getPtr(precision, batch, MemoryType.Device);
+            @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = gpu.newTensorDescriptor(
               precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-            @Nullable final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
-            @javax.annotation.Nonnull final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), inputDims * 1l * precision.size * length, MemoryType.Managed, true);
-            @javax.annotation.Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = CudaSystem.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
+            @Nullable final CudaPtr errorPtr = gpu.getPtr(precision, error, MemoryType.Device);
+            @javax.annotation.Nonnull final CudaPtr passbackBuffer = gpu.allocate(inputDims * 1l * precision.size * length, MemoryType.Managed, true);
+            @javax.annotation.Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = gpu.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
             try {
               CudaSystem.handle(gpu.cudnnActivationBackward(activationDesc.getPtr(),
                 precision.getPointer(1.0),

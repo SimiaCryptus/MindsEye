@@ -111,7 +111,7 @@ public class PipelineNetwork extends DAGNetwork {
    * @return the dag node
    */
   @Nullable
-  public DAGNode add(@Nullable final Layer nextHead) {
+  public InnerNode add(@Nullable final Layer nextHead) {
     if (null == nextHead) return null;
     return add(nextHead, getHead());
   }
@@ -123,15 +123,15 @@ public class PipelineNetwork extends DAGNetwork {
    * @return the dag node
    */
   @Nullable
-  public DAGNode wrap(@Nullable final Layer nextHead) {
-    @javax.annotation.Nullable DAGNode add = add(nextHead);
+  public InnerNode wrap(@Nullable final Layer nextHead) {
+    @javax.annotation.Nullable InnerNode add = add(nextHead);
     nextHead.freeRef();
     return add;
   }
   
   @Nullable
-  public DAGNode wrap(@Nullable final Layer nextHead, @javax.annotation.Nonnull final DAGNode... head) {
-    @javax.annotation.Nullable DAGNode add = add(nextHead, head);
+  public InnerNode wrap(@Nullable final Layer nextHead, @javax.annotation.Nonnull final DAGNode... head) {
+    @javax.annotation.Nullable InnerNode add = add(nextHead, head);
     nextHead.freeRef();
     return add;
   }
@@ -153,11 +153,11 @@ public class PipelineNetwork extends DAGNetwork {
   
   @Nullable
   @Override
-  public DAGNode add(@Nullable final Layer nextHead, @javax.annotation.Nonnull final DAGNode... head) {
-    if (null == nextHead && head.length == 1) return head[0];
+  public InnerNode add(@Nullable final Layer nextHead, @javax.annotation.Nonnull final DAGNode... head) {
+    if (null == nextHead && head.length == 1) throw new IllegalArgumentException();
     if (null == nextHead) return null;
     assert Arrays.stream(head).allMatch(x -> x == null || nodesById.containsKey(x.getId()) || inputNodes.containsKey(x.getId()));
-    @javax.annotation.Nullable final DAGNode node = super.add(nextHead, head);
+    @javax.annotation.Nullable final InnerNode node = super.add(nextHead, head);
     assert null != getInput();
     setHead(node);
     return node;
@@ -165,9 +165,9 @@ public class PipelineNetwork extends DAGNetwork {
   
   @SafeVarargs
   @Override
-  public final DAGNode add(final String label, @Nullable final Layer layer, final DAGNode... head) {
+  public final InnerNode add(final String label, @Nullable final Layer layer, final DAGNode... head) {
     if (null == layer) throw new IllegalArgumentException();
-    final DAGNode node = super.add(label, layer, head);
+    final InnerNode node = super.add(label, layer, head);
     //assert Arrays.stream(head).allMatch(x -> x != null);
     assert null != getInput();
     setHead(node);
@@ -181,7 +181,7 @@ public class PipelineNetwork extends DAGNetwork {
    * @param layers the layers
    * @return the dag node
    */
-  public DAGNode addAll(DAGNode node, @javax.annotation.Nonnull final Layer... layers) {
+  public InnerNode addAll(InnerNode node, @javax.annotation.Nonnull final Layer... layers) {
     for (final Layer l : layers) {
       node = add(l, node);
     }
@@ -194,8 +194,8 @@ public class PipelineNetwork extends DAGNetwork {
    * @param layers the layers
    * @return the dag node
    */
-  public DAGNode addAll(final Layer... layers) {
-    return addAll(getHead(), layers);
+  public InnerNode addAll(final Layer... layers) {
+    return addAll((InnerNode) getHead(), layers);
   }
   
   /**

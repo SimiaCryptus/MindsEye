@@ -67,7 +67,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
    * @param outputBands the output bands
    * @param precision   the precision
    * @param batchBands  the batch bands
-   * @param stride
+   * @param stride      the stride
    */
   protected ConvolutionLayerTest(final int radius, final int inputBands, final int outputBands, final Precision precision, int batchBands, int stride) {
     this.radius = radius;
@@ -155,7 +155,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
    * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
    */
   public static class BandExpand extends ConvolutionLayerTest {
-  
+
     /**
      * Instantiates a new Asymmetric run.
      */
@@ -333,6 +333,9 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   
   }
   
+  /**
+   * The type Big 1.
+   */
   public static class Big1 extends VeryBigTest {
     /**
      * Instantiates a new BigTests.

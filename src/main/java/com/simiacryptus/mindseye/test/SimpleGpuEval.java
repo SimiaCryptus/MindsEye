@@ -23,10 +23,7 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
-import com.simiacryptus.mindseye.lang.cudnn.CudaPtr;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
-import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.lang.cudnn.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -70,7 +67,7 @@ public class SimpleGpuEval extends SimpleListEval {
       t.freeRef();
       return map;
     }).toArray(i -> new Tensor[i]));
-    @Nullable CudaPtr cudaPtr = CudaPtr.getCudaPtr(Precision.Double, tensorArray);
+    @Nullable CudaPtr cudaPtr = gpu.getPtr(Precision.Double, tensorArray, MemoryType.Managed);
     tensorArray.freeRef();
     return CudaTensorList.wrap(cudaPtr, original.length(), original.getDimensions(), Precision.Double);
   }

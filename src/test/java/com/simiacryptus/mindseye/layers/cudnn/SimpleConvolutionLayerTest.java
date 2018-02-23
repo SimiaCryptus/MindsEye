@@ -45,7 +45,13 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
    * The Bands.
    */
   public final int bands;
+  /**
+   * The Large radius.
+   */
   public int largeRadius;
+  /**
+   * The Small radius.
+   */
   public int smallRadius;
   /**
    * The LayerBase.
@@ -59,7 +65,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
    * @param radius    the radius
    * @param bands     the bands
    * @param precision the precision
-   * @param stride
+   * @param stride    the stride
    */
   protected SimpleConvolutionLayerTest(final int radius, final int bands, final Precision precision, int stride) {
     this.radius = radius;

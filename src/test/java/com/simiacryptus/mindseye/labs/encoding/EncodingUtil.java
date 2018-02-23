@@ -331,6 +331,15 @@ public class EncodingUtil {
     return getImages(log, img -> 0 >= size ? img : TestUtil.resize(img, size), maxImages, categories);
   }
   
+  /**
+   * Get images tensor [ ] [ ].
+   *
+   * @param log        the log
+   * @param fn         the fn
+   * @param maxImages  the max images
+   * @param categories the categories
+   * @return the tensor [ ] [ ]
+   */
   public static Tensor[][] getImages(@javax.annotation.Nonnull final NotebookOutput log, final Function<BufferedImage, BufferedImage> fn, final int maxImages, @javax.annotation.Nonnull final String[] categories) {
     log.out("Available images and categories:");
     log.code(() -> {

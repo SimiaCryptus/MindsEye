@@ -114,7 +114,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       assert outputDims[0] > 0;
       assert outputDims[1] > 0;
       assert outputDims[2] > 0;
-      @Nonnull final CudaPtr outputBuffer = CudaPtr.allocate(gpu.getDeviceNumber(),
+      @Nonnull final CudaPtr outputBuffer = gpu.allocate(
         (long) length * outputDims[2] * outputDims[1] * outputDims[0] * precision.size, MemoryType.Managed, false);
       
       int totalWidth = 0;
@@ -127,7 +127,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
           TensorList tileTensor = inObj[inputIndex].getData();
           int[] tileDimensions = tileTensor.getDimensions();
           rowHeight = Math.max(rowHeight, tileDimensions[1]);
-          @Nullable final CudaPtr inputBuffer = CudaPtr.getCudaPtr(precision, inObj[inputIndex].getData());
+          @Nullable final CudaPtr inputBuffer = gpu.getPtr(precision, inObj[inputIndex].getData(), MemoryType.Device);
           copy(gpu, length, tileDimensions, inputBuffer, outputDims, outputBuffer, positionX, totalHeight);
           gpu.registerForCleanup(inputBuffer);
           
@@ -166,8 +166,8 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
             final int finalTotalHeight = totalHeight;
             final int finalPositionX = positionX;
             final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
-              @Nullable final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
-              @Nonnull final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(),
+              @Nullable final CudaPtr errorPtr = gpu.getPtr(precision, error, MemoryType.Device);
+              @Nonnull final CudaPtr passbackBuffer = gpu.allocate(
                 (long) (length * tileDimensions[2] * tileDimensions[1] * tileDimensions[0] * precision.size), MemoryType.Managed, false);
               copy(gpu, length, outputDims, errorPtr, tileDimensions, passbackBuffer, -finalPositionX, -finalTotalHeight);
               gpu.registerForCleanup(errorPtr);
@@ -227,6 +227,9 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
    * @param source                the input buffer
    * @param destinationDimensions the dim out
    * @param destination           the output buffer
+   * @param positionX             the position x
+   * @param positionY             the position y
+   * @return the int [ ]
    */
   public int[] copy(@Nonnull CudnnHandle gpu, int length, @Nonnull int[] sourceDimensions, @Nonnull CudaPtr source, @Nonnull int[] destinationDimensions, @Nonnull CudaPtr destination, int positionX, int positionY) {
     if (3 != sourceDimensions.length) throw new IllegalArgumentException("inputDimensions.length");
@@ -236,7 +239,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       throw new IllegalArgumentException(String.format("%d != %d", bands, destinationDimensions[2]));
     //log.info(String.format("offset=%d,%d", offsetX, offsetY));
     @Nonnull final int[] viewDim = getViewDimensions(sourceDimensions, destinationDimensions, new int[]{positionX, positionY, 0});
-    @Nonnull final CudaResource<cudnnTensorDescriptor> sourceViewDescriptor = CudaSystem.newTensorDescriptor(
+    @Nonnull final CudaResource<cudnnTensorDescriptor> sourceViewDescriptor = gpu.newTensorDescriptor(
       precision.code,//
       length,//
       viewDim[2],//
@@ -246,7 +249,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       sourceDimensions[1] * sourceDimensions[0],//
       sourceDimensions[0],//
       1);
-    @Nonnull final CudaResource<cudnnTensorDescriptor> destinationViewDescriptor = CudaSystem.newTensorDescriptor(
+    @Nonnull final CudaResource<cudnnTensorDescriptor> destinationViewDescriptor = gpu.newTensorDescriptor(
       precision.code,//
       length,//
       viewDim[2],//
@@ -292,6 +295,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
    *
    * @param sourceDimensions      the source dimensions
    * @param destinationDimensions the destination dimensions
+   * @param offset                the offset
    * @return the int [ ]
    */
   @Nonnull

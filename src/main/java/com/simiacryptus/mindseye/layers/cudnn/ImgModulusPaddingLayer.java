@@ -56,8 +56,10 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
   /**
    * Instantiates a new Img zero padding layer.
    *
-   * @param sizeX the size x
-   * @param sizeY the size y
+   * @param sizeX   the size x
+   * @param sizeY   the size y
+   * @param offsetX the offset x
+   * @param offsetY the offset y
    */
   public ImgModulusPaddingLayer(int sizeX, int sizeY, int offsetX, int offsetY) {
     this.sizeX = sizeX;
@@ -66,6 +68,12 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
     this.offsetY = offsetY;
   }
   
+  /**
+   * Instantiates a new Img modulus padding layer.
+   *
+   * @param sizeX the size x
+   * @param sizeY the size y
+   */
   public ImgModulusPaddingLayer(int sizeX, int sizeY) {
     this(sizeX, sizeY, 0, 0);
   }
@@ -164,10 +172,20 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
     return this;
   }
   
+  /**
+   * Gets offset x.
+   *
+   * @return the offset x
+   */
   public int getOffsetX() {
     return offsetX;
   }
   
+  /**
+   * Sets offset x.
+   *
+   * @param offsetX the offset x
+   */
   public void setOffsetX(int offsetX) {
     this.offsetX = offsetX;
   }

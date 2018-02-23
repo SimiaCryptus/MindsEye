@@ -68,6 +68,9 @@ import java.util.stream.Stream;
 public class StyleTransferDemo extends NotebookReportBase {
   
   
+  /**
+   * The Texture netork.
+   */
   Layer textureNetork;
   
   /**
@@ -194,7 +197,7 @@ public class StyleTransferDemo extends NotebookReportBase {
       log.code(() -> {
         return TestUtil.plot(history);
       });
-    
+  
       try {
         log.p(log.image(inputData[itemNumber][0].toImage(), "result"));
       } catch (IOException e) {

@@ -19,6 +19,10 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import com.simiacryptus.mindseye.layers.cudnn.SimpleConvolutionLayer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Comparator;
@@ -38,6 +42,11 @@ import java.util.stream.Stream;
  * @param <T> the type parameter
  */
 public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends DoubleBuffer<K>> extends ReferenceCountingBase {
+  /**
+   * The Log.
+   */
+  static final Logger log = LoggerFactory.getLogger(SimpleConvolutionLayer.class);
+  
   /**
    * The Map.
    */
@@ -120,7 +129,10 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
     synchronized (map) {
       T v = map.computeIfAbsent(layer, l -> {
         l.addRef(this);
-        return factory.get();
+        T delta = factory.get();
+        if (log.isDebugEnabled())
+          log.debug(String.format("Init layer buffer for %s - %s params", l.getClass(), delta.target.length));
+        return delta;
       });
       v.addRef();
       return v;

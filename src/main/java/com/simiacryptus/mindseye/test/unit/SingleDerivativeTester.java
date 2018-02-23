@@ -78,7 +78,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
         public boolean isAlive() {
           return false;
         }
-    
+  
       }).toArray(i -> new Result[i]);
       copyInput[inputIndex].getData().freeRef();
       copyInput[inputIndex].freeRef();
@@ -503,7 +503,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
       public boolean isAlive() {
         return true;
       }
-    
+  
     }).toArray(i -> new Result[i]);
     @javax.annotation.Nullable final Result eval = frozen.eval(input);
     for (@javax.annotation.Nonnull Result result : input) {
@@ -550,7 +550,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
       public boolean isAlive() {
         return true;
       }
-    
+  
     }).toArray(i -> new Result[i]);
     @javax.annotation.Nullable final Result eval = frozen.eval(inputs);
     for (@javax.annotation.Nonnull Result result : inputs) {

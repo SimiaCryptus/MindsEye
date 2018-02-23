@@ -116,18 +116,18 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     final CudaPtr outputData = CudaSystem.eval(gpu -> {
       try {
         gpu.initThread();
-        @javax.annotation.Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = CudaSystem.createPoolingDescriptor(
+        @javax.annotation.Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = gpu.createPoolingDescriptor(
           mode.id, poolDims, windowSize, padding, stride);
-        @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = CudaSystem.newTensorDescriptor(
+        @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = gpu.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
         CudaSystem.handle(CudaSystem.cudnnGetPoolingNdForwardOutputDim(poolingDesc.getPtr(), inputDescriptor.getPtr(), 4, outputSize));
         assert inputSize[2] == outputSize[1];
-        @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = CudaSystem.newTensorDescriptor(
+        @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = gpu.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[0], outputSize[1], outputSize[2], outputSize[3]);
         @javax.annotation.Nonnull final Pointer alpha = precision.getPointer(1.0);
         @javax.annotation.Nonnull final Pointer beta = precision.getPointer(0.0);
-        @Nullable final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
-        @javax.annotation.Nonnull final CudaPtr outputTensor = CudaPtr.allocate(gpu.getDeviceNumber(), precision.size * 1l * Tensor.dim(outputSize), MemoryType.Managed, true);
+        @Nullable final CudaPtr inputData = gpu.getPtr(precision, batch, MemoryType.Device);
+        @javax.annotation.Nonnull final CudaPtr outputTensor = gpu.allocate(precision.size * 1l * Tensor.dim(outputSize), MemoryType.Managed, true);
         CudaSystem.handle(gpu.cudnnPoolingForward(poolingDesc.getPtr(),
           alpha,
           inputDescriptor.getPtr(), inputData.getPtr(),
@@ -144,17 +144,17 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
         assert error.length() == batch.length();
         if (input.isAlive()) {
           TensorList data = CudaSystem.eval(gpu -> {
-            @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = CudaSystem.newTensorDescriptor(
+            @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = gpu.newTensorDescriptor(
               precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-            @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = CudaSystem.newTensorDescriptor(
+            @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = gpu.newTensorDescriptor(
               precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[0], outputSize[1], outputSize[2], outputSize[3]);
-            @javax.annotation.Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = CudaSystem.createPoolingDescriptor(
+            @javax.annotation.Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = gpu.createPoolingDescriptor(
               mode.id, poolDims, windowSize, padding, stride);
             @javax.annotation.Nonnull final Pointer alpha = precision.getPointer(1.0);
             @javax.annotation.Nonnull final Pointer beta = precision.getPointer(0.0);
-            @Nullable final CudaPtr inputData = CudaPtr.getCudaPtr(precision, batch);
-            @Nullable final CudaPtr errorPtr = CudaPtr.getCudaPtr(precision, error);
-            @javax.annotation.Nonnull final CudaPtr passbackBuffer = CudaPtr.allocate(gpu.getDeviceNumber(), inputDims * 1l * precision.size * length, MemoryType.Managed, true);
+            @Nullable final CudaPtr inputData = gpu.getPtr(precision, batch, MemoryType.Device);
+            @Nullable final CudaPtr errorPtr = gpu.getPtr(precision, error, MemoryType.Device);
+            @javax.annotation.Nonnull final CudaPtr passbackBuffer = gpu.allocate(inputDims * 1l * precision.size * length, MemoryType.Managed, true);
             CudaSystem.handle(gpu.cudnnPoolingBackward(poolingDesc.getPtr(),
               alpha,
               outputDescriptor.getPtr(), outputData.getPtr(),

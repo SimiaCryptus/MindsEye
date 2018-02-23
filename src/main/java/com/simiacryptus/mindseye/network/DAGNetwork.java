@@ -139,7 +139,7 @@ public abstract class DAGNetwork extends LayerBase {
    * @return the dag node
    */
   @javax.annotation.Nullable
-  public DAGNode add(@javax.annotation.Nonnull final Layer nextHead, final DAGNode... head) {
+  public InnerNode add(@javax.annotation.Nonnull final Layer nextHead, final DAGNode... head) {
     return add(null, nextHead, head);
   }
   
@@ -165,7 +165,7 @@ public abstract class DAGNetwork extends LayerBase {
    * @param head  the head
    * @return the dag node
    */
-  public DAGNode add(@Nullable final String label, @javax.annotation.Nonnull final Layer layer, final DAGNode... head) {
+  public InnerNode add(@Nullable final String label, @javax.annotation.Nonnull final Layer layer, final DAGNode... head) {
     assertAlive();
     assertConsistent();
     assert null != getInput();

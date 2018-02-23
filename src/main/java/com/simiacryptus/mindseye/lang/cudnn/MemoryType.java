@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.lang.cudnn;
 import jcuda.Pointer;
 import jcuda.runtime.cudaDeviceProp;
 
+import javax.annotation.Nonnull;
+
 import static jcuda.runtime.JCuda.*;
 
 /**
@@ -33,17 +35,17 @@ public enum MemoryType {
    */
   Managed {
     @Override
-    void alloc(long size, Pointer pointer) {
+    void alloc(long size, Pointer pointer, CudaDevice deviceId) {
       if (size < 0) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
       if (size > CudaPtr.MAX) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
-      cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getDevice());
+      cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDevice());
       if (properties.managedMemory == 1) {
         CudaSystem.handle(CudaSystem.cudaMallocManaged(pointer, size, cudaMemAttachGlobal));
-        CudaSystem.cudaDeviceSynchronize();
+        //CudaSystem.cudaDeviceSynchronize();
       }
       else {
         CudaSystem.handle(CudaSystem.cudaMalloc(pointer, size));
@@ -60,7 +62,7 @@ public enum MemoryType {
    */
   Device {
     @Override
-    void alloc(long size, Pointer pointer) {
+    void alloc(long size, Pointer pointer, CudaDevice deviceId) {
       CudaSystem.handle(CudaSystem.cudaMalloc(pointer, size));
     }
     
@@ -74,14 +76,14 @@ public enum MemoryType {
    */
   Host {
     @Override
-    void alloc(long size, Pointer pointer) {
+    void alloc(long size, Pointer pointer, CudaDevice deviceId) {
       if (size < 0) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
       if (size > CudaPtr.MAX) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
-      cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getDevice());
+      cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDevice());
       if (properties.canMapHostMemory == 1) {
         CudaSystem.handle(CudaSystem.cudaHostAlloc(pointer, size, cudaHostAllocDefault));
       }
@@ -100,14 +102,14 @@ public enum MemoryType {
    */
   HostWriteable {
     @Override
-    void alloc(long size, Pointer pointer) {
+    void alloc(long size, Pointer pointer, CudaDevice deviceId) {
       if (size < 0) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
       if (size > CudaPtr.MAX) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
-      cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getDevice());
+      cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDevice());
       if (properties.canMapHostMemory == 1) {
         CudaSystem.handle(CudaSystem.cudaHostAlloc(pointer, size, cudaHostAllocWriteCombined));
       }
@@ -123,12 +125,24 @@ public enum MemoryType {
   };
   
   /**
+   * Gets memory type.
+   *
+   * @param deviceId the device id
+   * @return the memory type
+   */
+  @Nonnull
+  public static MemoryType getMemoryType(final int deviceId) {
+    return -1 == deviceId ? Managed : Device;
+  }
+  
+  /**
    * Alloc.
    *
-   * @param size    the size
-   * @param pointer the pointer
+   * @param size     the size
+   * @param pointer  the pointer
+   * @param deviceId the device id
    */
-  abstract void alloc(long size, Pointer pointer);
+  abstract void alloc(long size, Pointer pointer, CudaDevice deviceId);
   
   /**
    * Free.

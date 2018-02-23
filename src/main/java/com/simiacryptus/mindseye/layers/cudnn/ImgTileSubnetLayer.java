@@ -24,11 +24,16 @@ import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.LayerBase;
 import com.simiacryptus.mindseye.lang.Result;
+import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -37,20 +42,28 @@ import java.util.Map;
  * across larger image regions.
  */
 @SuppressWarnings("serial")
-public class ImgTileSubnetLayer extends LayerBase {
+public class ImgTileSubnetLayer extends LayerBase implements MultiPrecision<ImgTileSubnetLayer> {
   
+  private static final Logger logger = LoggerFactory.getLogger(ImgTileSubnetLayer.class);
+  /**
+   * The Subnetwork.
+   */
+  @Nullable
+  public final Layer subnetwork;
   private final int height;
   private final int width;
   private final int strideX;
   private final int strideY;
-  @Nullable
-  private final Layer subnetwork;
+  private Precision precision = Precision.Double;
   
   /**
    * Instantiates a new Rescaled subnet layer.
    *
-   * @param height     the scale
    * @param subnetwork the subnetwork
+   * @param width      the width
+   * @param height     the scale
+   * @param strideX    the stride x
+   * @param strideY    the stride y
    */
   public ImgTileSubnetLayer(final Layer subnetwork, final int width, final int height, final int strideX, final int strideY) {
     super();
@@ -62,6 +75,13 @@ public class ImgTileSubnetLayer extends LayerBase {
     this.subnetwork.addRef();
   }
   
+  /**
+   * Instantiates a new Img tile subnet layer.
+   *
+   * @param subnetwork the subnetwork
+   * @param width      the width
+   * @param height     the height
+   */
   public ImgTileSubnetLayer(final Layer subnetwork, final int width, final int height) {
     this(subnetwork, width, height, width, height);
   }
@@ -74,6 +94,7 @@ public class ImgTileSubnetLayer extends LayerBase {
    */
   protected ImgTileSubnetLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json);
+    this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
     height = json.getAsJsonPrimitive("height").getAsInt();
     width = json.getAsJsonPrimitive("width").getAsInt();
     strideX = json.getAsJsonPrimitive("strideX").getAsInt();
@@ -128,9 +149,9 @@ public class ImgTileSubnetLayer extends LayerBase {
           );
         }
       }
-      network.wrap(new ImgTileAssemblyLayer(cols, rows), nodes.toArray(new DAGNode[]{}));
-      Result eval = network.eval(inObj);
-      return eval;
+      logger.info(String.format("Broke input %s into %s rows, %s cols", Arrays.toString(inputDims), rows, cols));
+      network.wrap(new ImgTileAssemblyLayer(cols, rows).setPrecision(precision), nodes.toArray(new DAGNode[]{})).setParallel(false);
+      return network.eval(inObj);
     } finally {
       network.freeRef();
     }
@@ -144,6 +165,7 @@ public class ImgTileSubnetLayer extends LayerBase {
     json.addProperty("width", width);
     json.addProperty("strideX", strideX);
     json.addProperty("strideY", strideY);
+    json.addProperty("precision", precision.name());
     json.add("subnetwork", subnetwork.getJson(resources, dataSerializer));
     return json;
   }
@@ -156,4 +178,22 @@ public class ImgTileSubnetLayer extends LayerBase {
   }
   
   
+  @Override
+  public Precision getPrecision() {
+    return precision;
+  }
+  
+  @javax.annotation.Nonnull
+  @Override
+  public ImgTileSubnetLayer setPrecision(Precision precision) {
+    this.precision = precision;
+    return this;
+  }
+  
+  @Nonnull
+  @Override
+  public Layer setFrozen(final boolean frozen) {
+    subnetwork.setFrozen(frozen);
+    return super.setFrozen(frozen);
+  }
 }
