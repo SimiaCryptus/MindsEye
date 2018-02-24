@@ -184,14 +184,6 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
       explodedNetwork.freeRef();
     }
   }
-  
-  @Nonnull
-  private Layer getTileSubnet(final Layer network) {
-    int maxSize = (int) Math.sqrt(1e6 / Math.min(Math.max(inputBands, outputBands), batchBands));
-    int[] kernelDims = getKernel().getDimensions();
-    return new ImgTileSubnetLayer(network, maxSize, maxSize, maxSize - ((kernelDims[0] - 1) / 2), maxSize - ((kernelDims[1] - 1) / 2));
-  }
-  
   /**
    * Gets exploded network.
    *

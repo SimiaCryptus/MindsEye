@@ -26,6 +26,7 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSettings;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
+import com.simiacryptus.mindseye.network.InnerNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -176,17 +177,65 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
    */
   public DAGNode add(@javax.annotation.Nonnull DAGNode input) {
     assertAlive();
-    if (subLayers.size() == 1) {
-      return subLayers.get(0).add(input);
+    DAGNetwork network = input.getNetwork();
+    int defaultPaddingX = (convolutionParams.masterFilterDimensions[0] - 1) / 2;
+    int defaultPaddingY = (convolutionParams.masterFilterDimensions[1] - 1) / 2;
+    boolean customPaddingX = this.convolutionParams.paddingX != null && convolutionParams.paddingX != defaultPaddingX;
+    boolean customPaddingY = this.convolutionParams.paddingY != null && convolutionParams.paddingY != defaultPaddingY;
+    final DAGNode paddedInput;
+    if (customPaddingX || customPaddingY) {
+      int x;
+      if (this.convolutionParams.paddingX < -defaultPaddingX) {
+        x = this.convolutionParams.paddingX + defaultPaddingX;
+      }
+      else if (this.convolutionParams.paddingX > defaultPaddingX) {
+        x = this.convolutionParams.paddingX - defaultPaddingX;
+      }
+      else {
+        x = 0;
+      }
+      int y;
+      if (this.convolutionParams.paddingY < -defaultPaddingY) {
+        y = this.convolutionParams.paddingY + defaultPaddingY;
+      }
+      else if (this.convolutionParams.paddingY > defaultPaddingY) {
+        y = this.convolutionParams.paddingY - defaultPaddingY;
+      }
+      else {
+        y = 0;
+      }
+      if (x != 0 || y != 0) {
+        paddedInput = network.wrap(new ImgZeroPaddingLayer(x, y).setPrecision(convolutionParams.precision), input);
+      }
+      else {
+        paddedInput = input;
+      }
     }
     else {
-      DAGNetwork network = input.getNetwork();
-      List<DAGNode> legs = subLayers.stream().map((ExplodedConvolutionLeg l) -> {
-        return l.add(network.wrap(new ImgBandSelectLayer(l.fromBand, l.toBand).setPrecision(convolutionParams.precision), input));
-      }).collect(Collectors.toList());
-      return network.wrap(new SumInputsLayer().setPrecision(convolutionParams.precision).setParallel(CudaSettings.INSTANCE.isConv_para_1()), legs.stream().toArray(i -> new DAGNode[i])).setParallel(CudaSettings.INSTANCE.isConv_para_1());
-//      return legs.stream().reduce((l,r)-> network.wrap(new BinarySumLayer().setPrecision(convolutionParams.precision), l, r)).get();
+      paddedInput = input;
     }
+    DAGNode[] nodes;
+    if (subLayers.size() == 1) {
+      nodes = new DAGNode[]{subLayers.get(0).add(input)};
+    }
+    else {
+      List<DAGNode> legs = subLayers.stream().map((ExplodedConvolutionLeg l) -> {
+        return l.add(network.wrap(new ImgBandSelectLayer(l.fromBand, l.toBand).setPrecision(convolutionParams.precision), paddedInput));
+      }).collect(Collectors.toList());
+      nodes = legs.stream().toArray(i -> new DAGNode[i]);
+    }
+    InnerNode output = network.wrap(new SumInputsLayer().setPrecision(convolutionParams.precision).setParallel(CudaSettings.INSTANCE.isConv_para_1()), nodes).setParallel(CudaSettings.INSTANCE.isConv_para_1());
+    if (customPaddingX || customPaddingY) {
+      int x = !customPaddingX ? 0 : (this.convolutionParams.paddingX - defaultPaddingX);
+      int y = !customPaddingY ? 0 : (this.convolutionParams.paddingY - defaultPaddingY);
+      if (x > 0) x = 0;
+      if (y > 0) y = 0;
+      if (x != 0 || y != 0) {
+        return network.wrap(new ImgZeroPaddingLayer(x, y).setPrecision(convolutionParams.precision), output);
+      }
+    }
+    return output;
+//      return legs.stream().reduce((l,r)-> network.wrap(new BinarySumLayer().setPrecision(convolutionParams.precision), l, r)).get();
   }
   
   

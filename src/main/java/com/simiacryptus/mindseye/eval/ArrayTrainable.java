@@ -105,6 +105,11 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
   }
   
   @Override
+  public ArrayTrainable setVerbose(final boolean verbose) {
+    return (ArrayTrainable) super.setVerbose(verbose);
+  }
+  
+  @Override
   protected void _free() {
     for (@javax.annotation.Nonnull Tensor[] tensors : trainingData) {
       for (@javax.annotation.Nonnull Tensor tensor : tensors) {
@@ -155,4 +160,6 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
   public ArrayTrainable setMask(boolean... mask) {
     return (ArrayTrainable) super.setMask(mask);
   }
+  
+  
 }

@@ -24,7 +24,9 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.util.lang.TimedResult;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,6 +40,7 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
    * The Batch size.
    */
   protected final int batchSize;
+  private boolean verbose = false;
   
   /**
    * Instantiates a new Batched trainable.
@@ -74,22 +77,36 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
   @Override
   public PointSample measure(final TrainingMonitor monitor) {
     @javax.annotation.Nonnull final List<Tensor[]> tensors = Arrays.asList(getData());
-    if (batchSize < tensors.size()) {
-      final int batches = (int) Math.ceil(tensors.size() * 1.0 / batchSize);
-      final int evenBatchSize = (int) Math.ceil(tensors.size() * 1.0 / batches);
-      @javax.annotation.Nonnull final List<List<Tensor[]>> collection = Lists.partition(tensors, evenBatchSize);
-      return collection.stream().map(trainingData -> {
-        if (batchSize < trainingData.size()) {
-          throw new RuntimeException();
-        }
-        getInner().setData(trainingData);
+    TimedResult<PointSample> timedResult = TimedResult.time(() -> {
+      if (batchSize < tensors.size()) {
+        final int batches = (int) Math.ceil(tensors.size() * 1.0 / batchSize);
+        final int evenBatchSize = (int) Math.ceil(tensors.size() * 1.0 / batches);
+        @Nonnull final List<List<Tensor[]>> collection = Lists.partition(tensors, evenBatchSize);
+        return collection.stream().map(trainingData -> {
+          if (batchSize < trainingData.size()) {
+            throw new RuntimeException();
+          }
+          getInner().setData(trainingData);
+          return super.measure(monitor);
+        }).reduce((a, b) -> a.add(b)).get();
+      }
+      else {
+        getInner().setData(tensors);
         return super.measure(monitor);
-      }).reduce((a, b) -> a.add(b)).get();
+      }
+    });
+    if (null != monitor && isVerbose()) {
+      monitor.log(String.format("Evaluated %s items in %.4fs (%s/%s)", tensors.size(), timedResult.timeNanos / 1e9, timedResult.result.getMean(), timedResult.result.delta.getMagnitude()));
     }
-    else {
-      getInner().setData(tensors);
-      return super.measure(monitor);
-    }
+    return timedResult.result;
   }
   
+  public boolean isVerbose() {
+    return verbose;
+  }
+  
+  public BatchedTrainable setVerbose(final boolean verbose) {
+    this.verbose = verbose;
+    return this;
+  }
 }

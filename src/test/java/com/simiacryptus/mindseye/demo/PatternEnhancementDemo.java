@@ -37,6 +37,7 @@ import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -94,16 +95,18 @@ public class PatternEnhancementDemo extends NotebookReportBase {
     });
     
     log.h1("Data");
-    Tensor imageInput;
+    Tensor imageData;
     try {
-      imageInput = Tensor.fromRGB(ImageIO.read(new File("H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\800px-Vincent_van_Gogh_-_Portrait_of_Doctor_Félix_Rey_(F500).jpg")));
+      BufferedImage image = ImageIO.read(new File("H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\800px-Vincent_van_Gogh_-_Portrait_of_Doctor_Félix_Rey_(F500).jpg"));
+      image = TestUtil.resize(image, 400, true);
+      imageData = Tensor.fromRGB(image);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    TestUtil.monitorUI(imageInput);
-    vgg16.deepDream(log, imageInput);
+    TestUtil.monitorUI(imageData);
+    vgg16.deepDream(log, imageData);
     try {
-      log.p(log.image(imageInput.toImage(), "result"));
+      log.p(log.image(imageData.toImage(), "result"));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

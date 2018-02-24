@@ -244,17 +244,6 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
       head = network.wrap(new ImgConcatLayer().setMaxBands(this.convolutionParams.outputBands).setPrecision(this.convolutionParams.precision).setParallel(CudaSettings.INSTANCE.isConv_para_2()),
         subLayers.stream().map(l -> network.add(l, input)).toArray(i -> new DAGNode[i])).setParallel(CudaSettings.INSTANCE.isConv_para_2());
     }
-    if (this.convolutionParams.paddingX != null || this.convolutionParams.paddingY != null) {
-      int x = ((filterDimensions[0] - 1) / 2);
-      if (this.convolutionParams.paddingX != null) x = this.convolutionParams.paddingX + x;
-      int y = ((filterDimensions[1] - 1) / 2);
-      if (this.convolutionParams.paddingY != null) y = this.convolutionParams.paddingY + y;
-      if (x != 0 || y != 0) {
-        assert 0 <= x;
-        assert 0 <= y;
-        head = network.wrap(new ImgZeroPaddingLayer(x, y).setPrecision(convolutionParams.precision), head);
-      }
-    }
     return head;
   }
   

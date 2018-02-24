@@ -21,13 +21,8 @@ package com.simiacryptus.mindseye.models;
 
 import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
-import com.simiacryptus.mindseye.eval.TensorListTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
-import com.simiacryptus.mindseye.lang.cudnn.CudnnHandle;
-import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
-import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
@@ -168,11 +163,12 @@ public abstract class ImageClassifier {
       clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
       @Nonnull PipelineNetwork supervised = new PipelineNetwork(1);
       supervised.add(getNetwork().freeze(), supervised.wrap(clamp, supervised.getInput(0)));
-      CudaTensorList gpuInput = CudnnHandle.eval(gpu -> {
-        Precision precision = Precision.Float;
-        return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(image), precision, MemoryType.Managed), 1, image.getDimensions(), precision);
-      });
-      @Nonnull Trainable trainable = new TensorListTrainable(supervised, gpuInput).setVerbosity(1).setMask(true);
+//      CudaTensorList gpuInput = CudnnHandle.eval(gpu -> {
+//        Precision precision = Precision.Float;
+//        return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(image), precision, MemoryType.Managed), 1, image.getDimensions(), precision);
+//      });
+//      @Nonnull Trainable trainable = new TensorListTrainable(supervised, gpuInput).setVerbosity(1).setMask(true);
+      @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setVerbose(true).setMask(true, false).setData(Arrays.<Tensor[]>asList(new Tensor[]{image}));
       new IterativeTrainer(trainable)
         .setMonitor(getTrainingMonitor(history))
         .setOrientation(new QQN())
@@ -216,7 +212,14 @@ public abstract class ImageClassifier {
         supervised.add(getNetwork().freeze(),
           supervised.wrap(clamp, supervised.getInput(0))),
         supervised.getInput(1));
-      @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setMask(true, false).setData(data);
+//      TensorList[] gpuInput = data.stream().map(data1 -> {
+//        return CudnnHandle.eval(gpu -> {
+//          Precision precision = Precision.Float;
+//          return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(data1), precision, MemoryType.Managed), 1, image.getDimensions(), precision);
+//        });
+//      }).toArray(i -> new TensorList[i]);
+//      @Nonnull Trainable trainable = new TensorListTrainable(supervised, gpuInput).setVerbosity(1).setMask(true);
+      @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setVerbose(true).setMask(true, false).setData(data);
       new IterativeTrainer(trainable)
         .setMonitor(getTrainingMonitor(history))
         .setOrientation(new QQN())
