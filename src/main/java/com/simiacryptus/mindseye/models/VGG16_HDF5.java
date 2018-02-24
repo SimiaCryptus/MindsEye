@@ -86,6 +86,7 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
   Precision precision = Precision.Float;
   private boolean large = true;
   private boolean dense = true;
+  private PoolingLayer.PoolingMode finalPoolingMode = PoolingLayer.PoolingMode.Avg;
   
   /**
    * Instantiates a new Vgg 16 hdf 5.
@@ -444,7 +445,7 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
   protected void phase3b(@javax.annotation.Nonnull final NotebookOutput output) {
     output.code(() -> {
       add(new BandReducerLayer()
-        .setMode(PoolingLayer.PoolingMode.Avg));
+        .setMode(getFinalPoolingMode()));
     });
     
     output.code(() -> {
@@ -560,6 +561,15 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
    */
   public VGG16_HDF5 setDense(boolean dense) {
     this.dense = dense;
+    return this;
+  }
+  
+  public PoolingLayer.PoolingMode getFinalPoolingMode() {
+    return finalPoolingMode;
+  }
+  
+  public VGG16_HDF5 setFinalPoolingMode(PoolingLayer.PoolingMode finalPoolingMode) {
+    this.finalPoolingMode = finalPoolingMode;
     return this;
   }
 }

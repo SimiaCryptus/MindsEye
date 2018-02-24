@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.demo;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
+import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
@@ -30,7 +31,9 @@ import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Comparator;
@@ -64,17 +67,10 @@ public class DeepDreamDemo extends NotebookReportBase {
     
     log.h1("Model");
     VGG16_HDF5 vgg16 = log.code(() -> {
-      return VGG16.fromS3_HDF5().setLarge(false);
+      return VGG16.fromS3_HDF5().setLarge(true).setFinalPoolingMode(PoolingLayer.PoolingMode.Avg);
     });
-    
-    log.h1("Data");
-    Tensor[] images = log.code(() -> {
-      return Caltech101.trainingDataStream().sorted(getShuffleComparator()).map(labeledObj -> {
-        @Nullable BufferedImage img = labeledObj.data.get();
-        //img = TestUtil.resize(img, 224);
-        return Tensor.fromRGB(img);
-      }).limit(50).toArray(i1 -> new Tensor[i1]);
-    });
+  
+    Tensor[] images = getImages_Artistry(log);
     
     List<String> vgg16Categories = vgg16.getCategories();
     for (int itemNumber = 0; itemNumber < images.length; itemNumber++) {
@@ -82,7 +78,7 @@ public class DeepDreamDemo extends NotebookReportBase {
       Tensor image = images[itemNumber];
       TestUtil.monitorUI(image);
       List<String> categories = vgg16.predict(5, image).stream().flatMap(x -> x.keySet().stream()).collect(Collectors.toList());
-      log.p("Predictions: %s", categories);
+      log.p("Predictions: %s", categories.stream().reduce((a, b) -> a + "; " + b).get());
       log.p("Evolve from %s to %s", categories.get(0), categories.get(1));
       int targetCategoryIndex = vgg16Categories.indexOf(categories.get(1));
       int totalCategories = vgg16Categories.size();
@@ -95,6 +91,27 @@ public class DeepDreamDemo extends NotebookReportBase {
     }
     
     log.setFrontMatterProperty("status", "OK");
+  }
+  
+  public Tensor[] getImages_Artistry(@javax.annotation.Nonnull final NotebookOutput log) {
+    try {
+      BufferedImage image = ImageIO.read(new File("H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\800px-Vincent_van_Gogh_-_Portrait_of_Doctor_Félix_Rey_(F500).jpg"));
+      image = TestUtil.resize(image, 400, true);
+      return new Tensor[]{Tensor.fromRGB(image)};
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  public Tensor[] getImages_Caltech(@javax.annotation.Nonnull final NotebookOutput log) {
+    log.h1("Data");
+    return log.code(() -> {
+      return Caltech101.trainingDataStream().sorted(getShuffleComparator()).map(labeledObj -> {
+        @Nullable BufferedImage img = labeledObj.data.get();
+        //img = TestUtil.resize(img, 224);
+        return Tensor.fromRGB(img);
+      }).limit(50).toArray(i1 -> new Tensor[i1]);
+    });
   }
   
   /**
