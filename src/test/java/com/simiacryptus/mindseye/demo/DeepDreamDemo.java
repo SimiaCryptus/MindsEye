@@ -37,16 +37,27 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * The type Deep dream demo.
+ */
 public class DeepDreamDemo extends NotebookReportBase {
   
+  /**
+   * Run.
+   */
   @Test
   public void run() {
     run(this::run);
   }
   
+  /**
+   * Run.
+   *
+   * @param log the log
+   */
   public void run(@javax.annotation.Nonnull NotebookOutput log) {
-  
-  
+    
+    
     @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
@@ -86,6 +97,12 @@ public class DeepDreamDemo extends NotebookReportBase {
     log.setFrontMatterProperty("status", "OK");
   }
   
+  /**
+   * Gets shuffle comparator.
+   *
+   * @param <T> the type parameter
+   * @return the shuffle comparator
+   */
   public <T> Comparator<T> getShuffleComparator() {
     final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
     return Comparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);

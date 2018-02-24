@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSettings;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -161,6 +162,7 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
    */
   @javax.annotation.Nonnull
   public PipelineNetwork getNetwork() {
+    assertAlive();
     @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork(1);
     add(network.getInput(0));
     return network;
@@ -173,6 +175,7 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
    * @return the dag node
    */
   public DAGNode add(@javax.annotation.Nonnull DAGNode input) {
+    assertAlive();
     if (subLayers.size() == 1) {
       return subLayers.get(0).add(input);
     }
@@ -181,7 +184,7 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
       List<DAGNode> legs = subLayers.stream().map((ExplodedConvolutionLeg l) -> {
         return l.add(network.wrap(new ImgBandSelectLayer(l.fromBand, l.toBand).setPrecision(convolutionParams.precision), input));
       }).collect(Collectors.toList());
-      return network.wrap(new SumInputsLayer().setPrecision(convolutionParams.precision), legs.stream().toArray(i -> new DAGNode[i]));
+      return network.wrap(new SumInputsLayer().setPrecision(convolutionParams.precision).setParallel(CudaSettings.INSTANCE.isConv_para_1()), legs.stream().toArray(i -> new DAGNode[i])).setParallel(CudaSettings.INSTANCE.isConv_para_1());
 //      return legs.stream().reduce((l,r)-> network.wrap(new BinarySumLayer().setPrecision(convolutionParams.precision), l, r)).get();
     }
   }

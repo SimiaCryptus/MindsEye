@@ -165,23 +165,19 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
   }
   
   @Override
-  public synchronized TensorList add(@javax.annotation.Nonnull final TensorList right) {
+  public TensorList add(@javax.annotation.Nonnull final TensorList right) {
     assertAlive();
     right.assertAlive();
     assert length() == right.length();
     if (right instanceof ReshapedTensorList) return add(((ReshapedTensorList) right).getInner());
-    synchronized (this) {
-      if (heapCopy == null) {
-        if (right instanceof CudaTensorList) {
-          @javax.annotation.Nonnull final CudaTensorList nativeRight = (CudaTensorList) right;
-          synchronized (nativeRight) {
-            if (nativeRight.precision == this.precision) {
-              if (nativeRight.heapCopy == null) {
-                return CudaSystem.eval(gpu -> {
-                  return gpu.add(this, nativeRight);
-                });
-              }
-            }
+    if (heapCopy == null) {
+      if (right instanceof CudaTensorList) {
+        @javax.annotation.Nonnull final CudaTensorList nativeRight = (CudaTensorList) right;
+        if (nativeRight.precision == this.precision) {
+          if (nativeRight.heapCopy == null) {
+            return CudaSystem.eval(gpu -> {
+              return gpu.add(this, nativeRight);
+            });
           }
         }
       }
@@ -286,15 +282,17 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
   
   @Override
   protected void _free() {
+    CudaMemory ptr;
     synchronized (this) {
-      if (null != ptr) {
-        ptr.freeRef();
-        ptr = null;
-      }
-      if (null != heapCopy) {
-        heapCopy.freeRef();
-        heapCopy = null;
-      }
+      ptr = this.ptr;
+      this.ptr = null;
+    }
+    if (null != ptr) {
+      ptr.freeRef();
+    }
+    if (null != heapCopy) {
+      heapCopy.freeRef();
+      heapCopy = null;
     }
   }
   
@@ -303,16 +301,20 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    *
    * @return the long
    */
-  public synchronized long evictToHeap() {
+  public long evictToHeap() {
     if (null == heapCopy()) {
       throw new IllegalStateException();
+    }
+    CudaMemory ptr;
+    synchronized (this) {
+      ptr = this.ptr;
+      this.ptr = null;
     }
     if (null != ptr && !ptr.isFinalized() && 1 == ptr.currentRefCount()) {
       long elements = getElements();
       assert 0 < length;
       assert 0 < elements : Arrays.toString(dimensions);
       ptr.freeRef();
-      ptr = null;
       return elements * getPrecision().size;
     }
     else {

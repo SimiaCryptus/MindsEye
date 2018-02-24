@@ -39,17 +39,23 @@ public class CudaSettings implements Settings {
   private final boolean forceSingleGpu;
   private final int streamsPerGpu;
   private final int maxFilterElements;
+  private final boolean conv_para_2;
+  private final boolean conv_para_1;
+  private final boolean conv_para_3;
   
   private CudaSettings() {
     maxTotalMemory = Settings.get("MAX_TOTAL_MEMORY", 8 * CudaMemory.GiB);
     maxAllocSize = Settings.get("MAX_ALLOC_SIZE", Precision.Double.size * (Integer.MAX_VALUE - 1L));
     maxFilterElements = Settings.get("MAX_FILTER_ELEMENTS", 256 * 1024 * 1024);
-    maxIoElements = Settings.get("MAX_IO_ELEMENTS", 1024 * 1024);
+    maxIoElements = Settings.get("MAX_IO_ELEMENTS", 1 * 1024 * 1024);
     convolutionWorkspaceSizeLimit = Settings.get("CONVOLUTION_WORKSPACE_SIZE_LIMIT", 1024 * 1024 * 1024);
     disable = Settings.get("DISABLE_CUDNN", false);
     forceSingleGpu = Settings.get("FORCE_SINGLE_GPU", false);
     streamsPerGpu = Settings.get("STREAMS_PER_GPU", 4);
     workspaceCachePersistance = Settings.get("CONV_CACHE_MODE", PersistanceMode.WEAK);
+    conv_para_1 = Settings.get("CONV_PARA_1", true);
+    conv_para_2 = Settings.get("CONV_PARA_2", true);
+    conv_para_3 = Settings.get("CONV_PARA_3", true);
   }
   
   /**
@@ -131,5 +137,32 @@ public class CudaSettings implements Settings {
    */
   public PersistanceMode getWorkspaceCachePersistance() {
     return workspaceCachePersistance;
+  }
+  
+  /**
+   * Is conv para 2 boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isConv_para_2() {
+    return conv_para_2;
+  }
+  
+  /**
+   * Is conv para 1 boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isConv_para_1() {
+    return conv_para_1;
+  }
+  
+  /**
+   * Is conv para 3 boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isConv_para_3() {
+    return conv_para_3;
   }
 }

@@ -55,6 +55,7 @@ public class ImgTileSubnetLayer extends LayerBase implements MultiPrecision<ImgT
   private final int strideX;
   private final int strideY;
   private Precision precision = Precision.Double;
+  private boolean parallel = true;
   
   /**
    * Instantiates a new Rescaled subnet layer.
@@ -99,7 +100,9 @@ public class ImgTileSubnetLayer extends LayerBase implements MultiPrecision<ImgT
     width = json.getAsJsonPrimitive("width").getAsInt();
     strideX = json.getAsJsonPrimitive("strideX").getAsInt();
     strideY = json.getAsJsonPrimitive("strideY").getAsInt();
+    setParallel(json.get("parallel").getAsBoolean());
     JsonObject subnetwork = json.getAsJsonObject("subnetwork");
+    this.parallel = json.get("parallel").getAsBoolean();
     this.subnetwork = subnetwork == null ? null : Layer.fromJson(subnetwork, rs);
   }
   
@@ -122,7 +125,7 @@ public class ImgTileSubnetLayer extends LayerBase implements MultiPrecision<ImgT
   
   @Nullable
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result evalAndFree(@javax.annotation.Nonnull final Result... inObj) {
     assert 1 == inObj.length;
     @javax.annotation.Nonnull final int[] inputDims = inObj[0].getData().getDimensions();
     assert 3 == inputDims.length;
@@ -130,7 +133,7 @@ public class ImgTileSubnetLayer extends LayerBase implements MultiPrecision<ImgT
     try {
       int cols = (int) (Math.ceil((inputDims[0] - width) * 1.0 / strideX) + 1);
       int rows = (int) (Math.ceil((inputDims[1] - height) * 1.0 / strideY) + 1);
-      if (cols == 1 && rows == 1) return subnetwork.eval(inObj);
+      if (cols == 1 && rows == 1) return subnetwork.evalAndFree(inObj);
       DAGNode input = network.getInput(0);
       ArrayList<DAGNode> nodes = new ArrayList<>();
       for (int row = 0; row < rows; row++) {
@@ -149,9 +152,9 @@ public class ImgTileSubnetLayer extends LayerBase implements MultiPrecision<ImgT
           );
         }
       }
-      logger.info(String.format("Broke input %s into %s rows, %s cols", Arrays.toString(inputDims), rows, cols));
-      network.wrap(new ImgTileAssemblyLayer(cols, rows).setPrecision(precision), nodes.toArray(new DAGNode[]{})).setParallel(true);
-      return network.eval(inObj);
+      logger.debug(String.format("Broke input %s into %s rows, %s cols", Arrays.toString(inputDims), rows, cols));
+      network.wrap(new ImgTileAssemblyLayer(cols, rows).setParallel(parallel).setPrecision(precision), nodes.toArray(new DAGNode[]{})).setParallel(parallel);
+      return network.evalAndFree(inObj);
     } finally {
       network.freeRef();
     }
@@ -166,7 +169,9 @@ public class ImgTileSubnetLayer extends LayerBase implements MultiPrecision<ImgT
     json.addProperty("strideX", strideX);
     json.addProperty("strideY", strideY);
     json.addProperty("precision", precision.name());
+    json.addProperty("parallel", isParallel());
     json.add("subnetwork", subnetwork.getJson(resources, dataSerializer));
+    json.addProperty("parallel", isParallel());
     return json;
   }
   
@@ -195,5 +200,25 @@ public class ImgTileSubnetLayer extends LayerBase implements MultiPrecision<ImgT
   public Layer setFrozen(final boolean frozen) {
     subnetwork.setFrozen(frozen);
     return super.setFrozen(frozen);
+  }
+  
+  /**
+   * Is parallel boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isParallel() {
+    return parallel;
+  }
+  
+  /**
+   * Sets parallel.
+   *
+   * @param parallel the parallel
+   * @return the parallel
+   */
+  public ImgTileSubnetLayer setParallel(boolean parallel) {
+    this.parallel = parallel;
+    return this;
   }
 }

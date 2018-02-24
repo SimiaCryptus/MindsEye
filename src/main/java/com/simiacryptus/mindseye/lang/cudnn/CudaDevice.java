@@ -145,9 +145,10 @@ public class CudaDevice extends CudaSystem {
   public CudaMemory getPtr(@Nonnull final CudaTensorList data, @Nonnull final MemoryType memoryType) {
     CudaMemory ptr = data.ptr;
     synchronized (data) {
-      if ((null == ptr || data.ptr.isFinalized()) && null != data.heapCopy && !data.heapCopy.isFinalized()) {
+      if ((null == ptr || ptr.isFinalized()) && null != data.heapCopy && !data.heapCopy.isFinalized()) {
         synchronized (data) {
-          if ((null == data.ptr || data.ptr.isFinalized()) && null != data.heapCopy && !data.heapCopy.isFinalized()) {
+          ptr = data.ptr;
+          if ((null == ptr || ptr.isFinalized()) && null != data.heapCopy && !data.heapCopy.isFinalized()) {
             data.ptr = ptr = getPtr(data.heapCopy, data.precision, memoryType);
           }
         }
@@ -202,7 +203,7 @@ public class CudaDevice extends CudaSystem {
       if (retries <= 0)
         throw new RuntimeException(String.format(String.format("Error allocating %d bytes; %s currently allocated to device %s", size, metrics.usedMemory, this)), e);
       final long startMemory = metrics.usedMemory.get();
-      @Nonnull TimedResult<Void> timedResult = TimedResult.time(() -> CudaMemory.clearMemory(getDeviceId()));
+      @Nonnull TimedResult<Long> timedResult = TimedResult.time(() -> CudaMemory.clearMemory(getDeviceId()));
       final long freedMemory = startMemory - metrics.usedMemory.get();
       CudaMemory.logger.warn(String.format("Low GPU Memory while allocating %s bytes; %s freed in %.4fs resulting in %s total (triggered by %s)",
         size, freedMemory, timedResult.seconds(), metrics.usedMemory.get(), e.getMessage()));
@@ -300,7 +301,7 @@ public class CudaDevice extends CudaSystem {
    */
   @Nonnull
   public CudaMemory allocate(final long size, @Nonnull MemoryType type, boolean dirty) {
-    @Nonnull CudaMemory obtain = new CudaMemory(size, this, type);
+    @Nonnull CudaMemory obtain = new CudaMemory(this, size, type);
     if (!dirty) obtain.clear();
     return obtain;
   }

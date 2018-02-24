@@ -196,6 +196,37 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
   /**
    * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
    */
+  public static class ZeroPadding extends ConvolutionLayerTest {
+    
+    /**
+     * Instantiates a new Asymmetric run.
+     */
+    public ZeroPadding() {
+      super(5, 1, 1, Precision.Double, 16, 1);
+      convolutionLayer.setPaddingXY(0, 0);
+    }
+    
+    @javax.annotation.Nonnull
+    @Override
+    public int[][] getSmallDims(Random random) {
+      return new int[][]{
+        {5, 5, inputBands}
+      };
+    }
+    
+    @javax.annotation.Nonnull
+    @Override
+    public int[][] getLargeDims(Random random) {
+      return new int[][]{
+        {5, 5, inputBands}
+      };
+    }
+    
+  }
+  
+  /**
+   * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
+   */
   public static class SqGrid extends ConvolutionLayerTest {
   
     /**

@@ -99,8 +99,9 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
    *
    * @param layer the layer
    * @param model the model
+   * @return the layer
    */
-  protected static void add(Layer layer, PipelineNetwork model) {
+  protected static Layer add(Layer layer, PipelineNetwork model) {
     name(layer);
     if (layer instanceof Explodable) {
       Layer explode = ((Explodable) layer).explode();
@@ -112,13 +113,14 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
         else {
           log.info(String.format("Exploded %s to %s (%s nodes)", layer.getName(), explode.getClass().getSimpleName(), explode.getName()));
         }
-        add(explode, model);
+        return add(explode, model);
       } finally {
         layer.freeRef();
       }
     }
     else {
       model.wrap(layer);
+      return layer;
     }
   }
   
@@ -134,18 +136,18 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
     int numberOfParameters = layer.state().stream().mapToInt(x -> x.length).sum();
     @javax.annotation.Nonnull int[] prev_dimensions = prevPrototype.getDimensions();
     Result eval = layer.eval(prevPrototype);
-    TensorList data = eval.getData();
+    TensorList newPrototype = eval.getData();
     if (null != prevPrototype) prevPrototype.freeRef();
+    eval.freeRef();
     try {
-      @javax.annotation.Nonnull int[] new_dimensions = prevPrototype.getDimensions();
+      @javax.annotation.Nonnull int[] new_dimensions = newPrototype.getDimensions();
       log.info(String.format("Added layer #%d: %s; %s params, dimensions %s (%s) -> %s (%s)", //
         cnt, layer, numberOfParameters, //
         Arrays.toString(prev_dimensions), Tensor.dim(prev_dimensions), //
         Arrays.toString(new_dimensions), Tensor.dim(new_dimensions)));
-      return data.get(0);
+      return newPrototype.get(0);
     } finally {
-      eval.freeRef();
-      data.freeRef();
+      newPrototype.freeRef();
     }
   }
   
@@ -326,6 +328,16 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
   }
   
   /**
+   * Phase 2 a.
+   *
+   * @param output the output
+   */
+  protected void phase2a(@javax.annotation.Nonnull final NotebookOutput output) {
+    //  model.add(MaxPooling2D((2,2), strides=(2,2)))
+    addPoolingLayer(output, true);
+  }
+  
+  /**
    * Phase 2 b.
    *
    * @param output the output
@@ -381,16 +393,6 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
   }
   
   /**
-   * Phase 2 a.
-   *
-   * @param output the output
-   */
-  protected void phase2a(@javax.annotation.Nonnull final NotebookOutput output) {
-    //  model.add(MaxPooling2D((2,2), strides=(2,2)))
-    addPoolingLayer(output, true);
-  }
-  
-  /**
    * Phase 3.
    *
    * @param output the output
@@ -398,22 +400,6 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
   protected void phase3(@javax.annotation.Nonnull NotebookOutput output) {
     phase3a(output);
     phase3b(output);
-  }
-  
-  /**
-   * Phase 3 b.
-   *
-   * @param output the output
-   */
-  protected void phase3b(@javax.annotation.Nonnull final NotebookOutput output) {
-    output.code(() -> {
-      add(new BandReducerLayer()
-        .setMode(PoolingLayer.PoolingMode.Avg));
-    });
-    
-    output.code(() -> {
-      add(new SoftmaxActivationLayer());
-    });
   }
   
   /**
@@ -447,6 +433,22 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
     output.code(() -> {
       add(new ImgBandBiasLayer(1000)
         .setAndFree((hdf5.readDataSet("param_1", "layer_36"))));
+    });
+  }
+  
+  /**
+   * Phase 3 b.
+   *
+   * @param output the output
+   */
+  protected void phase3b(@javax.annotation.Nonnull final NotebookOutput output) {
+    output.code(() -> {
+      add(new BandReducerLayer()
+        .setMode(PoolingLayer.PoolingMode.Avg));
+    });
+    
+    output.code(() -> {
+      add(new SoftmaxActivationLayer());
     });
   }
   
@@ -508,8 +510,7 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
    * @param layer the layer
    */
   protected void add(Layer layer) {
-    this.prototype = evaluatePrototype(layer, this.prototype, cnt++);
-    add(layer, model);
+    this.prototype = evaluatePrototype(add(layer, model), this.prototype, cnt++);
   }
   
   /**

@@ -199,6 +199,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    */
   @Nonnull
   public ExplodedConvolutionGrid getExplodedNetwork() {
+    assertAlive();
     int batchBands = getBatchBands();
     if (0 == batchBands) {
       batchBands = inputBands;
@@ -206,15 +207,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     if (batchBands > outputBands * 2) {
       batchBands = outputBands;
     }
-    ExplodedConvolutionGrid convolutionGrid = new ExplodedConvolutionGrid(getConvolutionParams(), batchBands);
-    convolutionGrid.addRef();
-    try {
-      ExplodedConvolutionGrid write = convolutionGrid.write(kernel);
-      convolutionGrid.addRef();
-      return write;
-    } finally {
-      convolutionGrid.freeRef();
-    }
+    return new ExplodedConvolutionGrid(getConvolutionParams(), batchBands).write(kernel);
   }
   
   /**

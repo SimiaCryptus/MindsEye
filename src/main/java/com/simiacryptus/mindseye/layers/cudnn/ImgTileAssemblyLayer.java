@@ -43,6 +43,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
   private int columns;
   private int rows;
   private Precision precision = Precision.Double;
+  private boolean parallel;
   
   /**
    * Instantiates a new Img concat layer.
@@ -71,6 +72,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
     super(json);
     columns = json.get("columns").getAsInt();
     rows = json.get("rows").getAsInt();
+    this.parallel = json.get("parallel").getAsBoolean();
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
   }
   
@@ -315,6 +317,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
     json.addProperty("rows", rows);
     json.addProperty("columns", columns);
     json.addProperty("precision", precision.name());
+    json.addProperty("parallel", isParallel());
     return json;
   }
   
@@ -333,6 +336,26 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
   @Override
   public ImgTileAssemblyLayer setPrecision(final Precision precision) {
     this.precision = precision;
+    return this;
+  }
+  
+  /**
+   * Is parallel boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isParallel() {
+    return parallel;
+  }
+  
+  /**
+   * Sets parallel.
+   *
+   * @param parallel the parallel
+   * @return the parallel
+   */
+  public ImgTileAssemblyLayer setParallel(final boolean parallel) {
+    this.parallel = parallel;
     return this;
   }
 }

@@ -129,6 +129,7 @@ class CountingResult extends Result {
         inner.accumulate(buffer, data);
       }
       else {
+        @javax.annotation.Nonnull TensorList reduced = null;
         synchronized (passbackBuffers) {
           passbackBuffers.add(data);
           data.addRef();
@@ -136,7 +137,7 @@ class CountingResult extends Result {
             Stream<TensorList> stream = passbackBuffers.stream();
             if (!CoreSettings.INSTANCE.isConservative()) stream = stream.parallel();
             //x.addRef();
-            @javax.annotation.Nonnull TensorList reduced = stream.reduce((a, b) -> {
+            @javax.annotation.Nonnull TensorList compacted = stream.reduce((a, b) -> {
               TensorList c;
               c = a.add(b);
               a.freeRef();
@@ -146,13 +147,13 @@ class CountingResult extends Result {
             }).get();
             //passbackBuffers.stream().distinct().filter((TensorList x) -> x != reduced).forEach(t -> t.freeRef());
             passbackBuffers.clear();
-            passbackBuffers.add(reduced);
+            passbackBuffers.add(compacted);
           }
           if (accumulations.incrementAndGet() == references.get()) {
             if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
             Stream<TensorList> stream = passbackBuffers.stream();
             if (!CoreSettings.INSTANCE.isConservative()) stream = stream.parallel();
-            @javax.annotation.Nonnull TensorList reduced = stream.reduce((a, b) -> {
+            reduced = stream.reduce((a, b) -> {
               TensorList c;
               c = a.add(b);
               a.freeRef();
@@ -161,10 +162,12 @@ class CountingResult extends Result {
               return c;
             }).get();
             passbackBuffers.clear();
-            inner.accumulate(buffer, reduced);
-            reduced.freeRef();
-            accumulations.set(0);
           }
+        }
+        if (null != reduced) {
+          inner.accumulate(buffer, reduced);
+          reduced.freeRef();
+          accumulations.set(0);
         }
       }
     }

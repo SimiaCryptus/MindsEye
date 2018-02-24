@@ -79,14 +79,14 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
   /**
    * Instantiates a new Cuda ptr.
    *
-   * @param size     the size
-   * @param deviceId the device id
-   * @param type     the type
+   * @param gpu  the device id
+   * @param size the size
+   * @param type the type
    */
-  CudaMemory(final long size, final CudaDevice deviceId, @javax.annotation.Nonnull MemoryType type) {
-    super(deviceId.acquire(size, type, 1));
+  CudaMemory(final CudaDevice gpu, final long size, @Nonnull MemoryType type) {
+    super(gpu.acquire(size, type, 1));
     this.size = size;
-    this.deviceId = deviceId.getDeviceId();
+    this.deviceId = gpu.getDeviceId();
     this.type = type;
   }
   
@@ -94,8 +94,9 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
    * Clear memory.
    *
    * @param deviceId the device id
+   * @return the long
    */
-  public static void clearMemory(final int deviceId) {
+  public static long clearMemory(final int deviceId) {
     if (CoreSettings.INSTANCE.isConservative()) {
       logLoad();
       logger.info(String.format("Running Garbage Collector"));
@@ -111,6 +112,7 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
       logger.info(String.format("Warning: High Active GPU Memory Usage"));
     }
     logLoad();
+    return totalFreed;
   }
   
   /**

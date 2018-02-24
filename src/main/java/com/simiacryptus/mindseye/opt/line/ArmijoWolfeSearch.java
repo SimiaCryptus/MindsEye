@@ -34,7 +34,7 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
   private double alphaGrowth = Math.pow(10.0, Math.pow(3.0, -1.0));
   private double c1 = 1e-6;
   private double c2 = 0.9;
-  private double maxAlpha = 1e4;
+  private double maxAlpha = 1e8;
   private double minAlpha = 1e-15;
   private double relativeTolerance = 1e-2;
   private boolean strongWolfe = true;

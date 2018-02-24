@@ -41,6 +41,7 @@ import java.util.stream.Stream;
 public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInputsLayer> {
   
   private Precision precision = Precision.Double;
+  private boolean parallel = true;
   
   /**
    * Instantiates a new Product inputs layer.
@@ -57,6 +58,7 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
   protected SumInputsLayer(@javax.annotation.Nonnull final JsonObject json) {
     super(json);
     precision = Precision.valueOf(json.get("precision").getAsString());
+    setParallel(json.get("parallel").getAsBoolean());
   }
   
   /**
@@ -99,15 +101,15 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
       }
     }
     if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
-    //stream0 = stream0.parallel();
-    @javax.annotation.Nonnull TensorList run = Arrays.stream(inObj).map(x -> x.getData()).reduce((leftData, rightData) -> CudaSystem.eval(gpu -> {
+    Stream<TensorList> tensorListStream = Arrays.stream(inObj).map(x -> x.getData());
+    if (!CoreSettings.INSTANCE.isConservative() && parallel) tensorListStream = tensorListStream.parallel();
+    @javax.annotation.Nonnull TensorList run = tensorListStream.reduce((leftData, rightData) -> CudaSystem.eval(gpu -> {
       return gpu.addAndFree(precision, leftData, rightData);
     })).get();
     return new Result(run, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
-      @javax.annotation.Nonnull Stream<Result> stream1 = Arrays.stream(inObj);
-      // TODO: Fix issue where parallel will cause data corruption
-      if (!CoreSettings.INSTANCE.isConservative()) stream1 = stream1.parallel();
-      stream1.filter(x -> x.isAlive()).forEach(obj -> {
+      @javax.annotation.Nonnull Stream<Result> deltaStream = Arrays.stream(inObj);
+      if (!CoreSettings.INSTANCE.isConservative() && parallel) deltaStream = deltaStream.parallel();
+      deltaStream.filter(x -> x.isAlive()).forEach(obj -> {
         obj.accumulate(buffer, delta);
       });
     }) {
@@ -135,6 +137,7 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("precision", precision.name());
+    json.addProperty("parallel", isParallel());
     return json;
   }
   
@@ -156,4 +159,25 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
   public List<double[]> state() {
     return Arrays.asList();
   }
+  
+  /**
+   * Is parallel boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isParallel() {
+    return parallel;
+  }
+  
+  /**
+   * Sets parallel.
+   *
+   * @param parallel the parallel
+   * @return the parallel
+   */
+  public SumInputsLayer setParallel(boolean parallel) {
+    this.parallel = parallel;
+    return this;
+  }
+
 }

@@ -91,7 +91,6 @@ public interface ReferenceCounting {
   
   /**
    * Sets floating.
-   *
    */
   void detach();
 }

@@ -39,6 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -59,6 +60,9 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
    */
   @Nullable
   private final Map<Integer, CudaMemory> gpuFilters = new ConcurrentHashMap<>();
+  /**
+   * The Kernel.
+   */
   public final Tensor kernel;
   private int paddingX;
   private int paddingY;
@@ -383,7 +387,8 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     if (!gpuFilters.containsKey(deviceNumber)) {
       double[] data = kernel.getData();
       cudaMemory = deviceNumber.allocate((long) data.length * precision.size, MemoryType.Device, true).write(precision, data);
-      gpuFilters.put(deviceNumber.getDeviceId(), cudaMemory);
+      CudaMemory replaced = gpuFilters.put(deviceNumber.getDeviceId(), cudaMemory);
+      if (null != replaced) replaced.freeRef();
     }
     else {
       cudaMemory = gpuFilters.get(deviceNumber);
@@ -393,9 +398,11 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   }
   
   @Nonnull
-  private synchronized void clearCudaFilters() {
-    gpuFilters.forEach((i, c) -> c.freeRef());
-    gpuFilters.clear();
+  private void clearCudaFilters() {
+    gpuFilters.keySet().stream().collect(Collectors.toList()).stream().forEach(i -> {
+      CudaMemory cudaMemory = gpuFilters.remove(i);
+      if (null != cudaMemory) cudaMemory.freeRef();
+    });
   }
   
   @Override
@@ -888,7 +895,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
      * The Key.
      */
     public final SimpleConvolutionParameters key;
-    
+  
     /**
      * Instantiates a new Cuda rev parameters.
      *
@@ -986,7 +993,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
      * The Key.
      */
     public final SimpleConvolutionParameters key;
-    
+  
     /**
      * Instantiates a new Cuda fwd parameters.
      *

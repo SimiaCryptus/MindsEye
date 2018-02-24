@@ -86,10 +86,10 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
   }
   
   @Nonnull
-  private Layer getTileSubnet(final SimpleConvolutionLayer network, int inputBands, int outputBands) {
+  private ImgTileSubnetLayer getTileSubnet(final SimpleConvolutionLayer network, int inputBands, int outputBands) {
     int maxSize = (int) Math.sqrt(CudaSettings.INSTANCE.getMaxIoElements() / Math.max(inputBands, outputBands));
     int[] kernelDims = network.getKernelDimensions();
-    return new ImgTileSubnetLayer(network, maxSize, maxSize, maxSize - ((kernelDims[0] - 1) / 2), maxSize - ((kernelDims[1] - 1) / 2)).setPrecision(network.getPrecision());
+    return new ImgTileSubnetLayer(network, maxSize, maxSize, maxSize - ((kernelDims[0] - 1) / 2), maxSize - ((kernelDims[1] - 1) / 2)).setParallel(CudaSettings.INSTANCE.isConv_para_3()).setPrecision(network.getPrecision());
   }
   
   @Override
@@ -232,6 +232,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
    * @return the dag node
    */
   public DAGNode add(@javax.annotation.Nonnull final DAGNode input) {
+    assertAlive();
     DAGNetwork network = input.getNetwork();
     DAGNode head = input;
     final int[] filterDimensions = this.convolutionParams.masterFilterDimensions;
@@ -240,8 +241,8 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
       head = network.add(subLayers.get(0), head);
     }
     else {
-      head = network.wrap(new ImgConcatLayer().setMaxBands(this.convolutionParams.outputBands).setPrecision(this.convolutionParams.precision),
-        subLayers.stream().map(l -> network.add(l, input)).toArray(i -> new DAGNode[i])).setParallel(false);
+      head = network.wrap(new ImgConcatLayer().setMaxBands(this.convolutionParams.outputBands).setPrecision(this.convolutionParams.precision).setParallel(CudaSettings.INSTANCE.isConv_para_2()),
+        subLayers.stream().map(l -> network.add(l, input)).toArray(i -> new DAGNode[i])).setParallel(CudaSettings.INSTANCE.isConv_para_2());
     }
     if (this.convolutionParams.paddingX != null || this.convolutionParams.paddingY != null) {
       int x = ((filterDimensions[0] - 1) / 2);

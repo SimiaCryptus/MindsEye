@@ -29,6 +29,9 @@ import javax.annotation.Nonnull;
  * The type Settings.
  */
 public interface Settings {
+  /**
+   * The constant logger.
+   */
   Logger logger = LoggerFactory.getLogger(CudaSettings.class);
   
   /**

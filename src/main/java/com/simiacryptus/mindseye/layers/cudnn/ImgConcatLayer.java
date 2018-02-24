@@ -40,6 +40,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
   
   private int maxBands = -1;
   private Precision precision = Precision.Double;
+  private boolean parallel = true;
   
   /**
    * Instantiates a new Img concat layer.
@@ -56,6 +57,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
     super(json);
     maxBands = json.get("maxBands").getAsInt();
     precision = Precision.valueOf(json.get("precision").getAsString());
+    this.parallel = json.get("parallel").getAsBoolean();
   }
   
   /**
@@ -133,7 +135,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
       assert delta.length() == inObj[0].getData().length();
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
       @javax.annotation.Nonnull IntStream stream = IntStream.range(0, inObj.length);
-      if (!CoreSettings.INSTANCE.isConservative()) stream = stream.parallel();
+      if (!CoreSettings.INSTANCE.isConservative() && parallel) stream = stream.parallel();
       stream.forEach(i -> {
         final Result input = inObj[i];
         @Nonnull int[] inputDimensions = input.getData().getDimensions();
@@ -209,6 +211,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
     @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("maxBands", maxBands);
     json.addProperty("precision", precision.name());
+    json.addProperty("parallel", isParallel());
     return json;
   }
   
@@ -250,4 +253,26 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
   public List<double[]> state() {
     return Arrays.asList();
   }
+  
+  
+  /**
+   * Is parallel boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isParallel() {
+    return parallel;
+  }
+  
+  /**
+   * Sets parallel.
+   *
+   * @param parallel the parallel
+   * @return the parallel
+   */
+  public ImgConcatLayer setParallel(boolean parallel) {
+    this.parallel = parallel;
+    return this;
+  }
+
 }

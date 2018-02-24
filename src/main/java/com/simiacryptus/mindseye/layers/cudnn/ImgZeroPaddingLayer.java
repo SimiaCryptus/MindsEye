@@ -134,4 +134,5 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
     this.precision = precision;
     return this;
   }
+  
 }

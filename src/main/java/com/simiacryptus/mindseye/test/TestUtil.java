@@ -59,6 +59,7 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.*;
 import java.util.stream.Collectors;
@@ -652,6 +653,9 @@ public class TestUtil {
     };
   }
   
+  /**
+   * The constant scheduledThreadPool.
+   */
   public static ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
   
   /**
@@ -669,9 +673,23 @@ public class TestUtil {
     return "[" + list.stream().reduce((a, b) -> a + ", " + b).get() + (stackTrace.length > max ? ", ..." : "") + "]";
   }
   
+  /**
+   * Monitor ui.
+   *
+   * @param input the input
+   */
   public static void monitorUI(final Tensor input) {
     JLabel label = new JLabel(new ImageIcon(input.toImage()));
     WeakReference<JLabel> labelWeakReference = new WeakReference<>(label);
+    ScheduledFuture<?> updater = scheduledThreadPool.scheduleAtFixedRate(() -> {
+      JLabel jLabel = labelWeakReference.get();
+      if (null != jLabel) {
+        BufferedImage image = input.toImage();
+        int width = jLabel.getWidth();
+        if (width > 0) TestUtil.resize(image, width, jLabel.getHeight());
+        jLabel.setIcon(new ImageIcon(image));
+      }
+    }, 30, 30, TimeUnit.SECONDS);
     new Thread(() -> {
       final JDialog dialog;
       Window window = JOptionPane.getRootFrame();
@@ -700,8 +718,13 @@ public class TestUtil {
       dialog.addComponentListener(new ComponentAdapter() {
         @Override
         public void componentResized(final ComponentEvent e) {
-          dialog.pack();
+          //dialog.pack();
           super.componentResized(e);
+          BufferedImage image = input.toImage();
+          int width = e.getComponent().getWidth();
+          if (width > 0) TestUtil.resize(image, width, e.getComponent().getHeight());
+          label.setIcon(new ImageIcon(image));
+          dialog.pack();
         }
       });
       dialog.addWindowListener(new WindowAdapter() {
@@ -709,6 +732,7 @@ public class TestUtil {
         
         public void windowClosed(WindowEvent e) {
           dialog.getContentPane().removeAll();
+          updater.cancel(false);
         }
         
         public void windowGainedFocus(WindowEvent we) {
@@ -722,14 +746,6 @@ public class TestUtil {
       dialog.show();
       dialog.dispose();
     }).start();
-    
-    
-    scheduledThreadPool.scheduleAtFixedRate(() -> {
-      JLabel jLabel = labelWeakReference.get();
-      if (null != jLabel) {
-        jLabel.setIcon(new ImageIcon(input.toImage()));
-      }
-    }, 30, 30, TimeUnit.SECONDS);
   }
   
 }
