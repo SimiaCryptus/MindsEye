@@ -123,16 +123,16 @@ public abstract class RecycleBin<T> {
   
   /**
    * Free.
-   *
-   * @param obj  the obj
+   *  @param obj  the obj
    * @param size the size
    */
-  protected void free2(T obj, long size) {
+  protected long free2(T obj, long size) {
     @Nullable StackCounter stackCounter = getFrees(size);
     if (null != stackCounter) {
       stackCounter.increment(size);
     }
-    free(obj);
+    if (null != obj) free(obj);
+    return size;
   }
   
   /**
@@ -145,10 +145,11 @@ public abstract class RecycleBin<T> {
   /**
    * Clear.
    */
-  public void clear() {
+  public long clear() {
     synchronized (recycling) {
-      recycling.entrySet().stream().forEach(e -> e.getValue().forEach(x -> free2(x.get(), e.getKey())));
+      long sum = recycling.entrySet().stream().mapToLong(e -> e.getValue().stream().mapToLong(x -> free2(x.get(), e.getKey())).sum()).sum();
       recycling.clear();
+      return sum;
     }
   }
   
@@ -287,7 +288,6 @@ public abstract class RecycleBin<T> {
     final ConcurrentLinkedDeque<Supplier<T>> bin;
     synchronized (recycling) {
       bin = recycling.get(length);
-  
     }
     @Nullable StackCounter stackCounter = getRecycle_get(length);
     if (null != stackCounter) {

@@ -79,7 +79,7 @@ public class DeepDreamDemo extends NotebookReportBase {
       TestUtil.monitorUI(image);
       List<String> categories = vgg16.predict(5, image).stream().flatMap(x -> x.keySet().stream()).collect(Collectors.toList());
       log.p("Predictions: %s", categories.stream().reduce((a, b) -> a + "; " + b).get());
-      log.p("Evolve from %s to %s", categories.get(0), categories.get(1));
+      log.p("Evolve from %s to %s", categories.get(0), categories.get(2));
       int targetCategoryIndex = vgg16Categories.indexOf(categories.get(1));
       int totalCategories = vgg16Categories.size();
       vgg16.deepDream(log, image, targetCategoryIndex, totalCategories);

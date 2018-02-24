@@ -42,6 +42,7 @@ public class CudaSettings implements Settings {
   private final boolean conv_para_2;
   private final boolean conv_para_1;
   private final boolean conv_para_3;
+  public final PersistanceMode memoryCacheMode;
   
   private CudaSettings() {
     maxTotalMemory = Settings.get("MAX_TOTAL_MEMORY", 8 * CudaMemory.GiB);
@@ -56,6 +57,7 @@ public class CudaSettings implements Settings {
     conv_para_1 = Settings.get("CONV_PARA_1", true);
     conv_para_2 = Settings.get("CONV_PARA_2", true);
     conv_para_3 = Settings.get("CONV_PARA_3", true);
+    memoryCacheMode = Settings.get("CUDA_CACHE_MODE", PersistanceMode.WEAK);
   }
   
   /**

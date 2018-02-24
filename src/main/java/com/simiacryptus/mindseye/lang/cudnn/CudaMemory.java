@@ -103,6 +103,9 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
       System.gc();
     }
     long totalFreed = evictMemory(deviceId);
+    for (final MemoryType type : MemoryType.values()) {
+      totalFreed += type.purge(deviceId);
+    }
     if (totalFreed == 0) {
       logger.info(String.format("Nothing Freed - Running Garbage Collector"));
       System.gc();
@@ -229,7 +232,7 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
   @Override
   public void release() {
     if (isActiveObj()) {
-      getType().free(ptr, deviceId);
+      getType().recycle(ptr, deviceId, size);
       CudaMemory.getGpuStats(deviceId).usedMemory.addAndGet(-size);
     }
   }

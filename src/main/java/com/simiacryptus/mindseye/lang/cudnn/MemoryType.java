@@ -19,10 +19,17 @@
 
 package com.simiacryptus.mindseye.lang.cudnn;
 
+import com.simiacryptus.mindseye.lang.RecycleBin;
 import jcuda.Pointer;
 import jcuda.runtime.cudaDeviceProp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import static jcuda.runtime.JCuda.*;
 
@@ -30,28 +37,50 @@ import static jcuda.runtime.JCuda.*;
  * The enum Memory type.
  */
 public enum MemoryType {
+  
   /**
    * The Device.
    */
   Managed {
-    @Override
-    void alloc(long size, Pointer pointer, CudaDevice deviceId) {
+    public Pointer alloc(final long size, final CudaDevice cudaDevice) {
       if (size < 0) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
       if (size > CudaSettings.INSTANCE.getMaxAllocSize()) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
+      Pointer pointer = new Pointer();
+      CudaSystem.handle(CudaSystem.cudaMallocManaged(pointer, size, cudaMemAttachGlobal));
+      return pointer;
+    }
+    
+    @Override
+    public void recycle(final Pointer ptr, final int deviceId, final long size) {
       cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDevice());
       if (properties.managedMemory == 1) {
-        CudaSystem.handle(CudaSystem.cudaMallocManaged(pointer, size, cudaMemAttachGlobal));
-        //CudaSystem.cudaDeviceSynchronize();
+        super.recycle(ptr, deviceId, size);
       }
       else {
-        CudaSystem.handle(CudaSystem.cudaMalloc(pointer, size));
+        Device.recycle(ptr, deviceId, size);
       }
     }
     
+    @Override
+    public Pointer allocCached(final long size, final CudaDevice cudaDevice) {
+      cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDevice());
+      if (properties.managedMemory == 1) {
+        return super.allocCached(size, cudaDevice);
+      }
+      else {
+        return Device.allocCached(size, cudaDevice);
+      }
+    }
+    
+    @Override
+    protected RecycleBin<Wrapper<Pointer>> get(final int device) {
+      return super.get(-1);
+    }
+  
     @Override
     void free(Pointer ptr, int deviceId) {
       CudaDevice.cudaFree(deviceId, ptr);
@@ -61,9 +90,10 @@ public enum MemoryType {
    * The Device direct.
    */
   Device {
-    @Override
-    void alloc(long size, Pointer pointer, CudaDevice deviceId) {
+    public Pointer alloc(final long size, final CudaDevice cudaDevice) {
+      Pointer pointer = new Pointer();
       CudaSystem.handle(CudaSystem.cudaMalloc(pointer, size));
+      return pointer;
     }
     
     @Override
@@ -75,8 +105,8 @@ public enum MemoryType {
    * The Host.
    */
   Host {
-    @Override
-    void alloc(long size, Pointer pointer, CudaDevice deviceId) {
+    public Pointer alloc(final long size, final CudaDevice cudaDevice) {
+      Pointer pointer = new Pointer();
       if (size < 0) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
@@ -90,6 +120,7 @@ public enum MemoryType {
       else {
         throw new UnsupportedOperationException();
       }
+      return pointer;
     }
     
     @Override
@@ -101,8 +132,8 @@ public enum MemoryType {
    * The Host writeable.
    */
   HostWriteable {
-    @Override
-    void alloc(long size, Pointer pointer, CudaDevice deviceId) {
+    public Pointer alloc(final long size, final CudaDevice cudaDevice) {
+      Pointer pointer = new Pointer();
       if (size < 0) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
@@ -116,6 +147,7 @@ public enum MemoryType {
       else {
         throw new UnsupportedOperationException();
       }
+      return pointer;
     }
     
     @Override
@@ -136,19 +168,85 @@ public enum MemoryType {
   }
   
   /**
-   * Alloc.
-   *
-   * @param size     the size
-   * @param pointer  the pointer
-   * @param deviceId the device id
-   */
-  abstract void alloc(long size, Pointer pointer, CudaDevice deviceId);
-  
-  /**
    * Free.
    *
    * @param ptr      the ptr
    * @param deviceId the device id
    */
   abstract void free(Pointer ptr, int deviceId);
+  
+  protected static final Logger logger = LoggerFactory.getLogger(MemoryType.class);
+  private final Map<Integer, RecycleBin<Wrapper<Pointer>>> cache = new ConcurrentHashMap<>();
+  
+  public void recycle(Pointer ptr, int deviceId, final long size) {
+    get(deviceId).recycle(new Wrapper<>(ptr, x -> MemoryType.this.free(x, deviceId)), size);
+  }
+  
+  protected RecycleBin<Wrapper<Pointer>> get(int device) {
+    return cache.computeIfAbsent(device, d -> {
+      logger.info(String.format("Initialize recycle bin %s (device %s)", this, device));
+      return new RecycleBin<Wrapper<Pointer>>() {
+        @Override
+        protected void free(final Wrapper<Pointer> obj) {
+          obj.destroy();
+        }
+        
+        @Nonnull
+        @Override
+        public Wrapper<Pointer> create(final long length) {
+          return CudnnHandle.eval(gpu -> new Wrapper<>(MemoryType.this.alloc(length, gpu), x -> MemoryType.this.free(x, device)));
+        }
+        
+        @Override
+        public void reset(final Wrapper<Pointer> data, final long size) {
+          // There is no need to clean new objects - native memory system doesn't either.
+        }
+      }.setPersistanceMode(CudaSettings.INSTANCE.memoryCacheMode);
+    });
+  }
+  
+  public long purge(final int device) {
+    long clear = get(device).clear();
+    logger.info(String.format("Purged %s bytes from pool for %s (device %s)", clear, this, device));
+    return clear;
+  }
+  
+  public Pointer allocCached(final long size, final CudaDevice cudaDevice) {
+    return get(cudaDevice.deviceId).obtain(size).unwrap();
+  }
+  
+  
+  public abstract Pointer alloc(final long size, final CudaDevice cudaDevice);
+  
+  private static class Wrapper<T> {
+    final T obj;
+    final Consumer<T> destructor;
+    final AtomicBoolean isFinalized = new AtomicBoolean(false);
+    
+    private Wrapper(final T obj, final Consumer<T> destructor) {
+      this.obj = obj;
+      this.destructor = destructor;
+    }
+    
+    @Override
+    protected void finalize() throws Throwable {
+      destroy();
+      super.finalize();
+    }
+    
+    public void destroy() {
+      if (!isFinalized.getAndSet(true)) {
+        destructor.accept(obj);
+      }
+    }
+    
+    public T unwrap() {
+      if (isFinalized.getAndSet(true)) {
+        throw new IllegalStateException();
+      }
+      return obj;
+    }
+  }
+  
 }
+

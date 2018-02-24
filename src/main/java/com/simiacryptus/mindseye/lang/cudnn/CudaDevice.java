@@ -34,6 +34,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 /**
  * The type Gpu device.
@@ -81,13 +82,20 @@ public class CudaDevice extends CudaSystem {
    */
   public static int cudaFree(int deviceId, final Pointer devPtr) {
     long startTime = System.nanoTime();
-    return CudaSystem.withDevice(deviceId, () -> {
+    if (null == devPtr) return 0;
+    Supplier<Integer> fn = () -> {
       final int result = JCuda.cudaFree(devPtr);
       CudaSystem.log("cudaFree", result, devPtr);
       cudaFree_execution.accept((System.nanoTime() - startTime) / 1e9);
       handle(result);
       return result;
-    });
+    };
+    if (deviceId < 0) {
+      return fn.get();
+    }
+    else {
+      return CudaSystem.withDevice(deviceId, fn);
+    }
   }
   
   /**
@@ -192,8 +200,7 @@ public class CudaDevice extends CudaSystem {
       CudaMemory.clearMemory(getDeviceId());
     }
     try {
-      @Nonnull Pointer pointer = new Pointer();
-      type.alloc(size, pointer, this);
+      @Nonnull Pointer pointer = type.allocCached(size, this);
       final long finalMemory = metrics.usedMemory.addAndGet(size);
       metrics.peakMemory.updateAndGet(l -> Math.max(finalMemory, l));
       return pointer;
