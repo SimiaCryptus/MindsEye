@@ -48,6 +48,6 @@ public class TestError extends RuntimeException {
     this.test.addRef();
     this.layer = layer;
     this.layer.addRef();
-    layer.setFloating(true);
+    layer.detach();
   }
 }

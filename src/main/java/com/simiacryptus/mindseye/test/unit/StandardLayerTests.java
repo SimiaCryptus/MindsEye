@@ -61,7 +61,14 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * The Validate differentials.
    */
   protected boolean validateDifferentials = true;
-  private boolean testTraining = false;
+  /**
+   * The Test training.
+   */
+  protected boolean testTraining = false;
+  /**
+   * The Test equivalency.
+   */
+  protected boolean testEquivalency = true;
   
   /**
    * Instantiates a new Standard layer tests.
@@ -131,6 +138,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    */
   @Nullable
   public ComponentTest<ToleranceStatistics> getEquivalencyTester() {
+    if (!testEquivalency) return null;
     @Nullable final Layer referenceLayer = getReferenceLayer();
     if (null == referenceLayer) return null;
     @javax.annotation.Nonnull EquivalencyTester equivalencyTester = new EquivalencyTester(1e-2, referenceLayer);
@@ -368,15 +376,16 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         for (@javax.annotation.Nonnull Invocation invocation : getInvocations(smallLayer, smallDims)) {
           log.h1("Small SubTests: " + invocation.getLayer().getClass().getSimpleName());
           log.p(Arrays.deepToString(invocation.getDims()));
-          littleTests(log, exceptions, invocation);
+          tests(log, getLittleTests(), invocation, exceptions);
           invocation.freeRef();
         }
       }
       if (largeLayer instanceof DAGNetwork) {
+        testEquivalency = false;
         for (@javax.annotation.Nonnull Invocation invocation : getInvocations(largeLayer, largeDims)) {
           log.h1("Large SubTests: " + invocation.getLayer().getClass().getSimpleName());
           log.p(Arrays.deepToString(invocation.getDims()));
-          bigTests(log, exceptions, invocation);
+          tests(log, getBigTests(), invocation, exceptions);
           invocation.freeRef();
         }
       }
@@ -497,16 +506,22 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    */
   @javax.annotation.Nonnull
   public ArrayList<TestError> standardTests(@javax.annotation.Nonnull NotebookOutput log, long seed) {
-    final Layer layer = getLayer(getSmallDims(new Random(seed)), new Random(seed));
-    @javax.annotation.Nonnull ArrayList<TestError> exceptions = new ArrayList<>();
     log.p(String.format("Using Seed %d", seed));
+    @javax.annotation.Nonnull ArrayList<TestError> exceptions = new ArrayList<>();
+    final Layer layer = getLayer(getSmallDims(new Random(seed)), new Random(seed));
     Invocation invocation = new Invocation(layer, getSmallDims(new Random(seed)));
-    littleTests(log, exceptions, invocation);
-    invocation.freeRef();
-    layer.freeRef();
+    try {
+      tests(log, getLittleTests(), invocation, exceptions);
+    } finally {
+      invocation.freeRef();
+      layer.freeRef();
+    }
     final Layer perfLayer = getLayer(getLargeDims(new Random(seed)), new Random(seed));
-    bigTests(log, seed, perfLayer, exceptions);
-    perfLayer.freeRef();
+    try {
+      bigTests(log, seed, perfLayer, exceptions);
+    } finally {
+      perfLayer.freeRef();
+    }
     return exceptions;
   }
   
@@ -544,46 +559,13 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     });
   }
   
-  /**
-   * Big tests.
-   *
-   * @param log        the log
-   * @param exceptions the exceptions
-   * @param invocation the invocation
-   */
-  public void bigTests(NotebookOutput log, @javax.annotation.Nonnull ArrayList<TestError> exceptions, @javax.annotation.Nonnull Invocation invocation) {
-    getBigTests().stream().filter(x -> null != x).forEach((ComponentTest<?> test) -> {
+  private void tests(final NotebookOutput log, final List<ComponentTest<?>> tests, @Nonnull final Invocation invocation, @Nonnull final ArrayList<TestError> exceptions) {
+    tests.stream().filter(x -> null != x).forEach((ComponentTest<?> test) -> {
       @Nonnull Layer layer = invocation.getLayer().copy();
       try {
         Tensor[] inputs = randomize(invocation.getDims());
         test.test(log, layer, inputs);
-        for (@javax.annotation.Nonnull Tensor tensor : inputs) tensor.freeRef();
-      } catch (LifecycleException e) {
-        throw e;
-      } catch (Throwable e) {
-        exceptions.add(new TestError(e, test, layer));
-      } finally {
-        test.freeRef();
-        layer.freeRef();
-        System.gc();
-      }
-    });
-  }
-  
-  /**
-   * Little tests.
-   *
-   * @param log        the log
-   * @param exceptions the exceptions
-   * @param invocation the invocation
-   */
-  public void littleTests(NotebookOutput log, @javax.annotation.Nonnull ArrayList<TestError> exceptions, @javax.annotation.Nonnull Invocation invocation) {
-    getLittleTests().stream().filter(x -> null != x).forEach((ComponentTest<?> test) -> {
-      @Nonnull Layer layer = invocation.getLayer().copy();
-      try {
-        Tensor[] inputs = randomize(invocation.getDims());
-        test.test(log, layer, inputs);
-        for (@javax.annotation.Nonnull Tensor tensor : inputs) tensor.freeRef();
+        for (@Nonnull Tensor tensor : inputs) tensor.freeRef();
       } catch (LifecycleException e) {
         throw e;
       } catch (Throwable e) {

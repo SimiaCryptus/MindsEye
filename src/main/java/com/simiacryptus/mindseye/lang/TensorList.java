@@ -44,7 +44,12 @@ public interface TensorList extends ReferenceCounting {
     if (length() == 0) throw new IllegalArgumentException();
     assert length() == right.length();
     return TensorArray.wrap(IntStream.range(0, length())
-      .mapToObj(i -> freeSum(get(i), right.get(i)))
+      .mapToObj(i -> {
+        Tensor b = right.get(i);
+        @Nullable Tensor sum = get(i).addAndFree(b);
+        b.freeRef();
+        return sum;
+      })
       .toArray(i -> new Tensor[i]));
   }
   
@@ -60,20 +65,6 @@ public interface TensorList extends ReferenceCounting {
     TensorList add = add(right);
     freeRef();
     return add;
-  }
-  
-  /**
-   * Free sum tensor.
-   *
-   * @param a the a
-   * @param b the b
-   * @return the tensor
-   */
-  @Nullable
-  default Tensor freeSum(@javax.annotation.Nonnull Tensor a, @javax.annotation.Nonnull Tensor b) {
-    @Nullable Tensor sum = a.addAndFree(b);
-    b.freeRef();
-    return sum;
   }
   
   /**

@@ -42,15 +42,24 @@ import smile.plot.ScatterPlot;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -64,10 +73,6 @@ public class TestUtil {
    * The constant S3_ROOT.
    */
   public static final URI S3_ROOT = URI.create("https://s3-us-west-2.amazonaws.com/simiacryptus/");
-  /**
-   * The constant CONSERVATIVE.
-   */
-  public static final boolean CONSERVATIVE = false && Boolean.parseBoolean(System.getProperty("CONSERVATIVE", Boolean.toString(TestUtil.class.desiredAssertionStatus())));
   private static final Logger log = LoggerFactory.getLogger(TestUtil.class);
   
   /**
@@ -646,4 +651,85 @@ public class TestUtil {
       return null;
     };
   }
+  
+  public static ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
+  
+  /**
+   * Mini stack trace string.
+   *
+   * @return the string
+   */
+  public static String miniStackTrace() {
+    int max = 30;
+    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+    List<String> list = Arrays.stream(stackTrace).skip(3).limit(max - 3).map(x -> x.isNativeMethod() ? "(Native Method)" :
+      (x.getFileName() != null && x.getLineNumber() >= 0 ?
+        x.getFileName() + ":" + x.getLineNumber() :
+        (x.getFileName() != null ? x.getFileName() : "(Unknown Source)"))).collect(Collectors.toList());
+    return "[" + list.stream().reduce((a, b) -> a + ", " + b).get() + (stackTrace.length > max ? ", ..." : "") + "]";
+  }
+  
+  public static void monitorUI(final Tensor input) {
+    JLabel label = new JLabel(new ImageIcon(input.toImage()));
+    WeakReference<JLabel> labelWeakReference = new WeakReference<>(label);
+    new Thread(() -> {
+      final JDialog dialog;
+      Window window = JOptionPane.getRootFrame();
+      if (window instanceof Frame) {
+        dialog = new JDialog((Frame) window, "image", true);
+      }
+      else {
+        dialog = new JDialog((Dialog) window, "image", true);
+      }
+      dialog.setResizable(true);
+      dialog.setSize(input.getDimensions()[0], input.getDimensions()[1]);
+      
+      Container contentPane = dialog.getContentPane();
+      contentPane.setLayout(new BorderLayout());
+      contentPane.add(label, BorderLayout.CENTER);
+      //contentPane.add(dialog, BorderLayout.CENTER);
+      if (JDialog.isDefaultLookAndFeelDecorated()) {
+        boolean supportsWindowDecorations = UIManager.getLookAndFeel().getSupportsWindowDecorations();
+        if (supportsWindowDecorations) {
+          dialog.setUndecorated(true);
+          SwingUtilities.getRootPane(dialog).setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
+        }
+      }
+      dialog.pack();
+      dialog.setLocationRelativeTo(null);
+      dialog.addComponentListener(new ComponentAdapter() {
+        @Override
+        public void componentResized(final ComponentEvent e) {
+          dialog.pack();
+          super.componentResized(e);
+        }
+      });
+      dialog.addWindowListener(new WindowAdapter() {
+        private boolean gotFocus = false;
+        
+        public void windowClosed(WindowEvent e) {
+          dialog.getContentPane().removeAll();
+        }
+        
+        public void windowGainedFocus(WindowEvent we) {
+          // Once window gets focus, set initial focus
+          if (!gotFocus) {
+            gotFocus = true;
+          }
+        }
+        
+      });
+      dialog.show();
+      dialog.dispose();
+    }).start();
+    
+    
+    scheduledThreadPool.scheduleAtFixedRate(() -> {
+      JLabel jLabel = labelWeakReference.get();
+      if (null != jLabel) {
+        jLabel.setIcon(new ImageIcon(input.toImage()));
+      }
+    }, 30, 30, TimeUnit.SECONDS);
+  }
+  
 }

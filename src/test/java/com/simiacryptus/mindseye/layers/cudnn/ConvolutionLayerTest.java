@@ -155,12 +155,12 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
    * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
    */
   public static class BandExpand extends ConvolutionLayerTest {
-
+  
     /**
      * Instantiates a new Asymmetric run.
      */
     public BandExpand() {
-      super(1, 3, 2, Precision.Double, 16, 1);
+      super(1, 3, 6, Precision.Double, 16, 1);
     }
   
     @javax.annotation.Nonnull
@@ -190,7 +190,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
     public BandLimit() {
       super(1, 3, 2, Precision.Double, 16, 1);
     }
-
+  
   }
   
   /**
@@ -261,7 +261,7 @@ public abstract class ConvolutionLayerTest extends CuDNNLayerTestBase {
       super(3, 3, 3, Precision.Double, 16, 1);
       convolutionLayer.setPaddingXY(0, 0);
     }
-
+  
     @Override
     public Layer getReferenceLayer() {
       // BUG: Reference aparapi implementation does not seem to implement nonstandard padding correctly

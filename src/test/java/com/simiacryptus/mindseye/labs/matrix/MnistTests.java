@@ -129,7 +129,7 @@ public class MnistTests {
       network.add(new FullyConnectedLayer(new int[]{1024}, new int[]{4, 4, 64})
         .set(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new ReLuActivationLayer());
-
+  
       network.add(new ConvolutionLayer(1, 1, 64, 4 * 64).set(i -> 1e-8 * (Math.random() - 0.5)));
       network.add(new ImgReshapeLayer(2, 2, true));
       network.add(new ImgBandBiasLayer(64));
@@ -139,7 +139,7 @@ public class MnistTests {
       network.add(new ImgReshapeLayer(2, 2, true));
       network.add(new ImgBandBiasLayer(32));
       network.add(new ConvolutionLayer(5, 5, 32, 1).set(i -> 1e-8 * (Math.random() - 0.5)));
-
+  
       return network;
     });
   };

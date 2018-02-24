@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import com.simiacryptus.mindseye.test.TestUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,21 +39,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class ReferenceCountingBase implements ReferenceCounting {
   
   private static final Logger logger = LoggerFactory.getLogger(ReferenceCountingBase.class);
-  private static final boolean DEBUG_LIFECYCLE = false || Boolean.parseBoolean(System.getProperty("DEBUG_LIFECYCLE", Boolean.toString(TestUtil.CONSERVATIVE)));
   private static final long LOAD_TIME = System.nanoTime();
   private static final UUID jvmId = UUID.randomUUID();
   
-  private final UUID objectId = DEBUG_LIFECYCLE ? UUID.randomUUID() : jvmId;
+  private final UUID objectId = CoreSettings.INSTANCE.isLifecycleDebug() ? UUID.randomUUID() : jvmId;
   private final AtomicInteger references = new AtomicInteger(1);
   private final AtomicBoolean isFreed = new AtomicBoolean(false);
   @Nullable
-  private final StackTraceElement[] createdBy = DEBUG_LIFECYCLE ? Thread.currentThread().getStackTrace() : null;
+  private final StackTraceElement[] createdBy = CoreSettings.INSTANCE.isLifecycleDebug() ? Thread.currentThread().getStackTrace() : null;
   private final LinkedList<StackTraceElement[]> addRefs = new LinkedList<>();
   private final LinkedList<StackTraceElement[]> freeRefs = new LinkedList<>();
   private final LinkedList<UUID> addRefObjs = new LinkedList<>();
   private final LinkedList<UUID> freeRefObjs = new LinkedList<>();
   private volatile boolean isFinalized = false;
-  private boolean floating = false;
+  private boolean detached = false;
   
   @javax.annotation.Nonnull
   private static String getString(@Nullable StackTraceElement[] trace) {
@@ -102,7 +100,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   public void addRef(ReferenceCounting obj) {
     assertAlive();
     if (references.incrementAndGet() <= 1) throw new IllegalStateException(detailString(true, isFinalized()));
-    if (DEBUG_LIFECYCLE) {
+    if (CoreSettings.INSTANCE.isLifecycleDebug()) {
       addRefs.add(Thread.currentThread().getStackTrace());
     }
     synchronized (addRefObjs) {
@@ -187,7 +185,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     }
   
     synchronized (freeRefObjs) {
-      if (DEBUG_LIFECYCLE) freeRefs.add(Thread.currentThread().getStackTrace());
+      if (CoreSettings.INSTANCE.isLifecycleDebug()) freeRefs.add(Thread.currentThread().getStackTrace());
       freeRefObjs.add(obj.getObjectId());
     }
     if (refs == 0) {
@@ -212,13 +210,13 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   protected final void finalize() throws Throwable {
     isFinalized = true;
     if (!isFreed.getAndSet(true)) {
-      if (!isFloating()) {
+      if (!isDetached()) {
         if (logger.isDebugEnabled()) {
           logger.debug(String.format("Instance Reclaimed by GC at %.9f: %s", (System.nanoTime() - LOAD_TIME) / 1e9, detailString(false, false)));
         }
       }
       synchronized (freeRefObjs) {
-        if (DEBUG_LIFECYCLE) freeRefs.add(Thread.currentThread().getStackTrace());
+        if (CoreSettings.INSTANCE.isLifecycleDebug()) freeRefs.add(Thread.currentThread().getStackTrace());
         freeRefObjs.add(this.objectId);
       }
       _free();
@@ -230,17 +228,16 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
    *
    * @return the boolean
    */
-  public boolean isFloating() {
-    return floating;
+  public boolean isDetached() {
+    return detached;
   }
   
   /**
    * Sets floating.
    *
-   * @param floating the floating
    */
-  public void setFloating(boolean floating) {
-    this.floating = floating;
+  public void detach() {
+    this.detached = true;
   }
   
   @Override

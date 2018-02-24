@@ -20,10 +20,13 @@
 package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.util.lang.StaticResourcePool;
 import jcuda.Pointer;
 import jcuda.jcudnn.*;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,23 +42,17 @@ import java.util.stream.Stream;
  */
 public class CudnnHandle extends CudaDevice {
   /**
-   * The Thread context.
-   */
-  static final ThreadLocal<CudnnHandle> threadContext = new ThreadLocal<>();
-  /**
-   * The constant gpuContexts.
-   */
-  private static final boolean DISABLE = Boolean.parseBoolean(System.getProperty("DISABLE_CUDNN", Boolean.toString(false)));
-  private static final boolean FORCE_SINGLE_GPU = Boolean.parseBoolean(System.getProperty("FORCE_SINGLE_GPU", Boolean.toString(false)));
-  private static final int STREAMS_PER_GPU = Integer.parseInt(System.getProperty("THREADS_PER_GPU", Integer.toString(6)));
-  /**
    * The constant POOL.
    */
   public static final StaticResourcePool<CudnnHandle> POOL = new StaticResourcePool<>(loadGpuContexts());
   /**
+   * The Thread context.
+   */
+  static final ThreadLocal<CudnnHandle> threadContext = new ThreadLocal<>();
+  /**
    * The constant CLEANUP.
    */
-  public final LinkedBlockingDeque<ReferenceCounting> cleanup = new LinkedBlockingDeque<>();
+  public final LinkedBlockingDeque<CudaResourceBase> cleanupNative = new LinkedBlockingDeque<>();
   @Nullable
   private final jcuda.jcudnn.cudnnHandle handle;
   
@@ -78,18 +75,27 @@ public class CudnnHandle extends CudaDevice {
   }
   
   /**
+   * Gets thread handle.
+   *
+   * @return the thread handle
+   */
+  public static CudnnHandle getThreadHandle() {
+    return threadContext.get();
+  }
+  
+  /**
    * Load gpu contexts list. If the property disableCuDnn is set to true, no GPUs will be recognized. This is useful for
    * testing CPU-only compatibility.
    *
    * @return the list
    */
   private static List<CudnnHandle> loadGpuContexts() {
-    if (DISABLE) {
+    if (CudaSettings.INSTANCE.isDisable()) {
       logger.warn("Disabled CudaSystem");
       return Arrays.asList();
     }
     final int deviceCount;
-    if (FORCE_SINGLE_GPU) {
+    if (CudaSettings.INSTANCE.isForceSingleGpu()) {
       logger.warn("Forcing Single-GPU Mode");
       deviceCount = 1;
     }
@@ -129,13 +135,13 @@ public class CudnnHandle extends CudaDevice {
     List<CudnnHandle> handles = devices.stream()
       .flatMap(i -> {
         try {
-          return IntStream.range(0, STREAMS_PER_GPU).mapToObj(j -> new CudnnHandle(i));
+          return IntStream.range(0, CudaSettings.INSTANCE.getStreamsPerGpu()).mapToObj(j -> new CudnnHandle(i));
         } catch (Throwable e) {
           logger.warn(String.format("Error initializing device %d", i), e);
           return Stream.empty();
         }
       }).collect(Collectors.toList());
-    logger.info(String.format("Found %s devices; using %s handles per devices %s; %s handles", deviceCount, STREAMS_PER_GPU, devices, handles.size()));
+    logger.info(String.format("Found %s devices; using %s handles per devices %s; %s handles", deviceCount, CudaSettings.INSTANCE.getStreamsPerGpu(), devices, handles.size()));
     return handles;
   }
   
@@ -149,6 +155,115 @@ public class CudnnHandle extends CudaDevice {
       x.initThread();
       fn.accept(x);
     });
+  }
+  
+  /**
+   * Add cuda tensor list.
+   *
+   * @param left  the left
+   * @param right the right
+   * @return the cuda tensor list
+   */
+  @Nonnull
+  public CudaTensorList add(final CudaTensorList left, final CudaTensorList right) {
+    int length = left.length();
+    int[] dimensions = right.getDimensions();
+    assert dimensions.length <= 3;
+    int d2 = dimensions.length < 3 ? 1 : dimensions[2];
+    int d1 = dimensions.length < 2 ? 1 : dimensions[1];
+    int d0 = dimensions[0];
+    @Nonnull CudaMemory rPtr = getPtr(right, MemoryType.Device);
+    @Nonnull CudaMemory lPtr = getPtr(left, MemoryType.Device);
+    @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, left.precision.code);
+    @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = newTensorDescriptor(
+      left.precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, d2, d1, d0);
+    @Nonnull final CudaMemory outputPtr = allocate(lPtr.size, MemoryType.Managed, true);
+    try {
+      cudnnOpTensor(opDescriptor.getPtr(),
+        right.getPrecision().getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
+        right.getPrecision().getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
+        right.getPrecision().getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
+    } finally {
+      opDescriptor.freeRef();
+      sizeDescriptor.freeRef();
+      rPtr.freeRef();
+      lPtr.freeRef();
+    }
+    return CudaTensorList.wrap(outputPtr, length, dimensions, left.precision);
+  }
+  
+  /**
+   * Add in place and free cuda tensor list.
+   *
+   * @param left  the left
+   * @param right the right
+   * @return the cuda tensor list
+   */
+  @Nonnull
+  public CudaTensorList addInPlaceAndFree(final CudaTensorList left, final TensorList right) {
+    addInPlace(left, right);
+    right.freeRef();
+    return left;
+  }
+  
+  /**
+   * Add in place cuda tensor list.
+   *
+   * @param left  the left
+   * @param right the right
+   * @return the cuda tensor list
+   */
+  public CudaTensorList addInPlace(final CudaTensorList left, final TensorList right) {
+    final Precision precision = left.precision;
+    final int[] dimensions = left.getDimensions();
+    assert left.length() == right.length();
+    assert Tensor.dim(left.getDimensions()) == Tensor.dim(right.getDimensions());
+    @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = newTensorDescriptor(
+      precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, left.length(), dimensions[2], dimensions[1], dimensions[0]);
+    @Nullable final CudaMemory lPtr = getPtr(left, precision, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
+    @Nullable final CudaMemory rPtr = getPtr(right, precision, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
+    assert lPtr.size == rPtr.size;
+    cudnnAddTensor(
+      precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
+      precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr());
+    rPtr.freeRef();
+    lPtr.freeRef();
+    sizeDescriptor.freeRef();
+    return left;
+  }
+  
+  /**
+   * Add and free tensor list.
+   *
+   * @param precision the precision
+   * @param left      the left
+   * @param right     the right
+   * @return the tensor list
+   */
+  @Nonnull
+  public TensorList addAndFree(final Precision precision, final TensorList left, final TensorList right) {
+    final int[] dimensions = left.getDimensions();
+    assert left.length() == right.length();
+    assert Tensor.dim(left.getDimensions()) == Tensor.dim(right.getDimensions());
+    int length = left.length();
+    assert length == right.length();
+//    if (left.currentRefCount() == 1 && left instanceof CudaTensorList)
+//      return this.addInPlaceAndFree((CudaTensorList) left, right);
+//    if (right.currentRefCount() == 1 && right instanceof CudaTensorList)
+//      return this.addInPlaceAndFree((CudaTensorList) right, left);
+    @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
+    @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = newTensorDescriptor(
+      precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
+    @Nullable final CudaMemory lPtr = getPtr(left, precision, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
+    @Nullable final CudaMemory rPtr = getPtr(right, precision, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
+    assert lPtr.size == rPtr.size;
+    @Nonnull final CudaMemory outputPtr = allocate(lPtr.size, MemoryType.Device, true);
+    cudnnOpTensor(opDescriptor.getPtr(),
+      precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
+      precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
+      precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
+    Arrays.stream(new ReferenceCounting[]{lPtr, rPtr, opDescriptor, sizeDescriptor, left, right}).forEach(ReferenceCounting::freeRef);
+    return CudaTensorList.wrap(outputPtr, length, dimensions, precision);
   }
   
   /**
@@ -471,7 +586,7 @@ public class CudnnHandle extends CudaDevice {
    * @param algorithm  the algorithm
    * @return the cuda ptr
    */
-  public CudaPtr allocateBackwardDataWorkspace(final CudaDevice deviceId, final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc, final int algorithm) {
+  public CudaMemory allocateBackwardDataWorkspace(final CudaDevice deviceId, final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc, final int algorithm) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionBackwardDataWorkspaceSize(handle,
@@ -497,7 +612,7 @@ public class CudnnHandle extends CudaDevice {
    * @param algorithm     the algorithm
    * @return the cuda ptr
    */
-  public CudaPtr allocateBackwardFilterWorkspace(final CudaDevice deviceId, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
+  public CudaMemory allocateBackwardFilterWorkspace(final CudaDevice deviceId, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionBackwardFilterWorkspaceSize(handle,
@@ -523,7 +638,7 @@ public class CudnnHandle extends CudaDevice {
    * @param algorithm     the algorithm
    * @return the cuda ptr
    */
-  public CudaPtr allocateForwardWorkspace(final CudaDevice deviceId, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
+  public CudaMemory allocateForwardWorkspace(final CudaDevice deviceId, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionForwardWorkspaceSize(handle,
@@ -541,11 +656,11 @@ public class CudnnHandle extends CudaDevice {
   /**
    * Gets backward data algorithm.
    *
-   * @param inputDesc  the src tensor desc
-   * @param filterDesc the filter desc
-   * @param convDesc   the conv desc
-   * @param outputDesc the weight desc
-   * @param memoryLimitInBytes
+   * @param inputDesc          the src tensor desc
+   * @param filterDesc         the filter desc
+   * @param convDesc           the conv desc
+   * @param outputDesc         the weight desc
+   * @param memoryLimitInBytes the memory limit in bytes
    * @return the backward data algorithm
    */
   public int getBackwardDataAlgorithm(final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc, final int memoryLimitInBytes) {
@@ -565,11 +680,11 @@ public class CudnnHandle extends CudaDevice {
   /**
    * Gets backward filter algorithm.
    *
-   * @param inputDesc  the input desc
-   * @param filterDesc the filter desc
-   * @param convDesc   the conv desc
-   * @param outputDesc the output desc
-   * @param memoryLimitInBytes
+   * @param inputDesc          the input desc
+   * @param filterDesc         the filter desc
+   * @param convDesc           the conv desc
+   * @param outputDesc         the output desc
+   * @param memoryLimitInBytes the memory limit in bytes
    * @return the backward filter algorithm
    */
   public int getBackwardFilterAlgorithm(final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc, final int memoryLimitInBytes) {
@@ -589,11 +704,11 @@ public class CudnnHandle extends CudaDevice {
   /**
    * Gets forward algorithm.
    *
-   * @param srcTensorDesc the src tensor desc
-   * @param filterDesc    the filter desc
-   * @param convDesc      the conv desc
-   * @param dstTensorDesc the dst tensor desc
-   * @param memoryLimitInBytes
+   * @param srcTensorDesc      the src tensor desc
+   * @param filterDesc         the filter desc
+   * @param convDesc           the conv desc
+   * @param dstTensorDesc      the dst tensor desc
+   * @param memoryLimitInBytes the memory limit in bytes
    * @return the forward algorithm
    */
   public int getForwardAlgorithm(final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int memoryLimitInBytes) {
@@ -643,16 +758,6 @@ public class CudnnHandle extends CudaDevice {
     cudnnActivationBackward_execution.accept((System.nanoTime() - startTime) / 1e9);
     CudaSystem.log("cudnnActivationBackward", result, this, activationDesc, alpha, yDesc, y, dyDesc, dy, xDesc, x, beta, dxDesc, dx);
     return result;
-  }
-  
-  /**
-   * Register for cleanup.
-   *
-   * @param objs the objs
-   */
-  public void registerForCleanup(@javax.annotation.Nonnull ReferenceCounting... objs) {
-    Arrays.stream(objs).forEach(ReferenceCounting::assertAlive);
-    Arrays.stream(objs).forEach(cleanup::add);
   }
   
   @javax.annotation.Nonnull

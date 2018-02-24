@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSettings;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import org.slf4j.Logger;
@@ -86,7 +87,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
   
   @Nonnull
   private Layer getTileSubnet(final SimpleConvolutionLayer network, int inputBands, int outputBands) {
-    int maxSize = (int) Math.sqrt(ConvolutionLayer.MAX_IO_ELEMENTS / Math.max(inputBands, outputBands));
+    int maxSize = (int) Math.sqrt(CudaSettings.INSTANCE.getMaxIoElements() / Math.max(inputBands, outputBands));
     int[] kernelDims = network.getKernelDimensions();
     return new ImgTileSubnetLayer(network, maxSize, maxSize, maxSize - ((kernelDims[0] - 1) / 2), maxSize - ((kernelDims[1] - 1) / 2)).setPrecision(network.getPrecision());
   }
@@ -240,7 +241,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
     }
     else {
       head = network.wrap(new ImgConcatLayer().setMaxBands(this.convolutionParams.outputBands).setPrecision(this.convolutionParams.precision),
-        subLayers.stream().map(l -> network.add(l, input)).toArray(i -> new DAGNode[i]));
+        subLayers.stream().map(l -> network.add(l, input)).toArray(i -> new DAGNode[i])).setParallel(false);
     }
     if (this.convolutionParams.paddingX != null || this.convolutionParams.paddingY != null) {
       int x = ((filterDimensions[0] - 1) / 2);

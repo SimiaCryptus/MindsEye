@@ -24,8 +24,8 @@ import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
+import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
-import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Test;
 
@@ -34,31 +34,16 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * The type Image classifier run base.
- */
 public class DeepDreamDemo extends NotebookReportBase {
   
-  /**
-   * Test.
-   *
-   * @throws Throwable the throwable
-   */
   @Test
   public void run() {
     run(this::run);
   }
   
-  /**
-   * Test.
-   *
-   * @param log the log
-   */
   public void run(@javax.annotation.Nonnull NotebookOutput log) {
   
   
@@ -80,20 +65,16 @@ public class DeepDreamDemo extends NotebookReportBase {
       }).limit(50).toArray(i1 -> new Tensor[i1]);
     });
     
-    log.h1("Prediction");
-    List<LinkedHashMap<String, Double>> predictions = log.code(() -> {
-      return vgg16.predict(5, images);
-    });
-    
     List<String> vgg16Categories = vgg16.getCategories();
     for (int itemNumber = 0; itemNumber < images.length; itemNumber++) {
       log.h1("Image " + itemNumber);
-      List<String> categories = predictions.get(itemNumber).keySet().stream().collect(Collectors.toList());
+      Tensor image = images[itemNumber];
+      TestUtil.monitorUI(image);
+      List<String> categories = vgg16.predict(5, image).stream().flatMap(x -> x.keySet().stream()).collect(Collectors.toList());
       log.p("Predictions: %s", categories);
       log.p("Evolve from %s to %s", categories.get(0), categories.get(1));
       int targetCategoryIndex = vgg16Categories.indexOf(categories.get(1));
       int totalCategories = vgg16Categories.size();
-      Tensor image = images[itemNumber];
       vgg16.deepDream(log, image, targetCategoryIndex, totalCategories);
       try {
         log.p(log.image(image.toImage(), "result"));
@@ -102,38 +83,14 @@ public class DeepDreamDemo extends NotebookReportBase {
       }
     }
     
-    log.h1("Results");
-    log.code(() -> {
-      @javax.annotation.Nonnull TableOutput tableOutput = new TableOutput();
-      for (int i = 0; i < images.length; i++) {
-        @javax.annotation.Nonnull HashMap<String, Object> row = new HashMap<>();
-        row.put("Image", log.image(images[i].toImage(), ""));
-        row.put("Prediction", predictions.get(i).entrySet().stream()
-          .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
-          .reduce((a, b) -> a + "<br/>" + b).get());
-        tableOutput.putRow(row);
-      }
-      return tableOutput;
-    }, 256 * 1024);
     log.setFrontMatterProperty("status", "OK");
   }
   
-  /**
-   * Gets shuffle comparator.
-   *
-   * @param <T> the type parameter
-   * @return the shuffle comparator
-   */
   public <T> Comparator<T> getShuffleComparator() {
     final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
     return Comparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);
   }
   
-  /**
-   * Gets target class.
-   *
-   * @return the target class
-   */
   @javax.annotation.Nonnull
   protected Class<?> getTargetClass() {
     return VGG16.class;

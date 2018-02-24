@@ -184,7 +184,7 @@ public class ConvolutionLayer extends LayerBase {
     try {
       final double[][] inputBuffers = batch.stream().map(x -> {
         @Nullable double[] data = x.getData();
-        x.setFloating(true);
+        x.detach();
         return data;
       }).toArray(i -> new double[i][]);
       final double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);

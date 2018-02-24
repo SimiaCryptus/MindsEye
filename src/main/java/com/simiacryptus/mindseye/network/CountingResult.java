@@ -20,17 +20,13 @@
 package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.test.TestUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -43,12 +39,6 @@ class CountingResult extends Result {
    * The constant logger.
    */
   protected static final Logger logger = LoggerFactory.getLogger(CountingResult.class);
-  private static final int COMPACTION_SIZE = 4;
-  
-  /**
-   * The constant debugLifecycle.
-   */
-  public static boolean debugLifecycle = true;
   
   /**
    * The Inner.
@@ -65,21 +55,6 @@ class CountingResult extends Result {
     super(inner.getData(), new CountingAccumulator(inner));
     this.inner = inner;
     inner.addRef();
-  }
-  
-  /**
-   * Mini stack trace string.
-   *
-   * @return the string
-   */
-  public static String miniStackTrace() {
-    int max = 30;
-    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-    List<String> list = Arrays.stream(stackTrace).skip(3).limit(max - 3).map(x -> x.isNativeMethod() ? "(Native Method)" :
-      (x.getFileName() != null && x.getLineNumber() >= 0 ?
-        x.getFileName() + ":" + x.getLineNumber() :
-        (x.getFileName() != null ? x.getFileName() : "(Unknown Source)"))).collect(Collectors.toList());
-    return "[" + list.stream().reduce((a, b) -> a + ", " + b).get() + (stackTrace.length > max ? ", ..." : "") + "]";
   }
   
   @javax.annotation.Nonnull
@@ -157,12 +132,15 @@ class CountingResult extends Result {
         synchronized (passbackBuffers) {
           passbackBuffers.add(data);
           data.addRef();
-          if (passbackBuffers.size() > COMPACTION_SIZE) {
+          if (passbackBuffers.size() > CoreSettings.INSTANCE.backpropAggregationSize) {
             Stream<TensorList> stream = passbackBuffers.stream();
-            if (!TestUtil.CONSERVATIVE) stream = stream.parallel();
+            if (!CoreSettings.INSTANCE.isConservative()) stream = stream.parallel();
             //x.addRef();
             @javax.annotation.Nonnull TensorList reduced = stream.reduce((a, b) -> {
-              TensorList c = a.addAndFree(b);
+              TensorList c;
+              c = a.add(b);
+              a.freeRef();
+//              c = a.addAndFree(b);
               b.freeRef();
               return c;
             }).get();
@@ -172,12 +150,13 @@ class CountingResult extends Result {
           }
           if (accumulations.incrementAndGet() == references.get()) {
             if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
-            //stream0 = stream0.parallel();
-            //x.addRef();
             Stream<TensorList> stream = passbackBuffers.stream();
-            if (!TestUtil.CONSERVATIVE) stream = stream.parallel();
+            if (!CoreSettings.INSTANCE.isConservative()) stream = stream.parallel();
             @javax.annotation.Nonnull TensorList reduced = stream.reduce((a, b) -> {
-              TensorList c = a.addAndFree(b);
+              TensorList c;
+              c = a.add(b);
+              a.freeRef();
+//              c = a.addAndFree(b);
               b.freeRef();
               return c;
             }).get();

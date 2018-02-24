@@ -70,4 +70,8 @@ public abstract class CudaResourceBase<T> extends ReferenceCountingBase {
     return objGeneration == CudaSystem.gpuGeneration.get();
   }
   
+  /**
+   * Release.
+   */
+  public abstract void release();
 }

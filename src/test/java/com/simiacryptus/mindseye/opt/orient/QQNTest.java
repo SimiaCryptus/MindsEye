@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
  * The type Qqn run.
  */
 public class QQNTest extends MnistTestBase {
-
+  
   @Override
   public void train(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer network, @javax.annotation.Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.code(() -> {

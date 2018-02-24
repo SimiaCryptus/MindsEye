@@ -131,7 +131,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
       public String getDirectionType() {
         return cursor.getDirectionType() + "+Trust";
       }
-
+  
       @Nonnull
       @Override
       public DeltaSet<Layer> position(final double alpha) {

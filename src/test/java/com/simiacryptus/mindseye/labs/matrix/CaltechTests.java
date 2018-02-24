@@ -49,7 +49,7 @@ public class CaltechTests {
       network.add(new ReLuActivationLayer());
       network.add(new ImgCropLayer(126, 126));
       network.add(new NormalizationMetaLayer());
-  
+
       network.add(new ConvolutionLayer(3, 3, 10, 20).set(weights));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());

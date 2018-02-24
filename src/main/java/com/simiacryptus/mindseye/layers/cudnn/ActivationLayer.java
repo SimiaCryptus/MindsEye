@@ -117,13 +117,13 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
     final int inputDims = Tensor.dim(inputSize);
     batch.addRef();
     try {
-      CudaPtr outPtr = CudaSystem.eval(gpu -> {
+      CudaMemory outPtr = CudaSystem.eval(gpu -> {
         @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = gpu.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
         @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = gpu.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-        @Nullable final CudaPtr inputData = gpu.getPtr(precision, batch, MemoryType.Device);
-        @javax.annotation.Nonnull final CudaPtr outputData = gpu.allocate(precision.size * 1l * inputDims * length, MemoryType.Managed, true);
+        @Nullable final CudaMemory inputData = gpu.getPtr(batch, precision, MemoryType.Device);
+        @javax.annotation.Nonnull final CudaMemory outputData = gpu.allocate(precision.size * 1l * inputDims * length, MemoryType.Managed, true);
         @javax.annotation.Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = gpu.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
         try {
           CudaSystem.handle(gpu.cudnnActivationForward(activationDesc.getPtr(),
@@ -134,7 +134,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
         } catch (@javax.annotation.Nonnull final Throwable e) {
           throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
         }
-        gpu.registerForCleanup(inputData, inputDescriptor, outputDescriptor, activationDesc);
+        Arrays.stream(new ReferenceCounting[]{inputData, inputDescriptor, outputDescriptor, activationDesc}).forEach(ReferenceCounting::freeRef);
         return outputData;
         //assert output.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       });
@@ -143,11 +143,11 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
           final TensorList data = CudaSystem.eval(gpu -> {
             //assert (error.length() == batch.length());
             //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-            @Nullable final CudaPtr inputData = gpu.getPtr(precision, batch, MemoryType.Device);
+            @Nullable final CudaMemory inputData = gpu.getPtr(batch, precision, MemoryType.Device);
             @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = gpu.newTensorDescriptor(
               precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-            @Nullable final CudaPtr errorPtr = gpu.getPtr(precision, error, MemoryType.Device);
-            @javax.annotation.Nonnull final CudaPtr passbackBuffer = gpu.allocate(inputDims * 1l * precision.size * length, MemoryType.Managed, true);
+            @Nullable final CudaMemory errorPtr = gpu.getPtr(error, precision, MemoryType.Device);
+            @javax.annotation.Nonnull final CudaMemory passbackBuffer = gpu.allocate(inputDims * 1l * precision.size * length, MemoryType.Managed, true);
             @javax.annotation.Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = gpu.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
             try {
               CudaSystem.handle(gpu.cudnnActivationBackward(activationDesc.getPtr(),
@@ -160,7 +160,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
             } catch (@javax.annotation.Nonnull final Throwable e) {
               throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
             }
-            gpu.registerForCleanup(inputData, errorPtr, inputDescriptor, activationDesc);
+            Arrays.stream(new ReferenceCounting[]{inputData, errorPtr, inputDescriptor, activationDesc}).forEach(ReferenceCounting::freeRef);
             return CudaTensorList.wrap(passbackBuffer, length, inputSize, precision);
           });
           input.accumulate(buffer, data);

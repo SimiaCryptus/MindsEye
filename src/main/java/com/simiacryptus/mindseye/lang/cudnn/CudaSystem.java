@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.data.DoubleStatistics;
 import jcuda.Pointer;
@@ -996,8 +995,6 @@ public class CudaSystem {
         throw e;
       } catch (@javax.annotation.Nonnull final Exception e) {
         throw new RuntimeException(e);
-      } finally {
-        cleanup(threadlocal, synchronize);
       }
     }
     else {
@@ -1011,7 +1008,6 @@ public class CudaSystem {
         } catch (@javax.annotation.Nonnull final Exception e) {
           throw new RuntimeException(e);
         } finally {
-          CudnnHandle.threadContext.remove();
           cleanup(gpu, synchronize);
         }
       });
@@ -1074,15 +1070,8 @@ public class CudaSystem {
   private static void cleanup(final CudnnHandle gpu, final boolean synchronize) {
     if (synchronize) CudaSystem.cudaDeviceSynchronize();
     CudnnHandle.threadContext.remove();
-    ArrayList<ReferenceCounting> toFree = new ArrayList<>();
-    gpu.cleanup.drainTo(toFree);
-//    garbageTruck.execute(() -> {
-//      try {
-//      } catch (Throwable e) {
-//        logger.warn("Error cleaning up", e);
-//        throw e;
-//      }
-//    });
-    toFree.stream().forEach(ReferenceCounting::freeRef);
+    ArrayList<CudaResourceBase> objsToFree = new ArrayList<>();
+    gpu.cleanupNative.drainTo(objsToFree);
+    objsToFree.stream().forEach(CudaResourceBase::release);
   }
 }

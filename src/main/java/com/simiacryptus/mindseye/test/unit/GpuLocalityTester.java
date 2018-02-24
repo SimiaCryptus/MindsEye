@@ -76,8 +76,8 @@ public class GpuLocalityTester extends ComponentTestBase<ToleranceStatistics> {
         TensorArray.wrap(IntStream.range(0, getBatchSize()).mapToObj(i -> t.map(v -> getRandom()))
           .toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
       TensorList[] gpuInput = Arrays.stream(heapInput).map(original -> {
-        @javax.annotation.Nullable CudaPtr cudaPtr = gpu.getPtr(Precision.Double, original, MemoryType.Managed);
-        return CudaTensorList.wrap(cudaPtr, original.length(), original.getDimensions(), Precision.Double);
+        @javax.annotation.Nullable CudaMemory cudaMemory = gpu.getPtr(original, Precision.Double, MemoryType.Managed);
+        return CudaTensorList.wrap(cudaMemory, original.length(), original.getDimensions(), Precision.Double);
       }).toArray(i -> new TensorList[i]);
       @Nonnull final SimpleResult fromHeap = SimpleGpuEval.run(reference, gpu, heapInput);
       @Nonnull final SimpleResult fromGPU = SimpleGpuEval.run(reference, gpu, gpuInput);

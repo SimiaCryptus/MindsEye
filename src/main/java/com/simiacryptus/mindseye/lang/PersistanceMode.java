@@ -33,7 +33,7 @@ public enum PersistanceMode {
   /**
    * Soft persistance mode.
    */
-  Soft {
+  SOFT {
     @Override
     public <T> Supplier<T> wrap(T obj) {
       return new SoftReference<>(obj)::get;
@@ -42,7 +42,7 @@ public enum PersistanceMode {
   /**
    * Weak persistance mode.
    */
-  Weak {
+  WEAK {
     @Override
     public <T> Supplier<T> wrap(T obj) {
       return new WeakReference<>(obj)::get;
@@ -51,7 +51,7 @@ public enum PersistanceMode {
   /**
    * Strong persistance mode.
    */
-  Strong {
+  STRONG {
     @javax.annotation.Nonnull
     @Override
     public <T> Supplier<T> wrap(@Nonnull T obj) {
@@ -61,7 +61,7 @@ public enum PersistanceMode {
   /**
    * Disabled persistance mode.
    */
-  Null {
+  NULL {
     @Nullable
     @Override
     public <T> Supplier<T> wrap(T obj) {

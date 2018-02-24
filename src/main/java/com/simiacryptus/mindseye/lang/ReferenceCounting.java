@@ -92,7 +92,6 @@ public interface ReferenceCounting {
   /**
    * Sets floating.
    *
-   * @param floating the floating
    */
-  void setFloating(boolean floating);
+  void detach();
 }

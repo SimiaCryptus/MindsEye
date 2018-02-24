@@ -92,7 +92,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
         public boolean isAlive() {
           return true;
         }
-
+  
       };
       @javax.annotation.Nullable final Result eval = component.eval(copyInput);
       @javax.annotation.Nonnull final DeltaSet<Layer> xxx = new DeltaSet<Layer>();

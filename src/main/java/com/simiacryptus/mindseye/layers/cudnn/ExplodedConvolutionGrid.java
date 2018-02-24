@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -48,7 +47,7 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
   /**
    * The Sub layers.
    */
-  public final List<ExplodedConvolutionLeg> subLayers = new ArrayList<>();
+  public final List<ExplodedConvolutionLeg> subLayers;
   /**
    * The Convolution params.
    */
@@ -65,11 +64,11 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
     this.convolutionParams = convolutionParams;
     int bandWidth = (maxBandBatch == 0) ? convolutionParams.inputBands : maxBandBatch;
     int rows = (int) Math.ceil((double) convolutionParams.inputBands / bandWidth);
-    IntStream.range(0, rows).map(x -> x * bandWidth).mapToObj(fromBand -> {
+    subLayers = IntStream.range(0, rows).map(x -> x * bandWidth).mapToObj(fromBand -> {
       int toBand = Math.min(convolutionParams.inputBands, fromBand + bandWidth);
       if (fromBand >= toBand) throw new RuntimeException(fromBand + " >= " + toBand);
       return new ExplodedConvolutionLeg(convolutionParams, fromBand, toBand);
-    }).collect(Collectors.toList()).stream().forEach(subLayers::add);
+    }).collect(Collectors.toList());
   }
   
   @Override
@@ -183,7 +182,7 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
         return l.add(network.wrap(new ImgBandSelectLayer(l.fromBand, l.toBand).setPrecision(convolutionParams.precision), input));
       }).collect(Collectors.toList());
       return network.wrap(new SumInputsLayer().setPrecision(convolutionParams.precision), legs.stream().toArray(i -> new DAGNode[i]));
-      //return network.add(new BinarySumLayer().setPrecision(convolutionParams.precision), legs.stream().toArray(i -> new DAGNode[i]));
+//      return legs.stream().reduce((l,r)-> network.wrap(new BinarySumLayer().setPrecision(convolutionParams.precision), l, r)).get();
     }
   }
   

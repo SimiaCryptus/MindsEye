@@ -297,7 +297,7 @@ public class LayerRateDiagnosticTrainer {
         break;
       }
       final PointSample initialPhasePoint = measure();
-
+  
       measure = initialPhasePoint;
       for (int subiteration = 0; subiteration < iterationsPerSample; subiteration++) {
         if (currentIteration.incrementAndGet() > maxIterations) {

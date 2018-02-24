@@ -67,9 +67,9 @@ public class SimpleGpuEval extends SimpleListEval {
       t.freeRef();
       return map;
     }).toArray(i -> new Tensor[i]));
-    @Nullable CudaPtr cudaPtr = gpu.getPtr(Precision.Double, tensorArray, MemoryType.Managed);
+    @Nullable CudaMemory cudaMemory = gpu.getPtr(tensorArray, Precision.Double, MemoryType.Managed);
     tensorArray.freeRef();
-    return CudaTensorList.wrap(cudaPtr, original.length(), original.getDimensions(), Precision.Double);
+    return CudaTensorList.wrap(cudaMemory, original.length(), original.getDimensions(), Precision.Double);
   }
   
 }

@@ -101,7 +101,7 @@ public abstract class DeepLinear extends NLayerTest {
         new int[]{10}
       );
     }
-
+  
     @javax.annotation.Nonnull
     @Override
     public Layer getActivation() {

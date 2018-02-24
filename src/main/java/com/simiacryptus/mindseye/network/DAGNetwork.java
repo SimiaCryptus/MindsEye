@@ -151,8 +151,8 @@ public abstract class DAGNetwork extends LayerBase {
    * @return the dag node
    */
   @javax.annotation.Nullable
-  public DAGNode wrap(@javax.annotation.Nonnull final Layer nextHead, final DAGNode... head) {
-    DAGNode add = add(null, nextHead, head);
+  public InnerNode wrap(@javax.annotation.Nonnull final Layer nextHead, final DAGNode... head) {
+    InnerNode add = add(null, nextHead, head);
     nextHead.freeRef();
     return add;
   }

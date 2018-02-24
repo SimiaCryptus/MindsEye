@@ -29,7 +29,7 @@ import java.util.Arrays;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
 
-import static com.simiacryptus.mindseye.lang.PersistanceMode.Weak;
+import static com.simiacryptus.mindseye.lang.PersistanceMode.WEAK;
 
 /**
  * This is a recycling mechanism to reuse short-term-lifecycle T objects of regular length. It is a convenience
@@ -56,7 +56,7 @@ public abstract class RecycleBin<T> {
       assert data.length == size;
       Arrays.fill(data, 0);
     }
-  };
+  }.setPersistanceMode(CoreSettings.INSTANCE.getDoubleCacheMode());
   /**
    * The constant logger.
    */
@@ -69,7 +69,7 @@ public abstract class RecycleBin<T> {
   private final StackCounter recycle_get = new StackCounter();
   private final ConcurrentHashMap<Long, ConcurrentLinkedDeque<Supplier<T>>> recycling = new ConcurrentHashMap<>();
   private int profilingThreshold = 32 * 1024;
-  private PersistanceMode persistanceMode = Weak;
+  private PersistanceMode persistanceMode = WEAK;
   private int minLengthPerBuffer = 256;
   private double maxLengthPerBuffer = 1e9;
   private int maxItemsPerBuffer = 100;

@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.*;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.junit.Test;
 
 import javax.annotation.Nullable;
 import java.io.PrintStream;
@@ -193,6 +194,12 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
     public Bug_Control() {
       super(3, 8, Precision.Double, 1);
       validateDifferentials = false;
+    }
+  
+    @Override
+    @Test(timeout = 15 * 60 * 1000, expected = Throwable.class)
+    public void test() throws Throwable {
+      super.test();
     }
     
     @Override

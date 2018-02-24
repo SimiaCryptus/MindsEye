@@ -20,10 +20,6 @@
 package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.simiacryptus.mindseye.lang.*;
-import jcuda.jcudnn.cudnnOpTensorDescriptor;
-import jcuda.jcudnn.cudnnOpTensorOp;
-import jcuda.jcudnn.cudnnTensorDescriptor;
-import jcuda.jcudnn.cudnnTensorFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,15 +37,24 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    * The constant logger.
    */
   protected static final Logger logger = LoggerFactory.getLogger(CudaTensorList.class);
+  /**
+   * The Precision.
+   */
+  @javax.annotation.Nonnull
+  final Precision precision;
   @javax.annotation.Nonnull
   private final int[] dimensions;
   private final int length;
-  @javax.annotation.Nonnull
-  private final Precision precision;
+  /**
+   * The Ptr.
+   */
   @Nullable
-  private CudaPtr ptr;
+  CudaMemory ptr;
+  /**
+   * The Heap copy.
+   */
   @Nullable
-  private volatile TensorList heapCopy = null;
+  volatile TensorList heapCopy = null;
   
   /**
    * Instantiates a new Cu dnn double tensor list.
@@ -59,7 +64,8 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    * @param dimensions the dimensions
    * @param precision  the precision
    */
-  private CudaTensorList(@Nullable final CudaPtr ptr, final int length, @javax.annotation.Nonnull final int[] dimensions, @javax.annotation.Nonnull final Precision precision) {
+  private CudaTensorList(@Nullable final CudaMemory ptr, final int length, @javax.annotation.Nonnull final int[] dimensions, @javax.annotation.Nonnull final Precision precision) {
+    assert 1 == ptr.currentRefCount();
     this.precision = precision;
     if (null == ptr) throw new IllegalArgumentException("ptr");
     if (null == ptr.getPtr()) throw new IllegalArgumentException("ptr.getPtr()");
@@ -76,15 +82,14 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    * Evict to heap.
    *
    * @param deviceId the device id
+   * @return the long
    */
-  public static void evictToHeap(int deviceId) {
-    long size;
-    synchronized (CudaTensorList.class) {
-      size = RegisteredObjectBase.getLivingInstances(CudaTensorList.class)
-        .filter(x -> (x.getDeviceId() == deviceId || deviceId < 0 || x.getDeviceId() < 0))
-        .mapToLong(CudaTensorList::evictToHeap).sum();
-    }
+  public static long evictToHeap(int deviceId) {
+    long size = RegisteredObjectBase.getLivingInstances(CudaTensorList.class)
+      .filter(x -> (x.getDeviceId() == deviceId || deviceId < 0 || x.getDeviceId() < 0))
+      .mapToLong(CudaTensorList::evictToHeap).sum();
     logger.info(String.format("Cleared %s bytes from GpuTensorLists for device %s", size, deviceId));
+    return size;
   }
   
   /**
@@ -97,7 +102,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    * @return the gpu tensor list
    */
   @javax.annotation.Nonnull
-  public static CudaTensorList wrap(@javax.annotation.Nonnull final CudaPtr ptr, final int length, @javax.annotation.Nonnull final int[] dimensions, @javax.annotation.Nonnull final Precision precision) {
+  public static CudaTensorList wrap(@javax.annotation.Nonnull final CudaMemory ptr, final int length, @javax.annotation.Nonnull final int[] dimensions, @javax.annotation.Nonnull final Precision precision) {
     @javax.annotation.Nonnull CudaTensorList cudaTensorList = new CudaTensorList(ptr, length, dimensions, precision);
     ptr.freeRef();
     return cudaTensorList;
@@ -112,7 +117,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    * @param precision  the precision
    * @return the gpu tensor list
    */
-  public static CudaTensorList create(final CudaPtr ptr, final int length, @javax.annotation.Nonnull final int[] dimensions, @javax.annotation.Nonnull final Precision precision) {
+  public static CudaTensorList create(final CudaMemory ptr, final int length, @javax.annotation.Nonnull final int[] dimensions, @javax.annotation.Nonnull final Precision precision) {
     return new CudaTensorList(ptr, length, dimensions, precision);
   }
   
@@ -130,12 +135,19 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
       return sum;
     }
     assert length() == right.length();
-    if (heapCopy == null) {
-      if (right instanceof CudaTensorList) {
-        @javax.annotation.Nonnull final CudaTensorList nativeRight = (CudaTensorList) right;
-        if (nativeRight.precision == this.precision) {
-          if (nativeRight.heapCopy == null) {
-            return gpuAddInPlace(nativeRight);
+    synchronized (this) {
+      if (heapCopy == null) {
+        if (right instanceof CudaTensorList) {
+          @javax.annotation.Nonnull final CudaTensorList nativeRight = (CudaTensorList) right;
+          synchronized (nativeRight) {
+            if (nativeRight.precision == this.precision) {
+              if (nativeRight.heapCopy == null) {
+                assert (!nativeRight.ptr.equals(CudaTensorList.this.ptr));
+                return CudaSystem.eval(gpu -> {
+                  return gpu.addInPlace(this, nativeRight);
+                });
+              }
+            }
           }
         }
       }
@@ -158,12 +170,18 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     right.assertAlive();
     assert length() == right.length();
     if (right instanceof ReshapedTensorList) return add(((ReshapedTensorList) right).getInner());
-    if (heapCopy == null) {
-      if (right instanceof CudaTensorList) {
-        @javax.annotation.Nonnull final CudaTensorList nativeRight = (CudaTensorList) right;
-        if (nativeRight.precision == this.precision) {
-          if (nativeRight.heapCopy == null) {
-            return gpuAdd(nativeRight);
+    synchronized (this) {
+      if (heapCopy == null) {
+        if (right instanceof CudaTensorList) {
+          @javax.annotation.Nonnull final CudaTensorList nativeRight = (CudaTensorList) right;
+          synchronized (nativeRight) {
+            if (nativeRight.precision == this.precision) {
+              if (nativeRight.heapCopy == null) {
+                return CudaSystem.eval(gpu -> {
+                  return gpu.add(this, nativeRight);
+                });
+              }
+            }
           }
         }
       }
@@ -178,46 +196,6 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
       b.freeRef();
       return r;
     }).toArray(i -> new Tensor[i]));
-  }
-  
-  private CudaTensorList gpuAddInPlace(final CudaTensorList nativeRight) {
-    return CudaSystem.eval(gpu -> {
-      assert getDimensions().length <= 3;
-      int d2 = getDimensions().length < 3 ? 1 : getDimensions()[2];
-      int d1 = getDimensions().length < 2 ? 1 : getDimensions()[1];
-      int d0 = getDimensions()[0];
-      @Nonnull CudaPtr rPtr = nativeRight.getPtr(gpu);
-      @Nonnull CudaPtr lPtr = CudaTensorList.this.getPtr(gpu);
-      @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = gpu.newTensorDescriptor(
-        this.precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, getLength(), d2, d1, d0);
-      gpu.cudnnAddTensor(
-        precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
-        precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr()
-      );
-      gpu.registerForCleanup(sizeDescriptor, rPtr, lPtr);
-      return CudaTensorList.this;
-    });
-  }
-  
-  private CudaTensorList gpuAdd(final CudaTensorList nativeRight) {
-    return CudaSystem.eval(gpu -> {
-      assert getDimensions().length <= 3;
-      int d2 = getDimensions().length < 3 ? 1 : getDimensions()[2];
-      int d1 = getDimensions().length < 2 ? 1 : getDimensions()[1];
-      int d0 = getDimensions()[0];
-      @Nonnull CudaPtr rPtr = nativeRight.getPtr(gpu).moveTo(gpu, MemoryType.Managed);
-      @Nonnull CudaPtr lPtr = CudaTensorList.this.getPtr(gpu).moveTo(gpu, MemoryType.Managed);
-      @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, this.precision.code);
-      @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = gpu.newTensorDescriptor(
-        this.precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, getLength(), d2, d1, d0);
-      @Nonnull final CudaPtr outputPtr = gpu.allocate(lPtr.size, MemoryType.Managed, true);
-      gpu.cudnnOpTensor(opDescriptor.getPtr(),
-        precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
-        precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
-        precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-      gpu.registerForCleanup(opDescriptor, sizeDescriptor, rPtr, lPtr);
-      return CudaTensorList.wrap(outputPtr, getLength(), getDimensions(), this.precision);
-    });
   }
   
   @Override
@@ -261,11 +239,9 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
             .mapToObj(dataIndex -> new Tensor(getDimensions()))
             .toArray(i -> new Tensor[i]);
           CudnnHandle.run(gpu -> {
-            CudaPtr ptr = getPtr(gpu);
             for (int i = 0; i < getLength(); i++) {
               ptr.read(precision, output[i].getData(), i * itemLength);
             }
-            gpu.registerForCleanup(ptr);
           });
           heapCopy = TensorArray.wrap(output);
         }
@@ -285,15 +261,6 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
   }
   
   /**
-   * Is native boolean.
-   *
-   * @return the boolean
-   */
-  public boolean isNative() {
-    return null == heapCopy;
-  }
-  
-  /**
    * Gets heap copy.
    *
    * @return the heap copy
@@ -308,8 +275,8 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
   @Override
   public TensorList copy() {
     return CudaSystem.eval(gpu -> {
-      CudaPtr ptr = getPtr(gpu);
-      CudaPtr copyPtr = ptr.copyTo(gpu, MemoryType.Managed);
+      CudaMemory ptr = gpu.getPtr(this, MemoryType.Managed);
+      CudaMemory copyPtr = ptr.copyTo(gpu, MemoryType.Managed);
       ptr.freeRef();
       @javax.annotation.Nonnull CudaTensorList cudaTensorList = new CudaTensorList(copyPtr, getLength(), getDimensions(), precision);
       copyPtr.freeRef();
@@ -337,49 +304,20 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    * @return the long
    */
   public synchronized long evictToHeap() {
-    synchronized (this) {
-      if (null == heapCopy()) {
-        throw new IllegalStateException();
-      }
-      if (null != ptr && !ptr.isFinalized() && 1 == ptr.currentRefCount()) {
-        long elements = getElements();
-        assert 0 < length;
-        assert 0 < elements : Arrays.toString(dimensions);
-        ptr.freeRef();
-        ptr = null;
-        return elements * getPrecision().size;
-      }
-      else {
-        return 0;
-      }
+    if (null == heapCopy()) {
+      throw new IllegalStateException();
     }
-  }
-  
-  /**
-   * The Ptr.
-   *
-   * @param deviceId the device id
-   * @return the ptr
-   */
-  @Nonnull
-  public CudaPtr getPtr(final CudaDevice deviceId) {
-    if ((null == ptr || ptr.isFinalized()) && null != heapCopy && !heapCopy.isFinalized()) {
-      synchronized (this) {
-        if ((null == ptr || ptr.isFinalized()) && null != heapCopy && !heapCopy.isFinalized()) {
-          ptr = deviceId.getPtr(precision, heapCopy, MemoryType.Managed);
-        }
-      }
+    if (null != ptr && !ptr.isFinalized() && 1 == ptr.currentRefCount()) {
+      long elements = getElements();
+      assert 0 < length;
+      assert 0 < elements : Arrays.toString(dimensions);
+      ptr.freeRef();
+      ptr = null;
+      return elements * getPrecision().size;
     }
-    if (null == ptr) {
-      if (null == heapCopy) {
-        throw new IllegalStateException("No data");
-      }
-      else if (heapCopy.isFinalized()) {
-        throw new IllegalStateException("Local data has been freed");
-      }
+    else {
+      return 0;
     }
-    ptr.addRef();
-    return ptr;
   }
   
   /**

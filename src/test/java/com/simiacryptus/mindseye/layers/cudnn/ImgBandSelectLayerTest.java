@@ -70,7 +70,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
     apiLog.close();
     CudaSystem.apiLog.remove(apiLog);
   }
-
+  
   @javax.annotation.Nonnull
   @Override
   public int[][] getSmallDims(Random random) {

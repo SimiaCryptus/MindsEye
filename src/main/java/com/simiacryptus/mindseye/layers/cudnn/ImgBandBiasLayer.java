@@ -176,6 +176,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
     final TensorList inputData;
     if (1 < input.getData().currentRefCount()) {
       inputData = input.getData().copy();
+      input.getData().freeRef();
     }
     else {
       inputData = input.getData();
@@ -193,22 +194,23 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
         
         assert 0 < bias.length;
-        @javax.annotation.Nonnull final CudaPtr filterPtr = gpu.allocate((long) (bias.length * precision.size), MemoryType.Device, true).write(precision, bias);
-        final CudaPtr inputPtr = gpu.getPtr(precision, inputData, MemoryType.Device);
+        @javax.annotation.Nonnull final CudaMemory filterPtr = gpu.allocate((long) (bias.length * precision.size), MemoryType.Device, true).write(precision, bias);
+        final CudaMemory inputPtr = gpu.getPtr(inputData, precision, MemoryType.Device);
+        inputData.freeRef();
         try {
-          CudaSystem.handle(gpu.cudnnAddTensor(precision.getPointer(1.0),
-            filterDescriptor.getPtr(), filterPtr.getPtr(),
+          CudaSystem.handle(gpu.cudnnAddTensor(
+            precision.getPointer(1.0), filterDescriptor.getPtr(), filterPtr.getPtr(),
             precision.getPointer(1.0), inputDescriptor.getPtr(), inputPtr.getPtr()));
         } catch (@javax.annotation.Nonnull final Throwable e) {
           throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
         }
-        gpu.registerForCleanup(inputDescriptor, filterPtr, filterDescriptor);
+        Arrays.stream(new ReferenceCounting[]{inputDescriptor, filterPtr, filterDescriptor}).forEach(ReferenceCounting::freeRef);
         return CudaTensorList.wrap(inputPtr, length, outputSize, precision);
       } catch (@javax.annotation.Nonnull final Throwable e) {
         throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
       }
     }), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
-      assert error.length() == inputData.length();
+      assert error.length() == length;
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
       if (!isFrozen()) {
         CudaSystem.run(gpu -> {
@@ -216,8 +218,8 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
             precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
           @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> filterDescriptor = gpu.newTensorDescriptor(
             precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
-          @Nullable final CudaPtr errorPtr = gpu.getPtr(precision, error, MemoryType.Device);
-          @javax.annotation.Nonnull final CudaPtr filterBuffer = gpu.allocate(bias.length * 1l * precision.size, MemoryType.Device, false);
+          @Nullable final CudaMemory errorPtr = gpu.getPtr(error, precision, MemoryType.Device);
+          @javax.annotation.Nonnull final CudaMemory filterBuffer = gpu.allocate(bias.length * 1l * precision.size, MemoryType.Device, false);
           try {
             try {
               CudaSystem.handle(gpu.cudnnConvolutionBackwardBias(precision.getPointer(1.0),
@@ -230,9 +232,9 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
             @javax.annotation.Nonnull final Tensor weightGradient = filterBuffer.read(precision, new int[]{1, 1, inputSize[2]});
             //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
             buffer.get(this, bias).addInPlace(weightGradient.getData()).freeRef();
-            gpu.registerForCleanup(weightGradient);
+            Arrays.stream(new ReferenceCounting[]{weightGradient}).forEach(ReferenceCounting::freeRef);
           } finally {
-            gpu.registerForCleanup(filterDescriptor, inputDescriptor, errorPtr, filterBuffer);
+            Arrays.stream(new ReferenceCounting[]{filterDescriptor, inputDescriptor, errorPtr, filterBuffer}).forEach(ReferenceCounting::freeRef);
           }
         });
       }

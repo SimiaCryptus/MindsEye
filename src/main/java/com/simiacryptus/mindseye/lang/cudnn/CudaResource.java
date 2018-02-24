@@ -58,6 +58,12 @@ public class CudaResource<T> extends CudaResourceBase<T> {
    * Free.
    */
   protected void _free() {
+    CudnnHandle threadHandle = CudnnHandle.getThreadHandle();
+    if (null != threadHandle) threadHandle.cleanupNative.add(this);
+    else release();
+  }
+  
+  public void release() {
     try {
       CudaSystem.withDevice(deviceId, () -> {
         if (isActiveObj()) {
@@ -65,8 +71,9 @@ public class CudaResource<T> extends CudaResourceBase<T> {
         }
       });
     } catch (@javax.annotation.Nonnull final Throwable e) {
-      logger.debug("Error freeing resource " + this, e);
+      CudaResource.logger.debug("Error freeing resource " + this, e);
     }
   }
+  
   
 }

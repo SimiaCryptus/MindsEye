@@ -102,7 +102,7 @@ public abstract class SumInputsLayerTest extends CuDNNLayerTestBase {
    * Ensures addition can be used to implement a doubling (x2) function
    */
   public static class OnePlusOne extends CuDNNLayerTestBase {
-
+  
     /**
      * Instantiates a new Asymmetric run.
      */

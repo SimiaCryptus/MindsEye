@@ -135,6 +135,37 @@ public class CudaDevice extends CudaSystem {
   }
   
   /**
+   * The Ptr.
+   *
+   * @param data       the data
+   * @param memoryType the memory type
+   * @return the ptr
+   */
+  @Nonnull
+  public CudaMemory getPtr(@Nonnull final CudaTensorList data, @Nonnull final MemoryType memoryType) {
+    CudaMemory ptr = data.ptr;
+    synchronized (data) {
+      if ((null == ptr || data.ptr.isFinalized()) && null != data.heapCopy && !data.heapCopy.isFinalized()) {
+        synchronized (data) {
+          if ((null == data.ptr || data.ptr.isFinalized()) && null != data.heapCopy && !data.heapCopy.isFinalized()) {
+            data.ptr = ptr = getPtr(data.heapCopy, data.precision, memoryType);
+          }
+        }
+      }
+    }
+    if (null == ptr) {
+      if (null == data.heapCopy) {
+        throw new IllegalStateException("No data");
+      }
+      else if (data.heapCopy.isFinalized()) {
+        throw new IllegalStateException("Local data has been freed");
+      }
+    }
+    ptr.addRef();
+    return ptr.moveTo(this, memoryType);
+  }
+  
+  /**
    * Acquire pointer.
    *
    * @param size    the size
@@ -148,18 +179,16 @@ public class CudaDevice extends CudaSystem {
     if (size <= 0) {
       throw new OutOfMemoryError("Allocated block is too large: " + size);
     }
-    if (size > CudaPtr.MAX) {
+    if (size > CudaSettings.INSTANCE.getMaxAllocSize()) {
       throw new OutOfMemoryError("Allocated block is too large: " + size);
     }
-    final DeviceMetrics metrics = CudaPtr.getGpuStats(getDeviceId());
-    long totalGpuMem = CudaPtr.METRICS.asMap().values().stream().mapToLong(x -> x.usedMemory.get()).sum();
-    synchronized (CudaPtr.class) {
-      long resultingTotalMemory = totalGpuMem + size;
-      long resultingDeviceMemory = metrics.usedMemory.get() + size;
-      if (resultingDeviceMemory > metrics.highMemoryThreshold || resultingTotalMemory > CudaPtr.MAX_TOTAL_MEMORY) {
-        CudaPtr.logger.info(String.format("Clearing memory for device %s while allocating %s bytes (%s > %s)", this, size, resultingDeviceMemory, metrics.highMemoryThreshold));
-        CudaPtr.clearMemory(getDeviceId());
-      }
+    final DeviceMetrics metrics = CudaMemory.getGpuStats(getDeviceId());
+    long totalGpuMem = CudaMemory.METRICS.asMap().values().stream().mapToLong(x -> x.usedMemory.get()).sum();
+    long resultingTotalMemory = totalGpuMem + size;
+    long resultingDeviceMemory = metrics.usedMemory.get() + size;
+    if (resultingDeviceMemory > metrics.highMemoryThreshold || resultingTotalMemory > CudaSettings.INSTANCE.getMaxTotalMemory()) {
+      CudaMemory.logger.info(String.format("Clearing memory for device %s while allocating %s bytes (%s > %s)", this, size, resultingDeviceMemory, metrics.highMemoryThreshold));
+      CudaMemory.clearMemory(getDeviceId());
     }
     try {
       @Nonnull Pointer pointer = new Pointer();
@@ -173,9 +202,9 @@ public class CudaDevice extends CudaSystem {
       if (retries <= 0)
         throw new RuntimeException(String.format(String.format("Error allocating %d bytes; %s currently allocated to device %s", size, metrics.usedMemory, this)), e);
       final long startMemory = metrics.usedMemory.get();
-      @Nonnull TimedResult<Void> timedResult = TimedResult.time(() -> CudaPtr.clearMemory(getDeviceId()));
+      @Nonnull TimedResult<Void> timedResult = TimedResult.time(() -> CudaMemory.clearMemory(getDeviceId()));
       final long freedMemory = startMemory - metrics.usedMemory.get();
-      CudaPtr.logger.warn(String.format("Low GPU Memory while allocating %s bytes; %s freed in %.4fs resulting in %s total (triggered by %s)",
+      CudaMemory.logger.warn(String.format("Low GPU Memory while allocating %s bytes; %s freed in %.4fs resulting in %s total (triggered by %s)",
         size, freedMemory, timedResult.seconds(), metrics.usedMemory.get(), e.getMessage()));
     }
     if (retries < 0) throw new IllegalStateException();
@@ -270,8 +299,8 @@ public class CudaDevice extends CudaSystem {
    * @return the cuda ptr
    */
   @Nonnull
-  public CudaPtr allocate(final long size, @Nonnull MemoryType type, boolean dirty) {
-    @Nonnull CudaPtr obtain = new CudaPtr(size, this, type);
+  public CudaMemory allocate(final long size, @Nonnull MemoryType type, boolean dirty) {
+    @Nonnull CudaMemory obtain = new CudaMemory(size, this, type);
     if (!dirty) obtain.clear();
     return obtain;
   }
@@ -279,28 +308,25 @@ public class CudaDevice extends CudaSystem {
   /**
    * Gets cuda ptr.
    *
-   * @param precision  the precision
    * @param data       the data
+   * @param precision  the precision
    * @param memoryType the memory type
    * @return the cuda ptr
    */
-  @Nullable
-  public CudaPtr getPtr(@Nonnull final Precision precision, @Nonnull final TensorList data, final MemoryType memoryType) {
+  @Nonnull
+  public CudaMemory getPtr(@Nonnull final TensorList data, @Nonnull final Precision precision, final MemoryType memoryType) {
     data.assertAlive();
     if (data instanceof ReshapedTensorList) {
-      return getPtr(precision, ((ReshapedTensorList) data).getInner(), memoryType);
+      return getPtr(((ReshapedTensorList) data).getInner(), precision, memoryType);
     }
     if (data instanceof CudaTensorList && precision == ((CudaTensorList) data).getPrecision()) {
       @Nonnull CudaTensorList cudaTensorList = (CudaTensorList) data;
-      @Nullable final CudaPtr ptr = cudaTensorList.getPtr(this);
-      assert null != ptr;
-      //if(ptr.getDeviceId() == -1) return ptr;
-      return ptr.moveTo(this, memoryType);
+      return this.getPtr(cudaTensorList, memoryType);
     }
     else {
       final int listLength = data.length();
       final int elementLength = Tensor.dim(data.getDimensions());
-      @Nonnull final CudaPtr ptr = this.allocate((long) elementLength * listLength * precision.size, memoryType, true);
+      @Nonnull final CudaMemory ptr = this.allocate((long) elementLength * listLength * precision.size, memoryType, true);
       for (int i = 0; i < listLength; i++) {
         Tensor tensor = data.get(i);
         assert null != data;

@@ -150,7 +150,7 @@ public class ImgTileSubnetLayer extends LayerBase implements MultiPrecision<ImgT
         }
       }
       logger.info(String.format("Broke input %s into %s rows, %s cols", Arrays.toString(inputDims), rows, cols));
-      network.wrap(new ImgTileAssemblyLayer(cols, rows).setPrecision(precision), nodes.toArray(new DAGNode[]{})).setParallel(false);
+      network.wrap(new ImgTileAssemblyLayer(cols, rows).setPrecision(precision), nodes.toArray(new DAGNode[]{})).setParallel(true);
       return network.eval(inObj);
     } finally {
       network.freeRef();

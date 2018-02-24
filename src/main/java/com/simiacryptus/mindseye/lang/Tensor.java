@@ -662,6 +662,8 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
       return false;
     }
     @Nullable final Tensor other = (Tensor) obj;
+    if (0 == currentRefCount()) return false;
+    if (0 == other.currentRefCount()) return false;
     if (!Arrays.equals(getData(), other.getData())) {
       return false;
     }

@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.*;
-import com.simiacryptus.mindseye.test.TestUtil;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 
 import javax.annotation.Nonnull;
@@ -100,7 +99,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
     }
     return new Result(CudaSystem.eval(gpu -> {
       final long outputSize = ((long) length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
-      @javax.annotation.Nonnull final CudaPtr cudaOutput = gpu.allocate(outputSize, MemoryType.Managed, true);
+      @javax.annotation.Nonnull final CudaMemory cudaOutput = gpu.allocate(outputSize, MemoryType.Managed, true);
       for (int i = 0; i < inObj.length; i++) {
         final TensorList input = inObj[i].getData();
         @Nonnull final int[] inputDimensions = input.getDimensions();
@@ -111,7 +110,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
         int inputBands = inputDimensions[2];
         if (maxBands > 0) inputBands = Math.min(inputBands, maxBands - bandOffset);
         if (inputBands > 0) {
-          @Nullable final CudaPtr cudaInput = gpu.getPtr(precision, input, MemoryType.Device);
+          @Nullable final CudaMemory cudaInput = gpu.getPtr(input, precision, MemoryType.Device);
           assert inputBands > 0;
           assert maxBands <= 0 || inputBands <= maxBands;
           assert inputBands <= inputDimensions[2];
@@ -122,7 +121,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
             precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.getPtr(),
             precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr().withByteOffset(byteOffset)
           );
-          gpu.registerForCleanup(cudaInput, inputDescriptor, outputDescriptor);
+          Arrays.stream(new ReferenceCounting[]{cudaInput, inputDescriptor, outputDescriptor}).forEach(ReferenceCounting::freeRef);
         }
       }
       return CudaTensorList.wrap(cudaOutput, length, outputDimensions, precision);
@@ -134,7 +133,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
       assert delta.length() == inObj[0].getData().length();
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
       @javax.annotation.Nonnull IntStream stream = IntStream.range(0, inObj.length);
-      if (!TestUtil.CONSERVATIVE) stream = stream.parallel();
+      if (!CoreSettings.INSTANCE.isConservative()) stream = stream.parallel();
       stream.forEach(i -> {
         final Result input = inObj[i];
         @Nonnull int[] inputDimensions = input.getData().getDimensions();
@@ -149,9 +148,9 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
           final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
             @javax.annotation.Nonnull int[] viewDimensions = Arrays.copyOf(inputDimensions, inputDimensions.length);
             viewDimensions[2] = inputBands;
-            @Nullable final CudaPtr cudaDelta = gpu.getPtr(precision, delta, MemoryType.Device);
+            @Nullable final CudaMemory cudaDelta = gpu.getPtr(delta, precision, MemoryType.Device);
             long inputSize = (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size);
-            @javax.annotation.Nonnull final CudaPtr cudaBackprop = gpu.allocate(inputSize, MemoryType.Managed, (inputBands + bandOffset) > outputDimensions[2]);
+            @javax.annotation.Nonnull final CudaMemory cudaBackprop = gpu.allocate(inputSize, MemoryType.Managed, (inputBands + bandOffset) > outputDimensions[2]);
             @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(length, inputBands, viewDimensions, inputDimensions, gpu);
             @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(length, inputBands, viewDimensions, outputDimensions, gpu);
             int byteOffset = outputDimensions[1] * outputDimensions[0] * bandOffset * precision.size;
@@ -159,7 +158,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
               precision.getPointer(1.0), outputDescriptor.getPtr(), cudaDelta.getPtr().withByteOffset(byteOffset),
               precision.getPointer(0.0), inputDescriptor.getPtr(), cudaBackprop.getPtr()
             );
-            gpu.registerForCleanup(cudaDelta, inputDescriptor, outputDescriptor);
+            Arrays.stream(new ReferenceCounting[]{cudaDelta, inputDescriptor, outputDescriptor}).forEach(ReferenceCounting::freeRef);
             return CudaTensorList.wrap(cudaBackprop, length, inputDimensions, precision);
           });
           input.accumulate(buffer, passbackTensorList);

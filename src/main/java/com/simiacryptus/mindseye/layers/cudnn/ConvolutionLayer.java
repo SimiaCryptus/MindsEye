@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSettings;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -41,9 +42,6 @@ import java.util.function.IntToDoubleFunction;
  */
 @SuppressWarnings("serial")
 public class ConvolutionLayer extends LayerBase implements MultiPrecision<ConvolutionLayer>, Explodable {
-  
-  public static final double MAX_IO_ELEMENTS = 1e6;
-  public static final int WORKSPACE_SIZE_LIMIT = 32 * 1024 * 1024;
   
   @Nullable
   private final Tensor kernel;
@@ -82,7 +80,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     if (getKernel().getDimensions()[2] <= 0) throw new IllegalArgumentException();
     this.inputBands = inputBands;
     this.outputBands = outputBands;
-    setBatchBands((int) Math.min(2 * 1024, Math.pow(2, Math.floor(10 * Math.log(Math.sqrt((512 * 1024.0 * 1024.0) / (width * height))) / Math.log(2)) / 10)));
+    setBatchBands(Math.min(2 * 1024, binaryFriendly((int) Math.sqrt(CudaSettings.INSTANCE.getMaxFilterElements() / (width * height)), 1)));
   }
   
   /**
@@ -105,6 +103,17 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     this.precision = Precision.valueOf(json.get("precision").getAsString());
     this.inputBands = json.get("inputBands").getAsInt();
     this.outputBands = json.get("outputBands").getAsInt();
+  }
+  
+  /**
+   * Binary friendly int.
+   *
+   * @param value the value
+   * @param bits  the bits
+   * @return the int
+   */
+  public static int binaryFriendly(final int value, final int bits) {
+    return (int) Math.pow(2, (Math.floor(Math.log(value) * bits) / bits) / Math.log(2));
   }
   
   /**
@@ -167,11 +176,13 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   @Override
   public Layer explode() {
     @Nonnull ExplodedConvolutionGrid explodedNetwork = getExplodedNetwork();
-    @Nonnull Layer network = explodedNetwork.getNetwork();
-    explodedNetwork.freeRef();
-    network.setName(getName());
-    //network = getTileSubnet(network);
-    return network;
+    try {
+      @Nonnull Layer network = explodedNetwork.getNetwork();
+      network.setName(getName());
+      return network;
+    } finally {
+      explodedNetwork.freeRef();
+    }
   }
   
   @Nonnull
@@ -195,7 +206,15 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     if (batchBands > outputBands * 2) {
       batchBands = outputBands;
     }
-    return new ExplodedConvolutionGrid(getConvolutionParams(), batchBands).write(kernel);
+    ExplodedConvolutionGrid convolutionGrid = new ExplodedConvolutionGrid(getConvolutionParams(), batchBands);
+    convolutionGrid.addRef();
+    try {
+      ExplodedConvolutionGrid write = convolutionGrid.write(kernel);
+      convolutionGrid.addRef();
+      return write;
+    } finally {
+      convolutionGrid.freeRef();
+    }
   }
   
   /**

@@ -39,7 +39,7 @@ public enum MemoryType {
       if (size < 0) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
-      if (size > CudaPtr.MAX) {
+      if (size > CudaSettings.INSTANCE.getMaxAllocSize()) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
       cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDevice());
@@ -80,7 +80,7 @@ public enum MemoryType {
       if (size < 0) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
-      if (size > CudaPtr.MAX) {
+      if (size > CudaSettings.INSTANCE.getMaxAllocSize()) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
       cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDevice());
@@ -106,7 +106,7 @@ public enum MemoryType {
       if (size < 0) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
-      if (size > CudaPtr.MAX) {
+      if (size > CudaSettings.INSTANCE.getMaxAllocSize()) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
       cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDevice());
