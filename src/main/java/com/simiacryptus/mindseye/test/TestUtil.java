@@ -42,14 +42,14 @@ import smile.plot.ScatterPlot;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.ref.WeakReference;
@@ -678,7 +678,7 @@ public class TestUtil {
    *
    * @param input the input
    */
-  public static void monitorUI(final Tensor input) {
+  public static void monitorImage(final Tensor input) {
     JLabel label = new JLabel(new ImageIcon(input.toImage()));
     WeakReference<JLabel> labelWeakReference = new WeakReference<>(label);
     ScheduledFuture<?> updater = scheduledThreadPool.scheduleAtFixedRate(() -> {
@@ -701,6 +701,43 @@ public class TestUtil {
       }
       dialog.setResizable(true);
       dialog.setSize(input.getDimensions()[0], input.getDimensions()[1]);
+      JMenuBar menu = new JMenuBar();
+      JMenu fileMenu = new JMenu("File");
+      JMenuItem saveAction = new JMenuItem("Save");
+      fileMenu.add(saveAction);
+      saveAction.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+          JFileChooser fileChooser = new JFileChooser();
+          fileChooser.setAcceptAllFileFilterUsed(false);
+          fileChooser.addChoosableFileFilter(new FileFilter() {
+            @Override
+            public boolean accept(final File f) {
+              return f.getName().toUpperCase().endsWith(".PNG");
+            }
+        
+            @Override
+            public String getDescription() {
+              return "*.png";
+            }
+          });
+      
+          int result = fileChooser.showSaveDialog(dialog);
+          if (JFileChooser.APPROVE_OPTION == result) {
+            try {
+              File selectedFile = fileChooser.getSelectedFile();
+              if (!selectedFile.getName().toUpperCase().endsWith(".PNG"))
+                selectedFile = new File(selectedFile.getParent(), selectedFile.getName() + ".png");
+              BufferedImage image = input.toImage();
+              if (!ImageIO.write(image, "PNG", selectedFile)) throw new IllegalArgumentException();
+            } catch (IOException e1) {
+              throw new RuntimeException(e1);
+            }
+          }
+        }
+      });
+      menu.add(fileMenu);
+      dialog.setJMenuBar(menu);
       
       Container contentPane = dialog.getContentPane();
       contentPane.setLayout(new BorderLayout());

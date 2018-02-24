@@ -103,7 +103,7 @@ public class PatternEnhancementDemo extends NotebookReportBase {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    TestUtil.monitorUI(imageData);
+    TestUtil.monitorImage(imageData);
     vgg16.deepDream(log, imageData);
     try {
       log.p(log.image(imageData.toImage(), "result"));

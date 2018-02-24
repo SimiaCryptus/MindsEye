@@ -60,14 +60,13 @@ public class DeepDreamDemo extends NotebookReportBase {
    */
   public void run(@javax.annotation.Nonnull NotebookOutput log) {
     
-    
     @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
     
     log.h1("Model");
     VGG16_HDF5 vgg16 = log.code(() -> {
-      return VGG16.fromS3_HDF5().setLarge(true).setFinalPoolingMode(PoolingLayer.PoolingMode.Avg);
+      return VGG16.fromS3_HDF5().setLarge(true).setFinalPoolingMode(PoolingLayer.PoolingMode.Max);
     });
   
     Tensor[] images = getImages_Artistry(log);
@@ -76,7 +75,7 @@ public class DeepDreamDemo extends NotebookReportBase {
     for (int itemNumber = 0; itemNumber < images.length; itemNumber++) {
       log.h1("Image " + itemNumber);
       Tensor image = images[itemNumber];
-      TestUtil.monitorUI(image);
+      TestUtil.monitorImage(image);
       List<String> categories = vgg16.predict(5, image).stream().flatMap(x -> x.keySet().stream()).collect(Collectors.toList());
       log.p("Predictions: %s", categories.stream().reduce((a, b) -> a + "; " + b).get());
       log.p("Evolve from %s to %s", categories.get(0), categories.get(2));
