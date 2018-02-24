@@ -39,6 +39,7 @@ import java.io.PrintStream;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The type Deep dream demo.
@@ -75,7 +76,7 @@ public class DeepDreamDemo extends NotebookReportBase {
     for (int itemNumber = 0; itemNumber < images.length; itemNumber++) {
       log.h1("Image " + itemNumber);
       Tensor image = images[itemNumber];
-      TestUtil.monitorImage(image);
+      TestUtil.monitorImage(image, false);
       List<String> categories = vgg16.predict(5, image).stream().flatMap(x -> x.keySet().stream()).collect(Collectors.toList());
       log.p("Predictions: %s", categories.stream().reduce((a, b) -> a + "; " + b).get());
       log.p("Evolve from %s to %s", categories.get(0), categories.get(2));
@@ -93,13 +94,17 @@ public class DeepDreamDemo extends NotebookReportBase {
   }
   
   public Tensor[] getImages_Artistry(@javax.annotation.Nonnull final NotebookOutput log) {
-    try {
-      BufferedImage image = ImageIO.read(new File("H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\800px-Vincent_van_Gogh_-_Portrait_of_Doctor_Félix_Rey_(F500).jpg"));
-      image = TestUtil.resize(image, 400, true);
-      return new Tensor[]{Tensor.fromRGB(image)};
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    return Stream.of(
+      "H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\800px-Vincent_van_Gogh_-_Portrait_of_Doctor_Félix_Rey_(F500).jpg"
+    ).map(file -> {
+      try {
+        BufferedImage image = ImageIO.read(new File(file));
+        image = TestUtil.resize(image, 400, true);
+        return Tensor.fromRGB(image);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }).toArray(i -> new Tensor[i]);
   }
   
   public Tensor[] getImages_Caltech(@javax.annotation.Nonnull final NotebookOutput log) {

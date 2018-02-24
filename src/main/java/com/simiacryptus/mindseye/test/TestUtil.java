@@ -677,8 +677,9 @@ public class TestUtil {
    * Monitor ui.
    *
    * @param input the input
+   * @param exitOnClose
    */
-  public static void monitorImage(final Tensor input) {
+  public static void monitorImage(final Tensor input, final boolean exitOnClose) {
     JLabel label = new JLabel(new ImageIcon(input.toImage()));
     WeakReference<JLabel> labelWeakReference = new WeakReference<>(label);
     ScheduledFuture<?> updater = scheduledThreadPool.scheduleAtFixedRate(() -> {
@@ -693,13 +694,14 @@ public class TestUtil {
     new Thread(() -> {
       final JDialog dialog;
       Window window = JOptionPane.getRootFrame();
+      String title = "Image: " + Arrays.toString(input.getDimensions());
       if (window instanceof Frame) {
-        dialog = new JDialog((Frame) window, "image", true);
+        dialog = new JDialog((Frame) window, title, true);
       }
       else {
-        dialog = new JDialog((Dialog) window, "image", true);
+        dialog = new JDialog((Dialog) window, title, true);
       }
-      dialog.setResizable(true);
+      dialog.setResizable(false);
       dialog.setSize(input.getDimensions()[0], input.getDimensions()[1]);
       JMenuBar menu = new JMenuBar();
       JMenu fileMenu = new JMenu("File");
@@ -770,6 +772,7 @@ public class TestUtil {
         public void windowClosed(WindowEvent e) {
           dialog.getContentPane().removeAll();
           updater.cancel(false);
+          if (exitOnClose) System.exit(0);
         }
         
         public void windowGainedFocus(WindowEvent we) {

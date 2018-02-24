@@ -40,10 +40,10 @@ public class DeviceMetrics {
   /**
    * The Used memory.
    */
-  public final AtomicLong usedMemory = new AtomicLong(0);
+  public final AtomicLong activeMemory = new AtomicLong(0);
   
   /**
-   * The High memory threshold.
+   * The Used memory.
    */
-  public final long highMemoryThreshold = 6L * 1024 * 1024 * 1024;
+  public final AtomicLong usedMemory = new AtomicLong(0);
 }

@@ -19,9 +19,6 @@
 
 package com.simiacryptus.mindseye.lang.cudnn;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.simiacryptus.mindseye.lang.CoreSettings;
 import com.simiacryptus.mindseye.lang.RegisteredObjectBase;
 import com.simiacryptus.mindseye.lang.Tensor;
@@ -33,7 +30,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.concurrent.ExecutionException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static jcuda.runtime.cudaMemcpyKind.cudaMemcpyDeviceToHost;
@@ -45,13 +43,7 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
   /**
    * The constant METRICS.
    */
-  public static final LoadingCache<Integer, DeviceMetrics> METRICS = CacheBuilder.newBuilder().build(new CacheLoader<Integer, DeviceMetrics>() {
-    @javax.annotation.Nonnull
-    @Override
-    public DeviceMetrics load(final Integer integer) throws Exception {
-      return new DeviceMetrics();
-    }
-  });
+  public static final Map<Integer, DeviceMetrics> METRICS = new ConcurrentHashMap<>();
   /**
    * The constant logger.
    */
@@ -96,13 +88,23 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
    * @param deviceId the device id
    * @return the long
    */
-  public static long clearMemory(final int deviceId) {
+  public static double clearWeakMemory(final int deviceId) {
+    logLoad();
+    double totalFreed = 0;
+    for (final MemoryType type : MemoryType.values()) {
+      totalFreed += type.purge(deviceId);
+    }
+    logLoad();
+    return totalFreed;
+  }
+  
+  public static double clearMemory(final int deviceId) {
     if (CoreSettings.INSTANCE.isConservative()) {
       logLoad();
       logger.info(String.format("Running Garbage Collector"));
       System.gc();
     }
-    long totalFreed = evictMemory(deviceId);
+    double totalFreed = evictMemory(deviceId);
     for (final MemoryType type : MemoryType.values()) {
       totalFreed += type.purge(deviceId);
     }
@@ -124,17 +126,17 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
    * @param deviceId the device id
    * @return the long
    */
-  public static long evictMemory(final int deviceId) {
+  public static double evictMemory(final int deviceId) {
     logLoad();
-    long bytes = RegisteredObjectBase.getLivingInstances(SimpleConvolutionLayer.class).mapToLong(x -> x.evictDeviceData(deviceId)).sum();
-    logger.info(String.format("Cleared %s bytes from ConvolutionFilters for device %s", bytes, deviceId));
-    long tensorListsFreed = CudaTensorList.evictToHeap(deviceId);
+    double bytes = RegisteredObjectBase.getLivingInstances(SimpleConvolutionLayer.class).mapToLong(x -> x.evictDeviceData(deviceId)).sum();
+    logger.info(String.format("Cleared %e bytes from ConvolutionFilters for device %s", bytes, deviceId));
+    double tensorListsFreed = CudaTensorList.evictToHeap(deviceId);
     return tensorListsFreed + bytes;
   }
   
   private static void logLoad() {
-    logger.info(String.format("Current Load: %s", METRICS.asMap().entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> {
-      return String.format("%d bytes", e.getValue().usedMemory.get());
+    logger.info(String.format("Current Load: %s", METRICS.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> {
+      return String.format("%e / %e", (double) e.getValue().activeMemory.get(), (double) e.getValue().usedMemory.get());
     }))));
   }
   
@@ -146,13 +148,7 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
    * @return the gpu stats
    */
   public static DeviceMetrics getGpuStats(final int deviceId) {
-    DeviceMetrics devivceMemCtr;
-    try {
-      devivceMemCtr = CudaMemory.METRICS.get(deviceId);
-    } catch (@javax.annotation.Nonnull final ExecutionException e) {
-      throw new RuntimeException(e.getCause());
-    }
-    return devivceMemCtr;
+    return CudaMemory.METRICS.computeIfAbsent(deviceId, device -> new DeviceMetrics());
   }
   
   /**
@@ -233,7 +229,7 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
   public void release() {
     if (isActiveObj()) {
       getType().recycle(ptr, deviceId, size);
-      CudaMemory.getGpuStats(deviceId).usedMemory.addAndGet(-size);
+      CudaMemory.getGpuStats(type == MemoryType.Managed ? -1 : deviceId).activeMemory.addAndGet(-size);
     }
   }
   
@@ -269,7 +265,7 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
     }
     else {
       CudaSystem.cudaMemcpy(precision.getPointer(destination), getPtr().withByteOffset((long) offset * precision.size), (long) destination.length * precision.size, cudaMemcpyDeviceToHost);
-      CudaMemory.getGpuStats(deviceId).memoryReads.addAndGet((long) destination.length * precision.size);
+      CudaMemory.getGpuStats(type == MemoryType.Managed ? -1 : deviceId).memoryReads.addAndGet((long) destination.length * precision.size);
     }
     return this;
   }
@@ -306,7 +302,7 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
     }
     else {
       CudaSystem.cudaMemcpy(precision.getPointer(destination), getPtr().withByteOffset((long) offset * precision.size), (long) destination.length * precision.size, cudaMemcpyDeviceToHost);
-      CudaMemory.getGpuStats(deviceId).memoryReads.addAndGet((long) destination.length * precision.size);
+      CudaMemory.getGpuStats(type == MemoryType.Managed ? -1 : deviceId).memoryReads.addAndGet((long) destination.length * precision.size);
     }
     return this;
   }
@@ -334,7 +330,7 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
     if (size < ((offset + data.length) * precision.size))
       throw new IllegalArgumentException(String.format("%d != (%d + %d) * %d", size, offset, data.length, precision.size));
     CudaSystem.cudaMemcpy(getPtr().withByteOffset(offset * precision.size), precision.getPointer(data), (long) data.length * precision.size, cudaMemcpyKind.cudaMemcpyHostToDevice);
-    CudaMemory.getGpuStats(deviceId).memoryWrites.addAndGet((long) data.length * precision.size);
+    CudaMemory.getGpuStats(type == MemoryType.Managed ? -1 : deviceId).memoryWrites.addAndGet((long) data.length * precision.size);
     return this;
   }
   
@@ -361,7 +357,7 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
     if (size < (offset + data.length) * precision.size)
       throw new IllegalArgumentException(String.format("%d != %d * %d", size, data.length, precision.size));
     CudaSystem.cudaMemcpy(getPtr().withByteOffset(offset * precision.size), precision.getPointer(data), (long) data.length * precision.size, cudaMemcpyKind.cudaMemcpyHostToDevice);
-    CudaMemory.getGpuStats(deviceId).memoryWrites.addAndGet((long) data.length * precision.size);
+    CudaMemory.getGpuStats(type == MemoryType.Managed ? -1 : deviceId).memoryWrites.addAndGet((long) data.length * precision.size);
     return this;
   }
   

@@ -33,7 +33,6 @@ import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
-import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
@@ -45,7 +44,6 @@ import com.simiacryptus.mindseye.test.data.ImageTiles;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.lang.TimedResult;
-import com.simiacryptus.util.test.SysOutInterceptor;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
@@ -245,24 +243,7 @@ public class StyleTransferDemo extends NotebookReportBase {
    */
   @javax.annotation.Nonnull
   public TrainingMonitor getTrainingMonitor(@javax.annotation.Nonnull ArrayList<StepRecord> history) {
-    @javax.annotation.Nonnull TrainingMonitor monitor = TestUtil.getMonitor(history);
-    return new TrainingMonitor() {
-      @Override
-      public void clear() {
-        monitor.clear();
-      }
-      
-      @Override
-      public void log(String msg) {
-        SysOutInterceptor.ORIGINAL_OUT.println(msg);
-        monitor.log(msg);
-      }
-      
-      @Override
-      public void onStepComplete(Step currentPoint) {
-        monitor.onStepComplete(currentPoint);
-      }
-    };
+    return TestUtil.getMonitor(history);
   }
   
   /**

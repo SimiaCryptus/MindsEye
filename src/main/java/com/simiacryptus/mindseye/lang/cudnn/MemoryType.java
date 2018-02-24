@@ -55,13 +55,13 @@ public enum MemoryType {
     }
     
     @Override
-    public void recycle(final Pointer ptr, final int deviceId, final long size) {
+    public void recycle(final Pointer ptr, final int deviceId, final long length) {
       cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDevice());
       if (properties.managedMemory == 1) {
-        super.recycle(ptr, deviceId, size);
+        super.recycle(ptr, -1, length);
       }
       else {
-        Device.recycle(ptr, deviceId, size);
+        Device.recycle(ptr, -1, length);
       }
     }
     
@@ -178,8 +178,11 @@ public enum MemoryType {
   protected static final Logger logger = LoggerFactory.getLogger(MemoryType.class);
   private final Map<Integer, RecycleBin<Wrapper<Pointer>>> cache = new ConcurrentHashMap<>();
   
-  public void recycle(Pointer ptr, int deviceId, final long size) {
-    get(deviceId).recycle(new Wrapper<>(ptr, x -> MemoryType.this.free(x, deviceId)), size);
+  public void recycle(Pointer ptr, int deviceId, final long length) {
+    get(deviceId).recycle(new Wrapper<>(ptr, x -> {
+      CudaMemory.getGpuStats(deviceId).usedMemory.addAndGet(-length);
+      MemoryType.this.free(x, deviceId);
+    }), length);
   }
   
   protected RecycleBin<Wrapper<Pointer>> get(int device) {
@@ -194,7 +197,14 @@ public enum MemoryType {
         @Nonnull
         @Override
         public Wrapper<Pointer> create(final long length) {
-          return CudnnHandle.eval(gpu -> new Wrapper<>(MemoryType.this.alloc(length, gpu), x -> MemoryType.this.free(x, device)));
+          return CudnnHandle.eval(gpu -> {
+            Pointer alloc = MemoryType.this.alloc(length, gpu);
+            CudaMemory.getGpuStats(device).usedMemory.addAndGet(length);
+            return new Wrapper<>(alloc, x -> {
+              CudaMemory.getGpuStats(device).usedMemory.addAndGet(-length);
+              MemoryType.this.free(x, device);
+            });
+          });
         }
         
         @Override
@@ -205,9 +215,9 @@ public enum MemoryType {
     });
   }
   
-  public long purge(final int device) {
-    long clear = get(device).clear();
-    logger.info(String.format("Purged %s bytes from pool for %s (device %s)", clear, this, device));
+  public double purge(final int device) {
+    double clear = get(device).clear();
+    logger.info(String.format("Purged %e bytes from pool for %s (device %s)", clear, this, device));
     return clear;
   }
   

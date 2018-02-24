@@ -68,7 +68,7 @@ public abstract class RecycleBin<T> {
   private final StackCounter recycle_put = new StackCounter();
   private final StackCounter recycle_get = new StackCounter();
   private final ConcurrentHashMap<Long, ConcurrentLinkedDeque<Supplier<T>>> recycling = new ConcurrentHashMap<>();
-  private int profilingThreshold = 32 * 1024;
+  private int profilingThreshold = Integer.MAX_VALUE;
   private PersistanceMode persistanceMode = WEAK;
   private int minLengthPerBuffer = 256;
   private double maxLengthPerBuffer = 1e9;
@@ -85,7 +85,7 @@ public abstract class RecycleBin<T> {
         while (null != (poll = v.poll())) {
           T obj = poll.get();
           if (obj != null) {
-            free2(obj, k);
+            freeItem(obj, k);
           }
         }
       }), 10, 10, TimeUnit.SECONDS);
@@ -126,7 +126,7 @@ public abstract class RecycleBin<T> {
    *  @param obj  the obj
    * @param size the size
    */
-  protected long free2(T obj, long size) {
+  protected long freeItem(T obj, long size) {
     @Nullable StackCounter stackCounter = getFrees(size);
     if (null != stackCounter) {
       stackCounter.increment(size);
@@ -147,7 +147,10 @@ public abstract class RecycleBin<T> {
    */
   public long clear() {
     synchronized (recycling) {
-      long sum = recycling.entrySet().stream().mapToLong(e -> e.getValue().stream().mapToLong(x -> free2(x.get(), e.getKey())).sum()).sum();
+      long sum = recycling.entrySet().stream().mapToLong(e -> e.getValue().stream().mapToLong(ref -> {
+        Long length = e.getKey();
+        return freeItem(ref.get(), length);
+      }).sum()).sum();
       recycling.clear();
       return sum;
     }
@@ -371,7 +374,7 @@ public abstract class RecycleBin<T> {
         }
       }
     }
-    free2(data, size);
+    freeItem(data, size);
   }
   
   /**

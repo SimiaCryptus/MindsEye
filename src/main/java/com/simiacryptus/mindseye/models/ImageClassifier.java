@@ -28,14 +28,12 @@ import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
-import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.test.SysOutInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,24 +125,7 @@ public abstract class ImageClassifier {
    */
   @javax.annotation.Nonnull
   public static TrainingMonitor getTrainingMonitor(@javax.annotation.Nonnull ArrayList<StepRecord> history) {
-    @javax.annotation.Nonnull TrainingMonitor monitor1 = TestUtil.getMonitor(history);
-    return new TrainingMonitor() {
-      @Override
-      public void clear() {
-        monitor1.clear();
-      }
-      
-      @Override
-      public void log(String msg) {
-        SysOutInterceptor.ORIGINAL_OUT.println(msg);
-        monitor1.log(msg);
-      }
-      
-      @Override
-      public void onStepComplete(Step currentPoint) {
-        monitor1.onStepComplete(currentPoint);
-      }
-    };
+    return TestUtil.getMonitor(history);
   }
   
   /**
