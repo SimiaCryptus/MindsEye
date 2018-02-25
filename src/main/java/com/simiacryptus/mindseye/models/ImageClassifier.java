@@ -169,7 +169,7 @@ public abstract class ImageClassifier {
    * @param targetCategoryIndex the target category index
    * @param totalCategories     the total categories
    */
-  public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories) {
+  public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories, Function<IterativeTrainer, IterativeTrainer> config) {
     @Nonnull List<Tensor[]> data = Arrays.<Tensor[]>asList(new Tensor[]{
       image, new Tensor(totalCategories).set(targetCategoryIndex, 1.0)
     });
@@ -202,11 +202,11 @@ public abstract class ImageClassifier {
 //      }).toArray(i -> new TensorList[i]);
 //      @Nonnull Trainable trainable = new TensorListTrainable(supervised, gpuInput).setVerbosity(1).setMask(true);
       @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setVerbose(true).setMask(true, false).setData(data);
-      new IterativeTrainer(trainable)
+      config.apply(new IterativeTrainer(trainable)
         .setMonitor(getTrainingMonitor(history, supervised))
         .setOrientation(new QQN())
         .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-        .setTimeout(60, TimeUnit.MINUTES)
+        .setTimeout(60, TimeUnit.MINUTES))
         .runAndFree();
       return TestUtil.plot(history);
     });

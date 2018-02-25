@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -77,12 +78,12 @@ public class DeepDreamDemo extends NotebookReportBase {
       log.h1("Image " + itemNumber);
       Tensor image = images[itemNumber];
       TestUtil.monitorImage(image, false);
-      List<String> categories = vgg16.predict(5, image).stream().flatMap(x -> x.keySet().stream()).collect(Collectors.toList());
+      List<String> categories = vgg16.predict(3, image).stream().flatMap(x -> x.keySet().stream()).collect(Collectors.toList());
       log.p("Predictions: %s", categories.stream().reduce((a, b) -> a + "; " + b).get());
       log.p("Evolve from %s to %s", categories.get(0), categories.get(2));
       int targetCategoryIndex = vgg16Categories.indexOf(categories.get(1));
       int totalCategories = vgg16Categories.size();
-      vgg16.deepDream(log, image, targetCategoryIndex, totalCategories);
+      vgg16.deepDream(log, image, targetCategoryIndex, totalCategories, train -> train.setTimeout(3, TimeUnit.HOURS));
       try {
         log.p(log.image(image.toImage(), "result"));
       } catch (IOException e) {
@@ -95,7 +96,8 @@ public class DeepDreamDemo extends NotebookReportBase {
   
   public Tensor[] getImages_Artistry(@javax.annotation.Nonnull final NotebookOutput log) {
     return Stream.of(
-      "H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\800px-Vincent_van_Gogh_-_Portrait_of_Doctor_Félix_Rey_(F500).jpg"
+      "H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\800px-Vincent_van_Gogh_-_Portrait_of_Doctor_Félix_Rey_(F500).jpg",
+      "H:\\SimiaCryptus\\Artistry\\portraits\\michelangelo\\Michelangelo_Buonarroti_027.jpg"
     ).map(file -> {
       try {
         BufferedImage image = ImageIO.read(new File(file));
