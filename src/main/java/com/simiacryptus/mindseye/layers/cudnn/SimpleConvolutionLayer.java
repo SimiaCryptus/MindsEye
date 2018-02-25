@@ -668,10 +668,10 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   }
   
   /**
-   * Sets weights log.
+   * Sets weights _log.
    *
    * @param f the f
-   * @return the weights log
+   * @return the weights _log
    */
   @javax.annotation.Nonnull
   public SimpleConvolutionLayer setWeightsLog(double f) {

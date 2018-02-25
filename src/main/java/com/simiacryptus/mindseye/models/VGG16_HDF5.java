@@ -44,7 +44,7 @@ import java.util.Arrays;
  */
 public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
   /**
-   * The constant log.
+   * The constant _log.
    */
   protected static final Logger log = LoggerFactory.getLogger(Hdf5Archive.class);
   /**

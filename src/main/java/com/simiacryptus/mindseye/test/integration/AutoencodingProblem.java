@@ -113,7 +113,7 @@ public class AutoencodingProblem implements Problem {
   /**
    * Get training data tensor [ ] [ ].
    *
-   * @param log the log
+   * @param log the _log
    * @return the tensor [ ] [ ]
    */
   public Tensor[][] getTrainingData(final NotebookOutput log) {
@@ -217,8 +217,8 @@ public class AutoencodingProblem implements Problem {
     @javax.annotation.Nonnull final String modelName = "decoder_model" + AutoencodingProblem.modelNo++ + ".json";
     log.p("Saved model as " + log.file(revNetwork.getJson().toString(), modelName, modelName));
 
-//    log.h3("Metrics");
-//    log.code(() -> {
+//    _log.h3("Metrics");
+//    _log.code(() -> {
 //      return TestUtil.toFormattedJson(monitoringRoot.getMetrics());
 //    });
     
@@ -249,7 +249,7 @@ public class AutoencodingProblem implements Problem {
   /**
    * To row linked hash map.
    *
-   * @param log              the log
+   * @param log              the _log
    * @param labeledObject    the labeled object
    * @param predictionSignal the prediction signal
    * @return the linked hash map

@@ -220,7 +220,7 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
    * Free.
    */
   protected void _free() {
-    CudnnHandle threadHandle = CudnnHandle.getThreadHandle();
+    CudnnHandle threadHandle = CudaSystem.getThreadHandle();
     if (null != threadHandle) threadHandle.cleanupNative.add(this);
     else release();
   }

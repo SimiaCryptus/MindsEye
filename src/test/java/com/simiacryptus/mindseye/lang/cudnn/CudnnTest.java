@@ -63,7 +63,7 @@ public class CudnnTest extends NotebookReportBase {
   }
   
   private void allocationOverflow(@javax.annotation.Nonnull NotebookOutput log) {
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + ".log";
+    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "._log";
     @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
     CudaSystem.addLog(apiLog);
     log.p(log.file((String) null, logName, "GPU Log"));
@@ -102,7 +102,7 @@ public class CudnnTest extends NotebookReportBase {
   }
   
   private void memoryTransfer(@javax.annotation.Nonnull NotebookOutput log) {
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + ".log";
+    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "._log";
     @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
     CudaSystem.addLog(apiLog);
     log.p(log.file((String) null, logName, "GPU Log"));
@@ -163,7 +163,7 @@ public class CudnnTest extends NotebookReportBase {
   }
   
   private void tensorLists(@javax.annotation.Nonnull NotebookOutput log) {
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + ".log";
+    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "._log";
     @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
     CudaSystem.addLog(apiLog);
     log.p(log.file((String) null, logName, "GPU Log"));
@@ -276,7 +276,7 @@ public class CudnnTest extends NotebookReportBase {
   }
   
   private void tensorLists_multithreaded(@javax.annotation.Nonnull NotebookOutput log) {
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + ".log";
+    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "._log";
     @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
     CudaSystem.addLog(apiLog);
     log.p(log.file((String) null, logName, "GPU Log"));

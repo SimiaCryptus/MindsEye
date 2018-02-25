@@ -53,7 +53,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
   /**
    * Gets image classifier.
    *
-   * @param log the log
+   * @param log the _log
    * @return the image classifier
    */
   public abstract ImageClassifier getImageClassifier(NotebookOutput log);
@@ -61,7 +61,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
   /**
    * Test.
    *
-   * @param log the log
+   * @param log the _log
    */
   public void run(@javax.annotation.Nonnull NotebookOutput log) {
     Future<Tensor[][]> submit = Executors.newSingleThreadExecutor()
@@ -87,7 +87,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
 
 //    @javax.annotation.Nonnull SerializationTest serializationTest = new SerializationTest();
 //    serializationTest.setPersist(true);
-//    serializationTest.test(log, network, (Tensor[]) null);
+//    serializationTest.test(_log, network, (Tensor[]) null);
   
     log.h1("Predictions");
     Tensor[][] images;
@@ -100,8 +100,8 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
     modelPredictions.put("Source", predict(log, vgg16, network, images));
     network.freeRef();
 //    serializationTest.getModels().forEach((precision, model) -> {
-//      log.h2(precision.name());
-//      modelPredictions.put(precision.name(), predict(log, vgg16, model, images));
+//      _log.h2(precision.name());
+//      modelPredictions.put(precision.name(), predict(_log, vgg16, model, images));
 //    });
   
     log.h1("Result");
@@ -123,8 +123,8 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
       return tableOutput;
     }, 256 * 1024);
 
-//    log.p("CudaSystem Statistics:");
-//    log.code(() -> {
+//    _log.p("CudaSystem Statistics:");
+//    _log.code(() -> {
 //      return TestUtil.toFormattedJson(CudaSystem.getExecutionStatistics());
 //    });
   
@@ -133,7 +133,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
   /**
    * Predict list.
    *
-   * @param log     the log
+   * @param log     the _log
    * @param vgg16   the vgg 16
    * @param network the network
    * @param images  the images

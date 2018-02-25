@@ -230,7 +230,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
 //      double input = measurement.getMean();
 //      boolean isDifferent = Math.abs(verify - input) > 1e-2;
 //      if (isDifferent) throw new AssertionError(String.format("Invalid input point: %s != %s", verify, input));
-//      monitor.log(String.format("Verified input point: %s == %s", verify, input));
+//      monitor._log(String.format("Verified input point: %s == %s", verify, input));
 //    }
     
     addToHistory(measurement, monitor);
@@ -259,7 +259,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
 //      double input = measurement.getMean();
 //      boolean isDifferent = Math.abs(verify - input) > 1e-2;
 //      if (isDifferent) throw new AssertionError(String.format("Invalid lfbgs cursor: %s != %s", verify, input));
-//      monitor.log(String.format("Verified lfbgs cursor: %s == %s", verify, input));
+//      monitor._log(String.format("Verified lfbgs cursor: %s == %s", verify, input));
 //    }
   
     return returnValue;

@@ -383,10 +383,10 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   }
   
   /**
-   * Sets weights log.
+   * Sets weights _log.
    *
    * @param f the f
-   * @return the weights log
+   * @return the weights _log
    */
   @javax.annotation.Nonnull
   public ConvolutionLayer setWeightsLog(double f) {

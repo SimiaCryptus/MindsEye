@@ -111,7 +111,7 @@ public class QuadraticSearch implements LineSearchStrategy {
         else {
           isLeft = thisPoint.derivative < 0;
         }
-        //monitor.log(String.format("isLeft=%s; isBracketed=%s; leftPoint=%s; rightPoint=%s", isLeft, isBracketed, leftPoint, rightPoint));
+        //monitor._log(String.format("isLeft=%s; isBracketed=%s; leftPoint=%s; rightPoint=%s", isLeft, isBracketed, leftPoint, rightPoint));
         monitor.log(String.format("F(%s) = %s, delta = %s", thisX, thisPoint, thisPoint.point.getMean() - initialPoint.point.getMean()));
         if (loops++ > 10) {
           monitor.log(String.format("Loops = %s", loops));

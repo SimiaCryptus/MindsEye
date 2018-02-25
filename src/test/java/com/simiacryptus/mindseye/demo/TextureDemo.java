@@ -73,11 +73,11 @@ public class TextureDemo extends NotebookReportBase {
   /**
    * Test.
    *
-   * @param log the log
+   * @param log the _log
    */
   public void run(@Nonnull NotebookOutput log) {
   
-    @Nonnull String logName = "cuda_" + log.getName() + ".log";
+    @Nonnull String logName = "cuda_" + log.getName() + "._log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
   
