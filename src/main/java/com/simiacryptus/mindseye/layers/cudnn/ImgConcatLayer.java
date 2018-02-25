@@ -102,7 +102,9 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
     return new Result(CudaSystem.eval(gpu -> {
       final long outputSize = ((long) length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
       @javax.annotation.Nonnull final CudaMemory cudaOutput = gpu.allocate(outputSize, MemoryType.Managed, true);
-      for (int i = 0; i < inObj.length; i++) {
+      IntStream stream = IntStream.range(0, inObj.length);
+      //if (!CoreSettings.INSTANCE.isConservative() && parallel) stream = stream.parallel();
+      stream.forEach(i -> {
         final TensorList input = inObj[i].getData();
         @Nonnull final int[] inputDimensions = input.getDimensions();
         assert inputDimensions[0] == outputDimensions[0];
@@ -125,7 +127,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
           );
           Arrays.stream(new ReferenceCounting[]{cudaInput, inputDescriptor, outputDescriptor}).forEach(ReferenceCounting::freeRef);
         }
-      }
+      });
       return CudaTensorList.wrap(cudaOutput, length, outputDimensions, precision);
     }), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!Arrays.equals(delta.getDimensions(), outputDimensions)) {

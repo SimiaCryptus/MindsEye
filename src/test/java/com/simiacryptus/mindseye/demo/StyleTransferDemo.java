@@ -102,11 +102,9 @@ public class StyleTransferDemo extends NotebookReportBase {
       try {
         return new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
           @Override
-          protected void phase3(@Nonnull final NotebookOutput output) {
-            output.code(() -> {
-              textureNetork = model.copy().freeze();
-              add(trainedCategorizer);
-            });
+          protected void phase3() {
+            textureNetork = model.copy().freeze();
+            add(trainedCategorizer);
           }
         };
       } catch (@Nonnull final RuntimeException e) {

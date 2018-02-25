@@ -20,22 +20,11 @@
 package com.simiacryptus.mindseye.models;
 
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.io.NullNotebookOutput;
 
 /**
  * A network factory designed to be called within a report, with extra details being logged to the report output.
  */
-public interface DemoableNetworkFactory {
-  
-  /**
-   * Build pipeline network.
-   *
-   * @param output the output
-   * @return the pipeline network
-   */
-  @javax.annotation.Nonnull
-  Layer build(NotebookOutput output);
+public interface NetworkFactory {
   
   /**
    * Build pipeline network.
@@ -43,6 +32,6 @@ public interface DemoableNetworkFactory {
    * @return the pipeline network
    */
   @javax.annotation.Nonnull
-  default Layer build() {return build(new NullNotebookOutput());}
+  Layer build();
   
 }

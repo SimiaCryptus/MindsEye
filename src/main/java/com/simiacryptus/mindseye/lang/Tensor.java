@@ -1283,11 +1283,12 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    *
    * @param v the v
    */
-  public void setAll(final double v) {
+  public Tensor setAll(final double v) {
     @Nullable final double[] data = getData();
     for (int i = 0; i < data.length; i++) {
       data[i] = v;
     }
+    return this;
   }
   
   /**

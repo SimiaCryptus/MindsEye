@@ -340,10 +340,12 @@ public class TestUtil {
   public static PlotCanvas plot(@javax.annotation.Nonnull final List<StepRecord> history) {
     try {
       final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
-      @javax.annotation.Nonnull final PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
-        step.iteration, java.lang.Math.log10(Math.max(valueStats.getMin(), step.fitness))})
+      double[][] data = history.stream().map(step -> new double[]{
+        step.iteration, Math.log10(Math.max(valueStats.getMin(), step.fitness))})
         .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
-        .toArray(i -> new double[i][]));
+        .toArray(i -> new double[i][]);
+      if (Arrays.stream(data).mapToInt(x -> x.length).sum() == 0) return null;
+      @javax.annotation.Nonnull final PlotCanvas plot = ScatterPlot.plot(data);
       plot.setTitle("Convergence Plot");
       plot.setAxisLabels("Iteration", "log10(Fitness)");
       plot.setSize(600, 400);
@@ -699,18 +701,43 @@ public class TestUtil {
    * @param input the input
    * @param exitOnClose
    */
-  public static void monitorImage(final Tensor input, final boolean exitOnClose) {
+  public static void monitorImage(final Tensor input, final boolean exitOnClose) {monitorImage(input, exitOnClose, 30);}
+  
+  /**
+   * Monitor ui.
+   *
+   * @param input       the input
+   * @param exitOnClose
+   * @param period
+   */
+  public static void monitorImage(final Tensor input, final boolean exitOnClose, final int period) {
     JLabel label = new JLabel(new ImageIcon(input.toImage()));
     WeakReference<JLabel> labelWeakReference = new WeakReference<>(label);
+    Function<Tensor, Tensor> displayFilter = image -> {
+      DoubleStatistics[] statistics = IntStream.range(0, image.getDimensions()[2]).mapToObj(i -> new DoubleStatistics()).toArray(i -> new DoubleStatistics[i]);
+      image.coordStream(false).forEach(c -> {
+        double value = image.get(c);
+        statistics[c.getCoords()[2]].accept(value);
+      });
+      return image.mapCoords(c -> {
+        double value = image.get(c);
+        DoubleStatistics statistic = statistics[c.getCoords()[2]];
+        return 255 * (value - statistic.getMin()) / (statistic.getMax() - statistic.getMin());
+      });
+    };
     ScheduledFuture<?> updater = scheduledThreadPool.scheduleAtFixedRate(() -> {
-      JLabel jLabel = labelWeakReference.get();
-      if (null != jLabel) {
-        BufferedImage image = input.toImage();
-        int width = jLabel.getWidth();
-        if (width > 0) TestUtil.resize(image, width, jLabel.getHeight());
-        jLabel.setIcon(new ImageIcon(image));
+      try {
+        JLabel jLabel = labelWeakReference.get();
+        if (null != jLabel) {
+          BufferedImage image = displayFilter.apply(input).toImage();
+          int width = jLabel.getWidth();
+          if (width > 0) TestUtil.resize(image, width, jLabel.getHeight());
+          jLabel.setIcon(new ImageIcon(image));
+        }
+      } catch (Throwable e) {
+        e.printStackTrace();
       }
-    }, 30, 30, TimeUnit.SECONDS);
+    }, 0, period, TimeUnit.SECONDS);
     new Thread(() -> {
       final JDialog dialog;
       Window window = JOptionPane.getRootFrame();
@@ -750,7 +777,7 @@ public class TestUtil {
               File selectedFile = fileChooser.getSelectedFile();
               if (!selectedFile.getName().toUpperCase().endsWith(".PNG"))
                 selectedFile = new File(selectedFile.getParent(), selectedFile.getName() + ".png");
-              BufferedImage image = input.toImage();
+              BufferedImage image = displayFilter.apply(input).toImage();
               if (!ImageIO.write(image, "PNG", selectedFile)) throw new IllegalArgumentException();
             } catch (IOException e1) {
               throw new RuntimeException(e1);

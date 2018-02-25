@@ -34,7 +34,7 @@ import java.util.stream.Stream;
  * compoent in a network can be used multiple times, we can improve efficiency of backprop by accumulating all the
  * backpropigating delta signals into a single signal before evaluating further backwards.
  */
-class CountingResult extends Result {
+public class CountingResult extends Result {
   /**
    * The constant logger.
    */
@@ -51,10 +51,15 @@ class CountingResult extends Result {
    *
    * @param inner the heapCopy
    */
-  protected CountingResult(@javax.annotation.Nonnull final Result inner) {
+  public CountingResult(@javax.annotation.Nonnull final Result inner) {
     super(inner.getData(), new CountingAccumulator(inner));
     this.inner = inner;
     inner.addRef();
+  }
+  
+  public CountingResult(final Result r, final int samples) {
+    this(r);
+    getAccumulator().references.set(samples);
   }
   
   @javax.annotation.Nonnull

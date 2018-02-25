@@ -520,7 +520,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
         return x;
       }).toArray();
     } catch (Throwable e) {
-      throw new RuntimeException(String.format("Error with convolution %s x %s", Arrays.toString(inputSize), Arrays.toString(kernelSize)), e);
+      throw new RuntimeException(String.format("Error with convolution %s x %s (%s)", Arrays.toString(inputSize), Arrays.toString(kernelSize), getName()), e);
     }
   }
   

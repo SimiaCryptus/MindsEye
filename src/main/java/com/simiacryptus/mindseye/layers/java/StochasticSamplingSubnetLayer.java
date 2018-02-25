@@ -23,6 +23,7 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.GateProductLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SumInputsLayer;
+import com.simiacryptus.mindseye.network.CountingResult;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -106,6 +107,9 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
   @Nullable
   @Override
   public Result eval(@Nonnull final Result... inObj) {
+    Result[] counting = Arrays.stream(inObj).map(r -> {
+      return new CountingResult(r, samples);
+    }).toArray(i -> new Result[i]);
     return average(Arrays.stream(getSeeds()).mapToObj(seed -> {
       if (subnetwork instanceof DAGNetwork) {
         ((DAGNetwork) subnetwork).visitNodes(node -> {
@@ -118,7 +122,7 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
       if (subnetwork instanceof StochasticComponent) {
         ((StochasticComponent) subnetwork).shuffle(seed);
       }
-      return subnetwork.eval(inObj);
+      return subnetwork.eval(counting);
     }).toArray(i -> new Result[i]));
   }
   

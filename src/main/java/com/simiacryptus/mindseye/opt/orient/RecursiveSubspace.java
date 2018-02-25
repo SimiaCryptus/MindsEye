@@ -178,10 +178,10 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
    */
   public void train(@javax.annotation.Nonnull TrainingMonitor monitor, Layer macroLayer) {
     @javax.annotation.Nonnull BasicTrainable inner = new BasicTrainable(macroLayer);
-    @javax.annotation.Nonnull Tensor tensor = new Tensor();
-    @javax.annotation.Nonnull ArrayTrainable trainable = new ArrayTrainable(inner, new Tensor[][]{{tensor}});
+    //@javax.annotation.Nonnull Tensor tensor = new Tensor();
+    @javax.annotation.Nonnull ArrayTrainable trainable = new ArrayTrainable(inner, new Tensor[][]{{}});
     inner.freeRef();
-    tensor.freeRef();
+    //tensor.freeRef();
     new IterativeTrainer(trainable)
       .setOrientation(new LBFGS())
       .setLineSearchFactory(n -> new ArmijoWolfeSearch())

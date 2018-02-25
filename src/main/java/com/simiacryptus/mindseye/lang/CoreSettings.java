@@ -37,7 +37,7 @@ public class CoreSettings implements Settings {
   
   private CoreSettings() {
     this.conservative = Settings.get("CONSERVATIVE", false);
-    this.lifecycleDebug = Settings.get("DEBUG_LIFECYCLE", true || isConservative());
+    this.lifecycleDebug = Settings.get("DEBUG_LIFECYCLE", false || isConservative());
     this.doubleCacheMode = Settings.get("DOUBLE_CACHE_MODE", PersistanceMode.WEAK);
     this.backpropAggregationSize = Settings.get("BACKPROP_AGG_SIZE", 4);
   }

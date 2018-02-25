@@ -83,7 +83,9 @@ public class DeepDreamDemo extends NotebookReportBase {
       log.p("Evolve from %s to %s", categories.get(0), categories.get(2));
       int targetCategoryIndex = vgg16Categories.indexOf(categories.get(1));
       int totalCategories = vgg16Categories.size();
-      vgg16.deepDream(log, image, targetCategoryIndex, totalCategories, train -> train.setTimeout(3, TimeUnit.HOURS));
+      vgg16.deepDream(log, image, targetCategoryIndex, totalCategories, train -> train
+        .setTimeout(3, TimeUnit.HOURS)
+        .setIterationsPerSample(5));
       try {
         log.p(log.image(image.toImage(), "result"));
       } catch (IOException e) {

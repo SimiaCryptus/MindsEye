@@ -31,7 +31,6 @@ import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.util.io.NotebookOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +42,7 @@ import java.util.Arrays;
  * for Large-Scale Image Recognition K. Simonyan, A. Zisserman arXiv:1409.1556 Please cite the paper if you use the
  * models.
  */
-public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5 {
+public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
   /**
    * The constant log.
    */
@@ -201,13 +200,13 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
   
   @javax.annotation.Nonnull
   @Override
-  public Layer build(@javax.annotation.Nonnull NotebookOutput output) {
+  public Layer build() {
     try {
-      phase0(output);
-      phase1(output, large);
-      phase2(output, dense, large);
-      phase3(output);
-      setPrecision(output);
+      phase0();
+      phase1(large);
+      phase2(dense, large);
+      phase3();
+      setPrecision();
       if (null != prototype) prototype.freeRef();
       prototype = null;
       return model;
@@ -221,325 +220,254 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
   /**
    * Sets precision.
    *
-   * @param output the output
    */
-  protected void setPrecision(@javax.annotation.Nonnull final NotebookOutput output) {
-    output.code(() -> {
-      model.visitLayers(layer -> {
-        if (layer instanceof MultiPrecision) {
-          ((MultiPrecision) layer).setPrecision(precision);
-        }
-      });
-      return precision;
+  protected void setPrecision() {
+    model.visitLayers(layer -> {
+      if (layer instanceof MultiPrecision) {
+        ((MultiPrecision) layer).setPrecision(precision);
+      }
     });
   }
   
   /**
    * Phase 0.
    *
-   * @param output the output
    */
-  protected void phase0(@javax.annotation.Nonnull NotebookOutput output) {
-    output.code(() -> {
-      add(new ImgMinSizeLayer(226, 226));
-    });
+  protected void phase0() {
+    add(new ImgMinSizeLayer(226, 226));
   }
   
   /**
    * Phase 1.
    *
-   * @param output the output
    * @param large  the large
    */
-  protected void phase1(@javax.annotation.Nonnull NotebookOutput output, final boolean large) {
-    phase1a(output);
-    phase1b(output);
-    phase1c(output, large);
-    phase1d(output, large);
-    phase1e(output, large);
+  protected void phase1(final boolean large) {
+    phase1a();
+    phase1b();
+    phase1c(large);
+    phase1d(large);
+    phase1e(large);
   }
   
   /**
    * Phase 1 a.
    *
-   * @param output the output
    */
-  protected void phase1a(@javax.annotation.Nonnull final NotebookOutput output) {
-    addConvolutionLayer(output, 3, 3, 64, ActivationLayer.Mode.RELU, "layer_1");
-    addConvolutionLayer(output, 3, 64, 64, ActivationLayer.Mode.RELU, "layer_3");
+  protected void phase1a() {
+    addConvolutionLayer(3, 3, 64, ActivationLayer.Mode.RELU, "layer_1");
+    addConvolutionLayer(3, 64, 64, ActivationLayer.Mode.RELU, "layer_3");
   }
   
   /**
    * Phase 1 b.
    *
-   * @param output the output
    */
-  protected void phase1b(@javax.annotation.Nonnull final NotebookOutput output) {
-    addPoolingLayer(output, true);
-    addConvolutionLayer(output, 3, 64, 128, ActivationLayer.Mode.RELU, "layer_6");
-    addConvolutionLayer(output, 3, 128, 128, ActivationLayer.Mode.RELU, "layer_8");
+  protected void phase1b() {
+    addPoolingLayer(true);
+    addConvolutionLayer(3, 64, 128, ActivationLayer.Mode.RELU, "layer_6");
+    addConvolutionLayer(3, 128, 128, ActivationLayer.Mode.RELU, "layer_8");
   }
   
   /**
    * Phase 1 c.
    *
-   * @param output the output
    * @param large  the large
    */
-  protected void phase1c(@javax.annotation.Nonnull final NotebookOutput output, final boolean large) {
-    addPoolingLayer(output, large);
-    addConvolutionLayer(output, 3, 128, 256, ActivationLayer.Mode.RELU, "layer_11");
-    addConvolutionLayer(output, 3, 256, 256, ActivationLayer.Mode.RELU, "layer_13");
-    addConvolutionLayer(output, 3, 256, 256, ActivationLayer.Mode.RELU, "layer_15");
+  protected void phase1c(final boolean large) {
+    addPoolingLayer(large);
+    addConvolutionLayer(3, 128, 256, ActivationLayer.Mode.RELU, "layer_11");
+    addConvolutionLayer(3, 256, 256, ActivationLayer.Mode.RELU, "layer_13");
+    addConvolutionLayer(3, 256, 256, ActivationLayer.Mode.RELU, "layer_15");
   }
   
   /**
    * Phase 1 d.
    *
-   * @param output the output
    * @param large  the large
    */
-  protected void phase1d(@javax.annotation.Nonnull final NotebookOutput output, final boolean large) {
-    addPoolingLayer(output, large);
-    addConvolutionLayer(output, 3, 256, 512, ActivationLayer.Mode.RELU, "layer_18");
-    addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_20");
-    addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_22");
+  protected void phase1d(final boolean large) {
+    addPoolingLayer(large);
+    addConvolutionLayer(3, 256, 512, ActivationLayer.Mode.RELU, "layer_18");
+    addConvolutionLayer(3, 512, 512, ActivationLayer.Mode.RELU, "layer_20");
+    addConvolutionLayer(3, 512, 512, ActivationLayer.Mode.RELU, "layer_22");
   }
   
   /**
    * Phase 1 e.
    *
-   * @param output the output
    * @param large  the large
    */
-  protected void phase1e(@javax.annotation.Nonnull final NotebookOutput output, final boolean large) {
-    addPoolingLayer(output, large);
-    addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_25");
-    addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_27");
-    addConvolutionLayer(output, 3, 512, 512, ActivationLayer.Mode.RELU, "layer_29");
+  protected void phase1e(final boolean large) {
+    addPoolingLayer(large);
+    addConvolutionLayer(3, 512, 512, ActivationLayer.Mode.RELU, "layer_25");
+    addConvolutionLayer(3, 512, 512, ActivationLayer.Mode.RELU, "layer_27");
+    addConvolutionLayer(3, 512, 512, ActivationLayer.Mode.RELU, "layer_29");
   }
   
   /**
    * Phase 2.
    *
-   * @param output the output
-   * @param dense  the dense
-   * @param large  the large
+   * @param dense the dense
+   * @param large the large
    */
-  protected void phase2(@javax.annotation.Nonnull NotebookOutput output, boolean dense, final boolean large) {
-    phase2a(output);
-    phase2b(output, dense, large);
+  protected void phase2(boolean dense, final boolean large) {
+    phase2a();
+    phase2b(dense, large);
   }
   
   /**
    * Phase 2 a.
-   *
-   * @param output the output
    */
-  protected void phase2a(@javax.annotation.Nonnull final NotebookOutput output) {
+  protected void phase2a() {
     //  model.add(MaxPooling2D((2,2), strides=(2,2)))
-    addPoolingLayer(output, true);
+    addPoolingLayer(true);
   }
   
   /**
    * Phase 2 b.
    *
-   * @param output the output
-   * @param dense  the dense
-   * @param large  the large
+   * @param dense the dense
+   * @param large the large
    */
-  protected void phase2b(@javax.annotation.Nonnull final NotebookOutput output, final boolean dense, final boolean large) {
+  protected void phase2b(final boolean dense, final boolean large) {
     if (large) {
-      output.code(() -> {
-        add(new ImgModulusPaddingLayer(7, 7));
-      });
+      add(new ImgModulusPaddingLayer(7, 7));
     }
     else {
-      output.code(() -> {
-        add(new ImgModulusPaddingLayer(-7, -7));
-      });
+      add(new ImgModulusPaddingLayer(-7, -7));
     }
     
     if (dense) {
-      output.code(() -> {
-        add(new ConvolutionLayer(7, 7, 512, 4096)
-          .setStrideXY(1, 1)
-          .setPaddingXY(0, 0)
-          .setAndFree(hdf5.readDataSet("param_0", "layer_32")
-            .reshapeCast(7, 7, 512, 4096).permuteDimensionsAndFree(0, 1, 3, 2)
-          )
-        );
-      });
+      add(new ConvolutionLayer(7, 7, 512, 4096)
+        .setStrideXY(1, 1)
+        .setPaddingXY(0, 0)
+        .setAndFree(hdf5.readDataSet("param_0", "layer_32")
+          .reshapeCast(7, 7, 512, 4096).permuteDimensionsAndFree(0, 1, 3, 2)
+        )
+      );
     }
     else {
-      output.code(() -> {
-        add(new ImgModulusPaddingLayer(7, 7));
-      });
-      output.code(() -> {
-        add(new ImgReshapeLayer(7, 7, false));
-      });
-      output.code(() -> {
-        add(new ConvolutionLayer(1, 1, 25088, 4096)
-          .setPaddingXY(0, 0)
-          .setAndFree(hdf5.readDataSet("param_0", "layer_32")
-            .permuteDimensionsAndFree(fullyconnectedOrder))
-        );
-      });
+      add(new ImgModulusPaddingLayer(7, 7));
+      add(new ImgReshapeLayer(7, 7, false));
+      add(new ConvolutionLayer(1, 1, 25088, 4096)
+        .setPaddingXY(0, 0)
+        .setAndFree(hdf5.readDataSet("param_0", "layer_32")
+          .permuteDimensionsAndFree(fullyconnectedOrder))
+      );
     }
-    
-    output.code(() -> {
-      add(new ImgBandBiasLayer(4096)
-        .setAndFree((hdf5.readDataSet("param_1", "layer_32"))));
-    });
-    output.code(() -> {
-      add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    });
+  
+    add(new ImgBandBiasLayer(4096)
+      .setAndFree((hdf5.readDataSet("param_1", "layer_32"))));
+    add(new ActivationLayer(ActivationLayer.Mode.RELU));
   }
   
   /**
    * Phase 3.
-   *
-   * @param output the output
    */
-  protected void phase3(@javax.annotation.Nonnull NotebookOutput output) {
-    if (1 == getStochasticSamples()) phase3a(output);
-    else phase3a_sampled(output, getStochasticSamples());
-    phase3b(output);
+  protected void phase3() {
+    if (1 == getStochasticSamples()) phase3a();
+    else phase3a_sampled(getStochasticSamples());
+    phase3b();
   }
   
   /**
    * Phase 3 a.
-   *
-   * @param output the output
    */
-  protected void phase3a(@javax.annotation.Nonnull final NotebookOutput output) {
-    output.code(() -> {
-      add(new ConvolutionLayer(1, 1, 4096, 4096)
-        .setPaddingXY(0, 0)
-        .setAndFree(hdf5.readDataSet("param_0", "layer_34")
-          .permuteDimensionsAndFree(fullyconnectedOrder))
-      );
-    });
-    output.code(() -> {
-      add(new ImgBandBiasLayer(4096)
-        .setAndFree((hdf5.readDataSet("param_1", "layer_34"))));
-    });
-    output.code(() -> {
-      add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    });
-    
-    output.code(() -> {
-      add(new ConvolutionLayer(1, 1, 4096, 1000)
-        .setPaddingXY(0, 0)
-        .setAndFree(hdf5.readDataSet("param_0", "layer_36")
-          .permuteDimensionsAndFree(fullyconnectedOrder))
-      );
-    });
-    output.code(() -> {
-      add(new ImgBandBiasLayer(1000)
-        .setAndFree((hdf5.readDataSet("param_1", "layer_36"))));
-    });
+  protected void phase3a() {
+    add(new ConvolutionLayer(1, 1, 4096, 4096)
+      .setPaddingXY(0, 0)
+      .setAndFree(hdf5.readDataSet("param_0", "layer_34")
+        .permuteDimensionsAndFree(fullyconnectedOrder))
+    );
+    add(new ImgBandBiasLayer(4096)
+      .setAndFree((hdf5.readDataSet("param_1", "layer_34"))));
+    add(new ActivationLayer(ActivationLayer.Mode.RELU));
+  
+    add(new ConvolutionLayer(1, 1, 4096, 1000)
+      .setPaddingXY(0, 0)
+      .setAndFree(hdf5.readDataSet("param_0", "layer_36")
+        .permuteDimensionsAndFree(fullyconnectedOrder))
+    );
+    add(new ImgBandBiasLayer(1000)
+      .setAndFree((hdf5.readDataSet("param_1", "layer_36"))));
   }
   
-  protected void phase3a_sampled(@javax.annotation.Nonnull final NotebookOutput output, final int samples) {
-    output.code(() -> {
-      PipelineNetwork stochasticNet = new PipelineNetwork(1);
-      
-      DAGNode prev = stochasticNet.getHead();
-      stochasticNet.wrap(new GateProductLayer(), prev,
-        stochasticNet.add(new StochasticBinaryNoiseLayer(1.0, 1.0, 1, 1, 4096), new DAGNode[]{}));
-      
-      stochasticNet.wrap(new ConvolutionLayer(1, 1, 4096, 4096)
-        .setPaddingXY(0, 0)
-        .setAndFree(hdf5.readDataSet("param_0", "layer_34")
-          .permuteDimensionsAndFree(fullyconnectedOrder))
-      );
-      stochasticNet.wrap(new ImgBandBiasLayer(4096)
-        .setAndFree((hdf5.readDataSet("param_1", "layer_34"))));
-      
-      prev = stochasticNet.getHead();
-      stochasticNet.wrap(new GateProductLayer(), prev,
-        stochasticNet.add(new StochasticBinaryNoiseLayer(1.0, 1.0, 1, 1, 4096), new DAGNode[]{}));
-      
-      stochasticNet.wrap(new ActivationLayer(ActivationLayer.Mode.RELU));
-      stochasticNet.wrap(new ConvolutionLayer(1, 1, 4096, 1000)
-        .setPaddingXY(0, 0)
-        .setAndFree(hdf5.readDataSet("param_0", "layer_36")
-          .permuteDimensionsAndFree(fullyconnectedOrder))
-      );
-      stochasticNet.wrap(new ImgBandBiasLayer(1000)
-        .setAndFree((hdf5.readDataSet("param_1", "layer_36"))));
-      
-      add(new StochasticSamplingSubnetLayer(stochasticNet, samples));
-    });
+  protected void phase3a_sampled(final int samples) {
+    PipelineNetwork stochasticNet = new PipelineNetwork(1);
+    
+    DAGNode prev = stochasticNet.getHead();
+    stochasticNet.wrap(new GateProductLayer(), prev,
+      stochasticNet.add(new StochasticBinaryNoiseLayer(1.0, 1.0, 1, 1, 4096), new DAGNode[]{}));
+    
+    stochasticNet.wrap(new ConvolutionLayer(1, 1, 4096, 4096)
+      .setPaddingXY(0, 0)
+      .setAndFree(hdf5.readDataSet("param_0", "layer_34")
+        .permuteDimensionsAndFree(fullyconnectedOrder))
+    );
+    stochasticNet.wrap(new ImgBandBiasLayer(4096)
+      .setAndFree((hdf5.readDataSet("param_1", "layer_34"))));
+    
+    prev = stochasticNet.getHead();
+    stochasticNet.wrap(new GateProductLayer(), prev,
+      stochasticNet.add(new StochasticBinaryNoiseLayer(1.0, 1.0, 1, 1, 4096), new DAGNode[]{}));
+    
+    stochasticNet.wrap(new ActivationLayer(ActivationLayer.Mode.RELU));
+    stochasticNet.wrap(new ConvolutionLayer(1, 1, 4096, 1000)
+      .setPaddingXY(0, 0)
+      .setAndFree(hdf5.readDataSet("param_0", "layer_36")
+        .permuteDimensionsAndFree(fullyconnectedOrder))
+    );
+    stochasticNet.wrap(new ImgBandBiasLayer(1000)
+      .setAndFree((hdf5.readDataSet("param_1", "layer_36"))));
+    
+    add(new StochasticSamplingSubnetLayer(stochasticNet, samples));
   }
   
   /**
    * Phase 3 b.
-   *
-   * @param output the output
    */
-  protected void phase3b(@javax.annotation.Nonnull final NotebookOutput output) {
-    output.code(() -> {
-      add(new BandReducerLayer()
-        .setMode(getFinalPoolingMode()));
-    });
-    
-    output.code(() -> {
-      add(new SoftmaxActivationLayer());
-    });
+  protected void phase3b() {
+    add(new BandReducerLayer()
+      .setMode(getFinalPoolingMode()));
+    add(new SoftmaxActivationLayer());
   }
   
   /**
    * Add pooling layer.
    *
-   * @param output the output
-   * @param large  the large
+   * @param large the large
    */
-  protected void addPoolingLayer(@javax.annotation.Nonnull final NotebookOutput output, final boolean large) {
+  protected void addPoolingLayer(final boolean large) {
     if (large) {
-      output.code(() -> {
-        add(new ImgModulusPaddingLayer(2, 2));
-      });
+      add(new ImgModulusPaddingLayer(2, 2));
     }
     else {
-      output.code(() -> {
-        add(new ImgModulusPaddingLayer(-2, -2));
-      });
+      add(new ImgModulusPaddingLayer(-2, -2));
     }
-    output.code(() -> {
-      add(new PoolingLayer()
-        .setMode(PoolingLayer.PoolingMode.Max)
-        .setWindowXY(2, 2)
-        .setStrideXY(2, 2));
-    });
+    add(new PoolingLayer()
+      .setMode(PoolingLayer.PoolingMode.Max)
+      .setWindowXY(2, 2)
+      .setStrideXY(2, 2));
   }
   
   /**
    * Add convolution layer.
-   *
-   * @param output         the output
-   * @param radius         the radius
+   *  @param radius         the radius
    * @param inputBands     the input bands
    * @param outputBands    the output bands
    * @param activationMode the activation mode
    * @param hdf_group      the hdf group
    */
-  protected void addConvolutionLayer(@javax.annotation.Nonnull final NotebookOutput output, final int radius, final int inputBands, final int outputBands, final ActivationLayer.Mode activationMode, final String hdf_group) {
-    output.code(() -> {
-      add(new ConvolutionLayer(radius, radius, inputBands, outputBands)
-        .setPaddingXY(0, 0)
-        .setAndFree(hdf5.readDataSet("param_0", hdf_group)
-          .permuteDimensionsAndFree(convolutionOrder))
-      );
-    });
-    output.code(() -> {
-      add(new ImgBandBiasLayer(outputBands)
-        .setAndFree((hdf5.readDataSet("param_1", hdf_group))));
-    });
-    output.code(() -> {
-      add(new ActivationLayer(activationMode));
-    });
+  protected void addConvolutionLayer(final int radius, final int inputBands, final int outputBands, final ActivationLayer.Mode activationMode, final String hdf_group) {
+    add(new ConvolutionLayer(radius, radius, inputBands, outputBands)
+      .setPaddingXY(0, 0)
+      .setAndFree(hdf5.readDataSet("param_0", hdf_group)
+        .permuteDimensionsAndFree(convolutionOrder))
+    );
+    add(new ImgBandBiasLayer(outputBands)
+      .setAndFree((hdf5.readDataSet("param_1", hdf_group))));
+    add(new ActivationLayer(activationMode));
   }
   
   /**

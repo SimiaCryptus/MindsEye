@@ -49,7 +49,7 @@ import java.util.stream.IntStream;
 /**
  * The type Image classifier.
  */
-public abstract class ImageClassifier {
+public abstract class ImageClassifier implements NetworkFactory {
   private static final Logger logger = LoggerFactory.getLogger(ReferenceCountingBase.class);
   private int batchSize;
   private volatile Layer network;

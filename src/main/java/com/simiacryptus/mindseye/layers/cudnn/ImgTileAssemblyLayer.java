@@ -28,9 +28,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * Reduces the resolution of the input by selecting a centered window. The output image will have the same number of
@@ -118,10 +120,10 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       assert outputDims[2] > 0;
       @Nonnull final CudaMemory outputBuffer = gpu.allocate(
         (long) length * outputDims[2] * outputDims[1] * outputDims[0] * precision.size, MemoryType.Managed, false);
-      
       int totalWidth = 0;
       int totalHeight = 0;
       int inputIndex = 0;
+      List<CopyParams> copies = new ArrayList<>();
       for (int row = 0; row < rows; row++) {
         int positionX = 0;
         int rowHeight = 0;
@@ -129,17 +131,16 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
           TensorList tileTensor = inObj[inputIndex].getData();
           int[] tileDimensions = tileTensor.getDimensions();
           rowHeight = Math.max(rowHeight, tileDimensions[1]);
-          @Nullable final CudaMemory inputBuffer = gpu.getPtr(inObj[inputIndex].getData(), precision, MemoryType.Device);
-          copy(gpu, length, tileDimensions, inputBuffer, outputDims, outputBuffer, positionX, totalHeight);
-          Arrays.stream(new ReferenceCounting[]{inputBuffer}).forEach(ReferenceCounting::freeRef);
-          
+          copies.add(new CopyParams(gpu, inObj, outputBuffer, length, outputDims, tileDimensions, inputIndex, positionX, totalHeight));
           positionX += tileDimensions[0];
           inputIndex += 1;
         }
         totalHeight += rowHeight;
         totalWidth = Math.max(totalWidth, positionX);
       }
-      
+      Stream<CopyParams> stream = copies.stream();
+      if (!CoreSettings.INSTANCE.isConservative() && parallel) stream = stream.parallel();
+      stream.forEach(this::copy);
       return CudaTensorList.wrap(outputBuffer, length, outputDims, precision);
     });
     
@@ -156,6 +157,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       
       int totalHeight = 0;
       int inputIndex = 0;
+      List<BackpropParams> tasks = new ArrayList<>();
       for (int row = 0; row < rows; row++) {
         int positionX = 0;
         int rowHeight = 0;
@@ -163,41 +165,48 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
           Result in = inObj[inputIndex];
           int[] tileDimensions = in.getData().getDimensions();
           rowHeight = Math.max(rowHeight, tileDimensions[1]);
-          
           if (inObj[inputIndex].isAlive()) {
-            final int finalTotalHeight = totalHeight;
-            final int finalPositionX = positionX;
-            final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
-              @Nullable final CudaMemory errorPtr = gpu.getPtr(error, precision, MemoryType.Device);
-              @Nonnull final CudaMemory passbackBuffer = gpu.allocate(
-                (long) (length * tileDimensions[2] * tileDimensions[1] * tileDimensions[0] * precision.size), MemoryType.Managed, false);
-              copy(gpu, length, outputDims, errorPtr, tileDimensions, passbackBuffer, -finalPositionX, -finalTotalHeight);
-              Arrays.stream(new ReferenceCounting[]{errorPtr}).forEach(ReferenceCounting::freeRef);
-              return CudaTensorList.wrap(passbackBuffer, length, tileDimensions, precision);
-            });
-            inObj[inputIndex].accumulate(buffer, passbackTensorList);
-            passbackTensorList.freeRef();
+            tasks.add(new BackpropParams(inObj, buffer, error, outputDims, tileDimensions, length, positionX, totalHeight, inputIndex));
           }
-          
           positionX += tileDimensions[0];
           inputIndex += 1;
         }
         totalHeight += rowHeight;
       }
-      
-      
+      Stream<BackpropParams> stream = tasks.stream();
+      if (!CoreSettings.INSTANCE.isConservative() && parallel) stream = stream.parallel();
+      stream.forEach(this::backprop);
     }) {
-      
+
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-      
+
       @Override
       public boolean isAlive() {
         return Arrays.stream(inObj).anyMatch(x -> x.isAlive());
       }
     };
+  }
+  
+  public void backprop(final BackpropParams backpropParams) {
+    final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
+      @Nullable final CudaMemory errorPtr = gpu.getPtr(backpropParams.getError(), precision, MemoryType.Device);
+      @Nonnull final CudaMemory passbackBuffer = gpu.allocate(
+        (long) (backpropParams.getLength() * backpropParams.getTileDimensions()[2] * backpropParams.getTileDimensions()[1] * backpropParams.getTileDimensions()[0] * precision.size), MemoryType.Managed, false);
+      copy(gpu, backpropParams.getLength(), backpropParams.getOutputDims(), errorPtr, backpropParams.getTileDimensions(), passbackBuffer, -backpropParams.getPositionX(), -backpropParams.getTotalHeight());
+      Arrays.stream(new ReferenceCounting[]{errorPtr}).forEach(ReferenceCounting::freeRef);
+      return CudaTensorList.wrap(passbackBuffer, backpropParams.getLength(), backpropParams.getTileDimensions(), precision);
+    });
+    backpropParams.getInObj()[backpropParams.getInputIndex()].accumulate(backpropParams.getBuffer(), passbackTensorList);
+    passbackTensorList.freeRef();
+  }
+  
+  public void copy(final CopyParams copyParams) {
+    @Nullable final CudaMemory inputBuffer = copyParams.getGpu().getPtr(copyParams.getInObj()[copyParams.getInputIndex()].getData(), precision, MemoryType.Device);
+    copy(copyParams.getGpu(), copyParams.getLength(), copyParams.getTileDimensions(), inputBuffer, copyParams.getOutputDims(), copyParams.getOutputBuffer(), copyParams.getPositionX(), copyParams.getTotalHeight());
+    Arrays.stream(new ReferenceCounting[]{inputBuffer}).forEach(ReferenceCounting::freeRef);
   }
   
   private int[] getOutputDims(final Result[] inObj) {
@@ -357,5 +366,129 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
   public ImgTileAssemblyLayer setParallel(final boolean parallel) {
     this.parallel = parallel;
     return this;
+  }
+  
+  private static class CopyParams {
+    private final int length;
+    private final int[] outputDims;
+    private final CudnnHandle gpu;
+    private final CudaMemory outputBuffer;
+    private final int totalHeight;
+    private final int inputIndex;
+    private final int positionX;
+    private final int[] tileDimensions;
+    @Nonnull
+    private final Result[] inObj;
+    
+    private CopyParams(final CudnnHandle gpu, @Nonnull final Result[] inObj, final CudaMemory outputBuffer, final int length, final int[] outputDims, final int[] tileDimensions, final int inputIndex, final int positionX, final int totalHeight) {
+      this.length = length;
+      this.outputDims = outputDims;
+      this.gpu = gpu;
+      this.outputBuffer = outputBuffer;
+      this.totalHeight = totalHeight;
+      this.inputIndex = inputIndex;
+      this.positionX = positionX;
+      this.tileDimensions = tileDimensions;
+      this.inObj = inObj;
+    }
+    
+    public int getLength() {
+      return length;
+    }
+    
+    public int[] getOutputDims() {
+      return outputDims;
+    }
+    
+    public CudnnHandle getGpu() {
+      return gpu;
+    }
+    
+    public CudaMemory getOutputBuffer() {
+      return outputBuffer;
+    }
+    
+    public int getTotalHeight() {
+      return totalHeight;
+    }
+    
+    public int getInputIndex() {
+      return inputIndex;
+    }
+    
+    public int getPositionX() {
+      return positionX;
+    }
+    
+    public int[] getTileDimensions() {
+      return tileDimensions;
+    }
+    
+    public Result[] getInObj() {
+      return inObj;
+    }
+  }
+  
+  private static class BackpropParams {
+    @Nonnull
+    private final Result[] inObj;
+    @Nonnull
+    private final DeltaSet<Layer> buffer;
+    @Nonnull
+    private final TensorList error;
+    private final int[] outputDims;
+    private final int[] tileDimensions;
+    private final int length;
+    private final int positionX;
+    private final int totalHeight;
+    private final int inputIndex;
+    
+    private BackpropParams(@Nonnull final Result[] inObj, @Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error, final int[] outputDims, final int[] tileDimensions, final int length, final int positionX, final int totalHeight, final int inputIndex) {
+      this.inObj = inObj;
+      this.buffer = buffer;
+      this.error = error;
+      this.outputDims = outputDims;
+      this.tileDimensions = tileDimensions;
+      this.length = length;
+      this.positionX = positionX;
+      this.totalHeight = totalHeight;
+      this.inputIndex = inputIndex;
+    }
+    
+    public Result[] getInObj() {
+      return inObj;
+    }
+    
+    public DeltaSet<Layer> getBuffer() {
+      return buffer;
+    }
+    
+    public TensorList getError() {
+      return error;
+    }
+    
+    public int[] getOutputDims() {
+      return outputDims;
+    }
+    
+    public int[] getTileDimensions() {
+      return tileDimensions;
+    }
+    
+    public int getLength() {
+      return length;
+    }
+    
+    public int getPositionX() {
+      return positionX;
+    }
+    
+    public int getTotalHeight() {
+      return totalHeight;
+    }
+    
+    public int getInputIndex() {
+      return inputIndex;
+    }
   }
 }

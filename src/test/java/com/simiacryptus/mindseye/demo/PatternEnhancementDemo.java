@@ -35,7 +35,6 @@ import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Test;
 
-import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -76,14 +75,12 @@ public class PatternEnhancementDemo extends NotebookReportBase {
       try {
         result = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
           @Override
-          protected void phase3b(@Nonnull final NotebookOutput output) {
-            output.code(() -> {
-              PipelineNetwork imageFitness = new PipelineNetwork(1);
-              InnerNode softmax = imageFitness.wrap(new ImgPixelSoftmaxLayer(), imageFitness.getInput(0));
-              imageFitness.wrap(new EntropyLossLayer(), softmax, softmax); // Minimize self-entropy to enhance classifyable patterns
-              imageFitness.wrap(new SumReducerLayer());
-              add(imageFitness);
-            });
+          protected void phase3b() {
+            PipelineNetwork imageFitness = new PipelineNetwork(1);
+            InnerNode softmax = imageFitness.wrap(new ImgPixelSoftmaxLayer(), imageFitness.getInput(0));
+            imageFitness.wrap(new EntropyLossLayer(), softmax, softmax); // Minimize self-entropy to enhance classifyable patterns
+            imageFitness.wrap(new SumReducerLayer());
+            add(imageFitness);
           }
         };
       } catch (@javax.annotation.Nonnull final RuntimeException e) {

@@ -1129,10 +1129,15 @@ public abstract class VGG16 extends ImageClassifier {
      *
      * @return the network
      */
+    @Override
+    public Layer build() {
+      return this.network;
+    }
+  
+    @Override
     public Layer getNetwork() {
       return this.network;
     }
-    
   }
   
 }
