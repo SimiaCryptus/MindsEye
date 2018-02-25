@@ -144,8 +144,8 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
       @javax.annotation.Nonnull int[] new_dimensions = newPrototype.getDimensions();
       log.info(String.format("Added layer #%d: %s; %s params, dimensions %s (%s) -> %s (%s)", //
         cnt, layer, numberOfParameters, //
-        Arrays.toString(prev_dimensions), Tensor.dim(prev_dimensions), //
-        Arrays.toString(new_dimensions), Tensor.dim(new_dimensions)));
+        Arrays.toString(prev_dimensions), Tensor.length(prev_dimensions), //
+        Arrays.toString(new_dimensions), Tensor.length(new_dimensions)));
       return newPrototype.get(0);
     } finally {
       newPrototype.freeRef();

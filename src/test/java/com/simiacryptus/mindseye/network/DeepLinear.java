@@ -34,7 +34,7 @@ public abstract class DeepLinear extends NLayerTest {
   /**
    * Instantiates a new Linear depth.
    *
-   * @param dimList the dim list
+   * @param dimList the length list
    */
   public DeepLinear(final int[]... dimList) {
     super(dimList);

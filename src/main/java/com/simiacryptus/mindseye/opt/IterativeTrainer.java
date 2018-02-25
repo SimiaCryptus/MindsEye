@@ -259,7 +259,8 @@ public class IterativeTrainer extends ReferenceCountingBase {
         orientation.reset();
         if (subject.getLayer() instanceof DAGNetwork) {
           ((DAGNetwork) subject.getLayer()).visitLayers(layer -> {
-            if (layer instanceof StochasticComponent) ((StochasticComponent) layer).shuffle();
+            if (layer instanceof StochasticComponent)
+              ((StochasticComponent) layer).shuffle(StochasticComponent.random.get().nextLong());
           });
         }
         if (!subject.reseed(System.nanoTime())) {

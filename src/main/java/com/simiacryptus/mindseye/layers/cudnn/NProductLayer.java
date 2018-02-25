@@ -36,14 +36,14 @@ import java.util.stream.IntStream;
  * layers, such as the square needed in MeanSqLossLayer.
  */
 @SuppressWarnings("serial")
-public class ProductLayer extends LayerBase implements MultiPrecision<ProductLayer> {
+public class NProductLayer extends LayerBase implements MultiPrecision<NProductLayer> {
   
   private Precision precision = Precision.Double;
   
   /**
    * Instantiates a new Product inputs layer.
    */
-  public ProductLayer() {
+  public NProductLayer() {
   }
   
   /**
@@ -51,7 +51,7 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
    *
    * @param id the id
    */
-  protected ProductLayer(@javax.annotation.Nonnull final JsonObject id) {
+  protected NProductLayer(@javax.annotation.Nonnull final JsonObject id) {
     super(id);
     this.precision = Precision.valueOf(id.getAsJsonPrimitive("precision").getAsString());
   }
@@ -63,8 +63,8 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
    * @param rs   the rs
    * @return the product inputs layer
    */
-  public static ProductLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
-    return new ProductLayer(json);
+  public static NProductLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+    return new NProductLayer(json);
   }
   
   /**
@@ -96,7 +96,7 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     for (int i = 1; i < inObj.length; i++) {
       TensorList data = inObj[i].getData();
-      if (Tensor.dim(dimensions) != Tensor.dim(data.getDimensions())) {
+      if (Tensor.length(dimensions) != Tensor.length(data.getDimensions())) {
         throw new IllegalArgumentException(Arrays.toString(dimensions) + " != " + Arrays.toString(data.getDimensions()));
       }
     }
@@ -191,7 +191,7 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
   
   @javax.annotation.Nonnull
   @Override
-  public ProductLayer setPrecision(final Precision precision) {
+  public NProductLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }

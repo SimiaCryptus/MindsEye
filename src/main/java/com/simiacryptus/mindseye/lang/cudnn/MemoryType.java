@@ -28,8 +28,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 import static jcuda.runtime.JCuda.*;
 
@@ -77,7 +75,7 @@ public enum MemoryType {
     }
     
     @Override
-    protected RecycleBin<Wrapper<Pointer>> get(final int device) {
+    protected RecycleBin<ReferenceWrapper<Pointer>> get(final int device) {
       return super.get(-1);
     }
   
@@ -176,31 +174,31 @@ public enum MemoryType {
   abstract void free(Pointer ptr, int deviceId);
   
   protected static final Logger logger = LoggerFactory.getLogger(MemoryType.class);
-  private final Map<Integer, RecycleBin<Wrapper<Pointer>>> cache = new ConcurrentHashMap<>();
+  private final Map<Integer, RecycleBin<ReferenceWrapper<Pointer>>> cache = new ConcurrentHashMap<>();
   
   public void recycle(Pointer ptr, int deviceId, final long length) {
-    get(deviceId).recycle(new Wrapper<>(ptr, x -> {
+    get(deviceId).recycle(new ReferenceWrapper<>(ptr, x -> {
       CudaMemory.getGpuStats(deviceId).usedMemory.addAndGet(-length);
       MemoryType.this.free(x, deviceId);
     }), length);
   }
   
-  protected RecycleBin<Wrapper<Pointer>> get(int device) {
+  protected RecycleBin<ReferenceWrapper<Pointer>> get(int device) {
     return cache.computeIfAbsent(device, d -> {
       logger.info(String.format("Initialize recycle bin %s (device %s)", this, device));
-      return new RecycleBin<Wrapper<Pointer>>() {
+      return new RecycleBin<ReferenceWrapper<Pointer>>() {
         @Override
-        protected void free(final Wrapper<Pointer> obj) {
+        protected void free(final ReferenceWrapper<Pointer> obj) {
           obj.destroy();
         }
         
         @Nonnull
         @Override
-        public Wrapper<Pointer> create(final long length) {
+        public ReferenceWrapper<Pointer> create(final long length) {
           return CudnnHandle.eval(gpu -> {
             Pointer alloc = MemoryType.this.alloc(length, gpu);
             CudaMemory.getGpuStats(device).usedMemory.addAndGet(length);
-            return new Wrapper<>(alloc, x -> {
+            return new ReferenceWrapper<>(alloc, x -> {
               CudaMemory.getGpuStats(device).usedMemory.addAndGet(-length);
               MemoryType.this.free(x, device);
             });
@@ -208,7 +206,7 @@ public enum MemoryType {
         }
         
         @Override
-        public void reset(final Wrapper<Pointer> data, final long size) {
+        public void reset(final ReferenceWrapper<Pointer> data, final long size) {
           // There is no need to clean new objects - native memory system doesn't either.
         }
       }.setPersistanceMode(CudaSettings.INSTANCE.memoryCacheMode);
@@ -227,36 +225,6 @@ public enum MemoryType {
   
   
   public abstract Pointer alloc(final long size, final CudaDevice cudaDevice);
-  
-  private static class Wrapper<T> {
-    final T obj;
-    final Consumer<T> destructor;
-    final AtomicBoolean isFinalized = new AtomicBoolean(false);
-    
-    private Wrapper(final T obj, final Consumer<T> destructor) {
-      this.obj = obj;
-      this.destructor = destructor;
-    }
-    
-    @Override
-    protected void finalize() throws Throwable {
-      destroy();
-      super.finalize();
-    }
-    
-    public void destroy() {
-      if (!isFinalized.getAndSet(true)) {
-        destructor.accept(obj);
-      }
-    }
-    
-    public T unwrap() {
-      if (isFinalized.getAndSet(true)) {
-        throw new IllegalStateException();
-      }
-      return obj;
-    }
-  }
   
 }
 

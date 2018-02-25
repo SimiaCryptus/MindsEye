@@ -65,7 +65,7 @@ public final class NthPowerActivationLayer extends LayerBase {
   }
   
   private static void nthPower(final double power, @javax.annotation.Nonnull final Tensor input, final double[] inputData, final double[] gradientData, final double[] outputData) {
-    for (int i = 0; i < input.dim(); i++) {
+    for (int i = 0; i < input.length(); i++) {
       final double x = inputData[i];
       final boolean isZero = Math.abs(x) < 1e-20;
       double d = isZero ? 0.0 : power * Math.pow(x, power - 1);
@@ -82,7 +82,7 @@ public final class NthPowerActivationLayer extends LayerBase {
   }
   
   private static void square(@javax.annotation.Nonnull final Tensor input, final double[] inputData, final double[] gradientData, final double[] outputData) {
-    for (int i = 0; i < input.dim(); i++) {
+    for (int i = 0; i < input.length(); i++) {
       final double x = inputData[i];
       gradientData[i] = 2 * x;
       outputData[i] = x * x;
@@ -90,7 +90,7 @@ public final class NthPowerActivationLayer extends LayerBase {
   }
   
   private static void squareRoot(@javax.annotation.Nonnull final Tensor input, final double[] inputData, final double[] gradientData, final double[] outputData) {
-    for (int i = 0; i < input.dim(); i++) {
+    for (int i = 0; i < input.length(); i++) {
       final double x = inputData[i];
       final boolean isZero = Math.abs(x) < 1e-20;
       final double power = 0.5;
@@ -109,7 +109,7 @@ public final class NthPowerActivationLayer extends LayerBase {
   }
   
   private static void unity(@javax.annotation.Nonnull final Tensor input, final double[] inputData, final double[] gradientData, final double[] outputData) {
-    for (int i = 0; i < input.dim(); i++) {
+    for (int i = 0; i < input.length(); i++) {
       gradientData[i] = 0;
       outputData[i] = 1;
     }
@@ -124,7 +124,7 @@ public final class NthPowerActivationLayer extends LayerBase {
     return new Result(TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       @javax.annotation.Nullable final Tensor input = inObj[0].getData().get(dataIndex);
       @javax.annotation.Nonnull final Tensor output = new Tensor(inObj[0].getData().getDimensions());
-      @javax.annotation.Nonnull final Tensor gradient = new Tensor(input.dim());
+      @javax.annotation.Nonnull final Tensor gradient = new Tensor(input.length());
       @Nullable final double[] inputData = input.getData();
       @Nullable final double[] gradientData = gradient.getData();
       @Nullable final double[] outputData = output.getData();
@@ -150,7 +150,7 @@ public final class NthPowerActivationLayer extends LayerBase {
           @javax.annotation.Nullable final Tensor tensor = data.get(dataIndex);
           @Nullable double[] tensorData = tensor.getData();
           @Nullable final double[] gradientData = inputGradientA[dataIndex].getData();
-          IntStream.range(0, passback.dim()).forEach(i -> {
+          IntStream.range(0, passback.length()).forEach(i -> {
             final double v = gradientData[i];
             if (Double.isFinite(v)) {
               passback.set(i, tensorData[i] * v);

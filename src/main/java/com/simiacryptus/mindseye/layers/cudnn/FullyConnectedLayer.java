@@ -77,10 +77,10 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
    * @param outputDims the output dims
    */
   public FullyConnectedLayer(@javax.annotation.Nonnull final int[] inputDims, @javax.annotation.Nonnull final int[] outputDims) {
-    final int inputs = Tensor.dim(inputDims);
+    final int inputs = Tensor.length(inputDims);
     this.inputDims = Arrays.copyOf(inputDims, inputDims.length);
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
-    final int outs = Tensor.dim(outputDims);
+    final int outs = Tensor.length(outputDims);
     weights = new Tensor(inputs, outs);
     setWeights(() -> {
       final double ratio = Math.sqrt(6. / (inputs + outs + 1));
@@ -179,8 +179,8 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
    */
   @javax.annotation.Nonnull
   public Layer explode() {
-    int inputVol = Tensor.dim(inputDims);
-    int outVol = Tensor.dim(outputDims);
+    int inputVol = Tensor.length(inputDims);
+    int outVol = Tensor.length(outputDims);
     @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork(1);
     network.add(new ReshapeLayer(1, 1, inputVol));
     @javax.annotation.Nullable Tensor tensor = this.weights.reshapeCast(1, 1, inputVol * outVol);

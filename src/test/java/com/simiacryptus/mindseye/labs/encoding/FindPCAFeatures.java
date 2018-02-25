@@ -115,7 +115,7 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
             return src
               .scale(1.0 / src.rms())
               //.scale((decomposition.getRealEigenvalue(orderedVectors[i]) / decomposition.getRealEigenvalue(orderedVectors[orderedVectors.length - 1])))
-              .scale(Math.sqrt(6. / (components + prototype[column].dim() + 1)))
+              .scale(Math.sqrt(6. / (components + prototype[column].length() + 1)))
               ;
           }
         ).toArray(i -> new Tensor[i]);

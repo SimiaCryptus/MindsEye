@@ -104,7 +104,7 @@ public class GaussianNoiseLayer extends LayerBase {
           Tensor tensor = delta.get(dataIndex);
           @Nullable final double[] deltaData = tensor.getData();
           @javax.annotation.Nonnull final Tensor passback = new Tensor(inputData.getDimensions());
-          for (int i = 0; i < passback.dim(); i++) {
+          for (int i = 0; i < passback.length(); i++) {
             passback.set(i, deltaData[i]);
           }
           tensor.freeRef();

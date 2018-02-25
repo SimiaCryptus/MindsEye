@@ -761,12 +761,12 @@ public class CudaSystem {
   }
   
   /**
-   * Cudnn get pooling nd forward output dim int.
+   * Cudnn get pooling nd forward output length int.
    *
    * @param poolingDesc      the pooling desc
    * @param inputTensorDesc  the input tensor desc
    * @param nbDims           the nb dims
-   * @param outputTensorDimA the output tensor dim a
+   * @param outputTensorDimA the output tensor length a
    * @return the int
    */
   public static int cudnnGetPoolingNdForwardOutputDim(

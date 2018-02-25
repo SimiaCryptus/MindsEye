@@ -92,7 +92,7 @@ public class ProductLayer extends LayerBase {
             Tensor dataTensor = delta.get(dataIndex);
             Tensor lTensor = in_l.getData().get(dataIndex);
             @javax.annotation.Nonnull final Tensor passback = new Tensor(lTensor.getDimensions());
-            for (int i = 0; i < lTensor.dim(); i++) {
+            for (int i = 0; i < lTensor.length(); i++) {
               passback.set(i, dataTensor.get(0) * sum_A[dataIndex] / lTensor.getData()[i]);
             }
             dataTensor.freeRef();

@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.java.DropoutNoiseLayer;
 import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
+import com.simiacryptus.mindseye.layers.java.StochasticComponent;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.Step;
@@ -180,7 +181,7 @@ public class AutoencodingProblem implements Problem {
       
       @Override
       public void onStepComplete(final Step currentPoint) {
-        dropoutNoiseLayer.shuffle();
+        dropoutNoiseLayer.shuffle(StochasticComponent.random.get().nextLong());
         inner.onStepComplete(currentPoint);
       }
     };

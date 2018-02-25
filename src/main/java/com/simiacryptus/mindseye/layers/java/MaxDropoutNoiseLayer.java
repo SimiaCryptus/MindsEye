@@ -122,7 +122,7 @@ public class MaxDropoutNoiseLayer extends LayerBase {
           @javax.annotation.Nonnull final int[] dims = data0.getDimensions();
           @Nullable final double[] maskData = mask[dataIndex].getData();
           @javax.annotation.Nonnull final Tensor passback = new Tensor(dims);
-          for (int i = 0; i < passback.dim(); i++) {
+          for (int i = 0; i < passback.length(); i++) {
             passback.set(i, maskData[i] * deltaData[i]);
           }
           deltaTensor.freeRef();

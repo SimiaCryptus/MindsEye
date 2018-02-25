@@ -81,7 +81,7 @@ public class CrossProductLayer extends LayerBase {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     indata.addRef();
     return new Result(TensorArray.wrap(indata.stream().parallel().map(tensor -> {
-      final int inputDim = tensor.dim();
+      final int inputDim = tensor.length();
       final int outputDim = (inputDim * inputDim - inputDim) / 2;
       @javax.annotation.Nonnull final Tensor result = new Tensor(outputDim);
       @Nullable final double[] inputData = tensor.getData();
@@ -98,7 +98,7 @@ public class CrossProductLayer extends LayerBase {
         assert delta.length() == delta.length();
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).parallel().mapToObj(batchIndex -> {
           @javax.annotation.Nullable final Tensor deltaTensor = delta.get(batchIndex);
-          final int outputDim = deltaTensor.dim();
+          final int outputDim = deltaTensor.length();
           final int inputDim = (1 + (int) Math.sqrt(1 + 8 * outputDim)) / 2;
           @javax.annotation.Nonnull final Tensor passback = new Tensor(inputDim);
           @Nullable final double[] passbackData = passback.getData();

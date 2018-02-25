@@ -120,7 +120,7 @@ public class LinearActivationLayer extends LayerBase {
           @javax.annotation.Nullable Tensor tensor = delta.get(dataIndex);
           @Nullable final double[] deltaData = tensor.getData();
           @javax.annotation.Nonnull final Tensor passback = new Tensor(inData.getDimensions());
-          for (int i = 0; i < passback.dim(); i++) {
+          for (int i = 0; i < passback.length(); i++) {
             passback.set(i, deltaData[i] * weights.getData()[0]);
           }
           tensor.freeRef();

@@ -136,13 +136,13 @@ public class MaxPoolingLayer extends LayerBase {
       @javax.annotation.Nonnull final Tensor output = new Tensor(newDims);
       return output;
     }).toArray(i -> new Tensor[i]);
-    Arrays.stream(outputA).mapToInt(x -> x.dim()).sum();
+    Arrays.stream(outputA).mapToInt(x -> x.length()).sum();
     @javax.annotation.Nonnull final int[][] gradientMapA = new int[in.getData().length()][];
     IntStream.range(0, in.getData().length()).forEach(dataIndex -> {
       @javax.annotation.Nullable final Tensor input = in.getData().get(dataIndex);
       final Tensor output = outputA[dataIndex];
       @javax.annotation.Nonnull final IntToDoubleFunction keyExtractor = inputCoords -> input.get(inputCoords);
-      @javax.annotation.Nonnull final int[] gradientMap = new int[input.dim()];
+      @javax.annotation.Nonnull final int[] gradientMap = new int[input.length()];
       regions.parallelStream().forEach(tuple -> {
         final Integer from = tuple.getFirst();
         final int[] toList = tuple.getSecond();
@@ -167,7 +167,7 @@ public class MaxPoolingLayer extends LayerBase {
           @javax.annotation.Nonnull final Tensor backSignal = new Tensor(inputDims);
           final int[] ints = gradientMapA[dataIndex];
           @javax.annotation.Nullable final Tensor datum = data.get(dataIndex);
-          for (int i = 0; i < datum.dim(); i++) {
+          for (int i = 0; i < datum.length(); i++) {
             backSignal.add(ints[i], datum.get(i));
           }
           datum.freeRef();

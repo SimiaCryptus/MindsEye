@@ -63,7 +63,7 @@ public class BiasLayer extends LayerBase {
    * @param dims the dims
    */
   public BiasLayer(final int... dims) {
-    bias = new double[Tensor.dim(dims)];
+    bias = new double[Tensor.length(dims)];
   }
   
   
@@ -239,7 +239,7 @@ public class BiasLayer extends LayerBase {
    */
   @javax.annotation.Nonnull
   public BiasLayer set(@javax.annotation.Nonnull Tensor tensor) {
-    assert bias.length == tensor.dim();
+    assert bias.length == tensor.length();
     for (int i = 0; i < bias.length; i++) {
       bias[i] = tensor.get(i);
     }

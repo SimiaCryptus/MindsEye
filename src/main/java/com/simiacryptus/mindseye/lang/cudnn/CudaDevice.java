@@ -360,7 +360,7 @@ public class CudaDevice extends CudaSystem {
     }
     else {
       final int listLength = data.length();
-      final int elementLength = Tensor.dim(data.getDimensions());
+      final int elementLength = Tensor.length(data.getDimensions());
       @Nonnull final CudaMemory ptr = this.allocate((long) elementLength * listLength * precision.size, memoryType, true);
       for (int i = 0; i < listLength; i++) {
         Tensor tensor = data.get(i);

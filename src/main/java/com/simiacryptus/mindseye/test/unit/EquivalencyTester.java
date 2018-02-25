@@ -73,7 +73,7 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
     final Tensor subjectOutput = SimpleEval.run(subject, inputPrototype).getOutputAndFree();
     final Tensor referenceOutput = SimpleEval.run(reference, inputPrototype).getOutputAndFree();
     @javax.annotation.Nonnull final Tensor error = subjectOutput.minus(referenceOutput);
-    @javax.annotation.Nonnull final ToleranceStatistics result = IntStream.range(0, subjectOutput.dim()).mapToObj(i1 -> {
+    @javax.annotation.Nonnull final ToleranceStatistics result = IntStream.range(0, subjectOutput.length()).mapToObj(i1 -> {
       return new ToleranceStatistics().accumulate(subjectOutput.getData()[i1], referenceOutput.getData()[i1]);
     }).reduce((a, b) -> a.combine(b)).get();
     try {

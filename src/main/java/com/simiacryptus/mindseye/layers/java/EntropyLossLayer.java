@@ -79,13 +79,13 @@ public class EntropyLossLayer extends LayerBase {
     return new Result(TensorArray.wrap(IntStream.range(0, indata.length()).mapToObj(dataIndex -> {
       @javax.annotation.Nullable final Tensor l = indata.get(dataIndex);
       @javax.annotation.Nullable final Tensor r = inObj[1].getData().get(dataIndex);
-      assert l.dim() == r.dim() : l.dim() + " != " + r.dim();
+      assert l.length() == r.length() : l.length() + " != " + r.length();
       @javax.annotation.Nonnull final Tensor gradientTensor = new Tensor(l.getDimensions());
       @Nullable final double[] gradientData = gradientTensor.getData();
       double total = 0;
       @Nullable final double[] ld = l.getData();
       @Nullable final double[] rd = r.getData();
-      for (int i = 0; i < l.dim(); i++) {
+      for (int i = 0; i < l.length(); i++) {
         final double lv = Math.max(Math.min(ld[i], max_prob), zero_tol);
         final double rv = rd[i];
         if (rv > 0) {
@@ -108,7 +108,7 @@ public class EntropyLossLayer extends LayerBase {
           Tensor deltaTensor = delta.get(dataIndex);
           @javax.annotation.Nullable final Tensor inputTensor = indata.get(dataIndex);
           @javax.annotation.Nonnull final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
-          for (int i = 0; i < passback.dim(); i++) {
+          for (int i = 0; i < passback.length(); i++) {
             final double lv = Math.max(Math.min(inputTensor.get(i), max_prob), zero_tol);
             passback.set(i, -deltaTensor.get(0) * Math.log(lv));
           }
@@ -123,7 +123,7 @@ public class EntropyLossLayer extends LayerBase {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           Tensor tensor = delta.get(dataIndex);
           @javax.annotation.Nonnull final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
-          for (int i = 0; i < passback.dim(); i++) {
+          for (int i = 0; i < passback.length(); i++) {
             passback.set(i, tensor.get(0) * gradient[dataIndex].get(i));
           }
           tensor.freeRef();

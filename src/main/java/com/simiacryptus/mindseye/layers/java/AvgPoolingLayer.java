@@ -106,7 +106,7 @@ public class AvgPoolingLayer extends LayerBase {
   @SuppressWarnings("unchecked")
   @Override
   public Result eval(@javax.annotation.Nonnull final Result... inObj) {
-    final int kernelSize = Tensor.dim(kernelDims);
+    final int kernelSize = Tensor.length(kernelDims);
     final TensorList data = inObj[0].getData();
     @javax.annotation.Nonnull final int[] inputDims = data.getDimensions();
     final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {

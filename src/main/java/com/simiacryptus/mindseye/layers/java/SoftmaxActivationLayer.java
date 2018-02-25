@@ -80,7 +80,7 @@ public class SoftmaxActivationLayer extends LayerBase {
     @javax.annotation.Nonnull final Tensor expA[] = new Tensor[itemCnt];
     final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       @javax.annotation.Nullable final Tensor input = inObj[0].getData().get(dataIndex);
-      assert 1 < input.dim() : "input.dim() = " + input.dim();
+      assert 1 < input.length() : "input.length() = " + input.length();
   
       @Nullable final Tensor exp;
       final DoubleSummaryStatistics summaryStatistics = DoubleStream.of(input.getData()).filter(x -> Double.isFinite(x)).summaryStatistics();

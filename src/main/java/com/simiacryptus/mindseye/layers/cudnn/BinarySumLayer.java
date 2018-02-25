@@ -129,7 +129,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
       throw new IllegalArgumentException("dimensions=" + Arrays.toString(dimensions));
     }
     for (int i = 1; i < inObj.length; i++) {
-      if (Tensor.dim(dimensions) != Tensor.dim(inObj[i].getData().getDimensions())) {
+      if (Tensor.length(dimensions) != Tensor.length(inObj[i].getData().getDimensions())) {
         throw new IllegalArgumentException(Arrays.toString(dimensions) + " != " + Arrays.toString(inObj[i].getData().getDimensions()));
       }
     }

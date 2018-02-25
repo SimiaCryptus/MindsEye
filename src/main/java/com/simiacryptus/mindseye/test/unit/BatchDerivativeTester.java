@@ -72,20 +72,20 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   @javax.annotation.Nonnull
   private Tensor getFeedbackGradient(@javax.annotation.Nonnull final Layer component, final int inputIndex, @javax.annotation.Nonnull final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor inputTensor = inputPrototype[inputIndex];
-    final int inputDims = inputTensor.dim();
-    @javax.annotation.Nonnull final Tensor result = new Tensor(inputDims, outputPrototype.dim());
-    for (int j = 0; j < outputPrototype.dim(); j++) {
+    final int inputDims = inputTensor.length();
+    @javax.annotation.Nonnull final Tensor result = new Tensor(inputDims, outputPrototype.length());
+    for (int j = 0; j < outputPrototype.length(); j++) {
       final int j_ = j;
       @javax.annotation.Nonnull final PlaceholderLayer<Tensor> inputKey = new PlaceholderLayer<Tensor>(new Tensor());
       @javax.annotation.Nonnull final Result copyInput = new Result(TensorArray.create(inputPrototype), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
-        @javax.annotation.Nonnull final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.dim());
+        @javax.annotation.Nonnull final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.length());
         if (!Arrays.equals(inputTensor.getDimensions(), data.get(inputIndex).getDimensions())) {
           throw new AssertionError();
         }
         for (int i = 0; i < inputDims; i++) {
           gradientBuffer.set(new int[]{i, j_}, data.get(inputIndex).getData()[i]);
         }
-        buffer.get(inputKey, new double[gradientBuffer.dim()]).addInPlace(gradientBuffer.getData());
+        buffer.get(inputKey, new double[gradientBuffer.length()]).addInPlace(gradientBuffer.getData());
       }) {
         
         @Override
@@ -116,8 +116,8 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     component.setFrozen(false);
     final double[] stateArray = component.state().get(layerNum);
     final int stateLen = stateArray.length;
-    @javax.annotation.Nonnull final Tensor gradient = new Tensor(stateLen, outputPrototype.dim());
-    for (int j = 0; j < outputPrototype.dim(); j++) {
+    @javax.annotation.Nonnull final Tensor gradient = new Tensor(stateLen, outputPrototype.length());
+    for (int j = 0; j < outputPrototype.length(); j++) {
       final int j_ = j;
       @javax.annotation.Nonnull final DeltaSet<Layer> buffer = new DeltaSet<Layer>();
       @javax.annotation.Nonnull final Tensor data = new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0);
@@ -222,17 +222,17 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   
   @javax.annotation.Nonnull
   private Tensor measureFeedbackGradient(@javax.annotation.Nonnull final Layer component, final int inputIndex, @javax.annotation.Nonnull final Tensor outputPrototype, @javax.annotation.Nonnull final Tensor... inputPrototype) {
-    @javax.annotation.Nonnull final Tensor measuredGradient = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
+    @javax.annotation.Nonnull final Tensor measuredGradient = new Tensor(inputPrototype[inputIndex].length(), outputPrototype.length());
     @javax.annotation.Nullable final Tensor baseOutput = component.eval(ConstantResult.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
     outputPrototype.set(baseOutput);
-    for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
+    for (int i = 0; i < inputPrototype[inputIndex].length(); i++) {
       @javax.annotation.Nonnull final Tensor inputProbe = inputPrototype[inputIndex].copy();
       inputProbe.add(i, probeSize * 1);
       @javax.annotation.Nonnull final Tensor[] copyInput = Arrays.copyOf(inputPrototype, inputPrototype.length);
       copyInput[inputIndex] = inputProbe;
       @javax.annotation.Nullable final Tensor evalProbe = component.eval(ConstantResult.singleResultArray(new Tensor[][]{copyInput})).getData().get(0);
       @javax.annotation.Nonnull final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
-      for (int j = 0; j < delta.dim(); j++) {
+      for (int j = 0; j < delta.length(); j++) {
         measuredGradient.set(new int[]{i, j}, delta.getData()[j]);
       }
     }
@@ -242,7 +242,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   @javax.annotation.Nonnull
   private Tensor measureLearningGradient(@javax.annotation.Nonnull final Layer component, final int layerNum, @javax.annotation.Nonnull final Tensor outputPrototype, final Tensor... inputPrototype) {
     final int stateLen = component.state().get(layerNum).length;
-    @javax.annotation.Nonnull final Tensor gradient = new Tensor(stateLen, outputPrototype.dim());
+    @javax.annotation.Nonnull final Tensor gradient = new Tensor(stateLen, outputPrototype.length());
   
     @javax.annotation.Nullable final Tensor baseOutput = component.eval(ConstantResult.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
     
@@ -253,7 +253,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       @javax.annotation.Nullable final Tensor evalProbe = copy.eval(ConstantResult.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
       
       @javax.annotation.Nonnull final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
-      for (int j = 0; j < delta.dim(); j++) {
+      for (int j = 0; j < delta.length(); j++) {
         gradient.set(new int[]{i, j}, delta.getData()[j]);
       }
     }
@@ -274,7 +274,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       @Nullable final Tensor measuredGradient = !verify ? null : measureLearningGradient(component, i, IOPair.getOutputPrototype(), IOPair.getInputPrototype());
       @javax.annotation.Nonnull final Tensor implementedGradient = getLearningGradient(component, i, IOPair.getOutputPrototype(), IOPair.getInputPrototype());
       try {
-        final ToleranceStatistics result = IntStream.range(0, null == measuredGradient ? 0 : measuredGradient.dim()).mapToObj(i1 -> {
+        final ToleranceStatistics result = IntStream.range(0, null == measuredGradient ? 0 : measuredGradient.length()).mapToObj(i1 -> {
           return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], implementedGradient.getData()[i1]);
         }).reduce((a, b) -> a.combine(b)).orElse(new ToleranceStatistics());
         if (!(result.absoluteTol.getMax() < tolerance)) {
@@ -328,7 +328,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       @Nullable final Tensor measuredGradient = !verify ? null : measureFeedbackGradient(component, i, IOPair.getOutputPrototype(), IOPair.getInputPrototype());
       @javax.annotation.Nonnull final Tensor implementedGradient = getFeedbackGradient(component, i, IOPair.getOutputPrototype(), IOPair.getInputPrototype());
       try {
-        final ToleranceStatistics result = IntStream.range(0, null == measuredGradient ? 0 : measuredGradient.dim()).mapToObj(i1 -> {
+        final ToleranceStatistics result = IntStream.range(0, null == measuredGradient ? 0 : measuredGradient.length()).mapToObj(i1 -> {
           return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], implementedGradient.getData()[i1]);
         }).reduce((a, b) -> a.combine(b)).orElse(new ToleranceStatistics());
         
@@ -457,7 +457,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     if (!deltas.isEmpty() && !component.state().isEmpty()) {
       throw new AssertionError("Frozen component listed in delta. Deltas: " + deltas);
     }
-    final int inElements = Arrays.stream(inputPrototype).mapToInt(x -> x.dim()).sum();
+    final int inElements = Arrays.stream(inputPrototype).mapToInt(x -> x.length()).sum();
     if (!reachedInputFeedback.get() && 0 < inElements) {
       throw new RuntimeException("Frozen component did not pass input backwards");
     }

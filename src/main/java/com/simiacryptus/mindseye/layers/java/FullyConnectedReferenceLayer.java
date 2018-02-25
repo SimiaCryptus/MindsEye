@@ -83,8 +83,8 @@ public class FullyConnectedReferenceLayer extends LayerBase {
   public FullyConnectedReferenceLayer(@javax.annotation.Nonnull final int[] inputDims, @javax.annotation.Nonnull final int[] outputDims) {
     this.inputDims = Arrays.copyOf(inputDims, inputDims.length);
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
-    final int inputs = Tensor.dim(inputDims);
-    final int outputs = Tensor.dim(outputDims);
+    final int inputs = Tensor.length(inputDims);
+    final int outputs = Tensor.length(outputDims);
     weights = new Tensor(inputs, outputs);
     set(() -> {
       final double ratio = Math.sqrt(6. / (inputs + outputs + 1));
@@ -132,7 +132,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
     inputResult.addRef();
     indata.addRef();
     @Nonnull int[] inputDimensions = indata.getDimensions();
-    assert Tensor.dim(inputDimensions) == Tensor.dim(this.inputDims) : Arrays.toString(inputDimensions) + " == " + Arrays.toString(this.inputDims);
+    assert Tensor.length(inputDimensions) == Tensor.length(this.inputDims) : Arrays.toString(inputDimensions) + " == " + Arrays.toString(this.inputDims);
     weights.addRef();
     return new Result(TensorArray.wrap(IntStream.range(0, indata.length()).mapToObj(index -> {
       @javax.annotation.Nullable final Tensor input = indata.get(index);

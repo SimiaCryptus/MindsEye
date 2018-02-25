@@ -23,7 +23,7 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
-import com.simiacryptus.mindseye.layers.cudnn.ProductLayer;
+import com.simiacryptus.mindseye.layers.cudnn.NProductLayer;
 
 import java.util.Map;
 
@@ -80,7 +80,7 @@ public class PolynomialConvolutionNetwork extends PolynomialNetwork {
   @javax.annotation.Nonnull
   @Override
   public Layer newProductLayer() {
-    return new ProductLayer();
+    return new NProductLayer();
   }
   
   @javax.annotation.Nonnull

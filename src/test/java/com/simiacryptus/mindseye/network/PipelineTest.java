@@ -70,7 +70,7 @@ public abstract class PipelineTest {
   /**
    * Build network nn layer.
    *
-   * @param layers the dim list
+   * @param layers the length list
    * @return the nn layer
    */
   @javax.annotation.Nonnull

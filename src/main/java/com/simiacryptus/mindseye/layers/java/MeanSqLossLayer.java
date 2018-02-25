@@ -81,21 +81,21 @@ public class MeanSqLossLayer extends LayerBase {
     return new Result(TensorArray.wrap(IntStream.range(0, leftLength).mapToObj(dataIndex -> {
       @javax.annotation.Nullable final Tensor a = inObj[0].getData().get(1 == leftLength ? 0 : dataIndex);
       @javax.annotation.Nullable final Tensor b = inObj[1].getData().get(1 == rightLength ? 0 : dataIndex);
-      if (a.dim() != b.dim()) {
+      if (a.length() != b.length()) {
         throw new IllegalArgumentException(String.format("%s != %s", Arrays.toString(a.getDimensions()), Arrays.toString(b.getDimensions())));
       }
       @javax.annotation.Nonnull final Tensor r = a.minus(b);
       a.freeRef();
       b.freeRef();
       diffs[dataIndex] = r;
-      @javax.annotation.Nonnull Tensor statsTensor = new Tensor(new double[]{r.sumSq() / r.dim()}, 1);
+      @javax.annotation.Nonnull Tensor statsTensor = new Tensor(new double[]{r.sumSq() / r.length()}, 1);
       return statsTensor;
     }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
         Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
           @Nullable Tensor tensor = data.get(dataIndex);
           Tensor diff = diffs[dataIndex];
-          @Nullable Tensor scale = diff.scale(tensor.get(0) * 2.0 / diff.dim());
+          @Nullable Tensor scale = diff.scale(tensor.get(0) * 2.0 / diff.length());
           tensor.freeRef();
           return scale;
         }).collect(Collectors.toList()).stream();
@@ -113,7 +113,7 @@ public class MeanSqLossLayer extends LayerBase {
       if (inObj[1].isAlive()) {
         Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
           @Nullable Tensor tensor = data.get(dataIndex);
-          @Nullable Tensor scale = diffs[dataIndex].scale(tensor.get(0) * 2.0 / diffs[dataIndex].dim());
+          @Nullable Tensor scale = diffs[dataIndex].scale(tensor.get(0) * 2.0 / diffs[dataIndex].length());
           tensor.freeRef();
           return scale;
         }).collect(Collectors.toList()).stream();

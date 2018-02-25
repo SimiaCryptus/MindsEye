@@ -90,7 +90,7 @@ public class AvgReducerLayer extends LayerBase {
             final double deltaV = deltaTensor.get(0);
             deltaTensor.freeRef();
             @javax.annotation.Nonnull final Tensor passback = new Tensor(inData.getDimensions());
-            final int dim = passback.dim();
+            final int dim = passback.length();
             for (int i = 0; i < dim; i++) {
               passback.set(i, deltaV / dim);
             }

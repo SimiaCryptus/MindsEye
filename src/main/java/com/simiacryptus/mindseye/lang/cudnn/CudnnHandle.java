@@ -217,7 +217,7 @@ public class CudnnHandle extends CudaDevice {
     final Precision precision = left.precision;
     final int[] dimensions = left.getDimensions();
     assert left.length() == right.length();
-    assert Tensor.dim(left.getDimensions()) == Tensor.dim(right.getDimensions());
+    assert Tensor.length(left.getDimensions()) == Tensor.length(right.getDimensions());
     @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = newTensorDescriptor(
       precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, left.length(), dimensions[2], dimensions[1], dimensions[0]);
     @Nullable final CudaMemory lPtr = getPtr(left, precision, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
@@ -244,7 +244,7 @@ public class CudnnHandle extends CudaDevice {
   public TensorList addAndFree(final Precision precision, final TensorList left, final TensorList right) {
     final int[] dimensions = left.getDimensions();
     assert left.length() == right.length();
-    assert Tensor.dim(left.getDimensions()) == Tensor.dim(right.getDimensions());
+    assert Tensor.length(left.getDimensions()) == Tensor.length(right.getDimensions());
     int length = left.length();
     assert length == right.length();
 //    if (left.currentRefCount() == 1 && left instanceof CudaTensorList)

@@ -44,7 +44,7 @@ public class MeanSqLossLayer extends PipelineNetwork {
   public MeanSqLossLayer() {
     super(2);
     wrap(new BinarySumLayer(1.0, -1.0), getInput(0), getInput(1));
-    wrap(new ProductLayer(), getHead(), getHead());
+    wrap(new NProductLayer(), getHead(), getHead());
     wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
     wrap(new AvgReducerLayer());
   }

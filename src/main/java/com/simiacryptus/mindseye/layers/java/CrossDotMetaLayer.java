@@ -72,7 +72,7 @@ public class CrossDotMetaLayer extends LayerBase {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     indata.addRef();
     final int itemCnt = indata.length();
-    final int dim = Tensor.dim(indata.getDimensions());
+    final int dim = Tensor.length(indata.getDimensions());
     @javax.annotation.Nonnull final Tensor results = new Tensor(dim, dim);
     for (int i = 0; i < dim; i++) {
       for (int j = 0; j < dim; j++) {

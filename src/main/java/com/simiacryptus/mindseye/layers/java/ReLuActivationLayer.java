@@ -141,7 +141,7 @@ public class ReLuActivationLayer extends LayerBase {
           @Nullable final double[] inputData = inTensor.getData();
           @javax.annotation.Nonnull final int[] dims = inTensor.getDimensions();
           @javax.annotation.Nonnull final Tensor passback = new Tensor(dims);
-          for (int i = 0; i < passback.dim(); i++) {
+          for (int i = 0; i < passback.length(); i++) {
             passback.set(i, inputData[i] < 0 ? 0 : deltaData[i] * weight);
           }
           inTensor.freeRef();

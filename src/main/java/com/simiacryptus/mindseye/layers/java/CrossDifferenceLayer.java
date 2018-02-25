@@ -78,7 +78,7 @@ public class CrossDifferenceLayer extends LayerBase {
     assert 1 == inObj.length;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     return new Result(TensorArray.wrap(inObj[0].getData().stream().parallel().map(tensor -> {
-      final int inputDim = tensor.dim();
+      final int inputDim = tensor.length();
       final int outputDim = (inputDim * inputDim - inputDim) / 2;
       @javax.annotation.Nonnull final Tensor result = new Tensor(outputDim);
       @Nullable final double[] inputData = tensor.getData();
@@ -94,7 +94,7 @@ public class CrossDifferenceLayer extends LayerBase {
       final Result input = inObj[0];
       if (input.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(data.stream().parallel().map(tensor -> {
-          final int outputDim = tensor.dim();
+          final int outputDim = tensor.length();
           final int inputDim = (1 + (int) Math.sqrt(1 + 8 * outputDim)) / 2;
           @javax.annotation.Nonnull final Tensor passback = new Tensor(inputDim);
           @Nullable final double[] passbackData = passback.getData();

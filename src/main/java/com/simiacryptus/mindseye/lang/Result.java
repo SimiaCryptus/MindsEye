@@ -28,7 +28,7 @@ import java.util.function.BiConsumer;
  * evaluated to determine the learning gradient. Does not hold a reference on the result data object, allowing that data
  * to be freed when possible while preserving the gradient callback.
  */
-public abstract class Result extends ReferenceCountingBase {
+public class Result extends ReferenceCountingBase {
   /**
    * The Data.
    */

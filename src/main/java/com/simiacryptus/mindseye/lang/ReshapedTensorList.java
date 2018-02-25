@@ -36,10 +36,10 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
    * Instantiates a new Reshaped tensor list.
    *
    * @param inner the data
-   * @param toDim the to dim
+   * @param toDim the to length
    */
   public ReshapedTensorList(@javax.annotation.Nonnull TensorList inner, int[] toDim) {
-    if (Tensor.dim(inner.getDimensions()) != Tensor.dim(toDim))
+    if (Tensor.length(inner.getDimensions()) != Tensor.length(toDim))
       throw new IllegalArgumentException(Arrays.toString(inner.getDimensions()) + " != " + Arrays.toString(toDim));
     this.inner = inner;
     this.inner.addRef(this);

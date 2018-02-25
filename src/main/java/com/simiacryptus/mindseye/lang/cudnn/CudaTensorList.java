@@ -73,7 +73,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     this.ptr.addRef();
     this.length = length;
     this.dimensions = Arrays.copyOf(dimensions, dimensions.length);
-    assert ptr.size == (long) length * Tensor.dim(dimensions) * precision.size;
+    assert ptr.size == (long) length * Tensor.length(dimensions) * precision.size;
     assert ptr.getPtr() != null;
     //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
   }
@@ -230,7 +230,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     if (null == heapCopy || heapCopy.isFinalized()) {
       synchronized (this) {
         if (null == heapCopy || heapCopy.isFinalized()) {
-          final int itemLength = Tensor.dim(getDimensions());
+          final int itemLength = Tensor.length(getDimensions());
           final Tensor[] output = IntStream.range(0, getLength())
             .mapToObj(dataIndex -> new Tensor(getDimensions()))
             .toArray(i -> new Tensor[i]);

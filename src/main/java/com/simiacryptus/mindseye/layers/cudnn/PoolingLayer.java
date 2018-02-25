@@ -111,7 +111,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     @Nonnull final int[] inputSize = batch.getDimensions();
     final int length = batch.length();
     batch.addRef();
-    final int inputDims = Tensor.dim(inputSize);
+    final int inputDims = Tensor.length(inputSize);
     @javax.annotation.Nonnull final int[] outputSize = new int[4];
     final CudaMemory outputData = CudaSystem.eval(gpu -> {
       try {
@@ -127,7 +127,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
         @javax.annotation.Nonnull final Pointer alpha = precision.getPointer(1.0);
         @javax.annotation.Nonnull final Pointer beta = precision.getPointer(0.0);
         @Nullable final CudaMemory inputData = gpu.getPtr(batch, precision, MemoryType.Device);
-        @javax.annotation.Nonnull final CudaMemory outputTensor = gpu.allocate(precision.size * 1l * Tensor.dim(outputSize), MemoryType.Managed, true);
+        @javax.annotation.Nonnull final CudaMemory outputTensor = gpu.allocate(precision.size * 1l * Tensor.length(outputSize), MemoryType.Managed, true);
         CudaSystem.handle(gpu.cudnnPoolingForward(poolingDesc.getPtr(),
           alpha,
           inputDescriptor.getPtr(), inputData.getPtr(),

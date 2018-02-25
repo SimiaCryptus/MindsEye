@@ -129,7 +129,7 @@ public class HyperbolicActivationLayer extends LayerBase {
           @Nullable final double[] deltaData = deltaTensor.getData();
           @javax.annotation.Nonnull final int[] dims = indata.getDimensions();
           @javax.annotation.Nonnull final Tensor passback = new Tensor(dims);
-          for (int i = 0; i < passback.dim(); i++) {
+          for (int i = 0; i < passback.length(); i++) {
             final double x = inputTensor.getData()[i];
             final double d = deltaData[i];
             final int sign = x < 0 ? negativeMode : 1;

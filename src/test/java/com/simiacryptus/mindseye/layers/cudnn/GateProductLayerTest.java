@@ -21,14 +21,17 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.test.ToleranceStatistics;
+import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
+import javax.annotation.Nullable;
 import java.util.Random;
 
 /**
  * The type Product layer run.
  */
-public abstract class ProductLayerTest extends CuDNNLayerTestBase {
+public abstract class GateProductLayerTest extends CuDNNLayerTestBase {
   
   /**
    * The Precision.
@@ -40,7 +43,7 @@ public abstract class ProductLayerTest extends CuDNNLayerTestBase {
    *
    * @param precision the precision
    */
-  public ProductLayerTest(final Precision precision) {
+  public GateProductLayerTest(final Precision precision) {
     this.precision = precision;
   }
   
@@ -48,20 +51,27 @@ public abstract class ProductLayerTest extends CuDNNLayerTestBase {
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {8, 8, 1}, {8, 8, 1}
+      {4, 4, 3}, {1, 1, 3}
     };
   }
   
   @javax.annotation.Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
-    return new ProductLayer().setPrecision(precision);
+    return new GateProductLayer().setPrecision(precision);
+  }
+  
+  @Nullable
+  @Override
+  public ComponentTest<ToleranceStatistics> getDerivativeTester() {
+    if (!validateDifferentials) return null;
+    return new SingleDerivativeTester(1e-3, 1e-4).setTestFeedback(false);
   }
   
   /**
    * Multiplication of 2 inputs using 64-bit precision
    */
-  public static class Double extends ProductLayerTest {
+  public static class Double extends GateProductLayerTest {
     /**
      * Instantiates a new Double.
      */
@@ -71,29 +81,9 @@ public abstract class ProductLayerTest extends CuDNNLayerTestBase {
   }
   
   /**
-   * Multiplication of 3 inputs using 64-bit precision
-   */
-  public static class Double3 extends ProductLayerTest {
-    /**
-     * Instantiates a new Double.
-     */
-    public Double3() {
-      super(Precision.Double);
-    }
-  
-    @javax.annotation.Nonnull
-    @Override
-    public int[][] getSmallDims(Random random) {
-      return new int[][]{
-        {8, 8, 1}, {8, 8, 1}, {8, 8, 1}
-      };
-    }
-  }
-  
-  /**
    * Multiplication of 2 inputs using 32-bit precision
    */
-  public static class Float extends ProductLayerTest {
+  public static class Float extends GateProductLayerTest {
     /**
      * Instantiates a new Float.
      */

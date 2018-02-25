@@ -164,7 +164,7 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
     @Nonnull final Tensor tensor = new Tensor(dimensions);
     switch (precision) {
       case Float:
-        final int length = tensor.dim();
+        final int length = tensor.length();
         @Nonnull final float[] data = new float[length];
         read(precision, data);
         @Nullable final double[] doubles = tensor.getData();

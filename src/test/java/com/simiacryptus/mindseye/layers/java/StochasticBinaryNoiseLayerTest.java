@@ -19,32 +19,32 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
+
 import java.util.Random;
 
 /**
- * A parent interface for layers which should be "shuffled" often, generally when the layer has some random
- * noise-determining state. This is needed since even noise-introducing layers must behave well as analytic functions
- * between shuffles to guarantee the optimizer will converge.
+ * The type Product layer eval.
  */
-public interface StochasticComponent {
-  /**
-   * The constant randomize.
-   */
-  ThreadLocal<Random> random = new ThreadLocal<Random>() {
-    @Override
-    protected Random initialValue() {
-      return new Random();
-    }
-  };
+public abstract class StochasticBinaryNoiseLayerTest extends LayerTestBase {
+  
+  @javax.annotation.Nonnull
+  @Override
+  public int[][] getSmallDims(Random random) {
+    return new int[][]{};
+  }
+  
+  @javax.annotation.Nonnull
+  @Override
+  public Layer getLayer(final int[][] inputSize, Random random) {
+    return new StochasticBinaryNoiseLayer(5);
+  }
   
   /**
-   * Shuffle.
-   * @param seed
+   * Basic Test
    */
-  void shuffle(final long seed);
+  public static class Basic extends StochasticBinaryNoiseLayerTest {
+  }
   
-  /**
-   * Clear noise.
-   */
-  void clearNoise();
 }

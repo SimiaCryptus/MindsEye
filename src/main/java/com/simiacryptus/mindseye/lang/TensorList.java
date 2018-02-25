@@ -168,7 +168,7 @@ public interface TensorList extends ReferenceCounting {
    * @return the elements
    */
   default int getElements() {
-    return length() * Tensor.dim(getDimensions());
+    return length() * Tensor.length(getDimensions());
   }
   
   /**
@@ -178,6 +178,6 @@ public interface TensorList extends ReferenceCounting {
    * @return the bytes
    */
   default int getBytes(Precision precision) {
-    return length() * Tensor.dim(getDimensions()) * precision.size;
+    return length() * Tensor.length(getDimensions()) * precision.size;
   }
 }

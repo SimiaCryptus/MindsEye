@@ -38,21 +38,12 @@ import java.util.stream.IntStream;
 public class DropoutNoiseLayer extends LayerBase implements StochasticComponent {
   
   
-  /**
-   * The constant randomize.
-   */
-  public static final ThreadLocal<Random> random = new ThreadLocal<Random>() {
-    @Override
-    protected Random initialValue() {
-      return new Random();
-    }
-  };
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DropoutNoiseLayer.class);
   /**
    * The Seed.
    */
-  long seed = DropoutNoiseLayer.random.get().nextLong();
+  long seed = StochasticComponent.random.get().nextLong();
   private double value;
   
   /**
@@ -128,7 +119,7 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
           @Nullable final double[] deltaData = deltaTensor.getData();
           @Nullable final double[] maskData = mask[dataIndex].getData();
           @javax.annotation.Nonnull final Tensor passback = new Tensor(deltaTensor.getDimensions());
-          for (int i = 0; i < passback.dim(); i++) {
+          for (int i = 0; i < passback.length(); i++) {
             passback.set(i, maskData[i] * deltaData[i]);
           }
           deltaTensor.freeRef();
@@ -183,8 +174,8 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
   }
   
   @Override
-  public void shuffle() {
-    seed = DropoutNoiseLayer.random.get().nextLong();
+  public void shuffle(final long seed) {
+    this.seed = StochasticComponent.random.get().nextLong();
   }
   
   @Override

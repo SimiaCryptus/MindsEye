@@ -77,7 +77,7 @@ public class SumInputsLayer extends LayerBase {
           @javax.annotation.Nullable final Tensor left = l.get(1 == l.length() ? 0 : i);
           @javax.annotation.Nullable final Tensor right = r.get(1 == r.length() ? 0 : i);
           @javax.annotation.Nullable Tensor tensor;
-          if (right.dim() == 1) {
+          if (right.length() == 1) {
             tensor = left.mapParallel(v -> v + right.get(0));
           }
           else {
@@ -105,7 +105,7 @@ public class SumInputsLayer extends LayerBase {
           else {
             projectedDelta.addRef();
           }
-          if (1 < Tensor.dim(projectedDelta.getDimensions()) && Tensor.dim(input.getData().getDimensions()) == 1) {
+          if (1 < Tensor.length(projectedDelta.getDimensions()) && Tensor.length(input.getData().getDimensions()) == 1) {
             Tensor[] data = projectedDelta.stream().map(t -> new Tensor(new double[]{t.sum()})).toArray(i -> new Tensor[i]);
             @javax.annotation.Nonnull TensorArray data2 = TensorArray.wrap(data);
             projectedDelta.freeRef();

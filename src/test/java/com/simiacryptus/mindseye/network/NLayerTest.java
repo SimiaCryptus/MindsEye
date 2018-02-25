@@ -59,7 +59,7 @@ public abstract class NLayerTest {
   /**
    * Instantiates a new N layer eval.
    *
-   * @param dimList the dim list
+   * @param dimList the length list
    */
   public NLayerTest(final int[]... dimList) {
     this.dimList = Arrays.asList(dimList);
@@ -77,7 +77,7 @@ public abstract class NLayerTest {
   /**
    * Build network nn layer.
    *
-   * @param dimList the dim list
+   * @param dimList the length list
    * @return the nn layer
    */
   @javax.annotation.Nonnull

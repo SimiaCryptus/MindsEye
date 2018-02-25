@@ -77,10 +77,10 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
     return new Result(TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       @javax.annotation.Nullable final Tensor input = indata0.get(dataIndex);
       @javax.annotation.Nonnull final Tensor output = new Tensor(indata0.getDimensions());
-      @javax.annotation.Nonnull final Tensor inputGradient = new Tensor(input.dim());
+      @javax.annotation.Nonnull final Tensor inputGradient = new Tensor(input.length());
       inputGradientA[dataIndex] = inputGradient;
       @javax.annotation.Nonnull final double[] results = new double[2];
-      for (int i = 0; i < input.dim(); i++) {
+      for (int i = 0; i < input.length(); i++) {
         eval(input.getData()[i], results);
         inputGradient.set(i, results[1]);
         output.set(i, results[0]);
@@ -93,7 +93,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
           @javax.annotation.Nonnull final Tensor passback = new Tensor(data.getDimensions());
           @Nullable final double[] gradientData = inputGradientA[dataIndex].getData();
           @javax.annotation.Nullable Tensor tensor = data.get(dataIndex);
-          IntStream.range(0, passback.dim()).forEach(i -> {
+          IntStream.range(0, passback.length()).forEach(i -> {
             final double v = gradientData[i];
             if (Double.isFinite(v)) {
               passback.set(i, tensor.get(i) * v);

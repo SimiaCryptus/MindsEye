@@ -114,7 +114,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
     @Nonnull final int[] inputSize = batch.getDimensions();
     @Nonnull final int[] outputSize = inputSize;
     final int length = batch.length();
-    final int inputDims = Tensor.dim(inputSize);
+    final int inputDims = Tensor.length(inputSize);
     batch.addRef();
     try {
       CudaMemory outPtr = CudaSystem.eval(gpu -> {

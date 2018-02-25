@@ -80,10 +80,10 @@ public class FullyConnectedLayer extends LayerBase {
    * @param outputDims the output dims
    */
   public FullyConnectedLayer(@javax.annotation.Nonnull final int[] inputDims, @javax.annotation.Nonnull final int[] outputDims) {
-    final int inputs = Tensor.dim(inputDims);
+    final int inputs = Tensor.length(inputDims);
     this.inputDims = Arrays.copyOf(inputDims, inputDims.length);
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
-    final int outs = Tensor.dim(outputDims);
+    final int outs = Tensor.length(outputDims);
     weights = new Tensor(inputs, outs);
     set(() -> {
       final double ratio = Math.sqrt(6. / (inputs + outs + 1));
@@ -207,13 +207,13 @@ public class FullyConnectedLayer extends LayerBase {
       result.addRef();
     }
     FullyConnectedLayer.this.addRef();
-    assert Tensor.dim(indata.getDimensions()) == Tensor.dim(this.inputDims) : Arrays.toString(indata.getDimensions()) + " == " + Arrays.toString(this.inputDims);
-    @javax.annotation.Nonnull DoubleMatrix doubleMatrix = new DoubleMatrix(Tensor.dim(indata.getDimensions()), Tensor.dim(outputDims), this.weights.getData());
+    assert Tensor.length(indata.getDimensions()) == Tensor.length(this.inputDims) : Arrays.toString(indata.getDimensions()) + " == " + Arrays.toString(this.inputDims);
+    @javax.annotation.Nonnull DoubleMatrix doubleMatrix = new DoubleMatrix(Tensor.length(indata.getDimensions()), Tensor.length(outputDims), this.weights.getData());
     @javax.annotation.Nonnull final DoubleMatrix matrixObj = FullyConnectedLayer.transpose(doubleMatrix);
     @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, indata.length()).parallel().mapToObj(dataIndex -> {
       @javax.annotation.Nullable final Tensor input = indata.get(dataIndex);
       @Nullable final Tensor output = new Tensor(outputDims);
-      matrixObj.mmuli(new DoubleMatrix(input.dim(), 1, input.getData()), new DoubleMatrix(output.dim(), 1, output.getData()));
+      matrixObj.mmuli(new DoubleMatrix(input.length(), 1, input.getData()), new DoubleMatrix(output.length(), 1, output.getData()));
       input.freeRef();
       return output;
     }).toArray(i -> new Tensor[i]));
@@ -225,7 +225,7 @@ public class FullyConnectedLayer extends LayerBase {
         final int threads = 4;
         IntStream.range(0, threads).parallel().mapToObj(x -> x).flatMap(thread -> {
           @Nullable Stream<Tensor> stream = IntStream.range(0, indata.length()).filter(i -> thread == i % threads).mapToObj(dataIndex -> {
-            @javax.annotation.Nonnull final Tensor weightDelta = new Tensor(Tensor.dim(inputDims), Tensor.dim(outputDims));
+            @javax.annotation.Nonnull final Tensor weightDelta = new Tensor(Tensor.length(inputDims), Tensor.length(outputDims));
             Tensor deltaTensor = delta.get(dataIndex);
             Tensor inputTensor = indata.get(dataIndex);
             FullyConnectedLayer.crossMultiplyT(deltaTensor.getData(), inputTensor.getData(), weightDelta.getData());

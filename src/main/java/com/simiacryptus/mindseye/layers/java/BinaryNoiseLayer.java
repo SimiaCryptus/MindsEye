@@ -154,12 +154,12 @@ public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
   @javax.annotation.Nonnull
   public BinaryNoiseLayer setValue(final double value) {
     this.value = value;
-    shuffle();
+    shuffle(StochasticComponent.random.get().nextLong());
     return this;
   }
   
   @Override
-  public void shuffle() {
+  public void shuffle(final long seed) {
     maskList.clear();
   }
   

@@ -225,9 +225,9 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
    *
    * @param gpu                   the gpu
    * @param length                the length
-   * @param sourceDimensions      the dim in
+   * @param sourceDimensions      the length in
    * @param source                the input buffer
-   * @param destinationDimensions the dim out
+   * @param destinationDimensions the length out
    * @param destination           the output buffer
    * @param positionX             the position x
    * @param positionY             the position y
@@ -278,8 +278,8 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
     }
     assert sourceOffset >= 0;
     assert destinationOffset >= 0;
-    assert sourceOffset + Tensor.dim(viewDim) <= Tensor.dim(sourceDimensions);
-    assert destinationOffset + Tensor.dim(viewDim) <= Tensor.dim(destinationDimensions);
+    assert sourceOffset + Tensor.length(viewDim) <= Tensor.length(sourceDimensions);
+    assert destinationOffset + Tensor.length(viewDim) <= Tensor.length(destinationDimensions);
     
     CudaSystem.handle(gpu.cudnnTransformTensor(
       precision.getPointer(1.0),

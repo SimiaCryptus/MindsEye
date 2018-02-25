@@ -247,7 +247,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
         assert kernelSize[0] * kernelSize[1] * kernelSize[2] == kernel.getData().length;
         @Nonnull CudaMemory filterPtr = getCudaFilter(gpu);
         @javax.annotation.Nullable final CudaMemory inputBuffer = gpu.getPtr(inputData, precision, MemoryType.Device);
-        @javax.annotation.Nonnull final CudaMemory outputBuffer = gpu.allocate(Tensor.dim(cudaParameters.outputDims) * 1l * length * precision.size, MemoryType.Managed, true);
+        @javax.annotation.Nonnull final CudaMemory outputBuffer = gpu.allocate(Tensor.length(cudaParameters.outputDims) * 1l * length * precision.size, MemoryType.Managed, true);
         CudaSystem.handle(gpu.cudnnConvolutionForward(precision.getPointer(1.0),
           cudaParameters.inputDescriptor.getPtr(), inputBuffer.getPtr(),
           cudaParameters.filterDescriptor.getPtr(), filterPtr.getPtr(),
@@ -276,7 +276,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
             assert cudaParameters.precision == precision;
             @javax.annotation.Nullable final CudaMemory errorPtr = gpu.getPtr(delta, precision, MemoryType.Device);
             @javax.annotation.Nullable final CudaMemory inputPtr = gpu.getPtr(inputData, precision, MemoryType.Device);
-            @javax.annotation.Nonnull CudaMemory filterPtr = gpu.allocate(kernel.dim() * 1l * precision.size, MemoryType.Device, true);
+            @javax.annotation.Nonnull CudaMemory filterPtr = gpu.allocate(kernel.length() * 1l * precision.size, MemoryType.Device, true);
             try {
               CudaSystem.handle(gpu.cudnnConvolutionBackwardFilter(cudaParameters.precision.getPointer(1.0),
                 cudaParameters.inputDescriptor.getPtr(), inputPtr.getPtr(),
@@ -304,7 +304,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
           final TensorList inputBufferTensors = CudaSystem.eval(gpu -> {
             @Nonnull CudaRevParameters cudaParameters = obtainRev(new SimpleConvolutionParameters(kernel, paddingX, paddingY, precision, strideX, strideY, length, inputSize, outputSize, kernelSize, gpu, CudaSettings.INSTANCE.getConvolutionWorkspaceSizeLimit()));
             assert cudaParameters != null;
-            @javax.annotation.Nonnull final CudaMemory inputBuffer = gpu.allocate(Tensor.dim(inputData.getDimensions()) * 1l * length * precision.size, MemoryType.Device, true);
+            @javax.annotation.Nonnull final CudaMemory inputBuffer = gpu.allocate(Tensor.length(inputData.getDimensions()) * 1l * length * precision.size, MemoryType.Device, true);
             try {
               @javax.annotation.Nullable final CudaMemory errorPtr = gpu.getPtr(delta, precision, MemoryType.Device);
               @Nonnull final CudaMemory filterPtr = getCudaFilter(gpu);

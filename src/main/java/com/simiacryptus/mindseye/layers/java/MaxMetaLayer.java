@@ -74,7 +74,7 @@ public class MaxMetaLayer extends LayerBase {
     input.addRef();
     final int itemCnt = input.getData().length();
     final Tensor input0Tensor = input.getData().get(0);
-    final int vectorSize = input0Tensor.dim();
+    final int vectorSize = input0Tensor.length();
     @javax.annotation.Nonnull final int[] indicies = new int[vectorSize];
     for (int i = 0; i < vectorSize; i++) {
       final int itemNumber = i;

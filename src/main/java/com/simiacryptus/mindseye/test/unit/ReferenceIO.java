@@ -84,9 +84,9 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
       log.code(() -> {
         @Nonnull final SimpleEval eval = SimpleEval.run(layer, inputPrototype);
         String format = String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
-          Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
+          Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).orElse(""),
           eval.getOutput().prettyPrint(),
-          Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
+          Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).orElse(""));
         eval.freeRef();
         return format;
       });

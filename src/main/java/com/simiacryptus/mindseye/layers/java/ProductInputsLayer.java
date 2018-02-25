@@ -68,8 +68,8 @@ public class ProductInputsLayer extends LayerBase {
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     for (int i = 1; i < inObj.length; i++) {
-      final int dim0 = Tensor.dim(inObj[0].getData().getDimensions());
-      final int dimI = Tensor.dim(inObj[i].getData().getDimensions());
+      final int dim0 = Tensor.length(inObj[0].getData().getDimensions());
+      final int dimI = Tensor.length(inObj[i].getData().getDimensions());
       if (dim0 != 1 && dimI != 1 && dim0 != dimI) {
         throw new IllegalArgumentException(Arrays.toString(inObj[0].getData().getDimensions()) + " != " + Arrays.toString(inObj[i].getData().getDimensions()));
       }
@@ -122,7 +122,7 @@ public class ProductInputsLayer extends LayerBase {
             passback.freeRef();
             passback = newValue;
           }
-          if (1 == Tensor.dim(inputData.getDimensions()) && 1 < Tensor.dim(passback.getDimensions())) {
+          if (1 == Tensor.length(inputData.getDimensions()) && 1 < Tensor.length(passback.getDimensions())) {
             TensorArray newValue = TensorArray.wrap(passback.stream()
               .map((a) -> {
                 @Nonnull Tensor b = new Tensor(a.sum());

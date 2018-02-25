@@ -319,7 +319,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
       throw new AssertionError("Inputs are all zero?");
     }
     @javax.annotation.Nonnull final Random random = new Random();
-    final boolean testInput = Arrays.stream(inputPrototype).anyMatch(x -> x.dim() > 0);
+    final boolean testInput = Arrays.stream(inputPrototype).anyMatch(x -> x.length() > 0);
     @Nullable TestResult inputLearning;
     if (testInput) {
       log.h2("Input Learning");
