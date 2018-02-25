@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.simiacryptus.mindseye.lang.RecycleBin;
+import com.simiacryptus.mindseye.lang.ReferenceWrapper;
 import jcuda.Pointer;
 import jcuda.runtime.cudaDeviceProp;
 import org.slf4j.Logger;

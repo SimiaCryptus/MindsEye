@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.lang.cudnn;
+package com.simiacryptus.mindseye.lang;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -27,7 +27,7 @@ public class ReferenceWrapper<T> {
   final Consumer<T> destructor;
   final AtomicBoolean isFinalized = new AtomicBoolean(false);
   
-  ReferenceWrapper(final T obj, final Consumer<T> destructor) {
+  public ReferenceWrapper(final T obj, final Consumer<T> destructor) {
     this.obj = obj;
     this.destructor = destructor;
   }

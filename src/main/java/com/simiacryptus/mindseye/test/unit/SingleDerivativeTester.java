@@ -83,6 +83,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
       }).toArray(i -> new Result[i]);
       copyInput[inputIndex].getData().freeRef();
       copyInput[inputIndex].freeRef();
+      double[] target = new double[inputDims * outputPrototype.length()];
       copyInput[inputIndex] = new Result(TensorArray.create(inputTensor), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
         if (1 != data.length()) throw new AssertionError();
         if (data.length() != 1) throw new AssertionError();
@@ -97,7 +98,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
             tensor.freeRef();
           }
         });
-        buffer.get(inputKey, new double[gradientBuffer.length()]).addInPlace(gradientBuffer.getData()).freeRef();
+        buffer.get(inputKey, target).addInPlace(gradientBuffer.getData()).freeRef();
         gradientBuffer.freeRef();
       }) {
         

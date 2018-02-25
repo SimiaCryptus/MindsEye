@@ -125,7 +125,6 @@ class CountingResult extends Result {
       assertAlive();
       data.assertAlive();
       if (1 >= references.get()) {
-        if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
         inner.accumulate(buffer, data);
       }
       else {
@@ -150,7 +149,6 @@ class CountingResult extends Result {
             passbackBuffers.add(compacted);
           }
           if (accumulations.incrementAndGet() == references.get()) {
-            if (hasAccumulated.getAndSet(true)) throw new IllegalStateException();
             Stream<TensorList> stream = passbackBuffers.stream();
             if (!CoreSettings.INSTANCE.isConservative()) stream = stream.parallel();
             reduced = stream.reduce((a, b) -> {

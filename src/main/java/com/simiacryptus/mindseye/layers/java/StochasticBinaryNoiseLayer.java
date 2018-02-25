@@ -26,10 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 /**
  * The type Binary noise layer.
@@ -54,7 +51,7 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
    * The Mask list.
    */
   @Nullable
-  volatile Tensor mask = null;
+  volatile Map<Long, Tensor> masks = new WeakHashMap<>();
   @Nonnull
   int[] dimensions;
   private double density;
@@ -117,17 +114,15 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
   @Override
   public Result eval(@Nonnull final Result... inObj) {
     assert null == inObj || 0 == inObj.length;
-    if (null == mask) {
-      synchronized (this) {
-        if (null == mask) {
-          mask = new Tensor(dimensions);
-          Random random = new Random(seed ^ layerSeed);
-          for (int i = 0; i < mask.length(); i++) {
-            mask.set(i, random.nextBoolean() ? amplitude : 0);
-          }
-        }
+    Tensor mask = masks.computeIfAbsent(seed, s -> {
+      Tensor m = new Tensor(dimensions);
+      Random random = new Random(seed ^ layerSeed);
+      for (int i = 0; i < m.length(); i++) {
+        m.set(i, s == 0 || (random.nextDouble() < density) ? amplitude : 0);
       }
-    }
+      m.detach();
+      return m;
+    });
     return new Result(TensorArray.create(mask), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {});
   }
   
@@ -168,13 +163,12 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
   @Override
   public void shuffle(final long seed) {
     this.seed = seed;
-    mask = null;
   }
   
   @Override
   public void clearNoise() {
-    if (null != mask) mask.freeRef();
-    mask = null;
+    seed = 0;
+    masks.clear();
   }
   
   @Nonnull
