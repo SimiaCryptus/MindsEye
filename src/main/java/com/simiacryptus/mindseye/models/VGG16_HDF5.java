@@ -24,10 +24,12 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.*;
-import com.simiacryptus.mindseye.layers.java.BiasLayer;
-import com.simiacryptus.mindseye.layers.java.ImgReshapeLayer;
+import com.simiacryptus.mindseye.layers.cudnn.FullyConnectedLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
+import com.simiacryptus.mindseye.layers.java.*;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
+import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.slf4j.Logger;
@@ -87,6 +89,7 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
   private boolean large = true;
   private boolean dense = true;
   private PoolingLayer.PoolingMode finalPoolingMode = PoolingLayer.PoolingMode.Avg;
+  private int stochasticSamples = 1;
   
   /**
    * Instantiates a new Vgg 16 hdf 5.
@@ -399,7 +402,8 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
    * @param output the output
    */
   protected void phase3(@javax.annotation.Nonnull NotebookOutput output) {
-    phase3a(output);
+    if (1 == getStochasticSamples()) phase3a(output);
+    else phase3a_sampled(output, getStochasticSamples());
     phase3b(output);
   }
   
@@ -434,6 +438,39 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
     output.code(() -> {
       add(new ImgBandBiasLayer(1000)
         .setAndFree((hdf5.readDataSet("param_1", "layer_36"))));
+    });
+  }
+  
+  protected void phase3a_sampled(@javax.annotation.Nonnull final NotebookOutput output, final int samples) {
+    output.code(() -> {
+      PipelineNetwork stochasticNet = new PipelineNetwork(1);
+      
+      DAGNode prev = stochasticNet.getHead();
+      stochasticNet.wrap(new GateProductLayer(), prev,
+        stochasticNet.add(new StochasticBinaryNoiseLayer(1.0, 1.0, 1, 1, 4096), new DAGNode[]{}));
+      
+      stochasticNet.wrap(new ConvolutionLayer(1, 1, 4096, 4096)
+        .setPaddingXY(0, 0)
+        .setAndFree(hdf5.readDataSet("param_0", "layer_34")
+          .permuteDimensionsAndFree(fullyconnectedOrder))
+      );
+      stochasticNet.wrap(new ImgBandBiasLayer(4096)
+        .setAndFree((hdf5.readDataSet("param_1", "layer_34"))));
+      
+      prev = stochasticNet.getHead();
+      stochasticNet.wrap(new GateProductLayer(), prev,
+        stochasticNet.add(new StochasticBinaryNoiseLayer(1.0, 1.0, 1, 1, 4096), new DAGNode[]{}));
+      
+      stochasticNet.wrap(new ActivationLayer(ActivationLayer.Mode.RELU));
+      stochasticNet.wrap(new ConvolutionLayer(1, 1, 4096, 1000)
+        .setPaddingXY(0, 0)
+        .setAndFree(hdf5.readDataSet("param_0", "layer_36")
+          .permuteDimensionsAndFree(fullyconnectedOrder))
+      );
+      stochasticNet.wrap(new ImgBandBiasLayer(1000)
+        .setAndFree((hdf5.readDataSet("param_1", "layer_36"))));
+      
+      add(new StochasticSamplingSubnetLayer(stochasticNet, samples));
     });
   }
   
@@ -570,6 +607,15 @@ public class VGG16_HDF5 extends VGG16 implements DemoableNetworkFactory, HasHDF5
   
   public VGG16_HDF5 setFinalPoolingMode(PoolingLayer.PoolingMode finalPoolingMode) {
     this.finalPoolingMode = finalPoolingMode;
+    return this;
+  }
+  
+  public int getStochasticSamples() {
+    return stochasticSamples;
+  }
+  
+  public VGG16_HDF5 setStochasticSamples(int stochasticSamples) {
+    this.stochasticSamples = stochasticSamples;
     return this;
   }
 }

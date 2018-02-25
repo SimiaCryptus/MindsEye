@@ -121,10 +121,11 @@ public abstract class ImageClassifier {
    * Gets training monitor.
    *
    * @param history the history
+   * @param network
    * @return the training monitor
    */
   @javax.annotation.Nonnull
-  public static TrainingMonitor getTrainingMonitor(@javax.annotation.Nonnull ArrayList<StepRecord> history) {
+  public static TrainingMonitor getTrainingMonitor(@Nonnull ArrayList<StepRecord> history, final PipelineNetwork network) {
     return TestUtil.getMonitor(history);
   }
   
@@ -151,7 +152,7 @@ public abstract class ImageClassifier {
 //      @Nonnull Trainable trainable = new TensorListTrainable(supervised, gpuInput).setVerbosity(1).setMask(true);
       @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setVerbose(true).setMask(true, false).setData(Arrays.<Tensor[]>asList(new Tensor[]{image}));
       new IterativeTrainer(trainable)
-        .setMonitor(getTrainingMonitor(history))
+        .setMonitor(getTrainingMonitor(history, supervised))
         .setOrientation(new QQN())
         .setLineSearchFactory(name -> new ArmijoWolfeSearch())
         .setTimeout(60, TimeUnit.MINUTES)
@@ -202,7 +203,7 @@ public abstract class ImageClassifier {
 //      @Nonnull Trainable trainable = new TensorListTrainable(supervised, gpuInput).setVerbosity(1).setMask(true);
       @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setVerbose(true).setMask(true, false).setData(data);
       new IterativeTrainer(trainable)
-        .setMonitor(getTrainingMonitor(history))
+        .setMonitor(getTrainingMonitor(history, supervised))
         .setOrientation(new QQN())
         .setLineSearchFactory(name -> new ArmijoWolfeSearch())
         .setTimeout(60, TimeUnit.MINUTES)

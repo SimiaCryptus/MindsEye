@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.java.LoggingWrapperLayer;
 import com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer;
+import com.simiacryptus.mindseye.layers.java.StochasticComponent;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.opt.Step;
@@ -270,7 +271,16 @@ public class TestUtil {
    * @param history the history
    * @return the monitor
    */
-  public static TrainingMonitor getMonitor(@javax.annotation.Nonnull final List<StepRecord> history) {
+  public static TrainingMonitor getMonitor(@Nonnull final List<StepRecord> history) {return getMonitor(history, null);}
+  
+  /**
+   * Gets monitor.
+   *
+   * @param history the history
+   * @param network
+   * @return the monitor
+   */
+  public static TrainingMonitor getMonitor(@Nonnull final List<StepRecord> history, final Layer network) {
     return new TrainingMonitor() {
       @Override
       public void clear() {
@@ -286,6 +296,16 @@ public class TestUtil {
       @Override
       public void onStepComplete(@javax.annotation.Nonnull final Step currentPoint) {
         history.add(new StepRecord(currentPoint.point.getMean(), currentPoint.time, currentPoint.iteration));
+        if (network instanceof StochasticComponent) {
+          ((StochasticComponent) network).shuffle(System.nanoTime());
+        }
+        if (network instanceof DAGNetwork) {
+          ((DAGNetwork) network).visitLayers(layer -> {
+            if (layer instanceof StochasticComponent) {
+              ((StochasticComponent) layer).shuffle(System.nanoTime());
+            }
+          });
+        }
         super.onStepComplete(currentPoint);
       }
     };

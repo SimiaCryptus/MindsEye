@@ -67,7 +67,7 @@ public class DeepDreamDemo extends NotebookReportBase {
     
     log.h1("Model");
     VGG16_HDF5 vgg16 = log.code(() -> {
-      return VGG16.fromS3_HDF5().setLarge(true).setFinalPoolingMode(PoolingLayer.PoolingMode.Max);
+      return VGG16.fromS3_HDF5().setLarge(true).setStochasticSamples(3).setFinalPoolingMode(PoolingLayer.PoolingMode.Max);
     });
   
     Tensor[] images = getImages_Artistry(log);
