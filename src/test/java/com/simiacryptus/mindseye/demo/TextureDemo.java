@@ -32,7 +32,7 @@ import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
-import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
+import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.StepRecord;
@@ -76,12 +76,62 @@ public class TextureDemo extends NotebookReportBase {
    * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
-    
+  
     @Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
+  
+    Layer textureNetork = loadTextureNetwork(log);
+    Tensor textureVector = getFeatureVector(log);
+    Tensor rendering = new Tensor(300, 300, 3).setByCoord(c -> FastRandom.random());
+    TestUtil.monitorImage(rendering, false, 5);
+  
+    @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
+    clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+    clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+    clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+    clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+  
+    log.code(() -> {
+      @Nonnull PipelineNetwork painterNetwork = new PipelineNetwork(2);
+      painterNetwork.wrap(new MeanSqLossLayer(),
+        painterNetwork.add(new BandReducerLayer(),
+          painterNetwork.add(textureNetork,
+            painterNetwork.add(clamp,
+              painterNetwork.getInput(0)))),
+        painterNetwork.getInput(1));
     
-    Layer textureNetork = log.code(() -> {
+      BasicTrainable trainable = new BasicTrainable(painterNetwork);
+      trainable.setMask(true, false);
+      trainable.setData(Arrays.<Tensor[]>asList(new Tensor[]{rendering, textureVector}));
+    
+      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+      new IterativeTrainer(trainable)
+        .setMonitor(TestUtil.getMonitor(history))
+        .setOrientation(new QQN())
+        .setLineSearchFactory(name -> new QuadraticSearch().setCurrentRate(20).setRelativeTolerance(0.05))
+        .setTimeout(60, TimeUnit.MINUTES)
+        .runAndFree();
+      return TestUtil.plot(history);
+    });
+  
+    try {
+      logger.info(log.image(rendering.toImage(), "Rendering"));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  
+    log.setFrontMatterProperty("status", "OK");
+  }
+  
+  protected Tensor getFeatureVector(@Nonnull final NotebookOutput log) {
+    return log.code(() -> {
+      return new Tensor(1, 1, 4096).setAll(0.0).set(5, 1.0);
+    });
+  }
+  
+  protected Layer loadTextureNetwork(@Nonnull final NotebookOutput log) {
+    return log.code(() -> {
       try {
         final AtomicReference<Layer> ref = new AtomicReference<>(null);
         new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
@@ -98,49 +148,6 @@ public class TextureDemo extends NotebookReportBase {
         throw new RuntimeException(e);
       }
     });
-    
-    Tensor textureVector = log.code(() -> {
-      return new Tensor(1, 1, 4096).setAll(0.0).set(5, 1.0);
-    });
-    Tensor rendering = new Tensor(300, 300, 3).setByCoord(c -> FastRandom.random());
-    TestUtil.monitorImage(rendering, false);
-    
-    @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
-    clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-    clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-    
-    log.code(() -> {
-      @Nonnull PipelineNetwork painterNetwork = new PipelineNetwork(2);
-      painterNetwork.wrap(new MeanSqLossLayer(),
-        painterNetwork.add(new BandReducerLayer(),
-          painterNetwork.add(textureNetork,
-            painterNetwork.add(clamp,
-              painterNetwork.getInput(0)))),
-        painterNetwork.getInput(1));
-      
-      BasicTrainable trainable = new BasicTrainable(painterNetwork);
-      trainable.setMask(true, false);
-      trainable.setData(Arrays.<Tensor[]>asList(new Tensor[]{rendering, textureVector}));
-      
-      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-      new IterativeTrainer(trainable)
-        .setMonitor(TestUtil.getMonitor(history))
-        .setOrientation(new QQN())
-        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-        .setTimeout(60, TimeUnit.MINUTES)
-        .runAndFree();
-      return TestUtil.plot(history);
-    });
-    
-    try {
-      logger.info(log.image(rendering.toImage(), "Rendering"));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    
-    log.setFrontMatterProperty("status", "OK");
   }
   
   /**

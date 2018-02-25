@@ -372,5 +372,4 @@ public interface Layer extends ReferenceCounting, Serializable {
   @Nullable
   List<double[]> state();
   
-  
 }

@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import com.simiacryptus.mindseye.lang.cudnn.CudaSettings;
+
 /**
  * The type Cuda settings.
  */
@@ -36,10 +38,12 @@ public class CoreSettings implements Settings {
   private final PersistanceMode doubleCacheMode;
   
   private CoreSettings() {
+    System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", Integer.toString(Settings.get("THREADS", 64)));
     this.conservative = Settings.get("CONSERVATIVE", false);
     this.lifecycleDebug = Settings.get("DEBUG_LIFECYCLE", false || isConservative());
     this.doubleCacheMode = Settings.get("DOUBLE_CACHE_MODE", PersistanceMode.WEAK);
     this.backpropAggregationSize = Settings.get("BACKPROP_AGG_SIZE", 4);
+    if (CudaSettings.INSTANCE == null) throw new RuntimeException();
   }
   
   /**

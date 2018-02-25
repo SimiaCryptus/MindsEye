@@ -169,7 +169,7 @@ public class ReproductionDemo extends NotebookReportBase {
       new IterativeTrainer(basicTrainable)
         .setMonitor(TestUtil.getMonitor(history))
         .setOrientation(new QQN())
-        .setLineSearchFactory(name -> new QuadraticSearch().setCurrentRate(20).setRelativeTolerance(0.1))
+        .setLineSearchFactory(name -> new QuadraticSearch().setCurrentRate(20).setRelativeTolerance(0.05))
         .setTimeout(60, TimeUnit.MINUTES)
         .runAndFree();
       log.code(() -> {

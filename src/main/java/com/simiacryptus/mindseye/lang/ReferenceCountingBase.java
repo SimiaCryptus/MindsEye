@@ -244,4 +244,8 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   public UUID getObjectId() {
     return objectId;
   }
+  
+  static {
+    if (CoreSettings.INSTANCE == null) throw new RuntimeException();
+  }
 }
