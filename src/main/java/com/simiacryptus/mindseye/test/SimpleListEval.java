@@ -123,7 +123,6 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
     eval.accumulate(buffer, tensorList);
     buffer.freeRef();
     eval.freeRef();
-    tensorList.freeRef();
     output = outputData;
     return this;
   }

@@ -166,7 +166,6 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
             return CudaTensorList.wrap(cudaBackprop, length, inputDimensions, precision);
           });
           input.accumulate(buffer, passbackTensorList);
-          passbackTensorList.freeRef();
         }
         //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       });

@@ -111,7 +111,6 @@ public class GaussianNoiseLayer extends LayerBase {
           return passback;
         }).toArray(i -> new Tensor[i]));
         in0.accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
     }) {
       

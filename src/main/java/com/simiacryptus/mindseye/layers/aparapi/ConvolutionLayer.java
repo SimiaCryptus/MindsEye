@@ -225,7 +225,6 @@ public class ConvolutionLayer extends LayerBase {
         convolutionController.backprop(inputBuffers, kernelData, outputBuffers);
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(inputBufferTensors);
         input.accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
     }) {
       

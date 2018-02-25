@@ -87,7 +87,6 @@ public class ScaleMetaLayer extends LayerBase {
           return tensor;
         }).toArray(i -> new Tensor[i]));
         inObj[0].accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
       if (inObj[1].isAlive()) {
         @Nullable final Tensor passback = tensor0.mapIndex((v, c) -> {
@@ -97,7 +96,6 @@ public class ScaleMetaLayer extends LayerBase {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, inObj[1].getData().length())
           .mapToObj(i -> i == 0 ? passback : passback.map(v -> 0)).toArray(i -> new Tensor[i]));
         inObj[1].accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
       Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     }) {

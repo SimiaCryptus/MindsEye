@@ -47,7 +47,7 @@ import java.util.function.Consumer;
 public abstract class NotebookReportBase {
   
   /**
-   * The constant log.
+   * The constant _log.
    */
   protected static final Logger logger = LoggerFactory.getLogger(NotebookReportBase.class);
   
@@ -73,7 +73,7 @@ public abstract class NotebookReportBase {
   /**
    * Print header string.
    *
-   * @param log          the log
+   * @param log          the _log
    * @param networkClass the network class
    * @param prefix       the prefix
    * @return the string
@@ -100,7 +100,7 @@ public abstract class NotebookReportBase {
    * Run.
    *
    * @param fn      the fn
-   * @param logPath the log path
+   * @param logPath the _log path
    */
   public void run(@javax.annotation.Nonnull Consumer<NotebookOutput> fn, @javax.annotation.Nonnull String... logPath) {
     try (@javax.annotation.Nonnull NotebookOutput log = getLog(logPath.length == 0 ? new String[]{getClass().getSimpleName()} : logPath)) {
@@ -132,7 +132,7 @@ public abstract class NotebookReportBase {
   /**
    * Print header.
    *
-   * @param log the log
+   * @param log the _log
    */
   public void printHeader(@javax.annotation.Nonnull NotebookOutput log) {
     log.setFrontMatterProperty("created_on", new Date().toString());
@@ -153,10 +153,10 @@ public abstract class NotebookReportBase {
   }
   
   /**
-   * Gets log.
+   * Gets _log.
    *
-   * @param logPath the log path
-   * @return the log
+   * @param logPath the _log path
+   * @return the _log
    */
   @javax.annotation.Nonnull
   public NotebookOutput getLog(String... logPath) {

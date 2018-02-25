@@ -107,7 +107,6 @@ public class ImgPixelSumLayer extends LayerBase {
           return result;
         }).toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
     }) {
       

@@ -113,7 +113,7 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
         @Nullable final CudaMemory rPtr = gpu.getPtr(r, precision, MemoryType.Device);
         assert lPtr.size == rPtr.size;
         @javax.annotation.Nonnull final CudaMemory outputPtr = gpu.allocate(lPtr.size, MemoryType.Device, true);
-        CudaSystem.handle(JCudnn.cudnnOpTensor(gpu.getHandle(), opDescriptor.getPtr(),
+        CudaSystem.handle(JCudnn.cudnnOpTensor(gpu.handle, opDescriptor.getPtr(),
           precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
           precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
           precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
@@ -141,7 +141,7 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
               @Nullable final CudaMemory rPtr = gpu.getPtr(r, precision, MemoryType.Device);
               assert lPtr.size == rPtr.size;
               @javax.annotation.Nonnull final CudaMemory outputPtr = gpu.allocate(lPtr.size, MemoryType.Device, true);
-              CudaSystem.handle(JCudnn.cudnnOpTensor(gpu.getHandle(), opDescriptor.getPtr(),
+              CudaSystem.handle(JCudnn.cudnnOpTensor(gpu.handle, opDescriptor.getPtr(),
                 precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
                 precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
                 precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
@@ -150,7 +150,6 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
             });
           }).get();
           input.accumulate(buffer, data);
-          data.freeRef();
         }
       }
     }) {

@@ -126,7 +126,6 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
           return passback;
         }).toArray(i -> new Tensor[i]));
         inputResult.accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
     }) {
       

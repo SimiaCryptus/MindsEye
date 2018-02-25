@@ -109,7 +109,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
       @Nullable final CudaMemory rPtr = gpu.getPtr(rightData, precision, MemoryType.Device);
       //assert lPtr.size == rPtr.size;
       @Nonnull final CudaMemory outputPtr = gpu.allocate(lPtr.size, MemoryType.Device, true);
-      CudaSystem.handle(JCudnn.cudnnOpTensor(gpu.getHandle(), opDescriptor.getPtr(),
+      CudaSystem.handle(JCudnn.cudnnOpTensor(gpu.handle, opDescriptor.getPtr(),
         precision.getPointer(1.0), sizeDescriptorL.getPtr(), lPtr.getPtr(),
         precision.getPointer(1.0), sizeDescriptorR.getPtr(), rPtr.getPtr(),
         precision.getPointer(0.0), sizeDescriptorL.getPtr(), outputPtr.getPtr()));
@@ -131,7 +131,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
             @Nullable final CudaMemory rPtr = gpu.getPtr(right.getData(), precision, MemoryType.Device);
             //assert deltaPtr.size == rPtr.size;
             @Nonnull final CudaMemory outputPtr = gpu.allocate(deltaPtr.size, MemoryType.Device, true);
-            CudaSystem.handle(JCudnn.cudnnOpTensor(gpu.getHandle(), opDescriptor.getPtr(),
+            CudaSystem.handle(JCudnn.cudnnOpTensor(gpu.handle, opDescriptor.getPtr(),
               precision.getPointer(1.0), sizeDescriptorL.getPtr(), deltaPtr.getPtr(),
               precision.getPointer(1.0), sizeDescriptorR.getPtr(), rPtr.getPtr(),
               precision.getPointer(0.0), sizeDescriptorL.getPtr(), outputPtr.getPtr()));
@@ -139,7 +139,6 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
             return CudaTensorList.wrap(outputPtr, length, leftDimensions, precision);
           });
           left.accumulate(buffer, data);
-          data.freeRef();
         }
       }
     }) {

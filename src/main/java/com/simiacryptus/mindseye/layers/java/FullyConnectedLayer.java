@@ -254,7 +254,6 @@ public class FullyConnectedLayer extends LayerBase {
           return passback;
         }).toArray(i -> new Tensor[i]));
         inObj[0].accumulate(buffer, tensorList);
-        tensorList.freeRef();
       }
     }) {
       
@@ -408,10 +407,10 @@ public class FullyConnectedLayer extends LayerBase {
   }
   
   /**
-   * Sets weights log.
+   * Sets weights _log.
    *
    * @param value the value
-   * @return the weights log
+   * @return the weights _log
    */
   @javax.annotation.Nonnull
   public FullyConnectedLayer setWeightsLog(final double value) {

@@ -164,7 +164,6 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
             return CudaTensorList.wrap(passbackBuffer, length, inputSize, precision);
           });
           input.accumulate(buffer, data);
-          data.freeRef();
         }
       }) {
         

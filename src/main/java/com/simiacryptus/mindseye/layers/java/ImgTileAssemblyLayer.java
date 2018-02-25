@@ -163,7 +163,6 @@ public class ImgTileAssemblyLayer extends LayerBase {
                 return passbackTensor;
               }).toArray(i -> new Tensor[i]));
             in.accumulate(buffer, tensorArray);
-            tensorArray.freeRef();
           }
           positionX += inputDataDimensions[0];
           inputIndex += 1;

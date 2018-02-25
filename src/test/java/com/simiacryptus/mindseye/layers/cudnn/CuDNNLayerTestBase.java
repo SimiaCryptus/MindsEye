@@ -50,13 +50,13 @@ public abstract class CuDNNLayerTestBase extends LayerTestBase {
   @Override
   public ArrayList<ComponentTest<?>> getBigTests() {
     @javax.annotation.Nonnull ArrayList<ComponentTest<?>> copy = new ArrayList<>(super.getBigTests());
-    if (CudnnHandle.POOL.size() > 1) copy.add(new GpuLocalityTester(1e-3));
+    if (CudaSystem.getPool().size() > 1) copy.add(new GpuLocalityTester(1e-3));
     return copy;
   }
   
   @Override
   public void run(NotebookOutput log) {
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all.log";
+    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all._log";
     log.p(log.file((String) null, logName, "GPU Log"));
     @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
     CudaSystem.addLog(apiLog);
@@ -84,7 +84,7 @@ public abstract class CuDNNLayerTestBase extends LayerTestBase {
       public ToleranceStatistics test(@javax.annotation.Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
         @Nullable PrintStream apiLog = null;
         try {
-          @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_io.log";
+          @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_io._log";
           log.p(log.file((String) null, logName, "GPU Log"));
           apiLog = new PrintStream(log.file(logName));
           CudaSystem.addLog(apiLog);
@@ -114,7 +114,7 @@ public abstract class CuDNNLayerTestBase extends LayerTestBase {
       public ToleranceStatistics test(@javax.annotation.Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
         @Nullable PrintStream apiLog = null;
         try {
-          @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_perf.log";
+          @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_perf._log";
           log.p(log.file((String) null, logName, "GPU Log"));
           apiLog = new PrintStream(log.file(logName));
           CudaSystem.addLog(apiLog);

@@ -139,7 +139,6 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
           //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         });
         inObj[0].accumulate(buffer, passbackTensorList);
-        passbackTensorList.freeRef();
       }
     }) {
       

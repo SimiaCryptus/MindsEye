@@ -117,7 +117,6 @@ public class EntropyLossLayer extends LayerBase {
           return passback;
         }).toArray(i -> new Tensor[i]));
         inObj[1].accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
       if (in0.isAlive()) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
@@ -130,7 +129,6 @@ public class EntropyLossLayer extends LayerBase {
           return passback;
         }).toArray(i -> new Tensor[i]));
         in0.accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
     }) {
       

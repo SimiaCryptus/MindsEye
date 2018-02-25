@@ -143,7 +143,6 @@ public class AvgPoolingLayer extends LayerBase {
         }).toArray(i -> new Tensor[i]);
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(passback);
         inObj[0].accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
     }) {
   

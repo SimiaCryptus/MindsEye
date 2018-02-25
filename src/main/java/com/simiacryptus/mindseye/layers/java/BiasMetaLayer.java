@@ -89,6 +89,7 @@ public class BiasMetaLayer extends LayerBase {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     return new Result(TensorArray.wrap(tensors), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
+        data.addRef();
         inObj[0].accumulate(buffer, data);
       }
       if (inObj[1].isAlive()) {
@@ -111,7 +112,6 @@ public class BiasMetaLayer extends LayerBase {
             }
           }).toArray(i -> new Tensor[i]));
         inObj[1].accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
     }) {
       

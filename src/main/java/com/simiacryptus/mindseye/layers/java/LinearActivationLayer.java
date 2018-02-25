@@ -127,7 +127,6 @@ public class LinearActivationLayer extends LayerBase {
           return passback;
         }).toArray(i -> new Tensor[i]));
         in0.accumulate(buffer, tensorList);
-        tensorList.freeRef();
       }
     }) {
       

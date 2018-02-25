@@ -128,7 +128,6 @@ public class AvgMetaLayer extends LayerBase {
         delta.freeRef();
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(feedback);
         input.accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
     }) {
       

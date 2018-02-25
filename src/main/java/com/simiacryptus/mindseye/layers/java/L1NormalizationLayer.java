@@ -114,7 +114,6 @@ public class L1NormalizationLayer extends LayerBase {
         assert Arrays.stream(passbackArray).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(passbackArray);
         in.accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
     }) {
       

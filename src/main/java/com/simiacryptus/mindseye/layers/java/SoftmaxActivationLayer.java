@@ -33,7 +33,7 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 /**
- * The classic "softmax" layer. All outputs will sum to 1 and be proportional to the log of the input.
+ * The classic "softmax" layer. All outputs will sum to 1 and be proportional to the _log of the input.
  */
 @SuppressWarnings("serial")
 public class SoftmaxActivationLayer extends LayerBase {
@@ -126,7 +126,6 @@ public class SoftmaxActivationLayer extends LayerBase {
         assert Arrays.stream(passbackA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(passbackA);
         inObj[0].accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
     }) {
       

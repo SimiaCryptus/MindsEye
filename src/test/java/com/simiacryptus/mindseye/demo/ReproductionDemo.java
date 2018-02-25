@@ -79,13 +79,13 @@ public class ReproductionDemo extends NotebookReportBase {
   /**
    * Test.
    *
-   * @param log the log
+   * @param log the _log
    */
   public void run(@Nonnull NotebookOutput log) {
     
     String input = "H:\\SimiaCryptus\\Artistry\\chimps\\chip.jpg";
     
-    @Nonnull String logName = "cuda_" + log.getName() + ".log";
+    @Nonnull String logName = "cuda_" + log.getName() + "._log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
     
@@ -170,7 +170,7 @@ public class ReproductionDemo extends NotebookReportBase {
         .setMonitor(TestUtil.getMonitor(history))
         .setOrientation(new QQN())
         .setLineSearchFactory(name -> new QuadraticSearch().setCurrentRate(20).setRelativeTolerance(0.05))
-        .setTimeout(60, TimeUnit.MINUTES)
+        .setTimeout(4, TimeUnit.HOURS)
         .runAndFree();
       log.code(() -> {
         return TestUtil.plot(history);

@@ -83,6 +83,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
         })
           .reduce((a, b) -> a + "\n" + b).get();
         log.info(String.format("Feedback Output %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
+        data.addRef();
         inputToWrap.accumulate(buffer, data);
       }) {
   
@@ -126,6 +127,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
       })
         .reduce((a, b) -> a + "\n" + b).get();
       log.info(String.format("Feedback Input for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
+      data.addRef();
       output.accumulate(buffer, data);
     }) {
   

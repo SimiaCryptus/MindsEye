@@ -124,6 +124,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     @javax.annotation.Nonnull final AtomicLong passbackNanos = new AtomicLong(0);
     final Result[] wrappedInput = Arrays.stream(inObj).map(result -> {
       return new Result(result.getData(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+        data.addRef();
         passbackNanos.addAndGet(TimedResult.time(() -> result.accumulate(buffer, data)).timeNanos);
       }) {
   
@@ -160,6 +161,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
           t.freeRef();
         });
       }
+      data.addRef();
       backwardPerformance.add((TimedResult.time(() -> output.accumulate(buffer, data)).timeNanos - passbackNanos.getAndSet(0)) / (items * 1e9));
     }) {
   

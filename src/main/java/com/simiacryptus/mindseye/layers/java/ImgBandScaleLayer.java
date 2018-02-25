@@ -165,7 +165,6 @@ public class ImgBandScaleLayer extends LayerBase {
         }).toArray(i -> new Tensor[i]);
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(tensors);
         input.accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
     }) {
   

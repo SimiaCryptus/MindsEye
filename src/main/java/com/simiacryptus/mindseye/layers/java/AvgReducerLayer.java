@@ -97,7 +97,6 @@ public class AvgReducerLayer extends LayerBase {
             return passback;
           }).toArray(i -> new Tensor[i]));
           in_l.accumulate(buffer, tensorList);
-          tensorList.freeRef();
         }
       }
     }) {

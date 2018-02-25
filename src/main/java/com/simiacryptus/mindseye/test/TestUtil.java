@@ -232,7 +232,7 @@ public class TestUtil {
   /**
    * Remove performance wrappers.
    *
-   * @param log     the log
+   * @param log     the _log
    * @param network the network
    */
   public static void extractPerformance(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final DAGNetwork network) {
@@ -314,7 +314,7 @@ public class TestUtil {
   /**
    * Add performance wrappers.
    *
-   * @param log     the log
+   * @param log     the _log
    * @param network the network
    */
   public static void instrumentPerformance(final NotebookOutput log, @javax.annotation.Nonnull final DAGNetwork network) {
@@ -383,7 +383,7 @@ public class TestUtil {
   /**
    * Print data statistics.
    *
-   * @param log  the log
+   * @param log  the _log
    * @param data the data
    */
   public static void printDataStatistics(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Tensor[][] data) {
@@ -415,7 +415,7 @@ public class TestUtil {
   /**
    * Print history.
    *
-   * @param log     the log
+   * @param log     the _log
    * @param history the history
    */
   public static void printHistory(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final List<StepRecord> history) {
@@ -463,7 +463,7 @@ public class TestUtil {
   /**
    * Render string.
    *
-   * @param log       the log
+   * @param log       the _log
    * @param tensor    the tensor
    * @param normalize the normalize
    * @return the string

@@ -108,7 +108,6 @@ public class MeanSqLossLayer extends LayerBase {
         }
         @javax.annotation.Nonnull final TensorList array = TensorArray.wrap(tensorStream.toArray(i -> new Tensor[i]));
         inObj[0].accumulate(buffer, array);
-        array.freeRef();
       }
       if (inObj[1].isAlive()) {
         Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
@@ -130,7 +129,6 @@ public class MeanSqLossLayer extends LayerBase {
           return scale;
         }).toArray(i -> new Tensor[i]));
         inObj[1].accumulate(buffer, array);
-        array.freeRef();
       }
     }) {
       

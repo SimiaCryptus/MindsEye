@@ -118,6 +118,7 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
     });
     return new Result(inputdata, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
       backpropStatistics.clear();
+      data.addRef();
       input.accumulate(buffer, data);
       data.stream().parallel().forEach(t -> {
         backpropStatistics.add(t.getData());

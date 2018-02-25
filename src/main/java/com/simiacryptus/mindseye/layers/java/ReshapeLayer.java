@@ -93,7 +93,6 @@ public class ReshapeLayer extends LayerBase {
     return new Result(reshapedTensorList, (DeltaSet<Layer> buffer, TensorList delta) -> {
       @javax.annotation.Nonnull ReshapedTensorList tensorList = new ReshapedTensorList(delta, inputDims);
       inObj[0].accumulate(buffer, tensorList);
-      tensorList.freeRef();
     }) {
       
       @Override

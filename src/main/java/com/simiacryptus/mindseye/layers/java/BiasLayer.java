@@ -157,6 +157,7 @@ public class BiasLayer extends LayerBase {
           deltaBuffer.freeRef();
         }
         if (0 < inObj.length && inObj[0].isAlive()) {
+          delta.addRef();
           inObj[0].accumulate(buffer, delta);
         }
       }) {
@@ -212,10 +213,10 @@ public class BiasLayer extends LayerBase {
   }
   
   /**
-   * Sets weights log.
+   * Sets weights _log.
    *
    * @param value the value
-   * @return the weights log
+   * @return the weights _log
    */
   @javax.annotation.Nonnull
   public BiasLayer setWeightsLog(final double value) {

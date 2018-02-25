@@ -183,7 +183,6 @@ public class ImgPixelSoftmaxLayer extends LayerBase {
         }).toArray(i -> new Tensor[i]));
         
         input.accumulate(buffer, passback);
-        passback.freeRef();
         dots.freeRef();
       }
     }) {

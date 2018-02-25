@@ -99,7 +99,7 @@ public abstract class FullyConnectedLayerTest extends CuDNNLayerTestBase {
   
   @Override
   public void run(NotebookOutput log) {
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all.log";
+    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all._log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
     super.run(log);

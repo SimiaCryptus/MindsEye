@@ -235,6 +235,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     assert outputBands == resultData.getDimensions()[2];
     ConvolutionLayer.this.addRef();
     return new Result(resultData, (@javax.annotation.Nonnull final DeltaSet<Layer> deltaSet, @javax.annotation.Nonnull final TensorList delta) -> {
+      delta.addRef();
       result.accumulate(deltaSet, delta);
       if (!isFrozen()) {
         Tensor read = grid.read(deltaSet, true);
@@ -383,10 +384,10 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   }
   
   /**
-   * Sets weights log.
+   * Sets weights _log.
    *
    * @param f the f
-   * @return the weights log
+   * @return the weights _log
    */
   @javax.annotation.Nonnull
   public ConvolutionLayer setWeightsLog(double f) {

@@ -112,7 +112,6 @@ public class SumInputsLayer extends LayerBase {
             projectedDelta = data2;
           }
           input.accumulate(buffer, projectedDelta);
-          projectedDelta.freeRef();
         }
       }
     }) {

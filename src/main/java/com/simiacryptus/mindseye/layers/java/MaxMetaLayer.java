@@ -102,7 +102,6 @@ public class MaxMetaLayer extends LayerBase {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(feedback);
         input.accumulate(buffer, tensorArray);
         delta.freeRef();
-        tensorArray.freeRef();
       }
     }) {
       

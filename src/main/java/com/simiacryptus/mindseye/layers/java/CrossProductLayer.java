@@ -116,7 +116,6 @@ public class CrossProductLayer extends LayerBase {
           return passback;
         }).toArray(i -> new Tensor[i]));
         in.accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
     }) {
       

@@ -133,7 +133,6 @@ public class ProductInputsLayer extends LayerBase {
             passback = newValue;
           }
           input.accumulate(buffer, passback);
-          passback.freeRef();
         }
       }
     }) {

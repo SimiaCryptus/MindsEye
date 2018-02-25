@@ -102,7 +102,6 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
         return set;
       }).toArray(i -> new Tensor[i]));
       eval.accumulate(xxx, tensorArray);
-      tensorArray.freeRef();
       final Delta<Layer> inputDelta = xxx.getMap().get(inputKey);
       if (null != inputDelta) {
         result.addInPlace(new Tensor(inputDelta.getDelta(), result.getDimensions()));
@@ -125,7 +124,6 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       eval.getData().get(0);
       @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(data);
       eval.accumulate(buffer, tensorArray);
-      tensorArray.freeRef();
       final DoubleBuffer<Layer> deltaFlushBuffer = buffer.getMap().values().stream().filter(x -> x.target == stateArray).findFirst().orElse(null);
       if (null != deltaFlushBuffer) {
         for (int i = 0; i < stateLen; i++) {
@@ -450,7 +448,6 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     @javax.annotation.Nonnull final DeltaSet<Layer> buffer = new DeltaSet<Layer>();
     TensorList tensorList = eval.getData().copy();
     eval.accumulate(buffer, tensorList);
-    tensorList.freeRef();
     final List<Delta<Layer>> deltas = component.state().stream().map(doubles -> {
       return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
     }).filter(x -> x != null).collect(Collectors.toList());
@@ -485,7 +482,6 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     @javax.annotation.Nonnull final DeltaSet<Layer> buffer = new DeltaSet<Layer>();
     TensorList data = eval.getData();
     eval.accumulate(buffer, data);
-    data.freeRef();
     @Nullable final List<double[]> stateList = frozen.state();
     final List<Delta<Layer>> deltas = stateList.stream().map(doubles -> {
       return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);

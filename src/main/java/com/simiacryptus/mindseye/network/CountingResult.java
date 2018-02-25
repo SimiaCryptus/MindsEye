@@ -130,6 +130,7 @@ public class CountingResult extends Result {
       assertAlive();
       data.assertAlive();
       if (1 >= references.get()) {
+        data.addRef();
         inner.accumulate(buffer, data);
       }
       else {
@@ -169,7 +170,6 @@ public class CountingResult extends Result {
         }
         if (null != reduced) {
           inner.accumulate(buffer, reduced);
-          reduced.freeRef();
           accumulations.set(0);
         }
       }

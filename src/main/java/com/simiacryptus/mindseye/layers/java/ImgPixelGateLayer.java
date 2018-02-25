@@ -118,7 +118,6 @@ public class ImgPixelGateLayer extends LayerBase {
           return result;
         }).toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
       if (gate.isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(i -> {
@@ -134,7 +133,6 @@ public class ImgPixelGateLayer extends LayerBase {
           return result;
         }).toArray(i -> new Tensor[i]));
         gate.accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
     }) {
       

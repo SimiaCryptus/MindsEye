@@ -227,7 +227,6 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
           return map;
         }).toArray(i -> new Tensor[i]));
         result.accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
         return buffer;
       }).timeNanos;
       return new Tuple2<>(timedEval.timeNanos / 1e9, timedBackprop / 1e9);

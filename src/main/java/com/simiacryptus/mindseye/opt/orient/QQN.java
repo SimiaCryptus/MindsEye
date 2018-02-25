@@ -126,7 +126,7 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
           reset();
           position(t).accumulate(1);
           @Nonnull final PointSample sample = subject.measure(monitor).setRate(t);
-          //monitor.log(String.format("delta buffers %d %d %d %d %d", sample.delta.run.size(), origin.delta.run.size(), lbfgs.run.size(), gd.run.size(), scaledGradient.run.size()));
+          //monitor._log(String.format("delta buffers %d %d %d %d %d", sample.delta.run.size(), origin.delta.run.size(), lbfgs.run.size(), gd.run.size(), scaledGradient.run.size()));
           inner.addToHistory(sample, monitor);
           @Nonnull final DeltaSet<Layer> tangent = scaledGradient.scale(1 - 2 * t).add(lbfgs.scale(2 * t));
           return new LineSearchPoint(sample, tangent.dot(sample.delta));

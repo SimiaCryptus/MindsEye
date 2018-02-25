@@ -166,7 +166,6 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
             return CudaTensorList.wrap(passbackBuffer, length, inputSize, precision);
           });
           input.accumulate(buffer, data);
-          data.freeRef();
         }
       }) {
       

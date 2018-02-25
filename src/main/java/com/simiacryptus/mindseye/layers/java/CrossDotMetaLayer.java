@@ -114,7 +114,6 @@ public class CrossDotMetaLayer extends LayerBase {
         
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(feedback);
         input.accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
     }) {
       

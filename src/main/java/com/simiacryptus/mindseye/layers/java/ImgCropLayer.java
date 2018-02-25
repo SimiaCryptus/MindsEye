@@ -137,7 +137,6 @@ public class ImgCropLayer extends LayerBase {
             return passback;
           }).toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
     }) {
       

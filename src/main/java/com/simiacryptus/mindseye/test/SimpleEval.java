@@ -117,7 +117,6 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
     eval.accumulate(deltaSet, tensorList);
     eval.freeRef();
     deltaSet.freeRef();
-    tensorList.freeRef();
     return this;
   }
   

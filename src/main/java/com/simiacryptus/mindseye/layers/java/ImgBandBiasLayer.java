@@ -169,6 +169,7 @@ public class ImgBandBiasLayer extends LayerBase {
         deltaBuffer.freeRef();
       }
       if (input.isAlive()) {
+        data.addRef();
         input.accumulate(buffer, data);
       }
     }) {

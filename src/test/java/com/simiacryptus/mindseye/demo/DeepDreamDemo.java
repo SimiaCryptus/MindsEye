@@ -58,11 +58,11 @@ public class DeepDreamDemo extends NotebookReportBase {
   /**
    * Run.
    *
-   * @param log the log
+   * @param log the _log
    */
   public void run(@javax.annotation.Nonnull NotebookOutput log) {
     
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + ".log";
+    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "._log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
     

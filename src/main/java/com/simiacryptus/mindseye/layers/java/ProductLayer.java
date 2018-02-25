@@ -100,7 +100,6 @@ public class ProductLayer extends LayerBase {
             return passback;
           }).toArray(i -> new Tensor[i]));
           in_l.accumulate(buffer, tensorArray);
-          tensorArray.freeRef();
         }
       }
     }) {

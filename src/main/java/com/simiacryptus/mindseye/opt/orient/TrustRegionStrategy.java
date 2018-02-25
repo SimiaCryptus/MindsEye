@@ -166,7 +166,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
               }
               @javax.annotation.Nonnull final double[] normal = ArrayUtil.subtract(projectedPosition, proposedPosition);
               final double normalMagSq = ArrayUtil.dot(normal, normal);
-//              monitor.log(String.format("%s: delta = %s, projectedPosition = %s, proposedPosition = %s, currentPosition = %s, normalMagSq = %s", layer,
+//              monitor._log(String.format("%s: delta = %s, projectedPosition = %s, proposedPosition = %s, currentPosition = %s, normalMagSq = %s", layer,
 //                ArrayUtil.dot(delta,delta),
 //                ArrayUtil.dot(projectedPosition,projectedPosition),
 //                ArrayUtil.dot(proposedPosition,proposedPosition),
@@ -183,7 +183,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
 //                  double originalAlphaDerivSq = ArrayUtil.dot(originalAlphaD, originalAlphaD);
 //                  assert(newAlphaDerivSq <= originalAlphaDerivSq);
 //                  assert(Math.abs(ArrayUtil.dot(tangent, normal)) <= 1e-4);
-//                  monitor.log(String.format("%s: normalMagSq = %s, newAlphaDerivSq = %s, originalAlphaDerivSq = %s", layer, normalMagSq, newAlphaDerivSq, originalAlphaDerivSq));
+//                  monitor._log(String.format("%s: normalMagSq = %s, newAlphaDerivSq = %s, originalAlphaDerivSq = %s", layer, normalMagSq, newAlphaDerivSq, originalAlphaDerivSq));
                 }
               }
   

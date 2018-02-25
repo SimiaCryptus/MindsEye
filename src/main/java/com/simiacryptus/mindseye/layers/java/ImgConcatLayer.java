@@ -129,7 +129,6 @@ public class ImgConcatLayer extends LayerBase {
       for (int i = 0; i < inObj.length; i++) {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(splitData[i]);
         inObj[i].accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
     }) {
       

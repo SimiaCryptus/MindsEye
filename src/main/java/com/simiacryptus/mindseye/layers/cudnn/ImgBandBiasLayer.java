@@ -239,6 +239,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
         });
       }
       if (input.isAlive()) {
+        error.addRef();
         input.accumulate(buffer, error);
       }
     }) {
@@ -360,10 +361,10 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
   }
   
   /**
-   * Sets weights log.
+   * Sets weights _log.
    *
    * @param mag the mag
-   * @return the weights log
+   * @return the weights _log
    */
   @javax.annotation.Nonnull
   public ImgBandBiasLayer setWeightsLog(int mag) {

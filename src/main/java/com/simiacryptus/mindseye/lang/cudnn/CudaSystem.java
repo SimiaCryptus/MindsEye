@@ -23,6 +23,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.data.DoubleStatistics;
+import com.simiacryptus.util.lang.StaticResourcePool;
 import jcuda.Pointer;
 import jcuda.jcudnn.*;
 import jcuda.runtime.JCuda;
@@ -31,6 +32,7 @@ import jcuda.runtime.cudaStream_t;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.*;
@@ -44,6 +46,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * Main library wrapper class around the CudaSystem API, providing logging and managed wrappers.
@@ -302,6 +305,9 @@ public class CudaSystem {
   @javax.annotation.Nonnull
   public static AtomicInteger gpuGeneration = new AtomicInteger(0);
   
+  private boolean dirty = false;
+  
+  private static volatile StaticResourcePool<CudnnHandle> pool;
   
   /**
    * Instantiates a new Gpu system.
@@ -450,7 +456,8 @@ public class CudaSystem {
   public static int cudaDeviceReset() {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaDeviceReset();
-    CudaSystem.log("cudaDeviceReset", result);
+    getThreadHandle().dirty();
+    log("cudaDeviceReset", result, new Object[]{});
     cudaDeviceReset_execution.accept((System.nanoTime() - startTime) / 1e9);
     handle(result);
     return result;
@@ -466,7 +473,8 @@ public class CudaSystem {
   public static int cudaMalloc(final Pointer devPtr, final long size) {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaMalloc(devPtr, size);
-    CudaSystem.log("cudaMalloc", result, devPtr, size);
+    getThreadHandle().dirty();
+    log("cudaMalloc", result, new Object[]{devPtr, size});
     cudaMalloc_execution.accept((System.nanoTime() - startTime) / 1e9);
     handle(result);
     return result;
@@ -483,7 +491,8 @@ public class CudaSystem {
   public static int cudaMallocManaged(final Pointer devPtr, final long size, int flags) {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaMallocManaged(devPtr, size, flags);
-    CudaSystem.log("cudaMallocManaged", result, devPtr, size, flags);
+    getThreadHandle().dirty();
+    log("cudaMallocManaged", result, new Object[]{devPtr, size, flags});
     cudaMallocManaged_execution.accept((System.nanoTime() - startTime) / 1e9);
     handle(result);
     return result;
@@ -494,11 +503,13 @@ public class CudaSystem {
    *
    * @return the int
    */
-  public static int cudaDeviceSynchronize() {
+  public int cudaDeviceSynchronize() {
+    dirty = false;
     long startTime = System.nanoTime();
     synchronized (syncLock) {
       final int result = JCuda.cudaDeviceSynchronize();
-      CudaSystem.log("cudaDeviceSynchronize", result);
+      getThreadHandle().dirty();
+      log("cudaDeviceSynchronize", result, new Object[]{});
       cudaDeviceSynchronize_execution.accept((System.nanoTime() - startTime) / 1e9);
       handle(result);
       return result;
@@ -514,7 +525,8 @@ public class CudaSystem {
   public static int cudaSetDeviceFlags(int flags) {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaSetDeviceFlags(flags);
-    CudaSystem.log("cudaSetDeviceFlags", result, flags);
+    getThreadHandle().dirty();
+    log("cudaSetDeviceFlags", result, new Object[]{flags});
     cudaDeviceSynchronize_execution.accept((System.nanoTime() - startTime) / 1e9);
     handle(result);
     return result;
@@ -532,7 +544,8 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaHostAlloc(devPtr, size, flags);
     cudaHostAlloc_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudaHostAlloc", result, devPtr, size, flags);
+    getThreadHandle().dirty();
+    log("cudaHostAlloc", result, new Object[]{devPtr, size, flags});
     handle(result);
     return result;
   }
@@ -547,7 +560,8 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaFreeHost(devPtr);
     cudaFreeHost_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudaFreeHost", result, devPtr);
+    getThreadHandle().dirty();
+    log("cudaFreeHost", result, new Object[]{devPtr});
     handle(result);
     return result;
   }
@@ -563,7 +577,7 @@ public class CudaSystem {
     @javax.annotation.Nonnull long[] pValue = new long[1];
     final int result = JCuda.cudaDeviceGetLimit(pValue, limit);
     cudaDeviceGetLimit_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudaDeviceGetLimit(", result, pValue, limit);
+    log("cudaDeviceGetLimit(", result, new Object[]{pValue, limit});
     return pValue[0];
   }
   
@@ -578,7 +592,7 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaDeviceSetLimit(limit, value);
     cudaDeviceSetLimit_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudaDeviceSetLimit(", result, limit, value);
+    log("cudaDeviceSetLimit(", result, new Object[]{limit, value});
     handle(result);
   }
   
@@ -595,7 +609,8 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaMemcpy(dst, src, count, cudaMemcpyKind_kind);
     cudaMemcpy_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudaMemcpy", result, dst, src, count, cudaMemcpyKind_kind);
+    getThreadHandle().dirty();
+    log("cudaMemcpy", result, new Object[]{dst, src, count, cudaMemcpyKind_kind});
     handle(result);
   }
   
@@ -612,7 +627,8 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaMemcpyAsync(dst, src, count, cudaMemcpyKind_kind, stream);
     cudaMemcpyAsync_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudaMemcpyAsync", result, dst, src, count, cudaMemcpyKind_kind, stream);
+    getThreadHandle().dirty();
+    log("cudaMemcpyAsync", result, new Object[]{dst, src, count, cudaMemcpyKind_kind, stream});
     handle(result);
   }
   
@@ -626,7 +642,8 @@ public class CudaSystem {
     @javax.annotation.Nonnull cudaStream_t stream = new cudaStream_t();
     int result = JCuda.cudaStreamCreate(stream);
     cudaStreamCreate_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudaStreamCreate", result, stream);
+    getThreadHandle().dirty();
+    log("cudaStreamCreate", result, new Object[]{stream});
     handle(result);
     return new CudaStream(stream);
   }
@@ -641,7 +658,8 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     int result = JCuda.cudaStreamDestroy(stream);
     cudaStreamDestroy_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudaStreamDestroy", result, stream);
+    getThreadHandle().dirty();
+    log("cudaStreamDestroy", result, new Object[]{stream});
     handle(result);
     return result;
   }
@@ -655,7 +673,8 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     int result = JCuda.cudaStreamSynchronize(stream);
     cudaStreamSynchronize_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudaStreamSynchronize", result, stream);
+    getThreadHandle().dirty();
+    log("cudaStreamSynchronize", result, new Object[]{stream});
     handle(result);
   }
   
@@ -672,7 +691,8 @@ public class CudaSystem {
     final int result = JCuda.cudaMemset(mem, c, count);
     //cudaDeviceSynchronize();
     cudaMemset_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudaMemset", result, mem, c, count);
+    getThreadHandle().dirty();
+    log("cudaMemset", result, new Object[]{mem, c, count});
     handle(result);
   }
   
@@ -686,7 +706,8 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCudnn.cudnnDestroyActivationDescriptor(activationDesc);
     cudnnDestroyActivationDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudnnDestroyActivationDescriptor", result, activationDesc);
+    getThreadHandle().dirty();
+    log("cudnnDestroyActivationDescriptor", result, new Object[]{activationDesc});
     return result;
   }
   
@@ -700,7 +721,8 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCudnn.cudnnDestroyConvolutionDescriptor(convDesc);
     cudnnDestroyConvolutionDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudnnDestroyConvolutionDescriptor", result, convDesc);
+    getThreadHandle().dirty();
+    log("cudnnDestroyConvolutionDescriptor", result, new Object[]{convDesc});
     return result;
   }
   
@@ -714,7 +736,8 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCudnn.cudnnDestroyFilterDescriptor(filterDesc);
     cudnnDestroyFilterDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudnnDestroyFilterDescriptor", result, filterDesc);
+    getThreadHandle().dirty();
+    log("cudnnDestroyFilterDescriptor", result, new Object[]{filterDesc});
     return result;
   }
   
@@ -728,7 +751,8 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCudnn.cudnnDestroyOpTensorDescriptor(opTensorDesc);
     cudnnDestroyOpTensorDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudnnDestroyOpTensorDescriptor", result, opTensorDesc);
+    getThreadHandle().dirty();
+    log("cudnnDestroyOpTensorDescriptor", result, new Object[]{opTensorDesc});
     return result;
   }
   
@@ -742,7 +766,8 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCudnn.cudnnDestroyPoolingDescriptor(poolingDesc);
     cudnnDestroyPoolingDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudnnDestroyPoolingDescriptor", result, poolingDesc);
+    getThreadHandle().dirty();
+    log("cudnnDestroyPoolingDescriptor", result, new Object[]{poolingDesc});
     return result;
   }
   
@@ -756,7 +781,8 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCudnn.cudnnDestroyTensorDescriptor(tensorDesc);
     cudnnDestroyTensorDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudnnDestroyTensorDescriptor", result, tensorDesc);
+    getThreadHandle().dirty();
+    log("cudnnDestroyTensorDescriptor", result, new Object[]{tensorDesc});
     return result;
   }
   
@@ -777,7 +803,8 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCudnn.cudnnGetPoolingNdForwardOutputDim(poolingDesc, inputTensorDesc, nbDims, outputTensorDimA);
     cudnnGetPoolingNdForwardOutputDim_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudnnGetPoolingNdForwardOutputDim", result, poolingDesc, inputTensorDesc, nbDims, outputTensorDimA);
+    getThreadHandle().dirty();
+    log("cudnnGetPoolingNdForwardOutputDim", result, new Object[]{poolingDesc, inputTensorDesc, nbDims, outputTensorDimA});
     return result;
   }
   
@@ -800,7 +827,7 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final int[] deviceCount = new int[1];
     final int returnCode = jcuda.runtime.JCuda.cudaGetDeviceCount(deviceCount);
-    CudaSystem.log("cudaGetDeviceCount", returnCode, deviceCount);
+    log("cudaGetDeviceCount", returnCode, new Object[]{deviceCount});
     deviceCount_execution.accept((System.nanoTime() - startTime) / 1e9);
     CudaSystem.handle(returnCode);
     return deviceCount[0];
@@ -842,15 +869,8 @@ public class CudaSystem {
     }
   }
   
-  /**
-   * Log.
-   *
-   * @param method the method
-   * @param result the result
-   * @param args   the args
-   */
-  protected static void log(final String method, final Object result, @Nullable final Object... args) {
-    @javax.annotation.Nonnull final String paramString = null == args ? "" : Arrays.stream(args).map(CudaSystem::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
+  public static void log(final String method, final Object result, final @Nullable Object[] args) {
+    @Nonnull final String paramString = null == args ? "" : Arrays.stream(args).map(CudaSystem::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
     final String message = String.format("%.6f @ %s(%d): %s(%s) = %s", (System.nanoTime() - CudaSystem.start) / 1e9, Thread.currentThread().getName(), currentDevice.get(), method, paramString, result);
     try {
       CudaSystem.apiLog.forEach(apiLog -> CudaSystem.logThread.submit(() -> apiLog.println(message)));
@@ -871,13 +891,14 @@ public class CudaSystem {
     @javax.annotation.Nonnull final int[] tensorOuputDims = new int[4];
     final int result = JCudnn.cudnnGetConvolutionNdForwardOutputDim(convDesc, srcTensorDesc, filterDesc, tensorOuputDims.length, tensorOuputDims);
     getOutputDims_execution.accept((System.nanoTime() - startTime) / 1e9);
-    CudaSystem.log("cudnnGetConvolutionNdForwardOutputDim", result, convDesc, srcTensorDesc, filterDesc, tensorOuputDims.length, tensorOuputDims);
+    getThreadHandle().dirty();
+    log("cudnnGetConvolutionNdForwardOutputDim", result, new Object[]{convDesc, srcTensorDesc, filterDesc, tensorOuputDims.length, tensorOuputDims});
     CudaSystem.handle(result);
     return tensorOuputDims;
   }
   
   /**
-   * Render to log string.
+   * Render to _log string.
    *
    * @param obj the obj
    * @return the string
@@ -907,9 +928,9 @@ public class CudaSystem {
   }
   
   /**
-   * Remove log boolean.
+   * Remove _log boolean.
    *
-   * @param apiLog the api log
+   * @param apiLog the api _log
    * @return the boolean
    */
   public static boolean removeLog(PrintStream apiLog) {
@@ -959,13 +980,13 @@ public class CudaSystem {
    * @return the boolean
    */
   public static boolean isEnabled() {
-    return 0 < CudnnHandle.POOL.size();
+    return 0 < getPool().size();
   }
   
   /**
-   * Add log.
+   * Add _log.
    *
-   * @param log the log
+   * @param log the _log
    */
   public static void addLog(@javax.annotation.Nonnull PrintStream log) {
     printHeader(log);
@@ -998,7 +1019,7 @@ public class CudaSystem {
       }
     }
     else {
-      CudnnHandle.POOL.apply(gpu -> {
+      getPool().apply(gpu -> {
         try {
           CudnnHandle.threadContext.set(gpu);
           gpu.initThread();
@@ -1008,7 +1029,7 @@ public class CudaSystem {
         } catch (@javax.annotation.Nonnull final Exception e) {
           throw new RuntimeException(e);
         } finally {
-          cleanup(gpu, synchronize);
+          gpu.cleanup();
         }
       });
     }
@@ -1017,22 +1038,12 @@ public class CudaSystem {
   /**
    * Call t.
    *
-   * @param <T> the type parameter
-   * @param fn  the fn
-   * @return the t
-   */
-  public static <T> T eval(@javax.annotation.Nonnull final Function<CudnnHandle, T> fn) {return eval(fn, true);}
-  
-  /**
-   * Call t.
-   *
    * @param <T>         the type parameter
    * @param fn          the fn
-   * @param synchronize the synchronize
    * @return the t
    */
-  public static <T> T eval(@javax.annotation.Nonnull final Function<CudnnHandle, T> fn, boolean synchronize) {
-    if (CudnnHandle.POOL.getAll().isEmpty()) {
+  public static <T> T eval(@Nonnull final Function<CudnnHandle, T> fn) {
+    if (getPool().getAll().isEmpty()) {
       return fn.apply(new CudnnHandle(-1));
     }
     else {
@@ -1049,7 +1060,7 @@ public class CudaSystem {
         }
       }
       else {
-        return CudnnHandle.POOL.run(gpu -> {
+        return getPool().run(gpu -> {
           try {
             CudnnHandle.threadContext.set(gpu);
             gpu.initThread();
@@ -1060,18 +1071,99 @@ public class CudaSystem {
           } catch (@javax.annotation.Nonnull final Exception e) {
             throw new RuntimeException(e);
           } finally {
-            cleanup(gpu, synchronize);
+            gpu.cleanup();
           }
         });
       }
     }
   }
   
-  private static void cleanup(final CudnnHandle gpu, final boolean synchronize) {
-    if (synchronize) CudaSystem.cudaDeviceSynchronize();
+  public static CudnnHandle getThreadHandle() {
+    return CudnnHandle.threadContext.get();
+  }
+  
+  /**
+   * Load gpu contexts list. If the property disableCuDnn is set to true, no GPUs will be recognized. This is useful for
+   * testing CPU-only compatibility.
+   *
+   * @return the list
+   */
+  static List<CudnnHandle> loadGpuContexts() {
+    if (CudaSettings.INSTANCE.isDisable()) {
+      CudaDevice.logger.warn("Disabled CudaSystem");
+      return Arrays.asList();
+    }
+    final int deviceCount;
+    if (CudaSettings.INSTANCE.isForceSingleGpu()) {
+      CudaDevice.logger.warn("Forcing Single-GPU Mode");
+      deviceCount = 1;
+    }
+    else {
+      deviceCount = CudaSystem.deviceCount();
+    }
+    CudaDevice.logger.info(String.format("Found %s devices", deviceCount));
+    @javax.annotation.Nonnull final List<Integer> devices = new ArrayList<>();
+    for (int d = 0; d < deviceCount; d++) {
+      int deviceNumber = d;
+      //if(device>0) System.err.println(String.format("IGNORING Device %s - %s", device, getDeviceName(device)));
+      CudaSystem.withDevice(deviceNumber, () -> {
+        CudaDevice.logger.info(String.format("Device %s - %s", deviceNumber, CudaDevice.getDeviceName(deviceNumber)));
+        devices.add(deviceNumber);
+        try {
+          //CudaSystem.handle(CudaSystem.cudaSetDeviceFlags(JCuda.cudaDeviceScheduleBlockingSync));
+        } catch (Throwable e) {
+          CudaDevice.logger.warn("Error initializing GPU", e);
+          throw new RuntimeException(e);
+        }
+        for (@javax.annotation.Nonnull DeviceLimits limit : DeviceLimits.values()) {
+          CudaDevice.logger.info(String.format("Default Limit %s = %s", limit, limit.get()));
+        }
+        DeviceLimits.HeapSize.set(16 * 1024 * 1024 * 1024);
+        DeviceLimits.FifoSize.set(8 * 1024 * 1024);
+        for (@javax.annotation.Nonnull DeviceLimits limit : DeviceLimits.values()) {
+          CudaDevice.logger.info(String.format("Configured Limit %s = %s", limit, limit.get()));
+        }
+      });
+    }
+    if (System.getProperties().containsKey("gpus")) {
+      List<Integer> devices2 = Arrays.stream(System.getProperty("gpus").split(","))
+        .map(Integer::parseInt).collect(Collectors.toList());
+      devices.clear();
+      devices.addAll(devices2);
+    }
+    List<CudnnHandle> handles = devices.stream()
+      .flatMap(i -> {
+        try {
+          return IntStream.range(0, CudaSettings.INSTANCE.getStreamsPerGpu()).mapToObj(j -> new CudnnHandle(i));
+        } catch (Throwable e) {
+          CudaDevice.logger.warn(String.format("Error initializing device %d", i), e);
+          return Stream.empty();
+        }
+      }).collect(Collectors.toList());
+    CudaDevice.logger.info(String.format("Found %s devices; using %s handles per devices %s; %s handles", deviceCount, CudaSettings.INSTANCE.getStreamsPerGpu(), devices, handles.size()));
+    return handles;
+  }
+  
+  /**
+   * The constant POOL.
+   */
+  public static StaticResourcePool<CudnnHandle> getPool() {
+    if(pool == null) {
+      synchronized (CudaSystem.class) {
+        if(pool == null) {
+          pool = new StaticResourcePool<>(loadGpuContexts());
+        }
+      }
+    }
+    return pool;
+  }
+  
+  public void dirty() {
+    dirty = true;
+  }
+  
+  protected void cleanup() {
+    if (dirty) cudaDeviceSynchronize();
     CudnnHandle.threadContext.remove();
-    ArrayList<CudaResourceBase> objsToFree = new ArrayList<>();
-    gpu.cleanupNative.drainTo(objsToFree);
-    objsToFree.stream().forEach(CudaResourceBase::release);
   }
 }

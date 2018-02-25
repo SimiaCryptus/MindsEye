@@ -92,7 +92,6 @@ public class StaticScalarLossLayer extends LayerBase {
           return new Tensor(new double[]{deriv}, 1);
         }).toArray(i -> new Tensor[i]));
         in0.accumulate(buffer, tensorArray);
-        tensorArray.freeRef();
       }
     }) {
       

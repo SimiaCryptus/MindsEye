@@ -164,7 +164,6 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
             return CudaTensorList.wrap(outputPtr, length, dimensions, precision);
           });
           inObj[0].accumulate(buffer, tensorList);
-          tensorList.freeRef();
         }
       };
       Runnable b = () -> {
@@ -181,7 +180,6 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
             return CudaTensorList.wrap(outputPtr, length, dimensions, precision);
           });
           inObj[1].accumulate(buffer, tensorList);
-          tensorList.freeRef();
         }
       };
       if (CoreSettings.INSTANCE.isConservative()) TestUtil.runAllSerial(a, b);

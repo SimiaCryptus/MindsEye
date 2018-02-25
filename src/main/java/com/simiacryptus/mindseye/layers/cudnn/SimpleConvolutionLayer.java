@@ -328,14 +328,8 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
             }
             return CudaTensorList.wrap(inputBuffer, length, inputSize, precision);
           });
-          try {
-            if (null != inputBufferTensors) {
-              input.accumulate(buffer, inputBufferTensors);
-            }
-          } finally {
-            if (null != inputBufferTensors) {
-              inputBufferTensors.freeRef();
-            }
+          if (null != inputBufferTensors) {
+            input.accumulate(buffer, inputBufferTensors);
           }
         }
       });
@@ -668,10 +662,10 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   }
   
   /**
-   * Sets weights log.
+   * Sets weights _log.
    *
    * @param f the f
-   * @return the weights log
+   * @return the weights _log
    */
   @javax.annotation.Nonnull
   public SimpleConvolutionLayer setWeightsLog(double f) {
