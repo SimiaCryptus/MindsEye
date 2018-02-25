@@ -66,8 +66,8 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
    * @param includeCaller the include caller
    * @return the string
    */
-  public static String detailString(@javax.annotation.Nonnull ReferenceCountingBase obj, boolean includeCaller) {
-    return obj.detailString(includeCaller, obj.isFinalized());
+  public static String referenceReport(@javax.annotation.Nonnull ReferenceCountingBase obj, boolean includeCaller) {
+    return obj.referenceReport(includeCaller, obj.isFinalized());
   }
   
   @Override
@@ -99,7 +99,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   @Override
   public void addRef(ReferenceCounting obj) {
     assertAlive();
-    if (references.incrementAndGet() <= 1) throw new IllegalStateException(detailString(true, isFinalized()));
+    if (references.incrementAndGet() <= 1) throw new IllegalStateException(referenceReport(true, isFinalized()));
     if (CoreSettings.INSTANCE.isLifecycleDebug()) {
       addRefs.add(Thread.currentThread().getStackTrace());
     }
@@ -113,7 +113,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   }
   
   
-  private String detailString(boolean includeCaller, boolean isFinalized) {
+  public String referenceReport(boolean includeCaller, boolean isFinalized) {
     @javax.annotation.Nonnull ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     @javax.annotation.Nonnull PrintStream out = new PrintStream(buffer);
     out.print(String.format("Object %s %s (%d refs, %d frees) ",
@@ -161,7 +161,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     }
     if (isFinalized()) {
       logger.warn(String.format("Using freed reference for %s", getClass().getSimpleName()));
-      logger.warn(detailString(true, isFinalized()));
+      logger.warn(referenceReport(true, isFinalized()));
       throw new LifecycleException(this);
     }
   }
@@ -180,7 +180,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     int refs = references.decrementAndGet();
     if (refs < 0) {
       logger.warn(String.format("Error freeing reference for %s", getClass().getSimpleName()));
-      logger.warn(detailString(true, isFinalized()));
+      logger.warn(referenceReport(true, isFinalized()));
       throw new LifecycleException(this);
     }
   
@@ -194,7 +194,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
         try {
           _free();
         } catch (LifecycleException e) {
-          logger.info("Error freeing resources: " + detailString(true, isFinalized()));
+          logger.info("Error freeing resources: " + referenceReport(true, isFinalized()));
           throw e;
         }
       }
@@ -212,7 +212,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     if (!isFreed.getAndSet(true)) {
       if (!isDetached()) {
         if (logger.isDebugEnabled()) {
-          logger.debug(String.format("Instance Reclaimed by GC at %.9f: %s", (System.nanoTime() - LOAD_TIME) / 1e9, detailString(false, false)));
+          logger.debug(String.format("Instance Reclaimed by GC at %.9f: %s", (System.nanoTime() - LOAD_TIME) / 1e9, referenceReport(false, false)));
         }
       }
       synchronized (freeRefObjs) {

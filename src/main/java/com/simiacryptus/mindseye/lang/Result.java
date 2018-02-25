@@ -83,11 +83,10 @@ public class Result extends ReferenceCountingBase {
    * @param delta  the delta
    */
   public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
-    int startRefCounts = delta.currentRefCount();
     try {
       getAccumulator().accept(buffer, delta);
     } finally {
-      if(delta.currentRefCount() >= startRefCounts) delta.freeRef();
+      if (delta.currentRefCount() > 0) delta.freeRef();
     }
   }
   

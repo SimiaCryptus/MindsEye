@@ -65,7 +65,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    * @param precision  the precision
    */
   private CudaTensorList(@Nullable final CudaMemory ptr, final int length, @javax.annotation.Nonnull final int[] dimensions, @javax.annotation.Nonnull final Precision precision) {
-    assert 1 == ptr.currentRefCount();
+    assert 1 == ptr.currentRefCount() : ptr.referenceReport(false, false);
     this.precision = precision;
     if (null == ptr) throw new IllegalArgumentException("ptr");
     if (null == ptr.getPtr()) throw new IllegalArgumentException("ptr.getPtr()");

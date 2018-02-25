@@ -37,7 +37,7 @@ public class LifecycleException extends RuntimeException {
    * @param obj the obj
    */
   public LifecycleException(@Nonnull ReferenceCountingBase obj) {
-    super("Lifecycle Exception: " + ReferenceCountingBase.detailString(obj, false));
+    super("Lifecycle Exception: " + ReferenceCountingBase.referenceReport(obj, false));
     this.obj = obj;
   }
   
