@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.lang.TimedResult;
 
@@ -80,29 +79,17 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
       final Tensor[] tensors = IntStream.range(0, data.size()).mapToObj(row -> data.get(row)[col]).toArray(i -> new Tensor[i]);
       @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.create(tensors);
       if (null == mask || col >= mask.length || !mask[col]) {
-        return new ConstantResult(tensorArray);
+        return new ConstantResult(TensorArray.create(tensors));
       }
       else {
-        return new Result(tensorArray, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
-          for (int index = 0; index < delta.length(); index++) {
-            final Tensor dt = delta.get(index);
-            @javax.annotation.Nullable final double[] d = dt.getData();
-            final Tensor t = tensors[index];
-            @javax.annotation.Nullable final double[] p = t.getData();
-            @javax.annotation.Nonnull PlaceholderLayer<double[]> layer = new PlaceholderLayer<>(p);
-            buffer.get(layer, p).addInPlace(d).freeRef();
-            dt.freeRef();
-            layer.freeRef();
-          }
-        }) {
-  
-          @Override
-          public boolean isAlive() {
-            return true;
-          }
-        };
+        return getFeedbackResult(tensors);
       }
     }).toArray(x1 -> new Result[x1]);
+  }
+  
+  @Nonnull
+  public static Result getFeedbackResult(final Tensor[] tensors) {
+    return new MutableResult(tensors);
   }
   
   /**
@@ -230,4 +217,5 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
     this.network.freeRef();
     if (null != this.data) this.data.stream().flatMap(x -> Arrays.stream(x)).forEach(x -> x.freeRef());
   }
+  
 }

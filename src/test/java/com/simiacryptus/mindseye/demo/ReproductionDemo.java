@@ -27,16 +27,13 @@ import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.models.Hdf5Archive;
-import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
-import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.lang.TimedResult;
@@ -59,7 +56,7 @@ import java.util.stream.Stream;
 /**
  * The type Image classifier run base.
  */
-public class ReproductionDemo extends NotebookReportBase {
+public class ReproductionDemo extends ArtistryDemo {
   
   
   /**
@@ -82,9 +79,7 @@ public class ReproductionDemo extends NotebookReportBase {
    * @param log the _log
    */
   public void run(@Nonnull NotebookOutput log) {
-    
-    String input = "H:\\SimiaCryptus\\Artistry\\chimps\\chip.jpg";
-    
+  
     @Nonnull String logName = "cuda_" + log.getName() + "._log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
@@ -107,8 +102,8 @@ public class ReproductionDemo extends NotebookReportBase {
         throw new RuntimeException(e);
       }
     });
-    
-    Tensor[][] inputData = Stream.of(input).map(img -> {
+  
+    Tensor[][] inputData = Stream.of("H:\\SimiaCryptus\\Artistry\\chimps\\chip.jpg").map(img -> {
       try {
         BufferedImage image = ImageIO.read(new File(img));
         image = TestUtil.resize(image, 400, true);
@@ -133,15 +128,15 @@ public class ReproductionDemo extends NotebookReportBase {
     for (int itemNumber = 0; itemNumber < preprocessedTrainingData.length; itemNumber++) {
       log.h1("Image " + itemNumber);
       @Nonnull List<Tensor[]> row = Arrays.<Tensor[]>asList(preprocessedTrainingData[itemNumber]);
-      
-      TestUtil.monitorImage(preprocessedTrainingData[itemNumber][1].copy(), false, Integer.MAX_VALUE);
+  
+      //TestUtil.monitorImage(preprocessedTrainingData[itemNumber][1].copy(), false, Integer.MAX_VALUE);
       TestUtil.monitorImage(preprocessedTrainingData[itemNumber][1], false, 5);
       log.code(() -> {
         for (Tensor[] tensors : row) {
           try {
             Tensor canvas = tensors[1];
             logger.info(log.image(canvas.toImage(), "Original") + canvas);
-            canvas.setByCoord(c -> FastRandom.random());
+            paint_LowRes(canvas);
             logger.info(log.image(canvas.toImage(), "Corrupted") + canvas);
           } catch (IOException e) {
             throw new RuntimeException(e);
@@ -170,7 +165,7 @@ public class ReproductionDemo extends NotebookReportBase {
         .setMonitor(TestUtil.getMonitor(history))
         .setOrientation(new QQN())
         .setLineSearchFactory(name -> new QuadraticSearch().setCurrentRate(20).setRelativeTolerance(0.05))
-        .setTimeout(4, TimeUnit.HOURS)
+        .setTimeout(8, TimeUnit.HOURS)
         .runAndFree();
       log.code(() -> {
         return TestUtil.plot(history);
@@ -190,19 +185,4 @@ public class ReproductionDemo extends NotebookReportBase {
     log.setFrontMatterProperty("status", "OK");
   }
   
-  /**
-   * Gets target class.
-   *
-   * @return the target class
-   */
-  @Nonnull
-  protected Class<?> getTargetClass() {
-    return VGG16.class;
-  }
-  
-  @Nonnull
-  @Override
-  public ReportType getReportType() {
-    return ReportType.Demos;
-  }
 }

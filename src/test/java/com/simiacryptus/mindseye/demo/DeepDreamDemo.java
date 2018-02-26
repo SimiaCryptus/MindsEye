@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
-import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -45,7 +44,7 @@ import java.util.stream.Stream;
 /**
  * The type Deep dream demo.
  */
-public class DeepDreamDemo extends NotebookReportBase {
+public class DeepDreamDemo extends ArtistryDemo {
   
   /**
    * Run.

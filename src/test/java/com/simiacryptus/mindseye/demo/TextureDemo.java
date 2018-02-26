@@ -34,7 +34,6 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
-import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.FastRandom;
@@ -53,7 +52,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * The type Image classifier run base.
  */
-public class TextureDemo extends NotebookReportBase {
+public class TextureDemo extends ArtistryDemo {
   
   
   /**

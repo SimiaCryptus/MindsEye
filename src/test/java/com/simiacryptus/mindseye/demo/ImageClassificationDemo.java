@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.demo;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.models.ImageClassifier;
 import com.simiacryptus.mindseye.models.VGG16;
-import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.TableOutput;
@@ -40,7 +39,7 @@ import java.util.List;
  * We load a pretrained convolutional neural network (VGG16) along with the CalTech101 image dataset to perform a
  * demonstration of Image Recognition.
  */
-public class ImageClassificationDemo extends NotebookReportBase {
+public class ImageClassificationDemo extends ArtistryDemo {
   
   /**
    * Test.

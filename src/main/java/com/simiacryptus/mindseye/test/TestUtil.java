@@ -713,29 +713,17 @@ public class TestUtil {
   public static void monitorImage(final Tensor input, final boolean exitOnClose, final int period) {
     JLabel label = new JLabel(new ImageIcon(input.toImage()));
     WeakReference<JLabel> labelWeakReference = new WeakReference<>(label);
-    Function<Tensor, Tensor> displayFilter = image -> {
-      DoubleStatistics[] statistics = IntStream.range(0, image.getDimensions()[2]).mapToObj(i -> new DoubleStatistics()).toArray(i -> new DoubleStatistics[i]);
-      image.coordStream(false).forEach(c -> {
-        double value = image.get(c);
-        statistics[c.getCoords()[2]].accept(value);
-      });
-      return image.mapCoords(c -> {
-        double value = image.get(c);
-        DoubleStatistics statistic = statistics[c.getCoords()[2]];
-        return 255 * (value - statistic.getMin()) / (statistic.getMax() - statistic.getMin());
-      });
-    };
     ScheduledFuture<?> updater = scheduledThreadPool.scheduleAtFixedRate(() -> {
       try {
         JLabel jLabel = labelWeakReference.get();
         if (null != jLabel) {
-          BufferedImage image = displayFilter.apply(input).toImage();
+          BufferedImage image = normalizeBands(input).toImage();
           int width = jLabel.getWidth();
           if (width > 0) TestUtil.resize(image, width, jLabel.getHeight());
           jLabel.setIcon(new ImageIcon(image));
         }
       } catch (Throwable e) {
-        e.printStackTrace();
+        log.warn("Error updating image", e);
       }
     }, 0, period, TimeUnit.SECONDS);
     new Thread(() -> {
@@ -777,7 +765,7 @@ public class TestUtil {
               File selectedFile = fileChooser.getSelectedFile();
               if (!selectedFile.getName().toUpperCase().endsWith(".PNG"))
                 selectedFile = new File(selectedFile.getParent(), selectedFile.getName() + ".png");
-              BufferedImage image = displayFilter.apply(input).toImage();
+              BufferedImage image = normalizeBands(input).toImage();
               if (!ImageIO.write(image, "PNG", selectedFile)) throw new IllegalArgumentException();
             } catch (IOException e1) {
               throw new RuntimeException(e1);
@@ -833,6 +821,21 @@ public class TestUtil {
       dialog.show();
       dialog.dispose();
     }).start();
+  }
+  
+  public static Tensor normalizeBands(final Tensor image) {return normalizeBands(image, 255);}
+  
+  public static Tensor normalizeBands(final Tensor image, final int max) {
+    DoubleStatistics[] statistics = IntStream.range(0, image.getDimensions()[2]).mapToObj(i -> new DoubleStatistics()).toArray(i -> new DoubleStatistics[i]);
+    image.coordStream(false).forEach(c -> {
+      double value = image.get(c);
+      statistics[c.getCoords()[2]].accept(value);
+    });
+    return image.mapCoords(c -> {
+      double value = image.get(c);
+      DoubleStatistics statistic = statistics[c.getCoords()[2]];
+      return max * (value - statistic.getMin()) / (statistic.getMax() - statistic.getMin());
+    });
   }
   
 }

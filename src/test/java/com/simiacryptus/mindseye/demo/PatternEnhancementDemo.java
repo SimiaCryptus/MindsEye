@@ -29,7 +29,6 @@ import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
 import com.simiacryptus.mindseye.network.InnerNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -45,7 +44,7 @@ import java.util.Comparator;
 /**
  * The type Image classifier run base.
  */
-public class PatternEnhancementDemo extends NotebookReportBase {
+public class PatternEnhancementDemo extends ArtistryDemo {
   
   /**
    * Test.

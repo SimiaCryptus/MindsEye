@@ -240,7 +240,7 @@ public abstract class DAGNetwork extends LayerBase {
   }
   
   /**
-   * Build exe ctx graph evaluation context.
+   * Build handler ctx graph evaluation context.
    *
    * @param inputs the inputs
    * @return the graph evaluation context

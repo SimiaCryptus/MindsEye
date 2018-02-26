@@ -37,7 +37,6 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.mindseye.opt.orient.RecursiveSubspace;
-import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.ImageTiles;
@@ -63,7 +62,7 @@ import java.util.stream.Stream;
 /**
  * The type Image classifier run base.
  */
-public class StyleTransferDemo extends NotebookReportBase {
+public class StyleTransferDemo extends ArtistryDemo {
   
   
   /**
