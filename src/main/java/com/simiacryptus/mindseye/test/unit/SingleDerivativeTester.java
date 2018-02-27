@@ -507,19 +507,29 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
       }
   
     }).toArray(i -> new Result[i]);
-    @javax.annotation.Nullable final Result eval = frozen.eval(input);
-    for (@javax.annotation.Nonnull Result result : input) {
-      result.freeRef();
+    @javax.annotation.Nullable final Result eval;
+    try {
+      eval = frozen.eval(input);
+    } finally {
+      for (@javax.annotation.Nonnull Result result : input) {
+        result.freeRef();
+      }
+      frozen.freeRef();
+      for (@javax.annotation.Nonnull TensorArray tensorArray : inputCopies) {
+        tensorArray.freeRef();
+      }
     }
-    frozen.freeRef();
-    for (@javax.annotation.Nonnull TensorArray tensorArray : inputCopies) {
-      tensorArray.freeRef();
+    @javax.annotation.Nonnull final DeltaSet<Layer> buffer;
+    TensorList tensorList;
+    TensorList evalData = eval.getData();
+    try {
+      buffer = new DeltaSet<Layer>();
+      tensorList = evalData.copy();
+      eval.accumulate(buffer, tensorList);
+    } finally {
+      evalData.freeRef();
+      eval.freeRef();
     }
-    @javax.annotation.Nonnull final DeltaSet<Layer> buffer = new DeltaSet<Layer>();
-    TensorList tensorList = eval.getData().copy();
-    eval.accumulate(buffer, tensorList);
-    eval.getData().freeRef();
-    eval.freeRef();
     final List<Delta<Layer>> deltas = component.state().stream().map(doubles -> {
       return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
     }).filter(x -> x != null).collect(Collectors.toList());

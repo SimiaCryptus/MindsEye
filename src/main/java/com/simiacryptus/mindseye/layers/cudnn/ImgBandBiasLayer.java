@@ -188,8 +188,6 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
     
     return new Result(CudaSystem.eval(gpu -> {
       try {
-        @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = gpu.newTensorDescriptor(
-          precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
         @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> filterDescriptor = gpu.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
         
@@ -200,14 +198,12 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
         try {
           CudaSystem.handle(gpu.cudnnAddTensor(
             precision.getPointer(1.0), filterDescriptor.getPtr(), filterPtr.getPtr(),
-            precision.getPointer(1.0), inputDescriptor.getPtr(), inputPtr.memory.getPtr()));
+            precision.getPointer(1.0), inputPtr.descriptor.getPtr(), inputPtr.memory.getPtr()));
         } catch (@javax.annotation.Nonnull final Throwable e) {
           throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
         }
-        CudaTensor cudaTensor = new CudaTensor(inputPtr.memory, inputDescriptor);
-        Arrays.stream(new ReferenceCounting[]{inputDescriptor, filterPtr, filterDescriptor}).forEach(ReferenceCounting::freeRef);
-        inputPtr.memory.freeRef();
-        return CudaTensorList.wrap(cudaTensor, length, outputSize, precision);
+        Arrays.stream(new ReferenceCounting[]{filterPtr, filterDescriptor}).forEach(ReferenceCounting::freeRef);
+        return CudaTensorList.wrap(inputPtr, length, outputSize, precision);
       } catch (@javax.annotation.Nonnull final Throwable e) {
         throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
       }

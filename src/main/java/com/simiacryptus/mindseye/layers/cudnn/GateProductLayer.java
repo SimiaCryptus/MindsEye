@@ -101,7 +101,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
 //   assert !right.isAlive();
     return new Result(CudaSystem.eval(gpu -> {
       @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
-      @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptorL = gpu.newTensorDescriptor(
+      @Nonnull final CudaDevice.CudaTensorDescriptor sizeDescriptorL = gpu.newTensorDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, leftDimensions[2], leftDimensions[1], leftDimensions[0]);
       @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptorR = gpu.newTensorDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, rightDimensions[2], rightDimensions[1], rightDimensions[0]);
@@ -123,7 +123,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
         if (left.isAlive()) {
           @Nonnull TensorList data = CudaSystem.eval(gpu -> {
             @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
-            @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptorL = gpu.newTensorDescriptor(
+            @Nonnull final CudaDevice.CudaTensorDescriptor sizeDescriptorL = gpu.newTensorDescriptor(
               precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, leftDimensions[2], leftDimensions[1], leftDimensions[0]);
             @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptorR = gpu.newTensorDescriptor(
               precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, rightDimensions[2], rightDimensions[1], rightDimensions[0]);

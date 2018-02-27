@@ -230,6 +230,7 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
     }
     else {
       output = network.wrap(new SumInputsLayer().setPrecision(convolutionParams.precision).setParallel(CudaSettings.INSTANCE.isConv_para_1()), nodes).setParallel(CudaSettings.INSTANCE.isConv_para_1());
+//      return legs.stream().reduce((l,r)-> network.wrap(new BinarySumLayer().setPrecision(convolutionParams.precision), l, r)).get();
     }
     if (customPaddingX || customPaddingY) {
       int x = !customPaddingX ? 0 : (this.convolutionParams.paddingX - defaultPaddingX);
@@ -241,7 +242,6 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
       }
     }
     return output;
-//      return legs.stream().reduce((l,r)-> network.wrap(new BinarySumLayer().setPrecision(convolutionParams.precision), l, r)).get();
   }
   
   

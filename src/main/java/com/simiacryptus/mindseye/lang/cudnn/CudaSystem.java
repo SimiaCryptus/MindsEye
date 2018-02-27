@@ -43,6 +43,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -982,11 +983,10 @@ public class CudaSystem {
   
   /**
    * Run.
+   *  @param fn          the fn
    *
-   * @param fn          the fn
-   * @param synchronize the synchronize
    */
-  public static void run(@javax.annotation.Nonnull final Consumer<CudnnHandle> fn, boolean synchronize) {
+  public static void run(@Nonnull final Consumer<CudnnHandle> fn, Object... hints) {
     CudnnHandle threadlocal = CudnnHandle.threadContext.get();
     if (threadlocal != null) {
       try {
@@ -1013,16 +1013,9 @@ public class CudaSystem {
         } finally {
           gpu.cleanup();
         }
-      });
+      }, getFilter(hints));
     }
   }
-  
-  /**
-   * Run.
-   *
-   * @param fn the fn
-   */
-  public static void run(@javax.annotation.Nonnull final Consumer<CudnnHandle> fn) {run(fn, true);}
   
   /**
    * Call t.
@@ -1031,7 +1024,7 @@ public class CudaSystem {
    * @param fn  the fn
    * @return the t
    */
-  public static <T> T eval(@Nonnull final Function<CudnnHandle, T> fn) {
+  public static <T> T eval(@Nonnull final Function<CudnnHandle, T> fn, Object... hints) {
     if (getPool().getAll().isEmpty()) {
       return fn.apply(new CudnnHandle(-1));
     }
@@ -1055,8 +1048,7 @@ public class CudaSystem {
           try {
             CudnnHandle.threadContext.set(gpu);
             gpu.initThread();
-            T result = fn.apply(gpu);
-            return result;
+            return fn.apply(gpu);
           } catch (@javax.annotation.Nonnull final RuntimeException e) {
             throw e;
           } catch (@javax.annotation.Nonnull final Exception e) {
@@ -1064,9 +1056,13 @@ public class CudaSystem {
           } finally {
             gpu.cleanup();
           }
-        });
+        }, getFilter(hints));
       }
     }
+  }
+  
+  private static Predicate<CudnnHandle> getFilter(final Object[] hints) {
+    return x -> true;
   }
   
   /**

@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
-import jcuda.jcudnn.cudnnTensorDescriptor;
 
 /**
  * The type Cuda tensor.
@@ -33,7 +32,7 @@ public class CudaTensor extends ReferenceCountingBase {
   /**
    * The Descriptor.
    */
-  public final CudaResource<cudnnTensorDescriptor> descriptor;
+  public final CudaDevice.CudaTensorDescriptor descriptor;
   
   /**
    * Instantiates a new Cuda tensor.
@@ -41,7 +40,7 @@ public class CudaTensor extends ReferenceCountingBase {
    * @param memory     the memory
    * @param descriptor the descriptor
    */
-  public CudaTensor(final CudaMemory memory, final CudaResource<cudnnTensorDescriptor> descriptor) {
+  public CudaTensor(final CudaMemory memory, final CudaDevice.CudaTensorDescriptor descriptor) {
     this.memory = memory;
     this.memory.addRef();
     this.descriptor = descriptor;
@@ -55,10 +54,22 @@ public class CudaTensor extends ReferenceCountingBase {
    * @param descriptor the descriptor
    * @return the cuda tensor
    */
-  public static CudaTensor wrap(final CudaMemory ptr, final CudaResource<cudnnTensorDescriptor> descriptor) {
+  public static CudaTensor wrap(final CudaMemory ptr, final CudaDevice.CudaTensorDescriptor descriptor) {
     CudaTensor cudaTensor = new CudaTensor(ptr, descriptor);
     ptr.freeRef();
     descriptor.freeRef();
     return cudaTensor;
+  }
+  
+  @Override
+  protected void _free() {
+    memory.freeRef();
+    descriptor.freeRef();
+    super._free();
+  }
+  
+  public CudaTensor moveTo(final CudaDevice cudaDevice, final MemoryType memoryType) {
+    memory.addRef();
+    return new CudaTensor(memory.moveTo(cudaDevice, memoryType), descriptor);
   }
 }

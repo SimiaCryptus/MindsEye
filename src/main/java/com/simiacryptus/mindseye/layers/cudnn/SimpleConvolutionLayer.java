@@ -25,7 +25,10 @@ import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.*;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.Util;
-import jcuda.jcudnn.*;
+import jcuda.jcudnn.cudnnConvolutionDescriptor;
+import jcuda.jcudnn.cudnnConvolutionMode;
+import jcuda.jcudnn.cudnnFilterDescriptor;
+import jcuda.jcudnn.cudnnTensorFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -865,12 +868,12 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
      * The Output descriptor.
      */
     @javax.annotation.Nonnull
-    public final CudaResource<cudnnTensorDescriptor> outputDescriptor;
+    public final CudaDevice.CudaTensorDescriptor outputDescriptor;
     /**
      * The Input descriptor.
      */
     @javax.annotation.Nonnull
-    public final CudaResource<cudnnTensorDescriptor> inputDescriptor;
+    public final CudaDevice.CudaTensorDescriptor inputDescriptor;
     /**
      * The Filter descriptor.
      */
@@ -964,12 +967,12 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
      * The Output descriptor.
      */
     @javax.annotation.Nonnull
-    public final CudaResource<cudnnTensorDescriptor> outputDescriptor;
+    public final CudaDevice.CudaTensorDescriptor outputDescriptor;
     /**
      * The Input descriptor.
      */
     @javax.annotation.Nonnull
-    public final CudaResource<cudnnTensorDescriptor> inputDescriptor;
+    public final CudaDevice.CudaTensorDescriptor inputDescriptor;
     /**
      * The Filter descriptor.
      */

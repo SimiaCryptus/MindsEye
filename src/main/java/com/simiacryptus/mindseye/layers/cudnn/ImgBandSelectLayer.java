@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.*;
-import jcuda.jcudnn.cudnnTensorDescriptor;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -109,13 +108,12 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
     return new Result(CudaSystem.eval(gpu -> {
       @javax.annotation.Nonnull final CudaMemory cudaOutput = gpu.allocate(size, MemoryType.Managed, true);
       @Nullable final CudaTensor cudaInput = gpu.getTensor(inputData, precision, MemoryType.Device);
-      @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(inputDimensions, length, outputDimensions, gpu);
-      @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(outputDimensions, length, outputDimensions, gpu);
+      @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = getTensorDescriptor(outputDimensions, length, outputDimensions, gpu);
       gpu.cudnnTransformTensor(
-        precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.memory.getPtr().withByteOffset(byteOffset),
+        precision.getPointer(1.0), cudaInput.descriptor.getPtr(), cudaInput.memory.getPtr().withByteOffset(byteOffset),
         precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr()
       );
-      Arrays.stream(new ReferenceCounting[]{inputDescriptor, cudaInput}).forEach(ReferenceCounting::freeRef);
+      Arrays.stream(new ReferenceCounting[]{cudaInput}).forEach(ReferenceCounting::freeRef);
       CudaTensor cudaTensor = CudaTensor.wrap(cudaOutput, outputDescriptor);
       return CudaTensorList.wrap(cudaTensor, length, outputDimensions, precision);
     }), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
@@ -124,19 +122,18 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
       }
       if (inObj[0].isAlive()) {
         final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
-          @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = getTensorDescriptor(inputDimensions, length, outputDimensions, gpu);
-          @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> outputDescriptor = getTensorDescriptor(outputDimensions, length, outputDimensions, gpu);
+          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = getTensorDescriptor(inputDimensions, length, outputDimensions, gpu);
           assert error.length() == inputData.length();
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
           @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device);
           long size1 = (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size);
           @javax.annotation.Nonnull final CudaMemory passbackBuffer = gpu.allocate(size1, MemoryType.Managed, false);
           gpu.cudnnTransformTensor(
-            precision.getPointer(1.0), outputDescriptor.getPtr(), errorPtr.memory.getPtr(),
+            precision.getPointer(1.0), errorPtr.descriptor.getPtr(), errorPtr.memory.getPtr(),
             precision.getPointer(0.0), inputDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
           );
           CudaTensor cudaTensor = CudaTensor.wrap(passbackBuffer, inputDescriptor);
-          Arrays.stream(new ReferenceCounting[]{errorPtr, outputDescriptor}).forEach(ReferenceCounting::freeRef);
+          Arrays.stream(new ReferenceCounting[]{errorPtr}).forEach(ReferenceCounting::freeRef);
           return CudaTensorList.wrap(cudaTensor, length, inputDimensions, precision);
           //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         });
@@ -166,7 +163,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
    * @return the tensor descriptor
    */
   @javax.annotation.Nonnull
-  public CudaResource<cudnnTensorDescriptor> getTensorDescriptor(int[] inputDimensions, int length, int[] outputDimensions, final CudaDevice deviceId) {
+  public CudaDevice.CudaTensorDescriptor getTensorDescriptor(int[] inputDimensions, int length, int[] outputDimensions, final CudaDevice deviceId) {
     return deviceId.newTensorDescriptor(
       precision.code, length, outputDimensions[2], outputDimensions[1], outputDimensions[0], //
       inputDimensions[2] * inputDimensions[1] * inputDimensions[0], //

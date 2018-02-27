@@ -76,8 +76,8 @@ public class CudnnTest extends NotebookReportBase {
           int size = 8;
           while (true) {
             int s = size;
-            @javax.annotation.Nonnull TimedResult<CudaMemory> timedResult = TimedResult.time(() -> {
-              return gpu.getPtr(TensorArray.create(new Tensor(s)), Precision.Double, MemoryType.Managed);
+            @javax.annotation.Nonnull TimedResult<CudaTensor> timedResult = TimedResult.time(() -> {
+              return gpu.getTensor(TensorArray.create(new Tensor(s)), Precision.Double, MemoryType.Managed);
             });
             logger.info(String.format("Allocated %d in %.4fsec", size, timedResult.seconds()));
             list.add(timedResult.result);
@@ -125,9 +125,9 @@ public class CudnnTest extends NotebookReportBase {
     }).toArray(j -> new Tensor[j]));
     TensorList original = factory.get();
     log.code(() -> {
-      CudaMemory write = CudaSystem.eval(gpu -> {
-        @javax.annotation.Nonnull TimedResult<CudaMemory> timedResult = TimedResult.time(() -> {
-          return gpu.getPtr(original, Precision.Double, MemoryType.Managed);
+      CudaTensor write = CudaSystem.eval(gpu -> {
+        @javax.annotation.Nonnull TimedResult<CudaTensor> timedResult = TimedResult.time(() -> {
+          return gpu.getTensor(original, Precision.Double, MemoryType.Managed);
         });
         int deviceNumber = gpu.getDeviceId();
         logger.info(String.format("Wrote %s bytes in %.4f seconds, Device %d: %s", Arrays.toString(size), timedResult.seconds(), deviceNumber, CudaDevice.getDeviceName(deviceNumber)));
@@ -135,7 +135,7 @@ public class CudnnTest extends NotebookReportBase {
       });
       CudnnHandle.forEach(ctx -> {
         @javax.annotation.Nonnull Tensor readCopy = new Tensor(size);
-        @javax.annotation.Nonnull TimedResult<CudaMemory> timedResult = TimedResult.time(() -> write.read(Precision.Double, readCopy.getData()));
+        @javax.annotation.Nonnull TimedResult<CudaMemory> timedResult = TimedResult.time(() -> write.memory.read(Precision.Double, readCopy.getData()));
         @javax.annotation.Nonnull TimedResult<Boolean> timedVerify = TimedResult.time(() -> {
           @Nullable Tensor tensor = original.get(0);
           boolean equals = tensor.equals(readCopy);

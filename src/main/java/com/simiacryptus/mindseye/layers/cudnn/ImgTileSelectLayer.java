@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.*;
-import jcuda.jcudnn.cudnnTensorDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,7 +125,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
       assert dimOut[1] > 0;
       assert dimOut[2] > 0;
       @Nonnull final CudaMemory outputBuffer = gpu.allocate((long) length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size, MemoryType.Managed, dirty);
-      CudaResource<cudnnTensorDescriptor> cudnnTensorDescriptorCudaResource = copy(gpu, length, dimIn, inputBuffer.memory, dimOut, outputBuffer, this.positionX, this.positionY);
+      CudaDevice.CudaTensorDescriptor cudnnTensorDescriptorCudaResource = copy(gpu, length, dimIn, inputBuffer.memory, dimOut, outputBuffer, this.positionX, this.positionY);
       Arrays.stream(new ReferenceCounting[]{inputBuffer}).forEach(ReferenceCounting::freeRef);
       return CudaTensorList.wrap(CudaTensor.wrap(outputBuffer, cudnnTensorDescriptorCudaResource), length, dimOut, precision);
     });
@@ -143,7 +142,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
           @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device);
           boolean dirty = dimOut[0] >= dimIn[0] && dimOut[1] >= dimIn[1];
           @Nonnull final CudaMemory passbackBuffer = gpu.allocate((long) (length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size), MemoryType.Managed, dirty);
-          CudaResource<cudnnTensorDescriptor> descriptorCudaResource = copy(gpu, length, dimOut, errorPtr.memory, dimIn, passbackBuffer, -this.positionX, -this.positionY);
+          CudaDevice.CudaTensorDescriptor descriptorCudaResource = copy(gpu, length, dimOut, errorPtr.memory, dimIn, passbackBuffer, -this.positionX, -this.positionY);
           Arrays.stream(new ReferenceCounting[]{errorPtr}).forEach(ReferenceCounting::freeRef);
           return CudaTensorList.wrap(CudaTensor.wrap(passbackBuffer, descriptorCudaResource), length, dimIn, precision);
         });
@@ -176,7 +175,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
    * @param positionY             the position y
    * @return the int [ ]
    */
-  public CudaResource<cudnnTensorDescriptor> copy(@Nonnull CudnnHandle gpu, int length, @Nonnull int[] sourceDimensions, @Nonnull CudaMemory source, @Nonnull int[] destinationDimensions, @Nonnull CudaMemory destination, int positionX, int positionY) {
+  public CudaDevice.CudaTensorDescriptor copy(@Nonnull CudnnHandle gpu, int length, @Nonnull int[] sourceDimensions, @Nonnull CudaMemory source, @Nonnull int[] destinationDimensions, @Nonnull CudaMemory destination, int positionX, int positionY) {
     if (3 != sourceDimensions.length) throw new IllegalArgumentException("inputDimensions.length");
     if (3 != destinationDimensions.length) throw new IllegalArgumentException("dimOut.length");
     int bands = sourceDimensions[2];
@@ -184,7 +183,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
       throw new IllegalArgumentException(String.format("%d != %d", bands, destinationDimensions[2]));
     //log.info(String.format("offset=%d,%d", offsetX, offsetY));
     @Nonnull final int[] viewDim = getViewDimensions(sourceDimensions, destinationDimensions, new int[]{positionX, positionY, 0});
-    @Nonnull final CudaResource<cudnnTensorDescriptor> sourceViewDescriptor = gpu.newTensorDescriptor(
+    @Nonnull final CudaDevice.CudaTensorDescriptor sourceViewDescriptor = gpu.newTensorDescriptor(
       precision.code,//
       length,//
       viewDim[2],//
@@ -194,7 +193,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
       sourceDimensions[1] * sourceDimensions[0],//
       sourceDimensions[0],//
       1);
-    @Nonnull final CudaResource<cudnnTensorDescriptor> destinationViewDescriptor = gpu.newTensorDescriptor(
+    @Nonnull final CudaDevice.CudaTensorDescriptor destinationViewDescriptor = gpu.newTensorDescriptor(
       precision.code,//
       length,//
       viewDim[2],//

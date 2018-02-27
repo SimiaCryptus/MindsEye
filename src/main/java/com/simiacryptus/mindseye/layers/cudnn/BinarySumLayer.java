@@ -28,7 +28,6 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.TestUtil;
 import jcuda.jcudnn.cudnnOpTensorDescriptor;
 import jcuda.jcudnn.cudnnOpTensorOp;
-import jcuda.jcudnn.cudnnTensorDescriptor;
 import jcuda.jcudnn.cudnnTensorFormat;
 
 import javax.annotation.Nonnull;
@@ -136,7 +135,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
     if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     return new Result(CudaSystem.eval(gpu -> {
       @javax.annotation.Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
-      @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = gpu.newTensorDescriptor(
+      @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor sizeDescriptor = gpu.newTensorDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
       @Nullable final CudaTensor lPtr = gpu.getTensor(leftData, precision, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
       @Nullable final CudaTensor rPtr = gpu.getTensor(rightData, precision, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
@@ -157,7 +156,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
           CudaTensorList tensorList = CudaSystem.eval(gpu -> {
             @Nullable final CudaTensor lPtr = gpu.getTensor(delta, precision, MemoryType.Device);
             @Nonnull final CudaMemory outputPtr = gpu.allocate(lPtr.memory.size, MemoryType.Managed, true);
-            @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = gpu.newTensorDescriptor(
+            @Nonnull final CudaDevice.CudaTensorDescriptor sizeDescriptor = gpu.newTensorDescriptor(
               precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
             gpu.cudnnAddTensor(
               precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.memory.getPtr(),
@@ -174,7 +173,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
           CudaTensorList tensorList = CudaSystem.eval(gpu -> {
             @Nullable final CudaTensor lPtr = gpu.getTensor(delta, precision, MemoryType.Device);
             @Nonnull final CudaMemory outputPtr = gpu.allocate(lPtr.memory.size, MemoryType.Managed, true);
-            @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = gpu.newTensorDescriptor(
+            @Nonnull final CudaDevice.CudaTensorDescriptor sizeDescriptor = gpu.newTensorDescriptor(
               precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
             gpu.cudnnAddTensor(
               precision.getPointer(rightFactor), sizeDescriptor.getPtr(), lPtr.memory.getPtr(),
