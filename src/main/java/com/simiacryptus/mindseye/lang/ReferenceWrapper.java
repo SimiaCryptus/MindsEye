@@ -22,11 +22,31 @@ package com.simiacryptus.mindseye.lang;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+/**
+ * The type Reference wrapper.
+ *
+ * @param <T> the type parameter
+ */
 public class ReferenceWrapper<T> {
+  /**
+   * The Obj.
+   */
   final T obj;
+  /**
+   * The Destructor.
+   */
   final Consumer<T> destructor;
+  /**
+   * The Is finalized.
+   */
   final AtomicBoolean isFinalized = new AtomicBoolean(false);
   
+  /**
+   * Instantiates a new Reference wrapper.
+   *
+   * @param obj        the obj
+   * @param destructor the destructor
+   */
   public ReferenceWrapper(final T obj, final Consumer<T> destructor) {
     this.obj = obj;
     this.destructor = destructor;
@@ -38,12 +58,20 @@ public class ReferenceWrapper<T> {
     super.finalize();
   }
   
+  /**
+   * Destroy.
+   */
   public void destroy() {
     if (!isFinalized.getAndSet(true)) {
       destructor.accept(obj);
     }
   }
   
+  /**
+   * Unwrap t.
+   *
+   * @return the t
+   */
   public T unwrap() {
     if (isFinalized.getAndSet(true)) {
       throw new IllegalStateException();

@@ -44,10 +44,20 @@ import java.util.List;
  */
 public class ImageClassificationDemo extends ArtistryDemo {
   
+  /**
+   * Instantiates a new Image classification demo.
+   *
+   * @param args the args
+   */
   public ImageClassificationDemo(final String... args) {
   
   }
   
+  /**
+   * The entry point of application.
+   *
+   * @param args the input arguments
+   */
   public static void main(String[] args) {
     ImageClassificationDemo demo = new ImageClassificationDemo(args);
     demo.run(demo::run);
@@ -88,6 +98,12 @@ public class ImageClassificationDemo extends ArtistryDemo {
     log.setFrontMatterProperty("status", "OK");
   }
   
+  /**
+   * Load data tensor [ ].
+   *
+   * @param log the log
+   * @return the tensor [ ]
+   */
   public Tensor[] loadData(@Nonnull final NotebookOutput log) {
     return log.code(() -> {
       return Caltech101.trainingDataStream().sorted(getShuffleComparator()).map(labeledObj -> {
@@ -98,35 +114,18 @@ public class ImageClassificationDemo extends ArtistryDemo {
     });
   }
   
+  /**
+   * Load model image classifier.
+   *
+   * @param log the log
+   * @return the image classifier
+   */
   public ImageClassifier loadModel(@Nonnull final NotebookOutput log) {
     return log.code(() -> {
       VGG16_HDF5 vgg16_hdf5 = VGG16.fromS3_HDF5();
       vgg16_hdf5.getNetwork();
       return vgg16_hdf5;
     });
-  }
-  
-  public static class Java extends ImageClassificationDemo {
-    public static void main(String[] args) {
-      ImageClassificationDemo demo = new ImageClassificationDemo.Java();
-      demo.run(demo::run);
-    }
-    
-    @Override
-    public ImageClassifier loadModel(@Nonnull final NotebookOutput log) {
-      return log.code(() -> {
-        try {
-          VGG16_HDF5.JBLAS model = new VGG16_HDF5.JBLAS(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5"))));
-          model.getNetwork();
-          return model;
-        } catch (@Nonnull final RuntimeException e) {
-          throw e;
-        } catch (Throwable e) {
-          throw new RuntimeException(e);
-        }
-      });
-    }
-    
   }
   
   /**
@@ -154,5 +153,36 @@ public class ImageClassificationDemo extends ArtistryDemo {
   @Override
   public ReportType getReportType() {
     return ReportType.Demos;
+  }
+  
+  /**
+   * The type Java.
+   */
+  public static class Java extends ImageClassificationDemo {
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     */
+    public static void main(String[] args) {
+      ImageClassificationDemo demo = new ImageClassificationDemo.Java();
+      demo.run(demo::run);
+    }
+    
+    @Override
+    public ImageClassifier loadModel(@Nonnull final NotebookOutput log) {
+      return log.code(() -> {
+        try {
+          VGG16_HDF5.JBLAS model = new VGG16_HDF5.JBLAS(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5"))));
+          model.getNetwork();
+          return model;
+        } catch (@Nonnull final RuntimeException e) {
+          throw e;
+        } catch (Throwable e) {
+          throw new RuntimeException(e);
+        }
+      });
+    }
+    
   }
 }

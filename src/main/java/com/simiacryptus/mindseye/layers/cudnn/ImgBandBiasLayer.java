@@ -195,17 +195,19 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
         
         assert 0 < bias.length;
         @javax.annotation.Nonnull final CudaMemory filterPtr = gpu.allocate((long) (bias.length * precision.size), MemoryType.Device, true).write(precision, bias);
-        final CudaMemory inputPtr = gpu.getPtr(inputData, precision, MemoryType.Device);
+        final CudaTensor inputPtr = gpu.getTensor(inputData, precision, MemoryType.Device);
         inputData.freeRef();
         try {
           CudaSystem.handle(gpu.cudnnAddTensor(
             precision.getPointer(1.0), filterDescriptor.getPtr(), filterPtr.getPtr(),
-            precision.getPointer(1.0), inputDescriptor.getPtr(), inputPtr.getPtr()));
+            precision.getPointer(1.0), inputDescriptor.getPtr(), inputPtr.memory.getPtr()));
         } catch (@javax.annotation.Nonnull final Throwable e) {
           throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
         }
+        CudaTensor cudaTensor = new CudaTensor(inputPtr.memory, inputDescriptor);
         Arrays.stream(new ReferenceCounting[]{inputDescriptor, filterPtr, filterDescriptor}).forEach(ReferenceCounting::freeRef);
-        return CudaTensorList.wrap(inputPtr, length, outputSize, precision);
+        inputPtr.memory.freeRef();
+        return CudaTensorList.wrap(cudaTensor, length, outputSize, precision);
       } catch (@javax.annotation.Nonnull final Throwable e) {
         throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
       }
@@ -218,12 +220,12 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
             precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
           @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> filterDescriptor = gpu.newTensorDescriptor(
             precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
-          @Nullable final CudaMemory errorPtr = gpu.getPtr(error, precision, MemoryType.Device);
+          @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device);
           @javax.annotation.Nonnull final CudaMemory filterBuffer = gpu.allocate(bias.length * 1l * precision.size, MemoryType.Device, false);
           try {
             try {
               CudaSystem.handle(gpu.cudnnConvolutionBackwardBias(precision.getPointer(1.0),
-                inputDescriptor.getPtr(), errorPtr.getPtr(),
+                inputDescriptor.getPtr(), errorPtr.memory.getPtr(),
                 precision.getPointer(1.0),
                 filterDescriptor.getPtr(), filterBuffer.getPtr()));
             } catch (@javax.annotation.Nonnull final Throwable e) {

@@ -44,6 +44,7 @@ public class CudaDevice extends CudaSystem {
    * The constant logger.
    */
   protected static final Logger logger = LoggerFactory.getLogger(CudnnHandle.class);
+  private static final Object memoryManagementLock = new Object();
   /**
    * The Device name.
    */
@@ -142,9 +143,6 @@ public class CudaDevice extends CudaSystem {
     }
   }
   
-  
-  private static final Object memoryManagementLock = new Object();
-
   /**
    * The Ptr.
    *
@@ -154,9 +152,9 @@ public class CudaDevice extends CudaSystem {
    */
   @Nonnull
   public synchronized CudaMemory getPtr(@Nonnull final CudaTensorList data, @Nonnull final MemoryType memoryType) {
-    CudaMemory ptr = data.ptr;
+    CudaTensor ptr = data.ptr;
     if ((null == ptr || ptr.isFinalized()) && null != data.heapCopy && !data.heapCopy.isFinalized()) {
-      CudaMemory newPtr = getPtr(data.heapCopy, data.precision, memoryType);
+      CudaTensor newPtr = getTensor(data.heapCopy, data.precision, memoryType);
       synchronized (data) {
         ptr = data.ptr;
         if ((null == ptr || ptr.isFinalized()) && null != data.heapCopy && !data.heapCopy.isFinalized()) {
@@ -176,10 +174,10 @@ public class CudaDevice extends CudaSystem {
         throw new IllegalStateException("Local data has been freed");
       }
     }
-    ptr.addRef();
-    return ptr.moveTo(this, memoryType);
+    ptr.memory.addRef();
+    return ptr.memory.moveTo(this, memoryType);
   }
-
+  
   /**
    * Acquire pointer.
    *
@@ -212,6 +210,13 @@ public class CudaDevice extends CudaSystem {
     return this.acquire(size, type, retries - 1);
   }
   
+  /**
+   * Ensure capacity device metrics.
+   *
+   * @param size the size
+   * @param type the type
+   * @return the device metrics
+   */
   @Nonnull
   public DeviceMetrics ensureCapacity(final long size, final MemoryType type) {
     final DeviceMetrics metrics;
@@ -341,6 +346,45 @@ public class CudaDevice extends CudaSystem {
   }
   
   /**
+   * Gets tensor.
+   *
+   * @param data       the data
+   * @param precision  the precision
+   * @param memoryType the memory type
+   * @return the tensor
+   */
+  @Nonnull
+  public synchronized CudaTensor getTensor(@Nonnull final TensorList data, @Nonnull final Precision precision, final MemoryType memoryType) {
+    int[] inputSize = data.getDimensions();
+    @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> descriptor = newTensorDescriptor(
+      precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, data.length(), inputSize.length < 3 ? 1 : inputSize[2], inputSize.length < 2 ? 1 : inputSize[1], inputSize.length < 1 ? 1 : inputSize[0]);
+    CudaMemory ptr = getPtr(data, precision, memoryType);
+    CudaTensor cudaTensor = new CudaTensor(ptr, descriptor);
+    ptr.freeRef();
+    descriptor.freeRef();
+    return cudaTensor;
+  }
+  
+  /**
+   * Gets tensor.
+   *
+   * @param data       the data
+   * @param memoryType the memory type
+   * @return the tensor
+   */
+  @Nonnull
+  public synchronized CudaTensor getTensor(@Nonnull final CudaTensorList data, final MemoryType memoryType) {
+    int[] inputSize = data.getDimensions();
+    @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> descriptor = newTensorDescriptor(
+      data.precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, data.length(), inputSize.length < 3 ? 1 : inputSize[2], inputSize.length < 2 ? 1 : inputSize[1], inputSize[0]);
+    CudaMemory ptr = getPtr(data, memoryType);
+    CudaTensor cudaTensor = new CudaTensor(ptr, descriptor);
+    ptr.freeRef();
+    descriptor.freeRef();
+    return cudaTensor;
+  }
+  
+  /**
    * Gets cuda ptr.
    *
    * @param data       the data
@@ -363,18 +407,33 @@ public class CudaDevice extends CudaSystem {
         logger.warn("Incompatible precision types in GPU");
       }
     }
-      final int listLength = data.length();
-      final int elementLength = Tensor.length(data.getDimensions());
-      @Nonnull final CudaMemory ptr = this.allocate((long) elementLength * listLength * precision.size, memoryType, true);
-      for (int i = 0; i < listLength; i++) {
-        Tensor tensor = data.get(i);
-        assert null != data;
-        assert null != tensor;
-        assert Arrays.equals(tensor.getDimensions(), data.getDimensions()) : Arrays.toString(tensor.getDimensions()) + " != " + Arrays.toString(data.getDimensions());
-        ptr.write(precision, tensor.getData(), (long) i * elementLength);
-        tensor.freeRef();
-      }
-      return ptr;
+    final int listLength = data.length();
+    final int elementLength = Tensor.length(data.getDimensions());
+    @Nonnull final CudaMemory ptr = this.allocate((long) elementLength * listLength * precision.size, memoryType, true);
+    for (int i = 0; i < listLength; i++) {
+      Tensor tensor = data.get(i);
+      assert null != data;
+      assert null != tensor;
+      assert Arrays.equals(tensor.getDimensions(), data.getDimensions()) : Arrays.toString(tensor.getDimensions()) + " != " + Arrays.toString(data.getDimensions());
+      ptr.write(precision, tensor.getData(), (long) i * elementLength);
+      tensor.freeRef();
+    }
+    return ptr;
+  }
+  
+  /**
+   * New tensor descriptor cuda resource.
+   *
+   * @param dataType   the data type
+   * @param batchCount the batch count
+   * @param channels   the channels
+   * @param height     the height
+   * @param width      the width
+   * @return the cuda resource
+   */
+  public CudaResource<cudnnTensorDescriptor> newTensorDescriptor(final int dataType,
+    final int batchCount, final int channels, final int height, final int width) {
+    return newTensorDescriptor(dataType, batchCount, channels, height, width, channels * height * width, height * width, height, 1);
   }
   
   /**

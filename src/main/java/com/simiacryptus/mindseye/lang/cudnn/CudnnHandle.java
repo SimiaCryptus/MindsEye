@@ -44,6 +44,9 @@ public class CudnnHandle extends CudaDevice {
    * The constant CLEANUP.
    */
   public final LinkedBlockingDeque<CudaResourceBase> cleanupNative = new LinkedBlockingDeque<>();
+  /**
+   * The Handle.
+   */
   @Nullable
   public final jcuda.jcudnn.cudnnHandle handle;
   
@@ -112,13 +115,12 @@ public class CudnnHandle extends CudaDevice {
         right.getPrecision().getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
         right.getPrecision().getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
         right.getPrecision().getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
+      return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, sizeDescriptor), length, dimensions, left.precision);
     } finally {
       opDescriptor.freeRef();
-      sizeDescriptor.freeRef();
       rPtr.freeRef();
       lPtr.freeRef();
     }
-    return CudaTensorList.wrap(outputPtr, length, dimensions, left.precision);
   }
   
   /**
@@ -135,11 +137,11 @@ public class CudnnHandle extends CudaDevice {
       left.precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, left.length(), leftDimensions[2], leftDimensions[1], leftDimensions[0]);
     @Nonnull final CudaResource<cudnnTensorDescriptor> rightDescriptor = newTensorDescriptor(
       right.precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, right.length(), rightDimensions[2], rightDimensions[1], rightDimensions[0]);
-    @Nullable final CudaMemory lPtr = left.ptr;//.moveTo(gpu.getDeviceNumber());
+    @Nullable final CudaTensor lPtr = left.ptr;//.moveTo(gpu.getDeviceNumber());
     @Nullable final CudaMemory rPtr = getPtr(right, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
     cudnnAddTensor(
       right.precision.getPointer(1.0), rightDescriptor.getPtr(), rPtr.getPtr(),
-      left.precision.getPointer(1.0), leftDescriptor.getPtr(), lPtr.getPtr());
+      left.precision.getPointer(1.0), leftDescriptor.getPtr(), lPtr.memory.getPtr());
     rPtr.freeRef();
     rightDescriptor.freeRef();
     leftDescriptor.freeRef();
@@ -168,16 +170,16 @@ public class CudnnHandle extends CudaDevice {
     @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
     @Nonnull final CudaResource<cudnnTensorDescriptor> sizeDescriptor = newTensorDescriptor(
       precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
-    @Nullable final CudaMemory lPtr = getPtr(left, precision, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
-    @Nullable final CudaMemory rPtr = getPtr(right, precision, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
-    assert lPtr.size == rPtr.size;
-    @Nonnull final CudaMemory outputPtr = allocate(lPtr.size, MemoryType.Device, true);
+    @Nullable final CudaTensor lPtr = getTensor(left, precision, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
+    @Nullable final CudaTensor rPtr = getTensor(right, precision, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
+    assert lPtr.memory.size == rPtr.memory.size;
+    @Nonnull final CudaMemory outputPtr = allocate(lPtr.memory.size, MemoryType.Device, true);
     cudnnOpTensor(opDescriptor.getPtr(),
-      precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.getPtr(),
-      precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.getPtr(),
+      precision.getPointer(1.0), sizeDescriptor.getPtr(), lPtr.memory.getPtr(),
+      precision.getPointer(1.0), sizeDescriptor.getPtr(), rPtr.memory.getPtr(),
       precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-    Arrays.stream(new ReferenceCounting[]{lPtr, rPtr, opDescriptor, sizeDescriptor, left, right}).forEach(ReferenceCounting::freeRef);
-    return CudaTensorList.wrap(outputPtr, length, dimensions, precision);
+    Arrays.stream(new ReferenceCounting[]{lPtr, rPtr, opDescriptor, left, right}).forEach(ReferenceCounting::freeRef);
+    return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, sizeDescriptor), length, dimensions, precision);
   }
   
   /**

@@ -43,8 +43,30 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
    * The constant log.
    */
   protected static final Logger log = LoggerFactory.getLogger(VGG16_HDF5.class);
+  /**
+   * The Pipeline network.
+   */
   public final PipelineNetwork pipelineNetwork = new PipelineNetwork();
+  /**
+   * The Hdf 5.
+   */
+  protected final Hdf5Archive hdf5;
+  /**
+   * The Convolution order.
+   */
+  @javax.annotation.Nonnull
+  int[] convolutionOrder = {3, 2, 0, 1};
+  /**
+   * The Fullyconnected order.
+   */
+  @javax.annotation.Nonnull
+  int[] fullyconnectedOrder = {1, 0};
   private PoolingLayer.PoolingMode finalPoolingMode = PoolingLayer.PoolingMode.Max;
+  /**
+   * The Precision.
+   */
+  private boolean large = true;
+  private boolean dense = true;
   
   /**
    * Instantiates a new Vgg 16 hdf 5.
@@ -61,26 +83,6 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
   protected void add(@Nonnull Layer layer) {
     this.prototype = evaluatePrototype(add(layer, pipelineNetwork), this.prototype, cnt++);
   }
-  /**
-   * The Hdf 5.
-   */
-  protected final Hdf5Archive hdf5;
-  
-  /**
-   * The Convolution order.
-   */
-  @javax.annotation.Nonnull
-  int[] convolutionOrder = {3, 2, 0, 1};
-  /**
-   * The Fullyconnected order.
-   */
-  @javax.annotation.Nonnull
-  int[] fullyconnectedOrder = {1, 0};
-  /**
-   * The Precision.
-   */
-  private boolean large = true;
-  private boolean dense = true;
   
   public Layer buildNetwork() {
     prototype = new Tensor(224, 224, 3);
@@ -240,7 +242,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
   /**
    * Add pooling layer.
    *
-   * @param size
+   * @param size the size
    */
   protected void addPoolingLayer(final int size) {
     if (large) {
@@ -284,8 +286,84 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
     add(new SoftmaxActivationLayer());
   }
   
+  /**
+   * Gets hdf 5.
+   *
+   * @return the hdf 5
+   */
+  @Override
+  public Hdf5Archive getHDF5() {
+    return hdf5;
+  }
+  
+  /**
+   * Is large boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isLarge() {
+    return large;
+  }
+  
+  /**
+   * Sets large.
+   *
+   * @param large the large
+   * @return the large
+   */
+  public VGG16_HDF5 setLarge(boolean large) {
+    this.large = large;
+    return this;
+  }
+  
+  /**
+   * Is dense boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isDense() {
+    return dense;
+  }
+  
+  /**
+   * Sets dense.
+   *
+   * @param dense the dense
+   * @return the dense
+   */
+  public VGG16_HDF5 setDense(boolean dense) {
+    this.dense = dense;
+    return this;
+  }
+  
+  /**
+   * Gets final pooling mode.
+   *
+   * @return the final pooling mode
+   */
+  public PoolingLayer.PoolingMode getFinalPoolingMode() {
+    return finalPoolingMode;
+  }
+  
+  /**
+   * Sets final pooling mode.
+   *
+   * @param finalPoolingMode the final pooling mode
+   * @return the final pooling mode
+   */
+  public VGG16_HDF5 setFinalPoolingMode(PoolingLayer.PoolingMode finalPoolingMode) {
+    this.finalPoolingMode = finalPoolingMode;
+    return this;
+  }
+  
+  /**
+   * The type Jblas.
+   */
   public static class JBLAS extends VGG16_HDF5 {
     
+    /**
+     * The Samples.
+     */
     int samples = 3;
     
     /**
@@ -411,12 +489,26 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
         .setStrideXY(size, size));
     }
     
+    /**
+     * Add convolution.
+     *
+     * @param radius      the radius
+     * @param inputBands  the input bands
+     * @param outputBands the output bands
+     * @param layer       the layer
+     */
     public void addConvolution(final int radius, final int inputBands, final int outputBands, final String layer) {addConvolutionLayer(radius, inputBands, outputBands, ActivationLayer.Mode.RELU, layer);}
     
   }
   
+  /**
+   * The type Noisy.
+   */
   public class Noisy extends VGG16_HDF5 {
     
+    /**
+     * The Samples.
+     */
     int samples = 3;
     
     /**
@@ -459,65 +551,6 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
       add(new StochasticSamplingSubnetLayer(stochasticNet, samples));
     }
     
-  }
-  
-  /**
-   * Gets hdf 5.
-   *
-   * @return the hdf 5
-   */
-  @Override
-  public Hdf5Archive getHDF5() {
-    return hdf5;
-  }
-  
-  /**
-   * Is large boolean.
-   *
-   * @return the boolean
-   */
-  public boolean isLarge() {
-    return large;
-  }
-  
-  /**
-   * Sets large.
-   *
-   * @param large the large
-   * @return the large
-   */
-  public VGG16_HDF5 setLarge(boolean large) {
-    this.large = large;
-    return this;
-  }
-  
-  /**
-   * Is dense boolean.
-   *
-   * @return the boolean
-   */
-  public boolean isDense() {
-    return dense;
-  }
-  
-  /**
-   * Sets dense.
-   *
-   * @param dense the dense
-   * @return the dense
-   */
-  public VGG16_HDF5 setDense(boolean dense) {
-    this.dense = dense;
-    return this;
-  }
-  
-  public PoolingLayer.PoolingMode getFinalPoolingMode() {
-    return finalPoolingMode;
-  }
-  
-  public VGG16_HDF5 setFinalPoolingMode(PoolingLayer.PoolingMode finalPoolingMode) {
-    this.finalPoolingMode = finalPoolingMode;
-    return this;
   }
   
 }

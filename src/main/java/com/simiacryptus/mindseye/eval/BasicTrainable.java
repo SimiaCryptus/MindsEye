@@ -87,6 +87,12 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
     }).toArray(x1 -> new Result[x1]);
   }
   
+  /**
+   * Gets feedback result.
+   *
+   * @param tensors the tensors
+   * @return the feedback result
+   */
   @Nonnull
   public static Result getFeedbackResult(final Tensor[] tensors) {
     return new MutableResult(tensors);

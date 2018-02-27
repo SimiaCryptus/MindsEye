@@ -1282,6 +1282,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    * Sets all.
    *
    * @param v the v
+   * @return the all
    */
   public Tensor setAll(final double v) {
     @Nullable final double[] data = getData();

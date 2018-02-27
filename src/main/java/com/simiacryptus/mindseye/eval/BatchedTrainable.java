@@ -101,10 +101,21 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
     return timedResult.result;
   }
   
+  /**
+   * Is verbose boolean.
+   *
+   * @return the boolean
+   */
   public boolean isVerbose() {
     return verbose;
   }
   
+  /**
+   * Sets verbose.
+   *
+   * @param verbose the verbose
+   * @return the verbose
+   */
   public BatchedTrainable setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;

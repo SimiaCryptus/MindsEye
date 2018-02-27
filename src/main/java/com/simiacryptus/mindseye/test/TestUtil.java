@@ -76,6 +76,10 @@ public class TestUtil {
    */
   public static final URI S3_ROOT = URI.create("https://s3-us-west-2.amazonaws.com/simiacryptus/");
   private static final Logger log = LoggerFactory.getLogger(TestUtil.class);
+  /**
+   * The constant scheduledThreadPool.
+   */
+  public static ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
   
   /**
    * Add logging.
@@ -261,6 +265,11 @@ public class TestUtil {
     removeInstrumentation(network);
   }
   
+  /**
+   * Remove instrumentation.
+   *
+   * @param network the network
+   */
   public static void removeInstrumentation(@Nonnull final DAGNetwork network) {
     network.visitNodes(node -> {
       if (node.getLayer() instanceof MonitoringWrapperLayer) {
@@ -269,6 +278,12 @@ public class TestUtil {
     });
   }
   
+  /**
+   * Sample performance map.
+   *
+   * @param network the network
+   * @return the map
+   */
   public static Map<String, Object> samplePerformance(@Nonnull final DAGNetwork network) {
     @javax.annotation.Nonnull final Map<String, Object> metrics = new HashMap<>();
     network.visitNodes(node -> {
@@ -302,7 +317,7 @@ public class TestUtil {
    * Gets monitor.
    *
    * @param history the history
-   * @param network
+   * @param network the network
    * @return the monitor
    */
   public static TrainingMonitor getMonitor(@Nonnull final List<StepRecord> history, final Layer network) {
@@ -701,11 +716,6 @@ public class TestUtil {
   }
   
   /**
-   * The constant scheduledThreadPool.
-   */
-  public static ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
-  
-  /**
    * Mini stack trace string.
    *
    * @return the string
@@ -723,8 +733,8 @@ public class TestUtil {
   /**
    * Monitor ui.
    *
-   * @param input the input
-   * @param exitOnClose
+   * @param input       the input
+   * @param exitOnClose the exit on close
    */
   public static void monitorImage(final Tensor input, final boolean exitOnClose) {monitorImage(input, exitOnClose, 30);}
   
@@ -732,8 +742,8 @@ public class TestUtil {
    * Monitor ui.
    *
    * @param input       the input
-   * @param exitOnClose
-   * @param period
+   * @param exitOnClose the exit on close
+   * @param period      the period
    */
   public static void monitorImage(final Tensor input, final boolean exitOnClose, final int period) {
     JLabel label = new JLabel(new ImageIcon(input.toImage()));
@@ -777,13 +787,13 @@ public class TestUtil {
             public boolean accept(final File f) {
               return f.getName().toUpperCase().endsWith(".PNG");
             }
-        
+  
             @Override
             public String getDescription() {
               return "*.png";
             }
           });
-      
+  
           int result = fileChooser.showSaveDialog(dialog);
           if (JFileChooser.APPROVE_OPTION == result) {
             try {
@@ -848,8 +858,21 @@ public class TestUtil {
     }).start();
   }
   
+  /**
+   * Normalize bands tensor.
+   *
+   * @param image the image
+   * @return the tensor
+   */
   public static Tensor normalizeBands(final Tensor image) {return normalizeBands(image, 255);}
   
+  /**
+   * Normalize bands tensor.
+   *
+   * @param image the image
+   * @param max   the max
+   * @return the tensor
+   */
   public static Tensor normalizeBands(final Tensor image, final int max) {
     DoubleStatistics[] statistics = IntStream.range(0, image.getDimensions()[2]).mapToObj(i -> new DoubleStatistics()).toArray(i -> new DoubleStatistics[i]);
     image.coordStream(false).forEach(c -> {

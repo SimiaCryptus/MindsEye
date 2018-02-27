@@ -54,6 +54,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
    * Instantiates a new Monitoring wrapper layer.
    *
    * @param json the json
+   * @param rs   the rs
    */
   protected MonitoringWrapperLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json, rs);

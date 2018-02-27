@@ -42,6 +42,10 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   private static final long LOAD_TIME = System.nanoTime();
   private static final UUID jvmId = UUID.randomUUID();
   
+  static {
+    if (CoreSettings.INSTANCE == null) throw new RuntimeException();
+  }
+
   private final UUID objectId = CoreSettings.INSTANCE.isLifecycleDebug() ? UUID.randomUUID() : jvmId;
   private final AtomicInteger references = new AtomicInteger(1);
   private final AtomicBoolean isFreed = new AtomicBoolean(false);
@@ -112,7 +116,13 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     return isFreed.get();
   }
   
-  
+  /**
+   * Reference report string.
+   *
+   * @param includeCaller the include caller
+   * @param isFinalized   the is finalized
+   * @return the string
+   */
   public String referenceReport(boolean includeCaller, boolean isFinalized) {
     @javax.annotation.Nonnull ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     @javax.annotation.Nonnull PrintStream out = new PrintStream(buffer);
@@ -234,7 +244,6 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   
   /**
    * Sets floating.
-   *
    */
   public void detach() {
     this.detached = true;
@@ -243,9 +252,5 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   @Override
   public UUID getObjectId() {
     return objectId;
-  }
-  
-  static {
-    if (CoreSettings.INSTANCE == null) throw new RuntimeException();
   }
 }

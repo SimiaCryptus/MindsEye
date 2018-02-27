@@ -59,17 +59,25 @@ public abstract class ImageClassifier implements NetworkFactory {
    * The constant log.
    */
   protected static final Logger log = LoggerFactory.getLogger(ImageClassifier.class);
+  /**
+   * The Network.
+   */
   protected volatile Layer network;
   /**
    * The Prototype.
    */
   @Nullable
   Tensor prototype = new Tensor(224, 224, 3);
-  private int batchSize;
   /**
    * The Cnt.
    */
   int cnt = 1;
+  /**
+   * The Precision.
+   */
+  @javax.annotation.Nonnull
+  Precision precision = Precision.Float;
+  private int batchSize;
   
   /**
    * Predict list.
@@ -138,121 +146,12 @@ public abstract class ImageClassifier implements NetworkFactory {
    * Gets training monitor.
    *
    * @param history the history
-   * @param network
+   * @param network the network
    * @return the training monitor
    */
   @javax.annotation.Nonnull
   public static TrainingMonitor getTrainingMonitor(@Nonnull ArrayList<StepRecord> history, final PipelineNetwork network) {
     return TestUtil.getMonitor(history);
-  }
-  
-  /**
-   * Deep dream.
-   *
-   * @param log   the log
-   * @param image the image
-   */
-  public void deepDream(@Nonnull final NotebookOutput log, final Tensor image) {
-    log.code(() -> {
-      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-      @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
-      clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-      clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-      clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-      clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-      @Nonnull PipelineNetwork supervised = new PipelineNetwork(1);
-      supervised.add(getNetwork().freeze(), supervised.wrap(clamp, supervised.getInput(0)));
-//      CudaTensorList gpuInput = CudnnHandle.eval(gpu -> {
-//        Precision precision = Precision.Float;
-//        return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(image), precision, MemoryType.Managed), 1, image.getDimensions(), precision);
-//      });
-//      @Nonnull Trainable trainable = new TensorListTrainable(supervised, gpuInput).setVerbosity(1).setMask(true);
-      @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setVerbose(true).setMask(true, false).setData(Arrays.<Tensor[]>asList(new Tensor[]{image}));
-      new IterativeTrainer(trainable)
-        .setMonitor(getTrainingMonitor(history, supervised))
-        .setOrientation(new QQN())
-        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-        .setTimeout(60, TimeUnit.MINUTES)
-        .runAndFree();
-      return TestUtil.plot(history);
-    });
-  }
-  
-  @javax.annotation.Nonnull
-  Precision precision = Precision.Float;
-  
-  /**
-   * Predict list.
-   *
-   * @param prefilter  the prefilter
-   * @param network    the network
-   * @param count      the count
-   * @param categories the categories
-   * @param data       the data
-   * @return the list
-   */
-  public List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @javax.annotation.Nonnull Layer network, int count, @javax.annotation.Nonnull List<String> categories, @javax.annotation.Nonnull Tensor... data) {
-    return predict(prefilter, network, count, categories, Math.max(data.length, getBatchSize()), data);
-  }
-  
-  /**
-   * Prefilter tensor.
-   *
-   * @param tensor the tensor
-   * @return the tensor
-   */
-  @javax.annotation.Nonnull
-  public abstract Tensor prefilter(Tensor tensor);
-  
-  /**
-   * Gets categories.
-   *
-   * @return the categories
-   */
-  public abstract List<String> getCategories();
-  
-  /**
-   * Predict list.
-   *
-   * @param count the count
-   * @param data  the data
-   * @return the list
-   */
-  public List<LinkedHashMap<String, Double>> predict(int count, Tensor... data) {
-    return predict(this::prefilter, getNetwork(), count, getCategories(), data);
-  }
-  
-  /**
-   * Predict list.
-   *
-   * @param network the network
-   * @param count   the count
-   * @param data    the data
-   * @return the list
-   */
-  public List<LinkedHashMap<String, Double>> predict(@javax.annotation.Nonnull Layer network, int count, Tensor[] data) {
-    return predict(this::prefilter, network, count, getCategories(), data);
-  }
-  
-  /**
-   * Gets batch size.
-   *
-   * @return the batch size
-   */
-  public int getBatchSize() {
-    return batchSize;
-  }
-  
-  /**
-   * Sets batch size.
-   *
-   * @param batchSize the batch size
-   * @return the batch size
-   */
-  @javax.annotation.Nonnull
-  public ImageClassifier setBatchSize(int batchSize) {
-    this.batchSize = batchSize;
-    return this;
   }
   
   /**
@@ -377,10 +276,117 @@ public abstract class ImageClassifier implements NetworkFactory {
   /**
    * Deep dream.
    *
+   * @param log   the log
+   * @param image the image
+   */
+  public void deepDream(@Nonnull final NotebookOutput log, final Tensor image) {
+    log.code(() -> {
+      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+      @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
+      clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+      clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+      clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+      clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+      @Nonnull PipelineNetwork supervised = new PipelineNetwork(1);
+      supervised.add(getNetwork().freeze(), supervised.wrap(clamp, supervised.getInput(0)));
+//      CudaTensorList gpuInput = CudnnHandle.eval(gpu -> {
+//        Precision precision = Precision.Float;
+//        return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(image), precision, MemoryType.Managed), 1, image.getDimensions(), precision);
+//      });
+//      @Nonnull Trainable trainable = new TensorListTrainable(supervised, gpuInput).setVerbosity(1).setMask(true);
+      @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setVerbose(true).setMask(true, false).setData(Arrays.<Tensor[]>asList(new Tensor[]{image}));
+      new IterativeTrainer(trainable)
+        .setMonitor(getTrainingMonitor(history, supervised))
+        .setOrientation(new QQN())
+        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
+        .setTimeout(60, TimeUnit.MINUTES)
+        .runAndFree();
+      return TestUtil.plot(history);
+    });
+  }
+  
+  /**
+   * Predict list.
+   *
+   * @param prefilter  the prefilter
+   * @param network    the network
+   * @param count      the count
+   * @param categories the categories
+   * @param data       the data
+   * @return the list
+   */
+  public List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @javax.annotation.Nonnull Layer network, int count, @javax.annotation.Nonnull List<String> categories, @javax.annotation.Nonnull Tensor... data) {
+    return predict(prefilter, network, count, categories, Math.max(data.length, getBatchSize()), data);
+  }
+  
+  /**
+   * Prefilter tensor.
+   *
+   * @param tensor the tensor
+   * @return the tensor
+   */
+  @javax.annotation.Nonnull
+  public abstract Tensor prefilter(Tensor tensor);
+  
+  /**
+   * Gets categories.
+   *
+   * @return the categories
+   */
+  public abstract List<String> getCategories();
+  
+  /**
+   * Predict list.
+   *
+   * @param count the count
+   * @param data  the data
+   * @return the list
+   */
+  public List<LinkedHashMap<String, Double>> predict(int count, Tensor... data) {
+    return predict(this::prefilter, getNetwork(), count, getCategories(), data);
+  }
+  
+  /**
+   * Predict list.
+   *
+   * @param network the network
+   * @param count   the count
+   * @param data    the data
+   * @return the list
+   */
+  public List<LinkedHashMap<String, Double>> predict(@javax.annotation.Nonnull Layer network, int count, Tensor[] data) {
+    return predict(this::prefilter, network, count, getCategories(), data);
+  }
+  
+  /**
+   * Gets batch size.
+   *
+   * @return the batch size
+   */
+  public int getBatchSize() {
+    return batchSize;
+  }
+  
+  /**
+   * Sets batch size.
+   *
+   * @param batchSize the batch size
+   * @return the batch size
+   */
+  @javax.annotation.Nonnull
+  public ImageClassifier setBatchSize(int batchSize) {
+    this.batchSize = batchSize;
+    return this;
+  }
+  
+  /**
+   * Deep dream.
+   *
    * @param log                 the log
    * @param image               the image
    * @param targetCategoryIndex the target category index
    * @param totalCategories     the total categories
+   * @param config              the config
    */
   public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories, Function<IterativeTrainer, IterativeTrainer> config) {
     @Nonnull List<Tensor[]> data = Arrays.<Tensor[]>asList(new Tensor[]{
@@ -450,10 +456,17 @@ public abstract class ImageClassifier implements NetworkFactory {
     
   }
   
+  /**
+   * Build network layer.
+   *
+   * @return the layer
+   */
   protected abstract Layer buildNetwork();
   
   /**
    * Sets precision.
+   *
+   * @param model the model
    */
   protected void setPrecision(DAGNetwork model) {
     model.visitLayers(layer -> {

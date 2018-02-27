@@ -52,6 +52,9 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
    */
   @Nullable
   volatile Map<Long, Tensor> masks = new WeakHashMap<>();
+  /**
+   * The Dimensions.
+   */
   @Nonnull
   int[] dimensions;
   private double density;
@@ -66,7 +69,7 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
   /**
    * Instantiates a new Binary noise layer.
    *
-   * @param dimensions
+   * @param dimensions the dimensions
    */
   public StochasticBinaryNoiseLayer(final int... dimensions) {
     this(0.5, 1.0, dimensions);
@@ -76,8 +79,8 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
    * Instantiates a new Binary noise layer.
    *
    * @param density    the value
-   * @param amplitude
-   * @param dimensions
+   * @param amplitude  the amplitude
+   * @param dimensions the dimensions
    */
   public StochasticBinaryNoiseLayer(final double density, final double amplitude, final int... dimensions) {
     super();

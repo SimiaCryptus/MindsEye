@@ -36,6 +36,7 @@ public class VariableLayer extends WrapperLayer {
    * Instantiates a new Variable layer.
    *
    * @param json the json
+   * @param rs   the rs
    */
   protected VariableLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json, rs);

@@ -180,5 +180,5 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
     this.parallel = parallel;
     return this;
   }
-
+  
 }

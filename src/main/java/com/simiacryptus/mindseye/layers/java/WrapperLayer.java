@@ -52,6 +52,7 @@ public abstract class WrapperLayer extends LayerBase {
    * Instantiates a new Wrapper layer.
    *
    * @param json the json
+   * @param rs   the rs
    */
   public WrapperLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json);

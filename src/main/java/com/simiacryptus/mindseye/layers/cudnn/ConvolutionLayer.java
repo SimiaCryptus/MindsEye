@@ -184,6 +184,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
       explodedNetwork.freeRef();
     }
   }
+  
   /**
    * Gets exploded network.
    *

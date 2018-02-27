@@ -39,7 +39,8 @@ public interface StochasticComponent {
   
   /**
    * Shuffle.
-   * @param seed
+   *
+   * @param seed the seed
    */
   void shuffle(final long seed);
   

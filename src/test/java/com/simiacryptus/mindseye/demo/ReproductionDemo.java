@@ -58,8 +58,16 @@ import java.util.stream.Stream;
  */
 public class ReproductionDemo extends ArtistryDemo {
   
+  /**
+   * The Files.
+   */
   public final String[] files;
   
+  /**
+   * Instantiates a new Reproduction demo.
+   *
+   * @param files the files
+   */
   public ReproductionDemo(final String... files) {
     this.files = null != files && 0 < files.length ? files : new String[]{
       "H:\\SimiaCryptus\\Artistry\\chimps\\winner.jpg",
@@ -67,6 +75,11 @@ public class ReproductionDemo extends ArtistryDemo {
     };
   }
   
+  /**
+   * The entry point of application.
+   *
+   * @param args the input arguments
+   */
   public static void main(String[] args) {
     ReproductionDemo demo = new ReproductionDemo(args);
     demo.run(demo::run);
@@ -107,6 +120,14 @@ public class ReproductionDemo extends ArtistryDemo {
     log.setFrontMatterProperty("status", "OK");
   }
   
+  /**
+   * Paint.
+   *
+   * @param log           the log
+   * @param textureNetork the texture netork
+   * @param canvas        the canvas
+   * @param texture       the texture
+   */
   public void paint(@Nonnull final NotebookOutput log, final Layer textureNetork, final Tensor canvas, final Tensor texture) {
     @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
     clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
@@ -147,10 +168,24 @@ public class ReproductionDemo extends ArtistryDemo {
     });
   }
   
+  /**
+   * Gets texture.
+   *
+   * @param textureNetork the texture netork
+   * @param image         the image
+   * @return the texture
+   */
   public Tensor getTexture(final Layer textureNetork, final Tensor image) {
     return textureNetork.eval(image).getDataAndFree().getAndFree(0);
   }
   
+  /**
+   * Gets canvas.
+   *
+   * @param log   the log
+   * @param image the image
+   * @return the canvas
+   */
   public Tensor getCanvas(@Nonnull final NotebookOutput log, final Tensor image) {
     try {
       Tensor canvas = image.copy();
@@ -163,6 +198,12 @@ public class ReproductionDemo extends ArtistryDemo {
     }
   }
   
+  /**
+   * Load image tensor.
+   *
+   * @param img the img
+   * @return the tensor
+   */
   @Nonnull
   public Tensor loadImage(final String img) {
     try {
@@ -174,10 +215,25 @@ public class ReproductionDemo extends ArtistryDemo {
     }
   }
   
+  /**
+   * Paint.
+   *
+   * @param canvas the canvas
+   */
   public void paint(final Tensor canvas) {
     paint_LowRes(canvas, 8);
   }
   
+  /**
+   * Gets texture network.
+   *
+   * @param log the log
+   * @return the texture network
+   * @throws KeyManagementException   the key management exception
+   * @throws NoSuchAlgorithmException the no such algorithm exception
+   * @throws KeyStoreException        the key store exception
+   * @throws IOException              the io exception
+   */
   public Layer getTextureNetwork(@Nonnull final NotebookOutput log) throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
     final AtomicReference<Layer> ref = new AtomicReference<>(null);
     new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
@@ -190,11 +246,24 @@ public class ReproductionDemo extends ArtistryDemo {
     return ref.get();
   }
   
+  /**
+   * The type Layer 2 b.
+   */
   public static class Layer2b extends ReproductionDemo {
+    /**
+     * Instantiates a new Layer 2 b.
+     *
+     * @param files the files
+     */
     public Layer2b(final String... files) {
       super(files);
     }
     
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     */
     public static void main(String[] args) {
       ReproductionDemo demo = new Layer2b(args);
       demo.run(demo::run);
@@ -222,12 +291,25 @@ public class ReproductionDemo extends ArtistryDemo {
     }
   }
   
+  /**
+   * The type Layer 2 a.
+   */
   public static class Layer2a extends ReproductionDemo {
     
+    /**
+     * Instantiates a new Layer 2 a.
+     *
+     * @param files the files
+     */
     public Layer2a(final String... files) {
       super(files);
     }
     
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     */
     public static void main(String[] args) {
       ReproductionDemo demo = new Layer2a(args);
       demo.run(demo::run);

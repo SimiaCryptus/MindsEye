@@ -304,10 +304,8 @@ public class CudaSystem {
    */
   @javax.annotation.Nonnull
   public static AtomicInteger gpuGeneration = new AtomicInteger(0);
-  
-  private boolean dirty = false;
-  
   private static volatile StaticResourcePool<CudnnHandle> pool;
+  private boolean dirty = false;
   
   /**
    * Instantiates a new Gpu system.
@@ -800,6 +798,13 @@ public class CudaSystem {
     return result;
   }
   
+  /**
+   * Log.
+   *
+   * @param method the method
+   * @param result the result
+   * @param args   the args
+   */
   public static void log(final String method, final Object result, @Nullable final Object[] args) {
     @Nonnull final String paramString = null == args ? "" : Arrays.stream(args).map(CudaSystem::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
     final String message = String.format("%.6f @ %s(%d): %s(%s) = %s", (System.nanoTime() - CudaSystem.start) / 1e9, Thread.currentThread().getName(), currentDeviceId.get(), method, paramString, result);
@@ -1022,8 +1027,8 @@ public class CudaSystem {
   /**
    * Call t.
    *
-   * @param <T>         the type parameter
-   * @param fn          the fn
+   * @param <T> the type parameter
+   * @param fn  the fn
    * @return the t
    */
   public static <T> T eval(@Nonnull final Function<CudnnHandle, T> fn) {
@@ -1065,24 +1070,10 @@ public class CudaSystem {
   }
   
   /**
-   * Cuda device synchronize int.
+   * Gets thread handle.
    *
-   * @return the int
+   * @return the thread handle
    */
-  public int cudaDeviceSynchronize() {
-    if (!dirty) return cudnnStatus.CUDNN_STATUS_SUCCESS;
-    dirty = false;
-    long startTime = System.nanoTime();
-    final int result = JCuda.cudaDeviceSynchronize();
-    getThreadHandle().dirty();
-    log("cudaDeviceSynchronize", result, new Object[]{});
-    cudaDeviceSynchronize_execution.accept((System.nanoTime() - startTime) / 1e9);
-    handle(result);
-    return result;
-//    synchronized (syncLock) {
-//    }
-  }
-  
   public static CudnnHandle getThreadHandle() {
     return CudnnHandle.threadContext.get();
   }
@@ -1151,11 +1142,13 @@ public class CudaSystem {
   
   /**
    * The constant POOL.
+   *
+   * @return the pool
    */
   public static StaticResourcePool<CudnnHandle> getPool() {
-    if(pool == null) {
+    if (pool == null) {
       synchronized (CudaSystem.class) {
-        if(pool == null) {
+        if (pool == null) {
           pool = new StaticResourcePool<>(loadGpuContexts());
         }
       }
@@ -1163,10 +1156,35 @@ public class CudaSystem {
     return pool;
   }
   
+  /**
+   * Cuda device synchronize int.
+   *
+   * @return the int
+   */
+  public int cudaDeviceSynchronize() {
+    if (!dirty) return cudnnStatus.CUDNN_STATUS_SUCCESS;
+    dirty = false;
+    long startTime = System.nanoTime();
+    final int result = JCuda.cudaDeviceSynchronize();
+    getThreadHandle().dirty();
+    log("cudaDeviceSynchronize", result, new Object[]{});
+    cudaDeviceSynchronize_execution.accept((System.nanoTime() - startTime) / 1e9);
+    handle(result);
+    return result;
+//    synchronized (syncLock) {
+//    }
+  }
+  
+  /**
+   * Dirty.
+   */
   public void dirty() {
     dirty = true;
   }
   
+  /**
+   * Cleanup.
+   */
   protected void cleanup() {
     if (dirty) cudaDeviceSynchronize();
     CudnnHandle.threadContext.remove();

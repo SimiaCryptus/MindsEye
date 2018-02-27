@@ -192,8 +192,8 @@ public class CudnnTest extends NotebookReportBase {
       logger.info(String.format("Calculated test data in %.4fsec", originalTiming.seconds()));
       TensorList original = originalTiming.result;
       @javax.annotation.Nonnull AtomicReference<TensorList> mutableGpuData = new AtomicReference<>(CudaSystem.eval(gpu -> {
-        @javax.annotation.Nonnull TimedResult<CudaMemory> timedResult = TimedResult.time(() -> {
-          return gpu.getPtr(original, Precision.Double, MemoryType.Managed);
+        @javax.annotation.Nonnull TimedResult<CudaTensor> timedResult = TimedResult.time(() -> {
+          return gpu.getTensor(original, Precision.Double, MemoryType.Managed);
         });
         logger.info(String.format("Wrote %s in %.4f seconds, Device %d: %s", Arrays.toString(dimensions), timedResult.seconds(), gpu.getDeviceId(), CudaDevice.getDeviceName(gpu.getDeviceId())));
         return CudaTensorList.wrap(timedResult.result, length, dimensions, Precision.Double);
@@ -219,7 +219,7 @@ public class CudnnTest extends NotebookReportBase {
       accumulants.stream().forEach(accumulant -> {
         CudaSystem.run(gpu -> {
           @javax.annotation.Nonnull TimedResult<TensorList> timedWrite = TimedResult.time(() -> {
-            return CudaTensorList.wrap(gpu.getPtr(accumulant, Precision.Double, MemoryType.Managed), length, dimensions, Precision.Double);
+            return CudaTensorList.wrap(gpu.getTensor(accumulant, Precision.Double, MemoryType.Managed), length, dimensions, Precision.Double);
           });
           @javax.annotation.Nonnull TimedResult<Void> timedAccumulation = TimedResult.time(() -> {
             mutableGpuData.getAndUpdate(x -> x.add(timedWrite.result)).freeRef();
@@ -310,8 +310,8 @@ public class CudnnTest extends NotebookReportBase {
           logger.info(String.format("[%s] Calculated test data in %.4fsec", workerNumber, originalTiming.seconds()));
           @javax.annotation.Nonnull ListenableFuture<TensorList> mutableDataFuture = pool.submit(() -> CudaSystem.eval(gpu -> {
             PrintStream oldHandler = SysOutInterceptor.INSTANCE.setCurrentHandler(out);
-            @javax.annotation.Nonnull TimedResult<CudaMemory> timedResult = TimedResult.time(() -> {
-              return gpu.getPtr(original, Precision.Double, MemoryType.Managed);
+            @javax.annotation.Nonnull TimedResult<CudaTensor> timedResult = TimedResult.time(() -> {
+              return gpu.getTensor(original, Precision.Double, MemoryType.Managed);
             });
             logger.info(String.format("[%s] Wrote %s in %.4f seconds, Device %d: %s", workerNumber, Arrays.toString(dimensions), timedResult.seconds(), gpu.getDeviceId(), CudaDevice.getDeviceName(gpu.getDeviceId())));
             SysOutInterceptor.INSTANCE.setCurrentHandler(oldHandler);
@@ -345,7 +345,7 @@ public class CudnnTest extends NotebookReportBase {
             accumulants.stream().parallel().forEach(delta -> {
               CudaSystem.run(gpu -> {
                 @javax.annotation.Nonnull TimedResult<CudaTensorList> timedWrite = TimedResult.time(() -> {
-                  @Nullable CudaMemory cudaMemory = gpu.getPtr(delta, Precision.Double, MemoryType.Managed);
+                  @Nullable CudaTensor cudaMemory = gpu.getTensor(delta, Precision.Double, MemoryType.Managed);
                   delta.freeRef();
                   return CudaTensorList.wrap(cudaMemory, length, dimensions, Precision.Double);
                 });

@@ -30,6 +30,10 @@ public class CudaSettings implements Settings {
    * The constant INSTANCE.
    */
   public static final CudaSettings INSTANCE = new CudaSettings();
+  /**
+   * The Memory cache mode.
+   */
+  public final PersistanceMode memoryCacheMode;
   private final PersistanceMode workspaceCachePersistance;
   private final long maxTotalMemory;
   private final long maxAllocSize;
@@ -42,7 +46,6 @@ public class CudaSettings implements Settings {
   private final boolean conv_para_2;
   private final boolean conv_para_1;
   private final boolean conv_para_3;
-  public final PersistanceMode memoryCacheMode;
   private final long maxDeviceMemory;
   
   private CudaSettings() {
@@ -170,6 +173,11 @@ public class CudaSettings implements Settings {
     return conv_para_3;
   }
   
+  /**
+   * Gets max device memory.
+   *
+   * @return the max device memory
+   */
   public double getMaxDeviceMemory() {
     return maxDeviceMemory;
   }

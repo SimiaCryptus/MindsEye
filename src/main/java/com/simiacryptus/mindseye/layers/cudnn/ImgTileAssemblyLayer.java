@@ -141,7 +141,10 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       Stream<CopyParams> stream = copies.stream();
       if (!CoreSettings.INSTANCE.isConservative() && parallel) stream = stream.parallel();
       stream.forEach(this::copy);
-      return CudaTensorList.wrap(outputBuffer, length, outputDims, precision);
+      CudaResource<cudnnTensorDescriptor> descriptor = gpu.newTensorDescriptor(precision.code, length, outputDims[2], outputDims[1], outputDims[0]);
+      CudaTensor ptr = new CudaTensor(outputBuffer, descriptor);
+      descriptor.freeRef();
+      return CudaTensorList.wrap(ptr, length, outputDims, precision);
     });
     
     
@@ -177,12 +180,12 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       if (!CoreSettings.INSTANCE.isConservative() && parallel) stream = stream.parallel();
       stream.forEach(this::backprop);
     }) {
-
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-
+  
       @Override
       public boolean isAlive() {
         return Arrays.stream(inObj).anyMatch(x -> x.isAlive());
@@ -190,21 +193,37 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
     };
   }
   
+  /**
+   * Backprop.
+   *
+   * @param backpropParams the backprop params
+   */
   public void backprop(final BackpropParams backpropParams) {
     final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
-      @Nullable final CudaMemory errorPtr = gpu.getPtr(backpropParams.getError(), precision, MemoryType.Device);
+      @Nullable final CudaTensor errorPtr = gpu.getTensor(backpropParams.getError(), precision, MemoryType.Device);
+      int[] tileDimensions = backpropParams.getTileDimensions();
       @Nonnull final CudaMemory passbackBuffer = gpu.allocate(
-        (long) (backpropParams.getLength() * backpropParams.getTileDimensions()[2] * backpropParams.getTileDimensions()[1] * backpropParams.getTileDimensions()[0] * precision.size), MemoryType.Managed, false);
-      copy(gpu, backpropParams.getLength(), backpropParams.getOutputDims(), errorPtr, backpropParams.getTileDimensions(), passbackBuffer, -backpropParams.getPositionX(), -backpropParams.getTotalHeight());
+        (long) (backpropParams.getLength() * tileDimensions[2] * tileDimensions[1] * tileDimensions[0] * precision.size), MemoryType.Managed, false);
+      copy(gpu, backpropParams.getLength(), backpropParams.getOutputDims(), errorPtr.memory, tileDimensions, passbackBuffer, -backpropParams.getPositionX(), -backpropParams.getTotalHeight());
       Arrays.stream(new ReferenceCounting[]{errorPtr}).forEach(ReferenceCounting::freeRef);
-      return CudaTensorList.wrap(passbackBuffer, backpropParams.getLength(), backpropParams.getTileDimensions(), precision);
+      
+      CudaResource<cudnnTensorDescriptor> descriptor = gpu.newTensorDescriptor(precision.code, backpropParams.getLength(), tileDimensions[2], tileDimensions[1], tileDimensions[0]);
+      CudaTensor ptr = new CudaTensor(passbackBuffer, descriptor);
+      descriptor.freeRef();
+      
+      return CudaTensorList.wrap(ptr, backpropParams.getLength(), tileDimensions, precision);
     });
     backpropParams.getInObj()[backpropParams.getInputIndex()].accumulate(backpropParams.getBuffer(), passbackTensorList);
   }
   
+  /**
+   * Copy.
+   *
+   * @param copyParams the copy params
+   */
   public void copy(final CopyParams copyParams) {
-    @Nullable final CudaMemory inputBuffer = copyParams.getGpu().getPtr(copyParams.getInObj()[copyParams.getInputIndex()].getData(), precision, MemoryType.Device);
-    copy(copyParams.getGpu(), copyParams.getLength(), copyParams.getTileDimensions(), inputBuffer, copyParams.getOutputDims(), copyParams.getOutputBuffer(), copyParams.getPositionX(), copyParams.getTotalHeight());
+    @Nullable final CudaTensor inputBuffer = copyParams.getGpu().getTensor(copyParams.getInObj()[copyParams.getInputIndex()].getData(), precision, MemoryType.Device);
+    copy(copyParams.getGpu(), copyParams.getLength(), copyParams.getTileDimensions(), inputBuffer.memory, copyParams.getOutputDims(), copyParams.getOutputBuffer(), copyParams.getPositionX(), copyParams.getTotalHeight());
     Arrays.stream(new ReferenceCounting[]{inputBuffer}).forEach(ReferenceCounting::freeRef);
   }
   
@@ -390,39 +409,84 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       this.tileDimensions = tileDimensions;
       this.inObj = inObj;
     }
-    
+  
+    /**
+     * Gets length.
+     *
+     * @return the length
+     */
     public int getLength() {
       return length;
     }
-    
+  
+    /**
+     * Get output dims int [ ].
+     *
+     * @return the int [ ]
+     */
     public int[] getOutputDims() {
       return outputDims;
     }
-    
+  
+    /**
+     * Gets gpu.
+     *
+     * @return the gpu
+     */
     public CudnnHandle getGpu() {
       return gpu;
     }
-    
+  
+    /**
+     * Gets output buffer.
+     *
+     * @return the output buffer
+     */
     public CudaMemory getOutputBuffer() {
       return outputBuffer;
     }
-    
+  
+    /**
+     * Gets total height.
+     *
+     * @return the total height
+     */
     public int getTotalHeight() {
       return totalHeight;
     }
-    
+  
+    /**
+     * Gets input index.
+     *
+     * @return the input index
+     */
     public int getInputIndex() {
       return inputIndex;
     }
-    
+  
+    /**
+     * Gets position x.
+     *
+     * @return the position x
+     */
     public int getPositionX() {
       return positionX;
     }
-    
+  
+    /**
+     * Get tile dimensions int [ ].
+     *
+     * @return the int [ ]
+     */
     public int[] getTileDimensions() {
       return tileDimensions;
     }
-    
+  
+    /**
+     * Get in obj result [ ].
+     *
+     * @return the result [ ]
+     */
     public Result[] getInObj() {
       return inObj;
     }
@@ -453,39 +517,84 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       this.totalHeight = totalHeight;
       this.inputIndex = inputIndex;
     }
-    
+  
+    /**
+     * Get in obj result [ ].
+     *
+     * @return the result [ ]
+     */
     public Result[] getInObj() {
       return inObj;
     }
-    
+  
+    /**
+     * Gets buffer.
+     *
+     * @return the buffer
+     */
     public DeltaSet<Layer> getBuffer() {
       return buffer;
     }
-    
+  
+    /**
+     * Gets error.
+     *
+     * @return the error
+     */
     public TensorList getError() {
       return error;
     }
-    
+  
+    /**
+     * Get output dims int [ ].
+     *
+     * @return the int [ ]
+     */
     public int[] getOutputDims() {
       return outputDims;
     }
-    
+  
+    /**
+     * Get tile dimensions int [ ].
+     *
+     * @return the int [ ]
+     */
     public int[] getTileDimensions() {
       return tileDimensions;
     }
-    
+  
+    /**
+     * Gets length.
+     *
+     * @return the length
+     */
     public int getLength() {
       return length;
     }
-    
+  
+    /**
+     * Gets position x.
+     *
+     * @return the position x
+     */
     public int getPositionX() {
       return positionX;
     }
-    
+  
+    /**
+     * Gets total height.
+     *
+     * @return the total height
+     */
     public int getTotalHeight() {
       return totalHeight;
     }
-    
+  
+    /**
+     * Gets input index.
+     *
+     * @return the input index
+     */
     public int getInputIndex() {
       return inputIndex;
     }

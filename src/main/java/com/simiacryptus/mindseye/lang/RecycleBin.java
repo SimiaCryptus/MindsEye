@@ -123,8 +123,10 @@ public abstract class RecycleBin<T> {
   
   /**
    * Free.
-   *  @param obj  the obj
+   *
+   * @param obj  the obj
    * @param size the size
+   * @return the long
    */
   protected long freeItem(T obj, long size) {
     @Nullable StackCounter stackCounter = getFrees(size);
@@ -144,6 +146,8 @@ public abstract class RecycleBin<T> {
   
   /**
    * Clear.
+   *
+   * @return the long
    */
   public long clear() {
     synchronized (recycling) {

@@ -136,6 +136,11 @@ public class LocationDemo extends ArtistryDemo {
     log.setFrontMatterProperty("status", "OK");
   }
   
+  /**
+   * Load images 1 tensor [ ] [ ].
+   *
+   * @return the tensor [ ] [ ]
+   */
   public Tensor[][] loadImages1() {
     return Stream.of(
       "H:\\SimiaCryptus\\Artistry\\girl_dog_family.jpg",
@@ -151,6 +156,12 @@ public class LocationDemo extends ArtistryDemo {
     }).toArray(i -> new Tensor[i][]);
   }
   
+  /**
+   * Gets feature vector.
+   *
+   * @param log the log
+   * @return the feature vector
+   */
   protected Tensor getFeatureVector(@Nonnull final NotebookOutput log) {
     return log.code(() -> {
       return new Tensor(1, 1, 4096).setAll(0.0).set(5, 1.0);
@@ -173,6 +184,12 @@ public class LocationDemo extends ArtistryDemo {
     return ReportType.Demos;
   }
   
+  /**
+   * Gets shuffle comparator.
+   *
+   * @param <T> the type parameter
+   * @return the shuffle comparator
+   */
   public <T> Comparator<T> getShuffleComparator() {
     final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
     return Comparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);

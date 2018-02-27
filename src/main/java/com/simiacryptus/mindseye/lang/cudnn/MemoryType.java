@@ -156,6 +156,12 @@ public enum MemoryType {
   };
   
   /**
+   * The constant logger.
+   */
+  protected static final Logger logger = LoggerFactory.getLogger(MemoryType.class);
+  private final Map<Integer, RecycleBin<ReferenceWrapper<Pointer>>> cache = new ConcurrentHashMap<>();
+  
+  /**
    * Gets memory type.
    *
    * @param deviceId the device id
@@ -165,7 +171,7 @@ public enum MemoryType {
   public static MemoryType getMemoryType(final int deviceId) {
     return -1 == deviceId ? Managed : Device;
   }
-  
+
   /**
    * Free.
    *
@@ -174,9 +180,13 @@ public enum MemoryType {
    */
   abstract void free(Pointer ptr, int deviceId);
   
-  protected static final Logger logger = LoggerFactory.getLogger(MemoryType.class);
-  private final Map<Integer, RecycleBin<ReferenceWrapper<Pointer>>> cache = new ConcurrentHashMap<>();
-  
+  /**
+   * Recycle.
+   *
+   * @param ptr      the ptr
+   * @param deviceId the device id
+   * @param length   the length
+   */
   public void recycle(Pointer ptr, int deviceId, final long length) {
     get(deviceId).recycle(new ReferenceWrapper<>(ptr, x -> {
       CudaMemory.getGpuStats(deviceId).usedMemory.addAndGet(-length);
@@ -184,6 +194,12 @@ public enum MemoryType {
     }), length);
   }
   
+  /**
+   * Get recycle bin.
+   *
+   * @param device the device
+   * @return the recycle bin
+   */
   protected RecycleBin<ReferenceWrapper<Pointer>> get(int device) {
     return cache.computeIfAbsent(device, d -> {
       logger.info(String.format("Initialize recycle bin %s (device %s)", this, device));
@@ -214,17 +230,37 @@ public enum MemoryType {
     });
   }
   
+  /**
+   * Purge double.
+   *
+   * @param device the device
+   * @return the double
+   */
   public double purge(final int device) {
     double clear = get(device).clear();
     logger.info(String.format("Purged %e bytes from pool for %s (device %s)", clear, this, device));
     return clear;
   }
   
+  /**
+   * Alloc cached pointer.
+   *
+   * @param size       the size
+   * @param cudaDevice the cuda device
+   * @return the pointer
+   */
   public Pointer allocCached(final long size, final CudaDevice cudaDevice) {
     return get(cudaDevice.deviceId).obtain(size).unwrap();
   }
   
   
+  /**
+   * Alloc pointer.
+   *
+   * @param size       the size
+   * @param cudaDevice the cuda device
+   * @return the pointer
+   */
   public abstract Pointer alloc(final long size, final CudaDevice cudaDevice);
   
 }

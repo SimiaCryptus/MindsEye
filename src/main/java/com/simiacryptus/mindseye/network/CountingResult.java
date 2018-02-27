@@ -57,6 +57,12 @@ public class CountingResult extends Result {
     inner.addRef();
   }
   
+  /**
+   * Instantiates a new Counting result.
+   *
+   * @param r       the r
+   * @param samples the samples
+   */
   public CountingResult(final Result r, final int samples) {
     this(r);
     getAccumulator().references.set(samples);
@@ -154,7 +160,6 @@ public class CountingResult extends Result {
             passbackBuffers.add(compacted);
           }
           if (accumulations.incrementAndGet() == references.get()) {
-            assert passbackBuffers.stream().distinct().count() == passbackBuffers.size();
             Stream<TensorList> stream = passbackBuffers.stream();
             if (!CoreSettings.INSTANCE.isConservative()) stream = stream.parallel();
             reduced = stream.reduce((a, b) -> {

@@ -123,12 +123,24 @@ public class TextureDemo extends ArtistryDemo {
     log.setFrontMatterProperty("status", "OK");
   }
   
+  /**
+   * Gets feature vector.
+   *
+   * @param log the log
+   * @return the feature vector
+   */
   protected Tensor getFeatureVector(@Nonnull final NotebookOutput log) {
     return log.code(() -> {
       return new Tensor(1, 1, 4096).setAll(0.0).set(5, 1.0);
     });
   }
   
+  /**
+   * Load texture network layer.
+   *
+   * @param log the log
+   * @return the layer
+   */
   protected Layer loadTextureNetwork(@Nonnull final NotebookOutput log) {
     return log.code(() -> {
       try {
@@ -165,6 +177,9 @@ public class TextureDemo extends ArtistryDemo {
     return ReportType.Demos;
   }
   
+  /**
+   * The type Layer 2 b.
+   */
   public static class Layer2b extends TextureDemo {
     @Override
     protected Tensor getFeatureVector(@Nonnull final NotebookOutput log) {

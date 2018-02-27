@@ -95,6 +95,12 @@ public class DeepDreamDemo extends ArtistryDemo {
     log.setFrontMatterProperty("status", "OK");
   }
   
+  /**
+   * Get images artistry tensor [ ].
+   *
+   * @param log the log
+   * @return the tensor [ ]
+   */
   public Tensor[] getImages_Artistry(@javax.annotation.Nonnull final NotebookOutput log) {
     return Stream.of(
       "H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\800px-Vincent_van_Gogh_-_Portrait_of_Doctor_Félix_Rey_(F500).jpg",
@@ -110,6 +116,12 @@ public class DeepDreamDemo extends ArtistryDemo {
     }).toArray(i -> new Tensor[i]);
   }
   
+  /**
+   * Get images caltech tensor [ ].
+   *
+   * @param log the log
+   * @return the tensor [ ]
+   */
   public Tensor[] getImages_Caltech(@javax.annotation.Nonnull final NotebookOutput log) {
     log.h1("Data");
     return log.code(() -> {

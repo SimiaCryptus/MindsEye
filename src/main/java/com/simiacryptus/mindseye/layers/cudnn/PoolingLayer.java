@@ -113,7 +113,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     batch.addRef();
     final int inputDims = Tensor.length(inputSize);
     @javax.annotation.Nonnull final int[] outputSize = new int[4];
-    final CudaMemory outputData = CudaSystem.eval(gpu -> {
+    final CudaTensor outputData = CudaSystem.eval(gpu -> {
       try {
         gpu.initThread();
         @javax.annotation.Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = gpu.createPoolingDescriptor(
@@ -126,15 +126,15 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[0], outputSize[1], outputSize[2], outputSize[3]);
         @javax.annotation.Nonnull final Pointer alpha = precision.getPointer(1.0);
         @javax.annotation.Nonnull final Pointer beta = precision.getPointer(0.0);
-        @Nullable final CudaMemory inputData = gpu.getPtr(batch, precision, MemoryType.Device);
+        @Nullable final CudaTensor inputData = gpu.getTensor(batch, precision, MemoryType.Device);
         @javax.annotation.Nonnull final CudaMemory outputTensor = gpu.allocate(precision.size * 1l * Tensor.length(outputSize), MemoryType.Managed, true);
         CudaSystem.handle(gpu.cudnnPoolingForward(poolingDesc.getPtr(),
           alpha,
-          inputDescriptor.getPtr(), inputData.getPtr(),
+          inputDescriptor.getPtr(), inputData.memory.getPtr(),
           beta,
           outputDescriptor.getPtr(), outputTensor.getPtr()));
-        Arrays.stream(new ReferenceCounting[]{inputDescriptor, inputData, outputDescriptor, poolingDesc}).forEach(ReferenceCounting::freeRef);
-        return outputTensor;
+        Arrays.stream(new ReferenceCounting[]{inputDescriptor, inputData, poolingDesc}).forEach(ReferenceCounting::freeRef);
+        return CudaTensor.wrap(outputTensor, outputDescriptor);
       } catch (@javax.annotation.Nonnull final Throwable e) {
         throw new ComponentException("Error", e);
       }
@@ -152,18 +152,18 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
               mode.id, poolDims, windowSize, padding, stride);
             @javax.annotation.Nonnull final Pointer alpha = precision.getPointer(1.0);
             @javax.annotation.Nonnull final Pointer beta = precision.getPointer(0.0);
-            @Nullable final CudaMemory inputData = gpu.getPtr(batch, precision, MemoryType.Device);
-            @Nullable final CudaMemory errorPtr = gpu.getPtr(error, precision, MemoryType.Device);
+            @Nullable final CudaTensor inputData = gpu.getTensor(batch, precision, MemoryType.Device);
+            @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device);
             @javax.annotation.Nonnull final CudaMemory passbackBuffer = gpu.allocate(inputDims * 1l * precision.size * length, MemoryType.Managed, true);
             CudaSystem.handle(gpu.cudnnPoolingBackward(poolingDesc.getPtr(),
               alpha,
-              outputDescriptor.getPtr(), outputData.getPtr(),
-              outputDescriptor.getPtr(), errorPtr.getPtr(),
-              inputDescriptor.getPtr(), inputData.getPtr(),
+              outputDescriptor.getPtr(), outputData.memory.getPtr(),
+              outputDescriptor.getPtr(), errorPtr.memory.getPtr(),
+              inputDescriptor.getPtr(), inputData.memory.getPtr(),
               beta,
               inputDescriptor.getPtr(), passbackBuffer.getPtr()));
-            Arrays.stream(new ReferenceCounting[]{errorPtr, inputData, inputDescriptor, outputDescriptor, poolingDesc}).forEach(ReferenceCounting::freeRef);
-            return CudaTensorList.wrap(passbackBuffer, length, inputSize, precision);
+            Arrays.stream(new ReferenceCounting[]{errorPtr, inputData, outputDescriptor, poolingDesc}).forEach(ReferenceCounting::freeRef);
+            return CudaTensorList.wrap(CudaTensor.wrap(passbackBuffer, inputDescriptor), length, inputSize, precision);
           });
           input.accumulate(buffer, data);
         }

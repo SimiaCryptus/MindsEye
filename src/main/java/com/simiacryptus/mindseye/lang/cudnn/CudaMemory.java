@@ -98,6 +98,12 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
     return totalFreed;
   }
   
+  /**
+   * Clear memory double.
+   *
+   * @param deviceId the device id
+   * @return the double
+   */
   public static double clearMemory(final int deviceId) {
     if (CoreSettings.INSTANCE.isConservative()) {
       logLoad();
@@ -188,7 +194,7 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
    * @param memoryType the memory type
    * @return the cuda ptr
    */
-  public CudaMemory copyTo(CudaDevice deviceId, final MemoryType memoryType) {
+  public CudaMemory copy(CudaDevice deviceId, final MemoryType memoryType) {
     @javax.annotation.Nonnull CudaMemory copy = deviceId.allocate(size, memoryType, false);
     CudaSystem.cudaMemcpy(copy.getPtr(), this.getPtr(), size, cudaMemcpyKind.cudaMemcpyDeviceToDevice);
     return copy;
@@ -209,7 +215,7 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
       return this;
     }
     else {
-      CudaMemory cudaMemory = copyTo(deviceId, memoryType);
+      CudaMemory cudaMemory = copy(deviceId, memoryType);
       freeRef();
       return cudaMemory;
     }

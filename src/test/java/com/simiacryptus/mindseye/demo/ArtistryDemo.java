@@ -37,14 +37,31 @@ import java.io.IOException;
 import java.util.Random;
 import java.util.stream.IntStream;
 
+/**
+ * The type Artistry demo.
+ */
 public class ArtistryDemo extends NotebookReportBase {
   
+  /**
+   * The Server.
+   */
   StreamNanoHTTPD server;
   
+  /**
+   * Paint noise.
+   *
+   * @param canvas the canvas
+   */
   public void paint_noise(final Tensor canvas) {
     canvas.setByCoord(c -> FastRandom.random());
   }
   
+  /**
+   * Paint low res.
+   *
+   * @param canvas the canvas
+   * @param scale  the scale
+   */
   public void paint_LowRes(final Tensor canvas, final int scale) {
     BufferedImage originalImage = canvas.toImage();
     canvas.set(Tensor.fromRGB(TestUtil.resize(
@@ -52,6 +69,11 @@ public class ArtistryDemo extends NotebookReportBase {
       originalImage.getWidth(), originalImage.getHeight())));
   }
   
+  /**
+   * Paint lines.
+   *
+   * @param canvas the canvas
+   */
   public void paint_Lines(final Tensor canvas) {
     BufferedImage originalImage = canvas.toImage();
     BufferedImage newImage = new BufferedImage(originalImage.getWidth(), originalImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -69,6 +91,12 @@ public class ArtistryDemo extends NotebookReportBase {
     canvas.set(Tensor.fromRGB(newImage));
   }
   
+  /**
+   * Paint circles.
+   *
+   * @param canvas the canvas
+   * @param scale  the scale
+   */
   public void paint_Circles(final Tensor canvas, final int scale) {
     BufferedImage originalImage = canvas.toImage();
     BufferedImage newImage = new BufferedImage(originalImage.getWidth(), originalImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -129,6 +157,9 @@ public class ArtistryDemo extends NotebookReportBase {
     return ReportType.Demos;
   }
   
+  /**
+   * Init.
+   */
   public void init() {
     try {
       server = new StreamNanoHTTPD(9090).init();

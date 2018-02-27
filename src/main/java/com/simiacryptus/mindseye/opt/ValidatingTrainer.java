@@ -96,7 +96,7 @@ public class ValidatingTrainer {
       protected void _free() {
         validationSubject.freeRef();
       }
-  
+
       @Override
       public PointSample measure(final TrainingMonitor monitor) {
         @javax.annotation.Nonnull final TimedResult<PointSample> time = TimedResult.time(() ->

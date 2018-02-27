@@ -118,15 +118,15 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
     dimOut[1] = sizeY;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final TensorList outputData = CudaSystem.eval(gpu -> {
-      @Nullable final CudaMemory inputBuffer = gpu.getPtr(in.getData(), precision, MemoryType.Device);
+      @Nullable final CudaTensor inputBuffer = gpu.getTensor(in.getData(), precision, MemoryType.Device);
       boolean dirty = dimOut[0] <= dimIn[0] && dimOut[1] <= dimIn[1];
       assert dimOut[0] > 0;
       assert dimOut[1] > 0;
       assert dimOut[2] > 0;
       @javax.annotation.Nonnull final CudaMemory outputBuffer = gpu.allocate((long) length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size, MemoryType.Managed, dirty);
-      copy(gpu, length, dimIn, inputBuffer, dimOut, outputBuffer);
+      CudaResource<cudnnTensorDescriptor> descriptorCudaResource = copy(gpu, length, dimIn, inputBuffer.memory, dimOut, outputBuffer);
       Arrays.stream(new ReferenceCounting[]{inputBuffer}).forEach(ReferenceCounting::freeRef);
-      return CudaTensorList.wrap(outputBuffer, length, dimOut, precision);
+      return CudaTensorList.wrap(CudaTensor.wrap(outputBuffer, descriptorCudaResource), length, dimOut, precision);
     });
     return new Result(outputData, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
@@ -138,12 +138,12 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
       assert error.length() == in.getData().length();
       if (in.isAlive()) {
         final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
-          @Nullable final CudaMemory errorPtr = gpu.getPtr(error, precision, MemoryType.Device);
+          @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device);
           boolean dirty = dimOut[0] >= dimIn[0] && dimOut[1] >= dimIn[1];
           @javax.annotation.Nonnull final CudaMemory passbackBuffer = gpu.allocate((long) (length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size), MemoryType.Managed, dirty);
-          copy(gpu, length, dimOut, errorPtr, dimIn, passbackBuffer);
+          CudaResource<cudnnTensorDescriptor> descriptorCudaResource = copy(gpu, length, dimOut, errorPtr.memory, dimIn, passbackBuffer);
           Arrays.stream(new ReferenceCounting[]{errorPtr}).forEach(ReferenceCounting::freeRef);
-          return CudaTensorList.wrap(passbackBuffer, length, dimIn, precision);
+          return CudaTensorList.wrap(CudaTensor.wrap(passbackBuffer, descriptorCudaResource), length, dimIn, precision);
         });
         in.accumulate(buffer, passbackTensorList);
       }
@@ -170,8 +170,9 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
    * @param source                the input buffer
    * @param destinationDimensions the length out
    * @param destination           the output buffer
+   * @return the cuda resource
    */
-  public void copy(@javax.annotation.Nonnull CudnnHandle gpu, int length, @javax.annotation.Nonnull int[] sourceDimensions, @javax.annotation.Nonnull CudaMemory source, @javax.annotation.Nonnull int[] destinationDimensions, @javax.annotation.Nonnull CudaMemory destination) {
+  public CudaResource<cudnnTensorDescriptor> copy(@Nonnull CudnnHandle gpu, int length, @Nonnull int[] sourceDimensions, @Nonnull CudaMemory source, @Nonnull int[] destinationDimensions, @Nonnull CudaMemory destination) {
     if (3 != sourceDimensions.length) throw new IllegalArgumentException("inputDimensions.length");
     if (3 != destinationDimensions.length) throw new IllegalArgumentException("dimOut.length");
     if (sourceDimensions[2] != destinationDimensions[2])
@@ -225,7 +226,8 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
       precision.getPointer(0.0),
       destinationViewDescriptor.getPtr(), destination.getPtr().withByteOffset(destinationOffset * precision.size)
     ));
-    Arrays.stream(new ReferenceCounting[]{sourceViewDescriptor, destinationViewDescriptor}).forEach(ReferenceCounting::freeRef);
+    Arrays.stream(new ReferenceCounting[]{sourceViewDescriptor}).forEach(ReferenceCounting::freeRef);
+    return destinationViewDescriptor;
     
   }
   

@@ -50,6 +50,7 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
    * Instantiates a new Rescaled subnet layer.
    *
    * @param subnetwork the subnetwork
+   * @param samples    the samples
    */
   public StochasticSamplingSubnetLayer(final Layer subnetwork, final int samples) {
     super();
@@ -84,6 +85,12 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
     return new StochasticSamplingSubnetLayer(json, rs);
   }
   
+  /**
+   * Average result.
+   *
+   * @param samples the samples
+   * @return the result
+   */
   public static Result average(final Result[] samples) {
     PipelineNetwork gateNetwork = new PipelineNetwork(1);
     gateNetwork.wrap(new GateProductLayer(),
@@ -126,6 +133,11 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
     }).toArray(i -> new Result[i]));
   }
   
+  /**
+   * Get seeds long [ ].
+   *
+   * @return the long [ ]
+   */
   public long[] getSeeds() {
     Random random = new Random(seed + layerSeed);
     return IntStream.range(0, this.samples).mapToLong(i -> random.nextLong()).toArray();
