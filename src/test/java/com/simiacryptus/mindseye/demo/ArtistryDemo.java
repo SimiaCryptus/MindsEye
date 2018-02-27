@@ -20,26 +20,32 @@
 package com.simiacryptus.mindseye.demo;
 
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.FastRandom;
+import com.simiacryptus.util.StreamNanoHTTPD;
 import com.simiacryptus.util.data.DoubleStatistics;
+import com.simiacryptus.util.io.JsonUtil;
+import org.apache.hadoop.yarn.webapp.MimeType;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.Random;
 import java.util.stream.IntStream;
 
 public class ArtistryDemo extends NotebookReportBase {
   
+  StreamNanoHTTPD server;
+  
   public void paint_noise(final Tensor canvas) {
     canvas.setByCoord(c -> FastRandom.random());
   }
   
-  public void paint_LowRes(final Tensor canvas) {
-    int scale = 16;
+  public void paint_LowRes(final Tensor canvas, final int scale) {
     BufferedImage originalImage = canvas.toImage();
     canvas.set(Tensor.fromRGB(TestUtil.resize(
       TestUtil.resize(originalImage, originalImage.getWidth() / scale, true),
@@ -63,8 +69,7 @@ public class ArtistryDemo extends NotebookReportBase {
     canvas.set(Tensor.fromRGB(newImage));
   }
   
-  public void paint_Circles(final Tensor canvas) {
-    int scale = 16;
+  public void paint_Circles(final Tensor canvas, final int scale) {
     BufferedImage originalImage = canvas.toImage();
     BufferedImage newImage = new BufferedImage(originalImage.getWidth(), originalImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
     Graphics2D graphics = (Graphics2D) newImage.getGraphics();
@@ -122,5 +127,25 @@ public class ArtistryDemo extends NotebookReportBase {
   @Override
   public ReportType getReportType() {
     return ReportType.Demos;
+  }
+  
+  public void init() {
+    try {
+      server = new StreamNanoHTTPD(9090).init();
+      server.addSyncHandler("gpu.json", MimeType.JSON, out -> {
+        try {
+          JsonUtil.MAPPER.writer().writeValue(out, CudaSystem.getExecutionStatistics());
+          //JsonUtil.MAPPER.writer().writeValue(out, new HashMap<>());
+          out.close();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }, false);
+      //server.dataReciever
+      //server.init();
+      //server.start();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

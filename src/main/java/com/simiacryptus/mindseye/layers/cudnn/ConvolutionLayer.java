@@ -80,7 +80,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     if (getKernel().getDimensions()[2] <= 0) throw new IllegalArgumentException();
     this.inputBands = inputBands;
     this.outputBands = outputBands;
-    setBatchBands(Math.min(2 * 1024, binaryFriendly((int) Math.sqrt(CudaSettings.INSTANCE.getMaxFilterElements() / (width * height)), 1)));
+    setBatchBands(binaryFriendly((int) Math.sqrt(CudaSettings.INSTANCE.getMaxFilterElements() / (width * height)), 3));
   }
   
   /**

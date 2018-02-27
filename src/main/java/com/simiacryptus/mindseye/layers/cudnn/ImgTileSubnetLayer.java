@@ -22,9 +22,9 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
 import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.layers.java.WrapperLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.slf4j.Logger;
@@ -42,14 +42,9 @@ import java.util.Map;
  * across larger image regions.
  */
 @SuppressWarnings("serial")
-public class ImgTileSubnetLayer extends LayerBase implements MultiPrecision<ImgTileSubnetLayer> {
+public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<ImgTileSubnetLayer> {
   
   private static final Logger logger = LoggerFactory.getLogger(ImgTileSubnetLayer.class);
-  /**
-   * The Subnetwork.
-   */
-  @Nullable
-  public final Layer subnetwork;
   private final int height;
   private final int width;
   private final int strideX;
@@ -67,13 +62,11 @@ public class ImgTileSubnetLayer extends LayerBase implements MultiPrecision<ImgT
    * @param strideY    the stride y
    */
   public ImgTileSubnetLayer(final Layer subnetwork, final int width, final int height, final int strideX, final int strideY) {
-    super();
+    super(subnetwork);
     this.height = height;
     this.width = width;
     this.strideX = strideX;
     this.strideY = strideY;
-    this.subnetwork = subnetwork;
-    this.subnetwork.addRef();
   }
   
   /**
@@ -94,7 +87,7 @@ public class ImgTileSubnetLayer extends LayerBase implements MultiPrecision<ImgT
    * @param rs   the rs
    */
   protected ImgTileSubnetLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
-    super(json);
+    super(json, rs);
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
     height = json.getAsJsonPrimitive("height").getAsInt();
     width = json.getAsJsonPrimitive("width").getAsInt();
@@ -103,7 +96,6 @@ public class ImgTileSubnetLayer extends LayerBase implements MultiPrecision<ImgT
     setParallel(json.get("parallel").getAsBoolean());
     JsonObject subnetwork = json.getAsJsonObject("subnetwork");
     this.parallel = json.get("parallel").getAsBoolean();
-    this.subnetwork = subnetwork == null ? null : Layer.fromJson(subnetwork, rs);
   }
   
   /**
@@ -119,7 +111,6 @@ public class ImgTileSubnetLayer extends LayerBase implements MultiPrecision<ImgT
   
   @Override
   protected void _free() {
-    this.subnetwork.freeRef();
     super._free();
   }
   
@@ -133,7 +124,7 @@ public class ImgTileSubnetLayer extends LayerBase implements MultiPrecision<ImgT
     try {
       int cols = (int) (Math.ceil((inputDims[0] - width) * 1.0 / strideX) + 1);
       int rows = (int) (Math.ceil((inputDims[1] - height) * 1.0 / strideY) + 1);
-      if (cols == 1 && rows == 1) return subnetwork.evalAndFree(inObj);
+      if (cols == 1 && rows == 1) return inner.evalAndFree(inObj);
       DAGNode input = network.getInput(0);
       ArrayList<DAGNode> nodes = new ArrayList<>();
       for (int row = 0; row < rows; row++) {
@@ -145,7 +136,7 @@ public class ImgTileSubnetLayer extends LayerBase implements MultiPrecision<ImgT
           assert positionX < inputDims[0];
           assert positionY < inputDims[1];
           nodes.add(
-            network.add(subnetwork,
+            network.add(inner,
               network.wrap(
                 new ImgTileSelectLayer(width, height, positionX, positionY),
                 input))
@@ -163,14 +154,14 @@ public class ImgTileSubnetLayer extends LayerBase implements MultiPrecision<ImgT
   @javax.annotation.Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @javax.annotation.Nonnull final JsonObject json = super.getJson(resources, dataSerializer);
     json.addProperty("height", height);
     json.addProperty("width", width);
     json.addProperty("strideX", strideX);
     json.addProperty("strideY", strideY);
     json.addProperty("precision", precision.name());
     json.addProperty("parallel", isParallel());
-    json.add("subnetwork", subnetwork.getJson(resources, dataSerializer));
+    json.add("subnetwork", inner.getJson(resources, dataSerializer));
     json.addProperty("parallel", isParallel());
     return json;
   }
@@ -198,7 +189,7 @@ public class ImgTileSubnetLayer extends LayerBase implements MultiPrecision<ImgT
   @Nonnull
   @Override
   public Layer setFrozen(final boolean frozen) {
-    subnetwork.setFrozen(frozen);
+    inner.setFrozen(frozen);
     return super.setFrozen(frozen);
   }
   

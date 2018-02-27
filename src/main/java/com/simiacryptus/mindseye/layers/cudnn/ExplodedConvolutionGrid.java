@@ -214,17 +214,23 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
     else {
       paddedInput = input;
     }
-    DAGNode[] nodes;
+    InnerNode[] nodes;
     if (subLayers.size() == 1) {
-      nodes = new DAGNode[]{subLayers.get(0).add(input)};
+      nodes = new InnerNode[]{(InnerNode) subLayers.get(0).add(input)};
     }
     else {
-      List<DAGNode> legs = subLayers.stream().map((ExplodedConvolutionLeg l) -> {
-        return l.add(network.wrap(new ImgBandSelectLayer(l.fromBand, l.toBand).setPrecision(convolutionParams.precision), paddedInput));
+      List<InnerNode> legs = subLayers.stream().map((ExplodedConvolutionLeg l) -> {
+        return (InnerNode) l.add(network.wrap(new ImgBandSelectLayer(l.fromBand, l.toBand).setPrecision(convolutionParams.precision), paddedInput));
       }).collect(Collectors.toList());
-      nodes = legs.stream().toArray(i -> new DAGNode[i]);
+      nodes = legs.stream().toArray(i -> new InnerNode[i]);
     }
-    InnerNode output = network.wrap(new SumInputsLayer().setPrecision(convolutionParams.precision).setParallel(CudaSettings.INSTANCE.isConv_para_1()), nodes).setParallel(CudaSettings.INSTANCE.isConv_para_1());
+    InnerNode output;
+    if (nodes.length == 1) {
+      output = nodes[0];
+    }
+    else {
+      output = network.wrap(new SumInputsLayer().setPrecision(convolutionParams.precision).setParallel(CudaSettings.INSTANCE.isConv_para_1()), nodes).setParallel(CudaSettings.INSTANCE.isConv_para_1());
+    }
     if (customPaddingX || customPaddingY) {
       int x = !customPaddingX ? 0 : (this.convolutionParams.paddingX - defaultPaddingX);
       int y = !customPaddingY ? 0 : (this.convolutionParams.paddingY - defaultPaddingY);

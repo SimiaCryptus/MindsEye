@@ -55,8 +55,8 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
    *
    * @param json the json
    */
-  protected MonitoringWrapperLayer(@javax.annotation.Nonnull final JsonObject json) {
-    super(json);
+  protected MonitoringWrapperLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+    super(json, rs);
     if (json.has("forwardPerf")) {
       forwardPerformance.readJson(json.getAsJsonObject("forwardPerf"));
     }
@@ -91,7 +91,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
    * @return the monitoring wrapper layer
    */
   public static MonitoringWrapperLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
-    return new MonitoringWrapperLayer(json);
+    return new MonitoringWrapperLayer(json, rs);
   }
   
   /**
@@ -220,10 +220,9 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   @javax.annotation.Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @javax.annotation.Nonnull final JsonObject json = super.getJson(resources, dataSerializer);
     //json.fn("forwardPerf",forwardPerf.getJson());
     //json.fn("backwardPerf",backwardPerf.getJson());
-    json.add("heapCopy", getInner().getJson(resources, dataSerializer));
     json.addProperty("totalBatches", totalBatches);
     json.addProperty("totalItems", totalItems);
     json.addProperty("recordSignalMetrics", recordSignalMetrics);

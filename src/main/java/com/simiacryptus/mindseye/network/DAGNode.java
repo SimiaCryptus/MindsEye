@@ -38,7 +38,7 @@ public interface DAGNode extends Serializable, ReferenceCounting {
   /**
    * Get nn result.
    *
-   * @param buildExeCtx the build handler ctx
+   * @param buildExeCtx the getNetwork handler ctx
    * @return the nn result
    */
   @javax.annotation.Nullable

@@ -76,7 +76,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
       }, 10, new String[]{}))
         .toArray(i -> new Tensor[i][]));
     ImageClassifier vgg16 = getImageClassifier(log);
-    @javax.annotation.Nonnull Layer network = vgg16.build();
+    @javax.annotation.Nonnull Layer network = vgg16.getNetwork();
   
     log.h1("Network Diagram");
     log.p("This is a diagram of the imported network:");

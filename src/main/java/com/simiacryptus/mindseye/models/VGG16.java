@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.models;
 
-import com.simiacryptus.mindseye.lang.Coordinate;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.TestUtil;
@@ -28,7 +27,6 @@ import com.simiacryptus.util.Util;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 import java.util.zip.ZipFile;
 
@@ -38,6 +36,22 @@ import java.util.zip.ZipFile;
  * models.
  */
 public abstract class VGG16 extends ImageClassifier {
+  
+  /**
+   * From zip vgg 16.
+   *
+   * @param file the file
+   * @return the vgg 16
+   */
+  public static VGG16 fromZip(@javax.annotation.Nonnull File file) {
+    try {
+      return new VGG16.Static(Layer.fromZip(new ZipFile(file)));
+    } catch (@javax.annotation.Nonnull final RuntimeException e) {
+      throw e;
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
+  }
   
   /**
    * From s 3 vgg 16 hdf 5.
@@ -54,22 +68,6 @@ public abstract class VGG16 extends ImageClassifier {
     }
   }
   
-  /**
-   * From zip vgg 16.
-   *
-   * @param file the file
-   * @return the vgg 16
-   */
-  public static VGG16 fromZip(@javax.annotation.Nonnull File file) {
-    try {
-      return new VGG16_Zip(Layer.fromZip(new ZipFile(file)));
-    } catch (@javax.annotation.Nonnull final RuntimeException e) {
-      throw e;
-    } catch (Throwable e) {
-      throw new RuntimeException(e);
-    }
-  }
-  
   @javax.annotation.Nonnull
   @Override
   public Tensor prefilter(Tensor tensor) {
@@ -78,37 +76,6 @@ public abstract class VGG16 extends ImageClassifier {
     return tensor.permuteDimensionsAndFree(0, 1, 2);
   }
   
-  /**
-   * Gets bias function.
-   *
-   * @param tensor the tensor
-   * @return the bias function
-   */
-  @javax.annotation.Nonnull
-  public ToDoubleFunction<Coordinate> getBiasFunction(@javax.annotation.Nonnull Tensor tensor) {
-    return c1 -> {
-      if (c1.getCoords()[2] == 0) return tensor.get(c1) - 103.939;
-      if (c1.getCoords()[2] == 1) return tensor.get(c1) - 116.779;
-      if (c1.getCoords()[2] == 2) return tensor.get(c1) - 123.68;
-      else return tensor.get(c1);
-    };
-  }
-  
-  /**
-   * Gets permute function.
-   *
-   * @param tensor the tensor
-   * @return the permute function
-   */
-  @javax.annotation.Nonnull
-  public ToDoubleFunction<Coordinate> getPermuteFunction(@javax.annotation.Nonnull Tensor tensor) {
-    return c -> {
-      if (c.getCoords()[2] == 0) return tensor.get(c.getCoords()[0], c.getCoords()[1], 0);
-      if (c.getCoords()[2] == 1) return tensor.get(c.getCoords()[0], c.getCoords()[1], 1);
-      if (c.getCoords()[2] == 2) return tensor.get(c.getCoords()[0], c.getCoords()[1], 2);
-      else throw new RuntimeException();
-    };
-  }
   
   @Override
   public List<String> getCategories() {
@@ -1118,26 +1085,12 @@ public abstract class VGG16 extends ImageClassifier {
   /**
    * The type Vgg 16 zip.
    */
-  static class VGG16_Zip extends VGG16 {
+  static class Static extends VGG16 {
   
-    private final Layer network;
-  
-    private VGG16_Zip(Layer network) {this.network = network;}
+    private Static(Layer network) {this.network = network;}
     
-    /**
-     * Gets network.
-     *
-     * @return the network
-     */
     @Override
-    public Layer build() {
-      return this.network;
-    }
-  
-    @Override
-    public Layer getNetwork() {
-      return this.network;
-    }
+    public Layer buildNetwork() { return network;}
   }
   
 }

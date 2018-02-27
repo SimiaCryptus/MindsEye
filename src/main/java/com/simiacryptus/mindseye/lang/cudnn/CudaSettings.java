@@ -34,7 +34,7 @@ public class CudaSettings implements Settings {
   private final long maxTotalMemory;
   private final long maxAllocSize;
   private final double maxIoElements;
-  private final int convolutionWorkspaceSizeLimit;
+  private final long convolutionWorkspaceSizeLimit;
   private final boolean disable;
   private final boolean forceSingleGpu;
   private final int streamsPerGpu;
@@ -48,12 +48,12 @@ public class CudaSettings implements Settings {
   private CudaSettings() {
     maxTotalMemory = Settings.get("MAX_TOTAL_MEMORY", 8 * CudaMemory.GiB);
     maxAllocSize = Settings.get("MAX_ALLOC_SIZE", Precision.Double.size * (Integer.MAX_VALUE - 1L));
-    maxFilterElements = Settings.get("MAX_FILTER_ELEMENTS", 256 * 1024 * 1024);
-    maxIoElements = Settings.get("MAX_IO_ELEMENTS", 1 * 1024 * 1024);
-    convolutionWorkspaceSizeLimit = Settings.get("CONVOLUTION_WORKSPACE_SIZE_LIMIT", 1024 * 1024 * 1024);
+    maxFilterElements = Settings.get("MAX_FILTER_ELEMENTS", 1024 * CudaMemory.MiB);
+    maxIoElements = Settings.get("MAX_IO_ELEMENTS", 32 * CudaMemory.MiB);
+    convolutionWorkspaceSizeLimit = Settings.get("CONVOLUTION_WORKSPACE_SIZE_LIMIT", 1024 * CudaMemory.MiB);
     disable = Settings.get("DISABLE_CUDNN", false);
     forceSingleGpu = Settings.get("FORCE_SINGLE_GPU", false);
-    streamsPerGpu = Settings.get("STREAMS_PER_GPU", 4);
+    streamsPerGpu = Settings.get("STREAMS_PER_GPU", 6);
     workspaceCachePersistance = Settings.get("CONV_CACHE_MODE", PersistanceMode.WEAK);
     conv_para_1 = Settings.get("CONV_PARA_1", true);
     conv_para_2 = Settings.get("CONV_PARA_2", true);
@@ -94,7 +94,7 @@ public class CudaSettings implements Settings {
    *
    * @return the convolution workspace size limit
    */
-  public int getConvolutionWorkspaceSizeLimit() {
+  public long getConvolutionWorkspaceSizeLimit() {
     return convolutionWorkspaceSizeLimit;
   }
   

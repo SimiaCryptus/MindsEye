@@ -20,14 +20,17 @@
 package com.simiacryptus.mindseye.demo;
 
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.models.Hdf5Archive;
 import com.simiacryptus.mindseye.models.ImageClassifier;
 import com.simiacryptus.mindseye.models.VGG16;
+import com.simiacryptus.mindseye.models.VGG16_HDF5;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.TableOutput;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.junit.Test;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
 import java.util.Comparator;
@@ -41,14 +44,13 @@ import java.util.List;
  */
 public class ImageClassificationDemo extends ArtistryDemo {
   
-  /**
-   * Test.
-   *
-   * @throws Throwable the throwable
-   */
-  @Test
-  public void run() {
-    run(this::run);
+  public ImageClassificationDemo(final String... args) {
+  
+  }
+  
+  public static void main(String[] args) {
+    ImageClassificationDemo demo = new ImageClassificationDemo(args);
+    demo.run(demo::run);
   }
   
   /**
@@ -60,19 +62,10 @@ public class ImageClassificationDemo extends ArtistryDemo {
   
   
     log.h1("Model");
-    
-    ImageClassifier vgg16 = log.code(() -> {
-      return VGG16.fromS3_HDF5();
-    });
+    ImageClassifier vgg16 = loadModel(log);
   
     log.h1("Data");
-    Tensor[] images = log.code(() -> {
-      return Caltech101.trainingDataStream().sorted(getShuffleComparator()).map(labeledObj -> {
-        @Nullable BufferedImage img = labeledObj.data.get();
-        img = TestUtil.resize(img, 224);
-        return Tensor.fromRGB(img);
-      }).limit(10).toArray(i1 -> new Tensor[i1]);
-    });
+    Tensor[] images = loadData(log);
   
     log.h1("Prediction");
     List<LinkedHashMap<String, Double>> predictions = log.code(() -> {
@@ -93,6 +86,47 @@ public class ImageClassificationDemo extends ArtistryDemo {
       return tableOutput;
     }, 256 * 1024);
     log.setFrontMatterProperty("status", "OK");
+  }
+  
+  public Tensor[] loadData(@Nonnull final NotebookOutput log) {
+    return log.code(() -> {
+      return Caltech101.trainingDataStream().sorted(getShuffleComparator()).map(labeledObj -> {
+        @Nullable BufferedImage img = labeledObj.data.get();
+        img = TestUtil.resize(img, 224, false);
+        return Tensor.fromRGB(img);
+      }).limit(10).toArray(i1 -> new Tensor[i1]);
+    });
+  }
+  
+  public ImageClassifier loadModel(@Nonnull final NotebookOutput log) {
+    return log.code(() -> {
+      VGG16_HDF5 vgg16_hdf5 = VGG16.fromS3_HDF5();
+      vgg16_hdf5.getNetwork();
+      return vgg16_hdf5;
+    });
+  }
+  
+  public static class Java extends ImageClassificationDemo {
+    public static void main(String[] args) {
+      ImageClassificationDemo demo = new ImageClassificationDemo.Java();
+      demo.run(demo::run);
+    }
+    
+    @Override
+    public ImageClassifier loadModel(@Nonnull final NotebookOutput log) {
+      return log.code(() -> {
+        try {
+          VGG16_HDF5.JBLAS model = new VGG16_HDF5.JBLAS(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5"))));
+          model.getNetwork();
+          return model;
+        } catch (@Nonnull final RuntimeException e) {
+          throw e;
+        } catch (Throwable e) {
+          throw new RuntimeException(e);
+        }
+      });
+    }
+    
   }
   
   /**

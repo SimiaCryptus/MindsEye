@@ -87,8 +87,8 @@ public class LocationDemo extends ArtistryDemo {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    
-    Layer classifyNetwork = vgg16_hdf5.build();
+  
+    Layer classifyNetwork = vgg16_hdf5.getNetwork();
     
     Tensor[][] inputData = loadImages1();
 //    Tensor[][] inputData = log.code(() -> {

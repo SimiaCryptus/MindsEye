@@ -23,9 +23,12 @@ import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
+import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.layers.cudnn.*;
+import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
@@ -43,6 +46,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -50,9 +54,22 @@ import java.util.stream.IntStream;
  * The type Image classifier.
  */
 public abstract class ImageClassifier implements NetworkFactory {
-  private static final Logger logger = LoggerFactory.getLogger(ReferenceCountingBase.class);
+  
+  /**
+   * The constant _log.
+   */
+  protected static final Logger log = LoggerFactory.getLogger(ImageClassifier.class);
+  protected volatile Layer network;
+  /**
+   * The Prototype.
+   */
+  @Nullable
+  Tensor prototype = new Tensor(224, 224, 3);
   private int batchSize;
-  private volatile Layer network;
+  /**
+   * The Cnt.
+   */
+  int cnt = 1;
   
   /**
    * Predict list.
@@ -161,56 +178,8 @@ public abstract class ImageClassifier implements NetworkFactory {
     });
   }
   
-  /**
-   * Deep dream.
-   *
-   * @param log                 the log
-   * @param image               the image
-   * @param targetCategoryIndex the target category index
-   * @param totalCategories     the total categories
-   */
-  public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories, Function<IterativeTrainer, IterativeTrainer> config) {
-    @Nonnull List<Tensor[]> data = Arrays.<Tensor[]>asList(new Tensor[]{
-      image, new Tensor(totalCategories).set(targetCategoryIndex, 1.0)
-    });
-    log.code(() -> {
-      for (Tensor[] tensors : data) {
-        try {
-          logger.info(log.image(tensors[0].toImage(), "") + tensors[1]);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    });
-    log.code(() -> {
-      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-      @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
-      clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-      clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-      clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-      clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-      @Nonnull PipelineNetwork supervised = new PipelineNetwork(2);
-      supervised.wrap(new EntropyLossLayer(),
-        supervised.add(getNetwork().freeze(),
-          supervised.wrap(clamp, supervised.getInput(0))),
-        supervised.getInput(1));
-//      TensorList[] gpuInput = data.stream().map(data1 -> {
-//        return CudnnHandle.eval(gpu -> {
-//          Precision precision = Precision.Float;
-//          return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(data1), precision, MemoryType.Managed), 1, image.getDimensions(), precision);
-//        });
-//      }).toArray(i -> new TensorList[i]);
-//      @Nonnull Trainable trainable = new TensorListTrainable(supervised, gpuInput).setVerbosity(1).setMask(true);
-      @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setVerbose(true).setMask(true, false).setData(data);
-      config.apply(new IterativeTrainer(trainable)
-        .setMonitor(getTrainingMonitor(history, supervised))
-        .setOrientation(new QQN())
-        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-        .setTimeout(60, TimeUnit.MINUTES))
-        .runAndFree();
-      return TestUtil.plot(history);
-    });
-  }
+  @javax.annotation.Nonnull
+  Precision precision = Precision.Float;
   
   /**
    * Predict list.
@@ -266,13 +235,6 @@ public abstract class ImageClassifier implements NetworkFactory {
   }
   
   /**
-   * Gets network.
-   *
-   * @return the network
-   */
-  public abstract Layer getNetwork();
-  
-  /**
    * Gets batch size.
    *
    * @return the batch size
@@ -292,4 +254,213 @@ public abstract class ImageClassifier implements NetworkFactory {
     this.batchSize = batchSize;
     return this;
   }
+  
+  /**
+   * Gets bias function.
+   *
+   * @param tensor the tensor
+   * @return the bias function
+   */
+  @javax.annotation.Nonnull
+  public static ToDoubleFunction<Coordinate> getBiasFunction(@javax.annotation.Nonnull Tensor tensor) {
+    return c1 -> {
+      if (c1.getCoords()[2] == 0) return tensor.get(c1) - 103.939;
+      if (c1.getCoords()[2] == 1) return tensor.get(c1) - 116.779;
+      if (c1.getCoords()[2] == 2) return tensor.get(c1) - 123.68;
+      else return tensor.get(c1);
+    };
+  }
+  
+  /**
+   * Gets permute function.
+   *
+   * @param tensor the tensor
+   * @return the permute function
+   */
+  @javax.annotation.Nonnull
+  public static ToDoubleFunction<Coordinate> getPermuteFunction(@javax.annotation.Nonnull Tensor tensor) {
+    return c -> {
+      if (c.getCoords()[2] == 0) return tensor.get(c.getCoords()[0], c.getCoords()[1], 0);
+      if (c.getCoords()[2] == 1) return tensor.get(c.getCoords()[0], c.getCoords()[1], 1);
+      if (c.getCoords()[2] == 2) return tensor.get(c.getCoords()[0], c.getCoords()[1], 2);
+      else throw new RuntimeException();
+    };
+  }
+  
+  /**
+   * Add.
+   *
+   * @param layer the layer
+   * @param model the model
+   * @return the layer
+   */
+  @Nonnull
+  protected static Layer add(@Nonnull Layer layer, @Nonnull PipelineNetwork model) {
+    name(layer);
+    if (layer instanceof Explodable) {
+      Layer explode = ((Explodable) layer).explode();
+      try {
+        if (explode instanceof DAGNetwork) {
+          ((DAGNetwork) explode).visitNodes(node -> name(node.getLayer()));
+          log.info(String.format("Exploded %s to %s (%s nodes)", layer.getName(), explode.getClass().getSimpleName(), ((DAGNetwork) explode).getNodes().size()));
+        }
+        else {
+          log.info(String.format("Exploded %s to %s (%s nodes)", layer.getName(), explode.getClass().getSimpleName(), explode.getName()));
+        }
+        return add(explode, model);
+      } finally {
+        layer.freeRef();
+      }
+    }
+    else {
+      model.wrap(layer);
+      return layer;
+    }
+  }
+  
+  /**
+   * Evaluate prototype tensor.
+   *
+   * @param layer         the layer
+   * @param prevPrototype the prev prototype
+   * @param cnt           the cnt
+   * @return the tensor
+   */
+  @Nonnull
+  protected static Tensor evaluatePrototype(@Nonnull final Layer layer, final Tensor prevPrototype, int cnt) {
+    int numberOfParameters = layer.state().stream().mapToInt(x -> x.length).sum();
+    @javax.annotation.Nonnull int[] prev_dimensions = prevPrototype.getDimensions();
+    Result eval = layer.eval(prevPrototype);
+    TensorList newPrototype = eval.getData();
+    if (null != prevPrototype) prevPrototype.freeRef();
+    eval.freeRef();
+    try {
+      @javax.annotation.Nonnull int[] new_dimensions = newPrototype.getDimensions();
+      log.info(String.format("Added layer #%d: %s; %s params, dimensions %s (%s) -> %s (%s)", //
+        cnt, layer, numberOfParameters, //
+        Arrays.toString(prev_dimensions), Tensor.length(prev_dimensions), //
+        Arrays.toString(new_dimensions), Tensor.length(new_dimensions)));
+      return newPrototype.get(0);
+    } finally {
+      newPrototype.freeRef();
+    }
+  }
+  
+  /**
+   * Name.
+   *
+   * @param layer the layer
+   */
+  protected static void name(final Layer layer) {
+    if (layer.getName().contains(layer.getId().toString())) {
+      if (layer instanceof ConvolutionLayer) {
+        layer.setName(layer.getClass().getSimpleName() + ((ConvolutionLayer) layer).getConvolutionParams());
+      }
+      else if (layer instanceof SimpleConvolutionLayer) {
+        layer.setName(String.format("%s: %s", layer.getClass().getSimpleName(),
+          Arrays.toString(((SimpleConvolutionLayer) layer).getKernelDimensions())));
+      }
+      else if (layer instanceof FullyConnectedLayer) {
+        layer.setName(String.format("%s:%sx%s",
+          layer.getClass().getSimpleName(),
+          Arrays.toString(((FullyConnectedLayer) layer).inputDims),
+          Arrays.toString(((FullyConnectedLayer) layer).outputDims)));
+      }
+      else if (layer instanceof BiasLayer) {
+        layer.setName(String.format("%s:%s",
+          layer.getClass().getSimpleName(),
+          ((BiasLayer) layer).bias.length));
+      }
+    }
+  }
+  
+  /**
+   * Deep dream.
+   *
+   * @param log                 the log
+   * @param image               the image
+   * @param targetCategoryIndex the target category index
+   * @param totalCategories     the total categories
+   */
+  public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories, Function<IterativeTrainer, IterativeTrainer> config) {
+    @Nonnull List<Tensor[]> data = Arrays.<Tensor[]>asList(new Tensor[]{
+      image, new Tensor(totalCategories).set(targetCategoryIndex, 1.0)
+    });
+    log.code(() -> {
+      for (Tensor[] tensors : data) {
+        try {
+          ((Logger) log).info(log.image(tensors[0].toImage(), "") + tensors[1]);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
+    log.code(() -> {
+      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+      @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
+      clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+      clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+      clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+      clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+      @Nonnull PipelineNetwork supervised = new PipelineNetwork(2);
+      supervised.wrap(new EntropyLossLayer(),
+        supervised.add(getNetwork().freeze(),
+          supervised.wrap(clamp, supervised.getInput(0))),
+        supervised.getInput(1));
+//      TensorList[] gpuInput = data.stream().map(data1 -> {
+//        return CudnnHandle.eval(gpu -> {
+//          Precision precision = Precision.Float;
+//          return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(data1), precision, MemoryType.Managed), 1, image.getDimensions(), precision);
+//        });
+//      }).toArray(i -> new TensorList[i]);
+//      @Nonnull Trainable trainable = new TensorListTrainable(supervised, gpuInput).setVerbosity(1).setMask(true);
+      @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setVerbose(true).setMask(true, false).setData(data);
+      config.apply(new IterativeTrainer(trainable)
+        .setMonitor(getTrainingMonitor(history, supervised))
+        .setOrientation(new QQN())
+        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
+        .setTimeout(60, TimeUnit.MINUTES))
+        .runAndFree();
+      return TestUtil.plot(history);
+    });
+  }
+  
+  @javax.annotation.Nonnull
+  @Override
+  public Layer getNetwork() {
+    if (null == network) {
+      synchronized (this) {
+        if (null == network) {
+          try {
+            network = buildNetwork();
+            setPrecision((DAGNetwork) network);
+            if (null != prototype) prototype.freeRef();
+            prototype = null;
+            return network;
+          } catch (@javax.annotation.Nonnull final RuntimeException e) {
+            throw e;
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        }
+      }
+    }
+    return network;
+    
+    
+  }
+  
+  protected abstract Layer buildNetwork();
+  
+  /**
+   * Sets precision.
+   */
+  protected void setPrecision(DAGNetwork model) {
+    model.visitLayers(layer -> {
+      if (layer instanceof MultiPrecision) {
+        ((MultiPrecision) layer).setPrecision(precision);
+      }
+    });
+  }
+  
 }

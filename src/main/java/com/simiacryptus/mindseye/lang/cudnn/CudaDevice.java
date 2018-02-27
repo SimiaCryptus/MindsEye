@@ -85,7 +85,7 @@ public class CudaDevice extends CudaSystem {
     if (null == devPtr) return 0;
     Supplier<Integer> fn = () -> {
       final int result = JCuda.cudaFree(devPtr);
-      log("cudaFree", (Object) result, new Object[]{devPtr});
+      log("cudaFree", result, new Object[]{devPtr});
       cudaFree_execution.accept((System.nanoTime() - startTime) / 1e9);
       handle(result);
       return result;
@@ -120,7 +120,7 @@ public class CudaDevice extends CudaSystem {
       @javax.annotation.Nonnull final cudaDeviceProp deviceProp = new cudaDeviceProp();
       final int result = JCuda.cudaGetDeviceProperties(deviceProp, device);
       getDeviceProperties_execution.accept((System.nanoTime() - startTime) / 1e9);
-      log("cudaGetDeviceProperties", (Object) result, new Object[]{deviceProp, device});
+      log("cudaGetDeviceProperties", result, new Object[]{deviceProp, device});
       return deviceProp;
     });
   }
@@ -136,7 +136,7 @@ public class CudaDevice extends CudaSystem {
       long startTime = System.nanoTime();
       final int result = JCuda.cudaSetDevice(cudaDeviceId);
       setDevice_execution.accept((System.nanoTime() - startTime) / 1e9);
-      log("cudaSetDevice", (Object) result, new Object[]{cudaDeviceId});
+      log("cudaSetDevice", result, new Object[]{cudaDeviceId});
       CudaSystem.handle(result);
       CudaSystem.currentDevice.set(cudaDeviceId);
     }
@@ -267,7 +267,7 @@ public class CudaDevice extends CudaSystem {
     int result = JCudnn.cudnnCreateConvolutionDescriptor(convDesc);
     newConvolutionNdDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     this.dirty();
-    log("cudnnCreateConvolutionDescriptor", (Object) result, new Object[]{convDesc});
+    log("cudnnCreateConvolutionDescriptor", result, new Object[]{convDesc});
     CudaSystem.handle(result);
     result = JCudnn.cudnnSetConvolutionNdDescriptor(convDesc,
       3,
@@ -278,7 +278,7 @@ public class CudaDevice extends CudaSystem {
       dataType
     );
     this.dirty();
-    log("cudnnSetConvolutionNdDescriptor", (Object) result, new Object[]{convDesc, padding.length, padding, stride, dilation, mode, dataType});
+    log("cudnnSetConvolutionNdDescriptor", result, new Object[]{convDesc, padding.length, padding, stride, dilation, mode, dataType});
     CudaSystem.handle(result);
     return new CudaResource<cudnnConvolutionDescriptor>(convDesc, CudaSystem::cudnnDestroyConvolutionDescriptor, getDeviceId()) {
       @Nonnull
@@ -306,12 +306,12 @@ public class CudaDevice extends CudaSystem {
     @Nonnull final cudnnFilterDescriptor filterDesc = new cudnnFilterDescriptor();
     int result = JCudnn.cudnnCreateFilterDescriptor(filterDesc);
     this.dirty();
-    log("cudnnCreateFilterDescriptor", (Object) result, new Object[]{filterDesc});
+    log("cudnnCreateFilterDescriptor", result, new Object[]{filterDesc});
     CudaSystem.handle(result);
     result = JCudnn.cudnnSetFilterNdDescriptor(filterDesc, dataType, tensorLayout, dimensions.length, dimensions);
     newFilterDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     this.dirty();
-    log("cudnnSetFilterNdDescriptor", (Object) result, new Object[]{filterDesc, dataType, tensorLayout, dimensions.length, dimensions});
+    log("cudnnSetFilterNdDescriptor", result, new Object[]{filterDesc, dataType, tensorLayout, dimensions.length, dimensions});
     CudaSystem.handle(result);
     return new CudaResource<cudnnFilterDescriptor>(filterDesc, CudaSystem::cudnnDestroyFilterDescriptor, getDeviceId()) {
       @Nonnull
@@ -353,11 +353,15 @@ public class CudaDevice extends CudaSystem {
     if (data instanceof ReshapedTensorList) {
       return getPtr(((ReshapedTensorList) data).getInner(), precision, memoryType);
     }
-    if (data instanceof CudaTensorList && precision == ((CudaTensorList) data).getPrecision()) {
-      @Nonnull CudaTensorList cudaTensorList = (CudaTensorList) data;
-      return this.getPtr(cudaTensorList, memoryType);
+    if (data instanceof CudaTensorList) {
+      if (precision == ((CudaTensorList) data).getPrecision()) {
+        @Nonnull CudaTensorList cudaTensorList = (CudaTensorList) data;
+        return this.getPtr(cudaTensorList, memoryType);
+      }
+      else {
+        logger.warn("Incompatible precision types in GPU");
+      }
     }
-    else {
       final int listLength = data.length();
       final int elementLength = Tensor.length(data.getDimensions());
       @Nonnull final CudaMemory ptr = this.allocate((long) elementLength * listLength * precision.size, memoryType, true);
@@ -370,7 +374,6 @@ public class CudaDevice extends CudaSystem {
         tensor.freeRef();
       }
       return ptr;
-    }
   }
   
   /**
@@ -394,12 +397,12 @@ public class CudaDevice extends CudaSystem {
     @javax.annotation.Nonnull final cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
     int result = JCudnn.cudnnCreateTensorDescriptor(desc);
     this.dirty();
-    log("cudnnCreateTensorDescriptor", (Object) result, new Object[]{desc});
+    log("cudnnCreateTensorDescriptor", result, new Object[]{desc});
     CudaSystem.handle(result);
     result = JCudnn.cudnnSetTensor4dDescriptorEx(desc, dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride);
     newTensorDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     this.dirty();
-    log("cudnnSetTensor4dDescriptorEx", (Object) result, new Object[]{desc, dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride});
+    log("cudnnSetTensor4dDescriptorEx", result, new Object[]{desc, dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride});
     CudaSystem.handle(result);
     return new CudaResource<>(desc, CudaSystem::cudnnDestroyTensorDescriptor, getDeviceId());
   }
@@ -421,12 +424,12 @@ public class CudaDevice extends CudaSystem {
     @javax.annotation.Nonnull final cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
     int result = JCudnn.cudnnCreateTensorDescriptor(desc);
     this.dirty();
-    log("cudnnCreateTensorDescriptor", (Object) result, new Object[]{desc});
+    log("cudnnCreateTensorDescriptor", result, new Object[]{desc});
     CudaSystem.handle(result);
     result = JCudnn.cudnnSetTensor4dDescriptor(desc, tensorLayout, dataType, batchCount, channels, height, width);
     newTensorDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     this.dirty();
-    log("cudnnSetTensor4dDescriptor", (Object) result, new Object[]{desc, tensorLayout, dataType, batchCount, channels, height, width});
+    log("cudnnSetTensor4dDescriptor", result, new Object[]{desc, tensorLayout, dataType, batchCount, channels, height, width});
     CudaSystem.handle(result);
     return new CudaResource<cudnnTensorDescriptor>(desc, CudaSystem::cudnnDestroyTensorDescriptor, getDeviceId()) {
       @javax.annotation.Nonnull
@@ -454,12 +457,12 @@ public class CudaDevice extends CudaSystem {
     @javax.annotation.Nonnull final cudnnOpTensorDescriptor opDesc = new cudnnOpTensorDescriptor();
     int result = JCudnn.cudnnCreateOpTensorDescriptor(opDesc);
     this.dirty();
-    log("cudnnCreateOpTensorDescriptor", (Object) result, new Object[]{opDesc});
+    log("cudnnCreateOpTensorDescriptor", result, new Object[]{opDesc});
     CudaSystem.handle(result);
     result = JCudnn.cudnnSetOpTensorDescriptor(opDesc, opType, dataType, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN);
     newOpDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     this.dirty();
-    log("cudnnSetOpTensorDescriptor", (Object) result, new Object[]{opDesc, opType, dataType, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN});
+    log("cudnnSetOpTensorDescriptor", result, new Object[]{opDesc, opType, dataType, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN});
     CudaSystem.handle(result);
     return new CudaResource<>(opDesc, CudaSystem::cudnnDestroyOpTensorDescriptor, getDeviceId());
   }
@@ -480,12 +483,12 @@ public class CudaDevice extends CudaSystem {
     @javax.annotation.Nonnull final cudnnFilterDescriptor filterDesc = new cudnnFilterDescriptor();
     int result = JCudnn.cudnnCreateFilterDescriptor(filterDesc);
     this.dirty();
-    log("cudnnCreateFilterDescriptor", (Object) result, new Object[]{filterDesc});
+    log("cudnnCreateFilterDescriptor", result, new Object[]{filterDesc});
     CudaSystem.handle(result);
     result = JCudnn.cudnnSetFilter4dDescriptor(filterDesc, dataType, tensorLayout, outputChannels, inputChannels, height, width);
     newFilterDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     this.dirty();
-    log("cudnnSetFilter4dDescriptor", (Object) result, new Object[]{filterDesc, dataType, tensorLayout, outputChannels, inputChannels, height, width});
+    log("cudnnSetFilter4dDescriptor", result, new Object[]{filterDesc, dataType, tensorLayout, outputChannels, inputChannels, height, width});
     CudaSystem.handle(result);
     return new CudaResource<cudnnFilterDescriptor>(filterDesc, CudaSystem::cudnnDestroyFilterDescriptor, getDeviceId()) {
       @javax.annotation.Nonnull
@@ -519,7 +522,7 @@ public class CudaDevice extends CudaSystem {
     @javax.annotation.Nonnull final cudnnConvolutionDescriptor convDesc = new cudnnConvolutionDescriptor();
     int result = JCudnn.cudnnCreateConvolutionDescriptor(convDesc);
     this.dirty();
-    log("cudnnCreateConvolutionDescriptor", (Object) result, new Object[]{convDesc});
+    log("cudnnCreateConvolutionDescriptor", result, new Object[]{convDesc});
     CudaSystem.handle(result);
     result = JCudnn.cudnnSetConvolution2dDescriptor(
       convDesc,
@@ -534,7 +537,7 @@ public class CudaDevice extends CudaSystem {
     );
     newConvolutions2dDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     this.dirty();
-    log("cudnnSetConvolution2dDescriptor", (Object) result, new Object[]{convDesc, paddingY, paddingX, strideHeight, strideWidth, dilationY, dilationX, mode, dataType});
+    log("cudnnSetConvolution2dDescriptor", result, new Object[]{convDesc, paddingY, paddingX, strideHeight, strideWidth, dilationY, dilationX, mode, dataType});
     CudaSystem.handle(result);
     return new CudaResource<>(convDesc, CudaSystem::cudnnDestroyConvolutionDescriptor, getDeviceId());
   }
@@ -552,12 +555,12 @@ public class CudaDevice extends CudaSystem {
     @javax.annotation.Nonnull final cudnnActivationDescriptor desc = new cudnnActivationDescriptor();
     int result = JCudnn.cudnnCreateActivationDescriptor(desc);
     this.dirty();
-    log("cudnnCreateActivationDescriptor", (Object) result, new Object[]{desc});
+    log("cudnnCreateActivationDescriptor", result, new Object[]{desc});
     CudaSystem.handle(result);
     result = JCudnn.cudnnSetActivationDescriptor(desc, mode, reluNan, reluCeil);
     newActivationDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     this.dirty();
-    log("cudnnSetActivationDescriptor", (Object) result, new Object[]{desc, mode, reluNan, reluCeil});
+    log("cudnnSetActivationDescriptor", result, new Object[]{desc, mode, reluNan, reluCeil});
     CudaSystem.handle(result);
     return new CudaResource<>(desc, CudaSystem::cudnnDestroyActivationDescriptor, getDeviceId());
   }
@@ -577,13 +580,13 @@ public class CudaDevice extends CudaSystem {
     @javax.annotation.Nonnull final cudnnPoolingDescriptor poolingDesc = new cudnnPoolingDescriptor();
     int result = JCudnn.cudnnCreatePoolingDescriptor(poolingDesc);
     this.dirty();
-    log("cudnnCreatePoolingDescriptor", (Object) result, new Object[]{poolingDesc});
+    log("cudnnCreatePoolingDescriptor", result, new Object[]{poolingDesc});
     CudaSystem.handle(result);
     result = JCudnn.cudnnSetPoolingNdDescriptor(poolingDesc,
       mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, poolDims, windowSize,
       padding, stride);
     this.dirty();
-    log("cudnnSetPoolingNdDescriptor", (Object) result, new Object[]{poolingDesc, mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, poolDims, windowSize, padding, stride});
+    log("cudnnSetPoolingNdDescriptor", result, new Object[]{poolingDesc, mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, poolDims, windowSize, padding, stride});
     CudaSystem.handle(result);
     createPoolingDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     return new CudaResource<>(poolingDesc, CudaSystem::cudnnDestroyPoolingDescriptor, getDeviceId());

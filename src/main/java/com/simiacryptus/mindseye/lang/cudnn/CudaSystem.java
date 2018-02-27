@@ -56,7 +56,7 @@ public class CudaSystem {
   /**
    * The constant INSTANCE.
    */
-//  public static final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
+//  public static final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setDaemon(true).getNetwork());
   /**
    * The constant apiLog.
    */
@@ -298,7 +298,7 @@ public class CudaSystem {
    */
   protected static final Object syncLock = new Object();
   private static final Executor garbageTruck = MoreExecutors.directExecutor();
-  //Executors.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("gpu-free-%d").setDaemon(true).build());
+  //Executors.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("gpu-free-%d").setDaemon(true).getNetwork());
   /**
    * The constant gpuGeneration.
    */
@@ -869,7 +869,7 @@ public class CudaSystem {
     }
   }
   
-  public static void log(final String method, final Object result, final @Nullable Object[] args) {
+  public static void log(final String method, final Object result, @Nullable final Object[] args) {
     @Nonnull final String paramString = null == args ? "" : Arrays.stream(args).map(CudaSystem::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
     final String message = String.format("%.6f @ %s(%d): %s(%s) = %s", (System.nanoTime() - CudaSystem.start) / 1e9, Thread.currentThread().getName(), currentDevice.get(), method, paramString, result);
     try {

@@ -36,7 +36,6 @@ import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Test;
@@ -82,7 +81,8 @@ public class TextureDemo extends ArtistryDemo {
   
     Layer textureNetork = loadTextureNetwork(log);
     Tensor textureVector = getFeatureVector(log);
-    Tensor rendering = new Tensor(300, 300, 3).setByCoord(c -> FastRandom.random());
+    Tensor rendering = new Tensor(300, 300, 3);
+    paint_Lines(rendering);
     TestUtil.monitorImage(rendering, false, 5);
   
     @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
@@ -136,10 +136,10 @@ public class TextureDemo extends ArtistryDemo {
         new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
           @Override
           protected void phase3() {
-            ref.set(model.copy().freeze());
+            ref.set(pipelineNetwork.copy().freeze());
             super.phase3();
           }
-        }.build();
+        }.getNetwork();
         return ref.get();
       } catch (@Nonnull final RuntimeException e) {
         throw e;
@@ -163,5 +163,35 @@ public class TextureDemo extends ArtistryDemo {
   @Override
   public ReportType getReportType() {
     return ReportType.Demos;
+  }
+  
+  public static class Layer2b extends TextureDemo {
+    @Override
+    protected Tensor getFeatureVector(@Nonnull final NotebookOutput log) {
+      return log.code(() -> {
+        return new Tensor(1, 1, 512).setAll(0.0).set(5, 1.0);
+      });
+    }
+    
+    @Override
+    protected Layer loadTextureNetwork(@Nonnull final NotebookOutput log) {
+      return log.code(() -> {
+        try {
+          final AtomicReference<Layer> ref = new AtomicReference<>(null);
+          new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+            @Override
+            protected void phase2b() {
+              ref.set(pipelineNetwork.copy().freeze());
+              super.phase2b();
+            }
+          }.getNetwork();
+          return ref.get();
+        } catch (@Nonnull final RuntimeException e) {
+          throw e;
+        } catch (Throwable e) {
+          throw new RuntimeException(e);
+        }
+      });
+    }
   }
 }

@@ -102,7 +102,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         return new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
           @Override
           protected void phase3() {
-            textureNetork = model.copy().freeze();
+            textureNetork = pipelineNetwork.copy().freeze();
             add(trainedCategorizer);
           }
         };

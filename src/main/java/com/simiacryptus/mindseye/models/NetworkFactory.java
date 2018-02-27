@@ -32,6 +32,6 @@ public interface NetworkFactory {
    * @return the pipeline network
    */
   @javax.annotation.Nonnull
-  Layer build();
+  Layer getNetwork();
   
 }

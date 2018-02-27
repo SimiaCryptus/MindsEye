@@ -53,9 +53,9 @@ public abstract class WrapperLayer extends LayerBase {
    *
    * @param json the json
    */
-  public WrapperLayer(@javax.annotation.Nonnull final JsonObject json) {
+  public WrapperLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json);
-    inner = Layer.fromJson(json.getAsJsonObject("heapCopy"));
+    this.inner = Layer.fromJson(json.getAsJsonObject("inner"), rs);
   }
   
   /**
@@ -94,7 +94,7 @@ public abstract class WrapperLayer extends LayerBase {
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
-    json.add("heapCopy", getInner().getJson(resources, dataSerializer));
+    json.add("inner", getInner().getJson(resources, dataSerializer));
     return json;
   }
   

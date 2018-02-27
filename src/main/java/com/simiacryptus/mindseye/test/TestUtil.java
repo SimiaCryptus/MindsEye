@@ -258,11 +258,36 @@ public class TestUtil {
           (performanceB.getCount() == 0 ? "" : String.format("%n\tBack: %.6fs +- %.6fs (%s)", performanceB.getMean(), performanceB.getStdDev(), performanceB.getCount()));
       }).reduce((a, b) -> a + "\n\t" + b).get());
     });
+    removeInstrumentation(network);
+  }
+  
+  public static void removeInstrumentation(@Nonnull final DAGNetwork network) {
     network.visitNodes(node -> {
       if (node.getLayer() instanceof MonitoringWrapperLayer) {
         node.setLayer(node.<MonitoringWrapperLayer>getLayer().getInner());
       }
     });
+  }
+  
+  public static Map<String, Object> samplePerformance(@Nonnull final DAGNetwork network) {
+    @javax.annotation.Nonnull final Map<String, Object> metrics = new HashMap<>();
+    network.visitNodes(node -> {
+      if (node.getLayer() instanceof MonitoringWrapperLayer) {
+        @javax.annotation.Nullable final MonitoringWrapperLayer layer = node.getLayer();
+        Layer inner = layer.getInner();
+        String str = inner.toString();
+        str += " class=" + inner.getClass().getName();
+//          if(inner instanceof MultiPrecision<?>) {
+//            str += "; precision=" + ((MultiPrecision) inner).getPrecision().name();
+//          }
+        
+        HashMap<String, Object> row = new HashMap<>();
+        row.put("fwd", layer.getForwardPerformance().getMetrics());
+        row.put("rev", layer.getForwardPerformance().getMetrics());
+        metrics.put(str, row);
+      }
+    });
+    return metrics;
   }
   
   /**

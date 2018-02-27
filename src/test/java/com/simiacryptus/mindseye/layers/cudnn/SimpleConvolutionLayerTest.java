@@ -187,11 +187,11 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
   /**
    * Base allocationOverflow configuration demonstrating the absence of failure in this case.
    */
-  public static class Bug_Control extends SimpleConvolutionLayerTest {
+  public abstract static class Bug_Control extends SimpleConvolutionLayerTest {
     /**
      * Instantiates a new Multi band.
      */
-    public Bug_Control() {
+    protected Bug_Control() {
       super(3, 8, Precision.Double, 1);
       validateDifferentials = false;
     }

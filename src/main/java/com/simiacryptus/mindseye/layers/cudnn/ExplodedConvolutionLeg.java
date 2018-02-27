@@ -127,7 +127,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
           return 0;
         }
       }, true);
-      ((SimpleConvolutionLayer) ((ImgTileSubnetLayer) subLayers.get(layerNumber)).subnetwork).set(kernel);
+      ((SimpleConvolutionLayer) ((ImgTileSubnetLayer) subLayers.get(layerNumber)).getInner()).set(kernel);
       kernel.freeRef();
     }
     return this;
@@ -152,7 +152,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
   
     for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
       int _layerNumber = layerNumber;
-      Tensor deltaTensor = extractor.apply(((SimpleConvolutionLayer) ((ImgTileSubnetLayer) subLayers.get(layerNumber)).subnetwork));
+      Tensor deltaTensor = extractor.apply(((SimpleConvolutionLayer) ((ImgTileSubnetLayer) subLayers.get(layerNumber)).getInner()));
       if (null != deltaTensor) {
         deltaTensor.forEach((v, c) -> {
           int[] coords = c.getCoords();

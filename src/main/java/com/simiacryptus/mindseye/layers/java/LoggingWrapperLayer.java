@@ -46,8 +46,8 @@ public final class LoggingWrapperLayer extends WrapperLayer {
    *
    * @param json the json
    */
-  protected LoggingWrapperLayer(@javax.annotation.Nonnull final JsonObject json) {
-    super(json);
+  protected LoggingWrapperLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+    super(json, rs);
   }
   
   /**
@@ -67,7 +67,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
    * @return the monitoring wrapper layer
    */
   public static LoggingWrapperLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
-    return new LoggingWrapperLayer(json);
+    return new LoggingWrapperLayer(json, rs);
   }
   
   @Override
