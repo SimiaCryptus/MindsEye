@@ -304,7 +304,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
   /**
    * Test.
    *
-   * @param log            the _log
+   * @param log            the log
    * @param component      the component
    * @param inputPrototype the input prototype
    */
@@ -366,7 +366,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
   /**
    * Print header.
    *
-   * @param log the _log
+   * @param log the log
    */
   protected void printHeader(@javax.annotation.Nonnull NotebookOutput log) {
     log.h1("Training Characteristics");
@@ -375,7 +375,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
   /**
    * Test complete learning run result.
    *
-   * @param log            the _log
+   * @param log            the log
    * @param component      the component
    * @param random         the random
    * @param inputPrototype the input prototype
@@ -418,7 +418,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
   /**
    * Test input learning.
    *
-   * @param log            the _log
+   * @param log            the log
    * @param component      the component
    * @param random         the randomize
    * @param inputPrototype the input prototype
@@ -469,7 +469,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
   /**
    * Test model learning.
    *
-   * @param log            the _log
+   * @param log            the log
    * @param component      the component
    * @param random         the randomize
    * @param inputPrototype the input prototype
@@ -527,7 +527,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * Train all run result.
    *
    * @param title         the title
-   * @param log           the _log
+   * @param log           the log
    * @param trainingInput the training input
    * @param layer         the layer
    * @param mask          the mask
@@ -648,7 +648,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
   /**
    * Train cj gd list.
    *
-   * @param log       the _log
+   * @param log       the log
    * @param trainable the trainable
    * @return the list
    */
@@ -677,7 +677,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
   /**
    * Train gd list.
    *
-   * @param log       the _log
+   * @param log       the log
    * @param trainable the trainable
    * @return the list
    */
@@ -706,7 +706,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
   /**
    * Train lbfgs list.
    *
-   * @param log       the _log
+   * @param log       the log
    * @param trainable the trainable
    * @return the list
    */
@@ -736,7 +736,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
   /**
    * Train lbfgs list.
    *
-   * @param log       the _log
+   * @param log       the log
    * @param trainable the trainable
    * @return the list
    */

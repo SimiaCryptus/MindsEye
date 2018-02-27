@@ -83,11 +83,11 @@ public abstract class ImgCropLayerTest extends CuDNNLayerTestBase {
       public ToleranceStatistics test(@javax.annotation.Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
         @Nullable PrintStream apiLog = null;
         try {
-          apiLog = new PrintStream(log.file("cuda_perf._log"));
+          apiLog = new PrintStream(log.file("cuda_perf.log"));
           CudaSystem.addLog(apiLog);
           return inner.test(log, component, inputPrototype);
         } finally {
-          log.p(log.file((String) null, "cuda_perf._log", "GPU Log"));
+          log.p(log.file((String) null, "cuda_perf.log", "GPU Log"));
           if (null != apiLog) {
             apiLog.close();
             CudaSystem.apiLog.remove(apiLog);

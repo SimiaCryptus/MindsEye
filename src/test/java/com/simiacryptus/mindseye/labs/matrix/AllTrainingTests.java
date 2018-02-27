@@ -71,7 +71,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   /**
    * Autoencoder allocationOverflow.
    *
-   * @param log the _log
+   * @param log the log
    */
   public void autoencoder_test(@javax.annotation.Nonnull NotebookOutput log) {
     log.h1(getDatasetName() + " Denoising Autoencoder");
@@ -105,7 +105,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   /**
    * Classification allocationOverflow.
    *
-   * @param log the _log
+   * @param log the log
    */
   public void classification_test(@javax.annotation.Nonnull NotebookOutput log) {
     log.h1(getDatasetName() + " Denoising Autoencoder");
@@ -128,7 +128,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   /**
    * Encoding allocationOverflow.
    *
-   * @param log the _log
+   * @param log the log
    */
   public void encoding_test(@javax.annotation.Nonnull NotebookOutput log) {
     log.h1(getDatasetName() + " Image-to-Vector Encoding");
@@ -150,7 +150,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   /**
    * Intro.
    *
-   * @param log the _log
+   * @param log the log
    */
   protected abstract void intro(NotebookOutput log);
   

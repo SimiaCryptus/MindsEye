@@ -47,6 +47,7 @@ public class CudaSettings implements Settings {
   
   private CudaSettings() {
     maxTotalMemory = Settings.get("MAX_TOTAL_MEMORY", 8 * CudaMemory.GiB);
+    maxDeviceMemory = Settings.get("MAX_TOTAL_MEMORY", 6 * CudaMemory.GiB);
     maxAllocSize = Settings.get("MAX_ALLOC_SIZE", Precision.Double.size * (Integer.MAX_VALUE - 1L));
     maxFilterElements = Settings.get("MAX_FILTER_ELEMENTS", 1024 * CudaMemory.MiB);
     maxIoElements = Settings.get("MAX_IO_ELEMENTS", 32 * CudaMemory.MiB);
@@ -59,7 +60,6 @@ public class CudaSettings implements Settings {
     conv_para_2 = Settings.get("CONV_PARA_2", true);
     conv_para_3 = Settings.get("CONV_PARA_3", true);
     memoryCacheMode = Settings.get("CUDA_CACHE_MODE", PersistanceMode.WEAK);
-    maxDeviceMemory = 6L * 1024 * 1024 * 1024;
   }
   
   /**

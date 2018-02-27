@@ -57,11 +57,11 @@ public class DeepDreamDemo extends ArtistryDemo {
   /**
    * Run.
    *
-   * @param log the _log
+   * @param log the log
    */
   public void run(@javax.annotation.Nonnull NotebookOutput log) {
-    
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "._log";
+  
+    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
     

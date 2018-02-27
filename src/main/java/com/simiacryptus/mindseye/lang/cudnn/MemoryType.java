@@ -55,7 +55,7 @@ public enum MemoryType {
     
     @Override
     public void recycle(final Pointer ptr, final int deviceId, final long length) {
-      cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDevice());
+      cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDeviceId());
       if (properties.managedMemory == 1) {
         super.recycle(ptr, -1, length);
       }
@@ -66,7 +66,7 @@ public enum MemoryType {
     
     @Override
     public Pointer allocCached(final long size, final CudaDevice cudaDevice) {
-      cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDevice());
+      cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDeviceId());
       if (properties.managedMemory == 1) {
         return super.allocCached(size, cudaDevice);
       }
@@ -112,7 +112,7 @@ public enum MemoryType {
       if (size > CudaSettings.INSTANCE.getMaxAllocSize()) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
-      cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDevice());
+      cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDeviceId());
       if (properties.canMapHostMemory == 1) {
         CudaSystem.handle(CudaSystem.cudaHostAlloc(pointer, size, cudaHostAllocDefault));
       }
@@ -139,7 +139,7 @@ public enum MemoryType {
       if (size > CudaSettings.INSTANCE.getMaxAllocSize()) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
-      cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDevice());
+      cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDeviceId());
       if (properties.canMapHostMemory == 1) {
         CudaSystem.handle(CudaSystem.cudaHostAlloc(pointer, size, cudaHostAllocWriteCombined));
       }

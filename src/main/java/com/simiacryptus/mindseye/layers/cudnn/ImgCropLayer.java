@@ -176,7 +176,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
     if (3 != destinationDimensions.length) throw new IllegalArgumentException("dimOut.length");
     if (sourceDimensions[2] != destinationDimensions[2])
       throw new IllegalArgumentException(String.format("%d != %d", sourceDimensions[2], destinationDimensions[2]));
-    //_log.info(String.format("offset=%d,%d", offsetX, offsetY));
+    //log.info(String.format("offset=%d,%d", offsetX, offsetY));
     @javax.annotation.Nonnull final int[] viewDim = getViewDimensions(sourceDimensions, destinationDimensions);
     @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> sourceViewDescriptor = gpu.newTensorDescriptor(
       precision.code,//

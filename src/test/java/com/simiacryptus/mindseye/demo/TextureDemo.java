@@ -71,11 +71,11 @@ public class TextureDemo extends ArtistryDemo {
   /**
    * Test.
    *
-   * @param log the _log
+   * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
   
-    @Nonnull String logName = "cuda_" + log.getName() + "._log";
+    @Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
   

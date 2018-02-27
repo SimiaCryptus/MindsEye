@@ -130,17 +130,18 @@ public class CudaDevice extends CudaSystem {
    *
    * @param cudaDeviceId the cuda device id
    */
-  public static void setDevice(final int cudaDeviceId) {
+  public static synchronized void setDevice(final int cudaDeviceId) {
     if (cudaDeviceId < 0) throw new IllegalArgumentException("cudaDeviceId=" + cudaDeviceId);
-    if (cudaDeviceId != getThreadDevice()) {
+    if (cudaDeviceId != getThreadDeviceId()) {
       long startTime = System.nanoTime();
       final int result = JCuda.cudaSetDevice(cudaDeviceId);
       setDevice_execution.accept((System.nanoTime() - startTime) / 1e9);
       log("cudaSetDevice", result, new Object[]{cudaDeviceId});
       CudaSystem.handle(result);
-      CudaSystem.currentDevice.set(cudaDeviceId);
+      CudaSystem.currentDeviceId.set(cudaDeviceId);
     }
   }
+  
   
   private static final Object memoryManagementLock = new Object();
 
@@ -152,7 +153,7 @@ public class CudaDevice extends CudaSystem {
    * @return the ptr
    */
   @Nonnull
-  public CudaMemory getPtr(@Nonnull final CudaTensorList data, @Nonnull final MemoryType memoryType) {
+  public synchronized CudaMemory getPtr(@Nonnull final CudaTensorList data, @Nonnull final MemoryType memoryType) {
     CudaMemory ptr = data.ptr;
     if ((null == ptr || ptr.isFinalized()) && null != data.heapCopy && !data.heapCopy.isFinalized()) {
       CudaMemory newPtr = getPtr(data.heapCopy, data.precision, memoryType);
@@ -348,7 +349,7 @@ public class CudaDevice extends CudaSystem {
    * @return the cuda ptr
    */
   @Nonnull
-  public CudaMemory getPtr(@Nonnull final TensorList data, @Nonnull final Precision precision, final MemoryType memoryType) {
+  public synchronized CudaMemory getPtr(@Nonnull final TensorList data, @Nonnull final Precision precision, final MemoryType memoryType) {
     data.assertAlive();
     if (data instanceof ReshapedTensorList) {
       return getPtr(((ReshapedTensorList) data).getInner(), precision, memoryType);

@@ -63,7 +63,7 @@ public class CudnnTest extends NotebookReportBase {
   }
   
   private void allocationOverflow(@javax.annotation.Nonnull NotebookOutput log) {
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "._log";
+    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + ".log";
     @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
     CudaSystem.addLog(apiLog);
     log.p(log.file((String) null, logName, "GPU Log"));
@@ -102,12 +102,12 @@ public class CudnnTest extends NotebookReportBase {
   }
   
   private void memoryTransfer(@javax.annotation.Nonnull NotebookOutput log) {
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "._log";
+    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + ".log";
     @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
     CudaSystem.addLog(apiLog);
     log.p(log.file((String) null, logName, "GPU Log"));
     int _size = 8;
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 10; i++) {
       int size = _size;
       memoryTransfer(log, size);
       _size = _size + _size / 1;
@@ -163,12 +163,12 @@ public class CudnnTest extends NotebookReportBase {
   }
   
   private void tensorLists(@javax.annotation.Nonnull NotebookOutput log) {
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "._log";
+    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + ".log";
     @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
     CudaSystem.addLog(apiLog);
     log.p(log.file((String) null, logName, "GPU Log"));
     int size = 8;
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 18; i++) {
       log.out("Loop " + i);
       int length = 10;
       int accumulations = 3;
@@ -276,12 +276,12 @@ public class CudnnTest extends NotebookReportBase {
   }
   
   private void tensorLists_multithreaded(@javax.annotation.Nonnull NotebookOutput log) {
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "._log";
+    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + ".log";
     @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
     CudaSystem.addLog(apiLog);
     log.p(log.file((String) null, logName, "GPU Log"));
     int size = 8;
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 12; i++) {
       log.out("Loop " + i);
       int length = 10;
       int accumulations = 100;

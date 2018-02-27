@@ -83,7 +83,7 @@ public class StyleTransferDemo extends ArtistryDemo {
   /**
    * Test.
    *
-   * @param log the _log
+   * @param log the log
    */
   public void run(@javax.annotation.Nonnull NotebookOutput log) {
   
@@ -91,7 +91,7 @@ public class StyleTransferDemo extends ArtistryDemo {
     List<String> target = Arrays.asList("H:\\SimiaCryptus\\Artistry\\portraits\\picasso");
     String input = "H:\\SimiaCryptus\\Artistry\\portraits\\photos\\1280px-Winter_baby_10-months-old.jpg";
   
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "._log";
+    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
   

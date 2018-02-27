@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
- * A y=_log(abs(x)) activation function. Note the discontinuity at 0.
+ * A y=log(abs(x)) activation function. Note the discontinuity at 0.
  */
 @SuppressWarnings("serial")
 public final class LogActivationLayer extends SimpleActivationLayer<LogActivationLayer> {
@@ -47,11 +47,11 @@ public final class LogActivationLayer extends SimpleActivationLayer<LogActivatio
   }
   
   /**
-   * From json _log activation layer.
+   * From json log activation layer.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the _log activation layer
+   * @return the log activation layer
    */
   public static LogActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
     return new LogActivationLayer(json);

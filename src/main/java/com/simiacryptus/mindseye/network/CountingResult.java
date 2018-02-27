@@ -127,6 +127,7 @@ public class CountingResult extends Result {
   
     @Override
     public void accept(DeltaSet<Layer> buffer, @javax.annotation.Nonnull TensorList data) {
+      //assert null == CudaSystem.getThreadHandle();
       assertAlive();
       data.assertAlive();
       if (1 >= references.get()) {
@@ -144,9 +145,7 @@ public class CountingResult extends Result {
             //x.addRef();
             @javax.annotation.Nonnull TensorList compacted = stream.reduce((a, b) -> {
               TensorList c;
-              c = a.add(b);
-              a.freeRef();
-//              c = a.addAndFree(b);
+              c = a.addAndFree(b);
               b.freeRef();
               return c;
             }).get();
@@ -155,13 +154,12 @@ public class CountingResult extends Result {
             passbackBuffers.add(compacted);
           }
           if (accumulations.incrementAndGet() == references.get()) {
+            assert passbackBuffers.stream().distinct().count() == passbackBuffers.size();
             Stream<TensorList> stream = passbackBuffers.stream();
             if (!CoreSettings.INSTANCE.isConservative()) stream = stream.parallel();
             reduced = stream.reduce((a, b) -> {
               TensorList c;
-              c = a.add(b);
-              a.freeRef();
-//              c = a.addAndFree(b);
+              c = a.addAndFree(b);
               b.freeRef();
               return c;
             }).get();

@@ -57,7 +57,7 @@ public class TempDemo extends NotebookReportBase {
   /**
    * Test.
    *
-   * @param log the _log
+   * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
     

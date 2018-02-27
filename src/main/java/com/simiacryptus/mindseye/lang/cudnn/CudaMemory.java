@@ -264,7 +264,9 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
       }
     }
     else {
-      CudaSystem.cudaMemcpy(precision.getPointer(destination), getPtr().withByteOffset((long) offset * precision.size), (long) destination.length * precision.size, cudaMemcpyDeviceToHost);
+      CudaSystem.run(gpu -> {
+        CudaSystem.cudaMemcpy(precision.getPointer(destination), getPtr().withByteOffset((long) offset * precision.size), (long) destination.length * precision.size, cudaMemcpyDeviceToHost);
+      });
       CudaMemory.getGpuStats(type == MemoryType.Managed ? -1 : deviceId).memoryReads.addAndGet((long) destination.length * precision.size);
     }
     return this;

@@ -125,6 +125,14 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     return null == ptr ? -1 : ptr.getDeviceId();
   }
   
+  TensorList _addAndFree(@javax.annotation.Nonnull final TensorList right) {
+    assertAlive();
+    right.assertAlive();
+    TensorList add = add(right);
+    freeRef();
+    return add;
+  }
+  
   @Override
   public synchronized TensorList addAndFree(@javax.annotation.Nonnull final TensorList right) {
     assertAlive();
@@ -134,19 +142,26 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
       freeRef();
       return sum;
     }
+  
     assert length() == right.length();
-    synchronized (this) {
-      if (heapCopy == null) {
-        if (right instanceof CudaTensorList) {
-          @javax.annotation.Nonnull final CudaTensorList nativeRight = (CudaTensorList) right;
-          synchronized (nativeRight) {
-            if (nativeRight.precision == this.precision) {
-              if (nativeRight.heapCopy == null) {
-                assert (!nativeRight.ptr.equals(CudaTensorList.this.ptr));
-                return CudaSystem.eval(gpu -> {
+    if (heapCopy == null) {
+      if (right instanceof CudaTensorList) {
+        @javax.annotation.Nonnull final CudaTensorList nativeRight = (CudaTensorList) right;
+        synchronized (right) {
+          if (nativeRight.precision == this.precision) {
+            if (nativeRight.heapCopy == null) {
+              assert (!nativeRight.ptr.equals(CudaTensorList.this.ptr));
+              // Bug Workaround
+              //if(1==1) return _addAndFree(right);
+              return CudaSystem.eval(gpu -> {
+                if (gpu.getDeviceId() == ptr.getDeviceId()) {
                   return gpu.addInPlace(this, nativeRight);
-                });
-              }
+                }
+                else {
+                  return _addAndFree(right);
+                }
+                //gpu.cudaDeviceSynchronize();
+              });
             }
           }
         }

@@ -79,7 +79,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
   /**
    * Run.
    *
-   * @param log the _log
+   * @param log the log
    */
   public void run(@javax.annotation.Nonnull NotebookOutput log) {
     @javax.annotation.Nonnull final List<Step> history = new ArrayList<>();
@@ -112,7 +112,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
   /**
    * Build model dag network.
    *
-   * @param log the _log
+   * @param log the log
    * @return the dag network
    */
   public DAGNetwork buildModel(@javax.annotation.Nonnull final NotebookOutput log) {
@@ -132,7 +132,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
   /**
    * Get training data tensor [ ] [ ].
    *
-   * @param log the _log
+   * @param log the log
    * @return the tensor [ ] [ ]
    */
   public Tensor[][] getTrainingData(final NotebookOutput log) {
@@ -187,7 +187,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
   /**
    * Report.
    *
-   * @param log            the _log
+   * @param log            the log
    * @param monitoringRoot the monitoring root
    * @param history        the history
    * @param network        the network
@@ -250,7 +250,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
   /**
    * Train.
    *
-   * @param log          the _log
+   * @param log          the log
    * @param network      the network
    * @param trainingData the training data
    * @param monitor      the monitor
@@ -260,7 +260,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
   /**
    * Validate.
    *
-   * @param log     the _log
+   * @param log     the log
    * @param network the network
    */
   public void validate(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer network) {

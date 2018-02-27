@@ -72,7 +72,7 @@ public class CudaSystem {
   /**
    * The constant currentDevice.
    */
-  protected static final ThreadLocal<Integer> currentDevice = new ThreadLocal<Integer>() {
+  protected static final ThreadLocal<Integer> currentDeviceId = new ThreadLocal<Integer>() {
     @javax.annotation.Nonnull
     @Override
     protected Integer initialValue() {
@@ -499,21 +499,13 @@ public class CudaSystem {
   }
   
   /**
-   * Cuda device synchronize int.
+   * Gets device.
    *
-   * @return the int
+   * @return the device
    */
-  public int cudaDeviceSynchronize() {
-    dirty = false;
-    long startTime = System.nanoTime();
-    synchronized (syncLock) {
-      final int result = JCuda.cudaDeviceSynchronize();
-      getThreadHandle().dirty();
-      log("cudaDeviceSynchronize", result, new Object[]{});
-      cudaDeviceSynchronize_execution.accept((System.nanoTime() - startTime) / 1e9);
-      handle(result);
-      return result;
-    }
+  public static int getThreadDeviceId() {
+    final Integer integer = CudaSystem.currentDeviceId.get();
+    return integer == null ? -1 : integer;
   }
   
   /**
@@ -808,14 +800,12 @@ public class CudaSystem {
     return result;
   }
   
-  /**
-   * Gets device.
-   *
-   * @return the device
-   */
-  public static int getThreadDevice() {
-    final Integer integer = CudaSystem.currentDevice.get();
-    return integer == null ? -1 : integer;
+  public static void log(final String method, final Object result, @Nullable final Object[] args) {
+    @Nonnull final String paramString = null == args ? "" : Arrays.stream(args).map(CudaSystem::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
+    final String message = String.format("%.6f @ %s(%d): %s(%s) = %s", (System.nanoTime() - CudaSystem.start) / 1e9, Thread.currentThread().getName(), currentDeviceId.get(), method, paramString, result);
+    try {
+      CudaSystem.apiLog.forEach(apiLog -> CudaSystem.logThread.submit(() -> apiLog.println(message)));
+    } catch (ConcurrentModificationException e) {}
   }
   
   /**
@@ -869,36 +859,8 @@ public class CudaSystem {
     }
   }
   
-  public static void log(final String method, final Object result, @Nullable final Object[] args) {
-    @Nonnull final String paramString = null == args ? "" : Arrays.stream(args).map(CudaSystem::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
-    final String message = String.format("%.6f @ %s(%d): %s(%s) = %s", (System.nanoTime() - CudaSystem.start) / 1e9, Thread.currentThread().getName(), currentDevice.get(), method, paramString, result);
-    try {
-      CudaSystem.apiLog.forEach(apiLog -> CudaSystem.logThread.submit(() -> apiLog.println(message)));
-    } catch (ConcurrentModificationException e) {}
-  }
-  
   /**
-   * Get output dims int [ ].
-   *
-   * @param srcTensorDesc the src tensor desc
-   * @param filterDesc    the filter desc
-   * @param convDesc      the conv desc
-   * @return the int [ ]
-   */
-  @javax.annotation.Nonnull
-  public static int[] getOutputDims(final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc) {
-    long startTime = System.nanoTime();
-    @javax.annotation.Nonnull final int[] tensorOuputDims = new int[4];
-    final int result = JCudnn.cudnnGetConvolutionNdForwardOutputDim(convDesc, srcTensorDesc, filterDesc, tensorOuputDims.length, tensorOuputDims);
-    getOutputDims_execution.accept((System.nanoTime() - startTime) / 1e9);
-    getThreadHandle().dirty();
-    log("cudnnGetConvolutionNdForwardOutputDim", result, new Object[]{convDesc, srcTensorDesc, filterDesc, tensorOuputDims.length, tensorOuputDims});
-    CudaSystem.handle(result);
-    return tensorOuputDims;
-  }
-  
-  /**
-   * Render to _log string.
+   * Render to log string.
    *
    * @param obj the obj
    * @return the string
@@ -928,9 +890,29 @@ public class CudaSystem {
   }
   
   /**
-   * Remove _log boolean.
+   * Get output dims int [ ].
    *
-   * @param apiLog the api _log
+   * @param srcTensorDesc the src tensor desc
+   * @param filterDesc    the filter desc
+   * @param convDesc      the conv desc
+   * @return the int [ ]
+   */
+  @javax.annotation.Nonnull
+  public static int[] getOutputDims(final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc) {
+    long startTime = System.nanoTime();
+    @javax.annotation.Nonnull final int[] tensorOuputDims = new int[4];
+    final int result = JCudnn.cudnnGetConvolutionNdForwardOutputDim(convDesc, srcTensorDesc, filterDesc, tensorOuputDims.length, tensorOuputDims);
+    getOutputDims_execution.accept((System.nanoTime() - startTime) / 1e9);
+    getThreadHandle().dirty();
+    log("cudnnGetConvolutionNdForwardOutputDim", result, new Object[]{convDesc, srcTensorDesc, filterDesc, tensorOuputDims.length, tensorOuputDims});
+    CudaSystem.handle(result);
+    return tensorOuputDims;
+  }
+  
+  /**
+   * Remove log boolean.
+   *
+   * @param apiLog the api log
    * @return the boolean
    */
   public static boolean removeLog(PrintStream apiLog) {
@@ -944,13 +926,13 @@ public class CudaSystem {
    * @param action the action
    */
   public static void withDevice(int n, @javax.annotation.Nonnull Runnable action) {
-    final int currentDevice = getThreadDevice();
+    final int currentDevice = getThreadDeviceId();
     try {
       CudaDevice.setDevice(n);
       action.run();
     } finally {
       if (currentDevice >= 0) CudaDevice.setDevice(currentDevice);
-      else CudaSystem.currentDevice.remove();
+      else CudaSystem.currentDeviceId.remove();
     }
   }
   
@@ -964,14 +946,24 @@ public class CudaSystem {
    */
   public static <T> T withDevice(int deviceId, @javax.annotation.Nonnull Supplier<T> action) {
     assert deviceId >= 0;
-    final int currentDevice = getThreadDevice();
+    final int currentDevice = getThreadDeviceId();
     try {
       CudaDevice.setDevice(deviceId);
       return action.get();
     } finally {
       if (currentDevice >= 0) CudaDevice.setDevice(currentDevice);
-      else CudaSystem.currentDevice.remove();
+      else CudaSystem.currentDeviceId.remove();
     }
+  }
+  
+  /**
+   * Add log.
+   *
+   * @param log the log
+   */
+  public static void addLog(@javax.annotation.Nonnull PrintStream log) {
+    printHeader(log);
+    apiLog.add(log);
   }
   
   /**
@@ -982,23 +974,6 @@ public class CudaSystem {
   public static boolean isEnabled() {
     return 0 < getPool().size();
   }
-  
-  /**
-   * Add _log.
-   *
-   * @param log the _log
-   */
-  public static void addLog(@javax.annotation.Nonnull PrintStream log) {
-    printHeader(log);
-    apiLog.add(log);
-  }
-  
-  /**
-   * Run.
-   *
-   * @param fn the fn
-   */
-  public static void run(@javax.annotation.Nonnull final Consumer<CudnnHandle> fn) {run(fn, true);}
   
   /**
    * Run.
@@ -1016,6 +991,8 @@ public class CudaSystem {
         throw e;
       } catch (@javax.annotation.Nonnull final Exception e) {
         throw new RuntimeException(e);
+      } finally {
+        threadlocal.cudaDeviceSynchronize();
       }
     }
     else {
@@ -1034,6 +1011,13 @@ public class CudaSystem {
       });
     }
   }
+  
+  /**
+   * Run.
+   *
+   * @param fn the fn
+   */
+  public static void run(@javax.annotation.Nonnull final Consumer<CudnnHandle> fn) {run(fn, true);}
   
   /**
    * Call t.
@@ -1057,6 +1041,8 @@ public class CudaSystem {
           throw e;
         } catch (@javax.annotation.Nonnull final Exception e) {
           throw new RuntimeException(e);
+        } finally {
+          threadlocal.cudaDeviceSynchronize();
         }
       }
       else {
@@ -1076,6 +1062,25 @@ public class CudaSystem {
         });
       }
     }
+  }
+  
+  /**
+   * Cuda device synchronize int.
+   *
+   * @return the int
+   */
+  public int cudaDeviceSynchronize() {
+    if (!dirty) return cudnnStatus.CUDNN_STATUS_SUCCESS;
+    dirty = false;
+    long startTime = System.nanoTime();
+    final int result = JCuda.cudaDeviceSynchronize();
+    getThreadHandle().dirty();
+    log("cudaDeviceSynchronize", result, new Object[]{});
+    cudaDeviceSynchronize_execution.accept((System.nanoTime() - startTime) / 1e9);
+    handle(result);
+    return result;
+//    synchronized (syncLock) {
+//    }
   }
   
   public static CudnnHandle getThreadHandle() {

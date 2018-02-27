@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
-import com.simiacryptus.mindseye.lang.cudnn.CudnnHandle;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
@@ -56,7 +55,7 @@ public abstract class CuDNNLayerTestBase extends LayerTestBase {
   
   @Override
   public void run(NotebookOutput log) {
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all._log";
+    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all.log";
     log.p(log.file((String) null, logName, "GPU Log"));
     @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
     CudaSystem.addLog(apiLog);
@@ -84,7 +83,7 @@ public abstract class CuDNNLayerTestBase extends LayerTestBase {
       public ToleranceStatistics test(@javax.annotation.Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
         @Nullable PrintStream apiLog = null;
         try {
-          @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_io._log";
+          @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_io.log";
           log.p(log.file((String) null, logName, "GPU Log"));
           apiLog = new PrintStream(log.file(logName));
           CudaSystem.addLog(apiLog);
@@ -114,7 +113,7 @@ public abstract class CuDNNLayerTestBase extends LayerTestBase {
       public ToleranceStatistics test(@javax.annotation.Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
         @Nullable PrintStream apiLog = null;
         try {
-          @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_perf._log";
+          @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_perf.log";
           log.p(log.file((String) null, logName, "GPU Log"));
           apiLog = new PrintStream(log.file(logName));
           CudaSystem.addLog(apiLog);

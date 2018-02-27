@@ -204,7 +204,7 @@ public abstract class SimpleConvolutionLayerTest extends CuDNNLayerTestBase {
     
     @Override
     public void run(NotebookOutput log) {
-      @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all._log";
+      @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all.log";
       log.p(log.file((String) null, logName, "GPU Log"));
       @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
       CudaSystem.addLog(apiLog);

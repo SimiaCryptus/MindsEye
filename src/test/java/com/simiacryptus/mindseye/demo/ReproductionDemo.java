@@ -75,7 +75,7 @@ public class ReproductionDemo extends ArtistryDemo {
   /**
    * Test.
    *
-   * @param log the _log
+   * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
     init();

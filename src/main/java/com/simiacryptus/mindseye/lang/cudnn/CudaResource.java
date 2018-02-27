@@ -65,11 +65,11 @@ public class CudaResource<T> extends CudaResourceBase<T> {
   
   public void release() {
     try {
-      CudaSystem.withDevice(deviceId, () -> {
-        if (isActiveObj()) {
+      if (isActiveObj()) {
+        CudaSystem.withDevice(deviceId, () -> {
           CudaSystem.handle(this.destructor.applyAsInt(ptr));
-        }
-      });
+        });
+      }
     } catch (@javax.annotation.Nonnull final Throwable e) {
       CudaResource.logger.debug("Error freeing resource " + this, e);
     }

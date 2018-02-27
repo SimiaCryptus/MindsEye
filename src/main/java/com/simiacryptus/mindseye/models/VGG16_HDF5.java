@@ -40,7 +40,7 @@ import javax.annotation.Nonnull;
 public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
   
   /**
-   * The constant _log.
+   * The constant log.
    */
   protected static final Logger log = LoggerFactory.getLogger(VGG16_HDF5.class);
   public final PipelineNetwork pipelineNetwork = new PipelineNetwork();

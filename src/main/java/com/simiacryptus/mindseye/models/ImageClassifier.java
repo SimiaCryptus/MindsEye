@@ -56,7 +56,7 @@ import java.util.stream.IntStream;
 public abstract class ImageClassifier implements NetworkFactory {
   
   /**
-   * The constant _log.
+   * The constant log.
    */
   protected static final Logger log = LoggerFactory.getLogger(ImageClassifier.class);
   protected volatile Layer network;

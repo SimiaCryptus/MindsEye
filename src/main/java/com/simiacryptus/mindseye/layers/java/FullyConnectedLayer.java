@@ -407,10 +407,10 @@ public class FullyConnectedLayer extends LayerBase {
   }
   
   /**
-   * Sets weights _log.
+   * Sets weights log.
    *
    * @param value the value
-   * @return the weights _log
+   * @return the weights log
    */
   @javax.annotation.Nonnull
   public FullyConnectedLayer setWeightsLog(final double value) {

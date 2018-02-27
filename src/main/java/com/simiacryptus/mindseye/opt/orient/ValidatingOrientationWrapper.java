@@ -94,7 +94,7 @@ public class ValidatingOrientationWrapper extends OrientationStrategyBase<LineSe
     @Override
     public LineSearchPoint step(final double alpha, @javax.annotation.Nonnull final TrainingMonitor monitor) {
       final LineSearchPoint primaryPoint = cursor.step(alpha, monitor);
-      //monitor._log(String.format("f(%s) = %s",alpha, primaryPoint.point.value));
+      //monitor.log(String.format("f(%s) = %s",alpha, primaryPoint.point.value));
       test(monitor, primaryPoint, 1e-3);
       test(monitor, primaryPoint, 1e-4);
       test(monitor, primaryPoint, 1e-6);

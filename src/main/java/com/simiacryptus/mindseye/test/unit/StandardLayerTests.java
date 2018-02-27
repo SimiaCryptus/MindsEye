@@ -331,7 +331,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   /**
    * Test.
    *
-   * @param log the _log
+   * @param log the log
    */
   public void run(@javax.annotation.Nonnull final NotebookOutput log) {
     long seed = (long) (Math.random() * Long.MAX_VALUE);
@@ -471,7 +471,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   /**
    * Monte carlo.
    *
-   * @param log the _log
+   * @param log the log
    */
   public void monteCarlo(@javax.annotation.Nonnull final NotebookOutput log) {
     long timeout = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(3);
@@ -500,7 +500,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   /**
    * Standard tests array list.
    *
-   * @param log  the _log
+   * @param log  the log
    * @param seed the seed
    * @return the array list
    */
@@ -528,7 +528,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   /**
    * Big tests.
    *
-   * @param log        the _log
+   * @param log        the log
    * @param seed       the seed
    * @param perfLayer  the perf layer
    * @param exceptions the exceptions

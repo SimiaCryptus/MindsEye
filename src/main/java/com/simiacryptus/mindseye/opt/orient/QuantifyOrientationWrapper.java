@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * An orientation wrapper which adds additional _log statements.
+ * An orientation wrapper which adds additional log statements.
  */
 public class QuantifyOrientationWrapper extends OrientationStrategyBase<LineSearchCursor> {
   
