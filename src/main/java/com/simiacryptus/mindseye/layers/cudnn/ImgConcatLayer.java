@@ -136,7 +136,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
         }
       });
       CudaDevice.CudaTensorDescriptor outDesc = gpu.newTensorDescriptor(precision.code, length, outputDimensions[2], outputDimensions[1], outputDimensions[0]);
-      return CudaTensorList.wrap(CudaTensor.wrap(cudaOutput, outDesc), length, outputDimensions, precision);
+      return CudaTensorList.wrap(CudaTensor.wrap(cudaOutput, outDesc, precision), length, outputDimensions, precision);
     }), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       if (!Arrays.equals(delta.getDimensions(), outputDimensions)) {
         throw new AssertionError(Arrays.toString(delta.getDimensions()) + " != " + Arrays.toString(outputDimensions));
@@ -171,7 +171,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
               precision.getPointer(0.0), inputDescriptor.getPtr(), cudaBackprop.getPtr()
             );
             Arrays.stream(new ReferenceCounting[]{cudaDelta, outputDescriptor}).forEach(ReferenceCounting::freeRef);
-            return CudaTensorList.wrap(CudaTensor.wrap(cudaBackprop, inputDescriptor), length, inputDimensions, precision);
+            return CudaTensorList.wrap(CudaTensor.wrap(cudaBackprop, inputDescriptor, precision), length, inputDimensions, precision);
           });
           input.accumulate(buffer, passbackTensorList);
         }

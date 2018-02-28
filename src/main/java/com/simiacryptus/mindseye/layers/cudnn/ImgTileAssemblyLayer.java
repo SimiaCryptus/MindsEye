@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.*;
-import jcuda.jcudnn.cudnnTensorDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -142,7 +141,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       if (!CoreSettings.INSTANCE.isConservative() && parallel) stream = stream.parallel();
       stream.forEach(this::copy);
       CudaDevice.CudaTensorDescriptor descriptor = gpu.newTensorDescriptor(precision.code, length, outputDims[2], outputDims[1], outputDims[0]);
-      CudaTensor ptr = CudaTensor.wrap(outputBuffer, descriptor);
+      CudaTensor ptr = CudaTensor.wrap(outputBuffer, descriptor, precision);
       return CudaTensorList.wrap(ptr, length, outputDims, precision);
     });
     
@@ -207,7 +206,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       errorPtr.freeRef();
   
       CudaDevice.CudaTensorDescriptor descriptor = gpu.newTensorDescriptor(precision.code, backpropParams.getLength(), tileDimensions[2], tileDimensions[1], tileDimensions[0]);
-      CudaTensor ptr = CudaTensor.wrap(passbackBuffer, descriptor);
+      CudaTensor ptr = CudaTensor.wrap(passbackBuffer, descriptor, precision);
       
       return CudaTensorList.wrap(ptr, backpropParams.getLength(), tileDimensions, precision);
     });

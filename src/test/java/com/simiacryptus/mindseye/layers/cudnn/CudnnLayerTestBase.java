@@ -27,7 +27,7 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.ComponentTestBase;
-import com.simiacryptus.mindseye.test.unit.GpuLocalityTester;
+import com.simiacryptus.mindseye.test.unit.CudaDataTester;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nullable;
@@ -37,19 +37,19 @@ import java.util.ArrayList;
 /**
  * The type Cudnn layer eval base.
  */
-public abstract class CuDNNLayerTestBase extends LayerTestBase {
+public abstract class CudnnLayerTestBase extends LayerTestBase {
   
   /**
    * Instantiates a new Cudnn layer eval base.
    */
-  public CuDNNLayerTestBase() {
+  public CudnnLayerTestBase() {
   }
   
   @javax.annotation.Nonnull
   @Override
   public ArrayList<ComponentTest<?>> getBigTests() {
     @javax.annotation.Nonnull ArrayList<ComponentTest<?>> copy = new ArrayList<>(super.getBigTests());
-    if (CudaSystem.getPool().size() > 1) copy.add(new GpuLocalityTester(1e-3));
+    if (CudaSystem.getPool().size() > 1) copy.add(new CudaDataTester(1e-3));
     return copy;
   }
   

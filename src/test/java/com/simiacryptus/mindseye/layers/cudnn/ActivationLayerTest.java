@@ -39,7 +39,7 @@ import java.util.stream.IntStream;
 /**
  * The type Activation layer run.
  */
-public abstract class ActivationLayerTest extends CuDNNLayerTestBase {
+public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   
   /**
    * The Mode.

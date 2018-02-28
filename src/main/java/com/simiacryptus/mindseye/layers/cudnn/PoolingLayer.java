@@ -25,7 +25,6 @@ import com.simiacryptus.mindseye.lang.cudnn.*;
 import jcuda.Pointer;
 import jcuda.jcudnn.cudnnPoolingDescriptor;
 import jcuda.jcudnn.cudnnPoolingMode;
-import jcuda.jcudnn.cudnnTensorDescriptor;
 import jcuda.jcudnn.cudnnTensorFormat;
 
 import javax.annotation.Nonnull;
@@ -132,7 +131,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
           beta,
           outputDescriptor.getPtr(), outputTensor.getPtr()));
         Arrays.stream(new ReferenceCounting[]{inputData, poolingDesc}).forEach(ReferenceCounting::freeRef);
-        return CudaTensor.wrap(outputTensor, outputDescriptor);
+        return CudaTensor.wrap(outputTensor, outputDescriptor, precision);
       } catch (@javax.annotation.Nonnull final Throwable e) {
         throw new ComponentException("Error", e);
       }
@@ -159,7 +158,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
               beta,
               passbackDescriptor.getPtr(), passbackBuffer.getPtr()));
             Arrays.stream(new ReferenceCounting[]{errorPtr, inputData, poolingDesc}).forEach(ReferenceCounting::freeRef);
-            return CudaTensorList.wrap(CudaTensor.wrap(passbackBuffer, passbackDescriptor), length, inputSize, precision);
+            return CudaTensorList.wrap(CudaTensor.wrap(passbackBuffer, passbackDescriptor, precision), length, inputSize, precision);
           });
           input.accumulate(buffer, data);
         }

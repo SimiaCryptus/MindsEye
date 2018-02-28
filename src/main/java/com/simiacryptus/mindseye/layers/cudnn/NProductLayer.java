@@ -122,7 +122,7 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
           precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
         Arrays.stream(new ReferenceCounting[]{lPtr, rPtr, l, r}).forEach(ReferenceCounting::freeRef);
         outputDescriptor.addRef();
-        return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor), length, dimensions, precision);
+        return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor, precision), length, dimensions, precision);
       }).get();
       Arrays.stream(new ReferenceCounting[]{opDescriptor, outputDescriptor}).forEach(ReferenceCounting::freeRef);
       return result1;
@@ -150,7 +150,7 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
                 precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtr.memory.getPtr(),
                 precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
               Arrays.stream(new ReferenceCounting[]{lPtr, rPtr, opDescriptor, l, r}).forEach(ReferenceCounting::freeRef);
-              return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor), length, dimensions, precision);
+              return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor, precision), length, dimensions, precision);
             });
           }).get();
           input.accumulate(buffer, data);

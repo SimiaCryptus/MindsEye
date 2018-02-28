@@ -22,7 +22,10 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.*;
-import jcuda.jcudnn.*;
+import jcuda.jcudnn.JCudnn;
+import jcuda.jcudnn.cudnnOpTensorDescriptor;
+import jcuda.jcudnn.cudnnOpTensorOp;
+import jcuda.jcudnn.cudnnTensorFormat;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -114,7 +117,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
       rPtr.freeRef();
       lPtr.freeRef();
       opDescriptor.freeRef();
-      CudaTensor cudaTensor = CudaTensor.wrap(outputPtr, outputDescriptor);
+      CudaTensor cudaTensor = CudaTensor.wrap(outputPtr, outputDescriptor, precision);
       return CudaTensorList.wrap(cudaTensor, length, leftDimensions, precision);
     }), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       for (int index = 0; index < inObj.length; index++) {
@@ -131,7 +134,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
               precision.getPointer(1.0), deltaPtr.descriptor.getPtr(), deltaPtr.memory.getPtr(),
               precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtr.memory.getPtr(),
               precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
-            CudaTensor cudaTensor = new CudaTensor(outputPtr, outputDescriptor);
+            CudaTensor cudaTensor = new CudaTensor(outputPtr, outputDescriptor, precision);
             Arrays.stream(new ReferenceCounting[]{deltaPtr, rPtr, opDescriptor, outputDescriptor}).forEach(ReferenceCounting::freeRef);
             outputPtr.freeRef();
             return CudaTensorList.wrap(cudaTensor, length, leftDimensions, precision);

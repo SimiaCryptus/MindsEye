@@ -127,7 +127,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
       @Nonnull final CudaMemory outputBuffer = gpu.allocate((long) length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size, MemoryType.Managed, dirty);
       CudaDevice.CudaTensorDescriptor cudnnTensorDescriptorCudaResource = copy(gpu, length, dimIn, inputBuffer.memory, dimOut, outputBuffer, this.positionX, this.positionY);
       Arrays.stream(new ReferenceCounting[]{inputBuffer}).forEach(ReferenceCounting::freeRef);
-      return CudaTensorList.wrap(CudaTensor.wrap(outputBuffer, cudnnTensorDescriptorCudaResource), length, dimOut, precision);
+      return CudaTensorList.wrap(CudaTensor.wrap(outputBuffer, cudnnTensorDescriptorCudaResource, precision), length, dimOut, precision);
     });
     return new Result(outputData, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
       if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
@@ -144,7 +144,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
           @Nonnull final CudaMemory passbackBuffer = gpu.allocate((long) (length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size), MemoryType.Managed, dirty);
           CudaDevice.CudaTensorDescriptor descriptorCudaResource = copy(gpu, length, dimOut, errorPtr.memory, dimIn, passbackBuffer, -this.positionX, -this.positionY);
           Arrays.stream(new ReferenceCounting[]{errorPtr}).forEach(ReferenceCounting::freeRef);
-          return CudaTensorList.wrap(CudaTensor.wrap(passbackBuffer, descriptorCudaResource), length, dimIn, precision);
+          return CudaTensorList.wrap(CudaTensor.wrap(passbackBuffer, descriptorCudaResource, precision), length, dimIn, precision);
         });
         in.accumulate(buffer, passbackTensorList);
       }

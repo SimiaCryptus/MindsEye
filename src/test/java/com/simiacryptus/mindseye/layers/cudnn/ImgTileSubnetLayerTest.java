@@ -27,7 +27,7 @@ import java.util.Random;
 /**
  * The type Rascaled subnet layer eval.
  */
-public abstract class ImgTileSubnetLayerTest extends CuDNNLayerTestBase {
+public abstract class ImgTileSubnetLayerTest extends CudnnLayerTestBase {
   
   private final ConvolutionLayer convolutionLayer = new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random());
   

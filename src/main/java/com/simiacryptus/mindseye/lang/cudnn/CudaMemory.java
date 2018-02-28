@@ -260,7 +260,7 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
   @javax.annotation.Nonnull
   public CudaMemory read(@javax.annotation.Nonnull final Precision precision, @javax.annotation.Nonnull final double[] destination, int offset) {
     if (size < offset + (long) destination.length * precision.size) {
-      throw new IllegalArgumentException(size + " != " + destination.length * 1l * precision.size);
+      throw new IllegalArgumentException(String.format("%d != %d + %d", size, (long) destination.length * precision.size, offset));
     }
     if (precision == Precision.Float) {
       @Nonnull float[] data = new float[destination.length];

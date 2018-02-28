@@ -33,7 +33,7 @@ import java.util.stream.IntStream;
 /**
  * The type Img concat layer run.
  */
-public abstract class ImgConcatLayerTest extends CuDNNLayerTestBase {
+public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
   
   /**
    * The Precision.

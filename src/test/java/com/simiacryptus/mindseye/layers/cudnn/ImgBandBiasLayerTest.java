@@ -28,7 +28,7 @@ import java.util.Random;
 /**
  * The type Img band bias layer run.
  */
-public abstract class ImgBandBiasLayerTest extends CuDNNLayerTestBase {
+public abstract class ImgBandBiasLayerTest extends CudnnLayerTestBase {
   
   /**
    * The Precision.

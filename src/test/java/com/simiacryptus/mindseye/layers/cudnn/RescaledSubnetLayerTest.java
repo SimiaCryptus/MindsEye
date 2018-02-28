@@ -32,7 +32,7 @@ import java.util.Random;
 /**
  * The type Rescaled subnet layer run.
  */
-public abstract class RescaledSubnetLayerTest extends LayerTestBase // CuDNNLayerTestBase
+public abstract class RescaledSubnetLayerTest extends LayerTestBase // CudnnLayerTestBase
 {
   
   /**

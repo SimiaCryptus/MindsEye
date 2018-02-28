@@ -384,7 +384,7 @@ public class CudaDevice extends CudaSystem {
     }
     @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor descriptor = newTensorDescriptor(
       precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, data.length(), inputSize.length < 3 ? 1 : inputSize[2], inputSize.length < 2 ? 1 : inputSize[1], inputSize.length < 1 ? 1 : inputSize[0]);
-    return CudaTensor.wrap(ptr, descriptor);
+    return CudaTensor.wrap(ptr, descriptor, precision);
   }
   
   /**

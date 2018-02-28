@@ -262,7 +262,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
         inputBuffer.freeRef();
         filterPtr.freeRef();
         cudaParameters.outputDescriptor.addRef();
-        return CudaTensorList.wrap(CudaTensor.wrap(outputBuffer, cudaParameters.outputDescriptor), length, cudaParameters.outputDims, precision);
+        return CudaTensorList.wrap(CudaTensor.wrap(outputBuffer, cudaParameters.outputDescriptor, precision), length, cudaParameters.outputDims, precision);
       } catch (@javax.annotation.Nonnull final Throwable e) {
         throw new ComponentException(String.format("Error in convolution %s x %s", Arrays.toString(inputSize), Arrays.toString(kernelSize)), e);
       } finally {
@@ -322,7 +322,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
                   cudaParameters.backwardsDataWorkSpace.size,
                   precision.getPointer(0.0), cudaParameters.inputDescriptor.getPtr(), inputBuffer.getPtr()));
                 cudaParameters.inputDescriptor.addRef();
-                return CudaTensorList.wrap(CudaTensor.wrap(inputBuffer, cudaParameters.inputDescriptor), length, inputSize, precision);
+                return CudaTensorList.wrap(CudaTensor.wrap(inputBuffer, cudaParameters.inputDescriptor, precision), length, inputSize, precision);
               } finally {
                 filterPtr.freeRef();
                 errorPtr.freeRef();

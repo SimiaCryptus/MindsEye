@@ -125,7 +125,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
       @javax.annotation.Nonnull final CudaMemory outputBuffer = gpu.allocate((long) length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size, MemoryType.Managed, dirty);
       CudaDevice.CudaTensorDescriptor descriptorCudaResource = copy(gpu, length, dimIn, inputBuffer, dimOut, outputBuffer);
       Arrays.stream(new ReferenceCounting[]{inputBuffer}).forEach(ReferenceCounting::freeRef);
-      return CudaTensorList.wrap(CudaTensor.wrap(outputBuffer, descriptorCudaResource), length, dimOut, precision);
+      return CudaTensorList.wrap(CudaTensor.wrap(outputBuffer, descriptorCudaResource, precision), length, dimOut, precision);
     });
     return new Result(outputData, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
@@ -142,7 +142,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
           @javax.annotation.Nonnull final CudaMemory passbackBuffer = gpu.allocate((long) (length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size), MemoryType.Managed, dirty);
           CudaDevice.CudaTensorDescriptor descriptorCudaResource = copy(gpu, length, dimOut, errorPtr, dimIn, passbackBuffer);
           Arrays.stream(new ReferenceCounting[]{errorPtr}).forEach(ReferenceCounting::freeRef);
-          return CudaTensorList.wrap(CudaTensor.wrap(passbackBuffer, descriptorCudaResource), length, dimIn, precision);
+          return CudaTensorList.wrap(CudaTensor.wrap(passbackBuffer, descriptorCudaResource, precision), length, dimIn, precision);
         });
         in.accumulate(buffer, passbackTensorList);
       }

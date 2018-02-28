@@ -1015,7 +1015,7 @@ public class CudaSystem {
         } finally {
           gpu.cleanup();
         }
-      }, getHandlePredicate(hints));
+      }, getPreferencePredicate(hints));
     }
   }
   
@@ -1058,18 +1058,21 @@ public class CudaSystem {
           } finally {
             gpu.cleanup();
           }
-        }, getHandlePredicate(hints));
+        }, getPreferencePredicate(hints));
       }
     }
   }
   
-  public static Predicate<CudnnHandle> getHandlePredicate(final Object[] hints) {
+  public static Predicate<CudnnHandle> getPreferencePredicate(final Object[] hints) {
     Set<Integer> devices = Arrays.stream(hints).map(hint -> {
       if (hint instanceof Result) {
         TensorList data = ((Result) hint).getData();
         if (data instanceof CudaTensorList) {
           return ((CudaTensorList) data).ptr.memory.getDeviceId();
         }
+      }
+      else if (hint instanceof Integer) {
+        return (Integer) hint;
       }
       return null;
     }).filter(x -> x != null).collect(Collectors.toSet());

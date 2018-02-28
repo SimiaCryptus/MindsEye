@@ -73,7 +73,12 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     this.ptr.addRef();
     this.length = length;
     this.dimensions = Arrays.copyOf(dimensions, dimensions.length);
-    assert ptr.memory.size == (long) length * Tensor.length(dimensions) * precision.size;
+    assert ptr.memory.size >= (long) length * Tensor.length(dimensions) * precision.size;
+    assert ptr.descriptor.batchCount == length;
+    assert ptr.descriptor.channels == dimensions[2];
+    assert ptr.descriptor.height == dimensions[1];
+    assert ptr.descriptor.width == dimensions[0];
+    assert ptr.precision == precision;
     assert ptr.memory.getPtr() != null;
     //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
   }
@@ -132,7 +137,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    * @return the cuda tensor list
    */
   public static CudaTensorList create(final CudaMemory ptr, CudaDevice.CudaTensorDescriptor descriptor, final int length, @javax.annotation.Nonnull final int[] dimensions, @javax.annotation.Nonnull final Precision precision) {
-    CudaTensor cudaTensor = new CudaTensor(ptr, descriptor);
+    CudaTensor cudaTensor = new CudaTensor(ptr, descriptor, precision);
     CudaTensorList cudaTensorList = new CudaTensorList(cudaTensor, length, dimensions, precision);
     cudaTensor.freeRef();
     return cudaTensorList;
@@ -273,8 +278,21 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
             .mapToObj(dataIndex -> new Tensor(getDimensions()))
             .toArray(i -> new Tensor[i]);
           CudnnHandle.run(gpu -> {
-            for (int i = 0; i < getLength(); i++) {
-              ptr.memory.read(precision, output[i].getData(), i * itemLength);
+            CudaTensor ptr = this.ptr;
+            if (!ptr.isDense()) {
+              ptr = ptr.getDense(gpu);
+              gpu.cudaDeviceSynchronize();
+            }
+            else {
+              ptr.addRef();
+            }
+            assert ptr.isDense();
+            try {
+              for (int i = 0; i < getLength(); i++) {
+                ptr.memory.read(precision, output[i].getData(), i * itemLength);
+              }
+            } finally {
+              ptr.freeRef();
             }
           });
           heapCopy = TensorArray.wrap(output);
@@ -312,7 +330,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
       CudaTensor ptr = gpu.getTensor(this, MemoryType.Managed);
       CudaMemory copyPtr = ptr.memory.copy(gpu, MemoryType.Managed);
       try {
-        CudaTensor cudaTensor = new CudaTensor(copyPtr, ptr.descriptor);
+        CudaTensor cudaTensor = new CudaTensor(copyPtr, ptr.descriptor, precision);
         CudaTensorList cudaTensorList = new CudaTensorList(cudaTensor, getLength(), getDimensions(), precision);
         cudaTensor.freeRef();
         return cudaTensorList;

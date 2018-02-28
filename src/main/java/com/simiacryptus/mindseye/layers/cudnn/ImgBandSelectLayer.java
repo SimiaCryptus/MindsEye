@@ -115,7 +115,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
         precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr()
       );
       Arrays.stream(new ReferenceCounting[]{cudaInput, inputDescriptor}).forEach(ReferenceCounting::freeRef);
-      CudaTensor cudaTensor = CudaTensor.wrap(cudaOutput, outputDescriptor);
+      CudaTensor cudaTensor = CudaTensor.wrap(cudaOutput, outputDescriptor, precision);
       return CudaTensorList.wrap(cudaTensor, length, outputDimensions, precision);
     }), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       if (!Arrays.equals(error.getDimensions(), outputDimensions)) {
@@ -133,7 +133,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
             precision.getPointer(1.0), errorPtr.descriptor.getPtr(), errorPtr.memory.getPtr(),
             precision.getPointer(0.0), inputDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
           );
-          CudaTensor cudaTensor = CudaTensor.wrap(passbackBuffer, inputDescriptor);
+          CudaTensor cudaTensor = CudaTensor.wrap(passbackBuffer, inputDescriptor, precision);
           Arrays.stream(new ReferenceCounting[]{errorPtr}).forEach(ReferenceCounting::freeRef);
           return CudaTensorList.wrap(cudaTensor, length, inputDimensions, precision);
           //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));

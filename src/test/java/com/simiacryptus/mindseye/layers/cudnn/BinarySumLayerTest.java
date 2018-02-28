@@ -32,7 +32,7 @@ import java.util.stream.IntStream;
 /**
  * The type BinarySumLayerTest layer run.
  */
-public abstract class BinarySumLayerTest extends CuDNNLayerTestBase {
+public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
   
   /**
    * The Precision.
@@ -94,7 +94,7 @@ public abstract class BinarySumLayerTest extends CuDNNLayerTestBase {
   /**
    * Ensures addition can be used to implement a doubling (x2) function
    */
-  public static class OnePlusOne extends CuDNNLayerTestBase {
+  public static class OnePlusOne extends CudnnLayerTestBase {
   
     /**
      * Instantiates a new Asymmetric run.

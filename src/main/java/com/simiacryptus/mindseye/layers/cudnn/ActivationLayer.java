@@ -130,16 +130,14 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
             precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
           @javax.annotation.Nonnull final CudaMemory outputData =
             gpu.allocate(precision.size * 1l * inputDims * length, MemoryType.Managed, true);
-          outputTensor = CudaTensor.wrap(outputData, outputDescriptor);
+          outputTensor = CudaTensor.wrap(outputData, outputDescriptor, precision);
         }
   
         @javax.annotation.Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = gpu.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
         try {
           CudaSystem.handle(gpu.cudnnActivationForward(activationDesc.getPtr(),
-            precision.getPointer(1.0),
-            inputTensor.descriptor.getPtr(), inputTensor.memory.getPtr(),
-            precision.getPointer(0.0),
-            outputTensor.descriptor.getPtr(), outputTensor.memory.getPtr()));
+            precision.getPointer(1.0), inputTensor.descriptor.getPtr(), inputTensor.memory.getPtr(),
+            precision.getPointer(0.0), outputTensor.descriptor.getPtr(), outputTensor.memory.getPtr()));
           return outputTensor;
         } catch (@javax.annotation.Nonnull final Throwable e) {
           throw new ComponentException("Error with " + Arrays.toString(inputSize), e);

@@ -118,7 +118,7 @@ public class CudnnHandle extends CudaDevice {
         precision.getPointer(1.0), outputDescriptor.getPtr(), lPtr.memory.getPtr(),
         precision.getPointer(1.0), outputDescriptor.getPtr(), rPtr.memory.getPtr(),
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr());
-      return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor), length, dimensions, precision);
+      return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor, precision), length, dimensions, precision);
     } finally {
       opDescriptor.freeRef();
       rPtr.freeRef();
@@ -173,9 +173,9 @@ public class CudnnHandle extends CudaDevice {
     assert Tensor.length(left.getDimensions()) == Tensor.length(right.getDimensions());
     int length = left.length();
     assert length == right.length();
-    if (left.currentRefCount() == 1 && left instanceof CudaTensorList)
+    if (left.currentRefCount() == 1 && left instanceof CudaTensorList && ((CudaTensorList) left).ptr.memory.getDeviceId() == getDeviceId())
       return this.addInPlaceAndFree((CudaTensorList) left, right);
-    if (right.currentRefCount() == 1 && right instanceof CudaTensorList)
+    if (right.currentRefCount() == 1 && right instanceof CudaTensorList && ((CudaTensorList) left).ptr.memory.getDeviceId() == getDeviceId())
       return this.addInPlaceAndFree((CudaTensorList) right, left);
     @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
     @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = newTensorDescriptor(
@@ -189,7 +189,7 @@ public class CudnnHandle extends CudaDevice {
       precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtr.memory.getPtr(),
       precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr());
     Arrays.stream(new ReferenceCounting[]{lPtr, rPtr, opDescriptor, left, right}).forEach(ReferenceCounting::freeRef);
-    return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor), length, dimensions, precision);
+    return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor, precision), length, dimensions, precision);
   }
   
   

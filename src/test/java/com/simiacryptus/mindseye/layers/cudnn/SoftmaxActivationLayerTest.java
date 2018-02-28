@@ -26,7 +26,7 @@ import java.util.Random;
 /**
  * The type Softmax activation layer eval.
  */
-public abstract class SoftmaxActivationLayerTest extends CuDNNLayerTestBase {
+public abstract class SoftmaxActivationLayerTest extends CudnnLayerTestBase {
   
   @javax.annotation.Nonnull
   @Override

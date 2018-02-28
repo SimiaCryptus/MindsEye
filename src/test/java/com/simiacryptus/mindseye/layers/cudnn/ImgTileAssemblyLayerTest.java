@@ -28,7 +28,7 @@ import java.util.Random;
 /**
  * The type Img crop layer eval.
  */
-public abstract class ImgTileAssemblyLayerTest extends CuDNNLayerTestBase {
+public abstract class ImgTileAssemblyLayerTest extends CudnnLayerTestBase {
   
   /**
    * Instantiates a new Img crop layer eval.

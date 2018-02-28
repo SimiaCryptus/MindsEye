@@ -145,7 +145,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
         precision.getPointer(leftFactor), lPtr.descriptor.getPtr(), lPtr.memory.getPtr(),
         precision.getPointer(rightFactor), rPtr.descriptor.getPtr(), rPtr.memory.getPtr(),
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr());
-      CudaTensor cudaTensor = new CudaTensor(outputPtr, outputDescriptor);
+      CudaTensor cudaTensor = new CudaTensor(outputPtr, outputDescriptor, precision);
       outputPtr.freeRef();
       Arrays.stream(new ReferenceCounting[]{opDescriptor, outputDescriptor, lPtr, rPtr}).forEach(ReferenceCounting::freeRef);
       return CudaTensorList.wrap(cudaTensor, length, dimensions, precision);
@@ -161,7 +161,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
             gpu.cudnnAddTensor(
               precision.getPointer(leftFactor), lPtr.descriptor.getPtr(), lPtr.memory.getPtr(),
               precision.getPointer(0.0), outputDesriptor.getPtr(), outputPtr.getPtr());
-            CudaTensor cudaTensor = CudaTensor.wrap(outputPtr, outputDesriptor);
+            CudaTensor cudaTensor = CudaTensor.wrap(outputPtr, outputDesriptor, precision);
             lPtr.freeRef();
             return CudaTensorList.wrap(cudaTensor, length, dimensions, precision);
           });
@@ -178,7 +178,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
             gpu.cudnnAddTensor(
               precision.getPointer(rightFactor), lPtr.descriptor.getPtr(), lPtr.memory.getPtr(),
               precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr());
-            CudaTensor cudaTensor = CudaTensor.wrap(outputPtr, sizeDescriptor);
+            CudaTensor cudaTensor = CudaTensor.wrap(outputPtr, sizeDescriptor, precision);
             lPtr.freeRef();
             return CudaTensorList.wrap(cudaTensor, length, dimensions, precision);
           });
