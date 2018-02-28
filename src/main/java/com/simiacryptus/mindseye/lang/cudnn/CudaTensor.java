@@ -82,6 +82,13 @@ public class CudaTensor extends ReferenceCountingBase {
     return wrap;
   }
   
+  public CudaTensor getDenseAndFree(CudnnHandle gpu) {
+    if (isDense()) return this;
+    CudaTensor dense = getDense(gpu);
+    freeRef();
+    return dense;
+  }
+  
   public CudaTensor getDense(CudnnHandle gpu) {
     CudaDevice.CudaTensorDescriptor sourceDescriptor = gpu.newTensorDescriptor(
       precision.code, this.descriptor.batchCount, this.descriptor.channels, this.descriptor.height, this.descriptor.width,

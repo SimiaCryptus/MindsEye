@@ -81,7 +81,7 @@ public class CudaDevice extends CudaSystem {
    * @param devPtr   the dev ptr
    * @return the int
    */
-  public static int cudaFree(int deviceId, final Pointer devPtr) {
+  public static synchronized int cudaFree(int deviceId, final Pointer devPtr) {
     long startTime = System.nanoTime();
     if (null == devPtr) return 0;
     Supplier<Integer> fn = () -> {

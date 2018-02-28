@@ -225,9 +225,17 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
       precision.getPointer(0.0),
       destinationViewDescriptor.getPtr(), destination.getPtr().withByteOffset(destinationOffset * precision.size)
     ));
-    Arrays.stream(new ReferenceCounting[]{sourceViewDescriptor}).forEach(ReferenceCounting::freeRef);
-    return destinationViewDescriptor;
-    
+    Arrays.stream(new ReferenceCounting[]{sourceViewDescriptor, destinationViewDescriptor}).forEach(ReferenceCounting::freeRef);
+    return gpu.newTensorDescriptor(
+      precision.code,//
+      length,//
+      destinationDimensions[2],//
+      destinationDimensions[1],//
+      destinationDimensions[0],//
+      destinationDimensions[2] * destinationDimensions[1] * destinationDimensions[0],//
+      destinationDimensions[1] * destinationDimensions[0],//
+      destinationDimensions[0],//
+      1);
   }
   
   /**

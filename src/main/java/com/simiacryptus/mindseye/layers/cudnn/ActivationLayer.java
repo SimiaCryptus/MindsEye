@@ -151,14 +151,15 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
           final TensorList data = CudaSystem.eval(gpu -> {
             //assert (error.length() == batch.length());
             //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-            @Nullable final CudaTensor inputPtr = gpu.getTensor(inputData, precision, MemoryType.Device);
-            @Nullable final CudaTensor deltaPtr = gpu.getTensor(delta, precision, MemoryType.Device);
+            @Nullable final CudaTensor inputPtr = gpu.getTensor(inputData, precision, MemoryType.Device).getDenseAndFree(gpu);
+            @Nullable final CudaTensor deltaPtr = gpu.getTensor(delta, precision, MemoryType.Device).getDenseAndFree(gpu);
             delta.freeRef();
             @javax.annotation.Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = gpu.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
+            CudaTensor denseOutput = outPtr.getDense(gpu);
             try {
               CudaSystem.handle(gpu.cudnnActivationBackward(activationDesc.getPtr(),
                 precision.getPointer(1.0),
-                outPtr.descriptor.getPtr(), outPtr.memory.getPtr(),
+                denseOutput.descriptor.getPtr(), denseOutput.memory.getPtr(),
                 deltaPtr.descriptor.getPtr(), deltaPtr.memory.getPtr(),
                 inputPtr.descriptor.getPtr(), inputPtr.memory.getPtr(),
                 precision.getPointer(0.0),
@@ -169,6 +170,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
             } finally {
               inputPtr.freeRef();
               activationDesc.freeRef();
+              denseOutput.freeRef();
             }
           });
           inputResult.accumulate(buffer, data);
