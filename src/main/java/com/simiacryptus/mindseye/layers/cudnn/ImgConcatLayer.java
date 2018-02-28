@@ -118,7 +118,15 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
           assert maxBands <= 0 || inputBands <= maxBands;
           assert inputBands <= inputDimensions[2];
           @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = getTensorDescriptor(length, inputBands, inputDimensions, outputDimensions, gpu);
-          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = getTensorDescriptor(length, inputBands, inputDimensions, inputDimensions, gpu);
+          
+          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = gpu.newTensorDescriptor(
+            precision.code, length, inputBands, inputDimensions[1], inputDimensions[0], //
+            cudaInput.descriptor.nStride, //
+            cudaInput.descriptor.cStride, //
+            cudaInput.descriptor.hStride, //
+            cudaInput.descriptor.wStride);
+//          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = getTensorDescriptor(length, inputBands, inputDimensions, inputDimensions, gpu);
+          
           int byteOffset = inputDimensions[1] * inputDimensions[0] * bandOffset * precision.size;
           gpu.cudnnTransformTensor(
             precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.memory.getPtr(),

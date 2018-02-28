@@ -266,7 +266,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       throw new IllegalArgumentException(String.format("%d != %d", bands, destinationDimensions[2]));
     //log.info(String.format("offset=%d,%d", offsetX, offsetY));
     @Nonnull final int[] viewDim = getViewDimensions(sourceDimensions, destinationDimensions, new int[]{positionX, positionY, 0});
-    @Nonnull final CudaResource<cudnnTensorDescriptor> sourceViewDescriptor = gpu.newTensorDescriptor(
+    @Nonnull final CudaDevice.CudaTensorDescriptor sourceViewDescriptor = gpu.newTensorDescriptor(
       precision.code,//
       length,//
       viewDim[2],//
@@ -276,7 +276,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       source.descriptor.cStride,//
       source.descriptor.hStride,//
       source.descriptor.wStride);
-    @Nonnull final CudaResource<cudnnTensorDescriptor> destinationViewDescriptor = gpu.newTensorDescriptor(
+    @Nonnull final CudaDevice.CudaTensorDescriptor destinationViewDescriptor = gpu.newTensorDescriptor(
       precision.code,//
       length,//
       viewDim[2],//

@@ -188,7 +188,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
     
     return new Result(CudaSystem.eval(gpu -> {
       try {
-        @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> filterDescriptor = gpu.newTensorDescriptor(
+        @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor filterDescriptor = gpu.newTensorDescriptor(
           precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
         
         assert 0 < bias.length;
@@ -212,16 +212,14 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
       if (!isFrozen()) {
         CudaSystem.run(gpu -> {
-          @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> inputDescriptor = gpu.newTensorDescriptor(
-            precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-          @javax.annotation.Nonnull final CudaResource<cudnnTensorDescriptor> filterDescriptor = gpu.newTensorDescriptor(
+          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor filterDescriptor = gpu.newTensorDescriptor(
             precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
           @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device);
           @javax.annotation.Nonnull final CudaMemory filterBuffer = gpu.allocate(bias.length * 1l * precision.size, MemoryType.Device, false);
           try {
             try {
               CudaSystem.handle(gpu.cudnnConvolutionBackwardBias(precision.getPointer(1.0),
-                inputDescriptor.getPtr(), errorPtr.memory.getPtr(),
+                errorPtr.descriptor.getPtr(), errorPtr.memory.getPtr(),
                 precision.getPointer(1.0),
                 filterDescriptor.getPtr(), filterBuffer.getPtr()));
             } catch (@javax.annotation.Nonnull final Throwable e) {
@@ -232,7 +230,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
             buffer.get(this, bias).addInPlace(weightGradient.getData()).freeRef();
             Arrays.stream(new ReferenceCounting[]{weightGradient}).forEach(ReferenceCounting::freeRef);
           } finally {
-            Arrays.stream(new ReferenceCounting[]{filterDescriptor, inputDescriptor, errorPtr, filterBuffer}).forEach(ReferenceCounting::freeRef);
+            Arrays.stream(new ReferenceCounting[]{filterDescriptor, errorPtr, filterBuffer}).forEach(ReferenceCounting::freeRef);
           }
         });
       }
