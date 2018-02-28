@@ -81,6 +81,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
         .setStrideY(this.convolutionParams.strideY) //
         .setPrecision(this.convolutionParams.precision);
       this.subLayers.add(getTileSubnet(simpleConvolutionLayer, filterDimensions[0], filterDimensions[1]));
+      simpleConvolutionLayer.freeRef();
       //this.subLayers.add(simpleConvolutionLayer);
     }
   }

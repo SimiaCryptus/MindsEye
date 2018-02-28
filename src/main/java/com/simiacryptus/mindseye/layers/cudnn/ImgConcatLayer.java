@@ -118,12 +118,13 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
           assert maxBands <= 0 || inputBands <= maxBands;
           assert inputBands <= inputDimensions[2];
           @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = getTensorDescriptor(length, inputBands, inputDimensions, outputDimensions, gpu);
+          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = getTensorDescriptor(length, inputBands, inputDimensions, inputDimensions, gpu);
           int byteOffset = inputDimensions[1] * inputDimensions[0] * bandOffset * precision.size;
           gpu.cudnnTransformTensor(
-            precision.getPointer(1.0), cudaInput.descriptor.getPtr(), cudaInput.memory.getPtr(),
+            precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.memory.getPtr(),
             precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr().withByteOffset(byteOffset)
           );
-          Arrays.stream(new ReferenceCounting[]{cudaInput, outputDescriptor}).forEach(ReferenceCounting::freeRef);
+          Arrays.stream(new ReferenceCounting[]{cudaInput, outputDescriptor, inputDescriptor}).forEach(ReferenceCounting::freeRef);
         }
       });
       CudaDevice.CudaTensorDescriptor outDesc = gpu.newTensorDescriptor(precision.code, length, outputDimensions[2], outputDimensions[1], outputDimensions[0]);
@@ -155,12 +156,13 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
             long inputSize = (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size);
             @javax.annotation.Nonnull final CudaMemory cudaBackprop = gpu.allocate(inputSize, MemoryType.Managed, (inputBands + bandOffset) > outputDimensions[2]);
             @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = getTensorDescriptor(length, inputBands, viewDimensions, inputDimensions, gpu);
+            @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = getTensorDescriptor(length, inputBands, viewDimensions, outputDimensions, gpu);
             int byteOffset = outputDimensions[1] * outputDimensions[0] * bandOffset * precision.size;
             gpu.cudnnTransformTensor(
-              precision.getPointer(1.0), cudaDelta.descriptor.getPtr(), cudaDelta.memory.getPtr().withByteOffset(byteOffset),
+              precision.getPointer(1.0), outputDescriptor.getPtr(), cudaDelta.memory.getPtr().withByteOffset(byteOffset),
               precision.getPointer(0.0), inputDescriptor.getPtr(), cudaBackprop.getPtr()
             );
-            Arrays.stream(new ReferenceCounting[]{cudaDelta}).forEach(ReferenceCounting::freeRef);
+            Arrays.stream(new ReferenceCounting[]{cudaDelta, outputDescriptor}).forEach(ReferenceCounting::freeRef);
             return CudaTensorList.wrap(CudaTensor.wrap(cudaBackprop, inputDescriptor), length, inputDimensions, precision);
           });
           input.accumulate(buffer, passbackTensorList);
@@ -189,18 +191,18 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
    *
    * @param length           the length
    * @param inputBands       the input bands
-   * @param imageDimensions  the input dimensions
-   * @param strideDimensions the output dimensions
+   * @param viewXY  the input dimensions
+   * @param sizeDimensions the output dimensions
    * @param deviceId         the device id
    * @return the tensor descriptor
    */
   @javax.annotation.Nonnull
-  public CudaDevice.CudaTensorDescriptor getTensorDescriptor(int length, int inputBands, int[] imageDimensions, int[] strideDimensions, final CudaDevice deviceId) {
+  public CudaDevice.CudaTensorDescriptor getTensorDescriptor(int length, int inputBands, int[] viewXY, int[] sizeDimensions, final CudaDevice deviceId) {
     return deviceId.newTensorDescriptor(
-      precision.code, length, inputBands, imageDimensions[1], imageDimensions[0], //
-      strideDimensions[2] * strideDimensions[1] * strideDimensions[0], //
-      strideDimensions[1] * strideDimensions[0], //
-      strideDimensions[0], //
+      precision.code, length, inputBands, viewXY[1], viewXY[0], //
+      sizeDimensions[2] * sizeDimensions[1] * sizeDimensions[0], //
+      sizeDimensions[1] * sizeDimensions[0], //
+      sizeDimensions[0], //
       1);
   }
   

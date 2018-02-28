@@ -86,8 +86,12 @@ public class Result extends ReferenceCountingBase {
     try {
       getAccumulator().accept(buffer, delta);
     } finally {
-      if (delta.currentRefCount() > 0) delta.freeRef();
+      if (autofree()) delta.freeRef();
     }
+  }
+  
+  protected boolean autofree() {
+    return true;
   }
   
   /**

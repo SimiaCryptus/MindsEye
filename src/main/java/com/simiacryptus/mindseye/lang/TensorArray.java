@@ -39,8 +39,8 @@ public class TensorArray extends RegisteredObjectBase implements TensorList {
     assert null != data;
     assert 0 < data.length;
     this.data = Arrays.copyOf(data, data.length);
-    for (@javax.annotation.Nonnull Tensor tensor : data) {
-      assert null != data;
+    assert null != this.data;
+    for (@javax.annotation.Nonnull Tensor tensor : this.data) {
       assert Arrays.equals(tensor.getDimensions(), this.data[0].getDimensions()) : Arrays.toString(tensor.getDimensions()) + " != " + Arrays.toString(tensor.getDimensions());
       tensor.addRef();
     }

@@ -69,7 +69,10 @@ public class CudaTensor extends ReferenceCountingBase {
   }
   
   public CudaTensor moveTo(final CudaDevice cudaDevice, final MemoryType memoryType) {
+    descriptor.addRef();
     memory.addRef();
-    return new CudaTensor(memory.moveTo(cudaDevice, memoryType), descriptor);
+    CudaTensor wrap = CudaTensor.wrap(memory.moveTo(cudaDevice, memoryType), descriptor);
+    freeRef();
+    return wrap;
   }
 }

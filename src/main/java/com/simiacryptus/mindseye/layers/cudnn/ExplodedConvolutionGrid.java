@@ -216,7 +216,7 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
     }
     InnerNode[] nodes;
     if (subLayers.size() == 1) {
-      nodes = new InnerNode[]{(InnerNode) subLayers.get(0).add(input)};
+      nodes = new InnerNode[]{(InnerNode) subLayers.get(0).add(paddedInput)};
     }
     else {
       List<InnerNode> legs = subLayers.stream().map((ExplodedConvolutionLeg l) -> {

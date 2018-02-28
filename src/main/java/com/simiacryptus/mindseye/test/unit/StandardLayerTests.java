@@ -339,66 +339,71 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     final Layer smallLayer = getLayer(smallDims, new Random(seed));
     int[][] largeDims = getLargeDims(new Random(seed));
     final Layer largeLayer = getLayer(largeDims, new Random(seed));
-    if (smallLayer instanceof DAGNetwork) {
-      try {
-        log.h1("Network Diagram");
-        log.p("This is a network with the following layout:");
-        log.code(() -> {
-          return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) smallLayer))
-            .height(400).width(600).render(Format.PNG).toImage();
-        });
-      } catch (Throwable e) {
-        logger.info("Error plotting graph", e);
-      }
-    }
-    else if (smallLayer instanceof Explodable) {
-      try {
-        Layer explode = ((Explodable) smallLayer).explode();
-        if (explode instanceof DAGNetwork) {
-          log.h1("Exploded Network Diagram");
-          log.p("This is a network with the following layout:");
-          @javax.annotation.Nonnull DAGNetwork network = (DAGNetwork) explode;
-          log.code(() -> {
-            @javax.annotation.Nonnull Graphviz graphviz = Graphviz.fromGraph(TestUtil.toGraph(network)).height(400).width(600);
-            @javax.annotation.Nonnull File file = new File(log.getResourceDir(), log.getName() + "_network.svg");
-            graphviz.render(Format.SVG_STANDALONE).toFile(file);
-            log.link(file, "Saved to File");
-            return graphviz.render(Format.SVG).toString();
-          });
-        }
-      } catch (Throwable e) {
-        logger.info("Error plotting graph", e);
-      }
-    }
-    @javax.annotation.Nonnull ArrayList<TestError> exceptions = standardTests(log, seed);
-    if (!exceptions.isEmpty()) {
+    try {
       if (smallLayer instanceof DAGNetwork) {
-        for (@javax.annotation.Nonnull Invocation invocation : getInvocations(smallLayer, smallDims)) {
-          log.h1("Small SubTests: " + invocation.getLayer().getClass().getSimpleName());
-          log.p(Arrays.deepToString(invocation.getDims()));
-          tests(log, getLittleTests(), invocation, exceptions);
-          invocation.freeRef();
+        try {
+          log.h1("Network Diagram");
+          log.p("This is a network with the following layout:");
+          log.code(() -> {
+            return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) smallLayer))
+              .height(400).width(600).render(Format.PNG).toImage();
+          });
+        } catch (Throwable e) {
+          logger.info("Error plotting graph", e);
         }
       }
-      if (largeLayer instanceof DAGNetwork) {
-        testEquivalency = false;
-        for (@javax.annotation.Nonnull Invocation invocation : getInvocations(largeLayer, largeDims)) {
-          log.h1("Large SubTests: " + invocation.getLayer().getClass().getSimpleName());
-          log.p(Arrays.deepToString(invocation.getDims()));
-          tests(log, getBigTests(), invocation, exceptions);
-          invocation.freeRef();
+      else if (smallLayer instanceof Explodable) {
+        try {
+          Layer explode = ((Explodable) smallLayer).explode();
+          if (explode instanceof DAGNetwork) {
+            log.h1("Exploded Network Diagram");
+            log.p("This is a network with the following layout:");
+            @javax.annotation.Nonnull DAGNetwork network = (DAGNetwork) explode;
+            log.code(() -> {
+              @javax.annotation.Nonnull Graphviz graphviz = Graphviz.fromGraph(TestUtil.toGraph(network)).height(400).width(600);
+              @javax.annotation.Nonnull File file = new File(log.getResourceDir(), log.getName() + "_network.svg");
+              graphviz.render(Format.SVG_STANDALONE).toFile(file);
+              log.link(file, "Saved to File");
+              return graphviz.render(Format.SVG).toString();
+            });
+          }
+        } catch (Throwable e) {
+          logger.info("Error plotting graph", e);
         }
       }
+      @javax.annotation.Nonnull ArrayList<TestError> exceptions = standardTests(log, seed);
+      if (!exceptions.isEmpty()) {
+        if (smallLayer instanceof DAGNetwork) {
+          for (@javax.annotation.Nonnull Invocation invocation : getInvocations(smallLayer, smallDims)) {
+            log.h1("Small SubTests: " + invocation.getLayer().getClass().getSimpleName());
+            log.p(Arrays.deepToString(invocation.getDims()));
+            tests(log, getLittleTests(), invocation, exceptions);
+            invocation.freeRef();
+          }
+        }
+        if (largeLayer instanceof DAGNetwork) {
+          testEquivalency = false;
+          for (@javax.annotation.Nonnull Invocation invocation : getInvocations(largeLayer, largeDims)) {
+            log.h1("Large SubTests: " + invocation.getLayer().getClass().getSimpleName());
+            log.p(Arrays.deepToString(invocation.getDims()));
+            tests(log, getBigTests(), invocation, exceptions);
+            invocation.freeRef();
+          }
+        }
+      }
+      log.code(() -> {
+        throwException(exceptions);
+      });
+    } finally {
+      smallLayer.freeRef();
+      largeLayer.freeRef();
     }
-    smallLayer.freeRef();
-    largeLayer.freeRef();
-    log.code(() -> {
-      throwException(exceptions);
-    });
     getFinalTests().stream().filter(x -> null != x).forEach(test -> {
-      final Layer perfLayer = getLayer(largeDims, new Random(seed));
+      final Layer perfLayer;
+      perfLayer = getLayer(largeDims, new Random(seed));
       perfLayer.assertAlive();
-      @Nonnull Layer copy = perfLayer.copy();
+      @Nonnull Layer copy;
+      copy = perfLayer.copy();
       Tensor[] randomize = randomize(largeDims);
       try {
         test.test(log, copy, randomize);
@@ -562,15 +567,15 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   private void tests(final NotebookOutput log, final List<ComponentTest<?>> tests, @Nonnull final Invocation invocation, @Nonnull final ArrayList<TestError> exceptions) {
     tests.stream().filter(x -> null != x).forEach((ComponentTest<?> test) -> {
       @Nonnull Layer layer = invocation.getLayer().copy();
+      Tensor[] inputs = randomize(invocation.getDims());
       try {
-        Tensor[] inputs = randomize(invocation.getDims());
         test.test(log, layer, inputs);
-        for (@Nonnull Tensor tensor : inputs) tensor.freeRef();
       } catch (LifecycleException e) {
         throw e;
       } catch (Throwable e) {
         exceptions.add(new TestError(e, test, layer));
       } finally {
+        for (@Nonnull Tensor tensor : inputs) tensor.freeRef();
         layer.freeRef();
         test.freeRef();
         System.gc();

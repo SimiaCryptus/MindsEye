@@ -77,7 +77,6 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
     final int cols = data.get(0).length;
     return IntStream.range(0, cols).mapToObj(col -> {
       final Tensor[] tensors = IntStream.range(0, data.size()).mapToObj(row -> data.get(row)[col]).toArray(i -> new Tensor[i]);
-      @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.create(tensors);
       if (null == mask || col >= mask.length || !mask[col]) {
         return new ConstantResult(TensorArray.create(tensors));
       }

@@ -71,7 +71,7 @@ public abstract class WrapperLayer extends LayerBase {
   
   @Override
   protected void _free() {
-    this.inner.freeRef();
+    if (null != this.inner) this.inner.freeRef();
     super._free();
   }
   

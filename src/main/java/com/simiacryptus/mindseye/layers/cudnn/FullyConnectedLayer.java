@@ -182,7 +182,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
     int inputVol = Tensor.length(inputDims);
     int outVol = Tensor.length(outputDims);
     @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork(1);
-    network.add(new ReshapeLayer(1, 1, inputVol));
+    network.wrap(new ReshapeLayer(1, 1, inputVol));
     @javax.annotation.Nullable Tensor tensor = this.weights.reshapeCast(1, 1, inputVol * outVol);
     @Nonnull ConvolutionLayer convolutionLayer = new ConvolutionLayer(1, 1, inputVol, outVol)
       .set(tensor)
@@ -193,7 +193,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
     tensor.freeRef();
     grid.add(network.getHead());
     grid.freeRef();
-    network.add(new ReshapeLayer(outputDims));
+    network.wrap(new ReshapeLayer(outputDims));
     network.setName(getName());
     return network;
   }

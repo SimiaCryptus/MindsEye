@@ -48,8 +48,7 @@ public class VariableLayer extends WrapperLayer {
    * @param inner the heapCopy
    */
   public VariableLayer(final Layer inner) {
-    super();
-    setInner(inner);
+    super(inner);
   }
   
   /**
@@ -82,7 +81,9 @@ public class VariableLayer extends WrapperLayer {
    * @param inner the heapCopy
    */
   public final void setInner(final Layer inner) {
+    if (this.inner != null) this.inner.freeRef();
     this.inner = inner;
+    this.inner.addRef();
   }
   
 }

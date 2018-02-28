@@ -56,7 +56,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
    */
   public ImgBandBiasLayer(final int bands) {
     bias = new double[bands];
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
+//    assert Arrays.stream(this.bias).allMatch(Double::isFinite);
   }
   
   /**

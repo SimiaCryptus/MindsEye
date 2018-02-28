@@ -69,7 +69,6 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
   public ToleranceStatistics test(@Nullable final Layer subject, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
     if (null == reference || null == subject) return new ToleranceStatistics();
     reference.assertAlive();
-    ToleranceStatistics result1;
     final Tensor subjectOutput = SimpleEval.run(subject, inputPrototype).getOutputAndFree();
     final Tensor referenceOutput = SimpleEval.run(reference, inputPrototype).getOutputAndFree();
     @javax.annotation.Nonnull final Tensor error = subjectOutput.minus(referenceOutput);
@@ -77,26 +76,27 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
       return new ToleranceStatistics().accumulate(subjectOutput.getData()[i1], referenceOutput.getData()[i1]);
     }).reduce((a, b) -> a.combine(b)).get();
     try {
-      if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
-      result1 = result;
-    } catch (@javax.annotation.Nonnull final Throwable e) {
-      log.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b)));
-      log.info(String.format("Subject Output: %s", subjectOutput.prettyPrint()));
-      log.info(String.format("Reference Output: %s", referenceOutput.prettyPrint()));
+      try {
+        if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
+      } catch (@javax.annotation.Nonnull final Throwable e) {
+        log.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b)));
+        log.info(String.format("Subject Output: %s", subjectOutput.prettyPrint()));
+        log.info(String.format("Reference Output: %s", referenceOutput.prettyPrint()));
+        log.info(String.format("Error: %s", error.prettyPrint()));
+        System.out.flush();
+        throw e;
+      }
+      log.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));
       log.info(String.format("Error: %s", error.prettyPrint()));
-      System.out.flush();
-      throw e;
+      log.info(String.format("Accuracy:"));
+      log.info(String.format("absoluteTol: %s", result.absoluteTol.toString()));
+      log.info(String.format("relativeTol: %s", result.relativeTol.toString()));
+      return result;
+    } finally {
+      subjectOutput.freeRef();
+      referenceOutput.freeRef();
+      error.freeRef();
     }
-    subjectOutput.freeRef();
-    referenceOutput.freeRef();
-    final ToleranceStatistics statistics = result1;
-    log.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));
-    log.info(String.format("Error: %s", error.prettyPrint()));
-    log.info(String.format("Accuracy:"));
-    log.info(String.format("absoluteTol: %s", statistics.absoluteTol.toString()));
-    log.info(String.format("relativeTol: %s", statistics.relativeTol.toString()));
-    error.freeRef();
-    return statistics;
   }
   
   /**

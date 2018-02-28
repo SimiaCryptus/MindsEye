@@ -399,7 +399,7 @@ public class CudaDevice extends CudaSystem {
    */
   public CudaTensorDescriptor newTensorDescriptor(final int dataType,
     final int batchCount, final int channels, final int height, final int width) {
-    return newTensorDescriptor(dataType, batchCount, channels, height, width, channels * height * width, height * width, height, 1);
+    return newTensorDescriptor(dataType, batchCount, channels, height, width, channels * height * width, height * width, width, 1);
   }
   
   /**
@@ -457,18 +457,7 @@ public class CudaDevice extends CudaSystem {
     this.dirty();
     log("cudnnSetTensor4dDescriptor", result, new Object[]{desc, tensorLayout, dataType, batchCount, channels, height, width});
     CudaSystem.handle(result);
-    return new CudaDevice.CudaTensorDescriptor(desc, getDeviceId(), dataType, batchCount, channels, height, width, channels * height * width, height * width, width, 1) {
-      @javax.annotation.Nonnull
-      @Override
-      public String toString() {
-        return "cudnnSetTensor4dDescriptor(dataType=" + dataType +
-          ";tensorLayout=" + tensorLayout +
-          ";batchCount=" + batchCount +
-          ";channels=" + channels +
-          ";height=" + height +
-          ";=width" + width + ")";
-      }
-    };
+    return new CudaDevice.CudaTensorDescriptor(desc, getDeviceId(), dataType, batchCount, channels, height, width, channels * height * width, height * width, width, 1);
   }
   
   public static class CudaTensorDescriptor extends CudaResource<cudnnTensorDescriptor> {

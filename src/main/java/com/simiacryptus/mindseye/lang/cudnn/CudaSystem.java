@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.simiacryptus.mindseye.lang.Result;
+import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.lang.StaticResourcePool;
@@ -983,8 +985,8 @@ public class CudaSystem {
   
   /**
    * Run.
-   *  @param fn          the fn
    *
+   * @param fn the fn
    */
   public static void run(@Nonnull final Consumer<CudnnHandle> fn, Object... hints) {
     CudnnHandle threadlocal = CudnnHandle.threadContext.get();
@@ -1013,7 +1015,7 @@ public class CudaSystem {
         } finally {
           gpu.cleanup();
         }
-      }, getFilter(hints));
+      }, getHandlePredicate(hints));
     }
   }
   
@@ -1056,13 +1058,23 @@ public class CudaSystem {
           } finally {
             gpu.cleanup();
           }
-        }, getFilter(hints));
+        }, getHandlePredicate(hints));
       }
     }
   }
   
-  private static Predicate<CudnnHandle> getFilter(final Object[] hints) {
-    return x -> true;
+  public static Predicate<CudnnHandle> getHandlePredicate(final Object[] hints) {
+    Set<Integer> devices = Arrays.stream(hints).map(hint -> {
+      if (hint instanceof Result) {
+        TensorList data = ((Result) hint).getData();
+        if (data instanceof CudaTensorList) {
+          return ((CudaTensorList) data).ptr.memory.getDeviceId();
+        }
+      }
+      return null;
+    }).filter(x -> x != null).collect(Collectors.toSet());
+    if (devices.isEmpty()) return x -> true;
+    else return x -> devices.contains(x);
   }
   
   /**

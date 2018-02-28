@@ -107,16 +107,23 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
           return true;
         }
       };
-      @javax.annotation.Nullable final Result eval = component.eval(copyInput);
-      for (@javax.annotation.Nonnull Result nnResult : copyInput) {
-        nnResult.freeRef();
-        nnResult.getData().freeRef();
+      @javax.annotation.Nullable final Result eval;
+      try {
+        eval = component.eval(copyInput);
+      } finally {
+        for (@javax.annotation.Nonnull Result nnResult : copyInput) {
+          nnResult.freeRef();
+          nnResult.getData().freeRef();
+        }
       }
       @javax.annotation.Nonnull final DeltaSet<Layer> deltaSet = new DeltaSet<Layer>();
       @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(new Tensor(outputPrototype.getDimensions()).set(j, 1));
-      eval.accumulate(deltaSet, tensorArray);
-      eval.getData().freeRef();
-      eval.freeRef();
+      try {
+        eval.accumulate(deltaSet, tensorArray);
+      } finally {
+        eval.getData().freeRef();
+        eval.freeRef();
+      }
       final Delta<Layer> inputDelta = deltaSet.getMap().get(inputKey);
       if (null != inputDelta) {
         @javax.annotation.Nonnull Tensor tensor = new Tensor(inputDelta.getDelta(), result.getDimensions());
@@ -322,7 +329,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
       output.code(() -> {
         log.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).orElse("")));
         log.info(String.format("Inputs Statistics: %s", Arrays.stream(inputPrototype).map(x -> new ScalarStatistics().add(x.getData()).toString()).reduce((a, b) -> a + ",\n" + b).orElse("")));
-        log.info(String.format("Output: %s", outputPrototype.prettyPrint()));
+        log.info(String.format("Output: %s", null == outputPrototype ? null : outputPrototype.prettyPrint()));
         log.info(String.format("Outputs Statistics: %s", new ScalarStatistics().add(outputPrototype.getData())));
       });
     }

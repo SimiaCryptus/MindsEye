@@ -222,11 +222,10 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     try {
       long timedBackprop = TimedResult.time(() -> {
         @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(result.getData().stream().map(x -> {
-          @javax.annotation.Nullable Tensor map = x.map(v -> 1.0);
-          x.freeRef();
-          return map;
+          return x.mapAndFree(v -> 1.0);
         }).toArray(i -> new Tensor[i]));
         result.accumulate(buffer, tensorArray);
+        assert tensorArray.currentRefCount() == 0;
         return buffer;
       }).timeNanos;
       return new Tuple2<>(timedEval.timeNanos / 1e9, timedBackprop / 1e9);

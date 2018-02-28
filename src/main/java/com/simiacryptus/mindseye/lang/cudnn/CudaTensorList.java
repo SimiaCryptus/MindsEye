@@ -357,7 +357,10 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
       return elements * getPrecision().size;
     }
     else {
-      this.ptr = ptr;
+      synchronized (this) {
+        if (null != this.ptr) this.ptr.freeRef();
+        this.ptr = ptr;
+      }
       return 0;
     }
   }
