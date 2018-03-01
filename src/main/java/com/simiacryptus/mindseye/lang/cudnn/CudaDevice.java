@@ -382,8 +382,10 @@ public class CudaDevice extends CudaSystem {
       ptr.write(precision, tensor.getData(), (long) i * elementLength);
       tensor.freeRef();
     }
-    @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor descriptor = newTensorDescriptor(
-      precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, data.length(), inputSize.length < 3 ? 1 : inputSize[2], inputSize.length < 2 ? 1 : inputSize[1], inputSize.length < 1 ? 1 : inputSize[0]);
+    final int channels = inputSize.length < 3 ? 1 : inputSize[2];
+    final int height = inputSize.length < 2 ? 1 : inputSize[1];
+    final int width = inputSize.length < 1 ? 1 : inputSize[0];
+    @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor descriptor = newTensorDescriptor(precision.code, data.length(), channels, height, width, channels * height * width, height * width, width, 1);
     return CudaTensor.wrap(ptr, descriptor, precision);
   }
   
@@ -431,33 +433,6 @@ public class CudaDevice extends CudaSystem {
     log("cudnnSetTensor4dDescriptorEx", result, new Object[]{desc, dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride});
     CudaSystem.handle(result);
     return new CudaTensorDescriptor(desc, getDeviceId(), dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride);
-  }
-  
-  /**
-   * New tensor descriptor cuda resource.
-   *
-   * @param dataType     the data type
-   * @param tensorLayout the tensor layout
-   * @param batchCount   the batch count
-   * @param channels     the channels
-   * @param height       the height
-   * @param width        the width
-   * @return the cuda resource
-   */
-  public CudaDevice.CudaTensorDescriptor newTensorDescriptor(final int dataType, final int tensorLayout,
-    final int batchCount, final int channels, final int height, final int width) {
-    long startTime = System.nanoTime();
-    @javax.annotation.Nonnull final cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
-    int result = JCudnn.cudnnCreateTensorDescriptor(desc);
-    this.dirty();
-    log("cudnnCreateTensorDescriptor", result, new Object[]{desc});
-    CudaSystem.handle(result);
-    result = JCudnn.cudnnSetTensor4dDescriptor(desc, tensorLayout, dataType, batchCount, channels, height, width);
-    newTensorDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    this.dirty();
-    log("cudnnSetTensor4dDescriptor", result, new Object[]{desc, tensorLayout, dataType, batchCount, channels, height, width});
-    CudaSystem.handle(result);
-    return new CudaDevice.CudaTensorDescriptor(desc, getDeviceId(), dataType, batchCount, channels, height, width, channels * height * width, height * width, width, 1);
   }
   
   public static class CudaTensorDescriptor extends CudaResource<cudnnTensorDescriptor> {

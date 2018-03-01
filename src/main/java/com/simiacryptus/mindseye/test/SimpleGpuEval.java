@@ -62,14 +62,23 @@ public class SimpleGpuEval extends SimpleListEval {
   @javax.annotation.Nonnull
   @Override
   public TensorList getFeedback(@javax.annotation.Nonnull final TensorList original) {
-    @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(original.stream().map(t -> {
+    return toGpu(getDelta(original));
+  }
+  
+  @Nonnull
+  public CudaTensorList toGpu(final TensorArray tensorArray) {
+    @Nullable CudaTensor cudaMemory = gpu.getTensor(tensorArray, Precision.Double, MemoryType.Managed);
+    tensorArray.freeRef();
+    return CudaTensorList.wrap(cudaMemory, tensorArray.length(), tensorArray.getDimensions(), Precision.Double);
+  }
+  
+  @Nonnull
+  public TensorArray getDelta(final TensorList output) {
+    return TensorArray.wrap(output.stream().map(t -> {
       @Nullable Tensor map = t.map(v -> 1.0);
       t.freeRef();
       return map;
     }).toArray(i -> new Tensor[i]));
-    @Nullable CudaTensor cudaMemory = gpu.getTensor(tensorArray, Precision.Double, MemoryType.Managed);
-    tensorArray.freeRef();
-    return CudaTensorList.wrap(cudaMemory, original.length(), original.getDimensions(), Precision.Double);
   }
   
 }

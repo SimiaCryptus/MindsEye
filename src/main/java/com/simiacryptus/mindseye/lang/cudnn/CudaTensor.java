@@ -49,7 +49,7 @@ public class CudaTensor extends ReferenceCountingBase {
     this.memory.addRef();
     this.descriptor = descriptor;
     this.descriptor.addRef();
-    assert memory.size == (long) precision.size * descriptor.nStride * descriptor.batchCount;
+    assert memory.size == (long) precision.size * descriptor.nStride * descriptor.batchCount : String.format("%d != %d", memory.size, (long) precision.size * descriptor.nStride * descriptor.batchCount);
   }
   
   /**
@@ -90,6 +90,10 @@ public class CudaTensor extends ReferenceCountingBase {
   }
   
   public CudaTensor getDense(CudnnHandle gpu) {
+    if (isDense()) {
+      addRef();
+      return this;
+    }
     CudaDevice.CudaTensorDescriptor sourceDescriptor = gpu.newTensorDescriptor(
       precision.code, this.descriptor.batchCount, this.descriptor.channels, this.descriptor.height, this.descriptor.width,
       this.descriptor.nStride, this.descriptor.cStride, this.descriptor.hStride, this.descriptor.wStride);

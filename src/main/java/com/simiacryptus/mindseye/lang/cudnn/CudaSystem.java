@@ -1071,6 +1071,9 @@ public class CudaSystem {
           return ((CudaTensorList) data).ptr.memory.getDeviceId();
         }
       }
+      else if (hint instanceof CudaTensorList) {
+        return ((CudaTensorList) hint).ptr.memory.getDeviceId();
+      }
       else if (hint instanceof Integer) {
         return (Integer) hint;
       }

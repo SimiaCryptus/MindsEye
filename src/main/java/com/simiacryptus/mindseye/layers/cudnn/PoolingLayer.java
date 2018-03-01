@@ -25,7 +25,6 @@ import com.simiacryptus.mindseye.lang.cudnn.*;
 import jcuda.Pointer;
 import jcuda.jcudnn.cudnnPoolingDescriptor;
 import jcuda.jcudnn.cudnnPoolingMode;
-import jcuda.jcudnn.cudnnTensorFormat;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -120,8 +119,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
         @Nullable final CudaTensor inputData = gpu.getTensor(batch, precision, MemoryType.Device);
         CudaSystem.handle(CudaSystem.cudnnGetPoolingNdForwardOutputDim(poolingDesc.getPtr(), inputData.descriptor.getPtr(), 4, outputSize));
         assert inputSize[2] == outputSize[1];
-        @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(
-          precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[0], outputSize[1], outputSize[2], outputSize[3]);
+        @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision.code, outputSize[0], outputSize[1], outputSize[2], outputSize[3], outputSize[1] * outputSize[2] * outputSize[3], outputSize[2] * outputSize[3], outputSize[3], 1);
         @javax.annotation.Nonnull final Pointer alpha = precision.getPointer(1.0);
         @javax.annotation.Nonnull final Pointer beta = precision.getPointer(0.0);
         @javax.annotation.Nonnull final CudaMemory outputTensor = gpu.allocate(precision.size * 1l * Tensor.length(outputSize), MemoryType.Managed, true);
@@ -141,8 +139,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
         assert error.length() == batch.length();
         if (input.isAlive()) {
           TensorList data = CudaSystem.eval(gpu -> {
-            @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(
-              precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+            @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(precision.code, length, inputSize[2], inputSize[1], inputSize[0], inputSize[2] * inputSize[1] * inputSize[0], inputSize[1] * inputSize[0], inputSize[0], 1);
             @javax.annotation.Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = gpu.createPoolingDescriptor(
               mode.id, poolDims, windowSize, padding, stride);
             @javax.annotation.Nonnull final Pointer alpha = precision.getPointer(1.0);

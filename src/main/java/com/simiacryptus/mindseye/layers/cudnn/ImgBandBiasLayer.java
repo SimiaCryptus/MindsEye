@@ -24,8 +24,6 @@ import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.*;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
-import jcuda.jcudnn.cudnnTensorDescriptor;
-import jcuda.jcudnn.cudnnTensorFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -188,8 +186,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
     
     return new Result(CudaSystem.eval(gpu -> {
       try {
-        @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor filterDescriptor = gpu.newTensorDescriptor(
-          precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
+        @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor filterDescriptor = gpu.newTensorDescriptor(precision.code, 1, inputSize[2], 1, 1, inputSize[2] * 1 * 1, 1 * 1, 1, 1);
         
         assert 0 < bias.length;
         @javax.annotation.Nonnull final CudaMemory filterPtr = gpu.allocate((long) (bias.length * precision.size), MemoryType.Device, true).write(precision, bias);
@@ -212,8 +209,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
       if (!isFrozen()) {
         CudaSystem.run(gpu -> {
-          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor filterDescriptor = gpu.newTensorDescriptor(
-            precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
+          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor filterDescriptor = gpu.newTensorDescriptor(precision.code, 1, inputSize[2], 1, 1, inputSize[2] * 1 * 1, 1 * 1, 1, 1);
           @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device);
           @javax.annotation.Nonnull final CudaMemory filterBuffer = gpu.allocate(bias.length * 1l * precision.size, MemoryType.Device, false);
           try {

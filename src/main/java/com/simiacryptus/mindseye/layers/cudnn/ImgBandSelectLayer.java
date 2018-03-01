@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * Concatenates two or more inputs, assuming they have the same width and height, to produce an image with both inputs'
@@ -108,8 +109,8 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
     return new Result(CudaSystem.eval(gpu -> {
       @javax.annotation.Nonnull final CudaMemory cudaOutput = gpu.allocate(size, MemoryType.Managed, true);
       @Nullable final CudaTensor cudaInput = gpu.getTensor(inputData, precision, MemoryType.Device);
-      @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = getTensorDescriptor(inputDimensions, length, outputDimensions, gpu);
-      @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = getTensorDescriptor(outputDimensions, length, outputDimensions, gpu);
+      @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = getTensorDescriptor(gpu, outputDimensions, inputDimensions, length);
+      @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = getTensorDescriptor(gpu, outputDimensions, outputDimensions, length);
       gpu.cudnnTransformTensor(
         precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.memory.getPtr().withByteOffset(byteOffset),
         precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr()
@@ -123,7 +124,8 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
       }
       if (inObj[0].isAlive()) {
         final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
-          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = getTensorDescriptor(inputDimensions, length, outputDimensions, gpu);
+          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor viewDescriptor = getTensorDescriptor(gpu, outputDimensions, inputDimensions, length);
+          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = getTensorDescriptor(gpu, inputDimensions, inputDimensions, length);
           assert error.length() == inputData.length();
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
           @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device);
@@ -131,10 +133,10 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
           @javax.annotation.Nonnull final CudaMemory passbackBuffer = gpu.allocate(size1, MemoryType.Managed, false);
           gpu.cudnnTransformTensor(
             precision.getPointer(1.0), errorPtr.descriptor.getPtr(), errorPtr.memory.getPtr(),
-            precision.getPointer(0.0), inputDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
+            precision.getPointer(0.0), viewDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
           );
           CudaTensor cudaTensor = CudaTensor.wrap(passbackBuffer, inputDescriptor, precision);
-          Arrays.stream(new ReferenceCounting[]{errorPtr}).forEach(ReferenceCounting::freeRef);
+          Stream.<ReferenceCounting>of(errorPtr, viewDescriptor).forEach(ReferenceCounting::freeRef);
           return CudaTensorList.wrap(cudaTensor, length, inputDimensions, precision);
           //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         });
@@ -157,15 +159,15 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
   /**
    * Gets tensor descriptor.
    *
+   * @param gpu         the device id
+   * @param viewDim the output dimensions
    * @param sizeDim  the input dimensions
    * @param length           the length
-   * @param viewDim the output dimensions
-   * @param deviceId         the device id
    * @return the tensor descriptor
    */
   @javax.annotation.Nonnull
-  public CudaDevice.CudaTensorDescriptor getTensorDescriptor(int[] sizeDim, int length, int[] viewDim, final CudaDevice deviceId) {
-    return deviceId.newTensorDescriptor(
+  public CudaDevice.CudaTensorDescriptor getTensorDescriptor(final CudaDevice gpu, int[] viewDim, int[] sizeDim, int length) {
+    return gpu.newTensorDescriptor(
       precision.code, length, viewDim[2], viewDim[1], viewDim[0], //
       sizeDim[2] * sizeDim[1] * sizeDim[0], //
       sizeDim[1] * sizeDim[0], //

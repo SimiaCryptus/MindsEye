@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * Concatenates two or more inputs, assuming they have the same width and height, to produce an image with both inputs'
@@ -87,8 +88,9 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
     if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
-    assert 3 == inObj[0].getData().getDimensions().length;
-    @Nonnull final int[] outputDimensions = inObj[0].getData().getDimensions();
+    int[] dimensions = inObj[0].getData().getDimensions();
+    assert 3 == dimensions.length;
+    @Nonnull final int[] outputDimensions = Arrays.copyOf(dimensions, dimensions.length);
     final int length = inObj[0].getData().length();
     assert Arrays.stream(inObj).allMatch(x -> {
       @Nonnull int[] d = x.getData().getDimensions();
@@ -117,7 +119,12 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
           assert inputBands > 0;
           assert maxBands <= 0 || inputBands <= maxBands;
           assert inputBands <= inputDimensions[2];
-          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = getTensorDescriptor(length, inputBands, inputDimensions, outputDimensions, gpu);
+          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(
+            precision.code, length, inputBands, inputDimensions[1], inputDimensions[0], //
+            outputDimensions[2] * outputDimensions[1] * outputDimensions[0], //
+            outputDimensions[1] * outputDimensions[0], //
+            outputDimensions[0], //
+            1);
           
           @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = gpu.newTensorDescriptor(
             precision.code, length, inputBands, inputDimensions[1], inputDimensions[0], //
@@ -126,8 +133,8 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
             cudaInput.descriptor.hStride, //
             cudaInput.descriptor.wStride);
 //          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = getTensorDescriptor(length, inputBands, inputDimensions, inputDimensions, gpu);
-          
-          int byteOffset = inputDimensions[1] * inputDimensions[0] * bandOffset * precision.size;
+  
+          int byteOffset = outputDescriptor.cStride * bandOffset * precision.size;
           gpu.cudnnTransformTensor(
             precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.memory.getPtr(),
             precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr().withByteOffset(byteOffset)
@@ -138,42 +145,58 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
       CudaDevice.CudaTensorDescriptor outDesc = gpu.newTensorDescriptor(precision.code, length, outputDimensions[2], outputDimensions[1], outputDimensions[0]);
       return CudaTensorList.wrap(CudaTensor.wrap(cudaOutput, outDesc, precision), length, outputDimensions, precision);
     }), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+      assert delta.getDimensions()[0] == outputDimensions[0];
+      assert delta.getDimensions()[1] == outputDimensions[1];
+      assert delta.getDimensions()[2] == outputDimensions[2];
       if (!Arrays.equals(delta.getDimensions(), outputDimensions)) {
         throw new AssertionError(Arrays.toString(delta.getDimensions()) + " != " + Arrays.toString(outputDimensions));
       }
       //outputBuffer.freeRef();
-      assert delta.length() == inObj[0].getData().length();
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
       @javax.annotation.Nonnull IntStream stream = IntStream.range(0, inObj.length);
       if (!CoreSettings.INSTANCE.isConservative() && parallel) stream = stream.parallel();
       stream.forEach(i -> {
         final Result input = inObj[i];
-        int[] dimensions = input.getData().getDimensions();
-        @Nonnull int[] deltaDimensions = Arrays.copyOf(dimensions, dimensions.length);
-        assert 3 == deltaDimensions.length;
+        int[] inputDimentions = input.getData().getDimensions();
+        assert 3 == inputDimentions.length;
         assert delta.length() == input.getData().length();
-        assert deltaDimensions[0] == outputDimensions[0];
-        assert deltaDimensions[1] == outputDimensions[1];
+        assert inputDimentions[0] == outputDimensions[0];
+        assert inputDimentions[1] == outputDimensions[1];
         int bandOffset = IntStream.range(0, i).map(j -> inObj[j].getData().getDimensions()[2]).sum();
-        int inputBands = maxBands <= 0 ? deltaDimensions[2] : Math.min(deltaDimensions[2], maxBands - bandOffset);
+        int inputBands = maxBands <= 0 ? inputDimentions[2] : Math.min(inputDimentions[2], maxBands - bandOffset);
         if (inputBands > 0 && input.isAlive()) {
-          deltaDimensions[2] = inputBands;
-          assert inputBands <= deltaDimensions[2];
+          assert inputBands <= inputDimentions[2];
+          assert inputBands <= outputDimensions[2];
           final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
-            @javax.annotation.Nonnull int[] viewDimensions = Arrays.copyOf(deltaDimensions, deltaDimensions.length);
-            viewDimensions[2] = inputBands;
             @Nullable final CudaTensor cudaDelta = gpu.getTensor(delta, precision, MemoryType.Device);
-            long inputSize = (length * inputBands * deltaDimensions[1] * deltaDimensions[0] * precision.size);
-            @javax.annotation.Nonnull final CudaMemory cudaBackprop = gpu.allocate(inputSize, MemoryType.Managed, (inputBands + bandOffset) > outputDimensions[2]);
-            @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor deltaDescriptor = getTensorDescriptor(length, inputBands, viewDimensions, deltaDimensions, gpu);
-            @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = getTensorDescriptor(length, inputBands, viewDimensions, outputDimensions, gpu);
-            int byteOffset = outputDimensions[1] * outputDimensions[0] * bandOffset * precision.size;
+            @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor passbackViewDescriptor = gpu.newTensorDescriptor(
+              precision.code, length, inputBands, inputDimentions[1], inputDimentions[0], //
+              inputDimentions[2] * inputDimentions[1] * inputDimentions[0], //
+              inputDimentions[1] * inputDimentions[0], //
+              inputDimentions[0], //
+              1);
+            @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(
+              precision.code, length, inputDimentions[2], inputDimentions[1], inputDimentions[0], //
+              inputDimentions[2] * inputDimentions[1] * inputDimentions[0], //
+              inputDimentions[1] * inputDimentions[0], //
+              inputDimentions[0], //
+              1);
+            @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor deltaViewDescriptor = gpu.newTensorDescriptor(
+              precision.code, length, inputBands, inputDimentions[1], inputDimentions[0], //
+              cudaDelta.descriptor.nStride, //
+              cudaDelta.descriptor.cStride, //
+              cudaDelta.descriptor.hStride, //
+              cudaDelta.descriptor.wStride);
+            @javax.annotation.Nonnull final CudaMemory cudaBackprop = gpu.allocate(
+              (long) inputDimentions[2] * inputDimentions[1] * inputDimentions[0] * length * precision.size,
+              MemoryType.Managed, false && (inputBands + bandOffset) <= outputDimensions[2]);
+            int byteOffset = cudaDelta.descriptor.cStride * bandOffset * precision.size;
             gpu.cudnnTransformTensor(
-              precision.getPointer(1.0), outputDescriptor.getPtr(), cudaDelta.memory.getPtr().withByteOffset(byteOffset),
-              precision.getPointer(0.0), deltaDescriptor.getPtr(), cudaBackprop.getPtr()
+              precision.getPointer(1.0), deltaViewDescriptor.getPtr(), cudaDelta.memory.getPtr().withByteOffset(byteOffset),
+              precision.getPointer(0.0), passbackViewDescriptor.getPtr(), cudaBackprop.getPtr()
             );
-            Arrays.stream(new ReferenceCounting[]{cudaDelta, outputDescriptor}).forEach(ReferenceCounting::freeRef);
-            return CudaTensorList.wrap(CudaTensor.wrap(cudaBackprop, deltaDescriptor, precision), length, deltaDimensions, precision);
+            Stream.<ReferenceCounting>of(cudaDelta, deltaViewDescriptor, passbackViewDescriptor).forEach(ReferenceCounting::freeRef);
+            return CudaTensorList.wrap(CudaTensor.wrap(cudaBackprop, passbackDescriptor, precision), length, inputDimentions, precision);
           });
           input.accumulate(buffer, passbackTensorList);
         }
@@ -194,26 +217,6 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
         return Arrays.stream(inObj).anyMatch(x -> x.isAlive());
       }
     };
-  }
-  
-  /**
-   * Gets tensor descriptor.
-   *
-   * @param length           the length
-   * @param inputBands       the input bands
-   * @param viewXY  the input dimensions
-   * @param sizeDimensions the output dimensions
-   * @param deviceId         the device id
-   * @return the tensor descriptor
-   */
-  @javax.annotation.Nonnull
-  public CudaDevice.CudaTensorDescriptor getTensorDescriptor(int length, int inputBands, int[] viewXY, int[] sizeDimensions, final CudaDevice deviceId) {
-    return deviceId.newTensorDescriptor(
-      precision.code, length, inputBands, viewXY[1], viewXY[0], //
-      sizeDimensions[2] * sizeDimensions[1] * sizeDimensions[0], //
-      sizeDimensions[1] * sizeDimensions[0], //
-      sizeDimensions[0], //
-      1);
   }
   
   @javax.annotation.Nonnull

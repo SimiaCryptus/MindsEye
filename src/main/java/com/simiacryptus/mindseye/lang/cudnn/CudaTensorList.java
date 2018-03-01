@@ -75,9 +75,9 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     this.dimensions = Arrays.copyOf(dimensions, dimensions.length);
     assert ptr.memory.size >= (long) length * Tensor.length(dimensions) * precision.size;
     assert ptr.descriptor.batchCount == length;
-    assert ptr.descriptor.channels == dimensions[2];
-    assert ptr.descriptor.height == dimensions[1];
-    assert ptr.descriptor.width == dimensions[0];
+    assert ptr.descriptor.channels == (dimensions.length < 3 ? 1 : dimensions[2]);
+    assert ptr.descriptor.height == (dimensions.length < 2 ? 1 : dimensions[1]);
+    assert ptr.descriptor.width == (dimensions.length < 1 ? 1 : dimensions[0]);
     assert ptr.precision == precision;
     assert ptr.memory.getPtr() != null;
     //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));

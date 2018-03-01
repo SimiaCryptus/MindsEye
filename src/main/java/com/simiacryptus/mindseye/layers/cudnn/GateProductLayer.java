@@ -25,7 +25,6 @@ import com.simiacryptus.mindseye.lang.cudnn.*;
 import jcuda.jcudnn.JCudnn;
 import jcuda.jcudnn.cudnnOpTensorDescriptor;
 import jcuda.jcudnn.cudnnOpTensorOp;
-import jcuda.jcudnn.cudnnTensorFormat;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -104,8 +103,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
 //   assert !right.isAlive();
     return new Result(CudaSystem.eval(gpu -> {
       @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
-      @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(
-        precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, leftDimensions[2], leftDimensions[1], leftDimensions[0]);
+      @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision.code, length, leftDimensions[2], leftDimensions[1], leftDimensions[0], leftDimensions[2] * leftDimensions[1] * leftDimensions[0], leftDimensions[1] * leftDimensions[0], leftDimensions[0], 1);
       @Nullable final CudaTensor lPtr = gpu.getTensor(leftData, precision, MemoryType.Device);
       @Nullable final CudaTensor rPtr = gpu.getTensor(rightData, precision, MemoryType.Device);
       //assert lPtr.size == rPtr.size;
@@ -124,8 +122,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
         if (left.isAlive()) {
           @Nonnull TensorList data = CudaSystem.eval(gpu -> {
             @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision.code);
-            @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(
-              precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, leftDimensions[2], leftDimensions[1], leftDimensions[0]);
+            @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision.code, length, leftDimensions[2], leftDimensions[1], leftDimensions[0], leftDimensions[2] * leftDimensions[1] * leftDimensions[0], leftDimensions[1] * leftDimensions[0], leftDimensions[0], 1);
             @Nullable final CudaTensor deltaPtr = gpu.getTensor(delta, precision, MemoryType.Device);
             @Nullable final CudaTensor rPtr = gpu.getTensor(right.getData(), precision, MemoryType.Device);
             //assert deltaPtr.size == rPtr.size;

@@ -904,8 +904,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
       super(obj.kernel, obj.paddingX, obj.paddingY, obj.precision, obj.strideX, obj.strideY, obj.length, obj.inputSize, obj.outputSize, obj.kernelSize, obj.gpu, obj.memoryLimitInBytes);
       key = obj;
       key.addRef();
-      inputDescriptor = gpu.newTensorDescriptor(
-        precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+      inputDescriptor = gpu.newTensorDescriptor(precision.code, length, inputSize[2], inputSize[1], inputSize[0], inputSize[2] * inputSize[1] * inputSize[0], inputSize[1] * inputSize[0], inputSize[0], 1);
       filterDescriptor = gpu.newFilterDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
       convolutionDescriptor = gpu.newConvolutions2dDescriptor(cudnnConvolutionMode.CUDNN_CONVOLUTION, precision.code,
@@ -913,8 +912,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
         strideY, strideX,
         1, 1);
       outputDims = IntStream.of(reverse(CudaSystem.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr()))).limit(3).toArray();
-      outputDescriptor = gpu.newTensorDescriptor(
-        precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, outputDims[2], outputDims[1], outputDims[0]);
+      outputDescriptor = gpu.newTensorDescriptor(precision.code, length, outputDims[2], outputDims[1], outputDims[0], outputDims[2] * outputDims[1] * outputDims[0], outputDims[1] * outputDims[0], outputDims[0], 1);
       backwardDataAlgorithm = gpu.getBackwardDataAlgorithm(
         inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), (int) obj.memoryLimitInBytes);
       backwardFilterAlgorithm = gpu.getBackwardFilterAlgorithm(
@@ -1002,8 +1000,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
       super(obj.kernel, obj.paddingX, obj.paddingY, obj.precision, obj.strideX, obj.strideY, obj.length, obj.inputSize, obj.outputSize, obj.kernelSize, obj.gpu, obj.memoryLimitInBytes);
       this.key = obj;
       key.addRef();
-      inputDescriptor = gpu.newTensorDescriptor(
-        precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+      inputDescriptor = gpu.newTensorDescriptor(precision.code, length, inputSize[2], inputSize[1], inputSize[0], inputSize[2] * inputSize[1] * inputSize[0], inputSize[1] * inputSize[0], inputSize[0], 1);
       filterDescriptor = gpu.newFilterDescriptor(
         precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
       convolutionDescriptor = gpu.newConvolutions2dDescriptor(cudnnConvolutionMode.CUDNN_CONVOLUTION, precision.code,
@@ -1011,8 +1008,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
         strideY, strideX,
         1, 1);
       outputDims = IntStream.of(reverse(CudaSystem.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr()))).limit(3).toArray();
-      outputDescriptor = gpu.newTensorDescriptor(
-        precision.code, cudnnTensorFormat.CUDNN_TENSOR_NCHW, length, outputDims[2], outputDims[1], outputDims[0]);
+      outputDescriptor = gpu.newTensorDescriptor(precision.code, length, outputDims[2], outputDims[1], outputDims[0], outputDims[2] * outputDims[1] * outputDims[0], outputDims[1] * outputDims[0], outputDims[0], 1);
       forwardAlgorithm = gpu.getForwardAlgorithm(
         inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), (int) obj.memoryLimitInBytes);
       forwardWorkspace = gpu.allocateForwardWorkspace(gpu,

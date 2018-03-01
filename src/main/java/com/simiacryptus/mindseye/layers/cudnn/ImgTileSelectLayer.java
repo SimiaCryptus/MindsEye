@@ -125,9 +125,19 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
       assert dimOut[1] > 0;
       assert dimOut[2] > 0;
       @Nonnull final CudaMemory outputBuffer = gpu.allocate((long) length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size, MemoryType.Managed, dirty);
-      CudaDevice.CudaTensorDescriptor cudnnTensorDescriptorCudaResource = copy(gpu, length, dimIn, inputBuffer.memory, dimOut, outputBuffer, this.positionX, this.positionY);
+      int[] viewDim = copy(gpu, length, dimIn, inputBuffer.memory, dimOut, outputBuffer, this.positionX, this.positionY);
+      @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(
+        precision.code,//
+        length,//
+        dimOut[2],//
+        dimOut[1],//
+        dimOut[0],//
+        dimOut[2] * dimOut[1] * dimOut[0],//
+        dimOut[1] * dimOut[0],//
+        dimOut[0],//
+        1);
       Arrays.stream(new ReferenceCounting[]{inputBuffer}).forEach(ReferenceCounting::freeRef);
-      return CudaTensorList.wrap(CudaTensor.wrap(outputBuffer, cudnnTensorDescriptorCudaResource, precision), length, dimOut, precision);
+      return CudaTensorList.wrap(CudaTensor.wrap(outputBuffer, outputDescriptor, precision), length, dimOut, precision);
     });
     return new Result(outputData, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
       if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
@@ -142,9 +152,19 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
           @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device);
           boolean dirty = dimOut[0] >= dimIn[0] && dimOut[1] >= dimIn[1];
           @Nonnull final CudaMemory passbackBuffer = gpu.allocate((long) (length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size), MemoryType.Managed, dirty);
-          CudaDevice.CudaTensorDescriptor descriptorCudaResource = copy(gpu, length, dimOut, errorPtr.memory, dimIn, passbackBuffer, -this.positionX, -this.positionY);
+          int[] viewDim = copy(gpu, length, dimOut, errorPtr.memory, dimIn, passbackBuffer, -this.positionX, -this.positionY);
+          @Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(
+            precision.code,//
+            length,//
+            dimIn[2],//
+            dimIn[1],//
+            dimIn[0],//
+            dimIn[2] * dimIn[1] * dimIn[0],//
+            dimIn[1] * dimIn[0],//
+            dimIn[0],//
+            1);
           Arrays.stream(new ReferenceCounting[]{errorPtr}).forEach(ReferenceCounting::freeRef);
-          return CudaTensorList.wrap(CudaTensor.wrap(passbackBuffer, descriptorCudaResource, precision), length, dimIn, precision);
+          return CudaTensorList.wrap(CudaTensor.wrap(passbackBuffer, passbackDescriptor, precision), length, dimIn, precision);
         });
         in.accumulate(buffer, passbackTensorList);
       }
@@ -175,7 +195,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
    * @param positionY             the position y
    * @return the int [ ]
    */
-  public CudaDevice.CudaTensorDescriptor copy(@Nonnull CudnnHandle gpu, int length, @Nonnull int[] sourceDimensions, @Nonnull CudaMemory source, @Nonnull int[] destinationDimensions, @Nonnull CudaMemory destination, int positionX, int positionY) {
+  public int[] copy(@Nonnull CudnnHandle gpu, int length, @Nonnull int[] sourceDimensions, @Nonnull CudaMemory source, @Nonnull int[] destinationDimensions, @Nonnull CudaMemory destination, int positionX, int positionY) {
     if (3 != sourceDimensions.length) throw new IllegalArgumentException("inputDimensions.length");
     if (3 != destinationDimensions.length) throw new IllegalArgumentException("dimOut.length");
     int bands = sourceDimensions[2];
@@ -230,7 +250,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
       destinationViewDescriptor.getPtr(), destination.getPtr().withByteOffset(destinationOffset * precision.size)
     ));
     Arrays.stream(new ReferenceCounting[]{sourceViewDescriptor}).forEach(ReferenceCounting::freeRef);
-    return destinationViewDescriptor;
+    return viewDim;
     
   }
   

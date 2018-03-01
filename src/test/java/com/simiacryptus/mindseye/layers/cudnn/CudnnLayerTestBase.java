@@ -27,7 +27,7 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.ComponentTestBase;
-import com.simiacryptus.mindseye.test.unit.CudaDataTester;
+import com.simiacryptus.mindseye.test.unit.CudaLayerTester;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nullable;
@@ -49,7 +49,7 @@ public abstract class CudnnLayerTestBase extends LayerTestBase {
   @Override
   public ArrayList<ComponentTest<?>> getBigTests() {
     @javax.annotation.Nonnull ArrayList<ComponentTest<?>> copy = new ArrayList<>(super.getBigTests());
-    if (CudaSystem.getPool().size() > 1) copy.add(new CudaDataTester(1e-3));
+    if (CudaSystem.getPool().size() > 1) copy.add(new CudaLayerTester(1e-3));
     return copy;
   }
   
