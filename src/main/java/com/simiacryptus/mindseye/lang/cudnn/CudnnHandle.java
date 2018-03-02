@@ -113,7 +113,7 @@ public class CudnnHandle extends CudaDevice {
     assert lPtr.descriptor.width == rPtr.descriptor.width;
     @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision);
     @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = newTensorDescriptor(left.precision, length, d2, d1, d0, d2 * d1 * d0, d1 * d0, d0, 1);
-    @Nonnull final CudaMemory outputPtr = allocate(lPtr.memory.size, MemoryType.Managed, true);
+    @Nonnull final CudaMemory outputPtr = allocate((long) outputDescriptor.nStride * precision.size * length, MemoryType.Managed, true);
     try {
       cudnnOpTensor(opDescriptor.getPtr(),
         precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtr.memory.getPtr(),

@@ -139,8 +139,8 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
         dimensions[1] * dimensions[0],
         dimensions[0],
         1);
-      @Nullable final CudaTensor lPtr = gpu.getTensor(leftData, precision, MemoryType.Device).getDenseAndFree(gpu);//.moveTo(gpu.getDeviceNumber());
-      @Nullable final CudaTensor rPtr = gpu.getTensor(rightData, precision, MemoryType.Device).getDenseAndFree(gpu);//.moveTo(gpu.getDeviceNumber());
+      @Nullable final CudaTensor lPtr = gpu.getTensor(leftData, precision, MemoryType.Device); //.getDenseAndFree(gpu);//.moveTo(gpu.getDeviceNumber());
+      @Nullable final CudaTensor rPtr = gpu.getTensor(rightData, precision, MemoryType.Device); //.getDenseAndFree(gpu);//.moveTo(gpu.getDeviceNumber());
       @javax.annotation.Nonnull final CudaMemory outputPtr = gpu.allocate(precision.size * Tensor.length(dimensions) * length, MemoryType.Device, false);
       gpu.cudnnOpTensor(opDescriptor.getPtr(),
         precision.getPointer(leftFactor), lPtr.descriptor.getPtr(), lPtr.memory.getPtr(),

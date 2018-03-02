@@ -113,7 +113,7 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
         @Nullable final CudaTensor lPtr = gpu.getTensor(l, precision, MemoryType.Device);
         @Nullable final CudaTensor rPtr = gpu.getTensor(r, precision, MemoryType.Device);
         assert lPtr.memory.size == rPtr.memory.size;
-        @javax.annotation.Nonnull final CudaMemory outputPtr = gpu.allocate(lPtr.memory.size, MemoryType.Device, true);
+        @javax.annotation.Nonnull final CudaMemory outputPtr = gpu.allocate((long) outputDescriptor.nStride * length * precision.size, MemoryType.Device, true);
         CudaSystem.handle(JCudnn.cudnnOpTensor(gpu.handle, opDescriptor.getPtr(),
           precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtr.memory.getPtr(),
           precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtr.memory.getPtr(),
@@ -141,7 +141,7 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
               @Nullable final CudaTensor lPtr = gpu.getTensor(l, precision, MemoryType.Device);
               @Nullable final CudaTensor rPtr = gpu.getTensor(r, precision, MemoryType.Device);
               assert lPtr.memory.size == rPtr.memory.size;
-              @javax.annotation.Nonnull final CudaMemory outputPtr = gpu.allocate(lPtr.memory.size, MemoryType.Device, true);
+              @javax.annotation.Nonnull final CudaMemory outputPtr = gpu.allocate((long) outputDescriptor.nStride * length * precision.size, MemoryType.Device, true);
               CudaSystem.handle(JCudnn.cudnnOpTensor(gpu.handle, opDescriptor.getPtr(),
                 precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtr.memory.getPtr(),
                 precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtr.memory.getPtr(),

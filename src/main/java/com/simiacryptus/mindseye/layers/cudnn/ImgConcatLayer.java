@@ -120,7 +120,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
           assert maxBands <= 0 || inputBands <= maxBands;
           assert inputBands <= inputDimensions[2];
           @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(
-            precision, length, inputBands, inputDimensions[1], inputDimensions[0], //
+            precision, length, inputBands, outputDimensions[1], outputDimensions[0], //
             outputDimensions[2] * outputDimensions[1] * outputDimensions[0], //
             outputDimensions[1] * outputDimensions[0], //
             outputDimensions[0], //
@@ -139,7 +139,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
             precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.memory.getPtr(),
             precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr().withByteOffset(byteOffset)
           );
-          Arrays.stream(new ReferenceCounting[]{cudaInput, outputDescriptor, inputDescriptor}).forEach(ReferenceCounting::freeRef);
+          Stream.<ReferenceCounting>of(cudaInput, outputDescriptor, inputDescriptor).forEach(ReferenceCounting::freeRef);
         }
       });
       CudaDevice.CudaTensorDescriptor outDesc = gpu.newTensorDescriptor(precision, length, outputDimensions[2], outputDimensions[1], outputDimensions[0]);
@@ -189,7 +189,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
               cudaDelta.descriptor.wStride);
             @javax.annotation.Nonnull final CudaMemory cudaBackprop = gpu.allocate(
               (long) inputDimentions[2] * inputDimentions[1] * inputDimentions[0] * length * precision.size,
-              MemoryType.Managed, false && (inputBands + bandOffset) <= outputDimensions[2]);
+              MemoryType.Managed, (inputBands + bandOffset) <= outputDimensions[2]);
             int byteOffset = cudaDelta.descriptor.cStride * bandOffset * precision.size;
             gpu.cudnnTransformTensor(
               precision.getPointer(1.0), deltaViewDescriptor.getPtr(), cudaDelta.memory.getPtr().withByteOffset(byteOffset),

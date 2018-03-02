@@ -132,7 +132,9 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
           outputTensor = inputTensor;
         }
         else {
-          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length, inputSize[2], inputSize[1], inputSize[0], inputSize[2] * inputSize[1] * inputSize[0], inputSize[1] * inputSize[0], inputSize[0], 1);
+          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision,
+            length, inputSize[2], inputSize[1], inputSize[0],
+            inputSize[2] * inputSize[1] * inputSize[0], inputSize[1] * inputSize[0], inputSize[0], 1);
           @javax.annotation.Nonnull final CudaMemory outputData =
             gpu.allocate(precision.size * 1l * inputDims * length, MemoryType.Managed, true);
           outputTensor = CudaTensor.wrap(outputData, outputDescriptor, precision);
