@@ -148,7 +148,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
    */
   @javax.annotation.Nonnull
   public FullyConnectedLayer setWeightsLog(final double value) {
-    getWeights().setByCoord(c -> (FastRandom.random() - 0.5) * Math.pow(10, value));
+    getWeights().setByCoord(c -> (FastRandom.INSTANCE.random() - 0.5) * Math.pow(10, value));
     return this;
   }
   

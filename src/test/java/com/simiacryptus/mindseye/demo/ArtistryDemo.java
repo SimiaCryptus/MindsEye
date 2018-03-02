@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.demo;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.models.VGG16;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.FastRandom;
@@ -47,13 +48,15 @@ public class ArtistryDemo extends NotebookReportBase {
    */
   StreamNanoHTTPD server;
   
-  /**
-   * Paint noise.
-   *
-   * @param canvas the canvas
-   */
-  public void paint_noise(final Tensor canvas) {
-    canvas.setByCoord(c -> FastRandom.random());
+  public static void addLayersHandler(final DAGNetwork painterNetwork, final StreamNanoHTTPD server) {
+    server.addSyncHandler("layers.json", MimeType.JSON, out -> {
+      try {
+        JsonUtil.MAPPER.writer().writeValue(out, TestUtil.samplePerformance(painterNetwork));
+        out.close();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }, false);
   }
   
   /**
@@ -155,6 +158,15 @@ public class ArtistryDemo extends NotebookReportBase {
   @Override
   public ReportType getReportType() {
     return ReportType.Demos;
+  }
+  
+  /**
+   * Paint noise.
+   *
+   * @param canvas the canvas
+   */
+  public void paint_noise(final Tensor canvas) {
+    canvas.setByCoord(c -> FastRandom.INSTANCE.random());
   }
   
   /**

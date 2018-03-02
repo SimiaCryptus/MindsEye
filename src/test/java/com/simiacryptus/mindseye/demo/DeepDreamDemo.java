@@ -22,10 +22,14 @@ package com.simiacryptus.mindseye.demo;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
+import com.simiacryptus.mindseye.models.Hdf5Archive;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
+import com.simiacryptus.mindseye.network.DAGNetwork;
+import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Test;
 
@@ -38,6 +42,7 @@ import java.io.PrintStream;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -60,6 +65,7 @@ public class DeepDreamDemo extends ArtistryDemo {
    * @param log the log
    */
   public void run(@javax.annotation.Nonnull NotebookOutput log) {
+    init();
   
     @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
@@ -67,7 +73,15 @@ public class DeepDreamDemo extends ArtistryDemo {
     
     log.h1("Model");
     VGG16_HDF5 vgg16 = log.code(() -> {
-      return VGG16.fromS3_HDF5().setLarge(true).setFinalPoolingMode(PoolingLayer.PoolingMode.Max);
+      final VGG16_HDF5 result;
+      try {
+        result = new VGG16_HDF5.Noisy(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5"))));
+      } catch (@javax.annotation.Nonnull final RuntimeException e) {
+        throw e;
+      } catch (Throwable e) {
+        throw new RuntimeException(e);
+      }
+      return result.setLarge(true).setFinalPoolingMode(PoolingLayer.PoolingMode.Max);
     });
   
     Tensor[] images = getImages_Artistry(log);
@@ -82,9 +96,13 @@ public class DeepDreamDemo extends ArtistryDemo {
       log.p("Evolve from %s to %s", categories.get(0), categories.get(2));
       int targetCategoryIndex = vgg16Categories.indexOf(categories.get(1));
       int totalCategories = vgg16Categories.size();
-      vgg16.deepDream(log, image, targetCategoryIndex, totalCategories, train -> train
+      Function<IterativeTrainer, IterativeTrainer> config = train -> train
         .setTimeout(3, TimeUnit.HOURS)
-        .setIterationsPerSample(5));
+        .setIterationsPerSample(5);
+      DAGNetwork network = (DAGNetwork) vgg16.getNetwork();
+      TestUtil.instrumentPerformance(log, network);
+      addLayersHandler(network, server);
+      vgg16.deepDream(log, image, targetCategoryIndex, totalCategories, config, network);
       try {
         log.p(log.image(image.toImage(), "result"));
       } catch (IOException e) {

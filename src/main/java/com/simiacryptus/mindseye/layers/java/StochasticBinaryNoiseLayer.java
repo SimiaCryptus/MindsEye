@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.util.FastRandom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,9 +120,9 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
     assert null == inObj || 0 == inObj.length;
     Tensor mask = masks.computeIfAbsent(seed, s -> {
       Tensor m = new Tensor(dimensions);
-      Random random = new Random(seed ^ layerSeed);
+      FastRandom random = new FastRandom(seed ^ layerSeed);
       for (int i = 0; i < m.length(); i++) {
-        m.set(i, s == 0 || (random.nextDouble() < density) ? amplitude : 0);
+        m.set(i, s == 0 || (random.random() < density) ? amplitude : 0);
       }
       m.detach();
       return m;

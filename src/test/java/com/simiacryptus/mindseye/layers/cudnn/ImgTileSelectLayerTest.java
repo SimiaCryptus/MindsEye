@@ -48,7 +48,7 @@ public abstract class ImgTileSelectLayerTest extends CudnnLayerTestBase {
   @javax.annotation.Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
-    return new ImgTileSelectLayer(4, 4, 6, 5);
+    return new ImgTileSelectLayer(4, 4, 3, 3);
   }
   
   @Nullable

@@ -70,7 +70,7 @@ public class TempDemo extends NotebookReportBase {
         Tensor canvas = Tensor.fromRGB(image);
         TestUtil.monitorImage(canvas, true);
         logger.info(log.image(canvas.toImage(), "Original") + canvas);
-        canvas.setByCoord(c -> FastRandom.random());
+        canvas.setByCoord(c -> FastRandom.INSTANCE.random());
         logger.info(log.image(canvas.toImage(), "Corrupted") + canvas);
       } catch (IOException e) {
         throw new RuntimeException(e);

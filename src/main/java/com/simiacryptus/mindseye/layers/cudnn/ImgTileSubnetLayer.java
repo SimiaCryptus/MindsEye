@@ -138,7 +138,7 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
           nodes.add(
             network.add(inner,
               network.wrap(
-                new ImgTileSelectLayer(width, height, positionX, positionY),
+                new ImgTileSelectLayer(width, height, positionX, positionY).setPrecision(precision),
                 input))
           );
         }

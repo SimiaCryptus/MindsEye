@@ -114,16 +114,14 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
     if (inObj.length > 2) {
       if (rightFactor != 1) throw new IllegalStateException();
       if (leftFactor != 1) throw new IllegalStateException();
-      return Arrays.stream(inObj).reduce((a, b) -> {
-        @Nullable Result r = evalAndFree(a, b);
-        return r;
-      }).get();
+      return Arrays.stream(inObj).reduce((a, b) -> evalAndFree(a, b)).get();
     }
     assert (inObj.length == 2);
     final TensorList leftData = inObj[0].getData();
     final TensorList rightData = inObj[1].getData();
     @Nonnull final int[] dimensions = leftData.getDimensions();
     final int length = leftData.length();
+    if (length != rightData.length()) throw new IllegalArgumentException();
     if (3 != dimensions.length) {
       throw new IllegalArgumentException("dimensions=" + Arrays.toString(dimensions));
     }
@@ -134,16 +132,16 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
     }
     if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     return new Result(CudaSystem.eval(gpu -> {
-      @javax.annotation.Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
-      @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision.code, length,
+      @javax.annotation.Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision);
+      @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
         dimensions[2], dimensions[1], dimensions[0],
         dimensions[2] * dimensions[1] * dimensions[0],
         dimensions[1] * dimensions[0],
         dimensions[0],
         1);
-      @Nullable final CudaTensor lPtr = gpu.getTensor(leftData, precision, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
-      @Nullable final CudaTensor rPtr = gpu.getTensor(rightData, precision, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
-      @javax.annotation.Nonnull final CudaMemory outputPtr = gpu.allocate(precision.size * Tensor.dimL(dimensions) * length, MemoryType.Device, true);
+      @Nullable final CudaTensor lPtr = gpu.getTensor(leftData, precision, MemoryType.Device).getDenseAndFree(gpu);//.moveTo(gpu.getDeviceNumber());
+      @Nullable final CudaTensor rPtr = gpu.getTensor(rightData, precision, MemoryType.Device).getDenseAndFree(gpu);//.moveTo(gpu.getDeviceNumber());
+      @javax.annotation.Nonnull final CudaMemory outputPtr = gpu.allocate(precision.size * Tensor.length(dimensions) * length, MemoryType.Device, false);
       gpu.cudnnOpTensor(opDescriptor.getPtr(),
         precision.getPointer(leftFactor), lPtr.descriptor.getPtr(), lPtr.memory.getPtr(),
         precision.getPointer(rightFactor), rPtr.descriptor.getPtr(), rPtr.memory.getPtr(),
@@ -157,8 +155,8 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
         if (inObj[0].isAlive()) {
           CudaTensorList tensorList = CudaSystem.eval(gpu -> {
             @Nullable final CudaTensor lPtr = gpu.getTensor(delta, precision, MemoryType.Device);
-            @Nonnull final CudaMemory outputPtr = gpu.allocate(precision.size * Tensor.dimL(dimensions) * length, MemoryType.Managed, true);
-            @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision.code, length,
+            @Nonnull final CudaMemory outputPtr = gpu.allocate(precision.size * Tensor.length(dimensions) * length, MemoryType.Managed, true);
+            @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
               dimensions[2], dimensions[1], dimensions[0],
               dimensions[2] * dimensions[1] * dimensions[0],
               dimensions[1] * dimensions[0],
@@ -178,8 +176,8 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
         if (inObj[1].isAlive()) {
           CudaTensorList tensorList = CudaSystem.eval(gpu -> {
             @Nullable final CudaTensor lPtr = gpu.getTensor(delta, precision, MemoryType.Device);
-            @Nonnull final CudaMemory outputPtr = gpu.allocate(precision.size * Tensor.dimL(dimensions) * length, MemoryType.Managed, true);
-            @Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(precision.code, length,
+            @Nonnull final CudaMemory outputPtr = gpu.allocate(precision.size * Tensor.length(dimensions) * length, MemoryType.Managed, true);
+            @Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(precision, length,
               dimensions[2], dimensions[1], dimensions[0],
               dimensions[2] * dimensions[1] * dimensions[0],
               dimensions[1] * dimensions[0],

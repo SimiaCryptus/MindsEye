@@ -221,7 +221,7 @@ public class BiasLayer extends LayerBase {
   @javax.annotation.Nonnull
   public BiasLayer setWeightsLog(final double value) {
     for (int i = 0; i < bias.length; i++) {
-      bias[i] = (FastRandom.random() - 0.5) * Math.pow(10, value);
+      bias[i] = (FastRandom.INSTANCE.random() - 0.5) * Math.pow(10, value);
     }
     return this;
   }

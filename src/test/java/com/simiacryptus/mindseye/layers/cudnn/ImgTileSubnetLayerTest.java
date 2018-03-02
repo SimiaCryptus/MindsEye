@@ -35,7 +35,7 @@ public abstract class ImgTileSubnetLayerTest extends CudnnLayerTestBase {
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {6, 6, 1}
+      {5, 5, 1}
     };
   }
   
@@ -56,6 +56,13 @@ public abstract class ImgTileSubnetLayerTest extends CudnnLayerTestBase {
    * Basic Test
    */
   public static class Basic extends ImgTileSubnetLayerTest {
+  
+    @Nullable
+    @Override
+    public Class<? extends Layer> getReferenceLayerClass() {
+      return null;
+    }
+  
   }
   
 }

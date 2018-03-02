@@ -168,7 +168,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
   @javax.annotation.Nonnull
   public CudaDevice.CudaTensorDescriptor getTensorDescriptor(final CudaDevice gpu, int[] viewDim, int[] sizeDim, int length) {
     return gpu.newTensorDescriptor(
-      precision.code, length, viewDim[2], viewDim[1], viewDim[0], //
+      precision, length, viewDim[2], viewDim[1], viewDim[0], //
       sizeDim[2] * sizeDim[1] * sizeDim[0], //
       sizeDim[1] * sizeDim[0], //
       sizeDim[0], //

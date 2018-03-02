@@ -620,7 +620,7 @@ public class ValidatingTrainer {
           break;
         }
         if (epochParams.trainingSize >= getMaxTrainingSize()) {
-          final double roll = FastRandom.random();
+          final double roll = FastRandom.INSTANCE.random();
           if (roll > Math.pow(2 - validationDelta, pessimism)) {
             monitor.log(String.format("Training randomly converged: %3f", roll));
             break;

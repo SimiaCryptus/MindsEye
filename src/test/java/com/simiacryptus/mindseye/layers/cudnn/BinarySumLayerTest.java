@@ -51,7 +51,7 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {8, 8, 1}, {8, 8, 1}
+      {2, 2, 1}, {2, 2, 1}
     };
   }
   
@@ -64,7 +64,7 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {200, 200, 3}, {200, 200, 3}
+      {2, 2, 1}, {2, 2, 1}
     };
   }
   

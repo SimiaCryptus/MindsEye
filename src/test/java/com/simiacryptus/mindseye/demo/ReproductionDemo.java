@@ -34,9 +34,7 @@ import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.apache.hadoop.yarn.webapp.MimeType;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
@@ -146,16 +144,9 @@ public class ReproductionDemo extends ArtistryDemo {
     basicTrainable.setData(Arrays.<Tensor[]>asList(new Tensor[]{texture, canvas}));
     
     TestUtil.instrumentPerformance(log, painterNetwork);
-    server.addSyncHandler("layers.json", MimeType.JSON, out -> {
-      try {
-        JsonUtil.MAPPER.writer().writeValue(out, TestUtil.samplePerformance(painterNetwork));
-        out.close();
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }, false);
-    
-    
+    addLayersHandler(painterNetwork, server);
+  
+  
     log.code(() -> {
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
       new IterativeTrainer(basicTrainable)

@@ -308,7 +308,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
   @javax.annotation.Nonnull
   public FullyConnectedReferenceLayer setWeightsLog(final double value) {
     weights.coordStream(false).forEach(c -> {
-      weights.set(c, (FastRandom.random() - 0.5) * Math.pow(10, value));
+      weights.set(c, (FastRandom.INSTANCE.random() - 0.5) * Math.pow(10, value));
     });
     return this;
   }

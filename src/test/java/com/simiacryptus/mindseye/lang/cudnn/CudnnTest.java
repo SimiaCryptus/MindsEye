@@ -403,7 +403,7 @@ public class CudnnTest extends NotebookReportBase {
   }
   
   private double random(double v) {
-    return FastRandom.random();
+    return FastRandom.INSTANCE.random();
   }
   
   @javax.annotation.Nonnull

@@ -107,7 +107,7 @@ public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
     final int length = input.getData().length();
     @javax.annotation.Nonnull final Tensor tensorPrototype = new Tensor(dimensions);
     while (length > maskList.size()) {
-      maskList.add(tensorPrototype.map(v -> FastRandom.random() < getValue() ? 0 : (1.0 / getValue())));
+      maskList.add(tensorPrototype.map(v -> FastRandom.INSTANCE.random() < getValue() ? 0 : (1.0 / getValue())));
     }
     @javax.annotation.Nonnull final TensorList mask = TensorArray.create(maskList.stream().limit(length).toArray(i -> new Tensor[i]));
     return new Result(mask, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {

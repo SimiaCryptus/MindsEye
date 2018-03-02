@@ -140,7 +140,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       Stream<CopyParams> stream = copies.stream();
       if (!CoreSettings.INSTANCE.isConservative() && parallel) stream = stream.parallel();
       stream.forEach(this::copy);
-      CudaDevice.CudaTensorDescriptor descriptor = gpu.newTensorDescriptor(precision.code, length, outputDims[2], outputDims[1], outputDims[0]);
+      CudaDevice.CudaTensorDescriptor descriptor = gpu.newTensorDescriptor(precision, length, outputDims[2], outputDims[1], outputDims[0]);
       CudaTensor ptr = CudaTensor.wrap(outputBuffer, descriptor, precision);
       return CudaTensorList.wrap(ptr, length, outputDims, precision);
     });
@@ -205,7 +205,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       copy(gpu, backpropParams.getLength(), backpropParams.getOutputDims(), errorPtr, tileDimensions, passbackBuffer, -backpropParams.getPositionX(), -backpropParams.getTotalHeight());
       errorPtr.freeRef();
   
-      CudaDevice.CudaTensorDescriptor descriptor = gpu.newTensorDescriptor(precision.code, backpropParams.getLength(), tileDimensions[2], tileDimensions[1], tileDimensions[0]);
+      CudaDevice.CudaTensorDescriptor descriptor = gpu.newTensorDescriptor(precision, backpropParams.getLength(), tileDimensions[2], tileDimensions[1], tileDimensions[0]);
       CudaTensor ptr = CudaTensor.wrap(passbackBuffer, descriptor, precision);
       
       return CudaTensorList.wrap(ptr, backpropParams.getLength(), tileDimensions, precision);
@@ -266,7 +266,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
     //log.info(String.format("offset=%d,%d", offsetX, offsetY));
     @Nonnull final int[] viewDim = getViewDimensions(sourceDimensions, destinationDimensions, new int[]{positionX, positionY, 0});
     @Nonnull final CudaDevice.CudaTensorDescriptor sourceViewDescriptor = gpu.newTensorDescriptor(
-      precision.code,//
+      precision,//
       length,//
       viewDim[2],//
       viewDim[1],//
@@ -276,7 +276,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       source.descriptor.hStride,//
       source.descriptor.wStride);
     @Nonnull final CudaDevice.CudaTensorDescriptor destinationViewDescriptor = gpu.newTensorDescriptor(
-      precision.code,//
+      precision,//
       length,//
       viewDim[2],//
       viewDim[1],//

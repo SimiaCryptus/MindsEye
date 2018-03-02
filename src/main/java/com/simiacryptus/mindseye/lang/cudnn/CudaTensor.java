@@ -95,10 +95,10 @@ public class CudaTensor extends ReferenceCountingBase {
       return this;
     }
     CudaDevice.CudaTensorDescriptor sourceDescriptor = gpu.newTensorDescriptor(
-      precision.code, this.descriptor.batchCount, this.descriptor.channels, this.descriptor.height, this.descriptor.width,
+      precision, this.descriptor.batchCount, this.descriptor.channels, this.descriptor.height, this.descriptor.width,
       this.descriptor.nStride, this.descriptor.cStride, this.descriptor.hStride, this.descriptor.wStride);
     CudaDevice.CudaTensorDescriptor destDescriptor = gpu.newTensorDescriptor(
-      precision.code, this.descriptor.batchCount, this.descriptor.channels, this.descriptor.height, this.descriptor.width,
+      precision, this.descriptor.batchCount, this.descriptor.channels, this.descriptor.height, this.descriptor.width,
       this.descriptor.channels * this.descriptor.height * this.descriptor.width, this.descriptor.height * this.descriptor.width, this.descriptor.width, 1);
     CudaMemory destMemory = gpu.allocate(this.descriptor.channels * this.descriptor.height * this.descriptor.width * this.descriptor.batchCount * precision.size, MemoryType.Device, true);
     gpu.cudnnTransformTensor(

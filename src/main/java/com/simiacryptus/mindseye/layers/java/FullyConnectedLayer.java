@@ -415,7 +415,7 @@ public class FullyConnectedLayer extends LayerBase {
   @javax.annotation.Nonnull
   public FullyConnectedLayer setWeightsLog(final double value) {
     getWeights().coordStream(false).forEach(c -> {
-      getWeights().set(c, (FastRandom.random() - 0.5) * Math.pow(10, value));
+      getWeights().set(c, (FastRandom.INSTANCE.random() - 0.5) * Math.pow(10, value));
     });
     return this;
   }

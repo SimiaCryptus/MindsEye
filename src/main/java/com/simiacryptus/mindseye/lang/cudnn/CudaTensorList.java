@@ -73,7 +73,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     this.ptr.addRef();
     this.length = length;
     this.dimensions = Arrays.copyOf(dimensions, dimensions.length);
-    assert ptr.memory.size >= (long) length * Tensor.length(dimensions) * precision.size;
+    assert ptr.memory.size >= (long) length * Tensor.length(dimensions) * precision.size : String.format("%s < %s", ptr.memory.size, (long) length * Tensor.length(dimensions) * precision.size);
     assert ptr.descriptor.batchCount == length;
     assert ptr.descriptor.channels == (dimensions.length < 3 ? 1 : dimensions[2]);
     assert ptr.descriptor.height == (dimensions.length < 2 ? 1 : dimensions[1]);
@@ -278,21 +278,13 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
             .mapToObj(dataIndex -> new Tensor(getDimensions()))
             .toArray(i -> new Tensor[i]);
           CudnnHandle.run(gpu -> {
-            CudaTensor ptr = this.ptr;
-            if (!ptr.isDense()) {
-              ptr = ptr.getDense(gpu);
-              gpu.cudaDeviceSynchronize();
-            }
-            else {
-              ptr.addRef();
-            }
-            assert ptr.isDense();
+            CudaTensor dense = this.ptr.getDense(gpu);
             try {
               for (int i = 0; i < getLength(); i++) {
-                ptr.memory.read(precision, output[i].getData(), i * itemLength);
+                dense.memory.read(precision, output[i].getData(), i * itemLength);
               }
             } finally {
-              ptr.freeRef();
+              dense.freeRef();
             }
           });
           heapCopy = TensorArray.wrap(output);

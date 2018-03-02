@@ -385,7 +385,7 @@ public class CudaDevice extends CudaSystem {
     final int channels = inputSize.length < 3 ? 1 : inputSize[2];
     final int height = inputSize.length < 2 ? 1 : inputSize[1];
     final int width = inputSize.length < 1 ? 1 : inputSize[0];
-    @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor descriptor = newTensorDescriptor(precision.code, data.length(), channels, height, width, channels * height * width, height * width, width, 1);
+    @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor descriptor = newTensorDescriptor(precision, data.length(), channels, height, width, channels * height * width, height * width, width, 1);
     return CudaTensor.wrap(ptr, descriptor, precision);
   }
   
@@ -399,7 +399,7 @@ public class CudaDevice extends CudaSystem {
    * @param width      the width
    * @return the cuda resource
    */
-  public CudaTensorDescriptor newTensorDescriptor(final int dataType,
+  public CudaTensorDescriptor newTensorDescriptor(final Precision dataType,
     final int batchCount, final int channels, final int height, final int width) {
     return newTensorDescriptor(dataType, batchCount, channels, height, width, channels * height * width, height * width, width, 1);
   }
@@ -418,7 +418,7 @@ public class CudaDevice extends CudaSystem {
    * @param wStride    the w stride
    * @return the cuda resource
    */
-  public CudaTensorDescriptor newTensorDescriptor(final int dataType,
+  public CudaTensorDescriptor newTensorDescriptor(final Precision dataType,
     final int batchCount, final int channels, final int height, final int width,
     final int nStride, final int cStride, final int hStride, final int wStride) {
     long startTime = System.nanoTime();
@@ -427,47 +427,12 @@ public class CudaDevice extends CudaSystem {
     this.dirty();
     log("cudnnCreateTensorDescriptor", result, new Object[]{desc});
     CudaSystem.handle(result);
-    result = JCudnn.cudnnSetTensor4dDescriptorEx(desc, dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride);
+    result = JCudnn.cudnnSetTensor4dDescriptorEx(desc, dataType.code, batchCount, channels, height, width, nStride, cStride, hStride, wStride);
     newTensorDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     this.dirty();
     log("cudnnSetTensor4dDescriptorEx", result, new Object[]{desc, dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride});
     CudaSystem.handle(result);
     return new CudaTensorDescriptor(desc, getDeviceId(), dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride);
-  }
-  
-  public static class CudaTensorDescriptor extends CudaResource<cudnnTensorDescriptor> {
-    
-    public final int wStride;
-    public final int hStride;
-    public final int cStride;
-    public final int nStride;
-    public final int width;
-    public final int height;
-    public final int channels;
-    public final int batchCount;
-    public final int dataType;
-    
-    /**
-     * Instantiates a new Cuda resource.
-     *
-     * @param obj      the obj
-     * @param deviceId the device id
-     */
-    protected CudaTensorDescriptor(final cudnnTensorDescriptor obj, final int deviceId, final int dataType,
-      final int batchCount, final int channels, final int height, final int width,
-      final int nStride, final int cStride, final int hStride, final int wStride) {
-      super(obj, CudaSystem::cudnnDestroyTensorDescriptor, deviceId);
-      this.dataType = dataType;
-      this.batchCount = batchCount;
-      this.channels = channels;
-      this.height = height;
-      this.width = width;
-      this.nStride = nStride;
-      this.cStride = cStride;
-      this.hStride = hStride;
-      this.wStride = wStride;
-    }
-    
   }
   
   /**
@@ -477,14 +442,14 @@ public class CudaDevice extends CudaSystem {
    * @param dataType the data type
    * @return the cuda resource
    */
-  public CudaResource<cudnnOpTensorDescriptor> newOpDescriptor(final int opType, final int dataType) {
+  public CudaResource<cudnnOpTensorDescriptor> newOpDescriptor(final int opType, final Precision dataType) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final cudnnOpTensorDescriptor opDesc = new cudnnOpTensorDescriptor();
     int result = JCudnn.cudnnCreateOpTensorDescriptor(opDesc);
     this.dirty();
     log("cudnnCreateOpTensorDescriptor", result, new Object[]{opDesc});
     CudaSystem.handle(result);
-    result = JCudnn.cudnnSetOpTensorDescriptor(opDesc, opType, dataType, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN);
+    result = JCudnn.cudnnSetOpTensorDescriptor(opDesc, opType, dataType.code, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN);
     newOpDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     this.dirty();
     log("cudnnSetOpTensorDescriptor", result, new Object[]{opDesc, opType, dataType, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN});
@@ -503,14 +468,14 @@ public class CudaDevice extends CudaSystem {
    * @param width          the width
    * @return the cuda resource
    */
-  public CudaResource<cudnnFilterDescriptor> newFilterDescriptor(final int dataType, final int tensorLayout, final int outputChannels, final int inputChannels, final int height, final int width) {
+  public CudaResource<cudnnFilterDescriptor> newFilterDescriptor(final Precision dataType, final int tensorLayout, final int outputChannels, final int inputChannels, final int height, final int width) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final cudnnFilterDescriptor filterDesc = new cudnnFilterDescriptor();
     int result = JCudnn.cudnnCreateFilterDescriptor(filterDesc);
     this.dirty();
     log("cudnnCreateFilterDescriptor", result, new Object[]{filterDesc});
     CudaSystem.handle(result);
-    result = JCudnn.cudnnSetFilter4dDescriptor(filterDesc, dataType, tensorLayout, outputChannels, inputChannels, height, width);
+    result = JCudnn.cudnnSetFilter4dDescriptor(filterDesc, dataType.code, tensorLayout, outputChannels, inputChannels, height, width);
     newFilterDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     this.dirty();
     log("cudnnSetFilter4dDescriptor", result, new Object[]{filterDesc, dataType, tensorLayout, outputChannels, inputChannels, height, width});
@@ -542,7 +507,7 @@ public class CudaDevice extends CudaSystem {
    * @param dilationX    the dilation x
    * @return the cuda resource
    */
-  public CudaResource<cudnnConvolutionDescriptor> newConvolutions2dDescriptor(final int mode, final int dataType, final int paddingY, final int paddingX, final int strideHeight, final int strideWidth, int dilationY, int dilationX) {
+  public CudaResource<cudnnConvolutionDescriptor> newConvolutions2dDescriptor(final int mode, final Precision dataType, final int paddingY, final int paddingX, final int strideHeight, final int strideWidth, int dilationY, int dilationX) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final cudnnConvolutionDescriptor convDesc = new cudnnConvolutionDescriptor();
     int result = JCudnn.cudnnCreateConvolutionDescriptor(convDesc);
@@ -558,13 +523,49 @@ public class CudaDevice extends CudaSystem {
       dilationY, // upscale the input in x-direction
       dilationX, // upscale the input in y-direction
       mode
-      , dataType
+      , dataType.code
     );
     newConvolutions2dDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     this.dirty();
     log("cudnnSetConvolution2dDescriptor", result, new Object[]{convDesc, paddingY, paddingX, strideHeight, strideWidth, dilationY, dilationX, mode, dataType});
     CudaSystem.handle(result);
     return new CudaResource<>(convDesc, CudaSystem::cudnnDestroyConvolutionDescriptor, getDeviceId());
+  }
+  
+  public static class CudaTensorDescriptor extends CudaResource<cudnnTensorDescriptor> {
+    
+    public final int wStride;
+    public final int hStride;
+    public final int cStride;
+    public final int nStride;
+    public final int width;
+    public final int height;
+    public final int channels;
+    public final int batchCount;
+    public final Precision dataType;
+    
+    /**
+     * Instantiates a new Cuda resource.
+     *
+     * @param obj      the obj
+     * @param deviceId the device id
+     * @param dataType
+     */
+    protected CudaTensorDescriptor(final cudnnTensorDescriptor obj, final int deviceId, final Precision dataType,
+      final int batchCount, final int channels, final int height, final int width,
+      final int nStride, final int cStride, final int hStride, final int wStride) {
+      super(obj, CudaSystem::cudnnDestroyTensorDescriptor, deviceId);
+      this.dataType = dataType;
+      this.batchCount = batchCount;
+      this.channels = channels;
+      this.height = height;
+      this.width = width;
+      this.nStride = nStride;
+      this.cStride = cStride;
+      this.hStride = hStride;
+      this.wStride = wStride;
+    }
+    
   }
   
   /**

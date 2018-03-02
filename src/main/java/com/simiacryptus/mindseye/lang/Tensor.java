@@ -228,29 +228,17 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   }
   
   /**
-   * Dim int.
-   *
-   * @param dims the dims
-   * @return the int
-   */
-  public static int length(final int... dims) {
-    long total = dimL(dims);
-    if (total > Integer.MAX_VALUE) throw new IllegalArgumentException();
-    return (int) total;
-  }
-  
-  /**
    * Dim l long.
    *
    * @param dims the dims
    * @return the long
    */
-  public static long dimL(@javax.annotation.Nonnull int... dims) {
+  public static int length(@javax.annotation.Nonnull int... dims) {
     long total = 1;
     for (final int dim : dims) {
       total *= dim;
     }
-    return total;
+    return (int) total;
   }
   
   /**

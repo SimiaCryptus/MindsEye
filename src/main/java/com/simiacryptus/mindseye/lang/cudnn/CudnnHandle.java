@@ -107,15 +107,19 @@ public class CudnnHandle extends CudaDevice {
     Precision precision = right.getPrecision();
     @Nonnull CudaTensor rPtr = getTensor(right, MemoryType.Device);
     @Nonnull CudaTensor lPtr = getTensor(left, MemoryType.Device);
-    @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
-    @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = newTensorDescriptor(left.precision.code, length, d2, d1, d0, d2 * d1 * d0, d1 * d0, d0, 1);
+    assert lPtr.descriptor.batchCount == rPtr.descriptor.batchCount;
+    assert lPtr.descriptor.channels == rPtr.descriptor.channels;
+    assert lPtr.descriptor.height == rPtr.descriptor.height;
+    assert lPtr.descriptor.width == rPtr.descriptor.width;
+    @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision);
+    @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = newTensorDescriptor(left.precision, length, d2, d1, d0, d2 * d1 * d0, d1 * d0, d0, 1);
     @Nonnull final CudaMemory outputPtr = allocate(lPtr.memory.size, MemoryType.Managed, true);
     try {
       cudnnOpTensor(opDescriptor.getPtr(),
-//        precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtr.memory.getPtr(),
-//        precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtr.memory.getPtr(),
-        precision.getPointer(1.0), outputDescriptor.getPtr(), lPtr.memory.getPtr(),
-        precision.getPointer(1.0), outputDescriptor.getPtr(), rPtr.memory.getPtr(),
+        precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtr.memory.getPtr(),
+        precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtr.memory.getPtr(),
+//        precision.getPointer(1.0), outputDescriptor.getPtr(), lPtr.memory.getPtr(),
+//        precision.getPointer(1.0), outputDescriptor.getPtr(), rPtr.memory.getPtr(),
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr());
       return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor, precision), length, dimensions, precision);
     } finally {
@@ -133,19 +137,16 @@ public class CudnnHandle extends CudaDevice {
    * @return the cuda tensor list
    */
   public CudaTensorList addInPlace(final CudaTensorList left, final TensorList right) {
-    final int[] leftDimensions = left.getDimensions();
-    final int[] rightDimensions = right.getDimensions();
-    @Nonnull final CudaResource<cudnnTensorDescriptor> leftDescriptor = newTensorDescriptor(left.precision.code, left.length(), leftDimensions[2], leftDimensions[1], leftDimensions[0], leftDimensions[2] * leftDimensions[1] * leftDimensions[0], leftDimensions[1] * leftDimensions[0], leftDimensions[0], 1);
-    Precision precision = left.precision;
-    @Nonnull final CudaResource<cudnnTensorDescriptor> rightDescriptor = newTensorDescriptor(precision.code, right.length(), rightDimensions[2], rightDimensions[1], rightDimensions[0], rightDimensions[2] * rightDimensions[1] * rightDimensions[0], rightDimensions[1] * rightDimensions[0], rightDimensions[0], 1);
     @Nullable final CudaTensor lPtr = left.ptr;//.moveTo(gpu.getDeviceNumber());
-    @Nullable final CudaTensor rPtr = getTensor(right, precision, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
+    @Nullable final CudaTensor rPtr = getTensor(right, left.precision, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
+    assert lPtr.descriptor.batchCount == rPtr.descriptor.batchCount;
+    assert lPtr.descriptor.channels == rPtr.descriptor.channels;
+    assert lPtr.descriptor.height == rPtr.descriptor.height;
+    assert lPtr.descriptor.width == rPtr.descriptor.width;
     cudnnAddTensor(
-      precision.getPointer(1.0), rightDescriptor.getPtr(), rPtr.memory.getPtr(),
-      left.precision.getPointer(1.0), leftDescriptor.getPtr(), lPtr.memory.getPtr());
+      left.precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtr.memory.getPtr(),
+      left.precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtr.memory.getPtr());
     rPtr.freeRef();
-    rightDescriptor.freeRef();
-    leftDescriptor.freeRef();
     return left;
   }
   
@@ -172,13 +173,16 @@ public class CudnnHandle extends CudaDevice {
     assert length == right.length();
     if (left.currentRefCount() == 1 && left instanceof CudaTensorList && ((CudaTensorList) left).ptr.memory.getDeviceId() == getDeviceId())
       return this.addInPlaceAndFree((CudaTensorList) left, right);
-    if (right.currentRefCount() == 1 && right instanceof CudaTensorList && ((CudaTensorList) left).ptr.memory.getDeviceId() == getDeviceId())
+    if (right.currentRefCount() == 1 && right instanceof CudaTensorList && ((CudaTensorList) right).ptr.memory.getDeviceId() == getDeviceId())
       return this.addInPlaceAndFree((CudaTensorList) right, left);
-    @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
-    @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = newTensorDescriptor(precision.code, length, dimensions[2], dimensions[1], dimensions[0], dimensions[2] * dimensions[1] * dimensions[0], dimensions[1] * dimensions[0], dimensions[0], 1);
+    @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision);
+    @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = newTensorDescriptor(precision, length, dimensions[2], dimensions[1], dimensions[0], dimensions[2] * dimensions[1] * dimensions[0], dimensions[1] * dimensions[0], dimensions[0], 1);
     @Nullable final CudaTensor lPtr = getTensor(left, precision, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
     @Nullable final CudaTensor rPtr = getTensor(right, precision, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
-    assert lPtr.memory.size == rPtr.memory.size;
+    assert lPtr.descriptor.batchCount == rPtr.descriptor.batchCount;
+    assert lPtr.descriptor.channels == rPtr.descriptor.channels;
+    assert lPtr.descriptor.height == rPtr.descriptor.height;
+    assert lPtr.descriptor.width == rPtr.descriptor.width;
     @Nonnull final CudaMemory outputPtr = allocate(outputDescriptor.nStride * length * precision.size, MemoryType.Device, true);
     cudnnOpTensor(opDescriptor.getPtr(),
       precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtr.memory.getPtr(),
@@ -594,7 +598,7 @@ public class CudnnHandle extends CudaDevice {
    * @param memoryLimitInBytes the memory limit in bytes
    * @return the backward data algorithm
    */
-  public int getBackwardDataAlgorithm(final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc, final int memoryLimitInBytes) {
+  public int getBackwardDataAlgorithm(final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc, final long memoryLimitInBytes) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final int algoArray[] = {-1};
     final int result = JCudnn.cudnnGetConvolutionBackwardDataAlgorithm(handle,
@@ -617,7 +621,7 @@ public class CudnnHandle extends CudaDevice {
    * @param memoryLimitInBytes the memory limit in bytes
    * @return the backward filter algorithm
    */
-  public int getBackwardFilterAlgorithm(final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc, final int memoryLimitInBytes) {
+  public int getBackwardFilterAlgorithm(final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc, final long memoryLimitInBytes) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final int algoArray[] = {-1};
     final int result = JCudnn.cudnnGetConvolutionBackwardFilterAlgorithm(handle,
@@ -640,7 +644,7 @@ public class CudnnHandle extends CudaDevice {
    * @param memoryLimitInBytes the memory limit in bytes
    * @return the forward algorithm
    */
-  public int getForwardAlgorithm(final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int memoryLimitInBytes) {
+  public int getForwardAlgorithm(final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final long memoryLimitInBytes) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final int algoArray[] = {-1};
     final int result = JCudnn.cudnnGetConvolutionForwardAlgorithm(handle,

@@ -95,7 +95,7 @@ public class EncodingUtil {
   public static Tensor[][] addColumn(@javax.annotation.Nonnull final Tensor[][] trainingData, final int... size) {
     return Arrays.stream(trainingData).map(x -> Stream.concat(
       Arrays.stream(x),
-      Stream.of(new Tensor(size).set(() -> 0.0 * (FastRandom.random() - 0.5))))
+      Stream.of(new Tensor(size).set(() -> 0.0 * (FastRandom.INSTANCE.random() - 0.5))))
       .toArray(i -> new Tensor[i])).toArray(i -> new Tensor[i][]);
   }
   

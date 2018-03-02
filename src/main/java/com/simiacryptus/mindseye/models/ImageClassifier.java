@@ -388,14 +388,26 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param totalCategories     the total categories
    * @param config              the config
    */
-  public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories, Function<IterativeTrainer, IterativeTrainer> config) {
+  public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories, Function<IterativeTrainer, IterativeTrainer> config) {deepDream(log, image, targetCategoryIndex, totalCategories, config, getNetwork());}
+  
+  /**
+   * Deep dream.
+   *
+   * @param log                 the log
+   * @param image               the image
+   * @param targetCategoryIndex the target category index
+   * @param totalCategories     the total categories
+   * @param config              the config
+   * @param network
+   */
+  public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories, Function<IterativeTrainer, IterativeTrainer> config, final Layer network) {
     @Nonnull List<Tensor[]> data = Arrays.<Tensor[]>asList(new Tensor[]{
       image, new Tensor(totalCategories).set(targetCategoryIndex, 1.0)
     });
     log.code(() -> {
       for (Tensor[] tensors : data) {
         try {
-          ((Logger) log).info(log.image(tensors[0].toImage(), "") + tensors[1]);
+          ImageClassifier.log.info(log.image(tensors[0].toImage(), "") + tensors[1]);
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
@@ -410,7 +422,7 @@ public abstract class ImageClassifier implements NetworkFactory {
       clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
       @Nonnull PipelineNetwork supervised = new PipelineNetwork(2);
       supervised.wrap(new EntropyLossLayer(),
-        supervised.add(getNetwork().freeze(),
+        supervised.add(network.freeze(),
           supervised.wrap(clamp, supervised.getInput(0))),
         supervised.getInput(1));
 //      TensorList[] gpuInput = data.stream().map(data1 -> {
@@ -420,6 +432,7 @@ public abstract class ImageClassifier implements NetworkFactory {
 //        });
 //      }).toArray(i -> new TensorList[i]);
 //      @Nonnull Trainable trainable = new TensorListTrainable(supervised, gpuInput).setVerbosity(1).setMask(true);
+  
       @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setVerbose(true).setMask(true, false).setData(data);
       config.apply(new IterativeTrainer(trainable)
         .setMonitor(getTrainingMonitor(history, supervised))
