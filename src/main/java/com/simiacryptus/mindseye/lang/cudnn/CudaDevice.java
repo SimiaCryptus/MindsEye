@@ -360,7 +360,25 @@ public class CudaDevice extends CudaSystem {
     int[] inputSize = data.getDimensions();
     data.assertAlive();
     if (data instanceof ReshapedTensorList) {
-      return getTensor(((ReshapedTensorList) data).getInner(), precision, memoryType);
+      ReshapedTensorList reshapedTensorList = (ReshapedTensorList) data;
+      int[] newDims = reshapedTensorList.getDimensions();
+      return CudaSystem.eval(gpu -> {
+        CudaTensor tensor = getTensor(reshapedTensorList.getInner(), precision, memoryType).getDenseAndFree(gpu);
+        int channels = newDims.length < 3 ? 1 : newDims[2];
+        int height = newDims.length < 2 ? 1 : newDims[1];
+        int width = newDims.length < 1 ? 1 : newDims[0];
+        CudaTensorDescriptor descriptor = newTensorDescriptor(precision, tensor.descriptor.batchCount,
+          channels, height, width,
+          channels * height * width,
+          height * width,
+          width,
+          1
+        );
+        CudaTensor cudaTensor = new CudaTensor(tensor.memory, descriptor, precision);
+        tensor.freeRef();
+        descriptor.freeRef();
+        return cudaTensor;
+      });
     }
     if (data instanceof CudaTensorList) {
       if (precision == ((CudaTensorList) data).getPrecision()) {

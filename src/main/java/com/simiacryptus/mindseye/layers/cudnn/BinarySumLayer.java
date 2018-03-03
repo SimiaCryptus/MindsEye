@@ -155,17 +155,17 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
         if (inObj[0].isAlive()) {
           CudaTensorList tensorList = CudaSystem.eval(gpu -> {
             @Nullable final CudaTensor lPtr = gpu.getTensor(delta, precision, MemoryType.Device);
-            @Nonnull final CudaMemory outputPtr = gpu.allocate(precision.size * Tensor.length(dimensions) * length, MemoryType.Managed, true);
-            @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
+            @Nonnull final CudaMemory passbackPtr = gpu.allocate(precision.size * Tensor.length(dimensions) * length, MemoryType.Managed, true);
+            @Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(precision, length,
               dimensions[2], dimensions[1], dimensions[0],
               dimensions[2] * dimensions[1] * dimensions[0],
               dimensions[1] * dimensions[0],
               dimensions[0],
               1);
-            gpu.cudnnAddTensor(
+            gpu.cudnnTransformTensor(
               precision.getPointer(leftFactor), lPtr.descriptor.getPtr(), lPtr.memory.getPtr(),
-              precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr());
-            CudaTensor cudaTensor = CudaTensor.wrap(outputPtr, outputDescriptor, precision);
+              precision.getPointer(0.0), passbackDescriptor.getPtr(), passbackPtr.getPtr());
+            CudaTensor cudaTensor = CudaTensor.wrap(passbackPtr, passbackDescriptor, precision);
             lPtr.freeRef();
             return CudaTensorList.wrap(cudaTensor, length, dimensions, precision);
           });
@@ -183,7 +183,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
               dimensions[1] * dimensions[0],
               dimensions[0],
               1);
-            gpu.cudnnAddTensor(
+            gpu.cudnnTransformTensor(
               precision.getPointer(rightFactor), lPtr.descriptor.getPtr(), lPtr.memory.getPtr(),
               precision.getPointer(0.0), passbackDescriptor.getPtr(), outputPtr.getPtr());
             CudaTensor cudaTensor = CudaTensor.wrap(outputPtr, passbackDescriptor, precision);
