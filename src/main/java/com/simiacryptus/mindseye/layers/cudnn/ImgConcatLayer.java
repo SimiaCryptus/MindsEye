@@ -132,7 +132,6 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
             cudaInput.descriptor.cStride, //
             cudaInput.descriptor.hStride, //
             cudaInput.descriptor.wStride);
-//          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = getTensorDescriptor(length, inputBands, inputDimensions, inputDimensions, gpu);
   
           int byteOffset = outputDescriptor.cStride * bandOffset * precision.size;
           gpu.cudnnTransformTensor(
@@ -154,7 +153,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
       //outputBuffer.freeRef();
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
       @javax.annotation.Nonnull IntStream stream = IntStream.range(0, inObj.length);
-      if (!CoreSettings.INSTANCE.isConservative() && parallel) stream = stream.parallel();
+      if (!CoreSettings.INSTANCE.isSingleThreaded() && parallel) stream = stream.parallel();
       stream.forEach(i -> {
         final Result input = inObj[i];
         int[] inputDimentions = input.getData().getDimensions();
@@ -188,8 +187,8 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
               cudaDelta.descriptor.hStride, //
               cudaDelta.descriptor.wStride);
             @javax.annotation.Nonnull final CudaMemory cudaBackprop = gpu.allocate(
-              (long) inputDimentions[2] * inputDimentions[1] * inputDimentions[0] * length * precision.size,
-              MemoryType.Managed, (inputBands + bandOffset) <= outputDimensions[2]);
+              (long) passbackDescriptor.nStride * length * precision.size,
+              MemoryType.Managed, inputBands == inputDimentions[2]);
             int byteOffset = cudaDelta.descriptor.cStride * bandOffset * precision.size;
             gpu.cudnnTransformTensor(
               precision.getPointer(1.0), deltaViewDescriptor.getPtr(), cudaDelta.memory.getPtr().withByteOffset(byteOffset),

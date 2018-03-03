@@ -31,7 +31,7 @@ import java.util.Random;
 /**
  * The type Product layer run.
  */
-public abstract class GateProductLayerTest extends CudnnLayerTestBase {
+public abstract class GateProductLayerTest extends CudaLayerTestBase {
   
   /**
    * The Precision.

@@ -65,6 +65,12 @@ public class SimpleGpuEval extends SimpleListEval {
     return toGpu(getDelta(original));
   }
   
+  /**
+   * To gpu cuda tensor list.
+   *
+   * @param tensorArray the tensor array
+   * @return the cuda tensor list
+   */
   @Nonnull
   public CudaTensorList toGpu(final TensorArray tensorArray) {
     @Nullable CudaTensor cudaMemory = gpu.getTensor(tensorArray, Precision.Double, MemoryType.Managed);
@@ -72,6 +78,12 @@ public class SimpleGpuEval extends SimpleListEval {
     return CudaTensorList.wrap(cudaMemory, tensorArray.length(), tensorArray.getDimensions(), Precision.Double);
   }
   
+  /**
+   * Gets delta.
+   *
+   * @param output the output
+   * @return the delta
+   */
   @Nonnull
   public TensorArray getDelta(final TensorList output) {
     return TensorArray.wrap(output.stream().map(t -> {

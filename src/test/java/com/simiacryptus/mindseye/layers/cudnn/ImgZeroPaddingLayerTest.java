@@ -27,7 +27,7 @@ import java.util.Random;
 /**
  * The type Img crop layer eval.
  */
-public abstract class ImgZeroPaddingLayerTest extends CudnnLayerTestBase {
+public abstract class ImgZeroPaddingLayerTest extends CudaLayerTestBase {
   
   /**
    * Instantiates a new Img crop layer eval.

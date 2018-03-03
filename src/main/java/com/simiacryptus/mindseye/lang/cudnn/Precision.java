@@ -42,6 +42,9 @@ public enum Precision {
    */
   Float(cudnnDataType.CUDNN_DATA_FLOAT, Sizeof.FLOAT);
   
+  /**
+   * The Code.
+   */
   public final int code;
   /**
    * The Size.

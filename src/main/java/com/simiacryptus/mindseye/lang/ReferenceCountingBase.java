@@ -41,6 +41,10 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   private static final Logger logger = LoggerFactory.getLogger(ReferenceCountingBase.class);
   private static final long LOAD_TIME = System.nanoTime();
   private static final UUID jvmId = UUID.randomUUID();
+  /**
+   * The constant supressLog.
+   */
+  public static boolean supressLog = false;
   
   static {
     if (CoreSettings.INSTANCE == null) throw new RuntimeException();
@@ -220,7 +224,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   protected final void finalize() throws Throwable {
     isFinalized = true;
     if (!isFreed.getAndSet(true)) {
-      if (!isDetached()) {
+      if (!isDetached() && !supressLog) {
         if (logger.isDebugEnabled()) {
           logger.debug(String.format("Instance Reclaimed by GC at %.9f: %s", (System.nanoTime() - LOAD_TIME) / 1e9, referenceReport(false, false)));
         }

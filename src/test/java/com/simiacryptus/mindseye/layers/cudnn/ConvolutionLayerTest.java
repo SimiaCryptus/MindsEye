@@ -40,7 +40,7 @@ import java.util.stream.Stream;
 /**
  * The type Convolution layer run.
  */
-public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
+public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
   
   /**
    * The Input bands.

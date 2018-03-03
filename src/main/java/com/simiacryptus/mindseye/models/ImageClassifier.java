@@ -398,7 +398,7 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param targetCategoryIndex the target category index
    * @param totalCategories     the total categories
    * @param config              the config
-   * @param network
+   * @param network             the network
    */
   public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories, Function<IterativeTrainer, IterativeTrainer> config, final Layer network) {
     @Nonnull List<Tensor[]> data = Arrays.<Tensor[]>asList(new Tensor[]{

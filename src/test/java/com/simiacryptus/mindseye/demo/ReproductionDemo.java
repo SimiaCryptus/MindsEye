@@ -249,7 +249,7 @@ public class ReproductionDemo extends ArtistryDemo {
     public Layer2b(final String... files) {
       super(files);
     }
-    
+  
     /**
      * The entry point of application.
      *
@@ -286,7 +286,7 @@ public class ReproductionDemo extends ArtistryDemo {
    * The type Layer 2 a.
    */
   public static class Layer2a extends ReproductionDemo {
-    
+  
     /**
      * Instantiates a new Layer 2 a.
      *
@@ -295,7 +295,7 @@ public class ReproductionDemo extends ArtistryDemo {
     public Layer2a(final String... files) {
       super(files);
     }
-    
+  
     /**
      * The entry point of application.
      *

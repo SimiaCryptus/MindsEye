@@ -34,6 +34,9 @@ public class CudaTensor extends ReferenceCountingBase {
    */
   public final CudaDevice.CudaTensorDescriptor descriptor;
   
+  /**
+   * The Precision.
+   */
   public final Precision precision;
   
   /**
@@ -41,7 +44,7 @@ public class CudaTensor extends ReferenceCountingBase {
    *
    * @param memory     the memory
    * @param descriptor the descriptor
-   * @param precision
+   * @param precision  the precision
    */
   public CudaTensor(final CudaMemory memory, final CudaDevice.CudaTensorDescriptor descriptor, final Precision precision) {
     this.memory = memory;
@@ -49,7 +52,7 @@ public class CudaTensor extends ReferenceCountingBase {
     this.memory.addRef();
     this.descriptor = descriptor;
     this.descriptor.addRef();
-    assert memory.size == (long) precision.size * descriptor.nStride * descriptor.batchCount : String.format("%d != %d", memory.size, (long) precision.size * descriptor.nStride * descriptor.batchCount);
+    assert memory.size >= (long) precision.size * descriptor.nStride * (descriptor.batchCount - 1) : String.format("%d != %d", memory.size, (long) precision.size * descriptor.nStride * descriptor.batchCount);
   }
   
   /**
@@ -57,7 +60,7 @@ public class CudaTensor extends ReferenceCountingBase {
    *
    * @param ptr        the ptr
    * @param descriptor the descriptor
-   * @param precision
+   * @param precision  the precision
    * @return the cuda tensor
    */
   public static CudaTensor wrap(final CudaMemory ptr, final CudaDevice.CudaTensorDescriptor descriptor, final Precision precision) {
@@ -74,6 +77,13 @@ public class CudaTensor extends ReferenceCountingBase {
     super._free();
   }
   
+  /**
+   * Move to cuda tensor.
+   *
+   * @param cudaDevice the cuda device
+   * @param memoryType the memory type
+   * @return the cuda tensor
+   */
   public CudaTensor moveTo(final CudaDevice cudaDevice, final MemoryType memoryType) {
     descriptor.addRef();
     memory.addRef();
@@ -82,6 +92,12 @@ public class CudaTensor extends ReferenceCountingBase {
     return wrap;
   }
   
+  /**
+   * Gets dense and free.
+   *
+   * @param gpu the gpu
+   * @return the dense and free
+   */
   public CudaTensor getDenseAndFree(CudnnHandle gpu) {
     if (isDense()) return this;
     CudaTensor dense = getDense(gpu);
@@ -89,6 +105,12 @@ public class CudaTensor extends ReferenceCountingBase {
     return dense;
   }
   
+  /**
+   * Gets dense.
+   *
+   * @param gpu the gpu
+   * @return the dense
+   */
   public CudaTensor getDense(CudnnHandle gpu) {
     if (isDense()) {
       addRef();
@@ -104,12 +126,18 @@ public class CudaTensor extends ReferenceCountingBase {
     gpu.cudnnTransformTensor(
       precision.getPointer(1.0), sourceDescriptor.getPtr(), memory.getPtr(),
       precision.getPointer(0.0), destDescriptor.getPtr(), destMemory.getPtr());
+    sourceDescriptor.freeRef();
     CudaTensor cudaTensor = CudaTensor.wrap(destMemory, destDescriptor, precision);
     assert cudaTensor.isDense();
     return cudaTensor;
     
   }
   
+  /**
+   * Is dense boolean.
+   *
+   * @return the boolean
+   */
   public boolean isDense() {
     if (descriptor.nStride != descriptor.channels * descriptor.height * descriptor.width) return false;
     if (descriptor.cStride != descriptor.height * descriptor.width) return false;

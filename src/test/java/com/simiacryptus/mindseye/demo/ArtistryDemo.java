@@ -48,6 +48,12 @@ public class ArtistryDemo extends NotebookReportBase {
    */
   StreamNanoHTTPD server;
   
+  /**
+   * Add layers handler.
+   *
+   * @param painterNetwork the painter network
+   * @param server         the server
+   */
   public static void addLayersHandler(final DAGNetwork painterNetwork, final StreamNanoHTTPD server) {
     server.addSyncHandler("layers.json", MimeType.JSON, out -> {
       try {

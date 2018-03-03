@@ -138,7 +138,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
         totalWidth = Math.max(totalWidth, positionX);
       }
       Stream<CopyParams> stream = copies.stream();
-      if (!CoreSettings.INSTANCE.isConservative() && parallel) stream = stream.parallel();
+      if (!CoreSettings.INSTANCE.isSingleThreaded() && parallel) stream = stream.parallel();
       stream.forEach(this::copy);
       CudaDevice.CudaTensorDescriptor descriptor = gpu.newTensorDescriptor(precision, length, outputDims[2], outputDims[1], outputDims[0]);
       CudaTensor ptr = CudaTensor.wrap(outputBuffer, descriptor, precision);
@@ -175,7 +175,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
         totalHeight += rowHeight;
       }
       Stream<BackpropParams> stream = tasks.stream();
-      if (!CoreSettings.INSTANCE.isConservative() && parallel) stream = stream.parallel();
+      if (!CoreSettings.INSTANCE.isSingleThreaded() && parallel) stream = stream.parallel();
       stream.forEach(this::backprop);
     }) {
   

@@ -498,7 +498,13 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       logger.info("Error", exception);
     }
     for (Throwable exception : exceptions) {
-      throw new RuntimeException(exception);
+      try {
+        ReferenceCountingBase.supressLog = true;
+        System.gc();
+        throw new RuntimeException(exception);
+      } finally {
+        ReferenceCountingBase.supressLog = false;
+      }
     }
   }
   

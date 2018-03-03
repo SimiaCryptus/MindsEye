@@ -986,7 +986,8 @@ public class CudaSystem {
   /**
    * Run.
    *
-   * @param fn the fn
+   * @param fn    the fn
+   * @param hints the hints
    */
   public static void run(@Nonnull final Consumer<CudnnHandle> fn, Object... hints) {
     CudnnHandle threadlocal = CudnnHandle.threadContext.get();
@@ -1022,8 +1023,9 @@ public class CudaSystem {
   /**
    * Call t.
    *
-   * @param <T> the type parameter
-   * @param fn  the fn
+   * @param <T>   the type parameter
+   * @param fn    the fn
+   * @param hints the hints
    * @return the t
    */
   public static <T> T eval(@Nonnull final Function<CudnnHandle, T> fn, Object... hints) {
@@ -1063,6 +1065,12 @@ public class CudaSystem {
     }
   }
   
+  /**
+   * Gets preference predicate.
+   *
+   * @param hints the hints
+   * @return the preference predicate
+   */
   public static Predicate<CudnnHandle> getPreferencePredicate(final Object[] hints) {
     Set<Integer> devices = Arrays.stream(hints).map(hint -> {
       if (hint instanceof Result) {

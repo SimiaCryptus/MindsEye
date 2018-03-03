@@ -25,28 +25,20 @@ import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.BatchingTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.stream.IntStream;
 
 /**
  * The type Img concat layer run.
  */
-public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
+public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
   
-  /**
-   * The Precision.
-   */
-  final Precision precision;
-  /**
-   * The Inputs.
-   */
-  int inputs;
-  /**
-   * The Bands per input.
-   */
-  int bandsPerInput;
+  private final Precision precision;
+  private final int[] bandSeq;
+  private final int smallSize;
+  private final int largeSize;
   
   /**
    * Instantiates a new Img concat layer run.
@@ -54,17 +46,30 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
    * @param precision     the precision
    * @param inputs        the inputs
    * @param bandsPerInput the bands per input
+   * @param smallSize     the small size
+   * @param largeSize     the large size
    */
-  public ImgConcatLayerTest(final Precision precision, int inputs, int bandsPerInput) {
+  public ImgConcatLayerTest(final Precision precision, int inputs, int bandsPerInput, final int smallSize, final int largeSize) {this(precision, IntStream.range(0, inputs).map(i -> bandsPerInput).toArray(), smallSize, largeSize);}
+  
+  /**
+   * Instantiates a new Img concat layer run.
+   *
+   * @param precision the precision
+   * @param bandSeq   the band seq
+   * @param smallSize the small size
+   * @param largeSize the large size
+   */
+  public ImgConcatLayerTest(final Precision precision, final int[] bandSeq, final int smallSize, final int largeSize) {
+    this.bandSeq = bandSeq;
     this.precision = precision;
-    this.inputs = inputs;
-    this.bandsPerInput = bandsPerInput;
+    this.smallSize = smallSize;
+    this.largeSize = largeSize;
   }
   
   @javax.annotation.Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
-    return IntStream.range(0, inputs).mapToObj(x -> new int[]{8, 8, bandsPerInput}).toArray(i -> new int[i][]);
+    return Arrays.stream(bandSeq).mapToObj(x -> new int[]{smallSize, smallSize, x}).toArray(i -> new int[i][]);
   }
   
   @javax.annotation.Nonnull
@@ -76,7 +81,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
   @javax.annotation.Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
-    return IntStream.range(0, inputs).mapToObj(x -> new int[]{200, 200, bandsPerInput}).toArray(i -> new int[i][]);
+    return Arrays.stream(bandSeq).mapToObj(x -> new int[]{largeSize, largeSize, x}).toArray(i -> new int[i][]);
   }
   
   @Override
@@ -93,7 +98,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Band limit run.
      */
     public BandLimitTest() {
-      super(Precision.Double, 2, 1);
+      super(Precision.Double, 2, 1, 8, 100);
     }
   
     @javax.annotation.Nonnull
@@ -127,15 +132,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Band limit run.
      */
     public BandConcatLimitTest() {
-      super(Precision.Double, 2, 1);
-    }
-  
-    @javax.annotation.Nonnull
-    @Override
-    public int[][] getSmallDims(Random random) {
-      return new int[][]{
-        {1, 1, 2}, {1, 1, 2}
-      };
+      super(Precision.Double, new int[]{2, 3, 4}, 2, 100);
     }
   
     @javax.annotation.Nonnull
@@ -147,7 +144,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
     @javax.annotation.Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
-      return new ImgConcatLayer().setMaxBands(3);
+      return new ImgConcatLayer().setMaxBands(8);
     }
   }
   
@@ -159,7 +156,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Double.
      */
     public Double() {
-      super(Precision.Double, 2, 1);
+      super(Precision.Double, 2, 1, 8, 100);
     }
   }
   
@@ -179,14 +176,6 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
    * The type BigTests.
    */
   public abstract static class Big extends ImgConcatLayerTest {
-    /**
-     * The Small size.
-     */
-    int smallSize;
-    /**
-     * The Lasrge size.
-     */
-    int lasrgeSize;
   
     /**
      * Instantiates a new BigTests.
@@ -196,11 +185,9 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
      * @param bandsPerInput the bands per input
      */
     public Big(final Precision precision, final int inputs, final int bandsPerInput) {
-      super(precision, inputs, bandsPerInput);
+      super(precision, inputs, bandsPerInput, 8, 100);
       this.validateDifferentials = false;
       setTestTraining(false);
-      this.lasrgeSize = 8;
-      this.smallSize = 2;
     }
     
     @Override
@@ -229,21 +216,6 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
       return null;
     }
     
-    @Nonnull
-    @Override
-    public int[][] getSmallDims(final Random random) {
-      return IntStream.range(0, inputs).mapToObj(x -> {
-        return new int[]{smallSize, smallSize, bandsPerInput};
-      }).toArray(i -> new int[i][]);
-    }
-    
-    @Nonnull
-    @Override
-    public int[][] getLargeDims(final Random random) {
-      return IntStream.range(0, inputs).mapToObj(x -> {
-        return new int[]{lasrgeSize, lasrgeSize, bandsPerInput};
-      }).toArray(i -> new int[i][]);
-    }
   }
   
   /**
@@ -254,7 +226,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Float.
      */
     public Float() {
-      super(Precision.Float, 2, 1);
+      super(Precision.Float, 2, 1, 8, 100);
     }
   }
   

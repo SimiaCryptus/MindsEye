@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.test;
 
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.lang.TensorList;
 
@@ -31,7 +33,15 @@ public interface SimpleResult extends ReferenceCounting {
    *
    * @return the tensor list [ ]
    */
-  TensorList[] getDerivative();
+  TensorList[] getInputDerivative();
+  
+  /**
+   * Gets layer derivative.
+   *
+   * @return the layer derivative
+   */
+  DeltaSet<Layer> getLayerDerivative();
+  
   
   /**
    * Gets output.

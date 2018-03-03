@@ -147,7 +147,7 @@ public class CountingResult extends Result {
           data.addRef();
           if (passbackBuffers.size() > CoreSettings.INSTANCE.backpropAggregationSize) {
             Stream<TensorList> stream = passbackBuffers.stream();
-            if (!CoreSettings.INSTANCE.isConservative()) stream = stream.parallel();
+            if (!CoreSettings.INSTANCE.isSingleThreaded()) stream = stream.parallel();
             //x.addRef();
             @javax.annotation.Nonnull TensorList compacted = stream.reduce((a, b) -> {
               TensorList c;
@@ -161,7 +161,7 @@ public class CountingResult extends Result {
           }
           if (accumulations.incrementAndGet() == references.get()) {
             Stream<TensorList> stream = passbackBuffers.stream();
-            if (!CoreSettings.INSTANCE.isConservative()) stream = stream.parallel();
+            if (!CoreSettings.INSTANCE.isSingleThreaded()) stream = stream.parallel();
             reduced = stream.reduce((a, b) -> {
               TensorList c;
               c = a.addAndFree(b);

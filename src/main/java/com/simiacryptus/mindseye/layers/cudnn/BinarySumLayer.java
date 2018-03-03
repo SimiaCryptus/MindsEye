@@ -193,7 +193,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
           inObj[1].accumulate(buffer, tensorList);
         }
       };
-      if (CoreSettings.INSTANCE.isConservative()) TestUtil.runAllSerial(a, b);
+      if (CoreSettings.INSTANCE.isSingleThreaded()) TestUtil.runAllSerial(a, b);
       else TestUtil.runAllParallel(a, b);
     }) {
       

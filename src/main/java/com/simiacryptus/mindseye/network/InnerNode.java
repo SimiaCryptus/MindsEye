@@ -96,7 +96,7 @@ public final class InnerNode extends LazyResult {
     @javax.annotation.Nonnull final Layer innerLayer = getLayer();
     assert Arrays.stream(inputNodes).allMatch(x -> x != null);
     @javax.annotation.Nonnull Stream<DAGNode> stream = Arrays.stream(inputNodes);
-    if (!CoreSettings.INSTANCE.isConservative() && parallel) stream = stream.parallel();
+    if (!CoreSettings.INSTANCE.isSingleThreaded() && parallel) stream = stream.parallel();
     final Result[] in = stream.map(x -> x == null ? null : x.get(ctx)).toArray(i -> new Result[i]);
     assert Arrays.stream(in).allMatch(x -> x != null);
     @Nullable Result result = innerLayer.evalAndFree(in);

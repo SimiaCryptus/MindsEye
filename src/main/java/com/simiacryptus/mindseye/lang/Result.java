@@ -90,6 +90,11 @@ public class Result extends ReferenceCountingBase {
     }
   }
   
+  /**
+   * Autofree boolean.
+   *
+   * @return the boolean
+   */
   protected boolean autofree() {
     return true;
   }

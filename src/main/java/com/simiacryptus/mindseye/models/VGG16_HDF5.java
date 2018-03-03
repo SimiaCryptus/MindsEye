@@ -361,12 +361,12 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
    * The type Jblas.
    */
   public static class JBLAS extends VGG16_HDF5 {
-    
+  
     /**
      * The Samples.
      */
     int samples = 3;
-    
+  
     /**
      * Instantiates a new Vgg 16 hdf 5.
      *
@@ -489,7 +489,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
         .setWindowXY(size, size)
         .setStrideXY(size, size));
     }
-    
+  
     /**
      * Add convolution.
      *
@@ -506,12 +506,12 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
    * The type Noisy.
    */
   public static class Noisy extends VGG16_HDF5 {
-    
+  
     /**
      * The Samples.
      */
     int samples = 3;
-    
+  
     /**
      * Instantiates a new Vgg 16 hdf 5.
      *

@@ -39,23 +39,29 @@ import java.util.stream.IntStream;
 /**
  * The type Activation layer run.
  */
-public abstract class ActivationLayerTest extends CudnnLayerTestBase {
+public abstract class ActivationLayerTest extends CudaLayerTestBase {
   
   /**
    * The Mode.
    */
   final ActivationLayer.Mode mode;
   private final Precision precision;
+  private final int smallSize;
+  private final int largeSize;
   
   /**
    * Instantiates a new Activation layer run.
    *
    * @param mode      the mode
    * @param precision the precision
+   * @param smallSize the small size
+   * @param largeSize the large size
    */
-  public ActivationLayerTest(final ActivationLayer.Mode mode, final Precision precision) {
+  public ActivationLayerTest(final ActivationLayer.Mode mode, final Precision precision, final int smallSize, final int largeSize) {
     this.mode = mode;
     this.precision = precision;
+    this.smallSize = smallSize;
+    this.largeSize = largeSize;
   }
   
   @Override
@@ -66,7 +72,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   @javax.annotation.Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
-    return new int[][]{{8, 8, 1}};
+    return new int[][]{{smallSize, smallSize, 1}};
   }
   
   @javax.annotation.Nonnull
@@ -79,7 +85,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {200, 200, 3}
+      {largeSize, largeSize, 1}
     };
   }
   
@@ -92,7 +98,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
     super.run(log);
   
     log.h3("Function Plots");
-    @javax.annotation.Nonnull final Layer layer = getLayer(new int[][]{{8, 8, 1}}, new Random());
+    @javax.annotation.Nonnull final Layer layer = getLayer(new int[][]{{1, 1, 1}}, new Random());
     final List<double[]> plotData = IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0).mapToObj(x -> {
       @javax.annotation.Nonnull Tensor input = new Tensor(new double[]{x}, 1, 1, 1);
       @javax.annotation.Nonnull final SimpleEval eval = SimpleEval.run(layer, input);
@@ -121,7 +127,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Re lu double.
      */
     public ReLu_Double() {
-      super(ActivationLayer.Mode.RELU, Precision.Double);
+      super(ActivationLayer.Mode.RELU, Precision.Double, 2, 2);
     }
   
     @Override
@@ -138,7 +144,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Re lu float.
      */
     public ReLu_Float() {
-      super(ActivationLayer.Mode.RELU, Precision.Float);
+      super(ActivationLayer.Mode.RELU, Precision.Float, 8, 200);
     }
   
     @Override
@@ -155,7 +161,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Sigmoid double.
      */
     public Sigmoid_Double() {
-      super(ActivationLayer.Mode.SIGMOID, Precision.Double);
+      super(ActivationLayer.Mode.SIGMOID, Precision.Double, 8, 200);
     }
   
     @Override
@@ -172,7 +178,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
      * Instantiates a new Sigmoid float.
      */
     public Sigmoid_Float() {
-      super(ActivationLayer.Mode.SIGMOID, Precision.Float);
+      super(ActivationLayer.Mode.SIGMOID, Precision.Float, 8, 200);
     }
   
     @Override

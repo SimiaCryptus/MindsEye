@@ -54,7 +54,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    * The Heap copy.
    */
   @Nullable
-  volatile TensorList heapCopy = null;
+  volatile TensorArray heapCopy = null;
   
   /**
    * Instantiates a new Cu dnn double tensor list.
@@ -73,7 +73,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     this.ptr.addRef();
     this.length = length;
     this.dimensions = Arrays.copyOf(dimensions, dimensions.length);
-    assert ptr.memory.size >= (long) length * Tensor.length(dimensions) * precision.size : String.format("%s < %s", ptr.memory.size, (long) length * Tensor.length(dimensions) * precision.size);
+    assert ptr.memory.size >= (long) (length - 1) * Tensor.length(dimensions) * precision.size : String.format("%s < %s", ptr.memory.size, (long) length * Tensor.length(dimensions) * precision.size);
     assert ptr.descriptor.batchCount == length;
     assert ptr.descriptor.channels == (dimensions.length < 3 ? 1 : dimensions[2]);
     assert ptr.descriptor.height == (dimensions.length < 2 ? 1 : dimensions[1]);
@@ -241,7 +241,17 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
   @Nonnull
   public Tensor get(final int i) {
     assertAlive();
-    return heapCopy().get(i);
+    if (heapCopy != null) return heapCopy.get(i);
+    return CudaSystem.eval(gpu -> {
+      CudaTensor dense = this.ptr.getDense(gpu);
+      try {
+        Tensor tensor = new Tensor(getDimensions());
+        get(dense, i, tensor.getData());
+        return tensor;
+      } finally {
+        dense.freeRef();
+      }
+    });
   }
   
   /**
@@ -269,7 +279,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    * @return the tensor list
    */
   @Nullable
-  private TensorList heapCopy() {
+  private TensorArray heapCopy() {
     if (null == heapCopy || heapCopy.isFinalized()) {
       synchronized (this) {
         if (null == heapCopy || heapCopy.isFinalized()) {
@@ -281,7 +291,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
             CudaTensor dense = this.ptr.getDense(gpu);
             try {
               for (int i = 0; i < getLength(); i++) {
-                dense.memory.read(precision, output[i].getData(), i * itemLength);
+                get(dense, i, output[i].getData());
               }
             } finally {
               dense.freeRef();
@@ -292,6 +302,12 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
       }
     }
     return heapCopy;
+  }
+  
+  
+  private void get(final CudaTensor dense, final int i, final double[] destination) {
+    final int itemLength = Tensor.length(getDimensions());
+    dense.memory.read(precision, destination, i * itemLength);
   }
   
   @Override
@@ -310,8 +326,8 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    * @return the heap copy
    */
   @Nullable
-  public TensorList getHeapCopy() {
-    @Nullable TensorList tensorList = heapCopy();
+  public TensorArray getHeapCopy() {
+    @Nullable TensorArray tensorList = heapCopy();
     tensorList.addRef();
     return tensorList;
   }

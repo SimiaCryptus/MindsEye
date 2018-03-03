@@ -92,7 +92,7 @@ public class StochasticSamplingSubnetLayer extends WrapperLayer implements Stoch
    * Average result.
    *
    * @param samples   the samples
-   * @param precision
+   * @param precision the precision
    * @return the result
    */
   public static Result average(final Result[] samples, final Precision precision) {

@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import java.io.PrintStream;
@@ -31,7 +30,7 @@ import java.util.Random;
 /**
  * The type Img concat layer run.
  */
-public abstract class ImgBandSelectLayerTest extends LayerTestBase {
+public abstract class ImgBandSelectLayerTest extends CudaLayerTestBase {
   
   /**
    * The Precision.
@@ -46,18 +45,23 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
    * The Input bands.
    */
   int inputBands;
+  private final int smallSize;
+  private final int largeSize;
   
   /**
    * Instantiates a new Img concat layer run.
    *
-   * @param precision   the precision
-   * @param inputBands  the input bands
-   * @param outputBands the output bands
+   * @param precision  the precision
+   * @param inputBands the input bands
+   * @param fromBand   the from band
+   * @param toBand     the output bands
    */
-  public ImgBandSelectLayerTest(final Precision precision, int inputBands, int outputBands) {
+  public ImgBandSelectLayerTest(final Precision precision, int inputBands, final int fromBand, int toBand) {
     this.precision = precision;
-    layer = new ImgBandSelectLayer(0, outputBands).setPrecision(precision);
+    layer = new ImgBandSelectLayer(fromBand, toBand).setPrecision(precision);
     this.inputBands = inputBands;
+    smallSize = 1;
+    largeSize = 64;
   }
   
   @Override
@@ -75,7 +79,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {1, 1, inputBands}
+      {smallSize, smallSize, inputBands}
     };
   }
   
@@ -89,7 +93,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {64, 64, inputBands}
+      {largeSize, largeSize, inputBands}
     };
   }
   
@@ -106,7 +110,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
      * Instantiates a new Double.
      */
     public Double() {
-      super(Precision.Double, 2, 1);
+      super(Precision.Double, 5, 2, 4);
     }
   }
   
@@ -118,7 +122,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
      * Instantiates a new Double.
      */
     public BigDouble() {
-      super(Precision.Double, 1024, 256);
+      super(Precision.Double, 1024, 0, 256);
     }
   }
   
@@ -130,7 +134,7 @@ public abstract class ImgBandSelectLayerTest extends LayerTestBase {
      * Instantiates a new Float.
      */
     public Float() {
-      super(Precision.Float, 2, 1);
+      super(Precision.Float, 2, 0, 1);
     }
   }
   

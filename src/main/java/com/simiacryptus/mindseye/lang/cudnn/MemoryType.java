@@ -171,7 +171,7 @@ public enum MemoryType {
   public static MemoryType getMemoryType(final int deviceId) {
     return -1 == deviceId ? Managed : Device;
   }
-
+  
   /**
    * Free.
    *

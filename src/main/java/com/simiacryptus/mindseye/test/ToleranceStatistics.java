@@ -91,7 +91,8 @@ public class ToleranceStatistics {
    * @return the tolerance statistics
    */
   @javax.annotation.Nonnull
-  public ToleranceStatistics combine(@javax.annotation.Nonnull final ToleranceStatistics right) {
+  public ToleranceStatistics combine(@javax.annotation.Nullable final ToleranceStatistics right) {
+    if (null == right) return this;
     return new ToleranceStatistics(
       absoluteTol.combine(right.absoluteTol),
       relativeTol.combine(right.relativeTol)

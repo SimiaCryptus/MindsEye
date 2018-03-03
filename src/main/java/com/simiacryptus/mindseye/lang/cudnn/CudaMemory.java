@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.lang.cudnn;
 
-import com.simiacryptus.mindseye.lang.CoreSettings;
 import com.simiacryptus.mindseye.lang.RegisteredObjectBase;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.SimpleConvolutionLayer;
@@ -105,11 +104,6 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
    * @return the double
    */
   public static double clearMemory(final int deviceId) {
-    if (CoreSettings.INSTANCE.isConservative()) {
-      logLoad();
-      logger.info(String.format("Running Garbage Collector"));
-      System.gc();
-    }
     double totalFreed = evictMemory(deviceId);
     for (final MemoryType type : MemoryType.values()) {
       totalFreed += type.purge(deviceId);

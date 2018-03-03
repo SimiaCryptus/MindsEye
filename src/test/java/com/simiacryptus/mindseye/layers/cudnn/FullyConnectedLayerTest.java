@@ -33,7 +33,7 @@ import java.util.Random;
 /**
  * The type Fully connected layer run.
  */
-public abstract class FullyConnectedLayerTest extends CudnnLayerTestBase {
+public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
   
   /**
    * The Input dim.

@@ -37,12 +37,12 @@ import java.util.ArrayList;
 /**
  * The type Cudnn layer eval base.
  */
-public abstract class CudnnLayerTestBase extends LayerTestBase {
+public abstract class CudaLayerTestBase extends LayerTestBase {
   
   /**
    * Instantiates a new Cudnn layer eval base.
    */
-  public CudnnLayerTestBase() {
+  public CudaLayerTestBase() {
   }
   
   @javax.annotation.Nonnull

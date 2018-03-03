@@ -37,7 +37,7 @@ import java.util.Random;
 /**
  * The type Img crop layer run.
  */
-public abstract class ImgCropLayerTest extends CudnnLayerTestBase {
+public abstract class ImgCropLayerTest extends CudaLayerTestBase {
   
   /**
    * Instantiates a new Img crop layer run.

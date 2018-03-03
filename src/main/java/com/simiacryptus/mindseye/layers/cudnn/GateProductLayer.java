@@ -133,16 +133,16 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
               leftDimensions[1] * leftDimensions[0],
               leftDimensions[0],
               1);
-            @Nullable final CudaTensor deltaPtr = gpu.getTensor(delta, precision, MemoryType.Device);
-            @Nullable final CudaTensor rPtr = gpu.getTensor(right.getData(), precision, MemoryType.Device);
-            //assert deltaPtr.size == rPtr.size;
-            @Nonnull final CudaMemory outputPtr = gpu.allocate(deltaPtr.memory.size, MemoryType.Device, true);
+            @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device);
+            @Nullable final CudaTensor rightTensor = gpu.getTensor(right.getData(), precision, MemoryType.Device);
+            //assert deltaTensor.size == rightTensor.size;
+            @Nonnull final CudaMemory outputPtr = gpu.allocate((long) precision.size * outputDescriptor.nStride * length, MemoryType.Device, true);
             CudaSystem.handle(JCudnn.cudnnOpTensor(gpu.handle, opDescriptor.getPtr(),
-              precision.getPointer(1.0), deltaPtr.descriptor.getPtr(), deltaPtr.memory.getPtr(),
-              precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtr.memory.getPtr(),
+              precision.getPointer(1.0), deltaTensor.descriptor.getPtr(), deltaTensor.memory.getPtr(),
+              precision.getPointer(1.0), rightTensor.descriptor.getPtr(), rightTensor.memory.getPtr(),
               precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
             CudaTensor cudaTensor = new CudaTensor(outputPtr, outputDescriptor, precision);
-            Arrays.stream(new ReferenceCounting[]{deltaPtr, rPtr, opDescriptor, outputDescriptor}).forEach(ReferenceCounting::freeRef);
+            Arrays.stream(new ReferenceCounting[]{deltaTensor, rightTensor, opDescriptor, outputDescriptor}).forEach(ReferenceCounting::freeRef);
             outputPtr.freeRef();
             return CudaTensorList.wrap(cudaTensor, length, leftDimensions, precision);
           });

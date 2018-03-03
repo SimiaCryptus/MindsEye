@@ -532,24 +532,62 @@ public class CudaDevice extends CudaSystem {
     return new CudaResource<>(convDesc, CudaSystem::cudnnDestroyConvolutionDescriptor, getDeviceId());
   }
   
+  /**
+   * The type Cuda tensor descriptor.
+   */
   public static class CudaTensorDescriptor extends CudaResource<cudnnTensorDescriptor> {
     
+    /**
+     * The W stride.
+     */
     public final int wStride;
+    /**
+     * The H stride.
+     */
     public final int hStride;
+    /**
+     * The C stride.
+     */
     public final int cStride;
+    /**
+     * The N stride.
+     */
     public final int nStride;
+    /**
+     * The Width.
+     */
     public final int width;
+    /**
+     * The Height.
+     */
     public final int height;
+    /**
+     * The Channels.
+     */
     public final int channels;
+    /**
+     * The Batch count.
+     */
     public final int batchCount;
+    /**
+     * The Data type.
+     */
     public final Precision dataType;
     
     /**
      * Instantiates a new Cuda resource.
      *
-     * @param obj      the obj
-     * @param deviceId the device id
-     * @param dataType
+     * @param obj        the obj
+     * @param deviceId   the device id
+     * @param dataType   the data type
+     * @param batchCount the batch count
+     * @param channels   the channels
+     * @param height     the height
+     * @param width      the width
+     * @param nStride    the n stride
+     * @param cStride    the c stride
+     * @param hStride    the h stride
+     * @param wStride    the w stride
      */
     protected CudaTensorDescriptor(final cudnnTensorDescriptor obj, final int deviceId, final Precision dataType,
       final int batchCount, final int channels, final int height, final int width,

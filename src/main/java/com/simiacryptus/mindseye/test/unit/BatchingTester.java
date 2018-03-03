@@ -127,7 +127,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
   
       ToleranceStatistics derivativeAgreement = IntStream.range(0, Math.min(getBatchSize(), batchLength)).mapToObj(batch -> {
         IntFunction<ToleranceStatistics> statisticsFunction = input -> {
-          @javax.annotation.Nullable Tensor a = asABatch.getDerivative()[input].get(batch);
+          @javax.annotation.Nullable Tensor a = asABatch.getInputDerivative()[input].get(batch);
           Tensor b = oneAtATime.get(batch).getDerivative()[input];
           @javax.annotation.Nonnull Tensor diff = a.minus(b);
           logger.info("Error: " + diff.prettyPrint());
