@@ -41,7 +41,6 @@ public class CudaTensor extends ReferenceCountingBase {
   
   /**
    * Instantiates a new Cuda tensor.
-   *
    * @param memory     the memory
    * @param descriptor the descriptor
    * @param precision  the precision
@@ -112,6 +111,8 @@ public class CudaTensor extends ReferenceCountingBase {
    * @return the dense
    */
   public CudaTensor getDense(CudnnHandle gpu) {
+    assertAlive();
+    assert gpu.getDeviceId() == getDeviceId() || getType() == MemoryType.Managed;
     if (isDense()) {
       addRef();
       return this;
@@ -122,7 +123,7 @@ public class CudaTensor extends ReferenceCountingBase {
     CudaDevice.CudaTensorDescriptor destDescriptor = gpu.newTensorDescriptor(
       precision, this.descriptor.batchCount, this.descriptor.channels, this.descriptor.height, this.descriptor.width,
       this.descriptor.channels * this.descriptor.height * this.descriptor.width, this.descriptor.height * this.descriptor.width, this.descriptor.width, 1);
-    CudaMemory destMemory = gpu.allocate(this.descriptor.channels * this.descriptor.height * this.descriptor.width * this.descriptor.batchCount * precision.size, MemoryType.Device, true);
+    CudaMemory destMemory = gpu.allocate(this.descriptor.channels * this.descriptor.height * this.descriptor.width * this.descriptor.batchCount * precision.size, getType(), true);
     gpu.cudnnTransformTensor(
       precision.getPointer(1.0), sourceDescriptor.getPtr(), memory.getPtr(),
       precision.getPointer(0.0), destDescriptor.getPtr(), destMemory.getPtr());
@@ -145,4 +146,17 @@ public class CudaTensor extends ReferenceCountingBase {
     return descriptor.wStride == 1;
   }
   
+  /**
+   * The Descriptor.
+   */
+  public MemoryType getType() {
+    return memory.getType();
+  }
+  
+  /**
+   * The Descriptor.
+   */
+  public int getDeviceId() {
+    return memory.getDeviceId();
+  }
 }

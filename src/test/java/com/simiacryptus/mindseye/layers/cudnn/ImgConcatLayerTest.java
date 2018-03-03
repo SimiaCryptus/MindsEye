@@ -159,18 +159,18 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
       super(Precision.Double, 2, 1, 8, 100);
     }
   }
-  
-  /**
-   * Basic 64-bit run
-   */
-  public static class BigDouble extends Big {
-    /**
-     * Instantiates a new Double.
-     */
-    public BigDouble() {
-      super(Precision.Double, 8, 512);
-    }
-  }
+//
+//  /**
+//   * Basic 64-bit run
+//   */
+//  public static class BigDouble extends Big {
+//    /**
+//     * Instantiates a new Double.
+//     */
+//    public BigDouble() {
+//      super(Precision.Double, 8, 512);
+//    }
+//  }
   
   /**
    * The type BigTests.

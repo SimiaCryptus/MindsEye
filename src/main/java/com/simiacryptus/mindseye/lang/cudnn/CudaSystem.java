@@ -26,7 +26,6 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.lang.StaticResourcePool;
-import jcuda.Pointer;
 import jcuda.jcudnn.*;
 import jcuda.runtime.JCuda;
 import jcuda.runtime.cudaDeviceProp;
@@ -471,7 +470,7 @@ public class CudaSystem {
    * @param size   the size
    * @return the int
    */
-  public static int cudaMalloc(final Pointer devPtr, final long size) {
+  public static int cudaMalloc(final CudaPointer devPtr, final long size) {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaMalloc(devPtr, size);
     getThreadHandle().dirty();
@@ -489,7 +488,7 @@ public class CudaSystem {
    * @param flags  the flags
    * @return the int
    */
-  public static int cudaMallocManaged(final Pointer devPtr, final long size, int flags) {
+  public static int cudaMallocManaged(final CudaPointer devPtr, final long size, int flags) {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaMallocManaged(devPtr, size, flags);
     getThreadHandle().dirty();
@@ -533,7 +532,7 @@ public class CudaSystem {
    * @param flags  the flags
    * @return the int
    */
-  public static int cudaHostAlloc(final Pointer devPtr, final long size, int flags) {
+  public static int cudaHostAlloc(final CudaPointer devPtr, final long size, int flags) {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaHostAlloc(devPtr, size, flags);
     cudaHostAlloc_execution.accept((System.nanoTime() - startTime) / 1e9);
@@ -549,7 +548,7 @@ public class CudaSystem {
    * @param devPtr the dev ptr
    * @return the int
    */
-  public static int cudaFreeHost(final Pointer devPtr) {
+  public static int cudaFreeHost(final CudaPointer devPtr) {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaFreeHost(devPtr);
     cudaFreeHost_execution.accept((System.nanoTime() - startTime) / 1e9);
@@ -598,7 +597,7 @@ public class CudaSystem {
    * @param cudaMemcpyKind_kind the cuda memcpy kind kind
    * @return the int
    */
-  public static void cudaMemcpy(final Pointer dst, final Pointer src, final long count, final int cudaMemcpyKind_kind) {
+  public static void cudaMemcpy(final CudaPointer dst, final CudaPointer src, final long count, final int cudaMemcpyKind_kind) {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaMemcpy(dst, src, count, cudaMemcpyKind_kind);
     cudaMemcpy_execution.accept((System.nanoTime() - startTime) / 1e9);
@@ -616,7 +615,7 @@ public class CudaSystem {
    * @param cudaMemcpyKind_kind the cuda memcpy kind kind
    * @param stream              the stream
    */
-  public static void cudaMemcpyAsync(final Pointer dst, final Pointer src, final long count, final int cudaMemcpyKind_kind, cudaStream_t stream) {
+  public static void cudaMemcpyAsync(final CudaPointer dst, final CudaPointer src, final long count, final int cudaMemcpyKind_kind, cudaStream_t stream) {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaMemcpyAsync(dst, src, count, cudaMemcpyKind_kind, stream);
     cudaMemcpyAsync_execution.accept((System.nanoTime() - startTime) / 1e9);
@@ -679,7 +678,7 @@ public class CudaSystem {
    * @param count the count
    * @return the int
    */
-  public static void cudaMemset(final Pointer mem, final int c, final long count) {
+  public static void cudaMemset(final CudaPointer mem, final int c, final long count) {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaMemset(mem, c, count);
     //cudaDeviceSynchronize();
@@ -809,8 +808,9 @@ public class CudaSystem {
    * @param args   the args
    */
   public static void log(final String method, final Object result, @Nullable final Object[] args) {
+    String callstack = Arrays.stream(Thread.currentThread().getStackTrace()).skip(3).limit(10).map(x -> x.getFileName() + ":" + x.getLineNumber()).reduce((a, b) -> a + ", " + b).get();
     @Nonnull final String paramString = null == args ? "" : Arrays.stream(args).map(CudaSystem::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
-    final String message = String.format("%.6f @ %s(%d): %s(%s) = %s", (System.nanoTime() - CudaSystem.start) / 1e9, Thread.currentThread().getName(), currentDeviceId.get(), method, paramString, result);
+    final String message = String.format("%.6f @ %s(%d): %s(%s) = %s via [%s]", (System.nanoTime() - CudaSystem.start) / 1e9, Thread.currentThread().getName(), currentDeviceId.get(), method, paramString, result, callstack);
     try {
       CudaSystem.apiLog.forEach(apiLog -> CudaSystem.logThread.submit(() -> apiLog.println(message)));
     } catch (ConcurrentModificationException e) {}

@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
-import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnDataType;
 
@@ -202,12 +201,12 @@ public enum Precision {
    * @param data the data
    * @return the pointer
    */
-  public Pointer getPointer(@javax.annotation.Nonnull final double... data) {
+  public CudaPointer getPointer(@javax.annotation.Nonnull final double... data) {
     switch (this) {
       case Float:
-        return Pointer.to(Precision.getFloats(data));
+        return CudaPointer.to(Precision.getFloats(data));
       case Double:
-        return Pointer.to(data);
+        return CudaPointer.to(data);
       default:
         throw new IllegalStateException();
     }
@@ -219,12 +218,12 @@ public enum Precision {
    * @param data the data
    * @return the pointer
    */
-  public Pointer getPointer(@javax.annotation.Nonnull final float... data) {
+  public CudaPointer getPointer(@javax.annotation.Nonnull final float... data) {
     switch (this) {
       case Float:
-        return Pointer.to(data);
+        return CudaPointer.to(data);
       case Double:
-        return Pointer.to(Precision.getDoubles(data));
+        return CudaPointer.to(Precision.getDoubles(data));
       default:
         throw new IllegalStateException();
     }

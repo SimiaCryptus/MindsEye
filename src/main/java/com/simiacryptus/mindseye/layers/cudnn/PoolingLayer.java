@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.*;
-import jcuda.Pointer;
 import jcuda.jcudnn.cudnnPoolingDescriptor;
 import jcuda.jcudnn.cudnnPoolingMode;
 
@@ -142,8 +141,8 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
               inputSize[2] * inputSize[1] * inputSize[0], inputSize[1] * inputSize[0], inputSize[0], 1);
             @javax.annotation.Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = gpu.createPoolingDescriptor(
               mode.id, poolDims, windowSize, padding, stride);
-            @javax.annotation.Nonnull final Pointer alpha = precision.getPointer(1.0);
-            @javax.annotation.Nonnull final Pointer beta = precision.getPointer(0.0);
+            @javax.annotation.Nonnull final CudaPointer alpha = precision.getPointer(1.0);
+            @javax.annotation.Nonnull final CudaPointer beta = precision.getPointer(0.0);
             @Nullable final CudaTensor inputData = gpu.getTensor(batch, precision, MemoryType.Device).getDenseAndFree(gpu);
             @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device).getDenseAndFree(gpu);
             @javax.annotation.Nonnull final CudaMemory passbackBuffer = gpu.allocate((long) inputDims * precision.size * length, MemoryType.Managed, true);

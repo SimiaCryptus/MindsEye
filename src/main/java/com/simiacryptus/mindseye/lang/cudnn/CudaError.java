@@ -24,7 +24,6 @@ package com.simiacryptus.mindseye.lang.cudnn;
  */
 @SuppressWarnings("serial")
 public class CudaError extends RuntimeException {
-  
   /**
    * Instantiates a new Gpu error.
    */

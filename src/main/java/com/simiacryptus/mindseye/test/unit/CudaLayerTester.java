@@ -256,8 +256,9 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
     int width = inputSize.length < 1 ? 1 : inputSize[0];
     final int listLength = 1;
     final int elementLength = data.getElements();
-    
-    @Nonnull final CudaMemory ptr0 = gpu.allocate((long) elementLength * listLength * precision.size, MemoryType.Managed, false);
+  
+    MemoryType memoryType = MemoryType.Managed;
+    @Nonnull final CudaMemory ptr0 = gpu.allocate((long) elementLength * listLength * precision.size, memoryType, false);
     @Nonnull final CudaDevice.CudaTensorDescriptor descriptor0 = gpu.newTensorDescriptor(precision,
       listLength, channels, height, width,
       channels * height * width, height * width, width, 1);
@@ -274,7 +275,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
     int c = r.nextInt(5);
     int v = r.nextInt(5);
     int h = r.nextInt(5);
-    @Nonnull final CudaMemory ptr1 = gpu.allocate((long) (channels + c) * (height + v) * (width + h) * listLength * precision.size, MemoryType.Managed, false);
+    @Nonnull final CudaMemory ptr1 = gpu.allocate((long) (channels + c) * (height + v) * (width + h) * listLength * precision.size, memoryType, false);
     @Nonnull final CudaDevice.CudaTensorDescriptor descriptor1 = gpu.newTensorDescriptor(precision,
       listLength, channels, height, width,
       (height + v) * (width + h) * (channels + c), (height + v) * (width + h), width + h, 1);

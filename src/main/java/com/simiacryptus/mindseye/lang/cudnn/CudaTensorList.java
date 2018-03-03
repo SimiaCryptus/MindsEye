@@ -243,7 +243,8 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     assertAlive();
     if (heapCopy != null) return heapCopy.get(i);
     return CudaSystem.eval(gpu -> {
-      CudaTensor dense = this.ptr.getDense(gpu);
+      CudaTensor ptr = gpu.getTensor(CudaTensorList.this, this.ptr.getType());
+      CudaTensor dense = ptr.getDense(gpu);
       try {
         Tensor tensor = new Tensor(getDimensions());
         get(dense, i, tensor.getData());
@@ -283,25 +284,29 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     if (null == heapCopy || heapCopy.isFinalized()) {
       synchronized (this) {
         if (null == heapCopy || heapCopy.isFinalized()) {
-          final int itemLength = Tensor.length(getDimensions());
-          final Tensor[] output = IntStream.range(0, getLength())
-            .mapToObj(dataIndex -> new Tensor(getDimensions()))
-            .toArray(i -> new Tensor[i]);
-          CudnnHandle.run(gpu -> {
-            CudaTensor dense = this.ptr.getDense(gpu);
-            try {
-              for (int i = 0; i < getLength(); i++) {
-                get(dense, i, output[i].getData());
-              }
-            } finally {
-              dense.freeRef();
-            }
+          heapCopy = CudnnHandle.eval(gpu -> {
+            return heapCopy(gpu, gpu.getTensor(this, ptr.getType()));
           });
-          heapCopy = TensorArray.wrap(output);
         }
       }
     }
     return heapCopy;
+  }
+  
+  @Nonnull
+  private TensorArray heapCopy(final CudnnHandle gpu, final CudaTensor ptr) {
+    final Tensor[] output = IntStream.range(0, getLength())
+      .mapToObj(dataIndex -> new Tensor(getDimensions()))
+      .toArray(i -> new Tensor[i]);
+    CudaTensor dense = ptr.getDense(gpu);
+    try {
+      for (int i = 0; i < getLength(); i++) {
+        get(dense, i, output[i].getData());
+      }
+    } finally {
+      dense.freeRef();
+    }
+    return TensorArray.wrap(output);
   }
   
   

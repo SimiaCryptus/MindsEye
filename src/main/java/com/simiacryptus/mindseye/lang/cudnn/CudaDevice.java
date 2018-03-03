@@ -23,7 +23,6 @@ import com.simiacryptus.mindseye.lang.ReshapedTensorList;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.util.lang.TimedResult;
-import jcuda.Pointer;
 import jcuda.jcudnn.*;
 import jcuda.runtime.JCuda;
 import jcuda.runtime.cudaDeviceProp;
@@ -81,7 +80,7 @@ public class CudaDevice extends CudaSystem {
    * @param devPtr   the dev ptr
    * @return the int
    */
-  public static synchronized int cudaFree(int deviceId, final Pointer devPtr) {
+  public static synchronized int cudaFree(int deviceId, final CudaPointer devPtr) {
     long startTime = System.nanoTime();
     if (null == devPtr) return 0;
     Supplier<Integer> fn = () -> {
@@ -188,11 +187,11 @@ public class CudaDevice extends CudaSystem {
    * @return the pointer
    */
   @Nonnull
-  Pointer acquire(long size, @Nonnull MemoryType type, int retries) {
+  CudaPointer acquire(long size, @Nonnull MemoryType type, int retries) {
     if (retries < 0) throw new IllegalArgumentException();
     final DeviceMetrics metrics = ensureCapacity(size, type);
     try {
-      @Nonnull Pointer pointer = type.allocCached(size, this);
+      @Nonnull CudaPointer pointer = type.allocCached(size, this);
       final long finalMemory = metrics.activeMemory.addAndGet(size);
       metrics.peakMemory.updateAndGet(l -> Math.max(finalMemory, l));
       return pointer;

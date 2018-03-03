@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.lang.cudnn;
 import com.simiacryptus.mindseye.lang.RegisteredObjectBase;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.SimpleConvolutionLayer;
-import jcuda.Pointer;
 import jcuda.runtime.cudaMemcpyKind;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +37,8 @@ import static jcuda.runtime.cudaMemcpyKind.cudaMemcpyDeviceToHost;
 /**
  * A GPU memory segment
  */
-public class CudaMemory extends CudaResourceBase<Pointer> {
+public class CudaMemory extends CudaResourceBase<CudaPointer> {
+
   /**
    * The constant METRICS.
    */
@@ -64,7 +64,6 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
    */
   public final long size;
   private final int deviceId;
-  @javax.annotation.Nonnull
   private final MemoryType type;
   
   /**
@@ -74,10 +73,21 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
    * @param size the size
    * @param type the type
    */
-  CudaMemory(final CudaDevice gpu, final long size, @Nonnull MemoryType type) {
-    super(gpu.acquire(size, type, 1));
+  CudaMemory(final CudaDevice gpu, final long size, @Nonnull MemoryType type) {this(size, type, gpu.acquire(size, type, 1), gpu.getDeviceId());}
+  
+  /**
+   * Instantiates a new Cuda ptr.
+   *
+   * @param size     the size
+   * @param type     the type
+   * @param memory
+   * @param deviceId
+   * @param type
+   */
+  CudaMemory(final long size, @Nonnull MemoryType type, final CudaPointer memory, final int deviceId) {
+    super(memory);
     this.size = size;
-    this.deviceId = gpu.getDeviceId();
+    this.deviceId = deviceId;
     this.type = type;
   }
   
@@ -220,6 +230,7 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
    * Free.
    */
   protected void _free() {
+    if (ptr.getByteOffset() != 0) return;
     CudnnHandle threadHandle = CudaSystem.getThreadHandle();
     if (null != threadHandle) threadHandle.cleanupNative.add(this);
     else release();
@@ -227,6 +238,7 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
   
   @Override
   public void release() {
+    if (ptr.getByteOffset() != 0) return;
     if (isActiveObj()) {
       getType().recycle(ptr, deviceId, size);
       CudaMemory.getGpuStats(type == MemoryType.Managed ? -1 : deviceId).activeMemory.addAndGet(-size);
@@ -393,4 +405,19 @@ public class CudaMemory extends CudaResourceBase<Pointer> {
     return this;
   }
   
+  public CudaMemory withByteOffset(final int byteOffset) {
+    assertAlive();
+    final CudaMemory baseMemorySegment = this;
+    baseMemorySegment.addRef();
+    return new CudaMemory(size - byteOffset, type, ptr.withByteOffset(byteOffset), baseMemorySegment.getDeviceId()) {
+      @Override
+      protected void _free() {
+        baseMemorySegment.freeRef();
+      }
+      
+      @Override
+      public void release() {
+      }
+    };
+  }
 }
