@@ -167,7 +167,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
           assert inputBands <= inputDimentions[2];
           assert inputBands <= outputDimensions[2];
           final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
-            @Nullable final CudaTensor cudaDelta = gpu.getTensor(delta, precision, MemoryType.Device);
+            @Nullable final CudaTensor cudaDelta = gpu.getTensor(delta, precision, MemoryType.Device).getDenseAndFree(gpu);
             @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor passbackViewDescriptor = gpu.newTensorDescriptor(
               precision, length, inputBands, inputDimentions[1], inputDimentions[0], //
               inputDimentions[2] * inputDimentions[1] * inputDimentions[0], //

@@ -298,7 +298,7 @@ public class TestUtil {
         
         HashMap<String, Object> row = new HashMap<>();
         row.put("fwd", layer.getForwardPerformance().getMetrics());
-        row.put("rev", layer.getForwardPerformance().getMetrics());
+        row.put("rev", layer.getBackwardPerformance().getMetrics());
         metrics.put(str, row);
       }
     });

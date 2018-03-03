@@ -80,7 +80,9 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     if (getKernel().getDimensions()[2] <= 0) throw new IllegalArgumentException();
     this.inputBands = inputBands;
     this.outputBands = outputBands;
-    setBatchBands(binaryFriendly((int) Math.sqrt(CudaSettings.INSTANCE.getMaxFilterElements() / (width * height)), 3));
+    int batchBands = (int) Math.sqrt(CudaSettings.INSTANCE.getMaxFilterElements() / (width * height));
+    //batchBands = binaryFriendly(batchBands, 3);
+    setBatchBands(batchBands);
   }
   
   /**
@@ -195,11 +197,11 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     assertAlive();
     int batchBands = getBatchBands();
     if (0 == batchBands) {
-      batchBands = inputBands;
+      batchBands = Math.max(inputBands, outputBands);
     }
-    if (batchBands > outputBands * 2) {
-      batchBands = outputBands;
-    }
+//    if (batchBands > outputBands * 2) {
+//      batchBands = outputBands;
+//    }
     return new ExplodedConvolutionGrid(getConvolutionParams(), batchBands).write(kernel);
   }
   
