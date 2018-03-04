@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.demo;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
+import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.models.Hdf5Archive;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
@@ -83,7 +84,8 @@ public class LocationDemo extends ArtistryDemo {
             .setMode(getFinalPoolingMode()));
           //add(new SoftmaxActivationLayer());
         }
-      };
+      }//.setSamples(5).setDensity(0.3)
+        .setFinalPoolingMode(PoolingLayer.PoolingMode.Avg);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -112,7 +114,7 @@ public class LocationDemo extends ArtistryDemo {
       Tensor classification = classifyResult.getData().get(0);
       List<String> categories = vgg16_hdf5.getCategories();
       int[] sortedIndices = IntStream.range(0, categories.size()).mapToObj(x -> x)
-        .sorted(Comparator.comparing(i -> -classification.get(i))).mapToInt(x -> x).limit(10).toArray();
+        .sorted(Comparator.comparing(i -> -classification.get(i))).mapToInt(x -> x).limit(100).toArray();
       logger.info(Arrays.stream(sortedIndices)
         .mapToObj(i -> String.format("%s: %s = %s%%", i, categories.get(i), classification.get(i) * 100))
         .reduce((a, b) -> a + "\n" + b)
@@ -123,6 +125,7 @@ public class LocationDemo extends ArtistryDemo {
         DeltaSet<Layer> deltaSet = new DeltaSet<>();
         classifyResult.accumulate(deltaSet, tensorArray);
         Tensor delta = new Tensor(deltaSet.getMap().entrySet().stream().filter(x -> x.getValue().target == row[0].getData()).findAny().get().getValue().getDelta(), row[0].getDimensions());
+        delta = delta.mapAndFree(x->Math.abs(x));
         try {
           log.h3(categories.get(category));
           log.p(log.image(TestUtil.normalizeBands(delta).toImage(), ""));
@@ -143,6 +146,7 @@ public class LocationDemo extends ArtistryDemo {
    */
   public Tensor[][] loadImages1() {
     return Stream.of(
+      "H:\\SimiaCryptus\\Artistry\\wild-animals-group.jpg",
       "H:\\SimiaCryptus\\Artistry\\girl_dog_family.jpg",
       "H:\\SimiaCryptus\\Artistry\\chimps\\chip.jpg"
     ).map(img -> {

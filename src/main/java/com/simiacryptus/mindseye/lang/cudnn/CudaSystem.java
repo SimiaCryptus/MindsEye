@@ -790,7 +790,7 @@ public class CudaSystem {
    * @param args   the args
    */
   public static void log(final String method, final Object result, @Nullable final Object[] args) {
-    String callstack = Arrays.stream(Thread.currentThread().getStackTrace()).skip(3).limit(10).map(x -> x.getFileName() + ":" + x.getLineNumber()).reduce((a, b) -> a + ", " + b).get();
+    String callstack = "";//Arrays.stream(Thread.currentThread().getStackTrace()).skip(3).limit(10).map(x -> x.getFileName() + ":" + x.getLineNumber()).reduce((a, b) -> a + ", " + b).get();
     @Nonnull final String paramString = null == args ? "" : Arrays.stream(args).map(CudaSystem::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
     final String message = String.format("%.6f @ %s(%d): %s(%s) = %s via [%s]", (System.nanoTime() - CudaSystem.start) / 1e9, Thread.currentThread().getName(), currentDeviceId.get(), method, paramString, result, callstack);
     try {
@@ -1064,6 +1064,9 @@ public class CudaSystem {
         CudaTensor ptr = ((CudaTensorList) hint).ptr;
         CudaMemory memory = null == ptr ? null : ptr.memory;
         return null == memory ? null : memory.getDeviceId();
+      }
+      else if (hint instanceof CudaResource) {
+        return ((CudaResource) hint).deviceId;
       }
       else if (hint instanceof Integer) {
         return (Integer) hint;

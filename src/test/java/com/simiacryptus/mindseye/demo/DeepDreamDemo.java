@@ -75,7 +75,7 @@ public class DeepDreamDemo extends ArtistryDemo {
     VGG16_HDF5 vgg16 = log.code(() -> {
       final VGG16_HDF5 result;
       try {
-        result = new VGG16_HDF5.Noisy(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5"))));
+        result = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5"))));
       } catch (@javax.annotation.Nonnull final RuntimeException e) {
         throw e;
       } catch (Throwable e) {
@@ -91,9 +91,9 @@ public class DeepDreamDemo extends ArtistryDemo {
       log.h1("Image " + itemNumber);
       Tensor image = images[itemNumber];
       TestUtil.monitorImage(image, false);
-      List<String> categories = vgg16.predict(3, image).stream().flatMap(x -> x.keySet().stream()).collect(Collectors.toList());
+      List<String> categories = vgg16.predict(8, image).stream().flatMap(x -> x.keySet().stream()).collect(Collectors.toList());
       log.p("Predictions: %s", categories.stream().reduce((a, b) -> a + "; " + b).get());
-      log.p("Evolve from %s to %s", categories.get(0), categories.get(2));
+      log.p("Evolve from %s to %s", categories.get(0), categories.get(3));
       int targetCategoryIndex = vgg16Categories.indexOf(categories.get(1));
       int totalCategories = vgg16Categories.size();
       Function<IterativeTrainer, IterativeTrainer> config = train -> train

@@ -52,12 +52,12 @@ public class CudaSettings implements Settings {
     maxTotalMemory = Settings.get("MAX_TOTAL_MEMORY", 6 * CudaMemory.GiB);
     maxDeviceMemory = Settings.get("MAX_DEVICE_MEMORY", 6 * CudaMemory.GiB);
     maxAllocSize = Settings.get("MAX_ALLOC_SIZE", Precision.Double.size * (Integer.MAX_VALUE - 1L));
-    maxFilterElements = Settings.get("MAX_FILTER_ELEMENTS", 1024 * CudaMemory.MiB);
-    maxIoElements = Settings.get("MAX_IO_ELEMENTS", 4 * CudaMemory.MiB);
-    convolutionWorkspaceSizeLimit = Settings.get("CONVOLUTION_WORKSPACE_SIZE_LIMIT", 512 * CudaMemory.MiB);
+    maxFilterElements = Settings.get("MAX_FILTER_ELEMENTS", 512 * CudaMemory.MiB);
+    maxIoElements = Settings.get("MAX_IO_ELEMENTS", 1 * CudaMemory.MiB);
+    convolutionWorkspaceSizeLimit = Settings.get("CONVOLUTION_WORKSPACE_SIZE_LIMIT", 64 * CudaMemory.MiB);
     disable = Settings.get("DISABLE_CUDNN", false);
     forceSingleGpu = Settings.get("FORCE_SINGLE_GPU", false);
-    streamsPerGpu = Settings.get("STREAMS_PER_GPU", 4);
+    streamsPerGpu = Settings.get("STREAMS_PER_GPU", 3);
     workspaceCachePersistance = Settings.get("CONV_CACHE_MODE", PersistanceMode.WEAK);
     conv_para_1 = Settings.get("CONV_PARA_1", true);
     conv_para_2 = Settings.get("CONV_PARA_2", true);

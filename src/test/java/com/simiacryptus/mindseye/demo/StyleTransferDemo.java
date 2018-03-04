@@ -124,14 +124,16 @@ public class StyleTransferDemo extends ArtistryDemo {
     Tensor[][] inputData = Stream.concat(
       Stream.of(input).map(img -> {
         try {
-          return new Tensor[]{Tensor.fromRGB(ImageIO.read(new File(img))), new Tensor(1.0, 0.0)};
+          BufferedImage image = ImageIO.read(new File(img));
+          image = TestUtil.resize(image, 600, true);
+          return new Tensor[]{Tensor.fromRGB(image), new Tensor(1.0, 0.0)};
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
       }),
       Stream.empty()
     ) //
-      .flatMap(ts -> ImageTiles.toTiles(ts[0].toImage(), 250, 250, 250, 250, Integer.MAX_VALUE, Integer.MAX_VALUE).stream().map(t -> new Tensor[]{t, ts[1]}))
+      //.flatMap(ts -> ImageTiles.toTiles(ts[0].toImage(), 250, 250, 250, 250, Integer.MAX_VALUE, Integer.MAX_VALUE).stream().map(t -> new Tensor[]{t, ts[1]}))
       .toArray(i -> new Tensor[i][]);
   
     Tensor[][] preprocessedTrainingData = IntStream.range(0, rawTrainingData.length).mapToObj(i -> {
@@ -148,11 +150,12 @@ public class StyleTransferDemo extends ArtistryDemo {
     supervised1.wrap(new EntropyLossLayer(),
       supervised1.add(trainedCategorizer, supervised1.getInput(0)),
       supervised1.getInput(1));
+    supervised1.setFrozen(false);
     new IterativeTrainer(new SampledArrayTrainable(preprocessedTrainingData, supervised1, 10, 1))
       .setMonitor(getTrainingMonitor(history))
       .setOrientation(new RecursiveSubspace())
       .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-      .setTimeout(60, TimeUnit.MINUTES)
+      .setTimeout(10, TimeUnit.MINUTES)
       .runAndFree();
     log.code(() -> {
       return TestUtil.plot(history);
@@ -182,6 +185,7 @@ public class StyleTransferDemo extends ArtistryDemo {
       supervised2.wrap(new EntropyLossLayer(),
         supervised2.add(fullNetwork, supervised2.wrap(clamp, supervised2.getInput(0))),
         supervised2.getInput(1));
+      TestUtil.monitorImage(data.get(0)[0], false);
       @javax.annotation.Nonnull Trainable trainable = new ArrayTrainable(supervised2, 1).setMask(true, false).setData(data);
       new IterativeTrainer(trainable)
         .setMonitor(getTrainingMonitor(history))
@@ -211,19 +215,24 @@ public class StyleTransferDemo extends ArtistryDemo {
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-      return ImageTiles.toTiles(image, 250, 250, 250, 250, Integer.MAX_VALUE, Integer.MAX_VALUE).stream().map(t -> {
-        return new Tensor[]{t, new Tensor(category)};
+      return Stream.<Tensor[]>of(new Tensor[]{
+        Tensor.fromRGB(TestUtil.resize(image, 600, true)),
+        new Tensor(category)
       });
+//      Stream<Tensor[]> stream = ImageTiles.toTiles(image, 250, 250, 250, 250, Integer.MAX_VALUE, Integer.MAX_VALUE).stream().map(t -> {
+//        return new Tensor[]{t, new Tensor(category)};
+//      });
+//      return stream;
     });
   }
   
   @Nonnull
   private PipelineNetwork buildCategorizer() {
     PipelineNetwork trainedCategorizer = new PipelineNetwork();
-    trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 4096)
-      .setPaddingXY(0, 0).setWeightsLog(-4));
-    trainedCategorizer.add(new ImgBandBiasLayer(4096).setWeightsLog(-4));
-    trainedCategorizer.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+//    trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 4096)
+//      .setPaddingXY(0, 0).setWeightsLog(-4));
+//    trainedCategorizer.add(new ImgBandBiasLayer(4096).setWeightsLog(-4));
+//    trainedCategorizer.add(new ActivationLayer(ActivationLayer.Mode.RELU));
     trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 2)
       .setPaddingXY(0, 0).setWeightsLog(-4));
     trainedCategorizer.add(new ImgBandBiasLayer(2).setWeightsLog(-4));

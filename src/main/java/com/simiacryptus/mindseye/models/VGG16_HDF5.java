@@ -507,10 +507,8 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
    */
   public static class Noisy extends VGG16_HDF5 {
   
-    /**
-     * The Samples.
-     */
-    int samples = 3;
+    private int samples;
+    private double density;
   
     /**
      * Instantiates a new Vgg 16 hdf 5.
@@ -519,6 +517,8 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
      */
     public Noisy(final Hdf5Archive hdf5) {
       super(hdf5);
+      density = 0.5;
+      samples = 3;
     }
     
     protected void phase3a() {
@@ -526,7 +526,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
       
       DAGNode prev = stochasticNet.getHead();
       stochasticNet.wrap(new GateProductLayer(), prev,
-        stochasticNet.add(new StochasticBinaryNoiseLayer(1.0, 1.0, 1, 1, 4096), new DAGNode[]{}));
+        stochasticNet.add(new StochasticBinaryNoiseLayer(density, 1.0 / density, 1, 1, 4096), new DAGNode[]{}));
       
       stochasticNet.wrap(new ConvolutionLayer(1, 1, 4096, 4096)
         .setPaddingXY(0, 0)
@@ -540,7 +540,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
       
       prev = stochasticNet.getHead();
       stochasticNet.wrap(new GateProductLayer(), prev,
-        stochasticNet.add(new StochasticBinaryNoiseLayer(1.0, 1.0, 1, 1, 4096), new DAGNode[]{}));
+        stochasticNet.add(new StochasticBinaryNoiseLayer(density, 1.0 / density, 1, 1, 4096), new DAGNode[]{}));
       
       stochasticNet.wrap(new ActivationLayer(ActivationLayer.Mode.RELU));
       stochasticNet.wrap(new ConvolutionLayer(1, 1, 4096, 1000)
@@ -555,7 +555,27 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
       
       add(new StochasticSamplingSubnetLayer(stochasticNet, samples));
     }
-    
+  
+    /**
+     * The Samples.
+     */
+    public int getSamples() {
+      return samples;
+    }
+  
+    public Noisy setSamples(int samples) {
+      this.samples = samples;
+      return this;
+    }
+  
+    public double getDensity() {
+      return density;
+    }
+  
+    public Noisy setDensity(double density) {
+      this.density = density;
+      return this;
+    }
   }
   
 }
