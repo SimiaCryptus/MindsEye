@@ -456,7 +456,6 @@ public class CudaSystem {
   public static int cudaDeviceReset() {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaDeviceReset();
-    getThreadHandle().dirty();
     log("cudaDeviceReset", result, new Object[]{});
     cudaDeviceReset_execution.accept((System.nanoTime() - startTime) / 1e9);
     handle(result);
@@ -473,7 +472,6 @@ public class CudaSystem {
   public static int cudaMalloc(final CudaPointer devPtr, final long size) {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaMalloc(devPtr, size);
-    getThreadHandle().dirty();
     log("cudaMalloc", result, new Object[]{devPtr, size});
     cudaMalloc_execution.accept((System.nanoTime() - startTime) / 1e9);
     handle(result);
@@ -491,7 +489,6 @@ public class CudaSystem {
   public static int cudaMallocManaged(final CudaPointer devPtr, final long size, int flags) {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaMallocManaged(devPtr, size, flags);
-    getThreadHandle().dirty();
     log("cudaMallocManaged", result, new Object[]{devPtr, size, flags});
     cudaMallocManaged_execution.accept((System.nanoTime() - startTime) / 1e9);
     handle(result);
@@ -536,7 +533,6 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaHostAlloc(devPtr, size, flags);
     cudaHostAlloc_execution.accept((System.nanoTime() - startTime) / 1e9);
-    getThreadHandle().dirty();
     log("cudaHostAlloc", result, new Object[]{devPtr, size, flags});
     handle(result);
     return result;
@@ -552,7 +548,6 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaFreeHost(devPtr);
     cudaFreeHost_execution.accept((System.nanoTime() - startTime) / 1e9);
-    getThreadHandle().dirty();
     log("cudaFreeHost", result, new Object[]{devPtr});
     handle(result);
     return result;
@@ -1180,7 +1175,6 @@ public class CudaSystem {
     dirty = false;
     long startTime = System.nanoTime();
     final int result = JCuda.cudaDeviceSynchronize();
-    getThreadHandle().dirty();
     log("cudaDeviceSynchronize", result, new Object[]{});
     cudaDeviceSynchronize_execution.accept((System.nanoTime() - startTime) / 1e9);
     handle(result);

@@ -532,7 +532,6 @@ public class CudnnHandle extends CudaDevice {
       filterDesc, outputDesc, convDesc, inputDesc,
       algorithm, sizeInBytesArray);
     allocateBackwardDataWorkspace_execution.accept((System.nanoTime() - startTime) / 1e9);
-    this.dirty();
     log("cudnnGetConvolutionBackwardDataWorkspaceSize", result, new Object[]{this, filterDesc, outputDesc, convDesc, inputDesc, algorithm, sizeInBytesArray});
     CudaSystem.handle(result);
     final long size = sizeInBytesArray[0];
@@ -557,7 +556,6 @@ public class CudnnHandle extends CudaDevice {
       srcTensorDesc, dstTensorDesc, convDesc, filterDesc,
       algorithm, sizeInBytesArray);
     allocateBackwardFilterWorkspace_execution.accept((System.nanoTime() - startTime) / 1e9);
-    this.dirty();
     log("cudnnGetConvolutionBackwardFilterWorkspaceSize", result, new Object[]{this, srcTensorDesc, dstTensorDesc, convDesc, filterDesc, algorithm, sizeInBytesArray});
     CudaSystem.handle(result);
     final long size = sizeInBytesArray[0];
@@ -582,7 +580,6 @@ public class CudnnHandle extends CudaDevice {
       srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
       algorithm, sizeInBytesArray);
     allocateForwardWorkspace_execution.accept((System.nanoTime() - startTime) / 1e9);
-    this.dirty();
     log("cudnnGetConvolutionForwardWorkspaceSize", result, new Object[]{this, srcTensorDesc, filterDesc, convDesc, dstTensorDesc, algorithm, sizeInBytesArray});
     CudaSystem.handle(result);
     final long size = sizeInBytesArray[0];
