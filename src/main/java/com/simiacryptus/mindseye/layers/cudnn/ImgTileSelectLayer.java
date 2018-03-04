@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * Reduces the resolution of the input by selecting a centered window. The output image will have the same number of
@@ -119,25 +120,11 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
     @Nonnull final int[] dimOut = getViewDimensions(dimIn, new int[]{sizeY, sizeX, dimIn[2]}, new int[]{positionX, positionY, 0});
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final TensorList outputData = CudaSystem.eval(gpu -> {
-      @Nullable final CudaTensor inputTensor = gpu.getTensor(input.getData(), precision, MemoryType.Device);
-      boolean dirty = dimOut[0] == dimIn[0] && dimOut[1] == dimIn[1];
       assert dimOut[0] > 0;
       assert dimOut[1] > 0;
       assert dimOut[2] > 0;
-      @Nonnull final CudaMemory outputBuffer = gpu.allocate((long) length * dimOut[2] * dimOut[1] * dimOut[0] * precision.size, MemoryType.Managed, dirty);
-      copy(gpu, length, dimIn, inputTensor, dimOut, outputBuffer, this.positionX, this.positionY);
-      @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(
-        precision,//
-        length,//
-        dimOut[2],//
-        dimOut[1],//
-        dimOut[0],//
-        dimOut[2] * dimOut[1] * dimOut[0],//
-        dimOut[1] * dimOut[0],//
-        dimOut[0],//
-        1);
-      Arrays.stream(new ReferenceCounting[]{inputTensor}).forEach(ReferenceCounting::freeRef);
-      CudaTensor cudaTensor = CudaTensor.wrap(outputBuffer, outputDescriptor, precision);
+      boolean dirty = dimOut[0] == dimIn[0] && dimOut[1] == dimIn[1];
+      CudaTensor cudaTensor = copy(gpu, input.getData(), length, dimIn, dimOut, dirty, this.positionX, this.positionY);
       return CudaTensorList.wrap(cudaTensor, length, dimOut, precision);
     });
     return new Result(outputData, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
@@ -150,32 +137,19 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
       assert error.length() == input.getData().length();
       if (input.isAlive()) {
         final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
-          @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device);
           boolean dirty = dimOut[0] >= dimIn[0] && dimOut[1] >= dimIn[1];
-          @Nonnull final CudaMemory passbackBuffer = gpu.allocate((long) (length * dimIn[2] * dimIn[1] * dimIn[0] * precision.size), MemoryType.Managed, dirty);
-          copy(gpu, length, dimOut, errorPtr, dimIn, passbackBuffer, -this.positionX, -this.positionY);
-          @Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(
-            precision,//
-            length,//
-            dimIn[2],//
-            dimIn[1],//
-            dimIn[0],//
-            dimIn[2] * dimIn[1] * dimIn[0],//
-            dimIn[1] * dimIn[0],//
-            dimIn[0],//
-            1);
-          Arrays.stream(new ReferenceCounting[]{errorPtr}).forEach(ReferenceCounting::freeRef);
-          return CudaTensorList.wrap(CudaTensor.wrap(passbackBuffer, passbackDescriptor, precision), length, dimIn, precision);
+          CudaTensor cudaTensor = copy(gpu, error, length, dimOut, dimIn, dirty, -this.positionX, -this.positionY);
+          return CudaTensorList.wrap(cudaTensor, length, dimIn, precision);
         });
         input.accumulate(buffer, passbackTensorList);
       }
     }) {
-      
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-      
+  
       @Override
       public boolean isAlive() {
         return Arrays.stream(inObj).anyMatch(x -> x.isAlive());
@@ -183,50 +157,18 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
     };
   }
   
-  /**
-   * Copy.
-   *
-   * @param gpu                   the gpu
-   * @param length                the length
-   * @param sourceDimensions      the length in
-   * @param source                the input buffer
-   * @param destinationDimensions the length out
-   * @param destination           the output buffer
-   * @param positionX             the position x
-   * @param positionY             the position y
-   * @return the int [ ]
-   */
-  public int[] copy(@Nonnull CudnnHandle gpu, int length, @Nonnull int[] sourceDimensions, @Nonnull CudaTensor source, @Nonnull int[] destinationDimensions, @Nonnull CudaMemory destination, int positionX, int positionY) {
-    if (3 != sourceDimensions.length) throw new IllegalArgumentException("inputDimensions.length");
-    if (3 != destinationDimensions.length) throw new IllegalArgumentException("dimOut.length");
-    int bands = sourceDimensions[2];
-    if (bands != destinationDimensions[2])
-      throw new IllegalArgumentException(String.format("%d != %d", bands, destinationDimensions[2]));
+  public CudaTensor copy(final CudnnHandle gpu, @Nonnull final TensorList input, final int length, final int[] inputDimensions, final int[] outputDimensions, final boolean dirty, final int positionX, final int positionY) {
+    if (3 != inputDimensions.length) throw new IllegalArgumentException("inputDimensions.length");
+    if (3 != outputDimensions.length) throw new IllegalArgumentException("dimOut.length");
+    int bands = inputDimensions[2];
+    if (bands != outputDimensions[2])
+      throw new IllegalArgumentException(String.format("%d != %d", bands, outputDimensions[2]));
     //log.info(String.format("offset=%d,%d", offsetX, offsetY));
-    @Nonnull final int[] viewDim = getViewDimensions(sourceDimensions, destinationDimensions, new int[]{positionX, positionY, 0});
-    @Nonnull final CudaDevice.CudaTensorDescriptor sourceViewDescriptor = gpu.newTensorDescriptor(
-      precision,//
-      length,//
-      viewDim[2],//
-      viewDim[1],//
-      viewDim[0],//
-      source.descriptor.nStride,//
-      source.descriptor.cStride,//
-      source.descriptor.hStride,//
-      source.descriptor.wStride);
-    @Nonnull final CudaDevice.CudaTensorDescriptor destinationViewDescriptor = gpu.newTensorDescriptor(
-      precision,//
-      length,//
-      viewDim[2],//
-      viewDim[1],//
-      viewDim[0],//
-      destinationDimensions[2] * destinationDimensions[1] * destinationDimensions[0],//
-      destinationDimensions[1] * destinationDimensions[0],//
-      destinationDimensions[0],//
-      1);
+    @Nonnull final int[] viewDim = getViewDimensions(inputDimensions, outputDimensions, new int[]{positionX, positionY, 0});
+    @Nullable final CudaTensor inputTensor = gpu.getTensor(input, precision, MemoryType.Device);
+    
     int sourceOffset = 0;
     int destinationOffset = 0;
-  
     if (positionX < 0) {
       destinationOffset += Math.abs(positionX);
     }
@@ -234,25 +176,63 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
       sourceOffset += Math.abs(positionX);
     }
     if (positionY < 0) {
-      destinationOffset += destinationDimensions[0] * Math.abs((positionY));
+      destinationOffset += outputDimensions[0] * Math.abs((positionY));
     }
     else {
-      sourceOffset += source.descriptor.hStride * (Math.abs(positionY));
+      sourceOffset += inputTensor.descriptor.hStride * (Math.abs(positionY));
     }
     assert sourceOffset >= 0;
     assert destinationOffset >= 0;
-    assert sourceOffset + Tensor.length(viewDim) <= Tensor.length(sourceDimensions);
-    assert destinationOffset + Tensor.length(viewDim) <= Tensor.length(destinationDimensions);
+    assert sourceOffset + Tensor.length(viewDim) <= Tensor.length(inputDimensions);
+    assert destinationOffset + Tensor.length(viewDim) <= Tensor.length(outputDimensions);
+  
+    @Nonnull final CudaDevice.CudaTensorDescriptor sourceViewDescriptor = gpu.newTensorDescriptor(
+      precision,//
+      length,//
+      viewDim[2],//
+      viewDim[1],//
+      viewDim[0],//
+      inputTensor.descriptor.nStride,//
+      inputTensor.descriptor.cStride,//
+      inputTensor.descriptor.hStride,//
+      inputTensor.descriptor.wStride);
+    if (Arrays.equals(viewDim, outputDimensions)) {
+      assert sourceOffset >= 0;
+      assert destinationOffset == 0;
+      return CudaTensor.wrap(inputTensor.memory.withByteOffset(sourceOffset * precision.size), sourceViewDescriptor, precision);
+    }
     
+    @Nonnull final CudaMemory outputPtr = gpu.allocate((long) length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size, MemoryType.Managed, dirty);
+    @Nonnull final CudaDevice.CudaTensorDescriptor destinationViewDescriptor = gpu.newTensorDescriptor(
+      precision,//
+      length,//
+      viewDim[2],//
+      viewDim[1],//
+      viewDim[0],//
+      outputDimensions[2] * outputDimensions[1] * outputDimensions[0],//
+      outputDimensions[1] * outputDimensions[0],//
+      outputDimensions[0],//
+      1);
     CudaSystem.handle(gpu.cudnnTransformTensor(
       precision.getPointer(1.0),
-      sourceViewDescriptor.getPtr(), source.memory.getPtr().withByteOffset(sourceOffset * precision.size),
+      sourceViewDescriptor.getPtr(), inputTensor.memory.getPtr().withByteOffset(sourceOffset * precision.size),
       precision.getPointer(1.0),
-      destinationViewDescriptor.getPtr(), destination.getPtr().withByteOffset(destinationOffset * precision.size)
+      destinationViewDescriptor.getPtr(), outputPtr.getPtr().withByteOffset(destinationOffset * precision.size)
     ));
     Arrays.stream(new ReferenceCounting[]{sourceViewDescriptor}).forEach(ReferenceCounting::freeRef);
-    return viewDim;
     
+    @Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(
+      precision,//
+      length,//
+      outputDimensions[2],//
+      outputDimensions[1],//
+      outputDimensions[0],//
+      outputDimensions[2] * outputDimensions[1] * outputDimensions[0],//
+      outputDimensions[1] * outputDimensions[0],//
+      outputDimensions[0],//
+      1);
+    Stream.<ReferenceCounting>of(inputTensor).forEach(ReferenceCounting::freeRef);
+    return CudaTensor.wrap(outputPtr, passbackDescriptor, precision);
   }
   
   /**
