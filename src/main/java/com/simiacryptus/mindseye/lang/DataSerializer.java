@@ -68,7 +68,9 @@ public interface DataSerializer {
    * @return the int
    */
   default int encodedSize(@javax.annotation.Nonnull double[] from) {
-    return from.length * getElementSize() + getHeaderSize();
+    long size = (long) from.length * getElementSize() + getHeaderSize();
+    if (size > Integer.MAX_VALUE) throw new IllegalStateException();
+    return (int) size;
   }
   
   /**

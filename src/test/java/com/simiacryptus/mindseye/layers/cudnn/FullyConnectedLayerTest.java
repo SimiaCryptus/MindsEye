@@ -176,7 +176,7 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
      * Instantiates a new BigTests.
      */
     public Big_VGG() {
-      super(new int[]{25088}, new int[]{4096}, 0);
+      super(new int[]{25088}, new int[]{4096}, 25088 / 2);
     }
     
   }

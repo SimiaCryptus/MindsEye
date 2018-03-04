@@ -514,7 +514,6 @@ public class CudaSystem {
   public static int cudaSetDeviceFlags(int flags) {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaSetDeviceFlags(flags);
-    getThreadHandle().dirty();
     log("cudaSetDeviceFlags", result, new Object[]{flags});
     cudaDeviceSynchronize_execution.accept((System.nanoTime() - startTime) / 1e9);
     handle(result);
@@ -596,7 +595,6 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaMemcpy(dst, src, count, cudaMemcpyKind_kind);
     cudaMemcpy_execution.accept((System.nanoTime() - startTime) / 1e9);
-    getThreadHandle().dirty();
     log("cudaMemcpy", result, new Object[]{dst, src, count, cudaMemcpyKind_kind});
     handle(result);
   }
@@ -629,7 +627,6 @@ public class CudaSystem {
     @javax.annotation.Nonnull cudaStream_t stream = new cudaStream_t();
     int result = JCuda.cudaStreamCreate(stream);
     cudaStreamCreate_execution.accept((System.nanoTime() - startTime) / 1e9);
-    getThreadHandle().dirty();
     log("cudaStreamCreate", result, new Object[]{stream});
     handle(result);
     return new CudaStream(stream);
@@ -645,7 +642,6 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     int result = JCuda.cudaStreamDestroy(stream);
     cudaStreamDestroy_execution.accept((System.nanoTime() - startTime) / 1e9);
-    getThreadHandle().dirty();
     log("cudaStreamDestroy", result, new Object[]{stream});
     handle(result);
     return result;
@@ -660,7 +656,6 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     int result = JCuda.cudaStreamSynchronize(stream);
     cudaStreamSynchronize_execution.accept((System.nanoTime() - startTime) / 1e9);
-    getThreadHandle().dirty();
     log("cudaStreamSynchronize", result, new Object[]{stream});
     handle(result);
   }
@@ -678,7 +673,6 @@ public class CudaSystem {
     final int result = JCuda.cudaMemset(mem, c, count);
     //cudaDeviceSynchronize();
     cudaMemset_execution.accept((System.nanoTime() - startTime) / 1e9);
-    getThreadHandle().dirty();
     log("cudaMemset", result, new Object[]{mem, c, count});
     handle(result);
   }
@@ -1067,7 +1061,9 @@ public class CudaSystem {
         }
       }
       else if (hint instanceof CudaTensorList) {
-        return ((CudaTensorList) hint).ptr.memory.getDeviceId();
+        CudaTensor ptr = ((CudaTensorList) hint).ptr;
+        CudaMemory memory = null == ptr ? null : ptr.memory;
+        return null == memory ? null : memory.getDeviceId();
       }
       else if (hint instanceof Integer) {
         return (Integer) hint;
