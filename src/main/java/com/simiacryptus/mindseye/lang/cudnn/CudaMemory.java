@@ -265,7 +265,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    */
   @javax.annotation.Nonnull
   public CudaMemory read(@javax.annotation.Nonnull final Precision precision, @javax.annotation.Nonnull final double[] destination, int offset) {
-    if (size < offset + (long) destination.length * precision.size) {
+    if (size < (long) (offset + destination.length) * precision.size) {
       throw new IllegalArgumentException(String.format("%d != %d + %d", size, (long) destination.length * precision.size, offset));
     }
     if (precision == Precision.Float) {
@@ -367,7 +367,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    * @return the cuda ptr
    */
   @javax.annotation.Nonnull
-  public CudaMemory write(@javax.annotation.Nonnull final Precision precision, @javax.annotation.Nonnull final float[] data, long offset) {
+  public CudaMemory write(@javax.annotation.Nonnull final Precision precision, @javax.annotation.Nonnull final float[] data, int offset) {
     if (size < (offset + data.length) * precision.size)
       throw new IllegalArgumentException(String.format("%d != %d * %d", size, data.length, precision.size));
     CudaSystem.cudaMemcpy(getPtr().withByteOffset(offset * precision.size), precision.getPointer(data), (long) data.length * precision.size, cudaMemcpyKind.cudaMemcpyHostToDevice);

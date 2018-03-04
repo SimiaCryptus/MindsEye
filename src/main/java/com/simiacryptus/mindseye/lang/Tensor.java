@@ -740,7 +740,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    *
    * @return the double [ ]
    */
-  @Nullable
+  @Nonnull
   public double[] getData() {
     assertAlive();
     if (null == data) {

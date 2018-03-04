@@ -23,19 +23,16 @@ import jcuda.Pointer;
 
 public class CudaPointer extends Pointer {
   
-  public CudaPointer() {
-  }
-  
-  public CudaPointer(final long nativePointerValue) {
-    super(nativePointerValue);
-  }
-  
   public CudaPointer(final Pointer other) {
     super(other);
   }
   
   public CudaPointer(final Pointer other, final long byteOffset) {
     super(other, byteOffset);
+  }
+  
+  public CudaPointer() {
+    super();
   }
   
   public static CudaPointer to(float values[]) {

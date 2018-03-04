@@ -91,7 +91,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    */
   public static long evictToHeap(int deviceId) {
     long size = RegisteredObjectBase.getLivingInstances(CudaTensorList.class)
-      .filter(x -> (x.getDeviceId() == deviceId || deviceId < 0 || x.getDeviceId() < 0))
+      .filter(x -> x.ptr != null && (x.getDeviceId() == deviceId || deviceId < 0 || x.getDeviceId() < 0))
       .mapToLong(CudaTensorList::evictToHeap).sum();
     logger.info(String.format("Cleared %s bytes from GpuTensorLists for device %s", size, deviceId));
     return size;
@@ -147,20 +147,6 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     return null == ptr ? -1 : ptr.memory.getDeviceId();
   }
   
-  /**
-   * Add and free tensor list.
-   *
-   * @param right the right
-   * @return the tensor list
-   */
-  TensorList _addAndFree(@javax.annotation.Nonnull final TensorList right) {
-    assertAlive();
-    right.assertAlive();
-    TensorList add = add(right);
-    freeRef();
-    return add;
-  }
-  
   @Override
   public synchronized TensorList addAndFree(@javax.annotation.Nonnull final TensorList right) {
     assertAlive();
@@ -179,17 +165,18 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
           if (nativeRight.precision == this.precision) {
             if (nativeRight.heapCopy == null) {
               assert (!nativeRight.ptr.equals(CudaTensorList.this.ptr));
-              // Bug Workaround
-              //if(1==1) return _addAndFree(right);
               return CudaSystem.eval(gpu -> {
                 if (gpu.getDeviceId() == ptr.memory.getDeviceId()) {
                   return gpu.addInPlace(this, nativeRight);
                 }
                 else {
-                  return _addAndFree(right);
+                  assertAlive();
+                  right.assertAlive();
+                  TensorList add = add(right);
+                  freeRef();
+                  return add;
                 }
-                //gpu.cudaDeviceSynchronize();
-              }, this);
+              }, ptr.memory);
             }
           }
         }
@@ -243,15 +230,16 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     assertAlive();
     if (heapCopy != null) return heapCopy.get(i);
     return CudaSystem.eval(gpu -> {
-      CudaTensor ptr = gpu.getTensor(CudaTensorList.this, this.ptr.getType());
-      CudaTensor dense = ptr.getDense(gpu);
-      try {
+      return CudaSystem.withDevice(this.ptr.getDeviceId(), () -> {
         Tensor tensor = new Tensor(getDimensions());
-        get(dense, i, tensor.getData());
+        if (this.ptr.isDense()) {
+          this.ptr.memory.read(precision, tensor.getData(), i * Tensor.length(getDimensions()));
+        }
+        else {
+          this.ptr.read(gpu, i, tensor);
+        }
         return tensor;
-      } finally {
-        dense.freeRef();
-      }
+      });
     }, CudaTensorList.this);
   }
   
@@ -285,7 +273,29 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
       synchronized (this) {
         if (null == heapCopy || heapCopy.isFinalized()) {
           heapCopy = CudnnHandle.eval(gpu -> {
-            return heapCopy(gpu, gpu.getTensor(this, ptr.getType()));
+            if (null == this.ptr) {
+              if (null == heapCopy) {
+                throw new IllegalStateException("No data");
+              }
+              else if (heapCopy.isFinalized()) {
+                throw new IllegalStateException("Local data has been freed");
+              }
+            }
+            this.ptr.addRef();
+            CudaTensor ptr = this.ptr.moveTo(gpu, MemoryType.Device);
+            try {
+              assert precision == ptr.precision;
+              assert precision == ptr.descriptor.dataType;
+              final Tensor[] output = IntStream.range(0, getLength())
+                .mapToObj(dataIndex -> new Tensor(getDimensions()))
+                .toArray(i -> new Tensor[i]);
+              for (int i = 0; i < getLength(); i++) {
+                ptr.read(gpu, i, output[i]);
+              }
+              return TensorArray.wrap(output);
+            } finally {
+              ptr.freeRef();
+            }
           }, this);
         }
       }
@@ -293,27 +303,6 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     return heapCopy;
   }
   
-  @Nonnull
-  private TensorArray heapCopy(final CudnnHandle gpu, final CudaTensor ptr) {
-    final Tensor[] output = IntStream.range(0, getLength())
-      .mapToObj(dataIndex -> new Tensor(getDimensions()))
-      .toArray(i -> new Tensor[i]);
-    CudaTensor dense = ptr.getDense(gpu);
-    try {
-      for (int i = 0; i < getLength(); i++) {
-        get(dense, i, output[i].getData());
-      }
-    } finally {
-      dense.freeRef();
-    }
-    return TensorArray.wrap(output);
-  }
-  
-  
-  private void get(final CudaTensor dense, final int i, final double[] destination) {
-    final int itemLength = Tensor.length(getDimensions());
-    dense.memory.read(precision, destination, i * itemLength);
-  }
   
   @Override
   public int length() {
