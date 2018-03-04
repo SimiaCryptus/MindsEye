@@ -163,7 +163,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
           activationDesc.freeRef();
           inputTensor.freeRef();
         }
-      });
+      }, inputData);
       return new Result(CudaTensorList.create(outPtr, length, outputSize, precision),
         (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
         if (inputResult.isAlive()) {
@@ -218,7 +218,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
               activationDesc.freeRef();
             }
             return CudaTensorList.wrap(passbackTensor, length, inputSize, precision);
-          });
+          }, delta);
           inputResult.accumulate(buffer, data);
         }
         else {

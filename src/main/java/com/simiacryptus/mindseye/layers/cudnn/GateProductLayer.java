@@ -122,7 +122,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
       opDescriptor.freeRef();
       CudaTensor cudaTensor = CudaTensor.wrap(outputPtr, outputDescriptor, precision);
       return CudaTensorList.wrap(cudaTensor, length, leftDimensions, precision);
-    }), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }, leftData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       for (int index = 0; index < inObj.length; index++) {
         if (left.isAlive()) {
           @Nonnull TensorList data = CudaSystem.eval(gpu -> {
@@ -145,7 +145,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
             Arrays.stream(new ReferenceCounting[]{deltaTensor, rightTensor, opDescriptor, outputDescriptor}).forEach(ReferenceCounting::freeRef);
             outputPtr.freeRef();
             return CudaTensorList.wrap(cudaTensor, length, leftDimensions, precision);
-          });
+          }, delta);
           left.accumulate(buffer, data);
         }
       }

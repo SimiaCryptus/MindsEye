@@ -130,7 +130,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
       } catch (@javax.annotation.Nonnull final Throwable e) {
         throw new ComponentException("Error", e);
       }
-    });
+    }, batch);
     return new Result(CudaTensorList.create(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, precision),
       (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
         assert error.length() == batch.length();
@@ -155,7 +155,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
               passbackDescriptor.getPtr(), passbackBuffer.getPtr()));
             Arrays.stream(new ReferenceCounting[]{errorPtr, inputData, poolingDesc}).forEach(ReferenceCounting::freeRef);
             return CudaTensorList.wrap(CudaTensor.wrap(passbackBuffer, passbackDescriptor, precision), length, inputSize, precision);
-          });
+          }, error);
           input.accumulate(buffer, data);
         }
       }) {

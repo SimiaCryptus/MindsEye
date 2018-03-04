@@ -532,6 +532,8 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
         .setPaddingXY(0, 0)
         .setAndFree(hdf5.readDataSet("param_0", "layer_34")
           .permuteDimensionsAndFree(fullyconnectedOrder))
+        .setPrecision(precision)
+        .explode()
       );
       stochasticNet.wrap(new ImgBandBiasLayer(4096)
         .setAndFree((hdf5.readDataSet("param_1", "layer_34"))));
@@ -545,6 +547,8 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
         .setPaddingXY(0, 0)
         .setAndFree(hdf5.readDataSet("param_0", "layer_36")
           .permuteDimensionsAndFree(fullyconnectedOrder))
+        .setPrecision(precision)
+        .explode()
       );
       stochasticNet.wrap(new ImgBandBiasLayer(1000)
         .setAndFree((hdf5.readDataSet("param_1", "layer_36"))));

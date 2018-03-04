@@ -149,7 +149,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
       CudaTensor cudaTensor = CudaTensor.wrap(outputPtr, outputDescriptor, precision);
       Stream.<ReferenceCounting>of(opDescriptor, lPtr, rPtr).forEach(ReferenceCounting::freeRef);
       return CudaTensorList.wrap(cudaTensor, length, dimensions, precision);
-    }), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }, leftData), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
   
       Runnable a = () -> {
         if (inObj[0].isAlive()) {
@@ -168,7 +168,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
             CudaTensor cudaTensor = CudaTensor.wrap(passbackPtr, passbackDescriptor, precision);
             lPtr.freeRef();
             return CudaTensorList.wrap(cudaTensor, length, dimensions, precision);
-          });
+          }, delta);
           inObj[0].accumulate(buffer, tensorList);
         }
       };
@@ -189,7 +189,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
             CudaTensor cudaTensor = CudaTensor.wrap(outputPtr, passbackDescriptor, precision);
             lPtr.freeRef();
             return CudaTensorList.wrap(cudaTensor, length, dimensions, precision);
-          });
+          }, delta);
           inObj[1].accumulate(buffer, tensorList);
         }
       };

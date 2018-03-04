@@ -126,7 +126,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
       CudaTensor cudaTensor = copy(gpu, inputTensor, length, dimIn, dimOut, dirty);
       Stream.<ReferenceCounting>of(inputTensor).forEach(ReferenceCounting::freeRef);
       return CudaTensorList.wrap(cudaTensor, length, dimOut, precision);
-    });
+    }, input.getData());
     return new Result(outputData, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
         throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
@@ -142,7 +142,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
           CudaTensor cudaTensor = ImgCropLayer.this.copy(gpu, errorPtr, length, dimOut, dimIn, dirty);
           Stream.<ReferenceCounting>of(errorPtr).forEach(ReferenceCounting::freeRef);
           return CudaTensorList.wrap(cudaTensor, length, dimIn, precision);
-        });
+        }, error);
         input.accumulate(buffer, passbackTensorList);
       }
     }) {

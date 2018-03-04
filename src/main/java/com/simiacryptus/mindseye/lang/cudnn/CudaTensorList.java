@@ -189,7 +189,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
                   return _addAndFree(right);
                 }
                 //gpu.cudaDeviceSynchronize();
-              });
+              }, this);
             }
           }
         }
@@ -220,7 +220,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
           if (nativeRight.heapCopy == null) {
             return CudaSystem.eval(gpu -> {
               return gpu.add(this, nativeRight);
-            });
+            }, this);
           }
         }
       }
@@ -252,7 +252,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
       } finally {
         dense.freeRef();
       }
-    });
+    }, CudaTensorList.this);
   }
   
   /**
@@ -286,7 +286,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
         if (null == heapCopy || heapCopy.isFinalized()) {
           heapCopy = CudnnHandle.eval(gpu -> {
             return heapCopy(gpu, gpu.getTensor(this, ptr.getType()));
-          });
+          }, this);
         }
       }
     }
@@ -351,7 +351,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
         copyPtr.freeRef();
         ptr.freeRef();
       }
-    });
+    }, this);
   }
   
   @Override

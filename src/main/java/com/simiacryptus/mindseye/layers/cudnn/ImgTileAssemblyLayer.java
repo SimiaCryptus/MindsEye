@@ -143,7 +143,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       CudaDevice.CudaTensorDescriptor descriptor = gpu.newTensorDescriptor(precision, length, outputDims[2], outputDims[1], outputDims[0]);
       CudaTensor ptr = CudaTensor.wrap(outputBuffer, descriptor, precision);
       return CudaTensorList.wrap(ptr, length, outputDims, precision);
-    });
+    }, Arrays.stream(inObj).map(Result::getData).toArray());
     
     
     return new Result(outputData, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
@@ -200,7 +200,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
     final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
       CudaTensor ptr = copy(gpu, backpropParams.getError(), backpropParams.getTileDimensions(), backpropParams.getOutputDims(), backpropParams.getLength(), -backpropParams.getPositionX(), -backpropParams.getTotalHeight());
       return CudaTensorList.wrap(ptr, backpropParams.getLength(), backpropParams.getTileDimensions(), precision);
-    });
+    }, backpropParams.getError());
     backpropParams.getInObj()[backpropParams.getInputIndex()].accumulate(backpropParams.getBuffer(), passbackTensorList);
   }
   

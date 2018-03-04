@@ -204,7 +204,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
       } catch (@javax.annotation.Nonnull final Throwable e) {
         throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
       }
-    }), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+    }, inputData), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
       assert error.length() == length;
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
       if (!isFrozen()) {
@@ -228,7 +228,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
           } finally {
             Arrays.stream(new ReferenceCounting[]{filterDescriptor, errorPtr, filterBuffer}).forEach(ReferenceCounting::freeRef);
           }
-        });
+        }, error);
       }
       if (input.isAlive()) {
         error.addRef();

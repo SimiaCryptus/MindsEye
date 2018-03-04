@@ -227,7 +227,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
       } finally {
         Stream.of(inputTensor, filterDescriptor, outputDescriptor, forwardWorkspace, convolutionDescriptor).forEach(ReferenceCounting::freeRef);
       }
-    }), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }, inputData), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       delta.assertAlive();
       buffer.assertAlive();
       inputData.assertAlive();
@@ -273,7 +273,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
               Stream.of(filterDescriptor, convolutionDescriptor, backwardsFilterWorkSpace).forEach(ReferenceCounting::freeRef);
             }
           }
-        });
+        }, delta);
       }, () -> {
         if (input.isAlive()) {
           final TensorList inputBufferTensors = CudaSystem.eval(gpu -> {
@@ -315,7 +315,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
             } finally {
               Stream.of(inputDescriptor, filterDescriptor, convolutionDescriptor, backwardsDataWorkSpace).forEach(ReferenceCounting::freeRef);
             }
-          });
+          }, delta);
           if (null != inputBufferTensors) {
             input.accumulate(buffer, inputBufferTensors);
           }

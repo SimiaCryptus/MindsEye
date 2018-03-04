@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 
 /**
  * A lower level of convolution desconstruction logic, implements support for an arbitrary number of output bands by
@@ -116,9 +117,9 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
     filterDimensions[2] = inputBands * outputBands;
     assert Arrays.equals(filter.getDimensions(), filterDimensions) : Arrays.toString(filter.getDimensions()) + " != " + Arrays.toString(filterDimensions);
     final int inputBandsSq = inputBands * inputBands;
-    for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
+    IntStream.range(0, subLayers.size()).parallel().forEach(layerNumber -> {
       final int filterBandOffset = layerNumber * inputBandsSq;
-      @javax.annotation.Nonnull Tensor kernel = new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq).setByCoord(c -> {
+      @Nonnull Tensor kernel = new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq).setByCoord(c -> {
         int[] coords = c.getCoords();
         int filterBand = getFilterBand(filterBandOffset, coords[2], squareOutputBands);
         if (filterBand < filterDimensions[2]) {
@@ -130,7 +131,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
       }, true);
       ((SimpleConvolutionLayer) ((ImgTileSubnetLayer) subLayers.get(layerNumber)).getInner()).set(kernel);
       kernel.freeRef();
-    }
+    });
     return this;
   }
   

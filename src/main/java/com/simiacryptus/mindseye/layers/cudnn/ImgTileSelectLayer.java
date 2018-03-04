@@ -126,7 +126,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
       boolean dirty = dimOut[0] == dimIn[0] && dimOut[1] == dimIn[1];
       CudaTensor cudaTensor = copy(gpu, input.getData(), length, dimIn, dimOut, dirty, this.positionX, this.positionY);
       return CudaTensorList.wrap(cudaTensor, length, dimOut, precision);
-    });
+    }, input.getData());
     return new Result(outputData, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
       if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
         throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
@@ -140,7 +140,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
           boolean dirty = dimOut[0] >= dimIn[0] && dimOut[1] >= dimIn[1];
           CudaTensor cudaTensor = copy(gpu, error, length, dimOut, dimIn, dirty, -this.positionX, -this.positionY);
           return CudaTensorList.wrap(cudaTensor, length, dimIn, precision);
-        });
+        }, error);
         input.accumulate(buffer, passbackTensorList);
       }
     }) {

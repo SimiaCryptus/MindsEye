@@ -126,7 +126,7 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
       }).get();
       Arrays.stream(new ReferenceCounting[]{opDescriptor, outputDescriptor}).forEach(ReferenceCounting::freeRef);
       return result1;
-    }), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }, Arrays.stream(inObj).map(Result::getData).toArray()), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
       for (int index = 0; index < inObj.length; index++) {
         final Result input = inObj[index];
         if (input.isAlive()) {
@@ -150,7 +150,7 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
                 precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
               Arrays.stream(new ReferenceCounting[]{lPtr, rPtr, opDescriptor, l, r}).forEach(ReferenceCounting::freeRef);
               return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor, precision), length, dimensions, precision);
-            });
+            }, l, r);
           }).get();
           input.accumulate(buffer, data);
         }

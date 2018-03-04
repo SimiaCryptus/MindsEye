@@ -75,7 +75,7 @@ public class DeepDreamDemo extends ArtistryDemo {
     VGG16_HDF5 vgg16 = log.code(() -> {
       final VGG16_HDF5 result;
       try {
-        result = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5"))));
+        result = new VGG16_HDF5.Noisy(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5"))));
       } catch (@javax.annotation.Nonnull final RuntimeException e) {
         throw e;
       } catch (Throwable e) {
