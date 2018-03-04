@@ -606,7 +606,6 @@ public class CudnnHandle extends CudaDevice {
       filterDesc, inputDesc, convDesc, outputDesc,
       cudnnConvolutionBwdDataPreference.CUDNN_CONVOLUTION_BWD_DATA_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
     getBackwardDataAlgorithm_execution.accept((System.nanoTime() - startTime) / 1e9);
-    this.dirty();
     log("cudnnGetConvolutionBackwardDataAlgorithm", result, new Object[]{this, filterDesc, inputDesc, convDesc, outputDesc, cudnnConvolutionBwdDataPreference.CUDNN_CONVOLUTION_BWD_DATA_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray});
     CudaSystem.handle(result);
     return algoArray[0];
@@ -629,7 +628,6 @@ public class CudnnHandle extends CudaDevice {
       inputDesc, outputDesc, convDesc, filterDesc,
       cudnnConvolutionBwdFilterPreference.CUDNN_CONVOLUTION_BWD_FILTER_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
     getBackwardFilterAlgorithm_execution.accept((System.nanoTime() - startTime) / 1e9);
-    this.dirty();
     log("cudnnGetConvolutionBackwardFilterAlgorithm", result, new Object[]{this, inputDesc, outputDesc, convDesc, filterDesc, cudnnConvolutionBwdFilterPreference.CUDNN_CONVOLUTION_BWD_FILTER_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray});
     CudaSystem.handle(result);
     return algoArray[0];
@@ -652,7 +650,6 @@ public class CudnnHandle extends CudaDevice {
       srcTensorDesc, filterDesc, convDesc, dstTensorDesc,
       cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray);
     getForwardAlgorithm_execution.accept((System.nanoTime() - startTime) / 1e9);
-    this.dirty();
     log("cudnnGetConvolutionForwardAlgorithm", result, new Object[]{this, srcTensorDesc, filterDesc, convDesc, dstTensorDesc, cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_SPECIFY_WORKSPACE_LIMIT, memoryLimitInBytes, algoArray});
     CudaSystem.handle(result);
     return algoArray[0];
@@ -703,7 +700,6 @@ public class CudnnHandle extends CudaDevice {
   @Override
   public void finalize() throws Throwable {
     final int result = JCudnn.cudnnDestroy(handle);
-    this.dirty();
     log("cudnnDestroy", result, new Object[]{handle});
     CudaSystem.handle(result);
   }

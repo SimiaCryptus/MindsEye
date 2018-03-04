@@ -698,7 +698,6 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCudnn.cudnnDestroyActivationDescriptor(activationDesc);
     cudnnDestroyActivationDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    getThreadHandle().dirty();
     log("cudnnDestroyActivationDescriptor", result, new Object[]{activationDesc});
     return result;
   }
@@ -713,7 +712,6 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCudnn.cudnnDestroyConvolutionDescriptor(convDesc);
     cudnnDestroyConvolutionDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    getThreadHandle().dirty();
     log("cudnnDestroyConvolutionDescriptor", result, new Object[]{convDesc});
     return result;
   }
@@ -728,7 +726,6 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCudnn.cudnnDestroyFilterDescriptor(filterDesc);
     cudnnDestroyFilterDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    getThreadHandle().dirty();
     log("cudnnDestroyFilterDescriptor", result, new Object[]{filterDesc});
     return result;
   }
@@ -743,7 +740,6 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCudnn.cudnnDestroyOpTensorDescriptor(opTensorDesc);
     cudnnDestroyOpTensorDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    getThreadHandle().dirty();
     log("cudnnDestroyOpTensorDescriptor", result, new Object[]{opTensorDesc});
     return result;
   }
@@ -758,7 +754,6 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCudnn.cudnnDestroyPoolingDescriptor(poolingDesc);
     cudnnDestroyPoolingDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    getThreadHandle().dirty();
     log("cudnnDestroyPoolingDescriptor", result, new Object[]{poolingDesc});
     return result;
   }
@@ -773,7 +768,6 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCudnn.cudnnDestroyTensorDescriptor(tensorDesc);
     cudnnDestroyTensorDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    getThreadHandle().dirty();
     log("cudnnDestroyTensorDescriptor", result, new Object[]{tensorDesc});
     return result;
   }
@@ -795,7 +789,6 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCudnn.cudnnGetPoolingNdForwardOutputDim(poolingDesc, inputTensorDesc, nbDims, outputTensorDimA);
     cudnnGetPoolingNdForwardOutputDim_execution.accept((System.nanoTime() - startTime) / 1e9);
-    getThreadHandle().dirty();
     log("cudnnGetPoolingNdForwardOutputDim", result, new Object[]{poolingDesc, inputTensorDesc, nbDims, outputTensorDimA});
     return result;
   }
@@ -911,7 +904,6 @@ public class CudaSystem {
     @javax.annotation.Nonnull final int[] tensorOuputDims = new int[4];
     final int result = JCudnn.cudnnGetConvolutionNdForwardOutputDim(convDesc, srcTensorDesc, filterDesc, tensorOuputDims.length, tensorOuputDims);
     getOutputDims_execution.accept((System.nanoTime() - startTime) / 1e9);
-    getThreadHandle().dirty();
     log("cudnnGetConvolutionNdForwardOutputDim", result, new Object[]{convDesc, srcTensorDesc, filterDesc, tensorOuputDims.length, tensorOuputDims});
     CudaSystem.handle(result);
     return tensorOuputDims;
