@@ -231,31 +231,22 @@ public class CudnnHandle extends CudaDevice {
   @Nonnull
   public CudaTensor getTensor(@Nonnull final CudaTensorList data, @Nonnull final MemoryType memoryType, final boolean dense) {
     CudaTensor ptr = data.ptr;
-    if ((null == ptr || ptr.isFinalized()) && null != data.heapCopy && !data.heapCopy.isFinalized()) {
-      CudaTensor newPtr = getTensor(data.heapCopy, data.getPrecision(), memoryType, false);
-      synchronized (data) {
-        ptr = data.ptr;
-        if ((null == ptr || ptr.isFinalized()) && null != data.heapCopy && !data.heapCopy.isFinalized()) {
-          if (null != data.ptr) data.ptr.freeRef();
-          data.ptr = ptr = newPtr;
-          newPtr = null;
-        }
-      }
-      if (null != newPtr) {
-        newPtr.freeRef();
-      }
-    }
-    if (null == ptr) {
-      if (null == data.heapCopy) {
-        throw new IllegalStateException("No data");
-      }
-      else if (data.heapCopy.isFinalized()) {
-        throw new IllegalStateException("Local data has been freed");
-      }
-    }
-    if (dense) return ptr.getDense(this);
     ptr.addRef();
-    return ptr;
+    if ((null == ptr || ptr.isFinalized()) && null != data.heapCopy && !data.heapCopy.isFinalized()) {
+      ptr = getTensor(data.heapCopy, data.getPrecision(), memoryType, false);
+    }
+    if (dense) ptr = ptr.getDenseAndFree(this);
+    if (null == ptr) {
+      throw new IllegalStateException("No data");
+    }
+    synchronized (data) {
+      if (ptr != data.ptr) {
+        if (null != data.ptr) data.ptr.freeRef();
+        data.ptr = ptr;
+        data.ptr.addRef();
+      }
+      return ptr;
+    }
   }
   
   private TensorList addInPlaceAndFree(final CudaTensorList left, final TensorList right) {

@@ -343,13 +343,15 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
   
   @Override
   protected void _free() {
-    if (null != ptr) {
-      ptr.freeRef();
-      ptr = null;
-    }
-    if (null != heapCopy) {
-      heapCopy.freeRef();
-      heapCopy = null;
+    synchronized (this) {
+      if (null != ptr) {
+        ptr.freeRef();
+        ptr = null;
+      }
+      if (null != heapCopy) {
+        heapCopy.freeRef();
+        heapCopy = null;
+      }
     }
   }
   
