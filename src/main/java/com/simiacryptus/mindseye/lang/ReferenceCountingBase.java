@@ -203,7 +203,6 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
       freeRefObjs.add(obj.getObjectId());
     }
     if (refs == 0) {
-      assert references.get() == 0;
       if (!isFreed.getAndSet(true)) {
         try {
           _free();

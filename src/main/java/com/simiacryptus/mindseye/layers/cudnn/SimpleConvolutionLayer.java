@@ -202,7 +202,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
       final int forwardAlgorithm = gpu.getForwardAlgorithm(
         inputTensor.descriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(),
         outputDescriptor.getPtr(), CudaSettings.INSTANCE.getConvolutionWorkspaceSizeLimit());
-      final CudaMemory forwardWorkspace = gpu.allocateForwardWorkspace(gpu,
+      final CudaMemory forwardWorkspace = gpu.allocateForwardWorkspace(
         inputTensor.descriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(),
         outputDescriptor.getPtr(), forwardAlgorithm);
       try {
@@ -247,7 +247,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
               1, 1);
             final int backwardFilterAlgorithm = gpu.getBackwardFilterAlgorithm(
               inputTensor.descriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), deltaTensor.descriptor.getPtr(), CudaSettings.INSTANCE.getConvolutionWorkspaceSizeLimit());
-            final CudaMemory backwardsFilterWorkSpace = gpu.allocateBackwardFilterWorkspace(gpu,
+            final CudaMemory backwardsFilterWorkSpace = gpu.allocateBackwardFilterWorkspace(
               inputTensor.descriptor.getPtr(), filterDescriptor.getPtr(),
               convolutionDescriptor.getPtr(), deltaTensor.descriptor.getPtr(), backwardFilterAlgorithm);
             try {
@@ -293,7 +293,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
             @javax.annotation.Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false).getDenseAndFree(gpu);
             final int backwardDataAlgorithm = gpu.getBackwardDataAlgorithm(
               inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), deltaTensor.descriptor.getPtr(), CudaSettings.INSTANCE.getConvolutionWorkspaceSizeLimit());
-            final CudaMemory backwardsDataWorkSpace = gpu.allocateBackwardDataWorkspace(gpu,
+            final CudaMemory backwardsDataWorkSpace = gpu.allocateBackwardDataWorkspace(
               inputDescriptor.getPtr(), filterDescriptor.getPtr(),
               convolutionDescriptor.getPtr(), deltaTensor.descriptor.getPtr(), backwardDataAlgorithm);
             try {

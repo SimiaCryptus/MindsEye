@@ -618,7 +618,6 @@ public class CudnnHandle extends CudaDevice {
   /**
    * Allocate backward data workspace cuda ptr.
    *
-   * @param deviceId   the device id
    * @param inputDesc  the input desc
    * @param filterDesc the filter desc
    * @param convDesc   the conv desc
@@ -626,7 +625,7 @@ public class CudnnHandle extends CudaDevice {
    * @param algorithm  the algorithm
    * @return the cuda ptr
    */
-  public CudaMemory allocateBackwardDataWorkspace(final CudaDevice deviceId, final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc, final int algorithm) {
+  public CudaMemory allocateBackwardDataWorkspace(final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc, final int algorithm) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionBackwardDataWorkspaceSize(handle,
@@ -636,13 +635,12 @@ public class CudnnHandle extends CudaDevice {
     log("cudnnGetConvolutionBackwardDataWorkspaceSize", result, new Object[]{this, filterDesc, outputDesc, convDesc, inputDesc, algorithm, sizeInBytesArray});
     CudaSystem.handle(result);
     final long size = sizeInBytesArray[0];
-    return deviceId.allocate(Math.max(1, size), MemoryType.Device, true);
+    return this.allocate(Math.max(1, size), MemoryType.Device, true);
   }
   
   /**
    * Allocate backward filter workspace cuda ptr.
    *
-   * @param deviceId      the device id
    * @param srcTensorDesc the src tensor desc
    * @param filterDesc    the filter desc
    * @param convDesc      the conv desc
@@ -650,7 +648,7 @@ public class CudnnHandle extends CudaDevice {
    * @param algorithm     the algorithm
    * @return the cuda ptr
    */
-  public CudaMemory allocateBackwardFilterWorkspace(final CudaDevice deviceId, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
+  public CudaMemory allocateBackwardFilterWorkspace(final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionBackwardFilterWorkspaceSize(handle,
@@ -660,13 +658,12 @@ public class CudnnHandle extends CudaDevice {
     log("cudnnGetConvolutionBackwardFilterWorkspaceSize", result, new Object[]{this, srcTensorDesc, dstTensorDesc, convDesc, filterDesc, algorithm, sizeInBytesArray});
     CudaSystem.handle(result);
     final long size = sizeInBytesArray[0];
-    return deviceId.allocate(Math.max(1, size), MemoryType.Device, true);
+    return allocate(Math.max(1, size), MemoryType.Device, true);
   }
   
   /**
    * Allocate forward workspace cuda ptr.
    *
-   * @param deviceId      the device id
    * @param srcTensorDesc the src tensor desc
    * @param filterDesc    the filter desc
    * @param convDesc      the conv desc
@@ -674,7 +671,7 @@ public class CudnnHandle extends CudaDevice {
    * @param algorithm     the algorithm
    * @return the cuda ptr
    */
-  public CudaMemory allocateForwardWorkspace(final CudaDevice deviceId, final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
+  public CudaMemory allocateForwardWorkspace(final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm) {
     long startTime = System.nanoTime();
     @javax.annotation.Nonnull final long sizeInBytesArray[] = {0};
     final int result = JCudnn.cudnnGetConvolutionForwardWorkspaceSize(handle,
@@ -684,7 +681,7 @@ public class CudnnHandle extends CudaDevice {
     log("cudnnGetConvolutionForwardWorkspaceSize", result, new Object[]{this, srcTensorDesc, filterDesc, convDesc, dstTensorDesc, algorithm, sizeInBytesArray});
     CudaSystem.handle(result);
     final long size = sizeInBytesArray[0];
-    return deviceId.allocate(Math.max(1, size), MemoryType.Device, true);
+    return this.allocate(Math.max(1, size), MemoryType.Device, true);
   }
   
   /**

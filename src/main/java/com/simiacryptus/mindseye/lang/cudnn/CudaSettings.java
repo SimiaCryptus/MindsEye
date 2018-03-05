@@ -47,6 +47,7 @@ public class CudaSettings implements Settings {
   private final boolean conv_para_1;
   private final boolean conv_para_3;
   private final long maxDeviceMemory;
+  private final boolean logStack;
   
   private CudaSettings() {
     maxTotalMemory = Settings.get("MAX_TOTAL_MEMORY", 6 * CudaMemory.GiB);
@@ -57,12 +58,13 @@ public class CudaSettings implements Settings {
     convolutionWorkspaceSizeLimit = Settings.get("CONVOLUTION_WORKSPACE_SIZE_LIMIT", 64 * CudaMemory.MiB);
     disable = Settings.get("DISABLE_CUDNN", false);
     forceSingleGpu = Settings.get("FORCE_SINGLE_GPU", false);
-    streamsPerGpu = Settings.get("STREAMS_PER_GPU", 3);
+    streamsPerGpu = Settings.get("STREAMS_PER_GPU", 4);
     workspaceCachePersistance = Settings.get("CONV_CACHE_MODE", PersistanceMode.WEAK);
     conv_para_1 = Settings.get("CONV_PARA_1", true);
     conv_para_2 = Settings.get("CONV_PARA_2", true);
     conv_para_3 = Settings.get("CONV_PARA_3", true);
     memoryCacheMode = Settings.get("CUDA_CACHE_MODE", PersistanceMode.WEAK);
+    logStack = Settings.get("CUDA_LOG_STACK", true);
   }
   
   /**
@@ -180,5 +182,9 @@ public class CudaSettings implements Settings {
    */
   public double getMaxDeviceMemory() {
     return maxDeviceMemory;
+  }
+  
+  public boolean isLogStack() {
+    return logStack;
   }
 }
