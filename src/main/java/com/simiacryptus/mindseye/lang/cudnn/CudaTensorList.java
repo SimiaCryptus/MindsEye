@@ -231,7 +231,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
         memory.freeRef();
       }
       else {
-        this.ptr.read(gpu, i, tensor);
+        this.ptr.read(gpu, i, tensor, false);
       }
       return tensor;
     }, CudaTensorList.this);
@@ -265,38 +265,51 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    * @return the tensor list
    */
   @Nullable
-  private TensorArray heapCopy() {
+  private TensorArray heapCopy() {return heapCopy(false);}
+  
+  /**
+   * Inner tensor list.
+   *
+   * @param avoidAllocations
+   * @return the tensor list
+   */
+  @Nullable
+  private TensorArray heapCopy(final boolean avoidAllocations) {
     if (null == heapCopy || heapCopy.isFinalized()) {
       synchronized (this) {
         if (null == heapCopy || heapCopy.isFinalized()) {
-          heapCopy = CudaDevice.eval(gpu -> {
-            if (null == this.ptr) {
-              if (null == heapCopy) {
-                throw new IllegalStateException("No data");
-              }
-              else if (heapCopy.isFinalized()) {
-                throw new IllegalStateException("Local data has been freed");
-              }
-            }
-            this.ptr.addRef();
-            try {
-              assert getPrecision() == this.ptr.getPrecision();
-              assert getPrecision() == this.ptr.descriptor.dataType;
-              final Tensor[] output = IntStream.range(0, getLength())
-                .mapToObj(dataIndex -> new Tensor(getDimensions()))
-                .toArray(i -> new Tensor[i]);
-              for (int i = 0; i < getLength(); i++) {
-                this.ptr.read(gpu, i, output[i]);
-              }
-              return TensorArray.wrap(output);
-            } finally {
-              this.ptr.freeRef();
-            }
-          }, this);
+          heapCopy = toHeap(avoidAllocations);
         }
       }
     }
     return heapCopy;
+  }
+  
+  private TensorArray toHeap(final boolean avoidAllocations) {
+    return CudaDevice.eval(gpu -> {
+      if (null == this.ptr) {
+        if (null == heapCopy) {
+          throw new IllegalStateException("No data");
+        }
+        else if (heapCopy.isFinalized()) {
+          throw new IllegalStateException("Local data has been freed");
+        }
+      }
+      this.ptr.addRef();
+      try {
+        assert getPrecision() == this.ptr.getPrecision();
+        assert getPrecision() == this.ptr.descriptor.dataType;
+        final Tensor[] output = IntStream.range(0, getLength())
+          .mapToObj(dataIndex -> new Tensor(getDimensions()))
+          .toArray(i -> new Tensor[i]);
+        for (int i = 0; i < getLength(); i++) {
+          this.ptr.read(gpu, i, output[i], avoidAllocations);
+        }
+        return TensorArray.wrap(output);
+      } finally {
+        this.ptr.freeRef();
+      }
+    }, this);
   }
   
   
@@ -361,7 +374,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    * @return the long
    */
   public long evictToHeap() {
-    if (null == heapCopy()) {
+    if (null == heapCopy(true)) {
       throw new IllegalStateException();
     }
     CudaTensor ptr;

@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.lang.cudnn;
 
+import com.simiacryptus.mindseye.lang.RecycleBin;
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Tensor;
 
@@ -137,13 +138,31 @@ public class CudaTensor extends ReferenceCountingBase {
   }
   
   @Nonnull
-  public void read(final CudnnHandle gpu, final int index, final Tensor result) {
+  public void read(final CudnnHandle gpu, final int index, final Tensor result, final boolean avoidAllocations) {
     if (isDense()) {
       CudaSystem.withDevice(memory.getDeviceId(), dev -> {
         CudaMemory memory = getMemory(dev);
         memory.read(descriptor.dataType, result.getData(), index * descriptor.nStride);
         memory.freeRef();
       });
+    }
+    else if (avoidAllocations) {
+      int size = (descriptor.channels - 1) * descriptor.cStride +
+        (descriptor.height - 1) * descriptor.hStride +
+        (descriptor.width - 1) * descriptor.wStride + 1;
+      double[] buffer = RecycleBin.DOUBLES.obtain(size);
+      try {
+        memory.read(descriptor.dataType, buffer, descriptor.nStride * index);
+        result.setByCoord(c -> {
+          int[] coords = c.getCoords();
+          int x = coords.length < 1 ? 1 : coords[0];
+          int y = coords.length < 2 ? 1 : coords[1];
+          int z = coords.length < 3 ? 1 : coords[2];
+          return buffer[x * descriptor.wStride + y * descriptor.hStride + z * descriptor.cStride];
+        });
+      } finally {
+        RecycleBin.DOUBLES.recycle(buffer, buffer.length);
+      }
     }
     else {
       withDense(gpu, index, mem -> mem.read(this.descriptor.dataType, result.getData()));
