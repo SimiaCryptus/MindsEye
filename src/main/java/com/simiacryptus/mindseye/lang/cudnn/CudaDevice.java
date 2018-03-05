@@ -30,7 +30,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 /**
  * The type Gpu device.
@@ -57,7 +57,7 @@ public class CudaDevice extends CudaSystem {
    *
    * @param deviceId the device number
    */
-  public CudaDevice(final int deviceId) {
+  protected CudaDevice(final int deviceId) {
     super();
     this.deviceId = deviceId;
     assert 0 <= this.deviceId;
@@ -80,7 +80,7 @@ public class CudaDevice extends CudaSystem {
   public static synchronized int cudaFree(int deviceId, final CudaPointer devPtr) {
     long startTime = System.nanoTime();
     if (null == devPtr) return 0;
-    Supplier<Integer> fn = () -> {
+    Function<CudaDevice, Integer> fn = dev -> {
       final int result = JCuda.cudaFree(devPtr);
       log("cudaFree", result, new Object[]{devPtr});
       cudaFree_execution.accept((System.nanoTime() - startTime) / 1e9);
@@ -88,7 +88,7 @@ public class CudaDevice extends CudaSystem {
       return result;
     };
     if (deviceId < 0) {
-      return fn.get();
+      return fn.apply(null);
     }
     else {
       return CudaSystem.withDevice(deviceId, fn);

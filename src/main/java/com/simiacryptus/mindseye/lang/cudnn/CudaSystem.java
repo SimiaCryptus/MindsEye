@@ -45,7 +45,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -914,11 +913,11 @@ public class CudaSystem {
    * @param n      the n
    * @param action the action
    */
-  public static void withDevice(int n, @javax.annotation.Nonnull Runnable action) {
+  public static void withDevice(int n, @javax.annotation.Nonnull Consumer<CudaDevice> action) {
     final int currentDevice = getThreadDeviceId();
     try {
       CudaDevice.setDevice(n);
-      action.run();
+      action.accept(new CudaDevice(n));
     } finally {
       if (currentDevice >= 0) CudaDevice.setDevice(currentDevice);
       else CudaSystem.currentDeviceId.remove();
@@ -933,12 +932,12 @@ public class CudaSystem {
    * @param action   the action
    * @return the t
    */
-  public static <T> T withDevice(int deviceId, @javax.annotation.Nonnull Supplier<T> action) {
+  public static <T> T withDevice(int deviceId, @javax.annotation.Nonnull Function<CudaDevice, T> action) {
     assert deviceId >= 0;
     final int currentDevice = getThreadDeviceId();
     try {
       CudaDevice.setDevice(deviceId);
-      return action.get();
+      return action.apply(new CudaDevice(deviceId));
     } finally {
       if (currentDevice >= 0) CudaDevice.setDevice(currentDevice);
       else CudaSystem.currentDeviceId.remove();
@@ -1112,7 +1111,7 @@ public class CudaSystem {
     for (int d = 0; d < deviceCount; d++) {
       int deviceNumber = d;
       //if(device>0) System.err.println(String.format("IGNORING Device %s - %s", device, getDeviceName(device)));
-      CudaSystem.withDevice(deviceNumber, () -> {
+      CudaSystem.withDevice(deviceNumber, dev -> {
         CudaDevice.logger.info(String.format("Device %s - %s", deviceNumber, CudaDevice.getDeviceName(deviceNumber)));
         devices.add(deviceNumber);
         try {

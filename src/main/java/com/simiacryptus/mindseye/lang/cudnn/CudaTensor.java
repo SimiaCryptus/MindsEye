@@ -125,9 +125,11 @@ public class CudaTensor extends ReferenceCountingBase {
       getPrecision(), this.descriptor.batchCount, this.descriptor.channels, this.descriptor.height, this.descriptor.width,
       this.descriptor.channels * this.descriptor.height * this.descriptor.width, this.descriptor.height * this.descriptor.width, this.descriptor.width, 1);
     CudaMemory destMemory = gpu.allocate(destDescriptor.nStride * destDescriptor.batchCount * getPrecision().size, getType(), true);
+    CudaMemory memory = getMemory(gpu);
     gpu.cudnnTransformTensor(
       getPrecision().getPointer(1.0), this.descriptor.getPtr(), memory.getPtr(),
       getPrecision().getPointer(0.0), destDescriptor.getPtr(), destMemory.getPtr());
+    memory.freeRef();
     CudaTensor cudaTensor = CudaTensor.wrap(destMemory, destDescriptor, getPrecision());
     assert cudaTensor.isDense();
     return cudaTensor;
@@ -137,9 +139,11 @@ public class CudaTensor extends ReferenceCountingBase {
   @Nonnull
   public void read(final CudnnHandle gpu, final int index, final Tensor result) {
     if (isDense()) {
-      CudaMemory memory = getMemory(gpu);
-      memory.read(descriptor.dataType, result.getData(), index * descriptor.nStride);
-      memory.freeRef();
+      CudaSystem.withDevice(memory.getDeviceId(), dev -> {
+        CudaMemory memory = getMemory(dev);
+        memory.read(descriptor.dataType, result.getData(), index * descriptor.nStride);
+        memory.freeRef();
+      });
     }
     else {
       withDense(gpu, index, mem -> mem.read(this.descriptor.dataType, result.getData()));
@@ -148,30 +152,35 @@ public class CudaTensor extends ReferenceCountingBase {
   
   @Nonnull
   public <T> T withDense(final CudnnHandle gpu, final int index, final Function<CudaMemory, T> result) {
-    assertAlive();
-    assert this.descriptor.dataType == getPrecision();
-    CudaDevice.CudaTensorDescriptor sourceDescriptor = gpu.newTensorDescriptor(
-      this.descriptor.dataType, 1, this.descriptor.channels, this.descriptor.height, this.descriptor.width,
-      this.descriptor.nStride, this.descriptor.cStride, this.descriptor.hStride, this.descriptor.wStride);
-    CudaDevice.CudaTensorDescriptor destDescriptor = gpu.newTensorDescriptor(
-      this.descriptor.dataType, 1, this.descriptor.channels, this.descriptor.height, this.descriptor.width,
-      this.descriptor.channels * this.descriptor.height * this.descriptor.width, this.descriptor.height * this.descriptor.width, this.descriptor.width, 1);
-    try {
-      CudaMemory cudaMemory = gpu.allocate(destDescriptor.nStride * this.descriptor.dataType.size, MemoryType.Device, true);
-      CudaMemory memory = getMemory(gpu);
+    int deviceId = memory.getDeviceId();
+    Function<CudaDevice, T> fn = dev -> {
+      assertAlive();
+      assert this.descriptor.dataType == getPrecision();
+      CudaDevice.CudaTensorDescriptor sourceDescriptor = dev.newTensorDescriptor(
+        this.descriptor.dataType, 1, this.descriptor.channels, this.descriptor.height, this.descriptor.width,
+        this.descriptor.nStride, this.descriptor.cStride, this.descriptor.hStride, this.descriptor.wStride);
+      CudaDevice.CudaTensorDescriptor destDescriptor = dev.newTensorDescriptor(
+        this.descriptor.dataType, 1, this.descriptor.channels, this.descriptor.height, this.descriptor.width,
+        this.descriptor.channels * this.descriptor.height * this.descriptor.width, this.descriptor.height * this.descriptor.width, this.descriptor.width, 1);
       try {
-        gpu.cudnnTransformTensor(
-          this.descriptor.dataType.getPointer(1.0), sourceDescriptor.getPtr(), memory.getPtr().withByteOffset(index * this.descriptor.nStride * getPrecision().size),
-          this.descriptor.dataType.getPointer(0.0), destDescriptor.getPtr(), cudaMemory.getPtr());
-        return result.apply(cudaMemory);
+        CudaMemory cudaMemory = dev.allocate(destDescriptor.nStride * this.descriptor.dataType.size, MemoryType.Device, true);
+        CudaMemory memory = getMemory(dev);
+        try {
+          gpu.cudnnTransformTensor(
+            this.descriptor.dataType.getPointer(1.0), sourceDescriptor.getPtr(), memory.getPtr().withByteOffset(index * this.descriptor.nStride * getPrecision().size),
+            this.descriptor.dataType.getPointer(0.0), destDescriptor.getPtr(), cudaMemory.getPtr());
+          return result.apply(cudaMemory);
+        } finally {
+          memory.freeRef();
+          cudaMemory.freeRef();
+        }
       } finally {
-        memory.freeRef();
-        cudaMemory.freeRef();
+        sourceDescriptor.freeRef();
+        destDescriptor.freeRef();
       }
-    } finally {
-      sourceDescriptor.freeRef();
-      destDescriptor.freeRef();
-    }
+    };
+    if (0 > deviceId || gpu.getDeviceId() == deviceId) return fn.apply(gpu);
+    else return CudaSystem.withDevice(deviceId, fn);
   }
   
   /**

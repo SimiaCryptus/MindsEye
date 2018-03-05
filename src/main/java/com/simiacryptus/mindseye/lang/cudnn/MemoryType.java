@@ -211,7 +211,7 @@ public enum MemoryType {
         @Nonnull
         @Override
         public ReferenceWrapper<CudaPointer> create(final long length) {
-          return CudnnHandle.eval(gpu -> {
+          return CudaDevice.eval(gpu -> {
             CudaPointer alloc = MemoryType.this.alloc(length, gpu);
             CudaMemory.getGpuStats(device).usedMemory.addAndGet(length);
             return new ReferenceWrapper<>(alloc, x -> {

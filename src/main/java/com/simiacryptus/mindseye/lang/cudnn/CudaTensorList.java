@@ -269,7 +269,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     if (null == heapCopy || heapCopy.isFinalized()) {
       synchronized (this) {
         if (null == heapCopy || heapCopy.isFinalized()) {
-          heapCopy = CudnnHandle.eval(gpu -> {
+          heapCopy = CudaDevice.eval(gpu -> {
             if (null == this.ptr) {
               if (null == heapCopy) {
                 throw new IllegalStateException("No data");

@@ -66,7 +66,7 @@ public class CudaResource<T> extends CudaResourceBase<T> {
   public void release() {
     try {
       if (isActiveObj()) {
-        CudaSystem.withDevice(deviceId, () -> {
+        CudaSystem.withDevice(deviceId, dev -> {
           CudaSystem.handle(this.destructor.applyAsInt(ptr));
         });
       }
