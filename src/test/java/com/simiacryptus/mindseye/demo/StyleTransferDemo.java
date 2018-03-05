@@ -26,11 +26,13 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.layers.cudnn.*;
-import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
-import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
+import com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.layers.java.*;
 import com.simiacryptus.mindseye.models.Hdf5Archive;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
+import com.simiacryptus.mindseye.network.InnerNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
@@ -39,7 +41,6 @@ import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.mindseye.opt.orient.RecursiveSubspace;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.mindseye.test.data.ImageTiles;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.lang.TimedResult;
@@ -147,7 +148,7 @@ public class StyleTransferDemo extends ArtistryDemo {
   
     @javax.annotation.Nonnull ArrayList<StepRecord> history = new ArrayList<>();
     @javax.annotation.Nonnull PipelineNetwork supervised1 = new PipelineNetwork(2);
-    supervised1.wrap(new EntropyLossLayer(),
+    supervised1.wrap(getLossLayer(),
       supervised1.add(trainedCategorizer, supervised1.getInput(0)),
       supervised1.getInput(1));
     supervised1.setFrozen(false);
@@ -182,8 +183,9 @@ public class StyleTransferDemo extends ArtistryDemo {
       clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
       clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
       @javax.annotation.Nonnull PipelineNetwork supervised2 = new PipelineNetwork(2);
-      supervised2.wrap(new EntropyLossLayer(),
-        supervised2.add(fullNetwork, supervised2.wrap(clamp, supervised2.getInput(0))),
+      InnerNode clamped = supervised2.wrap(clamp, supervised2.getInput(0));
+      supervised2.wrap(getLossLayer(),
+        supervised2.add(fullNetwork, clamped),
         supervised2.getInput(1));
       TestUtil.monitorImage(data.get(0)[0], false);
       @javax.annotation.Nonnull Trainable trainable = new ArrayTrainable(supervised2, 1).setMask(true, false).setData(data);
@@ -227,7 +229,12 @@ public class StyleTransferDemo extends ArtistryDemo {
   }
   
   @Nonnull
-  private PipelineNetwork buildCategorizer() {
+  public Layer getLossLayer() {
+    return new EntropyLossLayer();
+  }
+  
+  @Nonnull
+  protected PipelineNetwork buildCategorizer() {
     PipelineNetwork trainedCategorizer = new PipelineNetwork();
 //    trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 4096)
 //      .setPaddingXY(0, 0).setWeightsLog(-4));
@@ -239,6 +246,51 @@ public class StyleTransferDemo extends ArtistryDemo {
     trainedCategorizer.add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
     trainedCategorizer.add(new SoftmaxActivationLayer());
     return trainedCategorizer;
+  }
+  
+  public static class Variant1 extends StyleTransferDemo {
+    @Nonnull
+    @Override
+    public Layer getLossLayer() {
+      return new EntropyLossLayer();
+    }
+    
+    @Nonnull
+    @Override
+    protected PipelineNetwork buildCategorizer() {
+      PipelineNetwork trainedCategorizer = new PipelineNetwork();
+      trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 2)
+        .setPaddingXY(0, 0).setWeightsLog(-4));
+      trainedCategorizer.add(new ImgBandBiasLayer(2).setWeightsLog(-4));
+      trainedCategorizer.add(new ImgPixelSoftmaxLayer());
+      trainedCategorizer.add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
+      return trainedCategorizer;
+    }
+  }
+  
+  public static class Variant2 extends StyleTransferDemo {
+    @Nonnull
+    @Override
+    public Layer getLossLayer() {
+      PipelineNetwork network = new PipelineNetwork(2);
+      network.wrap(new LinearActivationLayer().setScale(-1),
+        network.wrap(new SumReducerLayer(),
+          network.wrap(new ImgPixelGateLayer(),
+            network.wrap(new LogActivationLayer(), network.getInput(0)),
+            network.getInput(1))));
+      return network;
+    }
+    
+    @Nonnull
+    @Override
+    protected PipelineNetwork buildCategorizer() {
+      PipelineNetwork trainedCategorizer = new PipelineNetwork();
+      trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 2)
+        .setPaddingXY(0, 0).setWeightsLog(-4));
+      trainedCategorizer.add(new ImgBandBiasLayer(2).setWeightsLog(-4));
+      trainedCategorizer.add(new ImgPixelSoftmaxLayer());
+      return trainedCategorizer;
+    }
   }
   
   /**

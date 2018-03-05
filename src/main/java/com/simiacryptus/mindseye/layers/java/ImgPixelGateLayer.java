@@ -42,7 +42,7 @@ public class ImgPixelGateLayer extends LayerBase {
   /**
    * Instantiates a new Img band scale layer.
    */
-  protected ImgPixelGateLayer() {
+  public ImgPixelGateLayer() {
     super();
   }
   
