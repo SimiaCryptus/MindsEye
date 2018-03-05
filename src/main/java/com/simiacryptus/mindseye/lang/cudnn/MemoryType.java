@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -76,7 +77,13 @@ public enum MemoryType {
     
     @Override
     protected RecycleBin<ReferenceWrapper<CudaPointer>> get(final int device) {
-      return super.get(-1);
+      cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDeviceId());
+      if (properties.managedMemory == 1) {
+        return super.get(-1);
+      }
+      else {
+        return super.get(device);
+      }
     }
   
     @Override
@@ -207,10 +214,23 @@ public enum MemoryType {
         protected void free(final ReferenceWrapper<CudaPointer> obj) {
           obj.destroy();
         }
-        
+  
+        @Override
+        public void recycle(@Nullable final ReferenceWrapper<CudaPointer> data, final long size) {
+          assert data.peek().deviceId == device || -1 == device;
+          super.recycle(data, size);
+        }
+  
+        @Override
+        public ReferenceWrapper<CudaPointer> obtain(final long length) {
+          assert CudaSystem.getThreadDeviceId() == device || -1 == device;
+          return super.obtain(length);
+        }
+  
         @Nonnull
         @Override
         public ReferenceWrapper<CudaPointer> create(final long length) {
+          assert CudaSystem.getThreadDeviceId() == device || -1 == device;
           return CudaDevice.eval(gpu -> {
             CudaPointer alloc = MemoryType.this.alloc(length, gpu);
             CudaMemory.getGpuStats(device).usedMemory.addAndGet(length);

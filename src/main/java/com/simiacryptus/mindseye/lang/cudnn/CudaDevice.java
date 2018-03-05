@@ -149,6 +149,7 @@ public class CudaDevice extends CudaSystem {
    */
   @Nonnull
   CudaPointer acquire(long size, @Nonnull MemoryType type, int retries) {
+    assert CudaSystem.getThreadDeviceId() == getDeviceId();
     if (retries < 0) throw new IllegalArgumentException();
     final DeviceMetrics metrics = ensureCapacity(size, type);
     try {

@@ -220,6 +220,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
     if (ptr.getByteOffset() != 0) return;
     if (isActiveObj()) {
       getType().recycle(ptr, deviceId, size);
+      ptr = null;
       CudaMemory.getGpuStats(type == MemoryType.Managed ? -1 : deviceId).activeMemory.addAndGet(-size);
     }
   }
@@ -320,6 +321,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    */
   @javax.annotation.Nonnull
   public CudaMemory write(@javax.annotation.Nonnull final Precision precision, @javax.annotation.Nonnull final double[] data, long offset) {
+    assert getType() == MemoryType.Managed || getDeviceId() == CudaSystem.getThreadDeviceId();
     if (size < ((offset + data.length) * precision.size))
       throw new IllegalArgumentException(String.format("%d != (%d + %d) * %d", size, offset, data.length, precision.size));
     CudaSystem.cudaMemcpy(getPtr().withByteOffset(offset * precision.size), precision.getPointer(data), (long) data.length * precision.size, cudaMemcpyKind.cudaMemcpyHostToDevice);

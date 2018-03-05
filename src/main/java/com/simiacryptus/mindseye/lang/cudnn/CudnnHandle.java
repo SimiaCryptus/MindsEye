@@ -210,7 +210,8 @@ public class CudnnHandle extends CudaDevice {
       assert null != data;
       assert null != tensor;
       assert Arrays.equals(tensor.getDimensions(), data.getDimensions()) : Arrays.toString(tensor.getDimensions()) + " != " + Arrays.toString(data.getDimensions());
-      ptr.write(precision, tensor.getData(), (long) i * elementLength);
+      double[] tensorData = tensor.getData();
+      ptr.write(precision, tensorData, (long) i * elementLength);
       tensor.freeRef();
     }
     final int channels = inputSize.length < 3 ? 1 : inputSize[2];

@@ -23,6 +23,8 @@ import jcuda.Pointer;
 
 public class CudaPointer extends Pointer {
   
+  public final int deviceId = CudaSystem.getThreadDeviceId();
+  
   public CudaPointer(final Pointer other) {
     super(other);
   }

@@ -789,7 +789,9 @@ public class CudaSystem {
    * @param args   the args
    */
   public static void log(final String method, final Object result, @Nullable final Object[] args) {
-    String callstack = !CudaSettings.INSTANCE.isLogStack() ? "" : Arrays.stream(Thread.currentThread().getStackTrace()).skip(3).limit(10).map(x -> x.getFileName() + ":" + x.getLineNumber()).reduce((a, b) -> a + ", " + b).get();
+    String callstack = !CudaSettings.INSTANCE.isLogStack() ? "" : Arrays.stream(Thread.currentThread().getStackTrace()).skip(3)
+      .filter(x -> !x.getClassName().startsWith("java."))
+      .limit(20).map(x -> x.getFileName() + ":" + x.getLineNumber()).reduce((a, b) -> a + ", " + b).get();
     @Nonnull final String paramString = null == args ? "" : Arrays.stream(args).map(CudaSystem::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
     final String message = String.format("%.6f @ %s(%d): %s(%s) = %s via [%s]", (System.nanoTime() - CudaSystem.start) / 1e9, Thread.currentThread().getName(), currentDeviceId.get(), method, paramString, result, callstack);
     try {
@@ -910,16 +912,17 @@ public class CudaSystem {
   /**
    * With device.
    *
-   * @param n      the n
+   * @param deviceId      the n
    * @param action the action
    */
-  public static void withDevice(int n, @javax.annotation.Nonnull Consumer<CudaDevice> action) {
-    final int currentDevice = getThreadDeviceId();
+  public static void withDevice(int deviceId, @javax.annotation.Nonnull Consumer<CudaDevice> action) {
+    assert deviceId >= 0;
+    final int prevDevice = getThreadDeviceId();
     try {
-      CudaDevice.setDevice(n);
-      action.accept(new CudaDevice(n));
+      CudaDevice.setDevice(deviceId);
+      action.accept(new CudaDevice(deviceId));
     } finally {
-      if (currentDevice >= 0) CudaDevice.setDevice(currentDevice);
+      if (prevDevice >= 0) CudaDevice.setDevice(prevDevice);
       else CudaSystem.currentDeviceId.remove();
     }
   }
@@ -934,12 +937,12 @@ public class CudaSystem {
    */
   public static <T> T withDevice(int deviceId, @javax.annotation.Nonnull Function<CudaDevice, T> action) {
     assert deviceId >= 0;
-    final int currentDevice = getThreadDeviceId();
+    final int prevDevice = getThreadDeviceId();
     try {
       CudaDevice.setDevice(deviceId);
       return action.apply(new CudaDevice(deviceId));
     } finally {
-      if (currentDevice >= 0) CudaDevice.setDevice(currentDevice);
+      if (prevDevice >= 0) CudaDevice.setDevice(prevDevice);
       else CudaSystem.currentDeviceId.remove();
     }
   }
@@ -1016,7 +1019,6 @@ public class CudaSystem {
       CudnnHandle threadlocal = CudnnHandle.threadContext.get();
       if (threadlocal != null) {
         try {
-          threadlocal.initThread();
           T result = fn.apply(threadlocal);
           return result;
         } catch (@javax.annotation.Nonnull final RuntimeException e) {

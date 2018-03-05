@@ -37,7 +37,7 @@ public abstract class CudaResourceBase<T> extends ReferenceCountingBase {
   /**
    * The Ptr.
    */
-  protected final T ptr;
+  protected T ptr;
   
   /**
    * Instantiates a new Cuda resource base.
