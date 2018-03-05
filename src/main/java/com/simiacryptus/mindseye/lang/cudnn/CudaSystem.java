@@ -1057,16 +1057,18 @@ public class CudaSystem {
       if (hint instanceof Result) {
         TensorList data = ((Result) hint).getData();
         if (data instanceof CudaTensorList) {
-          return ((CudaTensorList) data).ptr.memory.getDeviceId();
+          return ((CudaTensorList) data).ptr.getDeviceId();
         }
       }
       else if (hint instanceof CudaTensorList) {
         CudaTensor ptr = ((CudaTensorList) hint).ptr;
-        CudaMemory memory = null == ptr ? null : ptr.memory;
-        return null == memory ? null : memory.getDeviceId();
+        return null == ptr ? null : ptr.getDeviceId();
       }
       else if (hint instanceof CudaResource) {
         return ((CudaResource) hint).deviceId;
+      }
+      else if (hint instanceof CudaTensor) {
+        return ((CudaTensor) hint).getDeviceId();
       }
       else if (hint instanceof Integer) {
         return (Integer) hint;

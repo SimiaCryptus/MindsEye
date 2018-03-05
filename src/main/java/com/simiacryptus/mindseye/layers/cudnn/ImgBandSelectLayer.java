@@ -107,7 +107,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
     long size = (length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
     return new Result(CudaSystem.eval(gpu -> {
       @javax.annotation.Nonnull final CudaMemory cudaOutput = gpu.allocate(size, MemoryType.Managed, true);
-      @Nullable final CudaTensor cudaInput = gpu.getTensor(inputData, precision, MemoryType.Device);
+      @Nullable final CudaTensor cudaInput = gpu.getTensor(inputData, precision, MemoryType.Device, false);
       final int byteOffset = cudaInput.descriptor.cStride * getFrom() * precision.size;
       @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = gpu.newTensorDescriptor(
         precision, length, outputDimensions[2], outputDimensions[1], outputDimensions[0], //
@@ -121,10 +121,12 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
         outputDimensions[1] * outputDimensions[0], //
         outputDimensions[0], //
         1);
+      CudaMemory cudaInputMemory = cudaInput.getMemory(gpu);
       gpu.cudnnTransformTensor(
-        precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.memory.getPtr().withByteOffset(byteOffset),
+        precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInputMemory.getPtr().withByteOffset(byteOffset),
         precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr()
       );
+      cudaInputMemory.freeRef();
       Arrays.stream(new ReferenceCounting[]{cudaInput, inputDescriptor}).forEach(ReferenceCounting::freeRef);
       CudaTensor cudaTensor = CudaTensor.wrap(cudaOutput, outputDescriptor, precision);
       return CudaTensorList.wrap(cudaTensor, length, outputDimensions, precision);
@@ -149,13 +151,15 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
           final int byteOffset = viewDescriptor.cStride * getFrom() * precision.size;
           assert error.length() == inputData.length();
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
-          @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device);
+          @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device, false);
           long size1 = (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size);
           @javax.annotation.Nonnull final CudaMemory passbackBuffer = gpu.allocate(size1, MemoryType.Managed, false);
+          CudaMemory errorPtrMemory = errorPtr.getMemory(gpu);
           gpu.cudnnTransformTensor(
-            precision.getPointer(1.0), errorPtr.descriptor.getPtr(), errorPtr.memory.getPtr(),
+            precision.getPointer(1.0), errorPtr.descriptor.getPtr(), errorPtrMemory.getPtr(),
             precision.getPointer(0.0), viewDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
           );
+          errorPtrMemory.freeRef();
           CudaTensor cudaTensor = CudaTensor.wrap(passbackBuffer, inputDescriptor, precision);
           Stream.<ReferenceCounting>of(errorPtr, viewDescriptor).forEach(ReferenceCounting::freeRef);
           return CudaTensorList.wrap(cudaTensor, length, inputDimensions, precision);

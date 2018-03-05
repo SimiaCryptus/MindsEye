@@ -205,7 +205,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
   }
   
   public CudaTensor copy(final CudnnHandle gpu, final TensorList error, final int[] tileDimensions, final int[] outputDims, final int length, final int positionX, final int positionY) {
-    @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device);
+    @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device, false);
     @Nonnull final CudaMemory passbackBuffer = gpu.allocate(
       (long) length * tileDimensions[2] * tileDimensions[1] * tileDimensions[0] * precision.size, MemoryType.Managed, false);
     copy(gpu, length, outputDims, errorPtr, tileDimensions, passbackBuffer, positionX, positionY);
@@ -228,7 +228,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
     int[] outputDims = copyParams.getOutputDims();
     int positionX = copyParams.getPositionX();
     int positionY = copyParams.getTotalHeight();
-    @Nullable final CudaTensor inputBuffer = gpu.getTensor(inObj[inputIndex].getData(), precision, MemoryType.Device);
+    @Nullable final CudaTensor inputBuffer = gpu.getTensor(inObj[inputIndex].getData(), precision, MemoryType.Device, false);
     copy(gpu, length, tileDimensions, inputBuffer, outputDims, copyParams.getOutputBuffer(), positionX, positionY);
     inputBuffer.freeRef();
   }
@@ -313,13 +313,15 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
     assert destinationOffset >= 0;
     assert sourceOffset + Tensor.length(viewDim) <= (source.descriptor.nStride * length);
     assert destinationOffset + Tensor.length(viewDim) <= Tensor.length(destinationDimensions);
-    
+  
+    CudaMemory sourceMemory = source.getMemory(gpu);
     CudaSystem.handle(gpu.cudnnTransformTensor(
       precision.getPointer(1.0),
-      sourceViewDescriptor.getPtr(), source.memory.getPtr().withByteOffset(sourceOffset * precision.size),
+      sourceViewDescriptor.getPtr(), sourceMemory.getPtr().withByteOffset(sourceOffset * precision.size),
       precision.getPointer(1.0),
       destinationViewDescriptor.getPtr(), destination.getPtr().withByteOffset(destinationOffset * precision.size)
     ));
+    sourceMemory.freeRef();
     Arrays.stream(new ReferenceCounting[]{sourceViewDescriptor, destinationViewDescriptor}).forEach(ReferenceCounting::freeRef);
     return viewDim;
     

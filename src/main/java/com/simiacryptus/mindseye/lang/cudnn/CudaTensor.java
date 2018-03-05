@@ -29,19 +29,11 @@ import java.util.function.Function;
  * The type Cuda tensor.
  */
 public class CudaTensor extends ReferenceCountingBase {
-  /**
-   * The Memory.
-   */
-  public final CudaMemory memory;
+  final CudaMemory memory;
   /**
    * The Descriptor.
    */
   public final CudaDevice.CudaTensorDescriptor descriptor;
-  
-  /**
-   * The Precision.
-   */
-  public final Precision precision;
   
   /**
    * Instantiates a new Cuda tensor.
@@ -52,7 +44,6 @@ public class CudaTensor extends ReferenceCountingBase {
    */
   public CudaTensor(final CudaMemory memory, final CudaDevice.CudaTensorDescriptor descriptor, final Precision precision) {
     this.memory = memory;
-    this.precision = precision;
     this.memory.addRef();
     this.descriptor = descriptor;
     this.descriptor.addRef();
@@ -82,19 +73,22 @@ public class CudaTensor extends ReferenceCountingBase {
     super._free();
   }
   
-  /**
-   * Move to cuda tensor.
-   *
-   * @param cudaDevice the cuda device
-   * @param memoryType the memory type
-   * @return the cuda tensor
-   */
-  public CudaTensor moveTo(final CudaDevice cudaDevice, final MemoryType memoryType) {
-    descriptor.addRef();
-    memory.addRef();
-    CudaTensor wrap = CudaTensor.wrap(memory.moveTo(cudaDevice, memoryType), descriptor, precision);
-    freeRef();
-    return wrap;
+  public CudaMemory getMemory(final CudaDevice cudaDevice) {
+    return getMemory(cudaDevice, MemoryType.Device);
+  }
+  
+  public CudaMemory getMemory(final CudaDevice cudaDevice, final MemoryType memoryType) {
+    if (memory.getType() == MemoryType.Managed) {
+      memory.addRef();
+      return memory;
+    }
+    else if (cudaDevice.getDeviceId() == memory.getDeviceId()) {
+      memory.addRef();
+      return memory;
+    }
+    else {
+      return memory.copy(cudaDevice, memoryType);
+    }
   }
   
   /**
@@ -123,19 +117,18 @@ public class CudaTensor extends ReferenceCountingBase {
    */
   public CudaTensor getDense(CudnnHandle gpu) {
     assertAlive();
-    assert gpu.getDeviceId() == getDeviceId() || getType() == MemoryType.Managed;
     if (isDense()) {
       addRef();
       return this;
     }
     CudaDevice.CudaTensorDescriptor destDescriptor = gpu.newTensorDescriptor(
-      precision, this.descriptor.batchCount, this.descriptor.channels, this.descriptor.height, this.descriptor.width,
+      getPrecision(), this.descriptor.batchCount, this.descriptor.channels, this.descriptor.height, this.descriptor.width,
       this.descriptor.channels * this.descriptor.height * this.descriptor.width, this.descriptor.height * this.descriptor.width, this.descriptor.width, 1);
-    CudaMemory destMemory = gpu.allocate(destDescriptor.nStride * destDescriptor.batchCount * precision.size, getType(), true);
+    CudaMemory destMemory = gpu.allocate(destDescriptor.nStride * destDescriptor.batchCount * getPrecision().size, getType(), true);
     gpu.cudnnTransformTensor(
-      precision.getPointer(1.0), this.descriptor.getPtr(), memory.getPtr(),
-      precision.getPointer(0.0), destDescriptor.getPtr(), destMemory.getPtr());
-    CudaTensor cudaTensor = CudaTensor.wrap(destMemory, destDescriptor, precision);
+      getPrecision().getPointer(1.0), this.descriptor.getPtr(), memory.getPtr(),
+      getPrecision().getPointer(0.0), destDescriptor.getPtr(), destMemory.getPtr());
+    CudaTensor cudaTensor = CudaTensor.wrap(destMemory, destDescriptor, getPrecision());
     assert cudaTensor.isDense();
     return cudaTensor;
   
@@ -144,7 +137,9 @@ public class CudaTensor extends ReferenceCountingBase {
   @Nonnull
   public void read(final CudnnHandle gpu, final int index, final Tensor result) {
     if (isDense()) {
+      CudaMemory memory = getMemory(gpu);
       memory.read(descriptor.dataType, result.getData(), index * descriptor.nStride);
+      memory.freeRef();
     }
     else {
       withDense(gpu, index, mem -> mem.read(this.descriptor.dataType, result.getData()));
@@ -154,8 +149,7 @@ public class CudaTensor extends ReferenceCountingBase {
   @Nonnull
   public <T> T withDense(final CudnnHandle gpu, final int index, final Function<CudaMemory, T> result) {
     assertAlive();
-    assert this.descriptor.dataType == precision;
-    assert gpu.getDeviceId() == getDeviceId() || getType() == MemoryType.Managed;
+    assert this.descriptor.dataType == getPrecision();
     CudaDevice.CudaTensorDescriptor sourceDescriptor = gpu.newTensorDescriptor(
       this.descriptor.dataType, 1, this.descriptor.channels, this.descriptor.height, this.descriptor.width,
       this.descriptor.nStride, this.descriptor.cStride, this.descriptor.hStride, this.descriptor.wStride);
@@ -164,12 +158,14 @@ public class CudaTensor extends ReferenceCountingBase {
       this.descriptor.channels * this.descriptor.height * this.descriptor.width, this.descriptor.height * this.descriptor.width, this.descriptor.width, 1);
     try {
       CudaMemory cudaMemory = gpu.allocate(destDescriptor.nStride * this.descriptor.dataType.size, MemoryType.Device, true);
-      gpu.cudnnTransformTensor(
-        this.descriptor.dataType.getPointer(1.0), sourceDescriptor.getPtr(), memory.getPtr().withByteOffset(index * this.descriptor.nStride * precision.size),
-        this.descriptor.dataType.getPointer(0.0), destDescriptor.getPtr(), cudaMemory.getPtr());
+      CudaMemory memory = getMemory(gpu);
       try {
+        gpu.cudnnTransformTensor(
+          this.descriptor.dataType.getPointer(1.0), sourceDescriptor.getPtr(), memory.getPtr().withByteOffset(index * this.descriptor.nStride * getPrecision().size),
+          this.descriptor.dataType.getPointer(0.0), destDescriptor.getPtr(), cudaMemory.getPtr());
         return result.apply(cudaMemory);
       } finally {
+        memory.freeRef();
         cudaMemory.freeRef();
       }
     } finally {
@@ -202,5 +198,12 @@ public class CudaTensor extends ReferenceCountingBase {
    */
   public int getDeviceId() {
     return memory.getDeviceId();
+  }
+  
+  /**
+   * The Precision.
+   */
+  public Precision getPrecision() {
+    return descriptor.dataType;
   }
 }

@@ -19,9 +19,6 @@
 
 package com.simiacryptus.mindseye.lang.cudnn;
 
-import com.simiacryptus.mindseye.lang.ReshapedTensorList;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.util.lang.TimedResult;
 import jcuda.jcudnn.*;
 import jcuda.runtime.JCuda;
@@ -140,42 +137,6 @@ public class CudaDevice extends CudaSystem {
       CudaSystem.handle(result);
       CudaSystem.currentDeviceId.set(cudaDeviceId);
     }
-  }
-  
-  /**
-   * The Ptr.
-   *
-   * @param data       the data
-   * @param memoryType the memory type
-   * @return the ptr
-   */
-  @Nonnull
-  public synchronized CudaTensor getTensor(@Nonnull final CudaTensorList data, @Nonnull final MemoryType memoryType) {
-    CudaTensor ptr = data.ptr;
-    if ((null == ptr || ptr.isFinalized()) && null != data.heapCopy && !data.heapCopy.isFinalized()) {
-      CudaTensor newPtr = getTensor(data.heapCopy, data.precision, memoryType);
-      synchronized (data) {
-        ptr = data.ptr;
-        if ((null == ptr || ptr.isFinalized()) && null != data.heapCopy && !data.heapCopy.isFinalized()) {
-          if (null != data.ptr) data.ptr.freeRef();
-          data.ptr = ptr = newPtr;
-          newPtr = null;
-        }
-      }
-      if (null != newPtr) {
-        newPtr.freeRef();
-      }
-    }
-    if (null == ptr) {
-      if (null == data.heapCopy) {
-        throw new IllegalStateException("No data");
-      }
-      else if (data.heapCopy.isFinalized()) {
-        throw new IllegalStateException("Local data has been freed");
-      }
-    }
-    ptr.addRef();
-    return ptr.moveTo(this, memoryType);
   }
   
   /**
@@ -342,66 +303,6 @@ public class CudaDevice extends CudaSystem {
   }
   
   
-  /**
-   * Gets cuda ptr.
-   *
-   * @param data       the data
-   * @param precision  the precision
-   * @param memoryType the memory type
-   * @return the cuda ptr
-   */
-  @Nonnull
-  public synchronized CudaTensor getTensor(@Nonnull final TensorList data, @Nonnull final Precision precision, final MemoryType memoryType) {
-    int[] inputSize = data.getDimensions();
-    data.assertAlive();
-    if (data instanceof ReshapedTensorList) {
-      ReshapedTensorList reshapedTensorList = (ReshapedTensorList) data;
-      int[] newDims = reshapedTensorList.getDimensions();
-      CudaTensor cudaTensor1 = getTensor(reshapedTensorList.getInner(), precision, memoryType);
-      return CudaSystem.eval(gpu -> {
-        CudaTensor tensor = cudaTensor1.getDenseAndFree(gpu);
-        int channels = newDims.length < 3 ? 1 : newDims[2];
-        int height = newDims.length < 2 ? 1 : newDims[1];
-        int width = newDims.length < 1 ? 1 : newDims[0];
-        CudaTensorDescriptor descriptor = newTensorDescriptor(precision, tensor.descriptor.batchCount,
-          channels, height, width,
-          channels * height * width,
-          height * width,
-          width,
-          1
-        );
-        CudaTensor cudaTensor = new CudaTensor(tensor.memory, descriptor, precision);
-        tensor.freeRef();
-        descriptor.freeRef();
-        return cudaTensor;
-      }, cudaTensor1);
-    }
-    if (data instanceof CudaTensorList) {
-      if (precision == ((CudaTensorList) data).getPrecision()) {
-        @Nonnull CudaTensorList cudaTensorList = (CudaTensorList) data;
-        return this.getTensor(cudaTensorList, memoryType);
-      }
-      else {
-        logger.warn("Incompatible precision types in GPU");
-      }
-    }
-    final int listLength = data.length();
-    final int elementLength = Tensor.length(data.getDimensions());
-    @Nonnull final CudaMemory ptr = this.allocate((long) elementLength * listLength * precision.size, memoryType, true);
-    for (int i = 0; i < listLength; i++) {
-      Tensor tensor = data.get(i);
-      assert null != data;
-      assert null != tensor;
-      assert Arrays.equals(tensor.getDimensions(), data.getDimensions()) : Arrays.toString(tensor.getDimensions()) + " != " + Arrays.toString(data.getDimensions());
-      ptr.write(precision, tensor.getData(), (long) i * elementLength);
-      tensor.freeRef();
-    }
-    final int channels = inputSize.length < 3 ? 1 : inputSize[2];
-    final int height = inputSize.length < 2 ? 1 : inputSize[1];
-    final int width = inputSize.length < 1 ? 1 : inputSize[0];
-    @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor descriptor = newTensorDescriptor(precision, data.length(), channels, height, width, channels * height * width, height * width, width, 1);
-    return CudaTensor.wrap(ptr, descriptor, precision);
-  }
   
   /**
    * New tensor descriptor cuda resource.

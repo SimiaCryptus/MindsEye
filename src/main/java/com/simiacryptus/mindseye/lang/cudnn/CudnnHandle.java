@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
+import com.simiacryptus.mindseye.lang.ReshapedTensorList;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
 import jcuda.jcudnn.*;
@@ -81,7 +82,7 @@ public class CudnnHandle extends CudaDevice {
    *
    * @param fn the fn
    */
-  public static void forEach(@javax.annotation.Nonnull final Consumer<? super CudaDevice> fn) {
+  public static void forEach(@javax.annotation.Nonnull final Consumer<? super CudnnHandle> fn) {
     getPool().getAll().forEach(x -> {
       x.initThread();
       fn.accept(x);
@@ -104,25 +105,27 @@ public class CudnnHandle extends CudaDevice {
     int d1 = dimensions.length < 2 ? 1 : dimensions[1];
     int d0 = dimensions[0];
     Precision precision = right.getPrecision();
-    @Nonnull CudaTensor rPtr = getTensor(right, MemoryType.Device);
-    @Nonnull CudaTensor lPtr = getTensor(left, MemoryType.Device);
+    @Nonnull CudaTensor rPtr = getTensor(right, MemoryType.Device, false);
+    @Nonnull CudaTensor lPtr = getTensor(left, MemoryType.Device, false);
     assert lPtr.descriptor.batchCount == rPtr.descriptor.batchCount;
     assert lPtr.descriptor.channels == rPtr.descriptor.channels;
     assert lPtr.descriptor.height == rPtr.descriptor.height;
     assert lPtr.descriptor.width == rPtr.descriptor.width;
     @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision);
-    @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = newTensorDescriptor(left.precision,
+    @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = newTensorDescriptor(left.getPrecision(),
       length, d2, d1, d0,
       d2 * d1 * d0, d1 * d0, d0, 1);
     MemoryType memoryType = MemoryType.Managed;
     @Nonnull final CudaMemory outputPtr = allocate((long) outputDescriptor.nStride * precision.size * length, memoryType, true);
     try {
+      CudaMemory lPtrMemory = lPtr.getMemory(this);
+      CudaMemory rPtrMemory = rPtr.getMemory(this);
       cudnnOpTensor(opDescriptor.getPtr(),
-        precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtr.memory.getPtr(),
-        precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtr.memory.getPtr(),
-//        precision.getPointer(1.0), outputDescriptor.getPtr(), lPtr.memory.getPtr(),
-//        precision.getPointer(1.0), outputDescriptor.getPtr(), rPtr.memory.getPtr(),
+        precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
+        precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr());
+      lPtrMemory.freeRef();
+      rPtrMemory.freeRef();
       return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor, precision), length, dimensions, precision);
     } finally {
       opDescriptor.freeRef();
@@ -140,16 +143,119 @@ public class CudnnHandle extends CudaDevice {
    */
   public CudaTensorList addInPlace(final CudaTensorList left, final TensorList right) {
     @Nullable final CudaTensor lPtr = left.ptr;//.moveTo(gpu.getDeviceNumber());
-    @Nullable final CudaTensor rPtr = getTensor(right, left.precision, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
+    @Nullable final CudaTensor rPtr = getTensor(right, left.getPrecision(), MemoryType.Device, false);//.moveTo(gpu.getDeviceNumber());
     assert lPtr.descriptor.batchCount == rPtr.descriptor.batchCount;
     assert lPtr.descriptor.channels == rPtr.descriptor.channels;
     assert lPtr.descriptor.height == rPtr.descriptor.height;
     assert lPtr.descriptor.width == rPtr.descriptor.width;
+    CudaMemory rPtrMemory = rPtr.getMemory(this);
+    CudaMemory lPtrMemory = lPtr.getMemory(this);
     cudnnAddTensor(
-      left.precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtr.memory.getPtr(),
-      left.precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtr.memory.getPtr());
+      left.getPrecision().getPointer(1.0), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
+      left.getPrecision().getPointer(1.0), lPtr.descriptor.getPtr(), lPtrMemory.getPtr());
+    lPtrMemory.freeRef();
+    rPtrMemory.freeRef();
     rPtr.freeRef();
     return left;
+  }
+  
+  /**
+   * Gets cuda ptr.
+   *
+   * @param data       the data
+   * @param precision  the precision
+   * @param memoryType the memory type
+   * @param dense
+   * @return the cuda ptr
+   */
+  @Nonnull
+  public CudaTensor getTensor(@Nonnull final TensorList data, @Nonnull final Precision precision, final MemoryType memoryType, final boolean dense) {
+    int[] inputSize = data.getDimensions();
+    data.assertAlive();
+    if (data instanceof ReshapedTensorList) {
+      ReshapedTensorList reshapedTensorList = (ReshapedTensorList) data;
+      int[] newDims = reshapedTensorList.getDimensions();
+      CudaTensor reshapedTensor = getTensor(reshapedTensorList.getInner(), precision, memoryType, true);
+      int channels = newDims.length < 3 ? 1 : newDims[2];
+      int height = newDims.length < 2 ? 1 : newDims[1];
+      int width = newDims.length < 1 ? 1 : newDims[0];
+      CudaTensorDescriptor descriptor = newTensorDescriptor(precision, reshapedTensor.descriptor.batchCount,
+        channels, height, width,
+        channels * height * width,
+        height * width,
+        width,
+        1
+      );
+      CudaMemory tensorMemory = reshapedTensor.getMemory(this, memoryType);
+      reshapedTensor.freeRef();
+      CudaTensor cudaTensor = new CudaTensor(tensorMemory, descriptor, precision);
+      tensorMemory.freeRef();
+      descriptor.freeRef();
+      return cudaTensor;
+    }
+    if (data instanceof CudaTensorList) {
+      if (precision == ((CudaTensorList) data).getPrecision()) {
+        @Nonnull CudaTensorList cudaTensorList = (CudaTensorList) data;
+        return this.getTensor(cudaTensorList, memoryType, dense);
+      }
+      else {
+        logger.warn("Incompatible precision types in GPU");
+      }
+    }
+    final int listLength = data.length();
+    final int elementLength = Tensor.length(data.getDimensions());
+    @Nonnull final CudaMemory ptr = this.allocate((long) elementLength * listLength * precision.size, memoryType, true);
+    for (int i = 0; i < listLength; i++) {
+      Tensor tensor = data.get(i);
+      assert null != data;
+      assert null != tensor;
+      assert Arrays.equals(tensor.getDimensions(), data.getDimensions()) : Arrays.toString(tensor.getDimensions()) + " != " + Arrays.toString(data.getDimensions());
+      ptr.write(precision, tensor.getData(), (long) i * elementLength);
+      tensor.freeRef();
+    }
+    final int channels = inputSize.length < 3 ? 1 : inputSize[2];
+    final int height = inputSize.length < 2 ? 1 : inputSize[1];
+    final int width = inputSize.length < 1 ? 1 : inputSize[0];
+    @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor descriptor = newTensorDescriptor(precision, data.length(), channels, height, width, channels * height * width, height * width, width, 1);
+    return CudaTensor.wrap(ptr, descriptor, precision);
+  }
+  
+  /**
+   * The Ptr.
+   *
+   * @param data       the data
+   * @param memoryType the memory type
+   * @param dense
+   * @return the ptr
+   */
+  @Nonnull
+  public CudaTensor getTensor(@Nonnull final CudaTensorList data, @Nonnull final MemoryType memoryType, final boolean dense) {
+    CudaTensor ptr = data.ptr;
+    if ((null == ptr || ptr.isFinalized()) && null != data.heapCopy && !data.heapCopy.isFinalized()) {
+      CudaTensor newPtr = getTensor(data.heapCopy, data.getPrecision(), memoryType, false);
+      synchronized (data) {
+        ptr = data.ptr;
+        if ((null == ptr || ptr.isFinalized()) && null != data.heapCopy && !data.heapCopy.isFinalized()) {
+          if (null != data.ptr) data.ptr.freeRef();
+          data.ptr = ptr = newPtr;
+          newPtr = null;
+        }
+      }
+      if (null != newPtr) {
+        newPtr.freeRef();
+      }
+    }
+    if (null == ptr) {
+      if (null == data.heapCopy) {
+        throw new IllegalStateException("No data");
+      }
+      else if (data.heapCopy.isFinalized()) {
+        throw new IllegalStateException("Local data has been freed");
+      }
+    }
+    if (dense) return ptr.getDense(this);
+    ptr.addRef();
+    return ptr;
   }
   
   private TensorList addInPlaceAndFree(final CudaTensorList left, final TensorList right) {
@@ -179,17 +285,21 @@ public class CudnnHandle extends CudaDevice {
       return this.addInPlaceAndFree((CudaTensorList) right, left);
     @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision);
     @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = newTensorDescriptor(precision, length, dimensions[2], dimensions[1], dimensions[0], dimensions[2] * dimensions[1] * dimensions[0], dimensions[1] * dimensions[0], dimensions[0], 1);
-    @Nullable final CudaTensor lPtr = getTensor(left, precision, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
-    @Nullable final CudaTensor rPtr = getTensor(right, precision, MemoryType.Device);//.moveTo(gpu.getDeviceNumber());
+    @Nullable final CudaTensor lPtr = getTensor(left, precision, MemoryType.Device, false);//.moveTo(gpu.getDeviceNumber());
+    @Nullable final CudaTensor rPtr = getTensor(right, precision, MemoryType.Device, false);//.moveTo(gpu.getDeviceNumber());
     assert lPtr.descriptor.batchCount == rPtr.descriptor.batchCount;
     assert lPtr.descriptor.channels == rPtr.descriptor.channels;
     assert lPtr.descriptor.height == rPtr.descriptor.height;
     assert lPtr.descriptor.width == rPtr.descriptor.width;
     @Nonnull final CudaMemory outputPtr = allocate(outputDescriptor.nStride * length * precision.size, MemoryType.Device, true);
+    CudaMemory lPtrMemory = lPtr.getMemory(this);
+    CudaMemory rPtrMemory = rPtr.getMemory(this);
     cudnnOpTensor(opDescriptor.getPtr(),
-      precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtr.memory.getPtr(),
-      precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtr.memory.getPtr(),
+      precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
+      precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
       precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr());
+    lPtrMemory.freeRef();
+    rPtrMemory.freeRef();
     Arrays.stream(new ReferenceCounting[]{lPtr, rPtr, opDescriptor, left, right}).forEach(ReferenceCounting::freeRef);
     return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor, precision), length, dimensions, precision);
   }

@@ -37,11 +37,6 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    * The constant logger.
    */
   protected static final Logger logger = LoggerFactory.getLogger(CudaTensorList.class);
-  /**
-   * The Precision.
-   */
-  @javax.annotation.Nonnull
-  final Precision precision;
   @javax.annotation.Nonnull
   private final int[] dimensions;
   private final int length;
@@ -66,7 +61,6 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    */
   private CudaTensorList(@Nullable final CudaTensor ptr, final int length, @javax.annotation.Nonnull final int[] dimensions, @javax.annotation.Nonnull final Precision precision) {
     assert 1 == ptr.currentRefCount() : ptr.referenceReport(false, false);
-    this.precision = precision;
     if (null == ptr) throw new IllegalArgumentException("ptr");
     if (null == ptr.memory.getPtr()) throw new IllegalArgumentException("ptr.getPtr()");
     this.ptr = ptr;
@@ -78,7 +72,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     assert ptr.descriptor.channels == (dimensions.length < 3 ? 1 : dimensions[2]) : String.format("%s != (%d,%d,%d,%d)", Arrays.toString(dimensions), ptr.descriptor.batchCount, ptr.descriptor.channels, ptr.descriptor.height, ptr.descriptor.width);
     assert ptr.descriptor.height == (dimensions.length < 2 ? 1 : dimensions[1]) : String.format("%s != (%d,%d,%d,%d)", Arrays.toString(dimensions), ptr.descriptor.batchCount, ptr.descriptor.channels, ptr.descriptor.height, ptr.descriptor.width);
     assert ptr.descriptor.width == (dimensions.length < 1 ? 1 : dimensions[0]) : String.format("%s != (%d,%d,%d,%d)", Arrays.toString(dimensions), ptr.descriptor.batchCount, ptr.descriptor.channels, ptr.descriptor.height, ptr.descriptor.width);
-    assert ptr.precision == precision;
+    assert ptr.getPrecision() == precision;
     assert ptr.memory.getPtr() != null;
     //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
   }
@@ -162,7 +156,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
       if (right instanceof CudaTensorList) {
         @javax.annotation.Nonnull final CudaTensorList nativeRight = (CudaTensorList) right;
         synchronized (right) {
-          if (nativeRight.precision == this.precision) {
+          if (nativeRight.getPrecision() == this.getPrecision()) {
             if (nativeRight.heapCopy == null) {
               assert (!nativeRight.ptr.equals(CudaTensorList.this.ptr));
               return CudaSystem.eval(gpu -> {
@@ -176,7 +170,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
                   freeRef();
                   return add;
                 }
-              }, ptr.memory);
+              }, ptr);
             }
           }
         }
@@ -203,7 +197,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     if (heapCopy == null) {
       if (right instanceof CudaTensorList) {
         @javax.annotation.Nonnull final CudaTensorList nativeRight = (CudaTensorList) right;
-        if (nativeRight.precision == this.precision) {
+        if (nativeRight.getPrecision() == this.getPrecision()) {
           if (nativeRight.heapCopy == null) {
             return CudaSystem.eval(gpu -> {
               return gpu.add(this, nativeRight);
@@ -230,16 +224,16 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     assertAlive();
     if (heapCopy != null) return heapCopy.get(i);
     return CudaSystem.eval(gpu -> {
-      return CudaSystem.withDevice(this.ptr.getDeviceId(), () -> {
-        Tensor tensor = new Tensor(getDimensions());
-        if (this.ptr.isDense()) {
-          this.ptr.memory.read(precision, tensor.getData(), i * Tensor.length(getDimensions()));
-        }
-        else {
-          this.ptr.read(gpu, i, tensor);
-        }
-        return tensor;
-      });
+      Tensor tensor = new Tensor(getDimensions());
+      if (this.ptr.isDense()) {
+        CudaMemory memory = this.ptr.getMemory(gpu);
+        memory.read(getPrecision(), tensor.getData(), i * Tensor.length(getDimensions()));
+        memory.freeRef();
+      }
+      else {
+        this.ptr.read(gpu, i, tensor);
+      }
+      return tensor;
     }, CudaTensorList.this);
   }
   
@@ -253,13 +247,16 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
   }
   
   /**
+   * The Precision.
+   */
+  /**
    * Gets precision.
    *
    * @return the precision
    */
   @javax.annotation.Nonnull
   public Precision getPrecision() {
-    return precision;
+    return null == ptr ? Precision.Double : ptr.getPrecision();
   }
   
   /**
@@ -282,19 +279,18 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
               }
             }
             this.ptr.addRef();
-            CudaTensor ptr = this.ptr.moveTo(gpu, MemoryType.Device);
             try {
-              assert precision == ptr.precision;
-              assert precision == ptr.descriptor.dataType;
+              assert getPrecision() == this.ptr.getPrecision();
+              assert getPrecision() == this.ptr.descriptor.dataType;
               final Tensor[] output = IntStream.range(0, getLength())
                 .mapToObj(dataIndex -> new Tensor(getDimensions()))
                 .toArray(i -> new Tensor[i]);
               for (int i = 0; i < getLength(); i++) {
-                ptr.read(gpu, i, output[i]);
+                this.ptr.read(gpu, i, output[i]);
               }
               return TensorArray.wrap(output);
             } finally {
-              ptr.freeRef();
+              this.ptr.freeRef();
             }
           }, this);
         }
@@ -329,11 +325,13 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
   @Override
   public TensorList copy() {
     return CudaSystem.eval(gpu -> {
-      CudaTensor ptr = gpu.getTensor(this, MemoryType.Managed);
-      CudaMemory copyPtr = ptr.memory.copy(gpu, MemoryType.Managed);
+      CudaTensor ptr = gpu.getTensor(this, MemoryType.Managed, false);
+      CudaMemory cudaMemory = ptr.getMemory(gpu, MemoryType.Managed);
+      CudaMemory copyPtr = cudaMemory.copy(gpu, MemoryType.Managed);
+      cudaMemory.freeRef();
       try {
-        CudaTensor cudaTensor = new CudaTensor(copyPtr, ptr.descriptor, precision);
-        CudaTensorList cudaTensorList = new CudaTensorList(cudaTensor, getLength(), getDimensions(), precision);
+        CudaTensor cudaTensor = new CudaTensor(copyPtr, ptr.descriptor, getPrecision());
+        CudaTensorList cudaTensorList = new CudaTensorList(cudaTensor, getLength(), getDimensions(), getPrecision());
         cudaTensor.freeRef();
         return cudaTensorList;
       } finally {

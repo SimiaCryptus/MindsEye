@@ -204,27 +204,6 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
     return copy;
   }
   
-  /**
-   * Move to cuda ptr.
-   *
-   * @param deviceId   the device id
-   * @param memoryType the memory type
-   * @return the cuda ptr
-   */
-  public CudaMemory moveTo(CudaDevice deviceId, final MemoryType memoryType) {
-    if (type == MemoryType.Managed) {
-      return this;
-    }
-    else if (deviceId.getDeviceId() == getDeviceId()) {
-      return this;
-    }
-    else {
-      CudaMemory cudaMemory = copy(deviceId, memoryType);
-      freeRef();
-      return cudaMemory;
-    }
-  }
-  
   
   /**
    * Free.

@@ -190,12 +190,14 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
         
         assert 0 < bias.length;
         @javax.annotation.Nonnull final CudaMemory filterPtr = gpu.allocate((long) (bias.length * precision.size), MemoryType.Device, true).write(precision, bias);
-        final CudaTensor inputPtr = gpu.getTensor(inputData, precision, MemoryType.Device);
+        final CudaTensor inputPtr = gpu.getTensor(inputData, precision, MemoryType.Device, false);
         inputData.freeRef();
         try {
+          CudaMemory inputPtrMemory = inputPtr.getMemory(gpu);
           CudaSystem.handle(gpu.cudnnAddTensor(
             precision.getPointer(1.0), filterDescriptor.getPtr(), filterPtr.getPtr(),
-            precision.getPointer(1.0), inputPtr.descriptor.getPtr(), inputPtr.memory.getPtr()));
+            precision.getPointer(1.0), inputPtr.descriptor.getPtr(), inputPtrMemory.getPtr()));
+          inputPtrMemory.freeRef();
         } catch (@javax.annotation.Nonnull final Throwable e) {
           throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
         }
@@ -210,14 +212,16 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
       if (!isFrozen()) {
         CudaSystem.run(gpu -> {
           @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor filterDescriptor = gpu.newTensorDescriptor(precision, 1, inputSize[2], 1, 1, inputSize[2] * 1 * 1, 1 * 1, 1, 1);
-          @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device);
+          @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device, false);
           @javax.annotation.Nonnull final CudaMemory filterBuffer = gpu.allocate(bias.length * 1l * precision.size, MemoryType.Device, false);
           try {
             try {
+              CudaMemory errorPtrMemory = errorPtr.getMemory(gpu);
               CudaSystem.handle(gpu.cudnnConvolutionBackwardBias(precision.getPointer(1.0),
-                errorPtr.descriptor.getPtr(), errorPtr.memory.getPtr(),
+                errorPtr.descriptor.getPtr(), errorPtrMemory.getPtr(),
                 precision.getPointer(1.0),
                 filterDescriptor.getPtr(), filterBuffer.getPtr()));
+              errorPtrMemory.freeRef();
             } catch (@javax.annotation.Nonnull final Throwable e) {
               throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
             }

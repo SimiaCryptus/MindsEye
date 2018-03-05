@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * The standard image-pixel pooling layer. Using a configurable stride and window size, reduces pixels using either the
@@ -115,16 +116,18 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
         gpu.initThread();
         @javax.annotation.Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = gpu.createPoolingDescriptor(
           mode.id, poolDims, windowSize, padding, stride);
-        @Nullable final CudaTensor inputData = gpu.getTensor(batch, precision, MemoryType.Device);
+        @Nullable final CudaTensor inputData = gpu.getTensor(batch, precision, MemoryType.Device, false);
         CudaSystem.handle(CudaSystem.cudnnGetPoolingNdForwardOutputDim(poolingDesc.getPtr(), inputData.descriptor.getPtr(), 4, outputSize));
         assert inputSize[2] == outputSize[1];
         @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, outputSize[0], outputSize[1], outputSize[2], outputSize[3], outputSize[1] * outputSize[2] * outputSize[3], outputSize[2] * outputSize[3], outputSize[3], 1);
         @javax.annotation.Nonnull final CudaMemory outputTensor = gpu.allocate((long) precision.size * Tensor.length(outputSize), MemoryType.Managed, true);
+        CudaMemory inputDataMemory = inputData.getMemory(gpu);
         CudaSystem.handle(gpu.cudnnPoolingForward(poolingDesc.getPtr(),
           precision.getPointer(1.0),
-          inputData.descriptor.getPtr(), inputData.memory.getPtr(),
+          inputData.descriptor.getPtr(), inputDataMemory.getPtr(),
           precision.getPointer(0.0),
           outputDescriptor.getPtr(), outputTensor.getPtr()));
+        inputDataMemory.freeRef();
         Arrays.stream(new ReferenceCounting[]{inputData, poolingDesc}).forEach(ReferenceCounting::freeRef);
         return CudaTensor.wrap(outputTensor, outputDescriptor, precision);
       } catch (@javax.annotation.Nonnull final Throwable e) {
@@ -143,17 +146,25 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
               mode.id, poolDims, windowSize, padding, stride);
             @javax.annotation.Nonnull final CudaPointer alpha = precision.getPointer(1.0);
             @javax.annotation.Nonnull final CudaPointer beta = precision.getPointer(0.0);
-            @Nullable final CudaTensor inputData = gpu.getTensor(batch, precision, MemoryType.Device).getDenseAndFree(gpu);
-            @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device).getDenseAndFree(gpu);
+            final CudaTensor result1;
+            synchronized (gpu) {result1 = gpu.getTensor(batch, precision, MemoryType.Device, true);}
+            @Nullable final CudaTensor inputData = result1;
+            final CudaTensor result;
+            synchronized (gpu) {result = gpu.getTensor(error, precision, MemoryType.Device, true);}
+            @Nullable final CudaTensor errorPtr = result;
             @javax.annotation.Nonnull final CudaMemory passbackBuffer = gpu.allocate((long) inputDims * precision.size * length, MemoryType.Managed, true);
+            CudaMemory outputDataMemory = outputData.getMemory(gpu);
+            CudaMemory errorPtrMemory = errorPtr.getMemory(gpu);
+            CudaMemory inputDataMemory = inputData.getMemory(gpu);
             CudaSystem.handle(gpu.cudnnPoolingBackward(poolingDesc.getPtr(),
               alpha,
-              outputData.descriptor.getPtr(), outputData.memory.getPtr(),
-              errorPtr.descriptor.getPtr(), errorPtr.memory.getPtr(),
-              inputData.descriptor.getPtr(), inputData.memory.getPtr(),
+              outputData.descriptor.getPtr(), outputDataMemory.getPtr(),
+              errorPtr.descriptor.getPtr(), errorPtrMemory.getPtr(),
+              inputData.descriptor.getPtr(), inputDataMemory.getPtr(),
               beta,
               passbackDescriptor.getPtr(), passbackBuffer.getPtr()));
-            Arrays.stream(new ReferenceCounting[]{errorPtr, inputData, poolingDesc}).forEach(ReferenceCounting::freeRef);
+  
+            Stream.<ReferenceCounting>of(errorPtr, inputData, poolingDesc, outputDataMemory, errorPtrMemory, inputDataMemory).forEach(ReferenceCounting::freeRef);
             return CudaTensorList.wrap(CudaTensor.wrap(passbackBuffer, passbackDescriptor, precision), length, inputSize, precision);
           }, error);
           input.accumulate(buffer, data);

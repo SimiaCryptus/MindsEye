@@ -115,7 +115,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
         int inputBands = inputDimensions[2];
         if (maxBands > 0) inputBands = Math.min(inputBands, maxBands - bandOffset);
         if (inputBands > 0) {
-          @Nullable final CudaTensor cudaInput = gpu.getTensor(input, precision, MemoryType.Device);
+          @Nullable final CudaTensor cudaInput = gpu.getTensor(input, precision, MemoryType.Device, false);
           assert inputBands > 0;
           assert maxBands <= 0 || inputBands <= maxBands;
           assert inputBands <= inputDimensions[2];
@@ -134,10 +134,12 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
             cudaInput.descriptor.wStride);
   
           int byteOffset = outputDescriptor.cStride * bandOffset * precision.size;
+          CudaMemory cudaInputMemory = cudaInput.getMemory(gpu);
           gpu.cudnnTransformTensor(
-            precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInput.memory.getPtr(),
+            precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInputMemory.getPtr(),
             precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr().withByteOffset(byteOffset)
           );
+          cudaInputMemory.freeRef();
           Stream.<ReferenceCounting>of(cudaInput, outputDescriptor, inputDescriptor).forEach(ReferenceCounting::freeRef);
         }
       });
@@ -167,49 +169,56 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
           assert inputBands <= inputDimentions[2];
           assert inputBands <= outputDimensions[2];
           final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
-            @Nullable final CudaTensor cudaDelta = gpu.getTensor(delta, precision, MemoryType.Device).getDenseAndFree(gpu);
-            if (inputDimentions[2] == inputBands) {
-              @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor viewDescriptor = gpu.newTensorDescriptor(
-                precision, length, inputDimentions[2], inputDimentions[1], inputDimentions[0], //
-                cudaDelta.descriptor.nStride, //
-                cudaDelta.descriptor.cStride, //
-                cudaDelta.descriptor.hStride, //
-                cudaDelta.descriptor.wStride);
-              int byteOffset = cudaDelta.descriptor.cStride * bandOffset * precision.size;
-              CudaMemory ptr = cudaDelta.memory.withByteOffset(byteOffset);
-              CudaTensor cudaTensor = CudaTensor.wrap(ptr, viewDescriptor, precision);
-              Stream.<ReferenceCounting>of(cudaDelta).forEach(ReferenceCounting::freeRef);
-              return CudaTensorList.wrap(cudaTensor, length, inputDimentions, precision);
-            }
-            else {
-              @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor passbackTransferDescriptor = gpu.newTensorDescriptor(
-                precision, length, inputBands, inputDimentions[1], inputDimentions[0], //
-                inputDimentions[2] * inputDimentions[1] * inputDimentions[0], //
-                inputDimentions[1] * inputDimentions[0], //
-                inputDimentions[0], //
-                1);
-              @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(
-                precision, length, inputDimentions[2], inputDimentions[1], inputDimentions[0], //
-                inputDimentions[2] * inputDimentions[1] * inputDimentions[0], //
-                inputDimentions[1] * inputDimentions[0], //
-                inputDimentions[0], //
-                1);
-              @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor deltaViewDescriptor = gpu.newTensorDescriptor(
-                precision, length, inputBands, inputDimentions[1], inputDimentions[0], //
-                cudaDelta.descriptor.nStride, //
-                cudaDelta.descriptor.cStride, //
-                cudaDelta.descriptor.hStride, //
-                cudaDelta.descriptor.wStride);
-              @javax.annotation.Nonnull final CudaMemory cudaBackprop = gpu.allocate(
-                (long) passbackDescriptor.nStride * length * precision.size,
-                MemoryType.Managed, inputBands == inputDimentions[2]);
-              int byteOffset = cudaDelta.descriptor.cStride * bandOffset * precision.size;
-              gpu.cudnnTransformTensor(
-                precision.getPointer(1.0), deltaViewDescriptor.getPtr(), cudaDelta.memory.getPtr().withByteOffset(byteOffset),
-                precision.getPointer(0.0), passbackTransferDescriptor.getPtr(), cudaBackprop.getPtr()
-              );
-              Stream.<ReferenceCounting>of(cudaDelta, deltaViewDescriptor, passbackTransferDescriptor).forEach(ReferenceCounting::freeRef);
-              return CudaTensorList.wrap(CudaTensor.wrap(cudaBackprop, passbackDescriptor, precision), length, inputDimentions, precision);
+            final CudaTensor result;
+            synchronized (gpu) {result = gpu.getTensor(delta, precision, MemoryType.Device, true);}
+            @Nullable final CudaTensor cudaDelta = result;
+            CudaMemory cudaDeltaMemory = cudaDelta.getMemory(gpu);
+            try {
+              if (inputDimentions[2] == inputBands) {
+                @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor viewDescriptor = gpu.newTensorDescriptor(
+                  precision, length, inputDimentions[2], inputDimentions[1], inputDimentions[0], //
+                  cudaDelta.descriptor.nStride, //
+                  cudaDelta.descriptor.cStride, //
+                  cudaDelta.descriptor.hStride, //
+                  cudaDelta.descriptor.wStride);
+                int byteOffset = cudaDelta.descriptor.cStride * bandOffset * precision.size;
+                CudaMemory ptr = cudaDeltaMemory.withByteOffset(byteOffset);
+                CudaTensor cudaTensor = CudaTensor.wrap(ptr, viewDescriptor, precision);
+                Stream.<ReferenceCounting>of(cudaDelta).forEach(ReferenceCounting::freeRef);
+                return CudaTensorList.wrap(cudaTensor, length, inputDimentions, precision);
+              }
+              else {
+                @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor passbackTransferDescriptor = gpu.newTensorDescriptor(
+                  precision, length, inputBands, inputDimentions[1], inputDimentions[0], //
+                  inputDimentions[2] * inputDimentions[1] * inputDimentions[0], //
+                  inputDimentions[1] * inputDimentions[0], //
+                  inputDimentions[0], //
+                  1);
+                @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(
+                  precision, length, inputDimentions[2], inputDimentions[1], inputDimentions[0], //
+                  inputDimentions[2] * inputDimentions[1] * inputDimentions[0], //
+                  inputDimentions[1] * inputDimentions[0], //
+                  inputDimentions[0], //
+                  1);
+                @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor deltaViewDescriptor = gpu.newTensorDescriptor(
+                  precision, length, inputBands, inputDimentions[1], inputDimentions[0], //
+                  cudaDelta.descriptor.nStride, //
+                  cudaDelta.descriptor.cStride, //
+                  cudaDelta.descriptor.hStride, //
+                  cudaDelta.descriptor.wStride);
+                @javax.annotation.Nonnull final CudaMemory cudaBackprop = gpu.allocate(
+                  (long) passbackDescriptor.nStride * length * precision.size,
+                  MemoryType.Managed, inputBands == inputDimentions[2]);
+                int byteOffset = cudaDelta.descriptor.cStride * bandOffset * precision.size;
+                gpu.cudnnTransformTensor(
+                  precision.getPointer(1.0), deltaViewDescriptor.getPtr(), cudaDeltaMemory.getPtr().withByteOffset(byteOffset),
+                  precision.getPointer(0.0), passbackTransferDescriptor.getPtr(), cudaBackprop.getPtr()
+                );
+                Stream.<ReferenceCounting>of(cudaDelta, deltaViewDescriptor, passbackTransferDescriptor).forEach(ReferenceCounting::freeRef);
+                return CudaTensorList.wrap(CudaTensor.wrap(cudaBackprop, passbackDescriptor, precision), length, inputDimentions, precision);
+              }
+            } finally {
+              cudaDeltaMemory.freeRef();
             }
           });
           input.accumulate(buffer, passbackTensorList);
