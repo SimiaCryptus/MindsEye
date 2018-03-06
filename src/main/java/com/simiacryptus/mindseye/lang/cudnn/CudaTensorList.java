@@ -48,6 +48,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
   public static StackTraceElement[] getStackTrace() {
     return java.util.Arrays.stream(Thread.currentThread().getStackTrace())
       .filter(x -> x.getClassName().startsWith("com.simiacryptus.mindseye.") && !x.getClassName().startsWith("com.simiacryptus.mindseye.lang."))
+      .limit(1)
       .toArray(i -> new StackTraceElement[i]);
   }
   
@@ -240,18 +241,23 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     assertAlive();
     if (heapCopy != null) return heapCopy.get(i);
     return CudaSystem.eval(gpu -> {
-      Tensor tensor = new Tensor(getDimensions());
-      CudaTensorList.logger.debug(String.format("Read element from GPU at %s, created by %s",
+      com.simiacryptus.util.lang.TimedResult<com.simiacryptus.mindseye.lang.Tensor> timedResult = com.simiacryptus.util.lang.TimedResult.time(() -> {
+        com.simiacryptus.mindseye.lang.Tensor t = new com.simiacryptus.mindseye.lang.Tensor(getDimensions());
+        if (this.ptr.isDense()) {
+          com.simiacryptus.mindseye.lang.cudnn.CudaMemory memory = this.ptr.getMemory(gpu);
+          memory.read(getPrecision(), t.getData(), i * com.simiacryptus.mindseye.lang.Tensor.length(getDimensions()));
+          memory.freeRef();
+        }
+        else {
+          this.ptr.read(gpu, i, t, false);
+        }
+        return t;
+      });
+      CudaTensorList.logger.debug(String.format("Read %s bytes in %.4f from GPU at %s, created by %s",
+        ptr.size(), timedResult.seconds(),
         com.simiacryptus.mindseye.test.TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
         com.simiacryptus.mindseye.test.TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
-      if (this.ptr.isDense()) {
-        CudaMemory memory = this.ptr.getMemory(gpu);
-        memory.read(getPrecision(), tensor.getData(), i * Tensor.length(getDimensions()));
-        memory.freeRef();
-      }
-      else {
-        this.ptr.read(gpu, i, tensor, false);
-      }
+      Tensor tensor = timedResult.result;
       return tensor;
     }, CudaTensorList.this);
   }
@@ -295,20 +301,24 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
   @Nullable
   private TensorArray heapCopy(final boolean avoidAllocations) {
     if (null == heapCopy || heapCopy.isFinalized()) {
+      com.simiacryptus.mindseye.lang.TensorArray copy = toHeap(avoidAllocations);
+      final com.simiacryptus.mindseye.lang.TensorArray prev;
       synchronized (this) {
         if (null == heapCopy || heapCopy.isFinalized()) {
-          heapCopy = toHeap(avoidAllocations);
+          prev = this.heapCopy;
+          this.heapCopy = copy;
+        }
+        else {
+          prev = null;
         }
       }
+      if (null != prev) prev.freeRef();
     }
     return heapCopy;
   }
   
   private TensorArray toHeap(final boolean avoidAllocations) {
-    CudaTensorList.logger.debug(String.format("Read TensorList from GPU at %s, created by %s",
-      com.simiacryptus.mindseye.test.TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
-      com.simiacryptus.mindseye.test.TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
-    return CudaDevice.eval(gpu -> {
+    com.simiacryptus.util.lang.TimedResult<com.simiacryptus.mindseye.lang.TensorArray> timedResult = com.simiacryptus.util.lang.TimedResult.time(() -> com.simiacryptus.mindseye.lang.cudnn.CudaDevice.eval(gpu -> {
       if (null == this.ptr) {
         if (null == heapCopy) {
           throw new IllegalStateException("No data");
@@ -321,17 +331,22 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
       try {
         assert getPrecision() == this.ptr.getPrecision();
         assert getPrecision() == this.ptr.descriptor.dataType;
-        final Tensor[] output = IntStream.range(0, getLength())
-          .mapToObj(dataIndex -> new Tensor(getDimensions()))
-          .toArray(i -> new Tensor[i]);
+        final com.simiacryptus.mindseye.lang.Tensor[] output = java.util.stream.IntStream.range(0, getLength())
+          .mapToObj(dataIndex -> new com.simiacryptus.mindseye.lang.Tensor(getDimensions()))
+          .toArray(i -> new com.simiacryptus.mindseye.lang.Tensor[i]);
         for (int i = 0; i < getLength(); i++) {
           this.ptr.read(gpu, i, output[i], avoidAllocations);
         }
-        return TensorArray.wrap(output);
+        return com.simiacryptus.mindseye.lang.TensorArray.wrap(output);
       } finally {
         this.ptr.freeRef();
       }
-    }, this);
+    }, this));
+    CudaTensorList.logger.debug(String.format("Read %s bytes in %.4f from GPU at %s, created by %s",
+      ptr.size(), timedResult.seconds(),
+      com.simiacryptus.mindseye.test.TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
+      com.simiacryptus.mindseye.test.TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
+    return timedResult.result;
   }
   
   

@@ -107,11 +107,12 @@ public class CudaTensor extends ReferenceCountingBase {
       return memory;
     }
     else {
-      CudaTensorList.logger.debug(String.format("Copy %s bytes from GPU %s to %s at %s, created by %s",
-        memory.size, memory.getDeviceId(), cudaDevice.getDeviceId(),
+      com.simiacryptus.util.lang.TimedResult<CudaMemory> timedResult = com.simiacryptus.util.lang.TimedResult.time(() -> memory.copy(cudaDevice, memoryType));
+      CudaTensorList.logger.debug(String.format("Copy %s bytes in %.4f from GPU %s to %s at %s, created by %s",
+        memory.size, timedResult.seconds(), memory.getDeviceId(), cudaDevice.getDeviceId(),
         com.simiacryptus.mindseye.test.TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
         com.simiacryptus.mindseye.test.TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
-      return memory.copy(cudaDevice, memoryType);
+      return timedResult.result;
     }
   }
   
