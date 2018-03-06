@@ -307,19 +307,15 @@ public class TestUtil {
    */
   public static Map<String, Object> samplePerformance(@Nonnull final DAGNetwork network) {
     @javax.annotation.Nonnull final Map<String, Object> metrics = new HashMap<>();
-    network.visitNodes(node -> {
-      if (node.getLayer() instanceof MonitoringWrapperLayer) {
-        @javax.annotation.Nullable final MonitoringWrapperLayer layer = node.getLayer();
-        Layer inner = layer.getInner();
+    network.visitLayers(layer -> {
+      if (layer instanceof MonitoringWrapperLayer) {
+        com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer monitoringWrapperLayer = (com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer) layer;
+        Layer inner = monitoringWrapperLayer.getInner();
         String str = inner.toString();
         str += " class=" + inner.getClass().getName();
-//          if(inner instanceof MultiPrecision<?>) {
-//            str += "; precision=" + ((MultiPrecision) inner).getPrecision().name();
-//          }
-        
         HashMap<String, Object> row = new HashMap<>();
-        row.put("fwd", layer.getForwardPerformance().getMetrics());
-        row.put("rev", layer.getBackwardPerformance().getMetrics());
+        row.put("fwd", monitoringWrapperLayer.getForwardPerformance().getMetrics());
+        row.put("rev", monitoringWrapperLayer.getBackwardPerformance().getMetrics());
         metrics.put(str, row);
       }
     });
@@ -909,4 +905,7 @@ public class TestUtil {
     });
   }
   
+  public static String toString(final StackTraceElement[] stack) {
+    return java.util.Arrays.stream(stack).map(x -> x.getFileName() + ":" + x.getLineNumber()).reduce((a, b) -> a + "\n" + b).get();
+  }
 }

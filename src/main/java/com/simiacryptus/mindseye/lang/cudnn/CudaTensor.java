@@ -30,6 +30,7 @@ import java.util.function.Function;
  * The type Cuda tensor.
  */
 public class CudaTensor extends ReferenceCountingBase {
+  
   /**
    * The Descriptor.
    */
@@ -87,6 +88,8 @@ public class CudaTensor extends ReferenceCountingBase {
     return getMemory(cudaDevice, MemoryType.Device);
   }
   
+  public final StackTraceElement[] createdBy = CudaSettings.INSTANCE.isProfileMemory() ? CudaTensorList.getStackTrace() : new StackTraceElement[]{};
+  
   /**
    * Gets memory.
    *
@@ -104,6 +107,10 @@ public class CudaTensor extends ReferenceCountingBase {
       return memory;
     }
     else {
+      CudaTensorList.logger.debug(String.format("Copy %s bytes from GPU %s to %s at %s, created by %s",
+        memory.size, memory.getDeviceId(), cudaDevice.getDeviceId(),
+        com.simiacryptus.mindseye.test.TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
+        com.simiacryptus.mindseye.test.TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
       return memory.copy(cudaDevice, memoryType);
     }
   }

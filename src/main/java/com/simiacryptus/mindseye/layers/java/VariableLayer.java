@@ -80,10 +80,11 @@ public class VariableLayer extends WrapperLayer {
    *
    * @param inner the heapCopy
    */
-  public final void setInner(final Layer inner) {
-    if (this.inner != null) this.inner.freeRef();
-    this.inner = inner;
-    this.inner.addRef();
+  public final com.simiacryptus.mindseye.layers.java.WrapperLayer setInner(final com.simiacryptus.mindseye.lang.Layer inner) {
+    if (this.getInner() != null) this.getInner().freeRef();
+    super.setInner(inner);
+    this.getInner().addRef();
+    return null;
   }
   
 }

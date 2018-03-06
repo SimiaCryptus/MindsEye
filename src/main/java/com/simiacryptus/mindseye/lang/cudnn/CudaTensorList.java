@@ -40,7 +40,19 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
   /**
    * The constant logger.
    */
-  protected static final Logger logger = LoggerFactory.getLogger(CudaTensorList.class);
+  public static final Logger logger = LoggerFactory.getLogger(CudaTensorList.class);
+  
+  
+  public final StackTraceElement[] createdBy = CudaSettings.INSTANCE.isProfileMemory() ? getStackTrace() : new StackTraceElement[]{};
+  
+  public static StackTraceElement[] getStackTrace() {
+    return java.util.Arrays.stream(Thread.currentThread().getStackTrace())
+      .filter(x -> x.getClassName().startsWith("com.simiacryptus.mindseye.") && !x.getClassName().startsWith("com.simiacryptus.mindseye.lang."))
+      .toArray(i -> new StackTraceElement[i]);
+  }
+  
+  
+  
   @javax.annotation.Nonnull
   private final int[] dimensions;
   private final int length;
@@ -229,6 +241,9 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     if (heapCopy != null) return heapCopy.get(i);
     return CudaSystem.eval(gpu -> {
       Tensor tensor = new Tensor(getDimensions());
+      CudaTensorList.logger.debug(String.format("Read element from GPU at %s, created by %s",
+        com.simiacryptus.mindseye.test.TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
+        com.simiacryptus.mindseye.test.TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
       if (this.ptr.isDense()) {
         CudaMemory memory = this.ptr.getMemory(gpu);
         memory.read(getPrecision(), tensor.getData(), i * Tensor.length(getDimensions()));
@@ -290,6 +305,9 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
   }
   
   private TensorArray toHeap(final boolean avoidAllocations) {
+    CudaTensorList.logger.debug(String.format("Read TensorList from GPU at %s, created by %s",
+      com.simiacryptus.mindseye.test.TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
+      com.simiacryptus.mindseye.test.TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
     return CudaDevice.eval(gpu -> {
       if (null == this.ptr) {
         if (null == heapCopy) {

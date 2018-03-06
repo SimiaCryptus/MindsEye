@@ -48,6 +48,7 @@ public class CudaSettings implements Settings {
   private final boolean conv_para_3;
   private final long maxDeviceMemory;
   private final boolean logStack;
+  private final boolean profileMemory;
   
   private CudaSettings() {
     maxTotalMemory = Settings.get("MAX_TOTAL_MEMORY", 6 * CudaMemory.GiB);
@@ -65,6 +66,7 @@ public class CudaSettings implements Settings {
     conv_para_3 = Settings.get("CONV_PARA_3", true);
     memoryCacheMode = Settings.get("CUDA_CACHE_MODE", PersistanceMode.WEAK);
     logStack = Settings.get("CUDA_LOG_STACK", false);
+    profileMemory = true;
   }
   
   /**
@@ -191,5 +193,9 @@ public class CudaSettings implements Settings {
    */
   public boolean isLogStack() {
     return logStack;
+  }
+  
+  public boolean isProfileMemory() {
+    return profileMemory;
   }
 }

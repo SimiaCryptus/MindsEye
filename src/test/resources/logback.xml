@@ -64,6 +64,23 @@
         </rollingPolicy>
     </appender>
 
+    <appender name="FILE_MEMIO" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/mem-io-%d{yyyy-MM-dd-HH-mm}_%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>10MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>100</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <logger name="com.simiacryptus.mindseye.lang.cudnn.CudaTensorList" level="debug" additivity="false">
+        <appender-ref ref="FILE_MEMIO"/>
+    </logger>
+
     <logger name="com.simiacryptus.mindseye.lang.ReferenceCountingBase" level="debug" additivity="false">
         <appender-ref ref="FILE_MEM"/>
     </logger>

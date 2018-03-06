@@ -205,12 +205,15 @@ public class CudnnHandle extends CudaDevice {
       return cudaTensor;
     }
     if (data instanceof CudaTensorList) {
-      if (precision == ((CudaTensorList) data).getPrecision()) {
-        @Nonnull CudaTensorList cudaTensorList = (CudaTensorList) data;
+      com.simiacryptus.mindseye.lang.cudnn.CudaTensorList cudaTensorList1 = (com.simiacryptus.mindseye.lang.cudnn.CudaTensorList) data;
+      if (precision == cudaTensorList1.getPrecision()) {
+        @Nonnull CudaTensorList cudaTensorList = cudaTensorList1;
         return this.getTensor(cudaTensorList, memoryType, dense);
       }
       else {
-        logger.warn("Incompatible precision types in GPU");
+        CudaTensorList.logger.warn(String.format("Incompatible precision types in GPU at %s, created by %s",
+          com.simiacryptus.mindseye.test.TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
+          com.simiacryptus.mindseye.test.TestUtil.toString(cudaTensorList1.createdBy).replaceAll("\n", "\n\t")));
       }
     }
     final int listLength = data.length();

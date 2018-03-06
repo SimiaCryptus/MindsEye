@@ -35,11 +35,8 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public abstract class WrapperLayer extends LayerBase {
-  /**
-   * The Inner.
-   */
   @Nullable
-  protected Layer inner;
+  private Layer inner;
   
   /**
    * Instantiates a new Wrapper layer.
@@ -82,6 +79,9 @@ public abstract class WrapperLayer extends LayerBase {
   }
   
   /**
+   * The Inner.
+   */
+  /**
    * Gets heapCopy.
    *
    * @return the heapCopy
@@ -117,5 +117,10 @@ public abstract class WrapperLayer extends LayerBase {
   @Override
   public List<double[]> state() {
     return inner.state();
+  }
+  
+  public com.simiacryptus.mindseye.layers.java.WrapperLayer setInner(@javax.annotation.Nullable com.simiacryptus.mindseye.lang.Layer inner) {
+    this.inner = inner;
+    return this;
   }
 }

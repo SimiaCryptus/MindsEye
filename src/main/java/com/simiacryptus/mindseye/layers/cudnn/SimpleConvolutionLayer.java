@@ -203,8 +203,6 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     kernel.addRef();
     SimpleConvolutionLayer.this.addRef();
     return new Result(CudaSystem.eval(gpu -> {
-  
-  
       @javax.annotation.Nullable final CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, false);
       final CudaResource<cudnnFilterDescriptor> filterDescriptor = gpu.newFilterDescriptor(
         precision, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
@@ -251,28 +249,28 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
       buffer.assertAlive();
       inputData.assertAlive();
       assert delta.length() == inputData.length();
-      TestUtil.runAllSerial(() -> {
-        CudaSystem.run(gpu -> {
-          if (!isFrozen()) {
-            @javax.annotation.Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, true);
-            @javax.annotation.Nullable final CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, true);
-            final CudaResource<cudnnFilterDescriptor> filterDescriptor = gpu.newFilterDescriptor(
-              precision, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
-            final CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = gpu.newConvolutions2dDescriptor(cudnnConvolutionMode.CUDNN_CONVOLUTION, precision,
+      Runnable learnFn = () -> {
+        if (!isFrozen()) {
+          com.simiacryptus.mindseye.lang.cudnn.CudaSystem.run(gpu -> {
+            @javax.annotation.Nullable final com.simiacryptus.mindseye.lang.cudnn.CudaTensor deltaTensor = gpu.getTensor(delta, precision, com.simiacryptus.mindseye.lang.cudnn.MemoryType.Device, true);
+            @javax.annotation.Nullable final com.simiacryptus.mindseye.lang.cudnn.CudaTensor inputTensor = gpu.getTensor(inputData, precision, com.simiacryptus.mindseye.lang.cudnn.MemoryType.Device, true);
+            final com.simiacryptus.mindseye.lang.cudnn.CudaResource<jcuda.jcudnn.cudnnFilterDescriptor> filterDescriptor = gpu.newFilterDescriptor(
+              precision, jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
+            final com.simiacryptus.mindseye.lang.cudnn.CudaResource<jcuda.jcudnn.cudnnConvolutionDescriptor> convolutionDescriptor = gpu.newConvolutions2dDescriptor(jcuda.jcudnn.cudnnConvolutionMode.CUDNN_CONVOLUTION, precision,
               paddingY, paddingX,
               strideY, strideX,
               1, 1);
             final int backwardFilterAlgorithm = gpu.getBackwardFilterAlgorithm(
-              inputTensor.descriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), deltaTensor.descriptor.getPtr(), CudaSettings.INSTANCE.getConvolutionWorkspaceSizeLimit());
-            final CudaMemory backwardsFilterWorkSpace = gpu.allocateBackwardFilterWorkspace(
+              inputTensor.descriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), deltaTensor.descriptor.getPtr(), com.simiacryptus.mindseye.lang.cudnn.CudaSettings.INSTANCE.getConvolutionWorkspaceSizeLimit());
+            final com.simiacryptus.mindseye.lang.cudnn.CudaMemory backwardsFilterWorkSpace = gpu.allocateBackwardFilterWorkspace(
               inputTensor.descriptor.getPtr(), filterDescriptor.getPtr(),
               convolutionDescriptor.getPtr(), deltaTensor.descriptor.getPtr(), backwardFilterAlgorithm);
             try {
-              @javax.annotation.Nonnull CudaMemory filterPtr = gpu.allocate((long) kernel.length() * precision.size, MemoryType.Device, true);
+              @javax.annotation.Nonnull com.simiacryptus.mindseye.lang.cudnn.CudaMemory filterPtr = gpu.allocate((long) kernel.length() * precision.size, com.simiacryptus.mindseye.lang.cudnn.MemoryType.Device, true);
               try {
-                CudaMemory inputTensorMemory = inputTensor.getMemory(gpu);
-                CudaMemory deltaTensorMemory = deltaTensor.getMemory(gpu);
-                CudaSystem.handle(gpu.cudnnConvolutionBackwardFilter(precision.getPointer(1.0),
+                com.simiacryptus.mindseye.lang.cudnn.CudaMemory inputTensorMemory = inputTensor.getMemory(gpu);
+                com.simiacryptus.mindseye.lang.cudnn.CudaMemory deltaTensorMemory = deltaTensor.getMemory(gpu, com.simiacryptus.mindseye.lang.cudnn.MemoryType.Managed);
+                com.simiacryptus.mindseye.lang.cudnn.CudaSystem.handle(gpu.cudnnConvolutionBackwardFilter(precision.getPointer(1.0),
                   inputTensor.descriptor.getPtr(), inputTensorMemory.getPtr(),
                   deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
                   convolutionDescriptor.getPtr(),
@@ -283,43 +281,44 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
                 inputTensorMemory.freeRef();
                 deltaTensorMemory.freeRef();
               } catch (@javax.annotation.Nonnull final Throwable e) {
-                throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
+                throw new com.simiacryptus.mindseye.lang.ComponentException(String.format("Error in convolution %s x %s => %s", java.util.Arrays.toString(inputSize), java.util.Arrays.toString(kernelSize), java.util.Arrays.toString(outputSize)), e);
               }
-              @javax.annotation.Nonnull final Tensor weightGradient = filterPtr.read(precision, kernel.getDimensions());
+              @javax.annotation.Nonnull final com.simiacryptus.mindseye.lang.Tensor weightGradient = filterPtr.read(precision, kernel.getDimensions());
               inputTensor.freeRef();
               filterPtr.freeRef();
               deltaTensor.freeRef();
-              buffer.get(SimpleConvolutionLayer.this, kernel.getData()).addInPlace(weightGradient.getData()).freeRef();
+              buffer.get(com.simiacryptus.mindseye.layers.cudnn.SimpleConvolutionLayer.this, kernel.getData()).addInPlace(weightGradient.getData()).freeRef();
               weightGradient.freeRef();
               clearCudaFilters();
             } finally {
-              Stream.of(filterDescriptor, convolutionDescriptor, backwardsFilterWorkSpace).forEach(ReferenceCounting::freeRef);
+              java.util.stream.Stream.of(filterDescriptor, convolutionDescriptor, backwardsFilterWorkSpace).forEach(com.simiacryptus.mindseye.lang.ReferenceCounting::freeRef);
             }
-          }
-        }, delta);
-      }, () -> {
+          }, delta);
+        }
+      };
+      Runnable backpropFn = () -> {
         if (input.isAlive()) {
-          final TensorList inputBufferTensors = CudaSystem.eval(gpu -> {
-            final CudaDevice.CudaTensorDescriptor inputDescriptor = gpu.newTensorDescriptor(precision, length, inputSize[2], inputSize[1], inputSize[0], inputSize[2] * inputSize[1] * inputSize[0], inputSize[1] * inputSize[0], inputSize[0], 1);
-            final CudaResource<cudnnFilterDescriptor> filterDescriptor = gpu.newFilterDescriptor(
-              precision, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
-            final CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = gpu.newConvolutions2dDescriptor(cudnnConvolutionMode.CUDNN_CONVOLUTION, precision,
+          final com.simiacryptus.mindseye.lang.TensorList inputBufferTensors = com.simiacryptus.mindseye.lang.cudnn.CudaSystem.eval(gpu -> {
+            final com.simiacryptus.mindseye.lang.cudnn.CudaDevice.CudaTensorDescriptor inputDescriptor = gpu.newTensorDescriptor(precision, length, inputSize[2], inputSize[1], inputSize[0], inputSize[2] * inputSize[1] * inputSize[0], inputSize[1] * inputSize[0], inputSize[0], 1);
+            final com.simiacryptus.mindseye.lang.cudnn.CudaResource<jcuda.jcudnn.cudnnFilterDescriptor> filterDescriptor = gpu.newFilterDescriptor(
+              precision, jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
+            final com.simiacryptus.mindseye.lang.cudnn.CudaResource<jcuda.jcudnn.cudnnConvolutionDescriptor> convolutionDescriptor = gpu.newConvolutions2dDescriptor(jcuda.jcudnn.cudnnConvolutionMode.CUDNN_CONVOLUTION, precision,
               paddingY, paddingX,
               strideY, strideX,
               1, 1);
-            @javax.annotation.Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false).getDenseAndFree(gpu);
+            @javax.annotation.Nullable final com.simiacryptus.mindseye.lang.cudnn.CudaTensor deltaTensor = gpu.getTensor(delta, precision, com.simiacryptus.mindseye.lang.cudnn.MemoryType.Device, false).getDenseAndFree(gpu);
             final int backwardDataAlgorithm = gpu.getBackwardDataAlgorithm(
-              inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), deltaTensor.descriptor.getPtr(), CudaSettings.INSTANCE.getConvolutionWorkspaceSizeLimit());
-            final CudaMemory backwardsDataWorkSpace = gpu.allocateBackwardDataWorkspace(
+              inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), deltaTensor.descriptor.getPtr(), com.simiacryptus.mindseye.lang.cudnn.CudaSettings.INSTANCE.getConvolutionWorkspaceSizeLimit());
+            final com.simiacryptus.mindseye.lang.cudnn.CudaMemory backwardsDataWorkSpace = gpu.allocateBackwardDataWorkspace(
               inputDescriptor.getPtr(), filterDescriptor.getPtr(),
               convolutionDescriptor.getPtr(), deltaTensor.descriptor.getPtr(), backwardDataAlgorithm);
             try {
-              @javax.annotation.Nonnull final CudaMemory inputBuffer = gpu.allocate((long) Tensor.length(inputData.getDimensions()) * length * precision.size, MemoryType.Device, true);
+              @javax.annotation.Nonnull final com.simiacryptus.mindseye.lang.cudnn.CudaMemory inputBuffer = gpu.allocate((long) com.simiacryptus.mindseye.lang.Tensor.length(inputData.getDimensions()) * length * precision.size, com.simiacryptus.mindseye.lang.cudnn.MemoryType.Device, true);
               try {
-                @Nonnull final CudaMemory filterPtr = getCudaFilter(gpu);
+                @javax.annotation.Nonnull final com.simiacryptus.mindseye.lang.cudnn.CudaMemory filterPtr = getCudaFilter(gpu);
                 try {
-                  CudaMemory deltaTensorMemory = deltaTensor.getMemory(gpu);
-                  CudaSystem.handle(gpu.cudnnConvolutionBackwardData(precision.getPointer(1.0),
+                  com.simiacryptus.mindseye.lang.cudnn.CudaMemory deltaTensorMemory = deltaTensor.getMemory(gpu);
+                  com.simiacryptus.mindseye.lang.cudnn.CudaSystem.handle(gpu.cudnnConvolutionBackwardData(precision.getPointer(1.0),
                     filterDescriptor.getPtr(), filterPtr.getPtr(),
                     deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
                     convolutionDescriptor.getPtr(),
@@ -329,23 +328,24 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
                     precision.getPointer(0.0), inputDescriptor.getPtr(), inputBuffer.getPtr()));
                   deltaTensorMemory.freeRef();
                   inputDescriptor.addRef();
-                  return CudaTensorList.wrap(CudaTensor.wrap(inputBuffer, inputDescriptor, precision), length, inputSize, precision);
+                  return com.simiacryptus.mindseye.lang.cudnn.CudaTensorList.wrap(com.simiacryptus.mindseye.lang.cudnn.CudaTensor.wrap(inputBuffer, inputDescriptor, precision), length, inputSize, precision);
                 } finally {
                   filterPtr.freeRef();
                   deltaTensor.freeRef();
                 }
               } catch (@javax.annotation.Nonnull final Throwable e) {
-                throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
+                throw new com.simiacryptus.mindseye.lang.ComponentException(String.format("Error in convolution %s x %s => %s", java.util.Arrays.toString(inputSize), java.util.Arrays.toString(kernelSize), java.util.Arrays.toString(outputSize)), e);
               }
             } finally {
-              Stream.of(inputDescriptor, filterDescriptor, convolutionDescriptor, backwardsDataWorkSpace).forEach(ReferenceCounting::freeRef);
+              java.util.stream.Stream.of(inputDescriptor, filterDescriptor, convolutionDescriptor, backwardsDataWorkSpace).forEach(com.simiacryptus.mindseye.lang.ReferenceCounting::freeRef);
             }
           }, delta);
           if (null != inputBufferTensors) {
             input.accumulate(buffer, inputBufferTensors);
           }
         }
-      });
+      };
+      TestUtil.runAllSerial(learnFn, backpropFn);
     }) {
       
       @Override

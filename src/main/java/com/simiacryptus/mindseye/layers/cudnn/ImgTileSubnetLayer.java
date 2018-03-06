@@ -124,7 +124,7 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
     try {
       int cols = (int) (Math.ceil((inputDims[0] - width) * 1.0 / strideX) + 1);
       int rows = (int) (Math.ceil((inputDims[1] - height) * 1.0 / strideY) + 1);
-      if (cols == 1 && rows == 1) return inner.evalAndFree(inObj);
+      if (cols == 1 && rows == 1) return getInner().evalAndFree(inObj);
       DAGNode input = network.getInput(0);
       ArrayList<DAGNode> nodes = new ArrayList<>();
       for (int row = 0; row < rows; row++) {
@@ -136,7 +136,7 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
           assert positionX < inputDims[0];
           assert positionY < inputDims[1];
           nodes.add(
-            network.add(inner,
+            network.add(getInner(),
               network.wrap(
                 new ImgTileSelectLayer(width, height, positionX, positionY).setPrecision(precision),
                 input))
@@ -161,7 +161,7 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
     json.addProperty("strideY", strideY);
     json.addProperty("precision", precision.name());
     json.addProperty("parallel", isParallel());
-    json.add("subnetwork", inner.getJson(resources, dataSerializer));
+    json.add("subnetwork", getInner().getJson(resources, dataSerializer));
     json.addProperty("parallel", isParallel());
     return json;
   }
@@ -189,7 +189,7 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
   @Nonnull
   @Override
   public Layer setFrozen(final boolean frozen) {
-    inner.setFrozen(frozen);
+    getInner().setFrozen(frozen);
     return super.setFrozen(frozen);
   }
   

@@ -169,7 +169,7 @@ public class StyleTransferDemo extends ArtistryDemo {
       .setMonitor(getTrainingMonitor(history))
       .setOrientation(new RecursiveSubspace().setTerminateThreshold(terminateThreshold))
       .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-      .setTimeout(30, TimeUnit.MINUTES)
+      .setTimeout(60, TimeUnit.MINUTES)
       .setTerminateThreshold(terminateThreshold)
       .runAndFree();
     log.code(() -> {
@@ -209,7 +209,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         .setMonitor(getTrainingMonitor(history))
         .setOrientation(new QQN())
         .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-        .setTimeout(120, TimeUnit.MINUTES)
+        .setTimeout(180, TimeUnit.MINUTES)
         .runAndFree();
       log.code(() -> {
         return TestUtil.plot(history);

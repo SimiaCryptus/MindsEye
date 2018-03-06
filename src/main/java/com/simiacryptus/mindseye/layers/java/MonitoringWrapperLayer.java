@@ -238,7 +238,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   @Override
   public Map<String, Object> getMetrics() {
     @javax.annotation.Nonnull final HashMap<String, Object> map = new HashMap<>();
-    map.put("class", inner.getClass().getName());
+    map.put("class", getInner().getClass().getName());
     map.put("totalBatches", totalBatches);
     map.put("totalItems", totalItems);
     map.put("outputStatistics", forwardSignal.getMetrics());
