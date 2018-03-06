@@ -38,7 +38,7 @@ import static jcuda.runtime.cudaMemcpyKind.cudaMemcpyDeviceToHost;
  * A GPU memory segment
  */
 public class CudaMemory extends CudaResourceBase<CudaPointer> {
-
+  
   /**
    * The constant METRICS.
    */
@@ -80,9 +80,8 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    *
    * @param size     the size
    * @param type     the type
-   * @param memory
-   * @param deviceId
-   * @param type
+   * @param memory   the memory
+   * @param deviceId the device id
    */
   CudaMemory(final long size, @Nonnull MemoryType type, final CudaPointer memory, final int deviceId) {
     super(memory);
@@ -386,6 +385,12 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
     return this;
   }
   
+  /**
+   * With byte offset cuda memory.
+   *
+   * @param byteOffset the byte offset
+   * @return the cuda memory
+   */
   public CudaMemory withByteOffset(final int byteOffset) {
     assertAlive();
     final CudaMemory baseMemorySegment = this;

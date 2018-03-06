@@ -27,7 +27,11 @@ import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.data.CIFAR10;
-import com.simiacryptus.mindseye.test.integration.*;
+import com.simiacryptus.mindseye.test.integration.CIFARProblemData;
+import com.simiacryptus.mindseye.test.integration.FwdNetworkFactory;
+import com.simiacryptus.mindseye.test.integration.ImageProblemData;
+import com.simiacryptus.mindseye.test.integration.OptimizationStrategy;
+import com.simiacryptus.mindseye.test.integration.RevNetworkFactory;
 import com.simiacryptus.util.io.NotebookOutput;
 
 /**

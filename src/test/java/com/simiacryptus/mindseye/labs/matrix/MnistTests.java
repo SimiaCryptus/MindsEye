@@ -20,12 +20,22 @@
 package com.simiacryptus.mindseye.labs.matrix;
 
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
-import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
-import com.simiacryptus.mindseye.layers.java.*;
+import com.simiacryptus.mindseye.layers.java.BiasLayer;
+import com.simiacryptus.mindseye.layers.java.DropoutNoiseLayer;
+import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
+import com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer;
+import com.simiacryptus.mindseye.layers.java.ImgReshapeLayer;
+import com.simiacryptus.mindseye.layers.java.NormalizationMetaLayer;
+import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
+import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.data.MNIST;
-import com.simiacryptus.mindseye.test.integration.*;
+import com.simiacryptus.mindseye.test.integration.FwdNetworkFactory;
+import com.simiacryptus.mindseye.test.integration.ImageProblemData;
+import com.simiacryptus.mindseye.test.integration.MnistProblemData;
+import com.simiacryptus.mindseye.test.integration.OptimizationStrategy;
+import com.simiacryptus.mindseye.test.integration.RevNetworkFactory;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import java.util.function.DoubleSupplier;

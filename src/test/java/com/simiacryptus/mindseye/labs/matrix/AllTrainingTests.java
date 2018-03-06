@@ -20,7 +20,13 @@
 package com.simiacryptus.mindseye.labs.matrix;
 
 import com.simiacryptus.mindseye.test.NotebookReportBase;
-import com.simiacryptus.mindseye.test.integration.*;
+import com.simiacryptus.mindseye.test.integration.AutoencodingProblem;
+import com.simiacryptus.mindseye.test.integration.ClassifyProblem;
+import com.simiacryptus.mindseye.test.integration.EncodingProblem;
+import com.simiacryptus.mindseye.test.integration.FwdNetworkFactory;
+import com.simiacryptus.mindseye.test.integration.ImageProblemData;
+import com.simiacryptus.mindseye.test.integration.OptimizationStrategy;
+import com.simiacryptus.mindseye.test.integration.RevNetworkFactory;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.TestCategories;
 import org.junit.Ignore;

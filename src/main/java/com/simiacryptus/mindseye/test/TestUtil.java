@@ -35,7 +35,12 @@ import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 import guru.nidi.graphviz.attribute.RankDir;
-import guru.nidi.graphviz.model.*;
+import guru.nidi.graphviz.model.Factory;
+import guru.nidi.graphviz.model.Graph;
+import guru.nidi.graphviz.model.Link;
+import guru.nidi.graphviz.model.LinkSource;
+import guru.nidi.graphviz.model.LinkTarget;
+import guru.nidi.graphviz.model.MutableNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import smile.plot.PlotCanvas;
@@ -47,7 +52,12 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -56,13 +66,24 @@ import java.io.PrintStream;
 import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.DoubleSummaryStatistics;
+import java.util.HashMap;
 import java.util.List;
+import java.util.LongSummaryStatistics;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.*;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.IntToLongFunction;
+import java.util.function.IntUnaryOperator;
+import java.util.function.LongToIntFunction;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -336,7 +357,7 @@ public class TestUtil {
       @Override
       public void onStepComplete(@javax.annotation.Nonnull final Step currentPoint) {
         history.add(new StepRecord(currentPoint.point.getMean(), currentPoint.time, currentPoint.iteration));
-        if(null != network) {
+        if (null != network) {
           if (network instanceof StochasticComponent) {
             ((StochasticComponent) network).shuffle(System.nanoTime());
           }

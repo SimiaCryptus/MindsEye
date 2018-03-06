@@ -19,8 +19,16 @@
 
 package com.simiacryptus.mindseye.opt;
 
-import com.simiacryptus.mindseye.eval.*;
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.eval.SampledCachedTrainable;
+import com.simiacryptus.mindseye.eval.SampledTrainable;
+import com.simiacryptus.mindseye.eval.Trainable;
+import com.simiacryptus.mindseye.eval.TrainableBase;
+import com.simiacryptus.mindseye.eval.TrainableWrapper;
+import com.simiacryptus.mindseye.lang.DoubleBuffer;
+import com.simiacryptus.mindseye.lang.IterativeStopException;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.lang.StateSet;
 import com.simiacryptus.mindseye.layers.java.StochasticComponent;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
@@ -39,7 +47,11 @@ import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -105,7 +117,7 @@ public class ValidatingTrainer {
         validatingMeasurementTime.addAndGet(time.timeNanos);
         return time.result;
       }
-  
+
       @Override
       public boolean reseed(final long seed) {
         return validationSubject.reseed(seed);

@@ -20,8 +20,22 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.lang.cudnn.*;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.LayerBase;
+import com.simiacryptus.mindseye.lang.ReferenceCounting;
+import com.simiacryptus.mindseye.lang.Result;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
+import com.simiacryptus.mindseye.lang.cudnn.CudaMemory;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
+import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
+import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
+import com.simiacryptus.mindseye.lang.cudnn.CudnnHandle;
+import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
+import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -159,6 +173,17 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
     };
   }
   
+  /**
+   * Copy cuda tensor.
+   *
+   * @param gpu              the gpu
+   * @param inputTensor      the input tensor
+   * @param length           the length
+   * @param inputDimensions  the input dimensions
+   * @param outputDimensions the output dimensions
+   * @param dirty            the dirty
+   * @return the cuda tensor
+   */
   public CudaTensor copy(final CudnnHandle gpu, final CudaTensor inputTensor, final int length, final int[] inputDimensions, final int[] outputDimensions, final boolean dirty) {
     if (3 != inputDimensions.length) throw new IllegalArgumentException("inputDimensions.length");
     if (3 != outputDimensions.length) throw new IllegalArgumentException("dimOut.length");
@@ -203,7 +228,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
         assert destinationOffset == 0;
         return CudaTensor.wrap(inputTensorMemory.withByteOffset(sourceOffset * precision.size), sourceViewDescriptor, precision);
       }
-    
+      
       @Nonnull final CudaDevice.CudaTensorDescriptor destinationViewDescriptor = gpu.newTensorDescriptor(
         precision,//
         length,//

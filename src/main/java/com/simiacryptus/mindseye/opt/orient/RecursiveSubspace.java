@@ -23,7 +23,17 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.BasicTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+import com.simiacryptus.mindseye.lang.Delta;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.LayerBase;
+import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.lang.Result;
+import com.simiacryptus.mindseye.lang.StateSet;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorArray;
+import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
@@ -52,6 +62,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
   private int iterations = 4;
   @Nullable
   private double[] weights = null;
+  private double terminateThreshold;
   
   @javax.annotation.Nonnull
   @Override
@@ -193,6 +204,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
       })
       .setMaxIterations(getIterations())
       .setIterationsPerSample(getIterations())
+      .setTerminateThreshold(terminateThreshold)
       .runAndFree();
     trainable.freeRef();
   }
@@ -225,5 +237,25 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
   
   @Override
   protected void _free() {
+  }
+  
+  /**
+   * Gets terminate threshold.
+   *
+   * @return the terminate threshold
+   */
+  public double getTerminateThreshold() {
+    return terminateThreshold;
+  }
+  
+  /**
+   * Sets terminate threshold.
+   *
+   * @param terminateThreshold the terminate threshold
+   * @return the terminate threshold
+   */
+  public com.simiacryptus.mindseye.opt.orient.RecursiveSubspace setTerminateThreshold(double terminateThreshold) {
+    this.terminateThreshold = terminateThreshold;
+    return this;
   }
 }

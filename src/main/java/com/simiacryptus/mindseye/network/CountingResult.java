@@ -19,7 +19,12 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.CoreSettings;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
+import com.simiacryptus.mindseye.lang.Result;
+import com.simiacryptus.mindseye.lang.TensorList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

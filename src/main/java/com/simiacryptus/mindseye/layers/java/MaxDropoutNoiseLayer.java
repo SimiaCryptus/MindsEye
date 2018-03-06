@@ -20,7 +20,16 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.Coordinate;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.LayerBase;
+import com.simiacryptus.mindseye.lang.ReferenceCounting;
+import com.simiacryptus.mindseye.lang.Result;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorArray;
+import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.IntArray;
 import com.simiacryptus.util.io.JsonUtil;
@@ -29,7 +38,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;

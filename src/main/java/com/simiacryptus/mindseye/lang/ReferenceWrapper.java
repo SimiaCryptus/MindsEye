@@ -79,6 +79,11 @@ public class ReferenceWrapper<T> {
     return obj;
   }
   
+  /**
+   * Peek t.
+   *
+   * @return the t
+   */
   public T peek() {
     return obj;
   }

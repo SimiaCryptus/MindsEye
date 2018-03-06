@@ -23,7 +23,11 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.cudnn.*;
+import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
+import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
+import com.simiacryptus.mindseye.lang.cudnn.CudnnHandle;
+import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
+import com.simiacryptus.mindseye.lang.cudnn.Precision;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

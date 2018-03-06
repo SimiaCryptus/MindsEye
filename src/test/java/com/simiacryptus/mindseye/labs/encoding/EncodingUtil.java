@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.Coordinate;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
-import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
+import com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.java.ImgBandScaleLayer;
 import com.simiacryptus.mindseye.layers.java.ImgBandSelectLayer;
 import com.simiacryptus.mindseye.layers.java.ImgReshapeLayer;

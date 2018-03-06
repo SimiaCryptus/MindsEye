@@ -20,13 +20,26 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.lang.cudnn.*;
-import com.simiacryptus.util.Util;
-import com.simiacryptus.util.io.JsonUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.LayerBase;
+import com.simiacryptus.mindseye.lang.ReferenceCounting;
+import com.simiacryptus.mindseye.lang.Result;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
+import com.simiacryptus.mindseye.lang.cudnn.CudaMemory;
+import com.simiacryptus.mindseye.lang.cudnn.CudaResource;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
+import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
+import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
+import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
+import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import jcuda.jcudnn.cudnnOpTensorDescriptor;
+import jcuda.jcudnn.cudnnOpTensorOp;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
@@ -35,49 +48,45 @@ import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
 /**
- * Adds a scalar offset to the input based on color band (3rd tensor dimension)
+ * This layer multiplies together the inputs, element-by-element. It can be used to implement integer-power activation
+ * layers, such as the square needed in MeanSqLossLayer.
  */
 @SuppressWarnings("serial")
 public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBandBiasLayer> {
-  /**
-   * The Log.
-   */
-  static final Logger log = LoggerFactory.getLogger(ImgBandBiasLayer.class);
   
-  private final double[] bias;
   private Precision precision = Precision.Double;
+  private com.simiacryptus.mindseye.lang.Tensor bias;
   
   /**
-   * Instantiates a new Img band bias layer.
+   * Instantiates a new Product inputs layer.
    *
    * @param bands the bands
    */
-  public ImgBandBiasLayer(final int bands) {
-    bias = new double[bands];
-//    assert Arrays.stream(this.bias).allMatch(Double::isFinite);
+  public ImgBandBiasLayer(int bands) {
+    this.bias = new com.simiacryptus.mindseye.lang.Tensor(1, 1, bands);
   }
   
   /**
-   * Instantiates a new Img band bias layer.
+   * Instantiates a new Product inputs layer.
    *
-   * @param json the json
+   * @param id the id
+   * @param rs the rs
    */
-  protected ImgBandBiasLayer(@javax.annotation.Nonnull final JsonObject json) {
-    super(json);
-    bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
-    precision = Precision.valueOf(json.get("precision").getAsString());
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
+  protected ImgBandBiasLayer(@javax.annotation.Nonnull final com.google.gson.JsonObject id, final java.util.Map<String, byte[]> rs) {
+    super(id);
+    this.precision = Precision.valueOf(id.getAsJsonPrimitive("precision").getAsString());
+    this.bias = Tensor.fromJson(id.get("bias"), rs);
   }
   
   /**
-   * From json img band bias layer.
+   * From json product inputs layer.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img band bias layer
+   * @return the product inputs layer
    */
-  public static ImgBandBiasLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
-    return new ImgBandBiasLayer(json);
+  public static ImgBandBiasLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+    return new ImgBandBiasLayer(json, rs);
   }
   
   /**
@@ -85,71 +94,134 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
    *
    * @return the compatibility layer
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public Layer getCompatibilityLayer() {
-    log.info("Using compatibility layer for " + this);
-    return new LayerBase() {
-      @javax.annotation.Nonnull
-      com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer inner = ImgBandBiasLayer.this.as(com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer.class);
-  
-      @javax.annotation.Nonnull
-      @Override
-      public Result eval(Result... array) {
-        @javax.annotation.Nonnull Result result = inner.eval(array);
-        return new Result(result.getData(), (DeltaSet<Layer> buffer, TensorList data) -> {
-          throw new IllegalStateException();
-        }) {
-  
-          @Override
-          protected void _free() {
-    
-          }
-  
-          @Override
-          public boolean isAlive() {
-            return false;
-          }
-        };
-      }
-  
-      @javax.annotation.Nonnull
-      @Override
-      public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-        throw new IllegalStateException();
-      }
-  
-      @javax.annotation.Nonnull
-      @Override
-      public List<double[]> state() {
-        throw new IllegalStateException();
-      }
-    };
+    return this.as(com.simiacryptus.mindseye.layers.java.ProductInputsLayer.class);
   }
   
   
-  /**
-   * Add double [ ].
-   *
-   * @param input the input
-   * @return the double [ ]
-   */
-  @javax.annotation.Nonnull
-  public double[] add(@javax.annotation.Nonnull final double[] input) {
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
-    //assert Arrays.stream(input).allMatch(v->Double.isFinite(v));
-    assert null != input;
-    final double[] bias = getBias();
-    //assert Arrays.stream(bias).allMatch(v->Double.isFinite(v));
-    assert null != bias;
-    if (input.length % bias.length != 0) throw new IllegalArgumentException();
-    @javax.annotation.Nonnull final double[] array = new double[input.length];
-    final int size = input.length / bias.length;
-    for (int i = 0; i < array.length; i++) {
-      array[i] = input[i] + bias[i / size];
+  @Nullable
+  @Override
+  public Result eval(@Nonnull final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    if (inObj.length != 1) {
+      throw new IllegalArgumentException("inObj.length=" + inObj.length);
     }
-    //assert Arrays.stream(array).allMatch(v->Double.isFinite(v));
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
-    return array;
+    Result input = inObj[0];
+    final TensorList leftData = input.getData();
+    @Nonnull final int[] inputDimensions = leftData.getDimensions();
+    final int length = leftData.length();
+    if (3 != inputDimensions.length) {
+      throw new IllegalArgumentException("dimensions=" + Arrays.toString(inputDimensions));
+    }
+    leftData.addRef();
+    input.addRef();
+//   assert !right.isAlive();
+    return new Result(CudaSystem.eval(gpu -> {
+      @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(jcuda.jcudnn.cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision);
+      @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
+        inputDimensions[2], inputDimensions[1], inputDimensions[0],
+        inputDimensions[2] * inputDimensions[1] * inputDimensions[0],
+        inputDimensions[1] * inputDimensions[0],
+        inputDimensions[0],
+        1);
+      @Nullable final CudaTensor inputTensor = gpu.getTensor(leftData, precision, MemoryType.Device, false);
+      CudaMemory biasMem = gpu.allocate(bias.size() * precision.size, com.simiacryptus.mindseye.lang.cudnn.MemoryType.Device, true).write(precision, bias.getData());
+      int[] biasDim = bias.getDimensions();
+      com.simiacryptus.mindseye.lang.cudnn.CudaDevice.CudaTensorDescriptor biasDescriptor = gpu.newTensorDescriptor(precision, 1, biasDim[2], biasDim[1], biasDim[0],
+        biasDim[2] * biasDim[1] * biasDim[0], biasDim[1] * biasDim[0], biasDim[0], 1);
+      //assert lPtr.size == rPtr.size;
+      @Nonnull final CudaMemory outputPtr = gpu.allocate((long) precision.size * outputDescriptor.nStride * length, MemoryType.Device, true);
+      CudaMemory inputMemory = inputTensor.getMemory(gpu);
+      CudaSystem.handle(gpu.cudnnOpTensor(opDescriptor.getPtr(),
+        precision.getPointer(1.0), inputTensor.descriptor.getPtr(), inputMemory.getPtr(),
+        precision.getPointer(1.0), biasDescriptor.getPtr(), biasMem.getPtr(),
+        precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
+      inputMemory.freeRef();
+      biasMem.freeRef();
+      biasDescriptor.freeRef();
+      inputTensor.freeRef();
+      opDescriptor.freeRef();
+      CudaTensor cudaTensor = CudaTensor.wrap(outputPtr, outputDescriptor, precision);
+      return CudaTensorList.wrap(cudaTensor, length, inputDimensions, precision);
+    }, leftData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+      if (!isFrozen()) {
+        @Nonnull double[] biasDelta = CudaSystem.eval(gpu -> {
+          @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
+          @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
+    
+          CudaMemory biasMem = gpu.allocate(bias.size() * precision.size, com.simiacryptus.mindseye.lang.cudnn.MemoryType.Device, true).write(precision, bias.getData());
+          int[] biasDim = bias.getDimensions();
+          com.simiacryptus.mindseye.lang.cudnn.CudaDevice.CudaTensorDescriptor biasDescriptor = gpu.newTensorDescriptor(precision,
+            1, biasDim[2], biasDim[1], biasDim[0],
+            biasDim[2] * biasDim[1] * biasDim[0], biasDim[1] * biasDim[0], biasDim[0], 1);
+          CudaMemory deltaTensorMemory = deltaTensor.getMemory(gpu);
+          gpu.cudnnConvolutionBackwardBias(precision.getPointer(1.0), deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
+            precision.getPointer(0.0), biasDescriptor.getPtr(), biasMem.getPtr());
+          double[] biasV = new double[bias.length()];
+          biasMem.read(precision, biasV);
+          java.util.stream.Stream.<ReferenceCounting>of(biasMem, deltaTensorMemory, deltaTensor, opDescriptor, biasDescriptor).forEach(ReferenceCounting::freeRef);
+          return biasV;
+        }, delta);
+        buffer.get(ImgBandBiasLayer.this, bias).addInPlace(biasDelta).freeRef();
+      }
+      if (input.isAlive()) {
+        input.accumulate(buffer, delta);
+      }
+      else {
+        delta.freeRef();
+      }
+    }) {
+  
+      @Override
+      protected boolean autofree() {
+        return false;
+      }
+      
+      @Override
+      protected void _free() {
+        leftData.freeRef();
+        input.freeRef();
+      }
+  
+  
+      @Override
+      public boolean isAlive() {
+        for (@Nonnull final Result element : inObj)
+          if (element.isAlive()) {
+            return true;
+          }
+        return false;
+      }
+  
+    };
+  }
+  
+  @Nonnull
+  @Override
+  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    @Nonnull JsonObject json = super.getJsonStub();
+    json.addProperty("precision", precision.name());
+    json.add("bias", bias.toJson(resources, dataSerializer));
+    return json;
+  }
+  
+  @Override
+  public Precision getPrecision() {
+    return precision;
+  }
+  
+  @Nonnull
+  @Override
+  public ImgBandBiasLayer setPrecision(final Precision precision) {
+    this.precision = precision;
+    return this;
+  }
+  
+  @Nonnull
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList(bias.getData());
   }
   
   /**
@@ -159,97 +231,56 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
    * @return the img band bias layer
    */
   @javax.annotation.Nonnull
-  public ImgBandBiasLayer addWeights(@javax.annotation.Nonnull final DoubleSupplier f) {
-    Util.add(f, getBias());
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
+  public ImgBandBiasLayer addWeights(@Nonnull final DoubleSupplier f) {
+    com.simiacryptus.util.Util.add(f, getBias());
     return this;
   }
   
-  @Nullable
-  @Override
-  public Result evalAndFree(@javax.annotation.Nonnull final Result... inObj) {
-    assert 1 == inObj.length;
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
-    final Result input = inObj[0];
-    final TensorList inputData;
-    if (1 < input.getData().currentRefCount()) {
-      inputData = input.getData().copy();
-      input.getData().freeRef();
-    }
-    else {
-      inputData = input.getData();
-    }
-    @javax.annotation.Nonnull final int[] inputSize = inputData.getDimensions();
-    assert inputSize[2] == bias.length : inputSize[2] + " != " + bias.length;
-    @javax.annotation.Nonnull final int[] outputSize = inputSize;
-    final int length = inputData.length();
-    
-    return new Result(CudaSystem.eval(gpu -> {
-      try {
-        @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor filterDescriptor = gpu.newTensorDescriptor(precision, 1, inputSize[2], 1, 1, inputSize[2] * 1 * 1, 1 * 1, 1, 1);
-        
-        assert 0 < bias.length;
-        @javax.annotation.Nonnull final CudaMemory filterPtr = gpu.allocate((long) (bias.length * precision.size), MemoryType.Device, true).write(precision, bias);
-        final CudaTensor inputPtr = gpu.getTensor(inputData, precision, MemoryType.Device, false);
-        inputData.freeRef();
-        try {
-          CudaMemory inputPtrMemory = inputPtr.getMemory(gpu);
-          CudaSystem.handle(gpu.cudnnAddTensor(
-            precision.getPointer(1.0), filterDescriptor.getPtr(), filterPtr.getPtr(),
-            precision.getPointer(1.0), inputPtr.descriptor.getPtr(), inputPtrMemory.getPtr()));
-          inputPtrMemory.freeRef();
-        } catch (@javax.annotation.Nonnull final Throwable e) {
-          throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
-        }
-        Arrays.stream(new ReferenceCounting[]{filterPtr, filterDescriptor}).forEach(ReferenceCounting::freeRef);
-        return CudaTensorList.wrap(inputPtr, length, outputSize, precision);
-      } catch (@javax.annotation.Nonnull final Throwable e) {
-        throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
-      }
-    }, inputData), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
-      assert error.length() == length;
-      //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
-      if (!isFrozen()) {
-        CudaSystem.run(gpu -> {
-          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor filterDescriptor = gpu.newTensorDescriptor(precision, 1, inputSize[2], 1, 1, inputSize[2] * 1 * 1, 1 * 1, 1, 1);
-          @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device, false);
-          @javax.annotation.Nonnull final CudaMemory filterBuffer = gpu.allocate(bias.length * 1l * precision.size, MemoryType.Device, false);
-          try {
-            try {
-              CudaMemory errorPtrMemory = errorPtr.getMemory(gpu);
-              CudaSystem.handle(gpu.cudnnConvolutionBackwardBias(precision.getPointer(1.0),
-                errorPtr.descriptor.getPtr(), errorPtrMemory.getPtr(),
-                precision.getPointer(1.0),
-                filterDescriptor.getPtr(), filterBuffer.getPtr()));
-              errorPtrMemory.freeRef();
-            } catch (@javax.annotation.Nonnull final Throwable e) {
-              throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
-            }
-            @javax.annotation.Nonnull final Tensor weightGradient = filterBuffer.read(precision, new int[]{1, 1, inputSize[2]});
-            //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
-            buffer.get(this, bias).addInPlace(weightGradient.getData()).freeRef();
-            Arrays.stream(new ReferenceCounting[]{weightGradient}).forEach(ReferenceCounting::freeRef);
-          } finally {
-            Arrays.stream(new ReferenceCounting[]{filterDescriptor, errorPtr, filterBuffer}).forEach(ReferenceCounting::freeRef);
-          }
-        }, error);
-      }
-      if (input.isAlive()) {
-        error.addRef();
-        input.accumulate(buffer, error);
-      }
-    }) {
-      
-      @Override
-      protected void _free() {
-        input.freeRef();
-      }
-      
-      @Override
-      public boolean isAlive() {
-        return input.isAlive() || !isFrozen();
-      }
-    };
+  /**
+   * Add weights img band bias layer.
+   *
+   * @param f the f
+   * @return the img band bias layer
+   */
+  @javax.annotation.Nonnull
+  public ImgBandBiasLayer setWeights(@Nonnull final IntToDoubleFunction f) {
+    bias.setByCoord(c -> f.applyAsDouble(c.getIndex()));
+    return this;
+  }
+  
+  /**
+   * Sets weights log.
+   *
+   * @param value the value
+   * @return the weights log
+   */
+  @javax.annotation.Nonnull
+  public ImgBandBiasLayer setWeightsLog(final double value) {
+    bias.setByCoord(c -> (com.simiacryptus.util.FastRandom.INSTANCE.random() - 0.5) * Math.pow(10, value));
+    return this;
+  }
+  
+  /**
+   * Sets and free.
+   *
+   * @param tensor the tensor
+   * @return the and free
+   */
+  public ImgBandBiasLayer setAndFree(final Tensor tensor) {
+    set(tensor);
+    tensor.freeRef();
+    return this;
+  }
+  
+  /**
+   * Set img band bias layer.
+   *
+   * @param tensor the tensor
+   * @return the img band bias layer
+   */
+  public ImgBandBiasLayer set(final Tensor tensor) {
+    bias.set(tensor);
+    return this;
   }
   
   /**
@@ -258,113 +289,30 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
    * @return the double [ ]
    */
   public double[] getBias() {
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
-    return bias;
-  }
-  
-  @javax.annotation.Nonnull
-  @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
-    json.add("bias", JsonUtil.getJson(getBias()));
-    json.addProperty("precision", precision.name());
-    return json;
-  }
-  
-  @Override
-  public Precision getPrecision() {
-    return precision;
-  }
-  
-  @javax.annotation.Nonnull
-  @Override
-  public ImgBandBiasLayer setPrecision(final Precision precision) {
-    this.precision = precision;
-    return this;
+    return bias.getData();
   }
   
   /**
-   * Set nn layer.
+   * Sets bias.
    *
-   * @param ds the ds
-   * @return the nn layer
+   * @param bias the bias
+   * @return the bias
    */
-  @javax.annotation.Nonnull
-  public Layer set(@javax.annotation.Nonnull final double[] ds) {
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
-    //assert Arrays.stream(ds).allMatch(Double::isFinite);
-    final double[] bias = getBias();
-    for (int i = 0; i < ds.length; i++) {
-      bias[i] = ds[i];
+  public com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer setBias(com.simiacryptus.mindseye.lang.Tensor bias) {
+    if (this.bias != null) {
+      this.bias.freeRef();
     }
-    //assert Arrays.stream(bias).allMatch(v->Double.isFinite(v));
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
+    this.bias = bias;
+    this.bias.addRef();
     return this;
   }
   
-  /**
-   * Set nn layer.
-   *
-   * @param ds the ds
-   * @return the nn layer
-   */
-  @javax.annotation.Nonnull
-  public Layer set(@javax.annotation.Nonnull final Tensor ds) {
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
-    //assert Arrays.stream(ds).allMatch(Double::isFinite);
-    final double[] bias = getBias();
-    for (int i = 0; i < bias.length; i++) {
-      bias[i] = ds.get(i);
-    }
-    //assert Arrays.stream(bias).allMatch(v->Double.isFinite(v));
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
-    return this;
-  }
-  
-  /**
-   * Sets and free.
-   *
-   * @param ds the ds
-   * @return the and free
-   */
-  @javax.annotation.Nonnull
-  public Layer setAndFree(@javax.annotation.Nonnull final Tensor ds) {
-    set(ds);
-    ds.freeRef();
-    return this;
-  }
-  
-  /**
-   * Sets weights.
-   *
-   * @param f the f
-   * @return the weights
-   */
-  @javax.annotation.Nonnull
-  public ImgBandBiasLayer setWeights(@javax.annotation.Nonnull final IntToDoubleFunction f) {
-    final double[] bias = getBias();
-    for (int i = 0; i < bias.length; i++) {
-      bias[i] = f.applyAsDouble(i);
-    }
-    //assert Arrays.stream(bias).allMatch(v->Double.isFinite(v));
-    return this;
-  }
-  
-  @javax.annotation.Nonnull
   @Override
-  public List<double[]> state() {
-    return Arrays.asList(getBias());
-  }
-  
-  /**
-   * Sets weights log.
-   *
-   * @param mag the mag
-   * @return the weights log
-   */
-  @javax.annotation.Nonnull
-  public ImgBandBiasLayer setWeightsLog(int mag) {
-    setWeights(i -> Math.pow(10, mag) * Math.random());
-    return this;
+  protected void _free() {
+    if (this.bias != null) {
+      bias.freeRef();
+      bias = null;
+    }
+    super._free();
   }
 }

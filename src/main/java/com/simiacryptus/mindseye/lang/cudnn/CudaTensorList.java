@@ -19,7 +19,11 @@
 
 package com.simiacryptus.mindseye.lang.cudnn;
 
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.RegisteredObjectBase;
+import com.simiacryptus.mindseye.lang.ReshapedTensorList;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorArray;
+import com.simiacryptus.mindseye.lang.TensorList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +64,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    * @param precision  the precision
    */
   private CudaTensorList(@Nullable final CudaTensor ptr, final int length, @javax.annotation.Nonnull final int[] dimensions, @javax.annotation.Nonnull final Precision precision) {
-    assert 1 == ptr.currentRefCount() : ptr.referenceReport(false, false);
+    //assert 1 == ptr.currentRefCount() : ptr.referenceReport(false, false);
     if (null == ptr) throw new IllegalArgumentException("ptr");
     if (null == ptr.memory.getPtr()) throw new IllegalArgumentException("ptr.getPtr()");
     this.ptr = ptr;

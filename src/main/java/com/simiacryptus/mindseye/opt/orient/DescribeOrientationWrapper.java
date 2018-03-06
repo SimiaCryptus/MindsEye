@@ -20,7 +20,12 @@
 package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.DoubleBuffer;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.lang.State;
+import com.simiacryptus.mindseye.lang.StateSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;

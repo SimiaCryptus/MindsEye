@@ -20,9 +20,21 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.lang.cudnn.*;
-import jcuda.jcudnn.JCudnn;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.LayerBase;
+import com.simiacryptus.mindseye.lang.ReferenceCounting;
+import com.simiacryptus.mindseye.lang.Result;
+import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
+import com.simiacryptus.mindseye.lang.cudnn.CudaMemory;
+import com.simiacryptus.mindseye.lang.cudnn.CudaResource;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
+import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
+import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
+import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
+import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import jcuda.jcudnn.cudnnOpTensorDescriptor;
 import jcuda.jcudnn.cudnnOpTensorOp;
 
@@ -88,6 +100,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
     }
     Result left = inObj[0];
     Result right = inObj[1];
+    assert !right.isAlive();
     final TensorList leftData = left.getData();
     final TensorList rightData = right.getData();
     @Nonnull final int[] leftDimensions = leftData.getDimensions();
@@ -115,7 +128,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
       @Nonnull final CudaMemory outputPtr = gpu.allocate((long) precision.size * outputDescriptor.nStride * length, MemoryType.Device, true);
       CudaMemory lPtrMemory = lPtr.getMemory(gpu);
       CudaMemory rPtrMemory = rPtr.getMemory(gpu);
-      CudaSystem.handle(JCudnn.cudnnOpTensor(gpu.handle, opDescriptor.getPtr(),
+      CudaSystem.handle(gpu.cudnnOpTensor(opDescriptor.getPtr(),
         precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
         precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
@@ -127,35 +140,33 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
       CudaTensor cudaTensor = CudaTensor.wrap(outputPtr, outputDescriptor, precision);
       return CudaTensorList.wrap(cudaTensor, length, leftDimensions, precision);
     }, leftData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
-      for (int index = 0; index < inObj.length; index++) {
-        if (left.isAlive()) {
-          @Nonnull TensorList data = CudaSystem.eval(gpu -> {
-            @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
-            @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
-              leftDimensions[2], leftDimensions[1], leftDimensions[0],
-              leftDimensions[2] * leftDimensions[1] * leftDimensions[0],
-              leftDimensions[1] * leftDimensions[0],
-              leftDimensions[0],
-              1);
-            @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
-            @Nullable final CudaTensor rightTensor = gpu.getTensor(right.getData(), precision, MemoryType.Device, false);
-            //assert deltaTensor.size == rightTensor.size;
-            @Nonnull final CudaMemory outputPtr = gpu.allocate((long) precision.size * outputDescriptor.nStride * length, MemoryType.Device, true);
-            CudaMemory deltaTensorMemory = deltaTensor.getMemory(gpu);
-            CudaMemory rightTensorMemory = rightTensor.getMemory(gpu);
-            CudaSystem.handle(JCudnn.cudnnOpTensor(gpu.handle, opDescriptor.getPtr(),
-              precision.getPointer(1.0), deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
-              precision.getPointer(1.0), rightTensor.descriptor.getPtr(), rightTensorMemory.getPtr(),
-              precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
-            deltaTensorMemory.freeRef();
-            rightTensorMemory.freeRef();
-            CudaTensor cudaTensor = new CudaTensor(outputPtr, outputDescriptor, precision);
-            Arrays.stream(new ReferenceCounting[]{deltaTensor, rightTensor, opDescriptor, outputDescriptor}).forEach(ReferenceCounting::freeRef);
-            outputPtr.freeRef();
-            return CudaTensorList.wrap(cudaTensor, length, leftDimensions, precision);
-          }, delta);
-          left.accumulate(buffer, data);
-        }
+      if (left.isAlive()) {
+        @Nonnull TensorList data = CudaSystem.eval(gpu -> {
+          @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
+          @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
+            leftDimensions[2], leftDimensions[1], leftDimensions[0],
+            leftDimensions[2] * leftDimensions[1] * leftDimensions[0],
+            leftDimensions[1] * leftDimensions[0],
+            leftDimensions[0],
+            1);
+          @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
+          @Nullable final CudaTensor rightTensor = gpu.getTensor(right.getData(), precision, MemoryType.Device, false);
+          //assert deltaTensor.size == rightTensor.size;
+          @Nonnull final CudaMemory outputPtr = gpu.allocate((long) precision.size * outputDescriptor.nStride * length, MemoryType.Device, true);
+          CudaMemory deltaTensorMemory = deltaTensor.getMemory(gpu);
+          CudaMemory rightTensorMemory = rightTensor.getMemory(gpu);
+          CudaSystem.handle(gpu.cudnnOpTensor(opDescriptor.getPtr(),
+            precision.getPointer(1.0), deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
+            precision.getPointer(1.0), rightTensor.descriptor.getPtr(), rightTensorMemory.getPtr(),
+            precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
+          deltaTensorMemory.freeRef();
+          rightTensorMemory.freeRef();
+          CudaTensor cudaTensor = new CudaTensor(outputPtr, outputDescriptor, precision);
+          Arrays.stream(new ReferenceCounting[]{deltaTensor, rightTensor, opDescriptor, outputDescriptor}).forEach(ReferenceCounting::freeRef);
+          outputPtr.freeRef();
+          return CudaTensorList.wrap(cudaTensor, length, leftDimensions, precision);
+        }, delta);
+        left.accumulate(buffer, data);
       }
     }) {
       

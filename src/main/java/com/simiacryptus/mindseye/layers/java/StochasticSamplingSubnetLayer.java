@@ -20,7 +20,11 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.LayerBase;
+import com.simiacryptus.mindseye.lang.Result;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.GateProductLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SumInputsLayer;
 import com.simiacryptus.mindseye.network.CountingResult;
@@ -30,7 +34,11 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.stream.IntStream;
 
 /**

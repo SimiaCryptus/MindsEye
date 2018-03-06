@@ -25,7 +25,12 @@ import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
-import com.simiacryptus.mindseye.test.unit.*;
+import com.simiacryptus.mindseye.test.unit.BatchingTester;
+import com.simiacryptus.mindseye.test.unit.ComponentTest;
+import com.simiacryptus.mindseye.test.unit.PerformanceTester;
+import com.simiacryptus.mindseye.test.unit.ReferenceIO;
+import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
+import com.simiacryptus.mindseye.test.unit.TrainingTester;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Test;
 

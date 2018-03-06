@@ -23,7 +23,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.LayerBase;
+import com.simiacryptus.mindseye.lang.ReferenceCounting;
+import com.simiacryptus.mindseye.lang.Result;
+import com.simiacryptus.mindseye.lang.SerialPrecision;
+import com.simiacryptus.mindseye.lang.Singleton;
 import com.simiacryptus.mindseye.layers.java.WrapperLayer;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
@@ -31,8 +37,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -506,8 +519,12 @@ public abstract class DAGNetwork extends LayerBase {
    */
   public void visitLayers(@javax.annotation.Nonnull final Consumer<Layer> visitor) {
     layersById.values().forEach(layer -> {
-      if (layer instanceof DAGNetwork) {
-        ((DAGNetwork) layer).visitLayers(visitor);
+      Layer unwrapped = layer;
+      while (unwrapped instanceof WrapperLayer) {
+        unwrapped = ((WrapperLayer) unwrapped).getInner();
+      }
+      if (unwrapped instanceof DAGNetwork) {
+        ((DAGNetwork) unwrapped).visitLayers(visitor);
       }
       visitor.accept(layer);
       while (layer instanceof WrapperLayer) {

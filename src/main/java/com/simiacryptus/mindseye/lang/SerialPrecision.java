@@ -21,8 +21,11 @@ package com.simiacryptus.mindseye.lang;
 
 import jcuda.Sizeof;
 
-import java.nio.*;
+import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
 

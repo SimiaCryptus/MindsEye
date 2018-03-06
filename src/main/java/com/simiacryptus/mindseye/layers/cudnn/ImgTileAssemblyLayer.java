@@ -20,8 +20,23 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.lang.cudnn.*;
+import com.simiacryptus.mindseye.lang.CoreSettings;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.LayerBase;
+import com.simiacryptus.mindseye.lang.ReferenceCounting;
+import com.simiacryptus.mindseye.lang.Result;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
+import com.simiacryptus.mindseye.lang.cudnn.CudaMemory;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
+import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
+import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
+import com.simiacryptus.mindseye.lang.cudnn.CudnnHandle;
+import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
+import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -204,6 +219,18 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
     backpropParams.getInObj()[backpropParams.getInputIndex()].accumulate(backpropParams.getBuffer(), passbackTensorList);
   }
   
+  /**
+   * Copy cuda tensor.
+   *
+   * @param gpu            the gpu
+   * @param error          the error
+   * @param tileDimensions the tile dimensions
+   * @param outputDims     the output dims
+   * @param length         the length
+   * @param positionX      the position x
+   * @param positionY      the position y
+   * @return the cuda tensor
+   */
   public CudaTensor copy(final CudnnHandle gpu, final TensorList error, final int[] tileDimensions, final int[] outputDims, final int length, final int positionX, final int positionY) {
     @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device, false);
     @Nonnull final CudaMemory passbackBuffer = gpu.allocate(

@@ -19,7 +19,12 @@
 
 package com.simiacryptus.mindseye.demo;
 
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.MutableResult;
+import com.simiacryptus.mindseye.lang.Result;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
@@ -125,7 +130,7 @@ public class LocationDemo extends ArtistryDemo {
         DeltaSet<Layer> deltaSet = new DeltaSet<>();
         classifyResult.accumulate(deltaSet, tensorArray);
         Tensor delta = new Tensor(deltaSet.getMap().entrySet().stream().filter(x -> x.getValue().target == row[0].getData()).findAny().get().getValue().getDelta(), row[0].getDimensions());
-        delta = delta.mapAndFree(x->Math.abs(x));
+        delta = delta.mapAndFree(x -> Math.abs(x));
         try {
           log.h3(categories.get(category));
           log.p(log.image(TestUtil.normalizeBands(delta).toImage(), ""));

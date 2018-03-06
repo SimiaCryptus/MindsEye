@@ -19,7 +19,13 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.ConstantResult;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.lang.Result;
+import com.simiacryptus.mindseye.lang.StateSet;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
@@ -29,7 +35,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;

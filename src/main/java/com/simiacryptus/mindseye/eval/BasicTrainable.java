@@ -19,7 +19,17 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.ConstantResult;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.MutableResult;
+import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
+import com.simiacryptus.mindseye.lang.Result;
+import com.simiacryptus.mindseye.lang.StateSet;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorArray;
+import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.lang.TimedResult;
 

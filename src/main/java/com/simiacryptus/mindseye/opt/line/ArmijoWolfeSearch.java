@@ -293,8 +293,11 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
           alpha = maxAlpha;
           return point;
         }
-        if (null != lastStep) lastStep.freeRef();
-        lastStep = cursor.step(alpha, monitor);
+        LineSearchPoint newValue = cursor.step(alpha, monitor);
+        synchronized (this) {
+          if (null != lastStep) lastStep.freeRef();
+          lastStep = newValue;
+        }
         double lastValue = lastStep.point.getMean();
         if (bestValue > lastValue) {
           bestAlpha = alpha;
@@ -338,7 +341,10 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
         }
       }
     } finally {
-      if (null != lastStep) lastStep.freeRef();
+      synchronized (this) {
+        if (null != lastStep) lastStep.freeRef();
+        lastStep = null;
+      }
       startPoint.freeRef();
     }
   }

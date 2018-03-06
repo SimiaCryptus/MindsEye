@@ -23,7 +23,18 @@ import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.lang.ReshapedTensorList;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
-import jcuda.jcudnn.*;
+import jcuda.jcudnn.JCudnn;
+import jcuda.jcudnn.cudnnActivationDescriptor;
+import jcuda.jcudnn.cudnnConvolutionBwdDataPreference;
+import jcuda.jcudnn.cudnnConvolutionBwdFilterPreference;
+import jcuda.jcudnn.cudnnConvolutionDescriptor;
+import jcuda.jcudnn.cudnnConvolutionFwdPreference;
+import jcuda.jcudnn.cudnnFilterDescriptor;
+import jcuda.jcudnn.cudnnHandle;
+import jcuda.jcudnn.cudnnOpTensorDescriptor;
+import jcuda.jcudnn.cudnnOpTensorOp;
+import jcuda.jcudnn.cudnnPoolingDescriptor;
+import jcuda.jcudnn.cudnnTensorDescriptor;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -165,7 +176,7 @@ public class CudnnHandle extends CudaDevice {
    * @param data       the data
    * @param precision  the precision
    * @param memoryType the memory type
-   * @param dense
+   * @param dense      the dense
    * @return the cuda ptr
    */
   @Nonnull
@@ -226,15 +237,17 @@ public class CudnnHandle extends CudaDevice {
    *
    * @param data       the data
    * @param memoryType the memory type
-   * @param dense
+   * @param dense      the dense
    * @return the ptr
    */
   @Nonnull
   public CudaTensor getTensor(@Nonnull final CudaTensorList data, @Nonnull final MemoryType memoryType, final boolean dense) {
     CudaTensor ptr = data.ptr;
-    ptr.addRef();
     if ((null == ptr || ptr.isFinalized()) && null != data.heapCopy && !data.heapCopy.isFinalized()) {
       ptr = getTensor(data.heapCopy, data.getPrecision(), memoryType, false);
+    }
+    else {
+      ptr.addRef();
     }
     if (dense) ptr = ptr.getDenseAndFree(this);
     if (null == ptr) {
@@ -415,6 +428,7 @@ public class CudnnHandle extends CudaDevice {
     log("cudnnConvolutionBackwardData", result, new Object[]{this, alpha, wDesc, w, dyDesc, dy, convDesc, algo, workSpace, workSpaceSizeInBytes, beta, dxDesc, dx});
     return result;
   }
+  
   
   /**
    * Cudnn convolution backward filter int.
@@ -784,6 +798,71 @@ public class CudnnHandle extends CudaDevice {
     cudnnActivationBackward_execution.accept((System.nanoTime() - startTime) / 1e9);
     this.dirty();
     log("cudnnActivationBackward", result, new Object[]{this, activationDesc, alpha, yDesc, y, dyDesc, dy, xDesc, x, beta, dxDesc, dx});
+    return result;
+  }
+  
+  
+  /** Softmax functions: All of the form "output = alpha * Op(inputs) + beta * output" */
+  /**
+   * Function to perform forward softmax  @param algo the algo
+   *
+   * @param mode  the mode
+   * @param alpha the alpha
+   * @param xDesc the x desc
+   * @param x     the x
+   * @param beta  the beta
+   * @param yDesc the y desc
+   * @param y     the y
+   * @return the int
+   */
+  public int cudnnSoftmaxForward(
+    int algo,
+    int mode,
+    CudaPointer alpha,
+    cudnnTensorDescriptor xDesc,
+    CudaPointer x,
+    CudaPointer beta,
+    cudnnTensorDescriptor yDesc,
+    CudaPointer y) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnSoftmaxForward(this.handle, algo, mode, alpha, xDesc, x, beta, yDesc, y);
+    cudnnSoftmaxForward_execution.accept((System.nanoTime() - startTime) / 1e9);
+    this.dirty();
+    log("cudnnSoftmaxForward", result, new Object[]{this, algo, mode, alpha, xDesc, x, beta, yDesc, y});
+    return result;
+  }
+  
+  
+  /**
+   * Function to perform backward softmax  @param algo the algo
+   *
+   * @param mode   the mode
+   * @param alpha  the alpha
+   * @param yDesc  the y desc
+   * @param y      the y
+   * @param dyDesc the dy desc
+   * @param dy     the dy
+   * @param beta   the beta
+   * @param dxDesc the dx desc
+   * @param dx     the dx
+   * @return the int
+   */
+  public int cudnnSoftmaxBackward(
+    int algo,
+    int mode,
+    CudaPointer alpha,
+    cudnnTensorDescriptor yDesc,
+    CudaPointer y,
+    cudnnTensorDescriptor dyDesc,
+    CudaPointer dy,
+    CudaPointer beta,
+    cudnnTensorDescriptor dxDesc,
+    CudaPointer dx) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnSoftmaxBackward(this.handle, algo, mode, alpha, yDesc, y, dyDesc, dy, beta, dxDesc, dx);
+    cudnnSoftmaxBackward_execution.accept((System.nanoTime() - startTime) / 1e9);
+    this.dirty();
+    log("cudnnSoftmaxBackward", result, new Object[]{this, algo, mode, alpha, yDesc, y, dyDesc, dy, beta, dxDesc, dx});
     return result;
   }
   

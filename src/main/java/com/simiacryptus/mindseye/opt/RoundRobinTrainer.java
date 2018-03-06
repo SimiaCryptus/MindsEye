@@ -34,7 +34,11 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -128,8 +132,8 @@ public class RoundRobinTrainer {
    * @return the line search factory
    */
   @javax.annotation.Nonnull
-  public RoundRobinTrainer setLineSearchFactory(@javax.annotation.Nonnull final Supplier<LineSearchStrategy> lineSearchFactory) {
-    this.lineSearchFactory = s -> lineSearchFactory.get();
+  public RoundRobinTrainer setLineSearchFactory(final Function<String, ? extends LineSearchStrategy> lineSearchFactory) {
+    this.lineSearchFactory = lineSearchFactory;
     return this;
   }
   
@@ -140,8 +144,8 @@ public class RoundRobinTrainer {
    * @return the line search factory
    */
   @javax.annotation.Nonnull
-  public RoundRobinTrainer setLineSearchFactory(final Function<String, ? extends LineSearchStrategy> lineSearchFactory) {
-    this.lineSearchFactory = lineSearchFactory;
+  public RoundRobinTrainer setLineSearchFactory(@javax.annotation.Nonnull final Supplier<LineSearchStrategy> lineSearchFactory) {
+    this.lineSearchFactory = s -> lineSearchFactory.get();
     return this;
   }
   

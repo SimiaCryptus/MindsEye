@@ -20,7 +20,11 @@
 package com.simiacryptus.mindseye.opt;
 
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.DoubleBuffer;
+import com.simiacryptus.mindseye.lang.IterativeStopException;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
@@ -303,7 +307,7 @@ public class LayerRateDiagnosticTrainer {
         if (currentIteration.incrementAndGet() > maxIterations) {
           break;
         }
-  
+
         {
           @javax.annotation.Nonnull final SimpleLineSearchCursor orient = (SimpleLineSearchCursor) getOrientation().orient(subject, measure, monitor);
           final double stepSize = 1e-12 * orient.origin.sum;

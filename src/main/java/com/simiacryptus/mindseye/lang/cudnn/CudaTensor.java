@@ -30,11 +30,14 @@ import java.util.function.Function;
  * The type Cuda tensor.
  */
 public class CudaTensor extends ReferenceCountingBase {
-  final CudaMemory memory;
   /**
    * The Descriptor.
    */
   public final CudaDevice.CudaTensorDescriptor descriptor;
+  /**
+   * The Memory.
+   */
+  final CudaMemory memory;
   
   /**
    * Instantiates a new Cuda tensor.
@@ -74,10 +77,23 @@ public class CudaTensor extends ReferenceCountingBase {
     super._free();
   }
   
+  /**
+   * Gets memory.
+   *
+   * @param cudaDevice the cuda device
+   * @return the memory
+   */
   public CudaMemory getMemory(final CudaDevice cudaDevice) {
     return getMemory(cudaDevice, MemoryType.Device);
   }
   
+  /**
+   * Gets memory.
+   *
+   * @param cudaDevice the cuda device
+   * @param memoryType the memory type
+   * @return the memory
+   */
   public CudaMemory getMemory(final CudaDevice cudaDevice, final MemoryType memoryType) {
     if (memory.getType() == MemoryType.Managed) {
       memory.addRef();
@@ -137,6 +153,14 @@ public class CudaTensor extends ReferenceCountingBase {
   
   }
   
+  /**
+   * Read.
+   *
+   * @param gpu              the gpu
+   * @param index            the index
+   * @param result           the result
+   * @param avoidAllocations the avoid allocations
+   */
   @Nonnull
   public void read(final CudnnHandle gpu, final int index, final Tensor result, final boolean avoidAllocations) {
     if (isDense()) {
@@ -169,6 +193,15 @@ public class CudaTensor extends ReferenceCountingBase {
     }
   }
   
+  /**
+   * With dense t.
+   *
+   * @param <T>    the type parameter
+   * @param gpu    the gpu
+   * @param index  the index
+   * @param result the result
+   * @return the t
+   */
   @Nonnull
   public <T> T withDense(final CudnnHandle gpu, final int index, final Function<CudaMemory, T> result) {
     int deviceId = memory.getDeviceId();
@@ -216,6 +249,8 @@ public class CudaTensor extends ReferenceCountingBase {
   
   /**
    * The Descriptor.
+   *
+   * @return the type
    */
   public MemoryType getType() {
     return memory.getType();
@@ -223,6 +258,8 @@ public class CudaTensor extends ReferenceCountingBase {
   
   /**
    * The Descriptor.
+   *
+   * @return the device id
    */
   public int getDeviceId() {
     return memory.getDeviceId();
@@ -230,8 +267,30 @@ public class CudaTensor extends ReferenceCountingBase {
   
   /**
    * The Precision.
+   *
+   * @return the precision
    */
   public Precision getPrecision() {
     return descriptor.dataType;
+  }
+  
+  /**
+   * Copy and free cuda tensor.
+   *
+   * @param device the device
+   * @param type   the type
+   * @return the cuda tensor
+   */
+  public CudaTensor copyAndFree(final CudaDevice device, final MemoryType type) {
+    return new CudaTensor(memory.copy(device, type), descriptor, getPrecision());
+  }
+  
+  /**
+   * Size long.
+   *
+   * @return the long
+   */
+  public long size() {
+    return memory.size;
   }
 }

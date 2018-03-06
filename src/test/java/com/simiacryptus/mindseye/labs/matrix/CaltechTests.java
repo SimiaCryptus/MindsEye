@@ -21,10 +21,20 @@ package com.simiacryptus.mindseye.labs.matrix;
 
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
-import com.simiacryptus.mindseye.layers.java.*;
+import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
+import com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer;
+import com.simiacryptus.mindseye.layers.java.ImgCropLayer;
+import com.simiacryptus.mindseye.layers.java.ImgReshapeLayer;
+import com.simiacryptus.mindseye.layers.java.NormalizationMetaLayer;
+import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
+import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.data.Caltech101;
-import com.simiacryptus.mindseye.test.integration.*;
+import com.simiacryptus.mindseye.test.integration.CaltechProblemData;
+import com.simiacryptus.mindseye.test.integration.FwdNetworkFactory;
+import com.simiacryptus.mindseye.test.integration.ImageProblemData;
+import com.simiacryptus.mindseye.test.integration.OptimizationStrategy;
+import com.simiacryptus.mindseye.test.integration.RevNetworkFactory;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import java.util.function.IntToDoubleFunction;
@@ -42,7 +52,7 @@ public class CaltechTests {
     log.p("The image-to-vector network is a single layer convolutional:");
     return log.code(() -> {
       @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
-  
+
       @javax.annotation.Nonnull IntToDoubleFunction weights = i -> 1e-8 * (Math.random() - 0.5);
       network.add(new ConvolutionLayer(3, 3, 3, 10).set(weights));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));

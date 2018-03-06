@@ -22,7 +22,11 @@ package com.simiacryptus.mindseye.network;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
-import com.simiacryptus.mindseye.layers.java.*;
+import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
+import com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer;
+import com.simiacryptus.mindseye.layers.java.ImgCropLayer;
+import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
+import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 
 import java.util.ArrayList;
 

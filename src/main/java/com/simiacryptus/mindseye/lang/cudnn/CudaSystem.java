@@ -26,7 +26,14 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.lang.StaticResourcePool;
-import jcuda.jcudnn.*;
+import jcuda.jcudnn.JCudnn;
+import jcuda.jcudnn.cudnnActivationDescriptor;
+import jcuda.jcudnn.cudnnConvolutionDescriptor;
+import jcuda.jcudnn.cudnnFilterDescriptor;
+import jcuda.jcudnn.cudnnOpTensorDescriptor;
+import jcuda.jcudnn.cudnnPoolingDescriptor;
+import jcuda.jcudnn.cudnnStatus;
+import jcuda.jcudnn.cudnnTensorDescriptor;
 import jcuda.runtime.JCuda;
 import jcuda.runtime.cudaDeviceProp;
 import jcuda.runtime.cudaStream_t;
@@ -36,7 +43,15 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.PrintStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.ConcurrentModificationException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -146,6 +161,14 @@ public class CudaSystem {
    * The constant cudaMemset_execution.
    */
   protected static final DoubleStatistics cudaMemset_execution = new DoubleStatistics();
+  /**
+   * The constant cudnnActivationBackward_execution.
+   */
+  protected static final DoubleStatistics cudnnSoftmaxForward_execution = new DoubleStatistics();
+  /**
+   * The constant cudnnActivationBackward_execution.
+   */
+  protected static final DoubleStatistics cudnnSoftmaxBackward_execution = new DoubleStatistics();
   /**
    * The constant cudnnActivationBackward_execution.
    */
@@ -912,8 +935,8 @@ public class CudaSystem {
   /**
    * With device.
    *
-   * @param deviceId      the n
-   * @param action the action
+   * @param deviceId the n
+   * @param action   the action
    */
   public static void withDevice(int deviceId, @javax.annotation.Nonnull Consumer<CudaDevice> action) {
     assert deviceId >= 0;

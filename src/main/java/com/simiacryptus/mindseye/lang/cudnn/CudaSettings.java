@@ -55,16 +55,16 @@ public class CudaSettings implements Settings {
     maxAllocSize = Settings.get("MAX_ALLOC_SIZE", Precision.Double.size * (Integer.MAX_VALUE - 1L));
     maxFilterElements = Settings.get("MAX_FILTER_ELEMENTS", 512 * CudaMemory.MiB);
     maxIoElements = Settings.get("MAX_IO_ELEMENTS", 1 * CudaMemory.MiB);
-    convolutionWorkspaceSizeLimit = Settings.get("CONVOLUTION_WORKSPACE_SIZE_LIMIT", 64 * CudaMemory.MiB);
+    convolutionWorkspaceSizeLimit = Settings.get("CONVOLUTION_WORKSPACE_SIZE_LIMIT", 512 * CudaMemory.MiB);
     disable = Settings.get("DISABLE_CUDNN", false);
     forceSingleGpu = Settings.get("FORCE_SINGLE_GPU", false);
-    streamsPerGpu = Settings.get("STREAMS_PER_GPU", 4);
+    streamsPerGpu = Settings.get("STREAMS_PER_GPU", 6);
     workspaceCachePersistance = Settings.get("CONV_CACHE_MODE", PersistanceMode.WEAK);
     conv_para_1 = Settings.get("CONV_PARA_1", true);
     conv_para_2 = Settings.get("CONV_PARA_2", true);
     conv_para_3 = Settings.get("CONV_PARA_3", true);
     memoryCacheMode = Settings.get("CUDA_CACHE_MODE", PersistanceMode.WEAK);
-    logStack = Settings.get("CUDA_LOG_STACK", true);
+    logStack = Settings.get("CUDA_LOG_STACK", false);
   }
   
   /**
@@ -184,6 +184,11 @@ public class CudaSettings implements Settings {
     return maxDeviceMemory;
   }
   
+  /**
+   * Is log stack boolean.
+   *
+   * @return the boolean
+   */
   public boolean isLogStack() {
     return logStack;
   }

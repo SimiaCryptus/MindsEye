@@ -55,7 +55,7 @@ public abstract class ImgBandBiasLayerTest extends CudaLayerTestBase {
   @javax.annotation.Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
-    return new ImgBandBiasLayer(3).setPrecision(precision).addWeights(this::random);
+    return new ImgBandBiasLayer(3).setPrecision(precision);//.addWeights(this::random);
   }
   
   @javax.annotation.Nonnull

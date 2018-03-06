@@ -36,17 +36,16 @@ public abstract class ImgBandSelectLayerTest extends CudaLayerTestBase {
    * The Precision.
    */
   final Precision precision;
+  private final int smallSize;
+  private final int largeSize;
   /**
    * The LayerBase.
    */
   ImgBandSelectLayer layer;
-  
   /**
    * The Input bands.
    */
   int inputBands;
-  private final int smallSize;
-  private final int largeSize;
   
   /**
    * Instantiates a new Img concat layer run.

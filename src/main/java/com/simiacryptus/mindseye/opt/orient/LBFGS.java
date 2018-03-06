@@ -20,7 +20,11 @@
 package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.Delta;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.DoubleBufferSet;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
@@ -29,7 +33,11 @@ import com.simiacryptus.util.ArrayUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**

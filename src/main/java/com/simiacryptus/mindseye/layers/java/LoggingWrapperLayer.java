@@ -20,7 +20,11 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.ReferenceCounting;
+import com.simiacryptus.mindseye.lang.Result;
+import com.simiacryptus.mindseye.lang.TensorList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

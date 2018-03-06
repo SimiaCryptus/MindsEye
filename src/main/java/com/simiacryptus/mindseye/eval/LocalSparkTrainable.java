@@ -19,7 +19,11 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.lang.StateSet;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.rdd.RDD;

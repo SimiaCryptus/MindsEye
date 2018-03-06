@@ -21,26 +21,58 @@ package com.simiacryptus.mindseye.lang.cudnn;
 
 import jcuda.Pointer;
 
+/**
+ * The type Cuda pointer.
+ */
 public class CudaPointer extends Pointer {
   
+  /**
+   * The Device id.
+   */
   public final int deviceId = CudaSystem.getThreadDeviceId();
   
+  /**
+   * Instantiates a new Cuda pointer.
+   *
+   * @param other the other
+   */
   public CudaPointer(final Pointer other) {
     super(other);
   }
   
+  /**
+   * Instantiates a new Cuda pointer.
+   *
+   * @param other      the other
+   * @param byteOffset the byte offset
+   */
   public CudaPointer(final Pointer other, final long byteOffset) {
     super(other, byteOffset);
   }
   
+  /**
+   * Instantiates a new Cuda pointer.
+   */
   public CudaPointer() {
     super();
   }
   
+  /**
+   * To cuda pointer.
+   *
+   * @param values the values
+   * @return the cuda pointer
+   */
   public static CudaPointer to(float values[]) {
     return new CudaPointer(Pointer.to(values));
   }
   
+  /**
+   * To cuda pointer.
+   *
+   * @param values the values
+   * @return the cuda pointer
+   */
   public static CudaPointer to(double values[]) {
     return new CudaPointer(Pointer.to(values));
   }

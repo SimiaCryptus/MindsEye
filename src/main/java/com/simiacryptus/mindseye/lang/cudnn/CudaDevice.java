@@ -20,7 +20,14 @@
 package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.simiacryptus.util.lang.TimedResult;
-import jcuda.jcudnn.*;
+import jcuda.jcudnn.JCudnn;
+import jcuda.jcudnn.cudnnActivationDescriptor;
+import jcuda.jcudnn.cudnnConvolutionDescriptor;
+import jcuda.jcudnn.cudnnFilterDescriptor;
+import jcuda.jcudnn.cudnnNanPropagation;
+import jcuda.jcudnn.cudnnOpTensorDescriptor;
+import jcuda.jcudnn.cudnnPoolingDescriptor;
+import jcuda.jcudnn.cudnnTensorDescriptor;
 import jcuda.runtime.JCuda;
 import jcuda.runtime.cudaDeviceProp;
 import org.slf4j.Logger;
@@ -304,7 +311,6 @@ public class CudaDevice extends CudaSystem {
   }
   
   
-  
   /**
    * New tensor descriptor cuda resource.
    *
@@ -441,80 +447,6 @@ public class CudaDevice extends CudaSystem {
   }
   
   /**
-   * The type Cuda tensor descriptor.
-   */
-  public static class CudaTensorDescriptor extends CudaResource<cudnnTensorDescriptor> {
-    
-    /**
-     * The W stride.
-     */
-    public final int wStride;
-    /**
-     * The H stride.
-     */
-    public final int hStride;
-    /**
-     * The C stride.
-     */
-    public final int cStride;
-    /**
-     * The N stride.
-     */
-    public final int nStride;
-    /**
-     * The Width.
-     */
-    public final int width;
-    /**
-     * The Height.
-     */
-    public final int height;
-    /**
-     * The Channels.
-     */
-    public final int channels;
-    /**
-     * The Batch count.
-     */
-    public final int batchCount;
-    /**
-     * The Data type.
-     */
-    public final Precision dataType;
-    
-    /**
-     * Instantiates a new Cuda resource.
-     *
-     * @param obj        the obj
-     * @param deviceId   the device id
-     * @param dataType   the data type
-     * @param batchCount the batch count
-     * @param channels   the channels
-     * @param height     the height
-     * @param width      the width
-     * @param nStride    the n stride
-     * @param cStride    the c stride
-     * @param hStride    the h stride
-     * @param wStride    the w stride
-     */
-    protected CudaTensorDescriptor(final cudnnTensorDescriptor obj, final int deviceId, final Precision dataType,
-      final int batchCount, final int channels, final int height, final int width,
-      final int nStride, final int cStride, final int hStride, final int wStride) {
-      super(obj, CudaSystem::cudnnDestroyTensorDescriptor, deviceId);
-      this.dataType = dataType;
-      this.batchCount = batchCount;
-      this.channels = channels;
-      this.height = height;
-      this.width = width;
-      this.nStride = nStride;
-      this.cStride = cStride;
-      this.hStride = hStride;
-      this.wStride = wStride;
-    }
-    
-  }
-  
-  /**
    * New activation descriptor cuda resource.
    *
    * @param mode     the mode
@@ -600,5 +532,79 @@ public class CudaDevice extends CudaSystem {
   @javax.annotation.Nonnull
   public String getDeviceName() {
     return new String(getDeviceProperties().name, Charset.forName("ASCII")).trim();
+  }
+  
+  /**
+   * The type Cuda tensor descriptor.
+   */
+  public static class CudaTensorDescriptor extends CudaResource<cudnnTensorDescriptor> {
+    
+    /**
+     * The W stride.
+     */
+    public final int wStride;
+    /**
+     * The H stride.
+     */
+    public final int hStride;
+    /**
+     * The C stride.
+     */
+    public final int cStride;
+    /**
+     * The N stride.
+     */
+    public final int nStride;
+    /**
+     * The Width.
+     */
+    public final int width;
+    /**
+     * The Height.
+     */
+    public final int height;
+    /**
+     * The Channels.
+     */
+    public final int channels;
+    /**
+     * The Batch count.
+     */
+    public final int batchCount;
+    /**
+     * The Data type.
+     */
+    public final Precision dataType;
+    
+    /**
+     * Instantiates a new Cuda resource.
+     *
+     * @param obj        the obj
+     * @param deviceId   the device id
+     * @param dataType   the data type
+     * @param batchCount the batch count
+     * @param channels   the channels
+     * @param height     the height
+     * @param width      the width
+     * @param nStride    the n stride
+     * @param cStride    the c stride
+     * @param hStride    the h stride
+     * @param wStride    the w stride
+     */
+    protected CudaTensorDescriptor(final cudnnTensorDescriptor obj, final int deviceId, final Precision dataType,
+      final int batchCount, final int channels, final int height, final int width,
+      final int nStride, final int cStride, final int hStride, final int wStride) {
+      super(obj, CudaSystem::cudnnDestroyTensorDescriptor, deviceId);
+      this.dataType = dataType;
+      this.batchCount = batchCount;
+      this.channels = channels;
+      this.height = height;
+      this.width = width;
+      this.nStride = nStride;
+      this.cStride = cStride;
+      this.hStride = hStride;
+      this.wStride = wStride;
+    }
+    
   }
 }

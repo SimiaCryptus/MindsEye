@@ -19,8 +19,20 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
-import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.lang.cudnn.*;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.ReferenceCounting;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorArray;
+import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
+import com.simiacryptus.mindseye.lang.cudnn.CudaMemory;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
+import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
+import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
+import com.simiacryptus.mindseye.lang.cudnn.CudnnHandle;
+import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
+import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.test.SimpleGpuEval;
 import com.simiacryptus.mindseye.test.SimpleResult;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
@@ -60,7 +72,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
    * Test tolerance statistics.
    *
    * @param log
-   * @param layer      the reference
+   * @param layer          the reference
    * @param inputPrototype the input prototype
    * @return the tolerance statistics
    */

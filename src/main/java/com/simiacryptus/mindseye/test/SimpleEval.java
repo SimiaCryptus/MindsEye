@@ -19,7 +19,13 @@
 
 package com.simiacryptus.mindseye.test;
 
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
+import com.simiacryptus.mindseye.lang.Result;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorArray;
+import com.simiacryptus.mindseye.lang.TensorList;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -94,7 +100,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
       }) {
         @Override
         protected void _free() {
-        
+  
         }
         
         @Override

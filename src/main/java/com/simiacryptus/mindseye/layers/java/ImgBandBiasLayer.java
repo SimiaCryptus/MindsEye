@@ -20,7 +20,17 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.DataSerializer;
+import com.simiacryptus.mindseye.lang.Delta;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.LayerBase;
+import com.simiacryptus.mindseye.lang.RecycleBin;
+import com.simiacryptus.mindseye.lang.Result;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorArray;
+import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
 import org.slf4j.Logger;
@@ -243,5 +253,42 @@ public class ImgBandBiasLayer extends LayerBase {
   @Override
   public List<double[]> state() {
     return Arrays.asList(getBias());
+  }
+  
+  /**
+   * Sets weights log.
+   *
+   * @param value the value
+   * @return the weights log
+   */
+  @javax.annotation.Nonnull
+  public ImgBandBiasLayer setWeightsLog(final double value) {
+    for (int i = 0; i < bias.length; i++) {
+      bias[i] = (FastRandom.INSTANCE.random() - 0.5) * Math.pow(10, value);
+    }
+    return this;
+  }
+  
+  
+  /**
+   * Sets and free.
+   *
+   * @param tensor the tensor
+   * @return the and free
+   */
+  public ImgBandBiasLayer setAndFree(final com.simiacryptus.mindseye.lang.Tensor tensor) {
+    set(tensor.getData());
+    tensor.freeRef();
+    return this;
+  }
+  
+  /**
+   * Set img band bias layer.
+   *
+   * @param tensor the tensor
+   * @return the img band bias layer
+   */
+  public ImgBandBiasLayer set(final com.simiacryptus.mindseye.lang.Tensor tensor) {
+    return (ImgBandBiasLayer) set(tensor.getData());
   }
 }

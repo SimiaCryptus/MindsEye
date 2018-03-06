@@ -19,7 +19,15 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.ConstantResult;
+import com.simiacryptus.mindseye.lang.Delta;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.DoubleBuffer;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.Result;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorArray;
+import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;

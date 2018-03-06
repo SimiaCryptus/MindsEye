@@ -49,7 +49,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   static {
     if (CoreSettings.INSTANCE == null) throw new RuntimeException();
   }
-
+  
   private final UUID objectId = CoreSettings.INSTANCE.isLifecycleDebug() ? UUID.randomUUID() : jvmId;
   private final AtomicInteger references = new AtomicInteger(1);
   private final AtomicBoolean isFreed = new AtomicBoolean(false);

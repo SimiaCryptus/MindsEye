@@ -20,12 +20,21 @@ package com.simiacryptus.mindseye.models;
 
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.cudnn.*;
+import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
+import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
+import com.simiacryptus.mindseye.layers.cudnn.GateProductLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ImgMinSizeLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ImgModulusPaddingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgZeroPaddingLayer;
+import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
+import com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.StochasticSamplingSubnetLayer;
-import com.simiacryptus.mindseye.layers.java.*;
-import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.layers.java.AssertDimensionsLayer;
+import com.simiacryptus.mindseye.layers.java.BiasLayer;
+import com.simiacryptus.mindseye.layers.java.ImgReshapeLayer;
+import com.simiacryptus.mindseye.layers.java.StochasticBinaryNoiseLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.slf4j.Logger;
@@ -558,20 +567,39 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
   
     /**
      * The Samples.
+     *
+     * @return the samples
      */
     public int getSamples() {
       return samples;
     }
   
+    /**
+     * Sets samples.
+     *
+     * @param samples the samples
+     * @return the samples
+     */
     public Noisy setSamples(int samples) {
       this.samples = samples;
       return this;
     }
   
+    /**
+     * Gets density.
+     *
+     * @return the density
+     */
     public double getDensity() {
       return density;
     }
   
+    /**
+     * Sets density.
+     *
+     * @param density the density
+     * @return the density
+     */
     public Noisy setDensity(double density) {
       this.density = density;
       return this;
