@@ -211,7 +211,7 @@ public class CudnnHandle extends CudaDevice {
         return this.getTensor(cudaTensorList, memoryType, dense);
       }
       else {
-        CudaTensorList.logger.warn(String.format("Incompatible precision types in GPU at %s, created by %s",
+        CudaTensorList.logger.warn(String.format("Incompatible precision types for Tensor %s in GPU at %s, created by %s", Integer.toHexString(System.identityHashCode(cudaTensorList1)),
           com.simiacryptus.mindseye.test.TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
           com.simiacryptus.mindseye.test.TestUtil.toString(cudaTensorList1.createdBy).replaceAll("\n", "\n\t")));
       }

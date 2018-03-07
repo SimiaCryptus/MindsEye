@@ -1576,6 +1576,32 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     return img;
   }
   
+  /**
+   * To rgb image buffered image.
+   *
+   * @param redBand   the red band
+   * @param greenBand the green band
+   * @param blueBand  the blue band
+   * @return the buffered image
+   */
+  @javax.annotation.Nonnull
+  public BufferedImage toRgbImageAlphaMask(final int redBand, final int greenBand, final int blueBand, com.simiacryptus.mindseye.lang.Tensor alphaMask) {
+    assert alphaMask.getDimensions()[0] == getDimensions()[0];
+    assert alphaMask.getDimensions()[1] == getDimensions()[1];
+    @javax.annotation.Nonnull final int[] dims = getDimensions();
+    @javax.annotation.Nonnull final BufferedImage img = new BufferedImage(dims[0], dims[1], java.awt.image.BufferedImage.TYPE_INT_ARGB);
+    for (int x = 0; x < img.getWidth(); x++) {
+      for (int y = 0; y < img.getHeight(); y++) {
+        final double red = Tensor.bound8bit(this.get(x, y, redBand));
+        final double green = Tensor.bound8bit(this.get(x, y, greenBand));
+        final double blue = Tensor.bound8bit(this.get(x, y, blueBand));
+        final double alpha = Tensor.bound8bit(alphaMask.get(x, y, 0));
+        img.setRGB(x, y, (int) (red + ((int) green << 8) + ((int) blue << 16) + ((int) alpha << 24)));
+      }
+    }
+    return img;
+  }
+  
   @javax.annotation.Nonnull
   @Override
   public String toString() {

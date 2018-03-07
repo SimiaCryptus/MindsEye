@@ -253,8 +253,8 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
         }
         return t;
       });
-      CudaTensorList.logger.debug(String.format("Read %s bytes in %.4f from GPU at %s, created by %s",
-        ptr.size(), timedResult.seconds(),
+      CudaTensorList.logger.debug(String.format("Read %s bytes in %.4f from Tensor %s, GPU at %s, created by %s",
+        ptr.size(), timedResult.seconds(), Integer.toHexString(System.identityHashCode(timedResult.result)),
         com.simiacryptus.mindseye.test.TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
         com.simiacryptus.mindseye.test.TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
       Tensor tensor = timedResult.result;
@@ -342,8 +342,8 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
         this.ptr.freeRef();
       }
     }, this));
-    CudaTensorList.logger.debug(String.format("Read %s bytes in %.4f from GPU at %s, created by %s",
-      ptr.size(), timedResult.seconds(),
+    CudaTensorList.logger.debug(String.format("Read %s bytes in %.4f from Tensor %s on GPU at %s, created by %s",
+      ptr.size(), timedResult.seconds(), Integer.toHexString(System.identityHashCode(timedResult.result)),
       com.simiacryptus.mindseye.test.TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
       com.simiacryptus.mindseye.test.TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
     return timedResult.result;

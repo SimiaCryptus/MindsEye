@@ -291,9 +291,11 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
    * Phase 3 b.
    */
   protected void phase3b() {
+    add(new SoftmaxActivationLayer()
+      .setAlgorithm(com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE)
+      .setMode(com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
     add(new BandReducerLayer()
       .setMode(getFinalPoolingMode()));
-    add(new SoftmaxActivationLayer());
   }
   
   /**

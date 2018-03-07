@@ -84,7 +84,7 @@ public class DeepDreamDemo extends ArtistryDemo {
       return result.setLarge(true).setFinalPoolingMode(PoolingLayer.PoolingMode.Avg);
     });
   
-    Tensor[] images = getImages_Artistry(log);
+    Tensor[] images = getImages_Caltech(log);
     
     List<String> vgg16Categories = vgg16.getCategories();
     for (int itemNumber = 0; itemNumber < images.length; itemNumber++) {
@@ -93,7 +93,7 @@ public class DeepDreamDemo extends ArtistryDemo {
       TestUtil.monitorImage(image, false);
       List<String> categories = vgg16.predict(8, image).stream().flatMap(x -> x.keySet().stream()).collect(Collectors.toList());
       log.p("Predictions: %s", categories.stream().reduce((a, b) -> a + "; " + b).get());
-      log.p("Evolve from %s to %s", categories.get(0), categories.get(3));
+      log.p("Evolve from %s to %s", categories.get(0), categories.get(2));
       int targetCategoryIndex = vgg16Categories.indexOf(categories.get(1));
       int totalCategories = vgg16Categories.size();
       Function<IterativeTrainer, IterativeTrainer> config = train -> train

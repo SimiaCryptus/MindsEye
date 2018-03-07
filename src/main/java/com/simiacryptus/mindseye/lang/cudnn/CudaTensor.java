@@ -108,8 +108,8 @@ public class CudaTensor extends ReferenceCountingBase {
     }
     else {
       com.simiacryptus.util.lang.TimedResult<CudaMemory> timedResult = com.simiacryptus.util.lang.TimedResult.time(() -> memory.copy(cudaDevice, memoryType));
-      CudaTensorList.logger.debug(String.format("Copy %s bytes in %.4f from GPU %s to %s at %s, created by %s",
-        memory.size, timedResult.seconds(), memory.getDeviceId(), cudaDevice.getDeviceId(),
+      CudaTensorList.logger.debug(String.format("Copy %s bytes in %.4f from Tensor %s on GPU %s to %s at %s, created by %s",
+        memory.size, timedResult.seconds(), Integer.toHexString(System.identityHashCode(this)), memory.getDeviceId(), cudaDevice.getDeviceId(),
         com.simiacryptus.mindseye.test.TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
         com.simiacryptus.mindseye.test.TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
       return timedResult.result;
@@ -146,17 +146,24 @@ public class CudaTensor extends ReferenceCountingBase {
       addRef();
       return this;
     }
-    CudaDevice.CudaTensorDescriptor destDescriptor = gpu.newTensorDescriptor(
-      getPrecision(), this.descriptor.batchCount, this.descriptor.channels, this.descriptor.height, this.descriptor.width,
-      this.descriptor.channels * this.descriptor.height * this.descriptor.width, this.descriptor.height * this.descriptor.width, this.descriptor.width, 1);
-    CudaMemory destMemory = gpu.allocate(destDescriptor.nStride * destDescriptor.batchCount * getPrecision().size, getType(), true);
-    CudaMemory memory = getMemory(gpu);
-    gpu.cudnnTransformTensor(
-      getPrecision().getPointer(1.0), this.descriptor.getPtr(), memory.getPtr(),
-      getPrecision().getPointer(0.0), destDescriptor.getPtr(), destMemory.getPtr());
-    memory.freeRef();
-    CudaTensor cudaTensor = CudaTensor.wrap(destMemory, destDescriptor, getPrecision());
+    com.simiacryptus.util.lang.TimedResult<CudaTensor> timedResult = com.simiacryptus.util.lang.TimedResult.time(() -> {
+      com.simiacryptus.mindseye.lang.cudnn.CudaDevice.CudaTensorDescriptor destDescriptor = gpu.newTensorDescriptor(
+        getPrecision(), this.descriptor.batchCount, this.descriptor.channels, this.descriptor.height, this.descriptor.width,
+        this.descriptor.channels * this.descriptor.height * this.descriptor.width, this.descriptor.height * this.descriptor.width, this.descriptor.width, 1);
+      com.simiacryptus.mindseye.lang.cudnn.CudaMemory destMemory = gpu.allocate(destDescriptor.nStride * destDescriptor.batchCount * getPrecision().size, getType(), true);
+      com.simiacryptus.mindseye.lang.cudnn.CudaMemory memory = getMemory(gpu);
+      gpu.cudnnTransformTensor(
+        getPrecision().getPointer(1.0), this.descriptor.getPtr(), memory.getPtr(),
+        getPrecision().getPointer(0.0), destDescriptor.getPtr(), destMemory.getPtr());
+      memory.freeRef();
+      return com.simiacryptus.mindseye.lang.cudnn.CudaTensor.wrap(destMemory, destDescriptor, getPrecision());
+    });
+    CudaTensor cudaTensor = timedResult.result;
     assert cudaTensor.isDense();
+    CudaTensorList.logger.debug(String.format("Densified %s bytes in %.4f from GPU %s at %s, created by %s",
+      cudaTensor.memory.size, timedResult.seconds(), Integer.toHexString(System.identityHashCode(this)),
+      com.simiacryptus.mindseye.test.TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
+      com.simiacryptus.mindseye.test.TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
     return cudaTensor;
   
   }
