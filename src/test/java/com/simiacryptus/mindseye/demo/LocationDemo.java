@@ -142,12 +142,26 @@ public class LocationDemo extends ArtistryDemo {
     log.setFrontMatterProperty("status", "OK");
   }
   
+  /**
+   * Render alpha tensor.
+   *
+   * @param img        the img
+   * @param rawDelta   the raw delta
+   * @param alphaPower the alpha power
+   * @return the tensor
+   */
   public Tensor renderAlpha(final Tensor img, final double[] rawDelta, final double alphaPower) {
     Tensor deltaColor = new Tensor(rawDelta, img.getDimensions()).mapAndFree(x -> Math.abs(x));
     Tensor delta1d = blur(reduce(deltaColor), 3);
     return TestUtil.normalizeBands(TestUtil.normalizeBands(delta1d, 1).mapAndFree(x -> Math.pow(x, alphaPower)));
   }
   
+  /**
+   * Reduce tensor.
+   *
+   * @param deltaColor the delta color
+   * @return the tensor
+   */
   @Nonnull
   public Tensor reduce(final Tensor deltaColor) {
     return new Tensor(deltaColor.getDimensions()[0], deltaColor.getDimensions()[1], 1).setByCoord(c -> {
@@ -157,6 +171,13 @@ public class LocationDemo extends ArtistryDemo {
     });
   }
   
+  /**
+   * Blur tensor.
+   *
+   * @param delta1d    the delta 1 d
+   * @param iterations the iterations
+   * @return the tensor
+   */
   @Nonnull
   public Tensor blur(Tensor delta1d, final int iterations) {
     ConvolutionLayer blur = new ConvolutionLayer(3, 3, 1, 1);
@@ -171,6 +192,12 @@ public class LocationDemo extends ArtistryDemo {
     return delta1d;
   }
   
+  /**
+   * Load image caltech 101 tensor [ ] [ ].
+   *
+   * @param log the log
+   * @return the tensor [ ] [ ]
+   */
   public Tensor[][] loadImage_Caltech101(@Nonnull final NotebookOutput log) {
     return log.code(() -> {
       return Caltech101.trainingDataStream().sorted(getShuffleComparator()).map(labeledObj -> {

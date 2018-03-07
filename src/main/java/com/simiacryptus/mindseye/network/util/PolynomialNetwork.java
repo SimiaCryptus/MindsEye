@@ -269,7 +269,7 @@ public class PolynomialNetwork extends DAGNetwork {
      * The Power.
      */
     public final double power;
-
+  
     /**
      * Instantiates a new Correcton.
      *
@@ -282,7 +282,7 @@ public class PolynomialNetwork extends DAGNetwork {
       this.bias = bias;
       this.factor = factor;
     }
-
+  
     /**
      * Instantiates a new Correcton.
      *

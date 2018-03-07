@@ -37,6 +37,9 @@ public class CudaTensor extends ReferenceCountingBase implements CudaSystem.Cuda
    * The Descriptor.
    */
   public final CudaDevice.CudaTensorDescriptor descriptor;
+  /**
+   * The Created by.
+   */
   public final StackTraceElement[] createdBy = CudaSettings.INSTANCE.isProfileMemoryIO() ? CudaTensorList.getStackTrace() : new StackTraceElement[]{};
   /**
    * The Memory.

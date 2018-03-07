@@ -1582,6 +1582,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    * @param redBand   the red band
    * @param greenBand the green band
    * @param blueBand  the blue band
+   * @param alphaMask the alpha mask
    * @return the buffered image
    */
   @Nonnull

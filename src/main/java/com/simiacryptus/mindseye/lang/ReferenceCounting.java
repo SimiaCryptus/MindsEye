@@ -49,6 +49,9 @@ public interface ReferenceCounting {
    */
   default void freeRef() {}
   
+  /**
+   * Free ref async.
+   */
   default void freeRefAsync() {}
   
   /**

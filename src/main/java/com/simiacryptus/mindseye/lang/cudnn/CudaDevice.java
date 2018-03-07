@@ -196,7 +196,7 @@ public class CudaDevice extends CudaSystem {
       if (size > CudaSettings.INSTANCE.getMaxAllocSize()) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
-      metrics = CudaMemory.getGpuStats(type == MemoryType.Managed ? -1 : deviceId);
+      metrics = CudaMemory.getGpuStats(deviceId);
       double resultingTotalMemory = CudaMemory.METRICS.values().stream().mapToLong(m -> m.usedMemory.get()).sum() + size;
       if (resultingTotalMemory > CudaSettings.INSTANCE.getMaxTotalMemory()) {
         CudaMemory.logger.info(String.format("Clearing weak global memory while allocating %e bytes (%e > %e)", (double) size, resultingTotalMemory, CudaSettings.INSTANCE.getMaxTotalMemory()));
@@ -538,7 +538,7 @@ public class CudaDevice extends CudaSystem {
    * The type Cuda tensor descriptor.
    */
   public static class CudaTensorDescriptor extends CudaResource<cudnnTensorDescriptor> {
-    
+  
     /**
      * The W stride.
      */
@@ -575,7 +575,7 @@ public class CudaDevice extends CudaSystem {
      * The Data type.
      */
     public final Precision dataType;
-    
+  
     /**
      * Instantiates a new Cuda resource.
      *

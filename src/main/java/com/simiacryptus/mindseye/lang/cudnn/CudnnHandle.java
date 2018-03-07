@@ -127,8 +127,7 @@ public class CudnnHandle extends CudaDevice {
     @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = newTensorDescriptor(left.getPrecision(),
       length, d2, d1, d0,
       d2 * d1 * d0, d1 * d0, d0, 1);
-    MemoryType memoryType = MemoryType.Managed;
-    @Nonnull final CudaMemory outputPtr = allocate((long) outputDescriptor.nStride * precision.size * length, memoryType, true);
+    @Nonnull final CudaMemory outputPtr = allocate((long) outputDescriptor.nStride * precision.size * length, MemoryType.Managed, true);
     try {
       CudaMemory lPtrMemory = lPtr.getMemory(this);
       CudaMemory rPtrMemory = rPtr.getMemory(this);
@@ -810,6 +809,7 @@ public class CudnnHandle extends CudaDevice {
   /**
    * Function to perform forward softmax  @param algo the algo
    *
+   * @param algo  the algo
    * @param mode  the mode
    * @param alpha the alpha
    * @param xDesc the x desc
@@ -840,6 +840,7 @@ public class CudnnHandle extends CudaDevice {
   /**
    * Function to perform backward softmax  @param algo the algo
    *
+   * @param algo   the algo
    * @param mode   the mode
    * @param alpha  the alpha
    * @param yDesc  the y desc

@@ -54,39 +54,6 @@ public enum MemoryType {
     }
     
     @Override
-    public void recycle(final CudaPointer ptr, final int deviceId, final long length) {
-      cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDeviceId());
-      if (properties.managedMemory == 1) {
-        super.recycle(ptr, -1, length);
-      }
-      else {
-        Device.recycle(ptr, -1, length);
-      }
-    }
-    
-    @Override
-    public CudaPointer allocCached(final long size, final CudaDevice cudaDevice) {
-      cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDeviceId());
-      if (properties.managedMemory == 1) {
-        return super.allocCached(size, cudaDevice);
-      }
-      else {
-        return Device.allocCached(size, cudaDevice);
-      }
-    }
-    
-    @Override
-    protected RecycleBin<ReferenceWrapper<CudaPointer>> get(final int device) {
-      cudaDeviceProp properties = CudaDevice.getDeviceProperties(CudaSystem.getThreadDeviceId());
-      if (properties.managedMemory == 1) {
-        return super.get(-1);
-      }
-      else {
-        return super.get(device);
-      }
-    }
-  
-    @Override
     void free(CudaPointer ptr, int deviceId) {
       CudaDevice.cudaFree(deviceId, ptr);
     }
@@ -166,17 +133,6 @@ public enum MemoryType {
    */
   protected static final Logger logger = LoggerFactory.getLogger(MemoryType.class);
   private final Map<Integer, RecycleBin<ReferenceWrapper<CudaPointer>>> cache = new ConcurrentHashMap<>();
-  
-  /**
-   * Gets memory type.
-   *
-   * @param deviceId the device id
-   * @return the memory type
-   */
-  @Nonnull
-  public static MemoryType getMemoryType(final int deviceId) {
-    return -1 == deviceId ? Managed : Device;
-  }
   
   /**
    * Free.

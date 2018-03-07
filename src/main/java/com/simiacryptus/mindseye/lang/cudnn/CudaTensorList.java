@@ -45,6 +45,9 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
   public static final Logger logger = LoggerFactory.getLogger(CudaTensorList.class);
   
   
+  /**
+   * The Created by.
+   */
   public final StackTraceElement[] createdBy = CudaSettings.INSTANCE.isProfileMemoryIO() ? getStackTrace() : new StackTraceElement[]{};
   @Nonnull
   private final int[] dimensions;
@@ -85,6 +88,11 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
     //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
   }
   
+  /**
+   * Get stack trace stack trace element [ ].
+   *
+   * @return the stack trace element [ ]
+   */
   public static StackTraceElement[] getStackTrace() {
     return Arrays.stream(Thread.currentThread().getStackTrace())
       .filter(x -> x.getClassName().startsWith("com.simiacryptus.mindseye.") && !x.getClassName().startsWith("com.simiacryptus.mindseye.lang."))
@@ -372,8 +380,8 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
   @Override
   public TensorList copy() {
     return CudaSystem.eval(gpu -> {
-      CudaTensor ptr = gpu.getTensor(this, MemoryType.Managed, false);
-      CudaMemory cudaMemory = ptr.getMemory(gpu, MemoryType.Managed);
+      CudaTensor ptr = gpu.getTensor(this, MemoryType.Device, false);
+      CudaMemory cudaMemory = ptr.getMemory(gpu, MemoryType.Device);
       CudaMemory copyPtr = cudaMemory.copy(gpu, MemoryType.Managed);
       cudaMemory.freeRef();
       try {

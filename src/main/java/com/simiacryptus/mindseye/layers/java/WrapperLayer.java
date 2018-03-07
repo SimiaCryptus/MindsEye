@@ -91,6 +91,12 @@ public abstract class WrapperLayer extends LayerBase {
     return inner;
   }
   
+  /**
+   * Sets inner.
+   *
+   * @param inner the inner
+   * @return the inner
+   */
   public WrapperLayer setInner(@Nullable Layer inner) {
     this.inner = inner;
     return this;

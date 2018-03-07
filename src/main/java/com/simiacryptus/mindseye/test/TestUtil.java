@@ -905,6 +905,12 @@ public class TestUtil {
     });
   }
   
+  /**
+   * To string string.
+   *
+   * @param stack the stack
+   * @return the string
+   */
   public static String toString(final StackTraceElement[] stack) {
     return Arrays.stream(stack).map(x -> x.getFileName() + ":" + x.getLineNumber()).reduce((a, b) -> a + "\n" + b).get();
   }

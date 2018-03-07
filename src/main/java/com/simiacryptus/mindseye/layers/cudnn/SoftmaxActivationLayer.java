@@ -302,7 +302,7 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
      * Log softmax algorithm.
      */
     LOG(cudnnSoftmaxAlgorithm.CUDNN_SOFTMAX_LOG);
-    
+  
     /**
      * The Code.
      */
@@ -325,7 +325,7 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
      * Instance softmax mode.
      */
     INSTANCE(cudnnSoftmaxMode.CUDNN_SOFTMAX_MODE_INSTANCE);
-    
+  
     /**
      * The Code.
      */

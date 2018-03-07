@@ -195,6 +195,11 @@ public class CudaSettings implements Settings {
     return logStack;
   }
   
+  /**
+   * Is profile memory io boolean.
+   *
+   * @return the boolean
+   */
   public boolean isProfileMemoryIO() {
     return profileMemoryIO;
   }

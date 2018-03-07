@@ -1216,7 +1216,15 @@ public class CudaSystem {
     CudnnHandle.threadContext.remove();
   }
   
+  /**
+   * The interface Cuda device resource.
+   */
   public interface CudaDeviceResource {
+    /**
+     * Gets device id.
+     *
+     * @return the device id
+     */
     int getDeviceId();
   }
 }
