@@ -78,7 +78,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
    * @param b the b
    * @return the double
    */
-  public static double dot(@javax.annotation.Nonnull final List<DoubleBuffer<Layer>> a, @javax.annotation.Nonnull final List<DoubleBuffer<Layer>> b) {
+  public static double dot(@Nonnull final List<DoubleBuffer<Layer>> a, @Nonnull final List<DoubleBuffer<Layer>> b) {
     assert a.size() == b.size();
     return IntStream.range(0, a.size()).mapToDouble(i -> a.get(i).dot(b.get(i))).sum();
   }
@@ -103,7 +103,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
    * @param maxHistory the max history
    * @return the max history
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public TrustRegionStrategy setMaxHistory(final int maxHistory) {
     this.maxHistory = maxHistory;
     return this;
@@ -117,21 +117,21 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
    */
   public abstract TrustRegion getRegionPolicy(Layer layer);
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public LineSearchCursor orient(@javax.annotation.Nonnull final Trainable subject, final PointSample origin, final TrainingMonitor monitor) {
+  public LineSearchCursor orient(@Nonnull final Trainable subject, final PointSample origin, final TrainingMonitor monitor) {
     history.add(0, origin);
     while (history.size() > maxHistory) {
       history.remove(history.size() - 1);
     }
     final SimpleLineSearchCursor cursor = inner.orient(subject, origin, monitor);
     return new LineSearchCursorBase() {
-      @javax.annotation.Nonnull
+      @Nonnull
       @Override
       public String getDirectionType() {
         return cursor.getDirectionType() + "+Trust";
       }
-  
+
       @Nonnull
       @Override
       public DeltaSet<Layer> position(final double alpha) {
@@ -140,21 +140,21 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
         project(adjustedPosVector, new TrainingMonitor());
         return adjustedPosVector;
       }
-  
+
       @Nonnull
-      public DeltaSet<Layer> project(@javax.annotation.Nonnull final DeltaSet<Layer> deltaIn, final TrainingMonitor monitor) {
+      public DeltaSet<Layer> project(@Nonnull final DeltaSet<Layer> deltaIn, final TrainingMonitor monitor) {
         final DeltaSet<Layer> originalAlphaDerivative = cursor.direction;
         @Nonnull final DeltaSet<Layer> newAlphaDerivative = originalAlphaDerivative.copy();
         deltaIn.getMap().forEach((layer, buffer) -> {
-          @javax.annotation.Nullable final double[] delta = buffer.getDelta();
+          @Nullable final double[] delta = buffer.getDelta();
           if (null == delta) return;
           final double[] currentPosition = buffer.target;
-          @javax.annotation.Nullable final double[] originalAlphaD = originalAlphaDerivative.get(layer, currentPosition).getDelta();
-          @javax.annotation.Nullable final double[] newAlphaD = newAlphaDerivative.get(layer, currentPosition).getDelta();
-          @javax.annotation.Nonnull final double[] proposedPosition = ArrayUtil.add(currentPosition, delta);
+          @Nullable final double[] originalAlphaD = originalAlphaDerivative.get(layer, currentPosition).getDelta();
+          @Nullable final double[] newAlphaD = newAlphaDerivative.get(layer, currentPosition).getDelta();
+          @Nonnull final double[] proposedPosition = ArrayUtil.add(currentPosition, delta);
           final TrustRegion region = getRegionPolicy(layer);
           if (null != region) {
-            final Stream<double[]> zz = history.stream().map((@javax.annotation.Nonnull final PointSample x) -> {
+            final Stream<double[]> zz = history.stream().map((@Nonnull final PointSample x) -> {
               final DoubleBuffer<Layer> d = x.weights.getMap().get(layer);
               @Nullable final double[] z = null == d ? null : d.getDelta();
               return z;
@@ -164,7 +164,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
               for (int i = 0; i < projectedPosition.length; i++) {
                 delta[i] = projectedPosition[i] - currentPosition[i];
               }
-              @javax.annotation.Nonnull final double[] normal = ArrayUtil.subtract(projectedPosition, proposedPosition);
+              @Nonnull final double[] normal = ArrayUtil.subtract(projectedPosition, proposedPosition);
               final double normalMagSq = ArrayUtil.dot(normal, normal);
 //              monitor.log(String.format("%s: delta = %s, projectedPosition = %s, proposedPosition = %s, currentPosition = %s, normalMagSq = %s", layer,
 //                ArrayUtil.dot(delta,delta),
@@ -175,7 +175,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
               if (0 < normalMagSq) {
                 final double a = ArrayUtil.dot(originalAlphaD, normal);
                 if (a != -1) {
-                  @javax.annotation.Nonnull final double[] tangent = ArrayUtil.add(originalAlphaD, ArrayUtil.multiply(normal, -a / normalMagSq));
+                  @Nonnull final double[] tangent = ArrayUtil.add(originalAlphaD, ArrayUtil.multiply(normal, -a / normalMagSq));
                   for (int i = 0; i < tangent.length; i++) {
                     newAlphaD[i] = tangent[i];
                   }
@@ -198,8 +198,8 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
       public void reset() {
         cursor.reset();
       }
-      
-      @javax.annotation.Nonnull
+  
+      @Nonnull
       @Override
       public LineSearchPoint step(final double alpha, final TrainingMonitor monitor) {
         cursor.reset();

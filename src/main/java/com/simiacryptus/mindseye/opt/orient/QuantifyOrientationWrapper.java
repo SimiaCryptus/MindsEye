@@ -62,10 +62,10 @@ public class QuantifyOrientationWrapper extends OrientationStrategyBase<LineSear
    * @param x the x
    * @return the id
    */
-  @javax.annotation.Nonnull
-  public String getId(@javax.annotation.Nonnull final DoubleBuffer<Layer> x) {
+  @Nonnull
+  public String getId(@Nonnull final DoubleBuffer<Layer> x) {
     final String name = x.layer.getName();
-    @javax.annotation.Nonnull final String className = x.layer.getClass().getSimpleName();
+    @Nonnull final String className = x.layer.getClass().getSimpleName();
     return name.contains(className) ? className : name;
 //    if(x.layer instanceof PlaceholderLayer) {
 //      return "Input";
@@ -74,7 +74,7 @@ public class QuantifyOrientationWrapper extends OrientationStrategyBase<LineSear
   }
   
   @Override
-  public LineSearchCursor orient(final Trainable subject, final PointSample measurement, @javax.annotation.Nonnull final TrainingMonitor monitor) {
+  public LineSearchCursor orient(final Trainable subject, final PointSample measurement, @Nonnull final TrainingMonitor monitor) {
     final LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
     if (cursor instanceof SimpleLineSearchCursor) {
       final DeltaSet<Layer> direction = ((SimpleLineSearchCursor) cursor).direction;

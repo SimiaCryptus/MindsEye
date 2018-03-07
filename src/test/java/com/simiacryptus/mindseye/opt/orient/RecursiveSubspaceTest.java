@@ -42,6 +42,7 @@ import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.line.StaticLearningRate;
 import com.simiacryptus.util.io.NotebookOutput;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.concurrent.TimeUnit;
 import java.util.function.DoubleSupplier;
@@ -51,33 +52,33 @@ import java.util.function.DoubleSupplier;
  */
 public abstract class RecursiveSubspaceTest extends MnistTestBase {
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   protected Class<?> getTargetClass() {
     return RecursiveSubspace.class;
   }
   
   @Override
-  public DAGNetwork buildModel(@javax.annotation.Nonnull NotebookOutput log) {
+  public DAGNetwork buildModel(@Nonnull NotebookOutput log) {
     log.h3("Model");
     log.p("We use a multi-level convolution network");
     return log.code(() -> {
-      @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
+      @Nonnull final PipelineNetwork network = new PipelineNetwork();
       double weight = 1e-3;
   
-      @javax.annotation.Nonnull DoubleSupplier init = () -> weight * (Math.random() - 0.5);
+      @Nonnull DoubleSupplier init = () -> weight * (Math.random() - 0.5);
       network.add(new ConvolutionLayer(3, 3, 1, 5).set(init));
       network.add(new ImgBandBiasLayer(5));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
       network.add(newNormalizationLayer());
-  
+
       network.add(new ConvolutionLayer(3, 3, 5, 5).set(init));
       network.add(new ImgBandBiasLayer(5));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
       network.add(newNormalizationLayer());
-  
+
       network.add(new BiasLayer(7, 7, 5));
       network.add(new FullyConnectedLayer(new int[]{7, 7, 5}, new int[]{10}).set(init));
       network.add(new SoftmaxActivationLayer());
@@ -96,10 +97,10 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
   }
   
   @Override
-  public void train(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer network, @javax.annotation.Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
+  public void train(@Nonnull final NotebookOutput log, @Nonnull final Layer network, @Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.code(() -> {
-      @javax.annotation.Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-      @javax.annotation.Nonnull ValidatingTrainer trainer = new ValidatingTrainer(
+      @Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
+      @Nonnull ValidatingTrainer trainer = new ValidatingTrainer(
         new SampledArrayTrainable(trainingData, supervisedNetwork, 1000, 1000),
         new ArrayTrainable(trainingData, supervisedNetwork, 1000).cached()
       ).setMonitor(monitor);
@@ -118,7 +119,7 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
    *
    * @return the orientation
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   protected abstract OrientationStrategy<?> getOrientation();
   
   /**
@@ -126,11 +127,11 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
    */
   public static class Baseline extends RecursiveSubspaceTest {
   
-    @javax.annotation.Nonnull
+    @Nonnull
     public OrientationStrategy<?> getOrientation() {
       return new LBFGS();
     }
-  
+
   }
   
   /**
@@ -138,12 +139,12 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
    */
   public static class Normalized extends RecursiveSubspaceTest {
   
-    @javax.annotation.Nonnull
+    @Nonnull
     public OrientationStrategy<?> getOrientation() {
       return new LBFGS();
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     protected Layer newNormalizationLayer() {
       return new NormalizationMetaLayer();
@@ -155,7 +156,7 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
    */
   public static class Demo extends RecursiveSubspaceTest {
   
-    @javax.annotation.Nonnull
+    @Nonnull
     public OrientationStrategy<?> getOrientation() {
       return new RecursiveSubspace();
     }

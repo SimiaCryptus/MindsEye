@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.layers.cudnn.GateProductLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 
+import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
@@ -32,7 +33,7 @@ import java.util.Random;
  */
 public abstract class StochasticSamplingSubnetLayerTest extends LayerTestBase {
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
@@ -40,7 +41,7 @@ public abstract class StochasticSamplingSubnetLayerTest extends LayerTestBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     PipelineNetwork subnetwork = new PipelineNetwork(1);

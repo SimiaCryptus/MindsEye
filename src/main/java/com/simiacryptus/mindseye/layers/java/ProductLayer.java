@@ -31,6 +31,7 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
@@ -57,7 +58,7 @@ public class ProductLayer extends LayerBase {
    *
    * @param id the id
    */
-  protected ProductLayer(@javax.annotation.Nonnull final JsonObject id) {
+  protected ProductLayer(@Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -68,20 +69,20 @@ public class ProductLayer extends LayerBase {
    * @param rs   the rs
    * @return the product layer
    */
-  public static ProductLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ProductLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ProductLayer(json);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     final Result in0 = inObj[0];
-    @javax.annotation.Nonnull final double[] sum_A = new double[in0.getData().length()];
+    @Nonnull final double[] sum_A = new double[in0.getData().length()];
     final Tensor[] outputA = IntStream.range(0, in0.getData().length()).mapToObj(dataIndex -> {
       double sum = 1;
-      for (@javax.annotation.Nonnull final Result element : inObj) {
+      for (@Nonnull final Result element : inObj) {
         Tensor tensor = element.getData().get(dataIndex);
         @Nullable final double[] input = tensor.getData();
         for (final double element2 : input) {
@@ -92,13 +93,13 @@ public class ProductLayer extends LayerBase {
       sum_A[dataIndex] = sum;
       return new Tensor(new double[]{sum}, 1);
     }).toArray(i -> new Tensor[i]);
-    return new Result(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
-      for (@javax.annotation.Nonnull final Result in_l : inObj) {
+    return new Result(TensorArray.wrap(outputA), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+      for (@Nonnull final Result in_l : inObj) {
         if (in_l.isAlive()) {
-          @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+          @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
             Tensor dataTensor = delta.get(dataIndex);
             Tensor lTensor = in_l.getData().get(dataIndex);
-            @javax.annotation.Nonnull final Tensor passback = new Tensor(lTensor.getDimensions());
+            @Nonnull final Tensor passback = new Tensor(lTensor.getDimensions());
             for (int i = 0; i < lTensor.length(); i++) {
               passback.set(i, dataTensor.get(0) * sum_A[dataIndex] / lTensor.getData()[i]);
             }
@@ -120,7 +121,7 @@ public class ProductLayer extends LayerBase {
       
       @Override
       public boolean isAlive() {
-        for (@javax.annotation.Nonnull final Result element : inObj)
+        for (@Nonnull final Result element : inObj)
           if (element.isAlive()) {
             return true;
           }
@@ -130,13 +131,13 @@ public class ProductLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

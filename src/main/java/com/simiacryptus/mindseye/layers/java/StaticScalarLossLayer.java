@@ -31,6 +31,7 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
@@ -59,7 +60,7 @@ public class StaticScalarLossLayer extends LayerBase {
    *
    * @param id the id
    */
-  protected StaticScalarLossLayer(@javax.annotation.Nonnull final JsonObject id) {
+  protected StaticScalarLossLayer(@Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -70,13 +71,13 @@ public class StaticScalarLossLayer extends LayerBase {
    * @param rs   the rs
    * @return the static scalar loss layer
    */
-  public static StaticScalarLossLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static StaticScalarLossLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new StaticScalarLossLayer(json);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     if (1 != inObj.length) throw new IllegalArgumentException();
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     //if (inObj[0].getData().length() != 1) throw new IllegalArgumentException();
@@ -88,9 +89,9 @@ public class StaticScalarLossLayer extends LayerBase {
       final double diff = Math.abs(a.get(0) - getTarget());
       a.freeRef();
       return new Tensor(new double[]{diff}, 1);
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       if (in0.isAlive()) {
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
+        @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
           @Nullable final Tensor a = indata.get(dataIndex);
           Tensor tensor = data.get(dataIndex);
           final double deriv = tensor.get(0) * (a.get(0) - getTarget() < 0 ? -1 : 1);
@@ -117,7 +118,7 @@ public class StaticScalarLossLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
@@ -138,13 +139,13 @@ public class StaticScalarLossLayer extends LayerBase {
    * @param target the target
    * @return the target
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public StaticScalarLossLayer setTarget(final double target) {
     this.target = target;
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

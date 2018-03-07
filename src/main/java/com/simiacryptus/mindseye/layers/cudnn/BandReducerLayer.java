@@ -56,7 +56,7 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
    *
    * @param json the json
    */
-  protected BandReducerLayer(@javax.annotation.Nonnull final JsonObject json) {
+  protected BandReducerLayer(@Nonnull final JsonObject json) {
     super(json);
     mode = Arrays.stream(PoolingLayer.PoolingMode.values()).filter(i -> i.id == json.get("mode").getAsInt()).findFirst().get();
     precision = Precision.valueOf(json.get("precision").getAsString());
@@ -69,7 +69,7 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
    * @param rs   the rs
    * @return the pooling layer
    */
-  public static BandReducerLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static BandReducerLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new BandReducerLayer(json);
   }
   
@@ -78,7 +78,7 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
    *
    * @return the compatibility layer
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public Layer getCompatibilityLayer() {
     throw new RuntimeException("Not Implemented");
   }
@@ -90,7 +90,7 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
     final Result input = inObj[0];
     final TensorList batch = input.getData();
     @Nonnull final int[] inputSize = batch.getDimensions();
-    @javax.annotation.Nonnull PoolingLayer impl = new PoolingLayer().setMode(mode).setPrecision(precision)
+    @Nonnull PoolingLayer impl = new PoolingLayer().setMode(mode).setPrecision(precision)
       .setWindowX(inputSize[1])
       .setWindowY(inputSize[0]);
     @Nullable Result result = impl.eval(inObj);
@@ -98,10 +98,10 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
     return result;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("mode", mode.id);
     json.addProperty("precision", precision.name());
     return json;
@@ -123,7 +123,7 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
    * @param mode the mode
    * @return the mode
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public BandReducerLayer setMode(final PoolingMode mode) {
     this.mode = mode;
     return this;
@@ -134,14 +134,14 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
     return precision;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public BandReducerLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

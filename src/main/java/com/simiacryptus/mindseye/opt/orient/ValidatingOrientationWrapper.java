@@ -28,6 +28,8 @@ import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursorBase;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 
+import javax.annotation.Nonnull;
+
 /**
  * This strategy uses finite-difference methods to estimate a numerical derivative, and compares it with the derivative
  * supplied by the heapCopy's cursor. This is a diagnostic tool; extra processing is used to estimate derivatives which
@@ -51,7 +53,7 @@ public class ValidatingOrientationWrapper extends OrientationStrategyBase<LineSe
     this.inner.freeRef();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public LineSearchCursor orient(final Trainable subject, final PointSample measurement, final TrainingMonitor monitor) {
     final LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
@@ -92,7 +94,7 @@ public class ValidatingOrientationWrapper extends OrientationStrategyBase<LineSe
     }
   
     @Override
-    public LineSearchPoint step(final double alpha, @javax.annotation.Nonnull final TrainingMonitor monitor) {
+    public LineSearchPoint step(final double alpha, @Nonnull final TrainingMonitor monitor) {
       final LineSearchPoint primaryPoint = cursor.step(alpha, monitor);
       //monitor.log(String.format("f(%s) = %s",alpha, primaryPoint.point.value));
       test(monitor, primaryPoint, 1e-3);
@@ -108,7 +110,7 @@ public class ValidatingOrientationWrapper extends OrientationStrategyBase<LineSe
      * @param primaryPoint the primary point
      * @param probeSize    the probe size
      */
-    public void test(@javax.annotation.Nonnull final TrainingMonitor monitor, @javax.annotation.Nonnull final LineSearchPoint primaryPoint, final double probeSize) {
+    public void test(@Nonnull final TrainingMonitor monitor, @Nonnull final LineSearchPoint primaryPoint, final double probeSize) {
       final double alpha = primaryPoint.point.rate;
       double probeAlpha = alpha + primaryPoint.point.sum * probeSize / primaryPoint.derivative;
       if (!Double.isFinite(probeAlpha) || probeAlpha == alpha) {

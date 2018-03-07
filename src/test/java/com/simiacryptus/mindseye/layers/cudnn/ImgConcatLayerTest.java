@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.BatchingTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Random;
@@ -66,19 +67,19 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
     this.largeSize = largeSize;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return Arrays.stream(bandSeq).mapToObj(x -> new int[]{smallSize, smallSize, x}).toArray(i -> new int[i][]);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgConcatLayer();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return Arrays.stream(bandSeq).mapToObj(x -> new int[]{largeSize, largeSize, x}).toArray(i -> new int[i][]);
@@ -101,7 +102,7 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
       super(Precision.Double, 2, 1, 8, 100);
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
@@ -109,13 +110,13 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
       };
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return getSmallDims(new Random());
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new ImgConcatLayer().setMaxBands(2);
@@ -135,13 +136,13 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
       super(Precision.Double, new int[]{2, 3, 4}, 2, 100);
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return getSmallDims(new Random());
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new ImgConcatLayer().setMaxBands(8);

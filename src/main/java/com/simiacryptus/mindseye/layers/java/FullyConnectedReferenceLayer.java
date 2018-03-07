@@ -89,7 +89,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
    * @param inputDims  the input dims
    * @param outputDims the output dims
    */
-  public FullyConnectedReferenceLayer(@javax.annotation.Nonnull final int[] inputDims, @javax.annotation.Nonnull final int[] outputDims) {
+  public FullyConnectedReferenceLayer(@Nonnull final int[] inputDims, @Nonnull final int[] outputDims) {
     this.inputDims = Arrays.copyOf(inputDims, inputDims.length);
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
     final int inputs = Tensor.length(inputDims);
@@ -109,7 +109,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
    * @param json      the json
    * @param resources the resources
    */
-  protected FullyConnectedReferenceLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> resources) {
+  protected FullyConnectedReferenceLayer(@Nonnull final JsonObject json, Map<String, byte[]> resources) {
     super(json);
     outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
     inputDims = JsonUtil.getIntArray(json.getAsJsonArray("inputDims"));
@@ -123,7 +123,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
    * @param rs   the rs
    * @return the fully connected layer
    */
-  public static FullyConnectedReferenceLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static FullyConnectedReferenceLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new FullyConnectedReferenceLayer(json, rs);
   }
   
@@ -133,7 +133,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
     super._free();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Result eval(final Result... inObj) {
     final Result inputResult = inObj[0];
@@ -144,7 +144,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
     assert Tensor.length(inputDimensions) == Tensor.length(this.inputDims) : Arrays.toString(inputDimensions) + " == " + Arrays.toString(this.inputDims);
     weights.addRef();
     return new Result(TensorArray.wrap(IntStream.range(0, indata.length()).mapToObj(index -> {
-      @javax.annotation.Nullable final Tensor input = indata.get(index);
+      @Nullable final Tensor input = indata.get(index);
       @Nullable final Tensor output = new Tensor(outputDims);
       weights.coordStream(false).forEach(c -> {
         int[] coords = c.getCoords();
@@ -156,13 +156,13 @@ public class FullyConnectedReferenceLayer extends LayerBase {
       });
       input.freeRef();
       return output;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         final Delta<Layer> deltaBuffer = buffer.get(FullyConnectedReferenceLayer.this, getWeights().getData());
         Tensor[] array = IntStream.range(0, indata.length()).mapToObj(i -> {
-          @javax.annotation.Nullable final Tensor inputTensor = indata.get(i);
-          @javax.annotation.Nullable final Tensor deltaTensor = delta.get(i);
-          @javax.annotation.Nonnull Tensor weights = new Tensor(FullyConnectedReferenceLayer.this.weights.getDimensions());
+          @Nullable final Tensor inputTensor = indata.get(i);
+          @Nullable final Tensor deltaTensor = delta.get(i);
+          @Nonnull Tensor weights = new Tensor(FullyConnectedReferenceLayer.this.weights.getDimensions());
           weights.coordStream(false).forEach(c -> {
             int[] coords = c.getCoords();
             weights.set(c, inputTensor.get(coords[0]) * deltaTensor.get(coords[1]));
@@ -180,9 +180,9 @@ public class FullyConnectedReferenceLayer extends LayerBase {
         tensor.freeRef();
       }
       if (inputResult.isAlive()) {
-        @javax.annotation.Nonnull final TensorList tensorList = TensorArray.wrap(IntStream.range(0, indata.length()).mapToObj(i -> {
+        @Nonnull final TensorList tensorList = TensorArray.wrap(IntStream.range(0, indata.length()).mapToObj(i -> {
           @Nullable final Tensor inputTensor = new Tensor(inputDims);
-          @javax.annotation.Nullable final Tensor deltaTensor = delta.get(i);
+          @Nullable final Tensor deltaTensor = delta.get(i);
           weights.coordStream(false).forEach(c -> {
             int[] coords = c.getCoords();
             inputTensor.set(coords[0], inputTensor.get(coords[0]) + weights.get(c) * deltaTensor.get(coords[1]));
@@ -209,10 +209,10 @@ public class FullyConnectedReferenceLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, @javax.annotation.Nonnull DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.add("outputDims", JsonUtil.getJson(outputDims));
     json.add("inputDims", JsonUtil.getJson(inputDims));
     json.add("weights", weights.toJson(resources, dataSerializer));
@@ -236,8 +236,8 @@ public class FullyConnectedReferenceLayer extends LayerBase {
    * @param f the f
    * @return the weights
    */
-  @javax.annotation.Nonnull
-  public FullyConnectedReferenceLayer set(@javax.annotation.Nonnull final DoubleSupplier f) {
+  @Nonnull
+  public FullyConnectedReferenceLayer set(@Nonnull final DoubleSupplier f) {
     Arrays.parallelSetAll(weights.getData(), i -> f.getAsDouble());
     return this;
   }
@@ -248,8 +248,8 @@ public class FullyConnectedReferenceLayer extends LayerBase {
    * @param f the f
    * @return the weights
    */
-  @javax.annotation.Nonnull
-  public FullyConnectedReferenceLayer set(@javax.annotation.Nonnull final IntToDoubleFunction f) {
+  @Nonnull
+  public FullyConnectedReferenceLayer set(@Nonnull final IntToDoubleFunction f) {
     weights.set(f);
     return this;
   }
@@ -260,8 +260,8 @@ public class FullyConnectedReferenceLayer extends LayerBase {
    * @param f the f
    * @return the weights
    */
-  @javax.annotation.Nonnull
-  public FullyConnectedReferenceLayer setByCoord(@javax.annotation.Nonnull final ToDoubleFunction<Coordinate> f) {
+  @Nonnull
+  public FullyConnectedReferenceLayer setByCoord(@Nonnull final ToDoubleFunction<Coordinate> f) {
     weights.coordStream(true).forEach(c -> {
       weights.set(c, f.applyAsDouble(c));
     });
@@ -274,7 +274,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
    * @param data the data
    * @return the weights
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public FullyConnectedReferenceLayer set(final double[] data) {
     weights.set(data);
     return this;
@@ -286,8 +286,8 @@ public class FullyConnectedReferenceLayer extends LayerBase {
    * @param data the data
    * @return the fully connected layer
    */
-  @javax.annotation.Nonnull
-  public FullyConnectedReferenceLayer set(@javax.annotation.Nonnull final Tensor data) {
+  @Nonnull
+  public FullyConnectedReferenceLayer set(@Nonnull final Tensor data) {
     weights.set(data);
     return this;
   }
@@ -298,8 +298,8 @@ public class FullyConnectedReferenceLayer extends LayerBase {
    * @param f the f
    * @return the weights
    */
-  @javax.annotation.Nonnull
-  public FullyConnectedReferenceLayer setByCoord(@javax.annotation.Nonnull final ToDoubleBiFunction<Coordinate, Coordinate> f) {
+  @Nonnull
+  public FullyConnectedReferenceLayer setByCoord(@Nonnull final ToDoubleBiFunction<Coordinate, Coordinate> f) {
     new Tensor(inputDims).coordStream(true).forEach(in -> {
       new Tensor(outputDims).coordStream(true).forEach(out -> {
         weights.set(new int[]{in.getIndex(), out.getIndex()}, f.applyAsDouble(in, out));
@@ -314,7 +314,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
    * @param value the value
    * @return the weights log
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public FullyConnectedReferenceLayer setWeightsLog(final double value) {
     weights.coordStream(false).forEach(c -> {
       weights.set(c, (FastRandom.INSTANCE.random() - 0.5) * Math.pow(10, value));
@@ -322,7 +322,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList(getWeights().getData());

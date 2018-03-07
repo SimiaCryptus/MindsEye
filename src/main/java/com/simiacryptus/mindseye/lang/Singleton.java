@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Supplier;
@@ -53,7 +54,7 @@ public class Singleton<T> implements Supplier<T> {
    * @param obj the obj
    * @return the singleton
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public Singleton<T> set(T obj) {
     assert deque.isEmpty();
     deque.add(obj);

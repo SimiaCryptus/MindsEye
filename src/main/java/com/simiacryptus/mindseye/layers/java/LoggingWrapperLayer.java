@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Map;
@@ -51,7 +52,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
    * @param json the json
    * @param rs   the rs
    */
-  protected LoggingWrapperLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected LoggingWrapperLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json, rs);
   }
   
@@ -71,17 +72,17 @@ public final class LoggingWrapperLayer extends WrapperLayer {
    * @param rs   the rs
    * @return the monitoring wrapper layer
    */
-  public static LoggingWrapperLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static LoggingWrapperLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new LoggingWrapperLayer(json, rs);
   }
   
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     final Result[] wrappedInput = IntStream.range(0, inObj.length).mapToObj(i -> {
       final Result inputToWrap = inObj[i];
       inputToWrap.addRef();
-      return new Result(inputToWrap.getData(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
-        @javax.annotation.Nonnull final String formatted = data.stream().map(x -> {
+      return new Result(inputToWrap.getData(), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+        @Nonnull final String formatted = data.stream().map(x -> {
           String str = x.prettyPrint();
           x.freeRef();
           return str;
@@ -91,7 +92,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
         data.addRef();
         inputToWrap.accumulate(buffer, data);
       }) {
-  
+    
         @Override
         protected void _free() {
           inputToWrap.freeRef();
@@ -105,7 +106,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
     }).toArray(i -> new Result[i]);
     for (int i = 0; i < inObj.length; i++) {
       final TensorList tensorList = inObj[i].getData();
-      @javax.annotation.Nonnull final String formatted = tensorList.stream().map(x -> {
+      @Nonnull final String formatted = tensorList.stream().map(x -> {
         String str = x.prettyPrint();
         x.freeRef();
         return str;
@@ -116,7 +117,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
     Arrays.stream(wrappedInput).forEach(ReferenceCounting::freeRef);
     {
       final TensorList tensorList = output.getData();
-      @javax.annotation.Nonnull final String formatted = tensorList.stream().map(x -> {
+      @Nonnull final String formatted = tensorList.stream().map(x -> {
         String str = x.prettyPrint();
         x.freeRef();
         return str;
@@ -124,8 +125,8 @@ public final class LoggingWrapperLayer extends WrapperLayer {
         .reduce((a, b) -> a + "\n" + b).get();
       log.info(String.format("Output for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
     }
-    return new Result(output.getData(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
-      @javax.annotation.Nonnull final String formatted = data.stream().map(x -> {
+    return new Result(output.getData(), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+      @Nonnull final String formatted = data.stream().map(x -> {
         String str = x.prettyPrint();
         x.freeRef();
         return str;
@@ -135,13 +136,13 @@ public final class LoggingWrapperLayer extends WrapperLayer {
       data.addRef();
       output.accumulate(buffer, data);
     }) {
-  
+    
       @Override
       protected void _free() {
         output.freeRef();
       }
-  
-  
+    
+    
       @Override
       public boolean isAlive() {
         return output.isAlive();

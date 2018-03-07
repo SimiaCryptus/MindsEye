@@ -32,6 +32,7 @@ import com.simiacryptus.util.ArrayUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
@@ -62,7 +63,7 @@ public class L1NormalizationLayer extends LayerBase {
    *
    * @param id the id
    */
-  protected L1NormalizationLayer(@javax.annotation.Nonnull final JsonObject id) {
+  protected L1NormalizationLayer(@Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -73,19 +74,19 @@ public class L1NormalizationLayer extends LayerBase {
    * @param rs   the rs
    * @return the l 1 normalization layer
    */
-  public static L1NormalizationLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static L1NormalizationLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new L1NormalizationLayer(json);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... input) {
+  public Result eval(@Nonnull final Result... input) {
     Arrays.stream(input).forEach(nnResult -> nnResult.addRef());
     final Result in = input[0];
     final TensorList inData = in.getData();
     inData.addRef();
     return new Result(TensorArray.wrap(IntStream.range(0, inData.length()).mapToObj(dataIndex -> {
-      @javax.annotation.Nullable final Tensor value = inData.get(dataIndex);
+      @Nullable final Tensor value = inData.get(dataIndex);
       try {
         final double sum = value.sum();
         if (!Double.isFinite(sum) || 0 == sum) {
@@ -98,7 +99,7 @@ public class L1NormalizationLayer extends LayerBase {
       } finally {
         value.freeRef();
       }
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList outDelta) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList outDelta) -> {
       if (in.isAlive()) {
         final Tensor[] passbackArray = IntStream.range(0, outDelta.length()).mapToObj(dataIndex -> {
           Tensor inputTensor = inData.get(dataIndex);
@@ -107,7 +108,7 @@ public class L1NormalizationLayer extends LayerBase {
           @Nullable final double[] delta = outputTensor.getData();
           final double dot = ArrayUtil.dot(value, delta);
           final double sum = Arrays.stream(value).sum();
-          @javax.annotation.Nonnull final Tensor passback = new Tensor(outputTensor.getDimensions());
+          @Nonnull final Tensor passback = new Tensor(outputTensor.getDimensions());
           @Nullable final double[] passbackData = passback.getData();
           if (0 != sum || Double.isFinite(sum)) {
             for (int i = 0; i < value.length; i++) {
@@ -119,7 +120,7 @@ public class L1NormalizationLayer extends LayerBase {
           return passback;
         }).toArray(i -> new Tensor[i]);
         assert Arrays.stream(passbackArray).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(passbackArray);
+        @Nonnull TensorArray tensorArray = TensorArray.wrap(passbackArray);
         in.accumulate(buffer, tensorArray);
       }
     }) {
@@ -139,13 +140,13 @@ public class L1NormalizationLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

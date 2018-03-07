@@ -66,7 +66,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
    *
    * @param json the json
    */
-  protected ImgConcatLayer(@javax.annotation.Nonnull final JsonObject json) {
+  protected ImgConcatLayer(@Nonnull final JsonObject json) {
     super(json);
     maxBands = json.get("maxBands").getAsInt();
     precision = Precision.valueOf(json.get("precision").getAsString());
@@ -80,7 +80,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static ImgConcatLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgConcatLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ImgConcatLayer(json);
   }
   
@@ -89,7 +89,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
    *
    * @return the compatibility layer
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public Layer getCompatibilityLayer() {
     return this.as(com.simiacryptus.mindseye.layers.java.ImgConcatLayer.class);
   }
@@ -97,7 +97,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
   
   @Nullable
   @Override
-  public Result evalAndFree(@javax.annotation.Nonnull final Result... inObj) {
+  public Result evalAndFree(@Nonnull final Result... inObj) {
     if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
@@ -115,7 +115,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
     }
     return new Result(CudaSystem.eval(gpu -> {
       final long outputSize = ((long) length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
-      @javax.annotation.Nonnull final CudaMemory cudaOutput = gpu.allocate(outputSize, MemoryType.Managed, true);
+      @Nonnull final CudaMemory cudaOutput = gpu.allocate(outputSize, MemoryType.Managed, true);
       IntStream stream = IntStream.range(0, inObj.length);
       //if (!CoreSettings.INSTANCE.isConservative() && parallel) stream = stream.parallel();
       stream.forEach(i -> {
@@ -132,14 +132,14 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
           assert inputBands > 0;
           assert maxBands <= 0 || inputBands <= maxBands;
           assert inputBands <= inputDimensions[2];
-          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(
+          @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(
             precision, length, inputBands, outputDimensions[1], outputDimensions[0], //
             outputDimensions[2] * outputDimensions[1] * outputDimensions[0], //
             outputDimensions[1] * outputDimensions[0], //
             outputDimensions[0], //
             1);
   
-          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = gpu.newTensorDescriptor(
+          @Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = gpu.newTensorDescriptor(
             precision, length, inputBands, inputDimensions[1], inputDimensions[0], //
             cudaInput.descriptor.nStride, //
             cudaInput.descriptor.cStride, //
@@ -158,7 +158,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
       });
       CudaDevice.CudaTensorDescriptor outDesc = gpu.newTensorDescriptor(precision, length, outputDimensions[2], outputDimensions[1], outputDimensions[0]);
       return CudaTensorList.wrap(CudaTensor.wrap(cudaOutput, outDesc, precision), length, outputDimensions, precision);
-    }, Arrays.stream(inObj).map(Result::getData).toArray()), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }, Arrays.stream(inObj).map(Result::getData).toArray()), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       assert delta.getDimensions()[0] == outputDimensions[0];
       assert delta.getDimensions()[1] == outputDimensions[1];
       assert delta.getDimensions()[2] == outputDimensions[2];
@@ -167,7 +167,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
       }
       //outputBuffer.freeRef();
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
-      @javax.annotation.Nonnull IntStream stream = IntStream.range(0, inObj.length);
+      @Nonnull IntStream stream = IntStream.range(0, inObj.length);
       if (!CoreSettings.INSTANCE.isSingleThreaded() && parallel) stream = stream.parallel();
       stream.forEach(i -> {
         final Result input = inObj[i];
@@ -188,7 +188,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
             CudaMemory cudaDeltaMemory = cudaDelta.getMemory(gpu);
             try {
               if (inputDimentions[2] == inputBands) {
-                @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor viewDescriptor = gpu.newTensorDescriptor(
+                @Nonnull final CudaDevice.CudaTensorDescriptor viewDescriptor = gpu.newTensorDescriptor(
                   precision, length, inputDimentions[2], inputDimentions[1], inputDimentions[0], //
                   cudaDelta.descriptor.nStride, //
                   cudaDelta.descriptor.cStride, //
@@ -201,25 +201,25 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
                 return CudaTensorList.wrap(cudaTensor, length, inputDimentions, precision);
               }
               else {
-                @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor passbackTransferDescriptor = gpu.newTensorDescriptor(
+                @Nonnull final CudaDevice.CudaTensorDescriptor passbackTransferDescriptor = gpu.newTensorDescriptor(
                   precision, length, inputBands, inputDimentions[1], inputDimentions[0], //
                   inputDimentions[2] * inputDimentions[1] * inputDimentions[0], //
                   inputDimentions[1] * inputDimentions[0], //
                   inputDimentions[0], //
                   1);
-                @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(
+                @Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(
                   precision, length, inputDimentions[2], inputDimentions[1], inputDimentions[0], //
                   inputDimentions[2] * inputDimentions[1] * inputDimentions[0], //
                   inputDimentions[1] * inputDimentions[0], //
                   inputDimentions[0], //
                   1);
-                @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor deltaViewDescriptor = gpu.newTensorDescriptor(
+                @Nonnull final CudaDevice.CudaTensorDescriptor deltaViewDescriptor = gpu.newTensorDescriptor(
                   precision, length, inputBands, inputDimentions[1], inputDimentions[0], //
                   cudaDelta.descriptor.nStride, //
                   cudaDelta.descriptor.cStride, //
                   cudaDelta.descriptor.hStride, //
                   cudaDelta.descriptor.wStride);
-                @javax.annotation.Nonnull final CudaMemory cudaBackprop = gpu.allocate(
+                @Nonnull final CudaMemory cudaBackprop = gpu.allocate(
                   (long) passbackDescriptor.nStride * length * precision.size,
                   MemoryType.Managed, inputBands == inputDimentions[2]);
                 int byteOffset = cudaDelta.descriptor.cStride * bandOffset * precision.size;
@@ -242,7 +242,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
       
       @Override
       protected void _free() {
-        for (@javax.annotation.Nonnull Result result : inObj) {
+        for (@Nonnull Result result : inObj) {
           result.freeRef();
           result.getData().freeRef();
         }
@@ -255,10 +255,10 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("maxBands", maxBands);
     json.addProperty("precision", precision.name());
     json.addProperty("parallel", isParallel());
@@ -280,7 +280,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
    * @param maxBands the max bands
    * @return the max bands
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public ImgConcatLayer setMaxBands(final int maxBands) {
     this.maxBands = maxBands;
     return this;
@@ -291,14 +291,14 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
     return precision;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public ImgConcatLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

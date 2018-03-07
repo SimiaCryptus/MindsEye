@@ -64,9 +64,9 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
   private double[] weights = null;
   private double terminateThreshold;
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public SimpleLineSearchCursor orient(@javax.annotation.Nonnull Trainable subject, @javax.annotation.Nonnull PointSample measurement, @javax.annotation.Nonnull TrainingMonitor monitor) {
+  public SimpleLineSearchCursor orient(@Nonnull Trainable subject, @Nonnull PointSample measurement, @Nonnull TrainingMonitor monitor) {
     @Nonnull PointSample origin = measurement.copyFull().backup();
     @Nullable Layer macroLayer = buildSubspace(subject, measurement, monitor);
     train(monitor, macroLayer);
@@ -78,7 +78,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
     @Nonnull DeltaSet<Layer> delta = backupCopy.subtract(origin.weights);
     backupCopy.freeRef();
     origin.restore();
-    @javax.annotation.Nonnull SimpleLineSearchCursor simpleLineSearchCursor = new SimpleLineSearchCursor(subject, origin, delta);
+    @Nonnull SimpleLineSearchCursor simpleLineSearchCursor = new SimpleLineSearchCursor(subject, origin, delta);
     delta.freeRef();
     origin.freeRef();
     return simpleLineSearchCursor.setDirectionType(CURSOR_LABEL);
@@ -93,7 +93,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
    * @return the nn layer
    */
   @Nullable
-  public Layer buildSubspace(@javax.annotation.Nonnull Trainable subject, @javax.annotation.Nonnull PointSample measurement, @javax.annotation.Nonnull TrainingMonitor monitor) {
+  public Layer buildSubspace(@Nonnull Trainable subject, @Nonnull PointSample measurement, @Nonnull TrainingMonitor monitor) {
     @Nonnull PointSample origin = measurement.copyFull().backup();
     @Nonnull final DeltaSet<Layer> direction = measurement.delta.scale(-1);
     final double magnitude = direction.getMagnitude();
@@ -111,10 +111,10 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
     int size = deltaLayers.size() + (hasPlaceholders ? 1 : 0);
     if (null == weights || weights.length != size) weights = new double[size];
     return new LayerBase() {
-      @javax.annotation.Nonnull
+      @Nonnull
       Layer self = this;
   
-      @javax.annotation.Nonnull
+      @Nonnull
       @Override
       public Result eval(Result... array) {
         assertAlive();
@@ -167,7 +167,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
         super._free();
       }
   
-      @javax.annotation.Nonnull
+      @Nonnull
       @Override
       public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
         throw new IllegalStateException();
@@ -187,10 +187,10 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
    * @param monitor    the monitor
    * @param macroLayer the macro layer
    */
-  public void train(@javax.annotation.Nonnull TrainingMonitor monitor, Layer macroLayer) {
-    @javax.annotation.Nonnull BasicTrainable inner = new BasicTrainable(macroLayer);
+  public void train(@Nonnull TrainingMonitor monitor, Layer macroLayer) {
+    @Nonnull BasicTrainable inner = new BasicTrainable(macroLayer);
     //@javax.annotation.Nonnull Tensor tensor = new Tensor();
-    @javax.annotation.Nonnull ArrayTrainable trainable = new ArrayTrainable(inner, new Tensor[][]{{}});
+    @Nonnull ArrayTrainable trainable = new ArrayTrainable(inner, new Tensor[][]{{}});
     inner.freeRef();
     //tensor.freeRef();
     new IterativeTrainer(trainable)
@@ -229,7 +229,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
    * @param iterations the iterations
    * @return the iterations
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public RecursiveSubspace setIterations(int iterations) {
     this.iterations = iterations;
     return this;
@@ -254,7 +254,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
    * @param terminateThreshold the terminate threshold
    * @return the terminate threshold
    */
-  public com.simiacryptus.mindseye.opt.orient.RecursiveSubspace setTerminateThreshold(double terminateThreshold) {
+  public RecursiveSubspace setTerminateThreshold(double terminateThreshold) {
     this.terminateThreshold = terminateThreshold;
     return this;
   }

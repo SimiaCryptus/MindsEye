@@ -74,7 +74,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
     this.inputBands = inputBands;
     this.outputBands = outputBands;
     convolutionLayer = new ConvolutionLayer(radius, radius, inputBands, outputBands).setPrecision(precision).setBatchBands(batchBands).setStrideXY(stride, stride);
-    @javax.annotation.Nonnull Random random = getRandom();
+    @Nonnull Random random = getRandom();
     convolutionLayer.getKernel().set(() -> {
       return random(random);
     });
@@ -82,9 +82,9 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
   
   @Override
   public void run(NotebookOutput log) {
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all.log";
+    @Nonnull String logName = "cuda_" + log.getName() + "_all.log";
     log.p(log.file((String) null, logName, "GPU Log"));
-    @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
+    @Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
     CudaSystem.addLog(apiLog);
     super.run(log);
     apiLog.close();
@@ -97,7 +97,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
   @Test
   public void verifyWeights() {
     @Nonnull ExplodedConvolutionGrid explodedNetwork = this.convolutionLayer.getExplodedNetwork();
-    @javax.annotation.Nonnull int[] kernelDims = this.convolutionLayer.getKernel().getDimensions();
+    @Nonnull int[] kernelDims = this.convolutionLayer.getKernel().getDimensions();
     @Nullable Tensor testData = new Tensor(kernelDims).mapAndFree(x -> random());
     explodedNetwork.write(testData);
     Tensor echo = explodedNetwork.read();
@@ -117,7 +117,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
     //System.out.println("Zeros: " + stream.reduce((a,b)->a+","+b).get());
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
@@ -131,7 +131,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
     return convolutionLayer.explode();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
@@ -145,7 +145,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
     return convolutionLayer.as(com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   protected Class<?> getTargetClass() {
     return ConvolutionLayer.class;
@@ -163,7 +163,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
       super(1, 3, 6, Precision.Double, 16, 1);
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
@@ -171,7 +171,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
       };
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return getSmallDims(random);

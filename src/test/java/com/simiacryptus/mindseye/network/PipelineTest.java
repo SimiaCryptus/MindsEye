@@ -73,10 +73,10 @@ public abstract class PipelineTest {
    * @param layers the length list
    * @return the nn layer
    */
-  @javax.annotation.Nonnull
-  public Layer buildNetwork(@javax.annotation.Nonnull final Layer... layers) {
-    @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork(1);
-    for (@javax.annotation.Nonnull final Layer layer : layers) {
+  @Nonnull
+  public Layer buildNetwork(@Nonnull final Layer... layers) {
+    @Nonnull final PipelineNetwork network = new PipelineNetwork(1);
+    for (@Nonnull final Layer layer : layers) {
       network.add(layer.copy());
     }
     return network;
@@ -96,7 +96,7 @@ public abstract class PipelineTest {
    * @param log   the log
    * @param layer the layer
    */
-  public void graphviz(@javax.annotation.Nonnull final NotebookOutput log, final Layer layer) {
+  public void graphviz(@Nonnull final NotebookOutput log, final Layer layer) {
     if (layer instanceof DAGNetwork) {
       log.p("This is a network with the following layout:");
       log.code(() -> {
@@ -121,7 +121,7 @@ public abstract class PipelineTest {
    * @param inputDims the input dims
    * @return the tensor [ ]
    */
-  public Tensor[] randomize(@javax.annotation.Nonnull final int[][] inputDims) {
+  public Tensor[] randomize(@Nonnull final int[][] inputDims) {
     return Arrays.stream(inputDims).map(dim -> new Tensor(dim).set(this::random)).toArray(i -> new Tensor[i]);
   }
   
@@ -132,7 +132,7 @@ public abstract class PipelineTest {
    */
   @Test
   public void test() throws Throwable {
-    try (@javax.annotation.Nonnull NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
+    try (@Nonnull NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
       test(log);
     }
   }
@@ -142,12 +142,12 @@ public abstract class PipelineTest {
    *
    * @param log the log
    */
-  public void test(@javax.annotation.Nonnull final NotebookOutput log) {
-    @javax.annotation.Nonnull final ArrayList<Layer> workingSpec = new ArrayList<>();
+  public void test(@Nonnull final NotebookOutput log) {
+    @Nonnull final ArrayList<Layer> workingSpec = new ArrayList<>();
     int layerIndex = 0;
     for (final Layer l : pipeline) {
       workingSpec.add(l);
-      @javax.annotation.Nonnull final Layer networkHead = buildNetwork(workingSpec.toArray(new Layer[]{}));
+      @Nonnull final Layer networkHead = buildNetwork(workingSpec.toArray(new Layer[]{}));
       graphviz(log, networkHead);
       test(log, networkHead, String.format("Pipeline Network with %d Layers", layerIndex++), getInputDims());
     }
@@ -163,7 +163,7 @@ public abstract class PipelineTest {
    * @return the double
    */
   @Nullable
-  public TrainingTester.ComponentResult test(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer layer, final String header, @javax.annotation.Nonnull final int[]... inputDims) {
+  public TrainingTester.ComponentResult test(@Nonnull final NotebookOutput log, @Nonnull final Layer layer, final String header, @Nonnull final int[]... inputDims) {
     @Nonnull final Layer component = layer.copy();
     final Tensor[] randomize = randomize(inputDims);
     new SerializationTest().test(log, component, randomize);

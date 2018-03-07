@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.util.ArrayUtil;
 
+import javax.annotation.Nonnull;
+
 /**
  * This highly-constrained region allows ONLY changes to the mean/stddev of the weight vector components. Experimental;
  * no proven use case.
@@ -44,7 +46,7 @@ public class MeanVarianceGradient implements TrustRegion {
    * @param max the max
    * @return the max
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public MeanVarianceGradient setMax(final double max) {
     this.max = max;
     return this;
@@ -56,13 +58,13 @@ public class MeanVarianceGradient implements TrustRegion {
    * @param weights the weights
    * @return the double
    */
-  public double length(@javax.annotation.Nonnull final double[] weights) {
+  public double length(@Nonnull final double[] weights) {
     return ArrayUtil.magnitude(weights);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public double[] project(@javax.annotation.Nonnull final double[] weights, @javax.annotation.Nonnull final double[] point) {
+  public double[] project(@Nonnull final double[] weights, @Nonnull final double[] point) {
     final double meanWeight = ArrayUtil.mean(weights);
     final double meanPoint = ArrayUtil.mean(point);
     final double varWeights = ArrayUtil.mean(ArrayUtil.op(weights, x -> Math.abs(x - meanWeight)));

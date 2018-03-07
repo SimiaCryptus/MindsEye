@@ -76,25 +76,25 @@ public class LocalSparkTrainable extends SparkTrainable {
       try {
         final List<Tensor[]>[] array = javaRDD.collectPartitions(new int[]{partition.index()});
         assert 0 < array.length;
-        if (0 == Arrays.stream(array).mapToInt((@javax.annotation.Nonnull final List<Tensor[]> x) -> x.size()).sum()) {
+        if (0 == Arrays.stream(array).mapToInt((@Nonnull final List<Tensor[]> x) -> x.size()).sum()) {
           return null;
         }
         assert 0 < Arrays.stream(array).mapToInt(x -> x.stream().mapToInt(y -> y.length).sum()).sum();
         final Stream<Tensor[]> stream = Arrays.stream(array).flatMap(i -> i.stream());
-        @javax.annotation.Nonnull final Iterator<Tensor[]> iterator = stream.iterator();
+        @Nonnull final Iterator<Tensor[]> iterator = stream.iterator();
         return new PartitionTask(network).call(iterator).next();
-      } catch (@javax.annotation.Nonnull final RuntimeException e) {
+      } catch (@Nonnull final RuntimeException e) {
         throw e;
-      } catch (@javax.annotation.Nonnull final Exception e) {
+      } catch (@Nonnull final Exception e) {
         throw new RuntimeException(e);
       }
     }).filter(x -> null != x).collect(Collectors.toList());
     final long time2 = System.nanoTime();
-    @javax.annotation.Nonnull final SparkTrainable.ReducableResult result = mapPartitions.stream().reduce(SparkTrainable.ReducableResult::add).get();
+    @Nonnull final SparkTrainable.ReducableResult result = mapPartitions.stream().reduce(SparkTrainable.ReducableResult::add).get();
     if (isVerbose()) {
       log.info(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
     }
-    @javax.annotation.Nonnull final DeltaSet<Layer> xxx = getDelta(result);
+    @Nonnull final DeltaSet<Layer> xxx = getDelta(result);
     return new PointSample(xxx, new StateSet<Layer>(xxx), result.sum, 0.0, result.count).normalize();
   }
   

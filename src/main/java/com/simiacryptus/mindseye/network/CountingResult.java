@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -48,7 +49,7 @@ public class CountingResult extends Result {
   /**
    * The Inner.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   private final Result inner;
   
   /**
@@ -56,7 +57,7 @@ public class CountingResult extends Result {
    *
    * @param inner the heapCopy
    */
-  public CountingResult(@javax.annotation.Nonnull final Result inner) {
+  public CountingResult(@Nonnull final Result inner) {
     super(inner.getData(), new CountingAccumulator(inner));
     this.inner = inner;
     inner.addRef();
@@ -73,7 +74,7 @@ public class CountingResult extends Result {
     getAccumulator().references.set(samples);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public CountingAccumulator getAccumulator() {
     return (CountingAccumulator) super.getAccumulator();
@@ -94,14 +95,14 @@ public class CountingResult extends Result {
    * The type Counting accumulator.
    */
   static class CountingAccumulator extends ReferenceCountingBase implements BiConsumer<DeltaSet<Layer>, TensorList> {
-    @javax.annotation.Nonnull
+    @Nonnull
     private final AtomicInteger references;
-    @javax.annotation.Nonnull
+    @Nonnull
     private final AtomicBoolean hasAccumulated;
     private final Result inner;
-    @javax.annotation.Nonnull
+    @Nonnull
     private final LinkedList<TensorList> passbackBuffers;
-    @javax.annotation.Nonnull
+    @Nonnull
     private final AtomicInteger accumulations;
   
     /**
@@ -137,7 +138,7 @@ public class CountingResult extends Result {
     }
   
     @Override
-    public void accept(DeltaSet<Layer> buffer, @javax.annotation.Nonnull TensorList data) {
+    public void accept(DeltaSet<Layer> buffer, @Nonnull TensorList data) {
       //assert null == CudaSystem.getThreadHandle();
       assertAlive();
       data.assertAlive();
@@ -146,7 +147,7 @@ public class CountingResult extends Result {
         inner.accumulate(buffer, data);
       }
       else {
-        @javax.annotation.Nonnull TensorList reduced = null;
+        @Nonnull TensorList reduced = null;
         synchronized (passbackBuffers) {
           passbackBuffers.add(data);
           data.addRef();
@@ -154,7 +155,7 @@ public class CountingResult extends Result {
             Stream<TensorList> stream = passbackBuffers.stream();
             if (!CoreSettings.INSTANCE.isSingleThreaded()) stream = stream.parallel();
             //x.addRef();
-            @javax.annotation.Nonnull TensorList compacted = stream.reduce((a, b) -> {
+            @Nonnull TensorList compacted = stream.reduce((a, b) -> {
               TensorList c;
               c = a.addAndFree(b);
               b.freeRef();

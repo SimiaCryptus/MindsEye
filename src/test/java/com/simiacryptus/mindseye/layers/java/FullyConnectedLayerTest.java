@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.java;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Random;
 
@@ -30,7 +31,7 @@ import java.util.Random;
  */
 public abstract class FullyConnectedLayerTest extends LayerTestBase {
   
-  @javax.annotation.Nonnull
+  @Nonnull
   private final FullyConnectedLayer fullyConnectedLayer;
   private final int inputs;
   private final int outputs;
@@ -47,7 +48,7 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
     this.outputs = outputs;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
@@ -61,7 +62,7 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
     return FullyConnectedReferenceLayer.class;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     fullyConnectedLayer.addRef();

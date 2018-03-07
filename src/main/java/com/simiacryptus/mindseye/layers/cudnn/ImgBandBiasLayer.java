@@ -36,6 +36,9 @@ import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
 import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.layers.java.ProductInputsLayer;
+import com.simiacryptus.util.FastRandom;
+import com.simiacryptus.util.Util;
 import jcuda.jcudnn.cudnnOpTensorDescriptor;
 import jcuda.jcudnn.cudnnOpTensorOp;
 
@@ -46,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
+import java.util.stream.Stream;
 
 /**
  * This layer multiplies together the inputs, element-by-element. It can be used to implement integer-power activation
@@ -55,7 +59,7 @@ import java.util.function.IntToDoubleFunction;
 public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBandBiasLayer> {
   
   private Precision precision = Precision.Double;
-  private com.simiacryptus.mindseye.lang.Tensor bias;
+  private Tensor bias;
   
   /**
    * Instantiates a new Product inputs layer.
@@ -63,7 +67,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
    * @param bands the bands
    */
   public ImgBandBiasLayer(int bands) {
-    this.bias = new com.simiacryptus.mindseye.lang.Tensor(1, 1, bands);
+    this.bias = new Tensor(1, 1, bands);
   }
   
   /**
@@ -72,7 +76,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
    * @param id the id
    * @param rs the rs
    */
-  protected ImgBandBiasLayer(@javax.annotation.Nonnull final com.google.gson.JsonObject id, final java.util.Map<String, byte[]> rs) {
+  protected ImgBandBiasLayer(@Nonnull final JsonObject id, final Map<String, byte[]> rs) {
     super(id);
     this.precision = Precision.valueOf(id.getAsJsonPrimitive("precision").getAsString());
     this.bias = Tensor.fromJson(id.get("bias"), rs);
@@ -96,7 +100,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
-    return this.as(com.simiacryptus.mindseye.layers.java.ProductInputsLayer.class);
+    return this.as(ProductInputsLayer.class);
   }
   
   
@@ -118,7 +122,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
     input.addRef();
 //   assert !right.isAlive();
     return new Result(CudaSystem.eval(gpu -> {
-      @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(jcuda.jcudnn.cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision);
+      @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision);
       @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
         inputDimensions[2], inputDimensions[1], inputDimensions[0],
         inputDimensions[2] * inputDimensions[1] * inputDimensions[0],
@@ -126,12 +130,12 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
         inputDimensions[0],
         1);
       @Nullable final CudaTensor inputTensor = gpu.getTensor(leftData, precision, MemoryType.Device, false);
-      CudaMemory biasMem = gpu.allocate(bias.size() * precision.size, com.simiacryptus.mindseye.lang.cudnn.MemoryType.Device, true).write(precision, bias.getData());
+      CudaMemory biasMem = gpu.allocate(bias.size() * precision.size, MemoryType.Device, true).write(precision, bias.getData());
       int[] biasDim = bias.getDimensions();
-      com.simiacryptus.mindseye.lang.cudnn.CudaDevice.CudaTensorDescriptor biasDescriptor = gpu.newTensorDescriptor(precision, 1, biasDim[2], biasDim[1], biasDim[0],
+      CudaDevice.CudaTensorDescriptor biasDescriptor = gpu.newTensorDescriptor(precision, 1, biasDim[2], biasDim[1], biasDim[0],
         biasDim[2] * biasDim[1] * biasDim[0], biasDim[1] * biasDim[0], biasDim[0], 1);
       //assert lPtr.size == rPtr.size;
-      @Nonnull final CudaMemory outputPtr = gpu.allocate((long) precision.size * outputDescriptor.nStride * length, MemoryType.Device, true);
+      @Nonnull final CudaMemory outputPtr = gpu.allocate((long) precision.size * outputDescriptor.nStride * length, MemoryType.Managed, true);
       CudaMemory inputMemory = inputTensor.getMemory(gpu);
       CudaSystem.handle(gpu.cudnnOpTensor(opDescriptor.getPtr(),
         precision.getPointer(1.0), inputTensor.descriptor.getPtr(), inputMemory.getPtr(),
@@ -149,10 +153,10 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
         @Nonnull double[] biasDelta = CudaSystem.eval(gpu -> {
           @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
           @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
-    
-          CudaMemory biasMem = gpu.allocate(bias.size() * precision.size, com.simiacryptus.mindseye.lang.cudnn.MemoryType.Device, true).write(precision, bias.getData());
+  
+          CudaMemory biasMem = gpu.allocate(bias.size() * precision.size, MemoryType.Device, true).write(precision, bias.getData());
           int[] biasDim = bias.getDimensions();
-          com.simiacryptus.mindseye.lang.cudnn.CudaDevice.CudaTensorDescriptor biasDescriptor = gpu.newTensorDescriptor(precision,
+          CudaDevice.CudaTensorDescriptor biasDescriptor = gpu.newTensorDescriptor(precision,
             1, biasDim[2], biasDim[1], biasDim[0],
             biasDim[2] * biasDim[1] * biasDim[0], biasDim[1] * biasDim[0], biasDim[0], 1);
           CudaMemory deltaTensorMemory = deltaTensor.getMemory(gpu);
@@ -160,7 +164,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
             precision.getPointer(0.0), biasDescriptor.getPtr(), biasMem.getPtr());
           double[] biasV = new double[bias.length()];
           biasMem.read(precision, biasV);
-          java.util.stream.Stream.<ReferenceCounting>of(biasMem, deltaTensorMemory, deltaTensor, opDescriptor, biasDescriptor).forEach(ReferenceCounting::freeRef);
+          Stream.<ReferenceCounting>of(biasMem, deltaTensorMemory, deltaTensor, opDescriptor, biasDescriptor).forEach(ReferenceCounting::freeRef);
           return biasV;
         }, delta);
         buffer.get(ImgBandBiasLayer.this, bias).addInPlace(biasDelta).freeRef();
@@ -230,9 +234,9 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
    * @param f the f
    * @return the img band bias layer
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public ImgBandBiasLayer addWeights(@Nonnull final DoubleSupplier f) {
-    com.simiacryptus.util.Util.add(f, getBias());
+    Util.add(f, getBias());
     return this;
   }
   
@@ -242,7 +246,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
    * @param f the f
    * @return the img band bias layer
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public ImgBandBiasLayer setWeights(@Nonnull final IntToDoubleFunction f) {
     bias.setByCoord(c -> f.applyAsDouble(c.getIndex()));
     return this;
@@ -254,9 +258,9 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
    * @param value the value
    * @return the weights log
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public ImgBandBiasLayer setWeightsLog(final double value) {
-    bias.setByCoord(c -> (com.simiacryptus.util.FastRandom.INSTANCE.random() - 0.5) * Math.pow(10, value));
+    bias.setByCoord(c -> (FastRandom.INSTANCE.random() - 0.5) * Math.pow(10, value));
     return this;
   }
   
@@ -298,7 +302,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
    * @param bias the bias
    * @return the bias
    */
-  public com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer setBias(com.simiacryptus.mindseye.lang.Tensor bias) {
+  public ImgBandBiasLayer setBias(Tensor bias) {
     if (this.bias != null) {
       this.bias.freeRef();
     }

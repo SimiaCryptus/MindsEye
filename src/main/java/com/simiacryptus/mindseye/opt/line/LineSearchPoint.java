@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.opt.line;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 
+import javax.annotation.Nonnull;
+
 /**
  * A particular point in a LayerBase line search phase. Contains both the high-dimensional position and derivative, and
  * the simplified one-dimensional positiion and derivative.
@@ -48,10 +50,10 @@ public class LineSearchPoint extends ReferenceCountingBase {
     this.derivative = derivative;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public String toString() {
-    @javax.annotation.Nonnull final StringBuffer sb = new StringBuffer("LineSearchPoint{");
+    @Nonnull final StringBuffer sb = new StringBuffer("LineSearchPoint{");
     sb.append("point=").append(point);
     sb.append(", derivative=").append(derivative);
     sb.append('}');

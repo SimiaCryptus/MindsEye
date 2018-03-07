@@ -26,6 +26,7 @@ import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +78,7 @@ public class ImgTileSubnetLayer extends WrapperLayer {
    * @param json the json
    * @param rs   the rs
    */
-  protected ImgTileSubnetLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected ImgTileSubnetLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json, rs);
     height = json.getAsJsonPrimitive("height").getAsInt();
     width = json.getAsJsonPrimitive("width").getAsInt();
@@ -93,17 +94,17 @@ public class ImgTileSubnetLayer extends WrapperLayer {
    * @param rs   the rs
    * @return the rescaled subnet layer
    */
-  public static ImgTileSubnetLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgTileSubnetLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ImgTileSubnetLayer(json, rs);
   }
   
   @Nullable
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     assert 1 == inObj.length;
-    @javax.annotation.Nonnull final int[] inputDims = inObj[0].getData().getDimensions();
+    @Nonnull final int[] inputDims = inObj[0].getData().getDimensions();
     assert 3 == inputDims.length;
-    @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
+    @Nonnull final PipelineNetwork network = new PipelineNetwork();
     int cols = (int) (Math.ceil((inputDims[0] - width) * 1.0 / strideX) + 1);
     int rows = (int) (Math.ceil((inputDims[1] - height) * 1.0 / strideY) + 1);
     if (cols == 1 && rows == 1) return getInner().eval(inObj);
@@ -131,10 +132,10 @@ public class ImgTileSubnetLayer extends WrapperLayer {
     return eval;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJson(resources, dataSerializer);
+    @Nonnull final JsonObject json = super.getJson(resources, dataSerializer);
     json.addProperty("height", height);
     json.addProperty("width", width);
     json.addProperty("strideX", strideX);
@@ -143,7 +144,7 @@ public class ImgTileSubnetLayer extends WrapperLayer {
   }
   
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return new ArrayList<>();

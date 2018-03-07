@@ -68,13 +68,13 @@ public class State<K extends ReferenceCounting> extends DoubleBuffer<K> {
    *
    * @return the double buffer
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public final synchronized State<K> backup() {
     System.arraycopy(target, 0, getDelta(), 0, target.length);
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public State<K> copy() {
     assertAlive();
@@ -86,14 +86,14 @@ public class State<K extends ReferenceCounting> extends DoubleBuffer<K> {
    *
    * @return the state
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public State<K> backupCopy() {
     return new State(layer, target, RecycleBin.DOUBLES.copyOf(target, length()));
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public State<K> map(@javax.annotation.Nonnull final DoubleUnaryOperator mapper) {
+  public State<K> map(@Nonnull final DoubleUnaryOperator mapper) {
     return new State(layer, target, Arrays.stream(getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
   }
   
@@ -102,7 +102,7 @@ public class State<K extends ReferenceCounting> extends DoubleBuffer<K> {
    *
    * @return the double buffer
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public final synchronized State<K> restore() {
     System.arraycopy(getDelta(), 0, target, 0, target.length);
     return this;

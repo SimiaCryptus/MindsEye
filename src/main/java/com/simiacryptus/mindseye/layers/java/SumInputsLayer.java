@@ -53,7 +53,7 @@ public class SumInputsLayer extends LayerBase {
    *
    * @param id the id
    */
-  protected SumInputsLayer(@javax.annotation.Nonnull final JsonObject id) {
+  protected SumInputsLayer(@Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -64,13 +64,13 @@ public class SumInputsLayer extends LayerBase {
    * @param rs   the rs
    * @return the sum inputs layer
    */
-  public static SumInputsLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static SumInputsLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new SumInputsLayer(json);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     return new Result(Arrays.stream(inObj).parallel().map(x -> {
@@ -81,9 +81,9 @@ public class SumInputsLayer extends LayerBase {
       assert l.length() == r.length() || 1 == l.length() || 1 == r.length();
       @Nonnull TensorArray sum = TensorArray.wrap(IntStream.range(0, l.length()).parallel()
         .mapToObj(i -> {
-          @javax.annotation.Nullable final Tensor left = l.get(1 == l.length() ? 0 : i);
-          @javax.annotation.Nullable final Tensor right = r.get(1 == r.length() ? 0 : i);
-          @javax.annotation.Nullable Tensor tensor;
+          @Nullable final Tensor left = l.get(1 == l.length() ? 0 : i);
+          @Nullable final Tensor right = r.get(1 == r.length() ? 0 : i);
+          @Nullable Tensor tensor;
           if (right.length() == 1) {
             tensor = left.mapParallel(v -> v + right.get(0));
           }
@@ -98,10 +98,10 @@ public class SumInputsLayer extends LayerBase {
       l.freeRef();
       r.freeRef();
       return sum;
-    }).get(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
-      for (@javax.annotation.Nonnull final Result input : inObj) {
+    }).get(), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+      for (@Nonnull final Result input : inObj) {
         if (input.isAlive()) {
-          @javax.annotation.Nonnull TensorList projectedDelta = delta;
+          @Nonnull TensorList projectedDelta = delta;
           if (1 < projectedDelta.length() && input.getData().length() == 1) {
             projectedDelta = TensorArray.wrap(projectedDelta.stream().parallel().reduce((a, b) -> {
               @Nullable Tensor c = a.addAndFree(b);
@@ -114,7 +114,7 @@ public class SumInputsLayer extends LayerBase {
           }
           if (1 < Tensor.length(projectedDelta.getDimensions()) && Tensor.length(input.getData().getDimensions()) == 1) {
             Tensor[] data = projectedDelta.stream().map(t -> new Tensor(new double[]{t.sum()})).toArray(i -> new Tensor[i]);
-            @javax.annotation.Nonnull TensorArray data2 = TensorArray.wrap(data);
+            @Nonnull TensorArray data2 = TensorArray.wrap(data);
             projectedDelta.freeRef();
             projectedDelta = data2;
           }
@@ -131,7 +131,7 @@ public class SumInputsLayer extends LayerBase {
       
       @Override
       public boolean isAlive() {
-        for (@javax.annotation.Nonnull final Result element : inObj)
+        for (@Nonnull final Result element : inObj)
           if (element.isAlive()) {
             return true;
           }
@@ -141,13 +141,13 @@ public class SumInputsLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.java;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
+import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
@@ -40,7 +41,7 @@ public abstract class BiasLayerTest extends LayerTestBase {
     this.dimension = dimension;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
@@ -48,7 +49,7 @@ public abstract class BiasLayerTest extends LayerTestBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new BiasLayer(dimension).addWeights(this::random);
@@ -78,7 +79,7 @@ public abstract class BiasLayerTest extends LayerTestBase {
       super(5);
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new BiasLayer(1).addWeights(this::random);

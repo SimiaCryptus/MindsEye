@@ -29,6 +29,7 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,7 +68,7 @@ public class ImgReshapeLayer extends LayerBase {
    *
    * @param json the json
    */
-  protected ImgReshapeLayer(@javax.annotation.Nonnull final JsonObject json) {
+  protected ImgReshapeLayer(@Nonnull final JsonObject json) {
     super(json);
     kernelSizeX = json.getAsJsonPrimitive("kernelSizeX").getAsInt();
     kernelSizeY = json.getAsJsonPrimitive("kernelSizeY").getAsInt();
@@ -81,10 +82,10 @@ public class ImgReshapeLayer extends LayerBase {
    * @param outputData the output data
    * @return the tensor
    */
-  @javax.annotation.Nonnull
-  public static Tensor copyCondense(@javax.annotation.Nonnull final Tensor inputData, @javax.annotation.Nonnull final Tensor outputData) {
-    @javax.annotation.Nonnull final int[] inDim = inputData.getDimensions();
-    @javax.annotation.Nonnull final int[] outDim = outputData.getDimensions();
+  @Nonnull
+  public static Tensor copyCondense(@Nonnull final Tensor inputData, @Nonnull final Tensor outputData) {
+    @Nonnull final int[] inDim = inputData.getDimensions();
+    @Nonnull final int[] outDim = outputData.getDimensions();
     assert 3 == inDim.length;
     assert 3 == outDim.length;
     assert inDim[0] >= outDim[0];
@@ -117,10 +118,10 @@ public class ImgReshapeLayer extends LayerBase {
    * @param outputData the output data
    * @return the tensor
    */
-  @javax.annotation.Nonnull
-  public static Tensor copyExpand(@javax.annotation.Nonnull final Tensor inputData, @javax.annotation.Nonnull final Tensor outputData) {
-    @javax.annotation.Nonnull final int[] inDim = inputData.getDimensions();
-    @javax.annotation.Nonnull final int[] outDim = outputData.getDimensions();
+  @Nonnull
+  public static Tensor copyExpand(@Nonnull final Tensor inputData, @Nonnull final Tensor outputData) {
+    @Nonnull final int[] inDim = inputData.getDimensions();
+    @Nonnull final int[] outDim = outputData.getDimensions();
     assert 3 == inDim.length;
     assert 3 == outDim.length;
     assert inDim[0] <= outDim[0];
@@ -152,19 +153,19 @@ public class ImgReshapeLayer extends LayerBase {
    * @param rs   the rs
    * @return the img reshapeCast layer
    */
-  public static ImgReshapeLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgReshapeLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ImgReshapeLayer(json);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     //assert Arrays.stream(inObj).flatMapToDouble(input-> input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-  
+    
     final Result input = inObj[0];
     final TensorList batch = input.getData();
-    @javax.annotation.Nonnull final int[] inputDims = batch.getDimensions();
+    @Nonnull final int[] inputDims = batch.getDimensions();
     assert 3 == inputDims.length;
     assert expand || 0 == inputDims[0] % kernelSizeX : (inputDims[0] + " % " + kernelSizeX);
     assert expand || 0 == inputDims[1] % kernelSizeY : (inputDims[1] + " % " + kernelSizeY);
@@ -190,13 +191,13 @@ public class ImgReshapeLayer extends LayerBase {
       })
       .toArray(i -> new Tensor[i]));
     outputDims.freeRef();
-    return new Result(data, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+    return new Result(data, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       if (input.isAlive()) {
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
+        @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
           .mapToObj(dataIndex -> {
-            @javax.annotation.Nonnull final Tensor passback = new Tensor(inputDims);
-            @javax.annotation.Nullable final Tensor err = error.get(dataIndex);
+            @Nonnull final Tensor passback = new Tensor(inputDims);
+            @Nullable final Tensor err = error.get(dataIndex);
             Tensor tensor = expand ? ImgReshapeLayer.copyCondense(err, passback) : ImgReshapeLayer.copyExpand(err, passback);
             err.freeRef();
             return tensor;
@@ -218,17 +219,17 @@ public class ImgReshapeLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("kernelSizeX", kernelSizeX);
     json.addProperty("kernelSizeY", kernelSizeX);
     json.addProperty("expand", expand);
     return json;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return new ArrayList<>();

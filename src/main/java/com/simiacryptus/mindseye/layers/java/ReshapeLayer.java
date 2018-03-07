@@ -62,7 +62,7 @@ public class ReshapeLayer extends LayerBase {
    *
    * @param outputDims the output dims
    */
-  public ReshapeLayer(@javax.annotation.Nonnull final int... outputDims) {
+  public ReshapeLayer(@Nonnull final int... outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
   }
   
@@ -72,7 +72,7 @@ public class ReshapeLayer extends LayerBase {
    * @param json the json
    * @param rs   the rs
    */
-  protected ReshapeLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected ReshapeLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json);
     outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
   }
@@ -84,26 +84,26 @@ public class ReshapeLayer extends LayerBase {
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static ReshapeLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ReshapeLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ReshapeLayer(json, rs);
   }
   
   @Nullable
   @Override
-  public Result evalAndFree(@javax.annotation.Nonnull final Result... inObj) {
+  public Result evalAndFree(@Nonnull final Result... inObj) {
     assert 1 == inObj.length;
     TensorList data = inObj[0].getData();
     @Nonnull int[] inputDims = data.getDimensions();
     ReshapedTensorList reshapedTensorList = new ReshapedTensorList(data, outputDims);
     data.freeRef();
     return new Result(reshapedTensorList, (DeltaSet<Layer> buffer, TensorList delta) -> {
-      @javax.annotation.Nonnull ReshapedTensorList tensorList = new ReshapedTensorList(delta, inputDims);
+      @Nonnull ReshapedTensorList tensorList = new ReshapedTensorList(delta, inputDims);
       inObj[0].accumulate(buffer, tensorList);
     }) {
       
       @Override
       protected void _free() {
-        for (@javax.annotation.Nonnull Result result : inObj) {
+        for (@Nonnull Result result : inObj) {
           result.freeRef();
         }
       }
@@ -116,15 +116,15 @@ public class ReshapeLayer extends LayerBase {
     
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.add("outputDims", JsonUtil.getJson(outputDims));
     return json;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

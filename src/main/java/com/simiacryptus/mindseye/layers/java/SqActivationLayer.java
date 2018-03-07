@@ -68,7 +68,7 @@ public final class SqActivationLayer extends SimpleActivationLayer<SqActivationL
     results[1] = d;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();

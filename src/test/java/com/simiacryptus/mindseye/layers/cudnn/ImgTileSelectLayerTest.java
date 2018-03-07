@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Random;
 
@@ -37,7 +38,7 @@ public abstract class ImgTileSelectLayerTest extends CudaLayerTestBase {
     validateBatchExecution = false;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
@@ -45,7 +46,7 @@ public abstract class ImgTileSelectLayerTest extends CudaLayerTestBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgTileSelectLayer(4, 4, 3, 3);

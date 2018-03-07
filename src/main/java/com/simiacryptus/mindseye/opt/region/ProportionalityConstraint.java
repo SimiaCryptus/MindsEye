@@ -21,14 +21,16 @@ package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.util.ArrayUtil;
 
+import javax.annotation.Nonnull;
+
 /**
  * This strict region allows only raw scaling of weights; it is similar to but more constrained than
  * MeanVarianceGradient
  */
 public class ProportionalityConstraint implements TrustRegion {
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public double[] project(@javax.annotation.Nonnull final double[] weights, @javax.annotation.Nonnull final double[] point) {
+  public double[] project(@Nonnull final double[] weights, @Nonnull final double[] point) {
     return ArrayUtil.multiply(weights, ArrayUtil.dot(weights, point) / ArrayUtil.dot(weights, weights));
   }
 }

@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.Util;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
@@ -43,10 +44,10 @@ public abstract class VGG16 extends ImageClassifier {
    * @param file the file
    * @return the vgg 16
    */
-  public static VGG16 fromZip(@javax.annotation.Nonnull File file) {
+  public static VGG16 fromZip(@Nonnull File file) {
     try {
       return new VGG16.Static(Layer.fromZip(new ZipFile(file)));
-    } catch (@javax.annotation.Nonnull final RuntimeException e) {
+    } catch (@Nonnull final RuntimeException e) {
       throw e;
     } catch (Throwable e) {
       throw new RuntimeException(e);
@@ -61,14 +62,14 @@ public abstract class VGG16 extends ImageClassifier {
   public static VGG16_HDF5 fromS3_HDF5() {
     try {
       return new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5"))));
-    } catch (@javax.annotation.Nonnull final RuntimeException e) {
+    } catch (@Nonnull final RuntimeException e) {
       throw e;
     } catch (Throwable e) {
       throw new RuntimeException(e);
     }
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Tensor prefilter(Tensor tensor) {
     tensor = tensor.mapCoords(getBiasFunction(tensor));

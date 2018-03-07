@@ -24,6 +24,8 @@ import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
+import javax.annotation.Nonnull;
+
 /**
  * A base class for a Trainable type which wraps an heapCopy type of the same kind.
  *
@@ -78,14 +80,14 @@ public class TrainableWrapper<T extends Trainable> extends ReferenceCountingBase
     return inner.getLayer();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public TrainableDataMask setMask(final boolean... mask) {
     ((TrainableDataMask) inner).setMask(mask);
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public String toString() {
     return getClass().getSimpleName() + "{" +

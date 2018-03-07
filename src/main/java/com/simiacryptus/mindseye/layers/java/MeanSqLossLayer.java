@@ -32,6 +32,7 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
@@ -60,7 +61,7 @@ public class MeanSqLossLayer extends LayerBase {
    *
    * @param id the id
    */
-  protected MeanSqLossLayer(@javax.annotation.Nonnull final JsonObject id) {
+  protected MeanSqLossLayer(@Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -71,13 +72,13 @@ public class MeanSqLossLayer extends LayerBase {
    * @param rs   the rs
    * @return the mean sq loss layer
    */
-  public static MeanSqLossLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static MeanSqLossLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new MeanSqLossLayer(json);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     if (2 != inObj.length) throw new IllegalArgumentException();
     final int leftLength = inObj[0].getData().length();
     final int rightLength = inObj[1].getData().length();
@@ -85,20 +86,20 @@ public class MeanSqLossLayer extends LayerBase {
     if (leftLength != rightLength && leftLength != 1 && rightLength != 1) {
       throw new IllegalArgumentException(leftLength + " != " + rightLength);
     }
-    @javax.annotation.Nonnull final Tensor diffs[] = new Tensor[leftLength];
+    @Nonnull final Tensor diffs[] = new Tensor[leftLength];
     return new Result(TensorArray.wrap(IntStream.range(0, leftLength).mapToObj(dataIndex -> {
-      @javax.annotation.Nullable final Tensor a = inObj[0].getData().get(1 == leftLength ? 0 : dataIndex);
-      @javax.annotation.Nullable final Tensor b = inObj[1].getData().get(1 == rightLength ? 0 : dataIndex);
+      @Nullable final Tensor a = inObj[0].getData().get(1 == leftLength ? 0 : dataIndex);
+      @Nullable final Tensor b = inObj[1].getData().get(1 == rightLength ? 0 : dataIndex);
       if (a.length() != b.length()) {
         throw new IllegalArgumentException(String.format("%s != %s", Arrays.toString(a.getDimensions()), Arrays.toString(b.getDimensions())));
       }
-      @javax.annotation.Nonnull final Tensor r = a.minus(b);
+      @Nonnull final Tensor r = a.minus(b);
       a.freeRef();
       b.freeRef();
       diffs[dataIndex] = r;
-      @javax.annotation.Nonnull Tensor statsTensor = new Tensor(new double[]{r.sumSq() / r.length()}, 1);
+      @Nonnull Tensor statsTensor = new Tensor(new double[]{r.sumSq() / r.length()}, 1);
       return statsTensor;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
         Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
           @Nullable Tensor tensor = data.get(dataIndex);
@@ -109,12 +110,12 @@ public class MeanSqLossLayer extends LayerBase {
         }).collect(Collectors.toList()).stream();
         if (1 == leftLength) {
           tensorStream = Stream.of(tensorStream.reduce((a, b) -> {
-            @javax.annotation.Nullable Tensor c = a.addAndFree(b);
+            @Nullable Tensor c = a.addAndFree(b);
             b.freeRef();
             return c;
           }).get());
         }
-        @javax.annotation.Nonnull final TensorList array = TensorArray.wrap(tensorStream.toArray(i -> new Tensor[i]));
+        @Nonnull final TensorList array = TensorArray.wrap(tensorStream.toArray(i -> new Tensor[i]));
         inObj[0].accumulate(buffer, array);
       }
       if (inObj[1].isAlive()) {
@@ -126,13 +127,13 @@ public class MeanSqLossLayer extends LayerBase {
         }).collect(Collectors.toList()).stream();
         if (1 == rightLength) {
           tensorStream = Stream.of(tensorStream.reduce((a, b) -> {
-            @javax.annotation.Nullable Tensor c = a.addAndFree(b);
+            @Nullable Tensor c = a.addAndFree(b);
             b.freeRef();
             return c;
           }).get());
         }
-        @javax.annotation.Nonnull final TensorList array = TensorArray.wrap(tensorStream.map(x -> {
-          @javax.annotation.Nullable Tensor scale = x.scale(-1);
+        @Nonnull final TensorList array = TensorArray.wrap(tensorStream.map(x -> {
+          @Nullable Tensor scale = x.scale(-1);
           x.freeRef();
           return scale;
         }).toArray(i -> new Tensor[i]));
@@ -154,13 +155,13 @@ public class MeanSqLossLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

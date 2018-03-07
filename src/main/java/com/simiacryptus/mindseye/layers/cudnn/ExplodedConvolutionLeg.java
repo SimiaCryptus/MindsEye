@@ -54,7 +54,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
   /**
    * The Sub layers.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public final List<Layer> subLayers;
   /**
    * The From band.
@@ -79,7 +79,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
     this.subLayers = new ArrayList<>();
     int inputBands = getInputBands();
     final int inputBandsSq = inputBands * inputBands;
-    @javax.annotation.Nonnull final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
+    @Nonnull final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
     filterDimensions[2] = inputBands * this.convolutionParams.outputBands;
     for (int offset = 0; offset < filterDimensions[2]; offset += inputBandsSq) {
       SimpleConvolutionLayer simpleConvolutionLayer = new SimpleConvolutionLayer(filterDimensions[0], filterDimensions[1], inputBandsSq) //
@@ -111,10 +111,10 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
    * @param filter the kernel
    * @return the exploded convolution leg
    */
-  @javax.annotation.Nonnull
-  public ExplodedConvolutionLeg write(@javax.annotation.Nonnull Tensor filter) {
+  @Nonnull
+  public ExplodedConvolutionLeg write(@Nonnull Tensor filter) {
     int inputBands = getInputBands();
-    @javax.annotation.Nonnull final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
+    @Nonnull final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
     int outputBands = this.convolutionParams.outputBands;
     int squareOutputBands = (int) (Math.ceil(convolutionParams.outputBands * 1.0 / inputBands) * inputBands);
     assert squareOutputBands >= convolutionParams.outputBands : String.format("%d >= %d", squareOutputBands, convolutionParams.outputBands);
@@ -146,17 +146,17 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
    * @param extractor the extractor
    * @return the tensor
    */
-  @javax.annotation.Nonnull
-  public Tensor read(@javax.annotation.Nonnull Function<SimpleConvolutionLayer, Tensor> extractor) {
+  @Nonnull
+  public Tensor read(@Nonnull Function<SimpleConvolutionLayer, Tensor> extractor) {
     int inputBands = getInputBands();
-    @javax.annotation.Nonnull final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
+    @Nonnull final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
     filterDimensions[2] = inputBands * this.convolutionParams.outputBands;
     int outputBands = convolutionParams.outputBands;
     int squareOutputBands = (int) (Math.ceil(convolutionParams.outputBands * 1.0 / inputBands) * inputBands);
     assert squareOutputBands >= convolutionParams.outputBands : String.format("%d >= %d", squareOutputBands, convolutionParams.outputBands);
     assert squareOutputBands % inputBands == 0 : String.format("%d %% %d", squareOutputBands, inputBands);
-    @javax.annotation.Nonnull Tensor resultDelta = new Tensor(filterDimensions[0], filterDimensions[1], inputBands * outputBands);
-  
+    @Nonnull Tensor resultDelta = new Tensor(filterDimensions[0], filterDimensions[1], inputBands * outputBands);
+    
     for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
       int _layerNumber = layerNumber;
       Tensor deltaTensor = extractor.apply(((SimpleConvolutionLayer) ((ImgTileSubnetLayer) subLayers.get(layerNumber)).getInner()));
@@ -208,8 +208,8 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
    * @param remove   the remove
    * @return the tensor
    */
-  @javax.annotation.Nonnull
-  public Tensor read(@javax.annotation.Nonnull DeltaSet<Layer> deltaSet, boolean remove) {
+  @Nonnull
+  public Tensor read(@Nonnull DeltaSet<Layer> deltaSet, boolean remove) {
     return read((sublayer) -> {
       final Delta<Layer> subnetDelta = remove ? deltaSet.getMap().remove(sublayer) : deltaSet.getMap().get(sublayer);
       if (null == subnetDelta) throw new RuntimeException("No Delta for " + sublayer);
@@ -223,7 +223,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
    *
    * @return the tensor
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public Tensor read() {
     return read((sublayer) -> {
       Tensor kernel = sublayer.kernel;
@@ -238,7 +238,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
    * @param input the input
    * @return the dag node
    */
-  public DAGNode add(@javax.annotation.Nonnull final DAGNode input) {
+  public DAGNode add(@Nonnull final DAGNode input) {
     assertAlive();
     DAGNetwork network = input.getNetwork();
     DAGNode head = input;
@@ -254,7 +254,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
     return head;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public String toString() {
     return "ExplodedConvolutionLeg{" +

@@ -90,7 +90,7 @@ public abstract class ImageClassifier implements NetworkFactory {
   /**
    * The Precision.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   Precision precision = Precision.Float;
   private int batchSize;
   
@@ -105,7 +105,7 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param data       the data
    * @return the list
    */
-  public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @javax.annotation.Nonnull Layer network, int count, @javax.annotation.Nonnull List<String> categories, int batchSize, Tensor... data) {
+  public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @Nonnull Layer network, int count, @Nonnull List<String> categories, int batchSize, Tensor... data) {
     return predict(prefilter, network, count, categories, batchSize, true, false, data);
   }
   
@@ -122,7 +122,7 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param data       the data
    * @return the list
    */
-  public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @javax.annotation.Nonnull Layer network, int count, @javax.annotation.Nonnull List<String> categories, int batchSize, boolean asyncGC, boolean nullGC, Tensor[] data) {
+  public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @Nonnull Layer network, int count, @Nonnull List<String> categories, int batchSize, boolean asyncGC, boolean nullGC, Tensor[] data) {
     try {
       return Lists.partition(Arrays.asList(data), 1).stream().flatMap(batch -> {
         Tensor[][] input = {
@@ -164,7 +164,7 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param network the network
    * @return the training monitor
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public static TrainingMonitor getTrainingMonitor(@Nonnull ArrayList<StepRecord> history, final PipelineNetwork network) {
     return TestUtil.getMonitor(history);
   }
@@ -175,8 +175,8 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param tensor the tensor
    * @return the bias function
    */
-  @javax.annotation.Nonnull
-  public static ToDoubleFunction<Coordinate> getBiasFunction(@javax.annotation.Nonnull Tensor tensor) {
+  @Nonnull
+  public static ToDoubleFunction<Coordinate> getBiasFunction(@Nonnull Tensor tensor) {
     return c1 -> {
       if (c1.getCoords()[2] == 0) return tensor.get(c1) - 103.939;
       if (c1.getCoords()[2] == 1) return tensor.get(c1) - 116.779;
@@ -191,8 +191,8 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param tensor the tensor
    * @return the permute function
    */
-  @javax.annotation.Nonnull
-  public static ToDoubleFunction<Coordinate> getPermuteFunction(@javax.annotation.Nonnull Tensor tensor) {
+  @Nonnull
+  public static ToDoubleFunction<Coordinate> getPermuteFunction(@Nonnull Tensor tensor) {
     return c -> {
       if (c.getCoords()[2] == 0) return tensor.get(c.getCoords()[0], c.getCoords()[1], 0);
       if (c.getCoords()[2] == 1) return tensor.get(c.getCoords()[0], c.getCoords()[1], 1);
@@ -243,13 +243,13 @@ public abstract class ImageClassifier implements NetworkFactory {
   @Nonnull
   protected static Tensor evaluatePrototype(@Nonnull final Layer layer, final Tensor prevPrototype, int cnt) {
     int numberOfParameters = layer.state().stream().mapToInt(x -> x.length).sum();
-    @javax.annotation.Nonnull int[] prev_dimensions = prevPrototype.getDimensions();
+    @Nonnull int[] prev_dimensions = prevPrototype.getDimensions();
     Result eval = layer.eval(prevPrototype);
     TensorList newPrototype = eval.getData();
     if (null != prevPrototype) prevPrototype.freeRef();
     eval.freeRef();
     try {
-      @javax.annotation.Nonnull int[] new_dimensions = newPrototype.getDimensions();
+      @Nonnull int[] new_dimensions = newPrototype.getDimensions();
       log.info(String.format("Added layer #%d: %s; %s params, dimensions %s (%s) -> %s (%s)", //
         cnt, layer, numberOfParameters, //
         Arrays.toString(prev_dimensions), Tensor.length(prev_dimensions), //
@@ -330,7 +330,7 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param data       the data
    * @return the list
    */
-  public List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @javax.annotation.Nonnull Layer network, int count, @javax.annotation.Nonnull List<String> categories, @javax.annotation.Nonnull Tensor... data) {
+  public List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @Nonnull Layer network, int count, @Nonnull List<String> categories, @Nonnull Tensor... data) {
     return predict(prefilter, network, count, categories, Math.max(data.length, getBatchSize()), data);
   }
   
@@ -340,7 +340,7 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param tensor the tensor
    * @return the tensor
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public abstract Tensor prefilter(Tensor tensor);
   
   /**
@@ -369,7 +369,7 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param data    the data
    * @return the list
    */
-  public List<LinkedHashMap<String, Double>> predict(@javax.annotation.Nonnull Layer network, int count, Tensor[] data) {
+  public List<LinkedHashMap<String, Double>> predict(@Nonnull Layer network, int count, Tensor[] data) {
     return predict(this::prefilter, network, count, getCategories(), data);
   }
   
@@ -388,7 +388,7 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param batchSize the batch size
    * @return the batch size
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public ImageClassifier setBatchSize(int batchSize) {
     this.batchSize = batchSize;
     return this;
@@ -459,7 +459,7 @@ public abstract class ImageClassifier implements NetworkFactory {
     });
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Layer getNetwork() {
     if (null == network) {
@@ -471,7 +471,7 @@ public abstract class ImageClassifier implements NetworkFactory {
             if (null != prototype) prototype.freeRef();
             prototype = null;
             return network;
-          } catch (@javax.annotation.Nonnull final RuntimeException e) {
+          } catch (@Nonnull final RuntimeException e) {
             throw e;
           } catch (Exception e) {
             throw new RuntimeException(e);

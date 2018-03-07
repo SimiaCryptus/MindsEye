@@ -24,13 +24,14 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.TrainingTester;
 
+import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
  * The type Product inputs layer eval.
  */
 public abstract class ProductInputsLayerTest extends LayerTestBase {
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ProductInputsLayer();
@@ -45,7 +46,7 @@ public abstract class ProductInputsLayerTest extends LayerTestBase {
    * Multiply one multivariate input with a univariate input
    */
   public static class N1Test extends ProductInputsLayerTest {
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
@@ -59,7 +60,7 @@ public abstract class ProductInputsLayerTest extends LayerTestBase {
    */
   public static class NNNTest extends ProductInputsLayerTest {
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
@@ -73,7 +74,7 @@ public abstract class ProductInputsLayerTest extends LayerTestBase {
    */
   public static class NNTest extends ProductInputsLayerTest {
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{

@@ -53,7 +53,7 @@ public class SimpleLineSearchCursor extends LineSearchCursorBase {
    * @param origin    the origin
    * @param direction the direction
    */
-  public SimpleLineSearchCursor(final Trainable subject, @javax.annotation.Nonnull final PointSample origin, final DeltaSet<Layer> direction) {
+  public SimpleLineSearchCursor(final Trainable subject, @Nonnull final PointSample origin, final DeltaSet<Layer> direction) {
     this.origin = origin.copyFull();
     this.direction = direction;
     this.direction.addRef();
@@ -72,7 +72,7 @@ public class SimpleLineSearchCursor extends LineSearchCursorBase {
    * @param type the type
    * @return the direction type
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public SimpleLineSearchCursor setDirectionType(final String type) {
     this.type = type;
     return this;
@@ -98,7 +98,7 @@ public class SimpleLineSearchCursor extends LineSearchCursorBase {
     }
     @Nonnull final PointSample sample = subject.measure(monitor).setRate(alpha);
     final double dot = direction.dot(sample.delta);
-    @javax.annotation.Nonnull LineSearchPoint lineSearchPoint = new LineSearchPoint(sample, dot);
+    @Nonnull LineSearchPoint lineSearchPoint = new LineSearchPoint(sample, dot);
     sample.freeRef();
     return lineSearchPoint;
   }

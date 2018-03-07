@@ -31,6 +31,7 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
@@ -57,7 +58,7 @@ public class SumReducerLayer extends LayerBase {
    *
    * @param id the id
    */
-  protected SumReducerLayer(@javax.annotation.Nonnull final JsonObject id) {
+  protected SumReducerLayer(@Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -68,19 +69,19 @@ public class SumReducerLayer extends LayerBase {
    * @param rs   the rs
    * @return the sum reducer layer
    */
-  public static SumReducerLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static SumReducerLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new SumReducerLayer(json);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     return new Result(TensorArray.wrap(IntStream.range(0, inObj[0].getData().length()).parallel().mapToDouble(dataIndex -> {
       double sum = 0;
-      for (@javax.annotation.Nonnull final Result element : inObj) {
-        @javax.annotation.Nullable Tensor tensor = element.getData().get(dataIndex);
+      for (@Nonnull final Result element : inObj) {
+        @Nullable Tensor tensor = element.getData().get(dataIndex);
         @Nullable final double[] input = tensor.getData();
         for (final double element2 : input) {
           sum += element2;
@@ -88,12 +89,12 @@ public class SumReducerLayer extends LayerBase {
         tensor.freeRef();
       }
       return sum;
-    }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
-      for (@javax.annotation.Nonnull final Result in_l : inObj) {
+    }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+      for (@Nonnull final Result in_l : inObj) {
         if (in_l.isAlive()) {
-          @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {
+          @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {
             final double delta = data.get(dataIndex).get(0);
-            @javax.annotation.Nonnull final Tensor passback = new Tensor(in_l.getData().getDimensions());
+            @Nonnull final Tensor passback = new Tensor(in_l.getData().getDimensions());
             for (int i = 0; i < Tensor.length(in_l.getData().getDimensions()); i++) {
               passback.set(i, delta);
             }
@@ -112,7 +113,7 @@ public class SumReducerLayer extends LayerBase {
       
       @Override
       public boolean isAlive() {
-        for (@javax.annotation.Nonnull final Result element : inObj)
+        for (@Nonnull final Result element : inObj)
           if (element.isAlive()) {
             return true;
           }
@@ -122,13 +123,13 @@ public class SumReducerLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

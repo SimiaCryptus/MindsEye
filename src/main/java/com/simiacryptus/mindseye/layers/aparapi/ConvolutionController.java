@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.RecycleBin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.stream.IntStream;
@@ -44,7 +45,7 @@ public final class ConvolutionController {
    */
   public static int MAX_BUFFER_SIZE = 1 * 1024 * 1024 / 2;
   private final int[] inputSize;
-  @javax.annotation.Nonnull
+  @Nonnull
   private final int[] kernelSize;
   private final int[] outputSize;
   @Nullable
@@ -60,7 +61,7 @@ public final class ConvolutionController {
    * @param paddingX   the padding x
    * @param paddingY   the padding y
    */
-  public ConvolutionController(final int[] inputSize, @javax.annotation.Nonnull final int[] kernelSize, final Integer paddingX, Integer paddingY) {
+  public ConvolutionController(final int[] inputSize, @Nonnull final int[] kernelSize, final Integer paddingX, Integer paddingY) {
     this.inputSize = inputSize;
     this.kernelSize = kernelSize;
     this.setPaddingX(paddingX);
@@ -101,7 +102,7 @@ public final class ConvolutionController {
    * @param weights the weights
    * @param output  the output
    */
-  public void backprop(@javax.annotation.Nonnull final double[][] input, @javax.annotation.Nonnull final double[] weights, @javax.annotation.Nonnull final double[][] output) {
+  public void backprop(@Nonnull final double[][] input, @Nonnull final double[] weights, @Nonnull final double[][] output) {
     final int length = input.length;
     assert length == output.length;
     final int inLength = input[0].length;
@@ -166,7 +167,7 @@ public final class ConvolutionController {
           ConvolutionController.backpropTask.kernelSize = null;
           ConvolutionController.backpropTask.weights = null;
         }
-      } catch (@javax.annotation.Nonnull final Throwable e) {
+      } catch (@Nonnull final Throwable e) {
         throw new ComponentException("Error with " + this, e);
       }
     });
@@ -180,7 +181,7 @@ public final class ConvolutionController {
    * @param weights the weights
    * @param output  the output
    */
-  public void convolve(@javax.annotation.Nonnull final double[][] input, @javax.annotation.Nonnull final double[] weights, @javax.annotation.Nonnull final double[][] output) {
+  public void convolve(@Nonnull final double[][] input, @Nonnull final double[] weights, @Nonnull final double[][] output) {
     final int length = input.length;
     assert length == output.length;
     final int inLength = input[0].length;
@@ -249,7 +250,7 @@ public final class ConvolutionController {
           ConvolutionController.convolveTask.kernelSize = null;
           ConvolutionController.convolveTask.weights = null;
         }
-      } catch (@javax.annotation.Nonnull final Throwable e) {
+      } catch (@Nonnull final Throwable e) {
         throw new ComponentException("Error with " + this, e);
       }
     });
@@ -264,7 +265,7 @@ public final class ConvolutionController {
     return outputSize;
   }
   
-  private void gradient(@javax.annotation.Nonnull final double[] input, @javax.annotation.Nonnull final double[] weights, final int weightSize, @javax.annotation.Nonnull final double[] output) {
+  private void gradient(@Nonnull final double[] input, @Nonnull final double[] weights, final int weightSize, @Nonnull final double[] output) {
     assert 0 < input.length;
     assert 0 < weights.length;
     assert 0 < output.length;
@@ -299,7 +300,7 @@ public final class ConvolutionController {
           ConvolutionController.kernelTask.inputSize = null;
           ConvolutionController.kernelTask.kernelSize = null;
         }
-      } catch (@javax.annotation.Nonnull final Throwable e) {
+      } catch (@Nonnull final Throwable e) {
         throw new ComponentException("Error with " + this, e);
       }
     });
@@ -312,7 +313,7 @@ public final class ConvolutionController {
    * @param weights the weights
    * @param output  the output
    */
-  public void gradient(@javax.annotation.Nonnull final double[][] input, @javax.annotation.Nonnull final double[] weights, @javax.annotation.Nonnull final double[][] output) {
+  public void gradient(@Nonnull final double[][] input, @Nonnull final double[] weights, @Nonnull final double[][] output) {
     final int length = input.length;
     assert length == output.length;
     final int inLength = input[0].length;
@@ -355,7 +356,7 @@ public final class ConvolutionController {
   
   @Override
   public String toString() {
-    @javax.annotation.Nonnull final StringBuilder builder = new StringBuilder();
+    @Nonnull final StringBuilder builder = new StringBuilder();
     builder.append("Convolve [");
     builder.append(Arrays.toString(inputSize));
     builder.append(" x ");

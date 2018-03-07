@@ -21,11 +21,13 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
+import com.simiacryptus.mindseye.layers.java.FullyConnectedReferenceLayer;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.BatchingTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.util.io.NotebookOutput;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.Random;
@@ -38,17 +40,17 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
   /**
    * The Input dim.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   protected final int[] inputDim;
   /**
    * The Fully connected layer.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   protected final FullyConnectedLayer fullyConnectedLayer;
   /**
    * The LayerBase.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   protected final Layer layer;
   
   /**
@@ -58,13 +60,13 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
    * @param outputDims the output dims
    * @param batchBands the batch bands
    */
-  public FullyConnectedLayerTest(@javax.annotation.Nonnull int[] inputDims, @javax.annotation.Nonnull int[] outputDims, int batchBands) {
+  public FullyConnectedLayerTest(@Nonnull int[] inputDims, @Nonnull int[] outputDims, int batchBands) {
     this.inputDim = inputDims;
     this.fullyConnectedLayer = new FullyConnectedLayer(inputDims, outputDims).setWeightsLog(-2);
     this.layer = this.fullyConnectedLayer.setBatchBands(batchBands).explode();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
@@ -72,13 +74,13 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   protected Class<?> getTargetClass() {
     return FullyConnectedLayer.class;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     layer.addRef();
@@ -94,12 +96,12 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
   @Nullable
   @Override
   public Class<? extends Layer> getReferenceLayerClass() {
-    return com.simiacryptus.mindseye.layers.java.FullyConnectedReferenceLayer.class;
+    return FullyConnectedReferenceLayer.class;
   }
   
   @Override
   public void run(NotebookOutput log) {
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all.log";
+    @Nonnull String logName = "cuda_" + log.getName() + "_all.log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
     super.run(log);
@@ -129,7 +131,7 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
      * @param outputDims the output dims
      * @param batchBands the batch bands
      */
-    public BigTests(@javax.annotation.Nonnull int[] inputDims, @javax.annotation.Nonnull int[] outputDims, int batchBands) {
+    public BigTests(@Nonnull int[] inputDims, @Nonnull int[] outputDims, int batchBands) {
       super(inputDims, outputDims, batchBands);
       validateDifferentials = false;
       setTestTraining(false);

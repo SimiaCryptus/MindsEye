@@ -69,7 +69,7 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
       final Double weight = getRegionPolicy(layer);
       if (null != weight && 0 < weight) {
         final DoubleBuffer<Layer> deltaBuffer = direction.get(layer, buffer.target);
-        @javax.annotation.Nonnull final double[] adjusted = ArrayUtil.multiply(deltaBuffer.getDelta(), weight);
+        @Nonnull final double[] adjusted = ArrayUtil.multiply(deltaBuffer.getDelta(), weight);
         for (int i = 0; i < adjusted.length; i++) {
           deltaBuffer.getDelta()[i] = adjusted[i];
         }
@@ -87,7 +87,7 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
    * The type Hash map layer reweighting strategy.
    */
   public static class HashMapLayerReweightingStrategy extends LayerReweightingStrategy {
-  
+
     @Nonnull
     private final HashMap<Layer, Double> map = new HashMap<>();
   
@@ -105,7 +105,7 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
      *
      * @return the map
      */
-    @javax.annotation.Nonnull
+    @Nonnull
     public HashMap<Layer, Double> getMap() {
       return map;
     }

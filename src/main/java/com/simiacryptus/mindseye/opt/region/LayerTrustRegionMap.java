@@ -52,7 +52,7 @@ public class LayerTrustRegionMap extends TrustRegionStrategy {
    *
    * @return the region policies
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public Map<Layer, TrustRegion> getRegionPolicies() {
     return regionPolicies;
   }
@@ -73,7 +73,7 @@ public class LayerTrustRegionMap extends TrustRegionStrategy {
    * @param defaultRegionPolicy the default region policy
    * @return the default region policy
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public TrustRegionStrategy setDefaultRegionPolicy(final TrustRegion defaultRegionPolicy) {
     this.defaultRegionPolicy = defaultRegionPolicy;
     return this;

@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.models;
 
 import com.simiacryptus.mindseye.lang.Layer;
 
+import javax.annotation.Nonnull;
+
 /**
  * A network factory designed to be called within a report, with extra details being logged to the report output.
  */
@@ -31,7 +33,7 @@ public interface NetworkFactory {
    *
    * @return the pipeline network
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   Layer getNetwork();
   
 }

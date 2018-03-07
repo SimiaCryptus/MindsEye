@@ -32,6 +32,7 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
@@ -76,7 +77,7 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
    *
    * @param json the json
    */
-  protected DropoutNoiseLayer(@javax.annotation.Nonnull final JsonObject json) {
+  protected DropoutNoiseLayer(@Nonnull final JsonObject json) {
     super(json);
     value = json.get("value").getAsDouble();
   }
@@ -88,11 +89,11 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
    * @param rs   the rs
    * @return the dropout noise layer
    */
-  public static DropoutNoiseLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static DropoutNoiseLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new DropoutNoiseLayer(json);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Result eval(final Result... inObj) {
     final Result inputResult = inObj[0];
@@ -100,8 +101,8 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
     final TensorList inputData = inputResult.getData();
     final int itemCnt = inputData.length();
     final Tensor[] mask = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      @javax.annotation.Nonnull final Random random = new Random(seed);
-      @javax.annotation.Nullable final Tensor input = inputData.get(dataIndex);
+      @Nonnull final Random random = new Random(seed);
+      @Nullable final Tensor input = inputData.get(dataIndex);
       @Nullable final Tensor output = input.map(x -> {
         if (seed == -1) return 1;
         return random.nextDouble() < getValue() ? 0 : (1.0 / getValue());
@@ -113,20 +114,20 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
       Tensor inputTensor = inputData.get(dataIndex);
       @Nullable final double[] input = inputTensor.getData();
       @Nullable final double[] maskT = mask[dataIndex].getData();
-      @javax.annotation.Nonnull final Tensor output = new Tensor(inputTensor.getDimensions());
+      @Nonnull final Tensor output = new Tensor(inputTensor.getDimensions());
       @Nullable final double[] outputData = output.getData();
       for (int i = 0; i < outputData.length; i++) {
         outputData[i] = input[i] * maskT[i];
       }
       inputTensor.freeRef();
       return output;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       if (inputResult.isAlive()) {
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+        @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           Tensor deltaTensor = delta.get(dataIndex);
           @Nullable final double[] deltaData = deltaTensor.getData();
           @Nullable final double[] maskData = mask[dataIndex].getData();
-          @javax.annotation.Nonnull final Tensor passback = new Tensor(deltaTensor.getDimensions());
+          @Nonnull final Tensor passback = new Tensor(deltaTensor.getDimensions());
           for (int i = 0; i < passback.length(); i++) {
             passback.set(i, maskData[i] * deltaData[i]);
           }
@@ -151,10 +152,10 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("value", value);
     return json;
   }
@@ -174,7 +175,7 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
    * @param value the value
    * @return the value
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public DropoutNoiseLayer setValue(final double value) {
     this.value = value;
     return this;
@@ -190,7 +191,7 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
     seed = -1;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

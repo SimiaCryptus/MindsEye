@@ -32,6 +32,7 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
@@ -68,7 +69,7 @@ public class AvgMetaLayer extends LayerBase {
    * @param json      the json
    * @param resources the resources
    */
-  protected AvgMetaLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> resources) {
+  protected AvgMetaLayer(@Nonnull final JsonObject json, Map<String, byte[]> resources) {
     super(json);
     lastResult = Tensor.fromJson(json.get("lastResult"), resources);
     minBatchCount = json.get("minBatchCount").getAsInt();
@@ -81,7 +82,7 @@ public class AvgMetaLayer extends LayerBase {
    * @param rs   the rs
    * @return the avg meta layer
    */
-  public static AvgMetaLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static AvgMetaLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new AvgMetaLayer(json, rs);
   }
   
@@ -91,7 +92,7 @@ public class AvgMetaLayer extends LayerBase {
     super._free();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Result eval(final Result... inObj) {
     final Result input = inObj[0];
@@ -101,7 +102,7 @@ public class AvgMetaLayer extends LayerBase {
     @Nullable Tensor thisResult;
     boolean passback;
     if (null == lastResult || inputData.length() > minBatchCount) {
-      @javax.annotation.Nonnull final ToDoubleFunction<Coordinate> f = (c) ->
+      @Nonnull final ToDoubleFunction<Coordinate> f = (c) ->
         IntStream.range(0, itemCnt)
           .mapToDouble(dataIndex -> {
             Tensor tensor = inputData.get(dataIndex);
@@ -123,10 +124,10 @@ public class AvgMetaLayer extends LayerBase {
       thisResult = lastResult;
       thisResult.freeRef();
     }
-    return new Result(TensorArray.create(thisResult), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new Result(TensorArray.create(thisResult), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       if (passback && input.isAlive()) {
-        @javax.annotation.Nullable final Tensor delta = data.get(0);
-        @javax.annotation.Nonnull final Tensor feedback[] = new Tensor[itemCnt];
+        @Nullable final Tensor delta = data.get(0);
+        @Nonnull final Tensor feedback[] = new Tensor[itemCnt];
         Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
         thisResult.coordStream(true).forEach((inputCoord) -> {
           for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
@@ -134,7 +135,7 @@ public class AvgMetaLayer extends LayerBase {
           }
         });
         delta.freeRef();
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(feedback);
+        @Nonnull TensorArray tensorArray = TensorArray.wrap(feedback);
         input.accumulate(buffer, tensorArray);
       }
     }) {
@@ -154,10 +155,10 @@ public class AvgMetaLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, @javax.annotation.Nonnull DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
+    @Nonnull final JsonObject json = super.getJsonStub();
     if (null != lastResult) {
       json.add("lastResult", lastResult.toJson(resources, dataSerializer));
     }
@@ -180,13 +181,13 @@ public class AvgMetaLayer extends LayerBase {
    * @param minBatchCount the min batch count
    * @return the min batch count
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public AvgMetaLayer setMinBatchCount(final int minBatchCount) {
     this.minBatchCount = minBatchCount;
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

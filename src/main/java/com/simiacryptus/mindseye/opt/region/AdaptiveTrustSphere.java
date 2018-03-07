@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.util.ArrayUtil;
 
+import javax.annotation.Nonnull;
+
 /**
  * This trust region uses recent position history to define an ellipsoid volume for the n+1 line search
  */
@@ -44,7 +46,7 @@ public class AdaptiveTrustSphere implements TrustRegion {
    * @param divisor the divisor
    * @return the divisor
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public AdaptiveTrustSphere setDivisor(final int divisor) {
     this.divisor = divisor;
     return this;
@@ -65,7 +67,7 @@ public class AdaptiveTrustSphere implements TrustRegion {
    * @param lookback the lookback
    * @return the lookback
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public AdaptiveTrustSphere setLookback(final int lookback) {
     this.lookback = lookback;
     return this;
@@ -77,15 +79,15 @@ public class AdaptiveTrustSphere implements TrustRegion {
    * @param weights the weights
    * @return the double
    */
-  public double length(@javax.annotation.Nonnull final double[] weights) {
+  public double length(@Nonnull final double[] weights) {
     return ArrayUtil.magnitude(weights);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public double[] project(@javax.annotation.Nonnull final double[][] history, @javax.annotation.Nonnull final double[] point) {
+  public double[] project(@Nonnull final double[][] history, @Nonnull final double[] point) {
     final double[] weights = history[0];
-    @javax.annotation.Nonnull final double[] delta = ArrayUtil.subtract(point, weights);
+    @Nonnull final double[] delta = ArrayUtil.subtract(point, weights);
     final double distance = ArrayUtil.magnitude(delta);
     if (history.length < lookback + 1) return point;
     final double max = ArrayUtil.magnitude(ArrayUtil.subtract(weights, history[lookback])) / divisor;

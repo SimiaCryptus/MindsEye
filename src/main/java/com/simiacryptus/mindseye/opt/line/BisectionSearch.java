@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.opt.line;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
+import javax.annotation.Nonnull;
+
 /**
  * An exact line search method which ignores the quantity of the derivative, using only sign. Signs are sufficient to
  * find and detect bracketing conditions. When the solution is bracketed, the next iteration always tests the midpoint.
@@ -46,7 +48,7 @@ public class BisectionSearch implements LineSearchStrategy {
    * @param currentRate the current rate
    * @return the current rate
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public BisectionSearch setCurrentRate(final double currentRate) {
     this.currentRate = currentRate;
     return this;
@@ -67,14 +69,14 @@ public class BisectionSearch implements LineSearchStrategy {
    * @param zeroTol the zero tol
    * @return the zero tol
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public BisectionSearch setZeroTol(final double zeroTol) {
     this.zeroTol = zeroTol;
     return this;
   }
   
   @Override
-  public PointSample step(@javax.annotation.Nonnull final LineSearchCursor cursor, @javax.annotation.Nonnull final TrainingMonitor monitor) {
+  public PointSample step(@Nonnull final LineSearchCursor cursor, @Nonnull final TrainingMonitor monitor) {
     
     double leftX = 0;
     double leftValue;

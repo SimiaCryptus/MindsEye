@@ -23,6 +23,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -56,7 +57,7 @@ public abstract class RecycleBin<T> {
     }
     
     @Override
-    public void reset(@javax.annotation.Nonnull final double[] data, long size) {
+    public void reset(@Nonnull final double[] data, long size) {
       assert data.length == size;
       Arrays.fill(data, 0);
     }
@@ -185,7 +186,7 @@ public abstract class RecycleBin<T> {
    * @param length the length
    * @return the t
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public abstract T create(long length);
   
   /**
@@ -251,7 +252,7 @@ public abstract class RecycleBin<T> {
    *
    * @param out the out
    */
-  public void printAllProfiling(@javax.annotation.Nonnull final PrintStream out) {
+  public void printAllProfiling(@Nonnull final PrintStream out) {
     printDetailedProfiling(out);
     printNetProfiling(out);
   }
@@ -261,7 +262,7 @@ public abstract class RecycleBin<T> {
    *
    * @param out the out
    */
-  public void printDetailedProfiling(@javax.annotation.Nonnull final PrintStream out) {
+  public void printDetailedProfiling(@Nonnull final PrintStream out) {
     if (null != allocations) {
       out.println("Memory Allocation Profiling:\n\t" + allocations.toString().replaceAll("\n", "\n\t"));
     }
@@ -324,16 +325,16 @@ public abstract class RecycleBin<T> {
    * @param retries the retries
    * @return the t
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public T create(long length, int retries) {
     try {
-      @javax.annotation.Nonnull T result = create(length);
+      @Nonnull T result = create(length);
       @Nullable StackCounter stackCounter = getAllocations(length);
       if (null != stackCounter) {
         stackCounter.increment(length);
       }
       return result;
-    } catch (@javax.annotation.Nonnull final java.lang.OutOfMemoryError e) {
+    } catch (@Nonnull final OutOfMemoryError e) {
       if (retries <= 0) throw e;
     }
     clearMemory(length);
@@ -435,7 +436,7 @@ public abstract class RecycleBin<T> {
    * @param persistanceMode the persistance mode
    * @return the persistance mode
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public RecycleBin<T> setPersistanceMode(PersistanceMode persistanceMode) {
     this.persistanceMode = persistanceMode;
     return this;
@@ -447,7 +448,7 @@ public abstract class RecycleBin<T> {
    * @param data the data
    * @return the reference
    */
-  @javax.annotation.Nullable
+  @Nullable
   protected Supplier<T> wrap(T data) {
     return persistanceMode.wrap(data);
   }
@@ -466,7 +467,7 @@ public abstract class RecycleBin<T> {
    * @param threshold the threshold
    * @return the profiling
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public RecycleBin<T> setProfiling(final int threshold) {
     this.profilingThreshold = threshold;
     return this;
@@ -487,7 +488,7 @@ public abstract class RecycleBin<T> {
    * @param minLengthPerBuffer the min bytes per buffer
    * @return the min bytes per buffer
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public RecycleBin<T> setMinLengthPerBuffer(int minLengthPerBuffer) {
     this.minLengthPerBuffer = minLengthPerBuffer;
     return this;
@@ -508,7 +509,7 @@ public abstract class RecycleBin<T> {
    * @param maxLengthPerBuffer the max bytes per buffer
    * @return the max bytes per buffer
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public RecycleBin<T> setMaxLengthPerBuffer(double maxLengthPerBuffer) {
     this.maxLengthPerBuffer = maxLengthPerBuffer;
     return this;
@@ -529,7 +530,7 @@ public abstract class RecycleBin<T> {
    * @param maxItemsPerBuffer the max items per buffer
    * @return the max items per buffer
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public RecycleBin<T> setMaxItemsPerBuffer(int maxItemsPerBuffer) {
     this.maxItemsPerBuffer = maxItemsPerBuffer;
     return this;

@@ -30,6 +30,7 @@ import com.simiacryptus.mindseye.test.unit.ComponentTestBase;
 import com.simiacryptus.mindseye.test.unit.CudaLayerTester;
 import com.simiacryptus.util.io.NotebookOutput;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -45,19 +46,19 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
   public CudaLayerTestBase() {
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public ArrayList<ComponentTest<?>> getBigTests() {
-    @javax.annotation.Nonnull ArrayList<ComponentTest<?>> copy = new ArrayList<>(super.getBigTests());
+    @Nonnull ArrayList<ComponentTest<?>> copy = new ArrayList<>(super.getBigTests());
     if (CudaSystem.getPool().size() > 1) copy.add(new CudaLayerTester(1e-3));
     return copy;
   }
   
   @Override
   public void run(NotebookOutput log) {
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all.log";
+    @Nonnull String logName = "cuda_" + log.getName() + "_all.log";
     log.p(log.file((String) null, logName, "GPU Log"));
-    @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
+    @Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
     CudaSystem.addLog(apiLog);
     super.run(log);
     log.p("CudaSystem Statistics:");
@@ -71,7 +72,7 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
   @Nullable
   @Override
   protected ComponentTest<ToleranceStatistics> getReferenceIOTester() {
-    @javax.annotation.Nullable final ComponentTest<ToleranceStatistics> inner = super.getReferenceIOTester();
+    @Nullable final ComponentTest<ToleranceStatistics> inner = super.getReferenceIOTester();
     return new ComponentTestBase<ToleranceStatistics>() {
       @Override
       protected void _free() {
@@ -80,10 +81,10 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
       }
       
       @Override
-      public ToleranceStatistics test(@javax.annotation.Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
+      public ToleranceStatistics test(@Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
         @Nullable PrintStream apiLog = null;
         try {
-          @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_io.log";
+          @Nonnull String logName = "cuda_" + log.getName() + "_io.log";
           log.p(log.file((String) null, logName, "GPU Log"));
           apiLog = new PrintStream(log.file(logName));
           CudaSystem.addLog(apiLog);
@@ -101,7 +102,7 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
   @Nullable
   @Override
   public ComponentTest<ToleranceStatistics> getPerformanceTester() {
-    @javax.annotation.Nullable ComponentTest<ToleranceStatistics> inner = super.getPerformanceTester();
+    @Nullable ComponentTest<ToleranceStatistics> inner = super.getPerformanceTester();
     return new ComponentTestBase<ToleranceStatistics>() {
       @Override
       protected void _free() {
@@ -110,10 +111,10 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
       }
       
       @Override
-      public ToleranceStatistics test(@javax.annotation.Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
+      public ToleranceStatistics test(@Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
         @Nullable PrintStream apiLog = null;
         try {
-          @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_perf.log";
+          @Nonnull String logName = "cuda_" + log.getName() + "_perf.log";
           log.p(log.file((String) null, logName, "GPU Log"));
           apiLog = new PrintStream(log.file(logName));
           CudaSystem.addLog(apiLog);

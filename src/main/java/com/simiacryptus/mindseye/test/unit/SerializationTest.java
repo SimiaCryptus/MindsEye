@@ -55,7 +55,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
    * @param prettyPrint the pretty print
    * @return the byte [ ]
    */
-  public static byte[] compressGZ(@javax.annotation.Nonnull String prettyPrint) {
+  public static byte[] compressGZ(@Nonnull String prettyPrint) {
     return compressGZ(prettyPrint.getBytes(Charset.forName("UTF-8")));
   }
   
@@ -66,9 +66,9 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
    * @return the byte [ ]
    */
   public static byte[] compressGZ(byte[] bytes) {
-    @javax.annotation.Nonnull ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    @Nonnull ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     try {
-      try (@javax.annotation.Nonnull GZIPOutputStream out = new GZIPOutputStream(byteArrayOutputStream)) {
+      try (@Nonnull GZIPOutputStream out = new GZIPOutputStream(byteArrayOutputStream)) {
         IOUtils.write(bytes, out);
       }
     } catch (IOException e) {
@@ -79,7 +79,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   
   @Nullable
   @Override
-  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer layer, final Tensor... inputPrototype) {
+  public ToleranceStatistics test(@Nonnull final NotebookOutput log, @Nonnull final Layer layer, final Tensor... inputPrototype) {
     log.h1("Serialization");
     log.p("This run will demonstrate the layer's JSON serialization, and verify deserialization integrity.");
     
@@ -88,14 +88,14 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     try {
       prettyPrint = log.code(() -> {
         final JsonObject json = layer.getJson();
-        @javax.annotation.Nonnull final Layer echo = Layer.fromJson(json);
+        @Nonnull final Layer echo = Layer.fromJson(json);
         if (echo == null) throw new AssertionError("Failed to deserialize");
         if (layer == echo) throw new AssertionError("Serialization did not copy");
         if (!layer.equals(echo)) throw new AssertionError("Serialization not equal");
         echo.freeRef();
         return new GsonBuilder().setPrettyPrinting().create().toJson(json);
       });
-      @javax.annotation.Nonnull String filename = layer.getClass().getSimpleName() + "_" + log.getName() + ".json";
+      @Nonnull String filename = layer.getClass().getSimpleName() + "_" + log.getName() + ".json";
       log.p(log.file(prettyPrint, filename, String.format("Wrote Model to %s; %s characters", filename, prettyPrint.length())));
     } catch (RuntimeException e) {
       e.printStackTrace();
@@ -105,13 +105,13 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
       Util.sleep(1000);
     }
     log.p("");
-    @javax.annotation.Nonnull Object outSync = new Object();
+    @Nonnull Object outSync = new Object();
     if (prettyPrint.isEmpty() || prettyPrint.length() > 1024 * 64)
       Arrays.stream(SerialPrecision.values()).parallel().forEach(precision -> {
         try {
-          @javax.annotation.Nonnull File file = new File(log.getResourceDir(), log.getName() + "_" + precision.name() + ".zip");
+          @Nonnull File file = new File(log.getResourceDir(), log.getName() + "_" + precision.name() + ".zip");
           layer.writeZip(file, precision);
-          @javax.annotation.Nonnull final Layer echo = Layer.fromZip(new ZipFile(file));
+          @Nonnull final Layer echo = Layer.fromZip(new ZipFile(file));
           getModels().put(precision, echo);
           synchronized (outSync) {
             log.h2(String.format("Zipfile %s", precision.name()));
@@ -140,7 +140,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
    *
    * @return the models
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public HashMap<SerialPrecision, Layer> getModels() {
     return models;
   }
@@ -160,13 +160,13 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
    * @param persist the persist
    * @return the persist
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public SerializationTest setPersist(boolean persist) {
     this.persist = persist;
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public String toString() {
     return "SerializationTest{" +

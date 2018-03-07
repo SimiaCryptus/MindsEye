@@ -57,7 +57,7 @@ public class ImgZeroPaddingLayer extends LayerBase {
    *
    * @param json the json
    */
-  protected ImgZeroPaddingLayer(@javax.annotation.Nonnull final JsonObject json) {
+  protected ImgZeroPaddingLayer(@Nonnull final JsonObject json) {
     super(json);
     sizeX = json.getAsJsonPrimitive("sizeX").getAsInt();
     sizeY = json.getAsJsonPrimitive("sizeY").getAsInt();
@@ -70,13 +70,13 @@ public class ImgZeroPaddingLayer extends LayerBase {
    * @param rs   the rs
    * @return the img crop layer
    */
-  public static ImgZeroPaddingLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgZeroPaddingLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ImgZeroPaddingLayer(json);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     assert inObj.length == 1;
     @Nonnull int[] dimensions = inObj[0].getData().getDimensions();
     ImgCropLayer imgCropLayer = new ImgCropLayer(dimensions[0] + 2 * this.sizeX, dimensions[1] + 2 * this.sizeY);
@@ -85,16 +85,16 @@ public class ImgZeroPaddingLayer extends LayerBase {
     return eval;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("sizeX", sizeX);
     json.addProperty("sizeY", sizeX);
     return json;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return new ArrayList<>();

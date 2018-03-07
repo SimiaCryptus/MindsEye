@@ -26,6 +26,7 @@ import com.simiacryptus.util.lang.SupplierWeakCache;
 import com.simiacryptus.util.test.LabeledObject;
 import org.apache.commons.io.IOUtils;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -50,13 +51,13 @@ public class Caltech101 {
   @Nullable
   private static final DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>> training = new DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>>() {
     @Override
-    protected void read(@javax.annotation.Nonnull final List<LabeledObject<SupplierWeakCache<BufferedImage>>> queue) {
+    protected void read(@Nonnull final List<LabeledObject<SupplierWeakCache<BufferedImage>>> queue) {
       try {
         @Nullable InputStream stream = null;
         try {
           // Repackaging as a zip is needed - the tar format classes dont work here
           stream = Util.cacheStream(TestUtil.S3_ROOT.resolve("101_ObjectCategories.zip"));
-        } catch (@javax.annotation.Nonnull NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
+        } catch (@Nonnull NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
           throw new RuntimeException(e);
         }
         final boolean continueLoop = true;
@@ -82,12 +83,12 @@ public class Caltech101 {
           queue.add(new LabeledObject<>(new SupplierWeakCache<>(() -> {
             try {
               return ImageIO.read(new ByteArrayInputStream(data));
-            } catch (@javax.annotation.Nonnull final IOException e) {
+            } catch (@Nonnull final IOException e) {
               throw new RuntimeException(e);
             }
           }), category));
         }
-      } catch (@javax.annotation.Nonnull final IOException e) {
+      } catch (@Nonnull final IOException e) {
         e.printStackTrace();
         throw new RuntimeException(e);
       }

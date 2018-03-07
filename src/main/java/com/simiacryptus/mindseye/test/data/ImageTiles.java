@@ -23,6 +23,7 @@ package com.simiacryptus.mindseye.test.data;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.io.DataLoader;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -51,12 +52,12 @@ public class ImageTiles {
    * @param y      the y
    * @return the tensor
    */
-  @javax.annotation.Nonnull
-  public static Tensor read(@javax.annotation.Nonnull final BufferedImage image, final int width, final int height, final int x, final int y) {
-    @javax.annotation.Nonnull final Tensor tensor = new Tensor(width, height, 3);
+  @Nonnull
+  public static Tensor read(@Nonnull final BufferedImage image, final int width, final int height, final int x, final int y) {
+    @Nonnull final Tensor tensor = new Tensor(width, height, 3);
     for (int xx = 0; xx < width; xx++) {
       for (int yy = 0; yy < height; yy++) {
-        @javax.annotation.Nonnull final Color rgb = new Color(image.getRGB(x + xx, y + yy));
+        @Nonnull final Color rgb = new Color(image.getRGB(x + xx, y + yy));
         tensor.set(new int[]{xx, yy, 0}, rgb.getRed());
         tensor.set(new int[]{xx, yy, 1}, rgb.getGreen());
         tensor.set(new int[]{xx, yy, 2}, rgb.getBlue());
@@ -71,7 +72,7 @@ public class ImageTiles {
    * @param dir the dir
    * @return the stream
    */
-  public static Stream<File> readFiles(@javax.annotation.Nonnull final File dir) {
+  public static Stream<File> readFiles(@Nonnull final File dir) {
     if (dir.isFile()) return Arrays.asList(dir).stream();
     return Arrays.stream(dir.listFiles()).flatMap(ImageTiles::readFiles);
   }
@@ -84,7 +85,7 @@ public class ImageTiles {
    * @param height the height
    * @return the tensor [ ]
    */
-  public static Tensor[] tilesRgb(@javax.annotation.Nonnull final BufferedImage image, final int width, final int height) {
+  public static Tensor[] tilesRgb(@Nonnull final BufferedImage image, final int width, final int height) {
     return ImageTiles.tilesRgb(image, width, height, false);
   }
   
@@ -97,7 +98,7 @@ public class ImageTiles {
    * @param overlap the overlap
    * @return the tensor [ ]
    */
-  public static Tensor[] tilesRgb(@javax.annotation.Nonnull final BufferedImage image, final int width, final int height, final boolean overlap) {
+  public static Tensor[] tilesRgb(@Nonnull final BufferedImage image, final int width, final int height, final boolean overlap) {
     return ImageTiles.tilesRgb(image, width, height, overlap ? 1 : width, overlap ? 1 : height);
   }
   
@@ -111,14 +112,14 @@ public class ImageTiles {
    * @param yStep  the y runStep
    * @return the tensor [ ]
    */
-  public static Tensor[] tilesRgb(@javax.annotation.Nonnull final BufferedImage image, final int width, final int height, final int xStep, final int yStep) {
-    @javax.annotation.Nonnull final List<Tensor> tensors = new ArrayList<>();
+  public static Tensor[] tilesRgb(@Nonnull final BufferedImage image, final int width, final int height, final int xStep, final int yStep) {
+    @Nonnull final List<Tensor> tensors = new ArrayList<>();
     for (int y = 0; y < image.getHeight(); y += yStep) {
       for (int x = 0; x < image.getWidth(); x += xStep) {
         try {
-          @javax.annotation.Nonnull final Tensor tensor = ImageTiles.read(image, width, height, y, x);
+          @Nonnull final Tensor tensor = ImageTiles.read(image, width, height, y, x);
           tensors.add(tensor);
-        } catch (@javax.annotation.Nonnull final ArrayIndexOutOfBoundsException e) {
+        } catch (@Nonnull final ArrayIndexOutOfBoundsException e) {
           // Ignore
         }
       }
@@ -138,9 +139,9 @@ public class ImageTiles {
    * @param maxTileRows      the max tile rows
    * @return the list
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public static List<Tensor> toTiles(@Nullable final BufferedImage image, final int tileWidth, final int tileHeight, final int minSpacingWidth, final int minSpacingHeight, final int maxTileCols, final int maxTileRows) {
-    @javax.annotation.Nonnull final List<Tensor> queue = new ArrayList<>();
+    @Nonnull final List<Tensor> queue = new ArrayList<>();
     if (null != image) {
       final int xMax = image.getWidth() - tileWidth;
       final int yMax = image.getHeight() - tileHeight;
@@ -172,8 +173,8 @@ public class ImageTiles {
    * @return the list
    * @throws IOException the io exception
    */
-  @javax.annotation.Nonnull
-  public static List<Tensor> toTiles(@javax.annotation.Nonnull final File file, final int tileWidth, final int tileHeight, final int minSpacingWidth, final int minSpacingHeight, final int maxTileCols, final int maxTileRows) throws IOException {
+  @Nonnull
+  public static List<Tensor> toTiles(@Nonnull final File file, final int tileWidth, final int tileHeight, final int minSpacingWidth, final int minSpacingHeight, final int maxTileCols, final int maxTileRows) throws IOException {
     return ImageTiles.toTiles(ImageIO.read(file), tileWidth, tileHeight, minSpacingWidth, minSpacingHeight, maxTileCols, maxTileRows);
   }
   
@@ -181,7 +182,7 @@ public class ImageTiles {
    * The type Image tensor loader.
    */
   public static class ImageTensorLoader extends DataLoader<Tensor> {
-  
+
     /**
      * The Max tile cols.
      */
@@ -210,7 +211,7 @@ public class ImageTiles {
      * The Tile width.
      */
     public final int tileWidth;
-  
+
     /**
      * Instantiates a new Image tensor loader.
      *
@@ -231,18 +232,18 @@ public class ImageTiles {
       this.maxTileRows = maxTileRows;
       this.maxTileCols = maxTileCols;
     }
-  
+
     @Override
-    protected void read(@javax.annotation.Nonnull final List<Tensor> queue) {
-      @javax.annotation.Nonnull final ArrayList<File> files = new ArrayList<>(ImageTiles.readFiles(parentDirectiory).collect(Collectors.toList()));
+    protected void read(@Nonnull final List<Tensor> queue) {
+      @Nonnull final ArrayList<File> files = new ArrayList<>(ImageTiles.readFiles(parentDirectiory).collect(Collectors.toList()));
       Collections.shuffle(files);
-      for (@javax.annotation.Nonnull final File f : files) {
+      for (@Nonnull final File f : files) {
         if (Thread.interrupted()) {
           break;
         }
         try {
           queue.addAll(ImageTiles.toTiles(f, tileWidth, tileHeight, minSpacingWidth, minSpacingHeight, maxTileCols, maxTileRows));
-        } catch (@javax.annotation.Nonnull final Throwable e) {
+        } catch (@Nonnull final Throwable e) {
           e.printStackTrace();
         }
       }

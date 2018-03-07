@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.util.ArrayUtil;
 
+import javax.annotation.Nonnull;
+
 /**
  * This trust region restricts a weight vector so that it cannot increase in L2 magnitude beyond a certian amount each
  * iteration. This effectively generates a spherical trust region centered on the origin with the current position X
@@ -47,7 +49,7 @@ public class GrowthSphere implements TrustRegion {
    * @param growthFactor the growth factor
    * @return the growth factor
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public GrowthSphere setGrowthFactor(final double growthFactor) {
     this.growthFactor = growthFactor;
     return this;
@@ -68,7 +70,7 @@ public class GrowthSphere implements TrustRegion {
    * @param minRadius the min radius
    * @return the min radius
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public GrowthSphere setMinRadius(final double minRadius) {
     this.minRadius = minRadius;
     return this;
@@ -99,7 +101,7 @@ public class GrowthSphere implements TrustRegion {
    * @param allowShrink the allow shrink
    * @return the allow shrink
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public GrowthSphere setAllowShrink(final boolean allowShrink) {
     this.allowShrink = allowShrink;
     return this;
@@ -111,13 +113,13 @@ public class GrowthSphere implements TrustRegion {
    * @param weights the weights
    * @return the double
    */
-  public double length(@javax.annotation.Nonnull final double[] weights) {
+  public double length(@Nonnull final double[] weights) {
     return ArrayUtil.magnitude(weights);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public double[] project(@javax.annotation.Nonnull final double[] weights, @javax.annotation.Nonnull final double[] point) {
+  public double[] project(@Nonnull final double[] weights, @Nonnull final double[] point) {
     final double stateMagnitude = length(weights);
     final double frontier = getRadius(stateMagnitude);
     final double pointMag = length(point);

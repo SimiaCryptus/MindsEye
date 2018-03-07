@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.util.ArrayUtil;
 
+import javax.annotation.Nonnull;
+
 /**
  * This constraint ensures that the L2 magnitude of the weight delta cannot exceed a simple threshold. A simpler version
  * of AdaptiveTrustSphere, it places a limit on the step size for a given layer.
@@ -44,7 +46,7 @@ public class DistanceConstraint implements TrustRegion {
    * @param max the max
    * @return the max
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public DistanceConstraint setMax(final double max) {
     this.max = max;
     return this;
@@ -56,14 +58,14 @@ public class DistanceConstraint implements TrustRegion {
    * @param weights the weights
    * @return the double
    */
-  public double length(@javax.annotation.Nonnull final double[] weights) {
+  public double length(@Nonnull final double[] weights) {
     return ArrayUtil.magnitude(weights);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public double[] project(@javax.annotation.Nonnull final double[] weights, @javax.annotation.Nonnull final double[] point) {
-    @javax.annotation.Nonnull final double[] delta = ArrayUtil.subtract(point, weights);
+  public double[] project(@Nonnull final double[] weights, @Nonnull final double[] point) {
+    @Nonnull final double[] delta = ArrayUtil.subtract(point, weights);
     final double distance = ArrayUtil.magnitude(delta);
     return distance > max ? ArrayUtil.add(weights, ArrayUtil.multiply(delta, max / distance)) : point;
   }

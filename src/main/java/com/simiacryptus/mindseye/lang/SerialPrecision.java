@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.lang;
 
 import jcuda.Sizeof;
 
+import javax.annotation.Nonnull;
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
@@ -38,18 +39,18 @@ public enum SerialPrecision implements DataSerializer {
    */
   Double(Sizeof.DOUBLE) {
     @Override
-    public void copy(@javax.annotation.Nonnull double[] from, @javax.annotation.Nonnull byte[] to) {
-      @javax.annotation.Nonnull DoubleBuffer inBuffer = DoubleBuffer.wrap(from);
-      @javax.annotation.Nonnull DoubleBuffer outBuffer = ByteBuffer.wrap(to).asDoubleBuffer();
+    public void copy(@Nonnull double[] from, @Nonnull byte[] to) {
+      @Nonnull DoubleBuffer inBuffer = DoubleBuffer.wrap(from);
+      @Nonnull DoubleBuffer outBuffer = ByteBuffer.wrap(to).asDoubleBuffer();
       while (inBuffer.hasRemaining()) {
         outBuffer.put(inBuffer.get());
       }
     }
     
     @Override
-    public void copy(@javax.annotation.Nonnull byte[] from, @javax.annotation.Nonnull double[] to) {
-      @javax.annotation.Nonnull DoubleBuffer inBuffer = ByteBuffer.wrap(from).asDoubleBuffer();
-      @javax.annotation.Nonnull DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
+    public void copy(@Nonnull byte[] from, @Nonnull double[] to) {
+      @Nonnull DoubleBuffer inBuffer = ByteBuffer.wrap(from).asDoubleBuffer();
+      @Nonnull DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
       while (inBuffer.hasRemaining()) {
         outBuffer.put(inBuffer.get());
       }
@@ -60,9 +61,9 @@ public enum SerialPrecision implements DataSerializer {
    */
   Float(Sizeof.FLOAT) {
     @Override
-    public void copy(@javax.annotation.Nonnull double[] from, @javax.annotation.Nonnull byte[] to) {
-      @javax.annotation.Nonnull DoubleBuffer inBuffer = DoubleBuffer.wrap(from);
-      @javax.annotation.Nonnull FloatBuffer outBuffer = ByteBuffer.wrap(to).asFloatBuffer();
+    public void copy(@Nonnull double[] from, @Nonnull byte[] to) {
+      @Nonnull DoubleBuffer inBuffer = DoubleBuffer.wrap(from);
+      @Nonnull FloatBuffer outBuffer = ByteBuffer.wrap(to).asFloatBuffer();
       while (inBuffer.hasRemaining()) {
         outBuffer.put((float) inBuffer.get());
       }
@@ -70,9 +71,9 @@ public enum SerialPrecision implements DataSerializer {
     }
   
     @Override
-    public void copy(@javax.annotation.Nonnull byte[] from, @javax.annotation.Nonnull double[] to) {
-      @javax.annotation.Nonnull FloatBuffer inBuffer = ByteBuffer.wrap(from).asFloatBuffer();
-      @javax.annotation.Nonnull DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
+    public void copy(@Nonnull byte[] from, @Nonnull double[] to) {
+      @Nonnull FloatBuffer inBuffer = ByteBuffer.wrap(from).asFloatBuffer();
+      @Nonnull DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
       while (inBuffer.hasRemaining()) {
         outBuffer.put(inBuffer.get());
       }
@@ -83,17 +84,17 @@ public enum SerialPrecision implements DataSerializer {
    */
   Uniform32(4) {
     @Override
-    public void copy(@javax.annotation.Nonnull double[] from, @javax.annotation.Nonnull byte[] to) {
+    public void copy(@Nonnull double[] from, @Nonnull byte[] to) {
       DoubleSummaryStatistics statistics = Arrays.stream(from).summaryStatistics();
-      @javax.annotation.Nonnull DoubleBuffer inBuffer = DoubleBuffer.wrap(from);
-      @javax.annotation.Nonnull FloatBuffer floatBuffer = ByteBuffer.wrap(to).asFloatBuffer();
+      @Nonnull DoubleBuffer inBuffer = DoubleBuffer.wrap(from);
+      @Nonnull FloatBuffer floatBuffer = ByteBuffer.wrap(to).asFloatBuffer();
       double min = statistics.getMin();
       double max = statistics.getMax();
       floatBuffer.put((float) min);
       floatBuffer.put((float) max);
       double center = (max + min) / 2;
       double radius = (max - min) / 2;
-      @javax.annotation.Nonnull IntBuffer byteBuffer = ByteBuffer.wrap(to).asIntBuffer();
+      @Nonnull IntBuffer byteBuffer = ByteBuffer.wrap(to).asIntBuffer();
       byteBuffer.position(2);
       while (inBuffer.hasRemaining()) {
         byteBuffer.put((int) (Integer.MAX_VALUE * (inBuffer.get() - center) / radius));
@@ -102,14 +103,14 @@ public enum SerialPrecision implements DataSerializer {
     }
     
     @Override
-    public void copy(@javax.annotation.Nonnull byte[] from, @javax.annotation.Nonnull double[] to) {
-      @javax.annotation.Nonnull DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
-      @javax.annotation.Nonnull FloatBuffer floatBuffer = ByteBuffer.wrap(from).asFloatBuffer();
+    public void copy(@Nonnull byte[] from, @Nonnull double[] to) {
+      @Nonnull DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
+      @Nonnull FloatBuffer floatBuffer = ByteBuffer.wrap(from).asFloatBuffer();
       double min = floatBuffer.get();
       double max = floatBuffer.get();
       double center = (max + min) / 2;
       double radius = (max - min) / 2;
-      @javax.annotation.Nonnull IntBuffer intBuffer = ByteBuffer.wrap(from).asIntBuffer();
+      @Nonnull IntBuffer intBuffer = ByteBuffer.wrap(from).asIntBuffer();
       intBuffer.position(2);
       while (intBuffer.hasRemaining()) {
         int v = intBuffer.get();
@@ -128,17 +129,17 @@ public enum SerialPrecision implements DataSerializer {
    */
   Uniform16(2) {
     @Override
-    public void copy(@javax.annotation.Nonnull double[] from, @javax.annotation.Nonnull byte[] to) {
+    public void copy(@Nonnull double[] from, @Nonnull byte[] to) {
       DoubleSummaryStatistics statistics = Arrays.stream(from).summaryStatistics();
-      @javax.annotation.Nonnull DoubleBuffer inBuffer = DoubleBuffer.wrap(from);
-      @javax.annotation.Nonnull FloatBuffer floatBuffer = ByteBuffer.wrap(to).asFloatBuffer();
+      @Nonnull DoubleBuffer inBuffer = DoubleBuffer.wrap(from);
+      @Nonnull FloatBuffer floatBuffer = ByteBuffer.wrap(to).asFloatBuffer();
       double min = statistics.getMin();
       double max = statistics.getMax();
       floatBuffer.put((float) min);
       floatBuffer.put((float) max);
       double center = (max + min) / 2;
       double radius = (max - min) / 2;
-      @javax.annotation.Nonnull ShortBuffer shortBuffer = ByteBuffer.wrap(to).asShortBuffer();
+      @Nonnull ShortBuffer shortBuffer = ByteBuffer.wrap(to).asShortBuffer();
       shortBuffer.position(4);
       while (inBuffer.hasRemaining()) {
         shortBuffer.put((short) (Short.MAX_VALUE * (inBuffer.get() - center) / radius));
@@ -147,14 +148,14 @@ public enum SerialPrecision implements DataSerializer {
     }
     
     @Override
-    public void copy(@javax.annotation.Nonnull byte[] from, @javax.annotation.Nonnull double[] to) {
-      @javax.annotation.Nonnull DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
-      @javax.annotation.Nonnull FloatBuffer floatBuffer = ByteBuffer.wrap(from).asFloatBuffer();
+    public void copy(@Nonnull byte[] from, @Nonnull double[] to) {
+      @Nonnull DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
+      @Nonnull FloatBuffer floatBuffer = ByteBuffer.wrap(from).asFloatBuffer();
       double min = floatBuffer.get();
       double max = floatBuffer.get();
       double center = (max + min) / 2;
       double radius = (max - min) / 2;
-      @javax.annotation.Nonnull ShortBuffer shortBuffer = ByteBuffer.wrap(from).asShortBuffer();
+      @Nonnull ShortBuffer shortBuffer = ByteBuffer.wrap(from).asShortBuffer();
       shortBuffer.position(4);
       while (shortBuffer.hasRemaining()) {
         short v = shortBuffer.get();
@@ -173,17 +174,17 @@ public enum SerialPrecision implements DataSerializer {
    */
   Uniform8(1) {
     @Override
-    public void copy(@javax.annotation.Nonnull double[] from, @javax.annotation.Nonnull byte[] to) {
+    public void copy(@Nonnull double[] from, @Nonnull byte[] to) {
       DoubleSummaryStatistics statistics = Arrays.stream(from).summaryStatistics();
-      @javax.annotation.Nonnull DoubleBuffer inBuffer = DoubleBuffer.wrap(from);
-      @javax.annotation.Nonnull FloatBuffer floatBuffer = ByteBuffer.wrap(to).asFloatBuffer();
+      @Nonnull DoubleBuffer inBuffer = DoubleBuffer.wrap(from);
+      @Nonnull FloatBuffer floatBuffer = ByteBuffer.wrap(to).asFloatBuffer();
       double min = statistics.getMin();
       double max = statistics.getMax();
       floatBuffer.put((float) min);
       floatBuffer.put((float) max);
       double center = (max + min) / 2;
       double radius = (max - min) / 2;
-      @javax.annotation.Nonnull ByteBuffer byteBuffer = ByteBuffer.wrap(to);
+      @Nonnull ByteBuffer byteBuffer = ByteBuffer.wrap(to);
       byteBuffer.position(8);
       while (inBuffer.hasRemaining()) {
         byteBuffer.put((byte) (Byte.MAX_VALUE * (inBuffer.get() - center) / radius));
@@ -192,14 +193,14 @@ public enum SerialPrecision implements DataSerializer {
     }
     
     @Override
-    public void copy(@javax.annotation.Nonnull byte[] from, @javax.annotation.Nonnull double[] to) {
-      @javax.annotation.Nonnull DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
-      @javax.annotation.Nonnull FloatBuffer floatBuffer = ByteBuffer.wrap(from).asFloatBuffer();
+    public void copy(@Nonnull byte[] from, @Nonnull double[] to) {
+      @Nonnull DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
+      @Nonnull FloatBuffer floatBuffer = ByteBuffer.wrap(from).asFloatBuffer();
       double min = floatBuffer.get();
       double max = floatBuffer.get();
       double center = (max + min) / 2;
       double radius = (max - min) / 2;
-      @javax.annotation.Nonnull ByteBuffer byteBuffer = ByteBuffer.wrap(from);
+      @Nonnull ByteBuffer byteBuffer = ByteBuffer.wrap(from);
       byteBuffer.position(8);
       while (byteBuffer.hasRemaining()) {
         byte v = byteBuffer.get();
@@ -237,11 +238,11 @@ public enum SerialPrecision implements DataSerializer {
    * @param maxScalar the max scalar
    * @return the rational
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public Rational toRational(double value, int maxScalar) {
-    @javax.annotation.Nonnull Rational current = rationalRecursion(value, 0);
+    @Nonnull Rational current = rationalRecursion(value, 0);
     for (int i = 0; i < 10; i++) {
-      @javax.annotation.Nonnull Rational next = rationalRecursion(value, i);
+      @Nonnull Rational next = rationalRecursion(value, i);
       if (next.numerator < maxScalar && next.denominator < maxScalar) {
         current = next;
       }
@@ -254,7 +255,7 @@ public enum SerialPrecision implements DataSerializer {
   
   private Rational rationalRecursion(double value, int recursions) {
     if (value < 0) {
-      @javax.annotation.Nonnull Rational rational = rationalRecursion(-value, recursions);
+      @Nonnull Rational rational = rationalRecursion(-value, recursions);
       return new Rational(-rational.numerator, rational.denominator);
     }
     else if (0 == value) {
@@ -262,14 +263,14 @@ public enum SerialPrecision implements DataSerializer {
     }
     else if (value >= 1) {
       int scalar = (int) value;
-      @javax.annotation.Nonnull Rational rational = rationalRecursion(value - scalar, recursions);
+      @Nonnull Rational rational = rationalRecursion(value - scalar, recursions);
       return new Rational(rational.numerator + (scalar * rational.denominator), rational.denominator);
     }
     else if (recursions <= 0) {
       return new Rational((int) Math.round(value), 1);
     }
     else {
-      @javax.annotation.Nonnull Rational rational = rationalRecursion(1.0 / value, recursions - 1);
+      @Nonnull Rational rational = rationalRecursion(1.0 / value, recursions - 1);
       return new Rational(rational.denominator, rational.numerator);
     }
   }

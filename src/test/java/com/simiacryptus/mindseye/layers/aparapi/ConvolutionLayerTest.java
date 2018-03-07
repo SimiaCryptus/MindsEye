@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.aparapi;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
+import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
@@ -37,13 +38,13 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
     private final int inputBands = 1;
     private final int outputBands = 1;
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new ConvolutionLayer(3, 3, inputBands, outputBands, true).setWeights(() -> this.random());
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
@@ -51,7 +52,7 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
       };
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
     
@@ -68,7 +69,7 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
    */
   public static class Downsize extends ConvolutionLayerTest {
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
@@ -76,7 +77,7 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
       };
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new ConvolutionLayer(3, 3, 7, 3, false).setWeights(() -> this.random());
@@ -89,7 +90,7 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
    */
   public static class Upsize extends ConvolutionLayerTest {
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
@@ -97,7 +98,7 @@ public abstract class ConvolutionLayerTest extends LayerTestBase {
       };
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new ConvolutionLayer(3, 3, 2, 3, false).setWeights(() -> this.random());

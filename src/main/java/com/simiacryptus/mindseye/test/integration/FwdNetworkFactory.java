@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.test.integration;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.util.io.NotebookOutput;
 
+import javax.annotation.Nonnull;
+
 /**
  * The interface Fwd network factory.
  */
@@ -33,6 +35,6 @@ public interface FwdNetworkFactory {
    * @param features the features
    * @return the dag network
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   DAGNetwork imageToVector(NotebookOutput log, int features);
 }

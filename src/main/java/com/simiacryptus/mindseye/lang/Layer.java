@@ -56,8 +56,8 @@ public interface Layer extends ReferenceCounting, Serializable {
    * @param json the json
    * @return the nn layer
    */
-  @javax.annotation.Nonnull
-  static Layer fromJson(@javax.annotation.Nonnull final JsonObject json) { return fromJson(json, null);}
+  @Nonnull
+  static Layer fromJson(@Nonnull final JsonObject json) { return fromJson(json, null);}
   
   /**
    * From zip nn layer.
@@ -65,11 +65,11 @@ public interface Layer extends ReferenceCounting, Serializable {
    * @param zipfile the zipfile
    * @return the nn layer
    */
-  @javax.annotation.Nonnull
-  static Layer fromZip(@javax.annotation.Nonnull final ZipFile zipfile) {
+  @Nonnull
+  static Layer fromZip(@Nonnull final ZipFile zipfile) {
     Enumeration<? extends ZipEntry> entries = zipfile.entries();
     @Nullable JsonObject json = null;
-    @javax.annotation.Nonnull HashMap<String, byte[]> resources = new HashMap<>();
+    @Nonnull HashMap<String, byte[]> resources = new HashMap<>();
     while (entries.hasMoreElements()) {
       ZipEntry zipEntry = entries.nextElement();
       String name = zipEntry.getName();
@@ -96,8 +96,8 @@ public interface Layer extends ReferenceCounting, Serializable {
    * @param rs   the rs
    * @return the nn layer
    */
-  @javax.annotation.Nonnull
-  static Layer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  @Nonnull
+  static Layer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     JsonElement classElement = json.get("class");
     assert null != classElement : json.toString();
     final String className = classElement.getAsString();
@@ -111,7 +111,7 @@ public interface Layer extends ReferenceCounting, Serializable {
       @Nonnull Layer invoke = (Layer) method.invoke(null, json, rs);
       if (null == invoke) throw new IllegalStateException();
       return invoke;
-    } catch (@javax.annotation.Nonnull IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
+    } catch (@Nonnull IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
       throw new RuntimeException(e);
     }
   }
@@ -123,10 +123,10 @@ public interface Layer extends ReferenceCounting, Serializable {
    * @param targetClass the target class
    * @return the t
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   @SuppressWarnings("unchecked")
-  default <T extends Layer> T as(@javax.annotation.Nonnull final Class<T> targetClass) {
-    @javax.annotation.Nonnull HashMap<String, byte[]> resources = new HashMap<>();
+  default <T extends Layer> T as(@Nonnull final Class<T> targetClass) {
+    @Nonnull HashMap<String, byte[]> resources = new HashMap<>();
     final JsonObject json = getJson(resources, SerialPrecision.Double);
     json.remove("class");
     json.addProperty("class", targetClass.getCanonicalName());
@@ -150,7 +150,7 @@ public interface Layer extends ReferenceCounting, Serializable {
   @Nonnull
   default Layer copy(SerialPrecision precision) {
     assertAlive();
-    @javax.annotation.Nonnull HashMap<String, byte[]> resources = new HashMap<>();
+    @Nonnull HashMap<String, byte[]> resources = new HashMap<>();
     final JsonObject json = getJson(resources, precision);
     return Layer.fromJson(json, resources);
   }
@@ -161,7 +161,7 @@ public interface Layer extends ReferenceCounting, Serializable {
    * @param array the array
    * @return the nn result
    */
-  @javax.annotation.Nullable
+  @Nullable
   default Result eval(Result... array) {
     Arrays.stream(array).forEach(ReferenceCounting::addRef);
     Arrays.stream(array).map(Result::getData).forEach(ReferenceCounting::addRef);
@@ -174,7 +174,7 @@ public interface Layer extends ReferenceCounting, Serializable {
    * @param array the array
    * @return the nn result
    */
-  @javax.annotation.Nullable
+  @Nullable
   default Result evalAndFree(Result... array) {
     Result result = eval(array);
     Arrays.stream(array).map(Result::getData).forEach(ReferenceCounting::freeRef);
@@ -188,7 +188,7 @@ public interface Layer extends ReferenceCounting, Serializable {
    * @param array the array
    * @return the nn result
    */
-  @javax.annotation.Nullable
+  @Nullable
   default Result eval(@Nonnull final Tensor... array) {
     Result[] input = ConstantResult.singleResultArray(array);
     Result eval = eval(input);
@@ -203,7 +203,7 @@ public interface Layer extends ReferenceCounting, Serializable {
    * @param array the array
    * @return the nn result
    */
-  @javax.annotation.Nullable
+  @Nullable
   default Result eval(@Nonnull final Tensor[][] array) {
     Result[] input = ConstantResult.singleResultArray(array);
     Result eval = eval(input);
@@ -234,7 +234,7 @@ public interface Layer extends ReferenceCounting, Serializable {
    *
    * @return the id
    */
-  @javax.annotation.Nullable
+  @Nullable
   Object getId();
   
   /**
@@ -260,7 +260,7 @@ public interface Layer extends ReferenceCounting, Serializable {
    *
    * @param out the out
    */
-  default void writeZip(@javax.annotation.Nonnull File out) {writeZip(out, SerialPrecision.Double);}
+  default void writeZip(@Nonnull File out) {writeZip(out, SerialPrecision.Double);}
   
   /**
    * Write zip.
@@ -268,8 +268,8 @@ public interface Layer extends ReferenceCounting, Serializable {
    * @param out       the out
    * @param precision the precision
    */
-  default void writeZip(@javax.annotation.Nonnull File out, SerialPrecision precision) {
-    try (@javax.annotation.Nonnull ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(out))) {
+  default void writeZip(@Nonnull File out, SerialPrecision precision) {
+    try (@Nonnull ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(out))) {
       writeZip(zipOutputStream, precision);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -281,7 +281,7 @@ public interface Layer extends ReferenceCounting, Serializable {
    *
    * @param out the out
    */
-  default void writeZip(@javax.annotation.Nonnull ZipOutputStream out) {writeZip(out, SerialPrecision.Double);}
+  default void writeZip(@Nonnull ZipOutputStream out) {writeZip(out, SerialPrecision.Double);}
   
   /**
    * Write zip.
@@ -289,12 +289,12 @@ public interface Layer extends ReferenceCounting, Serializable {
    * @param out       the out
    * @param precision the precision
    */
-  default void writeZip(@javax.annotation.Nonnull ZipOutputStream out, SerialPrecision precision) {
+  default void writeZip(@Nonnull ZipOutputStream out, SerialPrecision precision) {
     try {
-      @javax.annotation.Nonnull HashMap<String, byte[]> resources = new HashMap<>();
+      @Nonnull HashMap<String, byte[]> resources = new HashMap<>();
       JsonObject json = getJson(resources, precision);
       out.putNextEntry(new ZipEntry("model.json"));
-      @javax.annotation.Nonnull JsonWriter writer = new JsonWriter(new OutputStreamWriter(out));
+      @Nonnull JsonWriter writer = new JsonWriter(new OutputStreamWriter(out));
       writer.setIndent("  ");
       writer.setHtmlSafe(true);
       writer.setSerializeNulls(false);
@@ -330,10 +330,10 @@ public interface Layer extends ReferenceCounting, Serializable {
    *
    * @return the json stub
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   default JsonObject getJsonStub() {
     assertAlive();
-    @javax.annotation.Nonnull final JsonObject json = new JsonObject();
+    @Nonnull final JsonObject json = new JsonObject();
     json.addProperty("class", getClass().getCanonicalName());
     json.addProperty("id", getId().toString());
     json.addProperty("isFrozen", isFrozen());
@@ -346,7 +346,7 @@ public interface Layer extends ReferenceCounting, Serializable {
    *
    * @return the name
    */
-  @javax.annotation.Nullable
+  @Nullable
   String getName();
   
   /**

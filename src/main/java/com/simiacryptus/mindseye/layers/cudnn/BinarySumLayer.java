@@ -85,7 +85,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
    *
    * @param json the id
    */
-  protected BinarySumLayer(@javax.annotation.Nonnull final JsonObject json) {
+  protected BinarySumLayer(@Nonnull final JsonObject json) {
     super(json);
     rightFactor = json.get("rightFactor").getAsDouble();
     leftFactor = json.get("leftFactor").getAsDouble();
@@ -99,7 +99,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
    * @param rs   the rs
    * @return the product inputs layer
    */
-  public static BinarySumLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static BinarySumLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new BinarySumLayer(json);
   }
   
@@ -108,9 +108,9 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
    *
    * @return the compatibility layer
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public Layer getCompatibilityLayer() {
-    @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork(2);
+    @Nonnull PipelineNetwork network = new PipelineNetwork(2);
     network.wrap(new SumInputsLayer(),
       network.wrap(new LinearActivationLayer().setScale(this.leftFactor).freeze(), network.getInput(0)),
       network.wrap(new LinearActivationLayer().setScale(this.rightFactor).freeze(), network.getInput(1)));
@@ -120,7 +120,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
   
   @Nullable
   @Override
-  public Result evalAndFree(@javax.annotation.Nonnull final Result... inObj) {
+  public Result evalAndFree(@Nonnull final Result... inObj) {
     if (inObj.length == 1) {
       if (rightFactor != 1) throw new IllegalStateException();
       if (leftFactor != 1) throw new IllegalStateException();
@@ -147,8 +147,8 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
     }
     if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     return new Result(CudaSystem.eval(gpu -> {
-      @javax.annotation.Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision);
-      @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
+      @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision);
+      @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
         dimensions[2], dimensions[1], dimensions[0],
         dimensions[2] * dimensions[1] * dimensions[0],
         dimensions[1] * dimensions[0],
@@ -156,7 +156,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
         1);
       @Nullable final CudaTensor lPtr = gpu.getTensor(leftData, precision, MemoryType.Device, false); //.getDenseAndFree(gpu);//.moveTo(gpu.getDeviceNumber());
       @Nullable final CudaTensor rPtr = gpu.getTensor(rightData, precision, MemoryType.Device, false); //.getDenseAndFree(gpu);//.moveTo(gpu.getDeviceNumber());
-      @javax.annotation.Nonnull final CudaMemory outputPtr = gpu.allocate(precision.size * Tensor.length(dimensions) * length, MemoryType.Device, false);
+      @Nonnull final CudaMemory outputPtr = gpu.allocate(precision.size * Tensor.length(dimensions) * length, MemoryType.Device, false);
       CudaMemory lPtrMemory = lPtr.getMemory(gpu);
       CudaMemory rPtrMemory = rPtr.getMemory(gpu);
       gpu.cudnnOpTensor(opDescriptor.getPtr(),
@@ -168,8 +168,8 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
       CudaTensor cudaTensor = CudaTensor.wrap(outputPtr, outputDescriptor, precision);
       Stream.<ReferenceCounting>of(opDescriptor, lPtr, rPtr).forEach(ReferenceCounting::freeRef);
       return CudaTensorList.wrap(cudaTensor, length, dimensions, precision);
-    }, leftData), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
-  
+    }, leftData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+      
       Runnable a = () -> {
         if (inObj[0].isAlive()) {
           CudaTensorList tensorList = CudaSystem.eval(gpu -> {
@@ -230,7 +230,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
       
       @Override
       public boolean isAlive() {
-        for (@javax.annotation.Nonnull final Result element : inObj)
+        for (@Nonnull final Result element : inObj)
           if (element.isAlive()) {
             return true;
           }
@@ -240,10 +240,10 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("rightFactor", rightFactor);
     json.addProperty("leftFactor", leftFactor);
     json.addProperty("precision", precision.name());
@@ -265,7 +265,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
    * @param leftFactor the left factor
    * @return the left factor
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public BinarySumLayer setLeftFactor(final double leftFactor) {
     this.leftFactor = leftFactor;
     return this;
@@ -276,7 +276,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
     return precision;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public BinarySumLayer setPrecision(final Precision precision) {
     this.precision = precision;
@@ -298,13 +298,13 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
    * @param rightFactor the right factor
    * @return the right factor
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public BinarySumLayer setRightFactor(final double rightFactor) {
     this.rightFactor = rightFactor;
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

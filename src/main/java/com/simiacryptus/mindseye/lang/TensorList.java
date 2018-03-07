@@ -39,7 +39,7 @@ public interface TensorList extends ReferenceCounting {
    * @param right the right
    * @return the tensor list
    */
-  default TensorList add(@javax.annotation.Nonnull final TensorList right) {
+  default TensorList add(@Nonnull final TensorList right) {
     if (right.length() == 0) return this;
     if (length() == 0) throw new IllegalArgumentException();
     assert length() == right.length();
@@ -59,7 +59,7 @@ public interface TensorList extends ReferenceCounting {
    * @param right the right
    * @return the tensor list
    */
-  default TensorList addAndFree(@javax.annotation.Nonnull final TensorList right) {
+  default TensorList addAndFree(@Nonnull final TensorList right) {
     assertAlive();
     right.assertAlive();
     TensorList add = add(right);
@@ -74,14 +74,14 @@ public interface TensorList extends ReferenceCounting {
    * @return the tensor list
    */
   @Nonnull
-  default TensorList minus(@javax.annotation.Nonnull final TensorList right) {
+  default TensorList minus(@Nonnull final TensorList right) {
     if (right.length() == 0) return this;
     if (length() == 0) throw new IllegalArgumentException();
     assert length() == right.length();
     return TensorArray.wrap(IntStream.range(0, length()).mapToObj(i -> {
-      @javax.annotation.Nullable Tensor a = get(i);
-      @javax.annotation.Nullable Tensor b = right.get(i);
-      @javax.annotation.Nonnull Tensor r = a.minus(b);
+      @Nullable Tensor a = get(i);
+      @Nullable Tensor b = right.get(i);
+      @Nonnull Tensor r = a.minus(b);
       a.freeRef();
       b.freeRef();
       return r;
@@ -96,8 +96,8 @@ public interface TensorList extends ReferenceCounting {
   default TensorList copy() {
     return TensorArray.wrap(
       IntStream.range(0, length()).mapToObj(i -> {
-        @javax.annotation.Nullable Tensor element = get(i);
-        @javax.annotation.Nonnull Tensor copy = element.copy();
+        @Nullable Tensor element = get(i);
+        @Nonnull Tensor copy = element.copy();
         element.freeRef();
         return copy;
       }).toArray(i -> new Tensor[i])
@@ -110,7 +110,7 @@ public interface TensorList extends ReferenceCounting {
    * @param i the
    * @return the tensor
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   Tensor get(int i);
   
   /**
@@ -140,7 +140,7 @@ public interface TensorList extends ReferenceCounting {
    *
    * @return the string
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   default String prettyPrint() {
     return stream().map(t -> {
       String str = t.prettyPrint();
@@ -155,9 +155,9 @@ public interface TensorList extends ReferenceCounting {
    * @param i the
    * @return the and free
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   default Tensor getAndFree(int i) {
-    @javax.annotation.Nullable Tensor tensor = get(i);
+    @Nullable Tensor tensor = get(i);
     freeRef();
     return tensor;
   }

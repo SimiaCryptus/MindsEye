@@ -98,7 +98,7 @@ public class EncodingProblem implements Problem {
    * @param batchSize the batch size
    * @return the batch size
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public EncodingProblem setBatchSize(final int batchSize) {
     this.batchSize = batchSize;
     return this;
@@ -119,13 +119,13 @@ public class EncodingProblem implements Problem {
    * @param features the features
    * @return the features
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public EncodingProblem setFeatures(final int features) {
     this.features = features;
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<StepRecord> getHistory() {
     return history;
@@ -146,7 +146,7 @@ public class EncodingProblem implements Problem {
    * @param timeoutMinutes the timeout minutes
    * @return the timeout minutes
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public EncodingProblem setTimeoutMinutes(final int timeoutMinutes) {
     this.timeoutMinutes = timeoutMinutes;
     return this;
@@ -167,7 +167,7 @@ public class EncodingProblem implements Problem {
    * @param trainingSize the training size
    * @return the training size
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public EncodingProblem setTrainingSize(final int trainingSize) {
     this.trainingSize = trainingSize;
     return this;
@@ -182,19 +182,19 @@ public class EncodingProblem implements Problem {
     return 0.1 * (Math.random() - 0.5);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public EncodingProblem run(@javax.annotation.Nonnull final NotebookOutput log) {
-    @javax.annotation.Nonnull final TrainingMonitor monitor = TestUtil.getMonitor(history);
+  public EncodingProblem run(@Nonnull final NotebookOutput log) {
+    @Nonnull final TrainingMonitor monitor = TestUtil.getMonitor(history);
     Tensor[][] trainingData;
     try {
       trainingData = data.trainingData().map(labeledObject -> {
         return new Tensor[]{new Tensor(features).set(this::random), labeledObject.data};
       }).toArray(i -> new Tensor[i][]);
-    } catch (@javax.annotation.Nonnull final IOException e) {
+    } catch (@Nonnull final IOException e) {
       throw new RuntimeException(e);
     }
-  
+
     @Nonnull final DAGNetwork imageNetwork = revFactory.vectorToImage(log, features);
     log.h3("Network Diagram");
     log.code(() -> {
@@ -202,7 +202,7 @@ public class EncodingProblem implements Problem {
         .height(400).width(600).render(Format.PNG).toImage();
     });
     
-    @javax.annotation.Nonnull final PipelineNetwork trainingNetwork = new PipelineNetwork(2);
+    @Nonnull final PipelineNetwork trainingNetwork = new PipelineNetwork(2);
     @Nullable final DAGNode image = trainingNetwork.add(imageNetwork, trainingNetwork.getInput(0));
     @Nullable final DAGNode softmax = trainingNetwork.add(new SoftmaxActivationLayer(), trainingNetwork.getInput(0));
     trainingNetwork.add(new SumInputsLayer(),
@@ -214,7 +214,7 @@ public class EncodingProblem implements Problem {
     log.h3("Training");
     log.p("We start by training with a very small population to improve initial convergence performance:");
     TestUtil.instrumentPerformance(log, trainingNetwork);
-    @javax.annotation.Nonnull final Tensor[][] primingData = Arrays.copyOfRange(trainingData, 0, 1000);
+    @Nonnull final Tensor[][] primingData = Arrays.copyOfRange(trainingData, 0, 1000);
     @Nonnull final ValidatingTrainer preTrainer = optimizer.train(log,
       (SampledTrainable) new SampledArrayTrainable(primingData, trainingNetwork, trainingSize, batchSize).setMinSamples(trainingSize).setMask(true, false),
       new ArrayTrainable(primingData, trainingNetwork, batchSize), monitor);
@@ -243,7 +243,7 @@ public class EncodingProblem implements Problem {
     }
     
     try {
-      @javax.annotation.Nonnull String filename = log.getName() + EncodingProblem.modelNo++ + "_plot.png";
+      @Nonnull String filename = log.getName() + EncodingProblem.modelNo++ + "_plot.png";
       ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(filename));
       log.appendFrontMatterProperty("result_plot", filename, ";");
     } catch (IOException e) {
@@ -251,23 +251,23 @@ public class EncodingProblem implements Problem {
     }
     
     //log.file()
-    @javax.annotation.Nonnull final String modelName = "encoding_model_" + EncodingProblem.modelNo++ + ".json";
+    @Nonnull final String modelName = "encoding_model_" + EncodingProblem.modelNo++ + ".json";
     log.appendFrontMatterProperty("result_model", modelName, ";");
     log.p("Saved model as " + log.file(trainingNetwork.getJson().toString(), modelName, modelName));
     
     log.h3("Results");
-    @javax.annotation.Nonnull final PipelineNetwork testNetwork = new PipelineNetwork(2);
+    @Nonnull final PipelineNetwork testNetwork = new PipelineNetwork(2);
     testNetwork.add(imageNetwork, testNetwork.getInput(0));
     log.code(() -> {
-      @javax.annotation.Nonnull final TableOutput table = new TableOutput();
+      @Nonnull final TableOutput table = new TableOutput();
       Arrays.stream(trainingData).map(tensorArray -> {
         try {
           @Nullable final Tensor predictionSignal = testNetwork.eval(tensorArray).getData().get(0);
-          @javax.annotation.Nonnull final LinkedHashMap<String, Object> row = new LinkedHashMap<>();
+          @Nonnull final LinkedHashMap<String, Object> row = new LinkedHashMap<>();
           row.put("Source", log.image(tensorArray[1].toImage(), ""));
           row.put("Echo", log.image(predictionSignal.toImage(), ""));
           return row;
-        } catch (@javax.annotation.Nonnull final IOException e) {
+        } catch (@Nonnull final IOException e) {
           throw new RuntimeException(e);
         }
       }).filter(x -> null != x).limit(10).forEach(table::putRow);
@@ -276,7 +276,7 @@ public class EncodingProblem implements Problem {
     
     log.p("Learned Model Statistics:");
     log.code(() -> {
-      @javax.annotation.Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
+      @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
       trainingNetwork.state().stream().flatMapToDouble(x -> Arrays.stream(x))
         .forEach(v -> scalarStatistics.add(v));
       return scalarStatistics.getMetrics();
@@ -284,7 +284,7 @@ public class EncodingProblem implements Problem {
     
     log.p("Learned Representation Statistics:");
     log.code(() -> {
-      @javax.annotation.Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
+      @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
       Arrays.stream(trainingData)
         .flatMapToDouble(row -> Arrays.stream(row[0].getData()))
         .forEach(v -> scalarStatistics.add(v));
@@ -293,12 +293,12 @@ public class EncodingProblem implements Problem {
     
     log.p("Some rendered unit vectors:");
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
-      @javax.annotation.Nonnull final Tensor input = new Tensor(features).set(featureNumber, 1);
+      @Nonnull final Tensor input = new Tensor(features).set(featureNumber, 1);
       @Nullable final Tensor tensor = imageNetwork.eval(input).getData().get(0);
       TestUtil.renderToImages(tensor, true).forEach(img -> {
         try {
           log.out(log.image(img, ""));
-        } catch (@javax.annotation.Nonnull final IOException e) {
+        } catch (@Nonnull final IOException e) {
           throw new RuntimeException(e);
         }
       });

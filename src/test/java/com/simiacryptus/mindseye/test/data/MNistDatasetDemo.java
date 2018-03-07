@@ -23,6 +23,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.lang.SupplierWeakCache;
 import com.simiacryptus.util.test.LabeledObject;
 
+import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
 import java.util.stream.Stream;
 
@@ -32,13 +33,13 @@ import java.util.stream.Stream;
 public class MNistDatasetDemo extends ImageCategoryDatasetDemo {
   
   @Override
-  public Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(@javax.annotation.Nonnull NotebookOutput log) {
+  public Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(@Nonnull NotebookOutput log) {
     return log.code(() -> {
       return MNIST.trainingDataStream().map(x -> x.map(y -> new SupplierWeakCache<>(() -> y.toImage())));
     });
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   protected Class<?> getTargetClass() {
     return MNIST.class;

@@ -57,7 +57,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
   private int maxHistory = 30;
   private int minHistory = 3;
   
-  private static boolean isFinite(@javax.annotation.Nonnull final DoubleBufferSet<?, ?> delta) {
+  private static boolean isFinite(@Nonnull final DoubleBufferSet<?, ?> delta) {
     return delta.stream().parallel().flatMapToDouble(y -> Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d));
   }
   
@@ -67,7 +67,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
    * @param measurement the measurement
    * @param monitor     the monitor
    */
-  public void addToHistory(@javax.annotation.Nonnull final PointSample measurement, @javax.annotation.Nonnull final TrainingMonitor monitor) {
+  public void addToHistory(@Nonnull final PointSample measurement, @Nonnull final TrainingMonitor monitor) {
     if (!LBFGS.isFinite(measurement.delta)) {
       if (verbose) {
         monitor.log("Corrupt measurement");
@@ -87,11 +87,11 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     }
   }
   
-  @javax.annotation.Nonnull
-  private SimpleLineSearchCursor cursor(final Trainable subject, @javax.annotation.Nonnull final PointSample measurement, final String type, final DeltaSet<Layer> result) {
+  @Nonnull
+  private SimpleLineSearchCursor cursor(final Trainable subject, @Nonnull final PointSample measurement, final String type, final DeltaSet<Layer> result) {
     return new SimpleLineSearchCursor(subject, measurement, result) {
       @Override
-      public LineSearchPoint step(final double t, @javax.annotation.Nonnull final TrainingMonitor monitor) {
+      public LineSearchPoint step(final double t, @Nonnull final TrainingMonitor monitor) {
         final LineSearchPoint measure = super.step(t, monitor);
         addToHistory(measure.point, monitor);
         return measure;
@@ -114,7 +114,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
    * @param maxHistory the max history
    * @return the max history
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public LBFGS setMaxHistory(final int maxHistory) {
     this.maxHistory = maxHistory;
     return this;
@@ -135,7 +135,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
    * @param minHistory the min history
    * @return the min history
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public LBFGS setMinHistory(final int minHistory) {
     this.minHistory = minHistory;
     return this;
@@ -150,7 +150,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
    * @return the delta setBytes
    */
   @Nullable
-  protected DeltaSet<Layer> lbfgs(@javax.annotation.Nonnull final PointSample measurement, @javax.annotation.Nonnull final TrainingMonitor monitor, @javax.annotation.Nonnull final List<PointSample> history) {
+  protected DeltaSet<Layer> lbfgs(@Nonnull final PointSample measurement, @Nonnull final TrainingMonitor monitor, @Nonnull final List<PointSample> history) {
     @Nonnull final DeltaSet<Layer> result = measurement.delta.scale(-1);
     if (history.size() > minHistory) {
       if (lbfgs(measurement, monitor, history, result)) {
@@ -173,13 +173,13 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     }
   }
   
-  private boolean lbfgs(@javax.annotation.Nonnull PointSample measurement, @javax.annotation.Nonnull TrainingMonitor monitor, @javax.annotation.Nonnull List<PointSample> history, @javax.annotation.Nonnull DeltaSet<Layer> direction) {
+  private boolean lbfgs(@Nonnull PointSample measurement, @Nonnull TrainingMonitor monitor, @Nonnull List<PointSample> history, @Nonnull DeltaSet<Layer> direction) {
     try {
       @Nonnull DeltaSet<Layer> p = measurement.delta.copy();
       if (!p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d)))) {
         throw new IllegalStateException("Non-finite value");
       }
-      @javax.annotation.Nonnull final double[] alphas = new double[history.size()];
+      @Nonnull final double[] alphas = new double[history.size()];
       for (int i = history.size() - 2; i >= 0; i--) {
         @Nonnull final DeltaSet<Layer> sd = history.get(i + 1).weights.subtract(history.get(i).weights);
         @Nonnull final DeltaSet<Layer> yd = history.get(i + 1).delta.subtract(history.get(i).delta);
@@ -223,15 +223,15 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     }
   }
   
-  private void copy(@javax.annotation.Nonnull DeltaSet<Layer> from, @javax.annotation.Nonnull DeltaSet<Layer> to) {
-    for (@javax.annotation.Nonnull final Map.Entry<Layer, Delta<Layer>> e : to.getMap().entrySet()) {
-      @javax.annotation.Nullable final double[] delta = from.getMap().get(e.getKey()).getDelta();
+  private void copy(@Nonnull DeltaSet<Layer> from, @Nonnull DeltaSet<Layer> to) {
+    for (@Nonnull final Map.Entry<Layer, Delta<Layer>> e : to.getMap().entrySet()) {
+      @Nullable final double[] delta = from.getMap().get(e.getKey()).getDelta();
       Arrays.setAll(e.getValue().getDelta(), j -> delta[j]);
     }
   }
   
   @Override
-  public SimpleLineSearchCursor orient(final Trainable subject, @javax.annotation.Nonnull final PointSample measurement, @javax.annotation.Nonnull final TrainingMonitor monitor) {
+  public SimpleLineSearchCursor orient(final Trainable subject, @Nonnull final PointSample measurement, @Nonnull final TrainingMonitor monitor) {
 
 //    if (getClass().desiredAssertionStatus()) {
 //      double verify = subject.measure(monitor).getMean();
@@ -242,7 +242,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
 //    }
     
     addToHistory(measurement, monitor);
-    @javax.annotation.Nonnull final List<PointSample> history = Arrays.asList(this.history.toArray(new PointSample[]{}));
+    @Nonnull final List<PointSample> history = Arrays.asList(this.history.toArray(new PointSample[]{}));
     @Nullable final DeltaSet<Layer> result = lbfgs(measurement, monitor, history);
     SimpleLineSearchCursor returnValue;
     if (null == result) {
@@ -281,7 +281,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
   
   @Override
   protected void _free() {
-    for (@javax.annotation.Nonnull PointSample pointSample : history) {
+    for (@Nonnull PointSample pointSample : history) {
       pointSample.freeRef();
     }
   }
@@ -298,18 +298,18 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
      * @param gradient    the gradient
      * @param quasinewton the quasinewton
      */
-    public Stats(@javax.annotation.Nonnull DeltaSet<Layer> gradient, @javax.annotation.Nonnull DeltaSet<Layer> quasinewton) {
+    public Stats(@Nonnull DeltaSet<Layer> gradient, @Nonnull DeltaSet<Layer> quasinewton) {
       mag = Math.sqrt(quasinewton.dot(quasinewton));
       magGrad = Math.sqrt(gradient.dot(gradient));
       dot = gradient.dot(quasinewton) / (mag * magGrad);
       anglesPerLayer = gradient.getMap().entrySet().stream()
         .filter(e -> !(e.getKey() instanceof PlaceholderLayer)) // This would be too verbose
-        .map((@javax.annotation.Nonnull final Map.Entry<Layer, Delta<Layer>> e) -> {
-          @javax.annotation.Nullable final double[] lbfgsVector = gradient.getMap().get(e.getKey()).getDelta();
+        .map((@Nonnull final Map.Entry<Layer, Delta<Layer>> e) -> {
+          @Nullable final double[] lbfgsVector = gradient.getMap().get(e.getKey()).getDelta();
           for (int index = 0; index < lbfgsVector.length; index++) {
             lbfgsVector[index] = Double.isFinite(lbfgsVector[index]) ? lbfgsVector[index] : 0;
           }
-          @javax.annotation.Nullable final double[] gradientVector = gradient.getMap().get(e.getKey()).getDelta();
+          @Nullable final double[] gradientVector = gradient.getMap().get(e.getKey()).getDelta();
           for (int index = 0; index < gradientVector.length; index++) {
             gradientVector[index] = Double.isFinite(gradientVector[index]) ? gradientVector[index] : 0;
           }

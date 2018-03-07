@@ -31,6 +31,7 @@ import com.simiacryptus.util.data.PercentileStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.lang.TimedResult;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -60,7 +61,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
    * @param json the json
    * @param rs   the rs
    */
-  protected MonitoringWrapperLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected MonitoringWrapperLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json, rs);
     if (json.has("forwardPerf")) {
       forwardPerformance.readJson(json.getAsJsonObject("forwardPerf"));
@@ -95,7 +96,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
    * @param rs   the rs
    * @return the monitoring wrapper layer
    */
-  public static MonitoringWrapperLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static MonitoringWrapperLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new MonitoringWrapperLayer(json, rs);
   }
   
@@ -105,8 +106,8 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
    * @param obj the obj
    * @return the monitoring wrapper layer
    */
-  @javax.annotation.Nonnull
-  public MonitoringWrapperLayer addTo(@javax.annotation.Nonnull final MonitoredObject obj) {
+  @Nonnull
+  public MonitoringWrapperLayer addTo(@Nonnull final MonitoredObject obj) {
     return addTo(obj, getInner().getName());
   }
   
@@ -117,35 +118,35 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
    * @param name the name
    * @return the monitoring wrapper layer
    */
-  @javax.annotation.Nonnull
-  public MonitoringWrapperLayer addTo(@javax.annotation.Nonnull final MonitoredObject obj, final String name) {
+  @Nonnull
+  public MonitoringWrapperLayer addTo(@Nonnull final MonitoredObject obj, final String name) {
     setName(name);
     obj.addObj(getName(), this);
     return this;
   }
   
   @Override
-  public Result evalAndFree(@javax.annotation.Nonnull final Result... inObj) {
-    @javax.annotation.Nonnull final AtomicLong passbackNanos = new AtomicLong(0);
+  public Result evalAndFree(@Nonnull final Result... inObj) {
+    @Nonnull final AtomicLong passbackNanos = new AtomicLong(0);
     final Result[] wrappedInput = Arrays.stream(inObj).map(result -> {
-      return new Result(result.getData(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+      return new Result(result.getData(), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
         data.addRef();
         passbackNanos.addAndGet(TimedResult.time(() -> result.accumulate(buffer, data)).timeNanos);
       }) {
-  
+    
         @Override
         protected void _free() {
           result.freeRef();
         }
-  
-  
+    
+    
         @Override
         public boolean isAlive() {
           return result.isAlive();
         }
       };
     }).toArray(i -> new Result[i]);
-    @javax.annotation.Nonnull TimedResult<Result> timedResult = TimedResult.time(() -> getInner().evalAndFree(wrappedInput));
+    @Nonnull TimedResult<Result> timedResult = TimedResult.time(() -> getInner().evalAndFree(wrappedInput));
     final Result output = timedResult.result;
     forwardPerformance.add((timedResult.timeNanos) / 1000000000.0);
     totalBatches++;
@@ -158,7 +159,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
         t.freeRef();
       });
     }
-    return new Result(output.getData(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new Result(output.getData(), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       if (recordSignalMetrics) {
         backwardSignal.clear();
         data.stream().parallel().forEach(t -> {
@@ -169,7 +170,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
       data.addRef();
       backwardPerformance.add((TimedResult.time(() -> output.accumulate(buffer, data)).timeNanos - passbackNanos.getAndSet(0)) / (items * 1e9));
     }) {
-  
+    
       @Override
       protected void _free() {
         output.freeRef();
@@ -187,7 +188,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
    *
    * @return the backward performance
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public PercentileStatistics getBackwardPerformance() {
     return backwardPerformance;
   }
@@ -197,7 +198,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
    *
    * @return the backward signal
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public ScalarStatistics getBackwardSignal() {
     return backwardSignal;
   }
@@ -207,7 +208,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
    *
    * @return the forward performance
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public PercentileStatistics getForwardPerformance() {
     return forwardPerformance;
   }
@@ -217,15 +218,15 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
    *
    * @return the forward signal
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public ScalarStatistics getForwardSignal() {
     return forwardSignal;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJson(resources, dataSerializer);
+    @Nonnull final JsonObject json = super.getJson(resources, dataSerializer);
     //json.fn("forwardPerf",forwardPerf.getJson());
     //json.fn("backwardPerf",backwardPerf.getJson());
     json.addProperty("totalBatches", totalBatches);
@@ -234,10 +235,10 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     return json;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Map<String, Object> getMetrics() {
-    @javax.annotation.Nonnull final HashMap<String, Object> map = new HashMap<>();
+    @Nonnull final HashMap<String, Object> map = new HashMap<>();
     map.put("class", getInner().getClass().getName());
     map.put("totalBatches", totalBatches);
     map.put("totalItems", totalItems);
@@ -255,14 +256,14 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     map.put("avgMsPerItem_Backward", 1000 * batchesPerItem * backpropMean);
     map.put("medianMsPerItem_Backward", 1000 * batchesPerItem * backpropMedian);
     @Nullable final List<double[]> state = state();
-    @javax.annotation.Nonnull final ScalarStatistics statistics = new PercentileStatistics();
-    for (@javax.annotation.Nonnull final double[] s : state) {
+    @Nonnull final ScalarStatistics statistics = new PercentileStatistics();
+    for (@Nonnull final double[] s : state) {
       for (final double v : s) {
         statistics.add(v);
       }
     }
     if (statistics.getCount() > 0) {
-      @javax.annotation.Nonnull final HashMap<String, Object> weightStats = new HashMap<>();
+      @Nonnull final HashMap<String, Object> weightStats = new HashMap<>();
       weightStats.put("buffers", state.size());
       weightStats.putAll(statistics.getMetrics());
       map.put("weights", weightStats);
@@ -270,7 +271,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     return map;
   }
   
-  @javax.annotation.Nullable
+  @Nullable
   @Override
   public String getName() {
     return getInner().getName();
@@ -285,7 +286,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     return recordSignalMetrics;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Layer setName(final String name) {
     if (null != getInner()) {
@@ -300,7 +301,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
    * @param recordSignalMetrics the record signal metrics
    * @return the monitoring wrapper layer
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public MonitoringWrapperLayer shouldRecordSignalMetrics(final boolean recordSignalMetrics) {
     this.recordSignalMetrics = recordSignalMetrics;
     return this;

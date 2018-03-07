@@ -77,7 +77,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
    * @return the tolerance statistics
    */
   @Override
-  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, final Layer layer, @javax.annotation.Nonnull final Tensor... inputPrototype) {
+  public ToleranceStatistics test(@Nonnull final NotebookOutput log, final Layer layer, @Nonnull final Tensor... inputPrototype) {
     log.h1("GPU/Cuda Behavior");
     layer.setFrozen(false);
     if (null == layer) return new ToleranceStatistics();
@@ -448,13 +448,13 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
    * @param batchSize the batch size
    * @return the batch size
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public CudaLayerTester setBatchSize(int batchSize) {
     this.batchSize = batchSize;
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public String toString() {
     return "CudaLayerTester{" +

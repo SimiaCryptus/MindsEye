@@ -30,6 +30,7 @@ import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 import com.simiacryptus.util.io.NotebookOutput;
 
+import javax.annotation.Nonnull;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Random;
@@ -69,19 +70,19 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
     return new SingleDerivativeTester(1e-2, 1e-4);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{{smallSize, smallSize, 1}};
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ActivationLayer(mode).setPrecision(precision);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
@@ -91,19 +92,19 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
   
   @Override
   public void run(final NotebookOutput log) {
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all.log";
+    @Nonnull String logName = "cuda_" + log.getName() + "_all.log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
   
     super.run(log);
   
     log.h3("Function Plots");
-    @javax.annotation.Nonnull final Layer layer = getLayer(new int[][]{{1, 1, 1}}, new Random());
+    @Nonnull final Layer layer = getLayer(new int[][]{{1, 1, 1}}, new Random());
     final List<double[]> plotData = IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0).mapToObj(x -> {
-      @javax.annotation.Nonnull Tensor input = new Tensor(new double[]{x}, 1, 1, 1);
-      @javax.annotation.Nonnull final SimpleEval eval = SimpleEval.run(layer, input);
+      @Nonnull Tensor input = new Tensor(new double[]{x}, 1, 1, 1);
+      @Nonnull final SimpleEval eval = SimpleEval.run(layer, input);
       input.freeRef();
-      @javax.annotation.Nonnull double[] doubles = {x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};
+      @Nonnull double[] doubles = {x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};
       eval.freeRef();
       return doubles;
     }).collect(Collectors.toList());

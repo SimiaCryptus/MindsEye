@@ -48,13 +48,13 @@ public class CudaSettings implements Settings {
   private final boolean conv_para_3;
   private final long maxDeviceMemory;
   private final boolean logStack;
-  private final boolean profileMemory;
+  private final boolean profileMemoryIO;
   
   private CudaSettings() {
     maxTotalMemory = Settings.get("MAX_TOTAL_MEMORY", 6 * CudaMemory.GiB);
     maxDeviceMemory = Settings.get("MAX_DEVICE_MEMORY", 6 * CudaMemory.GiB);
     maxAllocSize = Settings.get("MAX_ALLOC_SIZE", Precision.Double.size * (Integer.MAX_VALUE - 1L));
-    maxFilterElements = Settings.get("MAX_FILTER_ELEMENTS", 512 * CudaMemory.MiB);
+    maxFilterElements = Settings.get("MAX_FILTER_ELEMENTS", 1024 * CudaMemory.MiB);
     maxIoElements = Settings.get("MAX_IO_ELEMENTS", 1 * CudaMemory.MiB);
     convolutionWorkspaceSizeLimit = Settings.get("CONVOLUTION_WORKSPACE_SIZE_LIMIT", 512 * CudaMemory.MiB);
     disable = Settings.get("DISABLE_CUDNN", false);
@@ -66,7 +66,7 @@ public class CudaSettings implements Settings {
     conv_para_3 = Settings.get("CONV_PARA_3", true);
     memoryCacheMode = Settings.get("CUDA_CACHE_MODE", PersistanceMode.WEAK);
     logStack = Settings.get("CUDA_LOG_STACK", false);
-    profileMemory = true;
+    profileMemoryIO = Settings.get("CUDA_PROFILE_MEM_IO", true);
   }
   
   /**
@@ -195,7 +195,7 @@ public class CudaSettings implements Settings {
     return logStack;
   }
   
-  public boolean isProfileMemory() {
-    return profileMemory;
+  public boolean isProfileMemoryIO() {
+    return profileMemoryIO;
   }
 }

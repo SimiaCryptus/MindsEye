@@ -41,7 +41,7 @@ public class FailsafeLineSearchCursor extends LineSearchCursorBase {
    * @param previousPoint the previous point
    * @param monitor       the monitor
    */
-  public FailsafeLineSearchCursor(final LineSearchCursor direction, @javax.annotation.Nonnull final PointSample previousPoint, final TrainingMonitor monitor) {
+  public FailsafeLineSearchCursor(final LineSearchCursor direction, @Nonnull final PointSample previousPoint, final TrainingMonitor monitor) {
     this.direction = direction;
     this.direction.addRef();
     best = previousPoint.copyFull();
@@ -53,7 +53,7 @@ public class FailsafeLineSearchCursor extends LineSearchCursorBase {
    *
    * @param step the runStep
    */
-  public void accumulate(@javax.annotation.Nonnull final PointSample step) {
+  public void accumulate(@Nonnull final PointSample step) {
     if (null == best || best.getMean() > step.getMean()) {
       @Nonnull PointSample newValue = step.copyFull();
       if (null != this.best) {

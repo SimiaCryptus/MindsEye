@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
 
+import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
@@ -42,7 +43,7 @@ public abstract class SoftmaxActivationLayerTest extends CudaLayerTestBase {
     this.mode = mode;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{{2, 2, 3}};
@@ -53,7 +54,7 @@ public abstract class SoftmaxActivationLayerTest extends CudaLayerTestBase {
     return new int[][]{{200, 200, 3}};
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new SoftmaxActivationLayer().setMode(mode).setAlgorithm(algorithm);

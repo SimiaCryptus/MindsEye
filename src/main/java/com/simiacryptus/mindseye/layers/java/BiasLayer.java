@@ -81,7 +81,7 @@ public class BiasLayer extends LayerBase {
    *
    * @param json the json
    */
-  protected BiasLayer(@javax.annotation.Nonnull final JsonObject json) {
+  protected BiasLayer(@Nonnull final JsonObject json) {
     super(json);
     bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
   }
@@ -93,7 +93,7 @@ public class BiasLayer extends LayerBase {
    * @param rs   the rs
    * @return the bias layer
    */
-  public static BiasLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static BiasLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new BiasLayer(json);
   }
   
@@ -103,7 +103,7 @@ public class BiasLayer extends LayerBase {
    * @param input the input
    * @return the double [ ]
    */
-  public double[] add(@javax.annotation.Nonnull final double[] input) {
+  public double[] add(@Nonnull final double[] input) {
     final double[] array = RecycleBin.DOUBLES.obtain(input.length);
     if (1 == bias.length) {
       for (int i = 0; i < array.length; i++) {
@@ -124,15 +124,15 @@ public class BiasLayer extends LayerBase {
    * @param f the f
    * @return the bias layer
    */
-  @javax.annotation.Nonnull
-  public BiasLayer addWeights(@javax.annotation.Nonnull final DoubleSupplier f) {
+  @Nonnull
+  public BiasLayer addWeights(@Nonnull final DoubleSupplier f) {
     Util.add(f, bias);
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     TensorList input;
     if (0 == inObj.length) {
@@ -147,7 +147,7 @@ public class BiasLayer extends LayerBase {
         r.freeRef();
         return tensor;
       }).toArray(i -> new Tensor[i])),
-      (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+      (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
         if (!isFrozen()) {
           final Delta<Layer> deltaBuffer = buffer.get(BiasLayer.this, bias);
           if (1 == bias.length) {
@@ -184,10 +184,10 @@ public class BiasLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.add("bias", JsonUtil.getJson(bias));
     return json;
   }
@@ -199,8 +199,8 @@ public class BiasLayer extends LayerBase {
    * @param ds the ds
    * @return the nn layer
    */
-  @javax.annotation.Nonnull
-  public Layer set(@javax.annotation.Nonnull final double[] ds) {
+  @Nonnull
+  public Layer set(@Nonnull final double[] ds) {
     for (int i = 0; i < ds.length; i++) {
       bias[i] = ds[i];
     }
@@ -213,8 +213,8 @@ public class BiasLayer extends LayerBase {
    * @param f the f
    * @return the weights
    */
-  @javax.annotation.Nonnull
-  public BiasLayer setWeights(@javax.annotation.Nonnull final IntToDoubleFunction f) {
+  @Nonnull
+  public BiasLayer setWeights(@Nonnull final IntToDoubleFunction f) {
     for (int i = 0; i < bias.length; i++) {
       bias[i] = f.applyAsDouble(i);
     }
@@ -227,7 +227,7 @@ public class BiasLayer extends LayerBase {
    * @param value the value
    * @return the weights log
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public BiasLayer setWeightsLog(final double value) {
     for (int i = 0; i < bias.length; i++) {
       bias[i] = (FastRandom.INSTANCE.random() - 0.5) * Math.pow(10, value);
@@ -235,7 +235,7 @@ public class BiasLayer extends LayerBase {
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList(bias);
@@ -247,8 +247,8 @@ public class BiasLayer extends LayerBase {
    * @param tensor the tensor
    * @return the bias layer
    */
-  @javax.annotation.Nonnull
-  public BiasLayer set(@javax.annotation.Nonnull Tensor tensor) {
+  @Nonnull
+  public BiasLayer set(@Nonnull Tensor tensor) {
     assert bias.length == tensor.length();
     for (int i = 0; i < bias.length; i++) {
       bias[i] = tensor.get(i);

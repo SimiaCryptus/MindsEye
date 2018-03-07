@@ -37,6 +37,7 @@ import com.simiacryptus.mindseye.test.integration.OptimizationStrategy;
 import com.simiacryptus.mindseye.test.integration.RevNetworkFactory;
 import com.simiacryptus.util.io.NotebookOutput;
 
+import javax.annotation.Nonnull;
 import java.util.function.IntToDoubleFunction;
 
 /**
@@ -47,13 +48,13 @@ public class CaltechTests {
   /**
    * The constant fwd_conv_1.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public static FwdNetworkFactory fwd_conv_1 = (log, features) -> {
     log.p("The image-to-vector network is a single layer convolutional:");
     return log.code(() -> {
-      @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
-
-      @javax.annotation.Nonnull IntToDoubleFunction weights = i -> 1e-8 * (Math.random() - 0.5);
+      @Nonnull final PipelineNetwork network = new PipelineNetwork();
+  
+      @Nonnull IntToDoubleFunction weights = i -> 1e-8 * (Math.random() - 0.5);
       network.add(new ConvolutionLayer(3, 3, 3, 10).set(weights));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());
@@ -89,13 +90,13 @@ public class CaltechTests {
   /**
    * The constant rev_conv_1.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public static RevNetworkFactory rev_conv_1 = (log, features) -> {
     log.p("The vector-to-image network uses a fully connected layer then a single convolutional layer:");
     return log.code(() -> {
-      @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
+      @Nonnull final PipelineNetwork network = new PipelineNetwork();
   
-      @javax.annotation.Nonnull IntToDoubleFunction weights = i -> 1e-8 * (Math.random() - 0.5);
+      @Nonnull IntToDoubleFunction weights = i -> 1e-8 * (Math.random() - 0.5);
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{4, 4, 40}).set(weights));
       network.add(new ImgBandBiasLayer(40));
       network.add(new NormalizationMetaLayer());
@@ -151,25 +152,25 @@ public class CaltechTests {
       batchSize = 10;
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     protected Class<?> getTargetClass() {
       return Caltech101.class;
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public ImageProblemData getData() {
       return new CaltechProblemData();
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public String getDatasetName() {
       return "Caltech101";
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public ReportType getReportType() {
       return ReportType.Training;
@@ -189,7 +190,7 @@ public class CaltechTests {
     }
     
     @Override
-    protected void intro(@javax.annotation.Nonnull final NotebookOutput log) {
+    protected void intro(@Nonnull final NotebookOutput log) {
       log.p("");
     }
     

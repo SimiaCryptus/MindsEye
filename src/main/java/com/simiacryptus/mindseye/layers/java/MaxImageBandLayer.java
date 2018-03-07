@@ -33,6 +33,7 @@ import com.simiacryptus.util.io.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -63,7 +64,7 @@ public class MaxImageBandLayer extends LayerBase {
    * @param id         the id
    * @param kernelDims the kernel dims
    */
-  protected MaxImageBandLayer(@javax.annotation.Nonnull final JsonObject id, final int... kernelDims) {
+  protected MaxImageBandLayer(@Nonnull final JsonObject id, final int... kernelDims) {
     super(id);
   }
   
@@ -74,23 +75,23 @@ public class MaxImageBandLayer extends LayerBase {
    * @param rs   the rs
    * @return the max image band layer
    */
-  public static MaxImageBandLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static MaxImageBandLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new MaxImageBandLayer(json,
       JsonUtil.getIntArray(json.getAsJsonArray("heapCopy")));
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     
     assert 1 == inObj.length;
     final TensorList inputData = inObj[0].getData();
     inputData.addRef();
     inputData.length();
-    @javax.annotation.Nonnull final int[] inputDims = inputData.getDimensions();
+    @Nonnull final int[] inputDims = inputData.getDimensions();
     assert 3 == inputDims.length;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-  
+    
     final Coordinate[][] maxCoords = inputData.stream().map(data -> {
       Coordinate[] coordinates = IntStream.range(0, inputDims[2]).mapToObj(band -> {
         return data.coordStream(true).filter(e -> e.getCoords()[2] == band).max(Comparator.comparing(c -> data.get(c))).get();
@@ -98,7 +99,7 @@ public class MaxImageBandLayer extends LayerBase {
       data.freeRef();
       return coordinates;
     }).toArray(i -> new Coordinate[i][]);
-  
+    
     return new Result(TensorArray.wrap(IntStream.range(0, inputData.length()).mapToObj(dataIndex -> {
       Tensor tensor = inputData.get(dataIndex);
       final DoubleStream doubleStream = IntStream.range(0, inputDims[2]).mapToDouble(band -> {
@@ -109,11 +110,11 @@ public class MaxImageBandLayer extends LayerBase {
       Tensor tensor1 = new Tensor(1, 1, inputDims[2]).set(Tensor.getDoubles(doubleStream, inputDims[2]));
       tensor.freeRef();
       return tensor1;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       if (inObj[0].isAlive()) {
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).parallel().mapToObj(dataIndex -> {
+        @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).parallel().mapToObj(dataIndex -> {
           Tensor deltaTensor = delta.get(dataIndex);
-          @javax.annotation.Nonnull final Tensor passback = new Tensor(inputData.getDimensions());
+          @Nonnull final Tensor passback = new Tensor(inputData.getDimensions());
           IntStream.range(0, inputDims[2]).forEach(b -> {
             final int[] maxCoord = maxCoords[dataIndex][b].getCoords();
             passback.set(new int[]{maxCoord[0], maxCoord[1], b}, deltaTensor.get(0, 0, b));
@@ -139,14 +140,14 @@ public class MaxImageBandLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     return json;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
@@ -187,7 +188,7 @@ public class MaxImageBandLayer extends LayerBase {
       if (getClass() != obj.getClass()) {
         return false;
       }
-      @javax.annotation.Nonnull final MaxImageBandLayer.CalcRegionsParameter other = (MaxImageBandLayer.CalcRegionsParameter) obj;
+      @Nonnull final MaxImageBandLayer.CalcRegionsParameter other = (MaxImageBandLayer.CalcRegionsParameter) obj;
       if (!Arrays.equals(inputDims, other.inputDims)) {
         return false;
       }

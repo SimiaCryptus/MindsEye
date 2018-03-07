@@ -33,6 +33,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 
@@ -79,7 +80,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
    *
    * @param log the log
    */
-  public void autoencoder_test(@javax.annotation.Nonnull NotebookOutput log) {
+  public void autoencoder_test(@Nonnull NotebookOutput log) {
     log.h1(getDatasetName() + " Denoising Autoencoder");
     intro(log);
     new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, getData(), 100, 0.8).setTimeoutMinutes(timeoutMinutes).run(log);
@@ -113,7 +114,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
    *
    * @param log the log
    */
-  public void classification_test(@javax.annotation.Nonnull NotebookOutput log) {
+  public void classification_test(@Nonnull NotebookOutput log) {
     log.h1(getDatasetName() + " Denoising Autoencoder");
     intro(log);
     new ClassifyProblem(fwdFactory, optimizationStrategy, getData(), 100).setBatchSize(batchSize).setTimeoutMinutes(timeoutMinutes).run(log);
@@ -136,7 +137,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
    *
    * @param log the log
    */
-  public void encoding_test(@javax.annotation.Nonnull NotebookOutput log) {
+  public void encoding_test(@Nonnull NotebookOutput log) {
     log.h1(getDatasetName() + " Image-to-Vector Encoding");
     intro(log);
     new EncodingProblem(revFactory, optimizationStrategy, getData(), 10).setTimeoutMinutes(timeoutMinutes).run(log);
@@ -165,7 +166,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
    *
    * @return the data
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public abstract ImageProblemData getData();
   
   /**
@@ -173,6 +174,6 @@ public abstract class AllTrainingTests extends NotebookReportBase {
    *
    * @return the dataset name
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public abstract String getDatasetName();
 }

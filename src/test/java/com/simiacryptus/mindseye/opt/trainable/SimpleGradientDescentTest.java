@@ -30,6 +30,7 @@ import com.simiacryptus.mindseye.opt.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.io.NotebookOutput;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -42,17 +43,17 @@ import java.util.stream.Collectors;
 public class SimpleGradientDescentTest extends MnistTestBase {
   
   @Override
-  public void train(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer network, @javax.annotation.Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
+  public void train(@Nonnull final NotebookOutput log, @Nonnull final Layer network, @Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.p("Training a model involves a few different components. First, our model is combined mapCoords a loss function. " +
       "Then we take that model and combine it mapCoords our training data to define a trainable object. " +
       "Finally, we use a simple iterative scheme to refine the weights of our model. " +
       "The final output is the last output value of the loss function when evaluating the last batch.");
     log.code(() -> {
-      @javax.annotation.Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-      @javax.annotation.Nonnull final ArrayList<Tensor[]> trainingList = new ArrayList<>(Arrays.stream(trainingData).collect(Collectors.toList()));
+      @Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
+      @Nonnull final ArrayList<Tensor[]> trainingList = new ArrayList<>(Arrays.stream(trainingData).collect(Collectors.toList()));
       Collections.shuffle(trainingList);
-      @javax.annotation.Nonnull final Tensor[][] randomSelection = trainingList.subList(0, 10000).toArray(new Tensor[][]{});
-      @javax.annotation.Nonnull final Trainable trainable = new ArrayTrainable(randomSelection, supervisedNetwork);
+      @Nonnull final Tensor[][] randomSelection = trainingList.subList(0, 10000).toArray(new Tensor[][]{});
+      @Nonnull final Trainable trainable = new ArrayTrainable(randomSelection, supervisedNetwork);
       return new IterativeTrainer(trainable)
         .setMonitor(monitor)
         .setTimeout(3, TimeUnit.MINUTES)
@@ -61,7 +62,7 @@ public class SimpleGradientDescentTest extends MnistTestBase {
     });
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   protected Class<?> getTargetClass() {
     return ArrayTrainable.class;

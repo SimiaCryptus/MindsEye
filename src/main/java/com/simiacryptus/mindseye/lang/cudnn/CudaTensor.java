@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.lang.cudnn;
 import com.simiacryptus.mindseye.lang.RecycleBin;
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.util.lang.TimedResult;
 
 import javax.annotation.Nonnull;
 import java.util.function.Function;
@@ -29,12 +31,13 @@ import java.util.function.Function;
 /**
  * The type Cuda tensor.
  */
-public class CudaTensor extends ReferenceCountingBase {
+public class CudaTensor extends ReferenceCountingBase implements CudaSystem.CudaDeviceResource {
   
   /**
    * The Descriptor.
    */
   public final CudaDevice.CudaTensorDescriptor descriptor;
+  public final StackTraceElement[] createdBy = CudaSettings.INSTANCE.isProfileMemoryIO() ? CudaTensorList.getStackTrace() : new StackTraceElement[]{};
   /**
    * The Memory.
    */
@@ -88,8 +91,6 @@ public class CudaTensor extends ReferenceCountingBase {
     return getMemory(cudaDevice, MemoryType.Device);
   }
   
-  public final StackTraceElement[] createdBy = CudaSettings.INSTANCE.isProfileMemory() ? CudaTensorList.getStackTrace() : new StackTraceElement[]{};
-  
   /**
    * Gets memory.
    *
@@ -107,11 +108,11 @@ public class CudaTensor extends ReferenceCountingBase {
       return memory;
     }
     else {
-      com.simiacryptus.util.lang.TimedResult<CudaMemory> timedResult = com.simiacryptus.util.lang.TimedResult.time(() -> memory.copy(cudaDevice, memoryType));
+      TimedResult<CudaMemory> timedResult = TimedResult.time(() -> memory.copy(cudaDevice, memoryType));
       CudaTensorList.logger.debug(String.format("Copy %s bytes in %.4f from Tensor %s on GPU %s to %s at %s, created by %s",
         memory.size, timedResult.seconds(), Integer.toHexString(System.identityHashCode(this)), memory.getDeviceId(), cudaDevice.getDeviceId(),
-        com.simiacryptus.mindseye.test.TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
-        com.simiacryptus.mindseye.test.TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
+        TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
+        TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
       return timedResult.result;
     }
   }
@@ -146,24 +147,24 @@ public class CudaTensor extends ReferenceCountingBase {
       addRef();
       return this;
     }
-    com.simiacryptus.util.lang.TimedResult<CudaTensor> timedResult = com.simiacryptus.util.lang.TimedResult.time(() -> {
-      com.simiacryptus.mindseye.lang.cudnn.CudaDevice.CudaTensorDescriptor destDescriptor = gpu.newTensorDescriptor(
+    TimedResult<CudaTensor> timedResult = TimedResult.time(() -> {
+      CudaDevice.CudaTensorDescriptor destDescriptor = gpu.newTensorDescriptor(
         getPrecision(), this.descriptor.batchCount, this.descriptor.channels, this.descriptor.height, this.descriptor.width,
         this.descriptor.channels * this.descriptor.height * this.descriptor.width, this.descriptor.height * this.descriptor.width, this.descriptor.width, 1);
-      com.simiacryptus.mindseye.lang.cudnn.CudaMemory destMemory = gpu.allocate(destDescriptor.nStride * destDescriptor.batchCount * getPrecision().size, getType(), true);
-      com.simiacryptus.mindseye.lang.cudnn.CudaMemory memory = getMemory(gpu);
+      CudaMemory destMemory = gpu.allocate(destDescriptor.nStride * destDescriptor.batchCount * getPrecision().size, getType(), true);
+      CudaMemory memory = getMemory(gpu);
       gpu.cudnnTransformTensor(
         getPrecision().getPointer(1.0), this.descriptor.getPtr(), memory.getPtr(),
         getPrecision().getPointer(0.0), destDescriptor.getPtr(), destMemory.getPtr());
       memory.freeRef();
-      return com.simiacryptus.mindseye.lang.cudnn.CudaTensor.wrap(destMemory, destDescriptor, getPrecision());
+      return CudaTensor.wrap(destMemory, destDescriptor, getPrecision());
     });
     CudaTensor cudaTensor = timedResult.result;
     assert cudaTensor.isDense();
     CudaTensorList.logger.debug(String.format("Densified %s bytes in %.4f from GPU %s at %s, created by %s",
       cudaTensor.memory.size, timedResult.seconds(), Integer.toHexString(System.identityHashCode(this)),
-      com.simiacryptus.mindseye.test.TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
-      com.simiacryptus.mindseye.test.TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
+      TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
+      TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
     return cudaTensor;
   
   }

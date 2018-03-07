@@ -61,7 +61,7 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
    * @param maxHistory the max history
    * @return the max history
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public QQN setMaxHistory(final int maxHistory) {
     inner.setMaxHistory(maxHistory);
     return this;
@@ -82,14 +82,14 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
    * @param minHistory the min history
    * @return the min history
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public QQN setMinHistory(final int minHistory) {
     inner.setMinHistory(minHistory);
     return this;
   }
   
   @Override
-  public LineSearchCursor orient(@javax.annotation.Nonnull final Trainable subject, @javax.annotation.Nonnull final PointSample origin, @javax.annotation.Nonnull final TrainingMonitor monitor) {
+  public LineSearchCursor orient(@Nonnull final Trainable subject, @Nonnull final PointSample origin, @Nonnull final TrainingMonitor monitor) {
     inner.addToHistory(origin, monitor);
     final SimpleLineSearchCursor lbfgsCursor = inner.orient(subject, origin, monitor);
     final DeltaSet<Layer> lbfgs = lbfgsCursor.direction;
@@ -102,7 +102,7 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
       gd.freeRef();
       return new LineSearchCursorBase() {
   
-        @javax.annotation.Nonnull
+        @Nonnull
         @Override
         public String getDirectionType() {
           return CURSOR_NAME;
@@ -119,7 +119,7 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
           lbfgsCursor.reset();
         }
   
-        @javax.annotation.Nonnull
+        @Nonnull
         @Override
         public LineSearchPoint step(final double t, @Nonnull final TrainingMonitor monitor) {
           if (!Double.isFinite(t)) throw new IllegalArgumentException();

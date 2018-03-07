@@ -31,6 +31,7 @@ import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import org.junit.Test;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -67,7 +68,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
    *
    * @param log the log
    */
-  public void run(@javax.annotation.Nonnull NotebookOutput log) {
+  public void run(@Nonnull NotebookOutput log) {
     Future<Tensor[][]> submit = Executors.newSingleThreadExecutor()
       .submit(() -> Arrays.stream(EncodingUtil.getImages(log, img -> {
         return img;
@@ -80,8 +81,8 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
       }, 10, new String[]{}))
         .toArray(i -> new Tensor[i][]));
     ImageClassifier vgg16 = getImageClassifier(log);
-    @javax.annotation.Nonnull Layer network = vgg16.getNetwork();
-  
+    @Nonnull Layer network = vgg16.getNetwork();
+    
     log.h1("Network Diagram");
     log.p("This is a diagram of the imported network:");
     log.code(() -> {
@@ -100,7 +101,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    @javax.annotation.Nonnull Map<String, List<LinkedHashMap<String, Double>>> modelPredictions = new HashMap<>();
+    @Nonnull Map<String, List<LinkedHashMap<String, Double>>> modelPredictions = new HashMap<>();
     modelPredictions.put("Source", predict(log, vgg16, network, images));
     network.freeRef();
 //    serializationTest.getModels().forEach((precision, model) -> {
@@ -111,10 +112,10 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
     log.h1("Result");
   
     log.code(() -> {
-      @javax.annotation.Nonnull TableOutput tableOutput = new TableOutput();
+      @Nonnull TableOutput tableOutput = new TableOutput();
       for (int i = 0; i < images.length; i++) {
         int index = i;
-        @javax.annotation.Nonnull HashMap<String, Object> row = new HashMap<>();
+        @Nonnull HashMap<String, Object> row = new HashMap<>();
         row.put("Image", log.image(images[i][1].toImage(), ""));
         modelPredictions.forEach((model, predictions) -> {
           row.put(model, predictions.get(index).entrySet().stream()
@@ -143,7 +144,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
    * @param images  the images
    * @return the list
    */
-  public List<LinkedHashMap<String, Double>> predict(@javax.annotation.Nonnull NotebookOutput log, @javax.annotation.Nonnull ImageClassifier vgg16, @javax.annotation.Nonnull Layer network, @javax.annotation.Nonnull Tensor[][] images) {
+  public List<LinkedHashMap<String, Double>> predict(@Nonnull NotebookOutput log, @Nonnull ImageClassifier vgg16, @Nonnull Layer network, @Nonnull Tensor[][] images) {
     TestUtil.instrumentPerformance(log, (DAGNetwork) network);
     List<LinkedHashMap<String, Double>> predictions = log.code(() -> {
       Tensor[] data = Arrays.stream(images).map(x -> x[1]).toArray(i -> new Tensor[i]);
@@ -159,10 +160,10 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
    *
    * @return the target class
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   protected abstract Class<?> getTargetClass();
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public ReportType getReportType() {
     return ReportType.Models;

@@ -29,6 +29,7 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
@@ -52,7 +53,7 @@ public class CrossProductLayer extends LayerBase {
    *
    * @param id the id
    */
-  protected CrossProductLayer(@javax.annotation.Nonnull final JsonObject id) {
+  protected CrossProductLayer(@Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -63,7 +64,7 @@ public class CrossProductLayer extends LayerBase {
    * @param rs   the rs
    * @return the cross product layer
    */
-  public static CrossProductLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static CrossProductLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new CrossProductLayer(json);
   }
   
@@ -79,9 +80,9 @@ public class CrossProductLayer extends LayerBase {
     return max * (max - 1) / 2 - (max - x) * (max - x - 1) / 2 + y - x - 1;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     assert 1 == inObj.length;
     final Result in = inObj[0];
     TensorList indata = in.getData();
@@ -90,7 +91,7 @@ public class CrossProductLayer extends LayerBase {
     return new Result(TensorArray.wrap(indata.stream().parallel().map(tensor -> {
       final int inputDim = tensor.length();
       final int outputDim = (inputDim * inputDim - inputDim) / 2;
-      @javax.annotation.Nonnull final Tensor result = new Tensor(outputDim);
+      @Nonnull final Tensor result = new Tensor(outputDim);
       @Nullable final double[] inputData = tensor.getData();
       @Nullable final double[] resultData = result.getData();
       IntStream.range(0, inputDim).forEach(x -> {
@@ -100,14 +101,14 @@ public class CrossProductLayer extends LayerBase {
       });
       tensor.freeRef();
       return result;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       if (in.isAlive()) {
         assert delta.length() == delta.length();
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).parallel().mapToObj(batchIndex -> {
-          @javax.annotation.Nullable final Tensor deltaTensor = delta.get(batchIndex);
+        @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).parallel().mapToObj(batchIndex -> {
+          @Nullable final Tensor deltaTensor = delta.get(batchIndex);
           final int outputDim = deltaTensor.length();
           final int inputDim = (1 + (int) Math.sqrt(1 + 8 * outputDim)) / 2;
-          @javax.annotation.Nonnull final Tensor passback = new Tensor(inputDim);
+          @Nonnull final Tensor passback = new Tensor(inputDim);
           @Nullable final double[] passbackData = passback.getData();
           @Nullable final double[] tensorData = deltaTensor.getData();
           Tensor inputTensor = indata.get(batchIndex);
@@ -134,7 +135,7 @@ public class CrossProductLayer extends LayerBase {
       
       @Override
       public boolean isAlive() {
-        for (@javax.annotation.Nonnull final Result element : inObj)
+        for (@Nonnull final Result element : inObj)
           if (element.isAlive()) {
             return true;
           }
@@ -144,13 +145,13 @@ public class CrossProductLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

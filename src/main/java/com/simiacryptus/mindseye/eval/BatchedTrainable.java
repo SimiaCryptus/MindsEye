@@ -76,7 +76,7 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
   
   @Override
   public PointSample measure(final TrainingMonitor monitor) {
-    @javax.annotation.Nonnull final List<Tensor[]> tensors = Arrays.asList(getData());
+    @Nonnull final List<Tensor[]> tensors = Arrays.asList(getData());
     TimedResult<PointSample> timedResult = TimedResult.time(() -> {
       if (batchSize < tensors.size()) {
         final int batches = (int) Math.ceil(tensors.size() * 1.0 / batchSize);

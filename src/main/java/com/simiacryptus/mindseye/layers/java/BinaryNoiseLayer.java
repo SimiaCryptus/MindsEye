@@ -61,7 +61,7 @@ public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
   /**
    * The Mask list.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   List<Tensor> maskList = new ArrayList<>();
   private double value;
   private boolean enabled = true;
@@ -88,7 +88,7 @@ public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
    *
    * @param json the json
    */
-  protected BinaryNoiseLayer(@javax.annotation.Nonnull final JsonObject json) {
+  protected BinaryNoiseLayer(@Nonnull final JsonObject json) {
     super(json);
     value = json.get("value").getAsDouble();
     JsonElement enabled = json.get("enabled");
@@ -102,12 +102,12 @@ public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
    * @param rs   the rs
    * @return the binary noise layer
    */
-  public static BinaryNoiseLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static BinaryNoiseLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new BinaryNoiseLayer(json);
   }
   
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final Result input = inObj[0];
     if (!enabled) return input;
@@ -116,22 +116,22 @@ public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
       maskList.clear();
     }
     final int length = input.getData().length();
-    @javax.annotation.Nonnull final Tensor tensorPrototype = new Tensor(dimensions);
+    @Nonnull final Tensor tensorPrototype = new Tensor(dimensions);
     while (length > maskList.size()) {
       maskList.add(tensorPrototype.map(v -> FastRandom.INSTANCE.random() < getValue() ? 0 : (1.0 / getValue())));
     }
-    @javax.annotation.Nonnull final TensorList mask = TensorArray.create(maskList.stream().limit(length).toArray(i -> new Tensor[i]));
-    return new Result(mask, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    @Nonnull final TensorList mask = TensorArray.create(maskList.stream().limit(length).toArray(i -> new Tensor[i]));
+    return new Result(mask, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       data.addRef();
       input.accumulate(buffer, data);
     }) {
-  
+    
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-  
-  
+    
+    
       @Override
       public boolean isAlive() {
         return input.isAlive();
@@ -139,10 +139,10 @@ public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("value", value);
     json.addProperty("enabled", enabled);
     return json;
@@ -163,7 +163,7 @@ public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
    * @param value the value
    * @return the value
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public BinaryNoiseLayer setValue(final double value) {
     this.value = value;
     shuffle(StochasticComponent.random.get().nextLong());
@@ -181,7 +181,7 @@ public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
     this.enabled = false;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

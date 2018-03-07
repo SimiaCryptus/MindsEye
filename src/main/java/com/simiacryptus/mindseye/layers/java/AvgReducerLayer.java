@@ -32,6 +32,7 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
@@ -58,7 +59,7 @@ public class AvgReducerLayer extends LayerBase {
    *
    * @param id the id
    */
-  protected AvgReducerLayer(@javax.annotation.Nonnull final JsonObject id) {
+  protected AvgReducerLayer(@Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -69,18 +70,18 @@ public class AvgReducerLayer extends LayerBase {
    * @param rs   the rs
    * @return the avg reducer layer
    */
-  public static AvgReducerLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static AvgReducerLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new AvgReducerLayer(json);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     Arrays.stream(inObj).forEach(x -> x.addRef());
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     return new Result(TensorArray.wrap(IntStream.range(0, inObj[0].getData().length()).parallel().mapToDouble(dataIndex -> {
       double sum = 0;
-      for (@javax.annotation.Nonnull final Result element : inObj) {
+      for (@Nonnull final Result element : inObj) {
         Tensor tensor = element.getData().get(dataIndex);
         @Nullable final double[] input = tensor.getData();
         for (final double element2 : input) {
@@ -89,15 +90,15 @@ public class AvgReducerLayer extends LayerBase {
         tensor.freeRef();
       }
       return sum;
-    }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
-      for (@javax.annotation.Nonnull final Result in_l : inObj) {
+    }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+      for (@Nonnull final Result in_l : inObj) {
         if (in_l.isAlive()) {
           TensorList inData = in_l.getData();
-          @javax.annotation.Nonnull final TensorList tensorList = TensorArray.wrap(IntStream.range(0, inData.length()).parallel().mapToObj(dataIndex -> {
+          @Nonnull final TensorList tensorList = TensorArray.wrap(IntStream.range(0, inData.length()).parallel().mapToObj(dataIndex -> {
             Tensor deltaTensor = delta.get(dataIndex);
             final double deltaV = deltaTensor.get(0);
             deltaTensor.freeRef();
-            @javax.annotation.Nonnull final Tensor passback = new Tensor(inData.getDimensions());
+            @Nonnull final Tensor passback = new Tensor(inData.getDimensions());
             final int dim = passback.length();
             for (int i = 0; i < dim; i++) {
               passback.set(i, deltaV / dim);
@@ -117,7 +118,7 @@ public class AvgReducerLayer extends LayerBase {
       
       @Override
       public boolean isAlive() {
-        for (@javax.annotation.Nonnull final Result element : inObj)
+        for (@Nonnull final Result element : inObj)
           if (element.isAlive()) {
             return true;
           }
@@ -127,13 +128,13 @@ public class AvgReducerLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

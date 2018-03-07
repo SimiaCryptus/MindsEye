@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.LayerBase;
 import com.simiacryptus.mindseye.lang.Result;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +56,7 @@ public class AssertDimensionsLayer extends LayerBase {
    *
    * @param json the json
    */
-  protected AssertDimensionsLayer(@javax.annotation.Nonnull final JsonObject json) {
+  protected AssertDimensionsLayer(@Nonnull final JsonObject json) {
     super(json);
     final JsonArray dimsJson = json.get("dims").getAsJsonArray();
     dims = IntStream.range(0, dimsJson.size()).map(i -> dimsJson.get(i).getAsInt()).toArray();
@@ -68,12 +69,12 @@ public class AssertDimensionsLayer extends LayerBase {
    * @param rs   the rs
    * @return the assert dimensions layer
    */
-  public static AssertDimensionsLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static AssertDimensionsLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new AssertDimensionsLayer(json);
   }
   
   @Override
-  public Result evalAndFree(@javax.annotation.Nonnull final Result... array) {
+  public Result evalAndFree(@Nonnull final Result... array) {
     if (0 == array.length) {
       throw new IllegalArgumentException();
     }
@@ -81,7 +82,7 @@ public class AssertDimensionsLayer extends LayerBase {
     if (0 == input.getData().length()) {
       throw new IllegalArgumentException();
     }
-    @javax.annotation.Nonnull final int[] inputDims = input.getData().getDimensions();
+    @Nonnull final int[] inputDims = input.getData().getDimensions();
     if (!Arrays.equals(inputDims, dims)) {
       throw new IllegalArgumentException(Arrays.toString(inputDims) + " != " + Arrays.toString(dims));
     }
@@ -93,11 +94,11 @@ public class AssertDimensionsLayer extends LayerBase {
     return super.getChildren();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
-    @javax.annotation.Nonnull final JsonArray dimsJson = new JsonArray();
+    @Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonArray dimsJson = new JsonArray();
     for (final int dim : dims) {
       dimsJson.add(new JsonPrimitive(dim));
     }
@@ -105,7 +106,7 @@ public class AssertDimensionsLayer extends LayerBase {
     return json;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

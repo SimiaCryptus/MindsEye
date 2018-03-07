@@ -198,7 +198,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    * @return the cuda ptr
    */
   public CudaMemory copy(CudaDevice deviceId, final MemoryType memoryType) {
-    @javax.annotation.Nonnull CudaMemory copy = deviceId.allocate(size, memoryType, false);
+    @Nonnull CudaMemory copy = deviceId.allocate(size, memoryType, false);
     CudaSystem.cudaMemcpy(copy.getPtr(), this.getPtr(), size, cudaMemcpyKind.cudaMemcpyDeviceToDevice);
     return copy;
   }
@@ -242,8 +242,8 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    * @param offset      the offset
    * @return the cuda ptr
    */
-  @javax.annotation.Nonnull
-  public CudaMemory read(@javax.annotation.Nonnull final Precision precision, @javax.annotation.Nonnull final double[] destination, int offset) {
+  @Nonnull
+  public CudaMemory read(@Nonnull final Precision precision, @Nonnull final double[] destination, int offset) {
     if (size < (long) (offset + destination.length) * precision.size) {
       throw new IllegalArgumentException(String.format("%d < %d + %d", size, (long) destination.length * precision.size, offset));
     }
@@ -281,8 +281,8 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    * @param offset      the offset
    * @return the cuda ptr
    */
-  @javax.annotation.Nonnull
-  public CudaMemory read(@javax.annotation.Nonnull final Precision precision, @javax.annotation.Nonnull final float[] destination, int offset) {
+  @Nonnull
+  public CudaMemory read(@Nonnull final Precision precision, @Nonnull final float[] destination, int offset) {
     if (size < (long) destination.length * precision.size) {
       throw new IllegalArgumentException(size + " != " + (long) destination.length * precision.size);
     }
@@ -318,8 +318,8 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    * @param offset    the offset
    * @return the cuda ptr
    */
-  @javax.annotation.Nonnull
-  public CudaMemory write(@javax.annotation.Nonnull final Precision precision, @javax.annotation.Nonnull final double[] data, long offset) {
+  @Nonnull
+  public CudaMemory write(@Nonnull final Precision precision, @Nonnull final double[] data, long offset) {
     assert getType() == MemoryType.Managed || getDeviceId() == CudaSystem.getThreadDeviceId();
     if (size < ((offset + data.length) * precision.size))
       throw new IllegalArgumentException(String.format("%d != (%d + %d) * %d", size, offset, data.length, precision.size));
@@ -346,8 +346,8 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    * @param offset    the offset
    * @return the cuda ptr
    */
-  @javax.annotation.Nonnull
-  public CudaMemory write(@javax.annotation.Nonnull final Precision precision, @javax.annotation.Nonnull final float[] data, int offset) {
+  @Nonnull
+  public CudaMemory write(@Nonnull final Precision precision, @Nonnull final float[] data, int offset) {
     if (size < (offset + data.length) * precision.size)
       throw new IllegalArgumentException(String.format("%d != %d * %d", size, data.length, precision.size));
     CudaSystem.cudaMemcpy(getPtr().withByteOffset(offset * precision.size), precision.getPointer(data), (long) data.length * precision.size, cudaMemcpyKind.cudaMemcpyHostToDevice);
@@ -369,7 +369,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    *
    * @return the type
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public MemoryType getType() {
     return type;
   }
@@ -379,7 +379,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    *
    * @return the cuda ptr
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   CudaMemory clear() {
     CudaSystem.cudaMemset(getPtr(), 0, size);
     return this;

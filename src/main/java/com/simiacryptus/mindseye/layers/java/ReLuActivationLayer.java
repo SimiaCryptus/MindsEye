@@ -32,6 +32,7 @@ import com.simiacryptus.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
@@ -67,7 +68,7 @@ public class ReLuActivationLayer extends LayerBase {
    * @param json      the json
    * @param resources the resources
    */
-  protected ReLuActivationLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> resources) {
+  protected ReLuActivationLayer(@Nonnull final JsonObject json, Map<String, byte[]> resources) {
     super(json);
     weights = Tensor.fromJson(json.get("weights"), resources);
   }
@@ -79,7 +80,7 @@ public class ReLuActivationLayer extends LayerBase {
    * @param rs   the rs
    * @return the re lu activation layer
    */
-  public static ReLuActivationLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ReLuActivationLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ReLuActivationLayer(json, rs);
   }
   
@@ -95,13 +96,13 @@ public class ReLuActivationLayer extends LayerBase {
    * @param f the f
    * @return the re lu activation layer
    */
-  @javax.annotation.Nonnull
-  public ReLuActivationLayer addWeights(@javax.annotation.Nonnull final DoubleSupplier f) {
+  @Nonnull
+  public ReLuActivationLayer addWeights(@Nonnull final DoubleSupplier f) {
     Util.add(f, weights.getData());
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Result eval(final Result... inObj) {
     final Result input = inObj[0];
@@ -111,8 +112,8 @@ public class ReLuActivationLayer extends LayerBase {
     weights.addRef();
     final int itemCnt = indata.length();
     return new Result(TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
-      @javax.annotation.Nullable Tensor tensorElement = indata.get(dataIndex);
-      @javax.annotation.Nonnull final Tensor tensor = tensorElement.multiply(weights.get(0));
+      @Nullable Tensor tensorElement = indata.get(dataIndex);
+      @Nonnull final Tensor tensor = tensorElement.multiply(weights.get(0));
       tensorElement.freeRef();
       @Nullable final double[] outputData = tensor.getData();
       for (int i = 0; i < outputData.length; i++) {
@@ -121,14 +122,14 @@ public class ReLuActivationLayer extends LayerBase {
         }
       }
       return tensor;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).parallel().forEach(dataIndex -> {
-          @javax.annotation.Nullable Tensor deltaTensor = delta.get(dataIndex);
+          @Nullable Tensor deltaTensor = delta.get(dataIndex);
           @Nullable final double[] deltaData = deltaTensor.getData();
-          @javax.annotation.Nullable Tensor inputTensor = indata.get(dataIndex);
+          @Nullable Tensor inputTensor = indata.get(dataIndex);
           @Nullable final double[] inputData = inputTensor.getData();
-          @javax.annotation.Nonnull final Tensor weightDelta = new Tensor(weights.getDimensions());
+          @Nonnull final Tensor weightDelta = new Tensor(weights.getDimensions());
           @Nullable final double[] weightDeltaData = weightDelta.getData();
           for (int i = 0; i < deltaData.length; i++) {
             weightDeltaData[0] += inputData[i] < 0 ? 0 : deltaData[i] * inputData[i];
@@ -141,13 +142,13 @@ public class ReLuActivationLayer extends LayerBase {
       }
       if (input.isAlive()) {
         final double weight = weights.getData()[0];
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).parallel().mapToObj(dataIndex -> {
-          @javax.annotation.Nullable Tensor deltaTensor = delta.get(dataIndex);
+        @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).parallel().mapToObj(dataIndex -> {
+          @Nullable Tensor deltaTensor = delta.get(dataIndex);
           @Nullable final double[] deltaData = deltaTensor.getData();
-          @javax.annotation.Nullable Tensor inTensor = indata.get(dataIndex);
+          @Nullable Tensor inTensor = indata.get(dataIndex);
           @Nullable final double[] inputData = inTensor.getData();
-          @javax.annotation.Nonnull final int[] dims = inTensor.getDimensions();
-          @javax.annotation.Nonnull final Tensor passback = new Tensor(dims);
+          @Nonnull final int[] dims = inTensor.getDimensions();
+          @Nonnull final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.length(); i++) {
             passback.set(i, inputData[i] < 0 ? 0 : deltaData[i] * weight);
           }
@@ -174,10 +175,10 @@ public class ReLuActivationLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, @javax.annotation.Nonnull DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.add("weights", weights.toJson(resources, dataSerializer));
     return json;
   }
@@ -197,7 +198,7 @@ public class ReLuActivationLayer extends LayerBase {
    * @param data the data
    * @return the weight
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public ReLuActivationLayer setWeight(final double data) {
     weights.set(0, data);
     return this;
@@ -209,13 +210,13 @@ public class ReLuActivationLayer extends LayerBase {
    * @param f the f
    * @return the weights
    */
-  @javax.annotation.Nonnull
-  public ReLuActivationLayer setWeights(@javax.annotation.Nonnull final DoubleSupplier f) {
+  @Nonnull
+  public ReLuActivationLayer setWeights(@Nonnull final DoubleSupplier f) {
     Arrays.parallelSetAll(weights.getData(), i -> f.getAsDouble());
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList(weights.getData());

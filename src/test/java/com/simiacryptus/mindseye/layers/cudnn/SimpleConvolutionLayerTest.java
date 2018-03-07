@@ -34,6 +34,7 @@ import com.simiacryptus.mindseye.test.unit.TrainingTester;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Test;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.Random;
@@ -82,7 +83,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
     largeRadius = 100;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
@@ -96,7 +97,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
     return layer;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
@@ -107,8 +108,8 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
   @Nullable
   @Override
   public Layer getReferenceLayer() {
-    @javax.annotation.Nonnull final ConvolutionLayer convolutionLayer = new ConvolutionLayer(radius, radius, bands, bands, true);
-    @javax.annotation.Nonnull final Tensor tensor = new Tensor(layer.kernel.getDimensions());
+    @Nonnull final ConvolutionLayer convolutionLayer = new ConvolutionLayer(radius, radius, bands, bands, true);
+    @Nonnull final Tensor tensor = new Tensor(layer.kernel.getDimensions());
     tensor.setByCoord(c -> {
       final int band = c.getCoords()[2];
       final int bandX = band % bands;
@@ -209,9 +210,9 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
     
     @Override
     public void run(NotebookOutput log) {
-      @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + "_all.log";
+      @Nonnull String logName = "cuda_" + log.getName() + "_all.log";
       log.p(log.file((String) null, logName, "GPU Log"));
-      @javax.annotation.Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
+      @Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
       CudaSystem.addLog(apiLog);
       super.run(log);
       apiLog.close();
@@ -224,12 +225,12 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
       return null;
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     public ComponentTest<ToleranceStatistics> getPerformanceTester() {
       return new PerformanceTester().setBatches(10).setSamples(1);
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     protected ComponentTest<ToleranceStatistics> getReferenceIOTester() {
       return new ReferenceIO(getReferenceIO());
     }
@@ -298,7 +299,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
       return null;
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return new int[][]{

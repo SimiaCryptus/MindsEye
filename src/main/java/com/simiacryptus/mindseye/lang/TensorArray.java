@@ -27,7 +27,7 @@ import java.util.stream.Stream;
  * An on-heap implementation of the TensorList data container.
  */
 public class TensorArray extends RegisteredObjectBase implements TensorList {
-  @javax.annotation.Nonnull
+  @Nonnull
   private final Tensor[] data;
   
   /**
@@ -35,12 +35,12 @@ public class TensorArray extends RegisteredObjectBase implements TensorList {
    *
    * @param data the data
    */
-  private TensorArray(@javax.annotation.Nonnull final Tensor... data) {
+  private TensorArray(@Nonnull final Tensor... data) {
     assert null != data;
     assert 0 < data.length;
     this.data = Arrays.copyOf(data, data.length);
     assert null != this.data;
-    for (@javax.annotation.Nonnull Tensor tensor : this.data) {
+    for (@Nonnull Tensor tensor : this.data) {
       assert Arrays.equals(tensor.getDimensions(), this.data[0].getDimensions()) : Arrays.toString(tensor.getDimensions()) + " != " + Arrays.toString(tensor.getDimensions());
       tensor.addRef();
     }
@@ -62,10 +62,10 @@ public class TensorArray extends RegisteredObjectBase implements TensorList {
    * @param data the data
    * @return the tensor array
    */
-  @javax.annotation.Nonnull
-  public static TensorArray wrap(@javax.annotation.Nonnull final Tensor... data) {
-    @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.create(data);
-    for (@javax.annotation.Nonnull Tensor tensor : data) {
+  @Nonnull
+  public static TensorArray wrap(@Nonnull final Tensor... data) {
+    @Nonnull TensorArray tensorArray = TensorArray.create(data);
+    for (@Nonnull Tensor tensor : data) {
       tensor.freeRef();
     }
     return tensorArray;
@@ -79,7 +79,7 @@ public class TensorArray extends RegisteredObjectBase implements TensorList {
    * @param data  the data
    * @return the string
    */
-  public static <T> String toString(int limit, @javax.annotation.Nonnull T... data) {
+  public static <T> String toString(int limit, @Nonnull T... data) {
     return (data.length < limit) ? Arrays.toString(data) : "[" + Arrays.stream(data).limit(limit).map(x -> x.toString()).reduce((a, b) -> a + ", " + b).get() + ", ...]";
   }
   
@@ -91,7 +91,7 @@ public class TensorArray extends RegisteredObjectBase implements TensorList {
     return datum;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[] getDimensions() {
     return data[0].getDimensions();
@@ -102,7 +102,7 @@ public class TensorArray extends RegisteredObjectBase implements TensorList {
     return data.length;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Stream<Tensor> stream() {
     return Arrays.stream(data).map(x -> {
@@ -119,12 +119,12 @@ public class TensorArray extends RegisteredObjectBase implements TensorList {
   @Override
   protected void _free() {
     try {
-      for (@javax.annotation.Nonnull final Tensor d : data) {
+      for (@Nonnull final Tensor d : data) {
         d.freeRef();
       }
-    } catch (@javax.annotation.Nonnull final RuntimeException e) {
+    } catch (@Nonnull final RuntimeException e) {
       throw e;
-    } catch (@javax.annotation.Nonnull final Throwable e) {
+    } catch (@Nonnull final Throwable e) {
       throw new RuntimeException(e);
     }
   }

@@ -29,6 +29,7 @@ import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
@@ -69,7 +70,7 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
    * @param json the json
    * @param rs   the rs
    */
-  protected RescaledSubnetLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected RescaledSubnetLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json);
     scale = json.get("scale").getAsInt();
     layer = Layer.fromJson(json, rs);
@@ -83,7 +84,7 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static RescaledSubnetLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static RescaledSubnetLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new RescaledSubnetLayer(json, rs);
   }
   
@@ -92,7 +93,7 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
    *
    * @return the compatibility layer
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public Layer getCompatibilityLayer() {
     return new com.simiacryptus.mindseye.layers.java.RescaledSubnetLayer(scale, layer);
   }
@@ -105,17 +106,17 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
     return getCompatibilityLayer().eval(inObj);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("scale", scale);
     json.add("layer", layer.getJson(resources, dataSerializer));
     json.addProperty("precision", precision.name());
     return json;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
@@ -126,7 +127,7 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
     return precision;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public RescaledSubnetLayer setPrecision(final Precision precision) {
     this.precision = precision;

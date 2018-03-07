@@ -48,7 +48,7 @@ public class QuadraticSearch implements LineSearchStrategy {
    * @param monitor the monitor
    * @return the point sample
    */
-  public PointSample _step(@javax.annotation.Nonnull final LineSearchCursor cursor, @javax.annotation.Nonnull final TrainingMonitor monitor) {
+  public PointSample _step(@Nonnull final LineSearchCursor cursor, @Nonnull final TrainingMonitor monitor) {
     double thisX = 0;
     LineSearchPoint thisPoint = cursor.step(thisX, monitor);
     final LineSearchPoint initialPoint = thisPoint;
@@ -66,7 +66,7 @@ public class QuadraticSearch implements LineSearchStrategy {
       return point;
     }
   
-    @javax.annotation.Nonnull final LocateInitialRightPoint locateInitialRightPoint = new LocateInitialRightPoint(cursor, monitor, leftPoint).apply();
+    @Nonnull final LocateInitialRightPoint locateInitialRightPoint = new LocateInitialRightPoint(cursor, monitor, leftPoint).apply();
     @Nonnull LineSearchPoint rightPoint = locateInitialRightPoint.getRightPoint();
     rightPoint.addRef();
     double rightX = locateInitialRightPoint.getRightX();
@@ -167,7 +167,7 @@ public class QuadraticSearch implements LineSearchStrategy {
     }
   }
   
-  private String diagnose(@javax.annotation.Nonnull final LineSearchCursor cursor, @javax.annotation.Nonnull final TrainingMonitor monitor, @javax.annotation.Nonnull final LineSearchPoint a, @javax.annotation.Nonnull final LineSearchPoint b) {
+  private String diagnose(@Nonnull final LineSearchCursor cursor, @Nonnull final TrainingMonitor monitor, @Nonnull final LineSearchPoint a, @Nonnull final LineSearchPoint b) {
     final LineSearchPoint verifyA = cursor.step(a.point.rate, monitor);
     final boolean validA = isSame(a.point.getMean(), verifyA.point.getMean(), 1.0);
     monitor.log(String.format("Verify %s: %s (%s)", a.point.rate, verifyA.point.getMean(), validA));
@@ -190,7 +190,7 @@ public class QuadraticSearch implements LineSearchStrategy {
     return "";
   }
   
-  private PointSample filter(@javax.annotation.Nonnull final LineSearchCursor cursor, @javax.annotation.Nonnull final PointSample point, final TrainingMonitor monitor) {
+  private PointSample filter(@Nonnull final LineSearchCursor cursor, @Nonnull final PointSample point, final TrainingMonitor monitor) {
     if (stepSize == 1.0) {
       point.addRef();
       return point;
@@ -219,7 +219,7 @@ public class QuadraticSearch implements LineSearchStrategy {
    * @param absoluteTolerance the absolute tolerance
    * @return the absolute tolerance
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public QuadraticSearch setAbsoluteTolerance(final double absoluteTolerance) {
     this.absoluteTolerance = absoluteTolerance;
     return this;
@@ -240,7 +240,7 @@ public class QuadraticSearch implements LineSearchStrategy {
    * @param currentRate the current rate
    * @return the current rate
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public QuadraticSearch setCurrentRate(final double currentRate) {
     this.currentRate = currentRate;
     return this;
@@ -279,7 +279,7 @@ public class QuadraticSearch implements LineSearchStrategy {
    * @param relativeTolerance the relative tolerance
    * @return the relative tolerance
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public QuadraticSearch setRelativeTolerance(final double relativeTolerance) {
     this.relativeTolerance = relativeTolerance;
     return this;
@@ -300,7 +300,7 @@ public class QuadraticSearch implements LineSearchStrategy {
    * @param stepSize the runStep size
    * @return the runStep size
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public QuadraticSearch setStepSize(final double stepSize) {
     this.stepSize = stepSize;
     return this;
@@ -329,10 +329,10 @@ public class QuadraticSearch implements LineSearchStrategy {
    * @param b       the b
    * @return the boolean
    */
-  protected boolean isSame(@javax.annotation.Nonnull final LineSearchCursor cursor, @javax.annotation.Nonnull final TrainingMonitor monitor, @javax.annotation.Nonnull final LineSearchPoint a, @javax.annotation.Nonnull final LineSearchPoint b) {
+  protected boolean isSame(@Nonnull final LineSearchCursor cursor, @Nonnull final TrainingMonitor monitor, @Nonnull final LineSearchPoint a, @Nonnull final LineSearchPoint b) {
     if (isSame(a.point.rate, b.point.rate, 1.0)) {
       if (!isSame(a.point.getMean(), b.point.getMean(), 10.0)) {
-        @javax.annotation.Nonnull final String diagnose = diagnose(cursor, monitor, a, b);
+        @Nonnull final String diagnose = diagnose(cursor, monitor, a, b);
         monitor.log(diagnose);
         throw new IterativeStopException(diagnose);
       }
@@ -344,7 +344,7 @@ public class QuadraticSearch implements LineSearchStrategy {
   }
   
   @Override
-  public PointSample step(@javax.annotation.Nonnull final LineSearchCursor cursor, @javax.annotation.Nonnull final TrainingMonitor monitor) {
+  public PointSample step(@Nonnull final LineSearchCursor cursor, @Nonnull final TrainingMonitor monitor) {
     if (currentRate < getMinRate()) {
       currentRate = getMinRate();
     }
@@ -354,11 +354,11 @@ public class QuadraticSearch implements LineSearchStrategy {
   }
   
   private class LocateInitialRightPoint extends ReferenceCountingBase {
-    @javax.annotation.Nonnull
+    @Nonnull
     private final LineSearchCursor cursor;
-    @javax.annotation.Nonnull
+    @Nonnull
     private final LineSearchPoint initialPoint;
-    @javax.annotation.Nonnull
+    @Nonnull
     private final TrainingMonitor monitor;
     private LineSearchPoint thisPoint;
     private double thisX;
@@ -370,7 +370,7 @@ public class QuadraticSearch implements LineSearchStrategy {
      * @param monitor   the monitor
      * @param leftPoint the left point
      */
-    public LocateInitialRightPoint(@javax.annotation.Nonnull final LineSearchCursor cursor, @javax.annotation.Nonnull final TrainingMonitor monitor, @javax.annotation.Nonnull final LineSearchPoint leftPoint) {
+    public LocateInitialRightPoint(@Nonnull final LineSearchCursor cursor, @Nonnull final TrainingMonitor monitor, @Nonnull final LineSearchPoint leftPoint) {
       this.cursor = cursor;
       this.monitor = monitor;
       initialPoint = leftPoint;
@@ -386,7 +386,7 @@ public class QuadraticSearch implements LineSearchStrategy {
      *
      * @return the locate initial right point
      */
-    @javax.annotation.Nonnull
+    @Nonnull
     public LocateInitialRightPoint apply() {
       @Nullable LineSearchPoint lastPoint = null;
       try {

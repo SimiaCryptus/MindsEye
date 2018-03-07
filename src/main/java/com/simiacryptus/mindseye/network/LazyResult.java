@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.lang.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -66,12 +67,12 @@ abstract class LazyResult extends ReferenceCountingBase implements DAGNode {
    * @param t the t
    * @return the nn result
    */
-  @javax.annotation.Nullable
+  @Nullable
   protected abstract Result eval(GraphEvaluationContext t);
   
   @Nullable
   @Override
-  public CountingResult get(@javax.annotation.Nonnull final GraphEvaluationContext context) {
+  public CountingResult get(@Nonnull final GraphEvaluationContext context) {
     context.assertAlive();
     assertAlive();
     long expectedCount = context.expectedCounts.getOrDefault(id, -1L);
@@ -85,7 +86,7 @@ abstract class LazyResult extends ReferenceCountingBase implements DAGNode {
       }
       if (null != singleton) {
         try {
-          @javax.annotation.Nullable Result result = eval(context);
+          @Nullable Result result = eval(context);
           if (null == result) throw new IllegalStateException();
           singleton.set(new CountingResult(result));
           result.freeRef();

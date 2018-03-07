@@ -40,7 +40,7 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
    * The Frozen.
    */
   protected boolean frozen = false;
-  @javax.annotation.Nullable
+  @Nullable
   private String name;
   
   /**
@@ -56,7 +56,7 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
    *
    * @param json the json
    */
-  protected LayerBase(@javax.annotation.Nonnull final JsonObject json) {
+  protected LayerBase(@Nonnull final JsonObject json) {
     if (!getClass().getCanonicalName().equals(json.get("class").getAsString())) {
       throw new IllegalArgumentException(getClass().getCanonicalName() + " != " + json.get("class").getAsString());
     }
@@ -117,7 +117,7 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
    *
    * @return the id
    */
-  @javax.annotation.Nullable
+  @Nullable
   public Object getId() {
     return id;
   }
@@ -127,7 +127,7 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
    *
    * @return the name
    */
-  @javax.annotation.Nullable
+  @Nullable
   public String getName() {
     return name;
   }
@@ -175,12 +175,12 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
    *
    * @return the nn layer
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   protected final Layer self() {
     return this;
   }
   
-  @javax.annotation.Nullable
+  @Nullable
   @Override
   public final String toString() {
     return getName();

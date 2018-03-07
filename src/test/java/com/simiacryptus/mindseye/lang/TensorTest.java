@@ -29,6 +29,7 @@ import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -61,8 +62,8 @@ public class TensorTest {
    *
    * @param t the t
    */
-  public void test(@javax.annotation.Nonnull final Tensor t) {
-    @javax.annotation.Nonnull final JsonElement json = t.toJson(null, Tensor.json_precision);
+  public void test(@Nonnull final Tensor t) {
+    @Nonnull final JsonElement json = t.toJson(null, Tensor.json_precision);
     Assert.assertEquals(Tensor.fromJson(json, null), t);
     parse(json.toString());
   }
@@ -90,7 +91,7 @@ public class TensorTest {
   @Test
   @Category(TestCategories.UnitTest.class)
   public void testShuffleStream() throws Exception {
-    @javax.annotation.Nonnull HashSet<Object> ids = new HashSet<>();
+    @Nonnull HashSet<Object> ids = new HashSet<>();
     int max = 10000;
     TestUtil.shuffle(IntStream.range(0, max)).forEach((int i) -> {
       if (i >= 0 && i >= max) throw new AssertionError(i);

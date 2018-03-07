@@ -27,15 +27,20 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
+import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
+import com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.models.Hdf5Archive;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
 import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -84,25 +89,25 @@ public class LocationDemo extends ArtistryDemo {
       vgg16_hdf5 = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
         @Override
         protected void phase3b() {
-          add(new com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer()
-            .setAlgorithm(com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE)
-            .setMode(com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
+          add(new SoftmaxActivationLayer()
+            .setAlgorithm(SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE)
+            .setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
           add(new BandReducerLayer().setMode(getFinalPoolingMode()));
         }
       }//.setSamples(5).setDensity(0.3)
-        .setFinalPoolingMode(com.simiacryptus.mindseye.layers.cudnn.PoolingLayer.PoolingMode.Max);
+        .setFinalPoolingMode(PoolingLayer.PoolingMode.Max);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
     Layer classifyNetwork = vgg16_hdf5.getNetwork();
 //    Tensor[][] inputData = loadImages_library();
-    com.simiacryptus.mindseye.lang.Tensor[][] inputData = loadImage_Caltech101(log);
+    Tensor[][] inputData = loadImage_Caltech101(log);
     double alphaPower = 0.8;
     
     final AtomicInteger index = new AtomicInteger(0);
     Arrays.stream(inputData).limit(10).forEach(row -> {
       log.h3("Image " + index.getAndIncrement());
-      com.simiacryptus.mindseye.lang.Tensor img = row[0];
+      Tensor img = row[0];
       try {
         log.p(log.image(img.toImage(), ""));
       } catch (IOException e) {
@@ -124,7 +129,7 @@ public class LocationDemo extends ArtistryDemo {
         DeltaSet<Layer> deltaSet = new DeltaSet<>();
         classifyResult.accumulate(deltaSet, tensorArray);
         double[] rawDelta = deltaSet.getMap().entrySet().stream().filter(x -> x.getValue().target == img.getData()).findAny().get().getValue().getDelta();
-        com.simiacryptus.mindseye.lang.Tensor alphaTensor = renderAlpha(img, rawDelta, alphaPower);
+        Tensor alphaTensor = renderAlpha(img, rawDelta, alphaPower);
         try {
           log.p(log.image(row[0].toRgbImageAlphaMask(0, 1, 2,
             alphaTensor), ""));
@@ -137,24 +142,24 @@ public class LocationDemo extends ArtistryDemo {
     log.setFrontMatterProperty("status", "OK");
   }
   
-  public com.simiacryptus.mindseye.lang.Tensor renderAlpha(final com.simiacryptus.mindseye.lang.Tensor img, final double[] rawDelta, final double alphaPower) {
-    com.simiacryptus.mindseye.lang.Tensor deltaColor = new com.simiacryptus.mindseye.lang.Tensor(rawDelta, img.getDimensions()).mapAndFree(x -> Math.abs(x));
-    com.simiacryptus.mindseye.lang.Tensor delta1d = blur(reduce(deltaColor), 3);
-    return com.simiacryptus.mindseye.test.TestUtil.normalizeBands(com.simiacryptus.mindseye.test.TestUtil.normalizeBands(delta1d, 1).mapAndFree(x -> Math.pow(x, alphaPower)));
+  public Tensor renderAlpha(final Tensor img, final double[] rawDelta, final double alphaPower) {
+    Tensor deltaColor = new Tensor(rawDelta, img.getDimensions()).mapAndFree(x -> Math.abs(x));
+    Tensor delta1d = blur(reduce(deltaColor), 3);
+    return TestUtil.normalizeBands(TestUtil.normalizeBands(delta1d, 1).mapAndFree(x -> Math.pow(x, alphaPower)));
   }
   
-  @javax.annotation.Nonnull
-  public com.simiacryptus.mindseye.lang.Tensor reduce(final com.simiacryptus.mindseye.lang.Tensor deltaColor) {
-    return new com.simiacryptus.mindseye.lang.Tensor(deltaColor.getDimensions()[0], deltaColor.getDimensions()[1], 1).setByCoord(c -> {
+  @Nonnull
+  public Tensor reduce(final Tensor deltaColor) {
+    return new Tensor(deltaColor.getDimensions()[0], deltaColor.getDimensions()[1], 1).setByCoord(c -> {
       return deltaColor.get(c.getCoords()[0], c.getCoords()[1], 0) +
         deltaColor.get(c.getCoords()[0], c.getCoords()[1], 1) +
         deltaColor.get(c.getCoords()[0], c.getCoords()[1], 2);
     });
   }
   
-  @javax.annotation.Nonnull
-  public com.simiacryptus.mindseye.lang.Tensor blur(com.simiacryptus.mindseye.lang.Tensor delta1d, final int iterations) {
-    com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer blur = new com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer(3, 3, 1, 1);
+  @Nonnull
+  public Tensor blur(Tensor delta1d, final int iterations) {
+    ConvolutionLayer blur = new ConvolutionLayer(3, 3, 1, 1);
     blur.getKernel().set(0, 1, 1.0);
     blur.getKernel().set(1, 1, 1.0);
     blur.getKernel().set(1, 0, 1.0);
@@ -166,13 +171,13 @@ public class LocationDemo extends ArtistryDemo {
     return delta1d;
   }
   
-  public com.simiacryptus.mindseye.lang.Tensor[][] loadImage_Caltech101(@javax.annotation.Nonnull final com.simiacryptus.util.io.NotebookOutput log) {
+  public Tensor[][] loadImage_Caltech101(@Nonnull final NotebookOutput log) {
     return log.code(() -> {
-      return com.simiacryptus.mindseye.test.data.Caltech101.trainingDataStream().sorted(getShuffleComparator()).map(labeledObj -> {
-        @javax.annotation.Nullable java.awt.image.BufferedImage img = labeledObj.data.get();
-        img = com.simiacryptus.mindseye.test.TestUtil.resize(img, 224);
-        return new com.simiacryptus.mindseye.lang.Tensor[]{com.simiacryptus.mindseye.lang.Tensor.fromRGB(img)};
-      }).limit(10).toArray(i1 -> new com.simiacryptus.mindseye.lang.Tensor[i1][]);
+      return Caltech101.trainingDataStream().sorted(getShuffleComparator()).map(labeledObj -> {
+        @Nullable BufferedImage img = labeledObj.data.get();
+        img = TestUtil.resize(img, 224);
+        return new Tensor[]{Tensor.fromRGB(img)};
+      }).limit(10).toArray(i1 -> new Tensor[i1][]);
     });
   }
   

@@ -91,7 +91,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param history the history
    * @return the monitor
    */
-  public static TrainingMonitor getMonitor(@javax.annotation.Nonnull final List<StepRecord> history) {
+  public static TrainingMonitor getMonitor(@Nonnull final List<StepRecord> history) {
     return new TrainingMonitor() {
       @Override
       public void log(final String msg) {
@@ -99,7 +99,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
       }
   
       @Override
-      public void onStepComplete(@javax.annotation.Nonnull final Step currentPoint) {
+      public void onStepComplete(@Nonnull final Step currentPoint) {
         history.add(new StepRecord(currentPoint.point.getMean(), currentPoint.time, currentPoint.iteration));
       }
     };
@@ -112,7 +112,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param right the target output
    * @return the tensor [ ] [ ]
    */
-  public static Tensor[][] append(@javax.annotation.Nonnull Tensor[][] left, Tensor[] right) {
+  public static Tensor[][] append(@Nonnull Tensor[][] left, Tensor[] right) {
     if (left.length != right.length) throw new IllegalArgumentException(left.length + "!=" + right.length);
     return IntStream.range(0, left.length).mapToObj(i ->
       Stream.concat(
@@ -128,7 +128,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param input_gd the input gd
    * @return the tensor [ ] [ ]
    */
-  public static Tensor[][] copy(@javax.annotation.Nonnull Tensor[][] input_gd) {
+  public static Tensor[][] copy(@Nonnull Tensor[][] input_gd) {
     return Arrays.stream(input_gd)
       .map(t -> Arrays.stream(t).map(v -> v.copy()).toArray(i -> new Tensor[i]))
       .toArray(i -> new Tensor[i][]);
@@ -140,7 +140,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param data the data
    * @return the tensor [ ] [ ]
    */
-  public static Tensor[][] pop(@javax.annotation.Nonnull Tensor[][] data) {
+  public static Tensor[][] pop(@Nonnull Tensor[][] data) {
     return Arrays.stream(data)
       .map(t -> Arrays.stream(t).limit(t.length - 1).toArray(i -> new Tensor[i]))
       .toArray(i -> new Tensor[i][]);
@@ -179,7 +179,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param randomizationMode the randomization mode
    * @return the randomization mode
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public TrainingTester setRandomizationMode(final RandomizationMode randomizationMode) {
     this.randomizationMode = randomizationMode;
     return this;
@@ -191,8 +191,8 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param lbfgsmin the lbfgsmin
    * @return the result type
    */
-  @javax.annotation.Nonnull
-  public ResultType getResultType(@javax.annotation.Nonnull final List<StepRecord> lbfgsmin) {
+  @Nonnull
+  public ResultType getResultType(@Nonnull final List<StepRecord> lbfgsmin) {
     return Math.abs(min(lbfgsmin)) < 1e-9 ? ResultType.Converged : ResultType.NonConverged;
   }
   
@@ -204,7 +204,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param completeLearning the complete learning
    * @return the j panel
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public JPanel grid(@Nullable final TestResult inputLearning, @Nullable final TestResult modelLearning, @Nullable final TestResult completeLearning) {
     int rows = 0;
     if (inputLearning != null) {
@@ -216,8 +216,8 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     if (completeLearning != null) {
       rows++;
     }
-    @javax.annotation.Nonnull final GridLayout layout = new GridLayout(rows, 2, 0, 0);
-    @javax.annotation.Nonnull final JPanel jPanel = new JPanel(layout);
+    @Nonnull final GridLayout layout = new GridLayout(rows, 2, 0, 0);
+    @Nonnull final JPanel jPanel = new JPanel(layout);
     jPanel.setSize(1200, 400 * rows);
     if (inputLearning != null) {
       jPanel.add(inputLearning.iterPlot == null ? new JPanel() : inputLearning.iterPlot);
@@ -249,7 +249,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param verbose the verbose
    * @return the verbose
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public TrainingTester setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
@@ -261,7 +261,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param stream the stream
    * @return the boolean
    */
-  public boolean isZero(@javax.annotation.Nonnull final DoubleStream stream) {
+  public boolean isZero(@Nonnull final DoubleStream stream) {
     return isZero(stream, 1e-14);
   }
   
@@ -272,7 +272,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param zeroTol the zero tol
    * @return the boolean
    */
-  public boolean isZero(@javax.annotation.Nonnull final DoubleStream stream, double zeroTol) {
+  public boolean isZero(@Nonnull final DoubleStream stream, double zeroTol) {
     final double[] array = stream.toArray();
     if (array.length == 0) return false;
     return Arrays.stream(array).map(x -> Math.abs(x)).sum() < zeroTol;
@@ -285,8 +285,8 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param testComponent the run component
    * @return the nn layer
    */
-  @javax.annotation.Nonnull
-  private Layer shuffle(final Random random, @javax.annotation.Nonnull final Layer testComponent) {
+  @Nonnull
+  private Layer shuffle(final Random random, @Nonnull final Layer testComponent) {
     testComponent.state().forEach(buffer -> {
       randomizationMode.shuffle(random, buffer);
     });
@@ -300,10 +300,10 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param copy   the copy
    * @return the tensor [ ]
    */
-  private Tensor[][] shuffleCopy(final Random random, @javax.annotation.Nonnull final Tensor... copy) {
+  private Tensor[][] shuffleCopy(final Random random, @Nonnull final Tensor... copy) {
     return IntStream.range(0, getBatches()).mapToObj(i -> {
       return Arrays.stream(copy).map(tensor -> {
-        @javax.annotation.Nonnull final Tensor cpy = tensor.copy();
+        @Nonnull final Tensor cpy = tensor.copy();
         randomizationMode.shuffle(random, cpy.getData());
         return cpy;
       }).toArray(j -> new Tensor[j]);
@@ -318,7 +318,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param inputPrototype the input prototype
    */
   @Override
-  public ComponentResult test(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer component, @javax.annotation.Nonnull final Tensor... inputPrototype) {
+  public ComponentResult test(@Nonnull final NotebookOutput log, @Nonnull final Layer component, @Nonnull final Tensor... inputPrototype) {
     printHeader(log);
     final boolean testModel = !component.state().isEmpty();
     if (testModel && isZero(component.state().stream().flatMapToDouble(x1 -> Arrays.stream(x1)))) {
@@ -327,7 +327,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     if (isZero(Arrays.stream(inputPrototype).flatMapToDouble(x -> Arrays.stream(x.getData())))) {
       throw new AssertionError("Inputs are all zero?");
     }
-    @javax.annotation.Nonnull final Random random = new Random();
+    @Nonnull final Random random = new Random();
     final boolean testInput = Arrays.stream(inputPrototype).anyMatch(x -> x.length() > 0);
     @Nullable TestResult inputLearning;
     if (testInput) {
@@ -377,7 +377,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    *
    * @param log the log
    */
-  protected void printHeader(@javax.annotation.Nonnull NotebookOutput log) {
+  protected void printHeader(@Nonnull NotebookOutput log) {
     log.h1("Training Characteristics");
   }
   
@@ -390,8 +390,8 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param inputPrototype the input prototype
    * @return the run result
    */
-  @javax.annotation.Nonnull
-  public TestResult testCompleteLearning(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer component, final Random random, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
+  @Nonnull
+  public TestResult testCompleteLearning(@Nonnull final NotebookOutput log, @Nonnull final Layer component, final Random random, @Nonnull final Tensor[] inputPrototype) {
     @Nonnull final Layer network_target = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
     log.p("In this run, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
@@ -433,7 +433,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param inputPrototype the input prototype
    * @return the run result
    */
-  public TestResult testInputLearning(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer component, final Random random, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
+  public TestResult testInputLearning(@Nonnull final NotebookOutput log, @Nonnull final Layer component, final Random random, @Nonnull final Tensor[] inputPrototype) {
     @Nonnull final Layer network = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
     log.p("In this run, we use a network to learn this target input, given it's pre-evaluated output:");
@@ -445,7 +445,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
         .orElse("");
     });
     Result[] array = ConstantResult.batchResultArray(input_target);
-    @javax.annotation.Nullable Result eval = network.eval(array);
+    @Nullable Result eval = network.eval(array);
     TensorList result = eval.getData();
     final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
     result.freeRef();
@@ -456,18 +456,18 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
       return null;
     }
   
-    for (@javax.annotation.Nonnull Result nnResult : array) {
+    for (@Nonnull Result nnResult : array) {
       nnResult.getData().freeRef();
       nnResult.freeRef();
     }
-    for (@javax.annotation.Nonnull Tensor[] tensors : input_target) {
-      for (@javax.annotation.Nonnull Tensor tensor : tensors) {
+    for (@Nonnull Tensor[] tensors : input_target) {
+      for (@Nonnull Tensor tensor : tensors) {
         tensor.freeRef();
       }
     }
     //if (output_target.length != inputPrototype.length) return null;
     Tensor[][] trainingInput = append(shuffleCopy(random, inputPrototype), output_target);
-    @javax.annotation.Nonnull TestResult testResult = trainAll("Input Convergence", log,
+    @Nonnull TestResult testResult = trainAll("Input Convergence", log,
       trainingInput,
       network,
       buildMask(inputPrototype.length));
@@ -484,7 +484,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param inputPrototype the input prototype
    * @return the run result
    */
-  public TestResult testModelLearning(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer component, final Random random, final Tensor[] inputPrototype) {
+  public TestResult testModelLearning(@Nonnull final NotebookOutput log, @Nonnull final Layer component, final Random random, final Tensor[] inputPrototype) {
     @Nonnull final Layer network_target = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
     log.p("In this run, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
@@ -513,7 +513,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param history the history
    * @return the double
    */
-  public double min(@javax.annotation.Nonnull List<StepRecord> history) {
+  public double min(@Nonnull List<StepRecord> history) {
     return history.stream().mapToDouble(x -> x.fitness).min().orElse(Double.NaN);
   }
   
@@ -523,9 +523,9 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param length the length
    * @return the boolean [ ]
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public boolean[] buildMask(int length) {
-    @javax.annotation.Nonnull final boolean[] mask = new boolean[length + 1];
+    @Nonnull final boolean[] mask = new boolean[length + 1];
     for (int i = 0; i < length; i++) {
       mask[i] = true;
     }
@@ -542,8 +542,8 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param mask          the mask
    * @return the run result
    */
-  @javax.annotation.Nonnull
-  public TestResult trainAll(String title, @javax.annotation.Nonnull NotebookOutput log, @javax.annotation.Nonnull Tensor[][] trainingInput, @javax.annotation.Nonnull Layer layer, boolean... mask) {
+  @Nonnull
+  public TestResult trainAll(String title, @Nonnull NotebookOutput log, @Nonnull Tensor[][] trainingInput, @Nonnull Layer layer, boolean... mask) {
     try {
       log.h3("Gradient Descent");
       final List<StepRecord> gd = train(log, this::trainGD, layer.copy(), copy(trainingInput), mask);
@@ -553,13 +553,13 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
       final List<StepRecord> lbfgs = train(log, this::trainLBFGS, layer.copy(), copy(trainingInput), mask);
       log.h3("Experimental Optimizer");
       final List<StepRecord> magic = train(log, this::trainMagic, layer.copy(), copy(trainingInput), mask);
-      @javax.annotation.Nonnull final ProblemRun[] runs = {
+      @Nonnull final ProblemRun[] runs = {
         new ProblemRun("GD", gd, Color.GRAY, ProblemRun.PlotType.Line),
         new ProblemRun("CjGD", cjgd, Color.CYAN, ProblemRun.PlotType.Line),
         new ProblemRun("LBFGS", lbfgs, Color.GREEN, ProblemRun.PlotType.Line),
         new ProblemRun("Experimental", magic, Color.MAGENTA, ProblemRun.PlotType.Line)
       };
-      @javax.annotation.Nonnull ProblemResult result = new ProblemResult();
+      @Nonnull ProblemResult result = new ProblemResult();
       result.put("GD", new TrainingResult(getResultType(gd), min(gd)));
       result.put("CjGD", new TrainingResult(getResultType(cjgd), min(cjgd)));
       result.put("LBFGS", new TrainingResult(getResultType(lbfgs), min(lbfgs)));
@@ -583,14 +583,14 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     }
   }
   
-  private List<StepRecord> train(@javax.annotation.Nonnull NotebookOutput log, @javax.annotation.Nonnull BiFunction<NotebookOutput, Trainable, List<StepRecord>> opt, @javax.annotation.Nonnull Layer layer, @javax.annotation.Nonnull Tensor[][] data, @javax.annotation.Nonnull boolean... mask) {
+  private List<StepRecord> train(@Nonnull NotebookOutput log, @Nonnull BiFunction<NotebookOutput, Trainable, List<StepRecord>> opt, @Nonnull Layer layer, @Nonnull Tensor[][] data, @Nonnull boolean... mask) {
     try {
       int inputs = data[0].length;
-      @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork(inputs);
+      @Nonnull final PipelineNetwork network = new PipelineNetwork(inputs);
       network.wrap(new MeanSqLossLayer(),
         network.add(layer, IntStream.range(0, inputs - 1).mapToObj(i -> network.getInput(i)).toArray(i -> new DAGNode[i])),
         network.getInput(inputs - 1));
-      @javax.annotation.Nonnull ArrayTrainable trainable = new ArrayTrainable(data, network);
+      @Nonnull ArrayTrainable trainable = new ArrayTrainable(data, network);
       if (0 < mask.length) trainable.setMask(mask);
       List<StepRecord> history;
       try {
@@ -616,8 +616,8 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
           log.p("To produce the following output:");
           log.code(() -> {
             Result[] array = ConstantResult.batchResultArray(pop(data));
-            @javax.annotation.Nullable Result eval = layer.eval(array);
-            for (@javax.annotation.Nonnull Result result : array) {
+            @Nullable Result eval = layer.eval(array);
+            for (@Nonnull Result result : array) {
               result.freeRef();
               result.getData().freeRef();
             }
@@ -646,8 +646,8 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
       return history;
     } finally {
       layer.freeRef();
-      for (@javax.annotation.Nonnull Tensor[] tensors : data) {
-        for (@javax.annotation.Nonnull Tensor tensor : tensors) {
+      for (@Nonnull Tensor[] tensors : data) {
+        for (@Nonnull Tensor tensor : tensors) {
           tensor.freeRef();
         }
       }
@@ -661,11 +661,11 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param trainable the trainable
    * @return the list
    */
-  @javax.annotation.Nonnull
-  public List<StepRecord> trainCjGD(@javax.annotation.Nonnull final NotebookOutput log, final Trainable trainable) {
+  @Nonnull
+  public List<StepRecord> trainCjGD(@Nonnull final NotebookOutput log, final Trainable trainable) {
     log.p("First, we use a conjugate gradient descent method, which converges the fastest for purely linear functions.");
-    @javax.annotation.Nonnull final List<StepRecord> history = new ArrayList<>();
-    @javax.annotation.Nonnull final TrainingMonitor monitor = TrainingTester.getMonitor(history);
+    @Nonnull final List<StepRecord> history = new ArrayList<>();
+    @Nonnull final TrainingMonitor monitor = TrainingTester.getMonitor(history);
     try {
       log.code(() -> {
         return new IterativeTrainer(trainable)
@@ -690,11 +690,11 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param trainable the trainable
    * @return the list
    */
-  @javax.annotation.Nonnull
-  public List<StepRecord> trainGD(@javax.annotation.Nonnull final NotebookOutput log, final Trainable trainable) {
+  @Nonnull
+  public List<StepRecord> trainGD(@Nonnull final NotebookOutput log, final Trainable trainable) {
     log.p("First, we train using basic gradient descent method with weak line search conditions.");
-    @javax.annotation.Nonnull final List<StepRecord> history = new ArrayList<>();
-    @javax.annotation.Nonnull final TrainingMonitor monitor = TrainingTester.getMonitor(history);
+    @Nonnull final List<StepRecord> history = new ArrayList<>();
+    @Nonnull final TrainingMonitor monitor = TrainingTester.getMonitor(history);
     try {
       log.code(() -> {
         return new IterativeTrainer(trainable)
@@ -719,11 +719,11 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param trainable the trainable
    * @return the list
    */
-  @javax.annotation.Nonnull
-  public List<StepRecord> trainLBFGS(@javax.annotation.Nonnull final NotebookOutput log, final Trainable trainable) {
+  @Nonnull
+  public List<StepRecord> trainLBFGS(@Nonnull final NotebookOutput log, final Trainable trainable) {
     log.p("Next, we run the same optimization using L-BFGS, which is nearly ideal for purely second-order or quadratic functions.");
-    @javax.annotation.Nonnull final List<StepRecord> history = new ArrayList<>();
-    @javax.annotation.Nonnull final TrainingMonitor monitor = TrainingTester.getMonitor(history);
+    @Nonnull final List<StepRecord> history = new ArrayList<>();
+    @Nonnull final TrainingMonitor monitor = TrainingTester.getMonitor(history);
     try {
       log.code(() -> {
         return new IterativeTrainer(trainable)
@@ -749,21 +749,21 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param trainable the trainable
    * @return the list
    */
-  @javax.annotation.Nonnull
-  public List<StepRecord> trainMagic(@javax.annotation.Nonnull final NotebookOutput log, final Trainable trainable) {
+  @Nonnull
+  public List<StepRecord> trainMagic(@Nonnull final NotebookOutput log, final Trainable trainable) {
     log.p("Now we train using an experimental optimizer:");
-    @javax.annotation.Nonnull final List<StepRecord> history = new ArrayList<>();
-    @javax.annotation.Nonnull final TrainingMonitor monitor = TrainingTester.getMonitor(history);
+    @Nonnull final List<StepRecord> history = new ArrayList<>();
+    @Nonnull final TrainingMonitor monitor = TrainingTester.getMonitor(history);
     try {
       log.code(() -> {
         return new IterativeTrainer(trainable)
           .setLineSearchFactory(label -> new StaticLearningRate(1.0))
           .setOrientation(new RecursiveSubspace() {
             @Override
-            public void train(@javax.annotation.Nonnull TrainingMonitor monitor, Layer macroLayer) {
-              @javax.annotation.Nonnull Tensor[][] nullData = {{new Tensor()}};
-              @javax.annotation.Nonnull BasicTrainable inner = new BasicTrainable(macroLayer);
-              @javax.annotation.Nonnull ArrayTrainable trainable1 = new ArrayTrainable(inner, nullData);
+            public void train(@Nonnull TrainingMonitor monitor, Layer macroLayer) {
+              @Nonnull Tensor[][] nullData = {{new Tensor()}};
+              @Nonnull BasicTrainable inner = new BasicTrainable(macroLayer);
+              @Nonnull ArrayTrainable trainable1 = new ArrayTrainable(inner, nullData);
               inner.freeRef();
               new IterativeTrainer(trainable1)
                 .setOrientation(new QQN())
@@ -775,8 +775,8 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
                   }
                 }).setMaxIterations(getIterations()).setIterationsPerSample(getIterations()).runAndFree();
               trainable1.freeRef();
-              for (@javax.annotation.Nonnull Tensor[] tensors : nullData) {
-                for (@javax.annotation.Nonnull Tensor tensor : tensors) {
+              for (@Nonnull Tensor[] tensors : nullData) {
+                for (@Nonnull Tensor tensor : tensors) {
                   tensor.freeRef();
                 }
               }
@@ -810,13 +810,13 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param throwExceptions the throw exceptions
    * @return the throw exceptions
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public TrainingTester setThrowExceptions(boolean throwExceptions) {
     this.throwExceptions = throwExceptions;
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public String toString() {
     return "TrainingTester{" +
@@ -850,7 +850,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
      */
     Permute {
       @Override
-      public void shuffle(@javax.annotation.Nonnull final Random random, @javax.annotation.Nonnull final double[] buffer) {
+      public void shuffle(@Nonnull final Random random, @Nonnull final double[] buffer) {
         for (int i = 0; i < buffer.length; i++) {
           final int j = random.nextInt(buffer.length);
           final double v = buffer[i];
@@ -863,7 +863,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
      */
     PermuteDuplicates {
         @Override
-        public void shuffle(@javax.annotation.Nonnull final Random random, @javax.annotation.Nonnull final double[] buffer) {
+        public void shuffle(@Nonnull final Random random, @Nonnull final double[] buffer) {
           Permute.shuffle(random, buffer);
           for (int i = 0; i < buffer.length; i++) {
             buffer[i] = buffer[random.nextInt(buffer.length)];
@@ -874,7 +874,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
      */
     Random {
         @Override
-        public void shuffle(@javax.annotation.Nonnull final Random random, @javax.annotation.Nonnull final double[] buffer) {
+        public void shuffle(@Nonnull final Random random, @Nonnull final double[] buffer) {
           for (int i = 0; i < buffer.length; i++) {
             buffer[i] = 2 * (random.nextDouble() - 0.5);
           }
@@ -1010,13 +1010,13 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
      * @param result the result
      * @return the problem result
      */
-    @javax.annotation.Nonnull
+    @Nonnull
     public ProblemResult put(String key, TrainingResult result) {
       map.put(key, result);
       return this;
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public String toString() {
       return map.entrySet().stream().map(e -> {

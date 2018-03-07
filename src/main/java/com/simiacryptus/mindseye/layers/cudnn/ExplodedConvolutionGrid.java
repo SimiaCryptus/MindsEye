@@ -53,7 +53,7 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
   /**
    * The Convolution params.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public final ConvolutionParams convolutionParams;
   
   /**
@@ -62,7 +62,7 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
    * @param convolutionParams the convolution params
    * @param maxBandBatch      the max band batch
    */
-  public ExplodedConvolutionGrid(@javax.annotation.Nonnull ConvolutionParams convolutionParams, int maxBandBatch) {
+  public ExplodedConvolutionGrid(@Nonnull ConvolutionParams convolutionParams, int maxBandBatch) {
     this.convolutionParams = convolutionParams;
     int bandWidth = (maxBandBatch == 0) ? convolutionParams.inputBands : maxBandBatch;
     int rows = (int) Math.ceil((double) convolutionParams.inputBands / bandWidth);
@@ -85,14 +85,14 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
    * @param filter the kernel
    * @return the exploded convolution grid
    */
-  @javax.annotation.Nonnull
-  public ExplodedConvolutionGrid write(@javax.annotation.Nonnull Tensor filter) {
+  @Nonnull
+  public ExplodedConvolutionGrid write(@Nonnull Tensor filter) {
     if (1 == subLayers.size()) {
       subLayers.get(0).write(filter);
     }
     else {
-      for (@javax.annotation.Nonnull ExplodedConvolutionLeg leg : subLayers) {
-        @javax.annotation.Nonnull int[] legDims = {convolutionParams.masterFilterDimensions[0], convolutionParams.masterFilterDimensions[1], leg.getInputBands() * convolutionParams.outputBands};
+      for (@Nonnull ExplodedConvolutionLeg leg : subLayers) {
+        @Nonnull int[] legDims = {convolutionParams.masterFilterDimensions[0], convolutionParams.masterFilterDimensions[1], leg.getInputBands() * convolutionParams.outputBands};
         @Nonnull Tensor template = new Tensor(legDims);
         @Nullable Tensor tensor = template.mapCoords(c -> {
           int[] coords = c.getCoords();
@@ -112,13 +112,13 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
    * @param extractor the extractor
    * @return the tensor
    */
-  public Tensor read(@javax.annotation.Nonnull Function<ExplodedConvolutionLeg, Tensor> extractor) {
+  public Tensor read(@Nonnull Function<ExplodedConvolutionLeg, Tensor> extractor) {
     if (1 == subLayers.size()) {
       return extractor.apply(subLayers.get(0));
     }
     else {
-      @javax.annotation.Nonnull final Tensor filterDelta = new Tensor(convolutionParams.masterFilterDimensions);
-      for (@javax.annotation.Nonnull ExplodedConvolutionLeg leg : subLayers) {
+      @Nonnull final Tensor filterDelta = new Tensor(convolutionParams.masterFilterDimensions);
+      for (@Nonnull ExplodedConvolutionLeg leg : subLayers) {
         Tensor tensor = extractor.apply(leg);
         tensor.forEach((v, c) -> {
           int[] coords = c.getCoords();
@@ -146,11 +146,11 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
    * @param remove   the remove
    * @return the tensor
    */
-  public Tensor read(@javax.annotation.Nonnull DeltaSet<Layer> deltaSet, boolean remove) {
+  public Tensor read(@Nonnull DeltaSet<Layer> deltaSet, boolean remove) {
     return read(l -> l.read(deltaSet, remove));
   }
   
-  private int getFilterBand(@javax.annotation.Nonnull ExplodedConvolutionLeg leg, int legFilterBand) {
+  private int getFilterBand(@Nonnull ExplodedConvolutionLeg leg, int legFilterBand) {
     int filterBand = legFilterBand;
     filterBand = filterBand + convolutionParams.outputBands * leg.fromBand;
     return filterBand;
@@ -161,10 +161,10 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
    *
    * @return the network
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public PipelineNetwork getNetwork() {
     assertAlive();
-    @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork(1);
+    @Nonnull PipelineNetwork network = new PipelineNetwork(1);
     add(network.getInput(0));
     return network;
   }
@@ -175,7 +175,7 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
    * @param input the input
    * @return the dag node
    */
-  public DAGNode add(@javax.annotation.Nonnull DAGNode input) {
+  public DAGNode add(@Nonnull DAGNode input) {
     assertAlive();
     DAGNetwork network = input.getNetwork();
     int defaultPaddingX = (convolutionParams.masterFilterDimensions[0] - 1) / 2;

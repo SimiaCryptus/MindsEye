@@ -72,7 +72,7 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
    * @param json the json
    * @param rs   the rs
    */
-  protected ImgZeroPaddingLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected ImgZeroPaddingLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json);
     sizeX = json.get("sizeX").getAsInt();
     sizeY = json.get("sizeY").getAsInt();
@@ -87,13 +87,13 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static ImgZeroPaddingLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgZeroPaddingLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ImgZeroPaddingLayer(json, rs);
   }
   
   @Nullable
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     if (sizeX == 0 && sizeY == 0) {
       inObj[0].getData().addRef();
       inObj[0].addRef();
@@ -107,17 +107,17 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
     return eval;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("sizeY", sizeY);
     json.addProperty("sizeX", sizeX);
     json.addProperty("precision", precision.name());
     return json;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
@@ -128,7 +128,7 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
     return precision;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public ImgZeroPaddingLayer setPrecision(final Precision precision) {
     this.precision = precision;

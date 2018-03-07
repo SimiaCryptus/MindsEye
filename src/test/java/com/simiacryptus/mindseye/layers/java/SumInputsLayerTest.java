@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 
+import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
@@ -35,7 +36,7 @@ public class SumInputsLayerTest {
    */
   public static class N1Test extends LayerTestBase {
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
@@ -43,13 +44,13 @@ public class SumInputsLayerTest {
       };
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new SumInputsLayer();
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return new int[][]{
@@ -64,7 +65,7 @@ public class SumInputsLayerTest {
    */
   public static class NNTest extends LayerTestBase {
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
@@ -72,13 +73,13 @@ public class SumInputsLayerTest {
       };
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new SumInputsLayer();
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return new int[][]{
@@ -101,10 +102,10 @@ public class SumInputsLayerTest {
     }
   
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public Layer getLayer(int[][] inputSize, Random random) {
-      @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork();
+      @Nonnull PipelineNetwork network = new PipelineNetwork();
       DAGNode input = network.getInput(0);
       network.wrap(new SumInputsLayer(), input, input);
       return network;
@@ -115,7 +116,7 @@ public class SumInputsLayerTest {
       return null;
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
@@ -123,13 +124,13 @@ public class SumInputsLayerTest {
       };
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return getSmallDims(random);
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     protected Class<?> getTargetClass() {
       return SumInputsLayer.class;

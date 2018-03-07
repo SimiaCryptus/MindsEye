@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.aparapi;
 import com.aparapi.Kernel;
 import com.aparapi.device.Device;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -75,7 +76,7 @@ public final class ConvolveKernel extends Kernel {
    *
    * @param device the device
    */
-  public void exe(@javax.annotation.Nonnull final Device device) {
+  public void exe(@Nonnull final Device device) {
     //assert this.outputSize[0] * this.outputSize[1] * this.outputSize[2] == this.output.length;
     //assert this.inputSize[0] * this.inputSize[1] * this.inputSize[2] == this.input.length;
     assert null != kernelSize;

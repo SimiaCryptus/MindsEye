@@ -22,16 +22,17 @@ package com.simiacryptus.mindseye.layers.java;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
+import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
  * The type Fully connected layer eval.
  */
 public abstract class FullyConnectedReferenceLayerTest extends LayerTestBase {
-  @javax.annotation.Nonnull
+  @Nonnull
   private final int[] outputDims;
   private final int[] inputDims;
-  @javax.annotation.Nonnull
+  @Nonnull
   private final FullyConnectedReferenceLayer layer;
   
   
@@ -41,13 +42,13 @@ public abstract class FullyConnectedReferenceLayerTest extends LayerTestBase {
    * @param inputDims  the input dims
    * @param outputDims the output dims
    */
-  public FullyConnectedReferenceLayerTest(int[] inputDims, @javax.annotation.Nonnull int[] outputDims) {
+  public FullyConnectedReferenceLayerTest(int[] inputDims, @Nonnull int[] outputDims) {
     this.outputDims = outputDims;
     this.inputDims = inputDims;
     this.layer = new FullyConnectedReferenceLayer(getSmallDims(new Random())[0], outputDims).set(i -> random());
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
@@ -55,7 +56,7 @@ public abstract class FullyConnectedReferenceLayerTest extends LayerTestBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     layer.addRef();

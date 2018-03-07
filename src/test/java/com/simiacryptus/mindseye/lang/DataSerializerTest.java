@@ -25,6 +25,7 @@ import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
@@ -95,7 +96,7 @@ public class DataSerializerTest {
    *
    * @param target the target
    */
-  public void test(@javax.annotation.Nonnull DataSerializer target) {
+  public void test(@Nonnull DataSerializer target) {
     test(target, this::random1, "Uniform");
     test(target, this::random2, "Exponential");
   }
@@ -107,17 +108,17 @@ public class DataSerializerTest {
    * @param f      the f
    * @param name   the name
    */
-  public void test(@javax.annotation.Nonnull DataSerializer target, @javax.annotation.Nonnull DoubleSupplier f, String name) {
-    @javax.annotation.Nonnull double[] source = random(1024, f);
-    @javax.annotation.Nonnull double[] result = target.fromBytes(target.toBytes(source));
+  public void test(@Nonnull DataSerializer target, @Nonnull DoubleSupplier f, String name) {
+    @Nonnull double[] source = random(1024, f);
+    @Nonnull double[] result = target.fromBytes(target.toBytes(source));
     double rms = IntStream.range(0, source.length).mapToDouble(i -> (source[i] - result[i]) / (source[i] + result[i])).map(x -> x * x).average().getAsDouble();
     log.info(String.format("%s RMS: %s", name, rms));
     //assert rms < 1e-4;
   }
   
-  @javax.annotation.Nonnull
-  private double[] random(int i, @javax.annotation.Nonnull DoubleSupplier f) {
-    @javax.annotation.Nonnull double[] doubles = new double[i];
+  @Nonnull
+  private double[] random(int i, @Nonnull DoubleSupplier f) {
+    @Nonnull double[] doubles = new double[i];
     Arrays.parallelSetAll(doubles, j -> f.getAsDouble());
     return doubles;
   }

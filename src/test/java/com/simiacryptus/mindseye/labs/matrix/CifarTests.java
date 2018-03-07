@@ -34,6 +34,8 @@ import com.simiacryptus.mindseye.test.integration.OptimizationStrategy;
 import com.simiacryptus.mindseye.test.integration.RevNetworkFactory;
 import com.simiacryptus.util.io.NotebookOutput;
 
+import javax.annotation.Nonnull;
+
 /**
  * The type Mnist eval base.
  */
@@ -42,11 +44,11 @@ public class CifarTests {
   /**
    * The constant fwd_conv_1.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public static FwdNetworkFactory fwd_conv_1 = (log, features) -> {
     log.p("The image-to-vector network is a single layer convolutional:");
     return log.code(() -> {
-      @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
+      @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new ConvolutionLayer(3, 3, 3, 5).set(i -> 1e-8 * (Math.random() - 0.5)));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());
@@ -60,11 +62,11 @@ public class CifarTests {
   /**
    * The constant fwd_linear_1.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public static FwdNetworkFactory fwd_linear_1 = (log, features) -> {
     log.p("The image-to-vector network is a single layer, fully connected:");
     return log.code(() -> {
-      @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
+      @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new BiasLayer(32, 32, 3));
       network.add(new FullyConnectedLayer(new int[]{32, 32, 3}, new int[]{features})
         .set(() -> 0.001 * (Math.random() - 0.45)));
@@ -75,11 +77,11 @@ public class CifarTests {
   /**
    * The constant rev_conv_1.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public static RevNetworkFactory rev_conv_1 = (log, features) -> {
     log.p("The vector-to-image network uses a fully connected layer then a single convolutional layer:");
     return log.code(() -> {
-      @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
+      @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{32, 32, 5})
         .set(() -> 0.25 * (Math.random() - 0.5)));
       network.add(new ReLuActivationLayer());
@@ -93,11 +95,11 @@ public class CifarTests {
   /**
    * The constant rev_linear_1.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public static RevNetworkFactory rev_linear_1 = (log, features) -> {
     log.p("The vector-to-image network is a single fully connected layer:");
     return log.code(() -> {
-      @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork();
+      @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{32, 32, 3})
         .set(() -> 0.25 * (Math.random() - 0.5)));
       network.add(new BiasLayer(32, 32, 3));
@@ -120,25 +122,25 @@ public class CifarTests {
       super(fwdFactory, revFactory, optimizationStrategy);
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     protected Class<?> getTargetClass() {
       return CIFAR10.class;
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public ReportType getReportType() {
       return ReportType.Training;
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public ImageProblemData getData() {
       return new CIFARProblemData();
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public String getDatasetName() {
       return "CIFAR10";
@@ -157,7 +159,7 @@ public class CifarTests {
     }
     
     @Override
-    protected void intro(@javax.annotation.Nonnull final NotebookOutput log) {
+    protected void intro(@Nonnull final NotebookOutput log) {
       log.p("");
     }
   }
@@ -174,7 +176,7 @@ public class CifarTests {
     }
     
     @Override
-    protected void intro(@javax.annotation.Nonnull final NotebookOutput log) {
+    protected void intro(@Nonnull final NotebookOutput log) {
       log.p("");
     }
     
@@ -192,7 +194,7 @@ public class CifarTests {
     }
     
     @Override
-    protected void intro(@javax.annotation.Nonnull final NotebookOutput log) {
+    protected void intro(@Nonnull final NotebookOutput log) {
       log.p("");
     }
   }

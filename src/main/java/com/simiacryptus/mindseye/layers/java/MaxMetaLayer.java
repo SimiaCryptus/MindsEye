@@ -31,6 +31,7 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -59,7 +60,7 @@ public class MaxMetaLayer extends LayerBase {
    *
    * @param id the id
    */
-  protected MaxMetaLayer(@javax.annotation.Nonnull final JsonObject id) {
+  protected MaxMetaLayer(@Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -70,11 +71,11 @@ public class MaxMetaLayer extends LayerBase {
    * @param rs   the rs
    * @return the max meta layer
    */
-  public static MaxMetaLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static MaxMetaLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new MaxMetaLayer(json);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Result eval(final Result... inObj) {
     final Result input = inObj[0];
@@ -82,7 +83,7 @@ public class MaxMetaLayer extends LayerBase {
     final int itemCnt = input.getData().length();
     final Tensor input0Tensor = input.getData().get(0);
     final int vectorSize = input0Tensor.length();
-    @javax.annotation.Nonnull final int[] indicies = new int[vectorSize];
+    @Nonnull final int[] indicies = new int[vectorSize];
     for (int i = 0; i < vectorSize; i++) {
       final int itemNumber = i;
       indicies[i] = IntStream.range(0, itemCnt)
@@ -98,15 +99,15 @@ public class MaxMetaLayer extends LayerBase {
       double v1 = tensor.getData()[c];
       tensor.freeRef();
       return v1;
-    })), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    })), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       if (input.isAlive()) {
         @Nullable final Tensor delta = data.get(0);
-        @javax.annotation.Nonnull final Tensor feedback[] = new Tensor[itemCnt];
+        @Nonnull final Tensor feedback[] = new Tensor[itemCnt];
         Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
         input0Tensor.coordStream(true).forEach((inputCoord) -> {
           feedback[indicies[inputCoord.getIndex()]].add(inputCoord, delta.get(inputCoord));
         });
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(feedback);
+        @Nonnull TensorArray tensorArray = TensorArray.wrap(feedback);
         input.accumulate(buffer, tensorArray);
         delta.freeRef();
       }
@@ -126,13 +127,13 @@ public class MaxMetaLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

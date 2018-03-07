@@ -31,6 +31,7 @@ import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.data.PercentileStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -59,7 +60,7 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
    *
    * @param id the id
    */
-  protected MonitoringSynapse(@javax.annotation.Nonnull final JsonObject id) {
+  protected MonitoringSynapse(@Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -70,9 +71,9 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
    * @param rs   the rs
    * @return the monitoring synapse
    */
-  @javax.annotation.Nonnull
-  public static MonitoringSynapse fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
-    @javax.annotation.Nonnull final MonitoringSynapse obj = new MonitoringSynapse(json);
+  @Nonnull
+  public static MonitoringSynapse fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+    @Nonnull final MonitoringSynapse obj = new MonitoringSynapse(json);
     obj.totalBatches = json.get("totalBatches").getAsInt();
     obj.totalItems = json.get("totalItems").getAsInt();
     obj.backpropStatistics.readJson(json.getAsJsonObject("backpropStatistics"));
@@ -86,8 +87,8 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
    * @param obj the obj
    * @return the monitoring synapse
    */
-  @javax.annotation.Nonnull
-  public MonitoringSynapse addTo(@javax.annotation.Nonnull final MonitoredObject obj) {
+  @Nonnull
+  public MonitoringSynapse addTo(@Nonnull final MonitoredObject obj) {
     return addTo(obj, getName());
   }
   
@@ -98,15 +99,15 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
    * @param name the name
    * @return the monitoring synapse
    */
-  @javax.annotation.Nonnull
-  public MonitoringSynapse addTo(@javax.annotation.Nonnull final MonitoredObject obj, final String name) {
+  @Nonnull
+  public MonitoringSynapse addTo(@Nonnull final MonitoredObject obj, final String name) {
     setName(name);
     obj.addObj(getName(), this);
     return this;
   }
   
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     assert 1 == inObj.length;
     final Result input = inObj[0];
     final TensorList inputdata = input.getData();
@@ -121,7 +122,7 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
       forwardStatistics.add(t.getData());
       t.freeRef();
     });
-    return new Result(inputdata, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new Result(inputdata, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       backpropStatistics.clear();
       data.addRef();
       input.accumulate(buffer, data);
@@ -136,7 +137,7 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
       public boolean isAlive() {
         return input.isAlive();
       }
-  
+    
       @Override
       protected void _free() {
         input.freeRef();
@@ -144,19 +145,19 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("totalBatches", totalBatches);
     json.addProperty("totalItems", totalItems);
     return json;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Map<String, Object> getMetrics() {
-    @javax.annotation.Nonnull final HashMap<String, Object> map = new HashMap<>();
+    @Nonnull final HashMap<String, Object> map = new HashMap<>();
     map.put("totalBatches", totalBatches);
     map.put("totalItems", totalItems);
     map.put("forward", forwardStatistics.getMetrics());

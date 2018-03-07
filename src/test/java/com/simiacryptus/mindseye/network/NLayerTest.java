@@ -52,7 +52,7 @@ public abstract class NLayerTest {
   /**
    * The Dim list.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   final List<int[]> dimList;
   
   
@@ -80,9 +80,9 @@ public abstract class NLayerTest {
    * @param dimList the length list
    * @return the nn layer
    */
-  @javax.annotation.Nonnull
-  public Layer buildNetwork(@javax.annotation.Nonnull final int[]... dimList) {
-    @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork(1);
+  @Nonnull
+  public Layer buildNetwork(@Nonnull final int[]... dimList) {
+    @Nonnull final PipelineNetwork network = new PipelineNetwork(1);
     @Nullable int[] last = null;
     for (final int[] dims : dimList) {
       if (null != last) {
@@ -100,7 +100,7 @@ public abstract class NLayerTest {
    * @param b the b
    * @return the int [ ] [ ]
    */
-  public int[][] concat(final int[] a, @javax.annotation.Nonnull final List<int[]> b) {
+  public int[][] concat(final int[] a, @Nonnull final List<int[]> b) {
     return Stream.concat(Stream.of(a), b.stream()).toArray(i -> new int[i][]);
   }
   
@@ -118,7 +118,7 @@ public abstract class NLayerTest {
    * @param log   the log
    * @param layer the layer
    */
-  public void graphviz(@javax.annotation.Nonnull final NotebookOutput log, final Layer layer) {
+  public void graphviz(@Nonnull final NotebookOutput log, final Layer layer) {
     if (layer instanceof DAGNetwork) {
       log.p("This is a network with the following layout:");
       log.code(() -> {
@@ -143,7 +143,7 @@ public abstract class NLayerTest {
    * @param inputDims the input dims
    * @return the tensor [ ]
    */
-  public Tensor[] randomize(@javax.annotation.Nonnull final int[][] inputDims) {
+  public Tensor[] randomize(@Nonnull final int[][] inputDims) {
     return Arrays.stream(inputDims).map(dim -> new Tensor(dim).set(this::random)).toArray(i -> new Tensor[i]);
   }
   
@@ -154,7 +154,7 @@ public abstract class NLayerTest {
    */
   @Test
   public void test() throws Throwable {
-    try (@javax.annotation.Nonnull NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
+    try (@Nonnull NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
       test(log);
     }
   }
@@ -164,14 +164,14 @@ public abstract class NLayerTest {
    *
    * @param log the log
    */
-  public void test(@javax.annotation.Nonnull final NotebookOutput log) {
-  
+  public void test(@Nonnull final NotebookOutput log) {
+
     log.h1("%s", getClass().getSimpleName());
     @Nonnull final int[] inputDims = getInputDims();
-    @javax.annotation.Nonnull final ArrayList<int[]> workingSpec = new ArrayList<>();
+    @Nonnull final ArrayList<int[]> workingSpec = new ArrayList<>();
     for (final int[] l : dimList) {
       workingSpec.add(l);
-      @javax.annotation.Nonnull final Layer layer = buildNetwork(concat(inputDims, workingSpec));
+      @Nonnull final Layer layer = buildNetwork(concat(inputDims, workingSpec));
       graphviz(log, layer);
       test(log, layer, inputDims);
     }
@@ -186,7 +186,7 @@ public abstract class NLayerTest {
    * @return the double
    */
   @Nullable
-  public TrainingTester.ComponentResult test(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Layer layer, @javax.annotation.Nonnull final int[]... inputDims) {
+  public TrainingTester.ComponentResult test(@Nonnull final NotebookOutput log, @Nonnull final Layer layer, @Nonnull final int[]... inputDims) {
     @Nonnull final Layer component = layer.copy();
     final Tensor[] randomize = randomize(inputDims);
     new SerializationTest().test(log, component, randomize);

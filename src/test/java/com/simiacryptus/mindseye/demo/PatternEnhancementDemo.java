@@ -34,6 +34,7 @@ import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Test;
 
+import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -61,10 +62,10 @@ public class PatternEnhancementDemo extends ArtistryDemo {
    *
    * @param log the log
    */
-  public void run(@javax.annotation.Nonnull NotebookOutput log) {
+  public void run(@Nonnull NotebookOutput log) {
   
   
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + ".log";
+    @Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
     
@@ -82,7 +83,7 @@ public class PatternEnhancementDemo extends ArtistryDemo {
             add(imageFitness);
           }
         };
-      } catch (@javax.annotation.Nonnull final RuntimeException e) {
+      } catch (@Nonnull final RuntimeException e) {
         throw e;
       } catch (Throwable e) {
         throw new RuntimeException(e);
@@ -126,12 +127,12 @@ public class PatternEnhancementDemo extends ArtistryDemo {
    *
    * @return the target class
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   protected Class<?> getTargetClass() {
     return VGG16.class;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public ReportType getReportType() {
     return ReportType.Demos;

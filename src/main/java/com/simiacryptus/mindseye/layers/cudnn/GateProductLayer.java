@@ -35,6 +35,7 @@ import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
 import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.layers.java.ProductInputsLayer;
 import jcuda.jcudnn.cudnnOpTensorDescriptor;
 import jcuda.jcudnn.cudnnOpTensorOp;
 
@@ -87,7 +88,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
-    return this.as(com.simiacryptus.mindseye.layers.java.ProductInputsLayer.class);
+    return this.as(ProductInputsLayer.class);
   }
   
   

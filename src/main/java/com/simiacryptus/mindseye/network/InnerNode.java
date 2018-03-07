@@ -41,7 +41,7 @@ public final class InnerNode extends LazyResult {
   @SuppressWarnings("unused")
   public final String[] createdBy = Util.currentStack();
   private final DAGNetwork dagNetwork;
-  @javax.annotation.Nonnull
+  @Nonnull
   private final DAGNode[] inputNodes;
   private Layer layer;
   private boolean parallel = true;
@@ -54,7 +54,7 @@ public final class InnerNode extends LazyResult {
    * @param inputNodes the input nodes
    */
   @SafeVarargs
-  InnerNode(final DAGNetwork dagNetwork, @javax.annotation.Nonnull final Layer layer, final DAGNode... inputNodes) {
+  InnerNode(final DAGNetwork dagNetwork, @Nonnull final Layer layer, final DAGNode... inputNodes) {
     this(dagNetwork, layer, UUID.randomUUID(), inputNodes);
   }
   
@@ -67,14 +67,14 @@ public final class InnerNode extends LazyResult {
    * @param inputNodes the input nodes
    */
   @SafeVarargs
-  InnerNode(final DAGNetwork dagNetwork, @javax.annotation.Nonnull final Layer layer, final UUID key, @javax.annotation.Nonnull final DAGNode... inputNodes) {
+  InnerNode(final DAGNetwork dagNetwork, @Nonnull final Layer layer, final UUID key, @Nonnull final DAGNode... inputNodes) {
     super(key);
     this.dagNetwork = dagNetwork;
     assert null != inputNodes;
     setLayer(layer);
     this.inputNodes = Arrays.copyOf(inputNodes, inputNodes.length);
     assert Arrays.stream(inputNodes).parallel().allMatch(x -> x != null);
-    for (@javax.annotation.Nonnull DAGNode node : this.inputNodes) {
+    for (@Nonnull DAGNode node : this.inputNodes) {
       node.addRef();
     }
   }
@@ -93,9 +93,9 @@ public final class InnerNode extends LazyResult {
   @Override
   protected Result eval(final GraphEvaluationContext ctx) {
     assertAlive();
-    @javax.annotation.Nonnull final Layer innerLayer = getLayer();
+    @Nonnull final Layer innerLayer = getLayer();
     assert Arrays.stream(inputNodes).allMatch(x -> x != null);
-    @javax.annotation.Nonnull Stream<DAGNode> stream = Arrays.stream(inputNodes);
+    @Nonnull Stream<DAGNode> stream = Arrays.stream(inputNodes);
     if (!CoreSettings.INSTANCE.isSingleThreaded() && parallel) stream = stream.parallel();
     final Result[] in = stream.map(x -> x == null ? null : x.get(ctx)).toArray(i -> new Result[i]);
     assert Arrays.stream(in).allMatch(x -> x != null);
@@ -103,13 +103,13 @@ public final class InnerNode extends LazyResult {
     return result;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public DAGNode[] getInputs() {
     return inputNodes;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @SuppressWarnings("unchecked")
   @Override
   public <T extends Layer> T getLayer() {
@@ -117,7 +117,7 @@ public final class InnerNode extends LazyResult {
   }
   
   @Override
-  public synchronized void setLayer(@javax.annotation.Nonnull final Layer newLayer) {
+  public synchronized void setLayer(@Nonnull final Layer newLayer) {
     assertAlive();
     dagNetwork.assertAlive();
     synchronized (dagNetwork.layersById) {
@@ -141,7 +141,7 @@ public final class InnerNode extends LazyResult {
   @Override
   protected void _free() {
     super._free();
-    for (@javax.annotation.Nonnull DAGNode node : this.inputNodes) {
+    for (@Nonnull DAGNode node : this.inputNodes) {
       node.freeRef();
     }
     this.layer.freeRef();

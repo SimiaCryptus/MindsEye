@@ -71,7 +71,7 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
    * @param historySize the history size
    * @return the history size
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public CachedTrainable<T> setHistorySize(final int historySize) {
     this.historySize = historySize;
     return this;
@@ -92,7 +92,7 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
    * @param verbose the verbose
    * @return the verbose
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public CachedTrainable<T> setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
@@ -100,7 +100,7 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
   
   @Override
   public PointSample measure(final TrainingMonitor monitor) {
-    for (@javax.annotation.Nonnull final PointSample result : history) {
+    for (@Nonnull final PointSample result : history) {
       if (!result.weights.isDifferent()) {
         if (isVerbose()) {
           log.info(String.format("Returning cached value; %s buffers unchanged since %s => %s",

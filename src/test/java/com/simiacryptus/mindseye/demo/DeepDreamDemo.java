@@ -33,6 +33,7 @@ import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Test;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -64,10 +65,10 @@ public class DeepDreamDemo extends ArtistryDemo {
    *
    * @param log the log
    */
-  public void run(@javax.annotation.Nonnull NotebookOutput log) {
+  public void run(@Nonnull NotebookOutput log) {
     init();
   
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + ".log";
+    @Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
     
@@ -76,7 +77,7 @@ public class DeepDreamDemo extends ArtistryDemo {
       final VGG16_HDF5 result;
       try {
         result = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5"))));
-      } catch (@javax.annotation.Nonnull final RuntimeException e) {
+      } catch (@Nonnull final RuntimeException e) {
         throw e;
       } catch (Throwable e) {
         throw new RuntimeException(e);
@@ -97,7 +98,7 @@ public class DeepDreamDemo extends ArtistryDemo {
       int targetCategoryIndex = vgg16Categories.indexOf(categories.get(1));
       int totalCategories = vgg16Categories.size();
       Function<IterativeTrainer, IterativeTrainer> config = train -> train
-        .setTimeout(3, TimeUnit.HOURS)
+        .setTimeout(45, TimeUnit.MINUTES)
         .setIterationsPerSample(5);
       DAGNetwork network = (DAGNetwork) vgg16.getNetwork();
       TestUtil.instrumentPerformance(log, network);
@@ -119,7 +120,7 @@ public class DeepDreamDemo extends ArtistryDemo {
    * @param log the log
    * @return the tensor [ ]
    */
-  public Tensor[] getImages_Artistry(@javax.annotation.Nonnull final NotebookOutput log) {
+  public Tensor[] getImages_Artistry(@Nonnull final NotebookOutput log) {
     return Stream.of(
       "H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\800px-Vincent_van_Gogh_-_Portrait_of_Doctor_Félix_Rey_(F500).jpg",
       "H:\\SimiaCryptus\\Artistry\\portraits\\michelangelo\\Michelangelo_Buonarroti_027.jpg"
@@ -140,7 +141,7 @@ public class DeepDreamDemo extends ArtistryDemo {
    * @param log the log
    * @return the tensor [ ]
    */
-  public Tensor[] getImages_Caltech(@javax.annotation.Nonnull final NotebookOutput log) {
+  public Tensor[] getImages_Caltech(@Nonnull final NotebookOutput log) {
     log.h1("Data");
     return log.code(() -> {
       return Caltech101.trainingDataStream().sorted(getShuffleComparator()).map(labeledObj -> {
@@ -162,12 +163,12 @@ public class DeepDreamDemo extends ArtistryDemo {
     return Comparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   protected Class<?> getTargetClass() {
     return VGG16.class;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public ReportType getReportType() {
     return ReportType.Demos;

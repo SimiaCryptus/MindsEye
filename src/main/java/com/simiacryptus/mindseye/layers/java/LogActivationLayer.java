@@ -79,7 +79,7 @@ public final class LogActivationLayer extends SimpleActivationLayer<LogActivatio
     }
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();

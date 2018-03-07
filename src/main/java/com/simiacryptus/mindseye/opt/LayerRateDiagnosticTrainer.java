@@ -73,9 +73,9 @@ public class LayerRateDiagnosticTrainer {
     setOrientation(new GradientDescent());
   }
   
-  @javax.annotation.Nonnull
-  private DeltaSet<Layer> filterDirection(@javax.annotation.Nonnull final DeltaSet<Layer> direction, @javax.annotation.Nonnull final Layer layer) {
-    @javax.annotation.Nonnull final DeltaSet<Layer> maskedDelta = new DeltaSet<Layer>();
+  @Nonnull
+  private DeltaSet<Layer> filterDirection(@Nonnull final DeltaSet<Layer> direction, @Nonnull final Layer layer) {
+    @Nonnull final DeltaSet<Layer> maskedDelta = new DeltaSet<Layer>();
     direction.getMap().forEach((layer2, delta) -> maskedDelta.get(layer2, delta.target));
     maskedDelta.get(layer, layer.state().get(0)).addInPlace(direction.get(layer, (double[]) null).getDelta());
     return maskedDelta;
@@ -96,7 +96,7 @@ public class LayerRateDiagnosticTrainer {
    * @param currentIteration the current iteration
    * @return the current iteration
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public LayerRateDiagnosticTrainer setCurrentIteration(final AtomicInteger currentIteration) {
     this.currentIteration = currentIteration;
     return this;
@@ -117,7 +117,7 @@ public class LayerRateDiagnosticTrainer {
    * @param iterationsPerSample the iterations per sample
    * @return the iterations per sample
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public LayerRateDiagnosticTrainer setIterationsPerSample(final int iterationsPerSample) {
     this.iterationsPerSample = iterationsPerSample;
     return this;
@@ -128,7 +128,7 @@ public class LayerRateDiagnosticTrainer {
    *
    * @return the layer rates
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public Map<Layer, LayerStats> getLayerRates() {
     return layerRates;
   }
@@ -138,7 +138,7 @@ public class LayerRateDiagnosticTrainer {
    *
    * @return the line search strategy
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   protected LineSearchStrategy getLineSearchStrategy() {
     return new QuadraticSearch();
   }
@@ -158,7 +158,7 @@ public class LayerRateDiagnosticTrainer {
    * @param maxIterations the max iterations
    * @return the max iterations
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public LayerRateDiagnosticTrainer setMaxIterations(final int maxIterations) {
     this.maxIterations = maxIterations;
     return this;
@@ -179,7 +179,7 @@ public class LayerRateDiagnosticTrainer {
    * @param monitor the monitor
    * @return the monitor
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public LayerRateDiagnosticTrainer setMonitor(final TrainingMonitor monitor) {
     this.monitor = monitor;
     return this;
@@ -200,7 +200,7 @@ public class LayerRateDiagnosticTrainer {
    * @param orientation the orientation
    * @return the orientation
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public LayerRateDiagnosticTrainer setOrientation(final OrientationStrategy<?> orientation) {
     this.orientation = orientation;
     return this;
@@ -221,7 +221,7 @@ public class LayerRateDiagnosticTrainer {
    * @param terminateThreshold the terminate threshold
    * @return the terminate threshold
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public LayerRateDiagnosticTrainer setTerminateThreshold(final double terminateThreshold) {
     this.terminateThreshold = terminateThreshold;
     return this;
@@ -242,7 +242,7 @@ public class LayerRateDiagnosticTrainer {
    * @param timeout the timeout
    * @return the timeout
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public LayerRateDiagnosticTrainer setTimeout(final Duration timeout) {
     this.timeout = timeout;
     return this;
@@ -263,7 +263,7 @@ public class LayerRateDiagnosticTrainer {
    * @param strict the strict
    * @return the strict
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public LayerRateDiagnosticTrainer setStrict(final boolean strict) {
     this.strict = strict;
     return this;
@@ -291,31 +291,31 @@ public class LayerRateDiagnosticTrainer {
    *
    * @return the map
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public Map<Layer, LayerStats> run() {
     final long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     PointSample measure = measure();
-    @javax.annotation.Nonnull final ArrayList<Layer> layers = new ArrayList<>(measure.weights.getMap().keySet());
+    @Nonnull final ArrayList<Layer> layers = new ArrayList<>(measure.weights.getMap().keySet());
     while (timeoutMs > System.currentTimeMillis() && measure.sum > terminateThreshold) {
       if (currentIteration.get() > maxIterations) {
         break;
       }
       final PointSample initialPhasePoint = measure();
-
+  
       measure = initialPhasePoint;
       for (int subiteration = 0; subiteration < iterationsPerSample; subiteration++) {
         if (currentIteration.incrementAndGet() > maxIterations) {
           break;
         }
-
+  
         {
-          @javax.annotation.Nonnull final SimpleLineSearchCursor orient = (SimpleLineSearchCursor) getOrientation().orient(subject, measure, monitor);
+          @Nonnull final SimpleLineSearchCursor orient = (SimpleLineSearchCursor) getOrientation().orient(subject, measure, monitor);
           final double stepSize = 1e-12 * orient.origin.sum;
           @Nonnull final DeltaSet<Layer> pointB = orient.step(stepSize, monitor).point.delta.copy();
           @Nonnull final DeltaSet<Layer> pointA = orient.step(0.0, monitor).point.delta.copy();
           @Nonnull final DeltaSet<Layer> d1 = pointA;
           @Nonnull final DeltaSet<Layer> d2 = d1.add(pointB.scale(-1)).scale(1.0 / stepSize);
-          @javax.annotation.Nonnull final Map<Layer, Double> steps = new HashMap<>();
+          @Nonnull final Map<Layer, Double> steps = new HashMap<>();
           final double overallStepEstimate = d1.getMagnitude() / d2.getMagnitude();
           for (final Layer layer : layers) {
             final DoubleBuffer<Layer> a = d2.get(layer, (double[]) null);
@@ -334,9 +334,9 @@ public class LayerRateDiagnosticTrainer {
         @Nullable SimpleLineSearchCursor bestOrient = null;
         @Nullable PointSample bestPoint = null;
         layerLoop:
-        for (@javax.annotation.Nonnull final Layer layer : layers) {
-          @javax.annotation.Nonnull SimpleLineSearchCursor orient = (SimpleLineSearchCursor) getOrientation().orient(subject, measure, monitor);
-          @javax.annotation.Nonnull final DeltaSet<Layer> direction = filterDirection(orient.direction, layer);
+        for (@Nonnull final Layer layer : layers) {
+          @Nonnull SimpleLineSearchCursor orient = (SimpleLineSearchCursor) getOrientation().orient(subject, measure, monitor);
+          @Nonnull final DeltaSet<Layer> direction = filterDirection(orient.direction, layer);
           if (direction.getMagnitude() == 0) {
             monitor.log(String.format("Zero derivative for layer %s; skipping", layer));
             continue layerLoop;
@@ -381,8 +381,8 @@ public class LayerRateDiagnosticTrainer {
    * @param units  the units
    * @return the timeout
    */
-  @javax.annotation.Nonnull
-  public LayerRateDiagnosticTrainer setTimeout(final int number, @javax.annotation.Nonnull final TemporalUnit units) {
+  @Nonnull
+  public LayerRateDiagnosticTrainer setTimeout(final int number, @Nonnull final TemporalUnit units) {
     timeout = Duration.of(number, units);
     return this;
   }
@@ -394,8 +394,8 @@ public class LayerRateDiagnosticTrainer {
    * @param units  the units
    * @return the timeout
    */
-  @javax.annotation.Nonnull
-  public LayerRateDiagnosticTrainer setTimeout(final int number, @javax.annotation.Nonnull final TimeUnit units) {
+  @Nonnull
+  public LayerRateDiagnosticTrainer setTimeout(final int number, @Nonnull final TimeUnit units) {
     return setTimeout(number, Util.cvt(units));
   }
   
@@ -423,10 +423,10 @@ public class LayerRateDiagnosticTrainer {
       this.delta = delta;
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public String toString() {
-      @javax.annotation.Nonnull final StringBuffer sb = new StringBuffer("{");
+      @Nonnull final StringBuffer sb = new StringBuffer("{");
       sb.append("rate=").append(rate);
       sb.append(", delta=").append(delta);
       sb.append('}');

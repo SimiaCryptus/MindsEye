@@ -32,6 +32,7 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
@@ -64,7 +65,7 @@ public class SoftmaxActivationLayer extends LayerBase {
    *
    * @param id the id
    */
-  protected SoftmaxActivationLayer(@javax.annotation.Nonnull final JsonObject id) {
+  protected SoftmaxActivationLayer(@Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -75,19 +76,19 @@ public class SoftmaxActivationLayer extends LayerBase {
    * @param rs   the rs
    * @return the softmax activation layer
    */
-  public static SoftmaxActivationLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static SoftmaxActivationLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new SoftmaxActivationLayer(json);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     final int itemCnt = inObj[0].getData().length();
-    @javax.annotation.Nonnull final double[] sumA = new double[itemCnt];
+    @Nonnull final double[] sumA = new double[itemCnt];
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    @javax.annotation.Nonnull final Tensor expA[] = new Tensor[itemCnt];
+    @Nonnull final Tensor expA[] = new Tensor[itemCnt];
     final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      @javax.annotation.Nullable final Tensor input = inObj[0].getData().get(dataIndex);
+      @Nullable final Tensor input = inObj[0].getData().get(dataIndex);
       assert 1 < input.length() : "input.length() = " + input.length();
   
       @Nullable final Tensor exp;
@@ -106,17 +107,17 @@ public class SoftmaxActivationLayer extends LayerBase {
       assert Double.isFinite(sum);
       expA[dataIndex] = exp;
       sumA[dataIndex] = sum;
-      @javax.annotation.Nullable Tensor result = exp.map(x -> x / sum);
+      @Nullable Tensor result = exp.map(x -> x / sum);
       return result;
     }).toArray(i -> new Tensor[i]);
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    return new Result(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new Result(TensorArray.wrap(outputA), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
         final Tensor[] passbackA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
           Tensor deltaTensor = data.get(dataIndex);
           @Nullable final double[] delta = deltaTensor.getData();
           @Nullable final double[] expdata = expA[dataIndex].getData();
-          @javax.annotation.Nonnull final Tensor passback = new Tensor(data.getDimensions());
+          @Nonnull final Tensor passback = new Tensor(data.getDimensions());
           final int dim = expdata.length;
           double dot = 0;
           for (int i = 0; i < expdata.length; i++) {
@@ -132,7 +133,7 @@ public class SoftmaxActivationLayer extends LayerBase {
           return passback;
         }).toArray(i -> new Tensor[i]);
         assert Arrays.stream(passbackA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(passbackA);
+        @Nonnull TensorArray tensorArray = TensorArray.wrap(passbackA);
         inObj[0].accumulate(buffer, tensorArray);
       }
     }) {
@@ -151,13 +152,13 @@ public class SoftmaxActivationLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

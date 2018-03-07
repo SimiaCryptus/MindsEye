@@ -66,7 +66,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
    * @param alpha the alpha
    * @return the delta setByCoord
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public DeltaSet<K> accumulate(final double alpha) {
     stream().forEach(d -> d.accumulate(alpha));
     return this;
@@ -79,8 +79,8 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
    * @param right the right
    * @return the delta setByCoord
    */
-  @javax.annotation.Nonnull
-  public DeltaSet<K> add(@javax.annotation.Nonnull final DeltaSet<K> right) {
+  @Nonnull
+  public DeltaSet<K> add(@Nonnull final DeltaSet<K> right) {
     return this.copy().addInPlace(right);
   }
   
@@ -90,8 +90,8 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
    * @param right the right
    * @return the delta setByCoord
    */
-  @javax.annotation.Nonnull
-  public DeltaSet<K> addInPlace(@javax.annotation.Nonnull final DeltaSet<K> right) {
+  @Nonnull
+  public DeltaSet<K> addInPlace(@Nonnull final DeltaSet<K> right) {
     right.map.forEach(100, (layer, buffer) -> {
       get(layer, buffer.target).addInPlace(buffer).freeRef();
     });
@@ -103,9 +103,9 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
    *
    * @return the state setByCoord
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public StateSet<K> asState() {
-    @javax.annotation.Nonnull final StateSet<K> returnValue = new StateSet<>();
+    @Nonnull final StateSet<K> returnValue = new StateSet<>();
     map.forEach((layer, delta) -> {
       delta.assertAlive();
       State<K> kState = returnValue.get(layer, delta.target);
@@ -115,7 +115,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
     return returnValue;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public DeltaSet<K> copy() {
     return this.map(x -> x.copy());
@@ -127,7 +127,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
    * @param right the right
    * @return the double
    */
-  public double dot(@javax.annotation.Nonnull final DoubleBufferSet<K, Delta<K>> right) {
+  public double dot(@Nonnull final DoubleBufferSet<K, Delta<K>> right) {
     Stream<Map.Entry<K, Delta<K>>> stream = map.entrySet().stream();
     if (100 < map.size()) {
       stream = stream.parallel();
@@ -145,7 +145,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
     }).sum();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   protected Delta<K> factory(@Nonnull final K layer, final double[] target) {
     return new Delta<K>(layer, target);
@@ -169,11 +169,11 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
     return Math.sqrt(Arrays.stream(elementArray).sum());
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public DeltaSet<K> map(final Function<Delta<K>, Delta<K>> mapper) {
     @Nonnull DoubleBufferSet<K, Delta<K>> map = super.map(mapper);
-    @javax.annotation.Nonnull DeltaSet<K> kDeltaSet = new DeltaSet<>(map);
+    @Nonnull DeltaSet<K> kDeltaSet = new DeltaSet<>(map);
     map.freeRef();
     return kDeltaSet;
   }
@@ -184,7 +184,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
    * @param f the f
    * @return the delta setByCoord
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public DeltaSet<K> scale(final double f) {
     return map(x -> x.scale(f));
   }
@@ -195,7 +195,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
    * @param right the right
    * @return the delta setByCoord
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public DeltaSet<K> subtract(@Nonnull final DeltaSet<K> right) {
     return this.add(new DeltaSet<K>(right).scale(-1));
   }
@@ -205,7 +205,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
    *
    * @return the delta setByCoord
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public DeltaSet<K> unit() {
     return scale(1.0 / getMagnitude());
   }

@@ -63,9 +63,9 @@ public class SimpleGpuEval extends SimpleListEval {
     return new SimpleGpuEval(layer, gpu, tensor).call();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public TensorList getFeedback(@javax.annotation.Nonnull final TensorList original) {
+  public TensorList getFeedback(@Nonnull final TensorList original) {
     return toGpu(getDelta(original));
   }
   

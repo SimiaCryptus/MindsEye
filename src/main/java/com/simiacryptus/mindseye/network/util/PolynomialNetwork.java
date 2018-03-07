@@ -67,7 +67,7 @@ public class PolynomialNetwork extends DAGNetwork {
   /**
    * The Corrections.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   protected List<Correcton> corrections = new ArrayList<>();
   /**
    * The Head.
@@ -93,7 +93,7 @@ public class PolynomialNetwork extends DAGNetwork {
    * @param json the json
    * @param rs   the rs
    */
-  protected PolynomialNetwork(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected PolynomialNetwork(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json, rs);
     head = nodesById.get(UUID.fromString(json.get("head").getAsString()));
     if (json.get("alpha") != null) {
@@ -116,7 +116,7 @@ public class PolynomialNetwork extends DAGNetwork {
    * @param rs   the rs
    * @return the polynomial network
    */
-  public static PolynomialNetwork fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static PolynomialNetwork fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new PolynomialNetwork(json, rs);
   }
   
@@ -126,11 +126,11 @@ public class PolynomialNetwork extends DAGNetwork {
    * @param dims the dims
    * @return the int [ ]
    */
-  @javax.annotation.Nonnull
-  public static int[] toIntArray(@javax.annotation.Nonnull final JsonArray dims) {
-    @javax.annotation.Nonnull final int[] x = new int[dims.size()];
+  @Nonnull
+  public static int[] toIntArray(@Nonnull final JsonArray dims) {
+    @Nonnull final int[] x = new int[dims.size()];
     int j = 0;
-    for (@javax.annotation.Nonnull final Iterator<JsonElement> i = dims.iterator(); i.hasNext(); ) {
+    for (@Nonnull final Iterator<JsonElement> i = dims.iterator(); i.hasNext(); ) {
       x[j++] = i.next().getAsInt();
     }
     return x;
@@ -142,9 +142,9 @@ public class PolynomialNetwork extends DAGNetwork {
    * @param dims the dims
    * @return the json array
    */
-  @javax.annotation.Nonnull
-  public static JsonArray toJson(@javax.annotation.Nonnull final int[] dims) {
-    @javax.annotation.Nonnull final JsonArray array = new JsonArray();
+  @Nonnull
+  public static JsonArray toJson(@Nonnull final int[] dims) {
+    @Nonnull final JsonArray array = new JsonArray();
     for (final int i : dims) {
       array.add(new JsonPrimitive(i));
     }
@@ -174,9 +174,9 @@ public class PolynomialNetwork extends DAGNetwork {
           }
           reset();
           final DAGNode input = getInput(0);
-          @javax.annotation.Nonnull final ArrayList<DAGNode> terms = new ArrayList<>();
+          @Nonnull final ArrayList<DAGNode> terms = new ArrayList<>();
           terms.add(add(alpha, add(alphaBias, input)));
-          for (@javax.annotation.Nonnull final Correcton c : corrections) {
+          for (@Nonnull final Correcton c : corrections) {
             terms.add(c.add(input));
           }
           head = terms.size() == 1 ? terms.get(0) : add(newProductLayer(), terms.toArray(new DAGNode[]{}));
@@ -189,7 +189,7 @@ public class PolynomialNetwork extends DAGNetwork {
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     assertConsistent();
-    @javax.annotation.Nullable final DAGNode head = getHead();
+    @Nullable final DAGNode head = getHead();
     final JsonObject json = super.getJson(resources, dataSerializer);
     json.addProperty("head", head.getId().toString());
     if (null != alpha) {
@@ -200,8 +200,8 @@ public class PolynomialNetwork extends DAGNetwork {
     }
     json.add("inputDims", PolynomialNetwork.toJson(inputDims));
     json.add("outputDims", PolynomialNetwork.toJson(outputDims));
-    @javax.annotation.Nonnull final JsonArray elements = new JsonArray();
-    for (@javax.annotation.Nonnull final Correcton c : corrections) {
+    @Nonnull final JsonArray elements = new JsonArray();
+    for (@Nonnull final Correcton c : corrections) {
       elements.add(c.getJson());
     }
     json.add("corrections", elements);
@@ -227,7 +227,7 @@ public class PolynomialNetwork extends DAGNetwork {
    * @param power the power
    * @return the nn layer
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public Layer newNthPowerLayer(final double power) {
     return new NthPowerActivationLayer().setPower(power);
   }
@@ -269,7 +269,7 @@ public class PolynomialNetwork extends DAGNetwork {
      * The Power.
      */
     public final double power;
-  
+
     /**
      * Instantiates a new Correcton.
      *
@@ -282,13 +282,13 @@ public class PolynomialNetwork extends DAGNetwork {
       this.bias = bias;
       this.factor = factor;
     }
-  
+
     /**
      * Instantiates a new Correcton.
      *
      * @param json the json
      */
-    public Correcton(@javax.annotation.Nonnull final JsonObject json) {
+    public Correcton(@Nonnull final JsonObject json) {
       power = json.get("power").getAsDouble();
       bias = layersById.get(UUID.fromString(json.get("bias").getAsString()));
       factor = layersById.get(UUID.fromString(json.get("factor").getAsString()));
@@ -309,9 +309,9 @@ public class PolynomialNetwork extends DAGNetwork {
      *
      * @return the json
      */
-    @javax.annotation.Nonnull
+    @Nonnull
     public JsonObject getJson() {
-      @javax.annotation.Nonnull final JsonObject json = new JsonObject();
+      @Nonnull final JsonObject json = new JsonObject();
       json.addProperty("bias", bias.getId().toString());
       json.addProperty("factor", factor.getId().toString());
       json.addProperty("power", power);

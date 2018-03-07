@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.layers.MetaLayerTestBase;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 
+import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
@@ -31,7 +32,7 @@ import java.util.Random;
  */
 public abstract class NormalizationMetaLayerTest extends MetaLayerTestBase {
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
@@ -39,13 +40,13 @@ public abstract class NormalizationMetaLayerTest extends MetaLayerTestBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new NormalizationMetaLayer();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{

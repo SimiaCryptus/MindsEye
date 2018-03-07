@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.mindseye.lang.Layer;
 
+import javax.annotation.Nonnull;
+
 /**
  * The type Test error.
  */
@@ -32,7 +34,7 @@ public class TestError extends RuntimeException {
   /**
    * The LayerBase.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public final Layer layer;
   
   /**
@@ -42,7 +44,7 @@ public class TestError extends RuntimeException {
    * @param test  the test
    * @param layer the layer
    */
-  public TestError(Throwable cause, ComponentTest<?> test, @javax.annotation.Nonnull Layer layer) {
+  public TestError(Throwable cause, ComponentTest<?> test, @Nonnull Layer layer) {
     super(String.format("Error in %s with %s", test, layer), cause);
     this.test = test;
     this.test.addRef();

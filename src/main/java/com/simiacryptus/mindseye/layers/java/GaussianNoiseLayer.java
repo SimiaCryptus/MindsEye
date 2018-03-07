@@ -31,6 +31,7 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
@@ -72,7 +73,7 @@ public class GaussianNoiseLayer extends LayerBase {
    *
    * @param json the json
    */
-  protected GaussianNoiseLayer(@javax.annotation.Nonnull final JsonObject json) {
+  protected GaussianNoiseLayer(@Nonnull final JsonObject json) {
     super(json);
     value = json.get("value").getAsDouble();
   }
@@ -84,11 +85,11 @@ public class GaussianNoiseLayer extends LayerBase {
    * @param rs   the rs
    * @return the gaussian noise layer
    */
-  public static GaussianNoiseLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static GaussianNoiseLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new GaussianNoiseLayer(json);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Result eval(final Result... inObj) {
     final Result in0 = inObj[0];
@@ -97,20 +98,20 @@ public class GaussianNoiseLayer extends LayerBase {
     in0.addRef();
     inputData.addRef();
     final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      @javax.annotation.Nonnull final Random random = new Random(seed);
-      @javax.annotation.Nullable final Tensor input = inputData.get(dataIndex);
+      @Nonnull final Random random = new Random(seed);
+      @Nullable final Tensor input = inputData.get(dataIndex);
       @Nullable final Tensor output = input.map(x -> {
         return x + random.nextGaussian() * getValue();
       });
       input.freeRef();
       return output;
     }).toArray(i -> new Tensor[i]);
-    return new Result(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    return new Result(TensorArray.wrap(outputA), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       if (in0.isAlive()) {
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+        @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           Tensor tensor = delta.get(dataIndex);
           @Nullable final double[] deltaData = tensor.getData();
-          @javax.annotation.Nonnull final Tensor passback = new Tensor(inputData.getDimensions());
+          @Nonnull final Tensor passback = new Tensor(inputData.getDimensions());
           for (int i = 0; i < passback.length(); i++) {
             passback.set(i, deltaData[i]);
           }
@@ -135,10 +136,10 @@ public class GaussianNoiseLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("value", value);
     return json;
   }
@@ -158,7 +159,7 @@ public class GaussianNoiseLayer extends LayerBase {
    * @param value the value
    * @return the value
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public GaussianNoiseLayer setValue(final double value) {
     this.value = value;
     return this;
@@ -171,7 +172,7 @@ public class GaussianNoiseLayer extends LayerBase {
     seed = GaussianNoiseLayer.random.get().nextLong();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

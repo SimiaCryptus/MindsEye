@@ -89,7 +89,7 @@ public class CudaSystem {
    * The constant currentDevice.
    */
   protected static final ThreadLocal<Integer> currentDeviceId = new ThreadLocal<Integer>() {
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     protected Integer initialValue() {
       return -1;
@@ -326,7 +326,7 @@ public class CudaSystem {
   /**
    * The constant gpuGeneration.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public static AtomicInteger gpuGeneration = new AtomicInteger(0);
   private static volatile StaticResourcePool<CudnnHandle> pool;
   private boolean dirty = false;
@@ -358,21 +358,21 @@ public class CudaSystem {
    *
    * @param out the out
    */
-  public static void printHeader(@javax.annotation.Nonnull PrintStream out) {
-    @javax.annotation.Nonnull int[] runtimeVersion = {0};
-    @javax.annotation.Nonnull int[] driverVersion = {0};
+  public static void printHeader(@Nonnull PrintStream out) {
+    @Nonnull int[] runtimeVersion = {0};
+    @Nonnull int[] driverVersion = {0};
     JCuda.cudaRuntimeGetVersion(runtimeVersion);
     JCuda.cudaDriverGetVersion(driverVersion);
-    @javax.annotation.Nonnull String jCudaVersion = JCuda.getJCudaVersion();
+    @Nonnull String jCudaVersion = JCuda.getJCudaVersion();
     out.printf("Time: %s; Driver %s; Runtime %s; Lib %s%n", new Date(), driverVersion[0], runtimeVersion[0], jCudaVersion);
-    @javax.annotation.Nonnull long[] free = {0};
-    @javax.annotation.Nonnull long[] total = {0};
+    @Nonnull long[] free = {0};
+    @Nonnull long[] total = {0};
     JCuda.cudaMemGetInfo(free, total);
     out.printf("Cuda Memory: %.1f freeRef, %.1f total%n", free[0] * 1.0 / (1024 * 1024), total[0] * 1.0 / (1024 * 1024));
-    @javax.annotation.Nonnull final int[] deviceCount = new int[1];
-    jcuda.runtime.JCuda.cudaGetDeviceCount(deviceCount);
+    @Nonnull final int[] deviceCount = new int[1];
+    JCuda.cudaGetDeviceCount(deviceCount);
     IntStream.range(0, deviceCount[0]).forEach(device -> {
-      @javax.annotation.Nonnull final cudaDeviceProp deviceProp = new cudaDeviceProp();
+      @Nonnull final cudaDeviceProp deviceProp = new cudaDeviceProp();
       JCuda.cudaGetDeviceProperties(deviceProp, device);
       out.printf("Device %d = %s%n", device, deviceProp, free[0], total[0]);
     });
@@ -391,9 +391,9 @@ public class CudaSystem {
    * @param obj the obj
    * @return the map
    */
-  @javax.annotation.Nonnull
-  protected static Map<String, String> toMap(@javax.annotation.Nonnull DoubleStatistics obj) {
-    @javax.annotation.Nonnull HashMap<String, String> map = new HashMap<>();
+  @Nonnull
+  protected static Map<String, String> toMap(@Nonnull DoubleStatistics obj) {
+    @Nonnull HashMap<String, String> map = new HashMap<>();
     if (0 < obj.getCount()) {
       map.put("stddev", Double.toString(obj.getStandardDeviation()));
       map.put("mean", Double.toString(obj.getAverage()));
@@ -409,9 +409,9 @@ public class CudaSystem {
    *
    * @return the execution statistics
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public static final Map<String, Map<String, String>> getExecutionStatistics() {
-    @javax.annotation.Nonnull HashMap<String, Map<String, String>> map = new HashMap<>();
+    @Nonnull HashMap<String, Map<String, String>> map = new HashMap<>();
     map.put("createPoolingDescriptor", toMap(createPoolingDescriptor_execution));
     map.put("cudaDeviceReset", toMap(cudaDeviceReset_execution));
     map.put("cudaFree", toMap(cudaFree_execution));
@@ -582,7 +582,7 @@ public class CudaSystem {
    */
   public static long cudaDeviceGetLimit(final int limit) {
     long startTime = System.nanoTime();
-    @javax.annotation.Nonnull long[] pValue = new long[1];
+    @Nonnull long[] pValue = new long[1];
     final int result = JCuda.cudaDeviceGetLimit(pValue, limit);
     cudaDeviceGetLimit_execution.accept((System.nanoTime() - startTime) / 1e9);
     log("cudaDeviceGetLimit(", result, new Object[]{pValue, limit});
@@ -646,7 +646,7 @@ public class CudaSystem {
    */
   public static CudaResource<cudaStream_t> cudaStreamCreate() {
     long startTime = System.nanoTime();
-    @javax.annotation.Nonnull cudaStream_t stream = new cudaStream_t();
+    @Nonnull cudaStream_t stream = new cudaStream_t();
     int result = JCuda.cudaStreamCreate(stream);
     cudaStreamCreate_execution.accept((System.nanoTime() - startTime) / 1e9);
     log("cudaStreamCreate", result, new Object[]{stream});
@@ -829,8 +829,8 @@ public class CudaSystem {
    */
   public static int deviceCount() {
     long startTime = System.nanoTime();
-    @javax.annotation.Nonnull final int[] deviceCount = new int[1];
-    final int returnCode = jcuda.runtime.JCuda.cudaGetDeviceCount(deviceCount);
+    @Nonnull final int[] deviceCount = new int[1];
+    final int returnCode = JCuda.cudaGetDeviceCount(deviceCount);
     log("cudaGetDeviceCount", returnCode, new Object[]{deviceCount});
     deviceCount_execution.accept((System.nanoTime() - startTime) / 1e9);
     CudaSystem.handle(returnCode);
@@ -856,7 +856,7 @@ public class CudaSystem {
    * @param array the array
    * @return the int [ ]
    */
-  public static int[] getStride(@javax.annotation.Nonnull final int[] array) {
+  public static int[] getStride(@Nonnull final int[] array) {
     return IntStream.range(0, array.length).map(i -> IntStream.range(i + 1, array.length).map(ii -> array[ii]).reduce((a, b) -> a * b).orElse(1)).toArray();
   }
   
@@ -911,10 +911,10 @@ public class CudaSystem {
    * @param convDesc      the conv desc
    * @return the int [ ]
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public static int[] getOutputDims(final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc) {
     long startTime = System.nanoTime();
-    @javax.annotation.Nonnull final int[] tensorOuputDims = new int[4];
+    @Nonnull final int[] tensorOuputDims = new int[4];
     final int result = JCudnn.cudnnGetConvolutionNdForwardOutputDim(convDesc, srcTensorDesc, filterDesc, tensorOuputDims.length, tensorOuputDims);
     getOutputDims_execution.accept((System.nanoTime() - startTime) / 1e9);
     log("cudnnGetConvolutionNdForwardOutputDim", result, new Object[]{convDesc, srcTensorDesc, filterDesc, tensorOuputDims.length, tensorOuputDims});
@@ -938,7 +938,7 @@ public class CudaSystem {
    * @param deviceId the n
    * @param action   the action
    */
-  public static void withDevice(int deviceId, @javax.annotation.Nonnull Consumer<CudaDevice> action) {
+  public static void withDevice(int deviceId, @Nonnull Consumer<CudaDevice> action) {
     assert deviceId >= 0;
     final int prevDevice = getThreadDeviceId();
     try {
@@ -958,7 +958,7 @@ public class CudaSystem {
    * @param action   the action
    * @return the t
    */
-  public static <T> T withDevice(int deviceId, @javax.annotation.Nonnull Function<CudaDevice, T> action) {
+  public static <T> T withDevice(int deviceId, @Nonnull Function<CudaDevice, T> action) {
     assert deviceId >= 0;
     final int prevDevice = getThreadDeviceId();
     try {
@@ -975,7 +975,7 @@ public class CudaSystem {
    *
    * @param log the log
    */
-  public static void addLog(@javax.annotation.Nonnull PrintStream log) {
+  public static void addLog(@Nonnull PrintStream log) {
     printHeader(log);
     apiLog.add(log);
   }
@@ -1001,9 +1001,9 @@ public class CudaSystem {
       try {
         threadlocal.initThread();
         fn.accept(threadlocal);
-      } catch (@javax.annotation.Nonnull final RuntimeException e) {
+      } catch (@Nonnull final RuntimeException e) {
         throw e;
-      } catch (@javax.annotation.Nonnull final Exception e) {
+      } catch (@Nonnull final Exception e) {
         throw new RuntimeException(e);
       } finally {
         threadlocal.cudaDeviceSynchronize();
@@ -1015,9 +1015,9 @@ public class CudaSystem {
           CudnnHandle.threadContext.set(gpu);
           gpu.initThread();
           fn.accept(gpu);
-        } catch (@javax.annotation.Nonnull final RuntimeException e) {
+        } catch (@Nonnull final RuntimeException e) {
           throw e;
-        } catch (@javax.annotation.Nonnull final Exception e) {
+        } catch (@Nonnull final Exception e) {
           throw new RuntimeException(e);
         } finally {
           gpu.cleanup();
@@ -1044,9 +1044,9 @@ public class CudaSystem {
         try {
           T result = fn.apply(threadlocal);
           return result;
-        } catch (@javax.annotation.Nonnull final RuntimeException e) {
+        } catch (@Nonnull final RuntimeException e) {
           throw e;
-        } catch (@javax.annotation.Nonnull final Exception e) {
+        } catch (@Nonnull final Exception e) {
           throw new RuntimeException(e);
         } finally {
           threadlocal.cudaDeviceSynchronize();
@@ -1058,9 +1058,9 @@ public class CudaSystem {
             CudnnHandle.threadContext.set(gpu);
             gpu.initThread();
             return fn.apply(gpu);
-          } catch (@javax.annotation.Nonnull final RuntimeException e) {
+          } catch (@Nonnull final RuntimeException e) {
             throw e;
-          } catch (@javax.annotation.Nonnull final Exception e) {
+          } catch (@Nonnull final Exception e) {
             throw new RuntimeException(e);
           } finally {
             gpu.cleanup();
@@ -1081,18 +1081,11 @@ public class CudaSystem {
       if (hint instanceof Result) {
         TensorList data = ((Result) hint).getData();
         if (data instanceof CudaTensorList) {
-          return ((CudaTensorList) data).ptr.getDeviceId();
+          return ((CudaTensorList) data).getDeviceId();
         }
       }
-      else if (hint instanceof CudaTensorList) {
-        CudaTensor ptr = ((CudaTensorList) hint).ptr;
-        return null == ptr ? null : ptr.getDeviceId();
-      }
-      else if (hint instanceof CudaResource) {
-        return ((CudaResource) hint).deviceId;
-      }
-      else if (hint instanceof CudaTensor) {
-        return ((CudaTensor) hint).getDeviceId();
+      else if (hint instanceof CudaDeviceResource) {
+        return ((CudaSystem.CudaDeviceResource) hint).getDeviceId();
       }
       else if (hint instanceof Integer) {
         return (Integer) hint;
@@ -1132,7 +1125,7 @@ public class CudaSystem {
       deviceCount = CudaSystem.deviceCount();
     }
     CudaDevice.logger.info(String.format("Found %s devices", deviceCount));
-    @javax.annotation.Nonnull final List<Integer> devices = new ArrayList<>();
+    @Nonnull final List<Integer> devices = new ArrayList<>();
     for (int d = 0; d < deviceCount; d++) {
       int deviceNumber = d;
       //if(device>0) System.err.println(String.format("IGNORING Device %s - %s", device, getDeviceName(device)));
@@ -1145,12 +1138,12 @@ public class CudaSystem {
           CudaDevice.logger.warn("Error initializing GPU", e);
           throw new RuntimeException(e);
         }
-        for (@javax.annotation.Nonnull DeviceLimits limit : DeviceLimits.values()) {
+        for (@Nonnull DeviceLimits limit : DeviceLimits.values()) {
           CudaDevice.logger.info(String.format("Default Limit %s = %s", limit, limit.get()));
         }
         DeviceLimits.HeapSize.set(16 * 1024 * 1024 * 1024);
         DeviceLimits.FifoSize.set(8 * 1024 * 1024);
-        for (@javax.annotation.Nonnull DeviceLimits limit : DeviceLimits.values()) {
+        for (@Nonnull DeviceLimits limit : DeviceLimits.values()) {
           CudaDevice.logger.info(String.format("Configured Limit %s = %s", limit, limit.get()));
         }
       });
@@ -1221,5 +1214,9 @@ public class CudaSystem {
   protected void cleanup() {
     if (dirty) cudaDeviceSynchronize();
     CudnnHandle.threadContext.remove();
+  }
+  
+  public interface CudaDeviceResource {
+    int getDeviceId();
   }
 }

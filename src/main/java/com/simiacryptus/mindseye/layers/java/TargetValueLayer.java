@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.network.DAGNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.UUID;
 
@@ -59,7 +60,7 @@ public class TargetValueLayer extends DAGNetwork {
    * @param json the json
    * @param rs   the rs
    */
-  protected TargetValueLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected TargetValueLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json, rs);
     head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
     target = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("target").getAsString()));
@@ -72,7 +73,7 @@ public class TargetValueLayer extends DAGNetwork {
    * @param rs    the rs
    * @return the nn layer
    */
-  public static Layer fromJson(@javax.annotation.Nonnull final JsonObject inner, Map<String, byte[]> rs) {
+  public static Layer fromJson(@Nonnull final JsonObject inner, Map<String, byte[]> rs) {
     return new TargetValueLayer(inner, rs);
   }
   
@@ -94,7 +95,7 @@ public class TargetValueLayer extends DAGNetwork {
    * @param value the value
    * @return the target
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public TargetValueLayer setTarget(final double... value) {
     target.<ConstLayer>getLayer().setData(new Tensor(value));
     return this;

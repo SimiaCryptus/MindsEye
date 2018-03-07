@@ -33,9 +33,9 @@ import javax.annotation.Nonnull;
  */
 public class GradientDescent extends OrientationStrategyBase<SimpleLineSearchCursor> {
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public SimpleLineSearchCursor orient(final Trainable subject, @javax.annotation.Nonnull final PointSample measurement, @javax.annotation.Nonnull final TrainingMonitor monitor) {
+  public SimpleLineSearchCursor orient(final Trainable subject, @Nonnull final PointSample measurement, @Nonnull final TrainingMonitor monitor) {
     @Nonnull final DeltaSet<Layer> direction = measurement.delta.scale(-1);
     final double magnitude = direction.getMagnitude();
     if (Math.abs(magnitude) < 1e-10) {
@@ -44,7 +44,7 @@ public class GradientDescent extends OrientationStrategyBase<SimpleLineSearchCur
     else if (Math.abs(magnitude) < 1e-5) {
       monitor.log(String.format("Low gradient: %s", magnitude));
     }
-    @javax.annotation.Nonnull SimpleLineSearchCursor gd = new SimpleLineSearchCursor(subject, measurement, direction).setDirectionType("GD");
+    @Nonnull SimpleLineSearchCursor gd = new SimpleLineSearchCursor(subject, measurement, direction).setDirectionType("GD");
     direction.freeRef();
     return gd;
   }

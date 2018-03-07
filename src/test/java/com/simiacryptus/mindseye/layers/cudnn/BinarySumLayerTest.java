@@ -26,6 +26,7 @@ import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
+import javax.annotation.Nonnull;
 import java.util.Random;
 import java.util.stream.IntStream;
 
@@ -55,7 +56,7 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new BinarySumLayer().setPrecision(precision);
@@ -104,10 +105,10 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
     }
   
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public Layer getLayer(int[][] inputSize, Random random) {
-      @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork();
+      @Nonnull PipelineNetwork network = new PipelineNetwork();
       DAGNode input = network.getInput(0);
       network.wrap(new BinarySumLayer(), input, input);
       return network;
@@ -115,13 +116,13 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
     
     @Override
     public Layer getReferenceLayer() {
-      @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork();
+      @Nonnull PipelineNetwork network = new PipelineNetwork();
       DAGNode input = network.getInput(0);
       network.wrap(new SumInputsLayer(), input, input);
       return network;
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
@@ -129,7 +130,7 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
       };
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return getSmallDims(random);
@@ -160,7 +161,7 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
       super(Precision.Double);
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new BinarySumLayer(1.0, -1.0).setPrecision(precision);
@@ -202,7 +203,7 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
       return new SingleDerivativeTester(1e-2, 1e-3);
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new BinarySumLayer(0.5, 0.5).setPrecision(precision);

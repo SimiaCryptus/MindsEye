@@ -36,6 +36,7 @@ import com.simiacryptus.util.lang.TimedResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -90,7 +91,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param currentIteration the current iteration
    * @return the current iteration
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public IterativeTrainer setCurrentIteration(final AtomicInteger currentIteration) {
     this.currentIteration = currentIteration;
     return this;
@@ -111,7 +112,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param iterationsPerSample the iterations per sample
    * @return the iterations per sample
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public IterativeTrainer setIterationsPerSample(final int iterationsPerSample) {
     this.iterationsPerSample = iterationsPerSample;
     return this;
@@ -132,7 +133,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param lineSearchFactory the line search factory
    * @return the line search factory
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public IterativeTrainer setLineSearchFactory(final Function<String, LineSearchStrategy> lineSearchFactory) {
     this.lineSearchFactory = lineSearchFactory;
     return this;
@@ -153,7 +154,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param maxIterations the max iterations
    * @return the max iterations
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public IterativeTrainer setMaxIterations(final int maxIterations) {
     this.maxIterations = maxIterations;
     return this;
@@ -174,7 +175,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param monitor the monitor
    * @return the monitor
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public IterativeTrainer setMonitor(final TrainingMonitor monitor) {
     this.monitor = monitor;
     return this;
@@ -195,7 +196,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param orientation the orientation
    * @return the orientation
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public IterativeTrainer setOrientation(final OrientationStrategy<?> orientation) {
     if (null != this.orientation) this.orientation.freeRef();
     this.orientation = orientation;
@@ -217,7 +218,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param terminateThreshold the terminate threshold
    * @return the terminate threshold
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public IterativeTrainer setTerminateThreshold(final double terminateThreshold) {
     this.terminateThreshold = terminateThreshold;
     return this;
@@ -238,7 +239,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param timeout the timeout
    * @return the timeout
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public IterativeTrainer setTimeout(final Duration timeout) {
     this.timeout = timeout;
     return this;
@@ -323,13 +324,13 @@ public class IterativeTrainer extends ReferenceCountingBase {
         currentPoint.freeRef();
         currentPoint = measure(true);
         @Nullable final PointSample _currentPoint = currentPoint;
-        @javax.annotation.Nonnull final TimedResult<LineSearchCursor> timedOrientation = TimedResult.time(() -> orientation.orient(subject, _currentPoint, monitor));
+        @Nonnull final TimedResult<LineSearchCursor> timedOrientation = TimedResult.time(() -> orientation.orient(subject, _currentPoint, monitor));
         final LineSearchCursor direction = timedOrientation.result;
         final String directionType = direction.getDirectionType();
         @Nullable final PointSample previous = currentPoint;
         previous.addRef();
         try {
-          @javax.annotation.Nonnull final TimedResult<PointSample> timedLineSearch = TimedResult.time(() -> step(direction, directionType, previous));
+          @Nonnull final TimedResult<PointSample> timedLineSearch = TimedResult.time(() -> step(direction, directionType, previous));
           currentPoint.freeRef();
           currentPoint = timedLineSearch.result;
           final long now = System.nanoTime();
@@ -389,8 +390,8 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param units  the units
    * @return the timeout
    */
-  @javax.annotation.Nonnull
-  public IterativeTrainer setTimeout(final int number, @javax.annotation.Nonnull final TemporalUnit units) {
+  @Nonnull
+  public IterativeTrainer setTimeout(final int number, @Nonnull final TemporalUnit units) {
     timeout = Duration.of(number, units);
     return this;
   }
@@ -402,8 +403,8 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param units  the units
    * @return the timeout
    */
-  @javax.annotation.Nonnull
-  public IterativeTrainer setTimeout(final int number, @javax.annotation.Nonnull final TimeUnit units) {
+  @Nonnull
+  public IterativeTrainer setTimeout(final int number, @Nonnull final TimeUnit units) {
     return setTimeout(number, Util.cvt(units));
   }
   
@@ -415,7 +416,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param previous      the previous
    * @return the point sample
    */
-  public PointSample step(@javax.annotation.Nonnull final LineSearchCursor direction, final String directionType, @javax.annotation.Nonnull final PointSample previous) {
+  public PointSample step(@Nonnull final LineSearchCursor direction, final String directionType, @Nonnull final PointSample previous) {
     PointSample currentPoint;
     LineSearchStrategy lineSearchStrategy;
     if (lineSearchStrategyMap.containsKey(directionType)) {
@@ -426,7 +427,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
       lineSearchStrategy = lineSearchFactory.apply(direction.getDirectionType());
       lineSearchStrategyMap.put(directionType, lineSearchStrategy);
     }
-    @javax.annotation.Nonnull final FailsafeLineSearchCursor wrapped = new FailsafeLineSearchCursor(direction, previous, monitor);
+    @Nonnull final FailsafeLineSearchCursor wrapped = new FailsafeLineSearchCursor(direction, previous, monitor);
     lineSearchStrategy.step(wrapped, monitor).freeRef();
     currentPoint = wrapped.getBest(monitor);
     wrapped.freeRef();

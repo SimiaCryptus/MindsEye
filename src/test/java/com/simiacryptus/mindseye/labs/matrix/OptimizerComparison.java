@@ -32,6 +32,7 @@ import com.simiacryptus.util.test.TestCategories;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Function;
@@ -87,7 +88,7 @@ public abstract class OptimizerComparison extends NotebookReportBase {
    *
    * @param log the log
    */
-  public void classification(@javax.annotation.Nonnull NotebookOutput log) {
+  public void classification(@Nonnull NotebookOutput log) {
     compare(log, opt -> {
       return new ClassifyProblem(fwdFactory, opt, data, 10)
         .setTimeoutMinutes(timeoutMinutes).run(log).getHistory();
@@ -119,7 +120,7 @@ public abstract class OptimizerComparison extends NotebookReportBase {
    *
    * @param log the log
    */
-  public void encoding(@javax.annotation.Nonnull NotebookOutput log) {
+  public void encoding(@Nonnull NotebookOutput log) {
     compare(log, opt -> {
       return new EncodingProblem(revFactory, opt, data, 20)
         .setTimeoutMinutes(timeoutMinutes).setTrainingSize(1000).run(log).getHistory();
@@ -141,19 +142,19 @@ public abstract class OptimizerComparison extends NotebookReportBase {
    * @param timeoutMinutes the timeout minutes
    * @return the timeout minutes
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public OptimizerComparison setTimeoutMinutes(final int timeoutMinutes) {
     this.timeoutMinutes = timeoutMinutes;
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public ReportType getReportType() {
     return ReportType.Training;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   protected Class<?> getTargetClass() {
     return OptimizerComparison.class;

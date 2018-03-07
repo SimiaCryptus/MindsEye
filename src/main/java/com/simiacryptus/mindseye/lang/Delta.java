@@ -54,7 +54,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param target the target
    * @param delta  the delta
    */
-  public Delta(@Nonnull final K layer, final double[] target, @javax.annotation.Nonnull final double[] delta) {
+  public Delta(@Nonnull final K layer, final double[] target, @Nonnull final double[] delta) {
     this(layer, target, delta, RecycleBin.DOUBLES.obtain(delta.length));
   }
   
@@ -81,7 +81,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param delta            the delta
    * @param dataCompensation the data compensation
    */
-  public static void accumulate(@javax.annotation.Nonnull final double[] data, final double[] delta, @Nullable final double[] dataCompensation) {
+  public static void accumulate(@Nonnull final double[] data, final double[] delta, @Nullable final double[] dataCompensation) {
     synchronized (data) {
       for (int i = 0; i < data.length; i++) {
         final double sum = data[i];
@@ -117,7 +117,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
   public final void accumulate(final double factor) {
     synchronized (target) {
       assert Arrays.stream(target).allMatch(Double::isFinite);
-      @javax.annotation.Nullable final double[] delta = getDelta();
+      @Nullable final double[] delta = getDelta();
       for (int i = 0; i < length(); i++) {
         target[i] += delta[i] * factor;
       }
@@ -131,8 +131,8 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param buffer the buffer
    * @return the delta
    */
-  @javax.annotation.Nonnull
-  public Delta<K> addInPlace(@javax.annotation.Nonnull final Delta<K> buffer) {
+  @Nonnull
+  public Delta<K> addInPlace(@Nonnull final Delta<K> buffer) {
     assertAlive();
     return addInPlace(buffer.delta).addInPlace(buffer.deltaCompensation);
   }
@@ -143,8 +143,8 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param data the data
    * @return the delta
    */
-  @javax.annotation.Nonnull
-  public Delta<K> addInPlace(@javax.annotation.Nonnull final double[] data) {
+  @Nonnull
+  public Delta<K> addInPlace(@Nonnull final double[] data) {
     assert data.length == this.target.length;
     //assert Arrays.stream(data).allMatch(Double::isFinite);
     Delta.accumulate(getDelta(), data, deltaCompensation);
@@ -153,7 +153,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
   }
   
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Delta<K> copy() {
     assertAlive();
@@ -171,9 +171,9 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
     }
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public Delta<K> map(@javax.annotation.Nonnull final DoubleUnaryOperator mapper) {
+  public Delta<K> map(@Nonnull final DoubleUnaryOperator mapper) {
     return new Delta<K>(layer, target, Arrays.stream(getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
   }
   
@@ -183,12 +183,12 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param f the f
    * @return the delta
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public Delta<K> scale(final double f) {
     return map(x -> x * f);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Delta<K> set(final double[] data) {
     super.set(data);

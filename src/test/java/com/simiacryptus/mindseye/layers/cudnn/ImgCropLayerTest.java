@@ -29,6 +29,7 @@ import com.simiacryptus.mindseye.test.unit.ComponentTestBase;
 import com.simiacryptus.mindseye.test.unit.PerformanceTester;
 import com.simiacryptus.util.io.NotebookOutput;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.Random;
@@ -46,7 +47,7 @@ public abstract class ImgCropLayerTest extends CudaLayerTestBase {
     validateBatchExecution = false;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
@@ -54,7 +55,7 @@ public abstract class ImgCropLayerTest extends CudaLayerTestBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
@@ -62,7 +63,7 @@ public abstract class ImgCropLayerTest extends CudaLayerTestBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgCropLayer(5, 5);
@@ -77,10 +78,10 @@ public abstract class ImgCropLayerTest extends CudaLayerTestBase {
   @Nullable
   @Override
   public ComponentTest<ToleranceStatistics> getPerformanceTester() {
-    @javax.annotation.Nonnull ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setSamples(100).setBatches(10);
+    @Nonnull ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setSamples(100).setBatches(10);
     return new ComponentTestBase<ToleranceStatistics>() {
       @Override
-      public ToleranceStatistics test(@javax.annotation.Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
+      public ToleranceStatistics test(@Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
         @Nullable PrintStream apiLog = null;
         try {
           apiLog = new PrintStream(log.file("cuda_perf.log"));
@@ -115,10 +116,10 @@ public abstract class ImgCropLayerTest extends CudaLayerTestBase {
       validateDifferentials = false;
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public Layer getLayer(int[][] inputSize, Random random) {
-      @javax.annotation.Nonnull ImgCropLayer imgCropLayer = new ImgCropLayer(4, 5);
+      @Nonnull ImgCropLayer imgCropLayer = new ImgCropLayer(4, 5);
       //return wrap(imgCropLayer);
       return imgCropLayer;
     }
@@ -129,14 +130,14 @@ public abstract class ImgCropLayerTest extends CudaLayerTestBase {
      * @param imgCropLayer the img crop layer
      * @return the nn layer
      */
-    @javax.annotation.Nonnull
+    @Nonnull
     public Layer wrap(ImgCropLayer imgCropLayer) {
-      @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork();
+      @Nonnull PipelineNetwork network = new PipelineNetwork();
       network.add(imgCropLayer);
       return network;
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public Class<? extends Layer> getTestClass() {
       return ImgCropLayer.class;

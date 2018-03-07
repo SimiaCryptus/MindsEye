@@ -78,7 +78,7 @@ public abstract class L12Normalizer extends TrainableBase {
    * @param layers the layers
    * @return the layers
    */
-  public Collection<Layer> getLayers(@javax.annotation.Nonnull final Collection<Layer> layers) {
+  public Collection<Layer> getLayers(@Nonnull final Collection<Layer> layers) {
     return layers.stream()
       .filter(layer -> {
         return layer instanceof FullyConnectedLayer;
@@ -91,9 +91,9 @@ public abstract class L12Normalizer extends TrainableBase {
   @Override
   public PointSample measure(final TrainingMonitor monitor) {
     final PointSample innerMeasure = inner.measure(monitor);
-    @javax.annotation.Nonnull final DeltaSet<Layer> normalizationVector = new DeltaSet<Layer>();
+    @Nonnull final DeltaSet<Layer> normalizationVector = new DeltaSet<Layer>();
     double valueAdj = 0;
-    for (@javax.annotation.Nonnull final Layer layer : getLayers(innerMeasure.delta.getMap().keySet())) {
+    for (@Nonnull final Layer layer : getLayers(innerMeasure.delta.getMap().keySet())) {
       final double[] weights = innerMeasure.delta.getMap().get(layer).target;
       @Nullable final double[] gradientAdj = normalizationVector.get(layer, weights).getDelta();
       final double factor_L1 = getL1(layer);

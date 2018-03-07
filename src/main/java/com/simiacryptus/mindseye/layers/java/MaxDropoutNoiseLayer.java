@@ -82,7 +82,7 @@ public class MaxDropoutNoiseLayer extends LayerBase {
    *
    * @param json the json
    */
-  protected MaxDropoutNoiseLayer(@javax.annotation.Nonnull final JsonObject json) {
+  protected MaxDropoutNoiseLayer(@Nonnull final JsonObject json) {
     super(json);
     kernelSize = JsonUtil.getIntArray(json.getAsJsonArray("kernelSize"));
   }
@@ -94,11 +94,11 @@ public class MaxDropoutNoiseLayer extends LayerBase {
    * @param rs   the rs
    * @return the max dropout noise layer
    */
-  public static MaxDropoutNoiseLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static MaxDropoutNoiseLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new MaxDropoutNoiseLayer(json);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Result eval(final Result... inObj) {
     final Result in0 = inObj[0];
@@ -107,7 +107,7 @@ public class MaxDropoutNoiseLayer extends LayerBase {
     in0.addRef();
     data0.addRef();
     final Tensor[] mask = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      @javax.annotation.Nullable final Tensor input = data0.get(dataIndex);
+      @Nullable final Tensor input = data0.get(dataIndex);
       @Nullable final Tensor output = input.map(x -> 0);
       final List<List<Coordinate>> cells = getCellMap_cached.apply(new IntArray(output.getDimensions()));
       cells.forEach(cell -> {
@@ -120,21 +120,21 @@ public class MaxDropoutNoiseLayer extends LayerBase {
       Tensor inputData = data0.get(dataIndex);
       @Nullable final double[] input = inputData.getData();
       @Nullable final double[] maskT = mask[dataIndex].getData();
-      @javax.annotation.Nonnull final Tensor output = new Tensor(inputData.getDimensions());
+      @Nonnull final Tensor output = new Tensor(inputData.getDimensions());
       @Nullable final double[] outputData = output.getData();
       for (int i = 0; i < outputData.length; i++) {
         outputData[i] = input[i] * maskT[i];
       }
       inputData.freeRef();
       return output;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       if (in0.isAlive()) {
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+        @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           Tensor deltaTensor = delta.get(dataIndex);
           @Nullable final double[] deltaData = deltaTensor.getData();
-          @javax.annotation.Nonnull final int[] dims = data0.getDimensions();
+          @Nonnull final int[] dims = data0.getDimensions();
           @Nullable final double[] maskData = mask[dataIndex].getData();
-          @javax.annotation.Nonnull final Tensor passback = new Tensor(dims);
+          @Nonnull final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.length(); i++) {
             passback.set(i, maskData[i] * deltaData[i]);
           }
@@ -160,7 +160,7 @@ public class MaxDropoutNoiseLayer extends LayerBase {
     };
   }
   
-  private List<List<Coordinate>> getCellMap(@javax.annotation.Nonnull final IntArray dims) {
+  private List<List<Coordinate>> getCellMap(@Nonnull final IntArray dims) {
     Tensor tensor = new Tensor(dims.data);
     ArrayList<List<Coordinate>> lists = new ArrayList<>(tensor.coordStream(true).collect(Collectors.groupingBy((@Nonnull final Coordinate c) -> {
       int cellId = 0;
@@ -176,15 +176,15 @@ public class MaxDropoutNoiseLayer extends LayerBase {
     return lists;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.add("kernelSize", JsonUtil.getJson(kernelSize));
     return json;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

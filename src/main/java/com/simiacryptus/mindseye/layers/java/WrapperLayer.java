@@ -51,7 +51,7 @@ public abstract class WrapperLayer extends LayerBase {
    * @param json the json
    * @param rs   the rs
    */
-  public WrapperLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public WrapperLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json);
     this.inner = Layer.fromJson(json.getAsJsonObject("inner"), rs);
   }
@@ -72,7 +72,7 @@ public abstract class WrapperLayer extends LayerBase {
     super._free();
   }
   
-  @javax.annotation.Nullable
+  @Nullable
   @Override
   public Result eval(final Result... array) {
     return inner.eval(array);
@@ -91,10 +91,15 @@ public abstract class WrapperLayer extends LayerBase {
     return inner;
   }
   
+  public WrapperLayer setInner(@Nullable Layer inner) {
+    this.inner = inner;
+    return this;
+  }
+  
   @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.add("inner", getInner().getJson(resources, dataSerializer));
     return json;
   }
@@ -105,7 +110,7 @@ public abstract class WrapperLayer extends LayerBase {
     return inner.isFrozen();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Layer setFrozen(final boolean frozen) {
     if (null == inner) return this;
@@ -117,10 +122,5 @@ public abstract class WrapperLayer extends LayerBase {
   @Override
   public List<double[]> state() {
     return inner.state();
-  }
-  
-  public com.simiacryptus.mindseye.layers.java.WrapperLayer setInner(@javax.annotation.Nullable com.simiacryptus.mindseye.lang.Layer inner) {
-    this.inner = inner;
-    return this;
   }
 }

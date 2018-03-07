@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.lang.cudnn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.util.function.ToIntFunction;
 
 /**
@@ -70,10 +71,14 @@ public class CudaResource<T> extends CudaResourceBase<T> {
           CudaSystem.handle(this.destructor.applyAsInt(ptr));
         });
       }
-    } catch (@javax.annotation.Nonnull final Throwable e) {
+    } catch (@Nonnull final Throwable e) {
       CudaResource.logger.debug("Error freeing resource " + this, e);
     }
   }
   
   
+  @Override
+  public int getDeviceId() {
+    return deviceId;
+  }
 }

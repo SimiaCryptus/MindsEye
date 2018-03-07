@@ -33,6 +33,7 @@ import com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.StochasticSamplingSubnetLayer;
 import com.simiacryptus.mindseye.layers.java.AssertDimensionsLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
+import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.ImgReshapeLayer;
 import com.simiacryptus.mindseye.layers.java.StochasticBinaryNoiseLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
@@ -64,12 +65,12 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
   /**
    * The Convolution order.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   int[] convolutionOrder = {3, 2, 0, 1};
   /**
    * The Fullyconnected order.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   int[] fullyconnectedOrder = {1, 0};
   private PoolingLayer.PoolingMode finalPoolingMode = PoolingLayer.PoolingMode.Max;
   /**
@@ -292,8 +293,8 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
    */
   protected void phase3b() {
     add(new SoftmaxActivationLayer()
-      .setAlgorithm(com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE)
-      .setMode(com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
+      .setAlgorithm(SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE)
+      .setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
     add(new BandReducerLayer()
       .setMode(getFinalPoolingMode()));
   }
@@ -464,7 +465,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
       addPoolingLayer(2);
       //  model.add(Flatten())
       //  model.add(Dense(4096, activation='relu'))
-      add(new com.simiacryptus.mindseye.layers.java.FullyConnectedLayer(new int[]{25088}, new int[]{4096})
+      add(new FullyConnectedLayer(new int[]{25088}, new int[]{4096})
         .set(hdf5.readDataSet("param_0", "layer_32")
           .permuteDimensions(fullyconnectedOrder))
         .setName("fullyconnected_32"));
@@ -473,7 +474,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
       //  model.add(Dropout(0.5))
       //model.add(new DropoutNoiseLayer(0.5));
       //  model.add(Dense(4096, activation='relu'))
-      add(new com.simiacryptus.mindseye.layers.java.FullyConnectedLayer(new int[]{4096}, new int[]{4096})
+      add(new FullyConnectedLayer(new int[]{4096}, new int[]{4096})
         .set(hdf5.readDataSet("param_0", "layer_34")
           .permuteDimensions(fullyconnectedOrder))
       );
@@ -482,7 +483,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
       //  model.add(Dropout(0.5))
       //model.add(new DropoutNoiseLayer(0.5));
       //  model.add(Dense(1000, activation='softmax'))
-      add(new com.simiacryptus.mindseye.layers.java.FullyConnectedLayer(new int[]{4096}, new int[]{1000})
+      add(new FullyConnectedLayer(new int[]{4096}, new int[]{1000})
         .set(hdf5.readDataSet("param_0", "layer_36")
           .permuteDimensions(fullyconnectedOrder))
         .setName("fullyconnected_36"));

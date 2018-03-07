@@ -79,7 +79,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
    *
    * @param json the json
    */
-  protected ActivationLayer(@javax.annotation.Nonnull final JsonObject json) {
+  protected ActivationLayer(@Nonnull final JsonObject json) {
     super(json);
     mode = json.getAsJsonPrimitive("mode").getAsInt();
     precision = Precision.valueOf(json.get("precision").getAsString());
@@ -90,7 +90,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
    *
    * @param mode the mode
    */
-  public ActivationLayer(@javax.annotation.Nonnull final Mode mode) {
+  public ActivationLayer(@Nonnull final Mode mode) {
     this(mode.id);
   }
   
@@ -101,7 +101,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
    * @param rs   the rs
    * @return the activation layer
    */
-  public static ActivationLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ActivationLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ActivationLayer(json);
   }
   
@@ -124,7 +124,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
    *
    * @return the compatibility layer
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public Layer getCompatibilityLayer() {
     if (mode == Mode.SIGMOID.id) {
       return new SigmoidActivationLayer().setBalanced(false);
@@ -139,7 +139,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
   
   @Nullable
   @Override
-  public Result evalAndFree(@javax.annotation.Nonnull final Result... inObj) {
+  public Result evalAndFree(@Nonnull final Result... inObj) {
     if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     final Result inputResult = inObj[0];
@@ -157,15 +157,15 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
           outputTensor = inputTensor;
         }
         else {
-          @javax.annotation.Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision,
+          @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision,
             length, inputSize[2], inputSize[1], inputSize[0],
             inputSize[2] * inputSize[1] * inputSize[0], inputSize[1] * inputSize[0], inputSize[0], 1);
-          @javax.annotation.Nonnull final CudaMemory outputData =
+          @Nonnull final CudaMemory outputData =
             gpu.allocate(precision.size * 1l * inputDims * length, MemoryType.Managed, true);
           outputTensor = CudaTensor.wrap(outputData, outputDescriptor, precision);
         }
   
-        @javax.annotation.Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = gpu.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
+        @Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = gpu.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
         try {
           CudaMemory memory = inputTensor.getMemory(gpu);
           CudaMemory tensorMemory = outputTensor.getMemory(gpu);
@@ -175,7 +175,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
           tensorMemory.freeRef();
           memory.freeRef();
           return outputTensor;
-        } catch (@javax.annotation.Nonnull final Throwable e) {
+        } catch (@Nonnull final Throwable e) {
           throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
         } finally {
           activationDesc.freeRef();
@@ -183,7 +183,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
         }
       }, inputData);
       return new Result(CudaTensorList.create(outPtr, length, outputSize, precision),
-        (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+        (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
           if (inputResult.isAlive()) {
             final TensorList data = CudaSystem.eval(gpu -> {
               @Nullable CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, true);
@@ -208,8 +208,8 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
                   inputSize[1] * inputSize[0],
                   inputSize[0],
                   1), precision);
-      
-              @javax.annotation.Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = gpu.newActivationDescriptor(mode,
+  
+              @Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = gpu.newActivationDescriptor(mode,
                 cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
               try {
                 CudaMemory localOutMemory = localOut.getMemory(gpu);
@@ -227,7 +227,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
                 deltaTensorMemory.freeRef();
                 inputTensorMemory.freeRef();
                 passbackTensorMemory.freeRef();
-              } catch (@javax.annotation.Nonnull final Throwable e) {
+              } catch (@Nonnull final Throwable e) {
                 throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
               } finally {
                 localOut.freeRef();
@@ -261,15 +261,15 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
           return inputResult.isAlive() || !isFrozen();
         }
       };
-    } catch (@javax.annotation.Nonnull final Throwable e) {
+    } catch (@Nonnull final Throwable e) {
       throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
     }
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("mode", mode);
     json.addProperty("precision", precision.name());
     return json;
@@ -280,14 +280,14 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
     return precision;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public ActivationLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

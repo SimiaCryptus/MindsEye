@@ -63,7 +63,7 @@ final class InputNode extends LazyResult {
   }
   
   @Override
-  protected Result eval(@javax.annotation.Nonnull final GraphEvaluationContext context) {
+  protected Result eval(@Nonnull final GraphEvaluationContext context) {
     assertAlive();
     this.dagNetwork.assertAlive();
     synchronized (context) {

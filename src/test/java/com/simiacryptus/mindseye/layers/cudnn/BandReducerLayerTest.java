@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
+import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
@@ -44,7 +45,7 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
     this.precision = precision;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
@@ -52,13 +53,13 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new BandReducerLayer().setPrecision(precision);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
@@ -89,7 +90,7 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
       super(Precision.Double);
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
@@ -97,7 +98,7 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
       };
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return new int[][]{

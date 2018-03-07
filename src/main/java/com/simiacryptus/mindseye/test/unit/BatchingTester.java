@@ -75,7 +75,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
    * @return the tolerance statistics
    */
   @Nonnull
-  public ToleranceStatistics test(@Nullable final Layer reference, @javax.annotation.Nonnull final Tensor[] inputPrototype) {
+  public ToleranceStatistics test(@Nullable final Layer reference, @Nonnull final Tensor[] inputPrototype) {
     if (null == reference) return new ToleranceStatistics();
   
     final TensorList[] inputTensorLists = Arrays.stream(inputPrototype).map(t ->
@@ -89,14 +89,14 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
           Tensor[] inputTensors = IntStream.range(0, inputTensorLists.length)
             .mapToObj(i -> inputTensorLists[i].get(batch)).toArray(i -> new Tensor[i]);
           @Nonnull SimpleEval eval = SimpleEval.run(reference, inputTensors);
-          for (@javax.annotation.Nonnull Tensor tensor : inputTensors) {
+        for (@Nonnull Tensor tensor : inputTensors) {
             tensor.freeRef();
           }
           return eval;
         }
       ).collect(Collectors.toList());
     } finally {
-      for (@javax.annotation.Nonnull TensorList tensorList : inputTensorLists) {
+      for (@Nonnull TensorList tensorList : inputTensorLists) {
         tensorList.freeRef();
       }
     }
@@ -104,7 +104,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
   
       TensorList batchOutput = asABatch.getOutput();
       @Nonnull IntFunction<ToleranceStatistics> toleranceStatisticsIntFunction = batch -> {
-        @javax.annotation.Nullable Tensor batchTensor = batchOutput.get(batch);
+        @Nullable Tensor batchTensor = batchOutput.get(batch);
         @Nonnull ToleranceStatistics accumulate = new ToleranceStatistics().accumulate(
           batchTensor.getData(),
           oneAtATime.get(batch).getOutput().getData());
@@ -112,7 +112,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
         return accumulate;
       };
       int batchLength = batchOutput.length();
-      @javax.annotation.Nonnull final ToleranceStatistics outputAgreement = IntStream.range(0, Math.min(getBatchSize(), batchLength))
+      @Nonnull final ToleranceStatistics outputAgreement = IntStream.range(0, Math.min(getBatchSize(), batchLength))
         .mapToObj(toleranceStatisticsIntFunction)
         .reduce((a, b) -> a.combine(b)).get();
       if (!(outputAgreement.absoluteTol.getMax() < tolerance)) {
@@ -127,9 +127,9 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
   
       ToleranceStatistics derivativeAgreement = IntStream.range(0, Math.min(getBatchSize(), batchLength)).mapToObj(batch -> {
         IntFunction<ToleranceStatistics> statisticsFunction = input -> {
-          @javax.annotation.Nullable Tensor a = asABatch.getInputDerivative()[input].get(batch);
+          @Nullable Tensor a = asABatch.getInputDerivative()[input].get(batch);
           Tensor b = oneAtATime.get(batch).getDerivative()[input];
-          @javax.annotation.Nonnull Tensor diff = a.minus(b);
+          @Nonnull Tensor diff = a.minus(b);
           logger.info("Error: " + diff.prettyPrint());
           logger.info("Scalar Statistics: " + new ScalarStatistics().add(diff.getData()).getMetrics());
           double[][] points = Arrays.stream(diff.getData()).mapToObj(x -> new double[]{x}).toArray(i -> new double[i][]);
@@ -161,7 +161,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
    * @return the tolerance statistics
    */
   @Override
-  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, final Layer reference, @javax.annotation.Nonnull final Tensor... inputPrototype) {
+  public ToleranceStatistics test(@Nonnull final NotebookOutput log, final Layer reference, @Nonnull final Tensor... inputPrototype) {
     log.h1("Batch Execution");
     log.p("Most layers, including this one, should behave the same no matter how the items are split between batches. We verify this:");
     return log.code(() -> {
@@ -184,13 +184,13 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
    * @param batchSize the batch size
    * @return the batch size
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public BatchingTester setBatchSize(int batchSize) {
     this.batchSize = batchSize;
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public String toString() {
     return "BatchingTester{" +

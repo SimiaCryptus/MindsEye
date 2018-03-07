@@ -24,6 +24,8 @@ import com.simiacryptus.mindseye.lang.ReshapedTensorList;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.util.lang.TimedResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,25 +38,15 @@ import java.util.stream.Stream;
 /**
  * A TensorList data object stored on a GPU with a configurable precision.
  */
-public class CudaTensorList extends RegisteredObjectBase implements TensorList {
+public class CudaTensorList extends RegisteredObjectBase implements TensorList, CudaSystem.CudaDeviceResource {
   /**
    * The constant logger.
    */
   public static final Logger logger = LoggerFactory.getLogger(CudaTensorList.class);
   
   
-  public final StackTraceElement[] createdBy = CudaSettings.INSTANCE.isProfileMemory() ? getStackTrace() : new StackTraceElement[]{};
-  
-  public static StackTraceElement[] getStackTrace() {
-    return java.util.Arrays.stream(Thread.currentThread().getStackTrace())
-      .filter(x -> x.getClassName().startsWith("com.simiacryptus.mindseye.") && !x.getClassName().startsWith("com.simiacryptus.mindseye.lang."))
-      .limit(1)
-      .toArray(i -> new StackTraceElement[i]);
-  }
-  
-  
-  
-  @javax.annotation.Nonnull
+  public final StackTraceElement[] createdBy = CudaSettings.INSTANCE.isProfileMemoryIO() ? getStackTrace() : new StackTraceElement[]{};
+  @Nonnull
   private final int[] dimensions;
   private final int length;
   /**
@@ -67,7 +59,6 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    */
   @Nullable
   volatile TensorArray heapCopy = null;
-  
   /**
    * Instantiates a new Cu dnn double tensor list.
    *
@@ -76,7 +67,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    * @param dimensions the dimensions
    * @param precision  the precision
    */
-  private CudaTensorList(@Nullable final CudaTensor ptr, final int length, @javax.annotation.Nonnull final int[] dimensions, @javax.annotation.Nonnull final Precision precision) {
+  private CudaTensorList(@Nullable final CudaTensor ptr, final int length, @Nonnull final int[] dimensions, @Nonnull final Precision precision) {
     //assert 1 == ptr.currentRefCount() : ptr.referenceReport(false, false);
     if (null == ptr) throw new IllegalArgumentException("ptr");
     if (null == ptr.memory.getPtr()) throw new IllegalArgumentException("ptr.getPtr()");
@@ -92,6 +83,13 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     assert ptr.getPrecision() == precision;
     assert ptr.memory.getPtr() != null;
     //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+  }
+  
+  public static StackTraceElement[] getStackTrace() {
+    return Arrays.stream(Thread.currentThread().getStackTrace())
+      .filter(x -> x.getClassName().startsWith("com.simiacryptus.mindseye.") && !x.getClassName().startsWith("com.simiacryptus.mindseye.lang."))
+      .limit(1)
+      .toArray(i -> new StackTraceElement[i]);
   }
   
   /**
@@ -117,9 +115,9 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    * @param precision  the precision
    * @return the gpu tensor list
    */
-  @javax.annotation.Nonnull
-  public static CudaTensorList wrap(@javax.annotation.Nonnull final CudaTensor ptr, final int length, @javax.annotation.Nonnull final int[] dimensions, @javax.annotation.Nonnull final Precision precision) {
-    @javax.annotation.Nonnull CudaTensorList cudaTensorList = new CudaTensorList(ptr, length, dimensions, precision);
+  @Nonnull
+  public static CudaTensorList wrap(@Nonnull final CudaTensor ptr, final int length, @Nonnull final int[] dimensions, @Nonnull final Precision precision) {
+    @Nonnull CudaTensorList cudaTensorList = new CudaTensorList(ptr, length, dimensions, precision);
     ptr.freeRef();
     return cudaTensorList;
   }
@@ -133,7 +131,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    * @param precision  the precision
    * @return the gpu tensor list
    */
-  public static CudaTensorList create(final CudaTensor ptr, final int length, @javax.annotation.Nonnull final int[] dimensions, @javax.annotation.Nonnull final Precision precision) {
+  public static CudaTensorList create(final CudaTensor ptr, final int length, @Nonnull final int[] dimensions, @Nonnull final Precision precision) {
     return new CudaTensorList(ptr, length, dimensions, precision);
   }
   
@@ -147,19 +145,19 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    * @param precision  the precision
    * @return the cuda tensor list
    */
-  public static CudaTensorList create(final CudaMemory ptr, CudaDevice.CudaTensorDescriptor descriptor, final int length, @javax.annotation.Nonnull final int[] dimensions, @javax.annotation.Nonnull final Precision precision) {
+  public static CudaTensorList create(final CudaMemory ptr, CudaDevice.CudaTensorDescriptor descriptor, final int length, @Nonnull final int[] dimensions, @Nonnull final Precision precision) {
     CudaTensor cudaTensor = new CudaTensor(ptr, descriptor, precision);
     CudaTensorList cudaTensorList = new CudaTensorList(cudaTensor, length, dimensions, precision);
     cudaTensor.freeRef();
     return cudaTensorList;
   }
   
-  private int getDeviceId() {
+  public int getDeviceId() {
     return null == ptr ? -1 : ptr.memory.getDeviceId();
   }
   
   @Override
-  public synchronized TensorList addAndFree(@javax.annotation.Nonnull final TensorList right) {
+  public synchronized TensorList addAndFree(@Nonnull final TensorList right) {
     assertAlive();
     if (right instanceof ReshapedTensorList) return addAndFree(((ReshapedTensorList) right).getInner());
     if (1 < currentRefCount()) {
@@ -167,11 +165,10 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
       freeRef();
       return sum;
     }
-  
     assert length() == right.length();
     if (heapCopy == null) {
       if (right instanceof CudaTensorList) {
-        @javax.annotation.Nonnull final CudaTensorList nativeRight = (CudaTensorList) right;
+        @Nonnull final CudaTensorList nativeRight = (CudaTensorList) right;
         synchronized (right) {
           if (nativeRight.getPrecision() == this.getPrecision()) {
             if (nativeRight.heapCopy == null) {
@@ -187,7 +184,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
                   freeRef();
                   return add;
                 }
-              }, ptr);
+              }, this, right);
             }
           }
         }
@@ -199,21 +196,21 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     return TensorArray.wrap(IntStream.range(0, length()).mapToObj(i -> {
       Tensor a = get(i);
       Tensor b = right.get(i);
-      @javax.annotation.Nullable Tensor r = a.addAndFree(b);
+      @Nullable Tensor r = a.addAndFree(b);
       b.freeRef();
       return r;
     }).toArray(i -> new Tensor[i]));
   }
   
   @Override
-  public TensorList add(@javax.annotation.Nonnull final TensorList right) {
+  public TensorList add(@Nonnull final TensorList right) {
     assertAlive();
     right.assertAlive();
     assert length() == right.length();
     if (right instanceof ReshapedTensorList) return add(((ReshapedTensorList) right).getInner());
     if (heapCopy == null) {
       if (right instanceof CudaTensorList) {
-        @javax.annotation.Nonnull final CudaTensorList nativeRight = (CudaTensorList) right;
+        @Nonnull final CudaTensorList nativeRight = (CudaTensorList) right;
         if (nativeRight.getPrecision() == this.getPrecision()) {
           if (nativeRight.heapCopy == null) {
             return CudaSystem.eval(gpu -> {
@@ -229,7 +226,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     return TensorArray.wrap(IntStream.range(0, length()).mapToObj(i -> {
       Tensor a = get(i);
       Tensor b = right.get(i);
-      @javax.annotation.Nullable Tensor r = a.addAndFree(b);
+      @Nullable Tensor r = a.addAndFree(b);
       b.freeRef();
       return r;
     }).toArray(i -> new Tensor[i]));
@@ -241,11 +238,11 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
     assertAlive();
     if (heapCopy != null) return heapCopy.get(i);
     return CudaSystem.eval(gpu -> {
-      com.simiacryptus.util.lang.TimedResult<com.simiacryptus.mindseye.lang.Tensor> timedResult = com.simiacryptus.util.lang.TimedResult.time(() -> {
-        com.simiacryptus.mindseye.lang.Tensor t = new com.simiacryptus.mindseye.lang.Tensor(getDimensions());
+      TimedResult<Tensor> timedResult = TimedResult.time(() -> {
+        Tensor t = new Tensor(getDimensions());
         if (this.ptr.isDense()) {
-          com.simiacryptus.mindseye.lang.cudnn.CudaMemory memory = this.ptr.getMemory(gpu);
-          memory.read(getPrecision(), t.getData(), i * com.simiacryptus.mindseye.lang.Tensor.length(getDimensions()));
+          CudaMemory memory = this.ptr.getMemory(gpu);
+          memory.read(getPrecision(), t.getData(), i * Tensor.length(getDimensions()));
           memory.freeRef();
         }
         else {
@@ -255,8 +252,8 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
       });
       CudaTensorList.logger.debug(String.format("Read %s bytes in %.4f from Tensor %s, GPU at %s, created by %s",
         ptr.size(), timedResult.seconds(), Integer.toHexString(System.identityHashCode(timedResult.result)),
-        com.simiacryptus.mindseye.test.TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
-        com.simiacryptus.mindseye.test.TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
+        TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
+        TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
       Tensor tensor = timedResult.result;
       return tensor;
     }, CudaTensorList.this);
@@ -265,7 +262,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
   /**
    * The Dimensions.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[] getDimensions() {
     return Arrays.copyOf(dimensions, dimensions.length);
@@ -279,7 +276,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
    *
    * @return the precision
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public Precision getPrecision() {
     return null == ptr ? Precision.Double : ptr.getPrecision();
   }
@@ -301,8 +298,8 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
   @Nullable
   private TensorArray heapCopy(final boolean avoidAllocations) {
     if (null == heapCopy || heapCopy.isFinalized()) {
-      com.simiacryptus.mindseye.lang.TensorArray copy = toHeap(avoidAllocations);
-      final com.simiacryptus.mindseye.lang.TensorArray prev;
+      TensorArray copy = toHeap(avoidAllocations);
+      final TensorArray prev;
       synchronized (this) {
         if (null == heapCopy || heapCopy.isFinalized()) {
           prev = this.heapCopy;
@@ -318,7 +315,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
   }
   
   private TensorArray toHeap(final boolean avoidAllocations) {
-    com.simiacryptus.util.lang.TimedResult<com.simiacryptus.mindseye.lang.TensorArray> timedResult = com.simiacryptus.util.lang.TimedResult.time(() -> com.simiacryptus.mindseye.lang.cudnn.CudaDevice.eval(gpu -> {
+    TimedResult<TensorArray> timedResult = TimedResult.time(() -> CudaDevice.eval(gpu -> {
       if (null == this.ptr) {
         if (null == heapCopy) {
           throw new IllegalStateException("No data");
@@ -331,21 +328,21 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList {
       try {
         assert getPrecision() == this.ptr.getPrecision();
         assert getPrecision() == this.ptr.descriptor.dataType;
-        final com.simiacryptus.mindseye.lang.Tensor[] output = java.util.stream.IntStream.range(0, getLength())
-          .mapToObj(dataIndex -> new com.simiacryptus.mindseye.lang.Tensor(getDimensions()))
-          .toArray(i -> new com.simiacryptus.mindseye.lang.Tensor[i]);
+        final Tensor[] output = IntStream.range(0, getLength())
+          .mapToObj(dataIndex -> new Tensor(getDimensions()))
+          .toArray(i -> new Tensor[i]);
         for (int i = 0; i < getLength(); i++) {
           this.ptr.read(gpu, i, output[i], avoidAllocations);
         }
-        return com.simiacryptus.mindseye.lang.TensorArray.wrap(output);
+        return TensorArray.wrap(output);
       } finally {
         this.ptr.freeRef();
       }
     }, this));
     CudaTensorList.logger.debug(String.format("Read %s bytes in %.4f from Tensor %s on GPU at %s, created by %s",
       ptr.size(), timedResult.seconds(), Integer.toHexString(System.identityHashCode(timedResult.result)),
-      com.simiacryptus.mindseye.test.TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
-      com.simiacryptus.mindseye.test.TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
+      TestUtil.toString(CudaTensorList.getStackTrace()).replaceAll("\n", "\n\t"),
+      TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
     return timedResult.result;
   }
   

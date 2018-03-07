@@ -63,7 +63,7 @@ public class ImgBandSelectLayer extends LayerBase {
    *
    * @param json the json
    */
-  protected ImgBandSelectLayer(@javax.annotation.Nonnull final JsonObject json) {
+  protected ImgBandSelectLayer(@Nonnull final JsonObject json) {
     super(json);
     final JsonArray jsonArray = json.getAsJsonArray("bands");
     bands = new int[jsonArray.size()];
@@ -79,18 +79,18 @@ public class ImgBandSelectLayer extends LayerBase {
    * @param rs   the rs
    * @return the img band select layer
    */
-  public static ImgBandSelectLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgBandSelectLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ImgBandSelectLayer(json);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     final Result input = inObj[0];
     final TensorList batch = input.getData();
-    @javax.annotation.Nonnull final int[] inputDims = batch.getDimensions();
+    @Nonnull final int[] inputDims = batch.getDimensions();
     assert 3 == inputDims.length;
-    @javax.annotation.Nonnull final Tensor outputDims = new Tensor(inputDims[0], inputDims[1], bands.length);
+    @Nonnull final Tensor outputDims = new Tensor(inputDims[0], inputDims[1], bands.length);
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     @Nonnull TensorArray wrap = TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
       .mapToObj(dataIndex -> outputDims.mapCoords((c) -> {
@@ -102,11 +102,11 @@ public class ImgBandSelectLayer extends LayerBase {
       }))
       .toArray(i -> new Tensor[i]));
     outputDims.freeRef();
-    return new Result(wrap, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+    return new Result(wrap, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
       if (input.isAlive()) {
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
+        @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
           .mapToObj(dataIndex -> {
-            @javax.annotation.Nonnull final Tensor passback = new Tensor(inputDims);
+            @Nonnull final Tensor passback = new Tensor(inputDims);
             @Nullable final Tensor err = error.get(dataIndex);
             err.coordStream(false).forEach(c -> {
               int[] coords = c.getCoords();
@@ -131,11 +131,11 @@ public class ImgBandSelectLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
-    @javax.annotation.Nonnull final JsonArray array = new JsonArray();
+    @Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonArray array = new JsonArray();
     for (final int b : bands) {
       array.add(new JsonPrimitive(b));
     }
@@ -144,7 +144,7 @@ public class ImgBandSelectLayer extends LayerBase {
   }
   
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return new ArrayList<>();

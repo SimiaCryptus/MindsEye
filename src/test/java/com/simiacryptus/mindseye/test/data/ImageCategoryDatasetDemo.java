@@ -26,6 +26,7 @@ import com.simiacryptus.util.lang.SupplierWeakCache;
 import com.simiacryptus.util.test.LabeledObject;
 import org.junit.Test;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -53,7 +54,7 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
    *
    * @param log the log
    */
-  public void run(@javax.annotation.Nonnull NotebookOutput log) {
+  public void run(@Nonnull NotebookOutput log) {
     log.h3("Loading Data");
     List<LabeledObject<SupplierWeakCache<BufferedImage>>> testData =
       getTrainingStream(log).sorted(getShuffleComparator()).collect(Collectors.toList());
@@ -97,7 +98,7 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
     return Comparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public ReportType getReportType() {
     return ReportType.Data;

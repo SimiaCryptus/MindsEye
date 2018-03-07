@@ -25,17 +25,25 @@ import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
+import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
+import com.simiacryptus.mindseye.layers.cudnn.GateProductLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
+import com.simiacryptus.mindseye.layers.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.layers.cudnn.StochasticSamplingSubnetLayer;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
+import com.simiacryptus.mindseye.layers.java.StochasticBinaryNoiseLayer;
+import com.simiacryptus.mindseye.layers.java.SumReducerLayer;
 import com.simiacryptus.mindseye.models.Hdf5Archive;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
+import com.simiacryptus.mindseye.network.DAGNetwork;
+import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.InnerNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
@@ -90,20 +98,20 @@ public class StyleTransferDemo extends ArtistryDemo {
    *
    * @param log the log
    */
-  public void run(@javax.annotation.Nonnull NotebookOutput log) {
+  public void run(@Nonnull NotebookOutput log) {
     init();
     
     List<String> control = Arrays.asList("H:\\SimiaCryptus\\Artistry\\portraits\\photos");
     List<String> target = Arrays.asList("H:\\SimiaCryptus\\Artistry\\portraits\\picasso");
     String input = "H:\\SimiaCryptus\\Artistry\\portraits\\photos\\1280px-Winter_baby_10-months-old.jpg";
   
-    @javax.annotation.Nonnull String logName = "cuda_" + log.getName() + ".log";
+    @Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
   
-    com.simiacryptus.mindseye.lang.cudnn.Precision precision = com.simiacryptus.mindseye.lang.cudnn.Precision.Float;
+    Precision precision = Precision.Float;
     log.h1("Model");
-    com.simiacryptus.mindseye.lang.Layer trainedCategorizer = buildCategorizer(precision);
+    Layer trainedCategorizer = buildCategorizer(precision);
     
     Layer fullNetwork = log.code(() -> {
       try {
@@ -153,8 +161,8 @@ public class StyleTransferDemo extends ArtistryDemo {
   
     log.h1("Model Training");
   
-    @javax.annotation.Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-    @javax.annotation.Nonnull PipelineNetwork supervised1 = new PipelineNetwork(2);
+    @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+    @Nonnull PipelineNetwork supervised1 = new PipelineNetwork(2);
     supervised1.wrap(getLossLayer(),
       supervised1.add(trainedCategorizer, supervised1.getInput(0)),
       supervised1.getInput(1));
@@ -180,7 +188,7 @@ public class StyleTransferDemo extends ArtistryDemo {
     log.h1("Output Processing");
     for (int itemNumber = 0; itemNumber < inputData.length; itemNumber++) {
       log.h1("Image " + itemNumber);
-      @javax.annotation.Nonnull List<Tensor[]> data = Arrays.<Tensor[]>asList(inputData[itemNumber]);
+      @Nonnull List<Tensor[]> data = Arrays.<Tensor[]>asList(inputData[itemNumber]);
       log.code(() -> {
         for (Tensor[] tensors : data) {
           try {
@@ -191,18 +199,18 @@ public class StyleTransferDemo extends ArtistryDemo {
         }
       });
       history.clear();
-      @javax.annotation.Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
+      @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
       clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
       clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
       clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
       clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-      @javax.annotation.Nonnull PipelineNetwork supervised2 = new PipelineNetwork(2);
+      @Nonnull PipelineNetwork supervised2 = new PipelineNetwork(2);
       InnerNode clamped = supervised2.wrap(clamp, supervised2.getInput(0));
       supervised2.wrap(getLossLayer(),
         supervised2.add(fullNetwork, clamped),
         supervised2.getInput(1));
       TestUtil.monitorImage(data.get(0)[0], false);
-      @javax.annotation.Nonnull Trainable trainable = new ArrayTrainable(supervised2, 1).setVerbose(true).setMask(true, false).setData(data);
+      @Nonnull Trainable trainable = new ArrayTrainable(supervised2, 1).setVerbose(true).setMask(true, false).setData(data);
       TestUtil.instrumentPerformance(log, supervised2);
       addLayersHandler(supervised2, server);
       new IterativeTrainer(trainable)
@@ -231,10 +239,10 @@ public class StyleTransferDemo extends ArtistryDemo {
    * @param network   the network
    * @param precision the precision
    */
-  public void setPrecision(final com.simiacryptus.mindseye.network.DAGNetwork network, final com.simiacryptus.mindseye.lang.cudnn.Precision precision) {
+  public void setPrecision(final DAGNetwork network, final Precision precision) {
     network.visitLayers(layer -> {
-      if (layer instanceof com.simiacryptus.mindseye.layers.cudnn.MultiPrecision) {
-        ((com.simiacryptus.mindseye.layers.cudnn.MultiPrecision) layer).setPrecision(precision);
+      if (layer instanceof MultiPrecision) {
+        ((MultiPrecision) layer).setPrecision(precision);
       }
     });
   }
@@ -276,7 +284,7 @@ public class StyleTransferDemo extends ArtistryDemo {
    * @return the com . simiacryptus . mindseye . lang . layer
    */
   @Nonnull
-  protected com.simiacryptus.mindseye.lang.Layer buildCategorizer(final com.simiacryptus.mindseye.lang.cudnn.Precision precision) {
+  protected Layer buildCategorizer(final Precision precision) {
     PipelineNetwork trainedCategorizer = new PipelineNetwork();
 //    trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 4096)
 //      .setPaddingXY(0, 0).setWeightsLog(-4));
@@ -296,8 +304,8 @@ public class StyleTransferDemo extends ArtistryDemo {
    * @param history the history
    * @return the training monitor
    */
-  @javax.annotation.Nonnull
-  public TrainingMonitor getTrainingMonitor(@javax.annotation.Nonnull ArrayList<StepRecord> history) {
+  @Nonnull
+  public TrainingMonitor getTrainingMonitor(@Nonnull ArrayList<StepRecord> history) {
     return TestUtil.getMonitor(history);
   }
   
@@ -317,12 +325,12 @@ public class StyleTransferDemo extends ArtistryDemo {
    *
    * @return the target class
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   protected Class<?> getTargetClass() {
     return VGG16.class;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public ReportType getReportType() {
     return ReportType.Demos;
@@ -340,7 +348,7 @@ public class StyleTransferDemo extends ArtistryDemo {
     
     @Nonnull
     @Override
-    protected com.simiacryptus.mindseye.lang.Layer buildCategorizer(final com.simiacryptus.mindseye.lang.cudnn.Precision precision) {
+    protected Layer buildCategorizer(final Precision precision) {
       PipelineNetwork trainedCategorizer = new PipelineNetwork();
       
       trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 2)
@@ -364,17 +372,17 @@ public class StyleTransferDemo extends ArtistryDemo {
     
     @Nonnull
     @Override
-    protected com.simiacryptus.mindseye.lang.Layer buildCategorizer(final com.simiacryptus.mindseye.lang.cudnn.Precision precision) {
+    protected Layer buildCategorizer(final Precision precision) {
       PipelineNetwork trainedCategorizer = new PipelineNetwork();
       
       double density = 0.5;
       int hiddenBands = 4096;
       trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, hiddenBands)
         .setPaddingXY(0, 0).setWeightsLog(-4).explode());
-      com.simiacryptus.mindseye.network.InnerNode node1 = trainedCategorizer.add(new com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer(hiddenBands).setWeightsLog(-4));
-      trainedCategorizer.wrap(new com.simiacryptus.mindseye.layers.cudnn.GateProductLayer(), node1,
-        trainedCategorizer.wrap(new com.simiacryptus.mindseye.layers.java.StochasticBinaryNoiseLayer(density, 1.0 / density, 1, 1, hiddenBands), new com.simiacryptus.mindseye.network.DAGNode[]{}));
-      trainedCategorizer.wrap(new com.simiacryptus.mindseye.layers.cudnn.ActivationLayer(com.simiacryptus.mindseye.layers.cudnn.ActivationLayer.Mode.RELU));
+      InnerNode node1 = trainedCategorizer.add(new ImgBandBiasLayer(hiddenBands).setWeightsLog(-4));
+      trainedCategorizer.wrap(new GateProductLayer(), node1,
+        trainedCategorizer.wrap(new StochasticBinaryNoiseLayer(density, 1.0 / density, 1, 1, hiddenBands), new DAGNode[]{}));
+      trainedCategorizer.wrap(new ActivationLayer(ActivationLayer.Mode.RELU));
       
       trainedCategorizer.add(new ConvolutionLayer(1, 1, hiddenBands, 2)
         .setPaddingXY(0, 0).setWeightsLog(-4).explode());
@@ -382,8 +390,8 @@ public class StyleTransferDemo extends ArtistryDemo {
       trainedCategorizer.add(new SoftmaxActivationLayer().setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
       trainedCategorizer.add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
       setPrecision(trainedCategorizer, precision);
-      
-      return new com.simiacryptus.mindseye.layers.cudnn.StochasticSamplingSubnetLayer(trainedCategorizer, 3);
+  
+      return new StochasticSamplingSubnetLayer(trainedCategorizer, 3);
     }
   }
   
@@ -395,8 +403,8 @@ public class StyleTransferDemo extends ArtistryDemo {
     @Override
     public Layer getLossLayer() {
       PipelineNetwork network = new PipelineNetwork(2);
-      com.simiacryptus.mindseye.network.InnerNode mode1 = network.wrap(new com.simiacryptus.mindseye.layers.java.SumReducerLayer(),
-        network.wrap(new com.simiacryptus.mindseye.layers.cudnn.GateProductLayer(),
+      InnerNode mode1 = network.wrap(new SumReducerLayer(),
+        network.wrap(new GateProductLayer(),
           network.getInput(0),
           network.getInput(1)));
       network.wrap(new LinearActivationLayer().setScale(-1).freeze(), mode1);
@@ -405,7 +413,7 @@ public class StyleTransferDemo extends ArtistryDemo {
     
     @Nonnull
     @Override
-    protected com.simiacryptus.mindseye.lang.Layer buildCategorizer(final com.simiacryptus.mindseye.lang.cudnn.Precision precision) {
+    protected Layer buildCategorizer(final Precision precision) {
       PipelineNetwork trainedCategorizer = new PipelineNetwork();
       trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 2)
         .setPaddingXY(0, 0).setWeightsLog(-4).explode());

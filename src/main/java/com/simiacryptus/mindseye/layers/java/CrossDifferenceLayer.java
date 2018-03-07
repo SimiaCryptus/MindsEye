@@ -29,6 +29,7 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
@@ -52,7 +53,7 @@ public class CrossDifferenceLayer extends LayerBase {
    *
    * @param id the id
    */
-  protected CrossDifferenceLayer(@javax.annotation.Nonnull final JsonObject id) {
+  protected CrossDifferenceLayer(@Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -63,7 +64,7 @@ public class CrossDifferenceLayer extends LayerBase {
    * @param rs   the rs
    * @return the cross difference layer
    */
-  public static CrossDifferenceLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static CrossDifferenceLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new CrossDifferenceLayer(json);
   }
   
@@ -79,15 +80,15 @@ public class CrossDifferenceLayer extends LayerBase {
     return max * (max - 1) / 2 - (max - x) * (max - x - 1) / 2 + y - x - 1;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     assert 1 == inObj.length;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     return new Result(TensorArray.wrap(inObj[0].getData().stream().parallel().map(tensor -> {
       final int inputDim = tensor.length();
       final int outputDim = (inputDim * inputDim - inputDim) / 2;
-      @javax.annotation.Nonnull final Tensor result = new Tensor(outputDim);
+      @Nonnull final Tensor result = new Tensor(outputDim);
       @Nullable final double[] inputData = tensor.getData();
       @Nullable final double[] resultData = result.getData();
       IntStream.range(0, inputDim).forEach(x -> {
@@ -97,13 +98,13 @@ public class CrossDifferenceLayer extends LayerBase {
       });
       tensor.freeRef();
       return result;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       final Result input = inObj[0];
       if (input.isAlive()) {
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(data.stream().parallel().map(tensor -> {
+        @Nonnull TensorArray tensorArray = TensorArray.wrap(data.stream().parallel().map(tensor -> {
           final int outputDim = tensor.length();
           final int inputDim = (1 + (int) Math.sqrt(1 + 8 * outputDim)) / 2;
-          @javax.annotation.Nonnull final Tensor passback = new Tensor(inputDim);
+          @Nonnull final Tensor passback = new Tensor(inputDim);
           @Nullable final double[] passbackData = passback.getData();
           @Nullable final double[] tensorData = tensor.getData();
           IntStream.range(0, inputDim).forEach(x -> {
@@ -126,7 +127,7 @@ public class CrossDifferenceLayer extends LayerBase {
       
       @Override
       public boolean isAlive() {
-        for (@javax.annotation.Nonnull final Result element : inObj)
+        for (@Nonnull final Result element : inObj)
           if (element.isAlive()) {
             return true;
           }
@@ -136,13 +137,13 @@ public class CrossDifferenceLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

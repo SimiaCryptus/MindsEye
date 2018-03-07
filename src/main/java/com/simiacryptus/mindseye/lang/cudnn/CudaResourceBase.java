@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  *
  * @param <T> the type parameter
  */
-public abstract class CudaResourceBase<T> extends ReferenceCountingBase {
+public abstract class CudaResourceBase<T> extends ReferenceCountingBase implements CudaSystem.CudaDeviceResource {
   private static final Logger logger = LoggerFactory.getLogger(CudaResourceBase.class);
   /**
    * The Obj generation.

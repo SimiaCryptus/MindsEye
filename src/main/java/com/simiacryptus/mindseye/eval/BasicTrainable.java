@@ -115,11 +115,11 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
    * @return the point sample
    */
   @Nonnull
-  protected PointSample eval(@javax.annotation.Nonnull final List<Tensor[]> list, @Nullable final TrainingMonitor monitor) {
-    @javax.annotation.Nonnull final TimedResult<PointSample> timedResult = TimedResult.time(() -> {
+  protected PointSample eval(@Nonnull final List<Tensor[]> list, @Nullable final TrainingMonitor monitor) {
+    @Nonnull final TimedResult<PointSample> timedResult = TimedResult.time(() -> {
       final Result[] nnContext = BasicTrainable.getNNContext(list, mask);
       final Result result = network.eval(nnContext);
-      for (@javax.annotation.Nonnull Result nnResult : nnContext) {
+      for (@Nonnull Result nnResult : nnContext) {
         nnResult.getData().freeRef();
         nnResult.freeRef();
       }
@@ -131,18 +131,18 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
           return Arrays.stream(array);
         }).summaryStatistics();
       final double sum = statistics.getSum();
-      @javax.annotation.Nonnull final DeltaSet<Layer> deltaSet = new DeltaSet<Layer>();
-      @javax.annotation.Nonnull PointSample pointSample;
+      @Nonnull final DeltaSet<Layer> deltaSet = new DeltaSet<Layer>();
+      @Nonnull PointSample pointSample;
       try {
         result.accumulate(deltaSet, 1.0);
         //log.info(String.format("Evaluated to %s delta buffers, %s mag", DeltaSet<LayerBase>.getMap().size(), DeltaSet<LayerBase>.getMagnitude()));
-        @javax.annotation.Nonnull StateSet<Layer> stateSet = new StateSet<>(deltaSet);
+        @Nonnull StateSet<Layer> stateSet = new StateSet<>(deltaSet);
         pointSample = new PointSample(deltaSet, stateSet, sum, 0.0, list.size());
         stateSet.freeRef();
       } finally {
-        resultData.freeRef();
-        result.freeRef();
-        deltaSet.freeRef();
+        resultData.freeRefAsync();
+        result.freeRefAsync();
+        deltaSet.freeRefAsync();
       }
       return pointSample;
     });
@@ -154,7 +154,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
     return normalize;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Tensor[][] getData() {
     return data.toArray(new Tensor[][]{});
@@ -180,7 +180,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
   @Override
   public PointSample measure(@Nullable final TrainingMonitor monitor) {
     assert !data.isEmpty();
-    @javax.annotation.Nonnull final TimedResult<PointSample> timedResult = TimedResult.time(() -> eval(data, monitor));
+    @Nonnull final TimedResult<PointSample> timedResult = TimedResult.time(() -> eval(data, monitor));
     //          log.info(String.format("Evaluated to %s delta arrays", DeltaSet<LayerBase>.run.size()));
     if (null != monitor && verbosity() > 1) {
       monitor.log(String.format("Evaluated %s items in %.4fs (%s/%s)", data.size(), timedResult.timeNanos / 1e9, timedResult.result.getMean(), timedResult.result.delta.getMagnitude()));
@@ -189,9 +189,9 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
     return timedResult.result;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public synchronized Trainable setData(@javax.annotation.Nonnull final List<Tensor[]> data) {
+  public synchronized Trainable setData(@Nonnull final List<Tensor[]> data) {
     assert !data.isEmpty();
     data.stream().flatMap(x -> Arrays.stream(x)).forEach(x -> x.addRef(this));
     if (null != this.data) this.data.stream().flatMap(x -> Arrays.stream(x)).forEach(x -> x.freeRef());
@@ -199,7 +199,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public TrainableDataMask setMask(final boolean... mask) {
     this.mask = mask;
@@ -212,7 +212,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
    * @param verbose the verbose
    * @return the verbose
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public BasicTrainable setVerbosity(final int verbose) {
     verbosity = verbose;
     return this;

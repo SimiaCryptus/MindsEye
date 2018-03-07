@@ -68,9 +68,9 @@ public class ImageClassificationDemo extends ArtistryDemo {
    *
    * @param log the log
    */
-  public void run(@javax.annotation.Nonnull NotebookOutput log) {
-  
-  
+  public void run(@Nonnull NotebookOutput log) {
+    
+    
     log.h1("Model");
     ImageClassifier vgg16 = loadModel(log);
   
@@ -84,9 +84,9 @@ public class ImageClassificationDemo extends ArtistryDemo {
   
     log.h1("Results");
     log.code(() -> {
-      @javax.annotation.Nonnull TableOutput tableOutput = new TableOutput();
+      @Nonnull TableOutput tableOutput = new TableOutput();
       for (int i = 0; i < images.length; i++) {
-        @javax.annotation.Nonnull HashMap<String, Object> row = new HashMap<>();
+        @Nonnull HashMap<String, Object> row = new HashMap<>();
         row.put("Image", log.image(images[i].toImage(), ""));
         row.put("Prediction", predictions.get(i).entrySet().stream()
           .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
@@ -144,12 +144,12 @@ public class ImageClassificationDemo extends ArtistryDemo {
    *
    * @return the target class
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   protected Class<?> getTargetClass() {
     return ImageClassifier.class;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public ReportType getReportType() {
     return ReportType.Demos;

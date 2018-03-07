@@ -25,8 +25,12 @@ import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.BinaryChunkIterator;
 import com.simiacryptus.util.io.DataLoader;
 import com.simiacryptus.util.test.LabeledObject;
+import org.apache.commons.io.IOUtils;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,17 +58,17 @@ public class MNIST {
    */
   public static final DataLoader<LabeledObject<Tensor>> training = new DataLoader<LabeledObject<Tensor>>() {
     @Override
-    protected void read(@javax.annotation.Nonnull final List<LabeledObject<Tensor>> queue) {
+    protected void read(@Nonnull final List<LabeledObject<Tensor>> queue) {
       try {
         final Stream<Tensor> imgStream = MNIST.binaryStream("train-images-idx3-ubyte.gz", 16, 28 * 28).map(b -> {
           return MNIST.fillImage(b, new Tensor(28, 28, 1));
         });
-        @javax.annotation.Nonnull final Stream<byte[]> labelStream = MNIST.binaryStream("train-labels-idx1-ubyte.gz", 8, 1);
+        @Nonnull final Stream<byte[]> labelStream = MNIST.binaryStream("train-labels-idx1-ubyte.gz", 8, 1);
   
-        @javax.annotation.Nonnull final Stream<LabeledObject<Tensor>> merged = MNIST.toStream(new Iterator<LabeledObject<Tensor>>() {
-          @javax.annotation.Nonnull
+        @Nonnull final Stream<LabeledObject<Tensor>> merged = MNIST.toStream(new Iterator<LabeledObject<Tensor>>() {
+          @Nonnull
           Iterator<Tensor> imgItr = imgStream.iterator();
-          @javax.annotation.Nonnull
+          @Nonnull
           Iterator<byte[]> labelItr = labelStream.iterator();
           
           @Override
@@ -72,14 +76,14 @@ public class MNIST {
             return imgItr.hasNext() && labelItr.hasNext();
           }
     
-          @javax.annotation.Nonnull
+          @Nonnull
           @Override
           public LabeledObject<Tensor> next() {
             return new LabeledObject<>(imgItr.next(), Arrays.toString(labelItr.next()));
           }
         }, 100);
         merged.forEach(x -> queue.add(x));
-      } catch (@javax.annotation.Nonnull final IOException e) {
+      } catch (@Nonnull final IOException e) {
         throw new RuntimeException(e);
       }
     }
@@ -89,17 +93,17 @@ public class MNIST {
    */
   public static final DataLoader<LabeledObject<Tensor>> validation = new DataLoader<LabeledObject<Tensor>>() {
     @Override
-    protected void read(@javax.annotation.Nonnull final List<LabeledObject<Tensor>> queue) {
+    protected void read(@Nonnull final List<LabeledObject<Tensor>> queue) {
       try {
         final Stream<Tensor> imgStream = MNIST.binaryStream("t10k-images-idx3-ubyte.gz", 16, 28 * 28).map(b -> {
           return MNIST.fillImage(b, new Tensor(28, 28, 1));
         });
-        @javax.annotation.Nonnull final Stream<byte[]> labelStream = MNIST.binaryStream("t10k-labels-idx1-ubyte.gz", 8, 1);
+        @Nonnull final Stream<byte[]> labelStream = MNIST.binaryStream("t10k-labels-idx1-ubyte.gz", 8, 1);
   
-        @javax.annotation.Nonnull final Stream<LabeledObject<Tensor>> merged = MNIST.toStream(new Iterator<LabeledObject<Tensor>>() {
-          @javax.annotation.Nonnull
+        @Nonnull final Stream<LabeledObject<Tensor>> merged = MNIST.toStream(new Iterator<LabeledObject<Tensor>>() {
+          @Nonnull
           Iterator<Tensor> imgItr = imgStream.iterator();
-          @javax.annotation.Nonnull
+          @Nonnull
           Iterator<byte[]> labelItr = labelStream.iterator();
           
           @Override
@@ -107,34 +111,34 @@ public class MNIST {
             return imgItr.hasNext() && labelItr.hasNext();
           }
     
-          @javax.annotation.Nonnull
+          @Nonnull
           @Override
           public LabeledObject<Tensor> next() {
             return new LabeledObject<>(imgItr.next(), Arrays.toString(labelItr.next()));
           }
         }, 100);
         merged.forEach(x -> queue.add(x));
-      } catch (@javax.annotation.Nonnull final IOException e) {
+      } catch (@Nonnull final IOException e) {
         throw new RuntimeException(e);
       }
     }
   };
   
-  private static Stream<byte[]> binaryStream(@javax.annotation.Nonnull final String name, final int skip, final int recordSize) throws IOException {
+  private static Stream<byte[]> binaryStream(@Nonnull final String name, final int skip, final int recordSize) throws IOException {
     @Nullable InputStream stream = null;
     try {
       stream = Util.cacheStream(TestUtil.S3_ROOT.resolve(name));
-    } catch (@javax.annotation.Nonnull NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
+    } catch (@Nonnull NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
       throw new RuntimeException(e);
     }
-    final byte[] fileData = org.apache.commons.io.IOUtils.toByteArray(new java.io.BufferedInputStream(new GZIPInputStream(new java.io.BufferedInputStream(stream))));
-    @javax.annotation.Nonnull final DataInputStream in = new DataInputStream(new java.io.ByteArrayInputStream(fileData));
+    final byte[] fileData = IOUtils.toByteArray(new BufferedInputStream(new GZIPInputStream(new BufferedInputStream(stream))));
+    @Nonnull final DataInputStream in = new DataInputStream(new ByteArrayInputStream(fileData));
     in.skip(skip);
     return MNIST.toIterator(new BinaryChunkIterator(in, recordSize));
   }
   
-  @javax.annotation.Nonnull
-  private static Tensor fillImage(final byte[] b, @javax.annotation.Nonnull final Tensor tensor) {
+  @Nonnull
+  private static Tensor fillImage(final byte[] b, @Nonnull final Tensor tensor) {
     for (int x = 0; x < 28; x++) {
       for (int y = 0; y < 28; y++) {
         tensor.set(new int[]{x, y}, b[x + y * 28] & 0xFF);
@@ -143,15 +147,15 @@ public class MNIST {
     return tensor;
   }
   
-  private static <T> Stream<T> toIterator(@javax.annotation.Nonnull final Iterator<T> iterator) {
+  private static <T> Stream<T> toIterator(@Nonnull final Iterator<T> iterator) {
     return StreamSupport.stream(Spliterators.spliterator(iterator, 1, Spliterator.ORDERED), false);
   }
   
-  private static <T> Stream<T> toStream(@javax.annotation.Nonnull final Iterator<T> iterator, final int size) {
+  private static <T> Stream<T> toStream(@Nonnull final Iterator<T> iterator, final int size) {
     return MNIST.toStream(iterator, size, false);
   }
   
-  private static <T> Stream<T> toStream(@javax.annotation.Nonnull final Iterator<T> iterator, final int size, final boolean parallel) {
+  private static <T> Stream<T> toStream(@Nonnull final Iterator<T> iterator, final int size, final boolean parallel) {
     return StreamSupport.stream(Spliterators.spliterator(iterator, size, Spliterator.ORDERED), parallel);
   }
   

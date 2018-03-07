@@ -29,6 +29,7 @@ import com.simiacryptus.mindseye.test.unit.BatchingTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Random;
 import java.util.stream.IntStream;
@@ -69,7 +70,7 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
     return IntStream.range(0, inputs).mapToObj(i -> new int[]{2, 2, inputBands}).toArray(i -> new int[i][]);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new com.simiacryptus.mindseye.layers.cudnn.SumInputsLayer().setPrecision(precision);
@@ -111,10 +112,10 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
     }
   
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public Layer getLayer(int[][] inputSize, Random random) {
-      @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork();
+      @Nonnull PipelineNetwork network = new PipelineNetwork();
       DAGNode input = network.getInput(0);
       network.wrap(new BinarySumLayer(), input, input);
       return network;
@@ -122,13 +123,13 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
     
     @Override
     public Layer getReferenceLayer() {
-      @javax.annotation.Nonnull PipelineNetwork network = new PipelineNetwork();
+      @Nonnull PipelineNetwork network = new PipelineNetwork();
       DAGNode input = network.getInput(0);
       network.wrap(new SumInputsLayer(), input, input);
       return network;
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
@@ -136,7 +137,7 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
       };
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return getSmallDims(random);

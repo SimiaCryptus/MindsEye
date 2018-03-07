@@ -31,6 +31,7 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
@@ -66,7 +67,7 @@ public class LinearActivationLayer extends LayerBase {
    * @param json      the json
    * @param resources the resources
    */
-  protected LinearActivationLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> resources) {
+  protected LinearActivationLayer(@Nonnull final JsonObject json, Map<String, byte[]> resources) {
     super(json);
     weights = Tensor.fromJson(json.get("weights"), resources);
   }
@@ -78,7 +79,7 @@ public class LinearActivationLayer extends LayerBase {
    * @param rs   the rs
    * @return the linear activation layer
    */
-  public static LinearActivationLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static LinearActivationLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new LinearActivationLayer(json, rs);
   }
   
@@ -88,7 +89,7 @@ public class LinearActivationLayer extends LayerBase {
     super._free();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Result eval(final Result... inObj) {
     final Result in0 = inObj[0];
@@ -100,18 +101,18 @@ public class LinearActivationLayer extends LayerBase {
     final double bias = weights.get(1);
     weights.addRef();
     return new Result(TensorArray.wrap(IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      @javax.annotation.Nullable final Tensor input = inData.get(dataIndex);
-      @javax.annotation.Nullable Tensor map = input.map(v -> scale * v + bias);
+      @Nullable final Tensor input = inData.get(dataIndex);
+      @Nullable Tensor map = input.map(v -> scale * v + bias);
       input.freeRef();
       return map;
-    }).toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).forEach(dataIndex -> {
-          @javax.annotation.Nullable Tensor deltaT = delta.get(dataIndex);
-          @javax.annotation.Nullable Tensor inputT = inData.get(dataIndex);
+          @Nullable Tensor deltaT = delta.get(dataIndex);
+          @Nullable Tensor inputT = inData.get(dataIndex);
           @Nullable final double[] deltaData = deltaT.getData();
           @Nullable final double[] inputData = inputT.getData();
-          @javax.annotation.Nonnull final Tensor weightDelta = new Tensor(weights.getDimensions());
+          @Nonnull final Tensor weightDelta = new Tensor(weights.getDimensions());
           for (int i = 0; i < deltaData.length; i++) {
             weightDelta.add(0, deltaData[i] * inputData[inputData.length == 1 ? 0 : i]);
             weightDelta.add(1, deltaData[i]);
@@ -123,10 +124,10 @@ public class LinearActivationLayer extends LayerBase {
         });
       }
       if (in0.isAlive()) {
-        @javax.annotation.Nonnull final TensorList tensorList = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
-          @javax.annotation.Nullable Tensor tensor = delta.get(dataIndex);
+        @Nonnull final TensorList tensorList = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+          @Nullable Tensor tensor = delta.get(dataIndex);
           @Nullable final double[] deltaData = tensor.getData();
-          @javax.annotation.Nonnull final Tensor passback = new Tensor(inData.getDimensions());
+          @Nonnull final Tensor passback = new Tensor(inData.getDimensions());
           for (int i = 0; i < passback.length(); i++) {
             passback.set(i, deltaData[i] * weights.getData()[0]);
           }
@@ -167,16 +168,16 @@ public class LinearActivationLayer extends LayerBase {
    * @param bias the bias
    * @return the bias
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public LinearActivationLayer setBias(final double bias) {
     weights.set(1, bias);
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, @javax.annotation.Nonnull DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.add("weights", weights.toJson(resources, dataSerializer));
     return json;
   }
@@ -196,13 +197,13 @@ public class LinearActivationLayer extends LayerBase {
    * @param scale the scale
    * @return the scale
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public LinearActivationLayer setScale(final double scale) {
     weights.set(0, scale);
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList(weights.getData());

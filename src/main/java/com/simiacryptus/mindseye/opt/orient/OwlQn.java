@@ -77,7 +77,7 @@ public class OwlQn extends OrientationStrategyBase<LineSearchCursor> {
    * @param factor_L1 the factor l 1
    * @return the factor l 1
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public OwlQn setFactor_L1(final double factor_L1) {
     this.factor_L1 = factor_L1;
     return this;
@@ -89,7 +89,7 @@ public class OwlQn extends OrientationStrategyBase<LineSearchCursor> {
    * @param layers the layers
    * @return the layers
    */
-  public Collection<Layer> getLayers(@javax.annotation.Nonnull final Collection<Layer> layers) {
+  public Collection<Layer> getLayers(@Nonnull final Collection<Layer> layers) {
     return layers.stream()
       .filter(layer -> {
         return layer instanceof FullyConnectedLayer;
@@ -112,19 +112,19 @@ public class OwlQn extends OrientationStrategyBase<LineSearchCursor> {
    * @param zeroTol the zero tol
    * @return the zero tol
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public OwlQn setZeroTol(final double zeroTol) {
     this.zeroTol = zeroTol;
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public LineSearchCursor orient(final Trainable subject, @javax.annotation.Nonnull final PointSample measurement, final TrainingMonitor monitor) {
-    @javax.annotation.Nonnull final SimpleLineSearchCursor gradient = (SimpleLineSearchCursor) inner.orient(subject, measurement, monitor);
+  public LineSearchCursor orient(final Trainable subject, @Nonnull final PointSample measurement, final TrainingMonitor monitor) {
+    @Nonnull final SimpleLineSearchCursor gradient = (SimpleLineSearchCursor) inner.orient(subject, measurement, monitor);
     @Nonnull final DeltaSet<Layer> searchDirection = gradient.direction.copy();
-    @javax.annotation.Nonnull final DeltaSet<Layer> orthant = new DeltaSet<Layer>();
-    for (@javax.annotation.Nonnull final Layer layer : getLayers(gradient.direction.getMap().keySet())) {
+    @Nonnull final DeltaSet<Layer> orthant = new DeltaSet<Layer>();
+    for (@Nonnull final Layer layer : getLayers(gradient.direction.getMap().keySet())) {
       final double[] weights = gradient.direction.getMap().get(layer).target;
       @Nullable final double[] delta = gradient.direction.getMap().get(layer).getDelta();
       @Nullable final double[] searchDir = searchDirection.get(layer, weights).getDelta();
@@ -141,7 +141,7 @@ public class OwlQn extends OrientationStrategyBase<LineSearchCursor> {
       assert null != searchDir;
     }
     return new SimpleLineSearchCursor(subject, measurement, searchDirection) {
-      @javax.annotation.Nonnull
+      @Nonnull
       @Override
       public LineSearchPoint step(final double alpha, final TrainingMonitor monitor) {
         origin.weights.stream().forEach(d -> d.restore());

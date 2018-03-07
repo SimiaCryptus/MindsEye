@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,7 @@ public class InceptionLayer extends DAGNetwork {
   /**
    * The Convolution layers.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   List<ConvolutionLayer> convolutionLayers = new ArrayList<>();
   
   /**
@@ -57,11 +58,11 @@ public class InceptionLayer extends DAGNetwork {
   public InceptionLayer(final int[][][] kernels) {
     super(1);
     this.kernels = kernels;
-    @javax.annotation.Nonnull final List<DAGNode> pipelines = new ArrayList<>();
-    for (@javax.annotation.Nonnull final int[][] kernelPipeline : this.kernels) {
-      @javax.annotation.Nonnull final PipelineNetwork kernelPipelineNetwork = new PipelineNetwork();
+    @Nonnull final List<DAGNode> pipelines = new ArrayList<>();
+    for (@Nonnull final int[][] kernelPipeline : this.kernels) {
+      @Nonnull final PipelineNetwork kernelPipelineNetwork = new PipelineNetwork();
       for (final int[] kernel : kernelPipeline) {
-        @javax.annotation.Nonnull final ConvolutionLayer convolutionSynapseLayer = new ConvolutionLayer(kernel[0], kernel[1], kernel[2]);
+        @Nonnull final ConvolutionLayer convolutionSynapseLayer = new ConvolutionLayer(kernel[0], kernel[1], kernel[2]);
         convolutionLayers.add(convolutionSynapseLayer);
         kernelPipelineNetwork.add(convolutionSynapseLayer);
       }
@@ -90,8 +91,8 @@ public class InceptionLayer extends DAGNetwork {
    * @param f the f
    * @return the weights
    */
-  @javax.annotation.Nonnull
-  public InceptionLayer setWeights(@javax.annotation.Nonnull final DoubleSupplier f) {
+  @Nonnull
+  public InceptionLayer setWeights(@Nonnull final DoubleSupplier f) {
     convolutionLayers.forEach(x -> x.setWeights(f));
     return this;
   }

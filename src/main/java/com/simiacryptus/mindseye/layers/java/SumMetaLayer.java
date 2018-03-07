@@ -32,6 +32,7 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
@@ -64,7 +65,7 @@ public class SumMetaLayer extends LayerBase {
    * @param json      the id
    * @param resources the resources
    */
-  protected SumMetaLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> resources) {
+  protected SumMetaLayer(@Nonnull final JsonObject json, Map<String, byte[]> resources) {
     super(json);
     lastResult = Tensor.fromJson(json.get("lastResult"), resources);
     minBatches = json.get("minBatches").getAsInt();
@@ -77,36 +78,36 @@ public class SumMetaLayer extends LayerBase {
    * @param rs   the rs
    * @return the sum meta layer
    */
-  public static SumMetaLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static SumMetaLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new SumMetaLayer(json, rs);
   }
   
   @Nullable
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     final Result input = inObj[0];
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final int itemCnt = input.getData().length();
     if (null == lastResult || minBatches < itemCnt) {
-      @javax.annotation.Nonnull final ToDoubleFunction<Coordinate> f = (c) ->
+      @Nonnull final ToDoubleFunction<Coordinate> f = (c) ->
         IntStream.range(0, itemCnt)
           .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
           .sum();
       lastResult = input.getData().get(0).mapCoords(f);
     }
-    return new Result(TensorArray.wrap(lastResult), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new Result(TensorArray.wrap(lastResult), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       if (input.isAlive()) {
-        @javax.annotation.Nullable final Tensor delta = data.get(0);
-        @javax.annotation.Nonnull final Tensor feedback[] = new Tensor[itemCnt];
+        @Nullable final Tensor delta = data.get(0);
+        @Nonnull final Tensor feedback[] = new Tensor[itemCnt];
         Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
-        @javax.annotation.Nonnull final ToDoubleFunction<Coordinate> f = (inputCoord) -> {
+        @Nonnull final ToDoubleFunction<Coordinate> f = (inputCoord) -> {
           for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
             feedback[inputItem].add(inputCoord, delta.get(inputCoord));
           }
           return 0;
         };
         delta.mapCoords(f);
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(feedback);
+        @Nonnull TensorArray tensorArray = TensorArray.wrap(feedback);
         input.accumulate(buffer, tensorArray);
       }
     }) {
@@ -124,10 +125,10 @@ public class SumMetaLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, @javax.annotation.Nonnull DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
+    @Nonnull final JsonObject json = super.getJsonStub();
     if (null != lastResult) {
       json.add("lastResult", lastResult.toJson(resources, dataSerializer));
     }
@@ -150,13 +151,13 @@ public class SumMetaLayer extends LayerBase {
    * @param minBatches the min batches
    * @return the min batches
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public SumMetaLayer setMinBatches(final int minBatches) {
     this.minBatches = minBatches;
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

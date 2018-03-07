@@ -19,9 +19,11 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -29,8 +31,11 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.util.concurrent.Executors.newFixedThreadPool;
 
 /**
  * The base implementation for ReferenceCounting objects. Provides state management and debugging facilities. If
@@ -41,6 +46,8 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   private static final Logger logger = LoggerFactory.getLogger(ReferenceCountingBase.class);
   private static final long LOAD_TIME = System.nanoTime();
   private static final UUID jvmId = UUID.randomUUID();
+  private static final ExecutorService gcPool = newFixedThreadPool(1, new ThreadFactoryBuilder()
+    .setDaemon(true).build());
   /**
    * The constant supressLog.
    */
@@ -49,7 +56,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   static {
     if (CoreSettings.INSTANCE == null) throw new RuntimeException();
   }
-  
+
   private final UUID objectId = CoreSettings.INSTANCE.isLifecycleDebug() ? UUID.randomUUID() : jvmId;
   private final AtomicInteger references = new AtomicInteger(1);
   private final AtomicBoolean isFreed = new AtomicBoolean(false);
@@ -62,7 +69,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   private volatile boolean isFinalized = false;
   private boolean detached = false;
   
-  @javax.annotation.Nonnull
+  @Nonnull
   private static String getString(@Nullable StackTraceElement[] trace) {
     return null == trace ? "" : Arrays.stream(trace).map(x -> "at " + x).skip(2).reduce((a, b) -> a + "\n" + b).orElse("");
   }
@@ -74,7 +81,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
    * @param includeCaller the include caller
    * @return the string
    */
-  public static String referenceReport(@javax.annotation.Nonnull ReferenceCountingBase obj, boolean includeCaller) {
+  public static String referenceReport(@Nonnull ReferenceCountingBase obj, boolean includeCaller) {
     return obj.referenceReport(includeCaller, obj.isFinalized());
   }
   
@@ -128,8 +135,8 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
    * @return the string
    */
   public String referenceReport(boolean includeCaller, boolean isFinalized) {
-    @javax.annotation.Nonnull ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-    @javax.annotation.Nonnull PrintStream out = new PrintStream(buffer);
+    @Nonnull ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    @Nonnull PrintStream out = new PrintStream(buffer);
     out.print(String.format("Object %s %s (%d refs, %d frees) ",
       getClass().getName(), getObjectId().toString(), 1 + addRefObjs.size(), freeRefObjs.size()));
     if (null != createdBy) {
@@ -183,6 +190,11 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   @Override
   public void freeRef() {
     freeRef(this);
+  }
+  
+  @Override
+  public void freeRefAsync() {
+    gcPool.submit((Runnable) this::freeRef);
   }
   
   @Override

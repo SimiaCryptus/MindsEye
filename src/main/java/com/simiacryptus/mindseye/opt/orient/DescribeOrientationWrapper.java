@@ -58,10 +58,10 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
    * @param x the x
    * @return the id
    */
-  @javax.annotation.Nonnull
-  public static String getId(@javax.annotation.Nonnull final DoubleBuffer<Layer> x) {
+  @Nonnull
+  public static String getId(@Nonnull final DoubleBuffer<Layer> x) {
     final String name = x.layer.getName();
-    @javax.annotation.Nonnull final String className = x.layer.getClass().getSimpleName();
+    @Nonnull final String className = x.layer.getClass().getSimpleName();
     return name.contains(className) ? className : name;
 //    if(x.layer instanceof PlaceholderLayer) {
 //      return "Input";
@@ -76,9 +76,9 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
    * @param dirDelta    the dir delta
    * @return the string
    */
-  public static String render(@javax.annotation.Nonnull final DoubleBuffer<Layer> weightDelta, @javax.annotation.Nonnull final DoubleBuffer<Layer> dirDelta) {
-    @javax.annotation.Nonnull final String weightString = Arrays.toString(weightDelta.getDelta());
-    @javax.annotation.Nonnull final String deltaString = Arrays.toString(dirDelta.getDelta());
+  public static String render(@Nonnull final DoubleBuffer<Layer> weightDelta, @Nonnull final DoubleBuffer<Layer> dirDelta) {
+    @Nonnull final String weightString = Arrays.toString(weightDelta.getDelta());
+    @Nonnull final String deltaString = Arrays.toString(dirDelta.getDelta());
     return String.format("pos: %s\nvec: %s", weightString, deltaString);
   }
   
@@ -89,10 +89,10 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
    * @param direction the direction
    * @return the string
    */
-  public static String render(@javax.annotation.Nonnull final StateSet<Layer> weights, @javax.annotation.Nonnull final DeltaSet<Layer> direction) {
+  public static String render(@Nonnull final StateSet<Layer> weights, @Nonnull final DeltaSet<Layer> direction) {
     final Map<String, String> data = weights.stream()
       .collect(Collectors.groupingBy(x -> DescribeOrientationWrapper.getId(x), Collectors.toList())).entrySet().stream()
-      .collect(Collectors.toMap(x -> x.getKey(), (@javax.annotation.Nonnull final Map.Entry<String, List<State<Layer>>> list) -> {
+      .collect(Collectors.toMap(x -> x.getKey(), (@Nonnull final Map.Entry<String, List<State<Layer>>> list) -> {
         final List<State<Layer>> deltaList = list.getValue();
         if (1 == deltaList.size()) {
           final State<Layer> weightDelta = deltaList.get(0);
@@ -111,7 +111,7 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
   }
   
   @Override
-  public LineSearchCursor orient(final Trainable subject, final PointSample measurement, @javax.annotation.Nonnull final TrainingMonitor monitor) {
+  public LineSearchCursor orient(final Trainable subject, final PointSample measurement, @Nonnull final TrainingMonitor monitor) {
     final LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
     if (cursor instanceof SimpleLineSearchCursor) {
       final DeltaSet<Layer> direction = ((SimpleLineSearchCursor) cursor).direction;

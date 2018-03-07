@@ -52,7 +52,7 @@ public enum PersistanceMode {
    * Strong persistance mode.
    */
   STRONG {
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public <T> Supplier<T> wrap(@Nonnull T obj) {
       return () -> obj;

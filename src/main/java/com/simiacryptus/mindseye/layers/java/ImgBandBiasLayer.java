@@ -79,7 +79,7 @@ public class ImgBandBiasLayer extends LayerBase {
    *
    * @param json the json
    */
-  protected ImgBandBiasLayer(@javax.annotation.Nonnull final JsonObject json) {
+  protected ImgBandBiasLayer(@Nonnull final JsonObject json) {
     super(json);
     bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
   }
@@ -91,7 +91,7 @@ public class ImgBandBiasLayer extends LayerBase {
    * @param rs   the rs
    * @return the img band bias layer
    */
-  public static ImgBandBiasLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgBandBiasLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ImgBandBiasLayer(json);
   }
   
@@ -101,14 +101,14 @@ public class ImgBandBiasLayer extends LayerBase {
    * @param input the input
    * @return the double [ ]
    */
-  @javax.annotation.Nonnull
-  public double[] add(@javax.annotation.Nonnull final double[] input) {
+  @Nonnull
+  public double[] add(@Nonnull final double[] input) {
     assert Arrays.stream(input).allMatch(v -> Double.isFinite(v));
     assert null != input;
     @Nullable final double[] bias = getBias();
     assert null != bias;
     if (input.length % bias.length != 0) throw new IllegalArgumentException();
-    @javax.annotation.Nonnull final double[] array = new double[input.length];
+    @Nonnull final double[] array = new double[input.length];
     final int size = input.length / bias.length;
     for (int i = 0; i < array.length; i++) {
       array[i] = input[i] + bias[i / size];
@@ -123,13 +123,13 @@ public class ImgBandBiasLayer extends LayerBase {
    * @param f the f
    * @return the img band bias layer
    */
-  @javax.annotation.Nonnull
-  public ImgBandBiasLayer addWeights(@javax.annotation.Nonnull final DoubleSupplier f) {
+  @Nonnull
+  public ImgBandBiasLayer addWeights(@Nonnull final DoubleSupplier f) {
     Util.add(f, getBias());
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Result eval(final Result... inObj) {
     return eval(inObj[0]);
@@ -141,8 +141,8 @@ public class ImgBandBiasLayer extends LayerBase {
    * @param input the input
    * @return the nn result
    */
-  @javax.annotation.Nonnull
-  public Result eval(@javax.annotation.Nonnull final Result input) {
+  @Nonnull
+  public Result eval(@Nonnull final Result input) {
     @Nullable final double[] bias = getBias();
     input.addRef();
     return new Result(TensorArray.wrap(input.getData().stream().parallel()
@@ -158,7 +158,7 @@ public class ImgBandBiasLayer extends LayerBase {
         r.freeRef();
         return tensor;
       })
-      .toArray(i -> new Tensor[i])), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+      .toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       if (!isFrozen()) {
         final Delta<Layer> deltaBuffer = buffer.get(ImgBandBiasLayer.this, bias);
         data.stream().parallel().forEach(d -> {
@@ -209,10 +209,10 @@ public class ImgBandBiasLayer extends LayerBase {
     return bias;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.add("bias", JsonUtil.getJson(getBias()));
     return json;
   }
@@ -223,8 +223,8 @@ public class ImgBandBiasLayer extends LayerBase {
    * @param ds the ds
    * @return the nn layer
    */
-  @javax.annotation.Nonnull
-  public Layer set(@javax.annotation.Nonnull final double[] ds) {
+  @Nonnull
+  public Layer set(@Nonnull final double[] ds) {
     @Nullable final double[] bias = getBias();
     for (int i = 0; i < ds.length; i++) {
       bias[i] = ds[i];
@@ -239,8 +239,8 @@ public class ImgBandBiasLayer extends LayerBase {
    * @param f the f
    * @return the weights
    */
-  @javax.annotation.Nonnull
-  public ImgBandBiasLayer setWeights(@javax.annotation.Nonnull final IntToDoubleFunction f) {
+  @Nonnull
+  public ImgBandBiasLayer setWeights(@Nonnull final IntToDoubleFunction f) {
     @Nullable final double[] bias = getBias();
     for (int i = 0; i < bias.length; i++) {
       bias[i] = f.applyAsDouble(i);
@@ -249,7 +249,7 @@ public class ImgBandBiasLayer extends LayerBase {
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList(getBias());
@@ -261,7 +261,7 @@ public class ImgBandBiasLayer extends LayerBase {
    * @param value the value
    * @return the weights log
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public ImgBandBiasLayer setWeightsLog(final double value) {
     for (int i = 0; i < bias.length; i++) {
       bias[i] = (FastRandom.INSTANCE.random() - 0.5) * Math.pow(10, value);
@@ -276,7 +276,7 @@ public class ImgBandBiasLayer extends LayerBase {
    * @param tensor the tensor
    * @return the and free
    */
-  public ImgBandBiasLayer setAndFree(final com.simiacryptus.mindseye.lang.Tensor tensor) {
+  public ImgBandBiasLayer setAndFree(final Tensor tensor) {
     set(tensor.getData());
     tensor.freeRef();
     return this;
@@ -288,7 +288,7 @@ public class ImgBandBiasLayer extends LayerBase {
    * @param tensor the tensor
    * @return the img band bias layer
    */
-  public ImgBandBiasLayer set(final com.simiacryptus.mindseye.lang.Tensor tensor) {
+  public ImgBandBiasLayer set(final Tensor tensor) {
     return (ImgBandBiasLayer) set(tensor.getData());
   }
 }

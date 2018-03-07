@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 
+import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
@@ -30,7 +31,7 @@ import java.util.Random;
  */
 public abstract class RescaledSubnetLayerTest extends LayerTestBase {
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
@@ -38,7 +39,7 @@ public abstract class RescaledSubnetLayerTest extends LayerTestBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new RescaledSubnetLayer(2, new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random()));

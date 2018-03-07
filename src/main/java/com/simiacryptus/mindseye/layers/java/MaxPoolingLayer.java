@@ -68,7 +68,7 @@ public class MaxPoolingLayer extends LayerBase {
    *
    * @param kernelDims the kernel dims
    */
-  public MaxPoolingLayer(@javax.annotation.Nonnull final int... kernelDims) {
+  public MaxPoolingLayer(@Nonnull final int... kernelDims) {
     
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }
@@ -79,19 +79,19 @@ public class MaxPoolingLayer extends LayerBase {
    * @param id         the id
    * @param kernelDims the kernel dims
    */
-  protected MaxPoolingLayer(@javax.annotation.Nonnull final JsonObject id, @javax.annotation.Nonnull final int... kernelDims) {
+  protected MaxPoolingLayer(@Nonnull final JsonObject id, @Nonnull final int... kernelDims) {
     super(id);
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }
   
-  private static List<Tuple2<Integer, int[]>> calcRegions(@javax.annotation.Nonnull final MaxPoolingLayer.CalcRegionsParameter p) {
-    @javax.annotation.Nonnull final Tensor input = new Tensor(p.inputDims);
+  private static List<Tuple2<Integer, int[]>> calcRegions(@Nonnull final MaxPoolingLayer.CalcRegionsParameter p) {
+    @Nonnull final Tensor input = new Tensor(p.inputDims);
     final int[] newDims = IntStream.range(0, p.inputDims.length).map(i -> {
       //assert 0 == p.inputDims[i] % p.kernelDims[i];
       return (int) Math.ceil(p.inputDims[i] * 1.0 / p.kernelDims[i]);
     }).toArray();
-    @javax.annotation.Nonnull final Tensor output = new Tensor(newDims);
-  
+    @Nonnull final Tensor output = new Tensor(newDims);
+    
     List<Tuple2<Integer, int[]>> tuple2s = output.coordStream(true).map(o -> {
       Tensor tensor = new Tensor(p.kernelDims);
       final int[] inCoords = tensor.coordStream(true).mapToInt(kernelCoord -> {
@@ -120,36 +120,36 @@ public class MaxPoolingLayer extends LayerBase {
    * @param rs   the rs
    * @return the max subsample layer
    */
-  public static MaxPoolingLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static MaxPoolingLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new MaxPoolingLayer(json,
       JsonUtil.getIntArray(json.getAsJsonArray("heapCopy")));
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-  
+    
     final Result in = inObj[0];
     in.getData().length();
-  
-    @javax.annotation.Nonnull final int[] inputDims = in.getData().getDimensions();
+    
+    @Nonnull final int[] inputDims = in.getData().getDimensions();
     final List<Tuple2<Integer, int[]>> regions = MaxPoolingLayer.calcRegionsCache.apply(new MaxPoolingLayer.CalcRegionsParameter(inputDims, kernelDims));
     final Tensor[] outputA = IntStream.range(0, in.getData().length()).mapToObj(dataIndex -> {
       final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
         return (int) Math.ceil(inputDims[i] * 1.0 / kernelDims[i]);
       }).toArray();
-      @javax.annotation.Nonnull final Tensor output = new Tensor(newDims);
+      @Nonnull final Tensor output = new Tensor(newDims);
       return output;
     }).toArray(i -> new Tensor[i]);
     Arrays.stream(outputA).mapToInt(x -> x.length()).sum();
-    @javax.annotation.Nonnull final int[][] gradientMapA = new int[in.getData().length()][];
+    @Nonnull final int[][] gradientMapA = new int[in.getData().length()][];
     IntStream.range(0, in.getData().length()).forEach(dataIndex -> {
-      @javax.annotation.Nullable final Tensor input = in.getData().get(dataIndex);
+      @Nullable final Tensor input = in.getData().get(dataIndex);
       final Tensor output = outputA[dataIndex];
-      @javax.annotation.Nonnull final IntToDoubleFunction keyExtractor = inputCoords -> input.get(inputCoords);
-      @javax.annotation.Nonnull final int[] gradientMap = new int[input.length()];
+      @Nonnull final IntToDoubleFunction keyExtractor = inputCoords -> input.get(inputCoords);
+      @Nonnull final int[] gradientMap = new int[input.length()];
       regions.parallelStream().forEach(tuple -> {
         final Integer from = tuple.getFirst();
         final int[] toList = tuple.getSecond();
@@ -168,12 +168,12 @@ public class MaxPoolingLayer extends LayerBase {
       input.freeRef();
       gradientMapA[dataIndex] = gradientMap;
     });
-    return new Result(TensorArray.wrap(outputA), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new Result(TensorArray.wrap(outputA), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       if (in.isAlive()) {
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
-          @javax.annotation.Nonnull final Tensor backSignal = new Tensor(inputDims);
+        @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
+          @Nonnull final Tensor backSignal = new Tensor(inputDims);
           final int[] ints = gradientMapA[dataIndex];
-          @javax.annotation.Nullable final Tensor datum = data.get(dataIndex);
+          @Nullable final Tensor datum = data.get(dataIndex);
           for (int i = 0; i < datum.length(); i++) {
             backSignal.add(ints[i], datum.get(i));
           }
@@ -196,15 +196,15 @@ public class MaxPoolingLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.add("heapCopy", JsonUtil.getJson(kernelDims));
     return json;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
@@ -245,7 +245,7 @@ public class MaxPoolingLayer extends LayerBase {
       if (getClass() != obj.getClass()) {
         return false;
       }
-      @javax.annotation.Nonnull final MaxPoolingLayer.CalcRegionsParameter other = (MaxPoolingLayer.CalcRegionsParameter) obj;
+      @Nonnull final MaxPoolingLayer.CalcRegionsParameter other = (MaxPoolingLayer.CalcRegionsParameter) obj;
       if (!Arrays.equals(inputDims, other.inputDims)) {
         return false;
       }

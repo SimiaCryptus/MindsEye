@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
@@ -33,7 +34,7 @@ public final class ConstantResult extends Result {
    * @param data the data
    */
   public ConstantResult(final Tensor... data) {
-    super(TensorArray.create(data), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList tensorList) -> {});
+    super(TensorArray.create(data), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList tensorList) -> {});
   }
   
   /**
@@ -42,7 +43,7 @@ public final class ConstantResult extends Result {
    * @param tensorList the tensor array
    */
   public ConstantResult(final TensorList tensorList) {
-    super(tensorList, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {});
+    super(tensorList, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {});
   }
   
   /**
@@ -51,7 +52,7 @@ public final class ConstantResult extends Result {
    * @param input the batch data
    * @return the nn result [ ]
    */
-  public static Result[] batchResultArray(@javax.annotation.Nonnull final Tensor[]... input) {
+  public static Result[] batchResultArray(@Nonnull final Tensor[]... input) {
     if (null == input) throw new IllegalArgumentException();
     return IntStream.range(0, input[0].length).mapToObj(index -> IntStream.range(0, input.length)
       .mapToObj(id -> input[id][index])
@@ -67,8 +68,8 @@ public final class ConstantResult extends Result {
    * @param input the input
    * @return the nn result [ ]
    */
-  public static Result[] singleResultArray(@javax.annotation.Nonnull final Tensor[] input) {
-    return Arrays.stream(input).map((@javax.annotation.Nonnull final Tensor x) -> new ConstantResult(TensorArray.create(x))).toArray(i -> new Result[i]);
+  public static Result[] singleResultArray(@Nonnull final Tensor[] input) {
+    return Arrays.stream(input).map((@Nonnull final Tensor x) -> new ConstantResult(TensorArray.create(x))).toArray(i -> new Result[i]);
   }
   
   /**
@@ -77,8 +78,8 @@ public final class ConstantResult extends Result {
    * @param input the input
    * @return the nn result [ ]
    */
-  public static Result[] singleResultArray(@javax.annotation.Nonnull final Tensor[][] input) {
-    return Arrays.stream(input).map((@javax.annotation.Nonnull final Tensor[] x) -> new ConstantResult(TensorArray.create(x))).toArray(i -> new Result[i]);
+  public static Result[] singleResultArray(@Nonnull final Tensor[][] input) {
+    return Arrays.stream(input).map((@Nonnull final Tensor[] x) -> new ConstantResult(TensorArray.create(x))).toArray(i -> new Result[i]);
   }
   
   @Override

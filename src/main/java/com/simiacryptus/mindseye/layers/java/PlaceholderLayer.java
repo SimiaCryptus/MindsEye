@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.lang.LayerBase;
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.lang.Result;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +55,7 @@ public final class PlaceholderLayer<T> extends LayerBase {
     setName(getClass().getSimpleName() + "/" + getId());
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Result eval(final Result... array) {
     throw new UnsupportedOperationException();
@@ -66,13 +67,13 @@ public final class PlaceholderLayer<T> extends LayerBase {
     return this.getKey();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     throw new UnsupportedOperationException();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     throw new UnsupportedOperationException();

@@ -97,7 +97,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    * @param json      the json
    * @param resources the resources
    */
-  protected ConvolutionLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> resources) {
+  protected ConvolutionLayer(@Nonnull final JsonObject json, Map<String, byte[]> resources) {
     super(json);
     this.kernel = Tensor.fromJson(json.get("filter"), resources);
     assert getKernel().isValid();
@@ -130,7 +130,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    * @param f    the f
    * @param data the data
    */
-  public static void add(@javax.annotation.Nonnull final DoubleSupplier f, @javax.annotation.Nonnull final double[] data) {
+  public static void add(@Nonnull final DoubleSupplier f, @Nonnull final double[] data) {
     for (int i = 0; i < data.length; i++) {
       data[i] += f.getAsDouble();
     }
@@ -143,7 +143,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    * @param rs   the rs
    * @return the convolution layer
    */
-  public static ConvolutionLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ConvolutionLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ConvolutionLayer(json, rs);
   }
   
@@ -159,8 +159,8 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    * @param f the f
    * @return the convolution layer
    */
-  @javax.annotation.Nonnull
-  public ConvolutionLayer addWeights(@javax.annotation.Nonnull final DoubleSupplier f) {
+  @Nonnull
+  public ConvolutionLayer addWeights(@Nonnull final DoubleSupplier f) {
     ConvolutionLayer.add(f, getKernel().getData());
     return this;
   }
@@ -170,7 +170,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    *
    * @return the compatibility layer
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public Layer getCompatibilityLayer() {
     return this.as(com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class);
   }
@@ -216,14 +216,14 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    *
    * @return the convolution params
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public ConvolutionParams getConvolutionParams() {
     return new ConvolutionParams(inputBands, outputBands, precision, strideX, strideY, paddingX, paddingY, kernel.getDimensions());
   }
   
-  @javax.annotation.Nullable
+  @Nullable
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     final Tensor kernel = getKernel();
     kernel.addRef();
     assert kernel.isValid();
@@ -243,7 +243,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     assert 3 == resultData.getDimensions().length;
     assert outputBands == resultData.getDimensions()[2];
     ConvolutionLayer.this.addRef();
-    return new Result(resultData, (@javax.annotation.Nonnull final DeltaSet<Layer> deltaSet, @javax.annotation.Nonnull final TensorList delta) -> {
+    return new Result(resultData, (@Nonnull final DeltaSet<Layer> deltaSet, @Nonnull final TensorList delta) -> {
       delta.addRef();
       result.accumulate(deltaSet, delta);
       if (!isFrozen()) {
@@ -268,10 +268,10 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, @javax.annotation.Nonnull DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+  public JsonObject getJson(Map<String, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.add("filter", getKernel().toJson(resources, dataSerializer));
     json.addProperty("batchBands", getBatchBands());
     json.addProperty("strideX", getStrideX());
@@ -289,7 +289,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     return precision;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public ConvolutionLayer setPrecision(final Precision precision) {
     this.precision = precision;
@@ -302,8 +302,8 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    * @param f the f
    * @return the weights
    */
-  @javax.annotation.Nonnull
-  public ConvolutionLayer set(@javax.annotation.Nonnull final DoubleSupplier f) {
+  @Nonnull
+  public ConvolutionLayer set(@Nonnull final DoubleSupplier f) {
     return set(i -> f.getAsDouble());
   }
   
@@ -313,8 +313,8 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    * @param tensor the tensor
    * @return the convolution layer
    */
-  @javax.annotation.Nonnull
-  public ConvolutionLayer set(@javax.annotation.Nonnull final Tensor tensor) {
+  @Nonnull
+  public ConvolutionLayer set(@Nonnull final Tensor tensor) {
     getKernel().set(tensor);
     return this;
   }
@@ -325,8 +325,8 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    * @param tensor the tensor
    * @return the and free
    */
-  @javax.annotation.Nonnull
-  public ConvolutionLayer setAndFree(@javax.annotation.Nonnull final Tensor tensor) {
+  @Nonnull
+  public ConvolutionLayer setAndFree(@Nonnull final Tensor tensor) {
     set(tensor);
     tensor.freeRef();
     return this;
@@ -338,13 +338,13 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    * @param f the f
    * @return the convolution layer
    */
-  @javax.annotation.Nonnull
-  public ConvolutionLayer set(@javax.annotation.Nonnull final IntToDoubleFunction f) {
+  @Nonnull
+  public ConvolutionLayer set(@Nonnull final IntToDoubleFunction f) {
     getKernel().set(f);
     return this;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList(getKernel().getData());
@@ -365,7 +365,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    * @param strideX the stride x
    * @return the stride x
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public ConvolutionLayer setStrideX(int strideX) {
     this.strideX = strideX;
     return this;
@@ -386,7 +386,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    * @param strideY the stride y
    * @return the stride y
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public ConvolutionLayer setStrideY(int strideY) {
     this.strideY = strideY;
     return this;
@@ -398,7 +398,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    * @param f the f
    * @return the weights log
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public ConvolutionLayer setWeightsLog(double f) {
     return set(() -> Math.pow(10, f) * (Math.random() - 0.5));
   }
@@ -410,7 +410,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    * @param y the y
    * @return the stride xy
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public ConvolutionLayer setStrideXY(int x, int y) {
     return setStrideX(x).setStrideY(y);
   }
@@ -422,7 +422,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    * @param y the y
    * @return the padding xy
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public ConvolutionLayer setPaddingXY(Integer x, Integer y) {
     return setPaddingX(x).setPaddingY(y);
   }
@@ -443,7 +443,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    * @param paddingX the padding x
    * @return the padding x
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public ConvolutionLayer setPaddingX(Integer paddingX) {
     this.paddingX = paddingX;
     return this;
@@ -465,7 +465,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    * @param paddingY the padding y
    * @return the padding y
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public ConvolutionLayer setPaddingY(Integer paddingY) {
     this.paddingY = paddingY;
     return this;
@@ -497,7 +497,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    * @param batchBands the batch bands
    * @return the batch bands
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public ConvolutionLayer setBatchBands(int batchBands) {
     this.batchBands = batchBands;
     return this;

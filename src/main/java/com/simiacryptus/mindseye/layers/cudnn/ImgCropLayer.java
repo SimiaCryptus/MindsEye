@@ -83,7 +83,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
    * @param json the json
    * @param rs   the rs
    */
-  protected ImgCropLayer(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected ImgCropLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     super(json);
     sizeX = json.get("sizeX").getAsInt();
     sizeY = json.get("sizeY").getAsInt();
@@ -99,7 +99,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static ImgCropLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgCropLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ImgCropLayer(json, rs);
   }
   
@@ -108,14 +108,14 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
    *
    * @return the compatibility layer
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public Layer getCompatibilityLayer() {
     return this.as(com.simiacryptus.mindseye.layers.java.ImgCropLayer.class);
   }
   
   @Nullable
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     assert 1 == inObj.length;
     final Result input = inObj[0];
@@ -127,7 +127,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
       input.getData().addRef();
       return input;
     }
-    @javax.annotation.Nonnull final int[] dimOut = Arrays.copyOf(dimIn, 3);
+    @Nonnull final int[] dimOut = Arrays.copyOf(dimIn, 3);
     dimOut[0] = sizeX;
     dimOut[1] = sizeY;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
@@ -141,7 +141,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
       Stream.<ReferenceCounting>of(inputTensor).forEach(ReferenceCounting::freeRef);
       return CudaTensorList.wrap(cudaTensor, length, dimOut, precision);
     }, input.getData());
-    return new Result(outputData, (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList error) -> {
+    return new Result(outputData, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
       if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
         throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
       }
@@ -270,24 +270,24 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
    * @param destinationDimensions the destination dimensions
    * @return the int [ ]
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public int[] getViewDimensions(int[] sourceDimensions, int[] destinationDimensions) {
-    @javax.annotation.Nonnull final int[] viewDim = new int[3];
+    @Nonnull final int[] viewDim = new int[3];
     Arrays.parallelSetAll(viewDim, i -> Math.min(sourceDimensions[i], destinationDimensions[i]));
     return viewDim;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    @javax.annotation.Nonnull final JsonObject json = super.getJsonStub();
+    @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("sizeY", sizeY);
     json.addProperty("sizeX", sizeX);
     json.addProperty("precision", precision.name());
     return json;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
@@ -298,7 +298,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
     return precision;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public ImgCropLayer setPrecision(final Precision precision) {
     this.precision = precision;

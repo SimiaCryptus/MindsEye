@@ -32,6 +32,7 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
@@ -60,7 +61,7 @@ public class BiasMetaLayer extends LayerBase {
    *
    * @param id the id
    */
-  protected BiasMetaLayer(@javax.annotation.Nonnull final JsonObject id) {
+  protected BiasMetaLayer(@Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -71,13 +72,13 @@ public class BiasMetaLayer extends LayerBase {
    * @param rs   the rs
    * @return the bias meta layer
    */
-  public static BiasMetaLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static BiasMetaLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new BiasMetaLayer(json);
   }
   
   @Nullable
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     final int itemCnt = inObj[0].getData().length();
     Tensor tensor1 = inObj[1].getData().get(0);
     final Tensor[] tensors = IntStream.range(0, itemCnt)
@@ -95,13 +96,13 @@ public class BiasMetaLayer extends LayerBase {
     Tensor tensor0 = tensors[0];
     tensor0.addRef();
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    return new Result(TensorArray.wrap(tensors), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList data) -> {
+    return new Result(TensorArray.wrap(tensors), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
         data.addRef();
         inObj[0].accumulate(buffer, data);
       }
       if (inObj[1].isAlive()) {
-        @javax.annotation.Nonnull final ToDoubleFunction<Coordinate> f = (c) -> {
+        @Nonnull final ToDoubleFunction<Coordinate> f = (c) -> {
           return IntStream.range(0, itemCnt).mapToDouble(i -> {
             Tensor tensor = data.get(i);
             double v = tensor.get(c);
@@ -110,11 +111,11 @@ public class BiasMetaLayer extends LayerBase {
           }).sum();
         };
         @Nullable final Tensor passback = tensor0.mapCoords(f);
-        @javax.annotation.Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, inObj[1].getData().length())
+        @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, inObj[1].getData().length())
           .mapToObj(i -> {
             if (i == 0) return passback;
             else {
-              @javax.annotation.Nullable Tensor map = passback.map(v -> 0);
+              @Nullable Tensor map = passback.map(v -> 0);
               passback.freeRef();
               return map;
             }
@@ -137,13 +138,13 @@ public class BiasMetaLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();

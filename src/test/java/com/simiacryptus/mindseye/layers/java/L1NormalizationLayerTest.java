@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.java;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
+import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
@@ -29,13 +30,13 @@ import java.util.Random;
  */
 public abstract class L1NormalizationLayerTest extends LayerTestBase {
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{{4}};
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new L1NormalizationLayer();

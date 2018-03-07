@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.lang;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
@@ -28,7 +29,7 @@ import java.util.stream.Stream;
  * tensor to/from a rank-1 array.
  */
 public class ReshapedTensorList extends ReferenceCountingBase implements TensorList {
-  @javax.annotation.Nonnull
+  @Nonnull
   private final TensorList inner;
   private final int[] dims;
   
@@ -38,7 +39,7 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
    * @param inner the data
    * @param toDim the to length
    */
-  public ReshapedTensorList(@javax.annotation.Nonnull TensorList inner, int[] toDim) {
+  public ReshapedTensorList(@Nonnull TensorList inner, int[] toDim) {
     if (Tensor.length(inner.getDimensions()) != Tensor.length(toDim))
       throw new IllegalArgumentException(Arrays.toString(inner.getDimensions()) + " != " + Arrays.toString(toDim));
     this.inner = inner;
@@ -50,13 +51,13 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
   @Override
   public Tensor get(int i) {
     assertAlive();
-    @javax.annotation.Nonnull Tensor tensor = inner.get(i);
-    @javax.annotation.Nonnull Tensor reshapeCast = tensor.reshapeCast(dims);
+    @Nonnull Tensor tensor = inner.get(i);
+    @Nonnull Tensor reshapeCast = tensor.reshapeCast(dims);
     tensor.freeRef();
     return reshapeCast;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public int[] getDimensions() {
     return Arrays.copyOf(dims, dims.length);
@@ -70,7 +71,7 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
   @Override
   public Stream<Tensor> stream() {
     return inner.stream().map(t -> {
-      @javax.annotation.Nullable Tensor tensor = t.reshapeCast(dims);
+      @Nullable Tensor tensor = t.reshapeCast(dims);
       t.freeRef();
       return tensor;
     });

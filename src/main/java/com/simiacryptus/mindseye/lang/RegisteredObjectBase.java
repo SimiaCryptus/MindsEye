@@ -35,7 +35,7 @@ import java.util.stream.Stream;
  * The type Registered object base.
  */
 public abstract class RegisteredObjectBase extends ReferenceCountingBase {
-  private static final Logger logger = LoggerFactory.getLogger(com.simiacryptus.mindseye.lang.RegisteredObjectBase.class);
+  private static final Logger logger = LoggerFactory.getLogger(RegisteredObjectBase.class);
   private static final ConcurrentHashMap<Class<? extends RegisteredObjectBase>, ObjectRecords<RegisteredObjectBase>> cache = new ConcurrentHashMap<>();
   private static final ScheduledExecutorService maintenanceThread = Executors.newScheduledThreadPool(1);
   

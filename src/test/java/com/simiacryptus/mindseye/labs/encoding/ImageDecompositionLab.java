@@ -44,6 +44,7 @@ import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.HtmlNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 
+import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
@@ -65,7 +66,7 @@ public class ImageDecompositionLab {
   /**
    * The MnistProblemData pipeline.
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public List<Layer> dataPipeline = new ArrayList<>();
   /**
    * The Display image.
@@ -83,8 +84,8 @@ public class ImageDecompositionLab {
    * @throws Exception the exception
    */
   public static void main(final String... args) throws Exception {
-    @javax.annotation.Nonnull final ImageDecompositionLab lab = new ImageDecompositionLab();
-    try (@javax.annotation.Nonnull NotebookOutput log = lab.report()) {
+    @Nonnull final ImageDecompositionLab lab = new ImageDecompositionLab();
+    try (@Nonnull NotebookOutput log = lab.report()) {
       lab.run(log);
     }
   }
@@ -97,10 +98,10 @@ public class ImageDecompositionLab {
    * @param convolutionLayer the convolution layer
    * @param biasLayer        the bias layer
    */
-  protected void initialize(final NotebookOutput log, @javax.annotation.Nonnull final Supplier<Stream<Tensor[]>> features, @javax.annotation.Nonnull final ConvolutionLayer convolutionLayer, @javax.annotation.Nonnull final ImgBandBiasLayer biasLayer) {
+  protected void initialize(final NotebookOutput log, @Nonnull final Supplier<Stream<Tensor[]>> features, @Nonnull final ConvolutionLayer convolutionLayer, @Nonnull final ImgBandBiasLayer biasLayer) {
     final Tensor prototype = features.get().findAny().get()[1];
-    @javax.annotation.Nonnull final int[] dimensions = prototype.getDimensions();
-    @javax.annotation.Nonnull final int[] filterDimensions = convolutionLayer.getKernel().getDimensions();
+    @Nonnull final int[] dimensions = prototype.getDimensions();
+    @Nonnull final int[] filterDimensions = convolutionLayer.getKernel().getDimensions();
     assert filterDimensions[0] == dimensions[0];
     assert filterDimensions[1] == dimensions[1];
     final int outputBands = dimensions[2];
@@ -108,7 +109,7 @@ public class ImageDecompositionLab {
       throw new AssertionError(String.format("%d != %d", outputBands, biasLayer.getBias().length));
     }
     final int inputBands = filterDimensions[2] / outputBands;
-    @javax.annotation.Nonnull final FindFeatureSpace findFeatureSpace = new FindPCAFeatures(log, inputBands) {
+    @Nonnull final FindFeatureSpace findFeatureSpace = new FindPCAFeatures(log, inputBands) {
       @Override
       public Stream<Tensor[]> getFeatures() {
         return features.get();
@@ -122,17 +123,17 @@ public class ImageDecompositionLab {
    *
    * @return the log
    */
-  @javax.annotation.Nonnull
+  @Nonnull
   public HtmlNotebookOutput report() {
     try {
-      @javax.annotation.Nonnull final String directoryName = new SimpleDateFormat("YYYY-MM-dd-HH-mm").format(new Date());
-      @javax.annotation.Nonnull final File path = new File(Util.mkString(File.separator, "www", directoryName));
+      @Nonnull final String directoryName = new SimpleDateFormat("YYYY-MM-dd-HH-mm").format(new Date());
+      @Nonnull final File path = new File(Util.mkString(File.separator, "www", directoryName));
       path.mkdirs();
-      @javax.annotation.Nonnull final File logFile = new File(path, "index.html");
-      @javax.annotation.Nonnull final StreamNanoHTTPD server = new StreamNanoHTTPD(1999, "text/html", logFile).init();
-      @javax.annotation.Nonnull final HtmlNotebookOutput log = new HtmlNotebookOutput(path, server.dataReciever);
+      @Nonnull final File logFile = new File(path, "index.html");
+      @Nonnull final StreamNanoHTTPD server = new StreamNanoHTTPD(1999, "text/html", logFile).init();
+      @Nonnull final HtmlNotebookOutput log = new HtmlNotebookOutput(path, server.dataReciever);
       return log;
-    } catch (@javax.annotation.Nonnull final IOException e) {
+    } catch (@Nonnull final IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -142,12 +143,12 @@ public class ImageDecompositionLab {
    *
    * @param log the log
    */
-  public void run(@javax.annotation.Nonnull final NotebookOutput log) {
+  public void run(@Nonnull final NotebookOutput log) {
     final int pretrainMinutes = 30;
     final int timeoutMinutes = 30;
     final int images = 10;
     final int size = 400;
-    @javax.annotation.Nonnull String source = "H:\\SimiaCryptus\\photos";
+    @Nonnull String source = "H:\\SimiaCryptus\\photos";
     displayImage = images;
   
     final Tensor[][] trainingImages = null == source ? EncodingUtil.getImages(log, size, images, "kangaroo") :
@@ -171,27 +172,27 @@ public class ImageDecompositionLab {
     }).forEach(str -> log.p(str));
   
     log.h1("First LayerBase");
-    @javax.annotation.Nonnull final InitializationStep step0 = log.code(() -> {
+    @Nonnull final InitializationStep step0 = log.code(() -> {
       return new InitializationStep(log, trainingImages,
         size, pretrainMinutes, timeoutMinutes, 3, 9, 5);
     }).invoke(); // output: 260
   
     log.h1("Second LayerBase");
-    @javax.annotation.Nonnull final AddLayerStep step1 = log.code(() -> {
+    @Nonnull final AddLayerStep step1 = log.code(() -> {
       return new AddLayerStep(log, step0.trainingData, step0.model,
         2, step0.toSize, pretrainMinutes * 2, timeoutMinutes,
         step0.band1, 18, 3, 4);
     }).invoke(); // output: 274
   
     log.h1("Third LayerBase");
-    @javax.annotation.Nonnull final AddLayerStep step2 = log.code(() -> {
+    @Nonnull final AddLayerStep step2 = log.code(() -> {
       return new AddLayerStep(log, step1.trainingData, step1.integrationModel,
         3, step1.toSize, pretrainMinutes * 3, timeoutMinutes,
         step1.band2, 48, 3, 1);
     }).invoke(); // 276
   
     log.h1("Fourth LayerBase");
-    @javax.annotation.Nonnull final AddLayerStep step3 = log.code(() -> {
+    @Nonnull final AddLayerStep step3 = log.code(() -> {
       return new AddLayerStep(log, step2.trainingData, step2.integrationModel,
         4, step2.toSize, pretrainMinutes * 4, timeoutMinutes,
         step2.band2, 48, 5, 4);
@@ -214,12 +215,12 @@ public class ImageDecompositionLab {
    * @param timeoutMinutes the timeout minutes
    * @param mask           the mask
    */
-  protected void train(@javax.annotation.Nonnull final NotebookOutput log, final TrainingMonitor monitor, final Layer network, @javax.annotation.Nonnull final Tensor[][] data, final int timeoutMinutes, final boolean... mask) {
+  protected void train(@Nonnull final NotebookOutput log, final TrainingMonitor monitor, final Layer network, @Nonnull final Tensor[][] data, final int timeoutMinutes, final boolean... mask) {
     log.out("Training for %s minutes, mask=%s", timeoutMinutes, Arrays.toString(mask));
     log.code(() -> {
-      @javax.annotation.Nonnull SampledTrainable trainingSubject = new SampledArrayTrainable(data, network, data.length);
+      @Nonnull SampledTrainable trainingSubject = new SampledArrayTrainable(data, network, data.length);
       trainingSubject = (SampledTrainable) ((TrainableDataMask) trainingSubject).setMask(mask);
-      @javax.annotation.Nonnull final ValidatingTrainer validatingTrainer = new ValidatingTrainer(trainingSubject, new ArrayTrainable(data, network))
+      @Nonnull final ValidatingTrainer validatingTrainer = new ValidatingTrainer(trainingSubject, new ArrayTrainable(data, network))
         .setMaxTrainingSize(data.length)
         .setMinTrainingSize(5)
         .setMonitor(monitor)
@@ -250,17 +251,17 @@ public class ImageDecompositionLab {
     /**
      * The Bias layer.
      */
-    @javax.annotation.Nonnull
+    @Nonnull
     public final ImgBandBiasLayer biasLayer;
     /**
      * The Convolution layer.
      */
-    @javax.annotation.Nonnull
+    @Nonnull
     public final ConvolutionLayer convolutionLayer;
     /**
      * The History.
      */
-    @javax.annotation.Nonnull
+    @Nonnull
     public final List<StepRecord> history;
     /**
      * The Inner model.
@@ -277,17 +278,17 @@ public class ImageDecompositionLab {
     /**
      * The Log.
      */
-    @javax.annotation.Nonnull
+    @Nonnull
     public final NotebookOutput log;
     /**
      * The Monitor.
      */
-    @javax.annotation.Nonnull
+    @Nonnull
     public final TrainingMonitor monitor;
     /**
      * The Original out.
      */
-    @javax.annotation.Nonnull
+    @Nonnull
     public final PrintStream originalOut;
     /**
      * The Pretrain minutes.
@@ -330,7 +331,7 @@ public class ImageDecompositionLab {
      * @param radius          the radius
      * @param scale           the scale
      */
-    public AddLayerStep(@javax.annotation.Nonnull final NotebookOutput log, @javax.annotation.Nonnull final Tensor[][] trainingData, final DAGNetwork priorModel,
+    public AddLayerStep(@Nonnull final NotebookOutput log, @Nonnull final Tensor[][] trainingData, final DAGNetwork priorModel,
       final int layerNumber, final int fromSize, final int pretrainMinutes, final int timeoutMinutes,
       final int band1, final int band2, final int radius, final int scale) {
       originalOut = EncodingUtil.rawOut;
@@ -353,7 +354,7 @@ public class ImageDecompositionLab {
       biasLayer = new ImgBandBiasLayer(band1);
       innerModel = buildNetwork();
       integrationModel = log.code(() -> {
-        @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork(1);
+        @Nonnull final PipelineNetwork network = new PipelineNetwork(1);
         network.add(innerModel);
         network.add(priorModel);
         return network;
@@ -392,9 +393,9 @@ public class ImageDecompositionLab {
      *
      * @return the boolean [ ]
      */
-    @javax.annotation.Nonnull
+    @Nonnull
     public boolean[] getTrainingMask() {
-      @javax.annotation.Nonnull final boolean[] mask = new boolean[layerNumber + 2];
+      @Nonnull final boolean[] mask = new boolean[layerNumber + 2];
       mask[layerNumber + 1] = true;
       return mask;
     }
@@ -404,55 +405,55 @@ public class ImageDecompositionLab {
      *
      * @return the add layer runStep
      */
-    @javax.annotation.Nonnull
+    @Nonnull
     public AddLayerStep invoke() {
       dataPipeline.add(innerModel);
       log.code(() -> {
         initialize(log, () -> {
-          @javax.annotation.Nonnull final Stream<Tensor[]> tensors = EncodingUtil.downExplodeTensors(Arrays.stream(trainingData).map(x -> new Tensor[]{x[0], x[layerNumber]}), scale);
+          @Nonnull final Stream<Tensor[]> tensors = EncodingUtil.downExplodeTensors(Arrays.stream(trainingData).map(x -> new Tensor[]{x[0], x[layerNumber]}), scale);
           return EncodingUtil.convolutionFeatures(tensors, radius, 1);
         }, convolutionLayer, biasLayer);
       });
-      @javax.annotation.Nonnull final boolean[] mask = getTrainingMask();
-  
+      @Nonnull final boolean[] mask = getTrainingMask();
+      
       {
         log.h2("Initialization");
         log.h3("Training");
-        @javax.annotation.Nonnull final DAGNetwork trainingModel0 = EncodingUtil.buildTrainingModel(innerModel.copy().freeze(), layerNumber, layerNumber + 1);
+        @Nonnull final DAGNetwork trainingModel0 = EncodingUtil.buildTrainingModel(innerModel.copy().freeze(), layerNumber, layerNumber + 1);
         train(log, monitor, trainingModel0, trainingData, pretrainMinutes, mask);
-        com.simiacryptus.mindseye.test.TestUtil.printHistory(log, history);
+        TestUtil.printHistory(log, history);
         log.h3("Results");
         EncodingUtil.validationReport(log, trainingData, dataPipeline, displayImage);
         EncodingUtil.printModel(log, innerModel, modelNo++);
-        com.simiacryptus.mindseye.test.TestUtil.printDataStatistics(log, trainingData);
+        TestUtil.printDataStatistics(log, trainingData);
         history.clear();
       }
-  
+    
       log.h2("Tuning");
       log.h3("Training");
-      @javax.annotation.Nonnull final DAGNetwork trainingModel0 = EncodingUtil.buildTrainingModel(innerModel, layerNumber, layerNumber + 1);
+      @Nonnull final DAGNetwork trainingModel0 = EncodingUtil.buildTrainingModel(innerModel, layerNumber, layerNumber + 1);
       train(log, monitor, trainingModel0, trainingData, timeoutMinutes, mask);
-      com.simiacryptus.mindseye.test.TestUtil.printHistory(log, history);
+      TestUtil.printHistory(log, history);
       log.h3("Results");
       EncodingUtil.validationReport(log, trainingData, dataPipeline, displayImage);
       EncodingUtil.printModel(log, innerModel, modelNo++);
-      com.simiacryptus.mindseye.test.TestUtil.printDataStatistics(log, trainingData);
+      TestUtil.printDataStatistics(log, trainingData);
       history.clear();
-  
+    
       log.h2("Integration Training");
       log.h3("Training");
-      @javax.annotation.Nonnull final DAGNetwork trainingModel1 = EncodingUtil.buildTrainingModel(integrationModel, 1, layerNumber + 1);
+      @Nonnull final DAGNetwork trainingModel1 = EncodingUtil.buildTrainingModel(integrationModel, 1, layerNumber + 1);
       train(log, monitor, trainingModel1, trainingData, timeoutMinutes, mask);
-      com.simiacryptus.mindseye.test.TestUtil.printHistory(log, history);
+      TestUtil.printHistory(log, history);
       log.h3("Results");
       EncodingUtil.validationReport(log, trainingData, dataPipeline, displayImage);
       EncodingUtil.printModel(log, innerModel, modelNo++);
-      com.simiacryptus.mindseye.test.TestUtil.printDataStatistics(log, trainingData);
+      TestUtil.printDataStatistics(log, trainingData);
       history.clear();
       return this;
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public String toString() {
       return "AddLayerStep{" +
@@ -483,12 +484,12 @@ public class ImageDecompositionLab {
     /**
      * The Bias layer.
      */
-    @javax.annotation.Nonnull
+    @Nonnull
     public final ImgBandBiasLayer biasLayer;
     /**
      * The Convolution layer.
      */
-    @javax.annotation.Nonnull
+    @Nonnull
     public final ConvolutionLayer convolutionLayer;
     /**
      * The From size.
@@ -509,7 +510,7 @@ public class ImageDecompositionLab {
     /**
      * The Monitor.
      */
-    @javax.annotation.Nonnull
+    @Nonnull
     public final TrainingMonitor monitor;
     /**
      * The Pretrain minutes.
@@ -544,7 +545,7 @@ public class ImageDecompositionLab {
      * @param band1                the band 1
      * @param radius               the radius
      */
-    public InitializationStep(final NotebookOutput log, @javax.annotation.Nonnull final Tensor[][] originalTrainingData, final int fromSize, final int pretrainMinutes, final int timeoutMinutes, final int band0, final int band1, final int radius) {
+    public InitializationStep(final NotebookOutput log, @Nonnull final Tensor[][] originalTrainingData, final int fromSize, final int pretrainMinutes, final int timeoutMinutes, final int band0, final int band1, final int radius) {
       this.band1 = band1;
       this.band0 = band0;
       this.log = log;
@@ -567,7 +568,7 @@ public class ImageDecompositionLab {
      */
     public PipelineNetwork buildModel() {
       return log.code(() -> {
-        @javax.annotation.Nonnull final PipelineNetwork network = new PipelineNetwork(1);
+        @Nonnull final PipelineNetwork network = new PipelineNetwork(1);
         network.add(convolutionLayer);
         network.add(biasLayer);
         network.add(new ImgCropLayer(fromSize, fromSize));
@@ -582,7 +583,7 @@ public class ImageDecompositionLab {
      *
      * @return the initialization runStep
      */
-    @javax.annotation.Nonnull
+    @Nonnull
     public InitializationStep invoke() {
       dataPipeline.add(model);
       log.code(() -> {
@@ -592,31 +593,31 @@ public class ImageDecompositionLab {
       {
         log.h2("Initialization");
         log.h3("Training");
-        @javax.annotation.Nonnull final DAGNetwork trainingModel0 = EncodingUtil.buildTrainingModel(model.copy().freeze(), 1, 2);
+        @Nonnull final DAGNetwork trainingModel0 = EncodingUtil.buildTrainingModel(model.copy().freeze(), 1, 2);
         train(log, monitor, trainingModel0, trainingData, pretrainMinutes, false, false, true);
-        com.simiacryptus.mindseye.test.TestUtil.printHistory(log, history);
+        TestUtil.printHistory(log, history);
         log.h3("Results");
         EncodingUtil.validationReport(log, trainingData, dataPipeline, displayImage);
         EncodingUtil.printModel(log, model, modelNo++);
-        com.simiacryptus.mindseye.test.TestUtil.printDataStatistics(log, trainingData);
+        TestUtil.printDataStatistics(log, trainingData);
         history.clear();
       }
       
       log.h2("Tuning");
       log.h3("Training");
-      @javax.annotation.Nonnull final DAGNetwork trainingModel0 = EncodingUtil.buildTrainingModel(model, 1, 2);
+      @Nonnull final DAGNetwork trainingModel0 = EncodingUtil.buildTrainingModel(model, 1, 2);
       train(log, monitor, trainingModel0, trainingData, timeoutMinutes, false, false, true);
-      com.simiacryptus.mindseye.test.TestUtil.printHistory(log, history);
+      TestUtil.printHistory(log, history);
       log.h3("Results");
       EncodingUtil.validationReport(log, trainingData, dataPipeline, displayImage);
       EncodingUtil.printModel(log, model, modelNo++);
-      com.simiacryptus.mindseye.test.TestUtil.printDataStatistics(log, trainingData);
+      TestUtil.printDataStatistics(log, trainingData);
       history.clear();
       
       return this;
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public String toString() {
       return "InitializationStep{" +
@@ -651,7 +652,7 @@ public class ImageDecompositionLab {
     /**
      * The Log.
      */
-    @javax.annotation.Nonnull
+    @Nonnull
     public final NotebookOutput log;
     /**
      * The Model.
@@ -660,7 +661,7 @@ public class ImageDecompositionLab {
     /**
      * The Monitor.
      */
-    @javax.annotation.Nonnull
+    @Nonnull
     public final TrainingMonitor monitor;
     /**
      * The Size.
@@ -686,7 +687,7 @@ public class ImageDecompositionLab {
      * @param model              the model
      * @param representationDims the representation dims
      */
-    public TranscodeStep(@javax.annotation.Nonnull final NotebookOutput log, final String category, final int imageCount, final int size, final int trainMinutes, final Layer model, final int... representationDims) {
+    public TranscodeStep(@Nonnull final NotebookOutput log, final String category, final int imageCount, final int size, final int trainMinutes, final Layer model, final int... representationDims) {
       this.category = category;
       this.imageCount = imageCount;
       this.log = log;
@@ -702,20 +703,20 @@ public class ImageDecompositionLab {
      *
      * @return the transcode runStep
      */
-    @javax.annotation.Nonnull
+    @Nonnull
     public TranscodeStep invoke() {
       log.h3("Training");
-      @javax.annotation.Nonnull final DAGNetwork trainingModel0 = EncodingUtil.buildTrainingModel(model.copy().freeze(), 1, 2);
+      @Nonnull final DAGNetwork trainingModel0 = EncodingUtil.buildTrainingModel(model.copy().freeze(), 1, 2);
       train(log, monitor, trainingModel0, trainingData, trainMinutes, false, false, true);
-      com.simiacryptus.mindseye.test.TestUtil.printHistory(log, history);
+      TestUtil.printHistory(log, history);
       log.h3("Results");
       EncodingUtil.validationReport(log, trainingData, Arrays.asList(model), imageCount);
-      com.simiacryptus.mindseye.test.TestUtil.printDataStatistics(log, trainingData);
+      TestUtil.printDataStatistics(log, trainingData);
       history.clear();
       return this;
     }
   
-    @javax.annotation.Nonnull
+    @Nonnull
     @Override
     public String toString() {
       return "TranscodeStep{" +

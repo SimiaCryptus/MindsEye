@@ -59,7 +59,7 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
   
   @Nullable
   @Override
-  public ToleranceStatistics test(@javax.annotation.Nonnull final NotebookOutput log, @Nonnull final Layer layer, @javax.annotation.Nonnull final Tensor... inputPrototype) {
+  public ToleranceStatistics test(@Nonnull final NotebookOutput log, @Nonnull final Layer layer, @Nonnull final Tensor... inputPrototype) {
     if (!referenceIO.isEmpty()) {
       log.h1("Reference Input/Output Pairs");
       log.p("Display pre-setBytes input/output example pairs:");
@@ -67,7 +67,7 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
         log.code(() -> {
           @Nonnull final SimpleEval eval = SimpleEval.run(layer, input);
           Tensor add = output.scale(-1).addAndFree(eval.getOutput());
-          @javax.annotation.Nonnull final DoubleStatistics error = new DoubleStatistics().accept(add.getData());
+          @Nonnull final DoubleStatistics error = new DoubleStatistics().accept(add.getData());
           add.freeRef();
           String format = String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\nError: %s\n--------------------\nDerivative: \n%s",
             Arrays.stream(input).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
@@ -94,7 +94,7 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
     return null;
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public String toString() {
     return "ReferenceIO{" +

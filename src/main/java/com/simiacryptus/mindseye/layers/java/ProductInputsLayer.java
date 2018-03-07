@@ -53,7 +53,7 @@ public class ProductInputsLayer extends LayerBase {
    *
    * @param id the id
    */
-  protected ProductInputsLayer(@javax.annotation.Nonnull final JsonObject id) {
+  protected ProductInputsLayer(@Nonnull final JsonObject id) {
     super(id);
   }
   
@@ -64,13 +64,13 @@ public class ProductInputsLayer extends LayerBase {
    * @param rs   the rs
    * @return the product inputs layer
    */
-  public static ProductInputsLayer fromJson(@javax.annotation.Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ProductInputsLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
     return new ProductInputsLayer(json);
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
-  public Result eval(@javax.annotation.Nonnull final Result... inObj) {
+  public Result eval(@Nonnull final Result... inObj) {
     assert inObj.length > 1;
     Arrays.stream(inObj).forEach(x -> x.getData().addRef());
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
@@ -98,10 +98,10 @@ public class ProductInputsLayer extends LayerBase {
       l.freeRef();
       r.freeRef();
       return productArray;
-    }).get(), (@javax.annotation.Nonnull final DeltaSet<Layer> buffer, @javax.annotation.Nonnull final TensorList delta) -> {
-      for (@javax.annotation.Nonnull final Result input : inObj) {
+    }).get(), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+      for (@Nonnull final Result input : inObj) {
         if (input.isAlive()) {
-          @javax.annotation.Nonnull TensorList passback = Arrays.stream(inObj).parallel().map(x -> {
+          @Nonnull TensorList passback = Arrays.stream(inObj).parallel().map(x -> {
             TensorList tensorList = x == input ? delta : x.getData();
             tensorList.addRef();
             return tensorList;
@@ -147,7 +147,7 @@ public class ProductInputsLayer extends LayerBase {
       
       @Override
       public boolean isAlive() {
-        for (@javax.annotation.Nonnull final Result element : inObj)
+        for (@Nonnull final Result element : inObj)
           if (element.isAlive()) {
             return true;
           }
@@ -163,13 +163,13 @@ public class ProductInputsLayer extends LayerBase {
     };
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   
-  @javax.annotation.Nonnull
+  @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
