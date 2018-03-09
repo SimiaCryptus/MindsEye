@@ -1,4 +1,4 @@
-[Sample Image cresated by MindsEye](DeepDreamDemo.1.png)
+![Sample Image cresated by MindsEye](DeepDreamDemo.1.png)
 
 
 # MindsEye - Java 8 Neural Networks
