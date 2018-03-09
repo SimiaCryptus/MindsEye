@@ -1,3 +1,6 @@
+[Sample Image cresated by MindsEye](DeepDreamDemo.1.png)
+
+
 # MindsEye - Java 8 Neural Networks
  
 Welcome! This is MindsEye, a neural network library written in Java 8. Low-level computation is provided by CuDNN and other native libraries.
