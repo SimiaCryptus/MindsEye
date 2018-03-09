@@ -139,7 +139,7 @@ public class DeepDreamDemo extends ArtistryDemo {
       normalized.wrap(new ProductInputsLayer(), // new BinarySumLayer(0.99,0.1),
         normalized.wrap(dreamer, normalized.getInput(0)),
         normalized.wrap(new NthPowerActivationLayer().setPower(-1),
-          normalized.wrap(new LinearActivationLayer().setBias(10.0).freeze(),
+          normalized.wrap(new LinearActivationLayer().setBias(1000.0).freeze(),
             normalized.wrap(new MeanSqLossLayer(),
               normalized.getInput(1),
               normalized.getInput(0)
