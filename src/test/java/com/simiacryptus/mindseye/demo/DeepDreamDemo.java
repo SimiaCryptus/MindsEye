@@ -94,7 +94,7 @@ public class DeepDreamDemo extends ArtistryDemo {
       try {
         new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
           @Override
-          protected void phase1c() {
+          protected void phase1d() {
             add(new SquareActivationLayer().setAlpha(-1.0));
             add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
             add(new SumReducerLayer());
@@ -162,7 +162,7 @@ public class DeepDreamDemo extends ArtistryDemo {
           .setMonitor(ImageClassifier.getTrainingMonitor(history, supervised))
           .setOrientation(new QQN())
           .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-          .setTimeout(60, TimeUnit.MINUTES))
+          .setTimeout(45, TimeUnit.MINUTES))
           .setTerminateThreshold(Double.NEGATIVE_INFINITY)
           .runAndFree();
         return TestUtil.plot(history);
@@ -185,6 +185,11 @@ public class DeepDreamDemo extends ArtistryDemo {
    */
   public Tensor[] getImages_Artistry(@Nonnull final NotebookOutput log) {
     return Stream.of(
+      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC_0005.JPG",
+      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC_0127.JPG",
+      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC00097.JPG",
+      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC00152.JPG",
+      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC00200.JPG",
       "H:\\SimiaCryptus\\Artistry\\monkeydog.jpg",
       "H:\\SimiaCryptus\\Artistry\\landscape.jpg",
       "H:\\SimiaCryptus\\Artistry\\chimps\\winner.jpg",
@@ -193,7 +198,7 @@ public class DeepDreamDemo extends ArtistryDemo {
     ).map(file -> {
       try {
         BufferedImage image = ImageIO.read(new File(file));
-        image = TestUtil.resize(image, 400, true);
+        image = TestUtil.resize(image, 600, true);
         return Tensor.fromRGB(image);
       } catch (IOException e) {
         throw new RuntimeException(e);
