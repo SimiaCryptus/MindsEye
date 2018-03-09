@@ -25,13 +25,10 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
-import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
+import com.simiacryptus.mindseye.layers.cudnn.GateProductLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
-import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
+import com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
-import com.simiacryptus.mindseye.layers.java.NthPowerActivationLayer;
-import com.simiacryptus.mindseye.layers.java.ProductInputsLayer;
-import com.simiacryptus.mindseye.layers.java.SumReducerLayer;
 import com.simiacryptus.mindseye.models.Hdf5Archive;
 import com.simiacryptus.mindseye.models.ImageClassifier;
 import com.simiacryptus.mindseye.models.VGG16;
@@ -61,12 +58,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * The type Deep dream demo.
  */
-public class DeepDreamDemo extends ArtistryDemo {
+public class FoolingImageDemo extends ArtistryDemo {
   
   /**
    * Run.
@@ -83,69 +81,83 @@ public class DeepDreamDemo extends ArtistryDemo {
    */
   public void run(@Nonnull NotebookOutput log) {
     init();
-  
+    
     @Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
     
     log.h1("Model");
-    DAGNetwork dreamer = log.code(() -> {
-      final DAGNetwork[] dreamNet = new DAGNetwork[1];
+    VGG16_HDF5 classifier = log.code(() -> {
+      final VGG16_HDF5 result;
       try {
-        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+        result = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
           @Override
-          protected void phase1c() {
-            add(new SquareActivationLayer().setAlpha(-1.0));
-            add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
-            add(new SumReducerLayer());
-            dreamNet[0] = (DAGNetwork) pipelineNetwork.copy();
-            throw new RuntimeException("Abort Network Construction");
+          protected void phase3b() {
+            add(new SoftmaxActivationLayer()
+              .setAlgorithm(SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE)
+              .setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
+            add(new BandReducerLayer()
+              .setMode(getFinalPoolingMode()));
           }
-        }.setLarge(true).setFinalPoolingMode(PoolingLayer.PoolingMode.Avg).getNetwork();
+        };
       } catch (@Nonnull final RuntimeException e) {
-        // Ignore
+        throw e;
       } catch (Throwable e) {
         throw new RuntimeException(e);
       }
-      return dreamNet[0];
+      return result.setLarge(true).setFinalPoolingMode(PoolingLayer.PoolingMode.Avg);
+    });
+    VGG16_HDF5 dreamer = log.code(() -> {
+      final VGG16_HDF5 result;
+      try {
+        result = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+          @Override
+          protected void phase3b() {
+            add(new BandReducerLayer()
+              .setMode(getFinalPoolingMode()));
+          }
+        };
+      } catch (@Nonnull final RuntimeException e) {
+        throw e;
+      } catch (Throwable e) {
+        throw new RuntimeException(e);
+      }
+      return result.setLarge(true).setFinalPoolingMode(PoolingLayer.PoolingMode.Avg);
     });
 
 //    Tensor[] images = getImages_Caltech(log);
     Tensor[] images = getImages_Artistry(log);
     
+    List<String> vgg16Categories = classifier.getCategories();
     for (int itemNumber = 0; itemNumber < images.length; itemNumber++) {
       log.h1("Image " + itemNumber);
       Tensor image = images[itemNumber];
       TestUtil.monitorImage(image, false);
+      List<String> categories = classifier.predict(8, image).stream().flatMap(x -> x.keySet().stream()).collect(Collectors.toList());
+      log.p("Predictions: %s", categories.stream().reduce((a, b) -> a + "; " + b).get());
+      log.p("Evolve from %s to %s", categories.get(0), categories.get(2));
+      int totalCategories = vgg16Categories.size();
       Function<IterativeTrainer, IterativeTrainer> config = train -> train
         .setTimeout(90, TimeUnit.MINUTES)
         .setIterationsPerSample(5);
-  
-      TestUtil.instrumentPerformance(log, dreamer);
-      addLayersHandler(dreamer, server);
-      @Nonnull List<Tensor[]> data = Arrays.<Tensor[]>asList(new Tensor[]{image, image.copy()});
+      DAGNetwork network = (DAGNetwork) classifier.getNetwork();
+      TestUtil.instrumentPerformance(log, network);
+      addLayersHandler(network, server);
+      @Nonnull List<Tensor[]> data = Arrays.<Tensor[]>asList(new Tensor[]{
+        image, new Tensor(1, 1, totalCategories)
+        .set(vgg16Categories.indexOf(categories.get(0)), (double) 1)
+        .set(vgg16Categories.indexOf(categories.get(1)), (double) -1)
+        .set(vgg16Categories.indexOf(categories.get(2)), (double) 1)
+      });
       log.code(() -> {
         for (Tensor[] tensors : data) {
           try {
-            log.p(log.image(tensors[0].toImage(), ""));
+            log.p(log.image(tensors[0].toImage(), "") + tensors[1]);
           } catch (IOException e1) {
             throw new RuntimeException(e1);
           }
         }
       });
-  
-      PipelineNetwork normalized = new PipelineNetwork(2);
-      normalized.wrap(dreamer, normalized.getInput(0));
-      normalized.wrap(new ProductInputsLayer(), // new BinarySumLayer(0.99,0.1),
-        normalized.wrap(dreamer, normalized.getInput(0)),
-        normalized.wrap(new NthPowerActivationLayer().setPower(-1),
-          normalized.wrap(new LinearActivationLayer().setBias(10.0).freeze(),
-            normalized.wrap(new MeanSqLossLayer(),
-              normalized.getInput(1),
-              normalized.getInput(0)
-            ))));
-  
-  
       log.code(() -> {
         @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
         @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
@@ -154,9 +166,18 @@ public class DeepDreamDemo extends ArtistryDemo {
         clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
         clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
         @Nonnull PipelineNetwork supervised = new PipelineNetwork(2);
-        supervised.add(normalized.freeze(),
-          supervised.wrap(clamp, supervised.getInput(0)),
+        supervised.wrap(new GateProductLayer(),
+          supervised.add(network.freeze(),
+            supervised.wrap(clamp, supervised.getInput(0))),
           supervised.getInput(1));
+        //      TensorList[] gpuInput = data.stream().map(data1 -> {
+        //        return CudnnHandle.eval(gpu -> {
+        //          Precision precision = Precision.Float;
+        //          return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(data1), precision, MemoryType.Managed), 1, image.getDimensions(), precision);
+        //        });
+        //      }).toArray(i -> new TensorList[i]);
+        //      @Nonnull Trainable trainable = new TensorListTrainable(supervised, gpuInput).setVerbosity(1).setMask(true);
+        
         @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setVerbose(true).setMask(true, false).setData(data);
         config.apply(new IterativeTrainer(trainable)
           .setMonitor(ImageClassifier.getTrainingMonitor(history, supervised))

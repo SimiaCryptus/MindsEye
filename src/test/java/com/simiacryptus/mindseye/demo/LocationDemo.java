@@ -46,9 +46,12 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -83,10 +86,10 @@ public class LocationDemo extends ArtistryDemo {
     @Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
-    
-    VGG16_HDF5 vgg16_hdf5;
+  
+    VGG16_HDF5 classifier;
     try {
-      vgg16_hdf5 = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+      classifier = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
         @Override
         protected void phase3b() {
           add(new SoftmaxActivationLayer()
@@ -99,9 +102,25 @@ public class LocationDemo extends ArtistryDemo {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    Layer classifyNetwork = vgg16_hdf5.getNetwork();
-//    Tensor[][] inputData = loadImages_library();
-    Tensor[][] inputData = loadImage_Caltech101(log);
+    Layer classifyNetwork = classifier.getNetwork();
+  
+    VGG16_HDF5 locator;
+    try {
+      locator = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+        @Override
+        protected void phase3b() {
+          add(new BandReducerLayer().setMode(getFinalPoolingMode()));
+        }
+      }//.setSamples(5).setDensity(0.3)
+        .setFinalPoolingMode(PoolingLayer.PoolingMode.Avg);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    Layer locatorNetwork = locator.getNetwork();
+  
+  
+    Tensor[][] inputData = loadImages_library();
+//    Tensor[][] inputData = loadImage_Caltech101(log);
     double alphaPower = 0.8;
     
     final AtomicInteger index = new AtomicInteger(0);
@@ -114,43 +133,52 @@ public class LocationDemo extends ArtistryDemo {
         throw new RuntimeException(e);
       }
       Result classifyResult = classifyNetwork.eval(new MutableResult(row));
+      Result locationResult = locatorNetwork.eval(new MutableResult(row));
       Tensor classification = classifyResult.getData().get(0);
-      List<String> categories = vgg16_hdf5.getCategories();
+      List<String> categories = classifier.getCategories();
       int[] sortedIndices = IntStream.range(0, categories.size()).mapToObj(x -> x)
         .sorted(Comparator.comparing(i -> -classification.get(i))).mapToInt(x -> x).limit(10).toArray();
       logger.info(Arrays.stream(sortedIndices)
         .mapToObj(i -> String.format("%s: %s = %s%%", i, categories.get(i), classification.get(i) * 100))
         .reduce((a, b) -> a + "\n" + b)
         .orElse(""));
-      Arrays.stream(sortedIndices).limit(3).forEach(category -> {
-        log.h3(categories.get(category));
-        Tensor oneHot = new Tensor(classification.getDimensions()).set(category, 1);
-        TensorArray tensorArray = TensorArray.wrap(oneHot);
-        DeltaSet<Layer> deltaSet = new DeltaSet<>();
-        classifyResult.accumulate(deltaSet, tensorArray);
-        double[] rawDelta = deltaSet.getMap().entrySet().stream().filter(x -> x.getValue().target == img.getData()).findAny().get().getValue().getDelta();
-        Tensor alphaTensor = renderAlpha(img, rawDelta, alphaPower);
+      List<Tensor> priorMatches = new ArrayList<>();
+      Map<String, Tensor> vectors = new HashMap<>();
+      Arrays.stream(sortedIndices).limit(10).forEach(category -> {
         try {
-          log.p(log.image(row[0].toRgbImageAlphaMask(0, 1, 2,
-            alphaTensor), ""));
+          log.h3(categories.get(category));
+          Tensor alphaTensor = renderAlpha(alphaPower, img, locationResult, classification, category);
+          Tensor orthogonalTensor = alphaTensor;
+          for (Tensor t : priorMatches) {
+            orthogonalTensor = orthogonalTensor.minus(t.scale(orthogonalTensor.dot(t) / t.sumSq()));
+          }
+          orthogonalTensor = orthogonalTensor.scale(Math.sqrt(alphaTensor.sumSq() / orthogonalTensor.sumSq()));
+          priorMatches.add(alphaTensor);
+          log.p("Raw Interest Region: " + log.image(row[0].toRgbImageAlphaMask(0, 1, 2, alphaTensor), ""));
+          log.p("Orthogonal Interest Region: " + log.image(row[0].toRgbImageAlphaMask(0, 1, 2, orthogonalTensor), ""));
+          vectors.put(categories.get(category), alphaTensor.unit());
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
       });
+  
+      log.p(String.format("<table><th>Cosine Distance</th>%s%s</table>",
+        String.format("<tr>%s</tr>", Arrays.stream(sortedIndices).limit(10).mapToObj(col -> "<th>" + categories.get(col) + "</th>").reduce((a, b) -> a + b)),
+        Arrays.stream(sortedIndices).limit(10).mapToObj(r -> {
+          return String.format("<tr><td>%s</td>%s</tr>", categories.get(r), Arrays.stream(sortedIndices).limit(10).mapToObj(col -> {
+            return String.format("<td>%.4f</td>", Math.acos(vectors.get(categories.get(r)).dot(vectors.get(categories.get(col)))));
+          }).reduce((a, b) -> a + b));
+        }).reduce((a, b) -> a + b).orElse("")));
     });
     
     log.setFrontMatterProperty("status", "OK");
   }
   
-  /**
-   * Render alpha tensor.
-   *
-   * @param img        the img
-   * @param rawDelta   the raw delta
-   * @param alphaPower the alpha power
-   * @return the tensor
-   */
-  public Tensor renderAlpha(final Tensor img, final double[] rawDelta, final double alphaPower) {
+  public Tensor renderAlpha(final double alphaPower, final Tensor img, final Result locationResult, final Tensor classification, final int category) {
+    TensorArray tensorArray = TensorArray.wrap(new Tensor(classification.getDimensions()).set(category, 1));
+    DeltaSet<Layer> deltaSet = new DeltaSet<>();
+    locationResult.accumulate(deltaSet, tensorArray);
+    double[] rawDelta = deltaSet.getMap().entrySet().stream().filter(x -> x.getValue().target == img.getData()).findAny().get().getValue().getDelta();
     Tensor deltaColor = new Tensor(rawDelta, img.getDimensions()).mapAndFree(x -> Math.abs(x));
     Tensor delta1d = blur(reduce(deltaColor), 3);
     return TestUtil.normalizeBands(TestUtil.normalizeBands(delta1d, 1).mapAndFree(x -> Math.pow(x, alphaPower)));
@@ -215,6 +243,10 @@ public class LocationDemo extends ArtistryDemo {
    */
   public Tensor[][] loadImages_library() {
     return Stream.of(
+      "H:\\SimiaCryptus\\Artistry\\rodeo.jpg",
+      "H:\\SimiaCryptus\\Artistry\\family.jpg",
+      "H:\\SimiaCryptus\\Artistry\\monkeydog.jpg",
+      "H:\\SimiaCryptus\\Artistry\\safari.jpg",
       "H:\\SimiaCryptus\\Artistry\\wild-animals-group.jpg",
       "H:\\SimiaCryptus\\Artistry\\girl_dog_family.jpg",
       "H:\\SimiaCryptus\\Artistry\\chimps\\chip.jpg"

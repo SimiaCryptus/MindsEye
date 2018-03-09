@@ -26,6 +26,7 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.lang.StaticResourcePool;
+import com.simiacryptus.util.lang.TimedResult;
 import jcuda.jcudnn.JCudnn;
 import jcuda.jcudnn.cudnnActivationDescriptor;
 import jcuda.jcudnn.cudnnConvolutionDescriptor;
@@ -329,7 +330,7 @@ public class CudaSystem {
   @Nonnull
   public static AtomicInteger gpuGeneration = new AtomicInteger(0);
   private static volatile StaticResourcePool<CudnnHandle> pool;
-  private boolean dirty = false;
+  private final List<StackTraceElement[]> dirty = new ArrayList<>();
   
   /**
    * Instantiates a new Gpu system.
@@ -1189,30 +1190,31 @@ public class CudaSystem {
    * @return the int
    */
   public int cudaDeviceSynchronize() {
-    if (!dirty) return cudnnStatus.CUDNN_STATUS_SUCCESS;
-    dirty = false;
+    if (dirty.isEmpty()) return cudnnStatus.CUDNN_STATUS_SUCCESS;
+    String cause = dirty.stream().map(tr -> TestUtil.toString(tr).replaceAll("\n", "\n\t")).reduce((a, b) -> a + "," + b).orElse("");
+    dirty.clear();
     long startTime = System.nanoTime();
-    final int result = JCuda.cudaDeviceSynchronize();
+    TimedResult<Integer> timedResult = TimedResult.time(() -> JCuda.cudaDeviceSynchronize());
+    final int result = timedResult.result;
     log("cudaDeviceSynchronize", result, new Object[]{});
+    CudaTensorList.logger.info(String.format("Synchronized %d in %.4f due to %s", getThreadDeviceId(), timedResult.seconds(), cause));
     cudaDeviceSynchronize_execution.accept((System.nanoTime() - startTime) / 1e9);
     handle(result);
     return result;
-//    synchronized (syncLock) {
-//    }
   }
   
   /**
    * Dirty.
    */
   public void dirty() {
-    dirty = true;
+    dirty.add(CudaSettings.INSTANCE.isProfileMemoryIO() ? CudaTensorList.getStackTrace() : new StackTraceElement[]{});
   }
   
   /**
    * Cleanup.
    */
   protected void cleanup() {
-    if (dirty) cudaDeviceSynchronize();
+    if (!dirty.isEmpty()) cudaDeviceSynchronize();
     CudnnHandle.threadContext.remove();
   }
   

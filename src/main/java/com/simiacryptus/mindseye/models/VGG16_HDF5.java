@@ -57,7 +57,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
   /**
    * The Pipeline network.
    */
-  public final PipelineNetwork pipelineNetwork = new PipelineNetwork();
+  protected final PipelineNetwork pipelineNetwork = new PipelineNetwork();
   /**
    * The Hdf 5.
    */

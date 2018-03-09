@@ -81,7 +81,7 @@ public class StyleTransferDemo extends ArtistryDemo {
   /**
    * The Texture netork.
    */
-  Layer textureNetork;
+  Layer textureNetwork;
   
   /**
    * Test.
@@ -103,7 +103,7 @@ public class StyleTransferDemo extends ArtistryDemo {
     
     List<String> control = Arrays.asList("H:\\SimiaCryptus\\Artistry\\portraits\\photos");
     List<String> target = Arrays.asList("H:\\SimiaCryptus\\Artistry\\portraits\\picasso");
-    String input = "H:\\SimiaCryptus\\Artistry\\portraits\\photos\\1280px-Winter_baby_10-months-old.jpg";
+    String input = "H:\\SimiaCryptus\\Artistry\\monkeydog.jpg";
   
     @Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
@@ -118,7 +118,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         return new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
           @Override
           protected void phase3() {
-            textureNetork = pipelineNetwork.copy().freeze();
+            textureNetwork = pipelineNetwork.copy().freeze();
             add(trainedCategorizer);
           }
         };
@@ -154,7 +154,7 @@ public class StyleTransferDemo extends ArtistryDemo {
   
     Tensor[][] preprocessedTrainingData = IntStream.range(0, rawTrainingData.length).mapToObj(i -> {
       Tensor[] x = rawTrainingData[i];
-      TimedResult<Tensor[]> timedResult = TimedResult.time(() -> new Tensor[]{textureNetork.eval(x[0]).getDataAndFree().getAndFree(0), x[1]});
+      TimedResult<Tensor[]> timedResult = TimedResult.time(() -> new Tensor[]{textureNetwork.eval(x[0]).getDataAndFree().getAndFree(0), x[1]});
       logger.info(String.format("Preprocessed record %d/%d in %.3f", i, rawTrainingData.length, timedResult.seconds()));
       return timedResult.result;
     }).toArray(i -> new Tensor[i][]);

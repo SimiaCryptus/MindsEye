@@ -166,7 +166,8 @@ public class ReproductionDemo extends ArtistryDemo {
    * @param image         the image
    * @return the texture
    */
-  public Tensor getTexture(final Layer textureNetork, final Tensor image) {
+  @Nonnull
+  public Tensor getTexture(@Nonnull final Layer textureNetork, @Nonnull final Tensor image) {
     return textureNetork.eval(image).getDataAndFree().getAndFree(0);
   }
   
@@ -225,106 +226,20 @@ public class ReproductionDemo extends ArtistryDemo {
    * @throws KeyStoreException        the key store exception
    * @throws IOException              the io exception
    */
+  @Nonnull
   public Layer getTextureNetwork(@Nonnull final NotebookOutput log) throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
     final AtomicReference<Layer> ref = new AtomicReference<>(null);
-    new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-      @Override
-      protected void phase3() {
-        ref.set(pipelineNetwork.copy().freeze());
-        super.phase3();
-      }
-    }.getNetwork();
+    try {
+      new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+        @Override
+        protected void phase1c() {
+          ref.set(pipelineNetwork.copy().freeze());
+          throw new RuntimeException("Abort Network Construction");
+        }
+      }.getNetwork();
+    } catch (RuntimeException e) {
+    }
     return ref.get();
   }
   
-  /**
-   * The type Layer 2 b.
-   */
-  public static class Layer2b extends ReproductionDemo {
-    /**
-     * Instantiates a new Layer 2 b.
-     *
-     * @param files the files
-     */
-    public Layer2b(final String... files) {
-      super(files);
-    }
-  
-    /**
-     * The entry point of application.
-     *
-     * @param args the input arguments
-     */
-    public static void main(String[] args) {
-      ReproductionDemo demo = new Layer2b(args);
-      demo.run(demo::run);
-    }
-    
-    @Override
-    public Layer getTextureNetwork(@Nonnull final NotebookOutput log) {
-      return log.code(() -> {
-        try {
-          final AtomicReference<Layer> ref = new AtomicReference<>(null);
-          new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-            @Override
-            protected void phase2b() {
-              ref.set(pipelineNetwork.copy().freeze());
-              super.phase2b();
-            }
-          }.getNetwork();
-          return ref.get();
-        } catch (@Nonnull final RuntimeException e) {
-          throw e;
-        } catch (Throwable e) {
-          throw new RuntimeException(e);
-        }
-      });
-    }
-  }
-  
-  /**
-   * The type Layer 2 a.
-   */
-  public static class Layer2a extends ReproductionDemo {
-  
-    /**
-     * Instantiates a new Layer 2 a.
-     *
-     * @param files the files
-     */
-    public Layer2a(final String... files) {
-      super(files);
-    }
-  
-    /**
-     * The entry point of application.
-     *
-     * @param args the input arguments
-     */
-    public static void main(String[] args) {
-      ReproductionDemo demo = new Layer2a(args);
-      demo.run(demo::run);
-    }
-    
-    @Override
-    public Layer getTextureNetwork(@Nonnull final NotebookOutput log) {
-      return log.code(() -> {
-        try {
-          final AtomicReference<Layer> ref = new AtomicReference<>(null);
-          new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-            @Override
-            protected void phase2a() {
-              ref.set(pipelineNetwork.copy().freeze());
-              super.phase2a();
-            }
-          }.getNetwork();
-          return ref.get();
-        } catch (@Nonnull final RuntimeException e) {
-          throw e;
-        } catch (Throwable e) {
-          throw new RuntimeException(e);
-        }
-      });
-    }
-  }
 }

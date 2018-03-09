@@ -403,7 +403,7 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param totalCategories     the total categories
    * @param config              the config
    */
-  public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories, Function<IterativeTrainer, IterativeTrainer> config) {deepDream(log, image, targetCategoryIndex, totalCategories, config, getNetwork());}
+  public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories, Function<IterativeTrainer, IterativeTrainer> config) {deepDream(log, image, targetCategoryIndex, totalCategories, config, getNetwork(), new EntropyLossLayer(), -1.0);}
   
   /**
    * Deep dream.
@@ -414,10 +414,12 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param totalCategories     the total categories
    * @param config              the config
    * @param network             the network
+   * @param lossLayer
+   * @param targetValue
    */
-  public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories, Function<IterativeTrainer, IterativeTrainer> config, final Layer network) {
+  public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories, Function<IterativeTrainer, IterativeTrainer> config, final Layer network, final Layer lossLayer, final double targetValue) {
     @Nonnull List<Tensor[]> data = Arrays.<Tensor[]>asList(new Tensor[]{
-      image, new Tensor(totalCategories).set(targetCategoryIndex, 1.0)
+      image, new Tensor(1, 1, totalCategories).set(targetCategoryIndex, targetValue)
     });
     log.code(() -> {
       for (Tensor[] tensors : data) {
@@ -436,7 +438,7 @@ public abstract class ImageClassifier implements NetworkFactory {
       clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
       clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
       @Nonnull PipelineNetwork supervised = new PipelineNetwork(2);
-      supervised.wrap(new EntropyLossLayer(),
+      supervised.wrap(lossLayer,
         supervised.add(network.freeze(),
           supervised.wrap(clamp, supervised.getInput(0))),
         supervised.getInput(1));
@@ -454,6 +456,7 @@ public abstract class ImageClassifier implements NetworkFactory {
         .setOrientation(new QQN())
         .setLineSearchFactory(name -> new ArmijoWolfeSearch())
         .setTimeout(60, TimeUnit.MINUTES))
+        .setTerminateThreshold(Double.NEGATIVE_INFINITY)
         .runAndFree();
       return TestUtil.plot(history);
     });

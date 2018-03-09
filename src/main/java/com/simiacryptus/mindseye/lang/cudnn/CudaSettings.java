@@ -66,7 +66,7 @@ public class CudaSettings implements Settings {
     conv_para_3 = Settings.get("CONV_PARA_3", true);
     memoryCacheMode = Settings.get("CUDA_CACHE_MODE", PersistanceMode.WEAK);
     logStack = Settings.get("CUDA_LOG_STACK", false);
-    profileMemoryIO = Settings.get("CUDA_PROFILE_MEM_IO", true);
+    profileMemoryIO = Settings.get("CUDA_PROFILE_MEM_IO", false);
   }
   
   /**
