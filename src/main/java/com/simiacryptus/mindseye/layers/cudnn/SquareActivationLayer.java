@@ -127,6 +127,7 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
         precision.getPointer(alpha), inputTensor.descriptor.getPtr(), lPtrMemory.getPtr(),
         precision.getPointer(1.0), inputTensor.descriptor.getPtr(), lPtrMemory.getPtr(),
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
+      outputPtr.dirty(gpu);
       lPtrMemory.freeRef();
       inputTensor.freeRef();
       opDescriptor.freeRef();

@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
+import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
@@ -107,6 +108,7 @@ public class DeepDreamDemo extends ArtistryDemo {
       } catch (Throwable e) {
         throw new RuntimeException(e);
       }
+      ImageClassifier.setPrecision(dreamNet[0], Precision.Float);
       return dreamNet[0];
     });
 
@@ -144,6 +146,7 @@ public class DeepDreamDemo extends ArtistryDemo {
               normalized.getInput(1),
               normalized.getInput(0)
             ))));
+      ImageClassifier.setPrecision(normalized, Precision.Float);
   
   
       log.code(() -> {
@@ -157,6 +160,7 @@ public class DeepDreamDemo extends ArtistryDemo {
         supervised.add(normalized.freeze(),
           supervised.wrap(clamp, supervised.getInput(0)),
           supervised.getInput(1));
+        ImageClassifier.setPrecision(supervised, Precision.Float);
         @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setVerbose(true).setMask(true, false).setData(data);
         config.apply(new IterativeTrainer(trainable)
           .setMonitor(ImageClassifier.getTrainingMonitor(history, supervised))
@@ -198,7 +202,7 @@ public class DeepDreamDemo extends ArtistryDemo {
     ).map(file -> {
       try {
         BufferedImage image = ImageIO.read(new File(file));
-        image = TestUtil.resize(image, 600, true);
+        image = TestUtil.resize(image, 1000, true);
         return Tensor.fromRGB(image);
       } catch (IOException e) {
         throw new RuntimeException(e);

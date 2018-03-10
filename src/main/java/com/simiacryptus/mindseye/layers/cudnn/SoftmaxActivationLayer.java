@@ -172,6 +172,7 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
             precision.getPointer(1.0), inputTensor.descriptor.getPtr(), inputMemory.getPtr(),
             precision.getPointer(0.0), outputTensor.descriptor.getPtr(), outputMemory.getPtr()
           ));
+          outputMemory.dirty(gpu);
           outputMemory.freeRef();
           inputMemory.freeRef();
           return outputTensor;
@@ -215,6 +216,7 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
                   deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
                   precision.getPointer(0.0), passbackTensor.descriptor.getPtr(), passbackMemory.getPtr()
                 ));
+                passbackMemory.dirty(gpu);
     
                 localOutMemory.freeRef();
                 deltaTensorMemory.freeRef();

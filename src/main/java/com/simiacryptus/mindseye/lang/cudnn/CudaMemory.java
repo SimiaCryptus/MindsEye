@@ -65,6 +65,8 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
   public final long size;
   private final int deviceId;
   private final MemoryType type;
+  private int writtenBy = -1;
+  private long writtenAt = System.nanoTime();
   
   /**
    * Instantiates a new Cuda ptr.
@@ -406,4 +408,15 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
       }
     };
   }
+  
+  public CudaMemory dirty(final CudnnHandle gpu) {
+    writtenBy = gpu.getDeviceId();
+    writtenAt = System.nanoTime();
+    return this;
+  }
+  
+  public void synchronize(final CudnnHandle gpu) {
+    if (writtenBy >= 0) gpu.synchronize(writtenAt, writtenBy);
+  }
+  
 }

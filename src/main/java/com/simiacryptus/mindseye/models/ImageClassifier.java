@@ -498,13 +498,21 @@ public abstract class ImageClassifier implements NetworkFactory {
    * Sets precision.
    *
    * @param model the model
+   * @param precision
    */
-  protected void setPrecision(DAGNetwork model) {
+  public static void setPrecision(DAGNetwork model, final Precision precision) {
     model.visitLayers(layer -> {
       if (layer instanceof MultiPrecision) {
         ((MultiPrecision) layer).setPrecision(precision);
       }
     });
   }
+  
+  /**
+   * Sets precision.
+   *
+   * @param model the model
+   */
+  protected void setPrecision(DAGNetwork model) {setPrecision(model, precision);}
   
 }

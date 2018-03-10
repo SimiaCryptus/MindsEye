@@ -141,6 +141,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
         precision.getPointer(1.0), inputTensor.descriptor.getPtr(), inputMemory.getPtr(),
         precision.getPointer(1.0), biasDescriptor.getPtr(), biasMem.getPtr(),
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
+      outputPtr.dirty(gpu);
       inputMemory.freeRef();
       biasMem.freeRef();
       biasDescriptor.freeRef();
@@ -162,6 +163,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
           CudaMemory deltaTensorMemory = deltaTensor.getMemory(gpu);
           gpu.cudnnConvolutionBackwardBias(precision.getPointer(1.0), deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
             precision.getPointer(0.0), biasDescriptor.getPtr(), biasMem.getPtr());
+          biasMem.dirty(gpu);
           double[] biasV = new double[bias.length()];
           biasMem.read(precision, biasV);
           Stream.<ReferenceCounting>of(biasMem, deltaTensorMemory, deltaTensor, opDescriptor, biasDescriptor).forEach(ReferenceCounting::freeRef);

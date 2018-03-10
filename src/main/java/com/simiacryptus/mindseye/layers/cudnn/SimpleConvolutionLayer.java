@@ -235,6 +235,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
           null == forwardWorkspace ? null : forwardWorkspace.getPtr(),
           null == forwardWorkspace ? 0 : forwardWorkspace.size,
           precision.getPointer(0.0), outputDescriptor.getPtr(), outputBuffer.getPtr()));
+        outputBuffer.dirty(gpu);
         inputTensorMemory.freeRef();
         filterPtr.freeRef();
         outputDescriptor.addRef();
@@ -278,6 +279,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
                   backwardsFilterWorkSpace.getPtr(),
                   backwardsFilterWorkSpace.size,
                   precision.getPointer(0.0), filterDescriptor.getPtr(), filterPtr.getPtr()));
+                filterPtr.dirty(gpu);
                 inputTensorMemory.freeRef();
                 deltaTensorMemory.freeRef();
               } catch (@Nonnull final Throwable e) {
@@ -326,6 +328,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
                     backwardsDataWorkSpace.getPtr(),
                     backwardsDataWorkSpace.size,
                     precision.getPointer(0.0), inputDescriptor.getPtr(), inputBuffer.getPtr()));
+                  inputBuffer.dirty(gpu);
                   deltaTensorMemory.freeRef();
                   inputDescriptor.addRef();
                   return CudaTensorList.wrap(CudaTensor.wrap(inputBuffer, inputDescriptor, precision), length, inputSize, precision);

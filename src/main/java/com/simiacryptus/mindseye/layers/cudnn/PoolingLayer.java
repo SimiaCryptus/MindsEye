@@ -145,6 +145,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
           inputData.descriptor.getPtr(), inputDataMemory.getPtr(),
           precision.getPointer(0.0),
           outputDescriptor.getPtr(), outputTensor.getPtr()));
+        outputTensor.dirty(gpu);
         inputDataMemory.freeRef();
         Arrays.stream(new ReferenceCounting[]{inputData, poolingDesc}).forEach(ReferenceCounting::freeRef);
         return CudaTensor.wrap(outputTensor, outputDescriptor, precision);
@@ -181,6 +182,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
               inputData.descriptor.getPtr(), inputDataMemory.getPtr(),
               beta,
               passbackDescriptor.getPtr(), passbackBuffer.getPtr()));
+            passbackBuffer.dirty(gpu);
   
             Stream.<ReferenceCounting>of(errorPtr, inputData, poolingDesc, outputDataMemory, errorPtrMemory, inputDataMemory).forEach(ReferenceCounting::freeRef);
             return CudaTensorList.wrap(CudaTensor.wrap(passbackBuffer, passbackDescriptor, precision), length, inputSize, precision);

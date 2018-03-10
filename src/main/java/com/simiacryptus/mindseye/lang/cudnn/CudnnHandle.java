@@ -135,6 +135,7 @@ public class CudnnHandle extends CudaDevice {
         precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
         precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr());
+      outputPtr.dirty(this);
       lPtrMemory.freeRef();
       rPtrMemory.freeRef();
       return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor, precision), length, dimensions, precision);
@@ -164,6 +165,7 @@ public class CudnnHandle extends CudaDevice {
     cudnnAddTensor(
       left.getPrecision().getPointer(1.0), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
       left.getPrecision().getPointer(1.0), lPtr.descriptor.getPtr(), lPtrMemory.getPtr());
+    lPtrMemory.dirty(this);
     lPtrMemory.freeRef();
     rPtrMemory.freeRef();
     rPtr.freeRef();
@@ -306,6 +308,7 @@ public class CudnnHandle extends CudaDevice {
       precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
       precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
       precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr());
+    outputPtr.dirty(this);
     lPtrMemory.freeRef();
     rPtrMemory.freeRef();
     Arrays.stream(new ReferenceCounting[]{lPtr, rPtr, opDescriptor, left, right}).forEach(ReferenceCounting::freeRef);

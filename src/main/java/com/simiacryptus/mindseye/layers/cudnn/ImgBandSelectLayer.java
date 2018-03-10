@@ -138,6 +138,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
         precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInputMemory.getPtr().withByteOffset(byteOffset),
         precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr()
       );
+      cudaOutput.dirty(gpu);
       cudaInputMemory.freeRef();
       Arrays.stream(new ReferenceCounting[]{cudaInput, inputDescriptor}).forEach(ReferenceCounting::freeRef);
       CudaTensor cudaTensor = CudaTensor.wrap(cudaOutput, outputDescriptor, precision);

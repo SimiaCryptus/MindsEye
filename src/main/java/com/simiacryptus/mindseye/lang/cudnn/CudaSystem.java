@@ -1184,6 +1184,18 @@ public class CudaSystem {
     return pool;
   }
   
+  private static final Map<Integer, Long> syncTimes = new HashMap<>();
+  
+  public void synchronize(long time) {
+    synchronize(time, getThreadDeviceId());
+  }
+  
+  public void synchronize(long time, int device) {
+    if (syncTimes.get(device) < time) {
+      cudaDeviceSynchronize();
+    }
+  }
+  
   /**
    * Cuda device synchronize int.
    *
@@ -1191,6 +1203,7 @@ public class CudaSystem {
    */
   public int cudaDeviceSynchronize() {
     if (dirty.isEmpty()) return cudnnStatus.CUDNN_STATUS_SUCCESS;
+    syncTimes.put(getThreadDeviceId(), System.nanoTime());
     String cause = dirty.stream().map(tr -> TestUtil.toString(tr).replaceAll("\n", "\n\t")).reduce((a, b) -> a + "," + b).orElse("");
     dirty.clear();
     long startTime = System.nanoTime();
