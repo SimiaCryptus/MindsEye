@@ -34,16 +34,12 @@ import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer;
-import com.simiacryptus.mindseye.layers.cudnn.StochasticSamplingSubnetLayer;
-import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
-import com.simiacryptus.mindseye.layers.java.StochasticBinaryNoiseLayer;
 import com.simiacryptus.mindseye.layers.java.SumReducerLayer;
 import com.simiacryptus.mindseye.models.Hdf5Archive;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
 import com.simiacryptus.mindseye.network.DAGNetwork;
-import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.InnerNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
@@ -82,6 +78,7 @@ public class StyleTransferDemo extends ArtistryDemo {
    * The Texture netork.
    */
   Layer detector;
+  int imageSize = 600;
   
   /**
    * Test.
@@ -100,7 +97,8 @@ public class StyleTransferDemo extends ArtistryDemo {
    */
   public void run(@Nonnull NotebookOutput log) {
     init();
-    
+  
+    imageSize = 600;
     List<String> control = Arrays.asList("H:\\SimiaCryptus\\Artistry\\portraits\\photos");
     List<String> target = Arrays.asList("H:\\SimiaCryptus\\Artistry\\portraits\\picasso");
     String input = "H:\\SimiaCryptus\\Artistry\\monkeydog.jpg";
@@ -111,7 +109,6 @@ public class StyleTransferDemo extends ArtistryDemo {
   
     Precision precision = Precision.Float;
     log.h1("Model");
-    Layer descriminator = buildCategorizer(precision);
   
     log.code(() -> {
       try {
@@ -139,7 +136,7 @@ public class StyleTransferDemo extends ArtistryDemo {
       Stream.of(input).map(img -> {
         try {
           BufferedImage image = ImageIO.read(new File(img));
-          image = TestUtil.resize(image, 600, true);
+          image = TestUtil.resize(image, imageSize, true);
           return new Tensor[]{Tensor.fromRGB(image), new Tensor(new double[]{0.0, 1.0}, 1, 1, 2)};
         } catch (IOException e) {
           throw new RuntimeException(e);
@@ -159,7 +156,9 @@ public class StyleTransferDemo extends ArtistryDemo {
   
     log.h1("Model Training");
   
-    @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+  
+    Layer descriminator = buildCategorizer(precision);
+    
     @Nonnull PipelineNetwork supervised1 = new PipelineNetwork(2);
     supervised1.wrap(getLossLayer(),
       supervised1.add(descriminator, supervised1.getInput(0)),
@@ -170,15 +169,15 @@ public class StyleTransferDemo extends ArtistryDemo {
     addLayersHandler(supervised1, server);
     SampledArrayTrainable sampledArrayTrainable = new SampledArrayTrainable(preprocessedTrainingData, supervised1, 10, 1);
     sampledArrayTrainable.getInner().setVerbose(true);
-    double terminateThreshold = 1e-3;
-    new IterativeTrainer(sampledArrayTrainable)
-      .setMonitor(getTrainingMonitor(history))
-      .setOrientation(new RecursiveSubspace().setTerminateThreshold(terminateThreshold))
-      .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-      .setTimeout(60, TimeUnit.MINUTES)
-      .setTerminateThreshold(terminateThreshold)
-      .runAndFree();
     log.code(() -> {
+      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+      new IterativeTrainer(sampledArrayTrainable)
+        .setMonitor(getTrainingMonitor(history))
+        .setOrientation(new RecursiveSubspace().setTerminateThreshold(1e-3))
+        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
+        .setTimeout(60, TimeUnit.MINUTES)
+        .setTerminateThreshold(1e-3)
+        .runAndFree();
       return TestUtil.plot(history);
     });
   
@@ -200,28 +199,32 @@ public class StyleTransferDemo extends ArtistryDemo {
           }
         }
       });
-      history.clear();
+  
+      @Nonnull PipelineNetwork supervised2 = new PipelineNetwork(2);
       @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
       clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
       clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
       clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
       clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-      @Nonnull PipelineNetwork supervised2 = new PipelineNetwork(2);
       InnerNode clamped = supervised2.wrap(clamp, supervised2.getInput(0));
       supervised2.wrap(getLossLayer(),
         supervised2.add(fullNetwork, clamped),
         supervised2.getInput(1));
+  
+      setPrecision(supervised2, precision);
       TestUtil.monitorImage(data.get(0)[0], false);
       @Nonnull Trainable trainable = new ArrayTrainable(supervised2, 1).setVerbose(true).setMask(true, false).setData(data);
       TestUtil.instrumentPerformance(log, supervised2);
       addLayersHandler(supervised2, server);
-      new IterativeTrainer(trainable)
-        .setMonitor(getTrainingMonitor(history))
-        .setOrientation(new QQN())
-        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-        .setTimeout(180, TimeUnit.MINUTES)
-        .runAndFree();
+  
       log.code(() -> {
+        @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+        new IterativeTrainer(trainable)
+          .setMonitor(getTrainingMonitor(history))
+          .setOrientation(new QQN())
+          .setLineSearchFactory(name -> new ArmijoWolfeSearch())
+          .setTimeout(180, TimeUnit.MINUTES)
+          .runAndFree();
         return TestUtil.plot(history);
       });
   
@@ -258,7 +261,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         throw new RuntimeException(e);
       }
       return Stream.<Tensor[]>of(new Tensor[]{
-        Tensor.fromRGB(TestUtil.resize(image, 600, true)),
+        Tensor.fromRGB(TestUtil.resize(image, imageSize, true)),
         new Tensor(category, 1, 1, category.length)
       });
 
@@ -276,7 +279,14 @@ public class StyleTransferDemo extends ArtistryDemo {
    */
   @Nonnull
   public Layer getLossLayer() {
-    return new EntropyLossLayer();
+    PipelineNetwork network = new PipelineNetwork(2);
+    network.add(new GateProductLayer(),
+      network.getInput(0),
+      network.getInput(1));
+    network.add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
+    network.add(new SumReducerLayer());
+    return network;
+    //return new EntropyLossLayer();
   }
   
   /**
@@ -295,8 +305,8 @@ public class StyleTransferDemo extends ArtistryDemo {
     trainedCategorizer.add(new ConvolutionLayer(1, 1, 256, 2)
       .setPaddingXY(0, 0).setWeightsLog(-4).explode());
     trainedCategorizer.add(new ImgBandBiasLayer(2).setWeightsLog(-4));
-    trainedCategorizer.add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
-    trainedCategorizer.add(new SoftmaxActivationLayer());
+    //trainedCategorizer.add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
+    trainedCategorizer.add(new SoftmaxActivationLayer().setAlgorithm(SoftmaxActivationLayer.SoftmaxAlgorithm.LOG).setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
     return trainedCategorizer;
   }
   
@@ -338,90 +348,4 @@ public class StyleTransferDemo extends ArtistryDemo {
     return ReportType.Demos;
   }
   
-  /**
-   * The type Variant 1.
-   */
-  public static class Variant1 extends StyleTransferDemo {
-    @Nonnull
-    @Override
-    public Layer getLossLayer() {
-      return new EntropyLossLayer();
-    }
-    
-    @Nonnull
-    @Override
-    protected Layer buildCategorizer(final Precision precision) {
-      PipelineNetwork trainedCategorizer = new PipelineNetwork();
-      
-      trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 2)
-        .setPaddingXY(0, 0).setWeightsLog(-4).explode());
-      trainedCategorizer.add(new ImgBandBiasLayer(2).setWeightsLog(-4));
-      trainedCategorizer.add(new SoftmaxActivationLayer().setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
-      trainedCategorizer.add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
-      return trainedCategorizer;
-    }
-  }
-  
-  /**
-   * The type Variant 3.
-   */
-  public static class Variant3 extends StyleTransferDemo {
-    @Nonnull
-    @Override
-    public Layer getLossLayer() {
-      return new EntropyLossLayer();
-    }
-    
-    @Nonnull
-    @Override
-    protected Layer buildCategorizer(final Precision precision) {
-      PipelineNetwork trainedCategorizer = new PipelineNetwork();
-      
-      double density = 0.5;
-      int hiddenBands = 4096;
-      trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, hiddenBands)
-        .setPaddingXY(0, 0).setWeightsLog(-4).explode());
-      InnerNode node1 = trainedCategorizer.add(new ImgBandBiasLayer(hiddenBands).setWeightsLog(-4));
-      trainedCategorizer.wrap(new GateProductLayer(), node1,
-        trainedCategorizer.wrap(new StochasticBinaryNoiseLayer(density, 1.0 / density, 1, 1, hiddenBands), new DAGNode[]{}));
-      trainedCategorizer.wrap(new ActivationLayer(ActivationLayer.Mode.RELU));
-      
-      trainedCategorizer.add(new ConvolutionLayer(1, 1, hiddenBands, 2)
-        .setPaddingXY(0, 0).setWeightsLog(-4).explode());
-      trainedCategorizer.add(new ImgBandBiasLayer(2).setWeightsLog(-4));
-      trainedCategorizer.add(new SoftmaxActivationLayer().setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
-      trainedCategorizer.add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
-      setPrecision(trainedCategorizer, precision);
-  
-      return new StochasticSamplingSubnetLayer(trainedCategorizer, 3);
-    }
-  }
-  
-  /**
-   * The type Variant 2.
-   */
-  public static class Variant2 extends StyleTransferDemo {
-    @Nonnull
-    @Override
-    public Layer getLossLayer() {
-      PipelineNetwork network = new PipelineNetwork(2);
-      InnerNode mode1 = network.wrap(new SumReducerLayer(),
-        network.wrap(new GateProductLayer(),
-          network.getInput(0),
-          network.getInput(1)));
-      network.wrap(new LinearActivationLayer().setScale(-1).freeze(), mode1);
-      return network;
-    }
-    
-    @Nonnull
-    @Override
-    protected Layer buildCategorizer(final Precision precision) {
-      PipelineNetwork trainedCategorizer = new PipelineNetwork();
-      trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 2)
-        .setPaddingXY(0, 0).setWeightsLog(-4).explode());
-      trainedCategorizer.add(new ImgBandBiasLayer(2).setWeightsLog(-4));
-      trainedCategorizer.add(new SoftmaxActivationLayer().setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL).setAlgorithm(SoftmaxActivationLayer.SoftmaxAlgorithm.LOG));
-      return trainedCategorizer;
-    }
-  }
 }

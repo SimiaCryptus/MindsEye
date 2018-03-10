@@ -239,13 +239,14 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
         outputDimensions[1] * outputDimensions[0],//
         outputDimensions[0],//
         1);
-      @Nonnull final CudaMemory outputBuffer = gpu.allocate((long) length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size, MemoryType.Managed, dirty);
+      @Nonnull final CudaMemory outputBuffer = gpu.allocate((long) length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size, MemoryType.Managed.normalize(), dirty);
       CudaSystem.handle(gpu.cudnnTransformTensor(
         precision.getPointer(1.0),
         sourceViewDescriptor.getPtr(), inputTensorMemory.getPtr().withByteOffset(sourceOffset * precision.size),
         precision.getPointer(0.0),
         destinationViewDescriptor.getPtr(), outputBuffer.getPtr().withByteOffset(destinationOffset * precision.size)
       ));
+      inputTensorMemory.dirty(gpu);
       outputBuffer.dirty(gpu);
       Stream.<ReferenceCounting>of(sourceViewDescriptor, destinationViewDescriptor).forEach(ReferenceCounting::freeRef);
       CudaDevice.CudaTensorDescriptor descriptorCudaResource = gpu.newTensorDescriptor(

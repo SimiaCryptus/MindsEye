@@ -57,6 +57,10 @@ public enum MemoryType {
     void free(CudaPointer ptr, int deviceId) {
       CudaDevice.cudaFree(deviceId, ptr);
     }
+  
+    public MemoryType normalize() {
+      return CudaSettings.INSTANCE.isEnableManaged() ? this : Device;
+    }
   },
   /**
    * The Device direct.
@@ -203,6 +207,10 @@ public enum MemoryType {
         }
       }.setPersistanceMode(CudaSettings.INSTANCE.memoryCacheMode);
     });
+  }
+  
+  public MemoryType normalize() {
+    return this;
   }
   
   /**

@@ -118,7 +118,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
     outputDimensions[2] = getTo() - getFrom();
     long size = (length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
     return new Result(CudaSystem.eval(gpu -> {
-      @Nonnull final CudaMemory cudaOutput = gpu.allocate(size, MemoryType.Managed, true);
+      @Nonnull final CudaMemory cudaOutput = gpu.allocate(size, MemoryType.Managed.normalize(), true);
       @Nullable final CudaTensor cudaInput = gpu.getTensor(inputData, precision, MemoryType.Device, false);
       final int byteOffset = cudaInput.descriptor.cStride * getFrom() * precision.size;
       @Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = gpu.newTensorDescriptor(
@@ -138,6 +138,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
         precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInputMemory.getPtr().withByteOffset(byteOffset),
         precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr()
       );
+      cudaInputMemory.dirty(gpu);
       cudaOutput.dirty(gpu);
       cudaInputMemory.freeRef();
       Arrays.stream(new ReferenceCounting[]{cudaInput, inputDescriptor}).forEach(ReferenceCounting::freeRef);
@@ -166,7 +167,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
           @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device, false);
           long size1 = (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size);
-          @Nonnull final CudaMemory passbackBuffer = gpu.allocate(size1, MemoryType.Managed, false);
+          @Nonnull final CudaMemory passbackBuffer = gpu.allocate(size1, MemoryType.Managed.normalize(), false);
           CudaMemory errorPtrMemory = errorPtr.getMemory(gpu);
           gpu.cudnnTransformTensor(
             precision.getPointer(1.0), errorPtr.descriptor.getPtr(), errorPtrMemory.getPtr(),

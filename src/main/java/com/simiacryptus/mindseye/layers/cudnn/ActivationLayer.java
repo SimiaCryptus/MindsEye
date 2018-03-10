@@ -161,7 +161,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
             length, inputSize[2], inputSize[1], inputSize[0],
             inputSize[2] * inputSize[1] * inputSize[0], inputSize[1] * inputSize[0], inputSize[0], 1);
           @Nonnull final CudaMemory outputData =
-            gpu.allocate(precision.size * 1l * inputDims * length, MemoryType.Managed, true);
+            gpu.allocate(precision.size * 1l * inputDims * length, MemoryType.Managed.normalize(), true);
           outputTensor = CudaTensor.wrap(outputData, outputDescriptor, precision);
         }
   
@@ -172,6 +172,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
           CudaSystem.handle(gpu.cudnnActivationForward(activationDesc.getPtr(),
             precision.getPointer(1.0), inputTensor.descriptor.getPtr(), memory.getPtr(),
             precision.getPointer(0.0), outputTensor.descriptor.getPtr(), tensorMemory.getPtr()));
+          memory.dirty(gpu);
           tensorMemory.dirty(gpu);
           tensorMemory.freeRef();
           memory.freeRef();
@@ -202,7 +203,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
 //              inputTensor = inputTensor.getDenseAndFree(gpu);
 //            }
               passbackTensor = CudaTensor.wrap(
-                gpu.allocate((long) Tensor.length(inputSize) * length * precision.size, MemoryType.Managed, false),
+                gpu.allocate((long) Tensor.length(inputSize) * length * precision.size, MemoryType.Managed.normalize(), false),
                 gpu.newTensorDescriptor(precision,
                   delta.length(), inputSize[2], inputSize[1], inputSize[0],
                   inputSize[2] * inputSize[1] * inputSize[0],
@@ -224,6 +225,9 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
                   inputTensor.descriptor.getPtr(), inputTensorMemory.getPtr(),
                   precision.getPointer(0.0),
                   passbackTensor.descriptor.getPtr(), passbackTensorMemory.getPtr()));
+                localOutMemory.dirty(gpu);
+                deltaTensorMemory.dirty(gpu);
+                inputTensorMemory.dirty(gpu);
                 passbackTensorMemory.dirty(gpu);
                 localOutMemory.freeRef();
                 deltaTensorMemory.freeRef();

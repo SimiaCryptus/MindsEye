@@ -133,6 +133,8 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
         precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
         precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
+      lPtrMemory.dirty(gpu);
+      rPtrMemory.dirty(gpu);
       outputPtr.dirty(gpu);
       lPtrMemory.freeRef();
       rPtrMemory.freeRef();

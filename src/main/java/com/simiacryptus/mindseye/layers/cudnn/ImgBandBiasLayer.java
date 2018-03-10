@@ -135,12 +135,14 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
       CudaDevice.CudaTensorDescriptor biasDescriptor = gpu.newTensorDescriptor(precision, 1, biasDim[2], biasDim[1], biasDim[0],
         biasDim[2] * biasDim[1] * biasDim[0], biasDim[1] * biasDim[0], biasDim[0], 1);
       //assert lPtr.size == rPtr.size;
-      @Nonnull final CudaMemory outputPtr = gpu.allocate((long) precision.size * outputDescriptor.nStride * length, MemoryType.Managed, true);
+      @Nonnull final CudaMemory outputPtr = gpu.allocate((long) precision.size * outputDescriptor.nStride * length, MemoryType.Managed.normalize(), true);
       CudaMemory inputMemory = inputTensor.getMemory(gpu);
       CudaSystem.handle(gpu.cudnnOpTensor(opDescriptor.getPtr(),
         precision.getPointer(1.0), inputTensor.descriptor.getPtr(), inputMemory.getPtr(),
         precision.getPointer(1.0), biasDescriptor.getPtr(), biasMem.getPtr(),
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
+      inputMemory.dirty(gpu);
+      biasMem.dirty(gpu);
       outputPtr.dirty(gpu);
       inputMemory.freeRef();
       biasMem.freeRef();
@@ -165,6 +167,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
             precision.getPointer(0.0), biasDescriptor.getPtr(), biasMem.getPtr());
           biasMem.dirty(gpu);
           double[] biasV = new double[bias.length()];
+          biasMem.synchronize();
           biasMem.read(precision, biasV);
           Stream.<ReferenceCounting>of(biasMem, deltaTensorMemory, deltaTensor, opDescriptor, biasDescriptor).forEach(ReferenceCounting::freeRef);
           return biasV;

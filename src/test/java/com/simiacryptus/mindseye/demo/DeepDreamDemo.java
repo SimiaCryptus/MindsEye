@@ -103,11 +103,11 @@ public class DeepDreamDemo extends ArtistryDemo {
             throw new RuntimeException("Abort Network Construction");
           }
         }.setLarge(true).setFinalPoolingMode(PoolingLayer.PoolingMode.Avg).getNetwork();
+        throw new IllegalStateException();
       } catch (@Nonnull final RuntimeException e) {
-        // Ignore
-      } catch (Throwable e) {
-        throw new RuntimeException(e);
+        if (null == e.getMessage() || !e.getMessage().equals("Abort Network Construction")) throw e;
       }
+      assert null != dreamNet[0];
       ImageClassifier.setPrecision(dreamNet[0], Precision.Float);
       return dreamNet[0];
     });
@@ -189,11 +189,11 @@ public class DeepDreamDemo extends ArtistryDemo {
    */
   public Tensor[] getImages_Artistry(@Nonnull final NotebookOutput log) {
     return Stream.of(
-      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC00152.JPG",
+      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC00097.JPG",
       "H:\\SimiaCryptus\\Artistry\\Owned\\DSC00200.JPG",
+      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC00152.JPG",
       "H:\\SimiaCryptus\\Artistry\\Owned\\DSC_0127.JPG",
       "H:\\SimiaCryptus\\Artistry\\Owned\\DSC_0005.JPG",
-      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC00097.JPG",
       "H:\\SimiaCryptus\\Artistry\\monkeydog.jpg",
       "H:\\SimiaCryptus\\Artistry\\landscape.jpg",
       "H:\\SimiaCryptus\\Artistry\\chimps\\winner.jpg",

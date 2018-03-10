@@ -115,7 +115,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
     }
     return new Result(CudaSystem.eval(gpu -> {
       final long outputSize = ((long) length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
-      @Nonnull final CudaMemory cudaOutput = gpu.allocate(outputSize, MemoryType.Managed, true);
+      @Nonnull final CudaMemory cudaOutput = gpu.allocate(outputSize, MemoryType.Managed.normalize(), true);
       IntStream stream = IntStream.range(0, inObj.length);
       //if (!CoreSettings.INSTANCE.isConservative() && parallel) stream = stream.parallel();
       stream.forEach(i -> {
@@ -152,6 +152,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
             precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInputMemory.getPtr(),
             precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr().withByteOffset(byteOffset)
           );
+          cudaInputMemory.dirty(gpu);
           cudaOutput.dirty(gpu);
           cudaInputMemory.freeRef();
           Stream.<ReferenceCounting>of(cudaInput, outputDescriptor, inputDescriptor).forEach(ReferenceCounting::freeRef);
@@ -222,7 +223,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
                   cudaDelta.descriptor.wStride);
                 @Nonnull final CudaMemory cudaBackprop = gpu.allocate(
                   (long) passbackDescriptor.nStride * length * precision.size,
-                  MemoryType.Managed, inputBands == inputDimentions[2]);
+                  MemoryType.Managed.normalize(), inputBands == inputDimentions[2]);
                 int byteOffset = cudaDelta.descriptor.cStride * bandOffset * precision.size;
                 gpu.cudnnTransformTensor(
                   precision.getPointer(1.0), deltaViewDescriptor.getPtr(), cudaDeltaMemory.getPtr().withByteOffset(byteOffset),

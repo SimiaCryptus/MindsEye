@@ -210,6 +210,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    * Free.
    */
   protected void _free() {
+    synchronize();
     if (ptr.getByteOffset() != 0) return;
     CudnnHandle threadHandle = CudaSystem.getThreadHandle();
     if (null != threadHandle) threadHandle.cleanupNative.add(this);
@@ -415,8 +416,8 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
     return this;
   }
   
-  public void synchronize(final CudnnHandle gpu) {
-    if (writtenBy >= 0) gpu.synchronize(writtenAt, writtenBy);
+  public void synchronize() {
+    if (writtenBy >= 0) CudaSystem.synchronize(writtenAt, writtenBy);
   }
   
 }

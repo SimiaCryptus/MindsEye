@@ -230,8 +230,8 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
         assert destinationOffset == 0;
         return CudaTensor.wrap(inputTensorMemory.withByteOffset(sourceOffset * precision.size), sourceViewDescriptor, precision);
       }
-      
-      @Nonnull final CudaMemory outputPtr = gpu.allocate((long) length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size, MemoryType.Managed, dirty);
+  
+      @Nonnull final CudaMemory outputPtr = gpu.allocate((long) length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size, MemoryType.Managed.normalize(), dirty);
       @Nonnull final CudaDevice.CudaTensorDescriptor destinationViewDescriptor = gpu.newTensorDescriptor(
         precision,//
         length,//
@@ -249,6 +249,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
         destinationViewDescriptor.getPtr(), outputPtr.getPtr().withByteOffset(destinationOffset * precision.size)
       ));
       outputPtr.dirty(gpu);
+      inputTensorMemory.dirty(gpu);
       Arrays.stream(new ReferenceCounting[]{sourceViewDescriptor}).forEach(ReferenceCounting::freeRef);
       
       @Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(

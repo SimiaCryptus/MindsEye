@@ -295,6 +295,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
       precision.getPointer(1.0), descriptor0.getPtr(), ptr0.getPtr(),
       precision.getPointer(0.0), descriptor1.getPtr(), ptr1.getPtr()
     );
+    ptr0.dirty(gpu);
     ptr1.dirty(gpu);
     descriptor0.freeRef();
     ptr0.freeRef();

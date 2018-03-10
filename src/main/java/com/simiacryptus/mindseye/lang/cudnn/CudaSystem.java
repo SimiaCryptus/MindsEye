@@ -70,6 +70,8 @@ import java.util.stream.Stream;
  */
 public class CudaSystem {
   
+  private static final Map<Integer, Long> syncTimes = new HashMap<>();
+
   /**
    * The constant INSTANCE.
    */
@@ -330,7 +332,7 @@ public class CudaSystem {
   @Nonnull
   public static AtomicInteger gpuGeneration = new AtomicInteger(0);
   private static volatile StaticResourcePool<CudnnHandle> pool;
-  private final List<StackTraceElement[]> dirty = new ArrayList<>();
+//  private final List<StackTraceElement[]> dirty = new ArrayList<>();
   
   /**
    * Instantiates a new Gpu system.
@@ -635,7 +637,6 @@ public class CudaSystem {
     long startTime = System.nanoTime();
     final int result = JCuda.cudaMemcpyAsync(dst, src, count, cudaMemcpyKind_kind, stream);
     cudaMemcpyAsync_execution.accept((System.nanoTime() - startTime) / 1e9);
-    getThreadHandle().dirty();
     log("cudaMemcpyAsync", result, new Object[]{dst, src, count, cudaMemcpyKind_kind, stream});
     handle(result);
   }
@@ -1007,7 +1008,7 @@ public class CudaSystem {
       } catch (@Nonnull final Exception e) {
         throw new RuntimeException(e);
       } finally {
-        threadlocal.cudaDeviceSynchronize();
+        //threadlocal.cudaDeviceSynchronize();
       }
     }
     else {
@@ -1050,7 +1051,7 @@ public class CudaSystem {
         } catch (@Nonnull final Exception e) {
           throw new RuntimeException(e);
         } finally {
-          threadlocal.cudaDeviceSynchronize();
+          //threadlocal.cudaDeviceSynchronize();
         }
       }
       else {
@@ -1184,15 +1185,12 @@ public class CudaSystem {
     return pool;
   }
   
-  private static final Map<Integer, Long> syncTimes = new HashMap<>();
-  
-  public void synchronize(long time) {
-    synchronize(time, getThreadDeviceId());
-  }
-  
-  public void synchronize(long time, int device) {
-    if (syncTimes.get(device) < time) {
-      cudaDeviceSynchronize();
+  public static void synchronize(long time, int device) {
+    Long val = syncTimes.get(device);
+    if (null == val || val < time) {
+      withDevice(device, gpu -> {
+        cudaDeviceSynchronize();
+      });
     }
   }
   
@@ -1201,33 +1199,22 @@ public class CudaSystem {
    *
    * @return the int
    */
-  public int cudaDeviceSynchronize() {
-    if (dirty.isEmpty()) return cudnnStatus.CUDNN_STATUS_SUCCESS;
-    syncTimes.put(getThreadDeviceId(), System.nanoTime());
-    String cause = dirty.stream().map(tr -> TestUtil.toString(tr).replaceAll("\n", "\n\t")).reduce((a, b) -> a + "," + b).orElse("");
-    dirty.clear();
+  public static int cudaDeviceSynchronize() {
     long startTime = System.nanoTime();
     TimedResult<Integer> timedResult = TimedResult.time(() -> JCuda.cudaDeviceSynchronize());
     final int result = timedResult.result;
     log("cudaDeviceSynchronize", result, new Object[]{});
-    CudaTensorList.logger.info(String.format("Synchronized %d in %.4f due to %s", getThreadDeviceId(), timedResult.seconds(), cause));
+    CudaTensorList.logger.info(String.format("Synchronized %d in %.4f at %s", getThreadDeviceId(), timedResult.seconds(), startTime));
     cudaDeviceSynchronize_execution.accept((System.nanoTime() - startTime) / 1e9);
     handle(result);
+    syncTimes.put(getThreadDeviceId(), startTime);
     return result;
-  }
-  
-  /**
-   * Dirty.
-   */
-  public void dirty() {
-    dirty.add(CudaSettings.INSTANCE.isProfileMemoryIO() ? CudaTensorList.getStackTrace() : new StackTraceElement[]{});
   }
   
   /**
    * Cleanup.
    */
   protected void cleanup() {
-    if (!dirty.isEmpty()) cudaDeviceSynchronize();
     CudnnHandle.threadContext.remove();
   }
   

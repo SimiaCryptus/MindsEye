@@ -102,6 +102,7 @@ public class CudaTensor extends ReferenceCountingBase implements CudaSystem.Cuda
    * @return the memory
    */
   public CudaMemory getMemory(final CudaDevice cudaDevice, final MemoryType memoryType) {
+    memory.synchronize();
     if (memory.getType() == MemoryType.Managed) {
       memory.addRef();
       return memory;
@@ -159,6 +160,7 @@ public class CudaTensor extends ReferenceCountingBase implements CudaSystem.Cuda
       gpu.cudnnTransformTensor(
         getPrecision().getPointer(1.0), this.descriptor.getPtr(), memory.getPtr(),
         getPrecision().getPointer(0.0), destDescriptor.getPtr(), destMemory.getPtr());
+      memory.dirty(gpu);
       destMemory.dirty(gpu);
       memory.freeRef();
       return CudaTensor.wrap(destMemory, destDescriptor, getPrecision());
@@ -196,6 +198,7 @@ public class CudaTensor extends ReferenceCountingBase implements CudaSystem.Cuda
         (descriptor.width - 1) * descriptor.wStride + 1;
       double[] buffer = RecycleBin.DOUBLES.obtain(size);
       try {
+        memory.synchronize();
         memory.read(descriptor.dataType, buffer, descriptor.nStride * index);
         result.setByCoord(c -> {
           int[] coords = c.getCoords();
@@ -241,6 +244,7 @@ public class CudaTensor extends ReferenceCountingBase implements CudaSystem.Cuda
           gpu.cudnnTransformTensor(
             this.descriptor.dataType.getPointer(1.0), sourceDescriptor.getPtr(), memory.getPtr().withByteOffset(index * this.descriptor.nStride * getPrecision().size),
             this.descriptor.dataType.getPointer(0.0), destDescriptor.getPtr(), cudaMemory.getPtr());
+          memory.dirty(gpu);
           cudaMemory.dirty(gpu);
           return result.apply(cudaMemory);
         } finally {

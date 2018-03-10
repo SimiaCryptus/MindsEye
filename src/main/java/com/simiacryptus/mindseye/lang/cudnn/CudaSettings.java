@@ -49,6 +49,8 @@ public class CudaSettings implements Settings {
   private final long maxDeviceMemory;
   private final boolean logStack;
   private final boolean profileMemoryIO;
+  private boolean asyncFree;
+  private boolean enableManaged;
   
   private CudaSettings() {
     maxTotalMemory = Settings.get("MAX_TOTAL_MEMORY", 6 * CudaMemory.GiB);
@@ -67,6 +69,8 @@ public class CudaSettings implements Settings {
     memoryCacheMode = Settings.get("CUDA_CACHE_MODE", PersistanceMode.WEAK);
     logStack = Settings.get("CUDA_LOG_STACK", false);
     profileMemoryIO = Settings.get("CUDA_PROFILE_MEM_IO", false);
+    enableManaged = true;
+    asyncFree = true;
   }
   
   /**
@@ -202,5 +206,21 @@ public class CudaSettings implements Settings {
    */
   public boolean isProfileMemoryIO() {
     return profileMemoryIO;
+  }
+  
+  public boolean isAsyncFree() {
+    return asyncFree;
+  }
+  
+  public void setAsyncFree(boolean asyncFree) {
+    this.asyncFree = asyncFree;
+  }
+  
+  public boolean isEnableManaged() {
+    return enableManaged;
+  }
+  
+  public void setEnableManaged(boolean enableManaged) {
+    this.enableManaged = enableManaged;
   }
 }
