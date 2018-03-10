@@ -185,11 +185,11 @@ public class DeepDreamDemo extends ArtistryDemo {
    */
   public Tensor[] getImages_Artistry(@Nonnull final NotebookOutput log) {
     return Stream.of(
-      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC_0005.JPG",
-      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC_0127.JPG",
-      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC00097.JPG",
       "H:\\SimiaCryptus\\Artistry\\Owned\\DSC00152.JPG",
       "H:\\SimiaCryptus\\Artistry\\Owned\\DSC00200.JPG",
+      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC_0127.JPG",
+      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC_0005.JPG",
+      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC00097.JPG",
       "H:\\SimiaCryptus\\Artistry\\monkeydog.jpg",
       "H:\\SimiaCryptus\\Artistry\\landscape.jpg",
       "H:\\SimiaCryptus\\Artistry\\chimps\\winner.jpg",

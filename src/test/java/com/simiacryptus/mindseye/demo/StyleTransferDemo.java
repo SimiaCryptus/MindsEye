@@ -81,7 +81,7 @@ public class StyleTransferDemo extends ArtistryDemo {
   /**
    * The Texture netork.
    */
-  Layer textureNetwork;
+  Layer detector;
   
   /**
    * Test.
@@ -111,24 +111,22 @@ public class StyleTransferDemo extends ArtistryDemo {
   
     Precision precision = Precision.Float;
     log.h1("Model");
-    Layer trainedCategorizer = buildCategorizer(precision);
-    
-    Layer fullNetwork = log.code(() -> {
+    Layer descriminator = buildCategorizer(precision);
+  
+    log.code(() -> {
       try {
-        return new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
           @Override
-          protected void phase3() {
-            textureNetwork = pipelineNetwork.copy().freeze();
-            add(trainedCategorizer);
+          protected void phase1d() {
+            detector = pipelineNetwork.copy().freeze();
+            throw new RuntimeException("Abort Network Construction");
           }
-        };
+        }.getNetwork();
       } catch (@Nonnull final RuntimeException e) {
-        throw e;
       } catch (Throwable e) {
         throw new RuntimeException(e);
       }
-    }).getNetwork().freeze();
-    //textureNetork = new RescaledSubnetLayer(2,textureNetork);
+    });
   
     Tensor[][] rawTrainingData = Stream.concat(
       control.stream().flatMap(f -> loadTiles(f, 1.0, 0.0)),
@@ -154,7 +152,7 @@ public class StyleTransferDemo extends ArtistryDemo {
   
     Tensor[][] preprocessedTrainingData = IntStream.range(0, rawTrainingData.length).mapToObj(i -> {
       Tensor[] x = rawTrainingData[i];
-      TimedResult<Tensor[]> timedResult = TimedResult.time(() -> new Tensor[]{textureNetwork.eval(x[0]).getDataAndFree().getAndFree(0), x[1]});
+      TimedResult<Tensor[]> timedResult = TimedResult.time(() -> new Tensor[]{detector.eval(x[0]).getDataAndFree().getAndFree(0), x[1]});
       logger.info(String.format("Preprocessed record %d/%d in %.3f", i, rawTrainingData.length, timedResult.seconds()));
       return timedResult.result;
     }).toArray(i -> new Tensor[i][]);
@@ -164,7 +162,7 @@ public class StyleTransferDemo extends ArtistryDemo {
     @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
     @Nonnull PipelineNetwork supervised1 = new PipelineNetwork(2);
     supervised1.wrap(getLossLayer(),
-      supervised1.add(trainedCategorizer, supervised1.getInput(0)),
+      supervised1.add(descriminator, supervised1.getInput(0)),
       supervised1.getInput(1));
     supervised1.setFrozen(false);
     setPrecision(supervised1, precision);
@@ -183,6 +181,10 @@ public class StyleTransferDemo extends ArtistryDemo {
     log.code(() -> {
       return TestUtil.plot(history);
     });
+  
+    PipelineNetwork fullNetwork = new PipelineNetwork(1);
+    fullNetwork.add(detector);
+    fullNetwork.add(descriminator);
     fullNetwork.freeze();
   
     log.h1("Output Processing");
@@ -290,7 +292,7 @@ public class StyleTransferDemo extends ArtistryDemo {
 //      .setPaddingXY(0, 0).setWeightsLog(-4));
 //    trainedCategorizer.add(new ImgBandBiasLayer(4096).setWeightsLog(-4));
 //    trainedCategorizer.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 2)
+    trainedCategorizer.add(new ConvolutionLayer(1, 1, 256, 2)
       .setPaddingXY(0, 0).setWeightsLog(-4).explode());
     trainedCategorizer.add(new ImgBandBiasLayer(2).setWeightsLog(-4));
     trainedCategorizer.add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
