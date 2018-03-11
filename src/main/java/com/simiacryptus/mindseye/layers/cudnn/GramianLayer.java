@@ -88,7 +88,7 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
       return network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg),
         network.wrap(new GateProductLayer(),
           network.getInput(0),
-          network.wrap(new ImgBandSelectLayer(band, band + 1))
+          network.wrap(new ImgBandSelectLayer(band, band + 1), network.getInput(0))
         ));
     }).toArray(i -> new DAGNode[i]));
     Result result = network.evalAndFree(inObj);

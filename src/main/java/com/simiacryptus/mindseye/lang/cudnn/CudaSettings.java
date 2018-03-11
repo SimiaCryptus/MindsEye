@@ -51,6 +51,7 @@ public class CudaSettings implements Settings {
   private final boolean profileMemoryIO;
   private boolean asyncFree;
   private boolean enableManaged;
+  public boolean syncBeforeFree;
   
   private CudaSettings() {
     maxTotalMemory = Settings.get("MAX_TOTAL_MEMORY", 6 * CudaMemory.GiB);
@@ -71,6 +72,7 @@ public class CudaSettings implements Settings {
     profileMemoryIO = Settings.get("CUDA_PROFILE_MEM_IO", false);
     enableManaged = true;
     asyncFree = true;
+    syncBeforeFree = true;
   }
   
   /**

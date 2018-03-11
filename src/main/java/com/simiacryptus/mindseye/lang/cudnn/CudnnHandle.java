@@ -45,6 +45,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Consumer;
@@ -941,18 +942,22 @@ public class CudnnHandle extends CudaDevice {
     CudaSystem.handle(result);
   }
   
+  private static final ExecutorService pool = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setDaemon(true).build());
   @Override
   protected void cleanup() {
     ArrayList<CudaResourceBase> objsToFree = new ArrayList<>();
     cleanupNative.drainTo(objsToFree);
     if (CudaSettings.INSTANCE.isAsyncFree()) {
-      Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setDaemon(true).build()).submit(() -> {
+      pool.submit(() -> {
+        if (CudaSettings.INSTANCE.syncBeforeFree) synchronize(System.nanoTime(), deviceId);
         objsToFree.stream().forEach(CudaResourceBase::release);
+        super.cleanup();
       });
     }
     else {
+      if (CudaSettings.INSTANCE.syncBeforeFree) synchronize(System.nanoTime(), deviceId);
       objsToFree.stream().forEach(CudaResourceBase::release);
+      super.cleanup();
     }
-    super.cleanup();
   }
 }
