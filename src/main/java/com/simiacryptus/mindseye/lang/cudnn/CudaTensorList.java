@@ -56,7 +56,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
    * The Ptr.
    */
   @Nullable
-  CudaTensor gpuCopy;
+  volatile CudaTensor gpuCopy = null;
   /**
    * The Heap copy.
    */
@@ -161,6 +161,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
   }
   
   public int getDeviceId() {
+    CudaTensor gpuCopy = this.gpuCopy;
     return null == gpuCopy ? -1 : gpuCopy.memory.getDeviceId();
   }
   
@@ -245,16 +246,17 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
   public Tensor get(final int i) {
     assertAlive();
     if (heapCopy != null) return heapCopy.get(i);
+    CudaTensor gpuCopy = this.gpuCopy;
     return CudaSystem.eval(gpu -> {
       TimedResult<Tensor> timedResult = TimedResult.time(() -> {
         Tensor t = new Tensor(getDimensions());
-        if (this.gpuCopy.isDense()) {
-          CudaMemory memory = this.gpuCopy.getMemory(gpu);
+        if (gpuCopy.isDense()) {
+          CudaMemory memory = gpuCopy.getMemory(gpu);
           memory.read(getPrecision(), t.getData(), i * Tensor.length(getDimensions()));
           memory.freeRef();
         }
         else {
-          this.gpuCopy.read(gpu, i, t, false);
+          gpuCopy.read(gpu, i, t, false);
         }
         return t;
       });
@@ -286,6 +288,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
    */
   @Nonnull
   public Precision getPrecision() {
+    CudaTensor gpuCopy = this.gpuCopy;
     return null == gpuCopy ? Precision.Double : gpuCopy.getPrecision();
   }
   
@@ -305,6 +308,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
    */
   @Nullable
   private TensorArray heapCopy(final boolean avoidAllocations) {
+    TensorArray heapCopy = this.heapCopy;
     if (null == heapCopy || heapCopy.isFinalized()) {
       TensorArray copy = toHeap(avoidAllocations);
       final TensorArray prev;
@@ -324,7 +328,8 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
   
   private TensorArray toHeap(final boolean avoidAllocations) {
     TimedResult<TensorArray> timedResult = TimedResult.time(() -> CudaDevice.eval(gpu -> {
-      if (null == this.gpuCopy) {
+      CudaTensor gpuCopy = this.gpuCopy;
+      if (null == gpuCopy) {
         if (null == heapCopy) {
           throw new IllegalStateException("No data");
         }
@@ -332,19 +337,19 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
           throw new IllegalStateException("Local data has been freed");
         }
       }
-      this.gpuCopy.addRef();
+      gpuCopy.addRef();
       try {
-        assert getPrecision() == this.gpuCopy.getPrecision();
-        assert getPrecision() == this.gpuCopy.descriptor.dataType;
+        assert getPrecision() == gpuCopy.getPrecision();
+        assert getPrecision() == gpuCopy.descriptor.dataType;
         final Tensor[] output = IntStream.range(0, getLength())
           .mapToObj(dataIndex -> new Tensor(getDimensions()))
           .toArray(i -> new Tensor[i]);
         for (int i = 0; i < getLength(); i++) {
-          this.gpuCopy.read(gpu, i, output[i], avoidAllocations);
+          gpuCopy.read(gpu, i, output[i], avoidAllocations);
         }
         return TensorArray.wrap(output);
       } finally {
-        this.gpuCopy.freeRef();
+        gpuCopy.freeRef();
       }
     }, this));
     CudaTensorList.logger.debug(String.format("Read %s bytes in %.4f from Tensor %s on GPU at %s, created by %s",

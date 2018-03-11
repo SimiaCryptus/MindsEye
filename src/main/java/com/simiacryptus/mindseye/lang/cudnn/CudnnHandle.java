@@ -23,6 +23,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.lang.ReshapedTensorList;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.test.TestUtil;
 import jcuda.jcudnn.JCudnn;
@@ -256,9 +257,11 @@ public class CudnnHandle extends CudaDevice {
    */
   @Nonnull
   public CudaTensor getTensor(@Nonnull final CudaTensorList data, @Nonnull final MemoryType memoryType, final boolean dense) {
-    CudaTensor ptr = data.gpuCopy;
-    if ((null == ptr || ptr.isFinalized()) && null != data.heapCopy && !data.heapCopy.isFinalized()) {
-      ptr = getTensor(data.heapCopy, data.getPrecision(), memoryType, false);
+    CudaTensor gpuCopy = data.gpuCopy;
+    CudaTensor ptr = gpuCopy;
+    TensorArray heapCopy = data.heapCopy;
+    if ((null == ptr || ptr.isFinalized()) && null != heapCopy && !heapCopy.isFinalized()) {
+      ptr = getTensor(heapCopy, data.getPrecision(), memoryType, false);
     }
     else {
       ptr.addRef();
@@ -268,7 +271,7 @@ public class CudnnHandle extends CudaDevice {
       throw new IllegalStateException("No data");
     }
     synchronized (data) {
-      if (ptr != data.gpuCopy) {
+      if (ptr != gpuCopy) {
         if (null != data.gpuCopy) data.gpuCopy.freeRef();
         data.gpuCopy = ptr;
         data.gpuCopy.addRef();
