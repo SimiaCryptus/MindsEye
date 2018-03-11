@@ -246,8 +246,8 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
         precision.getPointer(0.0),
         destinationViewDescriptor.getPtr(), outputBuffer.getPtr().withByteOffset(destinationOffset * precision.size)
       ));
-      inputTensorMemory.dirty(gpu);
-      outputBuffer.dirty(gpu);
+      inputTensorMemory.dirty();
+      outputBuffer.dirty();
       Stream.<ReferenceCounting>of(sourceViewDescriptor, destinationViewDescriptor).forEach(ReferenceCounting::freeRef);
       CudaDevice.CudaTensorDescriptor descriptorCudaResource = gpu.newTensorDescriptor(
         precision,//

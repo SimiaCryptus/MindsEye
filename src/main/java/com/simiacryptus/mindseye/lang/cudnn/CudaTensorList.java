@@ -308,14 +308,17 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
    */
   @Nullable
   private TensorArray heapCopy(final boolean avoidAllocations) {
-    TensorArray heapCopy = this.heapCopy;
+    TensorArray heapCopy;
+    heapCopy = this.heapCopy;
     if (null == heapCopy || heapCopy.isFinalized()) {
       TensorArray copy = toHeap(avoidAllocations);
       final TensorArray prev;
       synchronized (this) {
+        heapCopy = this.heapCopy;
         if (null == heapCopy || heapCopy.isFinalized()) {
           prev = this.heapCopy;
           this.heapCopy = copy;
+          heapCopy = copy;
         }
         else {
           prev = null;

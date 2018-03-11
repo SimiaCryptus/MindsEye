@@ -139,7 +139,7 @@ public class DeepDreamDemo extends ArtistryDemo {
       PipelineNetwork normalized = new PipelineNetwork(2);
       normalized.wrap(dreamer, normalized.getInput(0));
       normalized.wrap(new ProductInputsLayer(), // new BinarySumLayer(0.99,0.1),
-        normalized.wrap(dreamer, normalized.getInput(0)),
+        normalized.add(dreamer, normalized.getInput(0)),
         normalized.wrap(new NthPowerActivationLayer().setPower(-1),
           normalized.wrap(new LinearActivationLayer().setBias(1000.0).freeze(),
             normalized.wrap(new MeanSqLossLayer(),
@@ -189,6 +189,9 @@ public class DeepDreamDemo extends ArtistryDemo {
    */
   public Tensor[] getImages_Artistry(@Nonnull final NotebookOutput log) {
     return Stream.of(
+      "H:\\SimiaCryptus\\Artistry\\Owned\\img11262015_0046.JPG",
+      "H:\\SimiaCryptus\\Artistry\\Owned\\img11252015_0331.JPG",
+      "H:\\SimiaCryptus\\Artistry\\Owned\\img11252015_0009.JPG",
       "H:\\SimiaCryptus\\Artistry\\Owned\\DSC00097.JPG",
       "H:\\SimiaCryptus\\Artistry\\Owned\\DSC00200.JPG",
       "H:\\SimiaCryptus\\Artistry\\Owned\\DSC00152.JPG",

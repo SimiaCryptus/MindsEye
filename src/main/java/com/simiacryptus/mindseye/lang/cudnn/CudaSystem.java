@@ -172,6 +172,10 @@ public class CudaSystem {
    * The constant cudnnActivationBackward_execution.
    */
   protected static final DoubleStatistics cudnnSoftmaxBackward_execution = new DoubleStatistics();
+  protected static final DoubleStatistics cudnnCreateReduceTensorDescriptor_execution = new DoubleStatistics();
+  protected static final DoubleStatistics cudnnSetReduceTensorDescriptor_execution = new DoubleStatistics();
+  
+  
   /**
    * The constant cudnnActivationBackward_execution.
    */
@@ -232,6 +236,9 @@ public class CudaSystem {
    * The constant cudnnOpTensor_execution.
    */
   protected static final DoubleStatistics cudnnOpTensor_execution = new DoubleStatistics();
+  
+  protected static final DoubleStatistics cudnnReduceTensor_execution = new DoubleStatistics();
+  
   /**
    * The constant cudnnPoolingBackward_execution.
    */

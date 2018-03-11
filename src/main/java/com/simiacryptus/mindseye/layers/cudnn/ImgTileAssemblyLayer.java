@@ -348,8 +348,8 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       precision.getPointer(1.0),
       destinationViewDescriptor.getPtr(), destination.getPtr().withByteOffset(destinationOffset * precision.size)
     ));
-    sourceMemory.dirty(gpu);
-    destination.dirty(gpu);
+    sourceMemory.dirty();
+    destination.dirty();
     sourceMemory.freeRef();
     Arrays.stream(new ReferenceCounting[]{sourceViewDescriptor, destinationViewDescriptor}).forEach(ReferenceCounting::freeRef);
     return viewDim;

@@ -65,7 +65,6 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
   public final long size;
   private final int deviceId;
   private final MemoryType type;
-  private int writtenBy = -1;
   private long writtenAt = System.nanoTime();
   
   /**
@@ -410,14 +409,13 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
     };
   }
   
-  public CudaMemory dirty(final CudnnHandle gpu) {
-    writtenBy = gpu.getDeviceId();
+  public CudaMemory dirty() {
     writtenAt = System.nanoTime();
     return this;
   }
   
   public void synchronize() {
-    if (writtenBy >= 0) CudaSystem.synchronize(writtenAt, writtenBy);
+    if (deviceId >= 0) CudaSystem.synchronize(writtenAt, deviceId);
   }
   
 }

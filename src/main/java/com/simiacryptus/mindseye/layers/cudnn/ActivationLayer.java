@@ -172,8 +172,8 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
           CudaSystem.handle(gpu.cudnnActivationForward(activationDesc.getPtr(),
             precision.getPointer(1.0), inputTensor.descriptor.getPtr(), memory.getPtr(),
             precision.getPointer(0.0), outputTensor.descriptor.getPtr(), tensorMemory.getPtr()));
-          memory.dirty(gpu);
-          tensorMemory.dirty(gpu);
+          memory.dirty();
+          tensorMemory.dirty();
           tensorMemory.freeRef();
           memory.freeRef();
           return outputTensor;
@@ -225,10 +225,10 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
                   inputTensor.descriptor.getPtr(), inputTensorMemory.getPtr(),
                   precision.getPointer(0.0),
                   passbackTensor.descriptor.getPtr(), passbackTensorMemory.getPtr()));
-                localOutMemory.dirty(gpu);
-                deltaTensorMemory.dirty(gpu);
-                inputTensorMemory.dirty(gpu);
-                passbackTensorMemory.dirty(gpu);
+                localOutMemory.dirty();
+                deltaTensorMemory.dirty();
+                inputTensorMemory.dirty();
+                passbackTensorMemory.dirty();
                 localOutMemory.freeRef();
                 deltaTensorMemory.freeRef();
                 inputTensorMemory.freeRef();

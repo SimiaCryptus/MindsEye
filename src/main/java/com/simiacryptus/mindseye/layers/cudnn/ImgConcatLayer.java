@@ -152,8 +152,8 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
             precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInputMemory.getPtr(),
             precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr().withByteOffset(byteOffset)
           );
-          cudaInputMemory.dirty(gpu);
-          cudaOutput.dirty(gpu);
+          cudaInputMemory.dirty();
+          cudaOutput.dirty();
           cudaInputMemory.freeRef();
           Stream.<ReferenceCounting>of(cudaInput, outputDescriptor, inputDescriptor).forEach(ReferenceCounting::freeRef);
         }

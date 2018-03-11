@@ -26,6 +26,7 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.test.TestUtil;
+import jcuda.Pointer;
 import jcuda.jcudnn.JCudnn;
 import jcuda.jcudnn.cudnnActivationDescriptor;
 import jcuda.jcudnn.cudnnConvolutionBwdDataPreference;
@@ -37,6 +38,7 @@ import jcuda.jcudnn.cudnnHandle;
 import jcuda.jcudnn.cudnnOpTensorDescriptor;
 import jcuda.jcudnn.cudnnOpTensorOp;
 import jcuda.jcudnn.cudnnPoolingDescriptor;
+import jcuda.jcudnn.cudnnReduceTensorDescriptor;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 
 import javax.annotation.Nonnull;
@@ -138,9 +140,9 @@ public class CudnnHandle extends CudaDevice {
         precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
         precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr());
-      lPtrMemory.dirty(this);
-      rPtrMemory.dirty(this);
-      outputPtr.dirty(this);
+      lPtrMemory.dirty();
+      rPtrMemory.dirty();
+      outputPtr.dirty();
       lPtrMemory.freeRef();
       rPtrMemory.freeRef();
       return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor, precision), length, dimensions, precision);
@@ -174,8 +176,8 @@ public class CudnnHandle extends CudaDevice {
     cudnnAddTensor(
       left.getPrecision().getPointer(1.0), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
       left.getPrecision().getPointer(1.0), lPtr.descriptor.getPtr(), lPtrMemory.getPtr());
-    rPtrMemory.dirty(this);
-    lPtrMemory.dirty(this);
+    rPtrMemory.dirty();
+    lPtrMemory.dirty();
     lPtrMemory.freeRef();
     rPtrMemory.freeRef();
     rPtr.freeRef();
@@ -320,9 +322,9 @@ public class CudnnHandle extends CudaDevice {
       precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
       precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
       precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr());
-    lPtrMemory.dirty(this);
-    rPtrMemory.dirty(this);
-    outputPtr.dirty(this);
+    lPtrMemory.dirty();
+    rPtrMemory.dirty();
+    outputPtr.dirty();
     lPtrMemory.freeRef();
     rPtrMemory.freeRef();
     Arrays.stream(new ReferenceCounting[]{lPtr, rPtr, opDescriptor, left, right}).forEach(ReferenceCounting::freeRef);
@@ -550,6 +552,25 @@ public class CudnnHandle extends CudaDevice {
     final int result = JCudnn.cudnnOpTensor(this.handle, opTensorDesc, alpha1, aDesc, A, alpha2, bDesc, B, beta, cDesc, C);
     cudnnOpTensor_execution.accept((System.nanoTime() - startTime) / 1e9);
     log("cudnnOpTensor", result, new Object[]{this, opTensorDesc, alpha1, aDesc, A, alpha2, bDesc, B, beta, cDesc, C});
+    return result;
+  }
+  
+  public int cudnnReduceTensor(
+    cudnnReduceTensorDescriptor reduceTensorDesc,
+    Pointer indices,
+    long indicesSizeInBytes,
+    Pointer workspace,
+    long workspaceSizeInBytes,
+    Pointer alpha,
+    cudnnTensorDescriptor aDesc,
+    Pointer A,
+    Pointer beta,
+    cudnnTensorDescriptor cDesc,
+    Pointer C) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnReduceTensor(this.handle, reduceTensorDesc, indices, indicesSizeInBytes, workspace, workspaceSizeInBytes, alpha, aDesc, A, beta, cDesc, C);
+    cudnnReduceTensor_execution.accept((System.nanoTime() - startTime) / 1e9);
+    log("cudnnReduceTensor", result, new Object[]{this, reduceTensorDesc, indices, indicesSizeInBytes, workspace, workspaceSizeInBytes, alpha, aDesc, A, beta, cDesc, C});
     return result;
   }
   
@@ -872,6 +893,38 @@ public class CudnnHandle extends CudaDevice {
     final int result = JCudnn.cudnnSoftmaxBackward(this.handle, algo, mode, alpha, yDesc, y, dyDesc, dy, beta, dxDesc, dx);
     cudnnSoftmaxBackward_execution.accept((System.nanoTime() - startTime) / 1e9);
     log("cudnnSoftmaxBackward", result, new Object[]{this, algo, mode, alpha, yDesc, y, dyDesc, dy, beta, dxDesc, dx});
+    return result;
+  }
+  
+  public CudaResource<cudnnReduceTensorDescriptor> cudnnCreateReduceTensorDescriptor(int reduceTensorOp,
+    int reduceTensorCompType,
+    int reduceTensorNanOpt,
+    int reduceTensorIndices,
+    int reduceTensorIndicesType) {
+    cudnnReduceTensorDescriptor reduceTensorDesc = new cudnnReduceTensorDescriptor();
+    cudnnCreateReduceTensorDescriptor(reduceTensorDesc);
+    cudnnSetReduceTensorDescriptor(reduceTensorDesc, reduceTensorOp, reduceTensorCompType, reduceTensorNanOpt, reduceTensorIndices, reduceTensorIndicesType);
+    return new CudaResource<cudnnReduceTensorDescriptor>(reduceTensorDesc, JCudnn::cudnnDestroyReduceTensorDescriptor, getDeviceId());
+  }
+  
+  public int cudnnCreateReduceTensorDescriptor(cudnnReduceTensorDescriptor reduceTensorDesc) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnCreateReduceTensorDescriptor(reduceTensorDesc);
+    cudnnCreateReduceTensorDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
+    log("cudnnCreateReduceTensorDescriptor", result, new Object[]{reduceTensorDesc});
+    return result;
+  }
+  
+  public int cudnnSetReduceTensorDescriptor(cudnnReduceTensorDescriptor reduceTensorDesc,
+    int reduceTensorOp,
+    int reduceTensorCompType,
+    int reduceTensorNanOpt,
+    int reduceTensorIndices,
+    int reduceTensorIndicesType) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnSetReduceTensorDescriptor(reduceTensorDesc, reduceTensorOp, reduceTensorCompType, reduceTensorNanOpt, reduceTensorIndices, reduceTensorIndicesType);
+    cudnnSetReduceTensorDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
+    log("cudnnCreateReduceTensorDescriptor", result, new Object[]{reduceTensorDesc});
     return result;
   }
   
