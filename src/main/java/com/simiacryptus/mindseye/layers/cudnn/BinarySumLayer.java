@@ -163,6 +163,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
         precision.getPointer(leftFactor), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
         precision.getPointer(rightFactor), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr());
+      assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
       lPtrMemory.dirty();
       rPtrMemory.dirty();
       outputPtr.dirty();
@@ -188,6 +189,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
             gpu.cudnnTransformTensor(
               precision.getPointer(leftFactor), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
               precision.getPointer(0.0), passbackDescriptor.getPtr(), passbackPtr.getPtr());
+            assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
             passbackPtr.dirty();
             lPtrMemory.freeRef();
             CudaTensor cudaTensor = CudaTensor.wrap(passbackPtr, passbackDescriptor, precision);

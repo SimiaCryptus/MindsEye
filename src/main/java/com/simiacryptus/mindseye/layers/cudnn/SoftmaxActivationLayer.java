@@ -172,6 +172,7 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
             precision.getPointer(1.0), inputTensor.descriptor.getPtr(), inputMemory.getPtr(),
             precision.getPointer(0.0), outputTensor.descriptor.getPtr(), outputMemory.getPtr()
           ));
+          assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
           inputMemory.dirty();
           outputMemory.dirty();
           outputMemory.freeRef();

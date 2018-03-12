@@ -102,6 +102,7 @@ public class CudaTensor extends ReferenceCountingBase implements CudaSystem.Cuda
    * @return the memory
    */
   public CudaMemory getMemory(final CudaDevice cudaDevice, final MemoryType memoryType) {
+    assertAlive();
     memory.synchronize();
     if (memory.getType() == MemoryType.Managed) {
       memory.addRef();
@@ -160,6 +161,7 @@ public class CudaTensor extends ReferenceCountingBase implements CudaSystem.Cuda
       gpu.cudnnTransformTensor(
         getPrecision().getPointer(1.0), this.descriptor.getPtr(), memory.getPtr(),
         getPrecision().getPointer(0.0), destDescriptor.getPtr(), destMemory.getPtr());
+      assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
       memory.dirty();
       destMemory.dirty();
       memory.freeRef();
@@ -185,6 +187,7 @@ public class CudaTensor extends ReferenceCountingBase implements CudaSystem.Cuda
    */
   @Nonnull
   public void read(final CudnnHandle gpu, final int index, final Tensor result, final boolean avoidAllocations) {
+    assert getType() == MemoryType.Managed || gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
     if (isDense()) {
       CudaSystem.withDevice(memory.getDeviceId(), dev -> {
         CudaMemory memory = getMemory(dev);
@@ -227,8 +230,9 @@ public class CudaTensor extends ReferenceCountingBase implements CudaSystem.Cuda
    */
   @Nonnull
   public <T> T withDense(final CudnnHandle gpu, final int index, final Function<CudaMemory, T> result) {
+    assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
     int deviceId = memory.getDeviceId();
-    Function<CudaDevice, T> fn = dev -> {
+    Function<CudnnHandle, T> fn = dev -> {
       assertAlive();
       assert this.descriptor.dataType == getPrecision();
       CudaDevice.CudaTensorDescriptor sourceDescriptor = dev.newTensorDescriptor(
@@ -241,7 +245,7 @@ public class CudaTensor extends ReferenceCountingBase implements CudaSystem.Cuda
         CudaMemory cudaMemory = dev.allocate(destDescriptor.nStride * this.descriptor.dataType.size, MemoryType.Device, true);
         CudaMemory memory = getMemory(dev);
         try {
-          gpu.cudnnTransformTensor(
+          dev.cudnnTransformTensor(
             this.descriptor.dataType.getPointer(1.0), sourceDescriptor.getPtr(), memory.getPtr().withByteOffset(index * this.descriptor.nStride * getPrecision().size),
             this.descriptor.dataType.getPointer(0.0), destDescriptor.getPtr(), cudaMemory.getPtr());
           memory.dirty();

@@ -84,11 +84,11 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
     int[] dimensions = inputData.getDimensions();
     assert 3 == dimensions.length;
     PipelineNetwork network = new PipelineNetwork();
-    network.wrap(new ImgConcatLayer(), IntStream.range(0, dimensions[2]).mapToObj(band -> {
+    DAGNode input = network.getInput(0);
+    network.wrap(new ImgConcatLayer().setParallel(false), IntStream.range(0, dimensions[2]).mapToObj(band -> {
       return network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg),
-        network.wrap(new GateProductLayer(),
-          network.getInput(0),
-          network.wrap(new ImgBandSelectLayer(band, band + 1), network.getInput(0))
+        network.wrap(new GateProductLayer(), input,
+          network.wrap(new ImgBandSelectLayer(band, band + 1), input)
         ));
     }).toArray(i -> new DAGNode[i]));
     Result result = network.evalAndFree(inObj);

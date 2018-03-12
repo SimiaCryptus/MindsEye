@@ -145,6 +145,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
           inputData.descriptor.getPtr(), inputDataMemory.getPtr(),
           precision.getPointer(0.0),
           outputDescriptor.getPtr(), outputTensor.getPtr()));
+        assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
         inputDataMemory.dirty();
         outputTensor.dirty();
         inputDataMemory.freeRef();

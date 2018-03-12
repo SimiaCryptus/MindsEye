@@ -129,6 +129,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
     int[] outputDims = getOutputDims(inObj);
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final TensorList outputData = CudaSystem.eval(gpu -> {
+      assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
       assert outputDims[0] > 0;
       assert outputDims[1] > 0;
       assert outputDims[2] > 0;
@@ -148,13 +149,16 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
           copies.add(new CopyParams(gpu, inObj, outputBuffer, length, outputDims, tileDimensions, inputIndex, positionX, totalHeight));
           positionX += tileDimensions[0];
           inputIndex += 1;
+          assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
         }
         totalHeight += rowHeight;
         totalWidth = Math.max(totalWidth, positionX);
       }
+      assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
       Stream<CopyParams> stream = copies.stream();
       if (!CoreSettings.INSTANCE.isSingleThreaded() && parallel) stream = stream.parallel();
       stream.forEach(this::copy);
+  
       CudaDevice.CudaTensorDescriptor descriptor = gpu.newTensorDescriptor(precision, length, outputDims[2], outputDims[1], outputDims[0]);
       CudaTensor ptr = CudaTensor.wrap(outputBuffer, descriptor, precision);
       return CudaTensorList.wrap(ptr, length, outputDims, precision);
@@ -248,6 +252,8 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
    */
   public void copy(final CopyParams copyParams) {
     CudnnHandle gpu = copyParams.getGpu();
+    gpu.initThread();
+    assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
     Result[] inObj = copyParams.getInObj();
     int inputIndex = copyParams.getInputIndex();
     int length = copyParams.getLength();
@@ -348,6 +354,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       precision.getPointer(1.0),
       destinationViewDescriptor.getPtr(), destination.getPtr().withByteOffset(destinationOffset * precision.size)
     ));
+    assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
     sourceMemory.dirty();
     destination.dirty();
     sourceMemory.freeRef();

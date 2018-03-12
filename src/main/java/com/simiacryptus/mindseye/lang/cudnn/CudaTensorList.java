@@ -107,11 +107,13 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
    * @return the long
    */
   public static long evictToHeap(int deviceId) {
-    long size = RegisteredObjectBase.getLivingInstances(CudaTensorList.class)
-      .filter(x -> x.gpuCopy != null && (x.getDeviceId() == deviceId || deviceId < 0 || x.getDeviceId() < 0))
-      .mapToLong(CudaTensorList::evictToHeap).sum();
-    logger.info(String.format("Cleared %s bytes from GpuTensorLists for device %s", size, deviceId));
-    return size;
+    return CudaSystem.withDevice(deviceId, gpu -> {
+      long size = RegisteredObjectBase.getLivingInstances(CudaTensorList.class)
+        .filter(x -> x.gpuCopy != null && (x.getDeviceId() == deviceId || deviceId < 0 || x.getDeviceId() < 0))
+        .mapToLong(CudaTensorList::evictToHeap).sum();
+      logger.info(String.format("Cleared %s bytes from GpuTensorLists for device %s", size, deviceId));
+      return size;
+    });
   }
   
   /**
@@ -249,6 +251,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
     CudaTensor gpuCopy = this.gpuCopy;
     return CudaSystem.eval(gpu -> {
       TimedResult<Tensor> timedResult = TimedResult.time(() -> {
+        assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
         Tensor t = new Tensor(getDimensions());
         if (gpuCopy.isDense()) {
           CudaMemory memory = gpuCopy.getMemory(gpu);
@@ -330,8 +333,8 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
   }
   
   private TensorArray toHeap(final boolean avoidAllocations) {
+    CudaTensor gpuCopy = this.gpuCopy;
     TimedResult<TensorArray> timedResult = TimedResult.time(() -> CudaDevice.eval(gpu -> {
-      CudaTensor gpuCopy = this.gpuCopy;
       if (null == gpuCopy) {
         if (null == heapCopy) {
           throw new IllegalStateException("No data");
@@ -389,7 +392,9 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
   public TensorList copy() {
     return CudaSystem.eval(gpu -> {
       CudaTensor ptr = gpu.getTensor(this, MemoryType.Device, false);
+      assert CudaSystem.getThreadDeviceId() == gpu.getDeviceId();
       CudaMemory cudaMemory = ptr.getMemory(gpu, MemoryType.Device);
+      assert CudaSystem.getThreadDeviceId() == gpu.getDeviceId();
       CudaMemory copyPtr = cudaMemory.copy(gpu, MemoryType.Managed.normalize());
       cudaMemory.freeRef();
       try {

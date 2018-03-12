@@ -410,6 +410,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
   }
   
   public CudaMemory dirty() {
+    assert type == MemoryType.Managed || getDeviceId() == CudaSystem.getThreadDeviceId() : getDeviceId() + " != " + CudaSystem.getThreadDeviceId();
     writtenAt = System.nanoTime();
     return this;
   }

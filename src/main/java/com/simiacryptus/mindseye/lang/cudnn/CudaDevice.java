@@ -87,7 +87,7 @@ public class CudaDevice extends CudaSystem {
   public static synchronized int cudaFree(int deviceId, final CudaPointer devPtr) {
     long startTime = System.nanoTime();
     if (null == devPtr) return 0;
-    Function<CudaDevice, Integer> fn = dev -> {
+    Function<CudnnHandle, Integer> fn = dev -> {
       final int result = JCuda.cudaFree(devPtr);
       log("cudaFree", result, new Object[]{devPtr});
       cudaFree_execution.accept((System.nanoTime() - startTime) / 1e9);
@@ -305,6 +305,7 @@ public class CudaDevice extends CudaSystem {
    */
   @Nonnull
   public CudaMemory allocate(final long size, @Nonnull MemoryType type, boolean dirty) {
+    assert CudaSystem.getThreadDeviceId() == getDeviceId();
     @Nonnull CudaMemory obtain = new CudaMemory(this, size, type);
     if (!dirty) obtain.clear();
     return obtain;

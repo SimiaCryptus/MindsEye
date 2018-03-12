@@ -119,6 +119,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
       IntStream stream = IntStream.range(0, inObj.length);
       //if (!CoreSettings.INSTANCE.isConservative() && parallel) stream = stream.parallel();
       stream.forEach(i -> {
+        assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
         final TensorList input = inObj[i].getData();
         @Nonnull final int[] inputDimensions = input.getDimensions();
         assert inputDimensions[0] == outputDimensions[0];
@@ -152,6 +153,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
             precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInputMemory.getPtr(),
             precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr().withByteOffset(byteOffset)
           );
+          assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
           cudaInputMemory.dirty();
           cudaOutput.dirty();
           cudaInputMemory.freeRef();

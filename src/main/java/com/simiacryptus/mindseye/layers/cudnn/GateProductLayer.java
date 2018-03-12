@@ -137,6 +137,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
         precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
         precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
+      assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
       lPtrMemory.dirty();
       rPtrMemory.dirty();
       outputPtr.dirty();
@@ -198,6 +199,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
           if (Arrays.equals(rightDimensions, leftDimensions) && length == rightData.length()) {
             deltaTensorMemory.freeRef();
             leftTensorMemory.freeRef();
+            assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
             outputPtr.dirty();
             CudaTensor cudaTensor = new CudaTensor(outputPtr, expandedDescriptor, precision);
             Stream.of(deltaTensor, leftTensor, opDescriptor, expandedDescriptor, outputPtr).forEach(ReferenceCounting::freeRef);

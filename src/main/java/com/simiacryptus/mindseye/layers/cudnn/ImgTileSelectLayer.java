@@ -248,6 +248,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
         precision.getPointer(1.0),
         destinationViewDescriptor.getPtr(), outputPtr.getPtr().withByteOffset(destinationOffset * precision.size)
       ));
+      assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
       outputPtr.dirty();
       inputTensorMemory.dirty();
       Arrays.stream(new ReferenceCounting[]{sourceViewDescriptor}).forEach(ReferenceCounting::freeRef);
