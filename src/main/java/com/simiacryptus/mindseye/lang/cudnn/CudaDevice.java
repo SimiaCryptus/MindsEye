@@ -134,9 +134,9 @@ public class CudaDevice extends CudaSystem {
    *
    * @param cudaDeviceId the cuda device id
    */
-  public static synchronized void setDevice(final int cudaDeviceId) {
+  public static void setDevice(final int cudaDeviceId) {
     if (cudaDeviceId < 0) throw new IllegalArgumentException("cudaDeviceId=" + cudaDeviceId);
-    if (cudaDeviceId != getThreadDeviceId()) {
+    if (!isThreadDeviceId(cudaDeviceId)) {
       long startTime = System.nanoTime();
       final int result = JCuda.cudaSetDevice(cudaDeviceId);
       setDevice_execution.accept((System.nanoTime() - startTime) / 1e9);
@@ -156,7 +156,7 @@ public class CudaDevice extends CudaSystem {
    */
   @Nonnull
   CudaPointer acquire(long size, @Nonnull MemoryType type, int retries) {
-    assert CudaSystem.getThreadDeviceId() == getDeviceId();
+    assert CudaSystem.isThreadDeviceId(getDeviceId());
     if (retries < 0) throw new IllegalArgumentException();
     final DeviceMetrics metrics = ensureCapacity(size, type);
     try {
@@ -305,7 +305,7 @@ public class CudaDevice extends CudaSystem {
    */
   @Nonnull
   public CudaMemory allocate(final long size, @Nonnull MemoryType type, boolean dirty) {
-    assert CudaSystem.getThreadDeviceId() == getDeviceId();
+    assert CudaSystem.isThreadDeviceId(getDeviceId());
     @Nonnull CudaMemory obtain = new CudaMemory(this, size, type);
     if (!dirty) obtain.clear();
     return obtain;
@@ -606,6 +606,9 @@ public class CudaDevice extends CudaSystem {
       this.hStride = hStride;
       this.wStride = wStride;
     }
-    
+  
+    public CudaTensorDescriptor copy(CudaDevice device) {
+      return device.newTensorDescriptor(dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride);
+    }
   }
 }

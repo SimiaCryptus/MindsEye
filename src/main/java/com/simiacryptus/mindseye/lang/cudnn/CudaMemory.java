@@ -199,7 +199,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    * @return the cuda ptr
    */
   public CudaMemory copy(CudaDevice deviceId, final MemoryType memoryType) {
-    @Nonnull CudaMemory copy = deviceId.allocate(size, memoryType, false);
+    @Nonnull CudaMemory copy = deviceId.allocate(size, memoryType, true);
     CudaSystem.cudaMemcpy(copy.getPtr(), this.getPtr(), size, cudaMemcpyKind.cudaMemcpyDeviceToDevice);
     return copy;
   }
@@ -322,7 +322,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    */
   @Nonnull
   public CudaMemory write(@Nonnull final Precision precision, @Nonnull final double[] data, long offset) {
-    assert getType() == MemoryType.Managed || getDeviceId() == CudaSystem.getThreadDeviceId();
+    assert getType() == MemoryType.Managed || CudaDevice.isThreadDeviceId(getDeviceId());
     if (size < ((offset + data.length) * precision.size))
       throw new IllegalArgumentException(String.format("%d != (%d + %d) * %d", size, offset, data.length, precision.size));
     CudaSystem.cudaMemcpy(getPtr().withByteOffset(offset * precision.size), precision.getPointer(data), (long) data.length * precision.size, cudaMemcpyKind.cudaMemcpyHostToDevice);
@@ -410,7 +410,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
   }
   
   public CudaMemory dirty() {
-    assert type == MemoryType.Managed || getDeviceId() == CudaSystem.getThreadDeviceId() : getDeviceId() + " != " + CudaSystem.getThreadDeviceId();
+    assert type == MemoryType.Managed || CudaDevice.isThreadDeviceId(getDeviceId()) : getDeviceId() + " != " + CudaSystem.getThreadDeviceId();
     writtenAt = System.nanoTime();
     return this;
   }

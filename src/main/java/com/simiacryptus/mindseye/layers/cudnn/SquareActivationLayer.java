@@ -127,7 +127,7 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
         precision.getPointer(alpha), inputTensor.descriptor.getPtr(), lPtrMemory.getPtr(),
         precision.getPointer(1.0), inputTensor.descriptor.getPtr(), lPtrMemory.getPtr(),
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
-      assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
+      assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
       outputPtr.dirty();
       lPtrMemory.dirty();
       outputPtr.dirty();

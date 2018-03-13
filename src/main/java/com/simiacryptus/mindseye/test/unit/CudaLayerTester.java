@@ -295,7 +295,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
       precision.getPointer(1.0), descriptor0.getPtr(), ptr0.getPtr(),
       precision.getPointer(0.0), descriptor1.getPtr(), ptr1.getPtr()
     );
-    assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
+    assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
     ptr0.dirty();
     ptr1.dirty();
     descriptor0.freeRef();

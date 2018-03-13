@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -71,7 +72,7 @@ import java.util.stream.Stream;
 public class CudaSystem {
   
   private static final Map<Integer, Long> syncTimes = new HashMap<>();
-
+  
   /**
    * The constant INSTANCE.
    */
@@ -91,13 +92,7 @@ public class CudaSystem {
   /**
    * The constant currentDevice.
    */
-  protected static final ThreadLocal<Integer> currentDeviceId = new ThreadLocal<Integer>() {
-    @Nonnull
-    @Override
-    protected Integer initialValue() {
-      return -1;
-    }
-  };
+  protected static final ThreadLocal<Integer> currentDeviceId = new ThreadLocal<Integer>();
   /**
    * The constant logThread.
    */
@@ -527,14 +522,15 @@ public class CudaSystem {
     return result;
   }
   
+  private final ExecutorService executionThread = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat(toString()).build());
+  
   /**
    * Gets device.
    *
    * @return the device
    */
-  public static int getThreadDeviceId() {
-    final Integer integer = CudaSystem.currentDeviceId.get();
-    return integer == null ? -1 : integer;
+  public static Integer getThreadDeviceId() {
+    return CudaSystem.currentDeviceId.get();
   }
   
   /**
@@ -813,22 +809,9 @@ public class CudaSystem {
     return result;
   }
   
-  /**
-   * Log.
-   *
-   * @param method the method
-   * @param result the result
-   * @param args   the args
-   */
-  public static void log(final String method, final Object result, @Nullable final Object[] args) {
-    String callstack = !CudaSettings.INSTANCE.isLogStack() ? "" : Arrays.stream(Thread.currentThread().getStackTrace()).skip(3)
-      .filter(x -> !x.getClassName().startsWith("java."))
-      .limit(20).map(x -> x.getFileName() + ":" + x.getLineNumber()).reduce((a, b) -> a + ", " + b).get();
-    @Nonnull final String paramString = null == args ? "" : Arrays.stream(args).map(CudaSystem::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
-    final String message = String.format("%.6f @ %s(%d): %s(%s) = %s via [%s]", (System.nanoTime() - CudaSystem.start) / 1e9, Thread.currentThread().getName(), currentDeviceId.get(), method, paramString, result, callstack);
-    try {
-      CudaSystem.apiLog.forEach(apiLog -> CudaSystem.logThread.submit(() -> apiLog.println(message)));
-    } catch (ConcurrentModificationException e) {}
+  public static boolean isThreadDeviceId(int deviceId) {
+    Integer integer = CudaSystem.currentDeviceId.get();
+    return integer != null && (deviceId == integer);
   }
   
   /**
@@ -959,7 +942,7 @@ public class CudaSystem {
 //    }
 //  }
   
-
+  
   /**
    * Add log.
    *
@@ -980,6 +963,29 @@ public class CudaSystem {
   }
   
   /**
+   * Log.
+   *
+   * @param method the method
+   * @param result the result
+   * @param args   the args
+   */
+  public static void log(final String method, final Object result, @Nullable final Object[] args) {
+    String callstack = !CudaSettings.INSTANCE.isLogStack() ? "" : TestUtil.toString(Arrays.stream(Thread.currentThread().getStackTrace())
+      .filter(x -> true
+          && x.getClassName().startsWith("com.simiacryptus.mindseye.")
+        //&& !x.getClassName().startsWith("com.simiacryptus.mindseye.lang.")
+        //&& !x.getClassName().startsWith("com.simiacryptus.mindseye.test.")
+      )
+      //.limit(10)
+      .toArray(i -> new StackTraceElement[i]), ", ");
+    @Nonnull final String paramString = null == args ? "" : Arrays.stream(args).map(CudaSystem::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
+    final String message = String.format("%.6f @ %s(%d): %s(%s) = %s via [%s]", (System.nanoTime() - CudaSystem.start) / 1e9, Thread.currentThread().getName(), getThreadDeviceId(), method, paramString, result, callstack);
+    try {
+      CudaSystem.apiLog.forEach(apiLog -> CudaSystem.logThread.submit(() -> apiLog.println(message)));
+    } catch (ConcurrentModificationException e) {}
+  }
+  
+  /**
    * Run.
    *
    * @param fn    the fn
@@ -987,69 +993,73 @@ public class CudaSystem {
    */
   public static void run(@Nonnull final Consumer<CudnnHandle> fn, Object... hints) {
     CudnnHandle threadlocal = CudnnHandle.threadContext.get();
-    if (threadlocal != null) {
-      try {
-        threadlocal.initThread();
+    final Integer incumbantDevice = getThreadDeviceId();
+    try {
+      if (threadlocal != null) {
+        assert isThreadDeviceId(threadlocal.getDeviceId());
         fn.accept(threadlocal);
-      } catch (@Nonnull final RuntimeException e) {
-        throw e;
-      } catch (@Nonnull final Exception e) {
-        throw new RuntimeException(e);
-      } finally {
-        //threadlocal.cudaDeviceSynchronize();
       }
-    }
-    else {
-      getPool().apply(gpu -> {
-        try {
-          CudnnHandle.threadContext.set(gpu);
-          gpu.initThread();
-          fn.accept(gpu);
-        } catch (@Nonnull final RuntimeException e) {
-          throw e;
-        } catch (@Nonnull final Exception e) {
-          throw new RuntimeException(e);
-        } finally {
-          gpu.cleanup();
-          CudnnHandle.threadContext.remove();
-        }
-      }, getPreferencePredicate(hints), false);
+      else {
+        getPool().apply(gpu -> {
+          gpu.wrap(x -> {
+            try {
+              CudnnHandle.threadContext.set(gpu);
+              gpu.initThread();
+              fn.accept(gpu);
+            } catch (@Nonnull final RuntimeException e) {
+              throw e;
+            } catch (@Nonnull final Exception e) {
+              throw new RuntimeException(e);
+            } finally {
+              gpu.cleanup();
+            }
+            return null;
+          });
+        }, getPreferencePredicate(hints), false);
+      }
+    } finally {
+      if (null == threadlocal) CudnnHandle.threadContext.remove();
+      else CudnnHandle.threadContext.set(threadlocal);
+      if (null == incumbantDevice) CudnnHandle.currentDeviceId.remove();
+      else CudnnHandle.currentDeviceId.set(incumbantDevice);
     }
   }
   
   /**
    * Run.
-   *
    */
   public static void withDevice(int deviceId, @Nonnull final Consumer<CudnnHandle> fn) {
     CudnnHandle threadlocal = CudnnHandle.threadContext.get();
-    if (threadlocal != null && threadlocal.getDeviceId() == deviceId) {
-      try {
+    final Integer incumbantDevice = getThreadDeviceId();
+    try {
+      if (threadlocal != null && threadlocal.getDeviceId() == deviceId) {
+        assert CudaSystem.isThreadDeviceId(threadlocal.getDeviceId());
         fn.accept(threadlocal);
-      } catch (@Nonnull final RuntimeException e) {
-        throw e;
-      } catch (@Nonnull final Exception e) {
-        throw new RuntimeException(e);
-      } finally {
-        //threadlocal.cudaDeviceSynchronize();
       }
-    }
-    else {
-      getPool().apply(gpu -> {
-        try {
-          CudnnHandle.threadContext.set(gpu);
-          gpu.initThread();
-          fn.accept(gpu);
-        } catch (@Nonnull final RuntimeException e) {
-          throw e;
-        } catch (@Nonnull final Exception e) {
-          throw new RuntimeException(e);
-        } finally {
-          gpu.cleanup();
-          if (null == threadlocal) CudnnHandle.threadContext.remove();
-          else CudnnHandle.threadContext.set(threadlocal);
-        }
-      }, x -> x.getDeviceId() == deviceId, true);
+      else {
+        getPool().apply(gpu -> {
+          gpu.wrap(x -> {
+            try {
+              CudnnHandle.threadContext.set(gpu);
+              gpu.initThread();
+              assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
+              fn.accept(gpu);
+            } catch (@Nonnull final RuntimeException e) {
+              throw e;
+            } catch (@Nonnull final Exception e) {
+              throw new RuntimeException(e);
+            } finally {
+              gpu.cleanup();
+            }
+            return null;
+          }).apply(null);
+        }, x -> x.getDeviceId() == deviceId, true);
+      }
+    } finally {
+      if (null == threadlocal) CudnnHandle.threadContext.remove();
+      else CudnnHandle.threadContext.set(threadlocal);
+      if (null == incumbantDevice) CudnnHandle.currentDeviceId.remove();
+      else CudnnHandle.currentDeviceId.set(incumbantDevice);
     }
   }
   
@@ -1058,36 +1068,36 @@ public class CudaSystem {
    */
   public static <T> T withDevice(int deviceId, @Nonnull Function<CudnnHandle, T> action) {
     CudnnHandle threadlocal = CudnnHandle.threadContext.get();
-    if (threadlocal != null && threadlocal.getDeviceId() == deviceId) {
-      try {
+    final Integer incumbantDevice = getThreadDeviceId();
+    try {
+      if (threadlocal != null && threadlocal.getDeviceId() == deviceId) {
         return action.apply(threadlocal);
-      } catch (@Nonnull final RuntimeException e) {
-        throw e;
-      } catch (@Nonnull final Exception e) {
-        throw new RuntimeException(e);
-      } finally {
-        //threadlocal.cudaDeviceSynchronize();
       }
-    }
-    else {
-      return getPool().run(gpu -> {
-        try {
-          CudnnHandle.threadContext.set(gpu);
-          gpu.initThread();
-          return action.apply(gpu);
-        } catch (@Nonnull final RuntimeException e) {
-          throw e;
-        } catch (@Nonnull final Exception e) {
-          throw new RuntimeException(e);
-        } finally {
-          gpu.cleanup();
-          if (null == threadlocal) CudnnHandle.threadContext.remove();
-          else CudnnHandle.threadContext.set(threadlocal);
-        }
-      }, x -> x.getDeviceId() == deviceId, true);
+      else {
+        return getPool().run(gpu -> {
+          return gpu.wrap(x -> {
+            try {
+              CudnnHandle.threadContext.set(gpu);
+              gpu.initThread();
+              return action.apply(gpu);
+            } catch (@Nonnull final RuntimeException e) {
+              throw e;
+            } catch (@Nonnull final Exception e) {
+              throw new RuntimeException(e);
+            } finally {
+              gpu.cleanup();
+            }
+          }).apply(null);
+        }, x -> x.getDeviceId() == deviceId, true);
+      }
+    } finally {
+      if (null == threadlocal) CudnnHandle.threadContext.remove();
+      else CudnnHandle.threadContext.set(threadlocal);
+      if (null == incumbantDevice) CudnnHandle.currentDeviceId.remove();
+      else CudnnHandle.currentDeviceId.set(incumbantDevice);
     }
   }
-  
+
   /**
    * Call t.
    *
@@ -1098,42 +1108,54 @@ public class CudaSystem {
    */
   public static <T> T eval(@Nonnull final Function<CudnnHandle, T> fn, Object... hints) {
     if (getPool().getAll().isEmpty()) {
-      return fn.apply(new CudnnHandle(-1));
+      throw new RuntimeException();
     }
     else {
       CudnnHandle threadlocal = CudnnHandle.threadContext.get();
-      if (threadlocal != null) {
-        try {
+      final Integer incumbantDevice = getThreadDeviceId();
+      try {
+        if (threadlocal != null) {
           return withDevice(threadlocal.getDeviceId(), dev -> {
-            assert threadlocal.getDeviceId() == getThreadDeviceId();
+            assert CudaDevice.isThreadDeviceId(threadlocal.getDeviceId());
             T result = fn.apply(threadlocal);
             return result;
           });
-        } catch (@Nonnull final RuntimeException e) {
-          throw e;
-        } catch (@Nonnull final Exception e) {
-          throw new RuntimeException(e);
-        } finally {
-          //threadlocal.cudaDeviceSynchronize();
         }
-      }
-      else {
-        return getPool().run(gpu -> {
-          try {
-            CudnnHandle.threadContext.set(gpu);
-            gpu.initThread();
-            return fn.apply(gpu);
-          } catch (@Nonnull final RuntimeException e) {
-            throw e;
-          } catch (@Nonnull final Exception e) {
-            throw new RuntimeException(e);
-          } finally {
-            gpu.cleanup();
-            CudnnHandle.threadContext.remove();
-          }
-        }, getPreferencePredicate(hints), false);
+        else {
+          return getPool().run(gpu -> {
+            return gpu.wrap(x -> {
+              try {
+                CudnnHandle.threadContext.set(gpu);
+                gpu.initThread();
+                return fn.apply(gpu);
+              } finally {
+                gpu.cleanup();
+                CudnnHandle.threadContext.remove();
+              }
+            }).apply(null);
+          }, getPreferencePredicate(hints), false);
+        }
+      } finally {
+        if (null == threadlocal) CudnnHandle.threadContext.remove();
+        else CudnnHandle.threadContext.set(threadlocal);
+        if (null == incumbantDevice) CudnnHandle.currentDeviceId.remove();
+        else CudnnHandle.currentDeviceId.set(incumbantDevice);
       }
     }
+  }
+  
+  public <T, U> Function<T, U> wrap(final Function<T, U> fn) {
+    return x -> {
+      try {
+        return executionThread.submit(() -> fn.apply(x)).get();
+      } catch (ExecutionException e) {
+        throw new RuntimeException(e.getCause());
+      } catch (RuntimeException e) {
+        throw e;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    };
   }
   
   /**

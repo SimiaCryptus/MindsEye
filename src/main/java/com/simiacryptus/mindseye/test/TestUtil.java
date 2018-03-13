@@ -911,7 +911,30 @@ public class TestUtil {
    * @param stack the stack
    * @return the string
    */
-  public static String toString(final StackTraceElement[] stack) {
-    return Arrays.stream(stack).map(x -> x.getFileName() + ":" + x.getLineNumber()).reduce((a, b) -> a + "\n" + b).orElse("");
+  public static String toString(final StackTraceElement[] stack) {return toString(stack, "\n");}
+  
+  /**
+   * To string string.
+   *
+   * @param stack     the stack
+   * @param delimiter
+   * @return the string
+   */
+  public static String toString(final StackTraceElement[] stack, final String delimiter) {
+    return Arrays.stream(stack).map(x -> x.getFileName() + ":" + x.getLineNumber()).reduce((a, b) -> a + delimiter + b).orElse("");
+  }
+  
+  /**
+   * Get stack trace stack trace element [ ].
+   *
+   * @return the stack trace element [ ]
+   */
+  public static StackTraceElement[] getStackTrace() {
+    return Arrays.stream(Thread.currentThread().getStackTrace())
+      .filter(x -> x.getClassName().startsWith("com.simiacryptus.mindseye.")
+        && !x.getClassName().startsWith("com.simiacryptus.mindseye.lang.")
+        && !x.getClassName().startsWith("com.simiacryptus.mindseye.test."))
+      .limit(1)
+      .toArray(i -> new StackTraceElement[i]);
   }
 }

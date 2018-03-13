@@ -203,7 +203,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     kernel.addRef();
     SimpleConvolutionLayer.this.addRef();
     return new Result(CudaSystem.eval(gpu -> {
-      assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
+      assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
       @Nullable final CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, false);
       final CudaResource<cudnnFilterDescriptor> filterDescriptor = gpu.newFilterDescriptor(
         precision, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
@@ -236,7 +236,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
           null == forwardWorkspace ? null : forwardWorkspace.getPtr(),
           null == forwardWorkspace ? 0 : forwardWorkspace.size,
           precision.getPointer(0.0), outputDescriptor.getPtr(), outputBuffer.getPtr()));
-        assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
+        assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
         forwardWorkspace.dirty();
         filterPtr.dirty();
         outputBuffer.dirty();

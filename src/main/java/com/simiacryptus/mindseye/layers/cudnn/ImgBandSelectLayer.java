@@ -138,7 +138,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
         precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInputMemory.getPtr().withByteOffset(byteOffset),
         precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr()
       );
-      assert gpu.getDeviceId() == CudaSystem.getThreadDeviceId();
+      assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
       cudaInputMemory.dirty();
       cudaOutput.dirty();
       cudaInputMemory.freeRef();
