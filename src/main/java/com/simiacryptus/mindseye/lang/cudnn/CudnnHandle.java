@@ -211,16 +211,20 @@ public class CudnnHandle extends CudaDevice {
     assert lPtr.descriptor.width == rPtr.descriptor.width;
     CudaMemory rPtrMemory = rPtr.getMemory(this);
     CudaMemory lPtrMemory = lPtr.getMemory(this);
-    assert CudaDevice.isThreadDeviceId(getDeviceId());
-    cudnnAddTensor(
-      left.getPrecision().getPointer(1.0), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
-      left.getPrecision().getPointer(1.0), lPtr.descriptor.getPtr(), lPtrMemory.getPtr());
-    rPtrMemory.dirty();
-    lPtrMemory.dirty();
-    lPtrMemory.freeRef();
-    rPtrMemory.freeRef();
-    rPtr.freeRef();
-    return left;
+    try {
+      assert CudaDevice.isThreadDeviceId(getDeviceId());
+      cudnnAddTensor(
+        left.getPrecision().getPointer(1.0), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
+        left.getPrecision().getPointer(1.0), lPtr.descriptor.getPtr(), lPtrMemory.getPtr());
+      rPtrMemory.dirty();
+      lPtrMemory.dirty();
+      return left;
+    } finally {
+      lPtrMemory.freeRef();
+      rPtrMemory.freeRef();
+      rPtr.freeRef();
+      lPtr.freeRef();
+    }
   }
   
   /**
@@ -313,13 +317,17 @@ public class CudnnHandle extends CudaDevice {
     if (null == result) {
       throw new IllegalStateException("No data");
     }
+    CudaTensor prev = null;
     synchronized (data) {
       if (result != gpuCopy) {
-        if (null != data.gpuCopy) data.gpuCopy.freeRef();
+        if (null != data.gpuCopy) {
+          prev = data.gpuCopy;
+        }
         data.gpuCopy = result;
         data.gpuCopy.addRef();
       }
     }
+    if (null != prev) prev.freeRef();
     return result;
   }
   
