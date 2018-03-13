@@ -57,7 +57,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
   /**
    * The Pipeline network.
    */
-  protected final PipelineNetwork pipelineNetwork = new PipelineNetwork();
+  protected final PipelineNetwork pipeline = new PipelineNetwork();
   /**
    * The Hdf 5.
    */
@@ -92,7 +92,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
    * @param layer the layer
    */
   protected void add(@Nonnull Layer layer) {
-    this.prototype = evaluatePrototype(add(layer, pipelineNetwork), this.prototype, cnt++);
+    this.prototype = evaluatePrototype(add(layer, pipeline), this.prototype, cnt++);
   }
   
   public Layer buildNetwork() {
@@ -101,7 +101,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
     phase1();
     phase2();
     phase3();
-    return pipelineNetwork;
+    return pipeline;
   }
   
   /**
@@ -491,8 +491,8 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
         .set((hdf5.readDataSet("param_1", "layer_36")))
         .setName("bias_36"));
       add(new SoftmaxActivationLayer());
-      setPrecision(pipelineNetwork);
-      return pipelineNetwork;
+      setPrecision(pipeline);
+      return pipeline;
     }
     
     public void addPoolingLayer(final int size) {

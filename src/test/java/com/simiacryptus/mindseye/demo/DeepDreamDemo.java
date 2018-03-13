@@ -83,7 +83,7 @@ public class DeepDreamDemo extends ArtistryDemo {
    * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
-    init();
+    init(log);
   
     @Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
@@ -99,7 +99,7 @@ public class DeepDreamDemo extends ArtistryDemo {
             add(new SquareActivationLayer().setAlpha(-1.0));
             add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
             add(new SumReducerLayer());
-            dreamNet[0] = (DAGNetwork) pipelineNetwork.copy();
+            dreamNet[0] = (DAGNetwork) pipeline.copy();
             throw new RuntimeException("Abort Network Construction");
           }
         }.setLarge(true).setFinalPoolingMode(PoolingLayer.PoolingMode.Avg).getNetwork();

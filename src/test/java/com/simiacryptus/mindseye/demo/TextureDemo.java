@@ -148,7 +148,7 @@ public class TextureDemo extends ArtistryDemo {
         new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
           @Override
           protected void phase3() {
-            ref.set(pipelineNetwork.copy().freeze());
+            ref.set(pipeline.copy().freeze());
             super.phase3();
           }
         }.getNetwork();
@@ -196,7 +196,7 @@ public class TextureDemo extends ArtistryDemo {
           new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
             @Override
             protected void phase2b() {
-              ref.set(pipelineNetwork.copy().freeze());
+              ref.set(pipeline.copy().freeze());
               super.phase2b();
             }
           }.getNetwork();

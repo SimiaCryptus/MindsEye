@@ -89,7 +89,7 @@ public class ReproductionDemo extends ArtistryDemo {
    * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
-    init();
+    init(log);
     log.h1("Model");
     Layer textureNetork;
     try {
@@ -233,7 +233,7 @@ public class ReproductionDemo extends ArtistryDemo {
       new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
         @Override
         protected void phase1c() {
-          ref.set(pipelineNetwork.copy().freeze());
+          ref.set(pipeline.copy().freeze());
           throw new RuntimeException("Abort Network Construction");
         }
       }.getNetwork();

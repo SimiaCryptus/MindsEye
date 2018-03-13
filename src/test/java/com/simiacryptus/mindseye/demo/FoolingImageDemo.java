@@ -80,7 +80,7 @@ public class FoolingImageDemo extends ArtistryDemo {
    * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
-    init();
+    init(log);
     
     @Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));

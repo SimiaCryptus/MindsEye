@@ -77,7 +77,7 @@ public abstract class ImageClassifier implements NetworkFactory {
   /**
    * The Network.
    */
-  protected volatile Layer network;
+  protected volatile Layer cachedLayer;
   /**
    * The Prototype.
    */
@@ -465,15 +465,15 @@ public abstract class ImageClassifier implements NetworkFactory {
   @Nonnull
   @Override
   public Layer getNetwork() {
-    if (null == network) {
+    if (null == cachedLayer) {
       synchronized (this) {
-        if (null == network) {
+        if (null == cachedLayer) {
           try {
-            network = buildNetwork();
-            setPrecision((DAGNetwork) network);
+            cachedLayer = buildNetwork();
+            setPrecision((DAGNetwork) cachedLayer);
             if (null != prototype) prototype.freeRef();
             prototype = null;
-            return network;
+            return cachedLayer;
           } catch (@Nonnull final RuntimeException e) {
             throw e;
           } catch (Exception e) {
@@ -482,7 +482,7 @@ public abstract class ImageClassifier implements NetworkFactory {
         }
       }
     }
-    return network;
+    return cachedLayer;
     
     
   }

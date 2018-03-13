@@ -134,7 +134,15 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
     assert (inObj.length == 2);
     final TensorList leftData = inObj[0].getData();
     final TensorList rightData = inObj[1].getData();
-    @Nonnull final int[] dimensions = leftData.getDimensions();
+    int[] leftDimensions = leftData.getDimensions();
+    if (3 < leftDimensions.length) {
+      throw new IllegalArgumentException("dimensions=" + Arrays.toString(leftDimensions));
+    }
+    @Nonnull final int[] dimensions = {
+      leftDimensions.length < 1 ? 0 : leftDimensions[0],
+      leftDimensions.length < 2 ? 1 : leftDimensions[1],
+      leftDimensions.length < 3 ? 1 : leftDimensions[2]
+    };
     final int length = leftData.length();
     if (length != rightData.length()) throw new IllegalArgumentException();
     if (3 != dimensions.length) {

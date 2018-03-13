@@ -1091,6 +1091,7 @@ public class CudaSystem {
       }
       else {
         int device = chooseDevice(hints);
+        assert device >= 0;
         return getPool(device).apply(gpu -> {
           return gpu.wrap(() -> fn.apply(gpu)).get();
         });
@@ -1113,19 +1114,33 @@ public class CudaSystem {
       if (hint instanceof Result) {
         TensorList data = ((Result) hint).getData();
         if (data instanceof CudaTensorList) {
-          return ((CudaTensorList) data).getDeviceId();
+          int deviceId = ((CudaTensorList) data).getDeviceId();
+          assert deviceId >= 0;
+          return deviceId;
         }
       }
       else if (hint instanceof CudaDeviceResource) {
-        return ((CudaSystem.CudaDeviceResource) hint).getDeviceId();
+        int deviceId = ((CudaDeviceResource) hint).getDeviceId();
+        //assert deviceId >= 0 : String.format("%s/%d", hint.getClass(), deviceId);
+        if (deviceId >= 0) return deviceId;
       }
       else if (hint instanceof Integer) {
-        return (Integer) hint;
+        Integer deviceId = (Integer) hint;
+        assert deviceId >= 0;
+        return deviceId;
       }
       return null;
     }).filter(x -> x != null).collect(Collectors.toSet());
-    if (devices.isEmpty()) return (int) Math.floor(Math.random() * deviceCount);
-    else return devices.stream().findAny().get();
+    if (devices.isEmpty()) {
+      int deviceId = (int) Math.floor(Math.random() * deviceCount);
+      assert deviceId >= 0;
+      return deviceId;
+    }
+    else {
+      Integer deviceId = devices.stream().findAny().get();
+      assert deviceId >= 0;
+      return deviceId;
+    }
   }
   
   /**
@@ -1230,6 +1245,7 @@ public class CudaSystem {
    * @return the pool
    */
   public static ResourcePool<CudnnHandle> getPool(final int deviceId) {
+    assert deviceId >= 0;
     return handlePools.computeIfAbsent(deviceId, d -> new ResourcePool<CudnnHandle>(32) {
       @Override
       public CudnnHandle create() {

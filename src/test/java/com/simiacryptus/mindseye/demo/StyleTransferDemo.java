@@ -20,38 +20,29 @@
 package com.simiacryptus.mindseye.demo;
 
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
-import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
-import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
-import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
-import com.simiacryptus.mindseye.layers.cudnn.GateProductLayer;
-import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
+import com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer;
+import com.simiacryptus.mindseye.layers.cudnn.GramianLayer;
+import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MultiPrecision;
-import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
-import com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer;
-import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
-import com.simiacryptus.mindseye.layers.java.SumReducerLayer;
 import com.simiacryptus.mindseye.models.Hdf5Archive;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
 import com.simiacryptus.mindseye.network.DAGNetwork;
-import com.simiacryptus.mindseye.network.InnerNode;
+import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
-import com.simiacryptus.mindseye.opt.orient.RecursiveSubspace;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.lang.TimedResult;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
@@ -59,14 +50,9 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 /**
  * The type Image classifier apply base.
@@ -77,7 +63,6 @@ public class StyleTransferDemo extends ArtistryDemo {
   /**
    * The Texture netork.
    */
-  Layer detector;
   int imageSize = 600;
   
   /**
@@ -96,26 +81,83 @@ public class StyleTransferDemo extends ArtistryDemo {
    * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
-    init();
-  
-    imageSize = 600;
-    List<String> control = Arrays.asList("H:\\SimiaCryptus\\Artistry\\portraits\\photos");
-    List<String> target = Arrays.asList("H:\\SimiaCryptus\\Artistry\\portraits\\picasso");
-    String input = "H:\\SimiaCryptus\\Artistry\\monkeydog.jpg";
-  
-    @Nonnull String logName = "cuda_" + log.getName() + ".log";
-    log.p(log.file((String) null, logName, "GPU Log"));
-    CudaSystem.addLog(new PrintStream(log.file(logName)));
+    init(log);
   
     Precision precision = Precision.Float;
-    log.h1("Model");
+    imageSize = 400;
+    String content = "H:\\SimiaCryptus\\Artistry\\monkeydog.jpg";
+    String style = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
   
+    log.h1("Input");
+    final PipelineNetwork texture_1d = texture_1d(log);
+    setPrecision(texture_1d, precision);
+    final PipelineNetwork style_1d = style_1d(log);
+    setPrecision(style_1d, precision);
+    Tensor contentInput = loadImage(content);
+    try {
+      log.p(log.image(contentInput.toImage(), "content"));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    Tensor styleInput = loadImage(style);
+    try {
+      log.p(log.image(styleInput.toImage(), "style"));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    Tensor target_texture_1d = texture_1d.eval(contentInput).getDataAndFree().getAndFree(0);
+    Tensor target_style_1d = style_1d.eval(styleInput).getDataAndFree().getAndFree(0);
+    PipelineNetwork loss_1d = loss_1d(log, target_texture_1d, target_style_1d);
+    setPrecision(loss_1d, precision);
+  
+    log.h1("Output");
+    Tensor canvas = contentInput.map(x -> FastRandom.INSTANCE.random());
+    TestUtil.monitorImage(canvas, false);
+    @Nonnull Trainable trainable = new ArrayTrainable(loss_1d, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
+    TestUtil.instrumentPerformance(log, loss_1d);
+    addLayersHandler(loss_1d, server);
+  
+    log.code(() -> {
+      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+      new IterativeTrainer(trainable)
+        .setMonitor(getTrainingMonitor(history))
+        .setOrientation(new QQN())
+        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
+        .setTimeout(180, TimeUnit.MINUTES)
+        .runAndFree();
+      return TestUtil.plot(history);
+    });
+  
+    try {
+      log.p(log.image(canvas.toImage(), "result"));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  
+    log.setFrontMatterProperty("status", "OK");
+  }
+  
+  @Nonnull
+  public Tensor loadImage(final String style) {
+    Tensor contentInput;
+    try {
+      BufferedImage image1 = ImageIO.read(new File(style));
+      image1 = TestUtil.resize(image1, imageSize, true);
+      contentInput = Tensor.fromRGB(image1);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return contentInput;
+  }
+  
+  public PipelineNetwork texture_1d(@Nonnull final NotebookOutput log) {
+    final PipelineNetwork[] layers = new PipelineNetwork[1];
     log.code(() -> {
       try {
         new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
           @Override
           protected void phase1d() {
-            detector = pipelineNetwork.copy().freeze();
+            layers[0] = (PipelineNetwork) pipeline.freeze();
             throw new RuntimeException("Abort Network Construction");
           }
         }.getNetwork();
@@ -124,118 +166,55 @@ public class StyleTransferDemo extends ArtistryDemo {
         throw new RuntimeException(e);
       }
     });
+    return layers[0];
+  }
   
-    Tensor[][] rawTrainingData = Stream.concat(
-      control.stream().flatMap(f -> loadTiles(f, 1.0, 0.0)),
-      target.stream().flatMap(f -> loadTiles(f, 0.0, 1.0))
-    ) //
-      .limit(10)
-      .toArray(i -> new Tensor[i][]);
-  
-    Tensor[][] inputData = Stream.concat(
-      Stream.of(input).map(img -> {
-        try {
-          BufferedImage image = ImageIO.read(new File(img));
-          image = TestUtil.resize(image, imageSize, true);
-          return new Tensor[]{Tensor.fromRGB(image), new Tensor(new double[]{0.0, 1.0}, 1, 1, 2)};
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }),
-      Stream.empty()
-    ) //
-      //.flatMap(ts -> ImageTiles.toTiles(ts[0].toImage(), 250, 250, 250, 250, Integer.MAX_VALUE, Integer.MAX_VALUE).stream().map(t -> new Tensor[]{t, ts[1]}))
-      .toArray(i -> new Tensor[i][]);
-  
-    Tensor[][] preprocessedTrainingData = IntStream.range(0, rawTrainingData.length).mapToObj(i -> {
-      Tensor[] x = rawTrainingData[i];
-      TimedResult<Tensor[]> timedResult = TimedResult.time(() -> new Tensor[]{detector.eval(x[0]).getDataAndFree().getAndFree(0), x[1]});
-      logger.info(String.format("Preprocessed record %d/%d in %.3f", i, rawTrainingData.length, timedResult.seconds()));
-      return timedResult.result;
-    }).toArray(i -> new Tensor[i][]);
-  
-    log.h1("Model Training");
-  
-  
-    Layer descriminator = buildCategorizer(precision);
-    
-    @Nonnull PipelineNetwork supervised1 = new PipelineNetwork(2);
-    supervised1.wrap(getLossLayer(),
-      supervised1.add(descriminator, supervised1.getInput(0)),
-      supervised1.getInput(1));
-    supervised1.setFrozen(false);
-    setPrecision(supervised1, precision);
-    TestUtil.instrumentPerformance(log, supervised1);
-    addLayersHandler(supervised1, server);
-    SampledArrayTrainable sampledArrayTrainable = new SampledArrayTrainable(preprocessedTrainingData, supervised1, 10, 1);
-    sampledArrayTrainable.getInner().setVerbose(true);
+  public PipelineNetwork style_1d(@Nonnull final NotebookOutput log) {
+    final Layer[] layers = new Layer[1];
     log.code(() -> {
-      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-      new IterativeTrainer(sampledArrayTrainable)
-        .setMonitor(getTrainingMonitor(history))
-        .setOrientation(new RecursiveSubspace().setTerminateThreshold(1e-3))
-        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-        .setTimeout(60, TimeUnit.MINUTES)
-        .setTerminateThreshold(1e-3)
-        .runAndFree();
-      return TestUtil.plot(history);
-    });
-  
-    PipelineNetwork fullNetwork = new PipelineNetwork(1);
-    fullNetwork.add(detector);
-    fullNetwork.add(descriminator);
-    fullNetwork.freeze();
-  
-    log.h1("Output Processing");
-    for (int itemNumber = 0; itemNumber < inputData.length; itemNumber++) {
-      log.h1("Image " + itemNumber);
-      @Nonnull List<Tensor[]> data = Arrays.<Tensor[]>asList(inputData[itemNumber]);
-      log.code(() -> {
-        for (Tensor[] tensors : data) {
-          try {
-            logger.info(log.image(tensors[0].toImage(), "") + tensors[1]);
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        }
-      });
-  
-      @Nonnull PipelineNetwork supervised2 = new PipelineNetwork(2);
-      @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
-      clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-      clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-      clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-      clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-      InnerNode clamped = supervised2.wrap(clamp, supervised2.getInput(0));
-      supervised2.wrap(getLossLayer(),
-        supervised2.add(fullNetwork, clamped),
-        supervised2.getInput(1));
-  
-      setPrecision(supervised2, precision);
-      TestUtil.monitorImage(data.get(0)[0], false);
-      @Nonnull Trainable trainable = new ArrayTrainable(supervised2, 1).setVerbose(true).setMask(true, false).setData(data);
-      TestUtil.instrumentPerformance(log, supervised2);
-      addLayersHandler(supervised2, server);
-  
-      log.code(() -> {
-        @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-        new IterativeTrainer(trainable)
-          .setMonitor(getTrainingMonitor(history))
-          .setOrientation(new QQN())
-          .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-          .setTimeout(180, TimeUnit.MINUTES)
-          .runAndFree();
-        return TestUtil.plot(history);
-      });
-  
       try {
-        log.p(log.image(inputData[itemNumber][0].toImage(), "result"));
-      } catch (IOException e) {
+        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+          @Override
+          protected void phase1d() {
+            layers[0] = pipeline.freeze();
+            throw new RuntimeException("Abort Network Construction");
+          }
+        }.getNetwork();
+      } catch (@Nonnull final RuntimeException e) {
+      } catch (Throwable e) {
         throw new RuntimeException(e);
       }
-    }
+    });
+    PipelineNetwork network = new PipelineNetwork(1);
+    network.wrap(new GramianLayer(),
+      network.wrap(layers[0],
+        network.getInput(0)));
+    return network;
+  }
   
-    log.setFrontMatterProperty("status", "OK");
+  public PipelineNetwork loss_1d(@Nonnull final NotebookOutput log, Tensor texture_1d, Tensor style_1d) {
+    final PipelineNetwork[] pipelineNetwork = new PipelineNetwork[1];
+    log.code(() -> {
+      try {
+        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+          @Override
+          protected void phase1d() {
+            pipelineNetwork[0] = (PipelineNetwork) pipeline.freeze();
+            throw new RuntimeException("Abort Network Construction");
+          }
+        }.getNetwork();
+      } catch (@Nonnull final RuntimeException e) {
+      } catch (Throwable e) {
+        throw new RuntimeException(e);
+      }
+    });
+    PipelineNetwork network = pipelineNetwork[0];
+    DAGNode texture1d = network.getHead();
+    network.wrap(new BinarySumLayer(1.0, 1.0),
+      network.wrap(new MeanSqLossLayer(), texture1d, network.constValue(texture_1d)),
+      network.wrap(new MeanSqLossLayer(), network.wrap(new GramianLayer(), texture1d), network.constValue(style_1d))
+    );
+    return network;
   }
   
   /**
@@ -252,64 +231,6 @@ public class StyleTransferDemo extends ArtistryDemo {
     });
   }
   
-  private Stream<Tensor[]> loadTiles(final String f, final double... category) {
-    return Arrays.stream(new File(f).listFiles()).flatMap(img -> {
-      BufferedImage image;
-      try {
-        image = ImageIO.read(img);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-      return Stream.<Tensor[]>of(new Tensor[]{
-        Tensor.fromRGB(TestUtil.resize(image, imageSize, true)),
-        new Tensor(category, 1, 1, category.length)
-      });
-
-//      Stream<Tensor[]> stream = ImageTiles.toTiles(image, 250, 250, 250, 250, Integer.MAX_VALUE, Integer.MAX_VALUE).stream().map(t -> {
-//        return new Tensor[]{t, new Tensor(category)};
-//      });
-//      return stream;
-    });
-  }
-  
-  /**
-   * Gets loss layer.
-   *
-   * @return the loss layer
-   */
-  @Nonnull
-  public Layer getLossLayer() {
-    PipelineNetwork network = new PipelineNetwork(2);
-    network.add(new GateProductLayer(),
-      network.getInput(0),
-      network.getInput(1));
-    network.add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
-    network.add(new SumReducerLayer());
-    return network;
-    //return new EntropyLossLayer();
-  }
-  
-  /**
-   * Build categorizer com . simiacryptus . mindseye . lang . layer.
-   *
-   * @param precision the precision
-   * @return the com . simiacryptus . mindseye . lang . layer
-   */
-  @Nonnull
-  protected Layer buildCategorizer(final Precision precision) {
-    PipelineNetwork trainedCategorizer = new PipelineNetwork();
-//    trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 4096)
-//      .setPaddingXY(0, 0).setWeightsLog(-4));
-//    trainedCategorizer.add(new ImgBandBiasLayer(4096).setWeightsLog(-4));
-//    trainedCategorizer.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    trainedCategorizer.add(new ConvolutionLayer(1, 1, 256, 2)
-      .setPaddingXY(0, 0).setWeightsLog(-4).explode());
-    trainedCategorizer.add(new ImgBandBiasLayer(2).setWeightsLog(-4));
-    //trainedCategorizer.add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
-    trainedCategorizer.add(new SoftmaxActivationLayer().setAlgorithm(SoftmaxActivationLayer.SoftmaxAlgorithm.LOG).setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
-    return trainedCategorizer;
-  }
-  
   /**
    * Gets training monitor.
    *
@@ -319,17 +240,6 @@ public class StyleTransferDemo extends ArtistryDemo {
   @Nonnull
   public TrainingMonitor getTrainingMonitor(@Nonnull ArrayList<StepRecord> history) {
     return TestUtil.getMonitor(history);
-  }
-  
-  /**
-   * Gets shuffle comparator.
-   *
-   * @param <T> the type parameter
-   * @return the shuffle comparator
-   */
-  public <T> Comparator<T> getShuffleComparator() {
-    final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
-    return Comparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);
   }
   
   /**
