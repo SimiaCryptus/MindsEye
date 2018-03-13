@@ -29,7 +29,7 @@ import java.io.PrintStream;
 import java.util.Random;
 
 /**
- * The type Img concat layer run.
+ * The type Img concat layer apply.
  */
 public abstract class ImgBandSelectLayerTest extends CudaLayerTestBase {
   
@@ -49,7 +49,7 @@ public abstract class ImgBandSelectLayerTest extends CudaLayerTestBase {
   int inputBands;
   
   /**
-   * Instantiates a new Img concat layer run.
+   * Instantiates a new Img concat layer apply.
    *
    * @param precision  the precision
    * @param inputBands the input bands
@@ -103,7 +103,7 @@ public abstract class ImgBandSelectLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Basic 64-bit run
+   * Basic 64-bit apply
    */
   public static class Double extends ImgBandSelectLayerTest {
     /**
@@ -115,7 +115,7 @@ public abstract class ImgBandSelectLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Basic 64-bit run
+   * Basic 64-bit apply
    */
   public static class BigDouble extends ImgBandSelectLayerTest {
     /**
@@ -127,7 +127,7 @@ public abstract class ImgBandSelectLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Basic 32-bit run
+   * Basic 32-bit apply
    */
   public static class Float extends ImgBandSelectLayerTest {
     /**

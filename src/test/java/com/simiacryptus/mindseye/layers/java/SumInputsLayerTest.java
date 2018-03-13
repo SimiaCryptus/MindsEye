@@ -28,11 +28,11 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Sum inputs layer eval.
+ * The type Sum inputs layer apply.
  */
 public class SumInputsLayerTest {
   /**
-   * The type N 1 eval.
+   * The type N 1 apply.
    */
   public static class N1Test extends LayerTestBase {
   
@@ -61,7 +61,7 @@ public class SumInputsLayerTest {
   }
   
   /**
-   * The type Nn eval.
+   * The type Nn apply.
    */
   public static class NNTest extends LayerTestBase {
   
@@ -95,7 +95,7 @@ public class SumInputsLayerTest {
   public static class OnePlusOne extends LayerTestBase {
   
     /**
-     * Instantiates a new Asymmetric run.
+     * Instantiates a new Asymmetric apply.
      */
     public OnePlusOne() {
       super();

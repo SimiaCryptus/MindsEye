@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Works as a single-input terminal loss function which compares the input with a preset constant target tensor.
+ * Works as a single-input terminal loss function which compares the input apply a preset constant target tensor.
  */
 @SuppressWarnings("serial")
 public class TargetValueLayer extends DAGNetwork {

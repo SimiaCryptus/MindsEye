@@ -57,7 +57,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * The type Image classifier run base.
+ * The type Image classifier apply base.
  */
 public class LocationDemo extends ArtistryDemo {
   

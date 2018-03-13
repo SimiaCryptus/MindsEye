@@ -99,7 +99,7 @@ public abstract class OptimizerComparison extends NotebookReportBase {
    * Compare.
    *
    * @param log  the log
-   * @param test the run
+   * @param test the apply
    */
   public abstract void compare(NotebookOutput log, Function<OptimizationStrategy, List<StepRecord>> test);
   

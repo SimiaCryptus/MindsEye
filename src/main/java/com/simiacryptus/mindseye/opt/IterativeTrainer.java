@@ -48,7 +48,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 /**
- * The basic type of training loop, which integrates a Trainable object with an Orientation and Line Search strategy
+ * The basic type of training loop, which integrates a Trainable object apply an Orientation and Line Search strategy
  */
 public class IterativeTrainer extends ReferenceCountingBase {
   private static final Logger log = LoggerFactory.getLogger(IterativeTrainer.class);

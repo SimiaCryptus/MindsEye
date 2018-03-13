@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Sign reducer layer eval.
+ * The type Sign reducer layer apply.
  */
 public class SignReducerLayerTest {
   /**

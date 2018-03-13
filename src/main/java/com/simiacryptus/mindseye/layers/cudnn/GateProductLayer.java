@@ -119,7 +119,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
     rightData.addRef();
     left.addRef();
     right.addRef();
-    return new Result(CudaSystem.eval(gpu -> {
+    return new Result(CudaSystem.run(gpu -> {
       @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
       @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
         leftDimensions[2], leftDimensions[1], leftDimensions[0],
@@ -150,7 +150,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
       return CudaTensorList.wrap(cudaTensor, length, leftDimensions, precision);
     }, leftData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       if (left.isAlive()) {
-        @Nonnull TensorList data = CudaSystem.eval(gpu -> {
+        @Nonnull TensorList data = CudaSystem.run(gpu -> {
           @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
           @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
             leftDimensions[2], leftDimensions[1], leftDimensions[0],
@@ -178,7 +178,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
         left.accumulate(buffer, data);
       }
       if (right.isAlive()) {
-        @Nonnull TensorList data = CudaSystem.eval(gpu -> {
+        @Nonnull TensorList data = CudaSystem.run(gpu -> {
           @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
           @Nonnull final CudaDevice.CudaTensorDescriptor expandedDescriptor = gpu.newTensorDescriptor(precision, length,
             leftDimensions[2], leftDimensions[1], leftDimensions[0],

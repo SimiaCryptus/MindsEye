@@ -31,7 +31,7 @@ import java.io.PrintStream;
 import java.util.Random;
 
 /**
- * The type Rescaled subnet layer run.
+ * The type Rescaled subnet layer apply.
  */
 public abstract class RescaledSubnetLayerTest extends LayerTestBase // CudaLayerTestBase
 {

@@ -110,7 +110,7 @@ public final class ConvolutionController {
     final int inputsPerRun = Math.min(Math.floorDiv(ConvolutionController.MAX_BUFFER_SIZE, inLength), length);
     final int runs = length / inputsPerRun;
     final int leftover = length - runs * inputsPerRun;
-    OpenCL.devicePool.with(device -> {
+    OpenCL.devicePool.apply(device -> {
       try {
         synchronized (ConvolutionController.backpropTask) {
           assert 0 < weights.length;
@@ -168,7 +168,7 @@ public final class ConvolutionController {
           ConvolutionController.backpropTask.weights = null;
         }
       } catch (@Nonnull final Throwable e) {
-        throw new ComponentException("Error with " + this, e);
+        throw new ComponentException("Error apply " + this, e);
       }
     });
     
@@ -190,7 +190,7 @@ public final class ConvolutionController {
     assert 0 < inputsPerRun : "Requested buffer is over max of " + ConvolutionController.MAX_BUFFER_SIZE;
     final int runs = length / inputsPerRun;
     final int leftover = length - runs * inputsPerRun;
-    OpenCL.devicePool.with(device -> {
+    OpenCL.devicePool.apply(device -> {
       try {
         synchronized (ConvolutionController.convolveTask) {
           assert null != weights;
@@ -251,7 +251,7 @@ public final class ConvolutionController {
           ConvolutionController.convolveTask.weights = null;
         }
       } catch (@Nonnull final Throwable e) {
-        throw new ComponentException("Error with " + this, e);
+        throw new ComponentException("Error apply " + this, e);
       }
     });
   }
@@ -269,7 +269,7 @@ public final class ConvolutionController {
     assert 0 < input.length;
     assert 0 < weights.length;
     assert 0 < output.length;
-    OpenCL.devicePool.with(device -> {
+    OpenCL.devicePool.apply(device -> {
       try {
         synchronized (ConvolutionController.kernelTask) {
           ConvolutionController.kernelTask.input = input;
@@ -301,7 +301,7 @@ public final class ConvolutionController {
           ConvolutionController.kernelTask.kernelSize = null;
         }
       } catch (@Nonnull final Throwable e) {
-        throw new ComponentException("Error with " + this, e);
+        throw new ComponentException("Error apply " + this, e);
       }
     });
   }

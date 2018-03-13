@@ -53,7 +53,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Mnist encoding run.
+ * The type Mnist encoding apply.
  */
 public class EncodingProblem implements Problem {
   
@@ -212,7 +212,7 @@ public class EncodingProblem implements Problem {
       )
     );
     log.h3("Training");
-    log.p("We start by training with a very small population to improve initial convergence performance:");
+    log.p("We start by training apply a very small population to improve initial convergence performance:");
     TestUtil.instrumentPerformance(log, trainingNetwork);
     @Nonnull final Tensor[][] primingData = Arrays.copyOfRange(trainingData, 0, 1000);
     @Nonnull final ValidatingTrainer preTrainer = optimizer.train(log,

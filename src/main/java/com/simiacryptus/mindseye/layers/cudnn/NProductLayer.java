@@ -117,7 +117,7 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
         throw new IllegalArgumentException(Arrays.toString(dimensions) + " != " + Arrays.toString(data.getDimensions()));
       }
     }
-    return new Result(CudaSystem.eval(gpu -> {
+    return new Result(CudaSystem.run(gpu -> {
       @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
       @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision,
         length, dimensions[2], dimensions[1], dimensions[0],
@@ -155,7 +155,7 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
             tensorList.addRef();
             return tensorList;
           }).reduce((l, r) -> {
-            return CudaSystem.eval(gpu -> {
+            return CudaSystem.run(gpu -> {
               @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
               @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length, dimensions[2], dimensions[1], dimensions[0], dimensions[2] * dimensions[1] * dimensions[0], dimensions[1] * dimensions[0], dimensions[0], 1);
               

@@ -35,7 +35,7 @@ import java.io.IOException;
 import java.util.stream.Stream;
 
 /**
- * The type Image classifier run base.
+ * The type Image classifier apply base.
  */
 public class TempDemo extends NotebookReportBase {
   

@@ -110,7 +110,7 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
     if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
     Stream<TensorList> tensorListStream = Arrays.stream(inObj).map(x -> x.getData());
     if (!CoreSettings.INSTANCE.isSingleThreaded() && parallel) tensorListStream = tensorListStream.parallel();
-    @Nonnull TensorList run = tensorListStream.reduce((leftData, rightData) -> CudaSystem.eval(gpu -> {
+    @Nonnull TensorList run = tensorListStream.reduce((leftData, rightData) -> CudaSystem.run(gpu -> {
       return gpu.addAndFree(precision, leftData, rightData);
     }, leftData, rightData)).get();
     return new Result(run, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {

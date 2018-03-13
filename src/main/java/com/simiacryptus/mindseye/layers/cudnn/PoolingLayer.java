@@ -129,7 +129,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     batch.addRef();
     final int inputDims = Tensor.length(inputSize);
     @Nonnull final int[] outputSize = new int[4];
-    final CudaTensor outputData = CudaSystem.eval(gpu -> {
+    final CudaTensor outputData = CudaSystem.run(gpu -> {
       try {
         gpu.initThread();
         @Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = gpu.createPoolingDescriptor(
@@ -159,7 +159,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
       (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
         assert error.length() == batch.length();
         if (input.isAlive()) {
-          TensorList data = CudaSystem.eval(gpu -> {
+          TensorList data = CudaSystem.run(gpu -> {
             @Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(precision,
               length, inputSize[2], inputSize[1], inputSize[0],
               inputSize[2] * inputSize[1] * inputSize[0], inputSize[1] * inputSize[0], inputSize[0], 1);

@@ -32,7 +32,7 @@ import java.util.Random;
 import java.util.stream.IntStream;
 
 /**
- * The type Img concat layer run.
+ * The type Img concat layer apply.
  */
 public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
   
@@ -42,7 +42,7 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
   private final int largeSize;
   
   /**
-   * Instantiates a new Img concat layer run.
+   * Instantiates a new Img concat layer apply.
    *
    * @param precision     the precision
    * @param inputs        the inputs
@@ -53,7 +53,7 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
   public ImgConcatLayerTest(final Precision precision, int inputs, int bandsPerInput, final int smallSize, final int largeSize) {this(precision, IntStream.range(0, inputs).map(i -> bandsPerInput).toArray(), smallSize, largeSize);}
   
   /**
-   * Instantiates a new Img concat layer run.
+   * Instantiates a new Img concat layer apply.
    *
    * @param precision the precision
    * @param bandSeq   the band seq
@@ -96,7 +96,7 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
   public static class BandLimitTest extends ImgConcatLayerTest {
   
     /**
-     * Instantiates a new Band limit run.
+     * Instantiates a new Band limit apply.
      */
     public BandLimitTest() {
       super(Precision.Double, 2, 1, 8, 100);
@@ -130,7 +130,7 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
   public static class BandConcatLimitTest extends ImgConcatLayerTest {
   
     /**
-     * Instantiates a new Band limit run.
+     * Instantiates a new Band limit apply.
      */
     public BandConcatLimitTest() {
       super(Precision.Double, new int[]{2, 3, 4}, 2, 100);
@@ -150,7 +150,7 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Basic 64-bit run
+   * Basic 64-bit apply
    */
   public static class Double extends ImgConcatLayerTest {
     /**
@@ -162,7 +162,7 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
   }
 //
 //  /**
-//   * Basic 64-bit run
+//   * Basic 64-bit apply
 //   */
 //  public static class BigDouble extends Big {
 //    /**
@@ -220,7 +220,7 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Basic 32-bit run
+   * Basic 32-bit apply
    */
   public static class Float extends ImgConcatLayerTest {
     /**

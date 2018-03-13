@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type L 1 normalization layer eval.
+ * The type L 1 normalization layer apply.
  */
 public abstract class L1NormalizationLayerTest extends LayerTestBase {
   

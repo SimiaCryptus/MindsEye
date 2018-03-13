@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * The type Simple gradient descent run.
+ * The type Simple gradient descent apply.
  */
 public class SimpleGradientDescentTest extends MnistTestBase {
   

@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Img band scale layer eval.
+ * The type Img band scale layer apply.
  */
 public abstract class ImgBandScaleLayerTest extends LayerTestBase {
   

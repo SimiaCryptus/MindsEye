@@ -27,7 +27,7 @@ import java.util.function.Supplier;
 
 /**
  * Varying levels of persistence which can be used to provide reference wrappers to an object. Allows the RecycleBin to
- * be configured with the desired reference type.
+ * be configured apply the desired reference type.
  */
 public enum PersistanceMode {
   /**

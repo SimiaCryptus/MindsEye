@@ -175,7 +175,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
   }
   
   /**
-   * Is run feedback boolean.
+   * Is apply feedback boolean.
    *
    * @return the boolean
    */
@@ -184,10 +184,10 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
   }
   
   /**
-   * Sets run feedback.
+   * Sets apply feedback.
    *
-   * @param testFeedback the run feedback
-   * @return the run feedback
+   * @param testFeedback the apply feedback
+   * @return the apply feedback
    */
   @Nonnull
   public SingleDerivativeTester setTestFeedback(final boolean testFeedback) {
@@ -196,7 +196,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
   }
   
   /**
-   * Is run learning boolean.
+   * Is apply learning boolean.
    *
    * @return the boolean
    */
@@ -205,10 +205,10 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
   }
   
   /**
-   * Sets run learning.
+   * Sets apply learning.
    *
-   * @param testLearning the run learning
-   * @return the run learning
+   * @param testLearning the apply learning
+   * @return the apply learning
    */
   @Nonnull
   public SingleDerivativeTester setTestLearning(final boolean testLearning) {
@@ -343,7 +343,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     }
     if (isTestFeedback()) {
       output.h2("Feedback Validation");
-      output.p("We validate the agreement between the implemented derivative _of the inputs_ with finite difference estimations:");
+      output.p("We validate the agreement between the implemented derivative _of the inputs_ apply finite difference estimations:");
       final ToleranceStatistics statistics = _statistics;
       _statistics = output.code(() -> {
         return testFeedback(statistics, component, inputPrototype, outputPrototype);
@@ -351,7 +351,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     }
     if (isTestLearning()) {
       output.h2("Learning Validation");
-      output.p("We validate the agreement between the implemented derivative _of the internal weights_ with finite difference estimations:");
+      output.p("We validate the agreement between the implemented derivative _of the internal weights_ apply finite difference estimations:");
       final ToleranceStatistics statistics = _statistics;
       _statistics = output.code(() -> {
         return testLearning(statistics, component, inputPrototype, outputPrototype);

@@ -41,7 +41,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
- * The type Image classifier run base.
+ * The type Image classifier apply base.
  */
 public abstract class ImageClassifierTestBase extends NotebookReportBase {
   

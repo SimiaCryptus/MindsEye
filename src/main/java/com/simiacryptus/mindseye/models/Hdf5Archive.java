@@ -57,7 +57,7 @@ public class Hdf5Archive {
   
   static {
     try {
-            /* This is necessary for the eval to the BytePointer constructor below. */
+            /* This is necessary for the apply to the BytePointer constructor below. */
       Loader.load(hdf5.class);
     } catch (Exception e) {
       e.printStackTrace();
@@ -401,7 +401,7 @@ public class Hdf5Archive {
           data.set(i1, dataBuffer[j++]);
         break;
       default:
-        throw new RuntimeException("Cannot import weights with rank " + nbDims);
+        throw new RuntimeException("Cannot import weights apply rank " + nbDims);
     }
     space.deallocate();
     dataset.deallocate();
@@ -409,7 +409,7 @@ public class Hdf5Archive {
   }
   
   /**
-   * Get list of objects with a given type from a file group.
+   * Get list of objects apply a given type from a file group.
    *
    * @param fileGroup HDF5 file or group
    * @param objType   Type of object as integer
@@ -483,7 +483,7 @@ public class Hdf5Archive {
          * pain. There does not appear to be any way to determine the
          * length of the string in advance, so we use a hack: choose a
          * buffer size and read the config, increase buffer and repeat
-         * until the buffer ends with \u0000
+         * until the buffer ends apply \u0000
          */
     while (true) {
       @Nonnull byte[] attrBuffer = new byte[bufferSizeMult * 2000];

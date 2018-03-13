@@ -26,12 +26,12 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Cross dot meta layer eval.
+ * The type Cross dot meta layer apply.
  */
 public abstract class CrossDotMetaLayerTest extends LayerTestBase {
   
   /**
-   * Instantiates a new Cross dot meta layer eval.
+   * Instantiates a new Cross dot meta layer apply.
    */
   public CrossDotMetaLayerTest() {
     validateBatchExecution = false;

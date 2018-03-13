@@ -128,7 +128,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
     final int length = prototype.length();
     int[] outputDims = getOutputDims(inObj);
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    final TensorList outputData = CudaSystem.eval(gpu -> {
+    final TensorList outputData = CudaSystem.run(gpu -> {
       assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
       assert outputDims[0] > 0;
       assert outputDims[1] > 0;
@@ -216,7 +216,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
    * @param backpropParams the backprop params
    */
   public void backprop(final BackpropParams backpropParams) {
-    final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
+    final TensorList passbackTensorList = CudaSystem.run(gpu -> {
       CudaTensor ptr = copy(gpu, backpropParams.getError(), backpropParams.getTileDimensions(), backpropParams.getOutputDims(), backpropParams.getLength(), -backpropParams.getPositionX(), -backpropParams.getTotalHeight());
       return CudaTensorList.wrap(ptr, backpropParams.getLength(), backpropParams.getTileDimensions(), precision);
     }, backpropParams.getError());

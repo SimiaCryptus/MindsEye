@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Fully connected layer eval.
+ * The type Fully connected layer apply.
  */
 public abstract class FullyConnectedReferenceLayerTest extends LayerTestBase {
   @Nonnull

@@ -167,7 +167,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
           (0 == freeRefs.size() ? "" : getString(freeRefs.get(freeRefs.size() - 1))).replaceAll("\n", "\n\t")));
       }
     }
-    if (includeCaller) out.println(String.format("with current stack \n\t%s",
+    if (includeCaller) out.println(String.format("apply current stack \n\t%s",
       getString(Thread.currentThread().getStackTrace()).replaceAll("\n", "\n\t")));
     out.close();
     return buffer.toString();

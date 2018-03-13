@@ -26,12 +26,12 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Convolution layer eval.
+ * The type Convolution layer apply.
  */
 public abstract class ConvolutionLayerTest extends LayerTestBase {
   
   /**
-   * Basic 3x3 convolution with 2 color bands
+   * Basic 3x3 convolution apply 2 color bands
    */
   public static class Basic extends ConvolutionLayerTest {
   

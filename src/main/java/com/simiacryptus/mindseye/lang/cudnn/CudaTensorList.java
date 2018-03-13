@@ -36,7 +36,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * A TensorList data object stored on a GPU with a configurable precision.
+ * A TensorList data object stored on a GPU apply a configurable precision.
  */
 public class CudaTensorList extends RegisteredObjectBase implements TensorList, CudaSystem.CudaDeviceResource {
   /**
@@ -173,7 +173,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
               assert (!nativeRight.gpuCopy.equals(CudaTensorList.this.gpuCopy));
               CudaMemory rightMem = gpuCopy.memory;
               CudaMemory leftMem = rightMem;
-              if (null != leftMem && null != rightMem) return CudaSystem.eval(gpu -> {
+              if (null != leftMem && null != rightMem) return CudaSystem.run(gpu -> {
                 if (gpu.getDeviceId() == leftMem.getDeviceId()) {
                   return gpu.addInPlace(this, nativeRight);
                 }
@@ -212,7 +212,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
         @Nonnull final CudaTensorList nativeRight = (CudaTensorList) right;
         if (nativeRight.getPrecision() == this.getPrecision()) {
           if (nativeRight.heapCopy == null) {
-            return CudaSystem.eval(gpu -> {
+            return CudaSystem.run(gpu -> {
               return gpu.add(this, nativeRight);
             }, this);
           }
@@ -237,7 +237,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
     assertAlive();
     if (heapCopy != null) return heapCopy.get(i);
     CudaTensor gpuCopy = this.gpuCopy;
-    return CudaSystem.eval(gpu -> {
+    return CudaSystem.run(gpu -> {
       TimedResult<Tensor> timedResult = TimedResult.time(() -> {
         assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
         Tensor t = new Tensor(getDimensions());
@@ -322,7 +322,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
   
   private TensorArray toHeap(final boolean avoidAllocations) {
     CudaTensor gpuCopy = this.gpuCopy;
-    TimedResult<TensorArray> timedResult = TimedResult.time(() -> CudaDevice.eval(gpu -> {
+    TimedResult<TensorArray> timedResult = TimedResult.time(() -> CudaDevice.run(gpu -> {
       assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
       if (null == gpuCopy) {
         if (null == heapCopy) {
@@ -384,7 +384,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
   
   @Override
   public TensorList copy() {
-    return CudaSystem.eval(gpu -> {
+    return CudaSystem.run(gpu -> {
       CudaTensor ptr = gpu.getTensor(this, MemoryType.Device, false);
       assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
       CudaMemory cudaMemory = ptr.getMemory(gpu, MemoryType.Device);

@@ -149,7 +149,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
     final int length = inputData.length();
     final int inputDims = Tensor.length(inputSize);
     try {
-      final CudaTensor outPtr = CudaSystem.eval(gpu -> {
+      final CudaTensor outPtr = CudaSystem.run(gpu -> {
         @Nullable final CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, false);
         final CudaTensor outputTensor;
         if (1 == inputData.currentRefCount() && 1 == inputTensor.currentRefCount() && (!inputResult.isAlive() || mode == Mode.RELU.id)) {
@@ -179,7 +179,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
           memory.freeRef();
           return outputTensor;
         } catch (@Nonnull final Throwable e) {
-          throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
+          throw new ComponentException("Error apply " + Arrays.toString(inputSize), e);
         } finally {
           activationDesc.freeRef();
           inputTensor.freeRef();
@@ -188,7 +188,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
       return new Result(CudaTensorList.create(outPtr, length, outputSize, precision),
         (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
           if (inputResult.isAlive()) {
-            final TensorList data = CudaSystem.eval(gpu -> {
+            final TensorList data = CudaSystem.run(gpu -> {
               @Nullable CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, true);
               @Nullable CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, true);
               outPtr.addRef();
@@ -236,7 +236,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
                 inputTensorMemory.freeRef();
                 passbackTensorMemory.freeRef();
               } catch (@Nonnull final Throwable e) {
-                throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
+                throw new ComponentException("Error apply " + Arrays.toString(inputSize), e);
               } finally {
                 localOut.freeRef();
                 inputTensor.freeRef();
@@ -270,7 +270,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
         }
       };
     } catch (@Nonnull final Throwable e) {
-      throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
+      throw new ComponentException("Error apply image res " + Arrays.toString(inputSize), e);
     }
   }
   

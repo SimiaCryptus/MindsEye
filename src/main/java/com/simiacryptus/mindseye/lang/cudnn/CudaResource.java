@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.function.ToIntFunction;
 
 /**
- * A managed resource containing a native CudaSystem resource, bound to its lifecycle with a prearranged destructor.
+ * A managed resource containing a native CudaSystem resource, bound to its lifecycle apply a prearranged destructor.
  *
  * @param <T> the type parameter
  */

@@ -20,11 +20,11 @@
 package com.simiacryptus.mindseye.layers.java;
 
 /**
- * The type Linear activation layer eval.
+ * The type Linear activation layer apply.
  */
 public abstract class LinearActivationLayerTest extends ActivationLayerTestBase {
   /**
-   * Instantiates a new Linear activation layer eval.
+   * Instantiates a new Linear activation layer apply.
    */
   public LinearActivationLayerTest() {
     super(new LinearActivationLayer());

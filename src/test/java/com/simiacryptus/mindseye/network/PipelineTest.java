@@ -39,7 +39,7 @@ import java.util.List;
 
 
 /**
- * The type N layer eval.
+ * The type N layer apply.
  */
 public abstract class PipelineTest {
   
@@ -50,7 +50,7 @@ public abstract class PipelineTest {
   
   
   /**
-   * Instantiates a new N layer eval.
+   * Instantiates a new N layer apply.
    *
    * @param pipeline the pipeline
    */
@@ -59,7 +59,7 @@ public abstract class PipelineTest {
   }
   
   /**
-   * Instantiates a new Pipeline eval.
+   * Instantiates a new Pipeline apply.
    *
    * @param pipeline the pipeline
    */
@@ -98,7 +98,7 @@ public abstract class PipelineTest {
    */
   public void graphviz(@Nonnull final NotebookOutput log, final Layer layer) {
     if (layer instanceof DAGNetwork) {
-      log.p("This is a network with the following layout:");
+      log.p("This is a network apply the following layout:");
       log.code(() -> {
         return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
           .height(400).width(600).render(Format.PNG).toImage();
@@ -149,7 +149,7 @@ public abstract class PipelineTest {
       workingSpec.add(l);
       @Nonnull final Layer networkHead = buildNetwork(workingSpec.toArray(new Layer[]{}));
       graphviz(log, networkHead);
-      test(log, networkHead, String.format("Pipeline Network with %d Layers", layerIndex++), getInputDims());
+      test(log, networkHead, String.format("Pipeline Network apply %d Layers", layerIndex++), getInputDims());
     }
   }
   

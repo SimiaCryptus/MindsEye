@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.lang;
 import java.util.UUID;
 
 /**
- * Interface for objects with reference counting. Reference counted objects will be freed when the last reference is
+ * Interface for objects apply reference counting. Reference counted objects will be freed when the last reference is
  * freed, in a guaranteed-once-only manner. In general, valid reference counting behavior can be maintained by observing
  * a few rules: 1) References should be freed as soon as they are finished being used 2) Only reference counting objects
  * should be used to hold pointers to other reference counting objects, and those pointers should be freed & clears when

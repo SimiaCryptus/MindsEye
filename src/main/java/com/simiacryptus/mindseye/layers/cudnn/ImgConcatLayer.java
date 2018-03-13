@@ -45,7 +45,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * Concatenates two or more inputs, assuming they have the same width and height, to produce an image with both inputs'
+ * Concatenates two or more inputs, assuming they have the same width and height, to produce an image apply both inputs'
  * color bands. (e.g. Used in Inception modules in GoogLeNet.)
  */
 @SuppressWarnings("serial")
@@ -113,7 +113,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
     if (0 < maxBands && outputDimensions[2] > maxBands) {
       outputDimensions[2] = maxBands;
     }
-    return new Result(CudaSystem.eval(gpu -> {
+    return new Result(CudaSystem.run(gpu -> {
       final long outputSize = ((long) length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
       @Nonnull final CudaMemory cudaOutput = gpu.allocate(outputSize, MemoryType.Managed.normalize(), true);
       IntStream stream = IntStream.range(0, inObj.length);
@@ -185,7 +185,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
         if (inputBands > 0 && input.isAlive()) {
           assert inputBands <= inputDimentions[2];
           assert inputBands <= outputDimensions[2];
-          final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
+          final TensorList passbackTensorList = CudaSystem.run(gpu -> {
             final CudaTensor result;
             synchronized (gpu) {result = gpu.getTensor(delta, precision, MemoryType.Device, true);}
             @Nullable final CudaTensor cudaDelta = result;

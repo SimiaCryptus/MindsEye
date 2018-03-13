@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
- * This layer is a pass-thru except that it throws an error if the dimensions are not consistent with its setting.
+ * This layer is a pass-thru except that it throws an error if the dimensions are not consistent apply its setting.
  */
 @SuppressWarnings("serial")
 public class AssertDimensionsLayer extends LayerBase {

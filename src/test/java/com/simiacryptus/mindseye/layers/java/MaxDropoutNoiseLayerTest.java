@@ -23,11 +23,11 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Max dropout noise layer eval.
+ * The type Max dropout noise layer apply.
  */
 public abstract class MaxDropoutNoiseLayerTest extends ActivationLayerTestBase {
   /**
-   * Instantiates a new Max dropout noise layer eval.
+   * Instantiates a new Max dropout noise layer apply.
    */
   public MaxDropoutNoiseLayerTest() {
     super(new MaxDropoutNoiseLayer(2, 2, 1));

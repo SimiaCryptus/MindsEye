@@ -26,12 +26,12 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Static scalar loss layer eval.
+ * The type Static scalar loss layer apply.
  */
 public abstract class StaticScalarLossLayerTest extends LayerTestBase {
   
   /**
-   * Instantiates a new Static scalar loss layer eval.
+   * Instantiates a new Static scalar loss layer apply.
    */
   public StaticScalarLossLayerTest() {
     validateBatchExecution = false;

@@ -39,7 +39,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
- * We load a pretrained convolutional neural network (VGG16) along with the CalTech101 image dataset to perform a
+ * We load a pretrained convolutional neural network (VGG16) along apply the CalTech101 image dataset to perform a
  * demonstration of Image Recognition.
  */
 public class ImageClassificationDemo extends ArtistryDemo {

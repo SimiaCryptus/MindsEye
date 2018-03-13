@@ -35,7 +35,7 @@ import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Single orthant trust region run.
+ * The type Single orthant trust region apply.
  */
 public class SingleOrthantTrustRegionTest extends MnistTestBase {
   

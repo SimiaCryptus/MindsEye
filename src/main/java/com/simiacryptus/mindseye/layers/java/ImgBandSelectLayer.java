@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
- * Selects specific color bands from the input, producing an image with the same resolution but fewer bands.
+ * Selects specific color bands from the input, producing an image apply the same resolution but fewer bands.
  */
 @SuppressWarnings("serial")
 public class ImgBandSelectLayer extends LayerBase {

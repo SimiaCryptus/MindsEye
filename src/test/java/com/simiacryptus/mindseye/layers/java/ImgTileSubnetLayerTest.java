@@ -27,7 +27,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Rascaled subnet layer eval.
+ * The type Rascaled subnet layer apply.
  */
 public abstract class ImgTileSubnetLayerTest extends LayerTestBase {
   

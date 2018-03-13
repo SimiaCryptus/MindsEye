@@ -26,7 +26,7 @@ import java.util.Random;
 
 
 /**
- * The type Img crop layer eval.
+ * The type Img crop layer apply.
  */
 public abstract class ImgModulusPaddingLayerTest extends CudaLayerTestBase {
   

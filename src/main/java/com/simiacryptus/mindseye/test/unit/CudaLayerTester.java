@@ -112,7 +112,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
   public ToleranceStatistics testInterGpu(final NotebookOutput log, @Nullable final Layer reference, @Nonnull final Tensor[] inputPrototype) {
     log.h2("Multi-GPU Compatibility");
-    log.p("This layer should be able to eval using a GPU context other than the one used to create the inputs.");
+    log.p("This layer should be able to apply using a GPU context other than the one used to create the inputs.");
     return log.code(() -> {
       final TensorList[] heapInput = Arrays.stream(inputPrototype).map(t ->
         TensorArray.wrap(IntStream.range(0, getBatchSize()).mapToObj(i -> t.map(v -> getRandom()))
@@ -122,13 +122,17 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
         tensor.freeRef();
         return prettyPrint;
       }).collect(Collectors.toList()));
-      TensorList[] gpuInput = CudaSystem.eval(gpu -> {
+      TensorList[] gpuInput = CudaSystem.run(gpu -> {
         return Arrays.stream(heapInput).map(original -> {
           return CudaTensorList.wrap(gpu.getTensor(original, Precision.Double, MemoryType.Managed, false), original.length(), original.getDimensions(), Precision.Double);
         }).toArray(i -> new TensorList[i]);
       }, 0);
-      @Nonnull final SimpleResult fromHeap = CudaSystem.eval(gpu -> SimpleGpuEval.run(reference, gpu, heapInput), 1);
-      @Nonnull final SimpleResult fromGPU = CudaSystem.eval(gpu -> SimpleGpuEval.run(reference, gpu, gpuInput), 1);
+      @Nonnull final SimpleResult fromHeap = CudaSystem.run(gpu -> {
+        return SimpleGpuEval.run(reference, gpu, heapInput);
+      }, 1);
+      @Nonnull final SimpleResult fromGPU = CudaSystem.run(gpu -> {
+        return SimpleGpuEval.run(reference, gpu, gpuInput);
+      }, 1);
       try {
         ToleranceStatistics compareOutput = compareOutput(fromHeap, fromGPU);
         ToleranceStatistics compareDerivatives = compareDerivatives(fromHeap, fromGPU);
@@ -158,8 +162,8 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
       Tensor[] randomized = Arrays.stream(inputPrototype).map(x -> x.map(v -> getRandom())).toArray(i -> new Tensor[i]);
       logger.info("Input: " + Arrays.stream(randomized).map(Tensor::prettyPrint).collect(Collectors.toList()));
       Precision precision = Precision.Double;
-      
-      TensorList[] controlInput = CudaSystem.eval(gpu -> {
+  
+      TensorList[] controlInput = CudaSystem.run(gpu -> {
         return Arrays.stream(randomized).map(original -> {
           TensorArray data = TensorArray.create(original);
           CudaTensorList wrap = CudaTensorList.wrap(gpu.getTensor(data, precision, MemoryType.Managed, false), 1, original.getDimensions(), precision);
@@ -167,14 +171,18 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
           return wrap;
         }).toArray(i -> new TensorList[i]);
       }, 0);
-      @Nonnull final SimpleResult controlResult = CudaSystem.eval(gpu -> SimpleGpuEval.run(reference, gpu, controlInput), 1);
-      
-      final TensorList[] irregularInput = CudaSystem.eval(gpu -> {
+      @Nonnull final SimpleResult controlResult = CudaSystem.run(gpu -> {
+        return SimpleGpuEval.run(reference, gpu, controlInput);
+      }, 1);
+  
+      final TensorList[] irregularInput = CudaSystem.run(gpu -> {
         return Arrays.stream(randomized).map(original -> {
           return buildIrregularCudaTensor(gpu, precision, original);
         }).toArray(i -> new TensorList[i]);
       }, 0);
-      @Nonnull final SimpleResult testResult = CudaSystem.eval(gpu -> SimpleGpuEval.run(reference, gpu, irregularInput), 1);
+      @Nonnull final SimpleResult testResult = CudaSystem.run(gpu -> {
+        return SimpleGpuEval.run(reference, gpu, irregularInput);
+      }, 1);
       
       try {
         ToleranceStatistics compareOutput = compareOutput(controlResult, testResult);
@@ -209,7 +217,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
       TensorList[] controlInput = Arrays.stream(randomized).map(original -> {
         return TensorArray.wrap(original);
       }).toArray(i -> new TensorList[i]);
-      @Nonnull final SimpleResult testResult = CudaSystem.eval(gpu -> {
+      @Nonnull final SimpleResult testResult = CudaSystem.run(gpu -> {
         TensorList[] copy = copy(controlInput);
         SimpleResult result = new SimpleGpuEval(layer, gpu, copy) {
           @Nonnull
@@ -224,7 +232,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
         Arrays.stream(copy).forEach(ReferenceCounting::freeRef);
         return result;
       });
-      @Nonnull final SimpleResult controlResult = CudaSystem.eval(gpu -> {
+      @Nonnull final SimpleResult controlResult = CudaSystem.run(gpu -> {
         TensorList[] copy = copy(controlInput);
         SimpleResult result = SimpleGpuEval.run(layer, gpu, copy);
         Arrays.stream(copy).forEach(ReferenceCounting::freeRef);

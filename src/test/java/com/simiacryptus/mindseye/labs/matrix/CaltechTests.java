@@ -41,7 +41,7 @@ import javax.annotation.Nonnull;
 import java.util.function.IntToDoubleFunction;
 
 /**
- * The type Mnist eval base.
+ * The type Mnist apply base.
  */
 public class CaltechTests {
   

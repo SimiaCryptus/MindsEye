@@ -42,7 +42,7 @@ import javax.annotation.Nonnull;
 import java.util.function.DoubleSupplier;
 
 /**
- * The type Mnist eval base.
+ * The type Mnist apply base.
  */
 public class MnistTests {
   /**

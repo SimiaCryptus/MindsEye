@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The type Activation layer run.
+ * The type Activation layer apply.
  */
 public abstract class ActivationLayerTest extends CudaLayerTestBase {
   
@@ -51,7 +51,7 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
   private final int largeSize;
   
   /**
-   * Instantiates a new Activation layer run.
+   * Instantiates a new Activation layer apply.
    *
    * @param mode      the mode
    * @param precision the precision
@@ -121,7 +121,7 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Configured with double (64-bit) precision, y=x&lt;0?0:x
+   * Configured apply double (64-bit) precision, y=x&lt;0?0:x
    */
   public static class ReLu_Double extends ActivationLayerTest {
     /**
@@ -138,7 +138,7 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Configured with float (32-bit) precision, y=x&lt;0?0:x
+   * Configured apply float (32-bit) precision, y=x&lt;0?0:x
    */
   public static class ReLu_Float extends ActivationLayerTest {
     /**
@@ -155,7 +155,7 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Configured with double (64-bit) precision using the Sigmoid function
+   * Configured apply double (64-bit) precision using the Sigmoid function
    */
   public static class Sigmoid_Double extends ActivationLayerTest {
     /**
@@ -172,7 +172,7 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Configured with float (32-bit) precision using the Sigmoid function
+   * Configured apply float (32-bit) precision using the Sigmoid function
    */
   public static class Sigmoid_Float extends ActivationLayerTest {
     /**

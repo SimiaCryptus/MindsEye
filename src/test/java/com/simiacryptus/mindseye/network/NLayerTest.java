@@ -41,7 +41,7 @@ import java.util.stream.Stream;
 
 
 /**
- * The type N layer eval.
+ * The type N layer apply.
  */
 public abstract class NLayerTest {
   static {
@@ -57,7 +57,7 @@ public abstract class NLayerTest {
   
   
   /**
-   * Instantiates a new N layer eval.
+   * Instantiates a new N layer apply.
    *
    * @param dimList the length list
    */
@@ -120,7 +120,7 @@ public abstract class NLayerTest {
    */
   public void graphviz(@Nonnull final NotebookOutput log, final Layer layer) {
     if (layer instanceof DAGNetwork) {
-      log.p("This is a network with the following layout:");
+      log.p("This is a network apply the following layout:");
       log.code(() -> {
         return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
           .height(400).width(600).render(Format.PNG).toImage();

@@ -191,7 +191,7 @@ public enum MemoryType {
         @Override
         public ReferenceWrapper<CudaPointer> create(final long length) {
           assert -1 == device || CudaSystem.getThreadDeviceId() == device;
-          return CudaDevice.eval(gpu -> {
+          return CudaDevice.run(gpu -> {
             CudaPointer alloc = MemoryType.this.alloc(length, gpu);
             CudaMemory.getGpuStats(device).usedMemory.addAndGet(length);
             return new ReferenceWrapper<>(alloc, x -> {

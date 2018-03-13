@@ -41,7 +41,6 @@ public class CudaSettings implements Settings {
   private final long convolutionWorkspaceSizeLimit;
   private final boolean disable;
   private final boolean forceSingleGpu;
-  private final int streamsPerGpu;
   private final int maxFilterElements;
   private final boolean conv_para_2;
   private final boolean conv_para_1;
@@ -62,13 +61,12 @@ public class CudaSettings implements Settings {
     convolutionWorkspaceSizeLimit = Settings.get("CONVOLUTION_WORKSPACE_SIZE_LIMIT", 512 * CudaMemory.MiB);
     disable = Settings.get("DISABLE_CUDNN", false);
     forceSingleGpu = Settings.get("FORCE_SINGLE_GPU", false);
-    streamsPerGpu = Settings.get("STREAMS_PER_GPU", 8);
     workspaceCachePersistance = Settings.get("CONV_CACHE_MODE", PersistanceMode.WEAK);
     conv_para_1 = Settings.get("CONV_PARA_1", true);
     conv_para_2 = Settings.get("CONV_PARA_2", true);
     conv_para_3 = Settings.get("CONV_PARA_3", true);
     memoryCacheMode = Settings.get("CUDA_CACHE_MODE", PersistanceMode.WEAK);
-    logStack = Settings.get("CUDA_LOG_STACK", true);
+    logStack = Settings.get("CUDA_LOG_STACK", false);
     profileMemoryIO = Settings.get("CUDA_PROFILE_MEM_IO", false);
     enableManaged = true;
     asyncFree = true;
@@ -127,15 +125,6 @@ public class CudaSettings implements Settings {
    */
   public boolean isForceSingleGpu() {
     return forceSingleGpu;
-  }
-  
-  /**
-   * The constant STREAMS_PER_GPU.
-   *
-   * @return the streams per gpu
-   */
-  public int getStreamsPerGpu() {
-    return streamsPerGpu;
   }
   
   /**

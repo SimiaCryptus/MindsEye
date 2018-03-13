@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Concatenates two or more images with the same resolution so the output contains all input color bands.
+ * Concatenates two or more images apply the same resolution so the output contains all input color bands.
  */
 @SuppressWarnings("serial")
 public class ImgConcatLayer extends LayerBase {

@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Img reshapeCast layer eval.
+ * The type Img reshapeCast layer apply.
  */
 public abstract class ImgReshapeLayerTest extends LayerTestBase {
   

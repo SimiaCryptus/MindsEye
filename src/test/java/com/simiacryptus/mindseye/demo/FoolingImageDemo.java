@@ -171,7 +171,7 @@ public class FoolingImageDemo extends ArtistryDemo {
             supervised.wrap(clamp, supervised.getInput(0))),
           supervised.getInput(1));
         //      TensorList[] gpuInput = data.stream().map(data1 -> {
-        //        return CudnnHandle.eval(gpu -> {
+        //        return CudnnHandle.apply(gpu -> {
         //          Precision precision = Precision.Float;
         //          return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(data1), precision, MemoryType.Managed), 1, image.getDimensions(), precision);
         //        });

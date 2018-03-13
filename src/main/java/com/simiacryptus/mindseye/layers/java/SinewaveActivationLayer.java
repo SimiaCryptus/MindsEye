@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
- * Calculates y=sin(x) in radians with signed unit amplitude.
+ * Calculates y=sin(x) in radians apply signed unit amplitude.
  */
 @SuppressWarnings("serial")
 public final class SinewaveActivationLayer extends SimpleActivationLayer<SinewaveActivationLayer> {

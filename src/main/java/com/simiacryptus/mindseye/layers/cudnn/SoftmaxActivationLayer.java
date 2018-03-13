@@ -150,7 +150,7 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
     final int length = inputData.length();
     final int inputDims = Tensor.length(inputSize);
     try {
-      final CudaTensor outPtr = CudaSystem.eval(gpu -> {
+      final CudaTensor outPtr = CudaSystem.run(gpu -> {
         @Nullable CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, false);
         final CudaTensor outputTensor;
         if (1 == inputData.currentRefCount() && 1 == inputTensor.currentRefCount()) {
@@ -179,7 +179,7 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
           inputMemory.freeRef();
           return outputTensor;
         } catch (@Nonnull final Throwable e) {
-          throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
+          throw new ComponentException("Error apply " + Arrays.toString(inputSize), e);
         } finally {
           inputTensor.freeRef();
         }
@@ -187,7 +187,7 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
       return new Result(CudaTensorList.create(outPtr, length, outputSize, precision),
         (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
           if (inputResult.isAlive()) {
-            final TensorList data = CudaSystem.eval(gpu -> {
+            final TensorList data = CudaSystem.run(gpu -> {
               final CudaTensor result1;
               synchronized (gpu) {result1 = gpu.getTensor(inputData, precision, MemoryType.Device, true);}
               @Nullable CudaTensor inputTensor = result1;
@@ -227,7 +227,7 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
                 inputMemory.freeRef();
                 passbackMemory.freeRef();
               } catch (@Nonnull final Throwable e) {
-                throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
+                throw new ComponentException("Error apply " + Arrays.toString(inputSize), e);
               } finally {
                 localOut.freeRef();
                 inputTensor.freeRef();
@@ -260,7 +260,7 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
         }
       };
     } catch (@Nonnull final Throwable e) {
-      throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
+      throw new ComponentException("Error apply image res " + Arrays.toString(inputSize), e);
     }
   }
   

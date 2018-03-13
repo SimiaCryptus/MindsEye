@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Product layer eval.
+ * The type Product layer apply.
  */
 public abstract class ProductLayerTest extends LayerTestBase {
   

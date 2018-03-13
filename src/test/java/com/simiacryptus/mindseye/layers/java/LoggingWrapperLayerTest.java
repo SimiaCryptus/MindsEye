@@ -26,12 +26,12 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Logging wrapper layer eval.
+ * The type Logging wrapper layer apply.
  */
 public abstract class LoggingWrapperLayerTest extends LayerTestBase {
   
   /**
-   * Instantiates a new Logging wrapper layer eval.
+   * Instantiates a new Logging wrapper layer apply.
    */
   public LoggingWrapperLayerTest() {
     validateBatchExecution = false;

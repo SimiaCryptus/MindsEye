@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The type Tensor eval.
+ * The type Tensor apply.
  */
 public class TensorTest {
   private static final Logger log = LoggerFactory.getLogger(TensorTest.class);

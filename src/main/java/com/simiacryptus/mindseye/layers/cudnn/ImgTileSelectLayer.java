@@ -133,7 +133,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
     }
     @Nonnull final int[] dimOut = getViewDimensions(dimIn, new int[]{sizeY, sizeX, dimIn[2]}, new int[]{positionX, positionY, 0});
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    final TensorList outputData = CudaSystem.eval(gpu -> {
+    final TensorList outputData = CudaSystem.run(gpu -> {
       assert dimOut[0] > 0;
       assert dimOut[1] > 0;
       assert dimOut[2] > 0;
@@ -150,7 +150,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
       }
       assert error.length() == input.getData().length();
       if (input.isAlive()) {
-        final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
+        final TensorList passbackTensorList = CudaSystem.run(gpu -> {
           boolean dirty = dimOut[0] >= dimIn[0] && dimOut[1] >= dimIn[1];
           CudaTensor cudaTensor = copy(gpu, error, length, dimOut, dimIn, dirty, -this.positionX, -this.positionY);
           return CudaTensorList.wrap(cudaTensor, length, dimIn, precision);

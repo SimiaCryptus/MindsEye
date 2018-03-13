@@ -44,7 +44,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * Concatenates two or more inputs, assuming they have the same width and height, to produce an image with both inputs'
+ * Concatenates two or more inputs, assuming they have the same width and height, to produce an image apply both inputs'
  * color bands. (e.g. Used in Inception modules in GoogLeNet.)
  */
 @SuppressWarnings("serial")
@@ -117,7 +117,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
     @Nonnull final int[] outputDimensions = Arrays.copyOf(inputDimensions, 3);
     outputDimensions[2] = getTo() - getFrom();
     long size = (length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
-    return new Result(CudaSystem.eval(gpu -> {
+    return new Result(CudaSystem.run(gpu -> {
       @Nonnull final CudaMemory cudaOutput = gpu.allocate(size, MemoryType.Managed.normalize(), true);
       @Nullable final CudaTensor cudaInput = gpu.getTensor(inputData, precision, MemoryType.Device, false);
       final int byteOffset = cudaInput.descriptor.cStride * getFrom() * precision.size;
@@ -150,7 +150,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
         throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputDimensions));
       }
       if (inObj[0].isAlive()) {
-        final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
+        final TensorList passbackTensorList = CudaSystem.run(gpu -> {
           @Nonnull final CudaDevice.CudaTensorDescriptor viewDescriptor = gpu.newTensorDescriptor(
             precision, length, outputDimensions[2], outputDimensions[1], outputDimensions[0], //
             inputDimensions[2] * inputDimensions[1] * inputDimensions[0], //

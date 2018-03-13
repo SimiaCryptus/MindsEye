@@ -89,7 +89,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * The type Image run util.
+ * The type Image apply util.
  */
 public class TestUtil {
   /**

@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The type Cudnn layer run base.
+ * The type Cudnn layer apply base.
  */
 public class CudnnTest extends NotebookReportBase {
   
@@ -125,7 +125,7 @@ public class CudnnTest extends NotebookReportBase {
     }).toArray(j -> new Tensor[j]));
     TensorList original = factory.get();
     log.code(() -> {
-      CudaTensor write = CudaSystem.eval(gpu -> {
+      CudaTensor write = CudaSystem.run(gpu -> {
         @Nonnull TimedResult<CudaTensor> timedResult = TimedResult.time(() -> {
           return gpu.getTensor(original, Precision.Double, MemoryType.Managed, false);
         });
@@ -196,7 +196,7 @@ public class CudnnTest extends NotebookReportBase {
       @Nonnull TimedResult<TensorList> originalTiming = TimedResult.time(() -> factory.get());
       logger.info(String.format("Calculated test data in %.4fsec", originalTiming.seconds()));
       TensorList original = originalTiming.result;
-      @Nonnull AtomicReference<TensorList> mutableGpuData = new AtomicReference<>(CudaSystem.eval(gpu -> {
+      @Nonnull AtomicReference<TensorList> mutableGpuData = new AtomicReference<>(CudaSystem.run(gpu -> {
         @Nonnull TimedResult<CudaTensor> timedResult = TimedResult.time(() -> {
           return gpu.getTensor(original, Precision.Double, MemoryType.Managed, false);
         });
@@ -313,7 +313,7 @@ public class CudnnTest extends NotebookReportBase {
           @Nonnull TimedResult<TensorList> originalTiming = TimedResult.time(() -> factory.get());
           TensorList original = originalTiming.result;
           logger.info(String.format("[%s] Calculated test data in %.4fsec", workerNumber, originalTiming.seconds()));
-          @Nonnull ListenableFuture<TensorList> mutableDataFuture = pool.submit(() -> CudaSystem.eval(gpu -> {
+          @Nonnull ListenableFuture<TensorList> mutableDataFuture = pool.submit(() -> CudaSystem.run(gpu -> {
             PrintStream oldHandler = SysOutInterceptor.INSTANCE.setCurrentHandler(out);
             @Nonnull TimedResult<CudaTensor> timedResult = TimedResult.time(() -> {
               return gpu.getTensor(original, Precision.Double, MemoryType.Managed, false);

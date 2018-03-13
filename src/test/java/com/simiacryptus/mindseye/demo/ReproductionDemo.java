@@ -52,7 +52,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 /**
- * The type Image classifier run base.
+ * The type Image classifier apply base.
  */
 public class ReproductionDemo extends ArtistryDemo {
   

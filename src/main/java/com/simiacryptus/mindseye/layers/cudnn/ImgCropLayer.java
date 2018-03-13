@@ -131,7 +131,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
     dimOut[0] = sizeX;
     dimOut[1] = sizeY;
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    final TensorList outputData = CudaSystem.eval(gpu -> {
+    final TensorList outputData = CudaSystem.run(gpu -> {
       @Nullable final CudaTensor inputTensor = gpu.getTensor(input.getData(), precision, MemoryType.Device, false);
       boolean dirty = dimOut[0] <= dimIn[0] && dimOut[1] <= dimIn[1];
       assert dimOut[0] > 0;
@@ -150,7 +150,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
       }
       assert error.length() == input.getData().length();
       if (input.isAlive()) {
-        final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
+        final TensorList passbackTensorList = CudaSystem.run(gpu -> {
           @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device, false);
           boolean dirty = dimOut[0] >= dimIn[0] && dimOut[1] >= dimIn[1];
           CudaTensor cudaTensor = ImgCropLayer.this.copy(gpu, errorPtr, length, dimOut, dimIn, dirty);

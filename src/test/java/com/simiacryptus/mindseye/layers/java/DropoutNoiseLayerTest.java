@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Dropout noise layer eval.
+ * The type Dropout noise layer apply.
  */
 public abstract class DropoutNoiseLayerTest extends LayerTestBase {
   

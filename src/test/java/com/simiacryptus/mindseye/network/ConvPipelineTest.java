@@ -32,12 +32,12 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 
 /**
- * The type Conv pipeline eval.
+ * The type Conv pipeline apply.
  */
 public class ConvPipelineTest extends PipelineTest {
   
   /**
-   * Instantiates a new Conv pipeline eval.
+   * Instantiates a new Conv pipeline apply.
    */
   public ConvPipelineTest() {
     super(

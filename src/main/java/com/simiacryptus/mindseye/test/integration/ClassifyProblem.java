@@ -57,7 +57,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * The type Mnist run base.
+ * The type Mnist apply base.
  */
 public class ClassifyProblem implements Problem {
   
@@ -207,7 +207,7 @@ public class ClassifyProblem implements Problem {
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
     
     log.h3("Validation");
-    log.p("If we run our model against the entire validation dataset, we get this accuracy:");
+    log.p("If we apply our model against the entire validation dataset, we get this accuracy:");
     log.code(() -> {
       return data.validationData().mapToDouble(labeledObject ->
         predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)

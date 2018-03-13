@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.lang.Layer;
 import javax.annotation.Nonnull;
 
 /**
- * A network factory designed to be called within a report, with extra details being logged to the report output.
+ * A network factory designed to be called within a report, apply extra details being logged to the report output.
  */
 public interface NetworkFactory {
   

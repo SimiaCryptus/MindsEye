@@ -45,10 +45,12 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * The type Gpu handle.
@@ -101,10 +103,33 @@ public class CudnnHandle extends CudaDevice {
    * @param fn the fn
    */
   public static void forEach(@Nonnull final Consumer<? super CudnnHandle> fn) {
-    getPool().getAll().forEach(x -> {
-      x.initThread();
-      fn.accept(x);
+    handlePools.keySet().forEach(device -> {
+      getPool(device).apply(x -> {
+        x.initThread();
+        fn.accept(x);
+      });
     });
+  }
+  
+  public <T> Supplier<T> wrap(final Supplier<T> fn) {
+    return () -> {
+      try {
+        return executionThread.submit(() -> {
+          CudnnHandle.threadContext.set(CudnnHandle.this);
+          initThread();
+          assert isThreadDeviceId(deviceId);
+          return fn.get();
+        }).get();
+      } catch (ExecutionException e) {
+        throw new RuntimeException(e.getCause());
+      } catch (RuntimeException e) {
+        throw e;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      } finally {
+        cleanup();
+      }
+    };
   }
   
   private static final ExecutorService cleanupPool = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setDaemon(true).build());

@@ -34,7 +34,7 @@ import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Momentum run.
+ * The type Momentum apply.
  */
 public class MomentumTest extends MnistTestBase {
   

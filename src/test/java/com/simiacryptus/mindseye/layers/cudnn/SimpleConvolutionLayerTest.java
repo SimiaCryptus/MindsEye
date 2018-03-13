@@ -40,7 +40,7 @@ import java.io.PrintStream;
 import java.util.Random;
 
 /**
- * The type Simple convolution layer run.
+ * The type Simple convolution layer apply.
  */
 public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
   
@@ -67,7 +67,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
   
   
   /**
-   * Instantiates a new Simple convolution layer run.
+   * Instantiates a new Simple convolution layer apply.
    *
    * @param radius    the radius
    * @param bands     the bands
@@ -238,7 +238,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Demonstration of a suspected CudaSystem bug when using 0 padding with the GPU convolution operation.
+   * Demonstration of a suspected CudaSystem bug when using 0 padding apply the GPU convolution operation.
    */
   public static class PaddingBug extends Bug_Control {
     /**

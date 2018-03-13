@@ -622,7 +622,7 @@ public class ValidatingTrainer {
           lowestValidation = validationMean;
           lastImprovement = iterationNumber;
         }
-        monitor.log(String.format("Epoch %d result with %s iterations, %s/%s samples: {validation *= 2^%.5f; training *= 2^%.3f; Overtraining = %.2f}, {itr*=%.2f, len*=%.2f} %s since improvement; %.4f validation time",
+        monitor.log(String.format("Epoch %d result apply %s iterations, %s/%s samples: {validation *= 2^%.5f; training *= 2^%.3f; Overtraining = %.2f}, {itr*=%.2f, len*=%.2f} %s since improvement; %.4f validation time",
           ++epochNumber, primaryPhase.iterations, epochParams.trainingSize, getMaxTrainingSize(),
           Math.log(validationDelta) / Math.log(2), Math.log(trainingDelta) / Math.log(2),
           overtraining, adj1, adj2, iterationNumber - lastImprovement,

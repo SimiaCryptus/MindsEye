@@ -202,7 +202,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     final int length = inputData.length();
     kernel.addRef();
     SimpleConvolutionLayer.this.addRef();
-    return new Result(CudaSystem.eval(gpu -> {
+    return new Result(CudaSystem.run(gpu -> {
       assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
       @Nullable final CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, false);
       final CudaResource<cudnnFilterDescriptor> filterDescriptor = gpu.newFilterDescriptor(
@@ -306,7 +306,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
       };
       Runnable backpropFn = () -> {
         if (input.isAlive()) {
-          final TensorList inputBufferTensors = CudaSystem.eval(gpu -> {
+          final TensorList inputBufferTensors = CudaSystem.run(gpu -> {
             final CudaDevice.CudaTensorDescriptor inputDescriptor = gpu.newTensorDescriptor(precision, length, inputSize[2], inputSize[1], inputSize[0], inputSize[2] * inputSize[1] * inputSize[0], inputSize[1] * inputSize[0], inputSize[0], 1);
             final CudaResource<cudnnFilterDescriptor> filterDescriptor = gpu.newFilterDescriptor(
               precision, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
@@ -536,7 +536,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
         return x;
       }).toArray();
     } catch (Throwable e) {
-      throw new RuntimeException(String.format("Error with convolution %s x %s (%s)", Arrays.toString(inputSize), Arrays.toString(kernelSize), getName()), e);
+      throw new RuntimeException(String.format("Error apply convolution %s x %s (%s)", Arrays.toString(inputSize), Arrays.toString(kernelSize), getName()), e);
     }
   }
   

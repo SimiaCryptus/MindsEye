@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 
 /**
  * Base class for an object which can be evaluated using differential weights. This represents a function without inputs
- * and with only one output. The internal weights, effectively the function's input, are adjusted to minimize this
+ * and apply only one output. The internal weights, effectively the function's input, are adjusted to minimize this
  * output.
  */
 public abstract class TrainableBase extends ReferenceCountingBase implements Trainable {

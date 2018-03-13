@@ -111,7 +111,7 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
     inputData.addRef();
     input.addRef();
 //   assert !right.isAlive();
-    return new Result(CudaSystem.eval(gpu -> {
+    return new Result(CudaSystem.run(gpu -> {
       @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
       @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
         dimensions[2], dimensions[1], dimensions[0],
@@ -138,7 +138,7 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
       return CudaTensorList.wrap(cudaTensor, length, dimensions, precision);
     }, inputData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       if (input.isAlive()) {
-        @Nonnull TensorList data = CudaSystem.eval(gpu -> {
+        @Nonnull TensorList data = CudaSystem.run(gpu -> {
           @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
           @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
             dimensions[2], dimensions[1], dimensions[0],

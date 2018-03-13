@@ -26,14 +26,14 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Bias layer eval.
+ * The type Bias layer apply.
  */
 public abstract class BiasLayerTest extends LayerTestBase {
   
   private final int dimension;
   
   /**
-   * Instantiates a new Bias layer eval.
+   * Instantiates a new Bias layer apply.
    *
    * @param dimension the dimension
    */

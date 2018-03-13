@@ -49,7 +49,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * The type Image classifier run base.
+ * The type Image classifier apply base.
  */
 public class TextureDemo extends ArtistryDemo {
   

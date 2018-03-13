@@ -107,7 +107,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   }
   
   /**
-   * Is run evaluation boolean.
+   * Is apply evaluation boolean.
    *
    * @return the boolean
    */
@@ -116,10 +116,10 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   }
   
   /**
-   * Sets run evaluation.
+   * Sets apply evaluation.
    *
-   * @param testEvaluation the run evaluation
-   * @return the run evaluation
+   * @param testEvaluation the apply evaluation
+   * @return the apply evaluation
    */
   @Nonnull
   public PerformanceTester setTestEvaluation(final boolean testEvaluation) {
@@ -128,7 +128,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   }
   
   /**
-   * Is run learning boolean.
+   * Is apply learning boolean.
    *
    * @return the boolean
    */
@@ -137,10 +137,10 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   }
   
   /**
-   * Sets run learning.
+   * Sets apply learning.
    *
-   * @param testLearning the run learning
-   * @return the run learning
+   * @param testLearning the apply learning
+   * @return the apply learning
    */
   @Nonnull
   public ComponentTest<ToleranceStatistics> setTestLearning(final boolean testLearning) {

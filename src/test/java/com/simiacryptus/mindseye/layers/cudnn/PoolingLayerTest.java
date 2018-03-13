@@ -27,7 +27,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Pooling layer run.
+ * The type Pooling layer apply.
  */
 public abstract class PoolingLayerTest extends CudaLayerTestBase {
   
@@ -37,7 +37,7 @@ public abstract class PoolingLayerTest extends CudaLayerTestBase {
   final Precision precision;
   
   /**
-   * Instantiates a new Pooling layer run.
+   * Instantiates a new Pooling layer apply.
    *
    * @param precision the precision
    */
@@ -68,7 +68,7 @@ public abstract class PoolingLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Basic 64-bit run.
+   * Basic 64-bit apply.
    */
   public static class Double extends PoolingLayerTest {
     /**
@@ -99,7 +99,7 @@ public abstract class PoolingLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Basic 32-bit run.
+   * Basic 32-bit apply.
    */
   public static class Float extends PoolingLayerTest {
     /**

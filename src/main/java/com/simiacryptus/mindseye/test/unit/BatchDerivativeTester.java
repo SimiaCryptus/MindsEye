@@ -143,7 +143,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   }
   
   /**
-   * Is run feedback boolean.
+   * Is apply feedback boolean.
    *
    * @return the boolean
    */
@@ -152,10 +152,10 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   }
   
   /**
-   * Sets run feedback.
+   * Sets apply feedback.
    *
-   * @param testFeedback the run feedback
-   * @return the run feedback
+   * @param testFeedback the apply feedback
+   * @return the apply feedback
    */
   @Nonnull
   public BatchDerivativeTester setTestFeedback(final boolean testFeedback) {
@@ -164,7 +164,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   }
   
   /**
-   * Is run learning boolean.
+   * Is apply learning boolean.
    *
    * @return the boolean
    */
@@ -173,10 +173,10 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   }
   
   /**
-   * Sets run learning.
+   * Sets apply learning.
    *
-   * @param testLearning the run learning
-   * @return the run learning
+   * @param testLearning the apply learning
+   * @return the apply learning
    */
   @Nonnull
   public BatchDerivativeTester setTestLearning(final boolean testLearning) {
@@ -399,7 +399,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   
     if (isTestFeedback()) {
       log.h2("Feedback Validation");
-      log.p("We validate the agreement between the implemented derivative _of the inputs_ with finite difference estimations:");
+      log.p("We validate the agreement between the implemented derivative _of the inputs_ apply finite difference estimations:");
       ToleranceStatistics statistics = _statistics;
       _statistics = log.code(() -> {
         return testFeedback(component, ioPair, statistics);
@@ -407,7 +407,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     }
     if (isTestLearning()) {
       log.h2("Learning Validation");
-      log.p("We validate the agreement between the implemented derivative _of the internal weights_ with finite difference estimations:");
+      log.p("We validate the agreement between the implemented derivative _of the internal weights_ apply finite difference estimations:");
       ToleranceStatistics statistics = _statistics;
       _statistics = log.code(() -> {
         return testLearning(component, ioPair, statistics);

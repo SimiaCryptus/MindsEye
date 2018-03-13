@@ -304,7 +304,7 @@ public abstract class ImageClassifier implements NetworkFactory {
       clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
       @Nonnull PipelineNetwork supervised = new PipelineNetwork(1);
       supervised.add(getNetwork().freeze(), supervised.wrap(clamp, supervised.getInput(0)));
-//      CudaTensorList gpuInput = CudnnHandle.eval(gpu -> {
+//      CudaTensorList gpuInput = CudnnHandle.apply(gpu -> {
 //        Precision precision = Precision.Float;
 //        return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(image), precision, MemoryType.Managed), 1, image.getDimensions(), precision);
 //      });
@@ -443,7 +443,7 @@ public abstract class ImageClassifier implements NetworkFactory {
           supervised.wrap(clamp, supervised.getInput(0))),
         supervised.getInput(1));
 //      TensorList[] gpuInput = data.stream().map(data1 -> {
-//        return CudnnHandle.eval(gpu -> {
+//        return CudnnHandle.apply(gpu -> {
 //          Precision precision = Precision.Float;
 //          return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(data1), precision, MemoryType.Managed), 1, image.getDimensions(), precision);
 //        });

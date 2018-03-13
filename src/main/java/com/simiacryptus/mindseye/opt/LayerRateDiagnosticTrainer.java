@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * This trains a subject with a diagnostic goal: trainCjGD each layer individually, and measure the ideal rate for each
+ * This trains a subject apply a diagnostic goal: trainCjGD each layer individually, and measure the ideal rate for each
  * phase. This can indicate how balanced a network is, and how to trainCjGD it.
  */
 public class LayerRateDiagnosticTrainer {

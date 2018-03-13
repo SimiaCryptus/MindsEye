@@ -26,12 +26,12 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Sum meta layer eval.
+ * The type Sum meta layer apply.
  */
 public abstract class SumMetaLayerTest extends MetaLayerTestBase {
   
   /**
-   * Instantiates a new Sum meta layer eval.
+   * Instantiates a new Sum meta layer apply.
    */
   public SumMetaLayerTest() {
     super();

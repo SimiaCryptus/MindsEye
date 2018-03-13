@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Mnist run base.
+ * The type Mnist apply base.
  */
 public class AutoencodingProblem implements Problem {
   
