@@ -179,7 +179,8 @@ public class ArtistryDemo extends NotebookReportBase {
   
   /**
    * Init.
-   * @param log
+   *
+   * @param log the log
    */
   public void init(final NotebookOutput log) {
     try {

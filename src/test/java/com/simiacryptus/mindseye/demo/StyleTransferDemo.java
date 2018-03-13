@@ -137,6 +137,12 @@ public class StyleTransferDemo extends ArtistryDemo {
     log.setFrontMatterProperty("status", "OK");
   }
   
+  /**
+   * Load image tensor.
+   *
+   * @param style the style
+   * @return the tensor
+   */
   @Nonnull
   public Tensor loadImage(final String style) {
     Tensor contentInput;
@@ -150,6 +156,12 @@ public class StyleTransferDemo extends ArtistryDemo {
     return contentInput;
   }
   
+  /**
+   * Texture 1 d pipeline network.
+   *
+   * @param log the log
+   * @return the pipeline network
+   */
   public PipelineNetwork texture_1d(@Nonnull final NotebookOutput log) {
     final PipelineNetwork[] layers = new PipelineNetwork[1];
     log.code(() -> {
@@ -169,6 +181,12 @@ public class StyleTransferDemo extends ArtistryDemo {
     return layers[0];
   }
   
+  /**
+   * Style 1 d pipeline network.
+   *
+   * @param log the log
+   * @return the pipeline network
+   */
   public PipelineNetwork style_1d(@Nonnull final NotebookOutput log) {
     final Layer[] layers = new Layer[1];
     log.code(() -> {
@@ -192,6 +210,14 @@ public class StyleTransferDemo extends ArtistryDemo {
     return network;
   }
   
+  /**
+   * Loss 1 d pipeline network.
+   *
+   * @param log        the log
+   * @param texture_1d the texture 1 d
+   * @param style_1d   the style 1 d
+   * @return the pipeline network
+   */
   public PipelineNetwork loss_1d(@Nonnull final NotebookOutput log, Tensor texture_1d, Tensor style_1d) {
     final PipelineNetwork[] pipelineNetwork = new PipelineNetwork[1];
     log.code(() -> {

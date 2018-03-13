@@ -209,6 +209,11 @@ public enum MemoryType {
     });
   }
   
+  /**
+   * Normalize memory type.
+   *
+   * @return the memory type
+   */
   public MemoryType normalize() {
     return this;
   }

@@ -50,6 +50,9 @@ public class CudaSettings implements Settings {
   private final boolean profileMemoryIO;
   private boolean asyncFree;
   private boolean enableManaged;
+  /**
+   * The Sync before free.
+   */
   public boolean syncBeforeFree;
   
   private CudaSettings() {
@@ -199,18 +202,38 @@ public class CudaSettings implements Settings {
     return profileMemoryIO;
   }
   
+  /**
+   * Is async free boolean.
+   *
+   * @return the boolean
+   */
   public boolean isAsyncFree() {
     return asyncFree;
   }
   
+  /**
+   * Sets async free.
+   *
+   * @param asyncFree the async free
+   */
   public void setAsyncFree(boolean asyncFree) {
     this.asyncFree = asyncFree;
   }
   
+  /**
+   * Is enable managed boolean.
+   *
+   * @return the boolean
+   */
   public boolean isEnableManaged() {
     return enableManaged;
   }
   
+  /**
+   * Sets enable managed.
+   *
+   * @param enableManaged the enable managed
+   */
   public void setEnableManaged(boolean enableManaged) {
     this.enableManaged = enableManaged;
   }

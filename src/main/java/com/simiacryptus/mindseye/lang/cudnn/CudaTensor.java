@@ -34,6 +34,9 @@ import java.util.function.Function;
  * The type Cuda tensor.
  */
 public class CudaTensor extends ReferenceCountingBase implements CudaSystem.CudaDeviceResource {
+  /**
+   * The Log.
+   */
   static final Logger log = LoggerFactory.getLogger(CudaTensor.class);
   
   /**

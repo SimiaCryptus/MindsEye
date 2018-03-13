@@ -163,7 +163,13 @@ public class CudaSystem {
    * The constant cudnnActivationBackward_execution.
    */
   protected static final DoubleStatistics cudnnSoftmaxBackward_execution = new DoubleStatistics();
+  /**
+   * The constant cudnnCreateReduceTensorDescriptor_execution.
+   */
   protected static final DoubleStatistics cudnnCreateReduceTensorDescriptor_execution = new DoubleStatistics();
+  /**
+   * The constant cudnnSetReduceTensorDescriptor_execution.
+   */
   protected static final DoubleStatistics cudnnSetReduceTensorDescriptor_execution = new DoubleStatistics();
   
   
@@ -228,6 +234,9 @@ public class CudaSystem {
    */
   protected static final DoubleStatistics cudnnOpTensor_execution = new DoubleStatistics();
   
+  /**
+   * The constant cudnnReduceTensor_execution.
+   */
   protected static final DoubleStatistics cudnnReduceTensor_execution = new DoubleStatistics();
   
   /**
@@ -518,6 +527,9 @@ public class CudaSystem {
     return result;
   }
   
+  /**
+   * The constant handlePools.
+   */
   protected static final HashMap<Integer, ResourcePool<CudnnHandle>> handlePools = new HashMap<>();
   
   /**
@@ -946,6 +958,9 @@ public class CudaSystem {
     apiLog.add(log);
   }
   
+  /**
+   * The Execution thread.
+   */
   protected final ExecutorService executionThread = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat(toString()).build());
   
   /**
@@ -971,6 +986,12 @@ public class CudaSystem {
     } catch (ConcurrentModificationException e) {}
   }
   
+  /**
+   * Is thread device id boolean.
+   *
+   * @param deviceId the device id
+   * @return the boolean
+   */
   public static boolean isThreadDeviceId(int deviceId) {
     Integer integer = getThreadDeviceId();
     return integer != null && (deviceId == integer);
@@ -987,6 +1008,9 @@ public class CudaSystem {
   
   /**
    * Run.
+   *
+   * @param deviceId the device id
+   * @param fn       the fn
    */
   public static void withDevice(int deviceId, @Nonnull final Consumer<CudnnHandle> fn) {
     CudnnHandle threadlocal = CudnnHandle.threadContext.get();
@@ -1013,6 +1037,11 @@ public class CudaSystem {
   
   /**
    * Run.
+   *
+   * @param <T>      the type parameter
+   * @param deviceId the device id
+   * @param action   the action
+   * @return the t
    */
   public static <T> T withDevice(int deviceId, @Nonnull Function<CudnnHandle, T> action) {
     CudnnHandle threadlocal = CudnnHandle.threadContext.get();
@@ -1193,6 +1222,12 @@ public class CudaSystem {
     return deviceCount;
   }
   
+  /**
+   * Synchronize.
+   *
+   * @param time   the time
+   * @param device the device
+   */
   public static void synchronize(long time, int device) {
     Long val = syncTimes.get(device);
     if (null == val || val < time) {
@@ -1241,7 +1276,7 @@ public class CudaSystem {
   /**
    * The constant POOL.
    *
-   * @param deviceId
+   * @param deviceId the device id
    * @return the pool
    */
   public static ResourcePool<CudnnHandle> getPool(final int deviceId) {

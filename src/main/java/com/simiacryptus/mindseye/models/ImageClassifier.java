@@ -406,6 +406,52 @@ public abstract class ImageClassifier implements NetworkFactory {
   public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories, Function<IterativeTrainer, IterativeTrainer> config) {deepDream(log, image, targetCategoryIndex, totalCategories, config, getNetwork(), new EntropyLossLayer(), -1.0);}
   
   /**
+   * Sets precision.
+   *
+   * @param model     the model
+   * @param precision the precision
+   */
+  public static void setPrecision(DAGNetwork model, final Precision precision) {
+    model.visitLayers(layer -> {
+      if (layer instanceof MultiPrecision) {
+        ((MultiPrecision) layer).setPrecision(precision);
+      }
+    });
+  }
+  
+  @Nonnull
+  @Override
+  public Layer getNetwork() {
+    if (null == cachedLayer) {
+      synchronized (this) {
+        if (null == cachedLayer) {
+          try {
+            cachedLayer = buildNetwork();
+            setPrecision((DAGNetwork) cachedLayer);
+            if (null != prototype) prototype.freeRef();
+            prototype = null;
+            return cachedLayer;
+          } catch (@Nonnull final RuntimeException e) {
+            throw e;
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        }
+      }
+    }
+    return cachedLayer;
+    
+    
+  }
+  
+  /**
+   * Build network layer.
+   *
+   * @return the layer
+   */
+  protected abstract Layer buildNetwork();
+  
+  /**
    * Deep dream.
    *
    * @param log                 the log
@@ -414,8 +460,8 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param totalCategories     the total categories
    * @param config              the config
    * @param network             the network
-   * @param lossLayer
-   * @param targetValue
+   * @param lossLayer           the loss layer
+   * @param targetValue         the target value
    */
   public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories, Function<IterativeTrainer, IterativeTrainer> config, final Layer network, final Layer lossLayer, final double targetValue) {
     @Nonnull List<Tensor[]> data = Arrays.<Tensor[]>asList(new Tensor[]{
@@ -459,52 +505,6 @@ public abstract class ImageClassifier implements NetworkFactory {
         .setTerminateThreshold(Double.NEGATIVE_INFINITY)
         .runAndFree();
       return TestUtil.plot(history);
-    });
-  }
-  
-  @Nonnull
-  @Override
-  public Layer getNetwork() {
-    if (null == cachedLayer) {
-      synchronized (this) {
-        if (null == cachedLayer) {
-          try {
-            cachedLayer = buildNetwork();
-            setPrecision((DAGNetwork) cachedLayer);
-            if (null != prototype) prototype.freeRef();
-            prototype = null;
-            return cachedLayer;
-          } catch (@Nonnull final RuntimeException e) {
-            throw e;
-          } catch (Exception e) {
-            throw new RuntimeException(e);
-          }
-        }
-      }
-    }
-    return cachedLayer;
-    
-    
-  }
-  
-  /**
-   * Build network layer.
-   *
-   * @return the layer
-   */
-  protected abstract Layer buildNetwork();
-  
-  /**
-   * Sets precision.
-   *
-   * @param model the model
-   * @param precision
-   */
-  public static void setPrecision(DAGNetwork model, final Precision precision) {
-    model.visitLayers(layer -> {
-      if (layer instanceof MultiPrecision) {
-        ((MultiPrecision) layer).setPrecision(precision);
-      }
     });
   }
   

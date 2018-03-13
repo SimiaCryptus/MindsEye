@@ -174,6 +174,16 @@ public class LocationDemo extends ArtistryDemo {
     log.setFrontMatterProperty("status", "OK");
   }
   
+  /**
+   * Render alpha tensor.
+   *
+   * @param alphaPower     the alpha power
+   * @param img            the img
+   * @param locationResult the location result
+   * @param classification the classification
+   * @param category       the category
+   * @return the tensor
+   */
   public Tensor renderAlpha(final double alphaPower, final Tensor img, final Result locationResult, final Tensor classification, final int category) {
     TensorArray tensorArray = TensorArray.wrap(new Tensor(classification.getDimensions()).set(category, 1));
     DeltaSet<Layer> deltaSet = new DeltaSet<>();

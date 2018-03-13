@@ -917,7 +917,7 @@ public class TestUtil {
    * To string string.
    *
    * @param stack     the stack
-   * @param delimiter
+   * @param delimiter the delimiter
    * @return the string
    */
   public static String toString(final StackTraceElement[] stack, final String delimiter) {

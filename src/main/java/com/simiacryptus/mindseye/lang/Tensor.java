@@ -1719,6 +1719,12 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     });
   }
   
+  /**
+   * Dot double.
+   *
+   * @param right the right
+   * @return the double
+   */
   public double dot(final Tensor right) {
     double[] l = getData();
     double[] r = right.getData();
@@ -1729,6 +1735,11 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     return v;
   }
   
+  /**
+   * Unit tensor.
+   *
+   * @return the tensor
+   */
   public Tensor unit() {
     return scale(1.0 / Math.sqrt(sumSq()));
   }

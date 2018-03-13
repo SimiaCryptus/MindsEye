@@ -32,6 +32,9 @@ import java.util.Random;
  */
 public abstract class GramianLayerTest extends CudaLayerTestBase {
   
+  /**
+   * Instantiates a new Gramian layer test.
+   */
   public GramianLayerTest() {
   }
   

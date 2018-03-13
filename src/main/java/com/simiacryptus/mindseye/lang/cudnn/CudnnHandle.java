@@ -111,6 +111,29 @@ public class CudnnHandle extends CudaDevice {
     });
   }
   
+  /**
+   * Cudnn destroy reduce tensor descriptor int.
+   *
+   * @param obj the obj
+   * @return the int
+   */
+  public static int cudnnDestroyReduceTensorDescriptor(final cudnnReduceTensorDescriptor obj) {
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnDestroyReduceTensorDescriptor(obj);
+    cudnnDestroyOpTensorDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
+    log("cudnnDestroyOpTensorDescriptor", result, new Object[]{obj});
+    return result;
+  }
+  
+  private static final ExecutorService cleanupPool = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setDaemon(true).build());
+  
+  /**
+   * Wrap supplier.
+   *
+   * @param <T> the type parameter
+   * @param fn  the fn
+   * @return the supplier
+   */
   public <T> Supplier<T> wrap(final Supplier<T> fn) {
     return () -> {
       try {
@@ -130,16 +153,6 @@ public class CudnnHandle extends CudaDevice {
         cleanup();
       }
     };
-  }
-  
-  private static final ExecutorService cleanupPool = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setDaemon(true).build());
-  
-  public static int cudnnDestroyReduceTensorDescriptor(final cudnnReduceTensorDescriptor obj) {
-    long startTime = System.nanoTime();
-    final int result = JCudnn.cudnnDestroyReduceTensorDescriptor(obj);
-    cudnnDestroyOpTensorDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
-    log("cudnnDestroyOpTensorDescriptor", result, new Object[]{obj});
-    return result;
   }
   
   /**
@@ -612,6 +625,22 @@ public class CudnnHandle extends CudaDevice {
     return result;
   }
   
+  /**
+   * Cudnn reduce tensor int.
+   *
+   * @param reduceTensorDesc     the reduce tensor desc
+   * @param indices              the indices
+   * @param indicesSizeInBytes   the indices size in bytes
+   * @param workspace            the workspace
+   * @param workspaceSizeInBytes the workspace size in bytes
+   * @param alpha                the alpha
+   * @param aDesc                the a desc
+   * @param A                    the a
+   * @param beta                 the beta
+   * @param cDesc                the c desc
+   * @param C                    the c
+   * @return the int
+   */
   public int cudnnReduceTensor(
     cudnnReduceTensorDescriptor reduceTensorDesc,
     Pointer indices,
@@ -959,6 +988,12 @@ public class CudnnHandle extends CudaDevice {
   }
   
   
+  /**
+   * Cudnn create reduce tensor descriptor int.
+   *
+   * @param reduceTensorDesc the reduce tensor desc
+   * @return the int
+   */
   public int cudnnCreateReduceTensorDescriptor(cudnnReduceTensorDescriptor reduceTensorDesc) {
     long startTime = System.nanoTime();
     final int result = JCudnn.cudnnCreateReduceTensorDescriptor(reduceTensorDesc);
@@ -967,6 +1002,17 @@ public class CudnnHandle extends CudaDevice {
     return result;
   }
   
+  /**
+   * Cudnn set reduce tensor descriptor int.
+   *
+   * @param reduceTensorDesc        the reduce tensor desc
+   * @param reduceTensorOp          the reduce tensor op
+   * @param reduceTensorCompType    the reduce tensor comp type
+   * @param reduceTensorNanOpt      the reduce tensor nan opt
+   * @param reduceTensorIndices     the reduce tensor indices
+   * @param reduceTensorIndicesType the reduce tensor indices type
+   * @return the int
+   */
   public int cudnnSetReduceTensorDescriptor(cudnnReduceTensorDescriptor reduceTensorDesc,
     int reduceTensorOp,
     int reduceTensorCompType,
@@ -993,6 +1039,16 @@ public class CudnnHandle extends CudaDevice {
     CudaSystem.handle(result);
   }
   
+  /**
+   * Cudnn create reduce tensor descriptor cuda resource.
+   *
+   * @param reduceTensorOp          the reduce tensor op
+   * @param reduceTensorCompType    the reduce tensor comp type
+   * @param reduceTensorNanOpt      the reduce tensor nan opt
+   * @param reduceTensorIndices     the reduce tensor indices
+   * @param reduceTensorIndicesType the reduce tensor indices type
+   * @return the cuda resource
+   */
   public CudaResource<cudnnReduceTensorDescriptor> cudnnCreateReduceTensorDescriptor(int reduceTensorOp,
     int reduceTensorCompType,
     int reduceTensorNanOpt,

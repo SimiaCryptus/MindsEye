@@ -409,12 +409,20 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
     };
   }
   
+  /**
+   * Dirty cuda memory.
+   *
+   * @return the cuda memory
+   */
   public CudaMemory dirty() {
     assert type == MemoryType.Managed || CudaDevice.isThreadDeviceId(getDeviceId()) : getDeviceId() + " != " + CudaSystem.getThreadDeviceId();
     writtenAt = System.nanoTime();
     return this;
   }
   
+  /**
+   * Synchronize.
+   */
   public void synchronize() {
     if (deviceId >= 0) CudaSystem.synchronize(writtenAt, deviceId);
   }

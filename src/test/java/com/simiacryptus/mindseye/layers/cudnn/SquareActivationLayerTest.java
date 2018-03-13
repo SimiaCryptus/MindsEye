@@ -45,7 +45,7 @@ public abstract class SquareActivationLayerTest extends CudaLayerTestBase {
    * Instantiates a new Product layer apply.
    *
    * @param precision the precision
-   * @param alpha
+   * @param alpha     the alpha
    */
   public SquareActivationLayerTest(final Precision precision, final double alpha) {
     this.precision = precision;

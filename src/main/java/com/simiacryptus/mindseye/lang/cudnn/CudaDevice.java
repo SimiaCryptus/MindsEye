@@ -607,6 +607,12 @@ public class CudaDevice extends CudaSystem {
       this.wStride = wStride;
     }
   
+    /**
+     * Copy cuda tensor descriptor.
+     *
+     * @param device the device
+     * @return the cuda tensor descriptor
+     */
     public CudaTensorDescriptor copy(CudaDevice device) {
       return device.newTensorDescriptor(dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride);
     }
