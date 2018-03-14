@@ -83,18 +83,38 @@ public class StyleTransferDemo extends ArtistryDemo {
     init(log);
   
     Precision precision = Precision.Float;
-    imageSize = 400;
-    String content = "H:\\SimiaCryptus\\Artistry\\monkeydog.jpg";
+    imageSize = 256;
+    String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170924_145214.jpg";
     String style = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
   
     log.h1("Input");
+    BufferedImage canvasImage = randomize(load(content, imageSize));
+  
+    for (int i = 0; i < 3; i++) {
+      imageSize = imageSize * 2;
+      canvasImage = TestUtil.resize(canvasImage, imageSize, true);
+      BufferedImage contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
+      BufferedImage styleImage = load(style, imageSize);
+      canvasImage = styleTransfer(log, precision, contentImage, styleImage, canvasImage);
+    }
+  
+    log.setFrontMatterProperty("status", "OK");
+  }
+  
+  @Nonnull
+  public BufferedImage randomize(final BufferedImage contentImage) {
+    return Tensor.fromRGB(contentImage).map(x -> FastRandom.INSTANCE.random()).toRgbImage();
+  }
+  
+  @Nonnull
+  public BufferedImage styleTransfer(@Nonnull final NotebookOutput log, final Precision precision, final BufferedImage contentImage, final BufferedImage styleImage, final BufferedImage canvasImage) {
     final PipelineNetwork content_1c = texture_1c(log);
     final PipelineNetwork style_1c = gram((PipelineNetwork) content_1c.copy());
     final PipelineNetwork content_1d = texture_1d(log);
     final PipelineNetwork style_1d = gram((PipelineNetwork) content_1d.copy());
     final PipelineNetwork content_1e = texture_1e(log);
     final PipelineNetwork style_1e = gram((PipelineNetwork) content_1e.copy());
-  
+    
     setPrecision(content_1c, precision);
     setPrecision(style_1c, precision);
     setPrecision(content_1d, precision);
@@ -102,26 +122,26 @@ public class StyleTransferDemo extends ArtistryDemo {
     setPrecision(content_1e, precision);
     setPrecision(style_1e, precision);
     
-    Tensor contentInput = loadImage(content);
+    Tensor contentInput = Tensor.fromRGB(contentImage);
     try {
       log.p(log.image(contentInput.toImage(), "content"));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    Tensor styleInput = loadImage(style);
+    Tensor styleInput = Tensor.fromRGB(styleImage);
     try {
       log.p(log.image(styleInput.toImage(), "style"));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-  
+    
     Tensor target_content_1c = content_1c.eval(contentInput).getDataAndFree().getAndFree(0);
     Tensor target_style_1c = style_1c.eval(styleInput).getDataAndFree().getAndFree(0);
     Tensor target_content_1d = content_1d.eval(contentInput).getDataAndFree().getAndFree(0);
     Tensor target_style_1d = style_1d.eval(styleInput).getDataAndFree().getAndFree(0);
     Tensor target_content_1e = content_1e.eval(contentInput).getDataAndFree().getAndFree(0);
     Tensor target_style_1e = style_1e.eval(styleInput).getDataAndFree().getAndFree(0);
-  
+    
     final PipelineNetwork[] layerBuffer = new PipelineNetwork[1];
     final DAGNode[] nodes = new DAGNode[3];
     log.code(() -> {
@@ -133,13 +153,13 @@ public class StyleTransferDemo extends ArtistryDemo {
             layerBuffer[0] = (PipelineNetwork) pipeline.freeze();
             nodes[0] = pipeline.getHead();
           }
-        
+          
           @Override
           protected void phase1d() {
             super.phase1d();
             nodes[1] = pipeline.getHead();
           }
-        
+          
           @Override
           protected void phase1e() {
             super.phase1e();
@@ -171,7 +191,7 @@ public class StyleTransferDemo extends ArtistryDemo {
     setPrecision(network, precision);
     
     log.h1("Output");
-    Tensor canvas = contentInput.map(x -> FastRandom.INSTANCE.random());
+    Tensor canvas = Tensor.fromRGB(canvasImage);
     TestUtil.monitorImage(canvas, false);
     @Nonnull Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
     TestUtil.instrumentPerformance(log, network);
@@ -187,33 +207,37 @@ public class StyleTransferDemo extends ArtistryDemo {
         .runAndFree();
       return TestUtil.plot(history);
     });
-  
+    BufferedImage result = canvas.toImage();
     try {
-      log.p(log.image(canvas.toImage(), "result"));
+      log.p(log.image(result, "result"));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-  
-    log.setFrontMatterProperty("status", "OK");
+    return result;
   }
   
-  /**
-   * Load image tensor.
-   *
-   * @param style the style
-   * @return the tensor
-   */
   @Nonnull
-  public Tensor loadImage(final String style) {
-    Tensor contentInput;
+  public BufferedImage load(final String style, final int imageSize) {
+    BufferedImage image1;
     try {
-      BufferedImage image1 = ImageIO.read(new File(style));
+      image1 = ImageIO.read(new File(style));
       image1 = TestUtil.resize(image1, imageSize, true);
-      contentInput = Tensor.fromRGB(image1);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    return contentInput;
+    return image1;
+  }
+  
+  @Nonnull
+  public BufferedImage load(final String style, final int width, final int height) {
+    BufferedImage image1;
+    try {
+      image1 = ImageIO.read(new File(style));
+      image1 = TestUtil.resize(image1, width, height);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return image1;
   }
   
   /**
@@ -233,7 +257,7 @@ public class StyleTransferDemo extends ArtistryDemo {
             layers[0] = (PipelineNetwork) pipeline.freeze();
             throw new RuntimeException("Abort Network Construction");
           }
-        }.getNetwork();
+        }.setLarge(true).getNetwork();
       } catch (@Nonnull final RuntimeException e) {
       } catch (Throwable e) {
         throw new RuntimeException(e);
