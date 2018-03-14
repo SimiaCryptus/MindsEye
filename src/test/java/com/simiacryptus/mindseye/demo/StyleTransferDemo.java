@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.demo;
 
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer;
@@ -89,10 +88,20 @@ public class StyleTransferDemo extends ArtistryDemo {
     String style = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
   
     log.h1("Input");
-    final PipelineNetwork texture_1d = texture_1d(log);
-    setPrecision(texture_1d, precision);
-    final PipelineNetwork style_1d = style_1d(log);
+    final PipelineNetwork content_1c = texture_1c(log);
+    final PipelineNetwork style_1c = gram((PipelineNetwork) content_1c.copy());
+    final PipelineNetwork content_1d = texture_1d(log);
+    final PipelineNetwork style_1d = gram((PipelineNetwork) content_1d.copy());
+    final PipelineNetwork content_1e = texture_1e(log);
+    final PipelineNetwork style_1e = gram((PipelineNetwork) content_1e.copy());
+  
+    setPrecision(content_1c, precision);
+    setPrecision(style_1c, precision);
+    setPrecision(content_1d, precision);
     setPrecision(style_1d, precision);
+    setPrecision(content_1e, precision);
+    setPrecision(style_1e, precision);
+    
     Tensor contentInput = loadImage(content);
     try {
       log.p(log.image(contentInput.toImage(), "content"));
@@ -105,18 +114,69 @@ public class StyleTransferDemo extends ArtistryDemo {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    Tensor target_texture_1d = texture_1d.eval(contentInput).getDataAndFree().getAndFree(0);
-    Tensor target_style_1d = style_1d.eval(styleInput).getDataAndFree().getAndFree(0);
-    PipelineNetwork loss_1d = loss_1d(log, target_texture_1d, target_style_1d);
-    setPrecision(loss_1d, precision);
   
+    Tensor target_content_1c = content_1c.eval(contentInput).getDataAndFree().getAndFree(0);
+    Tensor target_style_1c = style_1c.eval(styleInput).getDataAndFree().getAndFree(0);
+    Tensor target_content_1d = content_1d.eval(contentInput).getDataAndFree().getAndFree(0);
+    Tensor target_style_1d = style_1d.eval(styleInput).getDataAndFree().getAndFree(0);
+    Tensor target_content_1e = content_1e.eval(contentInput).getDataAndFree().getAndFree(0);
+    Tensor target_style_1e = style_1e.eval(styleInput).getDataAndFree().getAndFree(0);
+  
+    final PipelineNetwork[] layerBuffer = new PipelineNetwork[1];
+    final DAGNode[] nodes = new DAGNode[3];
+    log.code(() -> {
+      try {
+        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+          @Override
+          protected void phase1c() {
+            super.phase1c();
+            layerBuffer[0] = (PipelineNetwork) pipeline.freeze();
+            nodes[0] = pipeline.getHead();
+          }
+        
+          @Override
+          protected void phase1d() {
+            super.phase1d();
+            nodes[1] = pipeline.getHead();
+          }
+        
+          @Override
+          protected void phase1e() {
+            super.phase1e();
+            nodes[2] = pipeline.getHead();
+            throw new RuntimeException("Abort Network Construction");
+          }
+        }.getNetwork();
+      } catch (@Nonnull final RuntimeException e1) {
+      } catch (Throwable e11) {
+        throw new RuntimeException(e11);
+      }
+    });
+    PipelineNetwork network = layerBuffer[0];
+    network.wrap(new BinarySumLayer(1.0, 1.0),
+      network.wrap(new BinarySumLayer(1e3, 1.0),
+        network.wrap(new MeanSqLossLayer(), nodes[0], network.constValue(target_content_1c)),
+        network.wrap(new MeanSqLossLayer(), network.wrap(new GramianLayer(), nodes[0]), network.constValue(target_style_1c))
+      ),
+      network.wrap(new BinarySumLayer(1.0, 1.0),
+        network.wrap(new BinarySumLayer(1e3, 1.0),
+          network.wrap(new MeanSqLossLayer(), nodes[1], network.constValue(target_content_1d)),
+          network.wrap(new MeanSqLossLayer(), network.wrap(new GramianLayer(), nodes[1]), network.constValue(target_style_1d))
+        ),
+        network.wrap(new BinarySumLayer(1e3, 1.0),
+          network.wrap(new MeanSqLossLayer(), nodes[2], network.constValue(target_content_1e)),
+          network.wrap(new MeanSqLossLayer(), network.wrap(new GramianLayer(), nodes[2]), network.constValue(target_style_1e))
+        )
+      ));
+    setPrecision(network, precision);
+    
     log.h1("Output");
     Tensor canvas = contentInput.map(x -> FastRandom.INSTANCE.random());
     TestUtil.monitorImage(canvas, false);
-    @Nonnull Trainable trainable = new ArrayTrainable(loss_1d, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
-    TestUtil.instrumentPerformance(log, loss_1d);
-    addLayersHandler(loss_1d, server);
-  
+    @Nonnull Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
+    TestUtil.instrumentPerformance(log, network);
+    addLayersHandler(network, server);
+    
     log.code(() -> {
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
       new IterativeTrainer(trainable)
@@ -162,13 +222,14 @@ public class StyleTransferDemo extends ArtistryDemo {
    * @param log the log
    * @return the pipeline network
    */
-  public PipelineNetwork texture_1d(@Nonnull final NotebookOutput log) {
+  public PipelineNetwork texture_1c(@Nonnull final NotebookOutput log) {
     final PipelineNetwork[] layers = new PipelineNetwork[1];
     log.code(() -> {
       try {
         new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
           @Override
-          protected void phase1d() {
+          protected void phase1c() {
+            super.phase1c();
             layers[0] = (PipelineNetwork) pipeline.freeze();
             throw new RuntimeException("Abort Network Construction");
           }
@@ -182,19 +243,20 @@ public class StyleTransferDemo extends ArtistryDemo {
   }
   
   /**
-   * Style 1 d pipeline network.
+   * Texture 1 d pipeline network.
    *
    * @param log the log
    * @return the pipeline network
    */
-  public PipelineNetwork style_1d(@Nonnull final NotebookOutput log) {
-    final Layer[] layers = new Layer[1];
+  public PipelineNetwork texture_1d(@Nonnull final NotebookOutput log) {
+    final PipelineNetwork[] layers = new PipelineNetwork[1];
     log.code(() -> {
       try {
         new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
           @Override
           protected void phase1d() {
-            layers[0] = pipeline.freeze();
+            super.phase1d();
+            layers[0] = (PipelineNetwork) pipeline.freeze();
             throw new RuntimeException("Abort Network Construction");
           }
         }.getNetwork();
@@ -203,29 +265,24 @@ public class StyleTransferDemo extends ArtistryDemo {
         throw new RuntimeException(e);
       }
     });
-    PipelineNetwork network = new PipelineNetwork(1);
-    network.wrap(new GramianLayer(),
-      network.wrap(layers[0],
-        network.getInput(0)));
-    return network;
+    return layers[0];
   }
   
   /**
-   * Loss 1 d pipeline network.
+   * Texture 1 d pipeline network.
    *
-   * @param log        the log
-   * @param texture_1d the texture 1 d
-   * @param style_1d   the style 1 d
+   * @param log the log
    * @return the pipeline network
    */
-  public PipelineNetwork loss_1d(@Nonnull final NotebookOutput log, Tensor texture_1d, Tensor style_1d) {
-    final PipelineNetwork[] pipelineNetwork = new PipelineNetwork[1];
+  public PipelineNetwork texture_1e(@Nonnull final NotebookOutput log) {
+    final PipelineNetwork[] layers = new PipelineNetwork[1];
     log.code(() -> {
       try {
         new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
           @Override
-          protected void phase1d() {
-            pipelineNetwork[0] = (PipelineNetwork) pipeline.freeze();
+          protected void phase1e() {
+            super.phase1e();
+            layers[0] = (PipelineNetwork) pipeline.freeze();
             throw new RuntimeException("Abort Network Construction");
           }
         }.getNetwork();
@@ -234,12 +291,12 @@ public class StyleTransferDemo extends ArtistryDemo {
         throw new RuntimeException(e);
       }
     });
-    PipelineNetwork network = pipelineNetwork[0];
-    DAGNode texture1d = network.getHead();
-    network.wrap(new BinarySumLayer(1.0, 1.0),
-      network.wrap(new MeanSqLossLayer(), texture1d, network.constValue(texture_1d)),
-      network.wrap(new MeanSqLossLayer(), network.wrap(new GramianLayer(), texture1d), network.constValue(style_1d))
-    );
+    return layers[0];
+  }
+  
+  @Nonnull
+  public PipelineNetwork gram(final PipelineNetwork network) {
+    network.wrap(new GramianLayer());
     return network;
   }
   

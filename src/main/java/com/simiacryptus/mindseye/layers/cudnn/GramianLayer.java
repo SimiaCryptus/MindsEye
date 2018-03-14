@@ -139,6 +139,7 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
   
   @Nonnull
   public CudaTensorList getFeedback(final CudnnHandle gpu, final CudaTensor inputTensor, final CudaTensor deltaTensor) {
+    int pixels = inputTensor.descriptor.height * inputTensor.descriptor.width;
     CudaMemory inputMemory = inputTensor.getMemory(gpu);
     CudaMemory deltaMemory = deltaTensor.getMemory(gpu);
     @Nonnull final int[] inputDimensions = {inputTensor.descriptor.width, inputTensor.descriptor.height, inputTensor.descriptor.channels};
@@ -204,7 +205,7 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
       CudaMemory outputViewMem = outputMemory.withByteOffset(bandDescriptor.cStride * band * precision.size);
       gpu.cudnnReduceTensor(reduceAddDescriptor.getPtr(),
         indexPtr.getPtr(), indexPtr.size, workspacePtr.getPtr(), workspacePtr.size,
-        precision.getPointer(1.0), bufferDescriptor.getPtr(), bufferMemory.getPtr(),
+        precision.getPointer(1.0 / pixels), bufferDescriptor.getPtr(), bufferMemory.getPtr(),
         precision.getPointer(0.0), bandDescriptor.getPtr(), outputViewMem.getPtr());
       outputViewMem.freeRef();
     });
@@ -233,7 +234,7 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
   
   @Nonnull
   public CudaTensorList getOutput(final CudnnHandle gpu, final CudaTensor inputTensor) {
-    
+    int pixels = inputTensor.descriptor.height * inputTensor.descriptor.width;
     @Nonnull final int[] inputDimensions = {inputTensor.descriptor.width, inputTensor.descriptor.height, inputTensor.descriptor.channels};
     final int length = inputTensor.descriptor.batchCount;
     final int bands = inputDimensions[2];
@@ -286,7 +287,7 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
       CudaMemory outputView = outputMemory.withByteOffset(band * precision.size * bands);
       CudaSystem.handle(gpu.cudnnReduceTensor(reduceAddDescriptor.getPtr(),
         indexPtr.getPtr(), indexPtr.size, workspacePtr.getPtr(), workspacePtr.size,
-        precision.getPointer(1.0), bufferDescriptor.getPtr(), bufferMemory.getPtr(),
+        precision.getPointer(1.0 / pixels), bufferDescriptor.getPtr(), bufferMemory.getPtr(),
         precision.getPointer(0.0), outputViewDescriptor.getPtr(), outputView.getPtr()));
       outputView.freeRef();
     });
