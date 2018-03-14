@@ -105,6 +105,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
             dataCompensation[i] = c;
           }
         }
+        if (!Double.isFinite(data[i])) data[i] = 0;
       }
     }
   }
@@ -120,6 +121,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
       @Nullable final double[] delta = getDelta();
       for (int i = 0; i < length(); i++) {
         target[i] += delta[i] * factor;
+        if (!Double.isFinite(target[i])) target[i] = 0;
       }
       assert Arrays.stream(target).allMatch(Double::isFinite);
     }

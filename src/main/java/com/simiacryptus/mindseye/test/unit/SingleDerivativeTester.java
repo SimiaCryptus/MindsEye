@@ -274,18 +274,22 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
       @Nonnull final Tensor[] copyInput = Arrays.copyOf(inputPrototype, inputPrototype.length);
       copyInput[inputIndex] = inputProbe;
       Result[] input1 = ConstantResult.batchResultArray(new Tensor[][]{copyInput});
-      @Nullable final Tensor evalProbe = component.eval(input1).getDataAndFree().getAndFree(0);
-      inputProbe.freeRef();
-      for (@Nonnull Result result : input1) {
-        result.freeRef();
-        result.getData().freeRef();
+      try {
+        @Nullable final Tensor evalProbe = component.eval(input1).getDataAndFree().getAndFree(0);
+        @Nonnull final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
+        for (int j = 0; j < delta.length(); j++) {
+          measuredGradient.set(new int[]{i, j}, delta.getData()[j]);
+        }
+        evalProbe.freeRef();
+        delta.freeRef();
+      } finally {
+        inputProbe.freeRef();
+        for (@Nonnull Result result : input1) {
+          result.freeRef();
+          result.getData().freeRef();
+        }
+        
       }
-      @Nonnull final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
-      evalProbe.freeRef();
-      for (int j = 0; j < delta.length(); j++) {
-        measuredGradient.set(new int[]{i, j}, delta.getData()[j]);
-      }
-      delta.freeRef();
     }
     baseOutput.freeRef();
     return measuredGradient;
