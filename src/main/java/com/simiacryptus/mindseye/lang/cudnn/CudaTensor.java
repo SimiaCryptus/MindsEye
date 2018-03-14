@@ -62,7 +62,8 @@ public class CudaTensor extends ReferenceCountingBase implements CudaSystem.Cuda
   public CudaTensor(final CudaMemory memory, final CudaDevice.CudaTensorDescriptor descriptor, final Precision precision) {
     this.memory = memory;
     this.memory.addRef();
-    this.descriptor = descriptor.copy(CudaSystem.getThreadHandle());
+    this.descriptor = descriptor;
+    this.descriptor.addRef();
     assert memory.size >= (long) precision.size * descriptor.nStride * (descriptor.batchCount - 1) : String.format("%d != %d", memory.size, (long) precision.size * descriptor.nStride * descriptor.batchCount);
     assert this.descriptor.dataType == precision;
   }

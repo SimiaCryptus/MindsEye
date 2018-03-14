@@ -84,7 +84,7 @@ public class StyleTransferDemo extends ArtistryDemo {
     init(log);
   
     Precision precision = Precision.Float;
-    imageSize = 400;
+    imageSize = 300;
     String content = "H:\\SimiaCryptus\\Artistry\\monkeydog.jpg";
     String style = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
   

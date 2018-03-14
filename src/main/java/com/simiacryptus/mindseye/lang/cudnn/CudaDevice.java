@@ -84,7 +84,7 @@ public class CudaDevice extends CudaSystem {
    * @param devPtr   the dev ptr
    * @return the int
    */
-  public static synchronized int cudaFree(int deviceId, final CudaPointer devPtr) {
+  public static int cudaFree(int deviceId, final CudaPointer devPtr) {
     long startTime = System.nanoTime();
     if (null == devPtr) return 0;
     Function<CudnnHandle, Integer> fn = dev -> {
@@ -507,11 +507,7 @@ public class CudaDevice extends CudaSystem {
    */
   public cudaDeviceProp getDeviceProperties() {
     if (null == deviceProperties) {
-      synchronized (this) {
-        if (null == deviceProperties) {
-          deviceProperties = getDeviceProperties(getDeviceId());
-        }
-      }
+      deviceProperties = getDeviceProperties(getDeviceId());
     }
     return deviceProperties;
   }

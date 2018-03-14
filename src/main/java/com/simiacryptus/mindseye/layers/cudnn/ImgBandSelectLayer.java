@@ -118,7 +118,6 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
     outputDimensions[2] = getTo() - getFrom();
     long size = (length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
     return new Result(CudaSystem.run(gpu -> {
-      @Nonnull final CudaMemory cudaOutput = gpu.allocate(size, MemoryType.Managed.normalize(), true);
       @Nullable final CudaTensor cudaInput = gpu.getTensor(inputData, precision, MemoryType.Device, false);
       final int byteOffset = cudaInput.descriptor.cStride * getFrom() * precision.size;
       @Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = gpu.newTensorDescriptor(
@@ -127,23 +126,12 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
         cudaInput.descriptor.cStride, //
         cudaInput.descriptor.hStride, //
         cudaInput.descriptor.wStride);
-      @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(
-        precision, length, outputDimensions[2], outputDimensions[1], outputDimensions[0], //
-        outputDimensions[2] * outputDimensions[1] * outputDimensions[0], //
-        outputDimensions[1] * outputDimensions[0], //
-        outputDimensions[0], //
-        1);
       CudaMemory cudaInputMemory = cudaInput.getMemory(gpu);
-      gpu.cudnnTransformTensor(
-        precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInputMemory.getPtr().withByteOffset(byteOffset),
-        precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr()
-      );
       assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
       cudaInputMemory.dirty();
-      cudaOutput.dirty();
+      Arrays.stream(new ReferenceCounting[]{cudaInput}).forEach(ReferenceCounting::freeRef);
+      CudaTensor cudaTensor = CudaTensor.wrap(cudaInputMemory.withByteOffset(byteOffset), inputDescriptor, precision);
       cudaInputMemory.freeRef();
-      Arrays.stream(new ReferenceCounting[]{cudaInput, inputDescriptor}).forEach(ReferenceCounting::freeRef);
-      CudaTensor cudaTensor = CudaTensor.wrap(cudaOutput, outputDescriptor, precision);
       return CudaTensorList.wrap(cudaTensor, length, outputDimensions, precision);
     }, inputData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
       if (!Arrays.equals(error.getDimensions(), outputDimensions)) {
