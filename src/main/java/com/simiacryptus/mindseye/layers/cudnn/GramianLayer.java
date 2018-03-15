@@ -137,6 +137,14 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
   
   }
   
+  /**
+   * Gets feedback.
+   *
+   * @param gpu         the gpu
+   * @param inputTensor the input tensor
+   * @param deltaTensor the delta tensor
+   * @return the feedback
+   */
   @Nonnull
   public CudaTensorList getFeedback(final CudnnHandle gpu, final CudaTensor inputTensor, final CudaTensor deltaTensor) {
     int pixels = inputTensor.descriptor.height * inputTensor.descriptor.width;
@@ -232,6 +240,13 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
     return feedback;
   }
   
+  /**
+   * Gets output.
+   *
+   * @param gpu         the gpu
+   * @param inputTensor the input tensor
+   * @return the output
+   */
   @Nonnull
   public CudaTensorList getOutput(final CudnnHandle gpu, final CudaTensor inputTensor) {
     int pixels = inputTensor.descriptor.height * inputTensor.descriptor.width;

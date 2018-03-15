@@ -36,7 +36,7 @@ import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
+import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
@@ -83,9 +83,8 @@ public class StyleTransferDemo extends ArtistryDemo {
    */
   public void run(@Nonnull NotebookOutput log) {
     init(log);
-  
     Precision precision = Precision.Float;
-    imageSize = 300;
+    imageSize = 382;
     String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170924_145214.jpg";
     String style = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
   
@@ -95,12 +94,24 @@ public class StyleTransferDemo extends ArtistryDemo {
     BufferedImage contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
     BufferedImage styleImage = load(style, imageSize);
     canvasImage = styleTransfer(log, precision, contentImage, styleImage, canvasImage,
-      0.0, 1,
-      1, 0,
-      0, 0,
-      0, 0,
-      0, 0,
-      0, 0);
+      0, 1,
+      1, 1,
+      1, 1,
+      1, 1,
+      1, 1,
+      1, 1);
+  
+    imageSize = imageSize * 2;
+    canvasImage = TestUtil.resize(canvasImage, imageSize, true);
+    contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
+    styleImage = load(style, imageSize);
+    canvasImage = styleTransfer(log, precision, contentImage, styleImage, canvasImage,
+      0, 1,
+      1, 1,
+      1, 1,
+      1, 1,
+      1, 1,
+      1, 1);
   
     imageSize = imageSize * 2;
     canvasImage = TestUtil.resize(canvasImage, imageSize, true);
@@ -135,11 +146,39 @@ public class StyleTransferDemo extends ArtistryDemo {
     log.setFrontMatterProperty("status", "OK");
   }
   
+  /**
+   * Randomize buffered image.
+   *
+   * @param contentImage the content image
+   * @return the buffered image
+   */
   @Nonnull
   public BufferedImage randomize(final BufferedImage contentImage) {
     return Tensor.fromRGB(contentImage).map(x -> FastRandom.INSTANCE.random()).toRgbImage();
   }
   
+  /**
+   * Style transfer buffered image.
+   *
+   * @param log              the log
+   * @param precision        the precision
+   * @param contentImage     the content image
+   * @param styleImage       the style image
+   * @param canvasImage      the canvas image
+   * @param coeff_content_0  the coeff content 0
+   * @param coeff_style_0    the coeff style 0
+   * @param coeff_content_1a the coeff content 1 a
+   * @param coeff_style_1a   the coeff style 1 a
+   * @param coeff_content_1b the coeff content 1 b
+   * @param coeff_style_1b   the coeff style 1 b
+   * @param coeff_content_1c the coeff content 1 c
+   * @param coeff_style_1c   the coeff style 1 c
+   * @param coeff_content_1d the coeff content 1 d
+   * @param coeff_style_1d   the coeff style 1 d
+   * @param coeff_content_1e the coeff content 1 e
+   * @param coeff_style_1e   the coeff style 1 e
+   * @return the buffered image
+   */
   @Nonnull
   public BufferedImage styleTransfer(@Nonnull final NotebookOutput log, final Precision precision, final BufferedImage contentImage, final BufferedImage styleImage, final BufferedImage canvasImage, final double coeff_content_0, final double coeff_style_0, final double coeff_content_1a, final double coeff_style_1a, final double coeff_content_1b, final double coeff_style_1b, final double coeff_content_1c, final double coeff_style_1c, final double coeff_content_1d, final double coeff_style_1d, final double coeff_content_1e, final double coeff_style_1e) {
     final PipelineNetwork content_0 = texture_0(log);
@@ -154,7 +193,7 @@ public class StyleTransferDemo extends ArtistryDemo {
     final PipelineNetwork style_1d = gram((PipelineNetwork) content_1d.copy());
     final PipelineNetwork content_1e = texture_1e(log);
     final PipelineNetwork style_1e = gram((PipelineNetwork) content_1e.copy());
-  
+    
     setPrecision(content_0, precision);
     setPrecision(style_0, precision);
     setPrecision(content_1a, precision);
@@ -180,7 +219,7 @@ public class StyleTransferDemo extends ArtistryDemo {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-  
+    
     Tensor target_content_0 = content_0.eval(contentInput).getDataAndFree().getAndFree(0);
     Tensor target_style_0 = style_0.eval(styleInput).getDataAndFree().getAndFree(0);
     Tensor target_content_1a = content_1a.eval(contentInput).getDataAndFree().getAndFree(0);
@@ -202,22 +241,21 @@ public class StyleTransferDemo extends ArtistryDemo {
           @Override
           protected void phase0() {
             super.phase0();
-            layerBuffer[0] = (PipelineNetwork) pipeline.freeze();
             nodes[0] = pipeline.getHead();
           }
-  
+          
           @Override
           protected void phase1a() {
             super.phase1a();
             nodes[1] = pipeline.getHead();
           }
-  
+          
           @Override
           protected void phase1b() {
             super.phase1b();
             nodes[2] = pipeline.getHead();
           }
-  
+          
           @Override
           protected void phase1c() {
             super.phase1c();
@@ -234,6 +272,7 @@ public class StyleTransferDemo extends ArtistryDemo {
           protected void phase1e() {
             super.phase1e();
             nodes[5] = pipeline.getHead();
+            layerBuffer[0] = (PipelineNetwork) pipeline.freeze();
             throw new RuntimeException("Abort Network Construction");
           }
         }.getNetwork();
@@ -244,7 +283,7 @@ public class StyleTransferDemo extends ArtistryDemo {
     });
     List<DAGNode> lossLayers = new ArrayList<>();
     PipelineNetwork network = layerBuffer[0];
-  
+    
     if (coeff_content_0 != 0 || coeff_style_0 != 0) {
       lossLayers.add(network.wrap(new BinarySumLayer(coeff_content_0, coeff_style_0),
         network.wrap(new MeanSqLossLayer(), nodes[0], network.constValue(target_content_0)),
@@ -296,7 +335,7 @@ public class StyleTransferDemo extends ArtistryDemo {
       new IterativeTrainer(trainable)
         .setMonitor(getTrainingMonitor(history))
         .setOrientation(new QQN())
-        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
+        .setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-2))
         .setTimeout(90, TimeUnit.MINUTES)
         .runAndFree();
       return TestUtil.plot(history);
@@ -310,6 +349,13 @@ public class StyleTransferDemo extends ArtistryDemo {
     return result;
   }
   
+  /**
+   * Load buffered image.
+   *
+   * @param style     the style
+   * @param imageSize the image size
+   * @return the buffered image
+   */
   @Nonnull
   public BufferedImage load(final String style, final int imageSize) {
     BufferedImage image1;
@@ -322,6 +368,14 @@ public class StyleTransferDemo extends ArtistryDemo {
     return image1;
   }
   
+  /**
+   * Load buffered image.
+   *
+   * @param style  the style
+   * @param width  the width
+   * @param height the height
+   * @return the buffered image
+   */
   @Nonnull
   public BufferedImage load(final String style, final int width, final int height) {
     BufferedImage image1;
@@ -490,6 +544,12 @@ public class StyleTransferDemo extends ArtistryDemo {
     return layers[0];
   }
   
+  /**
+   * Gram pipeline network.
+   *
+   * @param network the network
+   * @return the pipeline network
+   */
   @Nonnull
   public PipelineNetwork gram(final PipelineNetwork network) {
     network.wrap(new GramianLayer());
