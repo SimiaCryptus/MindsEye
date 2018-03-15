@@ -116,19 +116,27 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
   }
   
   /**
+   * Phase 0.
+   */
+  protected void phase0() {
+    add(new ImgMinSizeLayer(226, 226));
+  }
+  
+  /**
+   * Phase 1 a.
+   */
+  protected void phase1a() {
+    addConvolutionLayer(3, 3, 64, ActivationLayer.Mode.RELU, "layer_1");
+    addConvolutionLayer(3, 64, 64, ActivationLayer.Mode.RELU, "layer_3");
+  }
+  
+  /**
    * Phase 1 b.
    */
   protected void phase1b() {
     addPoolingLayer(2);
     addConvolutionLayer(3, 64, 128, ActivationLayer.Mode.RELU, "layer_6");
     addConvolutionLayer(3, 128, 128, ActivationLayer.Mode.RELU, "layer_8");
-  }
-  
-  /**
-   * Phase 0.
-   */
-  protected void phase0() {
-    add(new ImgMinSizeLayer(226, 226));
   }
   
   /**
@@ -139,14 +147,6 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
     addConvolutionLayer(3, 128, 256, ActivationLayer.Mode.RELU, "layer_11");
     addConvolutionLayer(3, 256, 256, ActivationLayer.Mode.RELU, "layer_13");
     addConvolutionLayer(3, 256, 256, ActivationLayer.Mode.RELU, "layer_15");
-  }
-  
-  /**
-   * Phase 1 a.
-   */
-  protected void phase1a() {
-    addConvolutionLayer(3, 3, 64, ActivationLayer.Mode.RELU, "layer_1");
-    addConvolutionLayer(3, 64, 64, ActivationLayer.Mode.RELU, "layer_3");
   }
   
   /**

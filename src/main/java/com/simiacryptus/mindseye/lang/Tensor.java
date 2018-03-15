@@ -1167,8 +1167,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    * @param value  the value
    */
   public void set(@Nonnull final Coordinate coords, final double value) {
-    assert Double.isFinite(value);
-    set(coords.getIndex(), value);
+    if (Double.isFinite(value)) set(coords.getIndex(), value);
   }
   
   /**
