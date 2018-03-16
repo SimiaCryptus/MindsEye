@@ -924,17 +924,36 @@ public class TestUtil {
     return Arrays.stream(stack).map(x -> x.getFileName() + ":" + x.getLineNumber()).reduce((a, b) -> a + delimiter + b).orElse("");
   }
   
+  public static String getCaller() {
+    return toString(getStackTrace(4));
+  }
+  
   /**
    * Get stack trace stack trace element [ ].
    *
    * @return the stack trace element [ ]
    */
-  public static StackTraceElement[] getStackTrace() {
-    return Arrays.stream(Thread.currentThread().getStackTrace())
+  public static StackTraceElement[] getStackTrace() {return getStackTrace(5);}
+  
+  /**
+   * Get stack trace stack trace element [ ].
+   *
+   * @param skip
+   * @return the stack trace element [ ]
+   */
+  public static StackTraceElement[] getStackTrace(final int skip) {
+    StackTraceElement[] elements = Arrays.stream(Thread.currentThread().getStackTrace()).skip(skip)
       .filter(x -> x.getClassName().startsWith("com.simiacryptus.mindseye.")
         && !x.getClassName().startsWith("com.simiacryptus.mindseye.lang.")
         && !x.getClassName().startsWith("com.simiacryptus.mindseye.test."))
       .limit(1)
       .toArray(i -> new StackTraceElement[i]);
+    if (0 == elements.length) {
+      elements = Arrays.stream(Thread.currentThread().getStackTrace()).skip(skip)
+        .filter(x -> x.getClassName().startsWith("com.simiacryptus.mindseye."))
+        .limit(1)
+        .toArray(i -> new StackTraceElement[i]);
+    }
+    return elements;
   }
 }

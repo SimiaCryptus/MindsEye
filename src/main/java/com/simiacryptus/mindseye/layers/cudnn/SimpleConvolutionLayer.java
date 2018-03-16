@@ -255,6 +255,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
       buffer.assertAlive();
       inputData.assertAlive();
       assert delta.length() == inputData.length();
+      delta.addRef();
       Runnable learnFn = () -> {
         if (!isFrozen()) {
           CudaSystem.run(gpu -> {
@@ -290,8 +291,8 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
               } catch (@Nonnull final Throwable e) {
                 throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
               }
-              filterPtr.synchronize();
               @Nonnull final Tensor weightGradient = filterPtr.read(precision, kernel.getDimensions());
+              delta.freeRef();
               inputTensor.freeRef();
               filterPtr.freeRef();
               deltaTensor.freeRef();
@@ -302,6 +303,9 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
               Stream.of(filterDescriptor, convolutionDescriptor, backwardsFilterWorkSpace).forEach(ReferenceCounting::freeRef);
             }
           }, delta);
+        }
+        else {
+          delta.freeRef();
         }
       };
       Runnable backpropFn = () -> {
@@ -349,9 +353,13 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
               Stream.of(inputDescriptor, filterDescriptor, convolutionDescriptor, backwardsDataWorkSpace).forEach(ReferenceCounting::freeRef);
             }
           }, delta);
+          delta.freeRef();
           if (null != inputBufferTensors) {
             input.accumulate(buffer, inputBufferTensors);
           }
+        }
+        else {
+          delta.freeRef();
         }
       };
       TestUtil.runAllSerial(learnFn, backpropFn);

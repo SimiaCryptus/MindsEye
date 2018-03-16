@@ -175,6 +175,7 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
               return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor, precision), length, dimensions, precision);
             }, l, r);
           }).get();
+          delta.freeRef();
           input.accumulate(buffer, data);
         }
       }

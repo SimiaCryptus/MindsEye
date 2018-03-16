@@ -1222,6 +1222,7 @@ public class CudaSystem {
     return deviceCount;
   }
   
+  private static final HashMap<Integer, Object> deviceLocks = new HashMap<>();
   /**
    * Synchronize.
    *
@@ -1229,10 +1230,21 @@ public class CudaSystem {
    * @param device the device
    */
   public static void synchronize(long time, int device) {
+    long startTime = System.nanoTime();
     Long val = syncTimes.get(device);
+    if (null == val) val = 0L;
     if (null == val || val < time) {
+      final Long finalVal = val;
+      String caller = !CudaSettings.INSTANCE.isProfileMemoryIO() ? "" : TestUtil.getCaller();
       withDevice(device, gpu -> {
-        cudaDeviceSynchronize();
+        if (null == finalVal || finalVal < time) {
+          synchronized (deviceLocks.computeIfAbsent(device, d -> new Object())) {
+            if (null == finalVal || finalVal < time) {
+              TimedResult<Long> timedResult = TimedResult.time(() -> cudaDeviceSynchronize());
+              CudaTensorList.logger.debug(String.format("Synchronized %d in %.4f (%.6f -> %.6f -> %.6f) via %s", getThreadDeviceId(), timedResult.seconds(), (finalVal - startTime) / 1e9, (time - startTime) / 1e9, (timedResult.result - startTime) / 1e9, caller));
+            }
+          }
+        }
       });
     }
   }
@@ -1242,16 +1254,14 @@ public class CudaSystem {
    *
    * @return the int
    */
-  public static int cudaDeviceSynchronize() {
+  public static long cudaDeviceSynchronize() {
     long startTime = System.nanoTime();
-    TimedResult<Integer> timedResult = TimedResult.time(() -> JCuda.cudaDeviceSynchronize());
-    final int result = timedResult.result;
+    final int result = JCuda.cudaDeviceSynchronize();
     log("cudaDeviceSynchronize", result, new Object[]{});
-    CudaTensorList.logger.info(String.format("Synchronized %d in %.4f at %s", getThreadDeviceId(), timedResult.seconds(), startTime));
     cudaDeviceSynchronize_execution.accept((System.nanoTime() - startTime) / 1e9);
     handle(result);
     syncTimes.put(getThreadDeviceId(), startTime);
-    return result;
+    return startTime;
   }
   
   /**

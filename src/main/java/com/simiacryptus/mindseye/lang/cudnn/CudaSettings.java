@@ -34,7 +34,6 @@ public class CudaSettings implements Settings {
    * The Memory cache mode.
    */
   public final PersistanceMode memoryCacheMode;
-  private final PersistanceMode workspaceCachePersistance;
   private final long maxTotalMemory;
   private final long maxAllocSize;
   private final double maxIoElements;
@@ -48,32 +47,30 @@ public class CudaSettings implements Settings {
   private final long maxDeviceMemory;
   private final boolean logStack;
   private final boolean profileMemoryIO;
-  private boolean asyncFree;
-  private boolean enableManaged;
-  /**
-   * The Sync before free.
-   */
-  public boolean syncBeforeFree;
+  private final boolean asyncFree;
+  private final boolean enableManaged;
+  private final boolean syncBeforeFree;
+  private final int memoryCacheTTL;
   
   private CudaSettings() {
     maxTotalMemory = Settings.get("MAX_TOTAL_MEMORY", 6 * CudaMemory.GiB);
     maxDeviceMemory = Settings.get("MAX_DEVICE_MEMORY", 6 * CudaMemory.GiB);
     maxAllocSize = Settings.get("MAX_ALLOC_SIZE", Precision.Double.size * (Integer.MAX_VALUE - 1L));
     maxFilterElements = Settings.get("MAX_FILTER_ELEMENTS", 1024 * CudaMemory.MiB);
-    maxIoElements = Settings.get("MAX_IO_ELEMENTS", 2 * CudaMemory.MiB);
+    maxIoElements = Settings.get("MAX_IO_ELEMENTS", 4 * CudaMemory.MiB);
     convolutionWorkspaceSizeLimit = Settings.get("CONVOLUTION_WORKSPACE_SIZE_LIMIT", 512 * CudaMemory.MiB);
     disable = Settings.get("DISABLE_CUDNN", false);
     forceSingleGpu = Settings.get("FORCE_SINGLE_GPU", false);
-    workspaceCachePersistance = Settings.get("CONV_CACHE_MODE", PersistanceMode.WEAK);
     conv_para_1 = Settings.get("CONV_PARA_1", true);
-    conv_para_2 = Settings.get("CONV_PARA_2", true);
-    conv_para_3 = Settings.get("CONV_PARA_3", true);
+    conv_para_2 = Settings.get("CONV_PARA_2", false);
+    conv_para_3 = Settings.get("CONV_PARA_3", false);
     memoryCacheMode = Settings.get("CUDA_CACHE_MODE", PersistanceMode.WEAK);
     logStack = Settings.get("CUDA_LOG_STACK", false);
-    profileMemoryIO = Settings.get("CUDA_PROFILE_MEM_IO", false);
+    profileMemoryIO = Settings.get("CUDA_PROFILE_MEM_IO", true);
     enableManaged = true;
-    asyncFree = false;
+    asyncFree = true;
     syncBeforeFree = true;
+    memoryCacheTTL = 90;
   }
   
   /**
@@ -140,15 +137,6 @@ public class CudaSettings implements Settings {
   }
   
   /**
-   * Gets workspace cache persistance.
-   *
-   * @return the workspace cache persistance
-   */
-  public PersistanceMode getWorkspaceCachePersistance() {
-    return workspaceCachePersistance;
-  }
-  
-  /**
    * Is conv para 2 boolean.
    *
    * @return the boolean
@@ -212,15 +200,6 @@ public class CudaSettings implements Settings {
   }
   
   /**
-   * Sets async free.
-   *
-   * @param asyncFree the async free
-   */
-  public void setAsyncFree(boolean asyncFree) {
-    this.asyncFree = asyncFree;
-  }
-  
-  /**
    * Is enable managed boolean.
    *
    * @return the boolean
@@ -230,11 +209,13 @@ public class CudaSettings implements Settings {
   }
   
   /**
-   * Sets enable managed.
-   *
-   * @param enableManaged the enable managed
+   * The Sync before free.
    */
-  public void setEnableManaged(boolean enableManaged) {
-    this.enableManaged = enableManaged;
+  public boolean isSyncBeforeFree() {
+    return syncBeforeFree;
+  }
+  
+  public int getMemoryCacheTTL() {
+    return memoryCacheTTL;
   }
 }

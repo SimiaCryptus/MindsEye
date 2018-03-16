@@ -21,12 +21,12 @@ package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.simiacryptus.mindseye.lang.RecycleBin;
 import com.simiacryptus.mindseye.lang.ReferenceWrapper;
+import com.simiacryptus.mindseye.test.TestUtil;
 import jcuda.runtime.cudaDeviceProp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -154,7 +154,9 @@ public enum MemoryType {
    * @param length   the length
    */
   public void recycle(CudaPointer ptr, int deviceId, final long length) {
+    logger.debug(String.format("Recycle %s %s (%s bytes) in device %s via %s", name(), Integer.toHexString(System.identityHashCode(ptr)), length, deviceId, !CudaSettings.INSTANCE.isProfileMemoryIO() ? "" : TestUtil.getCaller()));
     get(deviceId).recycle(new ReferenceWrapper<>(ptr, x -> {
+      logger.debug(String.format("Freed %s %s (%s bytes) in device %s via %s", name(), Integer.toHexString(System.identityHashCode(ptr)), length, deviceId, !CudaSettings.INSTANCE.isProfileMemoryIO() ? "" : TestUtil.getCaller()));
       CudaMemory.getGpuStats(deviceId).usedMemory.addAndGet(-length);
       MemoryType.this.free(x, deviceId);
     }), length);
@@ -172,29 +174,29 @@ public enum MemoryType {
       return new RecycleBin<ReferenceWrapper<CudaPointer>>() {
         @Override
         protected void free(final ReferenceWrapper<CudaPointer> obj) {
+          MemoryType.logger.debug(String.format("Freed %s %s in device %s at %s", name(), Integer.toHexString(System.identityHashCode(obj.peek())), device, !CudaSettings.INSTANCE.isProfileMemoryIO() ? "" : TestUtil.getCaller()));
           obj.destroy();
-        }
-  
-        @Override
-        public void recycle(@Nullable final ReferenceWrapper<CudaPointer> data, final long size) {
-          assert data.peek().deviceId == device || -1 == device;
-          super.recycle(data, size);
         }
   
         @Override
         public ReferenceWrapper<CudaPointer> obtain(final long length) {
           assert -1 == device || CudaSystem.getThreadDeviceId() == device;
-          return super.obtain(length);
+          ReferenceWrapper<CudaPointer> referenceWrapper = super.obtain(length);
+          MemoryType.logger.debug(String.format("Obtained %s %s (%s bytes) in device %s via %s", name(), Integer.toHexString(System.identityHashCode(referenceWrapper.peek())), length, device, !CudaSettings.INSTANCE.isProfileMemoryIO() ? "" : TestUtil.getCaller()));
+          return referenceWrapper;
         }
   
         @Nonnull
         @Override
         public ReferenceWrapper<CudaPointer> create(final long length) {
           assert -1 == device || CudaSystem.getThreadDeviceId() == device;
+          String caller = !CudaSettings.INSTANCE.isProfileMemoryIO() ? "" : TestUtil.getCaller();
           return CudaDevice.run(gpu -> {
             CudaPointer alloc = MemoryType.this.alloc(length, gpu);
+            MemoryType.logger.debug(String.format("Created %s %s (%s bytes) in device %s via %s", name(), Integer.toHexString(System.identityHashCode(alloc)), length, device, caller));
             CudaMemory.getGpuStats(device).usedMemory.addAndGet(length);
             return new ReferenceWrapper<>(alloc, x -> {
+              MemoryType.logger.debug(String.format("Freed %s %s (%s bytes) in device %s via %s", name(), Integer.toHexString(System.identityHashCode(alloc)), length, device, !CudaSettings.INSTANCE.isProfileMemoryIO() ? "" : TestUtil.getCaller()));
               CudaMemory.getGpuStats(device).usedMemory.addAndGet(-length);
               MemoryType.this.free(x, device);
             });
@@ -205,7 +207,7 @@ public enum MemoryType {
         public void reset(final ReferenceWrapper<CudaPointer> data, final long size) {
           // There is no need to clean new objects - native memory system doesn't either.
         }
-      }.setPersistanceMode(CudaSettings.INSTANCE.memoryCacheMode);
+      }.setPersistanceMode(CudaSettings.INSTANCE.memoryCacheMode).setMinLengthPerBuffer(1).setPurgeFreq(CudaSettings.INSTANCE.getMemoryCacheTTL());
     });
   }
   
@@ -238,7 +240,10 @@ public enum MemoryType {
    * @return the pointer
    */
   public CudaPointer allocCached(final long size, final CudaDevice cudaDevice) {
-    return get(cudaDevice.deviceId).obtain(size).unwrap();
+    RecycleBin<ReferenceWrapper<CudaPointer>> recycleBin = get(cudaDevice.deviceId);
+    ReferenceWrapper<CudaPointer> wrapper = recycleBin.obtain(size);
+    CudaPointer ptr = wrapper.unwrap();
+    return ptr;
   }
   
   

@@ -109,7 +109,7 @@ public class CudaTensor extends ReferenceCountingBase implements CudaSystem.Cuda
    */
   public CudaMemory getMemory(final CudaDevice cudaDevice, final MemoryType memoryType) {
     assertAlive();
-    memory.synchronize();
+//    memory.synchronize();
     if (memory.getType() == MemoryType.Managed) {
       memory.addRef();
       return memory;
@@ -218,7 +218,6 @@ public class CudaTensor extends ReferenceCountingBase implements CudaSystem.Cuda
           (descriptor.width - 1) * descriptor.wStride + 1;
         double[] buffer = RecycleBin.DOUBLES.obtain(size);
         try {
-          memory.synchronize();
           memory.read(descriptor.dataType, buffer, descriptor.nStride * index);
           result.setByCoord(c -> {
             int[] coords = c.getCoords();

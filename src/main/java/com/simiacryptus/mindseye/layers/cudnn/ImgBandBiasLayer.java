@@ -169,7 +169,6 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
           assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
           biasMem.dirty();
           double[] biasV = new double[bias.length()];
-          biasMem.synchronize();
           biasMem.read(precision, biasV);
           Stream.<ReferenceCounting>of(biasMem, deltaTensorMemory, deltaTensor, opDescriptor, biasDescriptor).forEach(ReferenceCounting::freeRef);
           return biasV;
@@ -184,11 +183,6 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
       }
     }) {
   
-      @Override
-      protected boolean autofree() {
-        return false;
-      }
-      
       @Override
       protected void _free() {
         leftData.freeRef();

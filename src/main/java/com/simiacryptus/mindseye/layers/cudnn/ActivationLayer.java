@@ -251,10 +251,6 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
             delta.freeRef();
           }
         }) {
-        @Override
-        protected boolean autofree() {
-          return false;
-        }
   
         @Override
         protected void _free() {

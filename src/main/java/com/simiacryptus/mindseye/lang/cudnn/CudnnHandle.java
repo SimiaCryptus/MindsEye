@@ -1066,13 +1066,13 @@ public class CudnnHandle extends CudaDevice {
     cleanupNative.drainTo(objsToFree);
     if (CudaSettings.INSTANCE.isAsyncFree()) {
       cleanupPool.submit(() -> {
-        if (CudaSettings.INSTANCE.syncBeforeFree && !objsToFree.isEmpty()) synchronize(System.nanoTime(), deviceId);
+        if (CudaSettings.INSTANCE.isSyncBeforeFree() && !objsToFree.isEmpty()) synchronize(System.nanoTime(), deviceId);
         objsToFree.stream().forEach(CudaResourceBase::release);
         super.cleanup();
       });
     }
     else {
-      if (CudaSettings.INSTANCE.syncBeforeFree && !objsToFree.isEmpty()) synchronize(System.nanoTime(), deviceId);
+      if (CudaSettings.INSTANCE.isSyncBeforeFree() && !objsToFree.isEmpty()) synchronize(System.nanoTime(), deviceId);
       objsToFree.stream().forEach(CudaResourceBase::release);
       super.cleanup();
     }

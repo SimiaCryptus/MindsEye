@@ -241,10 +241,6 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
             delta.freeRef();
           }
         }) {
-        @Override
-        protected boolean autofree() {
-          return false;
-        }
   
         @Override
         protected void _free() {

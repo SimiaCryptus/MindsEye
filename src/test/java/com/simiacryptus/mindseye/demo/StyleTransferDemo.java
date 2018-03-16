@@ -84,7 +84,7 @@ public class StyleTransferDemo extends ArtistryDemo {
   public void run(@Nonnull NotebookOutput log) {
     init(log);
     Precision precision = Precision.Float;
-    imageSize = 382;
+    imageSize = 200;
     String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170924_145214.jpg";
     String style = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
   
@@ -94,37 +94,27 @@ public class StyleTransferDemo extends ArtistryDemo {
     BufferedImage contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
     BufferedImage styleImage = load(style, imageSize);
     canvasImage = styleTransfer(log, precision, contentImage, styleImage, canvasImage,
-      0, 1,
       1, 1,
       1, 1,
       1, 1,
       1, 1,
-      1, 1);
+      1e1, 1,
+      1e2, 1);
   
-    imageSize = imageSize * 2;
-    canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-    contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
-    styleImage = load(style, imageSize);
-    canvasImage = styleTransfer(log, precision, contentImage, styleImage, canvasImage,
-      0, 1,
-      1, 1,
-      1, 1,
-      1, 1,
-      1, 1,
-      1, 1);
-  
-    imageSize = imageSize * 2;
-    canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-    contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
-    styleImage = load(style, imageSize);
-    canvasImage = styleTransfer(log, precision, contentImage, styleImage, canvasImage,
-      0.0, 0.0,
-      0.0, 0.0,
-      10.0, 1.0,
-      10.0, 1.0,
-      10.0, 1.0,
-      0.0, 0.0);
-  
+    for (int i = 0; i < 3; i++) {
+      imageSize = imageSize * 2;
+      canvasImage = TestUtil.resize(canvasImage, imageSize, true);
+      contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
+      styleImage = load(style, imageSize);
+      canvasImage = styleTransfer(log, precision, contentImage, styleImage, canvasImage,
+        1, 1,
+        1, 1,
+        1, 1,
+        1, 1,
+        1e1, 1,
+        1e2, 1);
+    }
+
     imageSize = imageSize * 2;
     canvasImage = TestUtil.resize(canvasImage, imageSize, true);
     contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
@@ -133,16 +123,10 @@ public class StyleTransferDemo extends ArtistryDemo {
       0.0, 0.0,
       0.0, 0.0,
       0.0, 0.0,
-      1000.0, 1.0,
-      1000.0, 1.0,
-      1000.0, 1.0);
+      1e3, 1.0,
+      1e3, 1.0,
+      1e3, 1.0);
   
-    imageSize = imageSize * 2;
-    canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-    contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
-    styleImage = load(style, imageSize);
-    canvasImage = styleTransfer(log, precision, contentImage, styleImage, canvasImage, 0.0 * 1e3 * (double) 0, 1.0 * (double) 0, 1e3 * (double) 0, 1.0 * (double) 0, 1e3 * (double) 0, 1.0 * (double) 0, 1e3 * 1.0, 1.0 * 1.0, 1e3 * 1.0, 1.0 * 1.0, 1e3 * 1.0, 1.0 * 1.0);
-    
     log.setFrontMatterProperty("status", "OK");
   }
   
@@ -154,7 +138,7 @@ public class StyleTransferDemo extends ArtistryDemo {
    */
   @Nonnull
   public BufferedImage randomize(final BufferedImage contentImage) {
-    return Tensor.fromRGB(contentImage).map(x -> FastRandom.INSTANCE.random()).toRgbImage();
+    return Tensor.fromRGB(contentImage).map(x -> FastRandom.INSTANCE.random() * 100).toRgbImage();
   }
   
   /**

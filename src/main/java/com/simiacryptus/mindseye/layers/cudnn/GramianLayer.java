@@ -117,6 +117,7 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
           inputTensor.freeRef();
           return feedback;
         }, delta);
+        delta.freeRef();
         inObj[0].accumulate(buffer, passbackTensorList);
       }
     })
@@ -153,8 +154,8 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
     @Nonnull final int[] inputDimensions = {inputTensor.descriptor.width, inputTensor.descriptor.height, inputTensor.descriptor.channels};
     final int length = inputTensor.descriptor.batchCount;
     final int bands = inputDimensions[2];
-    
-    @Nullable final CudaMemory bufferMemory = gpu.allocate((long) inputTensor.descriptor.nStride * length * precision.size, MemoryType.Device, false);
+  
+    @Nullable final CudaMemory bufferMemory = gpu.allocate((long) inputTensor.descriptor.nStride * length * precision.size, MemoryType.Device, true);
     @Nonnull final CudaDevice.CudaTensorDescriptor bufferDescriptor = gpu.newTensorDescriptor(
       precision, length, bands, inputDimensions[1], inputDimensions[0],
       inputDimensions[0] * inputDimensions[1] * bands, //
@@ -167,7 +168,7 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
       inputDimensions[0] * inputDimensions[1], //
       inputDimensions[0], //
       1);
-    @Nullable final CudaMemory outputMemory = gpu.allocate((long) outputDescriptor.nStride * precision.size * length, MemoryType.Device, false);
+    @Nullable final CudaMemory outputMemory = gpu.allocate((long) outputDescriptor.nStride * precision.size * length, MemoryType.Managed, true);
     @Nonnull final CudaMemory workspacePtr = gpu.allocate(Math.max(outputMemory.size, inputMemory.size), MemoryType.Device, true);
     @Nonnull final CudaMemory indexPtr = gpu.allocate(12 * length, MemoryType.Device, false);
     
@@ -263,7 +264,7 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
       1, //
       1, //
       1);
-    @Nullable final CudaMemory outputMemory = gpu.allocate((long) ouputDescriptor.nStride * precision.size * length, MemoryType.Device, false);
+    @Nullable final CudaMemory outputMemory = gpu.allocate((long) ouputDescriptor.nStride * precision.size * length, MemoryType.Device, true);
     
     @Nonnull final CudaDevice.CudaTensorDescriptor bufferDescriptor = gpu.newTensorDescriptor(
       precision, length, bands, inputDimensions[1], inputDimensions[0],
@@ -271,7 +272,7 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
       inputDimensions[0] * inputDimensions[1], //
       inputDimensions[0], //
       1);
-    @Nullable final CudaMemory bufferMemory = gpu.allocate((long) bufferDescriptor.nStride * length * precision.size, MemoryType.Device, false);
+    @Nullable final CudaMemory bufferMemory = gpu.allocate((long) bufferDescriptor.nStride * length * precision.size, MemoryType.Device, true);
     
     @Nonnull final CudaDevice.CudaTensorDescriptor inputViewDescriptor = gpu.newTensorDescriptor(
       precision, length, 1, inputDimensions[1], inputDimensions[0],
@@ -288,9 +289,9 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
       length, bands, 1, 1,
       bands * bands, 1, 1, 1);
     @Nonnull final CudaResource<cudnnOpTensorDescriptor> multiplyDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
-    
-    @Nonnull final CudaMemory workspacePtr = gpu.allocate(Math.max(outputMemory.size, inputMemory.size), MemoryType.Device, false);
-    @Nonnull final CudaMemory indexPtr = gpu.allocate((long) 12 * length, MemoryType.Device, false);
+  
+    @Nonnull final CudaMemory workspacePtr = gpu.allocate(Math.max(outputMemory.size, inputMemory.size), MemoryType.Device, true);
+    @Nonnull final CudaMemory indexPtr = gpu.allocate((long) 12 * length, MemoryType.Device, true);
     IntStream.range(0, inputDimensions[2]).forEach(band -> {
       CudaMemory inputView = inputMemory.withByteOffset(band * precision.size * inputTensor.descriptor.cStride);
       CudaSystem.handle(gpu.cudnnOpTensor(multiplyDescriptor.getPtr(),

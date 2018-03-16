@@ -170,7 +170,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    */
   @Nonnull
   public Tensor read(@Nonnull final Precision precision, final int[] dimensions) {
-    //CudaSystem.cudaDeviceSynchronize();
+    synchronize();
     @Nonnull final Tensor tensor = new Tensor(dimensions);
     switch (precision) {
       case Float:
@@ -200,6 +200,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    */
   public CudaMemory copy(CudaDevice deviceId, final MemoryType memoryType) {
     @Nonnull CudaMemory copy = deviceId.allocate(size, memoryType, true);
+    synchronize();
     CudaSystem.cudaMemcpy(copy.getPtr(), this.getPtr(), size, cudaMemcpyKind.cudaMemcpyDeviceToDevice);
     return copy;
   }
@@ -209,7 +210,6 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    * Free.
    */
   protected void _free() {
-    synchronize();
     if (ptr.getByteOffset() != 0) return;
     CudnnHandle threadHandle = CudaSystem.getThreadHandle();
     if (null != threadHandle) threadHandle.cleanupNative.add(this);
@@ -220,6 +220,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
   public void release() {
     if (ptr.getByteOffset() != 0) return;
     if (isActiveObj()) {
+      synchronize();
       getType().recycle(ptr, deviceId, size);
       ptr = null;
       CudaMemory.getGpuStats(deviceId).activeMemory.addAndGet(-size);
@@ -257,6 +258,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
       }
     }
     else {
+      synchronize();
       CudaSystem.run(gpu -> {
         CudaSystem.cudaMemcpy(precision.getPointer(destination), getPtr().withByteOffset((long) offset * precision.size), (long) destination.length * precision.size, cudaMemcpyDeviceToHost);
       });
@@ -296,6 +298,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
       }
     }
     else {
+      synchronize();
       CudaSystem.cudaMemcpy(precision.getPointer(destination), getPtr().withByteOffset((long) offset * precision.size), (long) destination.length * precision.size, cudaMemcpyDeviceToHost);
       CudaMemory.getGpuStats(deviceId).memoryReads.addAndGet((long) destination.length * precision.size);
     }
