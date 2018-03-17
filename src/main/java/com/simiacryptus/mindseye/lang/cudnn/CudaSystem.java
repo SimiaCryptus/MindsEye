@@ -1223,6 +1223,7 @@ public class CudaSystem {
   }
   
   private static final HashMap<Integer, Object> deviceLocks = new HashMap<>();
+  
   /**
    * Synchronize.
    *

@@ -103,7 +103,7 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
     PipelineNetwork gateNetwork = new PipelineNetwork(1);
     gateNetwork.wrap(new GateProductLayer(),
       gateNetwork.getInput(0),
-      gateNetwork.wrap(new ConstLayer(new Tensor(1, 1, 1).mapAndFree(v -> 1.0 / samples.length)), new DAGNode[]{}));
+      gateNetwork.wrap(new ValueLayer(new Tensor(1, 1, 1).mapAndFree(v -> 1.0 / samples.length)), new DAGNode[]{}));
     SumInputsLayer sumInputsLayer = new SumInputsLayer();
     try {
       return gateNetwork.evalAndFree(sumInputsLayer.evalAndFree(samples));

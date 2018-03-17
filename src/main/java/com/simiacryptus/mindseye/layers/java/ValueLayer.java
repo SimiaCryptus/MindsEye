@@ -40,7 +40,7 @@ import java.util.Map;
  * processes.
  */
 @SuppressWarnings("serial")
-public class ConstLayer extends LayerBase {
+public class ValueLayer extends LayerBase {
   
   @Nullable
   private Tensor data;
@@ -51,7 +51,7 @@ public class ConstLayer extends LayerBase {
    * @param json      the json
    * @param resources the resources
    */
-  protected ConstLayer(@Nonnull final JsonObject json, Map<String, byte[]> resources) {
+  protected ValueLayer(@Nonnull final JsonObject json, Map<String, byte[]> resources) {
     super(json);
     data = Tensor.fromJson(json.get("value"), resources);
   }
@@ -61,9 +61,10 @@ public class ConstLayer extends LayerBase {
    *
    * @param data the data
    */
-  public ConstLayer(final Tensor data) {
+  public ValueLayer(final Tensor data) {
     super();
     this.data = data;
+    data.addRef();
     this.frozen = true;
   }
   
@@ -74,19 +75,19 @@ public class ConstLayer extends LayerBase {
    * @param rs   the rs
    * @return the const nn layer
    */
-  public static ConstLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
-    return new ConstLayer(json, rs);
+  public static ValueLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+    return new ValueLayer(json, rs);
   }
   
   @Nonnull
   @Override
   public Result eval(@Nonnull final Result... array) {
-    Arrays.stream(array).forEach(nnResult -> nnResult.addRef());
-    ConstLayer.this.addRef();
-    return new Result(TensorArray.create(data), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    ValueLayer.this.addRef();
+    ValueLayer.this.data.addRef();
+    return new Result(TensorArray.create(ValueLayer.this.data), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       if (!isFrozen()) {
         data.stream().forEach(datum -> {
-          buffer.get(ConstLayer.this, ConstLayer.this.data.getData()).addInPlace(datum.getData()).freeRef();
+          buffer.get(ValueLayer.this, ValueLayer.this.data.getData()).addInPlace(datum.getData()).freeRef();
           datum.freeRef();
         });
       }
@@ -94,15 +95,20 @@ public class ConstLayer extends LayerBase {
       
       @Override
       protected void _free() {
-        Arrays.stream(array).forEach(nnResult -> nnResult.freeRef());
-        ConstLayer.this.freeRef();
+        ValueLayer.this.data.freeRef();
+        ValueLayer.this.freeRef();
       }
       
       @Override
       public boolean isAlive() {
-        return !ConstLayer.this.isFrozen();
+        return !ValueLayer.this.isFrozen();
       }
     };
+  }
+  
+  @Override
+  protected void _free() {
+    data.freeRef();
   }
   
   /**
@@ -121,6 +127,8 @@ public class ConstLayer extends LayerBase {
    * @param data the data
    */
   public void setData(final Tensor data) {
+    data.addRef();
+    if (null != this.data) this.data.freeRef();
     this.data = data;
   }
   

@@ -50,7 +50,7 @@ public class TargetValueLayer extends DAGNetwork {
    */
   public TargetValueLayer(final double... values) {
     super(1);
-    target = add(new ConstLayer(new Tensor(values)));
+    target = add(new ValueLayer(new Tensor(values)));
     head = add(new MeanSqLossLayer(), getInput(0), target);
   }
   
@@ -97,7 +97,7 @@ public class TargetValueLayer extends DAGNetwork {
    */
   @Nonnull
   public TargetValueLayer setTarget(final double... value) {
-    target.<ConstLayer>getLayer().setData(new Tensor(value));
+    target.<ValueLayer>getLayer().setData(new Tensor(value));
     return this;
   }
 }

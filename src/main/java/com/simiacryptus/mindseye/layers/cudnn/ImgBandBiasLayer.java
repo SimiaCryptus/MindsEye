@@ -71,10 +71,11 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
   /**
    * Instantiates a new Product inputs layer.
    *
-   * @param bias
+   * @param bias the bias
    */
   public ImgBandBiasLayer(final Tensor bias) {
     this.bias = bias;
+    this.bias.addRef();
   }
   
   /**

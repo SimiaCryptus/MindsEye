@@ -82,6 +82,7 @@ public abstract class RecycleBin<T> {
   private int minLengthPerBuffer = 256;
   private double maxLengthPerBuffer = 1e9;
   private int maxItemsPerBuffer = 100;
+  
   /**
    * Instantiates a new Recycle bin.
    */
@@ -434,6 +435,11 @@ public abstract class RecycleBin<T> {
     return bin;
   }
   
+  /**
+   * Gets purge freq.
+   *
+   * @return the purge freq
+   */
   public int getPurgeFreq() {
     return purgeFreq;
   }
@@ -553,17 +559,34 @@ public abstract class RecycleBin<T> {
     return this;
   }
   
+  /**
+   * Sets purge freq.
+   *
+   * @param purgeFreq the purge freq
+   * @return the purge freq
+   */
   public RecycleBin<T> setPurgeFreq(int purgeFreq) {
     this.purgeFreq = purgeFreq;
     return this;
   }
   
   private class ObjectWrapper {
+    /**
+     * The Obj.
+     */
     public final Supplier<T> obj;
+    /**
+     * The Created at.
+     */
     public final long createdAt = System.nanoTime();
     
     private ObjectWrapper(final Supplier<T> obj) {this.obj = obj;}
-    
+  
+    /**
+     * Age double.
+     *
+     * @return the double
+     */
     public final double age() {
       return (System.nanoTime() - createdAt) / 1e9;
     }

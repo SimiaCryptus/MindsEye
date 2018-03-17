@@ -210,11 +210,18 @@ public class CudaSettings implements Settings {
   
   /**
    * The Sync before free.
+   *
+   * @return the boolean
    */
   public boolean isSyncBeforeFree() {
     return syncBeforeFree;
   }
   
+  /**
+   * Gets memory cache ttl.
+   *
+   * @return the memory cache ttl
+   */
   public int getMemoryCacheTTL() {
     return memoryCacheTTL;
   }

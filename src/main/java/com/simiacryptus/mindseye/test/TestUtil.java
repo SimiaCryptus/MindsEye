@@ -924,6 +924,11 @@ public class TestUtil {
     return Arrays.stream(stack).map(x -> x.getFileName() + ":" + x.getLineNumber()).reduce((a, b) -> a + delimiter + b).orElse("");
   }
   
+  /**
+   * Gets caller.
+   *
+   * @return the caller
+   */
   public static String getCaller() {
     return toString(getStackTrace(4));
   }
@@ -938,7 +943,7 @@ public class TestUtil {
   /**
    * Get stack trace stack trace element [ ].
    *
-   * @param skip
+   * @param skip the skip
    * @return the stack trace element [ ]
    */
   public static StackTraceElement[] getStackTrace(final int skip) {

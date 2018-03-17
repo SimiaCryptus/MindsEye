@@ -174,11 +174,10 @@ public class GateBiasLayer extends LayerBase implements MultiPrecision<GateBiasL
               cudnnReduceTensorIndices.CUDNN_REDUCE_TENSOR_NO_INDICES, cudnnIndicesType.CUDNN_32BIT_INDICES);
             
             @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
-            delta.freeRef();
             CudaMemory deltaTensorMemory = deltaTensor.getMemory(gpu);
             @Nonnull final CudaMemory workspacePtr = gpu.allocate(deltaTensorMemory.size, MemoryType.Device, true);
             @Nonnull final CudaMemory indexPtr = gpu.allocate(12 * delta.length(), MemoryType.Device, false);
-            
+            delta.freeRef();
             //outputPtr.synchronize();
             gpu.cudnnReduceTensor(reduceTensorDescriptor.getPtr(),
               indexPtr.getPtr(), indexPtr.size, workspacePtr.getPtr(), workspacePtr.size,

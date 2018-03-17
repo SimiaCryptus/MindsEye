@@ -26,17 +26,19 @@ import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer;
 import com.simiacryptus.mindseye.layers.cudnn.GateBiasLayer;
+import com.simiacryptus.mindseye.layers.cudnn.GateProductLayer;
 import com.simiacryptus.mindseye.layers.cudnn.GramianLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
-import com.simiacryptus.mindseye.layers.cudnn.SumInputsLayer;
+import com.simiacryptus.mindseye.layers.java.AvgReducerLayer;
 import com.simiacryptus.mindseye.models.Hdf5Archive;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
+import com.simiacryptus.mindseye.network.InnerNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
@@ -47,6 +49,7 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.util.lang.Tuple2;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
@@ -89,19 +92,20 @@ public class StyleTransferDemo extends ArtistryDemo {
     init(log);
     Precision precision = Precision.Float;
     imageSize = 200;
-    String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170924_145214.jpg";
-    String style = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
+//    String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170924_145214.jpg";
+    String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
+//    String style = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
   
     log.h1("Input");
     BufferedImage canvasImage = randomize(load(content, imageSize));
     canvasImage = TestUtil.resize(canvasImage, imageSize, true);
     BufferedImage contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
-    BufferedImage styleImage = load(style, imageSize);
+    BufferedImage styleImage = load("H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\1280px-Van_Gogh_-_Kauernder_Junge_mit_Sichel.jpg", imageSize);
     canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, styleImage,
-      1, 1e2, 1,
-      1, 1e2, 1,
-      1, 1e2, 1,
-      1, 1, 1,
+      0, 0, 1e-2,
+      1e1, 1e1, 1e-2,
+      1e1, 1e1, 1e-2,
+      1e1, 1e1, 1,
       1e1, 1, 1,
       1e2, 1, 1));
     
@@ -109,7 +113,7 @@ public class StyleTransferDemo extends ArtistryDemo {
       imageSize = imageSize * 2;
       canvasImage = TestUtil.resize(canvasImage, imageSize, true);
       contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
-      styleImage = load(style, imageSize);
+      styleImage = load("H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\1280px-Van_Gogh_-_Kauernder_Junge_mit_Sichel.jpg", imageSize);
       canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, styleImage,
         1, 1, 1,
         1, 1, 1,
@@ -122,7 +126,7 @@ public class StyleTransferDemo extends ArtistryDemo {
     imageSize = imageSize * 2;
     canvasImage = TestUtil.resize(canvasImage, imageSize, true);
     contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
-    styleImage = load(style, imageSize);
+    styleImage = load("H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\1280px-Van_Gogh_-_Kauernder_Junge_mit_Sichel.jpg", imageSize);
     canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, styleImage,
       0.0, 0.0, 1,
       0.0, 0.0, 1,
@@ -145,11 +149,19 @@ public class StyleTransferDemo extends ArtistryDemo {
     return Tensor.fromRGB(contentImage).map(x -> FastRandom.INSTANCE.random() * 100).toRgbImage();
   }
   
+  /**
+   * Style transfer buffered image.
+   *
+   * @param log             the log
+   * @param canvasImage     the canvas image
+   * @param styleParameters the style parameters
+   * @return the buffered image
+   */
   @Nonnull
   public BufferedImage styleTransfer(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup styleParameters) {
     NeuralSetup neuralSetup = new NeuralSetup(log, styleParameters).init();
     PipelineNetwork network = neuralSetup.fitnessFunction(log);
-    BufferedImage result = train(log, canvasImage, network);
+    BufferedImage result = train(log, canvasImage, network, styleParameters.precision);
     try {
       log.p(log.image(result, "result"));
     } catch (IOException e) {
@@ -158,11 +170,22 @@ public class StyleTransferDemo extends ArtistryDemo {
     return result;
   }
   
+  /**
+   * Train buffered image.
+   *
+   * @param log         the log
+   * @param canvasImage the canvas image
+   * @param network     the network
+   * @param precision   the precision
+   * @return the buffered image
+   */
   @Nonnull
-  public BufferedImage train(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final PipelineNetwork network) {
+  public BufferedImage train(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final PipelineNetwork network, final Precision precision) {
     log.h1("Output");
     Tensor canvas = Tensor.fromRGB(canvasImage);
     TestUtil.monitorImage(canvas, false);
+    network.setFrozen(true);
+    setPrecision(network, precision);
     @Nonnull Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
     TestUtil.instrumentPerformance(log, network);
     addLayersHandler(network, server);
@@ -387,6 +410,13 @@ public class StyleTransferDemo extends ArtistryDemo {
     return network;
   }
   
+  /**
+   * Gram pipeline network.
+   *
+   * @param network the network
+   * @param mean    the mean
+   * @return the pipeline network
+   */
   @Nonnull
   public PipelineNetwork gram(final PipelineNetwork network, Tensor mean) {
     network.wrap(new ImgBandBiasLayer(mean.scale(-1)));
@@ -394,6 +424,12 @@ public class StyleTransferDemo extends ArtistryDemo {
     return network;
   }
   
+  /**
+   * Avg pipeline network.
+   *
+   * @param network the network
+   * @return the pipeline network
+   */
   @Nonnull
   public PipelineNetwork avg(final PipelineNetwork network) {
     network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
@@ -441,29 +477,120 @@ public class StyleTransferDemo extends ArtistryDemo {
     return ReportType.Demos;
   }
   
+  /**
+   * The type Style setup.
+   */
   public static class StyleSetup {
+    /**
+     * The Precision.
+     */
     public final Precision precision;
+    /**
+     * The Content image.
+     */
     public final BufferedImage contentImage;
+    /**
+     * The Style image.
+     */
     public final BufferedImage styleImage;
+    /**
+     * The Coeff content 0.
+     */
     public final double coeff_content_0;
+    /**
+     * The Coeff style mean 0.
+     */
     public final double coeff_style_mean_0;
+    /**
+     * The Coeff style cov 0.
+     */
     public final double coeff_style_cov_0;
+    /**
+     * The Coeff content 1 a.
+     */
     public final double coeff_content_1a;
+    /**
+     * The Coeff style mean 1 a.
+     */
     public final double coeff_style_mean_1a;
+    /**
+     * The Coeff style cov 1 a.
+     */
     public final double coeff_style_cov_1a;
+    /**
+     * The Coeff content 1 b.
+     */
     public final double coeff_content_1b;
+    /**
+     * The Coeff style mean 1 b.
+     */
     public final double coeff_style_mean_1b;
+    /**
+     * The Coeff style cov 1 b.
+     */
     public final double coeff_style_cov_1b;
+    /**
+     * The Coeff content 1 c.
+     */
     public final double coeff_content_1c;
+    /**
+     * The Coeff style mean 1 c.
+     */
     public final double coeff_style_mean_1c;
+    /**
+     * The Coeff style cov 1 c.
+     */
     public final double coeff_style_cov_1c;
+    /**
+     * The Coeff content 1 d.
+     */
     public final double coeff_content_1d;
+    /**
+     * The Coeff style mean 1 d.
+     */
     public final double coeff_style_mean_1d;
+    /**
+     * The Coeff style cov 1 d.
+     */
     public final double coeff_style_cov_1d;
+    /**
+     * The Coeff content 1 e.
+     */
     public final double coeff_content_1e;
+    /**
+     * The Coeff style mean 1 e.
+     */
     public final double coeff_style_mean_1e;
+    /**
+     * The Coeff style cov 1 e.
+     */
     public final double coeff_style_cov_1e;
-  
+    
+    /**
+     * Instantiates a new Style setup.
+     *
+     * @param precision           the precision
+     * @param contentImage        the content image
+     * @param styleImage          the style image
+     * @param coeff_content_0     the coeff content 0
+     * @param coeff_style_mean_0  the coeff style mean 0
+     * @param coeff_style_cov_0   the coeff style cov 0
+     * @param coeff_content_1a    the coeff content 1 a
+     * @param coeff_style_mean_1a the coeff style mean 1 a
+     * @param coeff_style_cov_1a  the coeff style cov 1 a
+     * @param coeff_content_1b    the coeff content 1 b
+     * @param coeff_style_mean_1b the coeff style mean 1 b
+     * @param coeff_style_cov_1b  the coeff style cov 1 b
+     * @param coeff_content_1c    the coeff content 1 c
+     * @param coeff_style_mean_1c the coeff style mean 1 c
+     * @param coeff_style_cov_1c  the coeff style cov 1 c
+     * @param coeff_content_1d    the coeff content 1 d
+     * @param coeff_style_mean_1d the coeff style mean 1 d
+     * @param coeff_style_cov_1d  the coeff style cov 1 d
+     * @param coeff_content_1e    the coeff content 1 e
+     * @param coeff_style_mean_1e the coeff style mean 1 e
+     * @param coeff_style_cov_1e  the coeff style cov 1 e
+     */
     public StyleSetup(final Precision precision, final BufferedImage contentImage, final BufferedImage styleImage,
       final double coeff_content_0, final double coeff_style_mean_0, final double coeff_style_cov_0,
       final double coeff_content_1a, final double coeff_style_mean_1a, final double coeff_style_cov_1a,
@@ -497,32 +624,103 @@ public class StyleTransferDemo extends ArtistryDemo {
   }
   
   private class NeuralSetup {
+    /**
+     * The Log.
+     */
     public final NotebookOutput log;
+    /**
+     * The Style parameters.
+     */
     public final StyleSetup styleParameters;
+    /**
+     * The Target content 0.
+     */
     public Tensor target_content_0;
+    /**
+     * The Target style cov 0.
+     */
     public Tensor target_style_cov_0;
+    /**
+     * The Target content 1 a.
+     */
     public Tensor target_content_1a;
+    /**
+     * The Target style cov 1 a.
+     */
     public Tensor target_style_cov_1a;
+    /**
+     * The Target content 1 b.
+     */
     public Tensor target_content_1b;
+    /**
+     * The Target style cov 1 b.
+     */
     public Tensor target_style_cov_1b;
+    /**
+     * The Target content 1 c.
+     */
     public Tensor target_content_1c;
+    /**
+     * The Target style cov 1 c.
+     */
     public Tensor target_style_cov_1c;
+    /**
+     * The Target content 1 d.
+     */
     public Tensor target_content_1d;
+    /**
+     * The Target style cov 1 d.
+     */
     public Tensor target_style_cov_1d;
+    /**
+     * The Target content 1 e.
+     */
     public Tensor target_content_1e;
+    /**
+     * The Target style cov 1 e.
+     */
     public Tensor target_style_cov_1e;
+    /**
+     * The Target style mean 0.
+     */
     public Tensor target_style_mean_0;
+    /**
+     * The Target style mean 1 a.
+     */
     public Tensor target_style_mean_1a;
+    /**
+     * The Target style mean 1 b.
+     */
     public Tensor target_style_mean_1b;
+    /**
+     * The Target style mean 1 c.
+     */
     public Tensor target_style_mean_1c;
+    /**
+     * The Target style mean 1 d.
+     */
     public Tensor target_style_mean_1d;
+    /**
+     * The Target style mean 1 e.
+     */
     public Tensor target_style_mean_1e;
   
+    /**
+     * Instantiates a new Neural setup.
+     *
+     * @param log             the log
+     * @param styleParameters the style parameters
+     */
     public NeuralSetup(final NotebookOutput log, final StyleSetup styleParameters) {
       this.log = log;
       this.styleParameters = styleParameters;
     }
-    
+  
+    /**
+     * Init neural setup.
+     *
+     * @return the neural setup
+     */
     public NeuralSetup init() {
       final PipelineNetwork content_0 = texture_0(log);
       final PipelineNetwork content_1a = texture_1a(log);
@@ -582,7 +780,13 @@ public class StyleTransferDemo extends ArtistryDemo {
       logger.info("target_style_cov_1e=" + target_style_cov_1e.prettyPrint());
       return this;
     }
-    
+  
+    /**
+     * Fitness function pipeline network.
+     *
+     * @param log the log
+     * @return the pipeline network
+     */
     @Nonnull
     public PipelineNetwork fitnessFunction(final NotebookOutput log) {
       
@@ -634,94 +838,138 @@ public class StyleTransferDemo extends ArtistryDemo {
           throw new RuntimeException(e11);
         }
       });
-      List<DAGNode> lossLayers = new ArrayList<>();
-      PipelineNetwork network = layerBuffer[0];
   
-      if (styleParameters.coeff_content_0 != 0 || styleParameters.coeff_style_mean_0 != 0 || styleParameters.coeff_style_cov_0 != 0) {
-        lossLayers.add(network.wrap(new BinarySumLayer(this.styleParameters.coeff_content_0, 1),
-          network.wrap(new MeanSqLossLayer(), nodes[0], network.constValue(target_content_0)),
-          network.wrap(new BinarySumLayer(this.styleParameters.coeff_style_mean_0, styleParameters.coeff_style_cov_0),
-            network.wrap(new MeanSqLossLayer(),
-              network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg), nodes[0]),
-              network.constValue(target_style_mean_0)),
-            network.wrap(new MeanSqLossLayer(), network.constValue(target_style_cov_0),
-              network.wrap(new GramianLayer(),
-                network.wrap(new GateBiasLayer(),
-                  nodes[0], network.constValue(target_style_mean_0.scale(-1)))))
-          )
-        ));
+      PipelineNetwork network = layerBuffer[0];
+      List<Tuple2<Double, DAGNode>> functions = new ArrayList<>();
+  
+      if (styleParameters.coeff_content_0 != 0) {
+        functions.add(new Tuple2<>(styleParameters.coeff_content_0, network.wrap(new MeanSqLossLayer(),
+          nodes[0], network.constValue(target_content_0))));
       }
-      if (styleParameters.coeff_content_1a != 0 || styleParameters.coeff_style_mean_1a != 0 || styleParameters.coeff_style_cov_1a != 0) {
-        lossLayers.add(network.wrap(new BinarySumLayer(this.styleParameters.coeff_content_1a, 1),
-          network.wrap(new MeanSqLossLayer(), nodes[1], network.constValue(target_content_1a)),
-          network.wrap(new BinarySumLayer(this.styleParameters.coeff_style_mean_1a, styleParameters.coeff_style_cov_1a),
-            network.wrap(new MeanSqLossLayer(),
-              network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg), nodes[1]),
-              network.constValue(target_style_mean_1a)),
-            network.wrap(new MeanSqLossLayer(), network.constValue(target_style_cov_1a),
-              network.wrap(new GramianLayer(),
-                network.wrap(new GateBiasLayer(),
-                  nodes[1], network.constValue(target_style_mean_1a.scale(-1)))))
-          )
-        ));
+      if (styleParameters.coeff_style_cov_0 != 0 || styleParameters.coeff_style_mean_0 != 0) {
+        InnerNode recentered = network.wrap(new GateBiasLayer(), nodes[0], network.constValue(target_style_mean_0.scale(-1)));
+        if (styleParameters.coeff_style_cov_0 != 0) {
+          functions.add(new Tuple2<>(styleParameters.coeff_style_cov_0, network.wrap(new MeanSqLossLayer(),
+            network.constValue(target_style_cov_0),
+            network.wrap(new GramianLayer(),
+              recentered))
+          ));
+        }
+        if (styleParameters.coeff_style_mean_0 != 0) {
+          functions.add(new Tuple2<>(styleParameters.coeff_style_mean_0,
+            network.wrap(new AvgReducerLayer(), network.wrap(new GateProductLayer(), recentered, recentered))
+          ));
+        }
       }
-      if (styleParameters.coeff_content_1b != 0 || styleParameters.coeff_style_mean_1b != 0 || styleParameters.coeff_style_cov_1b != 0) {
-        lossLayers.add(network.wrap(new BinarySumLayer(this.styleParameters.coeff_content_1b, 1),
-          network.wrap(new MeanSqLossLayer(), nodes[2], network.constValue(target_content_1b)),
-          network.wrap(new BinarySumLayer(this.styleParameters.coeff_style_mean_1b, styleParameters.coeff_style_cov_1b),
-            network.wrap(new MeanSqLossLayer(),
-              network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg), nodes[2]),
-              network.constValue(target_style_mean_1b)),
-            network.wrap(new MeanSqLossLayer(), network.constValue(target_style_cov_1b),
-              network.wrap(new GramianLayer(),
-                network.wrap(new GateBiasLayer(),
-                  nodes[2], network.constValue(target_style_mean_1b.scale(-1)))))
-          )
-        ));
+  
+      if (styleParameters.coeff_content_1a != 0) {
+        functions.add(new Tuple2<>(styleParameters.coeff_content_1a, network.wrap(new MeanSqLossLayer(),
+          nodes[1], network.constValue(target_content_1a))));
       }
-      if (styleParameters.coeff_content_1c != 0 || styleParameters.coeff_style_mean_1c != 0 || styleParameters.coeff_style_cov_1c != 0) {
-        lossLayers.add(network.wrap(new BinarySumLayer(this.styleParameters.coeff_content_1c, 1),
-          network.wrap(new MeanSqLossLayer(), nodes[3], network.constValue(target_content_1c)),
-          network.wrap(new BinarySumLayer(this.styleParameters.coeff_style_mean_1c, styleParameters.coeff_style_cov_1c),
-            network.wrap(new MeanSqLossLayer(),
-              network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg), nodes[3]),
-              network.constValue(target_style_mean_1c)),
-            network.wrap(new MeanSqLossLayer(), network.constValue(target_style_cov_1c),
-              network.wrap(new GramianLayer(),
-                network.wrap(new GateBiasLayer(),
-                  nodes[3], network.constValue(target_style_mean_1c.scale(-1)))))
-          )
-        ));
+      if (styleParameters.coeff_style_cov_1a != 0 || styleParameters.coeff_style_mean_1a != 0) {
+        InnerNode recentered = network.wrap(new GateBiasLayer(), nodes[1], network.constValue(target_style_mean_1a.scale(-1)));
+        if (styleParameters.coeff_style_cov_1a != 0) {
+          functions.add(new Tuple2<>(styleParameters.coeff_style_cov_1a, network.wrap(new MeanSqLossLayer(),
+            network.constValue(target_style_cov_1a),
+            network.wrap(new GramianLayer(),
+              recentered))
+          ));
+        }
+        if (styleParameters.coeff_style_mean_1a != 0) {
+          functions.add(new Tuple2<>(styleParameters.coeff_style_mean_1a,
+            network.wrap(new AvgReducerLayer(), network.wrap(new GateProductLayer(), recentered, recentered))
+          ));
+        }
       }
-      if (styleParameters.coeff_content_1d != 0 || styleParameters.coeff_style_mean_1d != 0 || styleParameters.coeff_style_cov_1d != 0) {
-        lossLayers.add(network.wrap(new BinarySumLayer(this.styleParameters.coeff_content_1d, 1),
-          network.wrap(new MeanSqLossLayer(), nodes[4], network.constValue(target_content_1d)),
-          network.wrap(new BinarySumLayer(this.styleParameters.coeff_style_mean_1d, styleParameters.coeff_style_cov_1d),
-            network.wrap(new MeanSqLossLayer(),
-              network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg), nodes[4]),
-              network.constValue(target_style_mean_1d)),
-            network.wrap(new MeanSqLossLayer(), network.constValue(target_style_cov_1d),
-              network.wrap(new GramianLayer(),
-                network.wrap(new GateBiasLayer(),
-                  nodes[4], network.constValue(target_style_mean_1d.scale(-1)))))
-          )
-        ));
+  
+  
+      if (styleParameters.coeff_content_1b != 0) {
+        functions.add(new Tuple2<>(styleParameters.coeff_content_1b, network.wrap(new MeanSqLossLayer(),
+          nodes[2], network.constValue(target_content_1b))));
       }
-      if (styleParameters.coeff_content_1e != 0 || styleParameters.coeff_style_mean_1e != 0 || styleParameters.coeff_style_cov_1e != 0) {
-        lossLayers.add(network.wrap(new BinarySumLayer(this.styleParameters.coeff_content_1e, 1),
-          network.wrap(new MeanSqLossLayer(), nodes[5], network.constValue(target_content_1e)),
-          network.wrap(new BinarySumLayer(this.styleParameters.coeff_style_mean_1e, styleParameters.coeff_style_cov_1e),
-            network.wrap(new MeanSqLossLayer(),
-              network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg), nodes[5]),
-              network.constValue(target_style_mean_1e)),
-            network.wrap(new MeanSqLossLayer(), network.constValue(target_style_cov_1e),
-              network.wrap(new GramianLayer(),
-                network.wrap(new GateBiasLayer(),
-                  nodes[5], network.constValue(target_style_mean_1e.scale(-1)))))
-          )
-        ));
+      if (styleParameters.coeff_style_cov_1b != 0 || styleParameters.coeff_style_mean_1b != 0) {
+        InnerNode recentered = network.wrap(new GateBiasLayer(), nodes[2], network.constValue(target_style_mean_1b.scale(-1)));
+        if (styleParameters.coeff_style_cov_1b != 0) {
+          functions.add(new Tuple2<>(styleParameters.coeff_style_cov_1b, network.wrap(new MeanSqLossLayer(),
+            network.constValue(target_style_cov_1b),
+            network.wrap(new GramianLayer(),
+              recentered))
+          ));
+        }
+        if (styleParameters.coeff_style_mean_1b != 0) {
+          functions.add(new Tuple2<>(styleParameters.coeff_style_mean_1b,
+            network.wrap(new AvgReducerLayer(), network.wrap(new GateProductLayer(), recentered, recentered))
+          ));
+        }
       }
-      network.wrap(new SumInputsLayer(), lossLayers.toArray(new DAGNode[]{}));
+  
+  
+      if (styleParameters.coeff_content_1c != 0) {
+        functions.add(new Tuple2<>(styleParameters.coeff_content_1c, network.wrap(new MeanSqLossLayer(),
+          nodes[3], network.constValue(target_content_1c))));
+      }
+      if (styleParameters.coeff_style_cov_1c != 0 || styleParameters.coeff_style_mean_1c != 0) {
+        InnerNode recentered = network.wrap(new GateBiasLayer(), nodes[3], network.constValue(target_style_mean_1c.scale(-1)));
+        if (styleParameters.coeff_style_cov_1c != 0) {
+          functions.add(new Tuple2<>(styleParameters.coeff_style_cov_1c, network.wrap(new MeanSqLossLayer(),
+            network.constValue(target_style_cov_1c),
+            network.wrap(new GramianLayer(),
+              recentered))
+          ));
+        }
+        if (styleParameters.coeff_style_mean_1c != 0) {
+          functions.add(new Tuple2<>(styleParameters.coeff_style_mean_1c,
+            network.wrap(new AvgReducerLayer(), network.wrap(new GateProductLayer(), recentered, recentered))
+          ));
+        }
+      }
+  
+  
+      if (styleParameters.coeff_content_1d != 0) {
+        functions.add(new Tuple2<>(styleParameters.coeff_content_1d, network.wrap(new MeanSqLossLayer(),
+          nodes[4], network.constValue(target_content_1d))));
+      }
+      if (styleParameters.coeff_style_cov_1d != 0 || styleParameters.coeff_style_mean_1d != 0) {
+        InnerNode recentered = network.wrap(new GateBiasLayer(), nodes[4], network.constValue(target_style_mean_1d.scale(-1)));
+        if (styleParameters.coeff_style_cov_1d != 0) {
+          functions.add(new Tuple2<>(styleParameters.coeff_style_cov_1d, network.wrap(new MeanSqLossLayer(),
+            network.constValue(target_style_cov_1d),
+            network.wrap(new GramianLayer(),
+              recentered))
+          ));
+        }
+        if (styleParameters.coeff_style_mean_1d != 0) {
+          functions.add(new Tuple2<>(styleParameters.coeff_style_mean_1d,
+            network.wrap(new AvgReducerLayer(), network.wrap(new GateProductLayer(), recentered, recentered))
+          ));
+        }
+      }
+  
+  
+      if (styleParameters.coeff_content_1e != 0) {
+        functions.add(new Tuple2<>(styleParameters.coeff_content_1e, network.wrap(new MeanSqLossLayer(),
+          nodes[5], network.constValue(target_content_1e))));
+      }
+      if (styleParameters.coeff_style_cov_1e != 0 || styleParameters.coeff_style_mean_1e != 0) {
+        InnerNode recentered = network.wrap(new GateBiasLayer(), nodes[5], network.constValue(target_style_mean_1e.scale(-1)));
+        if (styleParameters.coeff_style_cov_1e != 0) {
+          functions.add(new Tuple2<>(styleParameters.coeff_style_cov_1e, network.wrap(new MeanSqLossLayer(),
+            network.constValue(target_style_cov_1e),
+            network.wrap(new GramianLayer(),
+              recentered))
+          ));
+        }
+        if (styleParameters.coeff_style_mean_1e != 0) {
+          functions.add(new Tuple2<>(styleParameters.coeff_style_mean_1e,
+            network.wrap(new AvgReducerLayer(), network.wrap(new GateProductLayer(), recentered, recentered))
+          ));
+        }
+      }
+  
+  
+      functions.stream().filter(x -> x._1 != 0)
+        .reduce((a, b) -> new Tuple2<>(1.0, network.wrap(new BinarySumLayer(a._1, b._1), a._2, b._2))).get();
+      
       setPrecision(network, styleParameters.precision);
       return network;
     }
