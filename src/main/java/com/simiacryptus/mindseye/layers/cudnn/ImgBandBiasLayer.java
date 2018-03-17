@@ -163,7 +163,6 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
     }, leftData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         @Nonnull double[] biasDelta = CudaSystem.run(gpu -> {
-          @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
           @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
   
           CudaMemory biasMem = gpu.allocate(bias.size() * precision.size, MemoryType.Device, true).write(precision, bias.getData());
@@ -178,7 +177,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
           biasMem.dirty();
           double[] biasV = new double[bias.length()];
           biasMem.read(precision, biasV);
-          Stream.<ReferenceCounting>of(biasMem, deltaTensorMemory, deltaTensor, opDescriptor, biasDescriptor).forEach(ReferenceCounting::freeRef);
+          Stream.<ReferenceCounting>of(biasMem, deltaTensorMemory, deltaTensor, biasDescriptor).forEach(ReferenceCounting::freeRef);
           return biasV;
         }, delta);
         buffer.get(ImgBandBiasLayer.this, bias).addInPlace(biasDelta).freeRef();
@@ -209,6 +208,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
   
     };
   }
+  
   
   @Nonnull
   @Override
