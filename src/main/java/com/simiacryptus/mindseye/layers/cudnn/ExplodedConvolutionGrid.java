@@ -214,23 +214,20 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
     else {
       paddedInput = input;
     }
-    InnerNode[] nodes;
-    if (subLayers.size() == 1) {
-      nodes = new InnerNode[]{(InnerNode) subLayers.get(0).add(paddedInput)};
-    }
-    else {
-      List<InnerNode> legs = subLayers.stream().map((ExplodedConvolutionLeg l) -> {
-        return (InnerNode) l.add(network.wrap(new ImgBandSelectLayer(l.fromBand, l.toBand).setPrecision(convolutionParams.precision), paddedInput));
-      }).collect(Collectors.toList());
-      nodes = legs.stream().toArray(i -> new InnerNode[i]);
-    }
     InnerNode output;
-    if (nodes.length == 1) {
-      output = nodes[0];
+    if (subLayers.size() == 1) {
+      output = (InnerNode) subLayers.get(0).add(paddedInput);
     }
     else {
-      output = network.wrap(new SumInputsLayer().setPrecision(convolutionParams.precision).setParallel(CudaSettings.INSTANCE.isConv_para_1()), nodes).setParallel(CudaSettings.INSTANCE.isConv_para_1());
-//      return legs.stream().reduce((l,r)-> network.wrap(new BinarySumLayer().setPrecision(convolutionParams.precision), l, r)).get();
+      ImgLinearSubnetLayer linearSubnetLayer = new ImgLinearSubnetLayer();
+      subLayers.forEach(leg -> {
+        PipelineNetwork subnet = new PipelineNetwork();
+        leg.add(subnet.getHead());
+        linearSubnetLayer.add(leg.fromBand, leg.toBand, subnet);
+      });
+      boolean isParallel = CudaSettings.INSTANCE.isConv_para_1();
+      linearSubnetLayer.setPrecision(convolutionParams.precision).setParallel(isParallel);
+      output = network.wrap(linearSubnetLayer, paddedInput).setParallel(isParallel);
     }
     if (customPaddingX || customPaddingY) {
       int x = !customPaddingX ? 0 : (this.convolutionParams.paddingX - defaultPaddingX);
