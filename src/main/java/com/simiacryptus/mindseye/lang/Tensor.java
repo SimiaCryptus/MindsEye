@@ -564,6 +564,8 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    */
   @Nullable
   public Tensor addAndFree(@Nonnull final Tensor right) {
+    assertAlive();
+    right.assertAlive();
     if (1 == currentRefCount()) {
       addInPlace(right);
       return this;

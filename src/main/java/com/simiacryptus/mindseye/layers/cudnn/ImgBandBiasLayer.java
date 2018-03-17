@@ -191,6 +191,11 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
     }) {
   
       @Override
+      public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
+        getAccumulator().accept(buffer, delta);
+      }
+  
+      @Override
       protected void _free() {
         leftData.freeRef();
         input.freeRef();

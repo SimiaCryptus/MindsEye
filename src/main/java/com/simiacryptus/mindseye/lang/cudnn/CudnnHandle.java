@@ -969,6 +969,18 @@ public class CudnnHandle extends CudaDevice {
     return result;
   }
   
+  public int cudnnSetTensor(
+    cudnnTensorDescriptor yDesc,
+    CudaPointer y,
+    CudaPointer valuePtr) {
+    assert CudaDevice.isThreadDeviceId(getDeviceId());
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnSetTensor(this.handle, yDesc, y, valuePtr);
+    cudnnSetTensor_execution.accept((System.nanoTime() - startTime) / 1e9);
+    log("cudnnSetTensor", result, new Object[]{this, yDesc, y, valuePtr});
+    return result;
+  }
+  
   /**
    * Allocate backward data workspace cuda ptr.
    *
@@ -1039,7 +1051,7 @@ public class CudnnHandle extends CudaDevice {
   }
   
   @Override
-  public void finalize() throws Throwable {
+  public void finalize() {
     final int result = JCudnn.cudnnDestroy(handle);
     log("cudnnDestroy", result, new Object[]{handle});
     CudaSystem.handle(result);

@@ -243,6 +243,11 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
         }) {
   
         @Override
+        public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
+          getAccumulator().accept(buffer, delta);
+        }
+  
+        @Override
         protected void _free() {
           inputData.freeRef();
           outPtr.freeRef();

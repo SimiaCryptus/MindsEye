@@ -364,7 +364,12 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
       };
       TestUtil.runAllSerial(learnFn, backpropFn);
     }) {
-      
+  
+      @Override
+      public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
+        getAccumulator().accept(buffer, delta);
+      }
+  
       @Override
       protected void _free() {
         kernel.freeRef();

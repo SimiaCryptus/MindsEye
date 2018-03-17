@@ -180,7 +180,12 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
         }
       }
     }) {
-      
+  
+      @Override
+      public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
+        getAccumulator().accept(buffer, delta);
+      }
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());

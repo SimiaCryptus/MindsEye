@@ -133,9 +133,9 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
       CudaTensor cudaTensor = CudaTensor.wrap(cudaInputMemory.withByteOffset(byteOffset), inputDescriptor, precision);
       cudaInputMemory.freeRef();
       return CudaTensorList.wrap(cudaTensor, length, outputDimensions, precision);
-    }, inputData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
-      if (!Arrays.equals(error.getDimensions(), outputDimensions)) {
-        throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputDimensions));
+    }, inputData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+      if (!Arrays.equals(delta.getDimensions(), outputDimensions)) {
+        throw new AssertionError(Arrays.toString(delta.getDimensions()) + " != " + Arrays.toString(outputDimensions));
       }
       if (inObj[0].isAlive()) {
         final TensorList passbackTensorList = CudaSystem.run(gpu -> {
@@ -152,9 +152,9 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
             inputDimensions[0], //
             1);
           final int byteOffset = viewDescriptor.cStride * getFrom() * precision.size;
-          assert error.length() == inputData.length();
+          assert delta.length() == inputData.length();
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
-          @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device, false);
+          @Nullable final CudaTensor errorPtr = gpu.getTensor(delta, precision, MemoryType.Device, false);
           long size1 = (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size);
           @Nonnull final CudaMemory passbackBuffer = gpu.allocate(size1, MemoryType.Managed.normalize(), false);
           CudaMemory errorPtrMemory = errorPtr.getMemory(gpu);
@@ -167,11 +167,11 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
           Stream.<ReferenceCounting>of(errorPtr, viewDescriptor).forEach(ReferenceCounting::freeRef);
           return CudaTensorList.wrap(cudaTensor, length, inputDimensions, precision);
           //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-        }, error);
+        }, delta);
         inObj[0].accumulate(buffer, passbackTensorList);
       }
     }) {
-      
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());

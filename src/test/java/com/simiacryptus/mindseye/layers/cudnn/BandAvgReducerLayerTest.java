@@ -24,12 +24,13 @@ import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Random;
 
 /**
  * The type Img band bias layer apply.
  */
-public abstract class BandReducerLayerTest extends CudaLayerTestBase {
+public abstract class BandAvgReducerLayerTest extends CudaLayerTestBase {
   
   /**
    * The Precision.
@@ -43,7 +44,7 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
    * @param precision the precision
    * @param alpha
    */
-  public BandReducerLayerTest(final Precision precision, final double alpha) {
+  public BandAvgReducerLayerTest(final Precision precision, final double alpha) {
     this.precision = precision;
     this.alpha = alpha;
   }
@@ -59,7 +60,13 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
-    return new BandReducerLayer().setAlpha(alpha).setPrecision(precision);
+    return new BandAvgReducerLayer().setAlpha(alpha).setPrecision(precision);
+  }
+  
+  @Nullable
+  @Override
+  public Layer getReferenceLayer() {
+    return new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg).setAlpha(alpha).setPrecision(precision);
   }
   
   @Nonnull
@@ -73,7 +80,7 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
   /**
    * Basic apply in double (64-bit) precision
    */
-  public static class Double extends BandReducerLayerTest {
+  public static class Double extends BandAvgReducerLayerTest {
     /**
      * Instantiates a new Double.
      */
@@ -85,7 +92,7 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
   /**
    * Basic apply in double (64-bit) precision
    */
-  public static class Negative extends BandReducerLayerTest {
+  public static class Negative extends BandAvgReducerLayerTest {
     /**
      * Instantiates a new Double.
      */
@@ -97,14 +104,14 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
   /**
    * Inputs asymmetric (height != width) images
    */
-  public static class Asymmetric extends BandReducerLayerTest {
+  public static class Asymmetric extends BandAvgReducerLayerTest {
     /**
      * Instantiates a new Double.
      */
     public Asymmetric() {
       super(Precision.Double, 1.0);
     }
-  
+    
     @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
@@ -112,7 +119,7 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
         {3, 5, 2}
       };
     }
-  
+    
     @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
@@ -126,14 +133,14 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
   /**
    * Basic apply using float (32-bit) precision.
    */
-  public static class Float extends BandReducerLayerTest {
+  public static class Float extends BandAvgReducerLayerTest {
     /**
      * Instantiates a new Float.
      */
     public Float() {
       super(Precision.Float, 1.0);
     }
-  
+    
     @Override
     public SingleDerivativeTester getDerivativeTester() {
       return new SingleDerivativeTester(1e-2, 1e-3);

@@ -43,6 +43,7 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
   
   private PoolingLayer.PoolingMode mode = PoolingLayer.PoolingMode.Max;
   private Precision precision = Precision.Double;
+  private double alpha = 1.0;
   
   /**
    * Instantiates a new Pooling layer.
@@ -60,6 +61,7 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
     super(json);
     mode = Arrays.stream(PoolingLayer.PoolingMode.values()).filter(i -> i.id == json.get("mode").getAsInt()).findFirst().get();
     precision = Precision.valueOf(json.get("precision").getAsString());
+    alpha = json.get("alpha").getAsDouble();
   }
   
   /**
@@ -92,7 +94,8 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
     @Nonnull final int[] inputSize = batch.getDimensions();
     @Nonnull PoolingLayer impl = new PoolingLayer().setMode(mode).setPrecision(precision)
       .setWindowX(inputSize[1])
-      .setWindowY(inputSize[0]);
+      .setWindowY(inputSize[0])
+      .setAlpha(alpha);
     @Nullable Result result = impl.eval(inObj);
     impl.freeRef();
     return result;
@@ -102,6 +105,7 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
+    json.addProperty("alpha", alpha);
     json.addProperty("mode", mode.id);
     json.addProperty("precision", precision.name());
     return json;
@@ -147,4 +151,12 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
     return Arrays.asList();
   }
   
+  public double getAlpha() {
+    return alpha;
+  }
+  
+  public BandReducerLayer setAlpha(double alpha) {
+    this.alpha = alpha;
+    return this;
+  }
 }

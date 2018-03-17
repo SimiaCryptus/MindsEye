@@ -253,6 +253,11 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
         }) {
   
         @Override
+        public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
+          getAccumulator().accept(buffer, delta);
+        }
+  
+        @Override
         protected void _free() {
           inputData.freeRef();
           outPtr.freeRef();

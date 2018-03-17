@@ -251,6 +251,7 @@ public class CudaSystem {
    * The constant cudnnTransformTensor_execution.
    */
   protected static final DoubleStatistics cudnnTransformTensor_execution = new DoubleStatistics();
+  protected static final DoubleStatistics cudnnSetTensor_execution = new DoubleStatistics();
   /**
    * The constant deviceCount_execution.
    */

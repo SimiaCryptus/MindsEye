@@ -120,16 +120,22 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
         delta.freeRef();
         inObj[0].accumulate(buffer, passbackTensorList);
       }
-    })
+      else {
+        delta.freeRef();
+      }
+    }) {
   
-    {
-    
+      @Override
+      public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
+        getAccumulator().accept(buffer, delta);
+      }
+      
       @Override
       protected void _free() {
         inputData.freeRef();
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-    
+  
       @Override
       public boolean isAlive() {
         return Arrays.stream(inObj).anyMatch(x -> x.isAlive());

@@ -31,7 +31,6 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
 import com.simiacryptus.mindseye.lang.cudnn.CudaMemory;
-import com.simiacryptus.mindseye.lang.cudnn.CudaPointer;
 import com.simiacryptus.mindseye.lang.cudnn.CudaResource;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
@@ -65,12 +64,14 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   private int strideY = 2;
   private int windowX = 2;
   private int windowY = 2;
+  private double alpha;
   
   /**
    * Instantiates a new Pooling layer.
    */
   public PoolingLayer() {
     super();
+    alpha = 1.0;
   }
   
   /**
@@ -81,6 +82,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   protected PoolingLayer(@Nonnull final JsonObject json) {
     super(json);
     mode = Arrays.stream(PoolingMode.values()).filter(i -> i.id == json.get("mode").getAsInt()).findFirst().get();
+    alpha = json.get("alpha").getAsDouble();
     windowX = json.get("windowX").getAsInt();
     windowY = json.get("windowY").getAsInt();
     paddingX = json.get("paddingX").getAsInt();
@@ -88,6 +90,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     strideX = json.get("strideX").getAsInt();
     strideY = json.get("strideY").getAsInt();
     precision = Precision.valueOf(json.get("precision").getAsString());
+    alpha = 1.0;
   }
   
   /**
@@ -141,7 +144,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
         @Nonnull final CudaMemory outputTensor = gpu.allocate((long) precision.size * Tensor.length(outputSize), MemoryType.Managed.normalize(), true);
         CudaMemory inputDataMemory = inputData.getMemory(gpu);
         CudaSystem.handle(gpu.cudnnPoolingForward(poolingDesc.getPtr(),
-          precision.getPointer(1.0),
+          precision.getPointer(alpha),
           inputData.descriptor.getPtr(), inputDataMemory.getPtr(),
           precision.getPointer(0.0),
           outputDescriptor.getPtr(), outputTensor.getPtr()));
@@ -165,8 +168,6 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
               inputSize[2] * inputSize[1] * inputSize[0], inputSize[1] * inputSize[0], inputSize[0], 1);
             @Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = gpu.createPoolingDescriptor(
               mode.id, poolDims, windowSize, padding, stride);
-            @Nonnull final CudaPointer alpha = precision.getPointer(1.0);
-            @Nonnull final CudaPointer beta = precision.getPointer(0.0);
             final CudaTensor result1;
             synchronized (gpu) {result1 = gpu.getTensor(batch, precision, MemoryType.Device, true);}
             @Nullable final CudaTensor inputData = result1;
@@ -178,12 +179,10 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
             CudaMemory errorPtrMemory = errorPtr.getMemory(gpu);
             CudaMemory inputDataMemory = inputData.getMemory(gpu);
             CudaSystem.handle(gpu.cudnnPoolingBackward(poolingDesc.getPtr(),
-              alpha,
-              outputData.descriptor.getPtr(), outputDataMemory.getPtr(),
+              precision.getPointer(this.alpha), outputData.descriptor.getPtr(), outputDataMemory.getPtr(),
               errorPtr.descriptor.getPtr(), errorPtrMemory.getPtr(),
               inputData.descriptor.getPtr(), inputDataMemory.getPtr(),
-              beta,
-              passbackDescriptor.getPtr(), passbackBuffer.getPtr()));
+              precision.getPointer(0.0), passbackDescriptor.getPtr(), passbackBuffer.getPtr()));
             outputDataMemory.dirty();
             errorPtrMemory.dirty();
             inputDataMemory.dirty();
@@ -221,6 +220,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     json.addProperty("paddingY", paddingY);
     json.addProperty("strideX", strideX);
     json.addProperty("strideY", strideY);
+    json.addProperty("alpha", alpha);
     json.addProperty("precision", precision.name());
     return json;
   }
@@ -429,6 +429,15 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   public PoolingLayer setPaddingXY(int x, int y) {
     setPaddingX(x);
     setPaddingY(y);
+    return this;
+  }
+  
+  public double getAlpha() {
+    return alpha;
+  }
+  
+  public PoolingLayer setAlpha(double alpha) {
+    this.alpha = alpha;
     return this;
   }
   

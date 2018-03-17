@@ -78,7 +78,7 @@ public interface ReferenceCounting {
   /**
    * Assert alive.
    */
-  void assertAlive();
+  boolean assertAlive();
   
   /**
    * Free ref.

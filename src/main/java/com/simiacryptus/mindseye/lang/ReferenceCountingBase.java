@@ -176,7 +176,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   /**
    * Assert alive.
    */
-  public final void assertAlive() {
+  public final boolean assertAlive() {
     if (isFinalized) {
       throw new LifecycleException(this);
     }
@@ -185,6 +185,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
       logger.warn(referenceReport(true, isFinalized()));
       throw new LifecycleException(this);
     }
+    return true;
   }
   
   @Override
@@ -232,7 +233,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   protected void _free() {}
   
   @Override
-  protected final void finalize() throws Throwable {
+  protected final void finalize() {
     isFinalized = true;
     if (!isFreed.getAndSet(true)) {
       if (!isDetached() && !supressLog) {

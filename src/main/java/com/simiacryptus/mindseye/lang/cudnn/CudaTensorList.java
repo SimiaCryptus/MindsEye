@@ -158,6 +158,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
   @Override
   public TensorList addAndFree(@Nonnull final TensorList right) {
     assertAlive();
+    right.assertAlive();
     if (right instanceof ReshapedTensorList) return addAndFree(((ReshapedTensorList) right).getInner());
     if (1 < currentRefCount()) {
       TensorList sum = add(right);
