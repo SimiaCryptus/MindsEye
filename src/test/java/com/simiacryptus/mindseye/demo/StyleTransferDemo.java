@@ -23,10 +23,14 @@ import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer;
+import com.simiacryptus.mindseye.layers.cudnn.GateBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.GramianLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MultiPrecision;
+import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SumInputsLayer;
 import com.simiacryptus.mindseye.models.Hdf5Archive;
 import com.simiacryptus.mindseye.models.VGG16;
@@ -94,12 +98,12 @@ public class StyleTransferDemo extends ArtistryDemo {
     BufferedImage contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
     BufferedImage styleImage = load(style, imageSize);
     canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, styleImage,
-      1, 1,
-      1, 1,
-      1, 1,
-      1, 1,
-      1e1, 1,
-      1e2, 1));
+      1, 1e2, 1,
+      1, 1e2, 1,
+      1, 1e2, 1,
+      1, 1, 1,
+      1e1, 1, 1,
+      1e2, 1, 1));
     
     for (int i = 0; i < 3; i++) {
       imageSize = imageSize * 2;
@@ -107,12 +111,12 @@ public class StyleTransferDemo extends ArtistryDemo {
       contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
       styleImage = load(style, imageSize);
       canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, styleImage,
-        1, 1,
-        1, 1,
-        1, 1,
-        1, 1,
-        1e1, 1,
-        1e2, 1));
+        1, 1, 1,
+        1, 1, 1,
+        1, 1, 1,
+        1, 1, 1,
+        1e1, 1, 1,
+        1e2, 1, 1));
     }
   
     imageSize = imageSize * 2;
@@ -120,12 +124,12 @@ public class StyleTransferDemo extends ArtistryDemo {
     contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
     styleImage = load(style, imageSize);
     canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, styleImage,
-      0.0, 0.0,
-      0.0, 0.0,
-      0.0, 0.0,
-      1e3, 1.0,
-      1e3, 1.0,
-      1e3, 1.0));
+      0.0, 0.0, 1,
+      0.0, 0.0, 1,
+      0.0, 0.0, 1,
+      1e3, 1.0, 1,
+      1e3, 1.0, 1,
+      1e3, 1, 1.0));
     
     log.setFrontMatterProperty("status", "OK");
   }
@@ -145,7 +149,17 @@ public class StyleTransferDemo extends ArtistryDemo {
   public BufferedImage styleTransfer(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup styleParameters) {
     NeuralSetup neuralSetup = new NeuralSetup(log, styleParameters).init();
     PipelineNetwork network = neuralSetup.fitnessFunction(log);
-    
+    BufferedImage result = train(log, canvasImage, network);
+    try {
+      log.p(log.image(result, "result"));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return result;
+  }
+  
+  @Nonnull
+  public BufferedImage train(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final PipelineNetwork network) {
     log.h1("Output");
     Tensor canvas = Tensor.fromRGB(canvasImage);
     TestUtil.monitorImage(canvas, false);
@@ -159,17 +173,11 @@ public class StyleTransferDemo extends ArtistryDemo {
         .setMonitor(getTrainingMonitor(history))
         .setOrientation(new QQN())
         .setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-2))
-        .setTimeout(1, TimeUnit.MINUTES)
+        .setTimeout(90, TimeUnit.MINUTES)
         .runAndFree();
       return TestUtil.plot(history);
     });
-    BufferedImage result = canvas.toImage();
-    try {
-      log.p(log.image(result, "result"));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    return result;
+    return canvas.toImage();
   }
   
   /**
@@ -379,6 +387,19 @@ public class StyleTransferDemo extends ArtistryDemo {
     return network;
   }
   
+  @Nonnull
+  public PipelineNetwork gram(final PipelineNetwork network, Tensor mean) {
+    network.wrap(new ImgBandBiasLayer(mean.scale(-1)));
+    network.wrap(new GramianLayer());
+    return network;
+  }
+  
+  @Nonnull
+  public PipelineNetwork avg(final PipelineNetwork network) {
+    network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
+    return network;
+  }
+  
   /**
    * Sets precision.
    *
@@ -421,204 +442,102 @@ public class StyleTransferDemo extends ArtistryDemo {
   }
   
   public static class StyleSetup {
-    private final Precision precision;
-    private final BufferedImage contentImage;
-    private final BufferedImage styleImage;
-    private final double coeff_content_0;
-    private final double coeff_style_0;
-    private final double coeff_content_1a;
-    private final double coeff_style_1a;
-    private final double coeff_content_1b;
-    private final double coeff_style_1b;
-    private final double coeff_content_1c;
-    private final double coeff_style_1c;
-    private final double coeff_content_1d;
-    private final double coeff_style_1d;
-    private final double coeff_content_1e;
-    private final double coeff_style_1e;
-    
-    public StyleSetup(final Precision precision, final BufferedImage contentImage, final BufferedImage styleImage, final double coeff_content_0, final double coeff_style_0, final double coeff_content_1a, final double coeff_style_1a, final double coeff_content_1b, final double coeff_style_1b, final double coeff_content_1c, final double coeff_style_1c, final double coeff_content_1d, final double coeff_style_1d, final double coeff_content_1e, final double coeff_style_1e) {
+    public final Precision precision;
+    public final BufferedImage contentImage;
+    public final BufferedImage styleImage;
+    public final double coeff_content_0;
+    public final double coeff_style_mean_0;
+    public final double coeff_style_cov_0;
+    public final double coeff_content_1a;
+    public final double coeff_style_mean_1a;
+    public final double coeff_style_cov_1a;
+    public final double coeff_content_1b;
+    public final double coeff_style_mean_1b;
+    public final double coeff_style_cov_1b;
+    public final double coeff_content_1c;
+    public final double coeff_style_mean_1c;
+    public final double coeff_style_cov_1c;
+    public final double coeff_content_1d;
+    public final double coeff_style_mean_1d;
+    public final double coeff_style_cov_1d;
+    public final double coeff_content_1e;
+    public final double coeff_style_mean_1e;
+    public final double coeff_style_cov_1e;
+  
+    public StyleSetup(final Precision precision, final BufferedImage contentImage, final BufferedImage styleImage,
+      final double coeff_content_0, final double coeff_style_mean_0, final double coeff_style_cov_0,
+      final double coeff_content_1a, final double coeff_style_mean_1a, final double coeff_style_cov_1a,
+      final double coeff_content_1b, final double coeff_style_mean_1b, final double coeff_style_cov_1b,
+      final double coeff_content_1c, final double coeff_style_mean_1c, final double coeff_style_cov_1c,
+      final double coeff_content_1d, final double coeff_style_mean_1d, final double coeff_style_cov_1d,
+      final double coeff_content_1e, final double coeff_style_mean_1e, final double coeff_style_cov_1e) {
       this.precision = precision;
       this.contentImage = contentImage;
       this.styleImage = styleImage;
       this.coeff_content_0 = coeff_content_0;
-      this.coeff_style_0 = coeff_style_0;
+      this.coeff_style_mean_0 = coeff_style_mean_0;
+      this.coeff_style_cov_0 = coeff_style_cov_0;
       this.coeff_content_1a = coeff_content_1a;
-      this.coeff_style_1a = coeff_style_1a;
+      this.coeff_style_mean_1a = coeff_style_mean_1a;
+      this.coeff_style_cov_1a = coeff_style_cov_1a;
       this.coeff_content_1b = coeff_content_1b;
-      this.coeff_style_1b = coeff_style_1b;
+      this.coeff_style_mean_1b = coeff_style_mean_1b;
+      this.coeff_style_cov_1b = coeff_style_cov_1b;
       this.coeff_content_1c = coeff_content_1c;
-      this.coeff_style_1c = coeff_style_1c;
+      this.coeff_style_mean_1c = coeff_style_mean_1c;
+      this.coeff_style_cov_1c = coeff_style_cov_1c;
       this.coeff_content_1d = coeff_content_1d;
-      this.coeff_style_1d = coeff_style_1d;
+      this.coeff_style_mean_1d = coeff_style_mean_1d;
+      this.coeff_style_cov_1d = coeff_style_cov_1d;
       this.coeff_content_1e = coeff_content_1e;
-      this.coeff_style_1e = coeff_style_1e;
+      this.coeff_style_mean_1e = coeff_style_mean_1e;
+      this.coeff_style_cov_1e = coeff_style_cov_1e;
     }
     
-    public Precision getPrecision() {
-      return precision;
-    }
-    
-    public BufferedImage getContentImage() {
-      return contentImage;
-    }
-    
-    public BufferedImage getStyleImage() {
-      return styleImage;
-    }
-    
-    public double getCoeff_content_0() {
-      return coeff_content_0;
-    }
-    
-    public double getCoeff_style_0() {
-      return coeff_style_0;
-    }
-    
-    public double getCoeff_content_1a() {
-      return coeff_content_1a;
-    }
-    
-    public double getCoeff_style_1a() {
-      return coeff_style_1a;
-    }
-    
-    public double getCoeff_content_1b() {
-      return coeff_content_1b;
-    }
-    
-    public double getCoeff_style_1b() {
-      return coeff_style_1b;
-    }
-    
-    public double getCoeff_content_1c() {
-      return coeff_content_1c;
-    }
-    
-    public double getCoeff_style_1c() {
-      return coeff_style_1c;
-    }
-    
-    public double getCoeff_content_1d() {
-      return coeff_content_1d;
-    }
-    
-    public double getCoeff_style_1d() {
-      return coeff_style_1d;
-    }
-    
-    public double getCoeff_content_1e() {
-      return coeff_content_1e;
-    }
-    
-    public double getCoeff_style_1e() {
-      return coeff_style_1e;
-    }
   }
   
   private class NeuralSetup {
-    private final NotebookOutput log;
-    private final StyleSetup styleParameters;
-    private Tensor target_content_0;
-    private Tensor target_style_0;
-    private Tensor target_content_1a;
-    private Tensor target_style_1a;
-    private Tensor target_content_1b;
-    private Tensor target_style_1b;
-    private Tensor target_content_1c;
-    private Tensor target_style_1c;
-    private Tensor target_content_1d;
-    private Tensor target_style_1d;
-    private Tensor target_content_1e;
-    private Tensor target_style_1e;
-    
+    public final NotebookOutput log;
+    public final StyleSetup styleParameters;
+    public Tensor target_content_0;
+    public Tensor target_style_cov_0;
+    public Tensor target_content_1a;
+    public Tensor target_style_cov_1a;
+    public Tensor target_content_1b;
+    public Tensor target_style_cov_1b;
+    public Tensor target_content_1c;
+    public Tensor target_style_cov_1c;
+    public Tensor target_content_1d;
+    public Tensor target_style_cov_1d;
+    public Tensor target_content_1e;
+    public Tensor target_style_cov_1e;
+    public Tensor target_style_mean_0;
+    public Tensor target_style_mean_1a;
+    public Tensor target_style_mean_1b;
+    public Tensor target_style_mean_1c;
+    public Tensor target_style_mean_1d;
+    public Tensor target_style_mean_1e;
+  
     public NeuralSetup(final NotebookOutput log, final StyleSetup styleParameters) {
       this.log = log;
       this.styleParameters = styleParameters;
     }
     
-    public Tensor getTarget_content_0() {
-      return target_content_0;
-    }
-    
-    public Tensor getTarget_style_0() {
-      return target_style_0;
-    }
-    
-    public Tensor getTarget_content_1a() {
-      return target_content_1a;
-    }
-    
-    public Tensor getTarget_style_1a() {
-      return target_style_1a;
-    }
-    
-    public Tensor getTarget_content_1b() {
-      return target_content_1b;
-    }
-    
-    public Tensor getTarget_style_1b() {
-      return target_style_1b;
-    }
-    
-    public Tensor getTarget_content_1c() {
-      return target_content_1c;
-    }
-    
-    public Tensor getTarget_style_1c() {
-      return target_style_1c;
-    }
-    
-    public Tensor getTarget_content_1d() {
-      return target_content_1d;
-    }
-    
-    public Tensor getTarget_style_1d() {
-      return target_style_1d;
-    }
-    
-    public Tensor getTarget_content_1e() {
-      return target_content_1e;
-    }
-    
-    public Tensor getTarget_style_1e() {
-      return target_style_1e;
-    }
-    
     public NeuralSetup init() {
       final PipelineNetwork content_0 = texture_0(log);
-      final PipelineNetwork style_0 = gram((PipelineNetwork) content_0.copy());
       final PipelineNetwork content_1a = texture_1a(log);
-      final PipelineNetwork style_1a = gram((PipelineNetwork) content_1a.copy());
       final PipelineNetwork content_1b = texture_1b(log);
-      final PipelineNetwork style_1b = gram((PipelineNetwork) content_1b.copy());
       final PipelineNetwork content_1c = texture_1c(log);
-      final PipelineNetwork style_1c = gram((PipelineNetwork) content_1c.copy());
       final PipelineNetwork content_1d = texture_1d(log);
-      final PipelineNetwork style_1d = gram((PipelineNetwork) content_1d.copy());
       final PipelineNetwork content_1e = texture_1e(log);
-      final PipelineNetwork style_1e = gram((PipelineNetwork) content_1e.copy());
-      
-      setPrecision(content_0, styleParameters.getPrecision());
-      setPrecision(style_0, styleParameters.getPrecision());
-      setPrecision(content_1a, styleParameters.getPrecision());
-      setPrecision(style_1a, styleParameters.getPrecision());
-      setPrecision(content_1b, styleParameters.getPrecision());
-      setPrecision(style_1b, styleParameters.getPrecision());
-      setPrecision(content_1c, styleParameters.getPrecision());
-      setPrecision(style_1c, styleParameters.getPrecision());
-      setPrecision(content_1d, styleParameters.getPrecision());
-      setPrecision(style_1d, styleParameters.getPrecision());
-      setPrecision(content_1e, styleParameters.getPrecision());
-      setPrecision(style_1e, styleParameters.getPrecision());
-      
-      Tensor contentInput = Tensor.fromRGB(styleParameters.getContentImage());
+  
+      Tensor contentInput = Tensor.fromRGB(styleParameters.contentImage);
       try {
         log.p(log.image(contentInput.toImage(), "content"));
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-      Tensor styleInput = Tensor.fromRGB(styleParameters.getStyleImage());
+      Tensor styleInput = Tensor.fromRGB(styleParameters.styleImage);
       try {
         log.p(log.image(styleInput.toImage(), "style"));
       } catch (IOException e) {
@@ -626,17 +545,41 @@ public class StyleTransferDemo extends ArtistryDemo {
       }
       
       target_content_0 = content_0.eval(contentInput).getDataAndFree().getAndFree(0);
-      target_style_0 = style_0.eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_content_0=" + target_content_0.prettyPrint());
+      target_style_mean_0 = avg((PipelineNetwork) content_0.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_mean_0=" + target_style_mean_0.prettyPrint());
+      target_style_cov_0 = gram((PipelineNetwork) content_0.copy(), target_style_mean_0).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_cov_0=" + target_style_cov_0.prettyPrint());
       target_content_1a = content_1a.eval(contentInput).getDataAndFree().getAndFree(0);
-      target_style_1a = style_1a.eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_content_1a=" + target_content_1a.prettyPrint());
+      target_style_mean_1a = avg((PipelineNetwork) content_1a.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_mean_1a=" + target_style_mean_1a.prettyPrint());
+      target_style_cov_1a = gram((PipelineNetwork) content_1a.copy(), target_style_mean_1a).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_cov_1a=" + target_style_cov_1a.prettyPrint());
       target_content_1b = content_1b.eval(contentInput).getDataAndFree().getAndFree(0);
-      target_style_1b = style_1b.eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_content_1b=" + target_content_1b.prettyPrint());
+      target_style_mean_1b = avg((PipelineNetwork) content_1b.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_mean_1b=" + target_style_mean_1b.prettyPrint());
+      target_style_cov_1b = gram((PipelineNetwork) content_1b.copy(), target_style_mean_1b).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_cov_1b=" + target_style_cov_1b.prettyPrint());
       target_content_1c = content_1c.eval(contentInput).getDataAndFree().getAndFree(0);
-      target_style_1c = style_1c.eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_content_1c=" + target_content_1c.prettyPrint());
+      target_style_mean_1c = avg((PipelineNetwork) content_1c.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_mean_1c=" + target_style_mean_1c.prettyPrint());
+      target_style_cov_1c = gram((PipelineNetwork) content_1c.copy(), target_style_mean_1c).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_cov_1c=" + target_style_cov_1c.prettyPrint());
       target_content_1d = content_1d.eval(contentInput).getDataAndFree().getAndFree(0);
-      target_style_1d = style_1d.eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_content_1d=" + target_content_1d.prettyPrint());
+      target_style_mean_1d = avg((PipelineNetwork) content_1d.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_mean_1d=" + target_style_mean_1d.prettyPrint());
+      target_style_cov_1d = gram((PipelineNetwork) content_1d.copy(), target_style_mean_1d).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_cov_1d=" + target_style_cov_1d.prettyPrint());
       target_content_1e = content_1e.eval(contentInput).getDataAndFree().getAndFree(0);
-      target_style_1e = style_1e.eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_content_1e=" + target_content_1e.prettyPrint());
+      target_style_mean_1e = avg((PipelineNetwork) content_1e.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_mean_1e=" + target_style_mean_1e.prettyPrint());
+      target_style_cov_1e = gram((PipelineNetwork) content_1e.copy(), target_style_mean_1e).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_cov_1e=" + target_style_cov_1e.prettyPrint());
       return this;
     }
     
@@ -693,45 +636,93 @@ public class StyleTransferDemo extends ArtistryDemo {
       });
       List<DAGNode> lossLayers = new ArrayList<>();
       PipelineNetwork network = layerBuffer[0];
-      
-      if (this.styleParameters.getCoeff_content_0() != 0 || this.styleParameters.getCoeff_style_0() != 0) {
-        lossLayers.add(network.wrap(new BinarySumLayer(this.styleParameters.getCoeff_content_0(), this.styleParameters.getCoeff_style_0()),
-          network.wrap(new MeanSqLossLayer(), nodes[0], network.constValue(this.getTarget_content_0())),
-          network.wrap(new MeanSqLossLayer(), network.wrap(new GramianLayer(), nodes[0]), network.constValue(this.getTarget_style_0()))
+  
+      if (styleParameters.coeff_content_0 != 0 || styleParameters.coeff_style_mean_0 != 0 || styleParameters.coeff_style_cov_0 != 0) {
+        lossLayers.add(network.wrap(new BinarySumLayer(this.styleParameters.coeff_content_0, 1),
+          network.wrap(new MeanSqLossLayer(), nodes[0], network.constValue(target_content_0)),
+          network.wrap(new BinarySumLayer(this.styleParameters.coeff_style_mean_0, styleParameters.coeff_style_cov_0),
+            network.wrap(new MeanSqLossLayer(),
+              network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg), nodes[0]),
+              network.constValue(target_style_mean_0)),
+            network.wrap(new MeanSqLossLayer(), network.constValue(target_style_cov_0),
+              network.wrap(new GramianLayer(),
+                network.wrap(new GateBiasLayer(),
+                  nodes[0], network.constValue(target_style_mean_0.scale(-1)))))
+          )
         ));
       }
-      if (this.styleParameters.getCoeff_content_1a() != 0 || this.styleParameters.getCoeff_style_1a() != 0) {
-        lossLayers.add(network.wrap(new BinarySumLayer(this.styleParameters.getCoeff_content_1a(), this.styleParameters.getCoeff_style_1a()),
-          network.wrap(new MeanSqLossLayer(), nodes[1], network.constValue(this.getTarget_content_1a())),
-          network.wrap(new MeanSqLossLayer(), network.wrap(new GramianLayer(), nodes[1]), network.constValue(this.getTarget_style_1a()))
+      if (styleParameters.coeff_content_1a != 0 || styleParameters.coeff_style_mean_1a != 0 || styleParameters.coeff_style_cov_1a != 0) {
+        lossLayers.add(network.wrap(new BinarySumLayer(this.styleParameters.coeff_content_1a, 1),
+          network.wrap(new MeanSqLossLayer(), nodes[1], network.constValue(target_content_1a)),
+          network.wrap(new BinarySumLayer(this.styleParameters.coeff_style_mean_1a, styleParameters.coeff_style_cov_1a),
+            network.wrap(new MeanSqLossLayer(),
+              network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg), nodes[1]),
+              network.constValue(target_style_mean_1a)),
+            network.wrap(new MeanSqLossLayer(), network.constValue(target_style_cov_1a),
+              network.wrap(new GramianLayer(),
+                network.wrap(new GateBiasLayer(),
+                  nodes[1], network.constValue(target_style_mean_1a.scale(-1)))))
+          )
         ));
       }
-      if (this.styleParameters.getCoeff_content_1b() != 0 || this.styleParameters.getCoeff_style_1b() != 0) {
-        lossLayers.add(network.wrap(new BinarySumLayer(this.styleParameters.getCoeff_content_1b(), this.styleParameters.getCoeff_style_1b()),
-          network.wrap(new MeanSqLossLayer(), nodes[2], network.constValue(this.getTarget_content_1b())),
-          network.wrap(new MeanSqLossLayer(), network.wrap(new GramianLayer(), nodes[2]), network.constValue(this.getTarget_style_1b()))
+      if (styleParameters.coeff_content_1b != 0 || styleParameters.coeff_style_mean_1b != 0 || styleParameters.coeff_style_cov_1b != 0) {
+        lossLayers.add(network.wrap(new BinarySumLayer(this.styleParameters.coeff_content_1b, 1),
+          network.wrap(new MeanSqLossLayer(), nodes[2], network.constValue(target_content_1b)),
+          network.wrap(new BinarySumLayer(this.styleParameters.coeff_style_mean_1b, styleParameters.coeff_style_cov_1b),
+            network.wrap(new MeanSqLossLayer(),
+              network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg), nodes[2]),
+              network.constValue(target_style_mean_1b)),
+            network.wrap(new MeanSqLossLayer(), network.constValue(target_style_cov_1b),
+              network.wrap(new GramianLayer(),
+                network.wrap(new GateBiasLayer(),
+                  nodes[2], network.constValue(target_style_mean_1b.scale(-1)))))
+          )
         ));
       }
-      if (this.styleParameters.getCoeff_content_1c() != 0 || this.styleParameters.getCoeff_style_1c() != 0) {
-        lossLayers.add(network.wrap(new BinarySumLayer(this.styleParameters.getCoeff_content_1c(), this.styleParameters.getCoeff_style_1c()),
-          network.wrap(new MeanSqLossLayer(), nodes[3], network.constValue(this.getTarget_content_1c())),
-          network.wrap(new MeanSqLossLayer(), network.wrap(new GramianLayer(), nodes[3]), network.constValue(this.getTarget_style_1c()))
+      if (styleParameters.coeff_content_1c != 0 || styleParameters.coeff_style_mean_1c != 0 || styleParameters.coeff_style_cov_1c != 0) {
+        lossLayers.add(network.wrap(new BinarySumLayer(this.styleParameters.coeff_content_1c, 1),
+          network.wrap(new MeanSqLossLayer(), nodes[3], network.constValue(target_content_1c)),
+          network.wrap(new BinarySumLayer(this.styleParameters.coeff_style_mean_1c, styleParameters.coeff_style_cov_1c),
+            network.wrap(new MeanSqLossLayer(),
+              network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg), nodes[3]),
+              network.constValue(target_style_mean_1c)),
+            network.wrap(new MeanSqLossLayer(), network.constValue(target_style_cov_1c),
+              network.wrap(new GramianLayer(),
+                network.wrap(new GateBiasLayer(),
+                  nodes[3], network.constValue(target_style_mean_1c.scale(-1)))))
+          )
         ));
       }
-      if (this.styleParameters.getCoeff_content_1d() != 0 || this.styleParameters.getCoeff_style_1d() != 0) {
-        lossLayers.add(network.wrap(new BinarySumLayer(this.styleParameters.getCoeff_content_1d(), this.styleParameters.getCoeff_style_1d()),
-          network.wrap(new MeanSqLossLayer(), nodes[4], network.constValue(this.getTarget_content_1d())),
-          network.wrap(new MeanSqLossLayer(), network.wrap(new GramianLayer(), nodes[4]), network.constValue(this.getTarget_style_1d()))
+      if (styleParameters.coeff_content_1d != 0 || styleParameters.coeff_style_mean_1d != 0 || styleParameters.coeff_style_cov_1d != 0) {
+        lossLayers.add(network.wrap(new BinarySumLayer(this.styleParameters.coeff_content_1d, 1),
+          network.wrap(new MeanSqLossLayer(), nodes[4], network.constValue(target_content_1d)),
+          network.wrap(new BinarySumLayer(this.styleParameters.coeff_style_mean_1d, styleParameters.coeff_style_cov_1d),
+            network.wrap(new MeanSqLossLayer(),
+              network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg), nodes[4]),
+              network.constValue(target_style_mean_1d)),
+            network.wrap(new MeanSqLossLayer(), network.constValue(target_style_cov_1d),
+              network.wrap(new GramianLayer(),
+                network.wrap(new GateBiasLayer(),
+                  nodes[4], network.constValue(target_style_mean_1d.scale(-1)))))
+          )
         ));
       }
-      if (this.styleParameters.getCoeff_content_1e() != 0 || this.styleParameters.getCoeff_style_1e() != 0) {
-        lossLayers.add(network.wrap(new BinarySumLayer(this.styleParameters.getCoeff_content_1e(), this.styleParameters.getCoeff_style_1e()),
-          network.wrap(new MeanSqLossLayer(), nodes[5], network.constValue(this.getTarget_content_1e())),
-          network.wrap(new MeanSqLossLayer(), network.wrap(new GramianLayer(), nodes[5]), network.constValue(this.getTarget_style_1e()))
+      if (styleParameters.coeff_content_1e != 0 || styleParameters.coeff_style_mean_1e != 0 || styleParameters.coeff_style_cov_1e != 0) {
+        lossLayers.add(network.wrap(new BinarySumLayer(this.styleParameters.coeff_content_1e, 1),
+          network.wrap(new MeanSqLossLayer(), nodes[5], network.constValue(target_content_1e)),
+          network.wrap(new BinarySumLayer(this.styleParameters.coeff_style_mean_1e, styleParameters.coeff_style_cov_1e),
+            network.wrap(new MeanSqLossLayer(),
+              network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg), nodes[5]),
+              network.constValue(target_style_mean_1e)),
+            network.wrap(new MeanSqLossLayer(), network.constValue(target_style_cov_1e),
+              network.wrap(new GramianLayer(),
+                network.wrap(new GateBiasLayer(),
+                  nodes[5], network.constValue(target_style_mean_1e.scale(-1)))))
+          )
         ));
       }
       network.wrap(new SumInputsLayer(), lossLayers.toArray(new DAGNode[]{}));
-      setPrecision(network, this.styleParameters.getPrecision());
+      setPrecision(network, styleParameters.precision);
       return network;
     }
   }

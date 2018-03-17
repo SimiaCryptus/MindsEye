@@ -68,7 +68,7 @@ public class CudaSettings implements Settings {
     logStack = Settings.get("CUDA_LOG_STACK", false);
     profileMemoryIO = Settings.get("CUDA_PROFILE_MEM_IO", false);
     enableManaged = true;
-    asyncFree = true;
+    asyncFree = false;
     syncBeforeFree = true;
     memoryCacheTTL = 45;
   }
