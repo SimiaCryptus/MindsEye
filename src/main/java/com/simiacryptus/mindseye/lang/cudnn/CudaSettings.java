@@ -63,14 +63,14 @@ public class CudaSettings implements Settings {
     forceSingleGpu = Settings.get("FORCE_SINGLE_GPU", false);
     conv_para_1 = Settings.get("CONV_PARA_1", true);
     conv_para_2 = Settings.get("CONV_PARA_2", false);
-    conv_para_3 = Settings.get("CONV_PARA_3", false);
+    conv_para_3 = Settings.get("CONV_PARA_3", true);
     memoryCacheMode = Settings.get("CUDA_CACHE_MODE", PersistanceMode.WEAK);
     logStack = Settings.get("CUDA_LOG_STACK", false);
-    profileMemoryIO = Settings.get("CUDA_PROFILE_MEM_IO", true);
+    profileMemoryIO = Settings.get("CUDA_PROFILE_MEM_IO", false);
     enableManaged = true;
     asyncFree = true;
     syncBeforeFree = true;
-    memoryCacheTTL = 90;
+    memoryCacheTTL = 45;
   }
   
   /**

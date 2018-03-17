@@ -367,10 +367,16 @@ public class CudnnHandle extends CudaDevice {
     assert Tensor.length(left.getDimensions()) == Tensor.length(right.getDimensions());
     int length = left.length();
     assert length == right.length();
-    if (left.currentRefCount() == 1 && left instanceof CudaTensorList && ((CudaTensorList) left).gpuCopy.memory.getDeviceId() == getDeviceId())
-      return this.addInPlaceAndFree((CudaTensorList) left, right);
-    if (right.currentRefCount() == 1 && right instanceof CudaTensorList && ((CudaTensorList) right).gpuCopy.memory.getDeviceId() == getDeviceId())
-      return this.addInPlaceAndFree((CudaTensorList) right, left);
+    if (left.currentRefCount() == 1 && left instanceof CudaTensorList) {
+      CudaTensor leftGpu = ((CudaTensorList) left).gpuCopy;
+      if (null != leftGpu && leftGpu.memory.getDeviceId() == getDeviceId())
+        return this.addInPlaceAndFree((CudaTensorList) left, right);
+    }
+    if (right.currentRefCount() == 1 && right instanceof CudaTensorList) {
+      CudaTensor rightGpu = ((CudaTensorList) right).gpuCopy;
+      if (null != rightGpu && rightGpu.memory.getDeviceId() == getDeviceId())
+        return this.addInPlaceAndFree((CudaTensorList) right, left);
+    }
     @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision);
     @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = newTensorDescriptor(precision, length, dimensions[2], dimensions[1], dimensions[0], dimensions[2] * dimensions[1] * dimensions[0], dimensions[1] * dimensions[0], dimensions[0], 1);
     @Nullable final CudaTensor lPtr = getTensor(left, precision, MemoryType.Device, false);//.moveTo(gpu.getDeviceNumber());
@@ -1059,7 +1065,7 @@ public class CudnnHandle extends CudaDevice {
     cudnnSetReduceTensorDescriptor(reduceTensorDesc, reduceTensorOp, reduceTensorCompType, reduceTensorNanOpt, reduceTensorIndices, reduceTensorIndicesType);
     return new CudaResource<cudnnReduceTensorDescriptor>(reduceTensorDesc, CudnnHandle::cudnnDestroyReduceTensorDescriptor, getDeviceId());
   }
-
+  
   @Override
   protected void cleanup() {
     ArrayList<CudaResourceBase> objsToFree = new ArrayList<>();

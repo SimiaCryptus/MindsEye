@@ -408,14 +408,14 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   @Nonnull
   private synchronized CudaMemory getCudaFilter(final CudaDevice deviceNumber) {
     CudaMemory cudaMemory;
-    if (!gpuFilters.containsKey(deviceNumber)) {
+    if (!gpuFilters.containsKey(deviceNumber.getDeviceId())) {
       double[] data = kernel.getData();
       cudaMemory = deviceNumber.allocate((long) data.length * precision.size, MemoryType.Device, true).write(precision, data);
       CudaMemory replaced = gpuFilters.put(deviceNumber.getDeviceId(), cudaMemory);
       if (null != replaced) replaced.freeRef();
     }
     else {
-      cudaMemory = gpuFilters.get(deviceNumber);
+      cudaMemory = gpuFilters.get(deviceNumber.getDeviceId());
     }
     cudaMemory.addRef();
     return cudaMemory;

@@ -320,7 +320,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         .setMonitor(getTrainingMonitor(history))
         .setOrientation(new QQN())
         .setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-2))
-        .setTimeout(90, TimeUnit.MINUTES)
+        .setTimeout(1, TimeUnit.MINUTES)
         .runAndFree();
       return TestUtil.plot(history);
     });
