@@ -23,16 +23,16 @@ import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.layers.cudnn.AvgReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer;
 import com.simiacryptus.mindseye.layers.cudnn.GateBiasLayer;
-import com.simiacryptus.mindseye.layers.cudnn.GateProductLayer;
 import com.simiacryptus.mindseye.layers.cudnn.GramianLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
-import com.simiacryptus.mindseye.layers.java.AvgReducerLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ProductLayer;
 import com.simiacryptus.mindseye.models.Hdf5Archive;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
@@ -91,7 +91,7 @@ public class StyleTransferDemo extends ArtistryDemo {
   public void run(@Nonnull NotebookOutput log) {
     init(log);
     Precision precision = Precision.Float;
-    imageSize = 200;
+    imageSize = 300;
 //    String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170924_145214.jpg";
     String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
 //    String style = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
@@ -101,39 +101,28 @@ public class StyleTransferDemo extends ArtistryDemo {
     canvasImage = TestUtil.resize(canvasImage, imageSize, true);
     BufferedImage contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
     BufferedImage styleImage = load("H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\1280px-Van_Gogh_-_Kauernder_Junge_mit_Sichel.jpg", imageSize);
-    canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, styleImage,
-      0, 0, 1e-2,
-      1e1, 1e1, 1e-2,
-      1e1, 1e1, 1e-2,
-      1e1, 1e1, 1,
-      1e1, 1, 1,
-      1e2, 1, 1));
+    StyleTransferCoefficients transferCoefficients = new StyleTransferCoefficients(
+      1e1, 0, 1,
+      1e2, 1, 1e-1,
+      1e3, 1, 1e-1,
+      1e3, 1, 1e-1,
+      1e3, 0, 0,
+      1e3, 0, 0);
+    canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, styleImage, transferCoefficients));
     
     for (int i = 0; i < 3; i++) {
       imageSize = imageSize * 2;
       canvasImage = TestUtil.resize(canvasImage, imageSize, true);
       contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
       styleImage = load("H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\1280px-Van_Gogh_-_Kauernder_Junge_mit_Sichel.jpg", imageSize);
-      canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, styleImage,
-        1, 1, 1,
-        1, 1, 1,
-        1, 1, 1,
-        1, 1, 1,
-        1e1, 1, 1,
-        1e2, 1, 1));
+      canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, styleImage, transferCoefficients));
     }
   
     imageSize = imageSize * 2;
     canvasImage = TestUtil.resize(canvasImage, imageSize, true);
     contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
     styleImage = load("H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\1280px-Van_Gogh_-_Kauernder_Junge_mit_Sichel.jpg", imageSize);
-    canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, styleImage,
-      0.0, 0.0, 1,
-      0.0, 0.0, 1,
-      0.0, 0.0, 1,
-      1e3, 1.0, 1,
-      1e3, 1.0, 1,
-      1e3, 1, 1.0));
+    canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, styleImage, transferCoefficients));
     
     log.setFrontMatterProperty("status", "OK");
   }
@@ -477,6 +466,69 @@ public class StyleTransferDemo extends ArtistryDemo {
     return ReportType.Demos;
   }
   
+  public static class StyleTransferCoefficients {
+    public final double coeff_content_0;
+    public final double coeff_style_mean_0;
+    public final double coeff_style_cov_0;
+    public final double coeff_content_1a;
+    public final double coeff_style_mean_1a;
+    public final double coeff_style_cov_1a;
+    public final double coeff_content_1b;
+    public final double coeff_style_mean_1b;
+    public final double coeff_style_cov_1b;
+    public final double coeff_content_1c;
+    public final double coeff_style_mean_1c;
+    public final double coeff_style_cov_1c;
+    public final double coeff_content_1d;
+    public final double coeff_style_mean_1d;
+    public final double coeff_style_cov_1d;
+    public final double coeff_content_1e;
+    public final double coeff_style_mean_1e;
+    public final double coeff_style_cov_1e;
+    
+    /**
+     * @param coeff_content_0     the coeff content 0
+     * @param coeff_style_mean_0  the coeff style mean 0
+     * @param coeff_style_cov_0   the coeff style cov 0
+     * @param coeff_content_1a    the coeff content 1 a
+     * @param coeff_style_mean_1a the coeff style mean 1 a
+     * @param coeff_style_cov_1a  the coeff style cov 1 a
+     * @param coeff_content_1b    the coeff content 1 b
+     * @param coeff_style_mean_1b the coeff style mean 1 b
+     * @param coeff_style_cov_1b  the coeff style cov 1 b
+     * @param coeff_content_1c    the coeff content 1 c
+     * @param coeff_style_mean_1c the coeff style mean 1 c
+     * @param coeff_style_cov_1c  the coeff style cov 1 c
+     * @param coeff_content_1d    the coeff content 1 d
+     * @param coeff_style_mean_1d the coeff style mean 1 d
+     * @param coeff_style_cov_1d  the coeff style cov 1 d
+     * @param coeff_content_1e    the coeff content 1 e
+     * @param coeff_style_mean_1e the coeff style mean 1 e
+     * @param coeff_style_cov_1e  the coeff style cov 1 e
+     */
+    public StyleTransferCoefficients(final double coeff_content_0, final double coeff_style_mean_0, final double coeff_style_cov_0, final double coeff_content_1a, final double coeff_style_mean_1a, final double coeff_style_cov_1a, final double coeff_content_1b, final double coeff_style_mean_1b, final double coeff_style_cov_1b, final double coeff_content_1c, final double coeff_style_mean_1c, final double coeff_style_cov_1c, final double coeff_content_1d, final double coeff_style_mean_1d, final double coeff_style_cov_1d, final double coeff_content_1e, final double coeff_style_mean_1e, final double coeff_style_cov_1e) {
+      this.coeff_content_0 = coeff_content_0;
+      this.coeff_style_mean_0 = coeff_style_mean_0;
+      this.coeff_style_cov_0 = coeff_style_cov_0;
+      this.coeff_content_1a = coeff_content_1a;
+      this.coeff_style_mean_1a = coeff_style_mean_1a;
+      this.coeff_style_cov_1a = coeff_style_cov_1a;
+      this.coeff_content_1b = coeff_content_1b;
+      this.coeff_style_mean_1b = coeff_style_mean_1b;
+      this.coeff_style_cov_1b = coeff_style_cov_1b;
+      this.coeff_content_1c = coeff_content_1c;
+      this.coeff_style_mean_1c = coeff_style_mean_1c;
+      this.coeff_style_cov_1c = coeff_style_cov_1c;
+      this.coeff_content_1d = coeff_content_1d;
+      this.coeff_style_mean_1d = coeff_style_mean_1d;
+      this.coeff_style_cov_1d = coeff_style_cov_1d;
+      this.coeff_content_1e = coeff_content_1e;
+      this.coeff_style_mean_1e = coeff_style_mean_1e;
+      this.coeff_style_cov_1e = coeff_style_cov_1e;
+    }
+    
+  }
+  
   /**
    * The type Style setup.
    */
@@ -569,56 +621,33 @@ public class StyleTransferDemo extends ArtistryDemo {
     /**
      * Instantiates a new Style setup.
      *
-     * @param precision           the precision
-     * @param contentImage        the content image
-     * @param styleImage          the style image
-     * @param coeff_content_0     the coeff content 0
-     * @param coeff_style_mean_0  the coeff style mean 0
-     * @param coeff_style_cov_0   the coeff style cov 0
-     * @param coeff_content_1a    the coeff content 1 a
-     * @param coeff_style_mean_1a the coeff style mean 1 a
-     * @param coeff_style_cov_1a  the coeff style cov 1 a
-     * @param coeff_content_1b    the coeff content 1 b
-     * @param coeff_style_mean_1b the coeff style mean 1 b
-     * @param coeff_style_cov_1b  the coeff style cov 1 b
-     * @param coeff_content_1c    the coeff content 1 c
-     * @param coeff_style_mean_1c the coeff style mean 1 c
-     * @param coeff_style_cov_1c  the coeff style cov 1 c
-     * @param coeff_content_1d    the coeff content 1 d
-     * @param coeff_style_mean_1d the coeff style mean 1 d
-     * @param coeff_style_cov_1d  the coeff style cov 1 d
-     * @param coeff_content_1e    the coeff content 1 e
-     * @param coeff_style_mean_1e the coeff style mean 1 e
-     * @param coeff_style_cov_1e  the coeff style cov 1 e
+     * @param precision                 the precision
+     * @param contentImage              the content image
+     * @param styleImage                the style image
+     * @param styleTransferCoefficients
      */
-    public StyleSetup(final Precision precision, final BufferedImage contentImage, final BufferedImage styleImage,
-      final double coeff_content_0, final double coeff_style_mean_0, final double coeff_style_cov_0,
-      final double coeff_content_1a, final double coeff_style_mean_1a, final double coeff_style_cov_1a,
-      final double coeff_content_1b, final double coeff_style_mean_1b, final double coeff_style_cov_1b,
-      final double coeff_content_1c, final double coeff_style_mean_1c, final double coeff_style_cov_1c,
-      final double coeff_content_1d, final double coeff_style_mean_1d, final double coeff_style_cov_1d,
-      final double coeff_content_1e, final double coeff_style_mean_1e, final double coeff_style_cov_1e) {
+    public StyleSetup(final Precision precision, final BufferedImage contentImage, final BufferedImage styleImage, final StyleTransferCoefficients styleTransferCoefficients) {
       this.precision = precision;
       this.contentImage = contentImage;
       this.styleImage = styleImage;
-      this.coeff_content_0 = coeff_content_0;
-      this.coeff_style_mean_0 = coeff_style_mean_0;
-      this.coeff_style_cov_0 = coeff_style_cov_0;
-      this.coeff_content_1a = coeff_content_1a;
-      this.coeff_style_mean_1a = coeff_style_mean_1a;
-      this.coeff_style_cov_1a = coeff_style_cov_1a;
-      this.coeff_content_1b = coeff_content_1b;
-      this.coeff_style_mean_1b = coeff_style_mean_1b;
-      this.coeff_style_cov_1b = coeff_style_cov_1b;
-      this.coeff_content_1c = coeff_content_1c;
-      this.coeff_style_mean_1c = coeff_style_mean_1c;
-      this.coeff_style_cov_1c = coeff_style_cov_1c;
-      this.coeff_content_1d = coeff_content_1d;
-      this.coeff_style_mean_1d = coeff_style_mean_1d;
-      this.coeff_style_cov_1d = coeff_style_cov_1d;
-      this.coeff_content_1e = coeff_content_1e;
-      this.coeff_style_mean_1e = coeff_style_mean_1e;
-      this.coeff_style_cov_1e = coeff_style_cov_1e;
+      this.coeff_content_0 = styleTransferCoefficients.coeff_content_0;
+      this.coeff_style_mean_0 = styleTransferCoefficients.coeff_style_mean_0;
+      this.coeff_style_cov_0 = styleTransferCoefficients.coeff_style_cov_0;
+      this.coeff_content_1a = styleTransferCoefficients.coeff_content_1a;
+      this.coeff_style_mean_1a = styleTransferCoefficients.coeff_style_mean_1a;
+      this.coeff_style_cov_1a = styleTransferCoefficients.coeff_style_cov_1a;
+      this.coeff_content_1b = styleTransferCoefficients.coeff_content_1b;
+      this.coeff_style_mean_1b = styleTransferCoefficients.coeff_style_mean_1b;
+      this.coeff_style_cov_1b = styleTransferCoefficients.coeff_style_cov_1b;
+      this.coeff_content_1c = styleTransferCoefficients.coeff_content_1c;
+      this.coeff_style_mean_1c = styleTransferCoefficients.coeff_style_mean_1c;
+      this.coeff_style_cov_1c = styleTransferCoefficients.coeff_style_cov_1c;
+      this.coeff_content_1d = styleTransferCoefficients.coeff_content_1d;
+      this.coeff_style_mean_1d = styleTransferCoefficients.coeff_style_mean_1d;
+      this.coeff_style_cov_1d = styleTransferCoefficients.coeff_style_cov_1d;
+      this.coeff_content_1e = styleTransferCoefficients.coeff_content_1e;
+      this.coeff_style_mean_1e = styleTransferCoefficients.coeff_style_mean_1e;
+      this.coeff_style_cov_1e = styleTransferCoefficients.coeff_style_cov_1e;
     }
     
   }
@@ -857,7 +886,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         }
         if (styleParameters.coeff_style_mean_0 != 0) {
           functions.add(new Tuple2<>(styleParameters.coeff_style_mean_0,
-            network.wrap(new AvgReducerLayer(), network.wrap(new GateProductLayer(), recentered, recentered))
+            network.wrap(new AvgReducerLayer(), network.wrap(new ProductLayer(), recentered, recentered))
           ));
         }
       }
@@ -877,7 +906,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         }
         if (styleParameters.coeff_style_mean_1a != 0) {
           functions.add(new Tuple2<>(styleParameters.coeff_style_mean_1a,
-            network.wrap(new AvgReducerLayer(), network.wrap(new GateProductLayer(), recentered, recentered))
+            network.wrap(new AvgReducerLayer(), network.wrap(new ProductLayer(), recentered, recentered))
           ));
         }
       }
@@ -898,7 +927,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         }
         if (styleParameters.coeff_style_mean_1b != 0) {
           functions.add(new Tuple2<>(styleParameters.coeff_style_mean_1b,
-            network.wrap(new AvgReducerLayer(), network.wrap(new GateProductLayer(), recentered, recentered))
+            network.wrap(new AvgReducerLayer(), network.wrap(new ProductLayer(), recentered, recentered))
           ));
         }
       }
@@ -919,7 +948,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         }
         if (styleParameters.coeff_style_mean_1c != 0) {
           functions.add(new Tuple2<>(styleParameters.coeff_style_mean_1c,
-            network.wrap(new AvgReducerLayer(), network.wrap(new GateProductLayer(), recentered, recentered))
+            network.wrap(new AvgReducerLayer(), network.wrap(new ProductLayer(), recentered, recentered))
           ));
         }
       }
@@ -940,7 +969,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         }
         if (styleParameters.coeff_style_mean_1d != 0) {
           functions.add(new Tuple2<>(styleParameters.coeff_style_mean_1d,
-            network.wrap(new AvgReducerLayer(), network.wrap(new GateProductLayer(), recentered, recentered))
+            network.wrap(new AvgReducerLayer(), network.wrap(new ProductLayer(), recentered, recentered))
           ));
         }
       }
@@ -961,7 +990,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         }
         if (styleParameters.coeff_style_mean_1e != 0) {
           functions.add(new Tuple2<>(styleParameters.coeff_style_mean_1e,
-            network.wrap(new AvgReducerLayer(), network.wrap(new GateProductLayer(), recentered, recentered))
+            network.wrap(new AvgReducerLayer(), network.wrap(new ProductLayer(), recentered, recentered))
           ));
         }
       }

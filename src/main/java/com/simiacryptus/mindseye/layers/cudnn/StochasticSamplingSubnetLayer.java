@@ -97,7 +97,7 @@ public class StochasticSamplingSubnetLayer extends WrapperLayer implements Stoch
    */
   public static Result average(final Result[] samples, final Precision precision) {
     PipelineNetwork gateNetwork = new PipelineNetwork(1);
-    gateNetwork.wrap(new GateProductLayer().setPrecision(precision),
+    gateNetwork.wrap(new ProductLayer().setPrecision(precision),
       gateNetwork.getInput(0),
       gateNetwork.wrap(new ValueLayer(new Tensor(1, 1, 1).mapAndFree(v -> 1.0 / samples.length)), new DAGNode[]{}));
     SumInputsLayer sumInputsLayer = new SumInputsLayer().setPrecision(precision);

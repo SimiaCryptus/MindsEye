@@ -23,12 +23,12 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
-import com.simiacryptus.mindseye.layers.cudnn.GateProductLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgMinSizeLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgModulusPaddingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgZeroPaddingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ProductLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.StochasticSamplingSubnetLayer;
 import com.simiacryptus.mindseye.layers.java.AssertDimensionsLayer;
@@ -537,7 +537,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
       PipelineNetwork stochasticNet = new PipelineNetwork(1);
       
       DAGNode prev = stochasticNet.getHead();
-      stochasticNet.wrap(new GateProductLayer(), prev,
+      stochasticNet.wrap(new ProductLayer(), prev,
         stochasticNet.add(new StochasticBinaryNoiseLayer(density, 1.0 / density, 1, 1, 4096), new DAGNode[]{}));
       
       stochasticNet.wrap(new ConvolutionLayer(1, 1, 4096, 4096)
@@ -551,7 +551,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
         .setAndFree((hdf5.readDataSet("param_1", "layer_34"))));
       
       prev = stochasticNet.getHead();
-      stochasticNet.wrap(new GateProductLayer(), prev,
+      stochasticNet.wrap(new ProductLayer(), prev,
         stochasticNet.add(new StochasticBinaryNoiseLayer(density, 1.0 / density, 1, 1, 4096), new DAGNode[]{}));
       
       stochasticNet.wrap(new ActivationLayer(ActivationLayer.Mode.RELU));

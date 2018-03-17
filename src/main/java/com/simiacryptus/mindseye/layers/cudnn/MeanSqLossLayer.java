@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.layers.java.AvgReducerLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,8 +43,7 @@ public class MeanSqLossLayer extends PipelineNetwork {
   public MeanSqLossLayer() {
     super(2);
     wrap(new BinarySumLayer(1.0, -1.0), getInput(0), getInput(1));
-    wrap(new NProductLayer(), getHead(), getHead());
-    wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
+    wrap(new ProductLayer(), getHead(), getHead());
     wrap(new AvgReducerLayer());
   }
   

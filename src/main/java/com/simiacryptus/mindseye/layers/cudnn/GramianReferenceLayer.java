@@ -88,7 +88,7 @@ public class GramianReferenceLayer extends LayerBase implements MultiPrecision<G
     DAGNode input = network.getInput(0);
     network.wrap(new ImgConcatLayer().setParallel(false), IntStream.range(0, dimensions[2]).mapToObj(band -> {
       return network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg),
-        network.wrap(new GateProductLayer(), input,
+        network.wrap(new ProductLayer(), input,
           network.wrap(new ImgBandSelectLayer(band, band + 1), input)
         ));
     }).toArray(i -> new DAGNode[i]));

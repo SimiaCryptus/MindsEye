@@ -56,14 +56,14 @@ import java.util.stream.Stream;
  * layers, such as the square needed in MeanSqLossLayer.
  */
 @SuppressWarnings("serial")
-public class GateProductLayer extends LayerBase implements MultiPrecision<GateProductLayer> {
+public class ProductLayer extends LayerBase implements MultiPrecision<ProductLayer> {
   
   private Precision precision = Precision.Double;
   
   /**
    * Instantiates a new Product inputs layer.
    */
-  public GateProductLayer() {
+  public ProductLayer() {
   }
   
   /**
@@ -71,7 +71,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
    *
    * @param id the id
    */
-  protected GateProductLayer(@Nonnull final JsonObject id) {
+  protected ProductLayer(@Nonnull final JsonObject id) {
     super(id);
     this.precision = Precision.valueOf(id.getAsJsonPrimitive("precision").getAsString());
   }
@@ -83,8 +83,8 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
    * @param rs   the rs
    * @return the product inputs layer
    */
-  public static GateProductLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
-    return new GateProductLayer(json);
+  public static ProductLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+    return new ProductLayer(json);
   }
   
   /**
@@ -278,7 +278,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
   
   @Nonnull
   @Override
-  public GateProductLayer setPrecision(final Precision precision) {
+  public ProductLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }

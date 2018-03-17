@@ -29,7 +29,7 @@ import java.util.Random;
 /**
  * The type Product layer apply.
  */
-public abstract class GateProductLayerTest extends CudaLayerTestBase {
+public abstract class ProductLayerTest extends CudaLayerTestBase {
   
   /**
    * The Precision.
@@ -41,7 +41,7 @@ public abstract class GateProductLayerTest extends CudaLayerTestBase {
    *
    * @param precision the precision
    */
-  public GateProductLayerTest(final Precision precision) {
+  public ProductLayerTest(final Precision precision) {
     this.precision = precision;
   }
   
@@ -56,13 +56,13 @@ public abstract class GateProductLayerTest extends CudaLayerTestBase {
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
-    return new GateProductLayer().setPrecision(precision);
+    return new ProductLayer().setPrecision(precision);
   }
   
   /**
    * Multiplication of 2 inputs using 64-bit precision
    */
-  public static class Double extends GateProductLayerTest {
+  public static class Double extends ProductLayerTest {
     /**
      * Instantiates a new Double.
      */
@@ -74,7 +74,7 @@ public abstract class GateProductLayerTest extends CudaLayerTestBase {
   /**
    * Multiplication of 2 inputs using 32-bit precision
    */
-  public static class Float extends GateProductLayerTest {
+  public static class Float extends ProductLayerTest {
     /**
      * Instantiates a new Float.
      */
