@@ -101,30 +101,37 @@ public class StyleTransferDemo extends ArtistryDemo {
     canvasImage = TestUtil.resize(canvasImage, imageSize, true);
     BufferedImage contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
     BufferedImage styleImage = load("H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\1280px-Van_Gogh_-_Kauernder_Junge_mit_Sichel.jpg", imageSize);
-    StyleTransferCoefficients transferCoefficients = new StyleTransferCoefficients(
-      1e1, 0, 1,
-      1e2, 1, 1e-1,
-      1e3, 1, 1e-1,
-      1e3, 1, 1e-1,
-      0, 0, 0,
-      0, 0, 0, true);
-    int trainingMinutes = 90;
+    ContentCoefficients contentCoefficients = new ContentCoefficients(
+      1e1,
+      1e2,
+      1e3,
+      1e3,
+      0,
+      0);
+    StyleCoefficients styleCoefficients = new StyleCoefficients(
+      0, 1,
+      1, 1e-1,
+      1, 1e-1,
+      1, 1e-1,
+      0, 0,
+      0, 0, true);
+    int trainingMinutes = 1;
   
-    canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, styleImage, transferCoefficients), trainingMinutes);
+    canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImage, styleCoefficients), trainingMinutes);
     
     for (int i = 0; i < 3; i++) {
       imageSize = imageSize * 2;
       canvasImage = TestUtil.resize(canvasImage, imageSize, true);
       contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
       styleImage = load("H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\1280px-Van_Gogh_-_Kauernder_Junge_mit_Sichel.jpg", imageSize);
-      canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, styleImage, transferCoefficients), trainingMinutes);
+      canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImage, styleCoefficients), trainingMinutes);
     }
   
     imageSize = imageSize * 2;
     canvasImage = TestUtil.resize(canvasImage, imageSize, true);
     contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
     styleImage = load("H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\1280px-Van_Gogh_-_Kauernder_Junge_mit_Sichel.jpg", imageSize);
-    canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, styleImage, transferCoefficients), trainingMinutes);
+    canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImage, styleCoefficients), trainingMinutes);
     
     log.setFrontMatterProperty("status", "OK");
   }
@@ -470,65 +477,51 @@ public class StyleTransferDemo extends ArtistryDemo {
     return ReportType.Demos;
   }
   
-  public static class StyleTransferCoefficients {
+  public static class ContentCoefficients {
     public final double coeff_content_0;
+    public final double coeff_content_1a;
+    public final double coeff_content_1b;
+    public final double coeff_content_1c;
+    public final double coeff_content_1d;
+    public final double coeff_content_1e;
+    
+    public ContentCoefficients(final double coeff_content_0, final double coeff_content_1a, final double coeff_content_1b, final double coeff_content_1c, final double coeff_content_1d, final double coeff_content_1e) {
+      this.coeff_content_0 = coeff_content_0;
+      this.coeff_content_1a = coeff_content_1a;
+      this.coeff_content_1b = coeff_content_1b;
+      this.coeff_content_1c = coeff_content_1c;
+      this.coeff_content_1d = coeff_content_1d;
+      this.coeff_content_1e = coeff_content_1e;
+    }
+    
+  }
+  
+  public static class StyleCoefficients {
     public final double coeff_style_mean_0;
     public final double coeff_style_cov_0;
-    public final double coeff_content_1a;
     public final double coeff_style_mean_1a;
     public final double coeff_style_cov_1a;
-    public final double coeff_content_1b;
     public final double coeff_style_mean_1b;
     public final double coeff_style_cov_1b;
-    public final double coeff_content_1c;
     public final double coeff_style_mean_1c;
     public final double coeff_style_cov_1c;
-    public final double coeff_content_1d;
     public final double coeff_style_mean_1d;
     public final double coeff_style_cov_1d;
-    public final double coeff_content_1e;
     public final double coeff_style_mean_1e;
     public final double coeff_style_cov_1e;
     public final boolean dynamic_center;
-  
-    /**
-     * @param coeff_content_0     the coeff content 0
-     * @param coeff_style_mean_0  the coeff style mean 0
-     * @param coeff_style_cov_0   the coeff style cov 0
-     * @param coeff_content_1a    the coeff content 1 a
-     * @param coeff_style_mean_1a the coeff style mean 1 a
-     * @param coeff_style_cov_1a  the coeff style cov 1 a
-     * @param coeff_content_1b    the coeff content 1 b
-     * @param coeff_style_mean_1b the coeff style mean 1 b
-     * @param coeff_style_cov_1b  the coeff style cov 1 b
-     * @param coeff_content_1c    the coeff content 1 c
-     * @param coeff_style_mean_1c the coeff style mean 1 c
-     * @param coeff_style_cov_1c  the coeff style cov 1 c
-     * @param coeff_content_1d    the coeff content 1 d
-     * @param coeff_style_mean_1d the coeff style mean 1 d
-     * @param coeff_style_cov_1d  the coeff style cov 1 d
-     * @param coeff_content_1e    the coeff content 1 e
-     * @param coeff_style_mean_1e the coeff style mean 1 e
-     * @param coeff_style_cov_1e  the coeff style cov 1 e
-     * @param dynamic_center
-     */
-    public StyleTransferCoefficients(final double coeff_content_0, final double coeff_style_mean_0, final double coeff_style_cov_0, final double coeff_content_1a, final double coeff_style_mean_1a, final double coeff_style_cov_1a, final double coeff_content_1b, final double coeff_style_mean_1b, final double coeff_style_cov_1b, final double coeff_content_1c, final double coeff_style_mean_1c, final double coeff_style_cov_1c, final double coeff_content_1d, final double coeff_style_mean_1d, final double coeff_style_cov_1d, final double coeff_content_1e, final double coeff_style_mean_1e, final double coeff_style_cov_1e, final boolean dynamic_center) {
-      this.coeff_content_0 = coeff_content_0;
+    
+    public StyleCoefficients(final double coeff_style_mean_0, final double coeff_style_cov_0, final double coeff_style_mean_1a, final double coeff_style_cov_1a, final double coeff_style_mean_1b, final double coeff_style_cov_1b, final double coeff_style_mean_1c, final double coeff_style_cov_1c, final double coeff_style_mean_1d, final double coeff_style_cov_1d, final double coeff_style_mean_1e, final double coeff_style_cov_1e, final boolean dynamic_center) {
       this.coeff_style_mean_0 = coeff_style_mean_0;
       this.coeff_style_cov_0 = coeff_style_cov_0;
-      this.coeff_content_1a = coeff_content_1a;
       this.coeff_style_mean_1a = coeff_style_mean_1a;
       this.coeff_style_cov_1a = coeff_style_cov_1a;
-      this.coeff_content_1b = coeff_content_1b;
       this.coeff_style_mean_1b = coeff_style_mean_1b;
       this.coeff_style_cov_1b = coeff_style_cov_1b;
-      this.coeff_content_1c = coeff_content_1c;
       this.coeff_style_mean_1c = coeff_style_mean_1c;
       this.coeff_style_cov_1c = coeff_style_cov_1c;
-      this.coeff_content_1d = coeff_content_1d;
       this.coeff_style_mean_1d = coeff_style_mean_1d;
       this.coeff_style_cov_1d = coeff_style_cov_1d;
-      this.coeff_content_1e = coeff_content_1e;
       this.coeff_style_mean_1e = coeff_style_mean_1e;
       this.coeff_style_cov_1e = coeff_style_cov_1e;
       this.dynamic_center = dynamic_center;
@@ -552,79 +545,74 @@ public class StyleTransferDemo extends ArtistryDemo {
      * The Style image.
      */
     public final BufferedImage styleImage;
-    public final StyleTransferCoefficients params;
+    public final StyleCoefficients style;
+    public final ContentCoefficients content;
   
   
     /**
      * Instantiates a new Style setup.
-     *
-     * @param precision                 the precision
+     *  @param precision                 the precision
      * @param contentImage              the content image
      * @param styleImage                the style image
-     * @param params
      */
-    public StyleSetup(final Precision precision, final BufferedImage contentImage, final BufferedImage styleImage, final StyleTransferCoefficients params) {
+    public StyleSetup(final Precision precision, final BufferedImage contentImage, ContentCoefficients contentCoefficients, final BufferedImage styleImage, final StyleCoefficients style) {
       this.precision = precision;
       this.contentImage = contentImage;
       this.styleImage = styleImage;
-      this.params = params;
+      this.style = style;
+      this.content = contentCoefficients;
     }
     
   }
   
-  private class NeuralSetup {
-    /**
-     * The Log.
-     */
-    public final NotebookOutput log;
-    /**
-     * The Style parameters.
-     */
-    public final StyleSetup style;
+  public static class ContentTarget {
     /**
      * The Target content 0.
      */
     public Tensor target_content_0;
     /**
-     * The Target style cov 0.
-     */
-    public Tensor target_style_cov_0;
-    /**
      * The Target content 1 a.
      */
     public Tensor target_content_1a;
-    /**
-     * The Target style cov 1 a.
-     */
-    public Tensor target_style_cov_1a;
     /**
      * The Target content 1 b.
      */
     public Tensor target_content_1b;
     /**
-     * The Target style cov 1 b.
-     */
-    public Tensor target_style_cov_1b;
-    /**
      * The Target content 1 c.
      */
     public Tensor target_content_1c;
-    /**
-     * The Target style cov 1 c.
-     */
-    public Tensor target_style_cov_1c;
     /**
      * The Target content 1 d.
      */
     public Tensor target_content_1d;
     /**
-     * The Target style cov 1 d.
-     */
-    public Tensor target_style_cov_1d;
-    /**
      * The Target content 1 e.
      */
     public Tensor target_content_1e;
+  }
+  
+  public class StyleTarget {
+    /**
+     * The Target style cov 0.
+     */
+    public Tensor target_style_cov_0;
+    /**
+     * The Target style cov 1 a.
+     */
+    public Tensor target_style_cov_1a;
+    /**
+     * The Target style cov 1 b.
+     */
+    public Tensor target_style_cov_1b;
+    /**
+     * The Target style cov 1 c.
+     */
+    public Tensor target_style_cov_1c;
+    /**
+     * The Target style cov 1 d.
+     */
+    public Tensor target_style_cov_1d;
     /**
      * The Target style cov 1 e.
      */
@@ -653,7 +641,21 @@ public class StyleTransferDemo extends ArtistryDemo {
      * The Target style mean 1 e.
      */
     public Tensor target_style_mean_1e;
+  }
   
+  private class NeuralSetup {
+    
+    /**
+     * The Log.
+     */
+    public final NotebookOutput log;
+    /**
+     * The Style parameters.
+     */
+    public final StyleSetup style;
+    ContentTarget contentTarget = new ContentTarget();
+    StyleTarget styleTarget = new StyleTarget();
+    
     /**
      * Instantiates a new Neural setup.
      *
@@ -664,7 +666,7 @@ public class StyleTransferDemo extends ArtistryDemo {
       this.log = log;
       this.style = style;
     }
-  
+    
     /**
      * Init neural setup.
      *
@@ -677,7 +679,7 @@ public class StyleTransferDemo extends ArtistryDemo {
       final PipelineNetwork content_1c = texture_1c(log);
       final PipelineNetwork content_1d = texture_1d(log);
       final PipelineNetwork content_1e = texture_1e(log);
-  
+      
       Tensor contentInput = Tensor.fromRGB(style.contentImage);
       try {
         log.p(log.image(contentInput.toImage(), "content"));
@@ -690,46 +692,52 @@ public class StyleTransferDemo extends ArtistryDemo {
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
+      contentTarget = new ContentTarget();
       
-      target_content_0 = content_0.eval(contentInput).getDataAndFree().getAndFree(0);
-      logger.info("target_content_0=" + target_content_0.prettyPrint());
-      target_style_mean_0 = avg((PipelineNetwork) content_0.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
-      logger.info("target_style_mean_0=" + target_style_mean_0.prettyPrint());
-      target_style_cov_0 = gram((PipelineNetwork) content_0.copy(), target_style_mean_0).eval(styleInput).getDataAndFree().getAndFree(0);
-      logger.info("target_style_cov_0=" + target_style_cov_0.prettyPrint());
-      target_content_1a = content_1a.eval(contentInput).getDataAndFree().getAndFree(0);
-      logger.info("target_content_1a=" + target_content_1a.prettyPrint());
-      target_style_mean_1a = avg((PipelineNetwork) content_1a.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
-      logger.info("target_style_mean_1a=" + target_style_mean_1a.prettyPrint());
-      target_style_cov_1a = gram((PipelineNetwork) content_1a.copy(), target_style_mean_1a).eval(styleInput).getDataAndFree().getAndFree(0);
-      logger.info("target_style_cov_1a=" + target_style_cov_1a.prettyPrint());
-      target_content_1b = content_1b.eval(contentInput).getDataAndFree().getAndFree(0);
-      logger.info("target_content_1b=" + target_content_1b.prettyPrint());
-      target_style_mean_1b = avg((PipelineNetwork) content_1b.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
-      logger.info("target_style_mean_1b=" + target_style_mean_1b.prettyPrint());
-      target_style_cov_1b = gram((PipelineNetwork) content_1b.copy(), target_style_mean_1b).eval(styleInput).getDataAndFree().getAndFree(0);
-      logger.info("target_style_cov_1b=" + target_style_cov_1b.prettyPrint());
-      target_content_1c = content_1c.eval(contentInput).getDataAndFree().getAndFree(0);
-      logger.info("target_content_1c=" + target_content_1c.prettyPrint());
-      target_style_mean_1c = avg((PipelineNetwork) content_1c.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
-      logger.info("target_style_mean_1c=" + target_style_mean_1c.prettyPrint());
-      target_style_cov_1c = gram((PipelineNetwork) content_1c.copy(), target_style_mean_1c).eval(styleInput).getDataAndFree().getAndFree(0);
-      logger.info("target_style_cov_1c=" + target_style_cov_1c.prettyPrint());
-      target_content_1d = content_1d.eval(contentInput).getDataAndFree().getAndFree(0);
-      logger.info("target_content_1d=" + target_content_1d.prettyPrint());
-      target_style_mean_1d = avg((PipelineNetwork) content_1d.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
-      logger.info("target_style_mean_1d=" + target_style_mean_1d.prettyPrint());
-      target_style_cov_1d = gram((PipelineNetwork) content_1d.copy(), target_style_mean_1d).eval(styleInput).getDataAndFree().getAndFree(0);
-      logger.info("target_style_cov_1d=" + target_style_cov_1d.prettyPrint());
-      target_content_1e = content_1e.eval(contentInput).getDataAndFree().getAndFree(0);
-      logger.info("target_content_1e=" + target_content_1e.prettyPrint());
-      target_style_mean_1e = avg((PipelineNetwork) content_1e.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
-      logger.info("target_style_mean_1e=" + target_style_mean_1e.prettyPrint());
-      target_style_cov_1e = gram((PipelineNetwork) content_1e.copy(), target_style_mean_1e).eval(styleInput).getDataAndFree().getAndFree(0);
-      logger.info("target_style_cov_1e=" + target_style_cov_1e.prettyPrint());
+      contentTarget.target_content_0 = content_0.eval(contentInput).getDataAndFree().getAndFree(0);
+      logger.info("target_content_0=" + contentTarget.target_content_0.prettyPrint());
+      styleTarget.target_style_mean_0 = avg((PipelineNetwork) content_0.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_mean_0=" + styleTarget.target_style_mean_0.prettyPrint());
+      styleTarget.target_style_cov_0 = gram((PipelineNetwork) content_0.copy(), styleTarget.target_style_mean_0).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_cov_0=" + styleTarget.target_style_cov_0.prettyPrint());
+      
+      contentTarget.target_content_1a = content_1a.eval(contentInput).getDataAndFree().getAndFree(0);
+      logger.info("target_content_1a=" + contentTarget.target_content_1a.prettyPrint());
+      styleTarget.target_style_mean_1a = avg((PipelineNetwork) content_1a.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_mean_1a=" + styleTarget.target_style_mean_1a.prettyPrint());
+      styleTarget.target_style_cov_1a = gram((PipelineNetwork) content_1a.copy(), styleTarget.target_style_mean_1a).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_cov_1a=" + styleTarget.target_style_cov_1a.prettyPrint());
+      
+      contentTarget.target_content_1b = content_1b.eval(contentInput).getDataAndFree().getAndFree(0);
+      logger.info("target_content_1b=" + contentTarget.target_content_1b.prettyPrint());
+      styleTarget.target_style_mean_1b = avg((PipelineNetwork) content_1b.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_mean_1b=" + styleTarget.target_style_mean_1b.prettyPrint());
+      styleTarget.target_style_cov_1b = gram((PipelineNetwork) content_1b.copy(), styleTarget.target_style_mean_1b).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_cov_1b=" + styleTarget.target_style_cov_1b.prettyPrint());
+      
+      contentTarget.target_content_1c = content_1c.eval(contentInput).getDataAndFree().getAndFree(0);
+      logger.info("target_content_1c=" + contentTarget.target_content_1c.prettyPrint());
+      styleTarget.target_style_mean_1c = avg((PipelineNetwork) content_1c.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_mean_1c=" + styleTarget.target_style_mean_1c.prettyPrint());
+      styleTarget.target_style_cov_1c = gram((PipelineNetwork) content_1c.copy(), styleTarget.target_style_mean_1c).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_cov_1c=" + styleTarget.target_style_cov_1c.prettyPrint());
+      
+      contentTarget.target_content_1d = content_1d.eval(contentInput).getDataAndFree().getAndFree(0);
+      logger.info("target_content_1d=" + contentTarget.target_content_1d.prettyPrint());
+      styleTarget.target_style_mean_1d = avg((PipelineNetwork) content_1d.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_mean_1d=" + styleTarget.target_style_mean_1d.prettyPrint());
+      styleTarget.target_style_cov_1d = gram((PipelineNetwork) content_1d.copy(), styleTarget.target_style_mean_1d).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_cov_1d=" + styleTarget.target_style_cov_1d.prettyPrint());
+      
+      contentTarget.target_content_1e = content_1e.eval(contentInput).getDataAndFree().getAndFree(0);
+      logger.info("target_content_1e=" + contentTarget.target_content_1e.prettyPrint());
+      styleTarget.target_style_mean_1e = avg((PipelineNetwork) content_1e.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_mean_1e=" + styleTarget.target_style_mean_1e.prettyPrint());
+      styleTarget.target_style_cov_1e = gram((PipelineNetwork) content_1e.copy(), styleTarget.target_style_mean_1e).eval(styleInput).getDataAndFree().getAndFree(0);
+      logger.info("target_style_cov_1e=" + styleTarget.target_style_cov_1e.prettyPrint());
       return this;
     }
-  
+    
     /**
      * Fitness function pipeline network.
      *
@@ -788,43 +796,46 @@ public class StyleTransferDemo extends ArtistryDemo {
       });
       PipelineNetwork network = layerBuffer[0];
       List<Tuple2<Double, DAGNode>> functions = new ArrayList<>();
-      StyleTransferCoefficients p = style.params;
-      addStyleComponents(network, functions, nodes[0],
-        p.coeff_content_0, target_content_0);
-      addStyleComponents(network, functions, nodes[0], p.dynamic_center,
-        p.coeff_style_mean_0, target_style_mean_0,
-        p.coeff_style_cov_0, target_style_cov_0);
-      addStyleComponents(network, functions, nodes[1],
-        p.coeff_content_1a, target_content_1a);
-      addStyleComponents(network, functions, nodes[1], p.dynamic_center,
-        p.coeff_style_mean_1a, target_style_mean_1a,
-        p.coeff_style_cov_1a, target_style_cov_1a);
-      addStyleComponents(network, functions, nodes[2],
-        p.coeff_content_1b, target_content_1b);
-      addStyleComponents(network, functions, nodes[2], p.dynamic_center,
-        p.coeff_style_mean_1b, target_style_mean_1b,
-        p.coeff_style_cov_1b, target_style_cov_1b);
-      addStyleComponents(network, functions, nodes[3],
-        p.coeff_content_1c, target_content_1c);
-      addStyleComponents(network, functions, nodes[3], p.dynamic_center,
-        p.coeff_style_mean_1c, target_style_mean_1c,
-        p.coeff_style_cov_1c, target_style_cov_1c);
-      addStyleComponents(network, functions, nodes[4],
-        p.coeff_content_1d, target_content_1d);
-      addStyleComponents(network, functions, nodes[4], p.dynamic_center,
-        p.coeff_style_mean_1d, target_style_mean_1d,
-        p.coeff_style_cov_1d, target_style_cov_1d);
-      addStyleComponents(network, functions, nodes[5],
-        p.coeff_content_1e, target_content_1e);
-      addStyleComponents(network, functions, nodes[5], p.dynamic_center,
-        p.coeff_style_mean_1e, target_style_mean_1e,
-        p.coeff_style_cov_1e, this.target_style_cov_1e);
+      
+      ContentCoefficients c = this.style.content;
+      addContentComponents(network, functions, nodes[0],
+        c.coeff_content_0, contentTarget.target_content_0);
+      addContentComponents(network, functions, nodes[1],
+        c.coeff_content_1a, contentTarget.target_content_1a);
+      addContentComponents(network, functions, nodes[2],
+        c.coeff_content_1b, contentTarget.target_content_1b);
+      addContentComponents(network, functions, nodes[3],
+        c.coeff_content_1c, contentTarget.target_content_1c);
+      addContentComponents(network, functions, nodes[4],
+        c.coeff_content_1d, contentTarget.target_content_1d);
+      addContentComponents(network, functions, nodes[5],
+        c.coeff_content_1e, contentTarget.target_content_1e);
+      
+      StyleCoefficients s = this.style.style;
+      addStyleComponents(network, functions, nodes[0], s.dynamic_center,
+        s.coeff_style_mean_0, styleTarget.target_style_mean_0,
+        s.coeff_style_cov_0, styleTarget.target_style_cov_0);
+      addStyleComponents(network, functions, nodes[1], s.dynamic_center,
+        s.coeff_style_mean_1a, styleTarget.target_style_mean_1a,
+        s.coeff_style_cov_1a, styleTarget.target_style_cov_1a);
+      addStyleComponents(network, functions, nodes[2], s.dynamic_center,
+        s.coeff_style_mean_1b, styleTarget.target_style_mean_1b,
+        s.coeff_style_cov_1b, styleTarget.target_style_cov_1b);
+      addStyleComponents(network, functions, nodes[3], s.dynamic_center,
+        s.coeff_style_mean_1c, styleTarget.target_style_mean_1c,
+        s.coeff_style_cov_1c, styleTarget.target_style_cov_1c);
+      addStyleComponents(network, functions, nodes[4], s.dynamic_center,
+        s.coeff_style_mean_1d, styleTarget.target_style_mean_1d,
+        s.coeff_style_cov_1d, styleTarget.target_style_cov_1d);
+      addStyleComponents(network, functions, nodes[5], s.dynamic_center,
+        s.coeff_style_mean_1e, styleTarget.target_style_mean_1e,
+        s.coeff_style_cov_1e, styleTarget.target_style_cov_1e);
       functions.stream().filter(x -> x._1 != 0)
         .reduce((a, b) -> new Tuple2<>(1.0, network.wrap(new BinarySumLayer(a._1, b._1), a._2, b._2))).get();
-      setPrecision(network, style.precision);
+      setPrecision(network, this.style.precision);
       return network;
     }
-  
+    
     public void addStyleComponents(final PipelineNetwork network, final List<Tuple2<Double, DAGNode>> functions, final DAGNode node, final boolean dynamic_center, final double coeff_style_mean, final Tensor target_style_mean, final double coeff_style_cov, final Tensor target_style_cov) {
       if (coeff_style_cov != 0 || coeff_style_mean != 0) {
         DAGNode negTarget = network.constValue(target_style_mean.scale(-1));
@@ -849,8 +860,8 @@ public class StyleTransferDemo extends ArtistryDemo {
         }
       }
     }
-  
-    public void addStyleComponents(final PipelineNetwork network, final List<Tuple2<Double, DAGNode>> functions, final DAGNode node, final double coeff_content, final Tensor target_content) {
+    
+    public void addContentComponents(final PipelineNetwork network, final List<Tuple2<Double, DAGNode>> functions, final DAGNode node, final double coeff_content, final Tensor target_content) {
       if (coeff_content != 0) {
         functions.add(new Tuple2<>(coeff_content, network.wrap(new MeanSqLossLayer(),
           node, network.constValue(target_content))));
