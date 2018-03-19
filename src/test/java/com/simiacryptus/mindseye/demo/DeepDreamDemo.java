@@ -77,6 +77,16 @@ public class DeepDreamDemo extends ArtistryDemo {
     run(this::run);
   }
   
+  @Nonnull
+  public static PipelineNetwork getClamp() {
+    @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
+    clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+    clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+    clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+    clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+    return clamp;
+  }
+  
   /**
    * Run.
    *
@@ -151,11 +161,7 @@ public class DeepDreamDemo extends ArtistryDemo {
   
       log.code(() -> {
         @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-        @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
-        clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-        clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-        clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-        clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+        @Nonnull PipelineNetwork clamp = getClamp();
         @Nonnull PipelineNetwork supervised = new PipelineNetwork(2);
         supervised.add(normalized.freeze(),
           supervised.wrap(clamp, supervised.getInput(0)),

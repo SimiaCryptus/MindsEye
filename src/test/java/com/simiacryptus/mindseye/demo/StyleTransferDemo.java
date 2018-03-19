@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.labs.encoding.PCAUtil;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer;
@@ -34,6 +35,7 @@ import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
+import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.models.Hdf5Archive;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
@@ -379,6 +381,16 @@ public class StyleTransferDemo extends ArtistryDemo {
     network.wrap(new ImgBandBiasLayer(mean.scale(-1)));
     network.wrap(new GramianLayer());
     return network;
+  }
+  
+  @Nonnull
+  public static PipelineNetwork getClamp() {
+    @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
+    clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+    clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+    clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+    clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+    return clamp;
   }
   
   /**
@@ -955,7 +967,9 @@ public class StyleTransferDemo extends ArtistryDemo {
         functions.addAll(getStyleComponents(nodes[5], c.dynamic_center, c.coeff_style_mean_1e, t.target_style_mean_1e, c.coeff_style_cov_1e, t.target_style_pca_cov_1e, t.target_style_pca_1e));
       }
   
-      PipelineNetwork network = layerBuffer[0];
+      PipelineNetwork network = new PipelineNetwork(1);
+      network.wrap(getClamp());
+      network.wrap(layerBuffer[0]);
       functions.stream().filter(x -> x._1 != 0)
         .reduce((a, b) -> new Tuple2<>(1.0, network.wrap(new BinarySumLayer(a._1, b._1), a._2, b._2))).get();
       setPrecision(network, this.style.precision);

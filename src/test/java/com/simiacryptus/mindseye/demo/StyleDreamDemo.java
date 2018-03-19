@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.labs.encoding.PCAUtil;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.AvgReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
@@ -36,6 +37,7 @@ import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ProductLayer;
+import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.models.Hdf5Archive;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
@@ -105,64 +107,14 @@ public class StyleDreamDemo extends ArtistryDemo {
     run(this::run);
   }
   
-  /**
-   * Test.
-   *
-   * @param log the log
-   */
-  public void run(@Nonnull NotebookOutput log) {
-    init(log);
-    Precision precision = Precision.Float;
-    imageSize = 400;
-//    String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170924_145214.jpg";
-    String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
-//    String style = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
-    
-    log.h1("Input");
-    BufferedImage canvasImage = load(content, imageSize);
-    //canvasImage = randomize(canvasImage);
-    canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-    BufferedImage contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
-    List<String> styles = Arrays.asList(
-      //"H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\1280px-Van_Gogh_-_Kauernder_Junge_mit_Sichel.jpg",
-      "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg"
-    );
-    ContentCoefficients contentCoefficients = new ContentCoefficients(
-      1e-4,
-      1e-4,
-      1e-4,
-      0,
-      0,
-      0);
-    StyleCoefficients styleCoefficients1 = new StyleCoefficients(
-      0, 1e-6,
-      0, 1e-6,
-      0, 1e-4,
-      0, 1e-8,
-      0, 0,
-      0, 0, false);
-    List<StyleCoefficients> styleCoefficients = styles.stream().map(img1 -> styleCoefficients1).collect(Collectors.toList());
-    int trainingMinutes = 120;
-    
-    
-    List<BufferedImage> styleImages = load(styles, imageSize);
-    canvasImage = process(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styleCoefficients), trainingMinutes);
-    
-    for (int i = 0; i < 3; i++) {
-      imageSize = imageSize * 2;
-      canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-      contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
-      styleImages = load(styles, imageSize);
-      canvasImage = process(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styleCoefficients), trainingMinutes);
-    }
-    
-    imageSize = imageSize * 2;
-    canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-    contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
-    styleImages = load(styles, imageSize);
-    canvasImage = process(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styleCoefficients), trainingMinutes);
-    
-    log.setFrontMatterProperty("status", "OK");
+  @Nonnull
+  public static PipelineNetwork getClamp() {
+    @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
+    clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+    clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+    clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+    clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+    return clamp;
   }
   
   /**
@@ -196,6 +148,66 @@ public class StyleDreamDemo extends ArtistryDemo {
       throw new RuntimeException(e);
     }
     return result;
+  }
+  
+  /**
+   * Test.
+   *
+   * @param log the log
+   */
+  public void run(@Nonnull NotebookOutput log) {
+    init(log);
+    Precision precision = Precision.Float;
+    imageSize = 600;
+//    String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170924_145214.jpg";
+    String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
+//    String style = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
+    
+    log.h1("Input");
+    BufferedImage canvasImage = load(content, imageSize);
+    //canvasImage = randomize(canvasImage);
+    canvasImage = TestUtil.resize(canvasImage, imageSize, true);
+    BufferedImage contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
+    List<String> styles = Arrays.asList(
+      "H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\1280px-Van_Gogh_-_Kauernder_Junge_mit_Sichel.jpg",
+      "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg"
+    );
+    ContentCoefficients contentCoefficients = new ContentCoefficients(
+      1e-4,
+      1e-4,
+      1e-4,
+      0,
+      0,
+      0);
+    StyleCoefficients styleCoefficients1 = new StyleCoefficients(
+      1e-2, 0,
+      1e-2, 0,
+      1e-2, 1e-3,
+      1e-2, 1e-7,
+      0, 0,
+      0, 0, false);
+    List<StyleCoefficients> styleCoefficients = styles.stream().map(img1 -> styleCoefficients1).collect(Collectors.toList());
+    int trainingMinutes = 120;
+    
+    
+    List<BufferedImage> styleImages = load(styles, imageSize);
+    canvasImage = process(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styleCoefficients), trainingMinutes);
+    
+    for (int i = 0; i < 3; i++) {
+      imageSize = imageSize * 2;
+      canvasImage = TestUtil.resize(canvasImage, imageSize, true);
+      contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
+      styleImages = load(styles, imageSize);
+      canvasImage = process(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styleCoefficients), trainingMinutes);
+    }
+    
+    imageSize = imageSize * 2;
+    canvasImage = TestUtil.resize(canvasImage, imageSize, true);
+    contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
+    styleImages = load(styles, imageSize);
+    canvasImage = process(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styleCoefficients), trainingMinutes);
+    
+    log.setFrontMatterProperty("status", "OK");
   }
   
   /**
@@ -961,7 +973,10 @@ public class StyleDreamDemo extends ArtistryDemo {
       functions.stream().filter(x -> x._1 != 0)
         .reduce((a, b) -> new Tuple2<>(1.0, network.wrap(new BinarySumLayer(a._1, b._1), a._2, b._2))).get();
       setPrecision(network, this.style.precision);
-      return network;
+      PipelineNetwork network1 = new PipelineNetwork(1);
+      network1.wrap(getClamp());
+      network1.wrap(network);
+      return network1;
     }
     
     public ArrayList<Tuple2<Double, DAGNode>> getStyleComponents(final DAGNode node, final boolean dynamic_center, final double coeff_style_mean, final Tensor target_style_mean, final double coeff_style_cov, final Tensor target_style_cov, final Tensor target_style_pca) {
