@@ -91,7 +91,7 @@ public class StyleDreamDemo extends ArtistryDemo {
       int y = (c.getIndex() - x) / inputbands;
       realMatrix.setEntry(x, y, v);
     });
-    Tensor[] features = PCAUtil.pcaFeatures_norm(realMatrix, outputbands, new int[]{1, 1, inputbands});
+    Tensor[] features = PCAUtil.pcaFeatures_inv(realMatrix, outputbands, new int[]{1, 1, inputbands});
     Tensor kernel = new Tensor(1, 1, inputbands * outputbands);
     PCAUtil.populatePCAKernel(kernel, features);
     return kernel;
@@ -174,18 +174,18 @@ public class StyleDreamDemo extends ArtistryDemo {
     );
     ContentCoefficients contentCoefficients = new ContentCoefficients(
       1e-4,
-      1e-4,
-      1e-4,
+      0,
+      0,
       0,
       0,
       0);
     StyleCoefficients styleCoefficients1 = new StyleCoefficients(
-      1e-2, 0,
-      1e-2, 0,
-      1e-2, 1e-3,
-      1e-2, 1e-7,
       0, 0,
-      0, 0, false);
+      0, 0,
+      0, 0,
+      0, 1e-4,
+      0, 1e-4,
+      0, 1e-4, true);
     List<StyleCoefficients> styleCoefficients = styles.stream().map(img1 -> styleCoefficients1).collect(Collectors.toList());
     int trainingMinutes = 120;
     
