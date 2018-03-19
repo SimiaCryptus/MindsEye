@@ -19,19 +19,12 @@
 
 package com.simiacryptus.mindseye.labs.encoding;
 
-import com.simiacryptus.mindseye.lang.RecycleBin;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.apache.commons.math3.linear.BlockRealMatrix;
-import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import javax.annotation.Nonnull;
-import java.util.Comparator;
-import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -50,35 +43,6 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
     super(log, inputBands);
   }
   
-  /**
-   * Forked from Apache Commons Math
-   *
-   * @param stream the stream
-   * @return covariance covariance
-   */
-  @Nonnull
-  public static RealMatrix getCovariance(@Nonnull final Supplier<Stream<double[]>> stream) {
-    final int dimension = stream.get().findAny().get().length;
-    final List<DoubleStatistics> statList = IntStream.range(0, dimension * dimension)
-      .mapToObj(i -> new DoubleStatistics()).collect(Collectors.toList());
-    stream.get().forEach(array -> {
-      for (int i = 0; i < dimension; i++) {
-        for (int j = 0; j <= i; j++) {
-          statList.get(i * dimension + j).accept(array[i] * array[j]);
-        }
-      }
-      RecycleBin.DOUBLES.recycle(array, array.length);
-    });
-    @Nonnull final RealMatrix covariance = new BlockRealMatrix(dimension, dimension);
-    for (int i = 0; i < dimension; i++) {
-      for (int j = 0; j <= i; j++) {
-        final double v = statList.get(i * dimension + j).getAverage();
-        covariance.setEntry(i, j, v);
-        covariance.setEntry(j, i, v);
-      }
-    }
-    return covariance;
-  }
   
   /**
    * Find band bias double [ ].
@@ -107,21 +71,11 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
       final int column = 1;
       @Nonnull final Tensor[] prototype = featureVectors.get().findAny().get();
       @Nonnull final int[] dimensions = prototype[column].getDimensions();
-      @Nonnull final EigenDecomposition decomposition = new EigenDecomposition(FindPCAFeatures.getCovariance(() -> featureVectors.get().map(x -> x[column].getData())));
-      final int[] orderedVectors = IntStream.range(0, components).mapToObj(x -> x)
-        .sorted(Comparator.comparing(x -> -decomposition.getRealEigenvalue(x))).mapToInt(x -> x).toArray();
-      return IntStream.range(0, orderedVectors.length)
-        .mapToObj(i -> {
-          @Nonnull final Tensor src = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), dimensions).copy();
-            return src
-              .scale(1.0 / src.rms())
-              //.scale((decomposition.getRealEigenvalue(orderedVectors[i]) / decomposition.getRealEigenvalue(orderedVectors[orderedVectors.length - 1])))
-              .scale(Math.sqrt(6. / (components + prototype[column].length() + 1)))
-              ;
-          }
-        ).toArray(i -> new Tensor[i]);
+      RealMatrix covariance = PCAUtil.getCovariance(() -> featureVectors.get().map(x -> x[column].getData()));
+      return PCAUtil.pcaFeatures_norm(covariance, components, dimensions);
     });
   }
+  
   
   /**
    * Invoke find feature space.

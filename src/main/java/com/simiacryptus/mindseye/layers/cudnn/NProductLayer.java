@@ -47,6 +47,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * This layer multiplies together the inputs, element-by-element. It can be used to implement integer-power activation
@@ -171,14 +172,14 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
                 precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
               lPtrMemory.freeRef();
               rPtrMemory.freeRef();
-              Arrays.stream(new ReferenceCounting[]{lPtr, rPtr, opDescriptor, l, r}).forEach(ReferenceCounting::freeRef);
+              Stream.of(lPtr, rPtr, opDescriptor, l, r).forEach(ReferenceCounting::freeRef);
               return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor, precision), length, dimensions, precision);
             }, l, r);
           }).get();
-          delta.freeRef();
           input.accumulate(buffer, data);
         }
       }
+      delta.freeRef();
     }) {
   
       @Override

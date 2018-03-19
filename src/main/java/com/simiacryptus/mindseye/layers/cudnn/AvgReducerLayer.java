@@ -99,16 +99,16 @@ public class AvgReducerLayer extends LayerBase implements MultiPrecision<AvgRedu
   
   @Nullable
   @Override
-  public Result eval(final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+  public Result evalAndFree(final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     final Result input = inObj[0];
-    input.addRef();
     final TensorList inputData = input.getData();
     @Nonnull final int[] inputSize = inputData.getDimensions();
     int length = inputData.length();
     
     CudaTensorList result = CudaSystem.run(gpu -> {
       CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, false);
+      inputData.freeRef();
       CudaMemory inputMemory = inputTensor.getMemory(gpu);
       
       @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length, 1, 1, 1);
@@ -150,14 +150,19 @@ public class AvgReducerLayer extends LayerBase implements MultiPrecision<AvgRedu
 //        Stream.of(deltaTensor, deltaMemory, passbackDescriptor1, passbackPtr1).forEach(ReferenceCounting::freeRef);
 //        return CudaTensorList.wrap(CudaTensor.wrap(passbackPtr1, passbackDescriptor1, precision), length, inputSize, precision);
 //      });
-      
-      TensorList passback = TensorArray.wrap(IntStream.range(0, length).mapToObj(i -> new Tensor(inputSize).setAll((double) delta.get(i).get(0) / Tensor.length(inputSize))).toArray(i -> new Tensor[i]));
+  
+      TensorList passback = TensorArray.wrap(IntStream.range(0, length).mapToObj(i -> {
+        Tensor tensor = delta.get(i);
+        Tensor tensor1 = new Tensor(inputSize).setAll((double) tensor.get(0) / Tensor.length(inputSize));
+        tensor.freeRef();
+        return tensor1;
+      }).toArray(i -> new Tensor[i]));
       input.accumulate(ctx, passback);
     }) {
       @Override
       protected void _free() {
         super._free();
-        input.addRef();
+        input.freeRef();
       }
     };
   }

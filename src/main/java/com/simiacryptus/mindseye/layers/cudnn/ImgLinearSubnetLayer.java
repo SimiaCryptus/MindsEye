@@ -22,9 +22,11 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
+import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.LayerBase;
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
@@ -104,6 +106,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
   @Override
   protected void _free() {
     super._free();
+    legs.stream().forEach(ReferenceCounting::freeRef);
   }
   
   @Nullable
@@ -130,9 +133,12 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
     try {
       AtomicInteger counter = new AtomicInteger(0);
       Result[] legResults = legs.stream().map(leg -> {
-        TensorList bandData = new ImgBandSelectLayer(leg.fromBand, leg.toBand).eval(input).getDataAndFree();
         passback.addRef();
-        return leg.inner.eval(new Result(bandData, (ctx, delta) -> {
+        ImgBandSelectLayer imgBandSelectLayer = new ImgBandSelectLayer(leg.fromBand, leg.toBand);
+        input.addRef();
+        TensorList legData = imgBandSelectLayer.eval(input).getDataAndFree();
+        imgBandSelectLayer.freeRef();
+        return leg.inner.evalAndFree(new Result(legData, (DeltaSet<Layer> ctx, TensorList delta) -> {
           int[] outputDimensions = delta.getDimensions();
           int[] inputDimensions = inputDims;
           CudaSystem.run(gpu -> {
@@ -152,8 +158,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
               precision.getPointer(1.0), deltaTensor.descriptor.getPtr(), errorPtrMemory.getPtr(),
               precision.getPointer(0.0), viewDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
             );
-            errorPtrMemory.freeRef();
-            Stream.<ReferenceCounting>of(deltaTensor, viewDescriptor).forEach(ReferenceCounting::freeRef);
+            Stream.<ReferenceCounting>of(deltaTensor, viewDescriptor, passbackBuffer, errorPtrMemory).forEach(ReferenceCounting::freeRef);
           }, delta);
           if (counter.incrementAndGet() >= legs.size()) {
             counter.set(0);
@@ -163,11 +168,16 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
           @Override
           protected void _free() {
             super._free();
+            input.freeRef();
             passback.freeRef();
           }
         });
       }).toArray(i -> new Result[i]);
-      return new SumInputsLayer().setParallel(parallel).setPrecision(precision).evalAndFree(legResults);
+      input.freeRef();
+      SumInputsLayer sumInputsLayer = new SumInputsLayer();
+      Result result = sumInputsLayer.setParallel(parallel).setPrecision(precision).evalAndFree(legResults);
+      sumInputsLayer.freeRef();
+      return result;
     } finally {
       passback.freeRef();
     }
@@ -230,7 +240,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
     return this;
   }
   
-  public static class SubnetLeg {
+  public static class SubnetLeg extends ReferenceCountingBase {
     
     private final Layer inner;
     private final int fromBand;
@@ -240,6 +250,13 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
       this.inner = inner;
       this.fromBand = fromBand;
       this.toBand = toBand;
+      this.inner.addRef();
+    }
+    
+    @Override
+    protected void _free() {
+      super._free();
+      inner.freeRef();
     }
     
     /**

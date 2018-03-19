@@ -267,12 +267,14 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
       CudaTensor cudaTensor = copy(gpu, input.getData(), dimIn, dimOut, precision, this.positionX, this.positionY, dirty);
       return CudaTensorList.wrap(cudaTensor, length, dimOut, precision);
     }, input.getData());
+    int[] outputDimensions = outputData.getDimensions();
+    assert length == outputData.length();
     return new Result(outputData, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
-      if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
-        throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
+      if (!Arrays.equals(error.getDimensions(), outputDimensions)) {
+        throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputDimensions));
       }
-      if (error.length() != outputData.length()) {
-        throw new AssertionError(error.length() + " != " + outputData.length());
+      if (error.length() != length) {
+        throw new AssertionError(error.length() + " != " + length);
       }
       assert error.length() == input.getData().length();
       if (input.isAlive()) {

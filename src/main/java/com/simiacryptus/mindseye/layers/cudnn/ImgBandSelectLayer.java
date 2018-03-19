@@ -101,7 +101,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
   
   @Nullable
   @Override
-  public Result eval(@Nonnull final Result... inObj) {
+  public Result evalAndFree(@Nonnull final Result... inObj) {
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     assert getFrom() < getTo();
@@ -110,7 +110,6 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
     assert 1 == inObj.length;
     assert 3 == inObj[0].getData().getDimensions().length;
     if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
-    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final TensorList inputData = inObj[0].getData();
     @Nonnull final int[] inputDimensions = inputData.getDimensions();
     final int length = inputData.length();
@@ -119,6 +118,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
     long size = (length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size);
     return new Result(CudaSystem.run(gpu -> {
       @Nullable final CudaTensor cudaInput = gpu.getTensor(inputData, precision, MemoryType.Device, false);
+      inputData.freeRef();
       final int byteOffset = cudaInput.descriptor.cStride * getFrom() * precision.size;
       @Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = gpu.newTensorDescriptor(
         precision, length, outputDimensions[2], outputDimensions[1], outputDimensions[0], //
@@ -129,9 +129,8 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
       CudaMemory cudaInputMemory = cudaInput.getMemory(gpu);
       assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
       cudaInputMemory.dirty();
-      Arrays.stream(new ReferenceCounting[]{cudaInput}).forEach(ReferenceCounting::freeRef);
       CudaTensor cudaTensor = CudaTensor.wrap(cudaInputMemory.withByteOffset(byteOffset), inputDescriptor, precision);
-      cudaInputMemory.freeRef();
+      Stream.<ReferenceCounting>of(cudaInput, cudaInputMemory).forEach(ReferenceCounting::freeRef);
       return CudaTensorList.wrap(cudaTensor, length, outputDimensions, precision);
     }, inputData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       if (!Arrays.equals(delta.getDimensions(), outputDimensions)) {
@@ -152,7 +151,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
             inputDimensions[0], //
             1);
           final int byteOffset = viewDescriptor.cStride * getFrom() * precision.size;
-          assert delta.length() == inputData.length();
+          assert delta.length() == length;
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
           @Nullable final CudaTensor errorPtr = gpu.getTensor(delta, precision, MemoryType.Device, false);
           long size1 = (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size);

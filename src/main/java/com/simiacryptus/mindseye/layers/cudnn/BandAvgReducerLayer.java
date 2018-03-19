@@ -37,7 +37,6 @@ import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
 import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer.PoolingMode;
 import jcuda.jcudnn.cudnnIndicesType;
 import jcuda.jcudnn.cudnnNanPropagation;
 import jcuda.jcudnn.cudnnReduceTensorDescriptor;
@@ -57,7 +56,6 @@ import java.util.stream.Stream;
 @SuppressWarnings("serial")
 public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<BandAvgReducerLayer> {
   
-  private PoolingMode mode = PoolingMode.Max;
   private Precision precision = Precision.Double;
   private double alpha = 1.0;
   
@@ -75,7 +73,6 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
    */
   protected BandAvgReducerLayer(@Nonnull final JsonObject json) {
     super(json);
-    mode = Arrays.stream(PoolingMode.values()).filter(i -> i.id == json.get("mode").getAsInt()).findFirst().get();
     precision = Precision.valueOf(json.get("precision").getAsString());
     alpha = json.get("alpha").getAsDouble();
   }
@@ -137,8 +134,12 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
     int pixels = inputSize[0] * inputSize[1];
     return new Result(result, (DeltaSet<Layer> ctx, TensorList delta) -> {
       TensorList passback;
-      passback = TensorArray.wrap(delta.stream().map(x -> new Tensor(inputSize[0], inputSize[1], inputSize[2])
-        .setByCoord(c -> x.get(c.getCoords()[2]) * alpha / pixels)).toArray(i -> new Tensor[i]));
+      passback = TensorArray.wrap(delta.stream().map(x -> {
+        Tensor tensor = new Tensor(inputSize[0], inputSize[1], inputSize[2])
+          .setByCoord(c -> x.get(c.getCoords()[2]) * alpha / pixels);
+        x.freeRef();
+        return tensor;
+      }).toArray(i -> new Tensor[i]));
 //      passback = CudaSystem.run(gpu -> {
 //        CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, true);
 //        @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision,
@@ -177,31 +178,8 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("alpha", alpha);
-    json.addProperty("mode", mode.id);
     json.addProperty("precision", precision.name());
     return json;
-  }
-  
-  
-  /**
-   * Gets mode.
-   *
-   * @return the mode
-   */
-  public PoolingMode getMode() {
-    return mode;
-  }
-  
-  /**
-   * Sets mode.
-   *
-   * @param mode the mode
-   * @return the mode
-   */
-  @Nonnull
-  public BandAvgReducerLayer setMode(final PoolingMode mode) {
-    this.mode = mode;
-    return this;
   }
   
   @Override

@@ -409,9 +409,19 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     }
   }
   
-  
   @Nonnull
   private synchronized CudaMemory getCudaFilter(final CudaDevice deviceNumber) {
+    return CudaSettings.INSTANCE.isConvolutionCache() ? getCudaFilter_cached(deviceNumber) : getCudaFilter_instance(deviceNumber);
+  }
+  
+  @Nonnull
+  private synchronized CudaMemory getCudaFilter_instance(final CudaDevice deviceNumber) {
+    double[] data = kernel.getData();
+    return deviceNumber.allocate((long) data.length * precision.size, MemoryType.Device, true).write(precision, data);
+  }
+  
+  @Nonnull
+  private CudaMemory getCudaFilter_cached(final CudaDevice deviceNumber) {
     CudaMemory cudaMemory;
     if (gpuFilters.containsKey(deviceNumber.getDeviceId())) {
       cudaMemory = gpuFilters.get(deviceNumber.getDeviceId());

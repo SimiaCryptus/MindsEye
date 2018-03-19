@@ -150,8 +150,13 @@ public class SumReducerLayer extends LayerBase implements MultiPrecision<SumRedu
 //        Stream.of(deltaTensor, deltaMemory, passbackDescriptor1, passbackPtr1).forEach(ReferenceCounting::freeRef);
 //        return CudaTensorList.wrap(CudaTensor.wrap(passbackPtr1, passbackDescriptor1, precision), length, inputSize, precision);
 //      });
-      
-      TensorList passback = TensorArray.wrap(IntStream.range(0, length).mapToObj(i -> new Tensor(inputSize).setAll(delta.get(i).get(0))).toArray(i -> new Tensor[i]));
+  
+      TensorList passback = TensorArray.wrap(IntStream.range(0, length).mapToObj(i -> {
+        Tensor tensor = delta.get(i);
+        Tensor tensor1 = new Tensor(inputSize).setAll(tensor.get(0));
+        tensor.freeRef();
+        return tensor1;
+      }).toArray(i -> new Tensor[i]));
       input.accumulate(ctx, passback);
     }) {
       @Override

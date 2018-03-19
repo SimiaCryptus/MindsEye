@@ -76,6 +76,8 @@
             <maxHistory>100</maxHistory>
         </rollingPolicy>
     </appender>
+
+    <!--
         <logger name="com.simiacryptus.mindseye.lang.cudnn.CudaTensorList" level="debug" additivity="false">
             <appender-ref ref="FILE_MEMIO"/>
         </logger>
@@ -87,7 +89,6 @@
         <logger name="com.simiacryptus.mindseye.lang.ReferenceCountingBase" level="debug" additivity="false">
             <appender-ref ref="FILE_MEM"/>
         </logger>
-    <!--
     -->
 
     <logger name="com.simiacryptus" level="info"/>

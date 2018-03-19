@@ -79,6 +79,10 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    */
   public ConvolutionLayer(final int width, final int height, final int inputBands, final int outputBands) {
     super();
+    assert 0 < width;
+    assert 0 < height;
+    assert 0 < inputBands;
+    assert 0 < outputBands;
     this.kernel = new Tensor(width, height, inputBands * outputBands);
     if (getKernel().getDimensions().length != 3) throw new IllegalArgumentException();
     if (getKernel().getDimensions()[0] <= 0) throw new IllegalArgumentException();

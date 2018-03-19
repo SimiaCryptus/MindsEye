@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.labs.encoding.PCAUtil;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.layers.cudnn.AvgReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer;
@@ -34,6 +35,7 @@ import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ProductLayer;
 import com.simiacryptus.mindseye.models.Hdf5Archive;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
@@ -68,13 +70,30 @@ import java.util.stream.Collectors;
 /**
  * The type Image classifier apply base.
  */
-public class StyleTransferDemo extends ArtistryDemo {
+public class StyleDreamDemo extends ArtistryDemo {
   
   
   /**
    * The Texture netork.
    */
   int imageSize = 600;
+  
+  @Nonnull
+  public static Tensor pca(final Tensor cov) {
+    final int inputbands = (int) Math.sqrt(cov.getDimensions()[2]);
+    final int outputbands = inputbands;
+    Array2DRowRealMatrix realMatrix = new Array2DRowRealMatrix(inputbands, inputbands);
+    cov.coordStream(false).forEach(c -> {
+      double v = cov.get(c);
+      int x = c.getIndex() % inputbands;
+      int y = (c.getIndex() - x) / inputbands;
+      realMatrix.setEntry(x, y, v);
+    });
+    Tensor[] features = PCAUtil.pcaFeatures_norm(realMatrix, outputbands, new int[]{1, 1, inputbands});
+    Tensor kernel = new Tensor(1, 1, inputbands * outputbands);
+    PCAUtil.populatePCAKernel(kernel, features);
+    return kernel;
+  }
   
   /**
    * Test.
@@ -87,17 +106,63 @@ public class StyleTransferDemo extends ArtistryDemo {
   }
   
   /**
-   * Sets precision.
+   * Test.
    *
-   * @param network   the network
-   * @param precision the precision
+   * @param log the log
    */
-  public static void setPrecision(final DAGNetwork network, final Precision precision) {
-    network.visitLayers(layer -> {
-      if (layer instanceof MultiPrecision) {
-        ((MultiPrecision) layer).setPrecision(precision);
-      }
-    });
+  public void run(@Nonnull NotebookOutput log) {
+    init(log);
+    Precision precision = Precision.Float;
+    imageSize = 400;
+//    String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170924_145214.jpg";
+    String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
+//    String style = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
+    
+    log.h1("Input");
+    BufferedImage canvasImage = load(content, imageSize);
+    //canvasImage = randomize(canvasImage);
+    canvasImage = TestUtil.resize(canvasImage, imageSize, true);
+    BufferedImage contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
+    List<String> styles = Arrays.asList(
+      //"H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\1280px-Van_Gogh_-_Kauernder_Junge_mit_Sichel.jpg",
+      "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg"
+    );
+    ContentCoefficients contentCoefficients = new ContentCoefficients(
+      1e-4,
+      1e-4,
+      1e-4,
+      0,
+      0,
+      0);
+    StyleCoefficients styleCoefficients1 = new StyleCoefficients(
+      0, 1e-6,
+      0, 1e-6,
+      0, 1e-4,
+      0, 1e-8,
+      0, 0,
+      0, 0, false);
+    List<StyleCoefficients> styleCoefficients = styles.stream().map(img1 -> styleCoefficients1).collect(Collectors.toList());
+    int trainingMinutes = 120;
+    
+    
+    List<BufferedImage> styleImages = load(styles, imageSize);
+    canvasImage = process(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styleCoefficients), trainingMinutes);
+    
+    for (int i = 0; i < 3; i++) {
+      imageSize = imageSize * 2;
+      canvasImage = TestUtil.resize(canvasImage, imageSize, true);
+      contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
+      styleImages = load(styles, imageSize);
+      canvasImage = process(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styleCoefficients), trainingMinutes);
+    }
+    
+    imageSize = imageSize * 2;
+    canvasImage = TestUtil.resize(canvasImage, imageSize, true);
+    contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
+    styleImages = load(styles, imageSize);
+    canvasImage = process(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styleCoefficients), trainingMinutes);
+    
+    log.setFrontMatterProperty("status", "OK");
   }
   
   /**
@@ -121,7 +186,7 @@ public class StyleTransferDemo extends ArtistryDemo {
    * @return the buffered image
    */
   @Nonnull
-  public BufferedImage styleTransfer(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup styleParameters, final int trainingMinutes) {
+  public BufferedImage process(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup styleParameters, final int trainingMinutes) {
     NeuralSetup neuralSetup = new NeuralSetup(log, styleParameters).init();
     PipelineNetwork network = neuralSetup.fitnessNetwork(log);
     BufferedImage result = train(log, canvasImage, network, styleParameters.precision, trainingMinutes);
@@ -133,21 +198,40 @@ public class StyleTransferDemo extends ArtistryDemo {
     return result;
   }
   
+  /**
+   * Train buffered image.
+   *
+   * @param log             the log
+   * @param canvasImage     the canvas image
+   * @param network         the network
+   * @param precision       the precision
+   * @param trainingMinutes
+   * @return the buffered image
+   */
   @Nonnull
-  public static Tensor pca(final Tensor cov) {
-    final int inputbands = (int) Math.sqrt(cov.getDimensions()[2]);
-    final int outputbands = inputbands;
-    Array2DRowRealMatrix realMatrix = new Array2DRowRealMatrix(inputbands, inputbands);
-    cov.coordStream(false).forEach(c -> {
-      double v = cov.get(c);
-      int x = c.getIndex() % inputbands;
-      int y = (c.getIndex() - x) / inputbands;
-      realMatrix.setEntry(y, x, v);
+  public BufferedImage train(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final PipelineNetwork network, final Precision precision, final int trainingMinutes) {
+    log.h1("Output");
+    System.gc();
+    Tensor canvas = Tensor.fromRGB(canvasImage);
+    TestUtil.monitorImage(canvas, false);
+    network.setFrozen(true);
+    setPrecision(network, precision);
+    @Nonnull Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
+    TestUtil.instrumentPerformance(log, network);
+    addLayersHandler(network, server);
+    
+    log.code(() -> {
+      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+      new IterativeTrainer(trainable)
+        .setMonitor(getTrainingMonitor(history))
+        .setOrientation(new QQN())
+        .setTerminateThreshold(Double.NEGATIVE_INFINITY)
+        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
+        .setTimeout(trainingMinutes, TimeUnit.MINUTES)
+        .runAndFree();
+      return TestUtil.plot(history);
     });
-    Tensor[] features = PCAUtil.pcaFeatures_norm(realMatrix, outputbands, new int[]{1, 1, inputbands});
-    Tensor kernel = new Tensor(1, 1, inputbands * outputbands);
-    PCAUtil.populatePCAKernel(kernel, features);
-    return kernel;
+    return canvas.toImage();
   }
   
   @Nonnull
@@ -381,64 +465,18 @@ public class StyleTransferDemo extends ArtistryDemo {
     return network;
   }
   
-  /**
-   * Test.
-   *
-   * @param log the log
-   */
-  public void run(@Nonnull NotebookOutput log) {
-    init(log);
-    Precision precision = Precision.Float;
-    imageSize = 400;
-//    String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170924_145214.jpg";
-    String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
-//    String style = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
-    
-    log.h1("Input");
-    BufferedImage canvasImage = load(content, imageSize);
-    canvasImage = randomize(canvasImage);
-    canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-    BufferedImage contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
-    List<String> styles = Arrays.asList(
-      //"H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\1280px-Van_Gogh_-_Kauernder_Junge_mit_Sichel.jpg",
-      "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg"
-    );
-    ContentCoefficients contentCoefficients = new ContentCoefficients(
-      1e-4,
-      1e-4,
-      1e-4,
-      0,
-      0,
-      0);
-    StyleCoefficients styleCoefficients1 = new StyleCoefficients(
-      1e-2, 1e-6,
-      1 - 2, 1e-6,
-      1e-4, 1e-4,
-      1e-4, 1e-8,
-      0, 0,
-      0, 0, true);
-    List<StyleCoefficients> styleCoefficients = styles.stream().map(img1 -> styleCoefficients1).collect(Collectors.toList());
-    int trainingMinutes = 120;
-    
-    
-    List<BufferedImage> styleImages = load(styles, imageSize);
-    canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styleCoefficients), trainingMinutes);
-    
-    for (int i = 0; i < 3; i++) {
-      imageSize = imageSize * 2;
-      canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-      contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
-      styleImages = load(styles, imageSize);
-      canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styleCoefficients), trainingMinutes);
-    }
-    
-    imageSize = imageSize * 2;
-    canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-    contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
-    styleImages = load(styles, imageSize);
-    canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styleCoefficients), trainingMinutes);
-    
-    log.setFrontMatterProperty("status", "OK");
+  @Nonnull
+  public PipelineNetwork gram(final PipelineNetwork network, Tensor mean, Tensor pcaTransform) {
+    int[] dimensions = pcaTransform.getDimensions();
+    int inputBands = mean.getDimensions()[2];
+    int pcaBands = dimensions[2];
+    int outputBands = pcaBands / inputBands;
+    int width = dimensions[0];
+    int height = dimensions[1];
+    network.wrap(new ImgBandBiasLayer(mean.scale(-1)));
+    network.wrap(new ConvolutionLayer(width, height, inputBands, outputBands).set(pcaTransform));
+    network.wrap(new GramianLayer());
+    return network;
   }
   
   /**
@@ -454,39 +492,17 @@ public class StyleTransferDemo extends ArtistryDemo {
   }
   
   /**
-   * Train buffered image.
+   * Sets precision.
    *
-   * @param log             the log
-   * @param canvasImage     the canvas image
-   * @param network         the network
-   * @param precision       the precision
-   * @param trainingMinutes
-   * @return the buffered image
+   * @param network   the network
+   * @param precision the precision
    */
-  @Nonnull
-  public BufferedImage train(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final PipelineNetwork network, final Precision precision, final int trainingMinutes) {
-    log.h1("Output");
-    System.gc();
-    Tensor canvas = Tensor.fromRGB(canvasImage);
-    TestUtil.monitorImage(canvas, false);
-    network.setFrozen(true);
-    setPrecision(network, precision);
-    @Nonnull Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
-    TestUtil.instrumentPerformance(log, network);
-    addLayersHandler(network, server);
-  
-    log.code(() -> {
-      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-      new IterativeTrainer(trainable)
-        .setMonitor(getTrainingMonitor(history))
-        .setOrientation(new QQN())
-        //.setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-1))
-        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-        .setTimeout(trainingMinutes, TimeUnit.MINUTES)
-        .runAndFree();
-      return TestUtil.plot(history);
+  public void setPrecision(final DAGNetwork network, final Precision precision) {
+    network.visitLayers(layer -> {
+      if (layer instanceof MultiPrecision) {
+        ((MultiPrecision) layer).setPrecision(precision);
+      }
     });
-    return canvas.toImage();
   }
   
   /**
@@ -586,14 +602,14 @@ public class StyleTransferDemo extends ArtistryDemo {
     public final List<BufferedImage> styleImages;
     public final List<StyleCoefficients> styles;
     public final ContentCoefficients content;
-  
-  
+    
+    
     /**
      * Instantiates a new Style setup.
      *
      * @param precision    the precision
      * @param contentImage the content image
-     * @param styleImages   the style image
+     * @param styleImages  the style image
      */
     public StyleSetup(final Precision precision, final BufferedImage contentImage, ContentCoefficients contentCoefficients, final List<BufferedImage> styleImages, final List<StyleCoefficients> styles) {
       this.precision = precision;
@@ -630,20 +646,6 @@ public class StyleTransferDemo extends ArtistryDemo {
      * The Target content 1 e.
      */
     public Tensor target_content_1e;
-  }
-  
-  @Nonnull
-  public PipelineNetwork gram(final PipelineNetwork network, Tensor mean, Tensor pcaTransform) {
-    int[] dimensions = pcaTransform.getDimensions();
-    int inputBands = mean.getDimensions()[2];
-    int pcaBands = dimensions[2];
-    int outputBands = pcaBands / inputBands;
-    int width = dimensions[0];
-    int height = dimensions[1];
-    network.wrap(new ImgBandBiasLayer(mean.scale(-1)));
-    network.wrap(new ConvolutionLayer(width, height, inputBands, outputBands).set(pcaTransform));
-    network.wrap(new GramianLayer());
-    return network;
   }
   
   public class StyleTarget {
@@ -695,7 +697,7 @@ public class StyleTransferDemo extends ArtistryDemo {
      * The Target style mean 1 e.
      */
     public Tensor target_style_mean_1e;
-  
+    
     public Tensor target_style_pca_0;
     public Tensor target_style_pca_cov_0;
     public Tensor target_style_pca_1a;
@@ -753,7 +755,7 @@ public class StyleTransferDemo extends ArtistryDemo {
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-  
+      
       List<Tensor> styleInputs = style.styleImages.stream().map(img -> Tensor.fromRGB(img)).collect(Collectors.toList());
       styleInputs.forEach(styleInput -> {
         try {
@@ -764,7 +766,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         styleTargets.add(new StyleTarget());
       });
       contentTarget = new ContentTarget();
-  
+      
       System.gc();
       contentTarget.target_content_0 = content_0.eval(contentInput).getDataAndFree().getAndFree(0);
       logger.info("target_content_0=" + contentTarget.target_content_0.prettyPrint());
@@ -782,7 +784,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         styleTarget.target_style_pca_cov_0 = gram((PipelineNetwork) content_0.copy(), styleTarget.target_style_mean_0, styleTarget.target_style_pca_0).eval(styleInput).getDataAndFree().getAndFree(0);
         logger.info("target_style_pca_cov_0=" + styleTarget.target_style_pca_cov_0.prettyPrint());
       }
-  
+      
       System.gc();
       contentTarget.target_content_1a = content_1a.eval(contentInput).getDataAndFree().getAndFree(0);
       logger.info("target_content_1a=" + contentTarget.target_content_1a.prettyPrint());
@@ -800,7 +802,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         styleTarget.target_style_pca_cov_1a = gram((PipelineNetwork) content_1a.copy(), styleTarget.target_style_mean_1a, styleTarget.target_style_pca_1a).eval(styleInput).getDataAndFree().getAndFree(0);
         logger.info("target_style_pca_cov_1a=" + styleTarget.target_style_pca_cov_1a.prettyPrint());
       }
-  
+      
       System.gc();
       contentTarget.target_content_1b = content_1b.eval(contentInput).getDataAndFree().getAndFree(0);
       logger.info("target_content_1b=" + contentTarget.target_content_1b.prettyPrint());
@@ -818,7 +820,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         styleTarget.target_style_pca_cov_1b = gram((PipelineNetwork) content_1b.copy(), styleTarget.target_style_mean_1b, styleTarget.target_style_pca_1b).eval(styleInput).getDataAndFree().getAndFree(0);
         logger.info("target_style_pca_cov_1b=" + styleTarget.target_style_pca_cov_1b.prettyPrint());
       }
-  
+      
       System.gc();
       contentTarget.target_content_1c = content_1c.eval(contentInput).getDataAndFree().getAndFree(0);
       logger.info("target_content_1c=" + contentTarget.target_content_1c.prettyPrint());
@@ -836,7 +838,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         styleTarget.target_style_pca_cov_1c = gram((PipelineNetwork) content_1c.copy(), styleTarget.target_style_mean_1c, styleTarget.target_style_pca_1c).eval(styleInput).getDataAndFree().getAndFree(0);
         logger.info("target_style_pca_cov_1c=" + styleTarget.target_style_pca_cov_1c.prettyPrint());
       }
-  
+      
       System.gc();
       contentTarget.target_content_1d = content_1d.eval(contentInput).getDataAndFree().getAndFree(0);
       logger.info("target_content_1d=" + contentTarget.target_content_1d.prettyPrint());
@@ -854,7 +856,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         styleTarget.target_style_pca_cov_1d = gram((PipelineNetwork) content_1d.copy(), styleTarget.target_style_mean_1d, styleTarget.target_style_pca_1d).eval(styleInput).getDataAndFree().getAndFree(0);
         logger.info("target_style_pca_cov_1d=" + styleTarget.target_style_pca_cov_1d.prettyPrint());
       }
-  
+      
       System.gc();
       contentTarget.target_content_1e = content_1e.eval(contentInput).getDataAndFree().getAndFree(0);
       logger.info("target_content_1e=" + contentTarget.target_content_1e.prettyPrint());
@@ -872,7 +874,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         styleTarget.target_style_pca_cov_1e = gram((PipelineNetwork) content_1e.copy(), styleTarget.target_style_mean_1e, styleTarget.target_style_pca_1e).eval(styleInput).getDataAndFree().getAndFree(0);
         logger.info("target_style_pca_cov_1e=" + styleTarget.target_style_pca_cov_1e.prettyPrint());
       }
-
+      
       return this;
     }
     
@@ -933,7 +935,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         }
       });
       List<Tuple2<Double, DAGNode>> functions = new ArrayList<>();
-  
+      
       {
         ContentCoefficients c = this.style.content;
         functions.addAll(getContentComponents(nodes[0], c.coeff_content_0, contentTarget.target_content_0));
@@ -943,7 +945,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         functions.addAll(getContentComponents(nodes[4], c.coeff_content_1d, contentTarget.target_content_1d));
         functions.addAll(getContentComponents(nodes[5], c.coeff_content_1e, contentTarget.target_content_1e));
       }
-  
+      
       for (int i = 0; i < this.style.styles.size(); i++) {
         StyleTarget t = this.styleTargets.get(i);
         StyleCoefficients c = this.style.styles.get(i);
@@ -954,14 +956,14 @@ public class StyleTransferDemo extends ArtistryDemo {
         functions.addAll(getStyleComponents(nodes[4], c.dynamic_center, c.coeff_style_mean_1d, t.target_style_mean_1d, c.coeff_style_cov_1d, t.target_style_pca_cov_1d, t.target_style_pca_1d));
         functions.addAll(getStyleComponents(nodes[5], c.dynamic_center, c.coeff_style_mean_1e, t.target_style_mean_1e, c.coeff_style_cov_1e, t.target_style_pca_cov_1e, t.target_style_pca_1e));
       }
-  
+      
       PipelineNetwork network = layerBuffer[0];
       functions.stream().filter(x -> x._1 != 0)
         .reduce((a, b) -> new Tuple2<>(1.0, network.wrap(new BinarySumLayer(a._1, b._1), a._2, b._2))).get();
       setPrecision(network, this.style.precision);
       return network;
     }
-  
+    
     public ArrayList<Tuple2<Double, DAGNode>> getStyleComponents(final DAGNode node, final boolean dynamic_center, final double coeff_style_mean, final Tensor target_style_mean, final double coeff_style_cov, final Tensor target_style_cov, final Tensor target_style_pca) {
       ArrayList<Tuple2<Double, DAGNode>> list = new ArrayList<>();
       final PipelineNetwork network = (PipelineNetwork) node.getNetwork();
@@ -982,12 +984,10 @@ public class StyleTransferDemo extends ArtistryDemo {
           assert 0 < inputBands : Arrays.toString(target_style_mean.getDimensions());
           int outputBands = pcaDim[2] / inputBands;
           assert 0 < outputBands : Arrays.toString(pcaDim) + " / " + inputBands;
-          list.add(new Tuple2<>(coeff_style_cov, network.wrap(new MeanSqLossLayer(),
-            network.constValue(target_style_cov),
-            network.wrap(new GramianLayer(),
-              network.wrap(new ConvolutionLayer(pcaDim[0], pcaDim[1], inputBands, outputBands).set(target_style_pca),
-                recentered)))
-          ));
+          InnerNode styleSignal = network.wrap(new ConvolutionLayer(pcaDim[0], pcaDim[1], inputBands, outputBands).set(target_style_pca),
+            recentered);
+          list.add(new Tuple2<>(-coeff_style_cov, network.wrap(new AvgReducerLayer(),
+            network.wrap(new ProductLayer(), styleSignal, styleSignal))));
         }
         if (coeff_style_mean != 0) {
           list.add(new Tuple2<>(coeff_style_mean,
@@ -997,35 +997,7 @@ public class StyleTransferDemo extends ArtistryDemo {
       }
       return list;
     }
-  
-    public ArrayList<Tuple2<Double, DAGNode>> getStyleComponents(final DAGNode node, final boolean dynamic_center, final double coeff_style_mean, final Tensor target_style_mean, final double coeff_style_cov, final Tensor target_style_cov) {
-      ArrayList<Tuple2<Double, DAGNode>> list = new ArrayList<>();
-      final PipelineNetwork network = (PipelineNetwork) node.getNetwork();
-      if (coeff_style_cov != 0 || coeff_style_mean != 0) {
-        DAGNode negTarget = network.constValue(target_style_mean.scale(-1));
-        InnerNode negAvg = network.wrap(new BandAvgReducerLayer().setAlpha(-1), node);
-        if (coeff_style_cov != 0) {
-          InnerNode recentered;
-          if (dynamic_center) {
-            recentered = network.wrap(new GateBiasLayer(), node, negAvg);
-          }
-          else {
-            recentered = network.wrap(new GateBiasLayer(), node, negTarget);
-          }
-          list.add(new Tuple2<>(coeff_style_cov, network.wrap(new MeanSqLossLayer(),
-            network.constValue(target_style_cov),
-            network.wrap(new GramianLayer(), recentered))
-          ));
-        }
-        if (coeff_style_mean != 0) {
-          list.add(new Tuple2<>(coeff_style_mean,
-            network.wrap(new MeanSqLossLayer(), negAvg, negTarget)
-          ));
-        }
-      }
-      return list;
-    }
-  
+    
     public ArrayList<Tuple2<Double, DAGNode>> getContentComponents(final DAGNode node, final double coeff_content, final Tensor target_content) {
       ArrayList<Tuple2<Double, DAGNode>> functions = new ArrayList<>();
       final PipelineNetwork network = (PipelineNetwork) node.getNetwork();
@@ -1035,6 +1007,6 @@ public class StyleTransferDemo extends ArtistryDemo {
       }
       return functions;
     }
-  
+    
   }
 }
