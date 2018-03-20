@@ -60,8 +60,8 @@ public abstract class ImgBandSelectLayerTest extends CudaLayerTestBase {
     this.precision = precision;
     layer = new ImgBandSelectLayer(fromBand, toBand).setPrecision(precision);
     this.inputBands = inputBands;
-    smallSize = 1;
-    largeSize = 64;
+    smallSize = 2;
+    largeSize = 1200;
   }
   
   @Override

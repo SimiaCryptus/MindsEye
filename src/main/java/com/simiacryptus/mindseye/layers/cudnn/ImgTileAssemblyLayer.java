@@ -115,19 +115,16 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
   
   @Nullable
   @Override
-  public Result eval(@Nonnull final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
-    final TensorList prototype = inObj[0].getData();
+  public Result evalAndFree(@Nonnull final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
+    final TensorList inputData = inObj[0].getData();
     if (1 == inObj.length) {
-      inObj[0].addRef();
-      prototype.addRef();
       return inObj[0];
     }
-    int[] inputDimensions = prototype.getDimensions();
+    int[] inputDimensions = inputData.getDimensions();
     assert 3 == inputDimensions.length;
-    final int length = prototype.length();
+    final int length = inputData.length();
     int[] outputDims = getOutputDims(inObj);
-    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final TensorList outputData = CudaSystem.run(gpu -> {
       assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
       assert outputDims[0] > 0;
@@ -172,7 +169,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       if (error.length() != outputData.length()) {
         throw new AssertionError(error.length() + " != " + outputData.length());
       }
-      assert error.length() == prototype.length();
+      assert error.length() == length;
       
       
       int totalHeight = 0;

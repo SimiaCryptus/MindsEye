@@ -37,23 +37,29 @@ public abstract class BandAvgReducerLayerTest extends CudaLayerTestBase {
    */
   final Precision precision;
   private final double alpha;
+  private final int smallSize;
+  private final int largeSize;
   
   /**
    * Instantiates a new Img band bias layer apply.
    *
    * @param precision the precision
-   * @param alpha
+   * @param alpha     the alpha
+   * @param smallSize the small size
+   * @param largeSize the large size
    */
-  public BandAvgReducerLayerTest(final Precision precision, final double alpha) {
+  public BandAvgReducerLayerTest(final Precision precision, final double alpha, final int smallSize, final int largeSize) {
     this.precision = precision;
     this.alpha = alpha;
+    this.smallSize = smallSize;
+    this.largeSize = largeSize;
   }
   
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {8, 8, 1}
+      {smallSize, smallSize, 1}
     };
   }
   
@@ -73,7 +79,7 @@ public abstract class BandAvgReducerLayerTest extends CudaLayerTestBase {
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {200, 200, 3}
+      {largeSize, largeSize, 3}
     };
   }
   
@@ -85,7 +91,7 @@ public abstract class BandAvgReducerLayerTest extends CudaLayerTestBase {
      * Instantiates a new Double.
      */
     public Double() {
-      super(Precision.Double, 1.0);
+      super(Precision.Double, 1.0, 8, 1200);
     }
   }
   
@@ -97,7 +103,7 @@ public abstract class BandAvgReducerLayerTest extends CudaLayerTestBase {
      * Instantiates a new Double.
      */
     public Negative() {
-      super(Precision.Double, -5.0);
+      super(Precision.Double, -5.0, 8, 1200);
     }
   }
   
@@ -109,7 +115,7 @@ public abstract class BandAvgReducerLayerTest extends CudaLayerTestBase {
      * Instantiates a new Double.
      */
     public Asymmetric() {
-      super(Precision.Double, 1.0);
+      super(Precision.Double, 1.0, 4, 1200);
     }
     
     @Nonnull
@@ -124,7 +130,7 @@ public abstract class BandAvgReducerLayerTest extends CudaLayerTestBase {
     @Override
     public int[][] getLargeDims(Random random) {
       return new int[][]{
-        {100, 60, 3}
+        {1200, 800, 3}
       };
     }
     
@@ -138,7 +144,7 @@ public abstract class BandAvgReducerLayerTest extends CudaLayerTestBase {
      * Instantiates a new Float.
      */
     public Float() {
-      super(Precision.Float, 1.0);
+      super(Precision.Float, 1.0, 4, 1200);
     }
     
     @Override

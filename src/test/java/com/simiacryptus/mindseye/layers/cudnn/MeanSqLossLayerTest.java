@@ -53,7 +53,7 @@ public abstract class MeanSqLossLayerTest extends LayerTestBase {
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {200, 200, 3}, {200, 200, 3}
+      {1200, 1200, 3}, {1200, 1200, 3}
     };
   }
   
@@ -62,25 +62,26 @@ public abstract class MeanSqLossLayerTest extends LayerTestBase {
    */
   public class Basic extends MeanSqLossLayerTest {
   
-    @Nonnull
-    @Override
-    public int[][] getSmallDims(Random random) {
-      return new int[][]{
-        {8, 8, 1}, {8, 8, 1}
-      };
-    }
   }
   
   /**
    * Test using asymmetric input.
    */
   public class Asymetric extends MeanSqLossLayerTest {
-  
+    
     @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
         {2, 3, 1}, {2, 3, 1}
+      };
+    }
+    
+    @Nonnull
+    @Override
+    public int[][] getLargeDims(Random random) {
+      return new int[][]{
+        {200, 300, 100}, {200, 300, 100}
       };
     }
   }

@@ -100,8 +100,8 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
   
   @Nullable
   @Override
-  public Result eval(@Nonnull final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+  public Result evalAndFree(@Nonnull final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     if (inObj.length != 2) {
       throw new IllegalArgumentException("inObj.length=" + inObj.length);
     }
@@ -115,10 +115,6 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
     if (3 != leftDimensions.length) {
       throw new IllegalArgumentException("dimensions=" + Arrays.toString(leftDimensions));
     }
-    leftData.addRef();
-    rightData.addRef();
-    left.addRef();
-    right.addRef();
     return new Result(CudaSystem.run(gpu -> {
       @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
       @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
@@ -168,6 +164,9 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
             precision.getPointer(1.0), deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
             precision.getPointer(1.0), rightTensor.descriptor.getPtr(), rightTensorMemory.getPtr(),
             precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
+          deltaTensorMemory.dirty();
+          rightTensorMemory.dirty();
+          outputPtr.dirty();
           deltaTensorMemory.freeRef();
           rightTensorMemory.freeRef();
           CudaTensor cudaTensor = new CudaTensor(outputPtr, outputDescriptor, precision);
@@ -196,6 +195,9 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
             precision.getPointer(1.0), deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
             precision.getPointer(1.0), leftTensor.descriptor.getPtr(), leftTensorMemory.getPtr(),
             precision.getPointer(0.0), expandedDescriptor.getPtr(), outputPtr.getPtr()));
+          deltaTensorMemory.dirty();
+          leftTensorMemory.dirty();
+          outputPtr.dirty();
           if (Arrays.equals(rightDimensions, leftDimensions) && length == rightData.length()) {
             deltaTensorMemory.freeRef();
             leftTensorMemory.freeRef();
@@ -228,6 +230,8 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
               precision.getPointer(1.0), expandedDescriptor.getPtr(), outputPtr.getPtr(),
               precision.getPointer(0.0), reducedOutputDescriptor.getPtr(), reducedOutputPtr.getPtr());
             reducedOutputPtr.dirty();
+            workspacePtr.dirty();
+            outputPtr.dirty();
         
             deltaTensorMemory.freeRef();
             leftTensorMemory.freeRef();

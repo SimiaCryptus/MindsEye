@@ -99,16 +99,16 @@ public class SumReducerLayer extends LayerBase implements MultiPrecision<SumRedu
   
   @Nullable
   @Override
-  public Result eval(final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+  public Result evalAndFree(final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     final Result input = inObj[0];
-    input.addRef();
     final TensorList inputData = input.getData();
     @Nonnull final int[] inputSize = inputData.getDimensions();
     int length = inputData.length();
     
     CudaTensorList result = CudaSystem.run(gpu -> {
       CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, false);
+      inputData.freeRef();
       CudaMemory inputMemory = inputTensor.getMemory(gpu);
       
       @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length, 1, 1, 1);
@@ -126,7 +126,9 @@ public class SumReducerLayer extends LayerBase implements MultiPrecision<SumRedu
         indexPtr.getPtr(), indexPtr.size, workspacePtr.getPtr(), workspacePtr.size,
         precision.getPointer(1.0), inputTensor.descriptor.getPtr(), inputMemory.getPtr(),
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputMemory.getPtr());
+      inputMemory.dirty();
       outputMemory.dirty();
+      workspacePtr.dirty();
       
       Stream.of(inputTensor, inputMemory, reduceTensorDescriptor, workspacePtr, indexPtr).forEach(ReferenceCounting::freeRef);
       return CudaTensorList.wrap(CudaTensor.wrap(outputMemory, outputDescriptor, precision), length, new int[]{1, 1, 1}, precision);

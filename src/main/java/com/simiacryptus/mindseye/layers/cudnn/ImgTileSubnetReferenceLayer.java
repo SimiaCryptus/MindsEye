@@ -94,7 +94,6 @@ public class ImgTileSubnetReferenceLayer extends WrapperLayer implements MultiPr
     strideX = json.getAsJsonPrimitive("strideX").getAsInt();
     strideY = json.getAsJsonPrimitive("strideY").getAsInt();
     setParallel(json.get("parallel").getAsBoolean());
-    JsonObject subnetwork = json.getAsJsonObject("subnetwork");
     this.parallel = json.get("parallel").getAsBoolean();
   }
   
@@ -161,7 +160,6 @@ public class ImgTileSubnetReferenceLayer extends WrapperLayer implements MultiPr
     json.addProperty("strideY", strideY);
     json.addProperty("precision", precision.name());
     json.addProperty("parallel", isParallel());
-    json.add("subnetwork", getInner().getJson(resources, dataSerializer));
     json.addProperty("parallel", isParallel());
     return json;
   }

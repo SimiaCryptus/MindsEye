@@ -42,6 +42,13 @@ public abstract class ImgLinearSubnetLayerTest extends CudaLayerTestBase {
     };
   }
   
+  @Override
+  public int[][] getLargeDims(final Random random) {
+    return new int[][]{
+      {1200, 1200, 3}
+    };
+  }
+  
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {

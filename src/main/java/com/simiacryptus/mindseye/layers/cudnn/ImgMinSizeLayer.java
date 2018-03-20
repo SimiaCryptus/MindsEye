@@ -88,7 +88,7 @@ public class ImgMinSizeLayer extends LayerBase implements MultiPrecision<ImgMinS
   
   @Nullable
   @Override
-  public Result eval(@Nonnull final Result... inObj) {
+  public Result evalAndFree(@Nonnull final Result... inObj) {
     assert inObj.length == 1;
     @Nonnull int[] dimensions = inObj[0].getData().getDimensions();
     int inputWidth = dimensions[0];
@@ -107,7 +107,7 @@ public class ImgMinSizeLayer extends LayerBase implements MultiPrecision<ImgMinS
     }
     
     @Nonnull ImgCropLayer imgCropLayer = new ImgCropLayer(ouputWidth, outputHeight).setPrecision(precision);
-    @Nullable Result eval = imgCropLayer.eval(inObj);
+    @Nullable Result eval = imgCropLayer.evalAndFree(inObj);
     imgCropLayer.freeRef();
     return eval;
   }

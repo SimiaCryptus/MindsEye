@@ -209,12 +209,18 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
         precision.getPointer(1.0), inputTensor.descriptor.getPtr(), inputMemory.getPtr(),
         precision.getPointer(1.0), viewDescriptor1.getPtr(), deltaView1.getPtr(),
         precision.getPointer(0.0), bufferDescriptor.getPtr(), bufferMemory.getPtr()));
+      inputMemory.dirty();
+      deltaView1.dirty();
+      bufferMemory.dirty();
       deltaView1.freeRef();
       CudaMemory deltaView2 = deltaMemory.withByteOffset(band * precision.size);
       CudaSystem.handle(gpu.cudnnOpTensor(multiplyDescriptor.getPtr(),
         precision.getPointer(1.0), inputTensor.descriptor.getPtr(), inputMemory.getPtr(),
         precision.getPointer(1.0), viewDescriptor2.getPtr(), deltaView2.getPtr(),
         precision.getPointer(1.0), bufferDescriptor.getPtr(), bufferMemory.getPtr()));
+      inputMemory.dirty();
+      deltaView2.dirty();
+      bufferMemory.dirty();
       deltaView2.freeRef();
       
       CudaMemory outputViewMem = outputMemory.withByteOffset(bandDescriptor.cStride * band * precision.size);
@@ -222,13 +228,10 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
         indexPtr.getPtr(), indexPtr.size, workspacePtr.getPtr(), workspacePtr.size,
         precision.getPointer(1.0 / pixels), bufferDescriptor.getPtr(), bufferMemory.getPtr(),
         precision.getPointer(0.0), bandDescriptor.getPtr(), outputViewMem.getPtr());
+      outputViewMem.dirty();
+      bufferMemory.dirty();
       outputViewMem.freeRef();
     });
-    
-    outputMemory.dirty();
-    inputMemory.dirty();
-    bufferMemory.dirty();
-    deltaMemory.dirty();
     
     CudaTensorList feedback = CudaTensorList.wrap(CudaTensor.wrap(outputMemory, outputDescriptor, precision), length, inputDimensions, precision);
     
@@ -304,6 +307,9 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
         precision.getPointer(1.0), inputTensor.descriptor.getPtr(), inputMemory.getPtr(),
         precision.getPointer(1.0), inputViewDescriptor.getPtr(), inputView.getPtr(),
         precision.getPointer(0.0), bufferDescriptor.getPtr(), bufferMemory.getPtr()));
+      bufferMemory.dirty();
+      inputView.dirty();
+      inputMemory.dirty();
       inputView.freeRef();
       
       CudaMemory outputView = outputMemory.withByteOffset(band * precision.size * bands);
@@ -311,6 +317,8 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
         indexPtr.getPtr(), indexPtr.size, workspacePtr.getPtr(), workspacePtr.size,
         precision.getPointer(1.0 / pixels), bufferDescriptor.getPtr(), bufferMemory.getPtr(),
         precision.getPointer(0.0), outputViewDescriptor.getPtr(), outputView.getPtr()));
+      outputView.dirty();
+      bufferMemory.dirty();
       outputView.freeRef();
     });
     

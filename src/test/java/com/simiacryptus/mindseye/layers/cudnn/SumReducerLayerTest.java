@@ -63,7 +63,7 @@ public abstract class SumReducerLayerTest extends CudaLayerTestBase {
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {200, 200, 3}
+      {1200, 1200, 3}
     };
   }
   
@@ -102,7 +102,7 @@ public abstract class SumReducerLayerTest extends CudaLayerTestBase {
     @Override
     public int[][] getLargeDims(Random random) {
       return new int[][]{
-        {100, 60, 3}
+        {1000, 600, 3}
       };
     }
     

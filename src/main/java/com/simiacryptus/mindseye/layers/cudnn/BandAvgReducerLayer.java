@@ -100,10 +100,9 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
   
   @Nullable
   @Override
-  public Result eval(final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+  public Result evalAndFree(final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     final Result input = inObj[0];
-    input.addRef();
     TensorList inputData = input.getData();
     @Nonnull final int[] inputSize = inputData.getDimensions();
     int length = inputData.length();
@@ -111,6 +110,7 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
     final int bands = inputSize[2];
     CudaTensorList result = CudaSystem.run(gpu -> {
       CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, false);
+      inputData.freeRef();
       @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length, bands, 1, 1);
       long size = (long) precision.size * outputDescriptor.nStride * length;
       @Nonnull final CudaMemory outputPtr = gpu.allocate(size, MemoryType.Managed, true);
@@ -127,6 +127,7 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
         precision.getPointer(alpha), inputTensor.descriptor.getPtr(), inputMemory.getPtr(),
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr());
       outputPtr.dirty();
+      inputMemory.dirty();
       
       Stream.of(inputMemory, inputTensor, reduceTensorDescriptor, workspacePtr, indexPtr).forEach(ReferenceCounting::freeRef);
       return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor, precision), length, new int[]{1, 1, bands}, precision);
@@ -200,10 +201,21 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
     return Arrays.asList();
   }
   
+  /**
+   * Gets alpha.
+   *
+   * @return the alpha
+   */
   public double getAlpha() {
     return alpha;
   }
   
+  /**
+   * Sets alpha.
+   *
+   * @param alpha the alpha
+   * @return the alpha
+   */
   public BandAvgReducerLayer setAlpha(double alpha) {
     this.alpha = alpha;
     return this;

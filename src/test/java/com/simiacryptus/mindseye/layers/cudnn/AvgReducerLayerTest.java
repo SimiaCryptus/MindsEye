@@ -35,21 +35,27 @@ public abstract class AvgReducerLayerTest extends CudaLayerTestBase {
    * The Precision.
    */
   final Precision precision;
+  private final int smallSize;
+  private final int largeSize;
   
   /**
    * Instantiates a new Img band bias layer apply.
    *
    * @param precision the precision
+   * @param smallSize the small size
+   * @param largeSize the large size
    */
-  public AvgReducerLayerTest(final Precision precision) {
+  public AvgReducerLayerTest(final Precision precision, final int smallSize, final int largeSize) {
     this.precision = precision;
+    this.smallSize = smallSize;
+    this.largeSize = largeSize;
   }
   
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {8, 8, 1}
+      {smallSize, smallSize, 1}
     };
   }
   
@@ -63,7 +69,7 @@ public abstract class AvgReducerLayerTest extends CudaLayerTestBase {
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {200, 200, 3}
+      {largeSize, largeSize, 3}
     };
   }
   
@@ -75,7 +81,7 @@ public abstract class AvgReducerLayerTest extends CudaLayerTestBase {
      * Instantiates a new Double.
      */
     public Double() {
-      super(Precision.Double);
+      super(Precision.Double, 2, 1200);
     }
   }
   
@@ -87,14 +93,14 @@ public abstract class AvgReducerLayerTest extends CudaLayerTestBase {
      * Instantiates a new Double.
      */
     public Asymmetric() {
-      super(Precision.Double);
+      super(Precision.Double, 2, 1200);
     }
     
     @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
-        {3, 5, 2}
+        {2, 5, 2}
       };
     }
     
@@ -102,7 +108,7 @@ public abstract class AvgReducerLayerTest extends CudaLayerTestBase {
     @Override
     public int[][] getLargeDims(Random random) {
       return new int[][]{
-        {100, 60, 3}
+        {1200, 800, 3}
       };
     }
     
@@ -116,7 +122,7 @@ public abstract class AvgReducerLayerTest extends CudaLayerTestBase {
      * Instantiates a new Float.
      */
     public Float() {
-      super(Precision.Float);
+      super(Precision.Float, 2, 1200);
     }
     
     @Override

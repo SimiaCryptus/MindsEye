@@ -209,7 +209,7 @@ public class AparapiTest {
    * @throws Exception the exception
    */
   @Test
-  public void test2() throws Exception {
+  public void test2() {
     @Nonnull final float inA[] = new float[1024];
     @Nonnull final float inB[] = new float[1024];
     assert inA.length == inB.length;

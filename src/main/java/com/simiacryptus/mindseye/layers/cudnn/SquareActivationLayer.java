@@ -96,8 +96,8 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
   
   @Nullable
   @Override
-  public Result eval(@Nonnull final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+  public Result evalAndFree(@Nonnull final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     if (inObj.length != 1) {
       throw new IllegalArgumentException("inObj.length=" + inObj.length);
     }
@@ -108,9 +108,6 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
     if (3 != dimensions.length) {
       throw new IllegalArgumentException("dimensions=" + Arrays.toString(dimensions));
     }
-    inputData.addRef();
-    input.addRef();
-//   assert !right.isAlive();
     return new Result(CudaSystem.run(gpu -> {
       @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
       @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
@@ -156,6 +153,9 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
             precision.getPointer(2), deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
             precision.getPointer(alpha), inputTensor.descriptor.getPtr(), rightTensorMemory.getPtr(),
             precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
+          deltaTensorMemory.dirty();
+          rightTensorMemory.dirty();
+          outputPtr.dirty();
           deltaTensorMemory.freeRef();
           rightTensorMemory.freeRef();
           CudaTensor cudaTensor = new CudaTensor(outputPtr, outputDescriptor, precision);

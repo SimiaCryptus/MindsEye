@@ -47,6 +47,14 @@ public abstract class ImgTileAssemblyLayerTest extends CudaLayerTestBase {
     };
   }
   
+  @Override
+  public int[][] getLargeDims(final Random random) {
+    return new int[][]{
+      {200, 200, 100}, {100, 200, 100}, {200, 200, 100}, {100, 200, 100}, {200, 100, 100}, {100, 100, 100}
+    };
+    
+  }
+  
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {

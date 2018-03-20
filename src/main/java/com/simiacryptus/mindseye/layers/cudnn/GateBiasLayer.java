@@ -100,8 +100,8 @@ public class GateBiasLayer extends LayerBase implements MultiPrecision<GateBiasL
   
   @Nullable
   @Override
-  public Result eval(@Nonnull final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+  public Result evalAndFree(@Nonnull final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     if (inObj.length != 2) {
       throw new IllegalArgumentException("inObj.length=" + inObj.length);
     }
@@ -115,10 +115,6 @@ public class GateBiasLayer extends LayerBase implements MultiPrecision<GateBiasL
     if (3 != leftDimensions.length) {
       throw new IllegalArgumentException("dimensions=" + Arrays.toString(leftDimensions));
     }
-    leftData.addRef();
-    rightData.addRef();
-    left.addRef();
-    right.addRef();
     return new Result(CudaSystem.run(gpu -> {
       @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision);
       @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
@@ -184,6 +180,7 @@ public class GateBiasLayer extends LayerBase implements MultiPrecision<GateBiasL
               precision.getPointer(1.0), deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
               precision.getPointer(0.0), reducedOutputDescriptor.getPtr(), reducedOutputPtr.getPtr());
             reducedOutputPtr.dirty();
+            deltaTensorMemory.dirty();
         
             Stream.of(deltaTensorMemory, deltaTensor, reduceTensorDescriptor, workspacePtr, indexPtr).forEach(ReferenceCounting::freeRef);
             return CudaTensorList.wrap(CudaTensor.wrap(reducedOutputPtr, reducedOutputDescriptor, precision), rightData.length(), rightDimensions, precision);

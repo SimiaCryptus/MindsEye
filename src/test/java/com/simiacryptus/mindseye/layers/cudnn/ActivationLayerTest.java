@@ -145,7 +145,7 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
      * Instantiates a new Re lu float.
      */
     public ReLu_Float() {
-      super(ActivationLayer.Mode.RELU, Precision.Float, 2, 800);
+      super(ActivationLayer.Mode.RELU, Precision.Float, 2, 1200);
     }
   
     @Override
@@ -162,7 +162,7 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
      * Instantiates a new Sigmoid double.
      */
     public Sigmoid_Double() {
-      super(ActivationLayer.Mode.SIGMOID, Precision.Double, 2, 800);
+      super(ActivationLayer.Mode.SIGMOID, Precision.Double, 2, 1200);
     }
   
     @Override
@@ -179,7 +179,7 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
      * Instantiates a new Sigmoid float.
      */
     public Sigmoid_Float() {
-      super(ActivationLayer.Mode.SIGMOID, Precision.Float, 2, 800);
+      super(ActivationLayer.Mode.SIGMOID, Precision.Float, 2, 1200);
     }
   
     @Override

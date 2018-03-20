@@ -78,7 +78,7 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
   
   @Override
   public int[][] getLargeDims(Random random) {
-    return IntStream.range(0, inputs).mapToObj(i -> new int[]{200, 200, inputBands}).toArray(i -> new int[i][]);
+    return IntStream.range(0, inputs).mapToObj(i -> new int[]{1200, 1200, inputBands}).toArray(i -> new int[i][]);
   }
   
   @Override
@@ -140,7 +140,9 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
     @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
-      return getSmallDims(random);
+      return new int[][]{
+        {1200, 1200, 1}
+      };
     }
     
   }

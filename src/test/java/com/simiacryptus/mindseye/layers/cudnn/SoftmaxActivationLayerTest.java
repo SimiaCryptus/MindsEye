@@ -51,7 +51,7 @@ public abstract class SoftmaxActivationLayerTest extends CudaLayerTestBase {
   
   @Override
   public int[][] getLargeDims(final Random random) {
-    return new int[][]{{200, 200, 3}};
+    return new int[][]{{1200, 1200, 3}};
   }
   
   @Nonnull

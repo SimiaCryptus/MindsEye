@@ -53,6 +53,13 @@ public abstract class NProductLayerTest extends CudaLayerTestBase {
     };
   }
   
+  @Override
+  public int[][] getLargeDims(final Random random) {
+    return new int[][]{
+      {1200, 1200, 3}, {1200, 1200, 3}
+    };
+  }
+  
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
@@ -89,6 +96,14 @@ public abstract class NProductLayerTest extends CudaLayerTestBase {
         {8, 8, 1}, {8, 8, 1}, {8, 8, 1}
       };
     }
+  
+    @Override
+    public int[][] getLargeDims(final Random random) {
+      return new int[][]{
+        {1200, 1200, 3}, {1200, 1200, 3}, {1200, 1200, 3}
+      };
+    }
+  
   }
   
   /**

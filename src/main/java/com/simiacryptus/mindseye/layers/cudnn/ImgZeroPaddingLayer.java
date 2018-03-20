@@ -93,16 +93,14 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
   
   @Nullable
   @Override
-  public Result eval(@Nonnull final Result... inObj) {
+  public Result evalAndFree(@Nonnull final Result... inObj) {
     if (sizeX == 0 && sizeY == 0) {
-      inObj[0].getData().addRef();
-      inObj[0].addRef();
       return inObj[0];
     }
     assert inObj.length == 1;
     @Nonnull int[] dimensions = inObj[0].getData().getDimensions();
     @Nonnull ImgCropLayer imgCropLayer = new ImgCropLayer(dimensions[0] + 2 * this.sizeX, dimensions[1] + 2 * this.sizeY).setPrecision(precision);
-    @Nullable Result eval = imgCropLayer.eval(inObj);
+    @Nullable Result eval = imgCropLayer.evalAndFree(inObj);
     imgCropLayer.freeRef();
     return eval;
   }

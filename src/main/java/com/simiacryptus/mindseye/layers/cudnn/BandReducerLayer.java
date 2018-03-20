@@ -87,8 +87,8 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
   
   @Nullable
   @Override
-  public Result eval(final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+  public Result evalAndFree(final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     final Result input = inObj[0];
     final TensorList batch = input.getData();
     @Nonnull final int[] inputSize = batch.getDimensions();
@@ -96,7 +96,7 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
       .setWindowX(inputSize[1])
       .setWindowY(inputSize[0])
       .setAlpha(alpha);
-    @Nullable Result result = impl.eval(inObj);
+    @Nullable Result result = impl.evalAndFree(inObj);
     impl.freeRef();
     return result;
   }
@@ -151,10 +151,21 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
     return Arrays.asList();
   }
   
+  /**
+   * Gets alpha.
+   *
+   * @return the alpha
+   */
   public double getAlpha() {
     return alpha;
   }
   
+  /**
+   * Sets alpha.
+   *
+   * @param alpha the alpha
+   * @return the alpha
+   */
   public BandReducerLayer setAlpha(double alpha) {
     this.alpha = alpha;
     return this;

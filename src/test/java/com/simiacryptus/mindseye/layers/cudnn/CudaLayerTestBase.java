@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.ComponentTestBase;
 import com.simiacryptus.mindseye.test.unit.CudaLayerTester;
+import com.simiacryptus.mindseye.test.unit.PerformanceTester;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
@@ -102,7 +103,7 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
   @Nullable
   @Override
   public ComponentTest<ToleranceStatistics> getPerformanceTester() {
-    @Nullable ComponentTest<ToleranceStatistics> inner = super.getPerformanceTester();
+    @Nullable ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setBatches(5);
     return new ComponentTestBase<ToleranceStatistics>() {
       @Override
       protected void _free() {

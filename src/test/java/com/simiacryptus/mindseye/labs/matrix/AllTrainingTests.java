@@ -94,7 +94,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   @Test
   @Ignore
   @Category(TestCategories.Report.class)
-  public void autoencoder_test() throws IOException {
+  public void autoencoder_test() {
     run(this::autoencoder_test, getClass().getSimpleName(), "Autoencoder");
   }
   
@@ -105,7 +105,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
    */
   @Test
   @Category(TestCategories.Report.class)
-  public void classification_test() throws IOException {
+  public void classification_test() {
     run(this::classification_test, getClass().getSimpleName(), "Classification");
   }
   
@@ -128,7 +128,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   @Test
   @Ignore
   @Category(TestCategories.Report.class)
-  public void encoding_test() throws IOException {
+  public void encoding_test() {
     run(this::encoding_test, getClass().getSimpleName(), "Encoding");
   }
   

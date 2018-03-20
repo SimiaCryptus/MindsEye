@@ -127,6 +127,7 @@ public class AvgReducerLayer extends LayerBase implements MultiPrecision<AvgRedu
         precision.getPointer(1.0), inputTensor.descriptor.getPtr(), inputMemory.getPtr(),
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputMemory.getPtr());
       outputMemory.dirty();
+      inputMemory.dirty();
       
       Stream.of(inputTensor, inputMemory, reduceTensorDescriptor, workspacePtr, indexPtr).forEach(ReferenceCounting::freeRef);
       return CudaTensorList.wrap(CudaTensor.wrap(outputMemory, outputDescriptor, precision), length, new int[]{1, 1, 1}, precision);

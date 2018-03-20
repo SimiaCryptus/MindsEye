@@ -77,6 +77,11 @@ public class DeepDreamDemo extends ArtistryDemo {
     run(this::run);
   }
   
+  /**
+   * Gets clamp.
+   *
+   * @return the clamp
+   */
   @Nonnull
   public static PipelineNetwork getClamp() {
     @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);

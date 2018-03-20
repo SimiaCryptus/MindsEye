@@ -49,7 +49,7 @@ public abstract class GramianReferenceLayerTest extends CudaLayerTestBase {
   @Override
   public int[][] getLargeDims(final Random random) {
     return new int[][]{
-      {100, 100, 20}
+      {800, 800, 128}
     };
   }
   

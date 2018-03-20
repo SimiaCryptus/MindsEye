@@ -98,8 +98,8 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
   
   @Nullable
   @Override
-  public Result eval(@Nonnull final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+  public Result evalAndFree(@Nonnull final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     if (inObj.length <= 1) {
       throw new IllegalArgumentException("inObj.length=" + inObj.length);
     }
@@ -108,10 +108,6 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
     if (3 != dimensions.length) {
       throw new IllegalArgumentException("dimensions=" + Arrays.toString(dimensions));
     }
-    for (int i = 0; i < inObj.length; i++) {
-      inObj[i].getData().addRef();
-    }
-    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     for (int i = 1; i < inObj.length; i++) {
       TensorList data = inObj[i].getData();
       if (Tensor.length(dimensions) != Tensor.length(data.getDimensions())) {
@@ -138,6 +134,9 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
           precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
           precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
           precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
+        lPtrMemory.dirty();
+        rPtrMemory.dirty();
+        outputPtr.dirty();
         lPtrMemory.freeRef();
         rPtrMemory.freeRef();
         Arrays.stream(new ReferenceCounting[]{lPtr, rPtr, l, r}).forEach(ReferenceCounting::freeRef);
@@ -170,6 +169,9 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
                 precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
                 precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
                 precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
+              lPtrMemory.dirty();
+              rPtrMemory.dirty();
+              outputPtr.dirty();
               lPtrMemory.freeRef();
               rPtrMemory.freeRef();
               Stream.of(lPtr, rPtr, opDescriptor, l, r).forEach(ReferenceCounting::freeRef);

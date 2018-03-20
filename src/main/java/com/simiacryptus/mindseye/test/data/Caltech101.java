@@ -108,7 +108,7 @@ public class Caltech101 {
    * @return the stream
    * @throws IOException the io exception
    */
-  public static Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> trainingDataStream() throws IOException {
+  public static Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> trainingDataStream() {
     return Caltech101.training.stream();
   }
   

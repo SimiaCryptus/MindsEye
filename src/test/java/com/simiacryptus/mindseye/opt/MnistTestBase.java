@@ -71,7 +71,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
    */
   @Test
   @Category(TestCategories.Report.class)
-  public void test() throws IOException {
+  public void test() {
     run(this::run);
   }
   

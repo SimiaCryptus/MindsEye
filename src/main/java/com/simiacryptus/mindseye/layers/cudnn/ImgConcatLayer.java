@@ -98,7 +98,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
   @Nullable
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     int[] dimensions = inObj[0].getData().getDimensions();
@@ -231,6 +231,8 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
                   precision.getPointer(1.0), deltaViewDescriptor.getPtr(), cudaDeltaMemory.getPtr().withByteOffset(byteOffset),
                   precision.getPointer(0.0), passbackTransferDescriptor.getPtr(), cudaBackprop.getPtr()
                 );
+                cudaBackprop.dirty();
+                cudaDeltaMemory.dirty();
                 Stream.<ReferenceCounting>of(cudaDelta, deltaViewDescriptor, passbackTransferDescriptor).forEach(ReferenceCounting::freeRef);
                 return CudaTensorList.wrap(CudaTensor.wrap(cudaBackprop, passbackDescriptor, precision), length, inputDimentions, precision);
               }

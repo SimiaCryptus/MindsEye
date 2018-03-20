@@ -94,10 +94,23 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
     return new ImgLinearSubnetLayer(json, rs);
   }
   
+  /**
+   * Gets legs.
+   *
+   * @return the legs
+   */
   public List<SubnetLeg> getLegs() {
     return legs;
   }
   
+  /**
+   * Add img linear subnet layer.
+   *
+   * @param from  the from
+   * @param to    the to
+   * @param layer the layer
+   * @return the img linear subnet layer
+   */
   public ImgLinearSubnetLayer add(final int from, final int to, final Layer layer) {
     getLegs().add(new SubnetLeg(layer, from, to));
     return this;
@@ -158,6 +171,8 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
               precision.getPointer(1.0), deltaTensor.descriptor.getPtr(), errorPtrMemory.getPtr(),
               precision.getPointer(0.0), viewDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
             );
+            errorPtrMemory.dirty();
+            passbackBuffer.dirty();
             Stream.<ReferenceCounting>of(deltaTensor, viewDescriptor, passbackBuffer, errorPtrMemory).forEach(ReferenceCounting::freeRef);
           }, delta);
           if (counter.incrementAndGet() >= legs.size()) {
@@ -240,12 +255,22 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
     return this;
   }
   
+  /**
+   * The type Subnet leg.
+   */
   public static class SubnetLeg extends ReferenceCountingBase {
     
     private final Layer inner;
     private final int fromBand;
     private final int toBand;
     
+    /**
+     * Instantiates a new Subnet leg.
+     *
+     * @param inner    the inner
+     * @param fromBand the from band
+     * @param toBand   the to band
+     */
     public SubnetLeg(final Layer inner, final int fromBand, final int toBand) {
       this.inner = inner;
       this.fromBand = fromBand;
@@ -271,6 +296,13 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
       inner = Layer.fromJson(json.getAsJsonObject("network"), rs);
     }
     
+    /**
+     * Gets json.
+     *
+     * @param resources      the resources
+     * @param dataSerializer the data serializer
+     * @return the json
+     */
     @Nonnull
     public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
       @Nonnull final JsonObject json = new JsonObject();

@@ -128,7 +128,6 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
         cudaInput.descriptor.wStride);
       CudaMemory cudaInputMemory = cudaInput.getMemory(gpu);
       assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
-      cudaInputMemory.dirty();
       CudaTensor cudaTensor = CudaTensor.wrap(cudaInputMemory.withByteOffset(byteOffset), inputDescriptor, precision);
       Stream.<ReferenceCounting>of(cudaInput, cudaInputMemory).forEach(ReferenceCounting::freeRef);
       return CudaTensorList.wrap(cudaTensor, length, outputDimensions, precision);
@@ -161,6 +160,8 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
             precision.getPointer(1.0), errorPtr.descriptor.getPtr(), errorPtrMemory.getPtr(),
             precision.getPointer(0.0), viewDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
           );
+          errorPtrMemory.dirty();
+          passbackBuffer.dirty();
           errorPtrMemory.freeRef();
           CudaTensor cudaTensor = CudaTensor.wrap(passbackBuffer, inputDescriptor, precision);
           Stream.<ReferenceCounting>of(errorPtr, viewDescriptor).forEach(ReferenceCounting::freeRef);

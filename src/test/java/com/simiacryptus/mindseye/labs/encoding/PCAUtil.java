@@ -34,6 +34,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+/**
+ * The type Pca util.
+ */
 public class PCAUtil {
   /**
    * Forked from Apache Commons Math
@@ -57,7 +60,7 @@ public class PCAUtil {
     @Nonnull final RealMatrix covariance = new BlockRealMatrix(dimension, dimension);
     for (int i = 0; i < dimension; i++) {
       for (int j = 0; j <= i; j++) {
-        final double v = statList.get(i * dimension + j).getAverage();
+        final double v = statList.get(i + dimension * j).getAverage();
         covariance.setEntry(i, j, v);
         covariance.setEntry(j, i, v);
       }
@@ -65,6 +68,14 @@ public class PCAUtil {
     return covariance;
   }
   
+  /**
+   * Pca features 0 tensor [ ].
+   *
+   * @param covariance        the covariance
+   * @param components        the components
+   * @param featureDimensions the feature dimensions
+   * @return the tensor [ ]
+   */
   public static Tensor[] pcaFeatures_0(final RealMatrix covariance, final int components, final int[] featureDimensions) {
     @Nonnull final EigenDecomposition decomposition = new EigenDecomposition(covariance);
     final int[] orderedVectors = IntStream.range(0, components).mapToObj(x -> x)
@@ -77,6 +88,14 @@ public class PCAUtil {
       ).toArray(i -> new Tensor[i]);
   }
   
+  /**
+   * Pca features inv tensor [ ].
+   *
+   * @param covariance        the covariance
+   * @param components        the components
+   * @param featureDimensions the feature dimensions
+   * @return the tensor [ ]
+   */
   public static Tensor[] pcaFeatures_inv(final RealMatrix covariance, final int components, final int[] featureDimensions) {
     @Nonnull final EigenDecomposition decomposition = new EigenDecomposition(covariance);
     final int[] orderedVectors = IntStream.range(0, components).mapToObj(x -> x)
@@ -92,6 +111,14 @@ public class PCAUtil {
       ).toArray(i -> new Tensor[i]);
   }
   
+  /**
+   * Pca features norm tensor [ ].
+   *
+   * @param covariance        the covariance
+   * @param components        the components
+   * @param featureDimensions the feature dimensions
+   * @return the tensor [ ]
+   */
   public static Tensor[] pcaFeatures_norm(final RealMatrix covariance, final int components, final int[] featureDimensions) {
     @Nonnull final EigenDecomposition decomposition = new EigenDecomposition(covariance);
     final int[] orderedVectors = IntStream.range(0, components).mapToObj(x -> x)
@@ -107,6 +134,12 @@ public class PCAUtil {
       ).toArray(i -> new Tensor[i]);
   }
   
+  /**
+   * Populate pca kernel.
+   *
+   * @param kernel              the kernel
+   * @param featureSpaceVectors the feature space vectors
+   */
   public static void populatePCAKernel(final Tensor kernel, final Tensor[] featureSpaceVectors) {
     final int outputBands = featureSpaceVectors.length;
     @Nonnull final int[] filterDimensions = kernel.getDimensions();
@@ -114,12 +147,12 @@ public class PCAUtil {
       final int kband = c.getCoords()[2];
       final int outband = kband % outputBands;
       final int inband = (kband - outband) / outputBands;
-      assert outband < outputBands;
       int x = c.getCoords()[0];
       int y = c.getCoords()[1];
       x = filterDimensions[0] - (x + 1);
       y = filterDimensions[1] - (y + 1);
-      final double v = featureSpaceVectors[inband].get(x, y, outband);
+      //final double v = featureSpaceVectors[inband].get(x, y, outband);
+      final double v = featureSpaceVectors[outband].get(x, y, inband);
       return Double.isFinite(v) ? v : kernel.get(c);
     });
   }

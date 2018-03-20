@@ -80,6 +80,12 @@ public class StyleDreamDemo extends ArtistryDemo {
    */
   int imageSize = 600;
   
+  /**
+   * Pca tensor.
+   *
+   * @param cov the cov
+   * @return the tensor
+   */
   @Nonnull
   public static Tensor pca(final Tensor cov) {
     final int inputbands = (int) Math.sqrt(cov.getDimensions()[2]);
@@ -107,6 +113,11 @@ public class StyleDreamDemo extends ArtistryDemo {
     run(this::run);
   }
   
+  /**
+   * Gets clamp.
+   *
+   * @return the clamp
+   */
   @Nonnull
   public static PipelineNetwork getClamp() {
     @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
@@ -134,7 +145,7 @@ public class StyleDreamDemo extends ArtistryDemo {
    * @param log             the log
    * @param canvasImage     the canvas image
    * @param styleParameters the style parameters
-   * @param trainingMinutes
+   * @param trainingMinutes the training minutes
    * @return the buffered image
    */
   @Nonnull
@@ -217,7 +228,7 @@ public class StyleDreamDemo extends ArtistryDemo {
    * @param canvasImage     the canvas image
    * @param network         the network
    * @param precision       the precision
-   * @param trainingMinutes
+   * @param trainingMinutes the training minutes
    * @return the buffered image
    */
   @Nonnull
@@ -246,11 +257,26 @@ public class StyleDreamDemo extends ArtistryDemo {
     return canvas.toImage();
   }
   
+  /**
+   * Load list.
+   *
+   * @param style  the style
+   * @param width  the width
+   * @param height the height
+   * @return the list
+   */
   @Nonnull
   public List<BufferedImage> load(final List<String> style, final int width, final int height) {
     return style.stream().map(x -> load(x, width, height)).collect(Collectors.toList());
   }
   
+  /**
+   * Load list.
+   *
+   * @param style     the style
+   * @param imageSize the image size
+   * @return the list
+   */
   @Nonnull
   public List<BufferedImage> load(final List<String> style, final int imageSize) {
     return style.stream().map(x -> load(x, imageSize)).collect(Collectors.toList());
@@ -477,6 +503,14 @@ public class StyleDreamDemo extends ArtistryDemo {
     return network;
   }
   
+  /**
+   * Gram pipeline network.
+   *
+   * @param network      the network
+   * @param mean         the mean
+   * @param pcaTransform the pca transform
+   * @return the pipeline network
+   */
   @Nonnull
   public PipelineNetwork gram(final PipelineNetwork network, Tensor mean, Tensor pcaTransform) {
     int[] dimensions = pcaTransform.getDimensions();
@@ -544,14 +578,45 @@ public class StyleDreamDemo extends ArtistryDemo {
     return ReportType.Demos;
   }
   
+  /**
+   * The type Content coefficients.
+   */
   public static class ContentCoefficients {
+    /**
+     * The Coeff content 0.
+     */
     public final double coeff_content_0;
+    /**
+     * The Coeff content 1 a.
+     */
     public final double coeff_content_1a;
+    /**
+     * The Coeff content 1 b.
+     */
     public final double coeff_content_1b;
+    /**
+     * The Coeff content 1 c.
+     */
     public final double coeff_content_1c;
+    /**
+     * The Coeff content 1 d.
+     */
     public final double coeff_content_1d;
+    /**
+     * The Coeff content 1 e.
+     */
     public final double coeff_content_1e;
     
+    /**
+     * Instantiates a new Content coefficients.
+     *
+     * @param coeff_content_0  the coeff content 0
+     * @param coeff_content_1a the coeff content 1 a
+     * @param coeff_content_1b the coeff content 1 b
+     * @param coeff_content_1c the coeff content 1 c
+     * @param coeff_content_1d the coeff content 1 d
+     * @param coeff_content_1e the coeff content 1 e
+     */
     public ContentCoefficients(final double coeff_content_0, final double coeff_content_1a, final double coeff_content_1b, final double coeff_content_1c, final double coeff_content_1d, final double coeff_content_1e) {
       this.coeff_content_0 = coeff_content_0;
       this.coeff_content_1a = coeff_content_1a;
@@ -563,21 +628,80 @@ public class StyleDreamDemo extends ArtistryDemo {
     
   }
   
+  /**
+   * The type Style coefficients.
+   */
   public static class StyleCoefficients {
+    /**
+     * The Coeff style mean 0.
+     */
     public final double coeff_style_mean_0;
+    /**
+     * The Coeff style cov 0.
+     */
     public final double coeff_style_cov_0;
+    /**
+     * The Coeff style mean 1 a.
+     */
     public final double coeff_style_mean_1a;
+    /**
+     * The Coeff style cov 1 a.
+     */
     public final double coeff_style_cov_1a;
+    /**
+     * The Coeff style mean 1 b.
+     */
     public final double coeff_style_mean_1b;
+    /**
+     * The Coeff style cov 1 b.
+     */
     public final double coeff_style_cov_1b;
+    /**
+     * The Coeff style mean 1 c.
+     */
     public final double coeff_style_mean_1c;
+    /**
+     * The Coeff style cov 1 c.
+     */
     public final double coeff_style_cov_1c;
+    /**
+     * The Coeff style mean 1 d.
+     */
     public final double coeff_style_mean_1d;
+    /**
+     * The Coeff style cov 1 d.
+     */
     public final double coeff_style_cov_1d;
+    /**
+     * The Coeff style mean 1 e.
+     */
     public final double coeff_style_mean_1e;
+    /**
+     * The Coeff style cov 1 e.
+     */
     public final double coeff_style_cov_1e;
+    /**
+     * The Dynamic center.
+     */
     public final boolean dynamic_center;
     
+    /**
+     * Instantiates a new Style coefficients.
+     *
+     * @param coeff_style_mean_0  the coeff style mean 0
+     * @param coeff_style_cov_0   the coeff style cov 0
+     * @param coeff_style_mean_1a the coeff style mean 1 a
+     * @param coeff_style_cov_1a  the coeff style cov 1 a
+     * @param coeff_style_mean_1b the coeff style mean 1 b
+     * @param coeff_style_cov_1b  the coeff style cov 1 b
+     * @param coeff_style_mean_1c the coeff style mean 1 c
+     * @param coeff_style_cov_1c  the coeff style cov 1 c
+     * @param coeff_style_mean_1d the coeff style mean 1 d
+     * @param coeff_style_cov_1d  the coeff style cov 1 d
+     * @param coeff_style_mean_1e the coeff style mean 1 e
+     * @param coeff_style_cov_1e  the coeff style cov 1 e
+     * @param dynamic_center      the dynamic center
+     */
     public StyleCoefficients(final double coeff_style_mean_0, final double coeff_style_cov_0, final double coeff_style_mean_1a, final double coeff_style_cov_1a, final double coeff_style_mean_1b, final double coeff_style_cov_1b, final double coeff_style_mean_1c, final double coeff_style_cov_1c, final double coeff_style_mean_1d, final double coeff_style_cov_1d, final double coeff_style_mean_1e, final double coeff_style_cov_1e, final boolean dynamic_center) {
       this.coeff_style_mean_0 = coeff_style_mean_0;
       this.coeff_style_cov_0 = coeff_style_cov_0;
@@ -612,16 +736,24 @@ public class StyleDreamDemo extends ArtistryDemo {
      * The Style image.
      */
     public final List<BufferedImage> styleImages;
+    /**
+     * The Styles.
+     */
     public final List<StyleCoefficients> styles;
+    /**
+     * The Content.
+     */
     public final ContentCoefficients content;
-    
-    
+  
+  
     /**
      * Instantiates a new Style setup.
      *
-     * @param precision    the precision
-     * @param contentImage the content image
-     * @param styleImages  the style image
+     * @param precision           the precision
+     * @param contentImage        the content image
+     * @param contentCoefficients the content coefficients
+     * @param styleImages         the style image
+     * @param styles              the styles
      */
     public StyleSetup(final Precision precision, final BufferedImage contentImage, ContentCoefficients contentCoefficients, final List<BufferedImage> styleImages, final List<StyleCoefficients> styles) {
       this.precision = precision;
@@ -633,6 +765,9 @@ public class StyleDreamDemo extends ArtistryDemo {
     
   }
   
+  /**
+   * The type Content target.
+   */
   public static class ContentTarget {
     /**
      * The Target content 0.
@@ -660,6 +795,9 @@ public class StyleDreamDemo extends ArtistryDemo {
     public Tensor target_content_1e;
   }
   
+  /**
+   * The type Style target.
+   */
   public class StyleTarget {
     /**
      * The Target style cov 0.
@@ -710,22 +848,58 @@ public class StyleDreamDemo extends ArtistryDemo {
      */
     public Tensor target_style_mean_1e;
     
+    /**
+     * The Target style pca 0.
+     */
     public Tensor target_style_pca_0;
+    /**
+     * The Target style pca cov 0.
+     */
     public Tensor target_style_pca_cov_0;
+    /**
+     * The Target style pca 1 a.
+     */
     public Tensor target_style_pca_1a;
+    /**
+     * The Target style pca cov 1 a.
+     */
     public Tensor target_style_pca_cov_1a;
+    /**
+     * The Target style pca 1 b.
+     */
     public Tensor target_style_pca_1b;
+    /**
+     * The Target style pca cov 1 b.
+     */
     public Tensor target_style_pca_cov_1b;
+    /**
+     * The Target style pca 1 c.
+     */
     public Tensor target_style_pca_1c;
+    /**
+     * The Target style pca cov 1 c.
+     */
     public Tensor target_style_pca_cov_1c;
+    /**
+     * The Target style pca 1 d.
+     */
     public Tensor target_style_pca_1d;
+    /**
+     * The Target style pca cov 1 d.
+     */
     public Tensor target_style_pca_cov_1d;
+    /**
+     * The Target style pca 1 e.
+     */
     public Tensor target_style_pca_1e;
+    /**
+     * The Target style pca cov 1 e.
+     */
     public Tensor target_style_pca_cov_1e;
   }
   
   private class NeuralSetup {
-    
+  
     /**
      * The Log.
      */
@@ -734,9 +908,15 @@ public class StyleDreamDemo extends ArtistryDemo {
      * The Style parameters.
      */
     public final StyleSetup style;
+    /**
+     * The Content target.
+     */
     ContentTarget contentTarget = new ContentTarget();
+    /**
+     * The Style targets.
+     */
     List<StyleTarget> styleTargets = new ArrayList<>();
-    
+  
     /**
      * Instantiates a new Neural setup.
      *
@@ -747,7 +927,7 @@ public class StyleDreamDemo extends ArtistryDemo {
       this.log = log;
       this.style = style;
     }
-    
+  
     /**
      * Init neural setup.
      *
@@ -889,7 +1069,7 @@ public class StyleDreamDemo extends ArtistryDemo {
       
       return this;
     }
-    
+  
     /**
      * Fitness function pipeline network.
      *
@@ -978,7 +1158,19 @@ public class StyleDreamDemo extends ArtistryDemo {
       network1.wrap(network);
       return network1;
     }
-    
+  
+    /**
+     * Gets style components.
+     *
+     * @param node              the node
+     * @param dynamic_center    the dynamic center
+     * @param coeff_style_mean  the coeff style mean
+     * @param target_style_mean the target style mean
+     * @param coeff_style_cov   the coeff style cov
+     * @param target_style_cov  the target style cov
+     * @param target_style_pca  the target style pca
+     * @return the style components
+     */
     public ArrayList<Tuple2<Double, DAGNode>> getStyleComponents(final DAGNode node, final boolean dynamic_center, final double coeff_style_mean, final Tensor target_style_mean, final double coeff_style_cov, final Tensor target_style_cov, final Tensor target_style_pca) {
       ArrayList<Tuple2<Double, DAGNode>> list = new ArrayList<>();
       final PipelineNetwork network = (PipelineNetwork) node.getNetwork();
@@ -1012,7 +1204,15 @@ public class StyleDreamDemo extends ArtistryDemo {
       }
       return list;
     }
-    
+  
+    /**
+     * Gets content components.
+     *
+     * @param node           the node
+     * @param coeff_content  the coeff content
+     * @param target_content the target content
+     * @return the content components
+     */
     public ArrayList<Tuple2<Double, DAGNode>> getContentComponents(final DAGNode node, final double coeff_content, final Tensor target_content) {
       ArrayList<Tuple2<Double, DAGNode>> functions = new ArrayList<>();
       final PipelineNetwork network = (PipelineNetwork) node.getNetwork();

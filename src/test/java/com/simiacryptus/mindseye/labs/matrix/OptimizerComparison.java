@@ -79,7 +79,7 @@ public abstract class OptimizerComparison extends NotebookReportBase {
    */
   @Test
   @Category(TestCategories.Report.class)
-  public void classification() throws IOException {
+  public void classification() {
     run(this::classification, getClass().getSimpleName(), "Classification");
   }
   
@@ -111,7 +111,7 @@ public abstract class OptimizerComparison extends NotebookReportBase {
    */
   @Test
   @Category(TestCategories.Report.class)
-  public void encoding() throws IOException {
+  public void encoding() {
     run(this::encoding, getClass().getSimpleName(), "Encoding");
   }
   

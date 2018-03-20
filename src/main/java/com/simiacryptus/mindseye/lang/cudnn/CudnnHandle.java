@@ -969,6 +969,14 @@ public class CudnnHandle extends CudaDevice {
     return result;
   }
   
+  /**
+   * Cudnn set tensor int.
+   *
+   * @param yDesc    the y desc
+   * @param y        the y
+   * @param valuePtr the value ptr
+   * @return the int
+   */
   public int cudnnSetTensor(
     cudnnTensorDescriptor yDesc,
     CudaPointer y,

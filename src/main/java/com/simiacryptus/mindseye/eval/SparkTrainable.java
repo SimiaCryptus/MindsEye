@@ -293,7 +293,7 @@ public class SparkTrainable extends TrainableBase {
   
     @Nonnull
     @Override
-    public Iterator<SparkTrainable.ReducableResult> call(@Nonnull final Iterator<Tensor[]> partition) throws Exception {
+    public Iterator<SparkTrainable.ReducableResult> call(@Nonnull final Iterator<Tensor[]> partition) {
       final long startTime = System.nanoTime();
       @Nonnull final DataTrainable trainable = new BasicTrainable(network);
       final Tensor[][] tensors = SparkTrainable.getStream(partition).toArray(i -> new Tensor[i][]);

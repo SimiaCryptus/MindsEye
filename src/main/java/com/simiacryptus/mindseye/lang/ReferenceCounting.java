@@ -77,6 +77,8 @@ public interface ReferenceCounting {
   
   /**
    * Assert alive.
+   *
+   * @return the boolean
    */
   boolean assertAlive();
   

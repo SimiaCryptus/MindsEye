@@ -124,6 +124,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
    * @param input            the input
    * @param inputDimensions  the input dimensions
    * @param outputDimensions the output dimensions
+   * @param precision        the precision
    * @param positionX        the position x
    * @param positionY        the position y
    * @param dirty            the dirty
@@ -134,12 +135,37 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
     return copy(gpu, input, inputDimensions, outputDimensions, positionX, positionY, precision, outputPtr);
   }
   
+  /**
+   * Copy cuda tensor.
+   *
+   * @param gpu             the gpu
+   * @param input           the input
+   * @param inputDimensions the input dimensions
+   * @param positionX       the position x
+   * @param positionY       the position y
+   * @param precision       the precision
+   * @param output          the output
+   * @return the cuda tensor
+   */
   public static CudaTensor copy(final CudnnHandle gpu, @Nonnull final TensorList input, final int[] inputDimensions, final int positionX, final int positionY, Precision precision, final CudaTensor output) {
     return copy(gpu, input, inputDimensions,
       new int[]{output.descriptor.width, output.descriptor.height, output.descriptor.channels},
       positionX, positionY, precision, output.getMemory(gpu));
   }
   
+  /**
+   * Copy cuda tensor.
+   *
+   * @param gpu              the gpu
+   * @param input            the input
+   * @param inputDimensions  the input dimensions
+   * @param outputDimensions the output dimensions
+   * @param positionX        the position x
+   * @param positionY        the position y
+   * @param precision        the precision
+   * @param outputPtr        the output ptr
+   * @return the cuda tensor
+   */
   public static CudaTensor copy(final CudnnHandle gpu, @Nonnull final TensorList input, final int[] inputDimensions, final int[] outputDimensions, final int positionX, final int positionY, final Precision precision, final CudaMemory outputPtr) {
     final int length = input.length();
     if (3 != inputDimensions.length) throw new IllegalArgumentException("inputDimensions.length");
@@ -186,7 +212,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
         assert destinationOffset == 0;
         return CudaTensor.wrap(inputTensorMemory.withByteOffset(sourceOffset * precision.size), sourceViewDescriptor, precision);
       }
-  
+      
       @Nonnull final CudaDevice.CudaTensorDescriptor destinationViewDescriptor = gpu.newTensorDescriptor(
         precision,//
         length,//
@@ -245,28 +271,26 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
   
   @Nullable
   @Override
-  public Result eval(@Nonnull final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+  public Result evalAndFree(@Nonnull final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     assert 1 == inObj.length;
     final Result input = inObj[0];
-    assert 3 == input.getData().getDimensions().length;
-    final int length = input.getData().length();
-    @Nonnull int[] dimIn = input.getData().getDimensions();
+    final TensorList inputData = input.getData();
+    assert 3 == inputData.getDimensions().length;
+    final int length = inputData.length();
+    @Nonnull int[] dimIn = inputData.getDimensions();
     if (dimIn[0] == sizeY && dimIn[1] == sizeX) {
-      input.addRef();
-      input.getData().addRef();
       return input;
     }
     @Nonnull final int[] dimOut = getViewDimensions(dimIn, new int[]{sizeY, sizeX, dimIn[2]}, new int[]{positionX, positionY, 0});
-    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     final TensorList outputData = CudaSystem.run(gpu -> {
       assert dimOut[0] > 0;
       assert dimOut[1] > 0;
       assert dimOut[2] > 0;
       boolean dirty = dimOut[0] == dimIn[0] && dimOut[1] == dimIn[1];
-      CudaTensor cudaTensor = copy(gpu, input.getData(), dimIn, dimOut, precision, this.positionX, this.positionY, dirty);
+      CudaTensor cudaTensor = copy(gpu, inputData, dimIn, dimOut, precision, this.positionX, this.positionY, dirty);
       return CudaTensorList.wrap(cudaTensor, length, dimOut, precision);
-    }, input.getData());
+    }, inputData);
     int[] outputDimensions = outputData.getDimensions();
     assert length == outputData.length();
     return new Result(outputData, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
@@ -276,7 +300,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
       if (error.length() != length) {
         throw new AssertionError(error.length() + " != " + length);
       }
-      assert error.length() == input.getData().length();
+      assert error.length() == inputData.length();
       if (input.isAlive()) {
         final TensorList passbackTensorList = CudaSystem.run(gpu -> {
           boolean dirty = dimOut[0] >= dimIn[0] && dimOut[1] >= dimIn[1];

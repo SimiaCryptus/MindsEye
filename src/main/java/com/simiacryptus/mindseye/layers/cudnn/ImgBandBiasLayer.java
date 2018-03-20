@@ -114,8 +114,8 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
   
   @Nullable
   @Override
-  public Result eval(@Nonnull final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+  public Result evalAndFree(@Nonnull final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     if (inObj.length != 1) {
       throw new IllegalArgumentException("inObj.length=" + inObj.length);
     }
@@ -126,8 +126,6 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
     if (3 != inputDimensions.length) {
       throw new IllegalArgumentException("dimensions=" + Arrays.toString(inputDimensions));
     }
-    leftData.addRef();
-    input.addRef();
 //   assert !right.isAlive();
     return new Result(CudaSystem.run(gpu -> {
       @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision);

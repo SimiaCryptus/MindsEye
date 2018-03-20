@@ -41,7 +41,7 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
    * Instantiates a new Img band bias layer apply.
    *
    * @param precision the precision
-   * @param alpha
+   * @param alpha     the alpha
    */
   public BandReducerLayerTest(final Precision precision, final double alpha) {
     this.precision = precision;
@@ -52,7 +52,7 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {8, 8, 1}
+      {4, 4, 1}
     };
   }
   
@@ -66,7 +66,7 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {200, 200, 3}
+      {1200, 1200, 3}
     };
   }
   
@@ -117,7 +117,7 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
     @Override
     public int[][] getLargeDims(Random random) {
       return new int[][]{
-        {100, 60, 3}
+        {1200, 800, 3}
       };
     }
     

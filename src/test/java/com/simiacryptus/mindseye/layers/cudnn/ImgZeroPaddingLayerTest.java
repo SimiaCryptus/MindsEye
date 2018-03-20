@@ -49,7 +49,7 @@ public abstract class ImgZeroPaddingLayerTest extends CudaLayerTestBase {
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {200, 200, 3}
+      {1200, 1200, 3}
     };
   }
   

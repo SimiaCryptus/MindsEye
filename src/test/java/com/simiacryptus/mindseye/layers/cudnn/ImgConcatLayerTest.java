@@ -76,7 +76,7 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
-    return new ImgConcatLayer();
+    return new ImgConcatLayer().setPrecision(precision);
   }
   
   @Nonnull
@@ -99,7 +99,7 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
      * Instantiates a new Band limit apply.
      */
     public BandLimitTest() {
-      super(Precision.Double, 2, 1, 8, 100);
+      super(Precision.Double, 2, 1, 8, 1200);
     }
   
     @Nonnull
@@ -133,7 +133,7 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
      * Instantiates a new Band limit apply.
      */
     public BandConcatLimitTest() {
-      super(Precision.Double, new int[]{2, 3, 4}, 2, 100);
+      super(Precision.Double, new int[]{2, 3, 4}, 2, 1200);
     }
   
     @Nonnull
@@ -157,7 +157,7 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
      * Instantiates a new Double.
      */
     public Double() {
-      super(Precision.Double, 2, 1, 8, 100);
+      super(Precision.Double, 2, 1, 8, 1200);
     }
   }
 //
@@ -186,7 +186,7 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
      * @param bandsPerInput the bands per input
      */
     public Big(final Precision precision, final int inputs, final int bandsPerInput) {
-      super(precision, inputs, bandsPerInput, 8, 100);
+      super(precision, inputs, bandsPerInput, 8, 1200);
       this.validateDifferentials = false;
       setTestTraining(false);
     }
@@ -227,7 +227,7 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
      * Instantiates a new Float.
      */
     public Float() {
-      super(Precision.Float, 2, 1, 8, 100);
+      super(Precision.Float, 2, 1, 8, 1200);
     }
   }
   

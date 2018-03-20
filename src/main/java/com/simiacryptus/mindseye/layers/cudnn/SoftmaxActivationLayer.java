@@ -188,12 +188,10 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
         (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
           if (inputResult.isAlive()) {
             final TensorList data = CudaSystem.run(gpu -> {
-              final CudaTensor result1;
-              synchronized (gpu) {result1 = gpu.getTensor(inputData, precision, MemoryType.Device, true);}
-              @Nullable CudaTensor inputTensor = result1;
-              final CudaTensor result;
-              synchronized (gpu) {result = gpu.getTensor(delta, precision, MemoryType.Device, true);}
-              @Nullable CudaTensor deltaTensor = result;
+              @Nullable CudaTensor inputTensor;
+              synchronized (gpu) {inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, true);}
+              @Nullable CudaTensor deltaTensor;
+              synchronized (gpu) {deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, true);}
               outPtr.addRef();
               CudaTensor localOut = outPtr.getDenseAndFree(gpu);
               delta.freeRef();

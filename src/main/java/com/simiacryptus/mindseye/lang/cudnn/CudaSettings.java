@@ -228,6 +228,11 @@ public class CudaSettings implements Settings {
     return memoryCacheTTL;
   }
   
+  /**
+   * Is convolution cache boolean.
+   *
+   * @return the boolean
+   */
   public boolean isConvolutionCache() {
     return convolutionCache;
   }

@@ -93,14 +93,9 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
     }
     @Nullable final Layer other = (Layer) obj;
     if (getId() == null) {
-      if (other.getId() != null) {
-        return false;
-      }
+      return other.getId() == null;
     }
-    else if (!getId().equals(other.getId())) {
-      return false;
-    }
-    return true;
+    else return getId().equals(other.getId());
   }
   
   /**

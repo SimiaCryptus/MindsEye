@@ -118,18 +118,17 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   
   @Nullable
   @Override
-  public Result eval(@Nonnull final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
-    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
+  public Result evalAndFree(@Nonnull final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     final int poolDims = 2;
     @Nonnull final int windowSize[] = {windowX, windowY};
     @Nonnull final int padding[] = {paddingX, paddingY};
     @Nonnull final int stride[] = {strideX, strideY};
     final Result input = inObj[0];
-    final TensorList batch = input.getData();
-    @Nonnull final int[] inputSize = batch.getDimensions();
-    final int length = batch.length();
-    batch.addRef();
+    final TensorList inputData = input.getData();
+    @Nonnull final int[] inputSize = inputData.getDimensions();
+    final int length = inputData.length();
+    inputData.addRef();
     final int inputDims = Tensor.length(inputSize);
     @Nonnull final int[] outputSize = new int[4];
     final CudaTensor outputData = CudaSystem.run(gpu -> {
@@ -137,30 +136,30 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
         gpu.initThread();
         @Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = gpu.createPoolingDescriptor(
           mode.id, poolDims, windowSize, padding, stride);
-        @Nullable final CudaTensor inputData = gpu.getTensor(batch, precision, MemoryType.Device, false);
-        CudaSystem.handle(CudaSystem.cudnnGetPoolingNdForwardOutputDim(poolingDesc.getPtr(), inputData.descriptor.getPtr(), 4, outputSize));
+        @Nullable final CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, false);
+        CudaSystem.handle(CudaSystem.cudnnGetPoolingNdForwardOutputDim(poolingDesc.getPtr(), inputTensor.descriptor.getPtr(), 4, outputSize));
         assert inputSize[2] == outputSize[1];
         @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, outputSize[0], outputSize[1], outputSize[2], outputSize[3], outputSize[1] * outputSize[2] * outputSize[3], outputSize[2] * outputSize[3], outputSize[3], 1);
         @Nonnull final CudaMemory outputTensor = gpu.allocate((long) precision.size * Tensor.length(outputSize), MemoryType.Managed.normalize(), true);
-        CudaMemory inputDataMemory = inputData.getMemory(gpu);
+        CudaMemory inputDataMemory = inputTensor.getMemory(gpu);
         CudaSystem.handle(gpu.cudnnPoolingForward(poolingDesc.getPtr(),
           precision.getPointer(alpha),
-          inputData.descriptor.getPtr(), inputDataMemory.getPtr(),
+          inputTensor.descriptor.getPtr(), inputDataMemory.getPtr(),
           precision.getPointer(0.0),
           outputDescriptor.getPtr(), outputTensor.getPtr()));
         assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
         inputDataMemory.dirty();
         outputTensor.dirty();
         inputDataMemory.freeRef();
-        Arrays.stream(new ReferenceCounting[]{inputData, poolingDesc}).forEach(ReferenceCounting::freeRef);
+        Arrays.stream(new ReferenceCounting[]{inputTensor, poolingDesc}).forEach(ReferenceCounting::freeRef);
         return CudaTensor.wrap(outputTensor, outputDescriptor, precision);
       } catch (@Nonnull final Throwable e) {
         throw new ComponentException("Error", e);
       }
-    }, batch);
+    }, inputData);
     return new Result(CudaTensorList.create(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, precision),
       (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
-        assert error.length() == batch.length();
+        assert error.length() == inputData.length();
         if (input.isAlive()) {
           TensorList data = CudaSystem.run(gpu -> {
             @Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(precision,
@@ -168,27 +167,25 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
               inputSize[2] * inputSize[1] * inputSize[0], inputSize[1] * inputSize[0], inputSize[0], 1);
             @Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = gpu.createPoolingDescriptor(
               mode.id, poolDims, windowSize, padding, stride);
-            final CudaTensor result1;
-            synchronized (gpu) {result1 = gpu.getTensor(batch, precision, MemoryType.Device, true);}
-            @Nullable final CudaTensor inputData = result1;
-            final CudaTensor result;
-            synchronized (gpu) {result = gpu.getTensor(error, precision, MemoryType.Device, true);}
-            @Nullable final CudaTensor errorPtr = result;
+            @Nullable final CudaTensor inputTensor;
+            synchronized (gpu) {inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, true);}
+            @Nullable final CudaTensor errorPtr;
+            synchronized (gpu) {errorPtr = gpu.getTensor(error, precision, MemoryType.Device, true);}
             @Nonnull final CudaMemory passbackBuffer = gpu.allocate((long) inputDims * precision.size * length, MemoryType.Managed.normalize(), true);
             CudaMemory outputDataMemory = outputData.getMemory(gpu);
             CudaMemory errorPtrMemory = errorPtr.getMemory(gpu);
-            CudaMemory inputDataMemory = inputData.getMemory(gpu);
+            CudaMemory inputDataMemory = inputTensor.getMemory(gpu);
             CudaSystem.handle(gpu.cudnnPoolingBackward(poolingDesc.getPtr(),
               precision.getPointer(this.alpha), outputData.descriptor.getPtr(), outputDataMemory.getPtr(),
               errorPtr.descriptor.getPtr(), errorPtrMemory.getPtr(),
-              inputData.descriptor.getPtr(), inputDataMemory.getPtr(),
+              inputTensor.descriptor.getPtr(), inputDataMemory.getPtr(),
               precision.getPointer(0.0), passbackDescriptor.getPtr(), passbackBuffer.getPtr()));
             outputDataMemory.dirty();
             errorPtrMemory.dirty();
             inputDataMemory.dirty();
             passbackBuffer.dirty();
   
-            Stream.<ReferenceCounting>of(errorPtr, inputData, poolingDesc, outputDataMemory, errorPtrMemory, inputDataMemory).forEach(ReferenceCounting::freeRef);
+            Stream.<ReferenceCounting>of(errorPtr, inputTensor, poolingDesc, outputDataMemory, errorPtrMemory, inputDataMemory).forEach(ReferenceCounting::freeRef);
             return CudaTensorList.wrap(CudaTensor.wrap(passbackBuffer, passbackDescriptor, precision), length, inputSize, precision);
           }, error);
           input.accumulate(buffer, data);
@@ -198,7 +195,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
-        batch.freeRef();
+        inputData.freeRef();
         outputData.freeRef();
       }
       
@@ -432,10 +429,21 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     return this;
   }
   
+  /**
+   * Gets alpha.
+   *
+   * @return the alpha
+   */
   public double getAlpha() {
     return alpha;
   }
   
+  /**
+   * Sets alpha.
+   *
+   * @param alpha the alpha
+   * @return the alpha
+   */
   public PoolingLayer setAlpha(double alpha) {
     this.alpha = alpha;
     return this;
