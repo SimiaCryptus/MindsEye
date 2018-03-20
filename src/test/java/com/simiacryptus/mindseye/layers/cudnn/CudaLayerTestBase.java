@@ -100,10 +100,12 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
     };
   }
   
+  protected int testingBatchSize = 5;
+  
   @Nullable
   @Override
   public ComponentTest<ToleranceStatistics> getPerformanceTester() {
-    @Nullable ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setBatches(5);
+    @Nullable ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setBatches(testingBatchSize);
     return new ComponentTestBase<ToleranceStatistics>() {
       @Override
       protected void _free() {

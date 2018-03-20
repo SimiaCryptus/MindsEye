@@ -164,7 +164,7 @@ public class SumReducerLayer extends LayerBase implements MultiPrecision<SumRedu
       @Override
       protected void _free() {
         super._free();
-        input.addRef();
+        input.freeRef();
       }
     };
   }

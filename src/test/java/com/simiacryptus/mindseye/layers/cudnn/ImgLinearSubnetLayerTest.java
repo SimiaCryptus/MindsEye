@@ -34,6 +34,10 @@ public abstract class ImgLinearSubnetLayerTest extends CudaLayerTestBase {
   private final ConvolutionLayer convolutionLayer2 = new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random());
   private final ConvolutionLayer convolutionLayer3 = new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random());
   
+  public ImgLinearSubnetLayerTest() {
+    testingBatchSize = 1;
+  }
+  
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
@@ -45,7 +49,7 @@ public abstract class ImgLinearSubnetLayerTest extends CudaLayerTestBase {
   @Override
   public int[][] getLargeDims(final Random random) {
     return new int[][]{
-      {1200, 1200, 3}
+      {1000, 1000, 3}
     };
   }
   

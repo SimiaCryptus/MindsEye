@@ -20,16 +20,10 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
-import com.simiacryptus.mindseye.test.ToleranceStatistics;
-import com.simiacryptus.mindseye.test.unit.ComponentTest;
-import com.simiacryptus.mindseye.test.unit.ComponentTestBase;
-import com.simiacryptus.mindseye.test.unit.PerformanceTester;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.Random;
 
@@ -42,6 +36,7 @@ public abstract class GramianLayerTest extends CudaLayerTestBase {
    * Instantiates a new Gramian layer test.
    */
   public GramianLayerTest() {
+    testingBatchSize = 1;
   }
   
   @Nonnull
@@ -80,36 +75,6 @@ public abstract class GramianLayerTest extends CudaLayerTestBase {
     super.run(log);
   }
   
-  @Nullable
-  @Override
-  public ComponentTest<ToleranceStatistics> getPerformanceTester() {
-    @Nullable ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setBatches(1);
-    return new ComponentTestBase<ToleranceStatistics>() {
-      @Override
-      protected void _free() {
-        inner.freeRef();
-        super._free();
-      }
-      
-      @Override
-      public ToleranceStatistics test(@Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
-        @Nullable PrintStream apiLog = null;
-        try {
-          @Nonnull String logName = "cuda_" + log.getName() + "_perf.log";
-          log.p(log.file((String) null, logName, "GPU Log"));
-          apiLog = new PrintStream(log.file(logName));
-          CudaSystem.addLog(apiLog);
-          return inner.test(log, component, inputPrototype);
-        } finally {
-          if (null != apiLog) {
-            apiLog.close();
-            CudaSystem.apiLog.remove(apiLog);
-          }
-        }
-      }
-    };
-  }
-  
   /**
    * Basic Test
    */
@@ -124,7 +89,7 @@ public abstract class GramianLayerTest extends CudaLayerTestBase {
     @Override
     public int[][] getLargeDims(final Random random) {
       return new int[][]{
-        {1200, 1200, 3}
+        {1000, 1000, 3}
       };
     }
   

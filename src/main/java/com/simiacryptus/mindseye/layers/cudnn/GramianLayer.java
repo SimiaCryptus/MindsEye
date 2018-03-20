@@ -112,12 +112,12 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
         final TensorList passbackTensorList = CudaSystem.run(gpu -> {
           @Nullable final CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, false);
           CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, true);
+          delta.freeRef();
           CudaTensorList feedback = getFeedback(gpu, inputTensor, deltaTensor);
           deltaTensor.freeRef();
           inputTensor.freeRef();
           return feedback;
         }, delta);
-        delta.freeRef();
         inObj[0].accumulate(buffer, passbackTensorList);
       }
       else {

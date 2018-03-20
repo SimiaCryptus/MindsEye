@@ -575,19 +575,21 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     Result[] inputs = inputCopies.stream().map(tensor -> new Result(tensor, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       reachedInputFeedback.set(true);
     }) {
-    
       @Override
       public boolean isAlive() {
         return true;
       }
-    
     }).toArray(i -> new Result[i]);
-    @Nullable final Result eval = frozen.eval(inputs);
-    for (@Nonnull Result result : inputs) {
-      result.freeRef();
-    }
-    for (@Nonnull TensorArray tensorArray : inputCopies) {
-      tensorArray.freeRef();
+    @Nullable final Result eval;
+    try {
+      eval = frozen.eval(inputs);
+    } finally {
+      for (@Nonnull Result result : inputs) {
+        result.freeRef();
+      }
+      for (@Nonnull TensorArray tensorArray : inputCopies) {
+        tensorArray.freeRef();
+      }
     }
     @Nonnull final DeltaSet<Layer> buffer = new DeltaSet<Layer>();
     TensorList tensorList = eval.getData();

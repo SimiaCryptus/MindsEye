@@ -66,7 +66,7 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {1200, 1200, 3}
+      {100, 100, 3}
     };
   }
   
@@ -117,7 +117,7 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
     @Override
     public int[][] getLargeDims(Random random) {
       return new int[][]{
-        {1200, 800, 3}
+        {200, 100, 3}
       };
     }
     

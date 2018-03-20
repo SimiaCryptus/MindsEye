@@ -144,6 +144,7 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
             dimensions[0],
             1);
           @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
+          delta.freeRef();
           @Nullable final CudaTensor inputTensor = gpu.getTensor(input.getData(), precision, MemoryType.Device, false);
           //assert deltaTensor.size == inputTensor.size;
           @Nonnull final CudaMemory outputPtr = gpu.allocate((long) precision.size * outputDescriptor.nStride * length, MemoryType.Device, true);
@@ -165,8 +166,17 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
         }, delta);
         input.accumulate(buffer, data);
       }
+      else {
+        delta.freeRef();
+      }
     }) {
-      
+  
+      @Override
+      public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
+        getAccumulator().accept(buffer, delta);
+      }
+  
+  
       @Override
       protected void _free() {
         inputData.freeRef();

@@ -254,12 +254,13 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
       delta.assertAlive();
       buffer.assertAlive();
       inputData.assertAlive();
-      assert delta.length() == inputData.length();
+      assert delta.length() == length;
       delta.addRef();
       Runnable learnFn = () -> {
         if (!isFrozen()) {
           CudaSystem.run(gpu -> {
             @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, true);
+            delta.freeRef();
             @Nullable final CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, true);
             final CudaResource<cudnnFilterDescriptor> filterDescriptor = gpu.newFilterDescriptor(
               precision, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
@@ -295,7 +296,6 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
                 throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
               }
               @Nonnull final Tensor weightGradient = filterPtr.read(precision, kernel.getDimensions());
-              delta.freeRef();
               inputTensor.freeRef();
               filterPtr.freeRef();
               deltaTensor.freeRef();
@@ -322,6 +322,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
               strideY, strideX,
               1, 1);
             @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
+            delta.freeRef();
             final int backwardDataAlgorithm = gpu.getBackwardDataAlgorithm(
               inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), deltaTensor.descriptor.getPtr(), CudaSettings.INSTANCE.getConvolutionWorkspaceSizeLimit());
             final CudaMemory backwardsDataWorkSpace = gpu.allocateBackwardDataWorkspace(
@@ -359,7 +360,6 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
               Stream.of(inputDescriptor, filterDescriptor, convolutionDescriptor, backwardsDataWorkSpace).forEach(ReferenceCounting::freeRef);
             }
           }, delta);
-          delta.freeRef();
           if (null != inputBufferTensors) {
             input.accumulate(buffer, inputBufferTensors);
           }

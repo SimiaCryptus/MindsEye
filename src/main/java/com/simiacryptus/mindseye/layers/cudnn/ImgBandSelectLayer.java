@@ -153,6 +153,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
           assert delta.length() == length;
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
           @Nullable final CudaTensor errorPtr = gpu.getTensor(delta, precision, MemoryType.Device, false);
+          delta.freeRef();
           long size1 = (length * inputDimensions[2] * inputDimensions[1] * inputDimensions[0] * precision.size);
           @Nonnull final CudaMemory passbackBuffer = gpu.allocate(size1, MemoryType.Managed.normalize(), false);
           CudaMemory errorPtrMemory = errorPtr.getMemory(gpu);
@@ -170,7 +171,16 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
         }, delta);
         inObj[0].accumulate(buffer, passbackTensorList);
       }
+      else {
+        delta.freeRef();
+      }
     }) {
+  
+      @Override
+      public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
+        getAccumulator().accept(buffer, delta);
+      }
+  
   
       @Override
       protected void _free() {

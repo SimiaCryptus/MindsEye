@@ -248,31 +248,38 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
       Stream.<ReferenceCounting>of(inputTensor).forEach(ReferenceCounting::freeRef);
       return CudaTensorList.wrap(cudaTensor, length, dimOut, precision);
     }, inputData);
-    return new Result(outputData, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
-      if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
-        throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
+    return new Result(outputData, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+      if (!Arrays.equals(delta.getDimensions(), outputData.getDimensions())) {
+        throw new AssertionError(Arrays.toString(delta.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
       }
-      if (error.length() != outputData.length()) {
-        throw new AssertionError(error.length() + " != " + outputData.length());
+      if (delta.length() != outputData.length()) {
+        throw new AssertionError(delta.length() + " != " + outputData.length());
       }
-      assert error.length() == length;
-      
-      
-      
-      
+      assert delta.length() == length;
+    
+    
       if (input.isAlive()) {
         final TensorList passbackTensorList = CudaSystem.run(gpu -> {
-          @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device, false);
+          @Nullable final CudaTensor errorPtr = gpu.getTensor(delta, precision, MemoryType.Device, false);
+          delta.freeRef();
           boolean dirty = dimOut[0] >= dimIn[0] && dimOut[1] >= dimIn[1];
           CudaTensor cudaTensor = copy(gpu, errorPtr, length, dimOut, dimIn, dirty, precision);
           Stream.<ReferenceCounting>of(errorPtr).forEach(ReferenceCounting::freeRef);
           return CudaTensorList.wrap(cudaTensor, length, dimIn, precision);
-        }, error);
+        }, delta);
         input.accumulate(buffer, passbackTensorList);
+      }
+      else {
+        delta.freeRef();
       }
   
   
     }) {
+    
+      @Override
+      public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
+        getAccumulator().accept(buffer, delta);
+      }
       
       @Override
       protected void _free() {

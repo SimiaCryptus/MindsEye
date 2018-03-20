@@ -192,6 +192,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
               @Nullable CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, true);
               @Nullable CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, true);
               outPtr.addRef();
+              assert length == delta.length();
               CudaTensor localOut = outPtr.getDenseAndFree(gpu);
               delta.freeRef();
               CudaTensor passbackTensor;
@@ -206,7 +207,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
               passbackTensor = CudaTensor.wrap(
                 gpu.allocate((long) Tensor.length(inputSize) * length * precision.size, MemoryType.Managed.normalize(), false),
                 gpu.newTensorDescriptor(precision,
-                  delta.length(), inputSize[2], inputSize[1], inputSize[0],
+                  length, inputSize[2], inputSize[1], inputSize[0],
                   inputSize[2] * inputSize[1] * inputSize[0],
                   inputSize[1] * inputSize[0],
                   inputSize[0],

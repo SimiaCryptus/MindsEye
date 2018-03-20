@@ -248,7 +248,6 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     assert outputBands == resultData.getDimensions()[2];
     ConvolutionLayer.this.addRef();
     return new Result(resultData, (@Nonnull final DeltaSet<Layer> deltaSet, @Nonnull final TensorList delta) -> {
-      delta.addRef();
       result.accumulate(deltaSet, delta);
       if (!isFrozen()) {
         Tensor read = grid.read(deltaSet, true);
@@ -256,7 +255,12 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
         read.freeRef();
       }
     }) {
-      
+
+      @Override
+      public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
+        getAccumulator().accept(buffer, delta);
+      }
+  
       @Override
       protected void _free() {
         grid.freeRef();

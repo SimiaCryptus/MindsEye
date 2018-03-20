@@ -186,6 +186,7 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
             leftDimensions[0],
             1);
           @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
+          delta.freeRef();
           @Nullable final CudaTensor leftTensor = gpu.getTensor(left.getData(), precision, MemoryType.Device, false);
           //assert deltaTensor.size == rightTensor.size;
           @Nonnull final CudaMemory outputPtr = gpu.allocate((long) precision.size * expandedDescriptor.nStride * length, MemoryType.Device, true);
@@ -220,10 +221,10 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
             CudaResource<cudnnReduceTensorDescriptor> reduceTensorDescriptor = gpu.cudnnCreateReduceTensorDescriptor(
               cudnnReduceTensorOp.CUDNN_REDUCE_TENSOR_ADD, precision.code, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN,
               cudnnReduceTensorIndices.CUDNN_REDUCE_TENSOR_NO_INDICES, cudnnIndicesType.CUDNN_32BIT_INDICES);
-  
+        
             @Nonnull final CudaMemory workspacePtr = gpu.allocate(outputPtr.size, MemoryType.Device, true);
             @Nonnull final CudaMemory indexPtr = gpu.allocate(3, MemoryType.Device, false);
-    
+        
             //outputPtr.synchronize();
             gpu.cudnnReduceTensor(reduceTensorDescriptor.getPtr(),
               indexPtr.getPtr(), indexPtr.size, workspacePtr.getPtr(), workspacePtr.size,
@@ -244,8 +245,17 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
         }, delta);
         right.accumulate(buffer, data);
       }
+      else {
+        delta.freeRef();
+      }
     }) {
-      
+  
+      @Override
+      public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
+        getAccumulator().accept(buffer, delta);
+      }
+  
+  
       @Override
       protected void _free() {
         leftData.freeRef();

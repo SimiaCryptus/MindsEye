@@ -154,6 +154,7 @@ public class GateBiasLayer extends LayerBase implements MultiPrecision<GateBiasL
           //assert deltaTensor.size == rightTensor.size;
           if (Arrays.equals(rightDimensions, leftDimensions) && length == rightData.length()) {
             assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
+            delta.addRef();
             return delta;
           }
           else {

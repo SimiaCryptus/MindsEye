@@ -80,7 +80,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
     layer = new SimpleConvolutionLayer(radius, radius, bands * bands).setPrecision(precision).setStrideX(stride).setStrideY(stride);
     layer.kernel.set(() -> random());
     smallRadius = this.radius;
-    largeRadius = 1200;
+    largeRadius = 800;
   }
   
   @Nonnull
@@ -144,7 +144,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
      */
     public Image() {
       super(3, 3, Precision.Double, 1);
-      largeRadius = 1200;
+      largeRadius = 800;
       smallRadius = 5;
     }
   }
@@ -262,7 +262,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
     public SpanBug() {
       layer.setStrideX(2);
       layer.setStrideY(2);
-      largeRadius = 1200;
+      largeRadius = 800;
       smallRadius = 5;
     }
   }

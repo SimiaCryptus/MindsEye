@@ -43,7 +43,7 @@ public abstract class ImgTileSubnetLayerTest extends CudaLayerTestBase {
   @Override
   public int[][] getLargeDims(final Random random) {
     return new int[][]{
-      {1200, 1200, 3}
+      {1200, 1200, 1}
     };
   }
   
