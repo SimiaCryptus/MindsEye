@@ -53,11 +53,7 @@ public abstract class GramianLayerTest extends CudaLayerTestBase {
   }
   
   @Override
-  public int[][] getLargeDims(final Random random) {
-    return new int[][]{
-      {800, 800, 512}
-    };
-  }
+  public abstract int[][] getLargeDims(final Random random);
   
   @Nonnull
   @Override
@@ -117,12 +113,36 @@ public abstract class GramianLayerTest extends CudaLayerTestBase {
   /**
    * Basic Test
    */
-  public static class Basic extends GramianLayerTest {
+  public static class Image extends GramianLayerTest {
     /**
      * Instantiates a new Basic.
      */
-    public Basic() {
+    public Image() {
       super();
+    }
+  
+    @Override
+    public int[][] getLargeDims(final Random random) {
+      return new int[][]{
+        {1200, 1200, 3}
+      };
+    }
+  
+  }
+  
+  public static class Deep extends GramianLayerTest {
+    /**
+     * Instantiates a new Basic.
+     */
+    public Deep() {
+      super();
+    }
+    
+    @Override
+    public int[][] getLargeDims(final Random random) {
+      return new int[][]{
+        {100, 100, 512}
+      };
     }
   }
   

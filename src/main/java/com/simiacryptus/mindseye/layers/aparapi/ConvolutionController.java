@@ -43,7 +43,7 @@ public final class ConvolutionController {
   /**
    * The constant MAX_BUFFER_SIZE.
    */
-  public static int MAX_BUFFER_SIZE = 1 * 1024 * 1024 / 2;
+  public static int MAX_BUFFER_SIZE = 256 * 1024 * 1024;
   private final int[] inputSize;
   @Nonnull
   private final int[] kernelSize;

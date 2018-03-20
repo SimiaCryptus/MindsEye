@@ -348,20 +348,14 @@ public class EncodingUtil {
       return Caltech101.trainingDataStream().collect(Collectors.groupingBy(x -> x.label, Collectors.counting()));
     });
     final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
-    try {
-      return Caltech101.trainingDataStream().filter(x -> {
-        return categories.length == 0 || Arrays.asList(categories).contains(x.label);
-      }).parallel().map(labeledObj -> {
-        return new Tensor[]{
-          new Tensor(Math.max(1, categories.length)).set(Math.max(0, Arrays.asList(categories).indexOf(labeledObj.label)), 1.0),
-          Tensor.fromRGB(fn.apply(labeledObj.data.get()))
-        };
-      }).sorted(Comparator.comparingInt(a -> System.identityHashCode(a) ^ seed)).limit(maxImages).toArray(i -> new Tensor[i][]);
-    } catch (@Nonnull final RuntimeException e) {
-      throw e;
-    } catch (@Nonnull final IOException e) {
-      throw new RuntimeException(e);
-    }
+    return Caltech101.trainingDataStream().filter(x -> {
+      return categories.length == 0 || Arrays.asList(categories).contains(x.label);
+    }).parallel().map(labeledObj -> {
+      return new Tensor[]{
+        new Tensor(Math.max(1, categories.length)).set(Math.max(0, Arrays.asList(categories).indexOf(labeledObj.label)), 1.0),
+        Tensor.fromRGB(fn.apply(labeledObj.data.get()))
+      };
+    }).sorted(Comparator.comparingInt(a -> System.identityHashCode(a) ^ seed)).limit(maxImages).toArray(i -> new Tensor[i][]);
   }
   
   /**

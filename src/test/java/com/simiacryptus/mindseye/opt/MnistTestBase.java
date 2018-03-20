@@ -141,17 +141,13 @@ public abstract class MnistTestBase extends NotebookReportBase {
    * @return the tensor [ ] [ ]
    */
   public Tensor[][] getTrainingData(final NotebookOutput log) {
-    try {
-      Tensor[][] tensors = MNIST.trainingDataStream().map(labeledObject -> {
-        @Nonnull final Tensor categoryTensor = new Tensor(10);
-        final int category = parse(labeledObject.label);
-        categoryTensor.set(category, 1);
-        return new Tensor[]{labeledObject.data, categoryTensor};
-      }).toArray(i -> new Tensor[i][]);
-      return tensors;
-    } catch (@Nonnull final IOException e) {
-      throw new RuntimeException(e);
-    }
+    Tensor[][] tensors = MNIST.trainingDataStream().map(labeledObject -> {
+      @Nonnull final Tensor categoryTensor = new Tensor(10);
+      final int category = parse(labeledObject.label);
+      categoryTensor.set(category, 1);
+      return new Tensor[]{labeledObject.data, categoryTensor};
+    }).toArray(i -> new Tensor[i][]);
+    return tensors;
   }
   
   /**
@@ -279,28 +275,24 @@ public abstract class MnistTestBase extends NotebookReportBase {
     
     log.p("Let's examine some incorrectly predicted results in more detail:");
     log.code(() -> {
-      try {
-        @Nonnull final TableOutput table = new TableOutput();
-        MNIST.validationDataStream().map(labeledObject -> {
-          try {
-            final int actualCategory = parse(labeledObject.label);
-            @Nullable final double[] predictionSignal = network.eval(labeledObject.data).getData().get(0).getData();
-            final int[] predictionList = IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
-            if (predictionList[0] == actualCategory) return null; // We will only examine mispredicted rows
-            @Nonnull final LinkedHashMap<String, Object> row = new LinkedHashMap<>();
-            row.put("Image", log.image(labeledObject.data.toGrayImage(), labeledObject.label));
-            row.put("Prediction", Arrays.stream(predictionList).limit(3)
-              .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
-              .reduce((a, b) -> a + ", " + b).get());
-            return row;
-          } catch (@Nonnull final IOException e) {
-            throw new RuntimeException(e);
-          }
-        }).filter(x -> null != x).limit(10).forEach(table::putRow);
-        return table;
-      } catch (@Nonnull final IOException e) {
-        throw new RuntimeException(e);
-      }
+      @Nonnull final TableOutput table = new TableOutput();
+      MNIST.validationDataStream().map(labeledObject -> {
+        try {
+          final int actualCategory = parse(labeledObject.label);
+          @Nullable final double[] predictionSignal = network.eval(labeledObject.data).getData().get(0).getData();
+          final int[] predictionList = IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
+          if (predictionList[0] == actualCategory) return null; // We will only examine mispredicted rows
+          @Nonnull final LinkedHashMap<String, Object> row = new LinkedHashMap<>();
+          row.put("Image", log.image(labeledObject.data.toGrayImage(), labeledObject.label));
+          row.put("Prediction", Arrays.stream(predictionList).limit(3)
+            .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
+            .reduce((a, b) -> a + ", " + b).get());
+          return row;
+        } catch (@Nonnull final IOException e) {
+          throw new RuntimeException(e);
+        }
+      }).filter(x -> null != x).limit(10).forEach(table::putRow);
+      return table;
     });
   }
 }
