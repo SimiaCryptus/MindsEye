@@ -69,11 +69,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 /**
  * The type Image classifier apply base.
@@ -251,9 +251,9 @@ public class StyleTransferDemo extends ArtistryDemo {
     });
     try {
       log.p(log.image(styleParameters.contentImage, "Content Image"));
-      styleParameters.styleImages.forEach(styleImage -> {
+      styleParameters.styleImages.forEach((file, styleImage) -> {
         try {
-          log.p(log.image(styleImage, "Style Image"));
+          log.p(log.image(styleImage, file));
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
@@ -464,12 +464,25 @@ public class StyleTransferDemo extends ArtistryDemo {
     imageSize = 400;
     double growthFactor = Math.sqrt(1.5);
 //    String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170924_145214.jpg";
-    String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
+    String lakeAndForest = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
 //    String style = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
+    String threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
   
-    List<String> styles = Arrays.asList(content,
-      //"H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\1280px-Van_Gogh_-_Kauernder_Junge_mit_Sichel.jpg",
-      "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg"
+    Map<String, StyleCoefficients> styles = new HashMap<>();
+    styles.put(lakeAndForest, new StyleCoefficients(
+      1e2, 1e1,
+      0, 0,
+      0, 0,
+      0, 0,
+      0, 0,
+      0, 0, false));
+    styles.put(threeMusicians, new StyleCoefficients(
+      1e-2, 1e-3,
+      1e-3, 1e-7,
+      1e-5, 1e-3,
+      1e-3, 1e-7,
+      1e-3, 1e-7,
+      1e-3, 1e-7, false)
     );
     double contentGate = 1e5;
     ContentCoefficients contentCoefficients = new ContentCoefficients(
@@ -479,40 +492,24 @@ public class StyleTransferDemo extends ArtistryDemo {
       contentGate * 1e-2,
       contentGate * 1e-2,
       contentGate * 1e-2);
-    StyleCoefficients styleCoefficients_content = new StyleCoefficients(
-      1e2, 1e1,
-      0, 0,
-      0, 0,
-      0, 0,
-      0, 0,
-      0, 0, false);
-    StyleCoefficients styleCoefficients1 = new StyleCoefficients(
-      1e-2, 1e-3,
-      1e-3, 1e-7,
-      1e-5, 1e-3,
-      1e-3, 1e-7,
-      1e-3, 1e-7,
-      1e-3, 1e-7, false);
     double power = 0.0;
-    List<StyleCoefficients> styleCoefficientsList = Stream.concat(
-      Stream.of(styleCoefficients_content),
-      IntStream.range(0, styles.size() - 1).mapToObj(img1 -> styleCoefficients1)
-    ).collect(Collectors.toList());
     int trainingMinutes = 90;
   
     log.h1("Input");
-    BufferedImage canvasImage = load(content, imageSize);
+    BufferedImage canvasImage = load(lakeAndForest, imageSize);
     canvasImage = randomize(canvasImage);
     canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-    BufferedImage contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
-    List<BufferedImage> styleImages = styles.stream().map(x -> load(x, x == content ? ((int) (imageSize * 1.5)) : imageSize)).collect(Collectors.toList());
-    canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styleCoefficientsList, power), trainingMinutes);
+    Map<String, BufferedImage> styleImages = new HashMap<>();
+    styles.forEach((file, parameters) -> styleImages.put(file, load(file, file == lakeAndForest ? ((int) (imageSize * 1.5)) : imageSize)));
+    BufferedImage contentImage = load(lakeAndForest, canvasImage.getWidth(), canvasImage.getHeight());
+    canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles, power), trainingMinutes);
     for (int i = 0; i < 10; i++) {
       imageSize = (int) (imageSize * growthFactor);
+      styleImages.clear();
+      styles.forEach((file, parameters) -> styleImages.put(file, load(file, file == lakeAndForest ? ((int) (imageSize * 1.5)) : imageSize)));
       canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-      contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
-      styleImages = styles.stream().map(x -> load(x, x == content ? ((int) (imageSize * 1.5)) : imageSize)).collect(Collectors.toList());
-      canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styleCoefficientsList, power), trainingMinutes);
+      contentImage = load(lakeAndForest, canvasImage.getWidth(), canvasImage.getHeight());
+      canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles, power), trainingMinutes);
     }
     
     log.setFrontMatterProperty("status", "OK");
@@ -772,11 +769,11 @@ public class StyleTransferDemo extends ArtistryDemo {
     /**
      * The Style image.
      */
-    public final List<BufferedImage> styleImages;
+    public final Map<String, BufferedImage> styleImages;
     /**
      * The Styles.
      */
-    public final List<StyleCoefficients> styles;
+    public final Map<String, StyleCoefficients> styles;
     /**
      * The Content.
      */
@@ -797,7 +794,7 @@ public class StyleTransferDemo extends ArtistryDemo {
      * @param styles              the styles
      * @param power               the power
      */
-    public StyleSetup(final Precision precision, final BufferedImage contentImage, ContentCoefficients contentCoefficients, final List<BufferedImage> styleImages, final List<StyleCoefficients> styles, final double power) {
+    public StyleSetup(final Precision precision, final BufferedImage contentImage, ContentCoefficients contentCoefficients, final Map<String, BufferedImage> styleImages, final Map<String, StyleCoefficients> styles, final double power) {
       this.precision = precision;
       this.contentImage = contentImage;
       this.styleImages = styleImages;
@@ -983,7 +980,9 @@ public class StyleTransferDemo extends ArtistryDemo {
       final PipelineNetwork content_1c = texture_1c(log);
       final PipelineNetwork content_1d = texture_1d(log);
       final PipelineNetwork content_1e = texture_1e(log);
-      
+  
+      List<String> keyList = style.styleImages.keySet().stream().collect(Collectors.toList());
+  
       Tensor contentInput = Tensor.fromRGB(style.contentImage);
       try {
         log.p(log.image(contentInput.toImage(), "content"));
@@ -991,7 +990,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         throw new RuntimeException(e);
       }
   
-      List<Tensor> styleInputs = style.styleImages.stream().map(img -> Tensor.fromRGB(img)).collect(Collectors.toList());
+      List<Tensor> styleInputs = keyList.stream().map(x -> style.styleImages.get(x)).map(img -> Tensor.fromRGB(img)).collect(Collectors.toList());
       styleInputs.forEach(styleInput -> {
         try {
           log.p(log.image(styleInput.toImage(), "style"));
