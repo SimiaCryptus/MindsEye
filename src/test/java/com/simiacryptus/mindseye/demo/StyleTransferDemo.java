@@ -74,9 +74,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
- * The type Image classifier apply base.
+ * This notebook implements the Style Transfer protocol outlined in <a href="https://arxiv.org/abs/1508.06576">A Neural Algorithm of Artistic Style</a>
  */
 public class StyleTransferDemo extends ArtistryDemo {
   
@@ -245,12 +246,14 @@ public class StyleTransferDemo extends ArtistryDemo {
   public BufferedImage styleTransfer(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup styleParameters, final int trainingMinutes) {
     NeuralSetup neuralSetup = new NeuralSetup(log, styleParameters).init();
     PipelineNetwork network = neuralSetup.fitnessNetwork(log);
-    log.p("Input: ");
+    log.p("Input Parameters:");
     log.code(() -> {
       return toJson(styleParameters);
     });
     try {
+      log.p("Input Content:");
       log.p(log.image(styleParameters.contentImage, "Content Image"));
+      log.p("Style Content:");
       styleParameters.styleImages.forEach((file, styleImage) -> {
         try {
           log.p(log.image(styleImage, file));
@@ -258,12 +261,14 @@ public class StyleTransferDemo extends ArtistryDemo {
           throw new RuntimeException(e);
         }
       });
+      log.p("Input Canvas:");
       log.p(log.image(canvasImage, "Input Canvas"));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
     BufferedImage result = train(log, canvasImage, network, styleParameters.precision, trainingMinutes);
     try {
+      log.p("Output Canvas:");
       log.p(log.image(result, "Output Canvas"));
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -279,21 +284,19 @@ public class StyleTransferDemo extends ArtistryDemo {
    */
   public PipelineNetwork texture_0(@Nonnull final NotebookOutput log) {
     final PipelineNetwork[] layers = new PipelineNetwork[1];
-    log.code(() -> {
-      try {
-        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-          @Override
-          protected void phase0() {
-            super.phase0();
-            layers[0] = (PipelineNetwork) pipeline.freeze();
-            throw new RuntimeException("Abort Network Construction");
-          }
-        }.setLarge(true).getNetwork();
-      } catch (@Nonnull final RuntimeException e) {
-      } catch (Throwable e) {
-        throw new RuntimeException(e);
-      }
-    });
+    try {
+      new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+        @Override
+        protected void phase0() {
+          super.phase0();
+          layers[0] = (PipelineNetwork) pipeline.freeze();
+          throw new RuntimeException("Abort Network Construction");
+        }
+      }.setLarge(true).getNetwork();
+    } catch (@Nonnull final RuntimeException e) {
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
     return layers[0];
   }
   
@@ -305,21 +308,19 @@ public class StyleTransferDemo extends ArtistryDemo {
    */
   public PipelineNetwork texture_1a(@Nonnull final NotebookOutput log) {
     final PipelineNetwork[] layers = new PipelineNetwork[1];
-    log.code(() -> {
-      try {
-        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-          @Override
-          protected void phase1a() {
-            super.phase1a();
-            layers[0] = (PipelineNetwork) pipeline.freeze();
-            throw new RuntimeException("Abort Network Construction");
-          }
-        }.setLarge(true).getNetwork();
-      } catch (@Nonnull final RuntimeException e) {
-      } catch (Throwable e) {
-        throw new RuntimeException(e);
-      }
-    });
+    try {
+      new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+        @Override
+        protected void phase1a() {
+          super.phase1a();
+          layers[0] = (PipelineNetwork) pipeline.freeze();
+          throw new RuntimeException("Abort Network Construction");
+        }
+      }.setLarge(true).getNetwork();
+    } catch (@Nonnull final RuntimeException e) {
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
     return layers[0];
   }
   
@@ -331,21 +332,19 @@ public class StyleTransferDemo extends ArtistryDemo {
    */
   public PipelineNetwork texture_1b(@Nonnull final NotebookOutput log) {
     final PipelineNetwork[] layers = new PipelineNetwork[1];
-    log.code(() -> {
-      try {
-        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-          @Override
-          protected void phase1b() {
-            super.phase1b();
-            layers[0] = (PipelineNetwork) pipeline.freeze();
-            throw new RuntimeException("Abort Network Construction");
-          }
-        }.setLarge(true).getNetwork();
-      } catch (@Nonnull final RuntimeException e) {
-      } catch (Throwable e) {
-        throw new RuntimeException(e);
-      }
-    });
+    try {
+      new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+        @Override
+        protected void phase1b() {
+          super.phase1b();
+          layers[0] = (PipelineNetwork) pipeline.freeze();
+          throw new RuntimeException("Abort Network Construction");
+        }
+      }.setLarge(true).getNetwork();
+    } catch (@Nonnull final RuntimeException e) {
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
     return layers[0];
   }
   
@@ -357,21 +356,19 @@ public class StyleTransferDemo extends ArtistryDemo {
    */
   public PipelineNetwork texture_1c(@Nonnull final NotebookOutput log) {
     final PipelineNetwork[] layers = new PipelineNetwork[1];
-    log.code(() -> {
-      try {
-        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-          @Override
-          protected void phase1c() {
-            super.phase1c();
-            layers[0] = (PipelineNetwork) pipeline.freeze();
-            throw new RuntimeException("Abort Network Construction");
-          }
-        }.setLarge(true).getNetwork();
-      } catch (@Nonnull final RuntimeException e) {
-      } catch (Throwable e) {
-        throw new RuntimeException(e);
-      }
-    });
+    try {
+      new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+        @Override
+        protected void phase1c() {
+          super.phase1c();
+          layers[0] = (PipelineNetwork) pipeline.freeze();
+          throw new RuntimeException("Abort Network Construction");
+        }
+      }.setLarge(true).getNetwork();
+    } catch (@Nonnull final RuntimeException e) {
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
     return layers[0];
   }
   
@@ -383,21 +380,19 @@ public class StyleTransferDemo extends ArtistryDemo {
    */
   public PipelineNetwork texture_1d(@Nonnull final NotebookOutput log) {
     final PipelineNetwork[] layers = new PipelineNetwork[1];
-    log.code(() -> {
-      try {
-        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-          @Override
-          protected void phase1d() {
-            super.phase1d();
-            layers[0] = (PipelineNetwork) pipeline.freeze();
-            throw new RuntimeException("Abort Network Construction");
-          }
-        }.getNetwork();
-      } catch (@Nonnull final RuntimeException e) {
-      } catch (Throwable e) {
-        throw new RuntimeException(e);
-      }
-    });
+    try {
+      new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+        @Override
+        protected void phase1d() {
+          super.phase1d();
+          layers[0] = (PipelineNetwork) pipeline.freeze();
+          throw new RuntimeException("Abort Network Construction");
+        }
+      }.getNetwork();
+    } catch (@Nonnull final RuntimeException e) {
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
     return layers[0];
   }
   
@@ -409,21 +404,19 @@ public class StyleTransferDemo extends ArtistryDemo {
    */
   public PipelineNetwork texture_1e(@Nonnull final NotebookOutput log) {
     final PipelineNetwork[] layers = new PipelineNetwork[1];
-    log.code(() -> {
-      try {
-        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-          @Override
-          protected void phase1e() {
-            super.phase1e();
-            layers[0] = (PipelineNetwork) pipeline.freeze();
-            throw new RuntimeException("Abort Network Construction");
-          }
-        }.getNetwork();
-      } catch (@Nonnull final RuntimeException e) {
-      } catch (Throwable e) {
-        throw new RuntimeException(e);
-      }
-    });
+    try {
+      new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+        @Override
+        protected void phase1e() {
+          super.phase1e();
+          layers[0] = (PipelineNetwork) pipeline.freeze();
+          throw new RuntimeException("Abort Network Construction");
+        }
+      }.getNetwork();
+    } catch (@Nonnull final RuntimeException e) {
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
     return layers[0];
   }
   
@@ -470,24 +463,24 @@ public class StyleTransferDemo extends ArtistryDemo {
   
     Map<String, StyleCoefficients> styles = new HashMap<>();
     styles.put(lakeAndForest, new StyleCoefficients(
-      1e2, 1e1,
+      1e3, 1e3,
       0, 0,
       0, 0,
       0, 0,
       0, 0,
       0, 0, false));
     styles.put(threeMusicians, new StyleCoefficients(
-      1e-2, 1e-3,
-      1e-3, 1e-7,
-      1e-5, 1e-3,
-      1e-3, 1e-7,
-      1e-3, 1e-7,
-      1e-3, 1e-7, false)
+      1e-3, 1e-3,
+      1e-3, 1e-3,
+      1e-2, 1e-5,
+      1e-2, 1e-5,
+      1e-2, 1e-5,
+      1e-2, 1e-5, false)
     );
     double contentGate = 1e5;
     ContentCoefficients contentCoefficients = new ContentCoefficients(
-      contentGate * 0,
-      contentGate * 0,
+      contentGate * 1e-2,
+      contentGate * 1e-2,
       contentGate * 1e-2,
       contentGate * 1e-2,
       contentGate * 1e-2,
@@ -495,7 +488,7 @@ public class StyleTransferDemo extends ArtistryDemo {
     double power = 0.0;
     int trainingMinutes = 90;
   
-    log.h1("Input");
+    log.h1("Phase 0");
     BufferedImage canvasImage = load(lakeAndForest, imageSize);
     canvasImage = randomize(canvasImage);
     canvasImage = TestUtil.resize(canvasImage, imageSize, true);
@@ -503,7 +496,8 @@ public class StyleTransferDemo extends ArtistryDemo {
     styles.forEach((file, parameters) -> styleImages.put(file, load(file, file == lakeAndForest ? ((int) (imageSize * 1.5)) : imageSize)));
     BufferedImage contentImage = load(lakeAndForest, canvasImage.getWidth(), canvasImage.getHeight());
     canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles, power), trainingMinutes);
-    for (int i = 0; i < 10; i++) {
+    for (int i = 1; i < 10; i++) {
+      log.h1("Phase " + i);
       imageSize = (int) (imageSize * growthFactor);
       styleImages.clear();
       styles.forEach((file, parameters) -> styleImages.put(file, load(file, file == lakeAndForest ? ((int) (imageSize * 1.5)) : imageSize)));
@@ -539,7 +533,6 @@ public class StyleTransferDemo extends ArtistryDemo {
    */
   @Nonnull
   public BufferedImage train(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final PipelineNetwork network, final Precision precision, final int trainingMinutes) {
-    log.h1("Output");
     System.gc();
     Tensor canvas = Tensor.fromRGB(canvasImage);
     TestUtil.monitorImage(canvas, false, false);
@@ -765,11 +758,11 @@ public class StyleTransferDemo extends ArtistryDemo {
     /**
      * The Content image.
      */
-    public final BufferedImage contentImage;
+    public final transient BufferedImage contentImage;
     /**
      * The Style image.
      */
-    public final Map<String, BufferedImage> styleImages;
+    public final transient Map<String, BufferedImage> styleImages;
     /**
      * The Styles.
      */
@@ -955,8 +948,8 @@ public class StyleTransferDemo extends ArtistryDemo {
     /**
      * The Style targets.
      */
-    List<StyleTarget> styleTargets = new ArrayList<>();
-  
+    Map<String, StyleTarget> styleTargets = new HashMap<>();
+    
     /**
      * Instantiates a new Neural setup.
      *
@@ -984,20 +977,9 @@ public class StyleTransferDemo extends ArtistryDemo {
       List<String> keyList = style.styleImages.keySet().stream().collect(Collectors.toList());
   
       Tensor contentInput = Tensor.fromRGB(style.contentImage);
-      try {
-        log.p(log.image(contentInput.toImage(), "content"));
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-  
       List<Tensor> styleInputs = keyList.stream().map(x -> style.styleImages.get(x)).map(img -> Tensor.fromRGB(img)).collect(Collectors.toList());
-      styleInputs.forEach(styleInput -> {
-        try {
-          log.p(log.image(styleInput.toImage(), "style"));
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-        styleTargets.add(new StyleTarget());
+      IntStream.range(0, keyList.size()).forEach(i -> {
+        styleTargets.put(keyList.get(i), new StyleTarget());
       });
       contentTarget = new ContentTarget();
   
@@ -1006,7 +988,7 @@ public class StyleTransferDemo extends ArtistryDemo {
       logger.info("target_content_0=" + contentTarget.target_content_0.prettyPrint());
       for (int i = 0; i < styleInputs.size(); i++) {
         Tensor styleInput = styleInputs.get(i);
-        StyleTarget styleTarget = styleTargets.get(i);
+        StyleTarget styleTarget = styleTargets.get(keyList.get(i));
         System.gc();
         styleTarget.target_style_mean_0 = avg((PipelineNetwork) content_0.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
         logger.info("target_style_mean_0=" + styleTarget.target_style_mean_0.prettyPrint());
@@ -1024,7 +1006,7 @@ public class StyleTransferDemo extends ArtistryDemo {
       logger.info("target_content_1a=" + contentTarget.target_content_1a.prettyPrint());
       for (int i = 0; i < styleInputs.size(); i++) {
         Tensor styleInput = styleInputs.get(i);
-        StyleTarget styleTarget = styleTargets.get(i);
+        StyleTarget styleTarget = styleTargets.get(keyList.get(i));
         System.gc();
         styleTarget.target_style_mean_1a = avg((PipelineNetwork) content_1a.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
         logger.info("target_style_mean_1a=" + styleTarget.target_style_mean_1a.prettyPrint());
@@ -1042,7 +1024,7 @@ public class StyleTransferDemo extends ArtistryDemo {
       logger.info("target_content_1b=" + contentTarget.target_content_1b.prettyPrint());
       for (int i = 0; i < styleInputs.size(); i++) {
         Tensor styleInput = styleInputs.get(i);
-        StyleTarget styleTarget = styleTargets.get(i);
+        StyleTarget styleTarget = styleTargets.get(keyList.get(i));
         System.gc();
         styleTarget.target_style_mean_1b = avg((PipelineNetwork) content_1b.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
         logger.info("target_style_mean_1b=" + styleTarget.target_style_mean_1b.prettyPrint());
@@ -1060,7 +1042,7 @@ public class StyleTransferDemo extends ArtistryDemo {
       logger.info("target_content_1c=" + contentTarget.target_content_1c.prettyPrint());
       for (int i = 0; i < styleInputs.size(); i++) {
         Tensor styleInput = styleInputs.get(i);
-        StyleTarget styleTarget = styleTargets.get(i);
+        StyleTarget styleTarget = styleTargets.get(keyList.get(i));
         System.gc();
         styleTarget.target_style_mean_1c = avg((PipelineNetwork) content_1c.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
         logger.info("target_style_mean_1c=" + styleTarget.target_style_mean_1c.prettyPrint());
@@ -1078,7 +1060,7 @@ public class StyleTransferDemo extends ArtistryDemo {
       logger.info("target_content_1d=" + contentTarget.target_content_1d.prettyPrint());
       for (int i = 0; i < styleInputs.size(); i++) {
         Tensor styleInput = styleInputs.get(i);
-        StyleTarget styleTarget = styleTargets.get(i);
+        StyleTarget styleTarget = styleTargets.get(keyList.get(i));
         System.gc();
         styleTarget.target_style_mean_1d = avg((PipelineNetwork) content_1d.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
         logger.info("target_style_mean_1d=" + styleTarget.target_style_mean_1d.prettyPrint());
@@ -1096,7 +1078,7 @@ public class StyleTransferDemo extends ArtistryDemo {
       logger.info("target_content_1e=" + contentTarget.target_content_1e.prettyPrint());
       for (int i = 0; i < styleInputs.size(); i++) {
         Tensor styleInput = styleInputs.get(i);
-        StyleTarget styleTarget = styleTargets.get(i);
+        StyleTarget styleTarget = styleTargets.get(keyList.get(i));
         System.gc();
         styleTarget.target_style_mean_1e = avg((PipelineNetwork) content_1e.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
         logger.info("target_style_mean_1e=" + styleTarget.target_style_mean_1e.prettyPrint());
@@ -1122,52 +1104,50 @@ public class StyleTransferDemo extends ArtistryDemo {
     public PipelineNetwork fitnessNetwork(final NotebookOutput log) {
       final PipelineNetwork[] layerBuffer = new PipelineNetwork[1];
       final DAGNode[] nodes = new DAGNode[6];
-      log.code(() -> {
-        try {
-          new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-            @Override
-            protected void phase0() {
-              super.phase0();
-              nodes[0] = pipeline.getHead();
-            }
-            
-            @Override
-            protected void phase1a() {
-              super.phase1a();
-              nodes[1] = pipeline.getHead();
-            }
-            
-            @Override
-            protected void phase1b() {
-              super.phase1b();
-              nodes[2] = pipeline.getHead();
-            }
-            
-            @Override
-            protected void phase1c() {
-              super.phase1c();
-              nodes[3] = pipeline.getHead();
-            }
-            
-            @Override
-            protected void phase1d() {
-              super.phase1d();
-              nodes[4] = pipeline.getHead();
-            }
-            
-            @Override
-            protected void phase1e() {
-              super.phase1e();
-              nodes[5] = pipeline.getHead();
-              layerBuffer[0] = (PipelineNetwork) pipeline.freeze();
-              throw new RuntimeException("Abort Network Construction");
-            }
-          }.getNetwork();
-        } catch (@Nonnull final RuntimeException e1) {
-        } catch (Throwable e11) {
-          throw new RuntimeException(e11);
-        }
-      });
+      try {
+        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+          @Override
+          protected void phase0() {
+            super.phase0();
+            nodes[0] = pipeline.getHead();
+          }
+      
+          @Override
+          protected void phase1a() {
+            super.phase1a();
+            nodes[1] = pipeline.getHead();
+          }
+      
+          @Override
+          protected void phase1b() {
+            super.phase1b();
+            nodes[2] = pipeline.getHead();
+          }
+      
+          @Override
+          protected void phase1c() {
+            super.phase1c();
+            nodes[3] = pipeline.getHead();
+          }
+      
+          @Override
+          protected void phase1d() {
+            super.phase1d();
+            nodes[4] = pipeline.getHead();
+          }
+      
+          @Override
+          protected void phase1e() {
+            super.phase1e();
+            nodes[5] = pipeline.getHead();
+            layerBuffer[0] = (PipelineNetwork) pipeline.freeze();
+            throw new RuntimeException("Abort Network Construction");
+          }
+        }.getNetwork();
+      } catch (@Nonnull final RuntimeException e1) {
+      } catch (Throwable e11) {
+        throw new RuntimeException(e11);
+      }
       List<Tuple2<Double, DAGNode>> functions = new ArrayList<>();
   
       {
@@ -1180,9 +1160,11 @@ public class StyleTransferDemo extends ArtistryDemo {
         functions.addAll(getContentComponents(nodes[5], c.coeff_content_1e, contentTarget.target_content_1e));
       }
   
-      for (int i = 0; i < this.style.styles.size(); i++) {
-        StyleTarget t = this.styleTargets.get(i);
-        StyleCoefficients c = this.style.styles.get(i);
+      for (final String key : this.style.styles.keySet()) {
+        StyleTarget t = this.styleTargets.get(key);
+        StyleCoefficients c = this.style.styles.get(key);
+        assert null != c;
+        assert null != t;
         functions.addAll(getStyleComponents(nodes[0], c.dynamic_center, c.coeff_style_mean_0, t.target_style_mean_0, c.coeff_style_cov_0, t.target_style_pca_cov_0, t.target_style_pca_0));
         functions.addAll(getStyleComponents(nodes[1], c.dynamic_center, c.coeff_style_mean_1a, t.target_style_mean_1a, c.coeff_style_cov_1a, t.target_style_pca_cov_1a, t.target_style_pca_1a));
         functions.addAll(getStyleComponents(nodes[2], c.dynamic_center, c.coeff_style_mean_1b, t.target_style_mean_1b, c.coeff_style_cov_1b, t.target_style_pca_cov_1b, t.target_style_pca_1b));

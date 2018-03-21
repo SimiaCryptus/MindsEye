@@ -304,21 +304,21 @@ public class StyleDreamDemo extends ArtistryDemo {
   /**
    * Load buffered image.
    *
-   * @param style  the style
+   * @param file  the style
    * @param width  the width
    * @param height the height
    * @return the buffered image
    */
   @Nonnull
-  public BufferedImage load(final String style, final int width, final int height) {
-    BufferedImage image1;
+  public BufferedImage load(final String file, final int width, final int height) {
+    BufferedImage image;
     try {
-      image1 = ImageIO.read(new File(style));
-      image1 = TestUtil.resize(image1, width, height);
+      image = ImageIO.read(new File(file));
+      image = TestUtil.resize(image, width, height);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    return image1;
+    return image;
   }
   
   /**
@@ -329,21 +329,19 @@ public class StyleDreamDemo extends ArtistryDemo {
    */
   public PipelineNetwork texture_0(@Nonnull final NotebookOutput log) {
     final PipelineNetwork[] layers = new PipelineNetwork[1];
-    log.code(() -> {
-      try {
-        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-          @Override
-          protected void phase0() {
-            super.phase0();
-            layers[0] = (PipelineNetwork) pipeline.freeze();
-            throw new RuntimeException("Abort Network Construction");
-          }
-        }.setLarge(true).getNetwork();
-      } catch (@Nonnull final RuntimeException e) {
-      } catch (Throwable e) {
-        throw new RuntimeException(e);
-      }
-    });
+    try {
+      new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+        @Override
+        protected void phase0() {
+          super.phase0();
+          layers[0] = (PipelineNetwork) pipeline.freeze();
+          throw new RuntimeException("Abort Network Construction");
+        }
+      }.setLarge(true).getNetwork();
+    } catch (@Nonnull final RuntimeException e) {
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
     return layers[0];
   }
   
@@ -355,21 +353,19 @@ public class StyleDreamDemo extends ArtistryDemo {
    */
   public PipelineNetwork texture_1a(@Nonnull final NotebookOutput log) {
     final PipelineNetwork[] layers = new PipelineNetwork[1];
-    log.code(() -> {
-      try {
-        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-          @Override
-          protected void phase1a() {
-            super.phase1a();
-            layers[0] = (PipelineNetwork) pipeline.freeze();
-            throw new RuntimeException("Abort Network Construction");
-          }
-        }.setLarge(true).getNetwork();
-      } catch (@Nonnull final RuntimeException e) {
-      } catch (Throwable e) {
-        throw new RuntimeException(e);
-      }
-    });
+    try {
+      new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+        @Override
+        protected void phase1a() {
+          super.phase1a();
+          layers[0] = (PipelineNetwork) pipeline.freeze();
+          throw new RuntimeException("Abort Network Construction");
+        }
+      }.setLarge(true).getNetwork();
+    } catch (@Nonnull final RuntimeException e) {
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
     return layers[0];
   }
   
@@ -381,21 +377,19 @@ public class StyleDreamDemo extends ArtistryDemo {
    */
   public PipelineNetwork texture_1b(@Nonnull final NotebookOutput log) {
     final PipelineNetwork[] layers = new PipelineNetwork[1];
-    log.code(() -> {
-      try {
-        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-          @Override
-          protected void phase1b() {
-            super.phase1b();
-            layers[0] = (PipelineNetwork) pipeline.freeze();
-            throw new RuntimeException("Abort Network Construction");
-          }
-        }.setLarge(true).getNetwork();
-      } catch (@Nonnull final RuntimeException e) {
-      } catch (Throwable e) {
-        throw new RuntimeException(e);
-      }
-    });
+    try {
+      new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+        @Override
+        protected void phase1b() {
+          super.phase1b();
+          layers[0] = (PipelineNetwork) pipeline.freeze();
+          throw new RuntimeException("Abort Network Construction");
+        }
+      }.setLarge(true).getNetwork();
+    } catch (@Nonnull final RuntimeException e) {
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
     return layers[0];
   }
   
@@ -407,21 +401,19 @@ public class StyleDreamDemo extends ArtistryDemo {
    */
   public PipelineNetwork texture_1c(@Nonnull final NotebookOutput log) {
     final PipelineNetwork[] layers = new PipelineNetwork[1];
-    log.code(() -> {
-      try {
-        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-          @Override
-          protected void phase1c() {
-            super.phase1c();
-            layers[0] = (PipelineNetwork) pipeline.freeze();
-            throw new RuntimeException("Abort Network Construction");
-          }
-        }.setLarge(true).getNetwork();
-      } catch (@Nonnull final RuntimeException e) {
-      } catch (Throwable e) {
-        throw new RuntimeException(e);
-      }
-    });
+    try {
+      new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+        @Override
+        protected void phase1c() {
+          super.phase1c();
+          layers[0] = (PipelineNetwork) pipeline.freeze();
+          throw new RuntimeException("Abort Network Construction");
+        }
+      }.setLarge(true).getNetwork();
+    } catch (@Nonnull final RuntimeException e) {
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
     return layers[0];
   }
   
@@ -433,21 +425,19 @@ public class StyleDreamDemo extends ArtistryDemo {
    */
   public PipelineNetwork texture_1d(@Nonnull final NotebookOutput log) {
     final PipelineNetwork[] layers = new PipelineNetwork[1];
-    log.code(() -> {
-      try {
-        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-          @Override
-          protected void phase1d() {
-            super.phase1d();
-            layers[0] = (PipelineNetwork) pipeline.freeze();
-            throw new RuntimeException("Abort Network Construction");
-          }
-        }.getNetwork();
-      } catch (@Nonnull final RuntimeException e) {
-      } catch (Throwable e) {
-        throw new RuntimeException(e);
-      }
-    });
+    try {
+      new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+        @Override
+        protected void phase1d() {
+          super.phase1d();
+          layers[0] = (PipelineNetwork) pipeline.freeze();
+          throw new RuntimeException("Abort Network Construction");
+        }
+      }.getNetwork();
+    } catch (@Nonnull final RuntimeException e) {
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
     return layers[0];
   }
   
@@ -459,21 +449,19 @@ public class StyleDreamDemo extends ArtistryDemo {
    */
   public PipelineNetwork texture_1e(@Nonnull final NotebookOutput log) {
     final PipelineNetwork[] layers = new PipelineNetwork[1];
-    log.code(() -> {
-      try {
-        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-          @Override
-          protected void phase1e() {
-            super.phase1e();
-            layers[0] = (PipelineNetwork) pipeline.freeze();
-            throw new RuntimeException("Abort Network Construction");
-          }
-        }.getNetwork();
-      } catch (@Nonnull final RuntimeException e) {
-      } catch (Throwable e) {
-        throw new RuntimeException(e);
-      }
-    });
+    try {
+      new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+        @Override
+        protected void phase1e() {
+          super.phase1e();
+          layers[0] = (PipelineNetwork) pipeline.freeze();
+          throw new RuntimeException("Abort Network Construction");
+        }
+      }.getNetwork();
+    } catch (@Nonnull final RuntimeException e) {
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
     return layers[0];
   }
   
@@ -942,21 +930,7 @@ public class StyleDreamDemo extends ArtistryDemo {
       final PipelineNetwork content_1e = texture_1e(log);
       
       Tensor contentInput = Tensor.fromRGB(style.contentImage);
-      try {
-        log.p(log.image(contentInput.toImage(), "content"));
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-      
       List<Tensor> styleInputs = style.styleImages.stream().map(img -> Tensor.fromRGB(img)).collect(Collectors.toList());
-      styleInputs.forEach(styleInput -> {
-        try {
-          log.p(log.image(styleInput.toImage(), "style"));
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-        styleTargets.add(new StyleTarget());
-      });
       contentTarget = new ContentTarget();
       
       System.gc();
